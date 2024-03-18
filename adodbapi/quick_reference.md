@@ -85,7 +85,7 @@ Microsoft.]{lang="en-US"}
 or MariaDB driver <https://downloads.mariadb.org/connector-odbc/>
 or `choco install mysql.odbc`
 - PostgreSQL driver <http://www.postgresql.org/ftp/odbc/versions/msi/>
-(scroll all the way to the bottom) or `choco install psqlodbc`. 
+(scroll all the way to the bottom) or `choco install psqlodbc`.
 
 
 \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--
@@ -150,12 +150,12 @@ and set everything up for you under "myDataSetName".
 Usually, life is not so simple
 \...
 
-        import adodbapi 
+        import adodbapi
         myhost = r".\SQLEXPRESS"
         mydatabase = "Northwind"
         myuser = "guest"
         mypassword = "12345678"
-        connStr = """Provider=SQLOLEDB.1; User ID=%s; Password=%s; 
+        connStr = """Provider=SQLOLEDB.1; User ID=%s; Password=%s;
             Initial Catalog=%s;Data Source= %s"""
         myConnStr = connStr % (myuser, mypassword, mydatabase, myhost)
         myConn = adodbapi.connect(myConnStr)
@@ -257,7 +257,7 @@ conn_keys['connection_string'] = "Provider=%(provider)s; ... and ... more ... st
 ```
 
 - macro "getuser": Retrieve the proxy server logged-in-user's username
-  
+
     My systems administrator gave me a test database named after myself.
 
     I thought it would be handy to let others do a similar thing. so:
@@ -311,7 +311,7 @@ The standard methods are supplied:
 
 - .commit() \# commits any pending transaction(s) on the connection
 
-- .rollback() \# rolls back any pending transaction. 
+- .rollback() \# rolls back any pending transaction.
         If the engine attached to the present instance does not support transactions, this
         method will appear to not be present (an AttributeError will be raised),
         as per the PEP.
@@ -396,7 +396,7 @@ adodbapi.ado_consts)
 
 [6] null_ok: ADO field.Attributes & adFldMayBeNull
 
-- .rowcount # -1 means "not known". 
+- .rowcount # -1 means "not known".
     Will be ADO recordset.RecordCount (if it works)
     otherwise, the count returned by the last ADO Execute operation.
 
@@ -513,7 +513,7 @@ those values.
 
 - .next() # The cursor can be used as an iterator, each iteration does fetchone()
 
-- .\_\_iter\_\_() 
+- .\_\_iter\_\_()
 
 - \_\_enter\_\_() # the cursor is a context manager which will auto-close
 
@@ -598,7 +598,7 @@ The other paramstyle possibility mentioned in the PEP is:
 **\'numeric\'**, which takes a sequence. It not implemented in adodbapi.
 (If you want it, patches will be considered.):
 
-      UPDATE cheese SET qtyonhand = :1 WHERE name = :2 
+      UPDATE cheese SET qtyonhand = :1 WHERE name = :2
 
 ((Gurus: Start reading again here))
 
@@ -615,7 +615,7 @@ operation string into 'qmark', and then makes the ADO Execute call.
 
 Extracting the appropriate SQL table values from Python objects is a
 complex operation. If your table receives unexpected values, try to
-simplify the objects you present as parameters. 
+simplify the objects you present as parameters.
 \[ Set the \".verbose\" attribute \> 2 to get a debug listing of the parameters.\]
 
 You may switch paramstyle as often as desired. If you want to use
@@ -631,7 +631,7 @@ Row Class & Rows Class for returned data
 The PEP specifies that .fetchone() returns a "single sequence". It
 does not spell out what kind of a sequence. Originally, adodbapi
 returned a tuple. It is supposed to be up to the programmer to count
-columns of the returned data to select the correct thing. 
+columns of the returned data to select the correct thing.
 In the past, I have often resorted to putting long lists of constants into my Python code to
 keep track of which column a dutum was in.
 
@@ -662,10 +662,10 @@ But, _really_ lazy programmers, like me, use the column names as attributes:
 
 Now, isn't that easier to read and understand?
 
-The PEP specifies that .fetchmany() and .fetchall() must return 
-"a sequence of sequences". 
+The PEP specifies that .fetchmany() and .fetchall() must return
+"a sequence of sequences".
 This as satisfied by returning a Rows object,
-which emits a sequence of Row objects. 
+which emits a sequence of Row objects.
 Both Row and Rows are actually lazy \-- they do not fetch data from the queryset until the programmer
 asks for it.
 

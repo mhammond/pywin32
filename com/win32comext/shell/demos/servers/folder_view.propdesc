@@ -1,4 +1,4 @@
-<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns="http://schemas.microsoft.com/windows/2006/propertydescription"
         schemaVersion="1.0" >
     <propertyDescriptionList>

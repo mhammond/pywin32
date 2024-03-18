@@ -2105,7 +2105,7 @@ static PyObject *PyGetLongPathNameW(PyObject *self, PyObject *args)
             // The length is the buffer needed, which includes the NULL.
             // PyUnicode_FromWideChar adds one.
             PyW32_BEGIN_ALLOW_THREADS DWORD length2 = (*pfnGetLongPathNameW)(fileName, buf, length);
-            PyW32_END_ALLOW_THREADS 
+            PyW32_END_ALLOW_THREADS
             if (length2)
                 obLongPathNameW = PyUnicode_FromWideChar(buf, -1);
             // On success, it is the number of chars copied *not* including

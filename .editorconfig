@@ -1,10 +1,9 @@
 root = true
 
 [*]
-# TODO: Activate and run in a different PR. Lots of files affected
-# trim_trailing_whitespace = true
-# insert_final_newline = true
-# end_of_line = crlf
+trim_trailing_whitespace = true
+insert_final_newline = true
+end_of_line = crlf
 indent_style = space
 indent_size = 4
 max_line_length = 120 # Same as .clang-format
@@ -15,5 +14,5 @@ max_line_length = 88 # Same as Black
 [*.md]
 trim_trailing_whitespace = false
 
-[*.{yaml,yml}]
+[*.{yaml,yml,json}]
 indent_size = 2

@@ -268,8 +268,8 @@ static BOOL CreateEnvironmentString(PyObject *env, LPVOID *ppRet, BOOL *pRetIsUn
 }
 
 PyObject *MyCreateProcess(
-	TCHAR *appName, 
-	TCHAR *cmdLine, 
+	TCHAR *appName,
+	TCHAR *cmdLine,
 	SECURITY_ATTRIBUTES *psaP,
 	SECURITY_ATTRIBUTES *psaT,
 	BOOL bInheritHandles,
@@ -360,26 +360,26 @@ BOOLCEAPI CeCheckPassword(
 PyCEHANDLE CeCreateFile(
     TCHAR *lpFileName,	// @pyparm <o PyUnicode>|fileName||The name of the file
     DWORD dwDesiredAccess,	// @pyparm int|desiredAccess||access (read-write) mode
-			// Specifies the type of access to the object. An application can obtain read access, write access, read-write access, or device query access. This parameter can be any combination of the following values. 
-			// @flagh Value|Meaning 
+			// Specifies the type of access to the object. An application can obtain read access, write access, read-write access, or device query access. This parameter can be any combination of the following values.
+			// @flagh Value|Meaning
 			// @flag 0|Specifies device query access to the object. An application can query device attributes without accessing the device.
-			// @flag GENERIC_READ|Specifies read access to the object. Data can be read from the file and the file pointer can be moved. Combine with GENERIC_WRITE for read-write access.  
+			// @flag GENERIC_READ|Specifies read access to the object. Data can be read from the file and the file pointer can be moved. Combine with GENERIC_WRITE for read-write access.
 			// @flag GENERIC_WRITE|Specifies write access to the object. Data can be written to the file and the file pointer can be moved. Combine with GENERIC_READ for read-write access.
-    DWORD dwShareMode,	// @pyparm int|shareMode||Set of bit flags that specifies how the object can be shared. If dwShareMode is 0, the object cannot be shared. Subsequent open operations on the object will fail, until the handle is closed. 
+    DWORD dwShareMode,	// @pyparm int|shareMode||Set of bit flags that specifies how the object can be shared. If dwShareMode is 0, the object cannot be shared. Subsequent open operations on the object will fail, until the handle is closed.
 			// To share the object, use a combination of one or more of the following values:
-			// @flagh Value|Meaning 
-			// @flag FILE_SHARE_DELETE|Windows NT: Subsequent open operations on the object will succeed only if delete access is requested.  
+			// @flagh Value|Meaning
+			// @flag FILE_SHARE_DELETE|Windows NT: Subsequent open operations on the object will succeed only if delete access is requested.
 			// @flag FILE_SHARE_READ|Subsequent open operations on the object will succeed only if read access is requested.
 			// @flag FILE_SHARE_WRITE|Subsequent open operations on the object will succeed only if write access is requested.
     SECURITY_ATTRIBUTES *lpSecurityAttributes,	// @pyparm <o PySECURITY_ATTRIBUTES>|attributes||The security attributes, or None
     DWORD dwCreationDistribution,	// @pyparm int|creationDisposition||Specifies which action to take on files that exist, and which action to take when files do not exist. For more information about this parameter, see the Remarks section. This parameter must be one of the following values:
 			// @flagh Value|Meaning
-			// @flag CREATE_NEW|Creates a new file. The function fails if the specified file already exists. 
-			// @flag CREATE_ALWAYS|Creates a new file. If the file exists, the function overwrites the file and clears the existing attributes. 
-			// @flag OPEN_EXISTING|Opens the file. The function fails if the file does not exist. 
-			//       See the Remarks section for a discussion of why you should use the OPEN_EXISTING flag if you are using the CreateFile function for devices, including the console. 
-			// @flag OPEN_ALWAYS|Opens the file, if it exists. If the file does not exist, the function creates the file as if dwCreationDisposition were CREATE_NEW. 
-			// @flag TRUNCATE_EXISTING|Opens the file. Once opened, the file is truncated so that its size is zero bytes. The calling process must open the file with at least GENERIC_WRITE access. The function fails if the file does not exist. 
+			// @flag CREATE_NEW|Creates a new file. The function fails if the specified file already exists.
+			// @flag CREATE_ALWAYS|Creates a new file. If the file exists, the function overwrites the file and clears the existing attributes.
+			// @flag OPEN_EXISTING|Opens the file. The function fails if the file does not exist.
+			//       See the Remarks section for a discussion of why you should use the OPEN_EXISTING flag if you are using the CreateFile function for devices, including the console.
+			// @flag OPEN_ALWAYS|Opens the file, if it exists. If the file does not exist, the function creates the file as if dwCreationDisposition were CREATE_NEW.
+			// @flag TRUNCATE_EXISTING|Opens the file. Once opened, the file is truncated so that its size is zero bytes. The calling process must open the file with at least GENERIC_WRITE access. The function fails if the file does not exist.
     DWORD dwFlagsAndAttributes,	// @pyparm int|flagsAndAttributes||file attributes
     PyCEHANDLE INPUT_NULLOK // @pyparm <o PyHANDLE>|hTemplateFile||Specifies a handle with GENERIC_READ access to a template file. The template file supplies file attributes and extended attributes for the file being created.   Under Win95, this must be 0, else an exception will be raised.
 );
@@ -388,10 +388,10 @@ PyCEHANDLE CeCreateFile(
 BOOLCEAPI CeDeleteFile(TCHAR *fileName);
 // @pyparm <o PyUnicode>|fileName||The filename to delete
 
-// @pyswig |CeMoveFile|Renames an existing file or a directory (including all its children). 
+// @pyswig |CeMoveFile|Renames an existing file or a directory (including all its children).
 BOOLCEAPI CeMoveFile(
-    TCHAR *lpExistingFileName,	// @pyparm <o PyUnicode>|existingFileName||Name of the existing file  
-    TCHAR *lpNewFileName 	// @pyparm <o PyUnicode>|newFileName||New name for the file 
+    TCHAR *lpExistingFileName,	// @pyparm <o PyUnicode>|existingFileName||Name of the existing file
+    TCHAR *lpNewFileName 	// @pyparm <o PyUnicode>|newFileName||New name for the file
 );
 
 // @pyswig |CeCreateDirectory|Creates a directory
@@ -433,7 +433,7 @@ PyCeGetSystemInfo(PyObject * self, PyObject * args)
 	PyW32_BEGIN_ALLOW_THREADS
 	CeGetSystemInfo( &info );
 	PyW32_END_ALLOW_THREADS
-	return Py_BuildValue("iiiiiiii(ii)", info.dwOemId, info.dwPageSize, 
+	return Py_BuildValue("iiiiiiii(ii)", info.dwOemId, info.dwPageSize,
                          info.lpMinimumApplicationAddress, info.lpMaximumApplicationAddress,
                          info.dwActiveProcessorMask, info.dwNumberOfProcessors,
                          info.dwProcessorType, info.dwAllocationGranularity,
@@ -448,10 +448,10 @@ PyCeGetSystemInfo(PyObject * self, PyObject * args)
 %native (CeGetSystemInfo) PyCeGetSystemInfo;
 
 // @pyswig int|CeGetDesktopDeviceCaps|Retrieves information about the CE desktop.
-int CeGetDesktopDeviceCaps(int nIndex); 
+int CeGetDesktopDeviceCaps(int nIndex);
 
 // @pyswig int|CeGetSystemMetrics|Retrieves information about the CE system.
-int CeGetSystemMetrics(int nIndex); 
+int CeGetSystemMetrics(int nIndex);
 
 // @pyswig <o PyUnicode>|CeGetSpecialFolderPath|Retrieves the location of special folders on the CE device.
 %{
@@ -514,13 +514,13 @@ PyCeGetSystemPowerStatusEx(PyObject *self, PyObject *args)
 
 
 // @pyswig |CeSHCreateShortcut|Creates a shortcut on the remote device.
-DWORDAPI CeSHCreateShortcut(TCHAR *lpszShortcut, TCHAR *lpszTarget); 
+DWORDAPI CeSHCreateShortcut(TCHAR *lpszShortcut, TCHAR *lpszTarget);
 
 // @pyswig tuple|CeSHGetShortcutTarget|Retrieves the target of a shortcut.
 %{
 static PyObject *
 PyCeSHGetShortcutTarget(PyObject *self, PyObject *args)
-{	
+{
 	PyObject *obSC;
 	if(!PyArg_ParseTuple(args, "|O:CeGetSystemPowerStatusEx", &obSC))
 		return NULL;
@@ -534,7 +534,7 @@ PyCeSHGetShortcutTarget(PyObject *self, PyObject *args)
 	PyObject *result;
 	if (ok)
 		result = PyWinObject_FromTCHAR(target);
-	else 
+	else
 		result = PyWin_SetAPIError("CeSHGetShortcutTarget", GetLastCEError());
 	PyWinObject_FreeTCHAR(sc);
 	return result;
@@ -586,13 +586,13 @@ PyCeGlobalMemoryStatus(PyObject * self, PyObject * args)
 	PyW32_END_ALLOW_THREADS
 	return Py_BuildValue("lllllll",
 	// @rdesc The return value is a tuple with the following information.<nl>
-				ms.dwMemoryLoad, // MemoryLoad - Specifies a number between 0 and 100 that gives a general idea of current memory utilization, in which 0 indicates no memory use and 100 indicates full memory use. 
-				ms.dwTotalPhys, // TotalPhys - Indicates the total number of bytes of physical memory. 
-				ms.dwAvailPhys, // AvailPhys - Indicates the number of bytes of physical memory available. 
-				ms.dwTotalPageFile, // TotalPageFile - Indicates the total number of bytes that can be stored in the paging file. Note that this number does not represent the actual physical size of the paging file on disk. 
-				ms.dwAvailPageFile, // AvailPageFile - Indicates the number of bytes available in the paging file. 
-				ms.dwTotalVirtual, // TotalVirtual - Indicates the total number of bytes that can be described in the user mode portion of the virtual address space of the calling process. 
-				ms.dwAvailVirtual); // AvailVirtual - Indicates the number of bytes of unreserved and uncommitted memory in the user mode portion of the virtual address space of the calling process. 
+				ms.dwMemoryLoad, // MemoryLoad - Specifies a number between 0 and 100 that gives a general idea of current memory utilization, in which 0 indicates no memory use and 100 indicates full memory use.
+				ms.dwTotalPhys, // TotalPhys - Indicates the total number of bytes of physical memory.
+				ms.dwAvailPhys, // AvailPhys - Indicates the number of bytes of physical memory available.
+				ms.dwTotalPageFile, // TotalPageFile - Indicates the total number of bytes that can be stored in the paging file. Note that this number does not represent the actual physical size of the paging file on disk.
+				ms.dwAvailPageFile, // AvailPageFile - Indicates the number of bytes available in the paging file.
+				ms.dwTotalVirtual, // TotalVirtual - Indicates the total number of bytes that can be described in the user mode portion of the virtual address space of the calling process.
+				ms.dwAvailVirtual); // AvailVirtual - Indicates the number of bytes of unreserved and uncommitted memory in the user mode portion of the virtual address space of the calling process.
 }
 %}
 %native (CeGlobalMemoryStatus) PyCeGlobalMemoryStatus;
@@ -657,7 +657,7 @@ PyCeFindFiles(PyObject *self, PyObject *args)
     		obFileName,		// @tupleitem 8|string|fileName|The name of the file.
     		NULL);		// @tupleitem 9|None|altName|Always None
 		if (newItem!=NULL) {
-			PyList_Append(retList, newItem); 
+			PyList_Append(retList, newItem);
 			Py_DECREF(newItem);
 		}
 		// @pyseeapi FindNextFile
@@ -709,9 +709,9 @@ PyCeGetFileAttributes(PyObject * self, PyObject * args)
 
 // @pyswig |CeSetFileAttributes|Changes a file's attributes.
 BOOLCEAPI CeSetFileAttributes(
-    TCHAR *lpFileName,	// @pyparm <o PyUnicode>|filename||filename 
-    DWORD dwFileAttributes 	// @pyparm int|newAttributes||attributes to set 
-);	
+    TCHAR *lpFileName,	// @pyparm <o PyUnicode>|filename||filename
+    DWORD dwFileAttributes 	// @pyparm int|newAttributes||attributes to set
+);
 
 %{
 static PyObject *PyCeGetFileSize(PyObject *self, PyObject *args)
@@ -726,8 +726,8 @@ static PyObject *PyCeGetFileSize(PyObject *self, PyObject *args)
     Py_BEGIN_ALLOW_THREADS
 	dwSizeLow = CeGetFileSize (hFile, &dwSizeHigh);
     Py_END_ALLOW_THREADS
-	// If we failed ... 
-	if (dwSizeLow == 0xFFFFFFFF && 
+	// If we failed ...
+	if (dwSizeLow == 0xFFFFFFFF &&
 	    GetLastCEError() != NO_ERROR )
 		return PyWin_SetAPIError("GetFileSize");
 	return PyLong_FromTwoInts(dwSizeHigh, dwSizeLow);
@@ -746,7 +746,7 @@ PyObject *PyCeReadFile(PyObject *self, PyObject *args)
 	HANDLE hFile;
 	DWORD bufSize;
 
-	if (!PyArg_ParseTuple(args, "Ol|O:CeReadFile", 
+	if (!PyArg_ParseTuple(args, "Ol|O:CeReadFile",
 		&obhFile, // @pyparm <o PyHANDLE>/int|hFile||Handle to the file
 		&bufSize, // @pyparm int|bufSize||Size of the buffer to create for the read.
 		&obOverlapped))
@@ -788,7 +788,7 @@ PyObject *PyCeWriteFile(PyObject *self, PyObject *args)
 		&obhFile, // @pyparm <o PyHANDLE>/int|hFile||Handle to the file
 		&writeData, // @pyparm string|data||The data to write.
 		&dataSize,
-		&obOverlapped))	
+		&obOverlapped))
 		return NULL;
 	HANDLE hFile;
 	if (!PyWinObject_AsCEHANDLE(obhFile, &hFile, FALSE))
@@ -906,43 +906,43 @@ extern PyObject *PyWinMethod_NewCEHKEY(PyObject *self, PyObject *args);
 %native (CeRegSetValueEx) PyCeRegSetValueEx;
 %native (CEHKEY) PyWinMethod_NewCEHKEY;
 ////////////////////////////////////////////////////////////////////////
-#define CSIDL_BITBUCKET CSIDL_BITBUCKET 
-// Recycle bin-file system directory containing file objects in the user's recycle bin. The location of this directory is not in the registry; it is marked with the hidden and system attributes to prevent the user from moving or deleting it. 
+#define CSIDL_BITBUCKET CSIDL_BITBUCKET
+// Recycle bin-file system directory containing file objects in the user's recycle bin. The location of this directory is not in the registry; it is marked with the hidden and system attributes to prevent the user from moving or deleting it.
 #define CSIDL_COMMON_DESKTOPDIRECTORY CSIDL_COMMON_DESKTOPDIRECTORY
-// File system directory that contains files and folders that appear on the desktop for all users. 
-#define CSIDL_COMMON_PROGRAMS CSIDL_COMMON_PROGRAMS 
-// File system directory that contains the directories for the common program groups that appear on the Start menu for all users. 
-#define CSIDL_COMMON_STARTMENU CSIDL_COMMON_STARTMENU 
-// File system directory that contains the programs and folders that appear on the Start menu for all users. 
-#define CSIDL_COMMON_STARTUP CSIDL_COMMON_STARTUP 
-// File system directory that contains the programs that appear in the Startup folder for all users. The system starts these programs whenever any user logs on to a Windows desktop platform. 
-#define CSIDL_CONTROLS CSIDL_CONTROLS 
-// Control Panel-virtual folder containing icons for the control panel applications. 
-#define CSIDL_DESKTOP CSIDL_DESKTOP 
-// Windows desktop-virtual folder at the root of the name space. 
-#define CSIDL_DESKTOPDIRECTORY CSIDL_DESKTOPDIRECTORY 
-// File system directory used to physically store file objects on the desktop - not to be confused with the desktop folder itself. 
-#define CSIDL_DRIVES CSIDL_DRIVES 
-// My Computer-virtual folder containing everything on the local computer: storage devices, printers, and Control Panel. The folder can also contain mapped network drives. 
-#define CSIDL_FONTS CSIDL_FONTS 
-// Virtual folder containing fonts. 
-#define CSIDL_NETHOOD CSIDL_NETHOOD 
-// File system directory containing objects that appear in the network neighborhood. 
-#define CSIDL_NETWORK CSIDL_NETWORK 
-// Network Neighborhood-virtual folder representing the top level of the network hierarchy. 
-#define CSIDL_PERSONAL CSIDL_PERSONAL 
-// File system directory that serves as a common repository for documents. 
-#define CSIDL_PRINTERS CSIDL_PRINTERS 
-// Printers folder-virtual folder containing installed printers. 
-#define CSIDL_PROGRAMS CSIDL_PROGRAMS 
-// File system directory that contains the user's program groups which are also file system directories. 
-#define CSIDL_RECENT CSIDL_RECENT 
-// File system directory containing the user's most recently used documents. 
-#define CSIDL_SENDTO CSIDL_SENDTO 
-// File system directory containing Send To menu items. 
-#define CSIDL_STARTMENU CSIDL_STARTMENU 
-// File system directory containing Start menu items. 
-#define CSIDL_STARTUP CSIDL_STARTUP 
-// File system directory that corresponds to the user's Startup program group. 
-#define CSIDL_TEMPLATES CSIDL_TEMPLATES 
-// File system directory that serves as a common repository for document templates. 
+// File system directory that contains files and folders that appear on the desktop for all users.
+#define CSIDL_COMMON_PROGRAMS CSIDL_COMMON_PROGRAMS
+// File system directory that contains the directories for the common program groups that appear on the Start menu for all users.
+#define CSIDL_COMMON_STARTMENU CSIDL_COMMON_STARTMENU
+// File system directory that contains the programs and folders that appear on the Start menu for all users.
+#define CSIDL_COMMON_STARTUP CSIDL_COMMON_STARTUP
+// File system directory that contains the programs that appear in the Startup folder for all users. The system starts these programs whenever any user logs on to a Windows desktop platform.
+#define CSIDL_CONTROLS CSIDL_CONTROLS
+// Control Panel-virtual folder containing icons for the control panel applications.
+#define CSIDL_DESKTOP CSIDL_DESKTOP
+// Windows desktop-virtual folder at the root of the name space.
+#define CSIDL_DESKTOPDIRECTORY CSIDL_DESKTOPDIRECTORY
+// File system directory used to physically store file objects on the desktop - not to be confused with the desktop folder itself.
+#define CSIDL_DRIVES CSIDL_DRIVES
+// My Computer-virtual folder containing everything on the local computer: storage devices, printers, and Control Panel. The folder can also contain mapped network drives.
+#define CSIDL_FONTS CSIDL_FONTS
+// Virtual folder containing fonts.
+#define CSIDL_NETHOOD CSIDL_NETHOOD
+// File system directory containing objects that appear in the network neighborhood.
+#define CSIDL_NETWORK CSIDL_NETWORK
+// Network Neighborhood-virtual folder representing the top level of the network hierarchy.
+#define CSIDL_PERSONAL CSIDL_PERSONAL
+// File system directory that serves as a common repository for documents.
+#define CSIDL_PRINTERS CSIDL_PRINTERS
+// Printers folder-virtual folder containing installed printers.
+#define CSIDL_PROGRAMS CSIDL_PROGRAMS
+// File system directory that contains the user's program groups which are also file system directories.
+#define CSIDL_RECENT CSIDL_RECENT
+// File system directory containing the user's most recently used documents.
+#define CSIDL_SENDTO CSIDL_SENDTO
+// File system directory containing Send To menu items.
+#define CSIDL_STARTMENU CSIDL_STARTMENU
+// File system directory containing Start menu items.
+#define CSIDL_STARTUP CSIDL_STARTUP
+// File system directory that corresponds to the user's Startup program group.
+#define CSIDL_TEMPLATES CSIDL_TEMPLATES
+// File system directory that serves as a common repository for document templates.

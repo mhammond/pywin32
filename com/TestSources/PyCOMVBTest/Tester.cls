@@ -200,7 +200,7 @@ Private Sub Class_Initialize()
     mvarCollectionProperty.Add (1)
     mvarCollectionProperty.Add ("Two")
     mvarCollectionProperty.Add ("3")
-    
+
     mvarStructProperty.int_val = 99
     mvarStructProperty.str_val = "hello"
     mvarStructProperty.sub_val.int_val = 66
@@ -211,7 +211,7 @@ Private Sub Class_Initialize()
     mvarStructProperty.sub_val.array_val(1).str_val = "one"
     mvarStructProperty.sub_val.array_val(2).int_val = 2
     mvarStructProperty.sub_val.array_val(2).str_val = "two"
-  
+
 End Sub
 
 Public Sub IncrementIntegerParam(intVal As Integer)
@@ -251,7 +251,7 @@ Public Sub DoSomeCallbacks(ob As Object)
     Dim rgv(1) As Variant
     Dim rg_new As Variant
     Rem On Error GoTo failed    ' Dont really need this - error is correctly propogated back to Python!
-    
+
     Rem Can check byrefs for gateways here, as VB passes all params byref!
     i = 99
     ret = ob.CallbackResultOneByRef(i)

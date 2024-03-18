@@ -354,4 +354,3 @@ SymbolicName=MSG_WR9
 Language=English
 %1
 .
-

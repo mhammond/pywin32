@@ -22,7 +22,7 @@ typedef BOOL (WINAPI *EnumServicesStatusExfunc)(SC_HANDLE,SC_ENUM_TYPE,DWORD,DWO
 EnumServicesStatusExfunc fpEnumServicesStatusEx=NULL;
 
 // according to msdn, 256 is limit for service names and service display names
-#define MAX_SERVICE_NAME_LEN 256   
+#define MAX_SERVICE_NAME_LEN 256
 
 %}
 
@@ -100,7 +100,7 @@ public:
 	static PyObject *SetProcessWindowStation(PyObject *self, PyObject *args);
 	static PyObject *CloseWindowStation(PyObject *self, PyObject *args);
 	static struct PyMemberDef members[];
-	static struct PyMethodDef methods[]; 
+	static struct PyMethodDef methods[];
 	static PyObject *PyHWINSTA_new(PyTypeObject *tp, PyObject *args, PyObject *kwargs);
 };
 
@@ -113,7 +113,7 @@ struct PyMethodDef PyHWINSTA::methods[] = {
 };
 
 struct PyMemberDef PyHWINSTA::members[] = {
-	// ??? offsetof not working correctly ??? 
+	// ??? offsetof not working correctly ???
 	// {"handle", T_LONG, offsetof(PyHWINSTA,m_handle), READONLY, "For use where an integer handle is required"},
 	{NULL}
 };
@@ -189,7 +189,7 @@ void PyHWINSTA::deallocFunc(PyObject *ob)
 }
 
 
-// @object PyHDESK|Object representing a handle to a desktop, created by 
+// @object PyHDESK|Object representing a handle to a desktop, created by
 // <om win32service.CreateDesktop>, <om win32service.GetThreadDesktop> and <om win32service.OpenDesktop>.
 
 class PyHDESK : public PyHANDLE
@@ -351,7 +351,7 @@ PyObject *PyHWINSTA::SetProcessWindowStation(PyObject *self, PyObject *args)
 }
 
 // @pymethod |PyHWINSTA|CloseWindowStation|Closes the window station handle
-// @comm This function cannot close the handle to current process's window station 
+// @comm This function cannot close the handle to current process's window station
 PyObject *PyHWINSTA::CloseWindowStation(PyObject *self, PyObject *args)
 {
 	if (!PyArg_ParseTuple(args, ":CloseWindowStation"))
@@ -486,7 +486,7 @@ PyObject *PyGetUserObjectInformation(PyObject *self, PyObject *args)
 			bsuccess=GetUserObjectInformationW(handle, info_type, buf, reqdbuflen, &reqdbuflen);
 			if (!bsuccess)
 				err=GetLastError();
-			}	
+			}
 		}
 	if (!bsuccess)
 		PyWin_SetAPIError("GetUserObjectInformation",err);
@@ -712,7 +712,7 @@ PyObject *PyCreateWindowStation(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsWCHAR(obwinsta_name, &winsta_name, TRUE))
 		return NULL;
 	hwinsta=CreateWindowStationW(winsta_name, Flags, DesiredAccess, pSA);
-	PyWinObject_FreeWCHAR(winsta_name); 
+	PyWinObject_FreeWCHAR(winsta_name);
 	if (hwinsta==NULL)
 		return PyWin_SetAPIError("CreateWindowStation",GetLastError());
 	return new PyHWINSTA(hwinsta);
@@ -721,19 +721,19 @@ PyObject *PyCreateWindowStation(PyObject *self, PyObject *args)
 
 %{
 PyObject *MyCreateService(
-    SC_HANDLE hSCManager,	// handle to service control manager database  
-    TCHAR *lpServiceName,	// pointer to name of service to start 
-    TCHAR *lpDisplayName,	// pointer to display name 
-    DWORD dwDesiredAccess,	// type of access to service 
-    DWORD dwServiceType,	// type of service 
-    DWORD dwStartType,		// when to start service 
-    DWORD dwErrorControl,	// severity if service fails to start 
-    TCHAR * lpBinaryPathName,	// pointer to name of binary file 
-    TCHAR * lpLoadOrderGroup,	// pointer to name of load ordering group 
+    SC_HANDLE hSCManager,	// handle to service control manager database
+    TCHAR *lpServiceName,	// pointer to name of service to start
+    TCHAR *lpDisplayName,	// pointer to display name
+    DWORD dwDesiredAccess,	// type of access to service
+    DWORD dwServiceType,	// type of service
+    DWORD dwStartType,		// when to start service
+    DWORD dwErrorControl,	// severity if service fails to start
+    TCHAR * lpBinaryPathName,	// pointer to name of binary file
+    TCHAR * lpLoadOrderGroup,	// pointer to name of load ordering group
     BOOL  bFetchTag,
-    PyObject *obDeps,		// array of dependency names 
-    TCHAR *lpServiceStartName,	// pointer to account name of service 
-    TCHAR *lpPassword 	// pointer to password for service account 
+    PyObject *obDeps,		// array of dependency names
+    TCHAR *lpServiceStartName,	// pointer to account name of service
+    TCHAR *lpPassword 	// pointer to password for service account
    )
 {
 	PyObject *rc = NULL;
@@ -761,21 +761,21 @@ PyObject *MyCreateService(
 cleanup:
 	PyWinObject_FreeMultipleString(lpDeps);
 	return rc;
-		
+
 }
 
 PyObject *MyChangeServiceConfig(
-    SC_HANDLE hSCManager,	// handle to service control manager database  
-    DWORD dwServiceType,	// type of service 
-    DWORD dwStartType,		// when to start service 
-    DWORD dwErrorControl,	// severity if service fails to start 
-    TCHAR * lpBinaryPathName,	// pointer to name of binary file 
-    TCHAR * lpLoadOrderGroup,	// pointer to name of load ordering group 
+    SC_HANDLE hSCManager,	// handle to service control manager database
+    DWORD dwServiceType,	// type of service
+    DWORD dwStartType,		// when to start service
+    DWORD dwErrorControl,	// severity if service fails to start
+    TCHAR * lpBinaryPathName,	// pointer to name of binary file
+    TCHAR * lpLoadOrderGroup,	// pointer to name of load ordering group
     BOOL  bFetchTag,
-    PyObject *obDeps,		// array of dependency names 
-    TCHAR *lpServiceStartName,	// pointer to account name of service 
-    TCHAR *lpPassword, 	// pointer to password for service account 
-    TCHAR *lpDisplayName	// pointer to display name 
+    PyObject *obDeps,		// array of dependency names
+    TCHAR *lpServiceStartName,	// pointer to account name of service
+    TCHAR *lpPassword, 	// pointer to password for service account
+    TCHAR *lpDisplayName	// pointer to display name
    )
 {
 	PyObject *rc = NULL;
@@ -800,7 +800,7 @@ PyObject *MyChangeServiceConfig(
 cleanup:
 	PyWinObject_FreeMultipleString(lpDeps);
 	return rc;
-		
+
 }
 
 PyObject *MyStartService( SC_HANDLE scHandle, PyObject *serviceArgs )
@@ -857,7 +857,7 @@ static PyObject *MyEnumServicesStatus(PyObject *self, PyObject *args)
 
 	EnumServicesStatus(hscm, serviceType, serviceState, services, sizeof(tmp), &bytesNeeded,
 		&servicesReturned, &resumeHandle);
-	
+
 	if (GetLastError() == ERROR_MORE_DATA)
 	{
 		buffer = new char[bytesNeeded + 1];
@@ -920,7 +920,7 @@ static PyObject *MyEnumServicesStatusEx(PyObject *self, PyObject *args)
 	DWORD buf_size=0, buf_needed, nbr_returned;
 	DWORD resume_handle =0, err=0;
 	BOOL bsuccess;
-	
+
 	if (fpEnumServicesStatusEx == NULL){
 		PyErr_SetString(PyExc_NotImplementedError, "EnumServicesStatusEx does not exist on this platform");
 		return NULL;
@@ -1022,7 +1022,7 @@ static PyObject *MyEnumDependentServices(PyObject *self, PyObject *args)
 
 	result = EnumDependentServices(hsc, serviceState, services, sizeof(tmp), &bytesNeeded,
 		&servicesReturned);
-	
+
 	if (!result && GetLastError() == ERROR_MORE_DATA)
 	{
 		buffer = new char[bytesNeeded + 1];
@@ -1087,7 +1087,7 @@ static PyObject *MyQueryServiceConfig(PyObject *self, PyObject *args)
 	Py_BEGIN_ALLOW_THREADS
 
 	result = QueryServiceConfig(hsc, config, sizeof(tmp), &bytesNeeded);
-	
+
 	if (GetLastError() == ERROR_INSUFFICIENT_BUFFER)
 	{
 		buffer = new char[bytesNeeded + 1];
@@ -1162,7 +1162,7 @@ typedef float SC_HANDLE, SERVICE_STATUS_HANDLE, SC_LOCK;	// This is just to keep
 // @object SERVICE_STATUS|A Win32 service status object is represented by a tuple:
 %typemap(python,argout) SERVICE_STATUS *outServiceStatus {
 	Py_DECREF($target);
-	$target = Py_BuildValue("lllllll", 
+	$target = Py_BuildValue("lllllll",
 		$source->dwServiceType, // @tupleitem 0|int|serviceType|The type of service.
 		$source->dwCurrentState, // @tupleitem 1|int|serviceState|The current state of the service.
 		$source->dwControlsAccepted, // @tupleitem 2|int|controlsAccepted|The controls the service accepts.
@@ -1174,7 +1174,7 @@ typedef float SC_HANDLE, SERVICE_STATUS_HANDLE, SC_LOCK;	// This is just to keep
 
 %typemap(python,in) SERVICE_STATUS *inServiceStatus (SERVICE_STATUS junk) {
 	$target = &junk;
-	if (!PyArg_ParseTuple($source, "lllllll", 
+	if (!PyArg_ParseTuple($source, "lllllll",
 		&$target->dwServiceType,
 		&$target->dwCurrentState,
 		&$target->dwControlsAccepted,
@@ -1420,17 +1420,17 @@ BOOLAPI DeleteService(SC_HANDLE);
 
 // @pyswig <o PySC_HANDLE>/(<o PySC_HANDLE>, int)|CreateService|Creates a new service.
 %name (CreateService) PyObject * MyCreateService(
-    SC_HANDLE hSCManager,	// @pyparm <o PySC_HANDLE>|scHandle||handle to service control manager database  
+    SC_HANDLE hSCManager,	// @pyparm <o PySC_HANDLE>|scHandle||handle to service control manager database
     TCHAR *name,			// @pyparm string|name||Name of service
-    TCHAR *displayName,		// @pyparm string|displayName||Display name 
-    DWORD dwDesiredAccess,	// @pyparm int|desiredAccess||type of access to service 
-    DWORD dwServiceType,	// @pyparm int|serviceType||type of service 
-    DWORD dwStartType,		// @pyparm int|startType||When/how to start service 
+    TCHAR *displayName,		// @pyparm string|displayName||Display name
+    DWORD dwDesiredAccess,	// @pyparm int|desiredAccess||type of access to service
+    DWORD dwServiceType,	// @pyparm int|serviceType||type of service
+    DWORD dwStartType,		// @pyparm int|startType||When/how to start service
     DWORD dwErrorControl,	// @pyparm int|errorControl||severity if service fails to start
-    TCHAR *binaryFile,	// @pyparm string|binaryFile||name of binary file 
+    TCHAR *binaryFile,	// @pyparm string|binaryFile||name of binary file
     TCHAR *INPUT_NULLOK,	// @pyparm string|loadOrderGroup||name of load ordering group , or None
     BOOL  bFetchTag,            // @pyparm int|bFetchTag||Should the tag be fetched and returned?  If TRUE, the result is a tuple of (handle, tag), otherwise just handle.
-    PyObject *pyobject,		// @pyparm [string,...]|serviceDeps||sequence of dependency names 
+    PyObject *pyobject,		// @pyparm [string,...]|serviceDeps||sequence of dependency names
     TCHAR *INPUT_NULLOK,	// @pyparm string|acctName||account name of service, or None
     TCHAR *INPUT_NULLOK 	// @pyparm string|password||password for service account , or None
    );
@@ -1444,10 +1444,10 @@ BOOLAPI DeleteService(SC_HANDLE);
     TCHAR *INPUT_NULLOK,	// @pyparm string|binaryFile||name of binary file, or None
     TCHAR *INPUT_NULLOK,	// @pyparm string|loadOrderGroup||name of load ordering group , or None
     BOOL  bFetchTag,		// @pyparm int|bFetchTag||Should the tag be fetched and returned?  If TRUE, the result is the tag, else None.
-    PyObject *pyobject,		// @pyparm [string,...]|serviceDeps||sequence of dependency names 
+    PyObject *pyobject,		// @pyparm [string,...]|serviceDeps||sequence of dependency names
     TCHAR *INPUT_NULLOK,	// @pyparm string|acctName||account name of service, or None
     TCHAR *INPUT_NULLOK,	// @pyparm string|password||password for service account , or None
-    TCHAR *INPUT_NULLOK		// @pyparm string|displayName||Display name 
+    TCHAR *INPUT_NULLOK		// @pyparm string|displayName||Display name
    );
 
 // @pyswig int|LockServiceDatabase|Locks the service database.
@@ -1461,7 +1461,7 @@ BOOLAPI UnlockServiceDatabase(
 );
 
 %{
-// @pyswig (int, string, int)|QueryServiceLockStatus|Retrieves the lock status of the specified service control manager database. 
+// @pyswig (int, string, int)|QueryServiceLockStatus|Retrieves the lock status of the specified service control manager database.
 static PyObject *PyQueryServiceLockStatus(PyObject *self, PyObject *args)
 {
 	SC_HANDLE handle;
@@ -1803,15 +1803,15 @@ PyObject *PyQueryServiceConfig2(PyObject *self, PyObject *args)
 
 #define SERVICE_STATE_ALL SERVICE_STATE_ALL
 
-#define SERVICE_CONTROL_STOP SERVICE_CONTROL_STOP 
+#define SERVICE_CONTROL_STOP SERVICE_CONTROL_STOP
 // Requests the service to stop. The hService handle must have SERVICE_STOP access.
-#define SERVICE_CONTROL_PAUSE SERVICE_CONTROL_PAUSE 
+#define SERVICE_CONTROL_PAUSE SERVICE_CONTROL_PAUSE
 // Requests the service to pause. The hService handle must have SERVICE_PAUSE_CONTINUE access.
-#define SERVICE_CONTROL_CONTINUE SERVICE_CONTROL_CONTINUE 
+#define SERVICE_CONTROL_CONTINUE SERVICE_CONTROL_CONTINUE
 // Requests the paused service to resume. The hService handle must have SERVICE_PAUSE_CONTINUE access.
-#define SERVICE_CONTROL_INTERROGATE SERVICE_CONTROL_INTERROGATE 
+#define SERVICE_CONTROL_INTERROGATE SERVICE_CONTROL_INTERROGATE
 // Requests the service to update immediately its current status information to the service control manager. The hService handle must have SERVICE_INTERROGATE access.
-#define SERVICE_CONTROL_SHUTDOWN SERVICE_CONTROL_SHUTDOWN 
+#define SERVICE_CONTROL_SHUTDOWN SERVICE_CONTROL_SHUTDOWN
 // The ControlService function fails if this control code is specified.
 #define SERVICE_CONTROL_PARAMCHANGE SERVICE_CONTROL_PARAMCHANGE
 #define SERVICE_CONTROL_NETBINDADD SERVICE_CONTROL_NETBINDADD
@@ -1825,55 +1825,55 @@ PyObject *PyQueryServiceConfig2(PyObject *self, PyObject *args)
 #define SERVICE_CONTROL_PRESHUTDOWN SERVICE_CONTROL_PRESHUTDOWN
 
 
-#define SC_MANAGER_ALL_ACCESS SC_MANAGER_ALL_ACCESS 
+#define SC_MANAGER_ALL_ACCESS SC_MANAGER_ALL_ACCESS
 // Includes STANDARD_RIGHTS_REQUIRED, in addition to all of the access types listed in this table.
-#define SC_MANAGER_CONNECT SC_MANAGER_CONNECT 
+#define SC_MANAGER_CONNECT SC_MANAGER_CONNECT
 // Enables connecting to the service control manager.
-#define SC_MANAGER_CREATE_SERVICE SC_MANAGER_CREATE_SERVICE 
+#define SC_MANAGER_CREATE_SERVICE SC_MANAGER_CREATE_SERVICE
 // Enables calling of the CreateService function to create a service object and add it to the database.
-#define SC_MANAGER_ENUMERATE_SERVICE SC_MANAGER_ENUMERATE_SERVICE 
+#define SC_MANAGER_ENUMERATE_SERVICE SC_MANAGER_ENUMERATE_SERVICE
 // Enables calling of the EnumServicesStatus function to list the services that are in the database.
-#define SC_MANAGER_LOCK SC_MANAGER_LOCK 
+#define SC_MANAGER_LOCK SC_MANAGER_LOCK
 // Enables calling of the LockServiceDatabase function to acquire a lock on the database.
-#define SC_MANAGER_QUERY_LOCK_STATUS SC_MANAGER_QUERY_LOCK_STATUS 
+#define SC_MANAGER_QUERY_LOCK_STATUS SC_MANAGER_QUERY_LOCK_STATUS
 // Enables calling of the QueryServiceLockStatus function to retrieve the lock status information for the database.
-	
+
 #define SC_MANAGER_MODIFY_BOOT_CONFIG SC_MANAGER_MODIFY_BOOT_CONFIG
 
-#define SC_GROUP_IDENTIFIER  SC_GROUP_IDENTIFIER 
+#define SC_GROUP_IDENTIFIER  SC_GROUP_IDENTIFIER
 
-#define SERVICE_WIN32_OWN_PROCESS SERVICE_WIN32_OWN_PROCESS 
+#define SERVICE_WIN32_OWN_PROCESS SERVICE_WIN32_OWN_PROCESS
 // A service type flag that indicates a Win32 service that runs in its own process.
-#define SERVICE_WIN32_SHARE_PROCESS SERVICE_WIN32_SHARE_PROCESS 
+#define SERVICE_WIN32_SHARE_PROCESS SERVICE_WIN32_SHARE_PROCESS
 // A service type flag that indicates a Win32 service that shares a process with other services.
-#define SERVICE_KERNEL_DRIVER SERVICE_KERNEL_DRIVER 
+#define SERVICE_KERNEL_DRIVER SERVICE_KERNEL_DRIVER
 // A service type flag that indicates a Windows NT device driver.
-#define SERVICE_FILE_SYSTEM_DRIVER SERVICE_FILE_SYSTEM_DRIVER 
+#define SERVICE_FILE_SYSTEM_DRIVER SERVICE_FILE_SYSTEM_DRIVER
 // A service type flag that indicates a Windows NT file system driver.
-#define SERVICE_INTERACTIVE_PROCESS  SERVICE_INTERACTIVE_PROCESS  
+#define SERVICE_INTERACTIVE_PROCESS  SERVICE_INTERACTIVE_PROCESS
 // A flag that indicates a Win32 service process that can interact with the desktop.
- 
-#define SERVICE_STOPPED	SERVICE_STOPPED 
+
+#define SERVICE_STOPPED	SERVICE_STOPPED
 // The service is not running.
-#define SERVICE_START_PENDING SERVICE_START_PENDING 
+#define SERVICE_START_PENDING SERVICE_START_PENDING
 // The service is starting.
-#define SERVICE_STOP_PENDING SERVICE_STOP_PENDING 
+#define SERVICE_STOP_PENDING SERVICE_STOP_PENDING
 // The service is stopping.
-#define SERVICE_RUNNING SERVICE_RUNNING 
+#define SERVICE_RUNNING SERVICE_RUNNING
 // The service is running.
-#define SERVICE_CONTINUE_PENDING SERVICE_CONTINUE_PENDING 
+#define SERVICE_CONTINUE_PENDING SERVICE_CONTINUE_PENDING
 // The service continue is pending.
-#define SERVICE_PAUSE_PENDING SERVICE_PAUSE_PENDING 
+#define SERVICE_PAUSE_PENDING SERVICE_PAUSE_PENDING
 // The service pause is pending.
-#define SERVICE_PAUSED SERVICE_PAUSED 
+#define SERVICE_PAUSED SERVICE_PAUSED
 // The service is paused.
- 
-#define SERVICE_ACCEPT_STOP SERVICE_ACCEPT_STOP 
+
+#define SERVICE_ACCEPT_STOP SERVICE_ACCEPT_STOP
 // The service can be stopped. This enables the SERVICE_CONTROL_STOP value.
-#define SERVICE_ACCEPT_PAUSE_CONTINUE SERVICE_ACCEPT_PAUSE_CONTINUE 
+#define SERVICE_ACCEPT_PAUSE_CONTINUE SERVICE_ACCEPT_PAUSE_CONTINUE
 // The service can be paused and continued. This enables the SERVICE_CONTROL_PAUSE and SERVICE_CONTROL_CONTINUE values.
-#define SERVICE_ACCEPT_SHUTDOWN SERVICE_ACCEPT_SHUTDOWN 
-// The service is notified when system shutdown occurs. This enables the system to send a SERVICE_CONTROL_SHUTDOWN value to the service. The ControlService function cannot send this control 
+#define SERVICE_ACCEPT_SHUTDOWN SERVICE_ACCEPT_SHUTDOWN
+// The service is notified when system shutdown occurs. This enables the system to send a SERVICE_CONTROL_SHUTDOWN value to the service. The ControlService function cannot send this control
 #define SERVICE_ACCEPT_PARAMCHANGE SERVICE_ACCEPT_PARAMCHANGE
 #define SERVICE_ACCEPT_NETBINDCHANGE SERVICE_ACCEPT_NETBINDCHANGE
 #define SERVICE_ACCEPT_HARDWAREPROFILECHANGE SERVICE_ACCEPT_HARDWAREPROFILECHANGE
@@ -1882,57 +1882,57 @@ PyObject *PyQueryServiceConfig2(PyObject *self, PyObject *args)
 #define SERVICE_ACCEPT_PRESHUTDOWN SERVICE_ACCEPT_PRESHUTDOWN
 
 //#define SERVICE_ERROR_IGNORER_IGNORE SERVICE_ERROR_IGNORER_IGNORE
-#define SERVICE_BOOT_START SERVICE_BOOT_START 
+#define SERVICE_BOOT_START SERVICE_BOOT_START
 // Specifies a device driver started by the operating system loader. This value is valid only if the service type is SERVICE_KERNEL_DRIVER or SERVICE_FILE_SYSTEM_DRIVER.
-#define SERVICE_SYSTEM_START SERVICE_SYSTEM_START 
+#define SERVICE_SYSTEM_START SERVICE_SYSTEM_START
 // Specifies a device driver started by the IoInitSystem function. This value is valid only if the service type is SERVICE_KERNEL_DRIVER or SERVICE_FILE_SYSTEM_DRIVER.
-#define SERVICE_AUTO_START SERVICE_AUTO_START 
+#define SERVICE_AUTO_START SERVICE_AUTO_START
 // Specifies a device driver or Win32 service started by the service control manager automatically during system startup.
-#define SERVICE_DEMAND_START SERVICE_DEMAND_START 
+#define SERVICE_DEMAND_START SERVICE_DEMAND_START
 // Specifies a device driver or Win32 service started by the service control manager when a process calls the StartService function.
-#define SERVICE_DISABLED SERVICE_DISABLED 
+#define SERVICE_DISABLED SERVICE_DISABLED
 // Specifies a device driver or Win32 service that can no longer be started.
- 
-#define SERVICE_ERROR_IGNORE SERVICE_ERROR_IGNORE 
+
+#define SERVICE_ERROR_IGNORE SERVICE_ERROR_IGNORE
 // The startup (boot) program logs the error but continues the startup operation.
-#define SERVICE_ERROR_NORMAL SERVICE_ERROR_NORMAL 
+#define SERVICE_ERROR_NORMAL SERVICE_ERROR_NORMAL
 // The startup program logs the error and displays a message box pop-up but continues the startup operation.
-#define SERVICE_ERROR_SEVERE SERVICE_ERROR_SEVERE 
-// The startup program logs the error. If the last-known good configuration is being started, 
+#define SERVICE_ERROR_SEVERE SERVICE_ERROR_SEVERE
+// The startup program logs the error. If the last-known good configuration is being started,
 	// the startup operation continues. Otherwise, the system is restarted with the last-known-good configuration.
-#define SERVICE_ERROR_CRITICAL SERVICE_ERROR_CRITICAL 
-// The startup program logs the error, if possible. If the last-known good configuration is being started, 
+#define SERVICE_ERROR_CRITICAL SERVICE_ERROR_CRITICAL
+// The startup program logs the error, if possible. If the last-known good configuration is being started,
 	// the startup operation fails. Otherwise, the system is restarted with the last-known good configuration.
 
 #define SERVICE_ALL_ACCESS SERVICE_ALL_ACCESS
-// Includes STANDARD_RIGHTS_REQUIRED in addition to all of the access types listed in this table. 
+// Includes STANDARD_RIGHTS_REQUIRED in addition to all of the access types listed in this table.
 
 #define SERVICE_CHANGE_CONFIG SERVICE_CHANGE_CONFIG
-// Enables calling of the ChangeServiceConfig function to change the service configuration. 
+// Enables calling of the ChangeServiceConfig function to change the service configuration.
 
 #define SERVICE_ENUMERATE_DEPENDENTS SERVICE_ENUMERATE_DEPENDENTS
-//Enables calling of the EnumDependentServices function to enumerate all the services dependent on the service. 
+//Enables calling of the EnumDependentServices function to enumerate all the services dependent on the service.
 
 #define SERVICE_INTERROGATE SERVICE_INTERROGATE
-// Enables calling of the ControlService function to ask the service to report its status immediately. 
+// Enables calling of the ControlService function to ask the service to report its status immediately.
 
 #define SERVICE_PAUSE_CONTINUE SERVICE_PAUSE_CONTINUE
-// Enables calling of the ControlService function to pause or continue the service. 
+// Enables calling of the ControlService function to pause or continue the service.
 
 #define SERVICE_QUERY_CONFIG SERVICE_QUERY_CONFIG
-// Enables calling of the QueryServiceConfig function to query the service configuration. 
+// Enables calling of the QueryServiceConfig function to query the service configuration.
 
 #define SERVICE_QUERY_STATUS SERVICE_QUERY_STATUS
-// Enables calling of the QueryServiceStatus function to ask the service control manager about the status of the service. 
+// Enables calling of the QueryServiceStatus function to ask the service control manager about the status of the service.
 
 #define SERVICE_START SERVICE_START
-// Enables calling of the StartService function to start the service. 
+// Enables calling of the StartService function to start the service.
 
 #define SERVICE_STOP SERVICE_STOP
-// Enables calling of the ControlService function to stop the service. 
+// Enables calling of the ControlService function to stop the service.
 
 #define SERVICE_USER_DEFINED_CONTROL SERVICE_USER_DEFINED_CONTROL
-// Enables calling of the ControlService function to specify a user-defined control code. 
+// Enables calling of the ControlService function to specify a user-defined control code.
 
 #define SERVICE_NO_CHANGE SERVICE_NO_CHANGE // Indicates the parameter should not be changed.
 
@@ -1944,7 +1944,7 @@ PyObject *PyQueryServiceConfig2(PyObject *self, PyObject *args)
 #define UOI_USER_SID UOI_USER_SID
 #define WSF_VISIBLE WSF_VISIBLE
 #define DF_ALLOWOTHERACCOUNTHOOK DF_ALLOWOTHERACCOUNTHOOK
-// #define CWF_CREATE_ONLY CWF_CREATE_ONLY 
+// #define CWF_CREATE_ONLY CWF_CREATE_ONLY
 
 // Types of info used with QueryServiceConfig2
 #define SERVICE_CONFIG_DESCRIPTION SERVICE_CONFIG_DESCRIPTION
@@ -1960,7 +1960,7 @@ PyObject *PyQueryServiceConfig2(PyObject *self, PyObject *args)
 #define SC_ENUM_PROCESS_INFO SC_ENUM_PROCESS_INFO
 
 // Used with SERVICE_CONFIG_SERVICE_SID_INFO
-#define SERVICE_SID_TYPE_NONE SERVICE_SID_TYPE_NONE 
+#define SERVICE_SID_TYPE_NONE SERVICE_SID_TYPE_NONE
 #define SERVICE_SID_TYPE_RESTRICTED SERVICE_SID_TYPE_RESTRICTED
 #define SERVICE_SID_TYPE_UNRESTRICTED SERVICE_SID_TYPE_UNRESTRICTED
 

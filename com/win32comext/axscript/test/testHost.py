@@ -97,7 +97,7 @@ prop = "Property Value"
 sub hello(arg1)
    test.echo arg1
 end sub
-  
+
 sub testcollection
    if test.collection.Item(0) <> 1 then
      test.fail("Index 0 was wrong")
@@ -122,7 +122,7 @@ PyScript = """\
 prop = "Property Value"
 def hello(arg1):
    test.echo(arg1)
-   
+
 def testcollection():
 #   test.collection[1] = "New one"
    got = []

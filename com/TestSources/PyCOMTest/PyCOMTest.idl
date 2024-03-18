@@ -111,7 +111,7 @@ library PyCOMTestLib
 
       [propget, restricted, id(DISPID_NEWENUM),
        helpstring("returns an enumerator over the steps in the program.")]
-         HRESULT _NewEnum([out, retval] IUnknown** retval);	
+         HRESULT _NewEnum([out, retval] IUnknown** retval);
 
        [propput, helpstring("Sets the lower bound of our collection.")]
          HRESULT LBound([in] long lbound);
@@ -239,19 +239,19 @@ library PyCOMTestLib
 		HRESULT Fire([in]long nId);
 		HRESULT TestOptionals( [in,optional,defaultvalue("def")] BSTR strArg,
 							   [in,optional,defaultvalue(0)] short sval,
-							   [in,optional,defaultvalue(1)] long lval, 
+							   [in,optional,defaultvalue(1)] long lval,
 							   [in,optional,defaultvalue(3.14)] double dval,
 							   [out,retval] SAFEARRAY(VARIANT) *pret );
-		HRESULT TestOptionals2( 
-							   double dval, 
-							   [optional, defaultvalue("")] BSTR strval, 
+		HRESULT TestOptionals2(
+							   double dval,
+							   [optional, defaultvalue("")] BSTR strval,
 							   [optional, defaultvalue(1)] short sval,
 							   [out,retval] SAFEARRAY(VARIANT) *pret );
 		// Trying (but failing) to find a bug related to SourceSafe's VSSItem's IDL defn.  Note
 		// the lack of 'optional' even though a default is specified (which doesn't seem to
 		// have any effect, but seeing we are here...)
-		HRESULT TestOptionals3( 
-							   [in]double dval, 
+		HRESULT TestOptionals3(
+							   [in]double dval,
 							   [in, defaultvalue(1)] short sval,
 							   [out, retval] IPyCOMTest **ppout );
 		HRESULT GetStruct([out, retval]TestStruct1 *ret);
@@ -402,4 +402,3 @@ library PyCOMTestLib
 	};
 
 };
-

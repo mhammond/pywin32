@@ -73,7 +73,7 @@ Append location to the `path` (example)
 
     set "path=%path%;c:\Program Files (x86)\Windows Kits\10\bin\10.0.18362.0\x64"
 
-Test with 
+Test with
 
     where mc
 
