@@ -2071,8 +2071,12 @@ static PyObject *PyEnumThreadWindows(PyObject *self, PyObject *args)
     Py_BEGIN_ALLOW_THREADS
     rc = EnumThreadWindows(dwThreadId, PyEnumWindowsProc, (LPARAM)&cb);
     Py_END_ALLOW_THREADS
-    if (!rc)
-        return PyWin_SetAPIError("EnumThreadWindows");
+    if (!rc) {
+        // Callback may have raised an exception already
+        if (PyErr_Occurred())
+            return NULL;
+        return PyWin_SetAPIErrorOrReturnNone("EnumThreadWindows");
+        }
     Py_RETURN_NONE;
 }
 
