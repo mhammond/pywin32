@@ -2104,6 +2104,8 @@ static PyObject *PyEnumChildWindows(PyObject *self, PyObject *args)
     // #1350, may cause spurious exceptions.
     EnumChildWindows(hwnd, PyEnumWindowsProc, (LPARAM)&cb);
     Py_END_ALLOW_THREADS
+    if (PyErr_Occurred())
+        return NULL;
     Py_RETURN_NONE;
 }
 
