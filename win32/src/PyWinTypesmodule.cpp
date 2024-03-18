@@ -275,9 +275,9 @@ HINSTANCE PyWin_GetErrorMessageModule(DWORD err)
 }
 
 /* error helper - GetLastError() is provided, but this is for exceptions */
-PyObject *PyWin_SetAPIError(char *fnName, long err /*= 0*/)
+PyObject *PyWin_SetAPIError(char *fnName, long err /*= ERROR_SUCCESS*/)
 {
-    DWORD errorCode = err == 0 ? GetLastError() : err;
+    DWORD errorCode = err == ERROR_SUCCESS ? GetLastError() : err;
     DWORD flags = FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS;
     // try and find the hmodule providing this error.
     HMODULE hmodule = PyWin_GetErrorMessageModule(errorCode);
@@ -306,6 +306,15 @@ PyObject *PyWin_SetAPIError(char *fnName, long err /*= 0*/)
         Py_DECREF(v);
     }
     return NULL;
+}
+
+/* error helper - like PyWin_SetAPIError, but returns None on success */
+PyObject *PyWin_SetAPIErrorOrReturnNone(char *fnName, long err /*= ERROR_SUCCESS*/)
+{
+    DWORD errorCode = err == ERROR_SUCCESS ? GetLastError() : err;
+    if (errorCode == ERROR_SUCCESS)
+        Py_RETURN_NONE;
+    return PyWin_SetAPIError(fnName, errorCode);
 }
 
 // This function sets a basic COM error - it is a valid COM
