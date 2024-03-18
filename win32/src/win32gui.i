@@ -2045,7 +2045,7 @@ static PyObject *PyEnumWindows(PyObject *self, PyObject *args)
 		// Callback may have raised an exception already
 		if (PyErr_Occurred())
 			return NULL;
-		return PyWin_SetAPIError("EnumWindows");
+		return PyWin_SetAPIErrorOrReturnNone("EnumWindows");
 		}
 	Py_INCREF(Py_None);
 	return Py_None;
