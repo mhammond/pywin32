@@ -43,9 +43,6 @@ site dedicated to giving examples of connection strings in numerous
 combinations. See
 [http://www.connectionstrings.com](http://www.connectionstrings.com/)
 
-and for more explanation:
-<http://www.asp101.com/articles/john/connstring/default.asp>
-
 The software which connects ODBC to an engine is called a "Driver". One
 which talks in ADO is called a "Provider". Sometimes there will be a
 Provider for a Driver.
@@ -60,8 +57,8 @@ document.](https://docs.microsoft.com/en-us/sql/connect/oledb/oledb-driver-for-s
 
 - Jet (ACCESS database) and other file datasets (like .xls and .csv) "ACE"
 Provider:
-  - <http://www.microsoft.com/en-us/download/details.aspx?id=13255> a (32
-bit) Microsoft.Jet.OLEDB.4.0 Provider, which may be included with
+  - <https://learn.microsoft.com/en-us/office/troubleshoot/access/jet-odbc-driver-available-32-bit-version>
+a (32 bit) `Microsoft.Jet.OLEDB.4.0` Provider, which may be included with
 Windows. Note that you are not permitted load the 32 bit "ACE" provider
 if you have any 64-bit Office components installed. Conventional wisdom
 says that you must use 64 bit Python in this case. However, see the
@@ -70,7 +67,7 @@ answer in
 If you decide to try hacking the installers, you may find
 <http://www.pantaray.com/msi_super_orca.html> to be a useful alternative
 to Orca. My experience is that such a [hacked installer (like this
-one](http://shares.digvil.info/redis)) ( can also be used on machines
+one)](http://shares.digvil.info/redis) can also be used on machines
 where "click to buy" versions of Office have been removed, but are still
 blocking installation of the redistributable provider.
 
