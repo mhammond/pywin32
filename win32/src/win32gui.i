@@ -2109,10 +2109,43 @@ static PyObject *PyEnumChildWindows(PyObject *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
+// @pyswig |EnumDesktopWindows|Enumerates all top-level windows associated with a desktop on the screen by passing the handle to each window, in turn, to an application-defined callback function. EnumThreadWindows continues until the last top-level window associated with the thread is enumerated or the callback function returns FALSE
+static PyObject *PyEnumDesktopWindows(PyObject *self, PyObject *args)
+{
+    BOOL rc;
+    PyObject *obDesktop, *obFunc, *obOther;
+    HDESK hDesktop;
+    // @pyparm <o PyHANDLE>|hDesktop||The id of the desktop for which the windows need to be enumerated.
+    // @pyparm object|callback||A Python function to be used as the callback.
+    // @pyparm object|extra||Any python object - this is passed to the callback function as the second param (first is the hwnd).
+    if (!PyArg_ParseTuple(args, "OOO", &obDesktop, &obFunc, &obOther))
+        return NULL;
+    if (!PyWinObject_AsHANDLE(obDesktop, (HANDLE *)&hDesktop))
+        return NULL;
+    if (!PyCallable_Check(obFunc)) {
+        PyErr_SetString(PyExc_TypeError, "Second param must be a callable object");
+        return NULL;
+    }
+    PyEnumWindowsCallback cb;
+    cb.func = obFunc;
+    cb.extra = obOther;
+    Py_BEGIN_ALLOW_THREADS
+    rc = EnumDesktopWindows(hDesktop, PyEnumWindowsProc, (LPARAM)&cb);
+    Py_END_ALLOW_THREADS
+    if (!rc) {
+        // Callback may have raised an exception already
+        if (PyErr_Occurred())
+            return NULL;
+        return PyWin_SetAPIErrorOrReturnNone("EnumDesktopWindows");
+        }
+    Py_RETURN_NONE;
+}
+
 %}
 %native (EnumWindows) PyEnumWindows;
 %native (EnumThreadWindows) PyEnumThreadWindows;
 %native (EnumChildWindows) PyEnumChildWindows;
+%native (EnumDesktopWindows) PyEnumDesktopWindows;
 
 // @pyswig int|DialogBox|Creates a modal dialog box.
 %{
