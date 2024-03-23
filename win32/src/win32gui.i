@@ -2114,7 +2114,7 @@ static PyObject *PyEnumDesktopWindows(PyObject *self, PyObject *args)
 {
     BOOL rc;
     PyObject *obDesktop, *obFunc, *obOther;
-    HDESK hDesktop;
+    HDESK hDesktop = NULL;
     // @pyparm <o PyHANDLE>|hDesktop||The id of the desktop for which the windows need to be enumerated.
     // @pyparm object|callback||A Python function to be used as the callback.
     // @pyparm object|extra||Any python object - this is passed to the callback function as the second param (first is the hwnd).
@@ -2146,6 +2146,8 @@ static PyObject *PyEnumDesktopWindows(PyObject *self, PyObject *args)
 %native (EnumThreadWindows) PyEnumThreadWindows;
 %native (EnumChildWindows) PyEnumChildWindows;
 %native (EnumDesktopWindows) PyEnumDesktopWindows;
+
+HDESK GetThreadDesktop(DWORD dwThreadId);
 
 // @pyswig int|DialogBox|Creates a modal dialog box.
 %{
