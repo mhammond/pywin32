@@ -132,6 +132,55 @@ class TestEnumWindowsFamily(unittest.TestCase):
                         TypeError, win32gui.EnumChildWindows, None, func, data
                     )
 
+    def test_enumdesktopwindows(self):
+        win32api.SetLastError(0)
+        desktop = None
+        for data in (0, False):
+            self.assertRaises(
+                pywintypes.error,
+                win32gui.EnumDesktopWindows,
+                desktop,
+                self.enum_callback_sle,
+                data,
+            )
+        for data in (None, 1, True):
+            self.assertIsNone(
+                win32gui.EnumDesktopWindows(desktop, self.enum_callback_sle, data)
+            )
+        win32api.SetLastError(0)
+        for data in self.default_data_set:
+            self.assertIsNone(
+                win32gui.EnumDesktopWindows(desktop, self.enum_callback, data)
+            )
+        for data in self.default_data_set:
+            self.assertRaises(
+                ValueError,
+                win32gui.EnumDesktopWindows,
+                desktop,
+                self.enum_callback_exc,
+                data,
+            )
+        desktops = (0, None)
+        for desktop in desktops:
+            for data in self.default_data_set:
+                self.assertRaises(
+                    ValueError,
+                    win32gui.EnumDesktopWindows,
+                    desktop,
+                    self.enum_callback_exc,
+                    data,
+                )
+        if sys.version_info[:2] >= (3, 10):
+            for func in (
+                self.enum_callback,
+                self.enum_callback_sle,
+            ):
+                for desktop in desktops:
+                    for data in self.type_data_set:
+                        self.assertRaises(
+                            TypeError, win32gui.EnumDesktopWindows, 0, func, data
+                        )
+
 
 if __name__ == "__main__":
     unittest.main()
