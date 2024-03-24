@@ -8,10 +8,10 @@ import re
 import traceback
 
 import pythoncom
-import win32com.server.exception
 import win32com.server.util
 import winerror
 from win32com.axscript import axscript
+from win32com.server.exception import COMException
 
 debugging = 0
 
@@ -64,7 +64,7 @@ class IActiveScriptError:
         return self.exception
 
 
-class AXScriptException(win32com.server.exception.COMException):
+class AXScriptException(COMException):
     """A class used as a COM exception.
 
     Note this has attributes which conform to the standard attributes
@@ -74,8 +74,7 @@ class AXScriptException(win32com.server.exception.COMException):
 
     def __init__(self, site, codeBlock, exc_type, exc_value, exc_traceback):
         # set properties base class shares via base ctor...
-        win32com.server.exception.COMException.__init__(
-            self,
+        super().__init__(
             description="Unknown Exception",
             scode=winerror.DISP_E_EXCEPTION,
             source="Python ActiveX Scripting Engine",
@@ -248,7 +247,7 @@ def ProcessAXScriptException(scriptingSite, debugManager, exceptionInstance):
     if result == winerror.S_OK:
         # If the above  returns NOERROR, it is assumed the error has been
         # correctly registered and the value SCRIPT_E_REPORTED is returned.
-        ret = win32com.server.exception.COMException(scode=axscript.SCRIPT_E_REPORTED)
+        ret = COMException(scode=axscript.SCRIPT_E_REPORTED)
         return ret
     else:
         # The error is taken to be unreported and is propagated up the call stack

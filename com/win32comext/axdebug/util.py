@@ -7,7 +7,7 @@ import sys
 import win32api
 import win32com.server.util
 import winerror
-from win32com.server.exception import Exception
+from win32com.server.exception import COMException
 
 try:
     os.environ["DEBUG_AXDEBUG"]
@@ -66,7 +66,7 @@ def RaiseNotImpl(who=None):
         frame = frame.f_back
 
     # and raise the exception for COM
-    raise Exception(scode=winerror.E_NOTIMPL)
+    raise COMException(scode=winerror.E_NOTIMPL)
 
 
 import win32com.server.policy
@@ -101,7 +101,7 @@ class Dispatcher(win32com.server.policy.DispatcherWin32trace):
             )
             # print("Invoke of", dispid, "returning", rc)
             return rc
-        except Exception:
+        except COMException:
             t, v, tb = sys.exc_info()
             tb = None  # A cycle
             scode = v.scode

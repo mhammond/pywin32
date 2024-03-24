@@ -8,7 +8,7 @@ import timer
 import win32api
 import win32con
 import win32ui
-from pywin.framework import cmdline, dlgappcore
+from pywin.framework import dlgappcore
 
 
 class TimerAppDialog(dlgappcore.AppDialog):

@@ -21,10 +21,14 @@ Hacks, to do, etc
   Maybe an OLE2 compound file, or a bsddb file?
 """
 
+from __future__ import annotations
+
 import glob
 import os
 import sys
 from importlib import reload
+from types import ModuleType
+from typing import Any
 
 import pythoncom
 import pywintypes
@@ -36,11 +40,11 @@ from . import CLSIDToClass
 bForDemandDefault = 0  # Default value of bForDemand - toggle this to change the world - see also makepy.py
 
 # The global dictionary
-clsidToTypelib = {}
+clsidToTypelib: dict[str, tuple[str, int, int, int]] = {}
 
 # If we have a different version of the typelib generated, this
 # maps the "requested version" to the "generated version".
-versionRedirectMap = {}
+versionRedirectMap: dict[tuple[str, int, int, int], ModuleType | None] = {}
 
 # There is no reason we *must* be readonly in a .zip, but we are now,
 # Rather than check for ".zip" or other tricks, PEP302 defines
@@ -53,7 +57,8 @@ is_readonly = is_zip = hasattr(win32com, "__loader__") and hasattr(
 
 # A dictionary of ITypeLibrary objects for demand generation explicitly handed to us
 # Keyed by usual clsid, lcid, major, minor
-demandGeneratedTypeLibraries = {}
+# Typing as Any because PyITypeLib is not exposed
+demandGeneratedTypeLibraries: dict[tuple[str, int, int, int], Any] = {}
 
 import pickle as pickle
 

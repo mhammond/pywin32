@@ -2,14 +2,13 @@ import glob
 import os
 import pyclbr
 
-import afxres
 import commctrl
 import pywin.framework.scriptutils
 import regutil
 import win32api
 import win32con
 import win32ui
-from pywin.mfc import dialog
+from pywin.mfc import afxres, dialog
 
 from . import hierlist
 
@@ -24,7 +23,7 @@ class HLIErrorItem(hierlist.HierListItem):
 
 
 class HLICLBRItem(hierlist.HierListItem):
-    def __init__(self, name, file, lineno, suffix=""):
+    def __init__(self, name: str, file, lineno, suffix=""):
         # If the 'name' object itself has a .name, use it.  Not sure
         # how this happens, but seems pyclbr related.
         # See PyWin32 bug 817035
