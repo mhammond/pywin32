@@ -27,6 +27,7 @@ def cleanup_function(testfolder, mdb_name):
     except:
         pass  # test package not present
 
+
 def find_ado_path():
     adoName = os.path.normpath(os.getcwd() + "/../../adodbapi.py")
     adoPackage = os.path.dirname(adoName)

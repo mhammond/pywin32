@@ -240,17 +240,29 @@ class CommonDBTests(unittest.TestCase):
         )
 
         if DBAPIDataTypeString == "STRING":
-            assert descTuple[1] == api.STRING, f'was "{descTuple[1]}" expected "{api.STRING.values}"'
+            assert (
+                descTuple[1] == api.STRING
+            ), f'was "{descTuple[1]}" expected "{api.STRING.values}"'
         elif DBAPIDataTypeString == "NUMBER":
-            assert descTuple[1] == api.NUMBER, f'was "{descTuple[1]}" expected "{api.NUMBER.values}"'
+            assert (
+                descTuple[1] == api.NUMBER
+            ), f'was "{descTuple[1]}" expected "{api.NUMBER.values}"'
         elif DBAPIDataTypeString == "BINARY":
-            assert descTuple[1] == api.BINARY, f'was "{descTuple[1]}" expected "{api.BINARY.values}"'
+            assert (
+                descTuple[1] == api.BINARY
+            ), f'was "{descTuple[1]}" expected "{api.BINARY.values}"'
         elif DBAPIDataTypeString == "DATETIME":
-            assert descTuple[1] == api.DATETIME, f'was "{descTuple[1]}" expected "{api.DATETIME.values}"'
+            assert (
+                descTuple[1] == api.DATETIME
+            ), f'was "{descTuple[1]}" expected "{api.DATETIME.values}"'
         elif DBAPIDataTypeString == "ROWID":
-            assert descTuple[1] == api.ROWID, f'was "{descTuple[1]}" expected "{api.ROWID.values}"'
+            assert (
+                descTuple[1] == api.ROWID
+            ), f'was "{descTuple[1]}" expected "{api.ROWID.values}"'
         elif DBAPIDataTypeString == "UUID":
-            assert descTuple[1] == api.OTHER, f'was "{descTuple[1]}" expected "{api.OTHER.values}"'
+            assert (
+                descTuple[1] == api.OTHER
+            ), f'was "{descTuple[1]}" expected "{api.OTHER.values}"'
         else:
             raise NotImplementedError  # "DBAPIDataTypeString not provided"
 
@@ -654,11 +666,15 @@ class CommonDBTests(unittest.TestCase):
                     rec[j] == inParam[j]
                 ), f'returned value:"{rec[j]}" != test value:"{inParam[j]}"'
             # check that we can get a complete tuple from a row
-            assert tuple(rec) == inParam, f'returned value:"{repr(rec)}" != test value:"{repr(inParam)}"'
+            assert (
+                tuple(rec) == inParam
+            ), f'returned value:"{repr(rec)}" != test value:"{repr(inParam)}"'
             # test that slices of rows work
             slice1 = tuple(rec[:-1])
             slice2 = tuple(inParam[0:2])
-            assert slice1 == slice2, f'returned value:"{repr(slice1)}" != test value:"{repr(slice2)}"'
+            assert (
+                slice1 == slice2
+            ), f'returned value:"{repr(slice1)}" != test value:"{repr(slice2)}"'
             # now test named column retrieval
             assert rec["fldTwo"] == inParam[0]
             assert rec.fldThree == inParam[1]

@@ -54,6 +54,7 @@ except:
 if verbose:
     print(version)
 
+
 # -----------------  The .connect method -----------------
 def make_COM_connecter():
     try:
@@ -452,7 +453,9 @@ class Connection:
             print("ADO Errors:(%i)" % j)
         for e in self.connector.Errors:
             print("Description: %s" % e.Description)
-            print("Error: {} {} ".format(e.Number, adc.adoErrors.get(e.Number, "unknown")))
+            print(
+                "Error: {} {} ".format(e.Number, adc.adoErrors.get(e.Number, "unknown"))
+            )
             if e.Number == adc.ado_error_TIMEOUT:
                 print(
                     "Timeout Error: Try using adodbpi.connect(constr,timeout=Nseconds)"
@@ -657,16 +660,14 @@ class Cursor:
             self._makeDescriptionFromRS()
         if isinstance(d, int):
             d = self.description[d]
-        desc = (
-            "Name= {}, Type= {}, DispSize= {}, IntSize= {}, Precision= {}, Scale= {} NullOK={}".format(
-                d[0],
-                adc.adTypeNames.get(d[1], str(d[1]) + " (unknown type)"),
-                d[2],
-                d[3],
-                d[4],
-                d[5],
-                d[6],
-            )
+        desc = "Name= {}, Type= {}, DispSize= {}, IntSize= {}, Precision= {}, Scale= {} NullOK={}".format(
+            d[0],
+            adc.adTypeNames.get(d[1], str(d[1]) + " (unknown type)"),
+            d[2],
+            d[3],
+            d[4],
+            d[5],
+            d[6],
         )
         return desc
 
@@ -860,9 +861,7 @@ class Cursor:
                                 p, parameters[pm_name], p.Type, parameters_known
                             )
                         except Exception as e:
-                            _message = (
-                                f"Error Converting Parameter {p.Name}: {adc.ado_type_name(p.Type)}, {p.Value} <- {repr(parameters[pm_name])}\n"
-                            )
+                            _message = f"Error Converting Parameter {p.Name}: {adc.ado_type_name(p.Type)}, {p.Value} <- {repr(parameters[pm_name])}\n"
                             self._raiseCursorError(
                                 api.DataError, _message + "->" + repr(e.args)
                             )
@@ -877,9 +876,7 @@ class Cursor:
                         try:
                             _configure_parameter(p, value, p.Type, parameters_known)
                         except Exception as e:
-                            _message = (
-                                f"Error Converting Parameter {p.Name}: {adc.ado_type_name(p.Type)}, {p.Value} <- {repr(value)}\n"
-                            )
+                            _message = f"Error Converting Parameter {p.Name}: {adc.ado_type_name(p.Type)}, {p.Value} <- {repr(value)}\n"
                             self._raiseCursorError(
                                 api.DataError, _message + "->" + repr(e.args)
                             )

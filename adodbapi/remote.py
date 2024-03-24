@@ -62,7 +62,7 @@ if verbose:
 dBinary = bytes
 """This function constructs an object capable of holding a binary (long) string value."""
 Date = datetime.date  # dateconverter.Date(year,month,day)
-Time = datetime.time # dateconverter.Time(hour,minute,second)
+Time = datetime.time  # dateconverter.Time(hour,minute,second)
 Timestamp = datetime.datetime
 
 
@@ -473,9 +473,7 @@ class Cursor:
             pass
         fp = fixpickle(parameters)
         if verbose > 2:
-            print(
-                f'{version} executing "{operation}" with params={repr(parameters)}'
-            )
+            print(f'{version} executing "{operation}" with params={repr(parameters)}')
         result = self.proxy.crsr_execute(self.id, operation, fp)
         if result:  # an exception was triggered
             self._raiseCursorError(result[0], result[1])
@@ -530,9 +528,7 @@ class Cursor:
             pass
         fp = fixpickle(parameters)
         if verbose > 2:
-            print(
-                f'{version} callproc "{procname}" with params={repr(parameters)}'
-            )
+            print(f'{version} callproc "{procname}" with params={repr(parameters)}')
         return self.proxy.crsr_callproc(self.id, procname, fp)
 
     def fetchone(self):

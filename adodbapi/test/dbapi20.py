@@ -590,8 +590,7 @@ class DatabaseAPI20Test(unittest.TestCase):
         tests.
         """
         populate = [
-            f"insert into {self.table_prefix}booze values ('{s}')"
-            for s in self.samples
+            f"insert into {self.table_prefix}booze values ('{s}')" for s in self.samples
         ]
         return populate
 

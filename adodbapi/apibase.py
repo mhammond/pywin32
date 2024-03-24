@@ -413,16 +413,27 @@ def _convertNumberWithCulture(variant, f):
         except (ValueError, TypeError, decimal.InvalidOperation):
             pass
 
+
 cvtString = str  # use to get old action of adodbapi v1 if desired
+
+
 def cvtDecimal(variant):  # better name
     return _convertNumberWithCulture(variant, decimal.Decimal)
+
+
 cvtNumeric = cvtDecimal  # older name - don't break old code
+
+
 def cvtFloat(variant):
     return _convertNumberWithCulture(variant, float)
+
+
 cvtInt = int
-cvtLong = int # only important in old versions where long and int differ
+cvtLong = int  # only important in old versions where long and int differ
 cvtBuffer = bytes
 cvtUnicode = str
+
+
 def identity(x):
     return x
 
