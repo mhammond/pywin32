@@ -39,7 +39,7 @@ if "--help" in sys.argv:
     --mssql - test against Microsoft SQL server
     --pg - test against PostgreSQL
     --mysql - test against MariaDB
-    --remote= - test unsing remote server at= (experimental) 
+    --remote= - test unsing remote server at= (experimental)
     """
     )
     exit()
