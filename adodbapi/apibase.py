@@ -389,7 +389,7 @@ def pyTypeToADOType(d):
             return adc.adBigInt
         if isinstance(d, numbers.Real):
             return adc.adDouble
-        raise DataError('cannot convert "%s" (type=%s) to ADO' % (repr(d), tp))
+        raise DataError(f'cannot convert "{repr(d)}" (type={tp}) to ADO')
 
 
 # # # # # # # # # # # # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -488,7 +488,7 @@ class SQLrow:  # a single database row
         try:
             return self._getValue(self.rows.columnNames[name.lower()])
         except KeyError:
-            raise AttributeError('Unknown column name "{}"'.format(name))
+            raise AttributeError(f'Unknown column name "{name}"')
 
     def _getValue(self, key):  # key must be an integer
         if (
@@ -523,7 +523,7 @@ class SQLrow:  # a single database row
         except (KeyError, TypeError):
             er, st, tr = sys.exc_info()
             raise er(
-                'No such key as "%s" in %s' % (repr(key), self.__repr__())
+                f'No such key as "{repr(key)}" in {self.__repr__()}'
             ).with_traceback(tr)
 
     def __iter__(self):

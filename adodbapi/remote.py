@@ -150,8 +150,7 @@ def connect(*args, **kwargs):  # --> a remote db-api connection object
                 )
         except Exception as e:
             raise api.DatabaseError(
-                "Error creating remote connection to=%s, e=%s, %s"
-                % (repr(kwargs), repr(e), sys.exc_info()[2])
+                f"Error creating remote connection to={repr(kwargs)}, e={repr(e)}, {sys.exc_info()[2]}"
             )
     return myConn
 
@@ -200,7 +199,7 @@ class Connection:
     def connect(self, kwargs, connection_maker):
         self.kwargs = kwargs
         if verbose:
-            print('%s attempting: "%s"' % (version, repr(kwargs)))
+            print(f'{version} attempting: "{repr(kwargs)}"')
         self.proxy = connection_maker
         ##try:
         ret = self.proxy.connect(kwargs)  # ask the server to hook us up
@@ -380,8 +379,7 @@ class Cursor:
         self.recordset_format = api.RS_REMOTE
         if verbose:
             print(
-                "%s New cursor at %X on conn %X"
-                % (version, id(self), id(self.connection))
+                f"{version} New cursor at {id(self):X} on conn {id(self.connection):X}"
             )
 
     def prepare(self, operation):
@@ -476,8 +474,7 @@ class Cursor:
         fp = fixpickle(parameters)
         if verbose > 2:
             print(
-                '%s executing "%s" with params=%s'
-                % (version, operation, repr(parameters))
+                f'{version} executing "{operation}" with params={repr(parameters)}'
             )
         result = self.proxy.crsr_execute(self.id, operation, fp)
         if result:  # an exception was triggered
@@ -500,8 +497,7 @@ class Cursor:
         sq = [fixpickle(x) for x in seq_of_parameters]
         if verbose > 2:
             print(
-                '%s executemany "%s" with params=%s'
-                % (version, operation, repr(seq_of_parameters))
+                f'{version} executemany "{operation}" with params={repr(seq_of_parameters)}'
             )
         self.proxy.crsr_executemany(self.id, operation, sq)
 
@@ -535,8 +531,7 @@ class Cursor:
         fp = fixpickle(parameters)
         if verbose > 2:
             print(
-                '%s callproc "%s" with params=%s'
-                % (version, procname, repr(parameters))
+                f'{version} callproc "{procname}" with params={repr(parameters)}'
             )
         return self.proxy.crsr_callproc(self.id, procname, fp)
 

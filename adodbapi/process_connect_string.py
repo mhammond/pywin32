@@ -57,7 +57,7 @@ def macro_call(macro_name, args, kwargs):
                 not "user" in kwargs or not kwargs["user"]
             ):  # missing, blank, or Null username
                 return new_key, "Integrated Security=SSPI"
-            return new_key, "User ID=%(user)s; Password=%(password)s" % kwargs
+            return new_key, "User ID={user}; Password={password}".format(**kwargs)
 
         elif (
             macro_name == "find_temp_test_path"
@@ -68,7 +68,7 @@ def macro_call(macro_name, args, kwargs):
 
         raise ValueError("Unknown connect string macro=%s" % macro_name)
     except:
-        raise ValueError("Error in macro processing %s %s" % (macro_name, repr(args)))
+        raise ValueError(f"Error in macro processing {macro_name} {repr(args)}")
 
 
 def process(

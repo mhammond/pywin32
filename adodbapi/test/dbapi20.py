@@ -471,13 +471,13 @@ class DatabaseAPI20Test(unittest.TestCase):
             res[0][1],
             trouble,
             "cursor.fetchall retrieved incorrect data, or data inserted "
-            "incorrectly. Got=%s, Expected=%s" % (repr(res[0][1]), repr(trouble)),
+            f"incorrectly. Got={repr(res[0][1])}, Expected={repr(trouble)}",
         )
         self.assertEqual(
             res[1][1],
             trouble,
             "cursor.fetchall retrieved incorrect data, or data inserted "
-            "incorrectly. Got=%s, Expected=%s" % (repr(res[1][1]), repr(trouble)),
+            f"incorrectly. Got={repr(res[1][1])}, Expected={repr(trouble)}",
         )
 
     def test_executemany(self):
@@ -590,7 +590,7 @@ class DatabaseAPI20Test(unittest.TestCase):
         tests.
         """
         populate = [
-            "insert into %sbooze values ('%s')" % (self.table_prefix, s)
+            f"insert into {self.table_prefix}booze values ('{s}')"
             for s in self.samples
         ]
         return populate
