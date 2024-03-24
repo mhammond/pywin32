@@ -1,70 +1,69 @@
-"""Policies 
+"""Policies
 
 Note that Dispatchers are now implemented in "dispatcher.py", but
 are still documented here.
 
 Policies
 
- A policy is an object which manages the interaction between a public 
- Python object, and COM .  In simple terms, the policy object is the 
- object which is actually called by COM, and it invokes the requested 
- method, fetches/sets the requested property, etc.  See the 
+ A policy is an object which manages the interaction between a public
+ Python object, and COM .  In simple terms, the policy object is the
+ object which is actually called by COM, and it invokes the requested
+ method, fetches/sets the requested property, etc.  See the
  @win32com.server.policy.CreateInstance@ method for a description of
  how a policy is specified or created.
 
- Exactly how a policy determines which underlying object method/property 
- is obtained is up to the policy.  A few policies are provided, but you 
- can build your own.  See each policy class for a description of how it 
+ Exactly how a policy determines which underlying object method/property
+ is obtained is up to the policy.  A few policies are provided, but you
+ can build your own.  See each policy class for a description of how it
  implements its policy.
 
- There is a policy that allows the object to specify exactly which 
- methods and properties will be exposed.  There is also a policy that 
- will dynamically expose all Python methods and properties - even those 
+ There is a policy that allows the object to specify exactly which
+ methods and properties will be exposed.  There is also a policy that
+ will dynamically expose all Python methods and properties - even those
  added after the object has been instantiated.
 
 Dispatchers
 
- A Dispatcher is a level in front of a Policy.  A dispatcher is the 
- thing which actually receives the COM calls, and passes them to the 
- policy object (which in turn somehow does something with the wrapped 
+ A Dispatcher is a level in front of a Policy.  A dispatcher is the
+ thing which actually receives the COM calls, and passes them to the
+ policy object (which in turn somehow does something with the wrapped
  object).
 
  It is important to note that a policy does not need to have a dispatcher.
- A dispatcher has the same interface as a policy, and simply steps in its 
- place, delegating to the real policy.  The primary use for a Dispatcher 
- is to support debugging when necessary, but without imposing overheads 
+ A dispatcher has the same interface as a policy, and simply steps in its
+ place, delegating to the real policy.  The primary use for a Dispatcher
+ is to support debugging when necessary, but without imposing overheads
  when not (ie, by not using a dispatcher at all).
 
- There are a few dispatchers provided - "tracing" dispatchers which simply 
- prints calls and args (including a variation which uses 
- win32api.OutputDebugString), and a "debugger" dispatcher, which can 
+ There are a few dispatchers provided - "tracing" dispatchers which simply
+ prints calls and args (including a variation which uses
+ win32api.OutputDebugString), and a "debugger" dispatcher, which can
  invoke the debugger when necessary.
 
 Error Handling
 
  It is important to realise that the caller of these interfaces may
- not be Python.  Therefore, general Python exceptions and tracebacks aren't 
+ not be Python.  Therefore, general Python exceptions and tracebacks aren't
  much use.
 
- In general, there is an COMException class that should be raised, to allow 
+ In general, there is an COMException class that should be raised, to allow
  the framework to extract rich COM type error information.
 
- The general rule is that the **only** exception returned from Python COM 
- Server code should be an COMException instance.  Any other Python exception 
- should be considered an implementation bug in the server (if not, it 
- should be handled, and an appropriate COMException instance raised).  Any 
- other exception is considered "unexpected", and a dispatcher may take 
+ The general rule is that the **only** exception returned from Python COM
+ Server code should be an COMException instance.  Any other Python exception
+ should be considered an implementation bug in the server (if not, it
+ should be handled, and an appropriate COMException instance raised).  Any
+ other exception is considered "unexpected", and a dispatcher may take
  special action (see Dispatchers above)
 
- Occasionally, the implementation will raise the policy.error error.  
- This usually means there is a problem in the implementation that the 
+ Occasionally, the implementation will raise the policy.error error.
+ This usually means there is a problem in the implementation that the
  Python programmer should fix.
 
- For example, if policy is asked to wrap an object which it can not 
- support (because, eg, it does not provide _public_methods_ or _dynamic_) 
- then policy.error will be raised, indicating it is a Python programmers 
+ For example, if policy is asked to wrap an object which it can not
+ support (because, eg, it does not provide _public_methods_ or _dynamic_)
+ then policy.error will be raised, indicating it is a Python programmers
  problem, rather than a COM error.
- 
 """
 
 __author__ = "Greg Stein and Mark Hammond"
