@@ -503,7 +503,7 @@ prefModule = GetDefaultEditorModuleName()
 if __name__ == prefModule:
     # For debugging purposes, when this module may be reloaded many times.
     try:
-        win32ui.GetApp().RemoveDocTemplate(editorTemplate)
+        win32ui.GetApp().RemoveDocTemplate(editorTemplate)  # type: ignore[has-type, used-before-def]
     except (NameError, win32ui.error):
         pass
 

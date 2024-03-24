@@ -1,5 +1,6 @@
 import pythoncom
-from win32com.server import exception, util
+from win32com.server import util
+from win32com.server.exception import COMException
 
 VT_EMPTY = pythoncom.VT_EMPTY
 
@@ -18,7 +19,7 @@ class Bag:
                 hr = 0x80070057
                 exc = pythoncom.com_error(0, "Bag.Read", "no such item", None, 0, hr)
                 errorLog.AddError(propName, exc)
-            raise exception.Exception(scode=hr)
+            raise COMException(scode=hr)
         return self.data[propName]
 
     def Write(self, propName, value):
@@ -31,7 +32,7 @@ class Target:
     _com_interfaces_ = [pythoncom.IID_IPersist, pythoncom.IID_IPersistPropertyBag]
 
     def GetClassID(self):
-        raise exception.Exception(scode=0x80004005)  # E_FAIL
+        raise COMException(scode=0x80004005)  # E_FAIL
 
     def InitNew(self):
         pass
@@ -41,7 +42,7 @@ class Target:
         print(bag.Read("prop2", VT_EMPTY, log))
         try:
             print(bag.Read("prop3", VT_EMPTY, log))
-        except exception.Exception:
+        except COMException:
             pass
 
     def Save(self, bag, clearDirty, saveAllProps):

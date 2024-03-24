@@ -275,9 +275,9 @@ HINSTANCE PyWin_GetErrorMessageModule(DWORD err)
 }
 
 /* error helper - GetLastError() is provided, but this is for exceptions */
-PyObject *PyWin_SetAPIError(char *fnName, long err /*= 0*/)
+PyObject *PyWin_SetAPIError(char *fnName, long err /*= ERROR_SUCCESS*/)
 {
-    DWORD errorCode = err == 0 ? GetLastError() : err;
+    DWORD errorCode = err == ERROR_SUCCESS ? GetLastError() : err;
     DWORD flags = FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS;
     // try and find the hmodule providing this error.
     HMODULE hmodule = PyWin_GetErrorMessageModule(errorCode);
@@ -308,6 +308,15 @@ PyObject *PyWin_SetAPIError(char *fnName, long err /*= 0*/)
     return NULL;
 }
 
+/* error helper - like PyWin_SetAPIError, but returns None on success */
+PyObject *PyWin_SetAPIErrorOrReturnNone(char *fnName, long err /*= ERROR_SUCCESS*/)
+{
+    DWORD errorCode = err == ERROR_SUCCESS ? GetLastError() : err;
+    if (errorCode == ERROR_SUCCESS)
+        Py_RETURN_NONE;
+    return PyWin_SetAPIError(fnName, errorCode);
+}
+
 // This function sets a basic COM error - it is a valid COM
 // error, but may not contain rich error text about the error.
 // Designed to be used before pythoncom has been loaded.
@@ -332,16 +341,6 @@ PyObject *PyWin_SetBasicCOMError(HRESULT hr)
     PyErr_SetObject(PyWinExc_COMError, evalue);
     Py_XDECREF(evalue);
     return NULL;
-}
-
-// @pymethod string|pywintypes|Unicode|Creates a new Unicode object
-PYWINTYPES_EXPORT PyObject *PyWin_NewUnicode(PyObject *self, PyObject *args)
-{
-    char *string;
-    int slen;
-    if (!PyArg_ParseTuple(args, "t#", &string, &slen))
-        return NULL;
-    return PyUnicode_DecodeMBCS(string, slen, NULL);
 }
 
 // @pymethod string|pywintypes|UnicodeFromRaw|Creates a new Unicode object from raw binary data
@@ -760,7 +759,6 @@ static struct PyMethodDef pywintypes_functions[] = {
     {"DosDateTimeToTime", PyWin_DosDateTimeToTime,
      1},  // @pymeth DosDateTimeToTime|Converts an MS-DOS Date/Time to a standard Time object
 #endif
-    {"Unicode", PyWin_NewUnicode, 1},  // @pymeth Unicode|Creates a new string object
     {"UnicodeFromRaw", PyWin_NewUnicodeFromRaw,
      1},  // @pymeth UnicodeFromRaw|Creates a new string object from raw binary data
     {"IsTextUnicode", PyWin_IsTextUnicode,
@@ -959,10 +957,6 @@ PYWIN_MODULE_INIT_FUNC(pywintypes)
         PyDict_SetItemString(dict, "TRUE", Py_True) == -1 || PyDict_SetItemString(dict, "FALSE", Py_False) == -1)
         PYWIN_MODULE_INIT_RETURN_ERROR;
     ADD_CONSTANT(WAVE_FORMAT_PCM);
-
-    // Add a few types.
-    if (PyDict_SetItemString(dict, "UnicodeType", (PyObject *)&PyUnicode_Type) == -1)
-        PYWIN_MODULE_INIT_RETURN_ERROR;
 
     if (!_PyWinDateTime_PrepareModuleDict(dict))
         PYWIN_MODULE_INIT_RETURN_ERROR;

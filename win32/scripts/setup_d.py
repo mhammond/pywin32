@@ -23,7 +23,7 @@ def usage_and_die(rc):
     sys.exit(rc)
 
 
-if win32api.__file__.find("_d") > 0:
+if os.path.splitext(os.path.basename(win32api.__file__))[0].endswith("_d"):
     print("This scripts appears to be running a DEBUG version of Python.")
     print("Please run it using a normal release build (python.exe)")
     usage_and_die(1)

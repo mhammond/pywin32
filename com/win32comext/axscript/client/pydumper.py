@@ -16,7 +16,7 @@
 from win32com.axscript import axscript
 
 from . import pyscript
-from .pyscript import SCRIPTTEXT_FORCEEXECUTION, Exception, RaiseAssert, trace
+from .pyscript import SCRIPTTEXT_FORCEEXECUTION, RaiseAssert, trace
 
 PyDump_CLSID = "{ac527e60-c693-11d0-9c25-00aa00125a98}"
 

@@ -5,7 +5,6 @@
 
 # This sample was contributed by Roger Burnham.
 
-import win32api
 import win32con
 import win32ui
 from pywin.framework import app

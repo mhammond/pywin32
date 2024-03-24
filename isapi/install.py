@@ -2,6 +2,8 @@
 
 # this code adapted from "Tomcat JK2 ISAPI redirector", part of Apache
 # Created July 2004, Mark Hammond.
+from __future__ import annotations
+
 import importlib.machinery
 import os
 import shutil
@@ -73,7 +75,7 @@ class VirtualDirParameters:
     EnableDirBrowsing = _DEFAULT_ENABLE_DIR_BROWSING
     EnableDefaultDoc = _DEFAULT_ENABLE_DEFAULT_DOC
     DefaultDoc = None  # Only set in IIS if not None
-    ScriptMaps = []
+    ScriptMaps: list[ScriptMapParams] = []
     ScriptMapUpdate = "end"  # can be 'start', 'end', 'replace'
     Server = None
 
@@ -117,8 +119,8 @@ class ScriptMapParams:
 class ISAPIParameters:
     ServerName = _DEFAULT_SERVER_NAME
     # Description = None
-    Filters = []
-    VirtualDirs = []
+    Filters: list[FilterParameters] = []
+    VirtualDirs: list[VirtualDirParameters] = []
 
     def __init__(self, **kw):
         self.__dict__.update(kw)

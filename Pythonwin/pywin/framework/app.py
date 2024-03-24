@@ -1,4 +1,3 @@
-# App.py
 # Application stuff.
 # The application is responsible for managing the main frame window.
 #
@@ -16,29 +15,6 @@ from pywin.mfc import afxres, dialog, window
 from pywin.mfc.thread import WinApp
 
 from . import scriptutils
-
-## NOTE: App and AppBuild should NOT be used - instead, you should contruct your
-## APP class manually whenever you like (just ensure you leave these 2 params None!)
-## Whoever wants the generic "Application" should get it via win32iu.GetApp()
-
-# These are "legacy"
-AppBuilder = None
-App = None  # default - if used, must end up a CApp derived class.
-
-
-# Helpers that should one day be removed!
-def AddIdleHandler(handler):
-    print(
-        "app.AddIdleHandler is deprecated - please use win32ui.GetApp().AddIdleHandler() instead."
-    )
-    return win32ui.GetApp().AddIdleHandler(handler)
-
-
-def DeleteIdleHandler(handler):
-    print(
-        "app.DeleteIdleHandler is deprecated - please use win32ui.GetApp().DeleteIdleHandler() instead."
-    )
-    return win32ui.GetApp().DeleteIdleHandler(handler)
 
 
 # Helper for writing a Window position by name, and later loading it.
@@ -169,10 +145,6 @@ class CApp(WinApp):
         if self._obj_:
             self._obj_.AttachObject(None)
         self._obj_ = None
-        global App
-        global AppBuilder
-        App = None
-        AppBuilder = None
         return 0
 
     def HaveIdleHandler(self, handler):

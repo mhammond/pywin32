@@ -11,7 +11,6 @@ import sys
 import traceback
 
 import __main__
-import afxres
 import pywin.framework.app
 import pywin.scintilla.control
 import pywin.scintilla.formatter
@@ -20,6 +19,7 @@ import win32api
 import win32clipboard
 import win32con
 import win32ui
+from pywin.mfc import afxres
 
 ## sequential after ID_GOTO_LINE defined in editor.py
 ID_EDIT_COPY_CODE = 0xE2002

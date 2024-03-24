@@ -877,9 +877,7 @@ class Generator:
         sourceFilename,
         progressObject,
         bBuildHidden=1,
-        bUnicodeToString=None,
     ):
-        assert bUnicodeToString is None, "this is deprecated and will go away"
         self.bHaveWrittenDispatchBaseClass = 0
         self.bHaveWrittenCoClassBaseClass = 0
         self.bHaveWrittenEventBaseClass = 0

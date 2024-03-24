@@ -1,7 +1,6 @@
 # A clang-format style that approximates Python's PEP 7
 # Useful for IDE integration
 BasedOnStyle: Google
-AlwaysBreakAfterReturnType: All
 AllowShortIfStatementsOnASingleLine: false
 AlignAfterOpenBracket: Align
 BreakBeforeBraces: Stroustrup

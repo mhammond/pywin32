@@ -551,8 +551,4 @@ class InteractivePythonApp(app.CApp):
         help.SelectAndRunHelpFile()
 
 
-# As per the comments in app.py, this use is depreciated.
-# app.AppBuilder = InteractivePythonApp
-
-# Now all we do is create the application
 thisApp = InteractivePythonApp()

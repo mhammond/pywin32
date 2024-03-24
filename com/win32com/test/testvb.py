@@ -4,6 +4,7 @@
 #
 
 import traceback
+from collections.abc import Callable
 
 import pythoncom
 import win32com.client

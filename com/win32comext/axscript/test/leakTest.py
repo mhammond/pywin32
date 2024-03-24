@@ -4,7 +4,6 @@ import pythoncom
 import win32com.server.policy
 from win32com.axscript import axscript
 from win32com.axscript.server import axsite
-from win32com.axscript.server.error import Exception
 from win32com.server import connect, util
 
 

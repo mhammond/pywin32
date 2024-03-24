@@ -128,7 +128,7 @@ class BitmapTemplate(docview.DocTemplate):
 
 # For debugging purposes, when this module may be reloaded many times.
 try:
-    win32ui.GetApp().RemoveDocTemplate(bitmapTemplate)
+    win32ui.GetApp().RemoveDocTemplate(bitmapTemplate)  # type: ignore[has-type, used-before-def]
 except NameError:
     pass
 

@@ -11,7 +11,6 @@ import pythoncom
 import win32api
 import win32com
 import win32com.client.dynamic
-from pywintypes import Unicode
 from win32com.client import gencache
 from win32com.test.util import CheckClean
 
@@ -112,7 +111,7 @@ def TextExcel(xl):
     if not xl.Visible:
         raise error("Visible property not true.")
 
-    if int(xl.Version[0]) >= 8:
+    if int(xl.Version.split(".")[0]) >= 8:
         xl.Workbooks.Add()
     else:
         xl.Workbooks().Add()
@@ -127,16 +126,16 @@ def TextExcel(xl):
     if xl.Range("A1").Value != "Hi 0":
         raise error("Single cell range failed")
 
-    if xl.Range("A1:B1").Value != ((Unicode("Hi 0"), 2),):
+    if xl.Range("A1:B1").Value != (("Hi 0", 2),):
         raise error("flat-horizontal cell range failed")
 
-    if xl.Range("A1:A2").Value != ((Unicode("Hi 0"),), (Unicode("x"),)):
+    if xl.Range("A1:A2").Value != (("Hi 0",), ("x",)):
         raise error("flat-vertical cell range failed")
 
     if xl.Range("A1:C3").Value != (
-        (Unicode("Hi 0"), 2, 3),
-        (Unicode("x"), Unicode("Hi 1"), Unicode("z")),
-        (3, 2, Unicode("Hi 2")),
+        ("Hi 0", 2, 3),
+        ("x", "Hi 1", "z"),
+        (3, 2, "Hi 2"),
     ):
         raise error("square cell range failed")
 
@@ -144,7 +143,7 @@ def TextExcel(xl):
 
     if xl.Range("A1:C3").Value != (
         (3, 2, 1),
-        (Unicode("x"), Unicode("y"), Unicode("z")),
+        ("x", "y", "z"),
         (1, 2, 3),
     ):
         raise error("Range was not what I set it to!")

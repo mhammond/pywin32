@@ -3,6 +3,8 @@
 Please see policy.py for a discussion on dispatchers and policies
 """
 
+from __future__ import annotations
+
 import traceback
 from sys import exc_info
 
@@ -234,6 +236,13 @@ class DispatcherOutputDebugString(DispatcherTrace):
         win32api.OutputDebugString(str(args[-1]) + "\n")
 
 
+DispatcherWin32dbg_deprecation_message = """\
+The DispatcherWin32dbg dispatcher is deprecated!
+Please open an issue at https://github.com/mhammond/pywin32 is this is a problem.
+Comment the relevant DeprecationWarning in dispatcher.py to re-enable.\
+"""
+
+
 class DispatcherWin32dbg(DispatcherBase):
     """A source-level debugger dispatcher
 
@@ -244,10 +253,11 @@ class DispatcherWin32dbg(DispatcherBase):
     """
 
     def __init__(self, policyClass, ob):
+        raise DeprecationWarning(DispatcherWin32dbg_deprecation_message)
+        # No one uses this, and it just causes py2exe to drag all of pythonwin in.
+        import pywin.debugger
+
         pywin.debugger.brk()
-        print("The DispatcherWin32dbg dispatcher is deprecated!")
-        print("Please let me know if this is a problem.")
-        print("Uncomment the relevant lines in dispatcher.py to re-enable")
         # DEBUGGER Note - You can either:
         # * Hit Run and wait for a (non Exception class) exception to occur!
         # * Set a breakpoint and hit run.
@@ -256,9 +266,12 @@ class DispatcherWin32dbg(DispatcherBase):
 
     def _HandleException_(self):
         """Invoke the debugger post mortem capability"""
+        raise DeprecationWarning(DispatcherWin32dbg_deprecation_message)
         # Save details away.
         typ, val, tb = exc_info()
-        # import pywin.debugger, pywin.debugger.dbgcon
+        import pywin.debugger
+        import pywin.debugger.dbgcon
+
         debug = 0
         try:
             raise typ(val)
@@ -284,6 +297,6 @@ class DispatcherWin32dbg(DispatcherBase):
 try:
     import win32trace
 
-    DefaultDebugDispatcher = DispatcherWin32trace
+    DefaultDebugDispatcher: type[DispatcherTrace] = DispatcherWin32trace
 except ImportError:  # no win32trace module - just use a print based one.
     DefaultDebugDispatcher = DispatcherTrace

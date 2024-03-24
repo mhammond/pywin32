@@ -7699,3 +7699,9 @@ BOOLAPI UnregisterDeviceNotification(HANDLE);
 // @pyparm int|Modifiers||Control keys, combination of win32con.MOD_*
 // @pyparm int|vk||Virtual key code
 BOOLAPI RegisterHotKey(HWND, int, UINT, UINT);
+
+// @pyswig |UnregisterHotKey|Unregisters a previously registeredhotkey
+// @pyseeapi UnregisterHotKey
+// @pyparm <o PyHANDLE>|hWnd||A handle to the window associated with the hot key to be freed
+// @pyparm int|id||The identifier of the hot key
+BOOLAPI UnregisterHotKey(HWND, int);

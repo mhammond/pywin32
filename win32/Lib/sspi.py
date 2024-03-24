@@ -372,7 +372,7 @@ if __name__ == "__main__":
     sec_buffer = None
     client_step = 0
     server_step = 0
-    while not (sspiclient.authenticated) or len(sec_buffer[0].Buffer):
+    while not sspiclient.authenticated or (sec_buffer and len(sec_buffer[0].Buffer)):
         client_step += 1
         err, sec_buffer = sspiclient.authorize(sec_buffer)
         print("Client step %s" % client_step)

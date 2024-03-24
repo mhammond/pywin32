@@ -6,10 +6,8 @@ import win32com.server.policy
 import win32com.test.util
 from win32com.axscript import axscript
 from win32com.axscript.server import axsite
-from win32com.axscript.server.error import Exception
 from win32com.client.dynamic import Dispatch
 from win32com.server import connect, util
-from win32com.server.exception import COMException
 
 verbose = "-v" in sys.argv
 

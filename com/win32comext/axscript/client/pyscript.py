@@ -22,10 +22,10 @@ from win32com.axscript.client.framework import (
     SCRIPTTEXT_FORCEEXECUTION,
     SCRIPTTEXT_ISEXPRESSION,
     SCRIPTTEXT_ISPERSISTENT,
-    Exception,
     RaiseAssert,
     trace,
 )
+from win32com.server.exception import COMException
 
 PyScript_CLSID = "{DF630910-1C1D-11d0-AE36-8C0F5E000000}"
 
@@ -366,7 +366,7 @@ class PyScript(framework.COMScript):
                         item.scriptlets[funcName] = function
 
         if function is None:
-            raise Exception(scode=winerror.DISP_E_MEMBERNOTFOUND)
+            raise COMException(scode=winerror.DISP_E_MEMBERNOTFOUND)
         return self.ApplyInScriptedSection(codeBlock, function, args)
 
     def DoParseScriptText(

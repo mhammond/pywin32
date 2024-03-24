@@ -166,10 +166,11 @@ class ThreadPoolExtension(isapi.simple.SimpleExtension):
                 list = traceback.format_tb(
                     exc_tb, limit
                 ) + traceback.format_exception_only(exc_typ, exc_val)
+                bold = list.pop()
                 print(
                     "<PRE>{}<B>{}</B></PRE>".format(
-                        cgi.escape("".join(list[:-1])),
-                        cgi.escape(list[-1]),
+                        cgi.escape("".join(list)),
+                        cgi.escape(bold),
                     ),
                     file=ecb,
                 )

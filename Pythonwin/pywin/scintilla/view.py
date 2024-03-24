@@ -7,10 +7,9 @@ import struct
 import sys
 
 import __main__  # for attribute lookup
-import afxres
 import win32con
 import win32ui
-from pywin.mfc import docview
+from pywin.mfc import afxres, docview
 
 from . import IDLEenvironment  # IDLE emulation.
 from . import bindings, control, scintillacon

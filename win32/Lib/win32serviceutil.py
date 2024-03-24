@@ -17,7 +17,6 @@ import win32con
 import win32service
 import winerror
 
-_d = "_d" if "_d.pyd" in importlib.machinery.EXTENSION_SUFFIXES else ""
 error = RuntimeError
 
 
@@ -35,9 +34,11 @@ def LocatePythonServiceExe(exe=None):
     if exe and os.path.isfile(exe):
         return win32api.GetFullPathName(exe)
 
+    suffix = "_d" if "_d.pyd" in importlib.machinery.EXTENSION_SUFFIXES else ""
+
     # We are confused if we aren't now looking for our default. But if that
     # exists as specified we assume it's good.
-    exe = f"pythonservice{_d}.exe"
+    exe = f"pythonservice{suffix}.exe"
     if os.path.isfile(exe):
         return win32api.GetFullPathName(exe)
 
@@ -62,7 +63,7 @@ def LocatePythonServiceExe(exe=None):
     # (Unlike the .exe above, we don't unconditionally copy this, and possibly
     # copy it to a different place. Doesn't seem a good reason for that!?)
     python_dll = win32api.GetModuleFileName(sys.dllhandle)
-    pyw = f"pywintypes{sys.version_info[0]}{sys.version_info[1]}{_d}.dll"
+    pyw = f"pywintypes{sys.version_info[0]}{sys.version_info[1]}{suffix}.dll"
     correct_pyw = os.path.join(os.path.dirname(python_dll), pyw)
 
     if not os.path.exists(correct_pyw):
@@ -441,8 +442,6 @@ def ControlService(serviceName, code, machine=None):
 
 
 def __FindSvcDeps(findName):
-    if isinstance(findName, pywintypes.UnicodeType):
-        findName = str(findName)
     dict = {}
     k = win32api.RegOpenKey(
         win32con.HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Services"
