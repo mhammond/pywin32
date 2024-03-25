@@ -104,9 +104,11 @@ jobs:
         with:
           # This job only needs to target the oldest supported version (black@stable supports Python >=3.8)
           python-version: '3.8'
-      - run: pip install isort pycln
+      - run: pip install pycln
       - run: pycln . --config=pycln.toml --check
-      - run: isort . --diff --check-only
+      - uses: chartboost/ruff-action@v1
+        with:
+          version: '0.3.4'
       - uses: psf/black@stable
         with:
           options: "--fast --check --diff --verbose"
