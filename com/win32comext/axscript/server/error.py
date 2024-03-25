@@ -1,6 +1,6 @@
 """Exception instance for AXScript servers.
 
-This module implements an exception instance that is raised by the core 
+This module implements an exception instance that is raised by the core
 server scripting support.
 
 When a script error occurs, it wraps the COM object that describes the

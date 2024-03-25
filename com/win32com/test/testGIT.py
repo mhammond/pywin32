@@ -1,6 +1,6 @@
 """Testing pasing object between multiple COM threads
 
-Uses standard COM marshalling to pass objects between threads.  Even 
+Uses standard COM marshalling to pass objects between threads.  Even
 though Python generally seems to work when you just pass COM objects
 between threads, it shouldnt.
 
@@ -10,15 +10,14 @@ It shows that although we create new threads to use the Python.Interpreter,
 COM marshalls back all calls to that object to the main Python thread,
 which must be running a message loop (as this sample does).
 
-When this test is run in "free threaded" mode (at this stage, you must 
-manually mark the COM objects as "ThreadingModel=Free", or run from a 
+When this test is run in "free threaded" mode (at this stage, you must
+manually mark the COM objects as "ThreadingModel=Free", or run from a
 service which has marked itself as free-threaded), then no marshalling
 is done, and the Python.Interpreter object start doing the "expected" thing
 - ie, it reports being on the same thread as its caller!
 
 Python.exe needs a good way to mark itself as FreeThreaded - at the moment
 this is a pain in the but!
-
 """
 
 import _thread
