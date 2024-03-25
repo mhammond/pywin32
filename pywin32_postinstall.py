@@ -153,8 +153,8 @@ def CopyTo(desc, src, dest):
                 raise
             full_desc = (
                 f"Error {desc}\n\n"
-                "If you have any Python applications running, "
-                f"please close them now\nand select 'Retry'\n\n{details.strerror}"
+                + "If you have any Python applications running, "
+                + f"please close them now\nand select 'Retry'\n\n{details.strerror}"
             )
             rc = win32api.MessageBox(
                 0, full_desc, "Installation Error", win32con.MB_ABORTRETRYIGNORE
@@ -262,7 +262,7 @@ def RegisterHelpFile(register=True, lib_dir=None):
             SetPyKeyVal("Help\\Pythonwin Reference", None, chm_file)
             return chm_file
         else:
-            print("NOTE: PyWin32.chm can not be located, so has not " "been registered")
+            print("NOTE: PyWin32.chm can not be located, so has not been registered")
     else:
         UnsetPyKeyVal("Help\\Pythonwin Reference", None, delete_key=True)
     return None
@@ -472,8 +472,8 @@ def install(lib_dir):
                 if os.path.exists(dst):
                     msg = (
                         "The file '%s' exists, but can not be replaced "
-                        "due to insufficient permissions.  You must "
-                        "reinstall this software as an Administrator" % dst
+                        + "due to insufficient permissions.  You must "
+                        + "reinstall this software as an Administrator" % dst
                     )
                     print(msg)
                     raise RuntimeError(msg)

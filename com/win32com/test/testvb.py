@@ -97,9 +97,7 @@ def TestVB(vbtest, bUseGenerated):
     vbtest.VariantProperty = (1.0, 2.0, 3.0)
     if vbtest.VariantProperty != (1.0, 2.0, 3.0):
         raise error(
-            "Could not set the variant property to an array of floats correctly - '{}'.".format(
-                vbtest.VariantProperty
-            )
+            f"Could not set the variant property to an array of floats correctly - '{vbtest.VariantProperty}'."
         )
 
     TestArrays(vbtest, bUseGenerated)
@@ -194,9 +192,7 @@ def _DoTestCollection(vbtest, col_name, expected):
         check.append(item)
     if check != list(expected):
         raise error(
-            "Collection 2nd time around {} didn't have {!r} (had {!r})".format(
-                col_name, expected, check
-            )
+            f"Collection 2nd time around {col_name} didn't have {expected!r} (had {check!r})"
         )
     # Check we can get it via iter()
     i = iter(getattr(vbtest, col_name))
@@ -205,9 +201,7 @@ def _DoTestCollection(vbtest, col_name, expected):
         check.append(item)
     if check != list(expected):
         raise error(
-            "Collection iterator {} didn't have {!r} 2nd time around (had {!r})".format(
-                col_name, expected, check
-            )
+            f"Collection iterator {col_name} didn't have {expected!r} 2nd time around (had {check!r})"
         )
     # but an iterator is not restartable
     check = []
@@ -215,9 +209,7 @@ def _DoTestCollection(vbtest, col_name, expected):
         check.append(item)
     if check != []:
         raise error(
-            "2nd time around Collection iterator {} wasn't empty (had {!r})".format(
-                col_name, check
-            )
+            f"2nd time around Collection iterator {col_name} wasn't empty (had {check!r})"
         )
 
     # Check len()==Count()
@@ -353,14 +345,12 @@ def TestArrays(vbtest, bUseGenerated):
         assert testData == list(resultData)
         testData = ["hi", "from", "Python"]
         resultData, byRefParam = vbtest.PassSAFEARRAYVariant(testData)
-        assert testData == list(byRefParam), "Expected '{}', got '{}'".format(
-            testData,
-            list(byRefParam),
-        )
-        assert testData == list(resultData), "Expected '{}', got '{}'".format(
-            testData,
-            list(resultData),
-        )
+        assert testData == list(
+            byRefParam
+        ), f"Expected '{testData}', got '{list(byRefParam)}'"
+        assert testData == list(
+            resultData
+        ), f"Expected '{testData}', got '{list(resultData)}'"
         # This time, we just pass Unicode, so the result should compare equal
         testData = [1, 2.0, "3"]
         resultData, byRefParam = vbtest.PassSAFEARRAYVariant(testData)
@@ -484,14 +474,7 @@ def TestStructs(vbtest):
         assert "foo" in str(exc), exc
 
     # test repr - it uses repr() of the sub-objects, so check it matches.
-    expected = (
-        "com_struct(int_val={!r}, str_val={!r}, ob_val={!r}, sub_val={!r})".format(
-            s.int_val,
-            s.str_val,
-            s.ob_val,
-            s.sub_val,
-        )
-    )
+    expected = f"com_struct(int_val={s.int_val!r}, str_val={s.str_val!r}, ob_val={s.ob_val!r}, sub_val={s.sub_val!r})"
     if repr(s) != expected:
         print("Expected repr:", expected)
         print("Actual repr  :", repr(s))

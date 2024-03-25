@@ -171,7 +171,7 @@ def CastTo(ob, target, typelib=None):
         if not hasattr(mod, target):
             raise ValueError(
                 f"The interface name '{target}' does not appear in the "
-                f"specified library {typelib.ver_desc!r}"
+                + f"specified library {typelib.ver_desc!r}"
             )
 
     elif hasattr(target, "index"):  # string like
@@ -199,7 +199,7 @@ def CastTo(ob, target, typelib=None):
         if target_clsid is None:
             raise ValueError(
                 f"The interface name '{target}' does not appear in the "
-                f"same library as object '{ob!r}'"
+                + f"same library as object '{ob!r}'"
             )
         mod = gencache.GetModuleForCLSID(target_clsid)
     if mod is not None:

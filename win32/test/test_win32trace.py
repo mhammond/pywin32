@@ -29,8 +29,7 @@ def CheckNoOtherReaders():
         win32trace.TermRead()
         win32trace.TermWrite()
         raise RuntimeError(
-            "An existing win32trace reader appears to be "
-            "running - please stop this process and try again"
+            "An existing win32trace reader appears to be running - please stop this process and try again"
         )
 
 
@@ -258,9 +257,7 @@ class TraceWriteProcess:
     def start(self):
         procHandle, threadHandle, procId, threadId = win32process.CreateProcess(
             None,  # appName
-            'python.exe "{}" /run_test_process {} {}'.format(
-                this_file, self.BucketCount, self.threadCount
-            ),
+            f'python.exe "{this_file}" /run_test_process {self.BucketCount} {self.threadCount}',
             None,  # process security
             None,  # thread security
             0,  # inherit handles

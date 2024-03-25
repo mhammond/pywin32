@@ -187,7 +187,7 @@ if __name__ == "__main__":
                 serve()
             else:
                 parser.error(
-                    "You must supply 'client' or 'server' - " "use --help for details"
+                    "You must supply 'client' or 'server' - use --help for details"
                 )
         except KeyboardInterrupt:
             pass

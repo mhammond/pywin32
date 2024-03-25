@@ -43,7 +43,7 @@ def main():
         "-u",
         "--username",
         action="store",
-        help="The username to pass to the function (only for the " "change command",
+        help="The username to pass to the function (only for the change command",
     )
 
     parser.add_option(
@@ -51,7 +51,7 @@ def main():
         "--password",
         action="store",
         help="The clear-text password to pass to the function "
-        "(only for the 'change' command)",
+        + "(only for the 'change' command)",
     )
 
     parser.add_option(
@@ -60,8 +60,8 @@ def main():
         action="store_false",
         default=True,
         help="Used to specify the password does NOT match (ie, "
-        "uses False for the PasswordMatch/PasswordMatched "
-        "arg, both 'auth' and 'change' commands)",
+        + "uses False for the PasswordMatch/PasswordMatched "
+        + "arg, both 'auth' and 'change' commands)",
     )
 
     parser.add_option(

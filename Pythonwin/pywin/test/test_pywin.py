@@ -377,7 +377,7 @@ class T(unittest.TestCase):
             pywin.scintilla.IDLEenvironment.test()
         ed = scriptutils.GetActiveEditControl()
         doc = ed.GetDocument()
-        assert "hi " "there" in ed.GetTextRange()
+        assert "hi there" in ed.GetTextRange()
         assert doc.IsModified()
 
         # edit w auto-indent

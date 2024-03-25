@@ -792,7 +792,7 @@ def HandleCommandLine(
         "--server",
         action="store",
         help="Specifies the IIS server to install/uninstall on."
-        f" Default is '{_IIS_OBJECT}/1'",
+        + f" Default is '{_IIS_OBJECT}/1'",
     )
 
     (options, args) = parser.parse_args(argv[1:])

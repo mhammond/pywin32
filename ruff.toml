@@ -1,0 +1,23 @@
+# Target the oldest supported version
+target-version = "py37"
+
+[lint]
+select = [
+    "FLY", # static-join-to-f-string
+    "G",   # flake8-logging-format
+    "ISC", # flake8-implicit-str-concat
+    "UP",  # pyupgrade
+]
+ignore = [
+    # We prefer explicit-string-concatenation
+    "ISC003", # flake8-implicit-str-concat
+    # We prefer explicit open modes
+    "UP015", # redundant-open-modes
+]
+
+[lint.per-file-ignores]
+# TODO: Make adodbapi changes in their own PRs
+"adodbapi/*" = ["ISC", "UP"]
+
+[lint.flake8-implicit-str-concat]
+allow-multiline = false # ignore ISC003 with this option disabled
