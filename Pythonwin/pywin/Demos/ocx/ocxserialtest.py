@@ -68,7 +68,7 @@ class MySerialControl(activex.Control, serialModule.MSComm):
 
 class TestSerDialog(dialog.Dialog):
     def __init__(self, *args):
-        dialog.Dialog.__init__(*(self,) + args)
+        dialog.Dialog.__init__(*(self, *args))
         self.olectl = None
 
     def OnComm(self):

@@ -98,7 +98,7 @@ class WIN32STRUCT:
                     val = default
                 vals.append(val)
             full_fmt += fmt
-        return struct.pack(*(full_fmt,) + tuple(vals))
+        return struct.pack(*(full_fmt, *tuple(vals)))
 
 
 class TBBUTTON(WIN32STRUCT):

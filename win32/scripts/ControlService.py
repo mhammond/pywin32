@@ -29,7 +29,6 @@
 
 import win32con
 import win32service
-import win32ui
 from pywin.mfc import dialog
 
 
