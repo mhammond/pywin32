@@ -1,6 +1,7 @@
 # import dao3032
 # No longer imported here - callers responsibility to load
 #
+import pythoncom
 import win32com.client
 
 

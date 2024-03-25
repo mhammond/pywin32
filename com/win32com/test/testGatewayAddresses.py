@@ -76,7 +76,7 @@ class Dummy2:
     ]
 
 
-class DeletgatedDummy:
+class DelegatedDummy:
     _public_methods_ = []
 
 

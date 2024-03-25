@@ -76,6 +76,15 @@ def SavePreference(prefName, prefValue):
     win32ui.WriteProfileVal(sectionProfile, prefName, prefValue)
 
 
+def SaveFontPreferences():
+    win32ui.WriteProfileVal(sectionProfile, valueFormatTitle, str(formatTitle))
+    win32ui.WriteProfileVal(sectionProfile, valueFormatInput, str(formatInput))
+    win32ui.WriteProfileVal(sectionProfile, valueFormatOutput, str(formatOutput))
+    win32ui.WriteProfileVal(
+        sectionProfile, valueFormatOutputError, str(formatOutputError)
+    )
+
+
 def GetPromptPrefix(line):
     ps1 = sys.ps1
     if line[: len(ps1)] == ps1:
@@ -333,7 +342,7 @@ class InteractiveCore:
                     )
                 )
             else:
-                sys.stderr.write(banner)
+                sys.stderr.write(self.banner)
         rcfile = os.environ.get("PYTHONSTARTUP")
         if rcfile:
             import __main__
