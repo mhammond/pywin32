@@ -6,7 +6,6 @@
 #include "PythonCOM.h"
 #include "PythonCOMServer.h"
 
-#ifndef NO_PYCOM_IPROPERTYSTORAGE
 #include "PyIPropertyStorage.h"
 
 // @doc - This file contains autoduck documentation
@@ -1161,4 +1160,3 @@ STDMETHODIMP PyGPropertyStorage::Stat(
     return hr;
 }
 
-#endif  // NO_PYCOM_IPROPERTYSTORAGE

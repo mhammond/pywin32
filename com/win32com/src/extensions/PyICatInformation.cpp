@@ -4,8 +4,6 @@
 #include "stdafx.h"
 #include "PythonCOM.h"
 
-#ifndef NO_PYCOM_ICATINFORMATION
-
 #include <comcat.h>
 #include "PyICatInformation.h"
 
@@ -155,4 +153,3 @@ PyComTypeObject PyICatInformation::type("PyICatInformation",
                                         sizeof(PyICatInformation), PyICatInformation_methods,
                                         GET_PYCOM_CTOR(PyICatInformation));
 
-#endif  // NO_PYCOM_ICATINFORMATION

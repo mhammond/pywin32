@@ -4,10 +4,6 @@
 #include "PyWinObjects.h"
 #include "win32api_display.h"
 
-#ifdef MS_WINCE
-#define DM_SPECVERSION 0
-#endif
-
 // from user32.dll, loaded in win32api's init function
 ChangeDisplaySettingsExfunc pfnChangeDisplaySettingsEx = NULL;
 EnumDisplayDevicesfunc pfnEnumDisplayDevices = NULL;
