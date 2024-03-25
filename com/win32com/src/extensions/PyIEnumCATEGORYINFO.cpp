@@ -4,8 +4,6 @@
 #include "stdafx.h"
 #include "PythonCOM.h"
 
-#ifndef NO_PYCOM_IENUMCATEGORYINFO
-
 #include <comcat.h>
 #include "PyIEnumGUID.h"
 
@@ -142,4 +140,3 @@ PyComEnumTypeObject PyIEnumCATEGORYINFO::type("PyIEnumCATEGORYINFO",
                                               sizeof(PyIEnumCATEGORYINFO), PyIEnumCATEGORYINFO_methods,
                                               GET_PYCOM_CTOR(PyIEnumCATEGORYINFO));
 
-#endif  // NO_PYCOM_IENUMCATEGORYINFO

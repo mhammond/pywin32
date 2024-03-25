@@ -270,7 +270,7 @@ PyObject *MyTransactNamedPipe(PyObject *self, PyObject *args)
 	// process the tricky read buffer.
 	cbReadData = PyLong_AsLong(obReadData);
 	if ((cbReadData!=(DWORD)-1) || !PyErr_Occurred()){
-		if (pOverlapped){	// guaranteed to be NULL on CE
+		if (pOverlapped){
 			obRet = PyBuffer_New(cbReadData);
 			if (obRet==NULL)
 				return NULL;
