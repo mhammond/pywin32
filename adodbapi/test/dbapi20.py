@@ -459,12 +459,12 @@ class DatabaseAPI20Test(unittest.TestCase):
         self.assertEqual(
             beers[0],
             "Cooper's",
-            "cursor.fetchall retrieved incorrect data, or data inserted " "incorrectly",
+            "cursor.fetchall retrieved incorrect data, or data inserted incorrectly",
         )
         self.assertEqual(
             beers[1],
             "Victoria Bitter",
-            "cursor.fetchall retrieved incorrect data, or data inserted " "incorrectly",
+            "cursor.fetchall retrieved incorrect data, or data inserted incorrectly",
         )
         trouble = "thi%s :may ca%(u)se? troub:1e"
         self.assertEqual(
@@ -548,7 +548,7 @@ class DatabaseAPI20Test(unittest.TestCase):
             self.assertEqual(
                 cur.fetchone(),
                 None,
-                "cursor.fetchone should return None if a query retrieves " "no rows",
+                "cursor.fetchone should return None if a query retrieves no rows",
             )
             _failUnless(self, cur.rowcount in (-1, 0))
 
