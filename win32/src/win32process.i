@@ -400,9 +400,6 @@ static PyObject *mybeginthreadex(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsSECURITY_ATTRIBUTES( obSA, &pSA, TRUE ))
 		return NULL;
 
-#if PY_VERSION_HEX < 0x03070000
-	PyEval_InitThreads();
-#endif
 	PythonThreadData *ptd = new PythonThreadData(obFunc, obArgs);
 	ULONG_PTR handle;
 	unsigned tid;
@@ -448,9 +445,6 @@ static PyObject *myCreateRemoteThread(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsSECURITY_ATTRIBUTES( obSA, &pSA, TRUE ))
 		return NULL;
 
-#if PY_VERSION_HEX < 0x03070000
-	PyEval_InitThreads();
-#endif
 	HANDLE handle;
 	DWORD tid;
 	handle = (*pfnCreateRemoteThread)(hprocess, pSA, stackSize,

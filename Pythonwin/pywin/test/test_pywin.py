@@ -51,8 +51,7 @@ class T(unittest.TestCase):
         def _restore_oe():
             sys.stdout, sys.stderr = cls.std_oe_orig
 
-        if sys.version_info >= (3, 8):
-            cls.addClassCleanup(_restore_oe)
+        cls.addClassCleanup(_restore_oe)
         sys.argv[1:] = ["/new", src_dir + "\\_dbgscript.py"]
         if not _indebugger:
             thisApp.InitInstance()

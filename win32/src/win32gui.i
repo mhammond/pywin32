@@ -246,9 +246,6 @@ PyObject *PyWinObject_FromHDEVNOTIFY(HGDIOBJ h)
 
 // Written to the module init function.
 %init %{
-#if PY_VERSION_HEX < 0x03070000
-PyEval_InitThreads(); /* Start the interpreter's thread-awareness */
-#endif
 PyDict_SetItemString(d, "dllhandle", PyWinLong_FromVoidPtr(g_dllhandle));
 PyDict_SetItemString(d, "error", PyWinExc_ApiError);
 
