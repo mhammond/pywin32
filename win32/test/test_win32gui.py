@@ -80,7 +80,7 @@ class TestEnumWindowsFamily(unittest.TestCase):
 
     def setUp(self):
         self.default_data_set = (None, -1, 0, 1, True, False)
-        self.type_data_set = (2.718282, "", (), {})
+        self.type_data_set = ("", (), {})
 
     def test_enumwindows(self):
         win32api.SetLastError(0)
@@ -97,13 +97,20 @@ class TestEnumWindowsFamily(unittest.TestCase):
             self.assertRaises(
                 ValueError, win32gui.EnumWindows, self.enum_callback_exc, data
             )
+        for func in (
+            self.enum_callback,
+            self.enum_callback_sle,
+        ):
+            for data in self.type_data_set:
+                self.assertRaises(TypeError, win32gui.EnumWindows, func, data)
         if sys.version_info >= (3, 10):
             for func in (
                 self.enum_callback,
                 self.enum_callback_sle,
             ):
-                for data in self.type_data_set:
-                    self.assertRaises(TypeError, win32gui.EnumWindows, func, data)
+                self.assertRaises(
+                    TypeError, win32gui.EnumWindows, func, self.enum_callback, 2.718282
+                )
 
     def test_enumchildwindows(self):
         win32api.SetLastError(0)
@@ -122,15 +129,27 @@ class TestEnumWindowsFamily(unittest.TestCase):
                 self.enum_callback_exc,
                 data,
             )
+        for data in self.type_data_set:
+            for func in (
+                self.enum_callback,
+                self.enum_callback_sle,
+            ):
+                self.assertRaises(
+                    TypeError, win32gui.EnumChildWindows, None, func, data
+                )
         if sys.version_info >= (3, 10):
-            for data in self.type_data_set:
-                for func in (
+            for func in (
+                self.enum_callback,
+                self.enum_callback_sle,
+            ):
+                self.assertRaises(
+                    TypeError,
+                    win32gui.EnumChildWindows,
+                    None,
+                    func,
                     self.enum_callback,
-                    self.enum_callback_sle,
-                ):
-                    self.assertRaises(
-                        TypeError, win32gui.EnumChildWindows, None, func, data
-                    )
+                    2.718282,
+                )
 
     def test_enumdesktopwindows(self):
         win32api.SetLastError(0)
@@ -170,16 +189,24 @@ class TestEnumWindowsFamily(unittest.TestCase):
                     self.enum_callback_exc,
                     data,
                 )
-        if sys.version_info[:2] >= (3, 10):
+        for func in (
+            self.enum_callback,
+            self.enum_callback_sle,
+        ):
+            for desktop in desktops:
+                for data in self.type_data_set:
+                    self.assertRaises(
+                        TypeError, win32gui.EnumDesktopWindows, 0, func, data
+                    )
+        if sys.version_info >= (3, 10):
             for func in (
                 self.enum_callback,
                 self.enum_callback_sle,
             ):
                 for desktop in desktops:
-                    for data in self.type_data_set:
-                        self.assertRaises(
-                            TypeError, win32gui.EnumDesktopWindows, 0, func, data
-                        )
+                    self.assertRaises(
+                        TypeError, win32gui.EnumDesktopWindows, 0, func, 2.718282
+                    )
 
 
 if __name__ == "__main__":

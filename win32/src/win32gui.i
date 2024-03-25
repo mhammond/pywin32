@@ -2093,7 +2093,7 @@ static PyObject *PyEnumChildWindows(PyObject *self, PyObject *args)
     if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
         return NULL;
     if (!PyCallable_Check(obFunc)) {
-        PyErr_SetString(PyExc_TypeError, "First param must be a callable object");
+        PyErr_SetString(PyExc_TypeError, "Second param must be a callable object");
         return NULL;
     }
     PyEnumWindowsCallback cb;
