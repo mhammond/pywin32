@@ -71,11 +71,6 @@ void PyCom_DLLAddRef(void)
                 Py_XDECREF(str);
             }
 
-            // Must force Python to start using thread locks, as
-            // we are free-threaded (maybe, I think, sometimes :-)
-#if PY_VERSION_HEX < 0x03070000
-            PyEval_InitThreads();
-#endif
             // Release Python lock, as first thing we do is re-get it.
             ptsGlobal = PyEval_SaveThread();
             bDidInitPython = TRUE;
