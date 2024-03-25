@@ -1,17 +1,17 @@
 {
   "typeCheckingMode": "basic",
-  // Target the oldest supported version in editors
+  // Target the oldest supported version in editors and default CLI
   "pythonVersion": "3.7",
   // Keep it simple for now by allowing both mypy and pyright to use `type: ignore`
   "enableTypeIgnoreComments": true,
   // Exclude from scanning when running pyright
   "exclude": [
     "build/",
-    // TODO: adodbapi should be updated and fixed separatly
+    // TODO: adodbapi should be updated and fixed separately
     "adodbapi/",
     // Vendored
     "Pythonwin/Scintilla/",
-    // Vendored IDLE extensions predating Python 2.3. They now live in idlelib in https://github.com/python/cpython/tree/main/Lib/idlelib
+    // Forked IDLE extensions predating Python 2.3. They now live in idlelib in https://github.com/python/cpython/tree/main/Lib/idlelib
     "Pythonwin/pywin/idle/",
     // Ignoring non-public apis for now
     "**/Test/",
@@ -33,15 +33,13 @@
   "reportAttributeAccessIssue": "none",
   // FIXE: These all need to be fixed first and turned back to error
   // some of the fixes need to be done in types-pywin32 from typeshed
-  "reportAssignmentType": "warning",
   "reportCallIssue": "warning",
-  "reportIndexIssue": "warning",
   "reportOperatorIssue": "warning",
   "reportOptionalCall": "warning",
   "reportOptionalIterable": "warning",
   "reportOptionalMemberAccess": "warning",
   "reportOptionalSubscript": "warning",
-  // TODO: Leave Unbound/Undefined to its own PR(s)
+  // TODO: Leave Unbound/Undefined to their own PR(s)
   "reportUnboundVariable": "warning",
   "reportUndefinedVariable": "warning",
   // Too many dynamically generated modules. This will require type stubs to properly fix.
