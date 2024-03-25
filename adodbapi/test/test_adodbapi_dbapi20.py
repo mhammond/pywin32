@@ -16,7 +16,7 @@ else:
 if pth not in sys.path:
     sys.path.insert(1, pth)
 # function to clean up the temporary folder -- calling program must run this function before exit.
-cleanup = setuptestframework.getcleanupfunction()
+cleanup = setuptestframework.cleanup_function
 
 import adodbapi
 import adodbapi.is64bit as is64bit
@@ -65,21 +65,14 @@ elif node == "xxx":  # try Postgres database
     _password = "12345678"
     _driver = "PostgreSQL Unicode"
     _provider = ""
-    connStr = "%sDriver={%s};Server=%s;Database=%s;uid=%s;pwd=%s;" % (
-        _provider,
-        _driver,
-        _computername,
-        _databasename,
-        _username,
-        _password,
-    )
+    connStr = f"{_provider}Driver={{{_driver}}};Server={_computername};Database={_databasename};uid={_username};pwd={_password};"
 elif node == "yyy":  # ACCESS data base is known to fail some tests.
     if is64bit.Python():
         driver = "Microsoft.ACE.OLEDB.12.0"
     else:
         driver = "Microsoft.Jet.OLEDB.4.0"
     testmdb = setuptestframework.makemdb(testfolder)
-    connStr = r"Provider=%s;Data Source=%s" % (driver, testmdb)
+    connStr = rf"Provider={driver};Data Source={testmdb}"
 else:  # try a remote connection to an SQL server
     conn_kws["proxy_host"] = "25.44.77.176"
     import adodbapi.remote
@@ -147,16 +140,13 @@ class test_adodbapi(dbapi20.DatabaseAPI20Test):
     def help_nextset_setUp(self, cur):
         "Should create a procedure called deleteme"
         'that returns two result sets, first the number of rows in booze then "name from booze"'
-        sql = """
+        sql = f"""
             create procedure deleteme as
             begin
-                select count(*) from %sbooze
-                select name from %sbooze
+                select count(*) from {self.table_prefix}booze
+                select name from {self.table_prefix}booze
             end
-        """ % (
-            self.table_prefix,
-            self.table_prefix,
-        )
+        """
         cur.execute(sql)
 
     def help_nextset_tearDown(self, cur):

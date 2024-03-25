@@ -23,8 +23,7 @@ print("\nPython", sys.version)
 node = platform.node()
 try:
     print(
-        "node=%s, is64bit.os()= %s, is64bit.Python()= %s"
-        % (node, is64bit.os(), is64bit.Python())
+        f"node={node}, is64bit.os()= {is64bit.os()}, is64bit.Python()= {is64bit.Python()}"
     )
 except:
     pass
@@ -32,14 +31,14 @@ except:
 if "--help" in sys.argv:
     print(
         """Valid command-line switches are:
-    --package - create a temporary test package, run 2to3 if needed.
+    --package - create a temporary test package
     --all - run all possible tests
-    --time - loop over time format tests (including mxdatetime if present)
+    --time - do time format test
     --nojet - do not test against an ACCESS database file
     --mssql - test against Microsoft SQL server
     --pg - test against PostgreSQL
     --mysql - test against MariaDB
-    --remote= - test unsing remote server at= (experimental) 
+    --remote= - test using remote server at= (experimental)
     """
     )
     exit()
@@ -76,14 +75,9 @@ for arg in sys.argv:
 
 
 # function to clean up the temporary folder -- calling program must run this function before exit.
-cleanup = setuptestframework.getcleanupfunction()
-try:
-    import adodbapi  # will (hopefully) be imported using the "pth" discovered above
-except SyntaxError:
-    print(
-        '\n* * * Are you trying to run Python2 code using Python3? Re-run this test using the "--package" switch.'
-    )
-    sys.exit(11)
+cleanup = setuptestframework.cleanup_function
+import adodbapi  # will (hopefully) be imported using the "pth" discovered above
+
 try:
     print(adodbapi.version)  # show version
 except:
@@ -106,20 +100,11 @@ doAccessTest = not ("--nojet" in sys.argv)
 doSqlServerTest = "--mssql" in sys.argv or doAllTests
 doMySqlTest = "--mysql" in sys.argv or doAllTests
 doPostgresTest = "--pg" in sys.argv or doAllTests
-iterateOverTimeTests = ("--time" in sys.argv or doAllTests) and onWindows
+doTimeTest = ("--time" in sys.argv or doAllTests) and onWindows
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # # start your environment setup here v v v
 SQL_HOST_NODE = "testsql.2txt.us,1430"
-
-try:  # If mx extensions are installed, use mxDateTime
-    import mx.DateTime
-
-    doMxDateTimeTest = True
-except:
-    doMxDateTimeTest = False  # Requires eGenixMXExtensions
-
-doTimeTest = True  # obsolete python time format
 
 if doAccessTest:
     if proxy_host:  # determine the (probably remote) database file folder
@@ -205,7 +190,7 @@ if doPostgresTest:
     # test using positional and keyword arguments (bad example for real code)
     if proxy_host:
         kws["proxy_host"] = proxy_host
-    print("    ...Testing PostgreSQL login to {}...".format(_computername))
+    print(f"    ...Testing PostgreSQL login to {_computername}...")
     doPostgresTest, connStrPostgres, dbPostgresConnect = tryconnection.try_connection(
         verbose,
         "%(prov_drv)s;Server=%(host)s;Database=%(database)s;uid=%(user)s;pwd=%(password)s;port=5430;",  # note nonstandard port
@@ -213,7 +198,7 @@ if doPostgresTest:
         _password,
         _computername,
         _databasename,
-        **kws
+        **kws,
     )
 
 assert (

@@ -23,21 +23,29 @@ Copyright (C) 2002 Henrik Ekelund, versions 2.1 and later by Vernon Cole
 
 DB-API 2.0 specification: http://www.python.org/dev/peps/pep-0249/
 
-This module source should run correctly in CPython versions 2.7 and later,
-or IronPython version 2.7 and later,
-or, after running through 2to3.py, CPython 3.4 or later.
+This module source should run correctly in CPython 3.4 or later.
 """
-
-__version__ = "2.6.2.0"
-version = "adodbapi v" + __version__
 
 import copy
 import decimal
 import os
 import sys
 import weakref
+from collections.abc import Mapping
 
 from . import ado_consts as adc, apibase as api, process_connect_string
+
+try:
+    import pythoncom
+    import pywintypes
+    from win32com.client import Dispatch
+except ImportError:
+    import warnings
+
+    warnings.warn("pywin32 package required for adodbapi.", ImportWarning)
+
+__version__ = "3.7.0.0"
+version = "adodbapi v" + __version__
 
 try:
     verbose = int(os.environ["ADODBAPI_VERBOSE"])
@@ -46,63 +54,11 @@ except:
 if verbose:
     print(version)
 
-# --- define objects to smooth out IronPython <-> CPython differences
-onWin32 = False  # assume the worst
-if api.onIronPython:
-    from clr import Reference
-    from System import (
-        Activator,
-        Array,
-        Byte,
-        DateTime,
-        DBNull,
-        Decimal as SystemDecimal,
-        Type,
-    )
-
-    def Dispatch(dispatch):
-        type = Type.GetTypeFromProgID(dispatch)
-        return Activator.CreateInstance(type)
-
-    def getIndexedValue(obj, index):
-        return obj.Item[index]
-
-else:  # try pywin32
-    try:
-        import pythoncom
-        import pywintypes
-        import win32com.client
-
-        onWin32 = True
-
-        def Dispatch(dispatch):
-            return win32com.client.Dispatch(dispatch)
-
-    except ImportError:
-        import warnings
-
-        warnings.warn(
-            "pywin32 package (or IronPython) required for adodbapi.", ImportWarning
-        )
-
-    def getIndexedValue(obj, index):
-        return obj(index)
-
-
-from collections.abc import Mapping
-
-# --- define objects to smooth out Python3000 <-> Python 2 differences
-unicodeType = str
-longType = int
-StringTypes = str
-maxint = sys.maxsize
-
 
 # -----------------  The .connect method -----------------
 def make_COM_connecter():
     try:
-        if onWin32:
-            pythoncom.CoInitialize()  # v2.1 Paj
+        pythoncom.CoInitialize()  # v2.1 Paj
         c = Dispatch("ADODB.Connection")  # connect _after_ CoIninialize v2.1.1 adamvan
     except:
         raise api.InterfaceError(
@@ -161,8 +117,7 @@ def format_parameters(ADOparameters, show_value=False):
     try:
         if show_value:
             desc = [
-                'Name: %s, Dir.: %s, Type: %s, Size: %s, Value: "%s", Precision: %s, NumericScale: %s'
-                % (
+                'Name: {}, Dir.: {}, Type: {}, Size: {}, Value: "{}", Precision: {}, NumericScale: {}'.format(
                     p.Name,
                     adc.directions[p.Direction],
                     adc.adTypeNames.get(p.Type, str(p.Type) + " (unknown type)"),
@@ -175,8 +130,7 @@ def format_parameters(ADOparameters, show_value=False):
             ]
         else:
             desc = [
-                "Name: %s, Dir.: %s, Type: %s, Size: %s, Precision: %s, NumericScale: %s"
-                % (
+                "Name: {}, Dir.: {}, Type: {}, Size: {}, Precision: {}, NumericScale: {}".format(
                     p.Name,
                     adc.directions[p.Direction],
                     adc.adTypeNames.get(p.Type, str(p.Type) + " (unknown type)"),
@@ -198,7 +152,7 @@ def _configure_parameter(p, value, adotype, settings_known):
         p.Size = len(value)
         p.AppendChunk(value)
 
-    elif isinstance(value, StringTypes):  # v2.1 Jevon
+    elif isinstance(value, str):  # v2.1 Jevon
         L = len(value)
         if adotype in api.adoStringTypes:  # v2.2.1 Cole
             if settings_known:
@@ -210,12 +164,7 @@ def _configure_parameter(p, value, adotype, settings_known):
             p.Size = L  # v2.1 Jevon
 
     elif isinstance(value, decimal.Decimal):
-        if api.onIronPython:
-            s = str(value)
-            p.Value = s
-            p.Size = len(s)
-        else:
-            p.Value = value
+        p.Value = value
         exponent = value.as_tuple()[2]
         digit_count = len(value.as_tuple()[1])
         p.Precision = digit_count
@@ -238,10 +187,6 @@ def _configure_parameter(p, value, adotype, settings_known):
             p.Value = s
             p.Size = len(s)
 
-    elif api.onIronPython and isinstance(value, longType):  # Iron Python Long
-        s = str(value)  # feature workaround for IPy 2.0
-        p.Value = s
-
     elif adotype == adc.adEmpty:  # ADO will not let you specify a null column
         p.Type = (
             adc.adInteger
@@ -254,7 +199,7 @@ def _configure_parameter(p, value, adotype, settings_known):
 
 
 # # # # # ----- the Class that defines a connection ----- # # # # #
-class Connection(object):
+class Connection:
     # include connection attributes as class attributes required by api definition.
     Warning = api.Warning
     Error = api.Error
@@ -302,7 +247,7 @@ class Connection(object):
         self.mode = kwargs.get("mode", adc.adModeUnknown)
         self.kwargs = kwargs
         if verbose:
-            print('%s attempting: "%s"' % (version, self.connection_string))
+            print(f'{version} attempting: "{self.connection_string}"')
         self.connector = connection_maker()
         self.connector.ConnectionTimeout = self.timeout
         self.connector.ConnectionString = self.connection_string
@@ -317,15 +262,13 @@ class Connection(object):
             )
 
         try:  # Stefan Fuchs; support WINCCOLEDBProvider
-            if getIndexedValue(self.connector.Properties, "Transaction DDL").Value != 0:
+            if self.connector.Properties("Transaction DDL").Value != 0:
                 self.supportsTransactions = True
         except pywintypes.com_error:
             pass  # Stefan Fuchs
-        self.dbms_name = getIndexedValue(self.connector.Properties, "DBMS Name").Value
+        self.dbms_name = self.connector.Properties("DBMS Name").Value
         try:  # Stefan Fuchs
-            self.dbms_version = getIndexedValue(
-                self.connector.Properties, "DBMS Version"
-            ).Value
+            self.dbms_version = self.connector.Properties("DBMS Version").Value
         except pywintypes.com_error:
             pass  # Stefan Fuchs
         self.connector.CursorLocation = defaultCursorLocation  # v2.1 Rose
@@ -461,8 +404,7 @@ class Connection(object):
             if value not in api.accepted_paramstyles:
                 self._raiseConnectionError(
                     api.NotSupportedError,
-                    'paramstyle="%s" not in:%s'
-                    % (value, repr(api.accepted_paramstyles)),
+                    f'paramstyle="{value}" not in:{repr(api.accepted_paramstyles)}',
                 )
         elif name == "variantConversions":
             value = copy.copy(
@@ -511,7 +453,9 @@ class Connection(object):
             print("ADO Errors:(%i)" % j)
         for e in self.connector.Errors:
             print("Description: %s" % e.Description)
-            print("Error: %s %s " % (e.Number, adc.adoErrors.get(e.Number, "unknown")))
+            print(
+                "Error: {} {} ".format(e.Number, adc.adoErrors.get(e.Number, "unknown"))
+            )
             if e.Number == adc.ado_error_TIMEOUT:
                 print(
                     "Timeout Error: Try using adodbpi.connect(constr,timeout=Nseconds)"
@@ -557,7 +501,7 @@ class Connection(object):
 
         tables = []
         while not schema.EOF:
-            name = getIndexedValue(schema.Fields, "TABLE_NAME").Value
+            name = schema.Fields("TABLE_NAME").Value
             tables.append(name)
             schema.MoveNext()
         del schema
@@ -565,7 +509,7 @@ class Connection(object):
 
 
 # # # # # ----- the Class that defines a cursor ----- # # # # #
-class Cursor(object):
+class Cursor:
     ## ** api required attributes:
     ## description...
     ##    This read-only attribute is a sequence of 7-item sequences.
@@ -610,8 +554,7 @@ class Cursor(object):
         connection._i_am_here(self)
         if verbose:
             print(
-                "%s New cursor at %X on conn %X"
-                % (version, id(self), id(self.connection))
+                f"{version} New cursor at {id(self):X} on conn {id(self.connection):X}"
             )
 
     def __iter__(self):  # [2.1 Zamarev]
@@ -653,14 +596,14 @@ class Cursor(object):
             self.numberOfColumns = 0
             return
         self.rs = recordset  # v2.1.1 bkline
-        self.recordset_format = api.RS_ARRAY if api.onIronPython else api.RS_WIN_32
+        self.recordset_format = api.RS_WIN_32
         self.numberOfColumns = recordset.Fields.Count
         try:
             varCon = self.connection.variantConversions
         except AttributeError:
             varCon = api.variantConversions
         for i in range(self.numberOfColumns):
-            f = getIndexedValue(self.rs.Fields, i)
+            f = self.rs.Fields(i)
             try:
                 self.converters.append(
                     varCon[f.Type]
@@ -678,7 +621,7 @@ class Cursor(object):
             return
         desc = []
         for i in range(self.numberOfColumns):
-            f = getIndexedValue(self.rs.Fields, i)
+            f = self.rs.Fields(i)
             if self.rs.EOF or self.rs.BOF:
                 display_size = None
             else:
@@ -717,17 +660,14 @@ class Cursor(object):
             self._makeDescriptionFromRS()
         if isinstance(d, int):
             d = self.description[d]
-        desc = (
-            "Name= %s, Type= %s, DispSize= %s, IntSize= %s, Precision= %s, Scale= %s NullOK=%s"
-            % (
-                d[0],
-                adc.adTypeNames.get(d[1], str(d[1]) + " (unknown type)"),
-                d[2],
-                d[3],
-                d[4],
-                d[5],
-                d[6],
-            )
+        desc = "Name= {}, Type= {}, DispSize= {}, IntSize= {}, Precision= {}, Scale= {} NullOK={}".format(
+            d[0],
+            adc.adTypeNames.get(d[1], str(d[1]) + " (unknown type)"),
+            d[2],
+            d[3],
+            d[4],
+            d[5],
+            d[6],
         )
         return desc
 
@@ -790,21 +730,13 @@ class Cursor(object):
             print('Executing command="%s"' % self.commandText)
         try:
             # ----- the actual SQL is executed here ---
-            if api.onIronPython:
-                ra = Reference[int]()
-                recordset = self.cmd.Execute(ra)
-                count = ra.Value
-            else:  # pywin32
-                recordset, count = self.cmd.Execute()
+            recordset, count = self.cmd.Execute()
             # ----- ------------------------------- ---
         except Exception as e:
             _message = ""
             if hasattr(e, "args"):
                 _message += str(e.args) + "\n"
-            _message += "Command:\n%s\nParameters:\n%s" % (
-                self.commandText,
-                format_parameters(self.cmd.Parameters, True),
-            )
+            _message += f"Command:\n{self.commandText}\nParameters:\n{format_parameters(self.cmd.Parameters, True)}"
             klass = self.connection._suggest_error_class()
             self._raiseCursorError(klass, _message)
         try:
@@ -834,9 +766,8 @@ class Cursor(object):
         for p in tuple(self.cmd.Parameters):
             if verbose > 2:
                 print(
-                    'Returned=Name: %s, Dir.: %s, Type: %s, Size: %s, Value: "%s",'
-                    " Precision: %s, NumericScale: %s"
-                    % (
+                    'Returned=Name: {}, Dir.: {}, Type: {}, Size: {}, Value: "{}",'
+                    " Precision: {}, NumericScale: {}".format(
                         p.Name,
                         adc.directions[p.Direction],
                         adc.adTypeNames.get(p.Type, str(p.Type) + " (unknown type)"),
@@ -924,44 +855,28 @@ class Cursor(object):
             if parameters_known:  # use ado parameter list
                 if self._parameter_names:  # named parameters
                     for i, pm_name in enumerate(self._parameter_names):
-                        p = getIndexedValue(self.cmd.Parameters, i)
+                        p = self.cmd.Parameters(i)
                         try:
                             _configure_parameter(
                                 p, parameters[pm_name], p.Type, parameters_known
                             )
                         except Exception as e:
-                            _message = (
-                                "Error Converting Parameter %s: %s, %s <- %s\n"
-                                % (
-                                    p.Name,
-                                    adc.ado_type_name(p.Type),
-                                    p.Value,
-                                    repr(parameters[pm_name]),
-                                )
-                            )
+                            _message = f"Error Converting Parameter {p.Name}: {adc.ado_type_name(p.Type)}, {p.Value} <- {repr(parameters[pm_name])}\n"
                             self._raiseCursorError(
                                 api.DataError, _message + "->" + repr(e.args)
                             )
                 else:  # regular sequence of parameters
                     for value in parameters:
-                        p = getIndexedValue(self.cmd.Parameters, i)
+                        p = self.cmd.Parameters(i)
                         if (
                             p.Direction == adc.adParamReturnValue
                         ):  # this is an extra parameter added by ADO
                             i += 1  # skip the extra
-                            p = getIndexedValue(self.cmd.Parameters, i)
+                            p = self.cmd.Parameters(i)
                         try:
                             _configure_parameter(p, value, p.Type, parameters_known)
                         except Exception as e:
-                            _message = (
-                                "Error Converting Parameter %s: %s, %s <- %s\n"
-                                % (
-                                    p.Name,
-                                    adc.ado_type_name(p.Type),
-                                    p.Value,
-                                    repr(value),
-                                )
-                            )
+                            _message = f"Error Converting Parameter {p.Name}: {adc.ado_type_name(p.Type)}, {p.Value} <- {repr(value)}\n"
                             self._raiseCursorError(
                                 api.DataError, _message + "->" + repr(e.args)
                             )
@@ -980,12 +895,7 @@ class Cursor(object):
                         try:
                             self.cmd.Parameters.Append(p)
                         except Exception as e:
-                            _message = "Error Building Parameter %s: %s, %s <- %s\n" % (
-                                p.Name,
-                                adc.ado_type_name(p.Type),
-                                p.Value,
-                                repr(elem),
-                            )
+                            _message = f"Error Building Parameter {p.Name}: {adc.ado_type_name(p.Type)}, {p.Value} <- {repr(elem)}\n"
                             self._raiseCursorError(
                                 api.DataError, _message + "->" + repr(e.args)
                             )
@@ -1006,12 +916,7 @@ class Cursor(object):
                         try:
                             self.cmd.Parameters.Append(p)
                         except Exception as e:
-                            _message = "Error Building Parameter %s: %s, %s <- %s\n" % (
-                                p.Name,
-                                adc.ado_type_name(p.Type),
-                                p.Value,
-                                repr(elem),
-                            )
+                            _message = f"Error Building Parameter {p.Name}: {adc.ado_type_name(p.Type)}, {p.Value} <- {repr(elem)}\n"
                             self._raiseCursorError(
                                 api.DataError, _message + "->" + repr(e.args)
                             )
@@ -1180,21 +1085,11 @@ class Cursor(object):
             )
             return None
 
-        if api.onIronPython:
-            try:
-                recordset = self.rs.NextRecordset()
-            except TypeError:
-                recordset = None
-            except api.Error as exc:
-                self._raiseCursorError(api.NotSupportedError, exc.args)
-        else:  # pywin32
-            try:  # [begin 2.1 ekelund]
-                rsTuple = self.rs.NextRecordset()  #
-            except pywintypes.com_error as exc:  # return appropriate error
-                self._raiseCursorError(
-                    api.NotSupportedError, exc.args
-                )  # [end 2.1 ekelund]
-            recordset = rsTuple[0]
+        try:  # [begin 2.1 ekelund]
+            rsTuple = self.rs.NextRecordset()  #
+        except pywintypes.com_error as exc:  # return appropriate error
+            self._raiseCursorError(api.NotSupportedError, exc.args)  # [end 2.1 ekelund]
+        recordset = rsTuple[0]
         if recordset is None:
             return None
         self.build_column_info(recordset)
@@ -1211,7 +1106,7 @@ class Cursor(object):
             if self.parameters is None:
                 ret = self.commandText
             else:
-                ret = "%s,parameters=%s" % (self.commandText, repr(self.parameters))
+                ret = f"{self.commandText},parameters={repr(self.parameters)}"
         except:
             ret = None
         return ret

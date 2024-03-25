@@ -27,21 +27,11 @@ import datetime
 import decimal
 import random
 import string
-import sys
 import unittest
 
-try:
-    import win32com.client
-
-    win32 = True
-except ImportError:
-    win32 = False
-
-# run the configuration module.
-import adodbapitestconfig as config  # will set sys.path to find correct version of adodbapi
-
-# in our code below, all our switches are from config.whatever
-import tryconnection
+import adodbapitestconfig as config  # run the configuration module. # will set sys.path to find correct version of adodbapi
+import tryconnection  # in our code below, all our switches are from config.whatever
+import win32com.client
 
 import adodbapi
 import adodbapi.apibase as api
@@ -53,9 +43,6 @@ except ImportError:  # we are doing a shortcut import as a module -- so
         import ado_consts
     except ImportError:
         from adodbapi import ado_consts
-
-
-long = int
 
 
 def randomstring(length):
@@ -213,49 +200,6 @@ class CommonDBTests(unittest.TestCase):
                 pass
             self.helpRollbackTblTemp()
 
-    def testUserDefinedConversionForExactNumericTypes(self):
-        # variantConversions is a dictionary of conversion functions
-        # held internally in adodbapi.apibase
-        #
-        # !!! this test intentionally alters the value of what should be constant in the module
-        # !!! no new code should use this example, to is only a test to see that the
-        # !!! deprecated way of doing this still works.  (use connection.variantConversions)
-        #
-        if not self.remote and sys.version_info < (3, 0):  ### Py3 need different test
-            oldconverter = adodbapi.variantConversions[
-                ado_consts.adNumeric
-            ]  # keep old function to restore later
-            # By default decimal and "numbers" are returned as decimals.
-            # Instead, make numbers return as  floats
-            try:
-                adodbapi.variantConversions[ado_consts.adNumeric] = adodbapi.cvtFloat
-                self.helpTestDataType(
-                    "decimal(18,2)", "NUMBER", 3.45, compareAlmostEqual=1
-                )
-                self.helpTestDataType(
-                    "numeric(18,2)", "NUMBER", 3.45, compareAlmostEqual=1
-                )
-                # now return strings
-                adodbapi.variantConversions[ado_consts.adNumeric] = adodbapi.cvtString
-                self.helpTestDataType("numeric(18,2)", "NUMBER", "3.45")
-                # now a completly weird user defined convertion
-                adodbapi.variantConversions[ado_consts.adNumeric] = (
-                    lambda x: "!!This function returns a funny unicode string %s!!" % x
-                )
-                self.helpTestDataType(
-                    "numeric(18,2)",
-                    "NUMBER",
-                    "3.45",
-                    allowedReturnValues=[
-                        "!!This function returns a funny unicode string 3.45!!"
-                    ],
-                )
-            finally:
-                # now reset the converter to its original function
-                adodbapi.variantConversions[ado_consts.adNumeric] = (
-                    oldconverter  # Restore the original convertion function
-                )
-
     def helpTestDataType(
         self,
         sqlDataTypeString,
@@ -290,41 +234,35 @@ class CommonDBTests(unittest.TestCase):
 
         # Test description related
         descTuple = crsr.description[1]
-        assert descTuple[0] in ["fldData", "flddata"], 'was "%s" expected "%s"' % (
+        assert descTuple[0] in ["fldData", "flddata"], 'was "{}" expected "{}"'.format(
             descTuple[0],
             "fldData",
         )
 
         if DBAPIDataTypeString == "STRING":
-            assert descTuple[1] == api.STRING, 'was "%s" expected "%s"' % (
-                descTuple[1],
-                api.STRING.values,
-            )
+            assert (
+                descTuple[1] == api.STRING
+            ), f'was "{descTuple[1]}" expected "{api.STRING.values}"'
         elif DBAPIDataTypeString == "NUMBER":
-            assert descTuple[1] == api.NUMBER, 'was "%s" expected "%s"' % (
-                descTuple[1],
-                api.NUMBER.values,
-            )
+            assert (
+                descTuple[1] == api.NUMBER
+            ), f'was "{descTuple[1]}" expected "{api.NUMBER.values}"'
         elif DBAPIDataTypeString == "BINARY":
-            assert descTuple[1] == api.BINARY, 'was "%s" expected "%s"' % (
-                descTuple[1],
-                api.BINARY.values,
-            )
+            assert (
+                descTuple[1] == api.BINARY
+            ), f'was "{descTuple[1]}" expected "{api.BINARY.values}"'
         elif DBAPIDataTypeString == "DATETIME":
-            assert descTuple[1] == api.DATETIME, 'was "%s" expected "%s"' % (
-                descTuple[1],
-                api.DATETIME.values,
-            )
+            assert (
+                descTuple[1] == api.DATETIME
+            ), f'was "{descTuple[1]}" expected "{api.DATETIME.values}"'
         elif DBAPIDataTypeString == "ROWID":
-            assert descTuple[1] == api.ROWID, 'was "%s" expected "%s"' % (
-                descTuple[1],
-                api.ROWID.values,
-            )
+            assert (
+                descTuple[1] == api.ROWID
+            ), f'was "{descTuple[1]}" expected "{api.ROWID.values}"'
         elif DBAPIDataTypeString == "UUID":
-            assert descTuple[1] == api.OTHER, 'was "%s" expected "%s"' % (
-                descTuple[1],
-                api.OTHER.values,
-            )
+            assert (
+                descTuple[1] == api.OTHER
+            ), f'was "{descTuple[1]}" expected "{api.OTHER.values}"'
         else:
             raise NotImplementedError  # "DBAPIDataTypeString not provided"
 
@@ -356,14 +294,11 @@ class CommonDBTests(unittest.TestCase):
                 allowedTypes = tuple([type(aRV) for aRV in allowedReturnValues])
                 assert isinstance(
                     rs[0], allowedTypes
-                ), 'result type "%s" must be one of %s' % (type(rs[0]), allowedTypes)
+                ), f'result type "{type(rs[0])}" must be one of {allowedTypes}'
             else:
                 assert isinstance(
                     rs[0], type(pyData)
-                ), 'result type "%s" must be instance of %s' % (
-                    type(rs[0]),
-                    type(pyData),
-                )
+                ), f'result type "{type(rs[0])}" must be instance of {type(pyData)}'
 
             if compareAlmostEqual and DBAPIDataTypeString == "DATETIME":
                 iso1 = adodbapi.dateconverter.DateObjectToIsoFormatString(rs[0])
@@ -374,20 +309,19 @@ class CommonDBTests(unittest.TestCase):
                 v = float(rs[0])
                 assert (
                     abs(v - s) / s < 0.00001
-                ), "Values not almost equal recvd=%s, expected=%f" % (rs[0], s)
+                ), f"Values not almost equal recvd={rs[0]}, expected={s:f}"
             else:
                 if allowedReturnValues:
                     ok = False
                     self.assertTrue(
                         rs[0] in allowedReturnValues,
-                        'Value "%s" not in %s' % (repr(rs[0]), allowedReturnValues),
+                        f'Value "{repr(rs[0])}" not in {allowedReturnValues}',
                     )
                 else:
                     self.assertEqual(
                         rs[0],
                         pyData,
-                        'Values are not equal recvd="%s", expected="%s"'
-                        % (rs[0], pyData),
+                        f'Values are not equal recvd="{rs[0]}", expected="{pyData}"',
                     )
 
     def testDataTypeFloat(self):
@@ -460,7 +394,7 @@ class CommonDBTests(unittest.TestCase):
                 "bigint",
                 "NUMBER",
                 3000000000,
-                allowedReturnValues=[3000000000, int(3000000000)],
+                allowedReturnValues=[3000000000, 3000000000],
             )
         self.helpTestDataType("int", "NUMBER", 2147483647)
 
@@ -730,19 +664,17 @@ class CommonDBTests(unittest.TestCase):
             for j in range(len(inParam)):
                 assert (
                     rec[j] == inParam[j]
-                ), 'returned value:"%s" != test value:"%s"' % (rec[j], inParam[j])
+                ), f'returned value:"{rec[j]}" != test value:"{inParam[j]}"'
             # check that we can get a complete tuple from a row
-            assert tuple(rec) == inParam, 'returned value:"%s" != test value:"%s"' % (
-                repr(rec),
-                repr(inParam),
-            )
+            assert (
+                tuple(rec) == inParam
+            ), f'returned value:"{repr(rec)}" != test value:"{repr(inParam)}"'
             # test that slices of rows work
             slice1 = tuple(rec[:-1])
             slice2 = tuple(inParam[0:2])
-            assert slice1 == slice2, 'returned value:"%s" != test value:"%s"' % (
-                repr(slice1),
-                repr(slice2),
-            )
+            assert (
+                slice1 == slice2
+            ), f'returned value:"{repr(slice1)}" != test value:"{repr(slice2)}"'
             # now test named column retrieval
             assert rec["fldTwo"] == inParam[0]
             assert rec.fldThree == inParam[1]
@@ -803,7 +735,7 @@ class CommonDBTests(unittest.TestCase):
             self.assertEqual(
                 rec[0],
                 inParam,
-                'returned value:"%s" != test value:"%s"' % (rec[0], inParam),
+                f'returned value:"{rec[0]}" != test value:"{inParam}"',
             )
             self.assertEqual(rec[1], "thi%s :may cause? trouble")
 
@@ -815,9 +747,9 @@ class CommonDBTests(unittest.TestCase):
         crsr.execute(sel, params)
 
         # test the .query implementation
-        assert "(?," in crsr.query, 'expected:"%s" in "%s"' % ("(?,", crsr.query)
+        assert "(?," in crsr.query, 'expected:"{}" in "{}"'.format("(?,", crsr.query)
         # test the .command attribute
-        assert crsr.command == sel, 'expected:"%s" but found "%s"' % (sel, crsr.command)
+        assert crsr.command == sel, f'expected:"{sel}" but found "{crsr.command}"'
 
         # test the .parameters attribute
         if not self.remote:  # parameter list will be altered in transit
@@ -866,7 +798,7 @@ class CommonDBTests(unittest.TestCase):
             self.assertEqual(
                 rec[0],
                 inParam,
-                'returned value:"%s" != test value:"%s"' % (rec[0], inParam),
+                f'returned value:"{rec[0]}" != test value:"{inParam}"',
             )
         # now a test with a ":" as part of a literal
         crsr.execute(
@@ -917,7 +849,7 @@ class CommonDBTests(unittest.TestCase):
             self.assertEqual(
                 rec[0],
                 inParam,
-                'returned value:"%s" != test value:"%s"' % (rec[0], inParam),
+                f'returned value:"{rec[0]}" != test value:"{inParam}"',
             )
         # now a test with a "%" as part of a literal
         crsr.execute(
@@ -971,10 +903,10 @@ class CommonDBTests(unittest.TestCase):
             self.assertEqual(
                 rec[0],
                 inParam,
-                'returned value:"%s" != test value:"%s"' % (rec[0], inParam),
+                f'returned value:"{rec[0]}" != test value:"{inParam}"',
             )
             self.assertEqual(rec[1], trouble)
-        #     inputs = [u'four',u'five',u'six']
+        #     inputs = ['four','five','six']
         fldId = 10
         for inParam in inputs:
             fldId += 1
@@ -998,7 +930,7 @@ class CommonDBTests(unittest.TestCase):
             self.assertEqual(
                 rec[0],
                 inParam,
-                'returned value:"%s" != test value:"%s"' % (rec[0], inParam),
+                f'returned value:"{rec[0]}" != test value:"{inParam}"',
             )
         # now a test with a ":" as part of a literal -- and use a prepared query
         ppdcmd = (
@@ -1232,17 +1164,13 @@ class TestADOwithSQLServer(CommonDBTests):
         crsr = self.getCursor()
         self.helpCreateAndPopulateTableTemp(crsr)
 
-        spdef = """
+        spdef = f"""
             CREATE PROCEDURE sp_DeleteMe_OnlyForTesting
             AS
-                SELECT fldData FROM xx_%s ORDER BY fldData ASC
-                SELECT fldData From xx_%s where fldData = -9999
-                SELECT fldData FROM xx_%s ORDER BY fldData DESC
-                    """ % (
-            config.tmp,
-            config.tmp,
-            config.tmp,
-        )
+                SELECT fldData FROM xx_{config.tmp} ORDER BY fldData ASC
+                SELECT fldData From xx_{config.tmp} where fldData = -9999
+                SELECT fldData FROM xx_{config.tmp} ORDER BY fldData DESC
+                    """
         try:
             crsr.execute("DROP PROCEDURE sp_DeleteMe_OnlyForTesting")
             self.conn.commit()
@@ -1530,37 +1458,6 @@ class TimeConverterInterfaceTest(unittest.TestCase):
         self.assertEqual(str(iso[:10]), "2003-05-02")
 
 
-if config.doMxDateTimeTest:
-    import mx.DateTime
-
-
-class TestMXDateTimeConverter(TimeConverterInterfaceTest):
-    def setUp(self):
-        self.tc = api.mxDateTimeConverter()
-
-    def testCOMDate(self):
-        t = mx.DateTime.DateTime(2002, 6, 28, 18, 15, 2)
-        cmd = self.tc.COMDate(t)
-        assert cmd == t.COMDate()
-
-    def testDateObjectFromCOMDate(self):
-        cmd = self.tc.DateObjectFromCOMDate(37435.7604282)
-        t = mx.DateTime.DateTime(2002, 6, 28, 18, 15, 0)
-        t2 = mx.DateTime.DateTime(2002, 6, 28, 18, 15, 2)
-        assert t2 > cmd > t
-
-    def testDate(self):
-        assert mx.DateTime.Date(1980, 11, 4) == self.tc.Date(1980, 11, 4)
-
-    def testTime(self):
-        assert mx.DateTime.Time(13, 11, 4) == self.tc.Time(13, 11, 4)
-
-    def testTimestamp(self):
-        t = mx.DateTime.DateTime(2002, 6, 28, 18, 15, 1)
-        obj = self.tc.Timestamp(2002, 6, 28, 18, 15, 1)
-        assert t == obj
-
-
 import time
 
 
@@ -1648,11 +1545,8 @@ class TestPythonDateTimeConverter(TimeConverterInterfaceTest):
 
 suites = []
 suites.append(unittest.makeSuite(TestPythonDateTimeConverter, "test"))
-if config.doMxDateTimeTest:
-    suites.append(unittest.makeSuite(TestMXDateTimeConverter, "test"))
 if config.doTimeTest:
     suites.append(unittest.makeSuite(TestPythonTimeConverter, "test"))
-
 if config.doAccessTest:
     suites.append(unittest.makeSuite(TestADOwithAccessDB, "test"))
 if config.doSqlServerTest:
@@ -1663,7 +1557,7 @@ if config.doPostgresTest:
     suites.append(unittest.makeSuite(TestADOwithPostgres, "test"))
 
 
-class cleanup_manager(object):
+class cleanup_manager:
     def __enter__(self):
         pass
 
@@ -1677,21 +1571,16 @@ if __name__ == "__main__":
     with cleanup_manager():
         defaultDateConverter = adodbapi.dateconverter
         print(__doc__)
-        print("Default Date Converter is %s" % (defaultDateConverter,))
+        print(f"Default Date Converter is {defaultDateConverter}")
         dateconverter = defaultDateConverter
         tag = "datetime"
         unittest.TextTestRunner().run(mysuite)
 
-        if config.iterateOverTimeTests:
-            for test, dateconverter, tag in (
-                (config.doTimeTest, api.pythonTimeConverter, "pythontime"),
-                (config.doMxDateTimeTest, api.mxDateTimeConverter, "mx"),
-            ):
-                if test:
-                    mysuite = copy.deepcopy(
-                        suite
-                    )  # work around a side effect of unittest.TextTestRunner
-                    adodbapi.adodbapi.dateconverter = dateconverter()
-                    print("Changed dateconverter to ")
-                    print(adodbapi.adodbapi.dateconverter)
-                    unittest.TextTestRunner().run(mysuite)
+        if config.doTimeTest:
+            mysuite = copy.deepcopy(
+                suite
+            )  # work around a side effect of unittest.TextTestRunner
+            adodbapi.adodbapi.dateconverter = api.pythonTimeConverter()
+            print("Changed dateconverter to ")
+            print(adodbapi.adodbapi.dateconverter)
+            unittest.TextTestRunner().run(mysuite)

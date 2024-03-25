@@ -21,13 +21,9 @@ Copyright (C) 2002 Henrik Ekelund, version 2.1 by Vernon Cole
     django adaptations and refactoring thanks to Adam Vandenberg
 
 DB-API 2.0 specification: http://www.python.org/dev/peps/pep-0249/
-
-This module source should run correctly in CPython versions 2.5 and later,
-or IronPython version 2.7 and later,
-or, after running through 2to3.py, CPython 3.0 or later.
 """
 
-__version__ = "2.6.0.4"
+__version__ = "3.7.0.0"
 version = "adodbapi.remote v" + __version__
 
 import array
@@ -40,15 +36,13 @@ import time
 try:
     import Pyro4
 except ImportError:
-    print('* * * Sorry, server operation requires Pyro4. Please "pip import" it.')
+    print('* * * Sorry, server operation requires Pyro4. Please "pip install" it.')
     exit(11)
 
 import adodbapi
 import adodbapi.apibase as api
 import adodbapi.process_connect_string
 from adodbapi.apibase import ProgrammingError
-
-_BaseException = api._BaseException
 
 sys.excepthook = Pyro4.util.excepthook
 Pyro4.config.PREFER_IP_VERSION = 0  # allow system to prefer IPv6
@@ -62,28 +56,14 @@ except:
 if verbose:
     print(version)
 
-# --- define objects to smooth out Python3 <-> Python 2 differences
-unicodeType = str  # this line will be altered by 2to3.py to '= str'
-longType = int  # this line will be altered by 2to3.py to '= int'
-StringTypes = str
-makeByteBuffer = bytes
-memoryViewType = memoryview
 
 # -----------------------------------------------------------
 # conversion functions mandated by PEP 249
-Binary = makeByteBuffer  # override the function from apibase.py
-
-
-def Date(year, month, day):
-    return datetime.date(year, month, day)  # dateconverter.Date(year,month,day)
-
-
-def Time(hour, minute, second):
-    return datetime.time(hour, minute, second)  # dateconverter.Time(hour,minute,second)
-
-
-def Timestamp(year, month, day, hour, minute, second):
-    return datetime.datetime(year, month, day, hour, minute, second)
+dBinary = bytes
+"""This function constructs an object capable of holding a binary (long) string value."""
+Date = datetime.date  # dateconverter.Date(year,month,day)
+Time = datetime.time  # dateconverter.Time(hour,minute,second)
+Timestamp = datetime.datetime
 
 
 def DateFromTicks(ticks):
@@ -168,10 +148,9 @@ def connect(*args, **kwargs):  # --> a remote db-api connection object
                 raise api.DatabaseError(
                     "Pyro error creating connection to/thru=%s" % repr(kwargs)
                 )
-        except _BaseException as e:
+        except Exception as e:
             raise api.DatabaseError(
-                "Error creating remote connection to=%s, e=%s, %s"
-                % (repr(kwargs), repr(e), sys.exc_info()[2])
+                f"Error creating remote connection to={repr(kwargs)}, e={repr(e)}, {sys.exc_info()[2]}"
             )
     return myConn
 
@@ -188,7 +167,7 @@ def fix_uri(uri, kwargs):
 
 
 # # # # # ----- the Class that defines a connection ----- # # # # #
-class Connection(object):
+class Connection:
     # include connection attributes required by api definition.
     Warning = api.Warning
     Error = api.Error
@@ -220,7 +199,7 @@ class Connection(object):
     def connect(self, kwargs, connection_maker):
         self.kwargs = kwargs
         if verbose:
-            print('%s attempting: "%s"' % (version, repr(kwargs)))
+            print(f'{version} attempting: "{repr(kwargs)}"')
         self.proxy = connection_maker
         ##try:
         ret = self.proxy.connect(kwargs)  # ask the server to hook us up
@@ -368,7 +347,7 @@ def fixpickle(x):
         # for 'named' paramstyle user will pass a mapping
         newargs = {}
         for arg, val in list(x.items()):
-            if isinstance(val, memoryViewType):
+            if isinstance(val, memoryview):
                 newval = array.array("B")
                 newval.fromstring(val)
                 newargs[arg] = newval
@@ -378,7 +357,7 @@ def fixpickle(x):
     # if not a mapping, then a sequence
     newargs = []
     for arg in x:
-        if isinstance(arg, memoryViewType):
+        if isinstance(arg, memoryview):
             newarg = array.array("B")
             newarg.fromstring(arg)
             newargs.append(newarg)
@@ -387,7 +366,7 @@ def fixpickle(x):
     return newargs
 
 
-class Cursor(object):
+class Cursor:
     def __init__(self, connection):
         self.command = None
         self.errorhandler = None  ## was: connection.errorhandler
@@ -400,8 +379,7 @@ class Cursor(object):
         self.recordset_format = api.RS_REMOTE
         if verbose:
             print(
-                "%s New cursor at %X on conn %X"
-                % (version, id(self), id(self.connection))
+                f"{version} New cursor at {id(self):X} on conn {id(self.connection):X}"
             )
 
     def prepare(self, operation):
@@ -495,12 +473,7 @@ class Cursor(object):
             pass
         fp = fixpickle(parameters)
         if verbose > 2:
-            print(
-                (
-                    '%s executing "%s" with params=%s'
-                    % (version, operation, repr(parameters))
-                )
-            )
+            print(f'{version} executing "{operation}" with params={repr(parameters)}')
         result = self.proxy.crsr_execute(self.id, operation, fp)
         if result:  # an exception was triggered
             self._raiseCursorError(result[0], result[1])
@@ -522,10 +495,7 @@ class Cursor(object):
         sq = [fixpickle(x) for x in seq_of_parameters]
         if verbose > 2:
             print(
-                (
-                    '%s executemany "%s" with params=%s'
-                    % (version, operation, repr(seq_of_parameters))
-                )
+                f'{version} executemany "{operation}" with params={repr(seq_of_parameters)}'
             )
         self.proxy.crsr_executemany(self.id, operation, sq)
 
@@ -539,7 +509,7 @@ class Cursor(object):
         except AttributeError:
             pass
         if verbose > 2:
-            print(("%s nextset" % version))
+            print("%s nextset" % version)
         return self.proxy.crsr_nextset(self.id)
 
     def callproc(self, procname, parameters=None):
@@ -558,18 +528,13 @@ class Cursor(object):
             pass
         fp = fixpickle(parameters)
         if verbose > 2:
-            print(
-                (
-                    '%s callproc "%s" with params=%s'
-                    % (version, procname, repr(parameters))
-                )
-            )
+            print(f'{version} callproc "{procname}" with params={repr(parameters)}')
         return self.proxy.crsr_callproc(self.id, procname, fp)
 
     def fetchone(self):
         try:
             f1 = self.proxy.crsr_fetchone(self.id)
-        except _BaseException as e:
+        except Exception as e:
             self._raiseCursorError(api.DatabaseError, e)
         else:
             if f1 is None:
