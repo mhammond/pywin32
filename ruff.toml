@@ -1,0 +1,16 @@
+# Target the oldest supported version
+target-version = "py37"
+
+[lint]
+select = [
+    "C4",   # flake8-comprehensions
+    "F811", # redefined-while-unused
+    "FLY",  # static-join-to-f-string
+    "PLE",  # Pylint Error
+    "RSE",  # flake8-raise
+    "YTT",  # flake8-2020
+]
+
+[lint.per-file-ignores]
+# TODO: Make adodbapi changes in their own PRs
+"adodbapi/*" = ["C4", "YTT301"]
