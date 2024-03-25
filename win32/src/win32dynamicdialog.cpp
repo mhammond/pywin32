@@ -37,9 +37,6 @@
 #include "commctrl.h"
 #include "windowsx.h"  // For edit control hacks.
 
-#ifdef MS_WINCE
-#include "winbase.h"
-#endif
 #include "pywintypes.h"
 #include "pywinobjects.h"
 #include "tchar.h"

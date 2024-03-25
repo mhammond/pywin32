@@ -496,7 +496,7 @@ class Query(BaseQuery):
         tempresults = []
         try:
             self.open()
-            for ind in range(totalperiod / period):
+            for ind in range(int(totalperiod / period)):
                 tempresults.append(self.collectdata())
                 time.sleep(period)
             self.curresults = tempresults
