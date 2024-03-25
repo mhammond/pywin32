@@ -17,7 +17,7 @@ Example
 """
 
 import traceback
-import types
+from types import MethodType
 
 import pythoncom  # Needed as code we eval() references it.
 import win32com.client
@@ -64,16 +64,11 @@ def debug_attr_print(*args):
         print()
 
 
-def MakeMethod(func, inst, cls):
-    return types.MethodType(func, inst)
-
-
 # get the type objects for IDispatch and IUnknown
 PyIDispatchType = pythoncom.TypeIIDs[pythoncom.IID_IDispatch]
 PyIUnknownType = pythoncom.TypeIIDs[pythoncom.IID_IUnknown]
 
 _GoodDispatchTypes = (str, IIDType)
-_defaultDispatchItem = build.DispatchItem
 
 
 def _GetGoodDispatch(IDispatch, clsctx=pythoncom.CLSCTX_SERVER):
@@ -424,8 +419,7 @@ class CDispatch:
             name = methodName
             # Save the function in map.
             fn = self._builtMethods_[name] = tempNameSpace[name]
-            newMeth = MakeMethod(fn, self, self.__class__)
-            return newMeth
+            return MethodType(fn, self)
         except:
             debug_print("Error building OLE definition for code ", methodCode)
             traceback.print_exc()
@@ -573,7 +567,7 @@ class CDispatch:
             raise AttributeError(attr)
         # If a known method, create new instance and return.
         try:
-            return MakeMethod(self._builtMethods_[attr], self, self.__class__)
+            return MethodType(self._builtMethods_[attr], self)
         except KeyError:
             pass
         # XXX - Note that we current are case sensitive in the method.
