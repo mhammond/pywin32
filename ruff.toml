@@ -1,0 +1,11 @@
+# Target the oldest supported version
+target-version = "py37"
+
+[lint]
+select = [
+    "PLC", # Pylint Convention
+]
+
+[lint.per-file-ignores]
+# Explicit re-exports is fine in __init__.py, still a code smell elsewhere.
+"__init__.py" = ["PLC0414"]
