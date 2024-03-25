@@ -128,7 +128,8 @@ class TestLoader(unittest.TestLoader):
     def loadTestsFromName(self, name, module=None):
         test = unittest.TestLoader.loadTestsFromName(self, name, module)
         if isinstance(test, unittest.TestSuite):
-            pass  # hmmm? print "Don't wrap suites yet!", test._tests
+            # print("Don't wrap suites yet!", test._tests)
+            pass  # hmmm?
         elif isinstance(test, unittest.TestCase):
             test = self._getTestWrapper(test)
         else:
@@ -206,18 +207,11 @@ class TestSkipped(Exception):
     pass
 
 
-# This appears to have been "upgraded" to non-private in 3.11
-try:
-    TextTestResult = unittest._TextTestResult
-except AttributeError:
-    TextTestResult = unittest.TextTestResult
-
-
 # The 'TestResult' subclass that records the failures and has the special
 # handling for the TestSkipped exception.
-class TestResult(TextTestResult):
+class TestResult(unittest.TextTestResult):
     def __init__(self, *args, **kw):
-        super(TestResult, self).__init__(*args, **kw)
+        super().__init__(*args, **kw)
         self.skips = {}  # count of skips for each reason.
 
     def addError(self, test, err):
@@ -260,15 +254,15 @@ class TestResult(TextTestResult):
             self.skips.setdefault(reason, 0)
             self.skips[reason] += 1
             if self.showAll:
-                self.stream.writeln("SKIP (%s)" % (reason,))
+                self.stream.writeln(f"SKIP ({reason})")
             elif self.dots:
                 self.stream.write("S")
                 self.stream.flush()
             return
-        super(TestResult, self).addError(test, err)
+        super().addError(test, err)
 
     def printErrors(self):
-        super(TestResult, self).printErrors()
+        super().printErrors()
         for reason, num_skipped in self.skips.items():
             self.stream.writeln("SKIPPED: %d tests - %s" % (num_skipped, reason))
 

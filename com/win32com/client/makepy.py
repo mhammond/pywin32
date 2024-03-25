@@ -105,14 +105,16 @@ def ShowInfo(spec):
                 desc = tlb.GetDocumentation(-1)[0]
         print(desc)
         print(
-            " %s, lcid=%s, major=%s, minor=%s"
-            % (tlbSpec.clsid, tlbSpec.lcid, tlbSpec.major, tlbSpec.minor)
+            " {}, lcid={}, major={}, minor={}".format(
+                tlbSpec.clsid, tlbSpec.lcid, tlbSpec.major, tlbSpec.minor
+            )
         )
         print(" >>> # Use these commands in Python code to auto generate .py support")
         print(" >>> from win32com.client import gencache")
         print(
-            " >>> gencache.EnsureModule('%s', %s, %s, %s)"
-            % (tlbSpec.clsid, tlbSpec.lcid, tlbSpec.major, tlbSpec.minor)
+            " >>> gencache.EnsureModule('{}', {}, {}, {})".format(
+                tlbSpec.clsid, tlbSpec.lcid, tlbSpec.major, tlbSpec.minor
+            )
         )
 
 
@@ -228,7 +230,7 @@ def GetTypeLibsForSpec(arg):
         return typelibs
     except pythoncom.com_error:
         t, v, tb = sys.exc_info()
-        sys.stderr.write("Unable to load type library from '%s' - %s\n" % (arg, v))
+        sys.stderr.write(f"Unable to load type library from '{arg}' - {v}\n")
         tb = None  # Storing tb in a local is a cycle!
         sys.exit(1)
 
@@ -238,11 +240,9 @@ def GenerateFromTypeLibSpec(
     file=None,
     verboseLevel=None,
     progressInstance=None,
-    bUnicodeToString=None,
     bForDemand=bForDemandDefault,
     bBuildHidden=1,
 ):
-    assert bUnicodeToString is None, "this is deprecated and will go away"
     if verboseLevel is None:
         verboseLevel = 0  # By default, we use no gui and no verbose level!
 
@@ -300,15 +300,15 @@ def GenerateFromTypeLibSpec(
             if bForDemand:
                 try:
                     os.unlink(full_name + ".py")
-                except os.error:
+                except OSError:
                     pass
                 try:
                     os.unlink(full_name + ".pyc")
-                except os.error:
+                except OSError:
                     pass
                 try:
                     os.unlink(full_name + ".pyo")
-                except os.error:
+                except OSError:
                     pass
                 if not os.path.isdir(full_name):
                     os.mkdir(full_name)
@@ -336,9 +336,8 @@ def GenerateFromTypeLibSpec(
 
 
 def GenerateChildFromTypeLibSpec(
-    child, typelibInfo, verboseLevel=None, progressInstance=None, bUnicodeToString=None
+    child, typelibInfo, verboseLevel=None, progressInstance=None
 ):
-    assert bUnicodeToString is None, "this is deprecated and will go away"
     if verboseLevel is None:
         verboseLevel = (
             0  # By default, we use no gui, and no verbose level for the children.

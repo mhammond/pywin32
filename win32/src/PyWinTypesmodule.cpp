@@ -275,9 +275,9 @@ HINSTANCE PyWin_GetErrorMessageModule(DWORD err)
 }
 
 /* error helper - GetLastError() is provided, but this is for exceptions */
-PyObject *PyWin_SetAPIError(char *fnName, long err /*= 0*/)
+PyObject *PyWin_SetAPIError(char *fnName, long err /*= ERROR_SUCCESS*/)
 {
-    DWORD errorCode = err == 0 ? GetLastError() : err;
+    DWORD errorCode = err == ERROR_SUCCESS ? GetLastError() : err;
     DWORD flags = FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS;
     // try and find the hmodule providing this error.
     HMODULE hmodule = PyWin_GetErrorMessageModule(errorCode);
@@ -308,6 +308,15 @@ PyObject *PyWin_SetAPIError(char *fnName, long err /*= 0*/)
     return NULL;
 }
 
+/* error helper - like PyWin_SetAPIError, but returns None on success */
+PyObject *PyWin_SetAPIErrorOrReturnNone(char *fnName, long err /*= ERROR_SUCCESS*/)
+{
+    DWORD errorCode = err == ERROR_SUCCESS ? GetLastError() : err;
+    if (errorCode == ERROR_SUCCESS)
+        Py_RETURN_NONE;
+    return PyWin_SetAPIError(fnName, errorCode);
+}
+
 // This function sets a basic COM error - it is a valid COM
 // error, but may not contain rich error text about the error.
 // Designed to be used before pythoncom has been loaded.
@@ -334,16 +343,6 @@ PyObject *PyWin_SetBasicCOMError(HRESULT hr)
     return NULL;
 }
 
-// @pymethod string|pywintypes|Unicode|Creates a new Unicode object
-PYWINTYPES_EXPORT PyObject *PyWin_NewUnicode(PyObject *self, PyObject *args)
-{
-    char *string;
-    int slen;
-    if (!PyArg_ParseTuple(args, "t#", &string, &slen))
-        return NULL;
-    return PyUnicode_DecodeMBCS(string, slen, NULL);
-}
-
 // @pymethod string|pywintypes|UnicodeFromRaw|Creates a new Unicode object from raw binary data
 static PyObject *PyWin_NewUnicodeFromRaw(PyObject *self, PyObject *args)
 {
@@ -357,8 +356,6 @@ static PyObject *PyWin_NewUnicodeFromRaw(PyObject *self, PyObject *args)
         return NULL;
     return PyWinObject_FromWCHAR((WCHAR *)pybuf.ptr(), pybuf.len() / sizeof(OLECHAR));
 }
-
-#ifndef MS_WINCE /* This code is not available on Windows CE */
 
 // @pymethod int, int|pywintypes|IsTextUnicode|Determines whether a buffer probably contains a form of Unicode text.
 static PyObject *PyWin_IsTextUnicode(PyObject *self, PyObject *args)
@@ -405,7 +402,6 @@ static PyObject *PyWin_DosDateTimeToTime(PyObject *self, PyObject *args)
         return PyWin_SetAPIError("DosDateTimeToFileTime");
     return PyWinObject_FromFILETIME(fd);
 }
-#endif /* MS_WINCE */
 
 PyObject *PyObject_FromWIN32_FIND_DATAW(WIN32_FIND_DATAW *pData)
 {
@@ -465,7 +461,7 @@ BOOL PyWinObject_AsDWORDArray(PyObject *obdwords, DWORD **pdwords, DWORD *item_c
         for (tuple_index = 0; tuple_index < *item_cnt; tuple_index++) {
             tuple_item = PyTuple_GET_ITEM(dwords_tuple, tuple_index);
             // Doesn't check for overflow, but will accept a python long
-            //  greater than INT_MAX (even on python 2.3).  Also accepts
+            //  greater than INT_MAX (even on Python 2.3).  Also accepts
             //  negatives and converts to the correct hex representation
             (*pdwords)[tuple_index] = PyLong_AsUnsignedLongMask(tuple_item);
             if (((*pdwords)[tuple_index] == -1) && PyErr_Occurred()) {
@@ -756,11 +752,8 @@ PyObject *PyWinObject_FromMSG(const MSG *pMsg)
 /* List of functions exported by this module */
 // @module pywintypes|A module which supports common Windows types.
 static struct PyMethodDef pywintypes_functions[] = {
-#ifndef MS_WINCE
     {"DosDateTimeToTime", PyWin_DosDateTimeToTime,
      1},  // @pymeth DosDateTimeToTime|Converts an MS-DOS Date/Time to a standard Time object
-#endif
-    {"Unicode", PyWin_NewUnicode, 1},  // @pymeth Unicode|Creates a new string object
     {"UnicodeFromRaw", PyWin_NewUnicodeFromRaw,
      1},  // @pymeth UnicodeFromRaw|Creates a new string object from raw binary data
     {"IsTextUnicode", PyWin_IsTextUnicode,
@@ -772,14 +765,12 @@ static struct PyMethodDef pywintypes_functions[] = {
     {"Time", PyWinMethod_NewTime, 1},            // @pymeth Time|Makes a <o PyDateTime> object from the argument.
     {"TimeStamp", PyWinMethod_NewTimeStamp, 1},  // @pymeth Time|Makes a <o PyDateTime> object from the argument.
     {"CreateGuid", PyWin_CreateGuid, 1},  // @pymeth CreateGuid|Creates a new, unique GUIID.
-#ifndef NO_PYWINTYPES_SECURITY
     {"ACL", PyWinMethod_NewACL, 1},  // @pymeth ACL|Creates a new <o PyACL> object.
     {"SID", PyWinMethod_NewSID, 1},  // @pymeth SID|Creates a new <o PySID> object.
     {"SECURITY_ATTRIBUTES", PyWinMethod_NewSECURITY_ATTRIBUTES,
      1},  // @pymeth SECURITY_ATTRIBUTES|Creates a new <o PySECURITY_ATTRIBUTES> object.
     {"SECURITY_DESCRIPTOR", PyWinMethod_NewSECURITY_DESCRIPTOR,
      1},  // @pymeth SECURITY_DESCRIPTOR|Creates a new <o PySECURITY_DESCRIPTOR> object.
-#endif    // NO_PYWINTYPES_SECURITY
     {"HANDLE", PyWinMethod_NewHANDLE, 1},  // @pymeth HANDLE|Creates a new <o PyHANDLE> object.
     {"HKEY", PyWinMethod_NewHKEY, 1},      // @pymeth HKEY|Creates a new <o PyHKEY> object.
 #ifdef TRACE_THREADSTATE
@@ -881,7 +872,7 @@ int PyWinGlobals_Ensure()
         // @tupleitem 3|None/int|argerror|The index of the argument in error, or (usually) None or -1
     }
 
-    /* PyType_Ready *needs* to be called anytime pywintypesxx.dll is loaded, since
+    /* PyType_Ready *needs* to be called anytime pywintypesXX.dll is loaded, since
         other extension modules can use types defined here without pywintypes itself
         having been imported.
         ??? All extension modules that call this need to be changed to check the exit code ???
@@ -892,10 +883,8 @@ int PyWinGlobals_Ensure()
 #ifndef NO_PYWINTYPES_IID
         || PyType_Ready(&PyIIDType) == -1
 #endif  // NO_PYWINTYPES_IID
-#ifndef NO_PYWINTYPES_SECURITY
         || PyType_Ready(&PySECURITY_DESCRIPTORType) == -1 || PyType_Ready(&PySECURITY_ATTRIBUTESType) == -1 ||
         PyType_Ready(&PySIDType) == -1 || PyType_Ready(&PyACLType) == -1
-#endif
     )
         return -1;
 
@@ -960,21 +949,15 @@ PYWIN_MODULE_INIT_FUNC(pywintypes)
         PYWIN_MODULE_INIT_RETURN_ERROR;
     ADD_CONSTANT(WAVE_FORMAT_PCM);
 
-    // Add a few types.
-    if (PyDict_SetItemString(dict, "UnicodeType", (PyObject *)&PyUnicode_Type) == -1)
-        PYWIN_MODULE_INIT_RETURN_ERROR;
-
     if (!_PyWinDateTime_PrepareModuleDict(dict))
         PYWIN_MODULE_INIT_RETURN_ERROR;
 #ifndef NO_PYWINTYPES_IID
     ADD_TYPE(IIDType);
 #endif  // NO_PYWINTYPES_IID
-#ifndef NO_PYWINTYPES_SECURITY
     ADD_TYPE(SECURITY_DESCRIPTORType);
     ADD_TYPE(SECURITY_ATTRIBUTESType);
     ADD_TYPE(SIDType);
     ADD_TYPE(ACLType);
-#endif
     ADD_TYPE(HANDLEType);
     ADD_TYPE(OVERLAPPEDType);
     ADD_TYPE(DEVMODEWType);
@@ -986,12 +969,9 @@ PYWIN_MODULE_INIT_FUNC(pywintypes)
     PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }
 
-#ifndef MS_WINCE
 extern "C" __declspec(dllexport)
-#endif
     BOOL WINAPI DllMain(HANDLE hInstance, DWORD dwReason, LPVOID lpReserved)
 {
-#ifndef NO_PYWINTYPES_SECURITY
     FARPROC fp;
     // dll usually will already be loaded
     HMODULE hmodule = GetModuleHandle(_T("AdvAPI32.dll"));
@@ -1031,7 +1011,6 @@ extern "C" __declspec(dllexport)
                 (BOOL(WINAPI *)(PSECURITY_DESCRIPTOR, SECURITY_DESCRIPTOR_CONTROL, SECURITY_DESCRIPTOR_CONTROL))(fp);
     }
 
-#endif  // NO_PYWINTYPES_SECURITY
     switch (dwReason) {
         case DLL_PROCESS_ATTACH: {
             /*

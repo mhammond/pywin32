@@ -11,7 +11,6 @@ import sys
 import traceback
 
 import __main__
-import afxres
 import pywin.framework.app
 import pywin.scintilla.control
 import pywin.scintilla.formatter
@@ -20,6 +19,7 @@ import win32api
 import win32clipboard
 import win32con
 import win32ui
+from pywin.mfc import afxres
 
 ## sequential after ID_GOTO_LINE defined in editor.py
 ID_EDIT_COPY_CODE = 0xE2002
@@ -325,11 +325,12 @@ class InteractiveCore:
                 if win32ui.debug:
                     suffix = ", debug build"
                 sys.stderr.write(
-                    "PythonWin %s on %s%s.\n" % (sys.version, sys.platform, suffix)
+                    f"PythonWin {sys.version} on {sys.platform}{suffix}.\n"
                 )
                 sys.stderr.write(
-                    "Portions %s - see 'Help/About PythonWin' for further copyright information.\n"
-                    % (win32ui.copyright,)
+                    "Portions {} - see 'Help/About PythonWin' for further copyright information.\n".format(
+                        win32ui.copyright
+                    )
                 )
             else:
                 sys.stderr.write(banner)

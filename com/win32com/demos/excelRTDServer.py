@@ -132,7 +132,7 @@ class ExcelRTDServer:
 
     def __init__(self):
         """Constructor"""
-        super(ExcelRTDServer, self).__init__()
+        super().__init__()
         self.IsAlive = self.ALIVE
         self.__callback = None
         self.topics = {}
@@ -266,7 +266,7 @@ class RTDTopic:
     The others are more for convenience."""
 
     def __init__(self, TopicStrings):
-        super(RTDTopic, self).__init__()
+        super().__init__()
         self.TopicStrings = TopicStrings
         self.__currentValue = None
         self.__dirty = False
@@ -332,7 +332,7 @@ class TimeServer(ExcelRTDServer):
     INTERVAL = 0.5  # secs. Threaded timer will wake us up at this interval.
 
     def __init__(self):
-        super(TimeServer, self).__init__()
+        super().__init__()
 
         # Simply timer thread to ensure we get to update our topics, and
         # tell excel about any changes. This is a pretty basic and dirty way to
@@ -384,7 +384,7 @@ class TimeTopic(RTDTopic):
     """
 
     def __init__(self, TopicStrings):
-        super(TimeTopic, self).__init__(TopicStrings)
+        super().__init__(TopicStrings)
         try:
             self.cmd, self.delay = self.TopicStrings
         except Exception as E:

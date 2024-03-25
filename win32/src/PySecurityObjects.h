@@ -1,11 +1,6 @@
 // Security objects
 // Much of the security support written by Roger Upole <rwupole@msn.com>
 
-#ifdef MS_WINCE
-#define NO_PYWINTYPES_SECURITY /* This source is not included for WinCE */
-#endif
-
-#ifndef NO_PYWINTYPES_SECURITY
 typedef BOOL(WINAPI *addacefunc)(PACL, DWORD, DWORD, PSID);
 typedef BOOL(WINAPI *addaceexfunc)(PACL, DWORD, DWORD, DWORD, PSID);
 typedef BOOL(WINAPI *addobjectacefunc)(PACL, DWORD, DWORD, DWORD, GUID *, GUID *, PSID);
@@ -173,4 +168,3 @@ class PYWINTYPES_EXPORT PyACL : public PyObject {
     void *buf;
 };
 
-#endif  // NO_PYWINTYPES_SECURITY

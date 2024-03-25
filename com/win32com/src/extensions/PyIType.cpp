@@ -815,7 +815,6 @@ PyObject *pythoncom_unregistertypelib(PyObject *self, PyObject *args)
     // In-process objects typically call this API from DllUnregisterServer.
 }
 
-#ifndef MS_WINCE
 // @pymethod <o PyUnicode>|pythoncom|QueryPathOfRegTypeLib|Retrieves the path of a registered type library.
 PyObject *pythoncom_querypathofregtypelib(PyObject *self, PyObject *args)
 {
@@ -841,7 +840,6 @@ PyObject *pythoncom_querypathofregtypelib(PyObject *self, PyObject *args)
         return PyCom_BuildPyException(hr);
     return PyWinObject_FromBstr(result, TRUE);
 }
-#endif
 /////////////////////////////////////////////////////////////////////////////
 // class PyITypeComp
 
@@ -900,10 +898,7 @@ static PyObject *ITypeCompBind(ITypeComp *pTC, OLECHAR *S, unsigned short w)
     PyObject *ret;
     unsigned long hashval = 0;
     PY_INTERFACE_PRECALL;
-#ifndef MS_WINCE
-    // appears in the headers for CE, but wont link!?
     hashval = LHashValOfNameSys(SYS_WIN32, LOCALE_USER_DEFAULT, S);
-#endif
     SCODE sc = pTC->Bind(S, hashval, w, &pI, &DK, &BP);
     PY_INTERFACE_POSTCALL;
     if (FAILED(sc))
@@ -962,10 +957,7 @@ PyObject *PyITypeComp::BindType(OLECHAR *s)
     unsigned long hashval = 0;
     ITypeComp *pTC = GetI(this);
     PY_INTERFACE_PRECALL;
-#ifndef MS_WINCE
-    // appears in the headers for CE, but wont link!?
     hashval = LHashValOfNameSys(SYS_WIN32, LOCALE_USER_DEFAULT, s);
-#endif
     SCODE sc = pTC->BindType(s, hashval, &pI, &pC);
     PY_INTERFACE_POSTCALL;
     if (FAILED(sc))

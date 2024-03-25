@@ -6,7 +6,6 @@ import pythoncom
 import win32ui
 from win32com.axscript import axscript
 from win32com.axscript.server import axsite
-from win32com.axscript.server.error import Exception
 from win32com.server import util
 
 version = "0.0.1"
@@ -65,13 +64,13 @@ def TestEngine():
         pyEngine.Start()  # Actually run the Python code
         vbEngine.Start()  # Actually run the VB code
     except pythoncom.com_error as details:
-        print("Script failed: %s (0x%x)" % (details[1], details[0]))
+        print(f"Script failed: {details[1]} (0x{details[0]:x})")
     # Now run the code expected to fail!
-    #  try:
-    #    pyEngine2.Start() # Actually run the Python code that fails!
-    #    print "Script code worked when it should have failed."
-    #  except pythoncom.com_error:
-    #    pass
+    # try:
+    #     pyEngine2.Start()  # Actually run the Python code that fails!
+    #     print("Script code worked when it should have failed.")
+    # except pythoncom.com_error:
+    #     pass
 
     site._Close()
 
@@ -83,6 +82,5 @@ if __name__ == "__main__":
         TestEngine()
     except:
         traceback.print_exc()
-    win32com.axdebug.util._dump_wrapped()
     sys.exc_type = sys.exc_value = sys.exc_traceback = None
     print(pythoncom._GetInterfaceCount(), "com objects still alive")

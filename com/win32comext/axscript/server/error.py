@@ -8,7 +8,7 @@ exception in a Python instance, which can then be raised and caught.
 """
 
 
-class Exception:
+class Exception:  # unused and shadows builtin Exception
     def __init__(self, activeScriptError):
         self.activeScriptError = activeScriptError
 

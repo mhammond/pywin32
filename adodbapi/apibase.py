@@ -26,7 +26,7 @@ else:
     DateTime = type(NotImplemented)  # should never be seen on win32
     NullTypes = type(None)
 
-# --- define objects to smooth out Python3 <-> Python 2.x differences
+# --- define objects to smooth out Python3 <-> Python 2 differences
 unicodeType = str
 longType = int
 StringTypes = str
@@ -55,7 +55,7 @@ def standardErrorHandler(connection, cursor, errorclass, errorvalue):
     raise errorclass(errorvalue)
 
 
-# Note: _BaseException is defined differently between Python 2.x and 3.x
+# Note: _BaseException is defined differently between Python 2 and 3
 class Error(_BaseException):
     pass  # Exception that is the base class of all other error
     # exceptions. You can use this to catch all errors with one

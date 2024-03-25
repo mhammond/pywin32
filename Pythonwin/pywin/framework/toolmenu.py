@@ -214,7 +214,7 @@ class ToolMenuPropPage(dialog.PropertyPage):
         return self._obj_.OnOK()
 
     def OnCommandEditControls(self, id, cmd):
-        # 		print "OnEditControls", id, cmd
+        # print("OnEditControls", id, cmd)
         if cmd == win32con.EN_CHANGE and not self.bImChangingEditControls:
             itemNo = self.listControl.GetNextItem(-1, commctrl.LVNI_SELECTED)
             newText = self.editMenuCommand.GetWindowText()
@@ -228,7 +228,7 @@ class ToolMenuPropPage(dialog.PropertyPage):
         self.listControl.SetItemText(itemNo, 0, newText)
 
     def OnNotifyListControl(self, id, cmd):
-        # 		print id, cmd
+        # print(id, cmd)
         try:
             itemNo = self.listControl.GetNextItem(-1, commctrl.LVNI_SELECTED)
         except win32ui.error:  # No selection!

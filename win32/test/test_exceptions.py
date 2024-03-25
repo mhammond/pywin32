@@ -1,4 +1,5 @@
 """Test pywin32's error semantics"""
+
 import unittest
 
 import pythoncom
@@ -86,7 +87,7 @@ class TestAPISimple(TestBase):
     # some tests for 'insane' args.
     def testStrangeArgsNone(self):
         try:
-            raise pywintypes.error()
+            raise pywintypes.error
             self.fail("Expected exception")
         except pywintypes.error as exc:
             self.assertEqual(exc.args, ())
@@ -176,7 +177,7 @@ class TestCOMSimple(TestBase):
 
     def testStrangeArgsNone(self):
         try:
-            raise pywintypes.com_error()
+            raise pywintypes.com_error
             self.fail("Expected exception")
         except pywintypes.com_error as exc:
             self.assertEqual(exc.args, ())

@@ -9,9 +9,9 @@ import win32gui_struct
 
 class TestBase(unittest.TestCase):
     def assertDictEquals(self, d, **kw):
-        checked = dict()
+        checked = {}
         for n, v in kw.items():
-            self.assertEqual(v, d[n], "'%s' doesn't match: %r != %r" % (n, v, d[n]))
+            self.assertEqual(v, d[n], f"'{n}' doesn't match: {v!r} != {d[n]!r}")
             checked[n] = True
         checked_keys = list(checked.keys())
         passed_keys = list(kw.keys())
@@ -22,17 +22,17 @@ class TestBase(unittest.TestCase):
 
 class TestMenuItemInfo(TestBase):
     def _testPackUnpack(self, text):
-        vals = dict(
-            fType=win32con.MFT_MENUBARBREAK,
-            fState=win32con.MFS_CHECKED,
-            wID=123,
-            hSubMenu=1234,
-            hbmpChecked=12345,
-            hbmpUnchecked=123456,
-            dwItemData=1234567,
-            text=text,
-            hbmpItem=321,
-        )
+        vals = {
+            "fType": win32con.MFT_MENUBARBREAK,
+            "fState": win32con.MFS_CHECKED,
+            "wID": 123,
+            "hSubMenu": 1234,
+            "hbmpChecked": 12345,
+            "hbmpUnchecked": 123456,
+            "dwItemData": 1234567,
+            "text": text,
+            "hbmpItem": 321,
+        }
         mii, extras = win32gui_struct.PackMENUITEMINFO(**vals)
         (
             fType,
@@ -94,7 +94,13 @@ class TestMenuItemInfo(TestBase):
 
 class TestMenuInfo(TestBase):
     def testPackUnpack(self):
-        vals = dict(dwStyle=1, cyMax=2, hbrBack=3, dwContextHelpID=4, dwMenuData=5)
+        vals = {
+            "dwStyle": 1,
+            "cyMax": 2,
+            "hbrBack": 3,
+            "dwContextHelpID": 4,
+            "dwMenuData": 5,
+        }
 
         mi = win32gui_struct.PackMENUINFO(**vals)
         (
@@ -132,16 +138,16 @@ class TestMenuInfo(TestBase):
 
 class TestTreeViewItem(TestBase):
     def _testPackUnpack(self, text):
-        vals = dict(
-            hitem=1,
-            state=2,
-            stateMask=3,
-            text=text,
-            image=4,
-            selimage=5,
-            citems=6,
-            param=7,
-        )
+        vals = {
+            "hitem": 1,
+            "state": 2,
+            "stateMask": 3,
+            "text": text,
+            "image": 4,
+            "selimage": 5,
+            "citems": 6,
+            "param": 7,
+        }
 
         ti, extra = win32gui_struct.PackTVITEM(**vals)
         (
@@ -197,16 +203,16 @@ class TestTreeViewItem(TestBase):
 
 class TestListViewItem(TestBase):
     def _testPackUnpack(self, text):
-        vals = dict(
-            item=None,
-            subItem=None,
-            state=1,
-            stateMask=2,
-            text=text,
-            image=3,
-            param=4,
-            indent=5,
-        )
+        vals = {
+            "item": None,
+            "subItem": None,
+            "state": 1,
+            "stateMask": 2,
+            "text": text,
+            "image": 3,
+            "param": 4,
+            "indent": 5,
+        }
 
         ti, extra = win32gui_struct.PackLVITEM(**vals)
         (
@@ -265,7 +271,7 @@ class TestListViewItem(TestBase):
 
 class TestLVColumn(TestBase):
     def _testPackUnpack(self, text):
-        vals = dict(fmt=1, cx=2, text=text, subItem=3, image=4, order=5)
+        vals = {"fmt": 1, "cx": 2, "text": text, "subItem": 3, "image": 4, "order": 5}
 
         ti, extra = win32gui_struct.PackLVCOLUMN(**vals)
         fmt, cx, text, subItem, image, order = win32gui_struct.UnpackLVCOLUMN(ti)

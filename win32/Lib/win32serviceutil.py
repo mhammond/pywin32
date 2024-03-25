@@ -6,7 +6,7 @@
 # when things go wrong - eg, not enough permissions to hit the
 # registry etc.
 
-import importlib
+import importlib.machinery
 import os
 import sys
 import warnings
@@ -17,7 +17,6 @@ import win32con
 import win32service
 import winerror
 
-_d = "_d" if "_d.pyd" in importlib.machinery.EXTENSION_SUFFIXES else ""
 error = RuntimeError
 
 
@@ -35,9 +34,11 @@ def LocatePythonServiceExe(exe=None):
     if exe and os.path.isfile(exe):
         return win32api.GetFullPathName(exe)
 
+    suffix = "_d" if "_d.pyd" in importlib.machinery.EXTENSION_SUFFIXES else ""
+
     # We are confused if we aren't now looking for our default. But if that
     # exists as specified we assume it's good.
-    exe = f"pythonservice{_d}.exe"
+    exe = f"pythonservice{suffix}.exe"
     if os.path.isfile(exe):
         return win32api.GetFullPathName(exe)
 
@@ -62,7 +63,7 @@ def LocatePythonServiceExe(exe=None):
     # (Unlike the .exe above, we don't unconditionally copy this, and possibly
     # copy it to a different place. Doesn't seem a good reason for that!?)
     python_dll = win32api.GetModuleFileName(sys.dllhandle)
-    pyw = f"pywintypes{sys.version_info[0]}{sys.version_info[1]}{_d}.dll"
+    pyw = f"pywintypes{sys.version_info[0]}{sys.version_info[1]}{suffix}.dll"
     correct_pyw = os.path.join(os.path.dirname(python_dll), pyw)
 
     if not os.path.exists(correct_pyw):
@@ -441,8 +442,6 @@ def ControlService(serviceName, code, machine=None):
 
 
 def __FindSvcDeps(findName):
-    if isinstance(findName, pywintypes.UnicodeType):
-        findName = str(findName)
     dict = {}
     k = win32api.RegOpenKey(
         win32con.HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Services"
@@ -592,7 +591,7 @@ def DebugService(cls, argv=[]):
 
     global g_debugService
 
-    print("Debugging service %s - press Ctrl+C to stop." % (cls._svc_name_,))
+    print(f"Debugging service {cls._svc_name_} - press Ctrl+C to stop.")
     servicemanager.Debugging(True)
     servicemanager.PrepareToHostSingle(cls)
     g_debugService = cls(argv)
@@ -801,7 +800,7 @@ def HandleCommandLine(
                     sys.exit(1)
                 raise
             try:
-                os.system("%s -debug %s %s" % (exeName, serviceName, svcArgs))
+                os.system(f"{exeName} -debug {serviceName} {svcArgs}")
             # ^C is used to kill the debug service.  Sometimes Python also gets
             # interrupted - ignore it...
             except KeyboardInterrupt:
@@ -832,7 +831,7 @@ def HandleCommandLine(
             description = cls._svc_description_
         except AttributeError:
             description = None
-        print("Installing service %s" % (serviceName,))
+        print(f"Installing service {serviceName}")
         # Note that we install the service before calling the custom option
         # handler, so if the custom handler fails, we have an installed service (from NT's POV)
         # but is unlikely to work, as the Python code controlling it failed.  Therefore
@@ -1027,7 +1026,7 @@ class ServiceFramework:
     def SvcOther(self, control):
         try:
             print("Unknown control status - %d" % control)
-        except IOError:
+        except OSError:
             # services may not have a valid stdout!
             pass
 

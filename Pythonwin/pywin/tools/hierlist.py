@@ -18,7 +18,7 @@ import commctrl
 import win32api
 import win32con
 import win32ui
-from pywin.mfc import dialog, docview, object, window
+from pywin.mfc import dialog, object
 from win32api import RGB
 
 
@@ -97,9 +97,10 @@ class HierList(object.Object):
         else:
             self.listControl = listControl
             lbid = listControl.GetDlgCtrlID()
-            assert self.listBoxId is None or self.listBoxId == lbid, (
-                "An invalid listbox control ID has been specified (specified as %s, but exists as %s)"
-                % (self.listBoxId, lbid)
+            assert (
+                self.listBoxId is None or self.listBoxId == lbid
+            ), "An invalid listbox control ID has been specified (specified as {}, but exists as {})".format(
+                self.listBoxId, lbid
             )
             self.listBoxId = lbid
         self.listControl.SetImageList(self.imageList, commctrl.LVSIL_NORMAL)
@@ -174,8 +175,6 @@ class HierList(object.Object):
         bitmapSel = self.GetSelectedBitmapColumn(item)
         if bitmapSel is None:
             bitmapSel = bitmapCol
-        ## if isinstance(text, str):
-        ##  text = text.encode("mbcs")
         hitem = self.listControl.InsertItem(
             parentHandle,
             hInsertAfter,
@@ -221,9 +220,9 @@ class HierList(object.Object):
                 inewlook = inewlook + 1
             if matched:
                 # Insert the new items.
-                # 				print "Inserting after", old_items[iold], old_handles[iold]
+                # print("Inserting after", old_items[iold], old_handles[iold])
                 for i in range(inew, inewlook):
-                    # 					print "Inserting index %d (%s)" % (i, new_items[i])
+                    # print(f"Inserting index {i} ({new_items[i]})")
                     hAfter = self.AddItem(hparent, new_items[i], hAfter)
 
                 inew = inewlook + 1
@@ -233,7 +232,7 @@ class HierList(object.Object):
                     self.Refresh(hold)
             else:
                 # Remove the deleted items.
-                # 				print "Deleting %d (%s)" % (iold, old_items[iold])
+                # print(f"Deleting {iold} ({old_items[iold]})")
                 hdelete = old_handles[iold]
                 # First recurse and remove the children from the map.
                 for hchild in self._GetChildHandles(hdelete):
@@ -244,7 +243,7 @@ class HierList(object.Object):
             hAfter = old_handles[iold]
         # Fill any remaining new items:
         for newItem in new_items[inew:]:
-            # 			print "Inserting new item", newItem
+            # print("Inserting new item", newItem)
             self.AddItem(hparent, newItem)
 
     def AcceptRoot(self, root):

@@ -2,7 +2,8 @@ import pythoncom
 import win32com.axscript.axscript
 import winerror
 from win32com.axscript import axscript
-from win32com.server import exception, util
+from win32com.server import util
+from win32com.server.exception import COMException
 
 
 class AXEngine:
@@ -76,7 +77,7 @@ class AXSite:
         self.lcid = lcid
         self.objModel = {}
         for name, object in objModel.items():
-            # Gregs code did string.lower this - I think that is callers job if he wants!
+            # Gregs code did str.lower this - I think that is callers job if he wants!
             self.objModel[name] = object
 
         self.engine = None
@@ -115,7 +116,7 @@ class AXSite:
 
     def GetItemInfo(self, name, returnMask):
         if name not in self.objModel:
-            raise exception.Exception(
+            raise COMException(
                 scode=winerror.TYPE_E_ELEMENTNOTFOUND, desc="item not found"
             )
 
