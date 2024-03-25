@@ -316,7 +316,8 @@ class TIME_ZONE_INFORMATION(_SimpleStruct):
 
 
 class DYNAMIC_TIME_ZONE_INFORMATION(_SimpleStruct):
-    _fields_ = TIME_ZONE_INFORMATION._fields_ + [
+    _fields_ = [
+        *TIME_ZONE_INFORMATION._fields_,
         ("key_name", str),
         ("dynamic_daylight_time_disabled", bool),
     ]

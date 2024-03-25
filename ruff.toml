@@ -1,0 +1,11 @@
+# Target the oldest supported version
+target-version = "py37"
+
+[lint]
+select = [
+    "RUF005", # collection-literal-concatenation
+]
+
+[lint.per-file-ignores]
+# TODO: Make adodbapi changes in their own PRs
+"adodbapi/*" = ["RUF005"]

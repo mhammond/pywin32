@@ -19,7 +19,8 @@ from win32com.server.util import wrap
 from win32com.shell import shell, shellcon
 
 IPersist_Methods = ["GetClassID"]
-IColumnProvider_Methods = IPersist_Methods + [
+IColumnProvider_Methods = [
+    *IPersist_Methods,
     "Initialize",
     "GetColumnInfo",
     "GetItemData",
