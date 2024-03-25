@@ -180,8 +180,8 @@ def LoadSystemModule(lib_dir, modname):
     suffix = "_d" if "_d.pyd" in importlib.machinery.EXTENSION_SUFFIXES else ""
     filename = "%s%d%d%s.dll" % (
         modname,
-        sys.version_info[0],
-        sys.version_info[1],
+        sys.version_info.major,
+        sys.version_info.minor,
         suffix,
     )
     filename = os.path.join(lib_dir, "pywin32_system32", filename)
@@ -348,8 +348,10 @@ def get_shortcuts_folder():
             get_root_hkey(), root_key_name + "\\InstallPath\\InstallGroup"
         )
     except OSError:
-        vi = sys.version_info
-        install_group = "Python %d.%d" % (vi[0], vi[1])
+        install_group = "Python %d.%d" % (
+            sys.version_info.major,
+            sys.version_info.minor,
+        )
     return os.path.join(fldr, install_group)
 
 
