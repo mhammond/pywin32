@@ -14,7 +14,7 @@ It should take the same argument keywords as the host adodbapi server,
 and will pass them to it. In addition, other connection keywords are
 used to control the connection to the proxy server.
 
-The extended code for this can be located in the `./remote` directory of the 
+The extended code for this can be located in the `./remote` directory of the
 source code. It is not included in the pywin32 binaries.
 
 \[Implementation note: adodbapi version 2.5 and 2.6 use PYRO4 for proxy
@@ -23,12 +23,13 @@ communication. The will probably change in the future to use ØMQ.\]
 \-\-\-\-\-\-\-\--
 
 keywords for remote connections:
+
 - pyro_connection:
     'PYRO:ado.connection@%(proxy_host)s:%(proxy_port)s' #
-    used to build the Pyro4 connection to the proxy. 
+    used to build the Pyro4 connection to the proxy.
     You may never need to change the default.
 
-- proxy_host: '::1' \# the address of the ADO proxy server. 
+- proxy_host: '::1' \# the address of the ADO proxy server.
     (default = IPv6 localhost)
 
 - proxy_port: '9099' # the IP port for the proxy connection.
