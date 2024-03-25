@@ -20,7 +20,6 @@ Copyright (C) 2013 by Vernon Cole
 DB-API 2.0 specification: http://www.python.org/dev/peps/pep-0249/
 
 This module source should run correctly in CPython versions 2.6 and later,
-or IronPython version 2.6 and later,
 or, after running through 2to3.py, CPython 3.2 or later.
 """
 
