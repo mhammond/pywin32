@@ -6,11 +6,6 @@ import shutil
 import sys
 import tempfile
 
-try:
-    OSErrors = (WindowsError, OSError)
-except NameError:  # not running on Windows
-    OSErrors = OSError
-
 
 def maketemp():
     temphome = tempfile.gettempdir()
@@ -52,7 +47,7 @@ def makeadopackage(testfolder):
         newpackage = os.path.join(testfolder, "adodbapi")
         try:
             os.mkdir(newpackage)
-        except OSErrors:
+        except OSError:
             print(
                 "*Note: temporary adodbapi package already exists: may be two versions running?"
             )
@@ -68,7 +63,7 @@ def makeadopackage(testfolder):
             sys.stdout = save
         return testfolder
     else:
-        raise EnvironmentError("Connot find source of adodbapi to test.")
+        raise OSError("Connot find source of adodbapi to test.")
 
 
 def makemdb(testfolder, mdb_name):
