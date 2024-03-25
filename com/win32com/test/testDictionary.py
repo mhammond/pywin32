@@ -20,9 +20,7 @@ def TestDictAgainst(dict, check):
     for key, value in list(check.items()):
         if dict(key) != value:
             raise Exception(
-                "Indexing for '{}' gave the incorrect value - {}/{}".format(
-                    repr(key), repr(dict[key]), repr(check[key])
-                )
+                f"Indexing for '{repr(key)}' gave the incorrect value - {repr(dict[key])}/{repr(check[key])}"
             )
 
 

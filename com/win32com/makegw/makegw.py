@@ -253,22 +253,16 @@ PyObject *Py{interfacename}::{method}(PyObject *self, PyObject *args)
                 argsCOM = argsCOM + ", " + comArgName
             except makegwparse.error_not_supported as why:
                 f.write(
-                    '// *** The input argument {} of type "{}" was not processed ***\n//     Please check the conversion function is appropriate and exists!\n'.format(
-                        arg.name, arg.raw_type
-                    )
+                    f'// *** The input argument {arg.name} of type "{arg.raw_type}" was not processed ***\n//     Please check the conversion function is appropriate and exists!\n'
                 )
 
                 f.write(f"\t{arg.type} {arg.name};\n\tPyObject *ob{arg.name};\n")
                 f.write(
-                    "\t// @pyparm <o Py{}>|{}||Description for {}\n".format(
-                        arg.type, arg.name, arg.name
-                    )
+                    f"\t// @pyparm <o Py{arg.type}>|{arg.name}||Description for {arg.name}\n"
                 )
                 codePost = (
                     codePost
-                    + "\tif (bPythonIsHappy && !PyObject_As{}( ob{}, &{} )) bPythonIsHappy = FALSE;\n".format(
-                        arg.type, arg.name, arg.name
-                    )
+                    + f"\tif (bPythonIsHappy && !PyObject_As{arg.type}( ob{arg.name}, &{arg.name} )) bPythonIsHappy = FALSE;\n"
                 )
 
                 formatChars = formatChars + "O"
@@ -282,9 +276,7 @@ PyObject *Py{interfacename}::{method}(PyObject *self, PyObject *args)
         f.write(codePobjects)
         f.write(codeCobjects)
         f.write(
-            '\tif ( !PyArg_ParseTuple(args, "{}:{}"{}) )\n\t\treturn NULL;\n'.format(
-                formatChars, method.name, argsParseTuple
-            )
+            f'\tif ( !PyArg_ParseTuple(args, "{formatChars}:{method.name}"{argsParseTuple}) )\n\t\treturn NULL;\n'
         )
         if codePost:
             f.write("\tBOOL bPythonIsHappy = TRUE;\n")
@@ -321,16 +313,12 @@ PyObject *Py{interfacename}::{method}(PyObject *self, PyObject *args)
                     codeDecl = codeDecl + argCvt.DeclareParseArgTupleInputConverter()
             except makegwparse.error_not_supported as why:
                 f.write(
-                    '// *** The output argument {} of type "{}" was not processed ***\n//     {}\n'.format(
-                        arg.name, arg.raw_type, why
-                    )
+                    f'// *** The output argument {arg.name} of type "{arg.raw_type}" was not processed ***\n//     {why}\n'
                 )
                 continue
         if formatChars:
             f.write(
-                '{}\n{}\tPyObject *pyretval = Py_BuildValue("{}"{});\n{}\treturn pyretval;'.format(
-                    codeDecl, codePre, formatChars, codeVarsPass, codePost
-                )
+                f'{codeDecl}\n{codePre}\tPyObject *pyretval = Py_BuildValue("{formatChars}"{codeVarsPass});\n{codePost}\treturn pyretval;'
             )
         else:
             f.write("\tPy_RETURN_NONE;\n")
@@ -340,9 +328,7 @@ PyObject *Py{interfacename}::{method}(PyObject *self, PyObject *args)
     f.write("static struct PyMethodDef Py%s_methods[] =\n{\n" % name)
     for method in interface.methods:
         f.write(
-            '\t{{ "{}", Py{}::{}, 1 }}, // @pymeth {}|Description of {}\n'.format(
-                method.name, interface.name, method.name, method.name, method.name
-            )
+            f'\t{{ "{method.name}", Py{interface.name}::{method.name}, 1 }}, // @pymeth {method.name}|Description of {method.name}\n'
         )
 
     interfacebase = interface.base
@@ -391,9 +377,7 @@ protected:
     )
     if interface.base != "IUnknown":
         f.write(
-            "\t// {}\n\t// *** Manually add {} method decls here\n\n".format(
-                interface.base, interface.base
-            )
+            f"\t// {interface.base}\n\t// *** Manually add {interface.base} method decls here\n\n"
         )
     else:
         f.write("\n\n")
@@ -482,19 +466,13 @@ STDMETHODIMP {gname}::{method.name}(
                         codePost = codePost + argCvt.GetBuildForGatewayPostCode()
                     except makegwparse.error_not_supported as why:
                         f.write(
-                            '// *** The input argument {} of type "{}" was not processed ***\n//   - Please ensure this conversion function exists, and is appropriate\n//   - {}\n'.format(
-                                arg.name, arg.raw_type, why
-                            )
+                            f'// *** The input argument {arg.name} of type "{arg.raw_type}" was not processed ***\n//   - Please ensure this conversion function exists, and is appropriate\n//   - {why}\n'
                         )
                         f.write(
-                            "\tPyObject *ob{} = PyObject_From{}({});\n".format(
-                                arg.name, arg.type, arg.name
-                            )
+                            f"\tPyObject *ob{arg.name} = PyObject_From{arg.type}({arg.name});\n"
                         )
                         f.write(
-                            '\tif (ob{}==NULL) return MAKE_PYCOM_GATEWAY_FAILURE_CODE("{}");\n'.format(
-                                arg.name, method.name
-                            )
+                            f'\tif (ob{arg.name}==NULL) return MAKE_PYCOM_GATEWAY_FAILURE_CODE("{method.name}");\n'
                         )
                         codePost = codePost + "\tPy_DECREF(ob%s);\n" % arg.name
                         formatChars = formatChars + "O"
@@ -544,9 +522,7 @@ STDMETHODIMP {gname}::{method.name}(
                         needConversion = needConversion or argCvt.NeedUSES_CONVERSION()
                 except makegwparse.error_not_supported as why:
                     f.write(
-                        '// *** The output argument {} of type "{}" was not processed ***\n//     {}\n'.format(
-                            arg.name, arg.raw_type, why
-                        )
+                        f'// *** The output argument {arg.name} of type "{arg.raw_type}" was not processed ***\n//     {why}\n'
                     )
 
             if formatChars:  # If I have any to actually process.
@@ -557,9 +533,7 @@ STDMETHODIMP {gname}::{method.name}(
                 if codePobjects:
                     f.write(codePobjects)
                 f.write(
-                    '\tif (!{}(result, "{}" {}))\n\t\treturn MAKE_PYCOM_GATEWAY_FAILURE_CODE("{}");\n'.format(
-                        parseFn, formatChars, argsParseTuple, method.name
-                    )
+                    f'\tif (!{parseFn}(result, "{formatChars}" {argsParseTuple}))\n\t\treturn MAKE_PYCOM_GATEWAY_FAILURE_CODE("{method.name}");\n'
                 )
             if codePost:
                 f.write("\tBOOL bPythonIsHappy = TRUE;\n")

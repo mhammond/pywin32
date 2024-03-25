@@ -298,8 +298,8 @@ class InteractivePythonApp(app.CApp):
                 if dde:
                     dde.Exec(
                         "from pywin.framework import scriptutils\n"
-                        "ed = scriptutils.GetActiveEditControl()\n"
-                        "if ed: ed.SetSel(ed.LineIndex(%s - 1))" % gotoline
+                        + "ed = scriptutils.GetActiveEditControl()\n"
+                        + "if ed: ed.SetSel(ed.LineIndex(%s - 1))" % gotoline
                     )
                 else:
                     from . import scriptutils
@@ -317,9 +317,7 @@ class InteractivePythonApp(app.CApp):
                     # pywin.scintilla.document.CScintillaDocument.OnOpenDocument)
                     # segfaults Pythonwin on recent PY3 builds (b228)
                     win32ui.MessageBox(
-                        "No such file: {}\n\nCommand Line: {}".format(
-                            fname, win32api.GetCommandLine()
-                        ),
+                        f"No such file: {fname}\n\nCommand Line: {win32api.GetCommandLine()}",
                         "Open file for edit",
                         win32con.MB_ICONERROR,
                     )

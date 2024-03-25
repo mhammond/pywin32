@@ -44,15 +44,11 @@ if __name__ == "__main__":
         shortcut.load(file)
         # now print data...
         print(
-            "Shortcut in file %s to file:\n\t%s\nArguments:\n\t%s\nDescription:\n\t%s\nWorking Directory:\n\t%s\nItemIDs:\n\t<skipped>"
-            % (
-                file,
-                shortcut.GetPath(shell.SLGP_SHORTPATH)[0],
-                shortcut.GetArguments(),
-                shortcut.GetDescription(),
-                shortcut.GetWorkingDirectory(),
-                # shortcut.GetIDList(),
-            )
+            f"Shortcut in file {file} to file:\n\t{shortcut.GetPath(shell.SLGP_SHORTPATH)[0]}"
+            + f"\nArguments:\n\t{shortcut.GetArguments()}"
+            + f"\nDescription:\n\t{shortcut.GetDescription()}"
+            + f"\nWorking Directory:\n\t{shortcut.GetWorkingDirectory()}"
+            + "\nItemIDs:\n\t<skipped>"  # shortcut.GetIDList()
         )
     else:
         if len(sys.argv) < 3:

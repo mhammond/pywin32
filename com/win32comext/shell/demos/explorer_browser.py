@@ -103,8 +103,7 @@ class MainWindow:
         except pythoncom.com_error as exc:
             # this should really only fail if no "nav" frame exists...
             print(
-                "Strange - failed to get the tree control even though "
-                "we asked for a EBO_SHOWFRAMES"
+                "Strange - failed to get the tree control even though we asked for a EBO_SHOWFRAMES"
             )
             print(exc)
         else:

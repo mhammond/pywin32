@@ -553,9 +553,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
             if generator.bBuildHidden or not entry.hidden:
                 if entry.GetResultName():
                     print(
-                        "\t\t# Method '{}' returns object of type '{}'".format(
-                            key, entry.GetResultName()
-                        ),
+                        f"\t\t# Method '{key}' returns object of type '{entry.GetResultName()}'",
                         file=stream,
                     )
                 details = entry.desc
@@ -776,12 +774,7 @@ class CoClassItem(build.OleItem, WritableItem):
                     file=stream,
                 )
                 print(
-                    "{} = sys.modules['{}.{}'].{}".format(
-                        ref.python_name,
-                        generator.base_mod_name,
-                        ref.python_name,
-                        ref.python_name,
-                    ),
+                    f"{ref.python_name} = sys.modules['{generator.base_mod_name}.{ref.python_name}'].{ref.python_name}",
                     file=stream,
                 )
                 # And pretend we have written it - the name is now available as if we had!
@@ -1190,9 +1183,7 @@ class Generator:
         for record in recordItems.values():
             if record.clsid == pythoncom.IID_NULL:
                 print(
-                    "\t###{}: {}, # Record disabled because it doesn't have a non-null GUID".format(
-                        repr(record.doc[0]), repr(str(record.clsid))
-                    ),
+                    f"\t###{repr(record.doc[0])}: {repr(str(record.clsid))}, # Record disabled because it doesn't have a non-null GUID",
                     file=stream,
                 )
             else:
@@ -1372,9 +1363,7 @@ class Generator:
         oleitem.WriteClass(self)
         if oleitem.bWritten:
             print(
-                'win32com.client.CLSIDToClass.RegisterCLSID( "{}", {} )'.format(
-                    oleitem.clsid, oleitem.python_name
-                ),
+                f'win32com.client.CLSIDToClass.RegisterCLSID( "{oleitem.clsid}", {oleitem.python_name} )',
                 file=self.file,
             )
 

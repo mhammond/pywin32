@@ -29,8 +29,8 @@ def GetIDLEModule(module):
     except ImportError as details:
         msg = (
             f"The IDLE extension '{module}' can not be located.\r\n\r\n"
-            "Please correct the installation and restart the"
-            f" application.\r\n\r\n{details}"
+            + "Please correct the installation and restart the"
+            + f" application.\r\n\r\n{details}"
         )
         win32ui.MessageBox(msg)
         return None
@@ -517,9 +517,7 @@ def TestGet(fr, to, t, expected):
     got = t.get(fr, to)
     if got != expected:
         print(
-            "ERROR: get({}, {}) expected {}, but got {}".format(
-                repr(fr), repr(to), repr(expected), repr(got)
-            )
+            f"ERROR: get({repr(fr)}, {repr(to)}) expected {repr(expected)}, but got {repr(got)}"
         )
 
 

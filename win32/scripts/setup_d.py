@@ -50,9 +50,7 @@ def _docopy(src, dest):
     if not os.path.isfile(src):
         src = os.path.join(os.path.split(sys.argv[0])[0], src)
         print(
-            "Can not find {} or {} to copy".format(
-                os.path.abspath(orig_src), os.path.abspath(src)
-            )
+            f"Can not find {os.path.abspath(orig_src)} or {os.path.abspath(src)} to copy"
         )
         return 0
     try:
@@ -80,9 +78,7 @@ def _doregister(mod_name, dll_name):
             )
         except winreg.error:
             print(
-                "Could not find the existing '{}' module registered in the registry".format(
-                    mod_name
-                )
+                f"Could not find the existing '{mod_name}' module registered in the registry"
             )
             usage_and_die(4)
     # Create the debug key.

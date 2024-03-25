@@ -43,11 +43,7 @@ class TestStuff(unittest.TestCase):
 
             newdb.Close()
 
-            conn_str = (
-                "Driver={{Microsoft Access Driver (*.mdb)}};dbq={};Uid=;Pwd=;".format(
-                    self.db_filename,
-                )
-            )
+            conn_str = f"Driver={{Microsoft Access Driver (*.mdb)}};dbq={self.db_filename};Uid=;Pwd=;"
         # print("Connection string:", conn_str)
         self.conn = odbc.odbc(conn_str)
         # And we expect a 'users' table for these tests.
@@ -225,7 +221,7 @@ class TestStuff(unittest.TestCase):
     def test_set_nonzero_length(self):
         self.assertEqual(
             self.cur.execute(
-                "insert into %s (userid,username) " "values (?,?)" % self.tablename,
+                "insert into %s (userid,username) values (?,?)" % self.tablename,
                 ["Frank", "Frank Millman"],
             ),
             1,
@@ -240,7 +236,7 @@ class TestStuff(unittest.TestCase):
     def test_set_zero_length(self):
         self.assertEqual(
             self.cur.execute(
-                "insert into %s (userid,username) " "values (?,?)" % self.tablename,
+                "insert into %s (userid,username) values (?,?)" % self.tablename,
                 [b"Frank", ""],
             ),
             1,
@@ -251,7 +247,7 @@ class TestStuff(unittest.TestCase):
     def test_set_zero_length_unicode(self):
         self.assertEqual(
             self.cur.execute(
-                "insert into %s (userid,username) " "values (?,?)" % self.tablename,
+                "insert into %s (userid,username) values (?,?)" % self.tablename,
                 ["Frank", ""],
             ),
             1,
