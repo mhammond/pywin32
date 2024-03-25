@@ -19,7 +19,7 @@ Locate the "Desktop development with C++" section:
 
 Ensure the following components are installed:
 * VC++ 2015.3 v14.00 (v140) toolset for desktop
-* Windows 8.1 SDK and UCRT SDK
+* Windows 10 SDK and UCRT SDK
 * Visual C++ MFC for x86 and x64
 
 if you want to cross-compile for ARM, you will need at least the following (from "Individual Components")
@@ -30,7 +30,7 @@ if you want to cross-compile for ARM, you will need at least the following (from
 (You should be able to check everything you need is installed by opening a
 command prompt and executing:
 
-% "C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\VC\Auxiliary\Build\vcvarsall.bat" x86_amd64 8.1 -vcvars_ver=14.0
+% "C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\VC\Auxiliary\Build\vcvarsall.bat" x86_amd64 10.0.18362.0 -vcvars_ver=14.0
 
 if that works, then executing:
 
@@ -38,6 +38,8 @@ if that works, then executing:
 
 should report the compiler version:
 > Microsoft (R) C/C++ Optimizing Compiler Version 19.00.24234.1 for x64
+
+)
 
 Note however that it's *not* necessary to configure the environment in this
 way to build pywin32 - it's build process should find these tools automatically.
