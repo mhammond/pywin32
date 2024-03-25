@@ -95,9 +95,7 @@ Pyro4.config.COMMTIMEOUT = PYRO_COMMTIMEOUT
 Pyro4.config.AUTOPROXY = False
 Pyro4.config.SERVERTYPE = "multiplex"
 Pyro4.config.PREFER_IP_VERSION = 0  # allow system to prefer IPv6
-Pyro4.config.SERIALIZERS_ACCEPTED = set(
-    ["serpent", "pickle"]
-)  # change when Py2.5 retired
+Pyro4.config.SERIALIZERS_ACCEPTED = {"serpent", "pickle"}  # change when Py2.5 retired
 
 connection_list = []
 CONNECTION_TIMEOUT = datetime.timedelta(minutes=30)

@@ -1075,7 +1075,7 @@ class Cursor(object):
 
             Return values are not defined.
         """
-        self.messages = list()
+        self.messages = []
         total_recordcount = 0
 
         self.prepare(operation)
@@ -1099,7 +1099,7 @@ class Cursor(object):
             return
 
         if self.rs.State == adc.adStateClosed or self.rs.BOF or self.rs.EOF:
-            return list()
+            return []
         if limit:  # limit number of rows retrieved
             ado_results = self.rs.GetRows(limit)
         else:  # get all rows
