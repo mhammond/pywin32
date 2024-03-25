@@ -133,7 +133,7 @@ def unfixpickle(x):
     return newargs
 
 
-class ServerConnection(object):
+class ServerConnection:
     def __init__(self):
         self.server_connection = None
         self.cursors = {}
@@ -312,14 +312,14 @@ class ServerConnection(object):
         print("Shutdown request received")
 
 
-class ConnectionDispatcher(object):
+class ConnectionDispatcher:
     def make_connection(self):
         new_connection = ServerConnection()
         pyro_uri = self._pyroDaemon.register(new_connection)
         return pyro_uri
 
 
-class Heartbeat_Timer(object):
+class Heartbeat_Timer:
     def __init__(self, interval, work_function, tick_result_function):
         self.interval = interval
         self.last_tick = datetime.datetime.now()
