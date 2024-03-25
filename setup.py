@@ -51,10 +51,6 @@ if sys.version_info >= (3, 8):
 else:
     from distutils.dep_util import newer_group
 
-# some modules need a static CRT to avoid problems caused by them having a
-# manifest.
-static_crt_modules = ["winxpgui"]
-
 build_id_patch = build_id
 if not "." in build_id_patch:
     build_id_patch = build_id_patch + ".0"
@@ -404,11 +400,6 @@ class my_build_ext(build_ext):
         if ext.name == "axdebug" and sys.version_info > (3, 10):
             return "AXDebug no longer builds on 3.11 and up"
 
-        # winxpgui cannot be build for win-arm64 due to manifest file conflicts
-        # skip extension as we probably don't want this extension for win-arm64 platforms
-        if self.plat_name == "win-arm64" and ext.name == "winxpgui":
-            return "winxpgui extension cannot be build for win-arm64"
-
         include_dirs = self.compiler.include_dirs + os.environ.get("INCLUDE", "").split(
             os.pathsep
         )
@@ -728,12 +719,6 @@ class my_build_ext(build_ext):
         # with special defines. So we cannot use a shared
         # directory for objects, we must use a special one for each extension.
         old_build_temp = self.build_temp
-        want_static_crt = ext.name in static_crt_modules
-        if want_static_crt:
-            self.compiler.compile_options.remove("/MD")
-            self.compiler.compile_options.append("/MT")
-            self.compiler.compile_options_debug.remove("/MDd")
-            self.compiler.compile_options_debug.append("/MTd")
 
         try:
             build_ext.build_extension(self, ext)
@@ -769,11 +754,6 @@ class my_build_ext(build_ext):
                     self.copy_file(src, dst)
         finally:
             self.build_temp = old_build_temp
-            if want_static_crt:
-                self.compiler.compile_options.remove("/MT")
-                self.compiler.compile_options.append("/MD")
-                self.compiler.compile_options_debug.remove("/MTd")
-                self.compiler.compile_options_debug.append("/MDd")
 
     def get_ext_filename(self, name):
         # We need to fixup some target filenames.
@@ -822,17 +802,6 @@ class my_build_ext(build_ext):
                 # Patch up the filenames for various special cases...
                 if os.path.basename(base) in swig_interface_parents:
                     swig_targets[source] = base + target_ext
-                elif (
-                    self.current_extension.name == "winxpgui"
-                    and os.path.basename(base) == "win32gui"
-                ):
-                    # More vile hacks.  winxpmodule is built from win32gui.i -
-                    # just different #defines are setup for windows.h.
-                    new_target = os.path.join(
-                        os.path.dirname(base), f"winxpgui_swig{target_ext}"
-                    )
-                    swig_targets[source] = new_target
-                    new_sources.append(new_target)
                 else:
                     new_target = f"{base}_swig{target_ext}"
                     new_sources.append(new_target)
@@ -1065,9 +1034,6 @@ class my_compiler(base_compiler):
             return
         if is_link:
             # remove /MANIFESTFILE:... and add MANIFEST:NO
-            # (but note that for winxpgui, which specifies a manifest via a
-            # .rc file, this is ignored by the linker - the manifest specified
-            # in the .rc file is still added)
             for i in range(len(cmd)):
                 if cmd[i].startswith(("/MANIFESTFILE:", "/MANIFEST:EMBED")):
                     cmd[i] = "/MANIFEST:NO"
@@ -1327,19 +1293,6 @@ win32_extensions += [
         windows_h_version=0x0500,
         libraries="gdi32 user32 comdlg32 comctl32 shell32",
         define_macros=[("WIN32GUI", None)],
-    ),
-    # winxpgui is built from win32gui.i, but sets up different #defines before
-    # including windows.h.  It also has an XP style manifest.
-    WinExt_win32(
-        "winxpgui",
-        sources="""
-                win32/src/winxpgui.rc win32/src/win32dynamicdialog.cpp
-                win32/src/win32gui.i
-               """.split(),
-        libraries="gdi32 user32 comdlg32 comctl32 shell32",
-        windows_h_version=0x0500,
-        define_macros=[("WIN32GUI", None), ("WINXPGUI", None)],
-        extra_swig_commands=["-DWINXPGUI"],
     ),
     # winxptheme
     WinExt_win32(
@@ -2230,7 +2183,7 @@ packages = [
     "adodbapi",
 ]
 
-py_modules = expand_modules("win32\\lib")
+py_modules = [*expand_modules("win32\\lib"), "win32\\winxpgui"]
 ext_modules = (
     win32_extensions + com_extensions + pythonwin_extensions + other_extensions
 )
@@ -2421,7 +2374,7 @@ if "build_ext" in dist.command_obj:
     # Print the list of extension modules we skipped building.
     excluded_extensions = dist.command_obj["build_ext"].excluded_extensions
     if excluded_extensions:
-        skip_whitelist = {"exchdapi", "exchange", "axdebug", "winxpgui"}
+        skip_whitelist = {"exchdapi", "exchange", "axdebug"}
         skipped_ex = []
         print("*** NOTE: The following extensions were NOT %s:" % what_string)
         for ext, why in excluded_extensions:
