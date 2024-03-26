@@ -3977,9 +3977,6 @@ PYWIN_MODULE_INIT_FUNC(shell)
     ADD_IID(CLSID_InternetShortcut);
     ADD_IID(CLSID_ActiveDesktop);
 
-#if (_WIN32_IE >= 0x0400)
-    ADD_IID(CGID_ShellServiceObject);
-    ADD_IID(CGID_ExplorerBarDoc);
     ADD_IID(CGID_ShellServiceObject);
     ADD_IID(CGID_ExplorerBarDoc);
     ADD_IID(SID_SShellDesktop);
@@ -4013,11 +4010,7 @@ PYWIN_MODULE_INIT_FUNC(shell)
     ADD_IID(VID_Tile);
     ADD_IID(VID_Thumbnails);
     ADD_IID(VID_ThumbStrip);
-#else
-#pragma message("Please update your SDK headers - IE5 features missing!")
-#endif
 
-#if (_WIN32_IE >= 0x0500)
     ADD_IID(FMTID_ShellDetails);
     ADD_IID(FMTID_Storage);
     ADD_IID(FMTID_ImageProperties);
@@ -4041,9 +4034,6 @@ PYWIN_MODULE_INIT_FUNC(shell)
     ADD_IID(EP_PreviewPane);
     ADD_IID(EP_QueryPane);
     ADD_IID(EP_AdvQueryPane);
-#else
-#pragma message("Please update your SDK headers - IE5 features missing!")
-#endif
 
     ADD_IID(BHID_SFObject);
     ADD_IID(BHID_SFUIObject);
