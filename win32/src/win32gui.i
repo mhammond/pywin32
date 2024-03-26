@@ -12,7 +12,6 @@
 %endif
 
 %{
-#define _WIN32_IE 0x0501 // to enable balloon notifications in Shell_NotifyIcon
 #define _WIN32_WINNT 0x0501
 #ifdef WINXPGUI
 // This changes the entire world for XP!
