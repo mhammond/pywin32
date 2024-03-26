@@ -97,7 +97,7 @@ class TestEnumWindowsFamily(unittest.TestCase):
             self.assertRaises(
                 ValueError, win32gui.EnumWindows, self.enum_callback_exc, data
             )
-        if sys.version_info[:2] >= (3, 10):
+        if sys.version_info >= (3, 10):
             for func in (
                 self.enum_callback,
                 self.enum_callback_sle,
@@ -122,7 +122,7 @@ class TestEnumWindowsFamily(unittest.TestCase):
                 self.enum_callback_exc,
                 data,
             )
-        if sys.version_info[:2] >= (3, 10):
+        if sys.version_info >= (3, 10):
             for data in self.type_data_set:
                 for func in (
                     self.enum_callback,
