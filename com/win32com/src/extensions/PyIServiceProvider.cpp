@@ -82,4 +82,3 @@ STDMETHODIMP PyGServiceProvider::QueryService(REFGUID guidService, REFIID riid, 
     Py_XDECREF(result);
     return MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
 }
-

@@ -158,8 +158,8 @@ class PYCOM_EXPORT PyComEnumTypeObject : public PyComTypeObject {
    public:
     static PyObject *iter(PyObject *self);
     static PyObject *iternext(PyObject *self);
-    PyComEnumTypeObject(const char *name, PyComTypeObject *pBaseType, Py_ssize_t typeSize, struct PyMethodDef *methodList,
-                        PyIUnknown *(*thector)(IUnknown *));
+    PyComEnumTypeObject(const char *name, PyComTypeObject *pBaseType, Py_ssize_t typeSize,
+                        struct PyMethodDef *methodList, PyIUnknown *(*thector)(IUnknown *));
 };
 
 // Very very base class - not COM specific - Should exist in the
@@ -413,11 +413,11 @@ class PYCOM_EXPORT PyOleNothing : public PyObject {
 // These helpers allow each type object to create it.
 #define MAKE_PYCOM_CTOR(classname) \
     static PyIUnknown *PyObConstruct(IUnknown *pInitObj) { return new classname(pInitObj); }
-#define MAKE_PYCOM_CTOR_ERRORINFO(classname, iid)                                                       \
-    static PyIUnknown *PyObConstruct(IUnknown *pInitObj) { return new classname(pInitObj); }            \
-    static PyObject *SetPythonCOMError(PyObject *self, HRESULT hr)                                      \
-    {                                                                                                   \
-        return PyCom_BuildPyException(hr, GetI(self), iid);                                             \
+#define MAKE_PYCOM_CTOR_ERRORINFO(classname, iid)                                            \
+    static PyIUnknown *PyObConstruct(IUnknown *pInitObj) { return new classname(pInitObj); } \
+    static PyObject *SetPythonCOMError(PyObject *self, HRESULT hr)                           \
+    {                                                                                        \
+        return PyCom_BuildPyException(hr, GetI(self), iid);                                  \
     }
 #define GET_PYCOM_CTOR(classname) classname::PyObConstruct
 

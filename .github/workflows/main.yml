@@ -104,12 +104,16 @@ jobs:
         with:
           # This job only needs to target the oldest supported version (black@stable supports Python >=3.8)
           python-version: '3.8'
-      - run: pip install isort pycln
+      - run: pip install clang-format isort pycln
       - run: pycln . --config=pycln.toml --check
       - run: isort . --diff --check-only
       - uses: psf/black@stable
         with:
           options: "--fast --check --diff --verbose"
+      - run: | # Too many files to fit in a single command
+          clang-format --Werror --dry-run $(git ls-files '*.cpp')
+          clang-format --Werror --dry-run $(git ls-files '*.h' ':!:Pythonwin/Scintilla/' ':!:com/win32comext/mapi/src/mapi_headers/')
+        shell: powershell
 
   mypy:
     runs-on: windows-2019

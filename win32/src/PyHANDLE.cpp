@@ -111,9 +111,9 @@ struct PyMethodDef PyHANDLE::methods[] = {
     {NULL}};
 
 static PyNumberMethods PyHANDLE_NumberMethods = {
-    PyHANDLE::binaryFailureFunc, /* nb_add */
-    PyHANDLE::binaryFailureFunc, /* nb_subtract */
-    PyHANDLE::binaryFailureFunc, /* nb_multiply */
+    PyHANDLE::binaryFailureFunc,  /* nb_add */
+    PyHANDLE::binaryFailureFunc,  /* nb_subtract */
+    PyHANDLE::binaryFailureFunc,  /* nb_multiply */
     PyHANDLE::binaryFailureFunc,  /* nb_remainder */
     PyHANDLE::binaryFailureFunc,  /* nb_divmod */
     PyHANDLE::ternaryFailureFunc, /* nb_power */
@@ -128,23 +128,22 @@ static PyNumberMethods PyHANDLE_NumberMethods = {
     PyHANDLE::binaryFailureFunc, /* nb_and */
     PyHANDLE::binaryFailureFunc, /* nb_xor */
     PyHANDLE::binaryFailureFunc, /* nb_or */
-    PyHANDLE::intFunc,          /* nb_int */
-    PyHANDLE::longFunc,         /* nb_long */
-    PyHANDLE::unaryFailureFunc, /* nb_float */
-                                // These removed in 3.0
+    PyHANDLE::intFunc,           /* nb_int */
+    PyHANDLE::longFunc,          /* nb_long */
+    PyHANDLE::unaryFailureFunc,  /* nb_float */
+                                 // These removed in 3.0
 };
 // @pymeth __int__|Used when an integer representation of the handle object is required.
 
 PYWINTYPES_EXPORT PyTypeObject PyHANDLEType = {
     PYWIN_OBJECT_HEAD "PyHANDLE", sizeof(PyHANDLE), 0, PyHANDLE::deallocFunc, /* tp_dealloc */
-    0,
-    0,                       /* tp_getattr */
-    0,                       /* tp_setattr */
-    0,                       /* tp_compare */
-    PyHANDLE::strFunc,       /* tp_repr */
-    &PyHANDLE_NumberMethods, /* tp_as_number */
-    0,                       /* tp_as_sequence */
-    0,                       /* tp_as_mapping */
+    0, 0,                                                                     /* tp_getattr */
+    0,                                                                        /* tp_setattr */
+    0,                                                                        /* tp_compare */
+    PyHANDLE::strFunc,                                                        /* tp_repr */
+    &PyHANDLE_NumberMethods,                                                  /* tp_as_number */
+    0,                                                                        /* tp_as_sequence */
+    0,                                                                        /* tp_as_mapping */
     // @pymeth __hash__|Used when the hash value of an object is required
     PyHANDLE::hashFunc, /* tp_hash */
     0,                  /* tp_call */
@@ -301,7 +300,7 @@ int PyHANDLE::print(FILE *fp, int flags)
     // ### runtime library)  Hack it by getting Python to do the print!
     //
     // ### - Double Ack - Always use the hack!
-    //#ifdef _DEBUG
+    // #ifdef _DEBUG
     PyObject *ob = PyWinCoreString_FromString(resBuf);
     PyObject_Print(ob, fp, flags | Py_PRINT_RAW);
     Py_DECREF(ob);
