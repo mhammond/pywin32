@@ -560,7 +560,7 @@ static PyObject *PyRasDial(PyObject *self, PyObject *args)
     else
         return ReturnError("The callback object must be an integer handle, None, or a callable object",
                            "<Dial param parsing>");
-    // If we have any sort of callback, we must ensure threads are init'd.
+        // If we have any sort of callback, we must ensure threads are init'd.
 #if PY_VERSION_HEX < 0x03070000
     if (pNotification)
         PyEval_InitThreads();

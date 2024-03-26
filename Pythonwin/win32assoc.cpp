@@ -127,7 +127,7 @@ ui_assoc_object *CAssocManager::GetAssocObject(void *handle)
     cacheLookups++;
 #endif
     // implement a basic 1 item cache.
-	// XXX - ::Assoc above means a cached "no object" might be incorrect?
+    // XXX - ::Assoc above means a cached "no object" might be incorrect?
     if (lastLookup == handle) {
         weakref = lastObjectWeakRef;
 #ifdef _DEBUG

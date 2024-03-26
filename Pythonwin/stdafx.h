@@ -32,7 +32,7 @@
 #include "limits.h"
 
 // allow memory leaks to give me the line number.
-//#define new DEBUG_NEW
+// #define new DEBUG_NEW
 
 /* dont really need to undef these anymore, but helpful to
 programmers who forget to use the new names. */

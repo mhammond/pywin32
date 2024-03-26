@@ -843,4 +843,3 @@ static struct PyMethodDef PyIDispatchEx_methods[] = {
 PyComTypeObject PyIDispatchEx::type("PyIDispatchEx",
                                     &PyIDispatch::type,  // @base PyIDispatchEx|PyIDispatch
                                     sizeof(PyIDispatchEx), PyIDispatchEx_methods, GET_PYCOM_CTOR(PyIDispatchEx));
-

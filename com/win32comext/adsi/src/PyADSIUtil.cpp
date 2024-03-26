@@ -129,7 +129,7 @@ PyObject *PyADSIObject_FromADSVALUE(ADSVALUE &v)
                 Py_DECREF(ob);
                 return NULL;
             }
-            memcpy(pybuf.ptr(), v.ProviderSpecific.lpValue, bufSize);    
+            memcpy(pybuf.ptr(), v.ProviderSpecific.lpValue, bufSize);
             break;
         }
         case ADSTYPE_NT_SECURITY_DESCRIPTOR: {
@@ -470,9 +470,9 @@ class PyADS_ATTR_INFO : public PyObject {
         return PyObject_GenericGetAttr(self, obname);
     }
 
-    //#pragma warning( disable : 4251 )
+    // #pragma warning( disable : 4251 )
     static struct PyMemberDef memberlist[];
-    //#pragma warning( default : 4251 )
+    // #pragma warning( default : 4251 )
     static PyTypeObject Type;
 
    protected:

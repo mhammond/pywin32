@@ -23,13 +23,12 @@
  ======================================================================
  */
 
-//#define PY_SSIZE_T_CLEAN  // defined by isapi\src\StdAfx.h
+// #define PY_SSIZE_T_CLEAN  // defined by isapi\src\StdAfx.h
 #include "stdafx.h"
 #include "pywintypes.h"
 #include "Utils.h"
 #include "PyExtensionObjects.h"
 #include "PythonEng.h"
-
 
 // Asynch IO callbacks are a little tricky, as we never know how many
 // callbacks a single connection might make (often each callback will trigger
@@ -176,7 +175,9 @@ PyObject *PyVERSION_INFO::getattro(PyObject *self, PyObject *obname)
     PyVERSION_INFO *me = (PyVERSION_INFO *)self;
     if (!me->m_pvi)
         return PyErr_Format(PyExc_RuntimeError, "VERSION_INFO structure no longer exists");
-    TmpWCHAR name = obname;  if (!name) return NULL;
+    TmpWCHAR name = obname;
+    if (!name)
+        return NULL;
     if (_tcscmp(name, _T("ExtensionDesc")) == 0) {
         return PyBytes_FromString(me->m_pvi->lpszExtensionDesc);
     }
@@ -186,7 +187,9 @@ PyObject *PyVERSION_INFO::getattro(PyObject *self, PyObject *obname)
 int PyVERSION_INFO::setattro(PyObject *self, PyObject *obname, PyObject *v)
 {
     PyVERSION_INFO *me = (PyVERSION_INFO *)self;
-    TmpWCHAR name = obname;  if (!name) return -1;
+    TmpWCHAR name = obname;
+    if (!name)
+        return -1;
     if (!me->m_pvi) {
         PyErr_Format(PyExc_RuntimeError, "VERSION_INFO structure no longer exists");
         return -1;
@@ -345,7 +348,9 @@ PyECB::~PyECB()
 
 PyObject *PyECB::getattro(PyObject *self, PyObject *obname)
 {
-    TmpWCHAR name = obname;  if (!name) return NULL;
+    TmpWCHAR name = obname;
+    if (!name)
+        return NULL;
 
     if (_tcscmp(name, _T("softspace")) == 0)  // help 'print' semantics.
         return PyLong_FromLong(1);
@@ -385,7 +390,9 @@ int PyECB::setattro(PyObject *self, PyObject *obname, PyObject *v)
         PyErr_SetString(PyExc_AttributeError, "can't delete ECB attributes");
         return -1;
     }
-    TmpWCHAR name = obname;  if (!name) return -1;
+    TmpWCHAR name = obname;
+    if (!name)
+        return -1;
 
     if (_tcscmp(name, _T("HttpStatusCode")) == 0) {
         PyECB *pecb = (PyECB *)self;
@@ -683,9 +690,11 @@ PyObject *PyECB::GetAnonymousToken(PyObject *self, PyObject *args)
         Py_END_ALLOW_THREADS
     }
     else if (PyUnicode_Check(obStr)) {
-        TmpWCHAR tmpw = obStr;  if (!tmpw) return NULL;
-        Py_BEGIN_ALLOW_THREADS bRes = ecb->ServerSupportFunction(ecb->ConnID, HSE_REQ_GET_UNICODE_ANONYMOUS_TOKEN,
-                                                                 tmpw, (DWORD *)&handle, NULL);
+        TmpWCHAR tmpw = obStr;
+        if (!tmpw)
+            return NULL;
+        Py_BEGIN_ALLOW_THREADS bRes =
+            ecb->ServerSupportFunction(ecb->ConnID, HSE_REQ_GET_UNICODE_ANONYMOUS_TOKEN, tmpw, (DWORD *)&handle, NULL);
         Py_END_ALLOW_THREADS
     }
     else

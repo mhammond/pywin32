@@ -119,7 +119,7 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
     BOOL bGoodEmpty = FALSE;  // Set if VT_EMPTY should really be used.
     V_VT(var) = VT_EMPTY;
     if (
-// In py3k we don't convert PyBytes_Check objects (ie, bytes) to BSTR...
+        // In py3k we don't convert PyBytes_Check objects (ie, bytes) to BSTR...
         PyUnicode_Check(obj)) {
         if (!PyWinObject_AsBstr(obj, &V_BSTR(var))) {
             PyErr_SetString(PyExc_MemoryError, "Making BSTR for variant");
@@ -1089,8 +1089,8 @@ PythonOleArgHelper::~PythonOleArgHelper()
                 }
 #endif
             }  // have array pointer
-#endif         // BYREF_ARRAY_USE_EXISTING_ARRAY
-        }      // BYREF array.
+#endif  // BYREF_ARRAY_USE_EXISTING_ARRAY
+        }  // BYREF array.
     }
     else {
         switch (m_reqdType) {

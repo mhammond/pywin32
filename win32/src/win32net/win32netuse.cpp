@@ -11,7 +11,7 @@
 
 #define UI0_ENTRY(name, t, r)                         \
     {                                                 \
-#name, t, offsetof(USE_INFO_0, ui0_##name), r \
+        #name, t, offsetof(USE_INFO_0, ui0_##name), r \
     }
 // @object PyUSE_INFO_0|A dictionary holding the infomation in a Win32 USE_INFO_0 structure.
 static struct PyNET_STRUCT_ITEM ui0[] = {UI0_ENTRY(local, NSI_WSTR, 0),   // @prop string/<o PyUnicode>|local|
@@ -20,7 +20,7 @@ static struct PyNET_STRUCT_ITEM ui0[] = {UI0_ENTRY(local, NSI_WSTR, 0),   // @pr
 
 #define UI1_ENTRY(name, t, r)                         \
     {                                                 \
-#name, t, offsetof(USE_INFO_1, ui1_##name), r \
+        #name, t, offsetof(USE_INFO_1, ui1_##name), r \
     }
 // @object PyUSE_INFO_1|A dictionary holding the infomation in a Win32 USE_INFO_1 structure.
 static struct PyNET_STRUCT_ITEM ui1[] = {UI1_ENTRY(local, NSI_WSTR, 0),      // @prop string/<o PyUnicode>|local|
@@ -34,7 +34,7 @@ static struct PyNET_STRUCT_ITEM ui1[] = {UI1_ENTRY(local, NSI_WSTR, 0),      // 
 
 #define UI2_ENTRY(name, t, r)                         \
     {                                                 \
-#name, t, offsetof(USE_INFO_2, ui2_##name), r \
+        #name, t, offsetof(USE_INFO_2, ui2_##name), r \
     }
 // @object PyUSE_INFO_2|A dictionary holding the infomation in a Win32 USE_INFO_2 structure.
 static struct PyNET_STRUCT_ITEM ui2[] = {UI2_ENTRY(local, NSI_WSTR, 0),       // @prop string/<o PyUnicode>|local|
@@ -50,7 +50,7 @@ static struct PyNET_STRUCT_ITEM ui2[] = {UI2_ENTRY(local, NSI_WSTR, 0),       //
 
 #define UI3_ENTRY(name, t, r)                         \
     {                                                 \
-#name, t, offsetof(USE_INFO_3, ui3_##name), r \
+        #name, t, offsetof(USE_INFO_3, ui3_##name), r \
     }
 // @object PyUSE_INFO_3|A dictionary holding the infomation in a Win32 USE_INFO_3 structure.
 static struct PyNET_STRUCT_ITEM ui3[] = {

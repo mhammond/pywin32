@@ -63,7 +63,9 @@ PyObject *PySet(PyObject *self, PyObject *args)
                 buf = (void *)PyBytes_AS_STRING(ob);
             }
             else if (PyUnicode_Check(ob)) {
-                buf = tmpw = ob;  if (!tmpw) return NULL;
+                buf = tmpw = ob;
+                if (!tmpw)
+                    return NULL;
                 cb = (tmpw.length + 1) * sizeof(WCHAR);
             }
             else {
