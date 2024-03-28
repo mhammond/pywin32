@@ -50,7 +50,7 @@ jobs:
         run: |
           python setup.py bdist_wheel --skip-build
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v3
         if: ${{ always() }}
         with:
           name: artifacts
@@ -92,7 +92,7 @@ jobs:
       - name: Build wheels
         run: python setup.py --skip-verstamp build_ext -L .\arm64libs --plat-name win-arm64 build --plat-name win-arm64 bdist_wheel --plat-name win-arm64
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v3
         if: ${{ always() }}
         with:
           name: artifacts
