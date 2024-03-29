@@ -114,7 +114,10 @@ class AXScriptException(COMException):
         except:
             msg = f"Unknown Error ({value})"
         try:
-            (filename, lineno, offset, line) = value[1]
+            filename = value[1][0]
+            lineno   = value[1][1]
+            offset   = value[1][2]
+            line     = value[1][3]
             # Some of these may be None, which upsets us!
             if offset is None:
                 offset = 0
