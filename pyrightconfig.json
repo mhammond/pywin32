@@ -7,17 +7,17 @@
   // Exclude from scanning when running pyright
   "exclude": [
     "build/",
-    // TODO: adodbapi should be updated and fixed separatly
-    "adodbapi/",
     // Vendored
     "Pythonwin/Scintilla/",
-    // Vendored IDLE extensions predating Python 2.3. They now live in idlelib in https://github.com/python/cpython/tree/main/Lib/idlelib
+    // Forked IDLE extensions predating Python 2.3. They now live in idlelib in https://github.com/python/cpython/tree/main/Lib/idlelib
     "Pythonwin/pywin/idle/",
     // Ignoring non-public apis for now
     "**/Test/",
     "**/test/",
     "**/Demos/",
     "**/demo/",
+    // TODO: adodbapi should be updated and fixed separately
+    "adodbapi/",
   ],
   // Packages that will be accessible globally.
   // Setting this makes pyright use the repo's code for those modules instead of typeshed or pywin32 in site-packages
