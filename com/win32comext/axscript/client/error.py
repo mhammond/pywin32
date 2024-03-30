@@ -182,7 +182,7 @@ class AXScriptException(COMException):
 
         bits = ["Traceback (most recent call last):\n"]
         # TODO: Fix in typeshed stubs where FrameSummary can be compared with a 4-length tuple
-        bits.extend(traceback.format_list(format_items)) # type: ignore[arg-type]
+        bits.extend(traceback.format_list(format_items))  # type: ignore[arg-type]
         if isinstance(value, pythoncom.com_error):
             desc = f"{value.strerror} (0x{value.hresult:x})"
             if (
