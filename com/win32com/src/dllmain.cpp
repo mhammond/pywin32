@@ -118,11 +118,7 @@ void PyCom_DLLReleaseRef(void)
 static DWORD g_dwCoInitThread = 0;
 static BOOL g_bCoInitThreadHasInit = FALSE;
 
-#ifndef MS_WINCE
 extern "C" __declspec(dllexport) BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
-#else
-BOOL WINAPI DllMain(HANDLE hInstance, DWORD dwReason, LPVOID lpReserved)
-#endif
 {
     if (dwReason == DLL_PROCESS_ATTACH) {
         //		LogEvent("Loaded pythoncom.dll");
@@ -139,9 +135,7 @@ BOOL WINAPI DllMain(HANDLE hInstance, DWORD dwReason, LPVOID lpReserved)
         /*
         ** we don't need to be notified about threads
         */
-#ifndef MS_WINCE /* but CE doesnt seem to support it ?! */
         DisableThreadLibraryCalls(hInstance);
-#endif
     }
     else if (dwReason == DLL_PROCESS_DETACH) {
         //		LogEvent("Terminated pythoncom.dll");
@@ -176,7 +170,6 @@ HRESULT PyCom_CoInitializeEx(LPVOID reserved, DWORD dwInit)
     CEnterLeaveFramework _celf;
     if (g_bCoInitThreadHasInit && g_dwCoInitThread == GetCurrentThreadId())
         return S_OK;
-#ifndef MS_WINCE
     // Do a LoadLibrary, as the Ex version may not always exist
     // on Win95.
     HMODULE hMod = GetModuleHandle(_T("ole32.dll"));
@@ -190,9 +183,6 @@ HRESULT PyCom_CoInitializeEx(LPVOID reserved, DWORD dwInit)
     mypfn = (PFNCoInitializeEx)fp;
 
     HRESULT hr = (*mypfn)(reserved, dwInit);
-#else   // Windows CE _only_ has the Ex version!
-    HRESULT hr = CoInitializeEx(reserved, dwInit);
-#endif  // MS_WINCE
 
     // Unlike PyCom_CoInitialize, we return _all_ errors including
     // RPC_E_CHANGED_MODE
@@ -219,11 +209,7 @@ HRESULT PyCom_CoInitialize(LPVOID reserved)
     // must manage itself.
     if (g_bCoInitThreadHasInit && g_dwCoInitThread == GetCurrentThreadId())
         return S_OK;
-#ifndef MS_WINCE
     HRESULT hr = CoInitialize(reserved);
-#else   // Windows CE _only_ has the Ex version, and only multi-threaded!
-    HRESULT hr = CoInitializeEx(reserved, COINIT_MULTITHREADED);
-#endif  // MS_WINCE
     if ((hr != RPC_E_CHANGED_MODE) && FAILED(hr)) {
         PyCom_LoggerException(NULL, L"OLE initialization failed! (0x%08lx)", hr);
         return hr;
@@ -293,11 +279,7 @@ STDAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, LPVOID *ppv)
 //   argc and argv are what Python should see as sys.argv
 HRESULT DoRegisterUnregister(LPCSTR fileName, int argc, char **argv)
 {
-#ifdef MS_WINCE
-    FILE *fp = Py_fopen(fileName, "r");
-#else
     FILE *fp = fopen(fileName, "r");
-#endif
     if (fp == NULL)
         return HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND);
 
@@ -313,11 +295,7 @@ HRESULT DoRegisterUnregister(LPCSTR fileName, int argc, char **argv)
             hr = PyCom_SetCOMErrorFromPyException();
         }
     }  // End scope.
-#ifdef MS_WINCE
-    Py_fclose(fp);
-#else
     fclose(fp);
-#endif
     PyCom_DLLReleaseRef();
 
     return hr;

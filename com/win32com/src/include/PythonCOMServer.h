@@ -86,11 +86,7 @@ interface IInternalUnwrapPythonObject : public IUnknown
 // Base class for all gateways.
 //
 class PYCOM_EXPORT PyGatewayBase :
-#ifndef NO_PYCOM_IDISPATCHEX
     public IDispatchEx,  // IDispatch comes along for the ride!
-#else
-    public IDispatch,  // No IDispatchEx - must explicitely use IDispatch
-#endif
     public ISupportErrorInfo,
     public IInternalUnwrapPythonObject {
    protected:
@@ -115,7 +111,6 @@ class PYCOM_EXPORT PyGatewayBase :
      EXCEPINFO FAR *pexcepinfo, UINT FAR *puArgErr);
 
     // IDispatchEx
-#ifndef NO_PYCOM_IDISPATCHEX
     STDMETHOD(GetDispID)(BSTR bstrName, DWORD grfdex, DISPID *pid);
     STDMETHOD(InvokeEx)
     (DISPID id, LCID lcid, WORD wFlags, DISPPARAMS *pdp, VARIANT *pvarRes, EXCEPINFO *pei, IServiceProvider *pspCaller);
@@ -125,7 +120,6 @@ class PYCOM_EXPORT PyGatewayBase :
     STDMETHOD(GetMemberName)(DISPID id, BSTR *pbstrName);
     STDMETHOD(GetNextDispID)(DWORD grfdex, DISPID id, DISPID *pid);
     STDMETHOD(GetNameSpaceParent)(IUnknown **ppunk);
-#endif  // NO_PYCOM_IDISPATCHEX
     // ISupportErrorInfo
     STDMETHOD(InterfaceSupportsErrorInfo)(REFIID riid);
 
