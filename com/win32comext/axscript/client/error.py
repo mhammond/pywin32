@@ -128,11 +128,12 @@ class AXScriptException(COMException):
 
     def _BuildFromSyntaxError(self, exc: SyntaxError):
         # Some of these may be None, which upsets us!
+        msg = exc.msg or "Unknown Error"
         offset = exc.offset or 0
         line = exc.text or ""
         lineno = exc.lineno or 0
 
-        self.description = FormatForAX(str(exc))
+        self.description = FormatForAX(msg)
         self.lineno = lineno
         self.colno = offset - 1
         self.linetext = ExpandTabs(line.rstrip())
