@@ -2,13 +2,11 @@
 Adodbapi quick reference
 ========================
 
-Adodbapi is a Python DB-API 2.0 module that makes it easy to use
-Microsoft ADO
-for connecting with databases and other data sources
-using either CPython or IronPython.
+Adodbapi is a Python DB-API 2.0 module that makes it easy to use Microsoft ADO
+for connecting with databases and other data sources using CPython.
 
 Source home page:
-https://github.com/mhammond/pywin32/tree/master/adodbapi
+<https://github.com/mhammond/pywin32/tree/master/adodbapi>
 
 For complete installation instructions, see the README.txt file, which you may
 also find at
@@ -43,15 +41,11 @@ site dedicated to giving examples of connection strings in numerous
 combinations. See
 [http://www.connectionstrings.com](http://www.connectionstrings.com/)
 
-and for more explanation:
-<http://www.asp101.com/articles/john/connstring/default.asp>
-
-
 The software which connects ODBC to an engine is called a "Driver". One
 which talks in ADO is called a "Provider". Sometimes there will be a
 Provider for a Driver.
 
-### Driver (and Provider) download links:
+### Driver (and Provider) download links
 
 The current (as of 2019) SQL Server OLE DB provider (which they call a
 "driver" here) is
@@ -61,8 +55,8 @@ document.](https://docs.microsoft.com/en-us/sql/connect/oledb/oledb-driver-for-s
 
 - Jet (ACCESS database) and other file datasets (like .xls and .csv) "ACE"
 Provider:
-    - <http://www.microsoft.com/en-us/download/details.aspx?id=13255> a (32
-bit) Microsoft.Jet.OLEDB.4.0 Provider, which may be included with
+  - <https://learn.microsoft.com/en-us/office/troubleshoot/access/jet-odbc-driver-available-32-bit-version>
+a (32 bit) `Microsoft.Jet.OLEDB.4.0` Provider, which may be included with
 Windows. Note that you are not permitted load the 32 bit "ACE" provider
 if you have any 64-bit Office components installed. Conventional wisdom
 says that you must use 64 bit Python in this case. However, see the
@@ -71,7 +65,7 @@ answer in
 If you decide to try hacking the installers, you may find
 <http://www.pantaray.com/msi_super_orca.html> to be a useful alternative
 to Orca. My experience is that such a [hacked installer (like this
-one](http://shares.digvil.info/redis)) ( can also be used on machines
+one)](http://shares.digvil.info/redis) can also be used on machines
 where "click to buy" versions of Office have been removed, but are still
 blocking installation of the redistributable provider.
 
@@ -85,8 +79,7 @@ Microsoft.]{lang="en-US"}
 or MariaDB driver <https://downloads.mariadb.org/connector-odbc/>
 or `choco install mysql.odbc`
 - PostgreSQL driver <http://www.postgresql.org/ftp/odbc/versions/msi/>
-(scroll all the way to the bottom) or `choco install psqlodbc`. 
-
+(scroll all the way to the bottom) or `choco install psqlodbc`.
 
 \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--
 
@@ -101,8 +94,7 @@ access api specification is found at:
 
 <http://www.python.org/dev/peps/pep-0249/>
 
-
-### Module level attributes:
+### Module level attributes
 
 The PEP requires several module level attributes. Older versions of
 adodbapi (which was once all one big file) defined a hundred or two. I
@@ -128,6 +120,7 @@ else:
 from adodbapi import connect, Connection, __version__
 version = 'adodbapi v' + __version__
 ```
+
 Please, use only those last four symbols from adodbapi. All others
 should be imported directly from their own sub-modules. My tests and
 examples all follow that rule.
@@ -138,10 +131,12 @@ examples all follow that rule.
 
 As required by the PEP, the simplest way to connect is to use a "data
 set name
+
 ```python
 import adodbapi
 myConn = adodbapi.connect('myDataSetName')
 ```
+
 Which will work just fine, provided you (or someone) has done all of the
 hard work by going into "Control Panel" → "Administrative Tools" → "Data
 Sources (ODBC)"
@@ -150,15 +145,17 @@ and set everything up for you under "myDataSetName".
 Usually, life is not so simple
 \...
 
-        import adodbapi 
-        myhost = r".\SQLEXPRESS"
-        mydatabase = "Northwind"
-        myuser = "guest"
-        mypassword = "12345678"
-        connStr = """Provider=SQLOLEDB.1; User ID=%s; Password=%s; 
-            Initial Catalog=%s;Data Source= %s"""
-        myConnStr = connStr % (myuser, mypassword, mydatabase, myhost)
-        myConn = adodbapi.connect(myConnStr)
+```python
+import adodbapi 
+myhost = r".\SQLEXPRESS"
+mydatabase = "Northwind"
+myuser = "guest"
+mypassword = "12345678"
+connStr = """Provider=SQLOLEDB.1; User ID=%s; Password=%s; 
+    Initial Catalog=%s;Data Source= %s"""
+myConnStr = connStr % (myuser, mypassword, mydatabase, myhost)
+myConn = adodbapi.connect(myConnStr)
+```
 
 The PEP suggests that we should be able to create the connection using
 positional arguments. For us, that is difficult, because the syntax of
@@ -177,16 +174,19 @@ Data Source= %(host)s"""
 
 myConn=adodbapi.connect(connStr, myuser, mypassword, myhost, mydatabase)
 ```
+
 Which will work.
 
 It would be better documented, however, to use keyword, rather than
 positional arguments:
+
 ```python
 myConn = adodbapi.connect(connStr, user=myuser, password=mypassword, host=myhost, database=mydatabase)
 ```
 
 In adodbapi, you may also pass keywords using a dictionary structure,
 which also allows us to pass additional arguments:
+
 ```python
 conn_args = {'host' : r".\\SQLEXPRESS\",
     'database': "Northwind",
@@ -200,6 +200,7 @@ myConn = adodbapi.connect(connStr,[],**conn_args)
 Which works, but is ugly. So let\'s also put the connection string into
 the dictionary. As an extension, I allow the first (or second)
 positional argument to be the keyword dictionary.
+
 ```python
 conn_args = {'host': r".\\SQLEXPRESS",
     'database' : "Northwind",
@@ -220,6 +221,7 @@ constructor recognizes when building your connection. For example
 "timeout=n".
 
 **Dictionary Keywords which have meaning inside the connect method:**
+
 - timeout=30 \# set the ADO connection timeout to \"n\" seconds.
     (Default = 30) This value will also be used as the SQL command
     timeout subsequently. The command timeout can be changed via the
@@ -229,7 +231,7 @@ constructor recognizes when building your connection. For example
 - autocommit=False \# initialize autocommit on the connection. (Default =
 False)
 
-### Connection Keyword Macro Language:
+### Connection Keyword Macro Language
 
 It often happens, when building a connection string for a generic
 connection, that you need to know information about your host computer,
@@ -249,7 +251,7 @@ The result of the macro operation will be the value of the new key.
   If the server is running 64 bit Python, return argument\[1\], otherwise
 return argument\[2\]. Example:
 
-```pythonstub
+```python
 conn_keys['macro_is64bit'] = ['provider',
    'Microsoft.ACE.OLEDB.12.0', "Microsoft.Jet.OLEDB.4.0"]
 
@@ -261,16 +263,19 @@ conn_keys['connection_string'] = "Provider=%(provider)s; ... and ... more ... st
     My systems administrator gave me a test database named after myself.
 
     I thought it would be handy to let others do a similar thing. so:
-```pythonstub
+
+```python
 conn_keys['macro_getuser'] = 'database'
 
 conn_keys['connection_string'] = "...stuff...; Initial Catalog=%(database)s; ..."
 ```
+
 - macro "auto_security": Build ADO security string automagically.
     If the username (key "user") is missing, blank, or None, use Windows
 login security ... otherwise use SQL Server security with "user" and
 "password". It runs this code:
-```pythonstub
+
+```python
 if macro_name == "auto_security":
     if not 'user' in kwargs or not bool(kwargs['user']):
         return new_key, 'Integrated Security=SSPI'
@@ -279,12 +284,14 @@ if macro_name == "auto_security":
     # note that %(user) and %(password) are not substituted here,
     # they are put in place to be substituted before being sent to ADO.
 ```
-```pythonstub
+
+```python
 conn_keys['macro_auto_security'] = ['secure']
 conn_keys['user'] = None # username here for Server Security
 conn_keys['password'] = 'xys' # ignored if "user" is blank or undefined
 conn_keys['connection_string'] = "\...stuff...; %(secure)s"
 ```
+
 \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--
 \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--
 
@@ -311,7 +318,7 @@ The standard methods are supplied:
 
 - .commit() \# commits any pending transaction(s) on the connection
 
-- .rollback() \# rolls back any pending transaction. 
+- .rollback() \# rolls back any pending transaction.
         If the engine attached to the present instance does not support transactions, this
         method will appear to not be present (an AttributeError will be raised),
         as per the PEP.
@@ -396,7 +403,7 @@ adodbapi.ado_consts)
 
 [6] null_ok: ADO field.Attributes & adFldMayBeNull
 
-- .rowcount # -1 means "not known". 
+- .rowcount # -1 means "not known".
     Will be ADO recordset.RecordCount (if it works)
     otherwise, the count returned by the last ADO Execute operation.
 
@@ -500,12 +507,14 @@ operation strings. Calling .execute() with any other string, or calling
 .prepare() again will invalidate the preparation.
 
 For example: cursor.executemany() is programmed internally like:
-```pythonstub
-    def executemany(self, operation, sequence_of_parameter_sequences):
-        self.prepare(operation)
-        for params in sequence_of_parameter_sequences:
-            self.execute(self.command, params)
+
+```python
+def executemany(self, operation, sequence_of_parameter_sequences):
+    self.prepare(operation)
+    for params in sequence_of_parameter_sequences:
+        self.execute(self.command, params)
 ```
+
 - .get\_returned\_parameters() # some providers will not return the (modified) parameter list, nor the
 return\_value, until after the last recordset is closed. This method can
 be called (_after_ calling nextset() until it returns `None`) to get
@@ -513,7 +522,7 @@ those values.
 
 - .next() # The cursor can be used as an iterator, each iteration does fetchone()
 
-- .\_\_iter\_\_() 
+- .\_\_iter\_\_()
 
 - \_\_enter\_\_() # the cursor is a context manager which will auto-close
 
@@ -554,9 +563,11 @@ driver uses it. The above query would be altered by placing a question
 mark where the parameters should go. The programmer then passes the
 parameters (as as sequence) in the correct order for the `?`s.
 
-       sql = "UPDATE cheese SET qtyonhand = ? WHERE name = ?"
-       args = [0, 'MUNSTER']
-       crsr.execute(sql, args)
+```python
+sql = "UPDATE cheese SET qtyonhand = ? WHERE name = ?"
+args = [0, 'MUNSTER']
+crsr.execute(sql, args)
+```
 
 **\'format\'** is used my many database engines, and blindly expected by
 django. The format looks like (but is emphatically not) the same as
@@ -565,9 +576,11 @@ Python "%s" string substitution.
 Again, the programmer supplies the parameters (as a sequence) in the
 correct order.
 
-       sql = "UPDATE cheese SET qtyonhand = %s WHERE name = %s"
-       args = [0, 'MUNSTER']
-       crsr.execute(sql, args)
+```python
+sql = "UPDATE cheese SET qtyonhand = %s WHERE name = %s"
+args = [0, 'MUNSTER']
+crsr.execute(sql, args)
+```
 
 **\'named\'** is used by Oracle, and is superior because it eliminates
 counting. Rather than keeping track of the parameters by position, the
@@ -578,16 +591,20 @@ Each key calls up the value for that place. In the following simple
 example, the syntax looks needlessly complex, but in queries which take
 a dozen or more parameters, it really helps.
 
-      sql = "UPDATE cheese SET qtyonhand = :qty WHERE name = :prodname"
-      args = {'qty' : 0, 'prodname' : 'MUNSTER'}
-      crsr.execute(sql, args)
+```python
+sql = "UPDATE cheese SET qtyonhand = :qty WHERE name = :prodname"
+args = {'qty' : 0, 'prodname' : 'MUNSTER'}
+crsr.execute(sql, args)
+```
 
 **\'pyformat\'** also takes a dictionary of arguments, but uses a syntax
 like Python\'s "%" string operator:
 
-      UPDATE cheese SET qtyonhand = %(qty)s WHERE name =%(prodname)s
-      args = {'qty' : 0, 'prodname' : 'MUNSTER'}
-      crsr.execute(sql, args)
+```python
+UPDATE cheese SET qtyonhand = %(qty)s WHERE name =%(prodname)s
+args = {'qty' : 0, 'prodname' : 'MUNSTER'}
+crsr.execute(sql, args)
+```
 
 \[Note: in adodbapi, \'format\' and \'pyformat\' both use the same
 subroutine. It depends on the presence of "%(" in your SQL operation
@@ -598,7 +615,9 @@ The other paramstyle possibility mentioned in the PEP is:
 **\'numeric\'**, which takes a sequence. It not implemented in adodbapi.
 (If you want it, patches will be considered.):
 
-      UPDATE cheese SET qtyonhand = :1 WHERE name = :2 
+```sql
+UPDATE cheese SET qtyonhand = :1 WHERE name = :2 
+```
 
 ((Gurus: Start reading again here))
 
@@ -615,7 +634,7 @@ operation string into 'qmark', and then makes the ADO Execute call.
 
 Extracting the appropriate SQL table values from Python objects is a
 complex operation. If your table receives unexpected values, try to
-simplify the objects you present as parameters. 
+simplify the objects you present as parameters.
 \[ Set the \".verbose\" attribute \> 2 to get a debug listing of the parameters.\]
 
 You may switch paramstyle as often as desired. If you want to use
@@ -631,7 +650,7 @@ Row Class & Rows Class for returned data
 The PEP specifies that .fetchone() returns a "single sequence". It
 does not spell out what kind of a sequence. Originally, adodbapi
 returned a tuple. It is supposed to be up to the programmer to count
-columns of the returned data to select the correct thing. 
+columns of the returned data to select the correct thing.
 In the past, I have often resorted to putting long lists of constants into my Python code to
 keep track of which column a dutum was in.
 
@@ -639,40 +658,47 @@ The Row class in ADODBAPI satisfies the PEP by having .fetchone() return a
 sequence-like "Row" object. It can be indexed and sliced like a list.
 This is the PEP standard method:
 
-      crsr.execute("SELECT prodname, price, qtyonhand FROM cheese")
-      row = crsr.fetchone()
-      while row:
-         value = row[1] * row[2]
-         print("Your {:10s} is worth {:10.2f}".format(row[0], value))
-         row = crsr.fetchone()  # returns None when no data remains
+```python
+crsr.execute("SELECT prodname, price, qtyonhand FROM cheese")
+row = crsr.fetchone()
+while row:
+    value = row[1] * row[2]
+    print("Your {:10s} is worth {:10.2f}".format(row[0], value))
+    row = crsr.fetchone()  # returns None when no data remains
+```
 
 As an extension, a Row object can also be indexed by column name:
 
-      crsr.execute("SELECT prodname, price, qtyonhand FROM cheese")
-      for row in crsr:                        # note extension: using crsr as an iterator
-         value = row["price"] * row["qtyonhand"]
-         print("Your {:10s} is worth {:10.2f}".format(row["prodname"], value))
+```python
+crsr.execute("SELECT prodname, price, qtyonhand FROM cheese")
+for row in crsr:                        # note extension: using crsr as an iterator
+    value = row["price"] * row["qtyonhand"]
+    print("Your {:10s} is worth {:10.2f}".format(row["prodname"], value))
+```
 
 But, _really_ lazy programmers, like me, use the column names as attributes:
 
-      crsr.execute("SELECT prodname, price, qtyonhand FROM cheese")
-      for row in crsr:
-         value = row.price * row.qtyonhand
-         print("Your {:10s} is worth {:10.2f}".format(row.prodname, value))
+```python
+crsr.execute("SELECT prodname, price, qtyonhand FROM cheese")
+for row in crsr:
+    value = row.price * row.qtyonhand
+    print("Your {:10s} is worth {:10.2f}".format(row.prodname, value))
+```
 
 Now, isn't that easier to read and understand?
 
-The PEP specifies that .fetchmany() and .fetchall() must return 
-"a sequence of sequences". 
+The PEP specifies that .fetchmany() and .fetchall() must return
+"a sequence of sequences".
 This as satisfied by returning a Rows object,
-which emits a sequence of Row objects. 
+which emits a sequence of Row objects.
 Both Row and Rows are actually lazy \-- they do not fetch data from the queryset until the programmer
 asks for it.
 
 \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--
 
 variantConversions for the connection and the cursor
- ----------------------------------------------------------------------------------
+----------------------------------------------------------------------------------
+
 Each Connection instance has an optional .variantConversions attribute.
 Usually it will not be present. If it is present, it will be used in
 preference to the module's variantConversions attribute. In order to avoid
@@ -691,27 +717,35 @@ each type and convert it into a Python value. As a convenience, the
 mapping for each member of the sequence with the same value. So, to
 change several data retrieval functions:
 
-        import adodbapi.ado_consts as adc
-        import adodbapi.apibase as api
-        conn.variantConversions = api.variantConversions  # MAGIC: will make a copy.
+```python
+import adodbapi.ado_consts as adc
+import adodbapi.apibase as api
+conn.variantConversions = api.variantConversions  # MAGIC: will make a copy.
 
-        conn.variantConversions[(adc.adTinyInt, adc.adChar)] = myByteFunc
+conn.variantConversions[(adc.adTinyInt, adc.adChar)] = myByteFunc
+```
 
 which will be equivalent to:
 
-        conn.variantConversions[adc.adTinyInt] = myByteFunc
-        conn.variantConversions[adc.adChar] = myByteFunc
+```python
+conn.variantConversions[adc.adTinyInt] = myByteFunc
+conn.variantConversions[adc.adChar] = myByteFunc
+```
 
 Also, there is a supply of sequences used to initialize to default map,
 in module adodbapi.apibase. For example:
 
-`adoApproximateNumericTypes = (adc.adDouble, adc.adSingle)`
+```python
+adoApproximateNumericTypes = (adc.adDouble, adc.adSingle)
+```
 
 If I wish to retrieve all floating point values differently, I might
 use:
 
-        conn.variantConversions = api.variantConversions
-        conn.variantConversions[api.adoApproximateNumericTypes] = myFloatFunc
+```python
+conn.variantConversions = api.variantConversions
+conn.variantConversions[api.adoApproximateNumericTypes] = myFloatFunc
+```
 
 \-\-\-\-\-\--
 
@@ -722,14 +756,18 @@ The cursor builds a list of conversion functions for each new query set,
 You may override the conversion for any column by altering the function
 for that column:
 
-        crsr.conversions[4] = myFunc # change the reader for the fifth column
-        crsr.fetchone()
+```python
+crsr.conversions[4] = myFunc  # change the reader for the fifth column
+crsr.fetchone()
+```
 
 To do this by column name, use:
 
-        crsr.conversions[crsr.columnNames['mycolumn']] = myFunc
+```python
+crsr.conversions[crsr.columnNames['mycolumn']] = myFunc
+```
 
-The Examples folder:
+The Examples folder
 --------------------
 
 Several small complete example programs are included:

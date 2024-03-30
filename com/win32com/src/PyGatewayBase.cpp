@@ -70,11 +70,9 @@ void *PyGatewayBase::ThisAsIID(IID iid)
     if (iid == IID_IUnknown || iid == IID_IDispatch)
         // IDispatch * == IUnknown *
         return (IDispatch *)(PyGatewayBase *)this;
-#ifndef NO_PYCOM_IDISPATCHEX
     else if (iid == IID_IDispatchEx)
         // IDispatchEx * probably == IUnknown *, but no real need to assume that!
         return (IDispatchEx *)this;
-#endif  // NO_PYCOM_IDISPATCHEX
     else if (iid == IID_ISupportErrorInfo)
         return (ISupportErrorInfo *)this;
     else if (iid == IID_IInternalUnwrapPythonObject)
@@ -696,7 +694,6 @@ STDMETHODIMP PyGatewayBase::Invoke(DISPID dispid, REFIID riid, LCID lcid, WORD w
     return hr;
 }
 
-#ifndef NO_PYCOM_IDISPATCHEX
 ////////////////////////////////////////////////////////////////////////////
 //
 // The IDispatchEx implementation
@@ -850,7 +847,6 @@ STDMETHODIMP PyGatewayBase::GetNameSpaceParent(IUnknown **ppunk)
     return PyCom_SetCOMErrorFromPyException(IID_IDispatchEx);
 }
 
-#endif  // NO_PYCOM_IDISPATCHEX
 
 ////////////////////////////////////////////////////////////////////////////
 //
