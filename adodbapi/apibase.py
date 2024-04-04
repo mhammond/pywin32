@@ -16,16 +16,6 @@ from . import ado_consts as adc
 
 verbose = False  # debugging flag
 
-onIronPython = sys.platform == "cli"
-if onIronPython:  # we need type definitions for odd data we may need to convert
-    # noinspection PyUnresolvedReferences
-    from System import DateTime, DBNull
-
-    NullTypes = (type(None), DBNull)
-else:
-    DateTime = type(NotImplemented)  # should never be seen on win32
-    NullTypes = type(None)
-
 
 # ------- Error handlers ------
 def standardErrorHandler(connection, cursor, errorclass, errorvalue):
@@ -270,8 +260,6 @@ class pythonDateTimeConverter(TimeConverter):  # standard since Python 2.3
             new = datetime.datetime.combine(datetime.datetime.fromordinal(odn), tim)
             return new
             # return comDate.replace(tzinfo=None) # make non aware
-        elif isinstance(comDate, DateTime):
-            fComDate = comDate.ToOADate()  # ironPython clr Date/Time
         else:
             fComDate = float(comDate)  # ComDate is number of days since 1899-12-31
         integerPart = int(fComDate)
@@ -303,8 +291,6 @@ class pythonTimeConverter(TimeConverter):  # the old, ?nix type date and time
         "Returns ticks since 1970"
         if isinstance(comDate, datetime.datetime):
             return comDate.timetuple()
-        elif isinstance(comDate, DateTime):  # ironPython clr date/time
-            fcomDate = comDate.ToOADate()
         else:
             fcomDate = float(comDate)
         secondsperday = 86400  # 24*60*60
@@ -455,11 +441,6 @@ def variantConvertDate(v):
 
 
 def cvtString(variant):  # use to get old action of adodbapi v1 if desired
-    if onIronPython:
-        try:
-            return variant.ToString()
-        except:
-            pass
     return str(variant)
 
 
@@ -509,17 +490,11 @@ def identity(x):
 def cvtUnusual(variant):
     if verbose > 1:
         sys.stderr.write("Conversion called for Unusual data=%s\n" % repr(variant))
-    if isinstance(variant, DateTime):  # COMdate or System.Date
-        from .adodbapi import (  # this will only be called when adodbapi is in use, and very rarely
-            dateconverter,
-        )
-
-        return dateconverter.DateObjectFromCOMDate(variant)
     return variant  # cannot find conversion function -- just give the data to the user
 
 
 def convert_to_python(variant, func):  # convert DB value into Python value
-    if isinstance(variant, NullTypes):  # IronPython Null or None
+    if variant is None:
         return None
     return func(variant)  # call the appropriate conversion function
 

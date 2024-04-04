@@ -6,8 +6,6 @@
 #include "PyWinObjects.h"
 #include "PySecurityObjects.h"
 
-#ifndef NO_PYWINTYPES_SECURITY
-
 #include "accctrl.h"
 #include "aclapi.h"
 
@@ -1235,4 +1233,3 @@ PyACL::~PyACL() { free(buf); }
 
 /*static*/ void PyACL::deallocFunc(PyObject *ob) { delete (PyACL *)ob; }
 
-#endif /* NO_PYWINTYPES_SECURITY */

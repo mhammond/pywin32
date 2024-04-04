@@ -231,7 +231,7 @@ Test offsets that occur right at the DST changeover
 datetime.datetime(2011, 11, 6, 1, 0, tzinfo=TimeZoneInfo('Pacific Standard Time'))
 
 """
-__author__ = "Jason R. Coombs <jaraco@jaraco.com>"
+from __future__ import annotations
 
 import datetime
 import logging
@@ -243,13 +243,15 @@ from itertools import count
 
 import win32api
 
+__author__ = "Jason R. Coombs <jaraco@jaraco.com>"
+
 log = logging.getLogger(__file__)
 
 
 # A couple of objects for working with objects as if they were native C-type
 # structures.
 class _SimpleStruct:
-    _fields_ = None  # must be overridden by subclasses
+    _fields_: list[tuple[str, type]] = []  # must be overridden by subclasses
 
     def __init__(self, *args, **kw):
         for i, (name, typ) in enumerate(self._fields_):
