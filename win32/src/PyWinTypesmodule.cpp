@@ -357,8 +357,6 @@ static PyObject *PyWin_NewUnicodeFromRaw(PyObject *self, PyObject *args)
     return PyWinObject_FromWCHAR((WCHAR *)pybuf.ptr(), pybuf.len() / sizeof(OLECHAR));
 }
 
-#ifndef MS_WINCE /* This code is not available on Windows CE */
-
 // @pymethod int, int|pywintypes|IsTextUnicode|Determines whether a buffer probably contains a form of Unicode text.
 static PyObject *PyWin_IsTextUnicode(PyObject *self, PyObject *args)
 {
@@ -404,7 +402,6 @@ static PyObject *PyWin_DosDateTimeToTime(PyObject *self, PyObject *args)
         return PyWin_SetAPIError("DosDateTimeToFileTime");
     return PyWinObject_FromFILETIME(fd);
 }
-#endif /* MS_WINCE */
 
 PyObject *PyObject_FromWIN32_FIND_DATAW(WIN32_FIND_DATAW *pData)
 {
@@ -755,10 +752,8 @@ PyObject *PyWinObject_FromMSG(const MSG *pMsg)
 /* List of functions exported by this module */
 // @module pywintypes|A module which supports common Windows types.
 static struct PyMethodDef pywintypes_functions[] = {
-#ifndef MS_WINCE
     {"DosDateTimeToTime", PyWin_DosDateTimeToTime,
      1},  // @pymeth DosDateTimeToTime|Converts an MS-DOS Date/Time to a standard Time object
-#endif
     {"UnicodeFromRaw", PyWin_NewUnicodeFromRaw,
      1},  // @pymeth UnicodeFromRaw|Creates a new string object from raw binary data
     {"IsTextUnicode", PyWin_IsTextUnicode,
@@ -770,14 +765,12 @@ static struct PyMethodDef pywintypes_functions[] = {
     {"Time", PyWinMethod_NewTime, 1},            // @pymeth Time|Makes a <o PyDateTime> object from the argument.
     {"TimeStamp", PyWinMethod_NewTimeStamp, 1},  // @pymeth Time|Makes a <o PyDateTime> object from the argument.
     {"CreateGuid", PyWin_CreateGuid, 1},  // @pymeth CreateGuid|Creates a new, unique GUIID.
-#ifndef NO_PYWINTYPES_SECURITY
     {"ACL", PyWinMethod_NewACL, 1},  // @pymeth ACL|Creates a new <o PyACL> object.
     {"SID", PyWinMethod_NewSID, 1},  // @pymeth SID|Creates a new <o PySID> object.
     {"SECURITY_ATTRIBUTES", PyWinMethod_NewSECURITY_ATTRIBUTES,
      1},  // @pymeth SECURITY_ATTRIBUTES|Creates a new <o PySECURITY_ATTRIBUTES> object.
     {"SECURITY_DESCRIPTOR", PyWinMethod_NewSECURITY_DESCRIPTOR,
      1},  // @pymeth SECURITY_DESCRIPTOR|Creates a new <o PySECURITY_DESCRIPTOR> object.
-#endif    // NO_PYWINTYPES_SECURITY
     {"HANDLE", PyWinMethod_NewHANDLE, 1},  // @pymeth HANDLE|Creates a new <o PyHANDLE> object.
     {"HKEY", PyWinMethod_NewHKEY, 1},      // @pymeth HKEY|Creates a new <o PyHKEY> object.
 #ifdef TRACE_THREADSTATE
@@ -788,9 +781,6 @@ static struct PyMethodDef pywintypes_functions[] = {
 
 int PyWinGlobals_Ensure()
 {
-#if PY_VERSION_HEX < 0x03070000
-    PyEval_InitThreads();
-#endif
     PyWinInterpreterState_Ensure();
     if (PyWinExc_ApiError == NULL) {
         // Setup our exception objects so they have attributes.
@@ -890,10 +880,8 @@ int PyWinGlobals_Ensure()
 #ifndef NO_PYWINTYPES_IID
         || PyType_Ready(&PyIIDType) == -1
 #endif  // NO_PYWINTYPES_IID
-#ifndef NO_PYWINTYPES_SECURITY
         || PyType_Ready(&PySECURITY_DESCRIPTORType) == -1 || PyType_Ready(&PySECURITY_ATTRIBUTESType) == -1 ||
         PyType_Ready(&PySIDType) == -1 || PyType_Ready(&PyACLType) == -1
-#endif
     )
         return -1;
 
@@ -963,12 +951,10 @@ PYWIN_MODULE_INIT_FUNC(pywintypes)
 #ifndef NO_PYWINTYPES_IID
     ADD_TYPE(IIDType);
 #endif  // NO_PYWINTYPES_IID
-#ifndef NO_PYWINTYPES_SECURITY
     ADD_TYPE(SECURITY_DESCRIPTORType);
     ADD_TYPE(SECURITY_ATTRIBUTESType);
     ADD_TYPE(SIDType);
     ADD_TYPE(ACLType);
-#endif
     ADD_TYPE(HANDLEType);
     ADD_TYPE(OVERLAPPEDType);
     ADD_TYPE(DEVMODEWType);
@@ -980,12 +966,9 @@ PYWIN_MODULE_INIT_FUNC(pywintypes)
     PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }
 
-#ifndef MS_WINCE
 extern "C" __declspec(dllexport)
-#endif
     BOOL WINAPI DllMain(HANDLE hInstance, DWORD dwReason, LPVOID lpReserved)
 {
-#ifndef NO_PYWINTYPES_SECURITY
     FARPROC fp;
     // dll usually will already be loaded
     HMODULE hmodule = GetModuleHandle(_T("AdvAPI32.dll"));
@@ -1025,7 +1008,6 @@ extern "C" __declspec(dllexport)
                 (BOOL(WINAPI *)(PSECURITY_DESCRIPTOR, SECURITY_DESCRIPTOR_CONTROL, SECURITY_DESCRIPTOR_CONTROL))(fp);
     }
 
-#endif  // NO_PYWINTYPES_SECURITY
     switch (dwReason) {
         case DLL_PROCESS_ATTACH: {
             /*

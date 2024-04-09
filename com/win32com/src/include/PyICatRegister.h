@@ -1,4 +1,3 @@
-#ifndef NO_PYCOM_ICATREGISTER
 class PyICatRegister : public PyIUnknown {
    public:
     MAKE_PYCOM_CTOR(PyICatRegister);
@@ -17,4 +16,3 @@ class PyICatRegister : public PyIUnknown {
     PyICatRegister(IUnknown *pdisp);
     ~PyICatRegister();
 };
-#endif  // NO_PYCOM_ICATREGISTER

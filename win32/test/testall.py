@@ -15,12 +15,11 @@ ui_demos = """GetSaveFileName print_desktop win32cred_demo win32gui_demo
               win32gui_devicenotify
               NetValidatePasswordPolicy""".split()
 # Other demos known as 'bad' (or at least highly unlikely to work)
-# cerapi: no CE module is built (CE via pywin32 appears dead)
 # desktopmanager: hangs (well, hangs for 60secs or so...)
 # EvtSubscribe_*: must be run together:
 # SystemParametersInfo: a couple of the params cause markh to hang, and there's
 # no great reason to adjust (twice!) all those system settings!
-bad_demos = """cerapi desktopmanager win32comport_demo
+bad_demos = """desktopmanager win32comport_demo
                EvtSubscribe_pull EvtSubscribe_push
                SystemParametersInfo
             """.split()

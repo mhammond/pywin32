@@ -28,20 +28,12 @@ import decimal
 import random
 import string
 import sys
+import time
 import unittest
 
-try:
-    import win32com.client
-
-    win32 = True
-except ImportError:
-    win32 = False
-
-# run the configuration module.
-import adodbapitestconfig as config  # will set sys.path to find correct version of adodbapi
-
-# in our code below, all our switches are from config.whatever
-import tryconnection
+import adodbapitestconfig as config  # run the configuration module. # will set sys.path to find correct version of adodbapi
+import tryconnection  # in our code below, all our switches are from config.whatever
+import win32com.client
 
 import adodbapi
 import adodbapi.apibase as api
@@ -53,9 +45,6 @@ except ImportError:  # we are doing a shortcut import as a module -- so
         import ado_consts
     except ImportError:
         from adodbapi import ado_consts
-
-
-long = int
 
 
 def randomstring(length):
@@ -1530,40 +1519,6 @@ class TimeConverterInterfaceTest(unittest.TestCase):
         self.assertEqual(str(iso[:10]), "2003-05-02")
 
 
-if config.doMxDateTimeTest:
-    import mx.DateTime
-
-
-class TestMXDateTimeConverter(TimeConverterInterfaceTest):
-    def setUp(self):
-        self.tc = api.mxDateTimeConverter()
-
-    def testCOMDate(self):
-        t = mx.DateTime.DateTime(2002, 6, 28, 18, 15, 2)
-        cmd = self.tc.COMDate(t)
-        assert cmd == t.COMDate()
-
-    def testDateObjectFromCOMDate(self):
-        cmd = self.tc.DateObjectFromCOMDate(37435.7604282)
-        t = mx.DateTime.DateTime(2002, 6, 28, 18, 15, 0)
-        t2 = mx.DateTime.DateTime(2002, 6, 28, 18, 15, 2)
-        assert t2 > cmd > t
-
-    def testDate(self):
-        assert mx.DateTime.Date(1980, 11, 4) == self.tc.Date(1980, 11, 4)
-
-    def testTime(self):
-        assert mx.DateTime.Time(13, 11, 4) == self.tc.Time(13, 11, 4)
-
-    def testTimestamp(self):
-        t = mx.DateTime.DateTime(2002, 6, 28, 18, 15, 1)
-        obj = self.tc.Timestamp(2002, 6, 28, 18, 15, 1)
-        assert t == obj
-
-
-import time
-
-
 class TestPythonTimeConverter(TimeConverterInterfaceTest):
     def setUp(self):
         self.tc = api.pythonTimeConverter()
@@ -1646,13 +1601,9 @@ class TestPythonDateTimeConverter(TimeConverterInterfaceTest):
         assert t1 < obj < t2, obj
 
 
-suites = []
-suites.append(unittest.makeSuite(TestPythonDateTimeConverter, "test"))
-if config.doMxDateTimeTest:
-    suites.append(unittest.makeSuite(TestMXDateTimeConverter, "test"))
+suites = [unittest.makeSuite(TestPythonDateTimeConverter, "test")]
 if config.doTimeTest:
     suites.append(unittest.makeSuite(TestPythonTimeConverter, "test"))
-
 if config.doAccessTest:
     suites.append(unittest.makeSuite(TestADOwithAccessDB, "test"))
 if config.doSqlServerTest:
@@ -1663,7 +1614,7 @@ if config.doPostgresTest:
     suites.append(unittest.makeSuite(TestADOwithPostgres, "test"))
 
 
-class cleanup_manager(object):
+class cleanup_manager:
     def __enter__(self):
         pass
 
@@ -1679,19 +1630,13 @@ if __name__ == "__main__":
         print(__doc__)
         print("Default Date Converter is %s" % (defaultDateConverter,))
         dateconverter = defaultDateConverter
-        tag = "datetime"
         unittest.TextTestRunner().run(mysuite)
 
-        if config.iterateOverTimeTests:
-            for test, dateconverter, tag in (
-                (config.doTimeTest, api.pythonTimeConverter, "pythontime"),
-                (config.doMxDateTimeTest, api.mxDateTimeConverter, "mx"),
-            ):
-                if test:
-                    mysuite = copy.deepcopy(
-                        suite
-                    )  # work around a side effect of unittest.TextTestRunner
-                    adodbapi.adodbapi.dateconverter = dateconverter()
-                    print("Changed dateconverter to ")
-                    print(adodbapi.adodbapi.dateconverter)
-                    unittest.TextTestRunner().run(mysuite)
+        if config.doTimeTest:
+            mysuite = copy.deepcopy(
+                suite
+            )  # work around a side effect of unittest.TextTestRunner
+            adodbapi.adodbapi.dateconverter = api.pythonTimeConverter()
+            print("Changed dateconverter to ")
+            print(adodbapi.adodbapi.dateconverter)
+            unittest.TextTestRunner().run(mysuite)

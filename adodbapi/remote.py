@@ -21,10 +21,6 @@ Copyright (C) 2002 Henrik Ekelund, version 2.1 by Vernon Cole
     django adaptations and refactoring thanks to Adam Vandenberg
 
 DB-API 2.0 specification: http://www.python.org/dev/peps/pep-0249/
-
-This module source should run correctly in CPython versions 2.5 and later,
-or IronPython version 2.7 and later,
-or, after running through 2to3.py, CPython 3.0 or later.
 """
 
 __version__ = "2.6.0.4"
@@ -48,8 +44,6 @@ import adodbapi.apibase as api
 import adodbapi.process_connect_string
 from adodbapi.apibase import ProgrammingError
 
-_BaseException = api._BaseException
-
 sys.excepthook = Pyro4.util.excepthook
 Pyro4.config.PREFER_IP_VERSION = 0  # allow system to prefer IPv6
 Pyro4.config.COMMTIMEOUT = 40.0  # a bit longer than the default SQL server Gtimeout
@@ -62,16 +56,12 @@ except:
 if verbose:
     print(version)
 
-# --- define objects to smooth out Python3 <-> Python 2 differences
-unicodeType = str  # this line will be altered by 2to3.py to '= str'
-longType = int  # this line will be altered by 2to3.py to '= int'
-StringTypes = str
-makeByteBuffer = bytes
-memoryViewType = memoryview
 
 # -----------------------------------------------------------
 # conversion functions mandated by PEP 249
-Binary = makeByteBuffer  # override the function from apibase.py
+def Binary(aString):
+    """This function constructs an object capable of holding a binary (long) string value."""
+    return bytes(aString)
 
 
 def Date(year, month, day):
@@ -168,7 +158,7 @@ def connect(*args, **kwargs):  # --> a remote db-api connection object
                 raise api.DatabaseError(
                     "Pyro error creating connection to/thru=%s" % repr(kwargs)
                 )
-        except _BaseException as e:
+        except Exception as e:
             raise api.DatabaseError(
                 "Error creating remote connection to=%s, e=%s, %s"
                 % (repr(kwargs), repr(e), sys.exc_info()[2])
@@ -188,7 +178,7 @@ def fix_uri(uri, kwargs):
 
 
 # # # # # ----- the Class that defines a connection ----- # # # # #
-class Connection(object):
+class Connection:
     # include connection attributes required by api definition.
     Warning = api.Warning
     Error = api.Error
@@ -368,7 +358,7 @@ def fixpickle(x):
         # for 'named' paramstyle user will pass a mapping
         newargs = {}
         for arg, val in list(x.items()):
-            if isinstance(val, memoryViewType):
+            if isinstance(val, memoryview):
                 newval = array.array("B")
                 newval.fromstring(val)
                 newargs[arg] = newval
@@ -378,7 +368,7 @@ def fixpickle(x):
     # if not a mapping, then a sequence
     newargs = []
     for arg in x:
-        if isinstance(arg, memoryViewType):
+        if isinstance(arg, memoryview):
             newarg = array.array("B")
             newarg.fromstring(arg)
             newargs.append(newarg)
@@ -387,7 +377,7 @@ def fixpickle(x):
     return newargs
 
 
-class Cursor(object):
+class Cursor:
     def __init__(self, connection):
         self.command = None
         self.errorhandler = None  ## was: connection.errorhandler
@@ -569,7 +559,7 @@ class Cursor(object):
     def fetchone(self):
         try:
             f1 = self.proxy.crsr_fetchone(self.id)
-        except _BaseException as e:
+        except Exception as e:
             self._raiseCursorError(api.DatabaseError, e)
         else:
             if f1 is None:

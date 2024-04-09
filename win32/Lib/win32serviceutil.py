@@ -121,7 +121,7 @@ def LocateSpecificServiceExe(serviceName):
         win32con.HKEY_LOCAL_MACHINE,
         "SYSTEM\\CurrentControlSet\\Services\\%s" % (serviceName),
         0,
-        win32con.KEY_ALL_ACCESS,
+        win32con.KEY_QUERY_VALUE,
     )
     try:
         return win32api.RegQueryValueEx(hkey, "ImagePath")[0]
