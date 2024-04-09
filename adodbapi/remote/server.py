@@ -20,7 +20,6 @@ Copyright (C) 2013 by Vernon Cole
 DB-API 2.0 specification: http://www.python.org/dev/peps/pep-0249/
 
 This module source should run correctly in CPython versions 2.6 and later,
-or IronPython version 2.6 and later,
 or, after running through 2to3.py, CPython 3.2 or later.
 """
 
@@ -48,9 +47,6 @@ import adodbapi
 import adodbapi.apibase as api
 import adodbapi.process_connect_string
 
-makeByteBuffer = bytes
-_BaseException = Exception
-Binary = bytes
 try:
     pyro_host = os.environ["PYRO_HOST"]
 except:
@@ -64,25 +60,25 @@ for arg in sys.argv[1:]:
     if arg.lower().startswith("host"):
         try:
             pyro_host = arg.split("=")[1]
-        except _BaseException:
+        except Exception:
             raise TypeError('Must supply value for argument="%s"' % arg)
 
     if arg.lower().startswith("port"):
         try:
             pyro_port = int(arg.split("=")[1])
-        except _BaseException:
+        except Exception:
             raise TypeError('Must supply numeric value for argument="%s"' % arg)
 
     if arg.lower().startswith("timeout"):
         try:
             PYRO_COMMTIMEOUT = int(arg.split("=")[1])
-        except _BaseException:
+        except Exception:
             raise TypeError('Must supply numeric value for argument="%s"' % arg)
 
     if arg.lower().startswith("--verbose"):
         try:
             verbose = int(arg.split("=")[1])
-        except _BaseException:
+        except Exception:
             raise TypeError('Must supply numeric value for argument="%s"' % arg)
         adodbapi.adodbapi.verbose = verbose
     else:
@@ -119,7 +115,7 @@ def unfixpickle(x):
         newargs = {}
         for arg, val in list(x.items()):
             if isinstance(arg, array.array):
-                newargs[arg] = Binary(val)
+                newargs[arg] = bytes(val)
             else:
                 newargs[arg] = val
         return newargs
@@ -127,13 +123,13 @@ def unfixpickle(x):
     newargs = []
     for arg in x:
         if isinstance(arg, array.array):
-            newargs.append(Binary(arg))
+            newargs.append(bytes(arg))
         else:
             newargs.append(arg)
     return newargs
 
 
-class ServerConnection(object):
+class ServerConnection:
     def __init__(self):
         self.server_connection = None
         self.cursors = {}
@@ -312,14 +308,14 @@ class ServerConnection(object):
         print("Shutdown request received")
 
 
-class ConnectionDispatcher(object):
+class ConnectionDispatcher:
     def make_connection(self):
         new_connection = ServerConnection()
         pyro_uri = self._pyroDaemon.register(new_connection)
         return pyro_uri
 
 
-class Heartbeat_Timer(object):
+class Heartbeat_Timer:
     def __init__(self, interval, work_function, tick_result_function):
         self.interval = interval
         self.last_tick = datetime.datetime.now()
