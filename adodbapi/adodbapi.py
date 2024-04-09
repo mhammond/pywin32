@@ -214,7 +214,7 @@ def _configure_parameter(p, value, adotype, settings_known):
 
 
 # # # # # ----- the Class that defines a connection ----- # # # # #
-class Connection(object):
+class Connection:
     # include connection attributes as class attributes required by api definition.
     Warning = api.Warning
     Error = api.Error
@@ -525,7 +525,7 @@ class Connection(object):
 
 
 # # # # # ----- the Class that defines a cursor ----- # # # # #
-class Cursor(object):
+class Cursor:
     ## ** api required attributes:
     ## description...
     ##    This read-only attribute is a sequence of 7-item sequences.

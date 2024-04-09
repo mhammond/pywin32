@@ -156,7 +156,7 @@ class FetchFailedError(OperationalError):
 #     b = makeByteBuffer(aString)
 #     return b
 # -----     Time converters ----------------------------------------------
-class TimeConverter(object):  # this is a generic time converter skeleton
+class TimeConverter:  # this is a generic time converter skeleton
     def __init__(self):  # the details will be filled in by instances
         self._ordinal_1899_12_31 = datetime.date(1899, 12, 31).toordinal() - 1
         # Use cls.types to compare if an input parameter is a datetime
@@ -381,7 +381,7 @@ adoRemainingTypes = (
 
 
 # this class is a trick to determine whether a type is a member of a related group of types. see PEP notes
-class DBAPITypeObject(object):
+class DBAPITypeObject:
     def __init__(self, valuesTuple):
         self.values = frozenset(valuesTuple)
 
@@ -553,7 +553,7 @@ variantConversions = MultiMap(
 RS_WIN_32, RS_ARRAY, RS_REMOTE = list(range(1, 4))
 
 
-class SQLrow(object):  # a single database row
+class SQLrow:  # a single database row
     # class to emulate a sequence, so that a column may be retrieved by either number or name
     def __init__(self, rows, index):  # "rows" is an _SQLrows object, index is which row
         self.rows = rows  # parent 'fetch' container object
@@ -629,7 +629,7 @@ class SQLrow(object):  # a single database row
     # # # #
 
 
-class SQLrows(object):
+class SQLrows:
     # class to emulate a sequence for multiple rows using a container object
     def __init__(self, ado_results, numberOfRows, cursor):
         self.ado_results = ado_results  # raw result of SQL get
