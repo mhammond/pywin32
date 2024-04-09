@@ -186,15 +186,6 @@ inline BOOL Win32uiHostGlue::DynamicApplicationInit(const TCHAR *cmd, const TCHA
         (*pfnPyInit)();
     }
 
-// In 3.7 and up it's not necessary to call PyEval_InitThreads. In all versions
-// it's safe to call multiple times.
-#if PY_VERSION_HEX < 0x03070000
-    void(__cdecl * pfnPyEval_InitThreads)(void);
-    pfnPyEval_InitThreads = (void(__cdecl *)(void))GetProcAddress(hModCore, "PyEval_InitThreads");
-    CHECK_PFN(pfnPyEval_InitThreads);
-    pfnPyEval_InitThreads();
-#endif
-
     PyObject* (*pPyImport_ImportModule)(const char *name) = (PyObject* (*)(const char *name))GetProcAddress(hModCore, "PyImport_ImportModule");
     CHECK_PFN(pPyImport_ImportModule);
     PyObject* (*pPyObject_GetAttrString)(PyObject *o, const char *attr_name) = (PyObject* (*)(PyObject *o, const char *attr_name))GetProcAddress(hModCore, "PyObject_GetAttrString");
