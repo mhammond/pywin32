@@ -47,9 +47,6 @@ import adodbapi
 import adodbapi.apibase as api
 import adodbapi.process_connect_string
 
-makeByteBuffer = bytes
-_BaseException = Exception
-Binary = bytes
 try:
     pyro_host = os.environ["PYRO_HOST"]
 except:
@@ -63,25 +60,25 @@ for arg in sys.argv[1:]:
     if arg.lower().startswith("host"):
         try:
             pyro_host = arg.split("=")[1]
-        except _BaseException:
+        except Exception:
             raise TypeError('Must supply value for argument="%s"' % arg)
 
     if arg.lower().startswith("port"):
         try:
             pyro_port = int(arg.split("=")[1])
-        except _BaseException:
+        except Exception:
             raise TypeError('Must supply numeric value for argument="%s"' % arg)
 
     if arg.lower().startswith("timeout"):
         try:
             PYRO_COMMTIMEOUT = int(arg.split("=")[1])
-        except _BaseException:
+        except Exception:
             raise TypeError('Must supply numeric value for argument="%s"' % arg)
 
     if arg.lower().startswith("--verbose"):
         try:
             verbose = int(arg.split("=")[1])
-        except _BaseException:
+        except Exception:
             raise TypeError('Must supply numeric value for argument="%s"' % arg)
         adodbapi.adodbapi.verbose = verbose
     else:
@@ -118,7 +115,7 @@ def unfixpickle(x):
         newargs = {}
         for arg, val in list(x.items()):
             if isinstance(arg, array.array):
-                newargs[arg] = Binary(val)
+                newargs[arg] = bytes(val)
             else:
                 newargs[arg] = val
         return newargs
@@ -126,7 +123,7 @@ def unfixpickle(x):
     newargs = []
     for arg in x:
         if isinstance(arg, array.array):
-            newargs.append(Binary(arg))
+            newargs.append(bytes(arg))
         else:
             newargs.append(arg)
     return newargs

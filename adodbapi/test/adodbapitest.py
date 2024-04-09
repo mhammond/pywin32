@@ -47,9 +47,6 @@ except ImportError:  # we are doing a shortcut import as a module -- so
         from adodbapi import ado_consts
 
 
-long = int
-
-
 def randomstring(length):
     return "".join([random.choice(string.ascii_letters) for n in range(32)])
 
