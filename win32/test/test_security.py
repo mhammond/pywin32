@@ -46,7 +46,7 @@ class SecurityTests(unittest.TestCase):
         self.assertNotEqual(None, self.pwr_sid)
 
     def testSIDInDict(self):
-        d = dict(foo=self.pwr_sid)
+        d = {"foo": self.pwr_sid}
         self.assertEqual(d["foo"], self.pwr_sid)
 
     def testBuffer(self):

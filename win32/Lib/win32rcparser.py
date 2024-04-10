@@ -7,8 +7,7 @@
 This is a parser for Windows .rc files, which are text files which define
 dialogs and other Windows UI resources.
 """
-__author__ = "Adam Walker"
-__version__ = "0.11"
+from __future__ import annotations
 
 import os
 import pprint
@@ -18,6 +17,9 @@ import sys
 
 import commctrl
 import win32con
+
+__author__ = "Adam Walker"
+__version__ = "0.11"
 
 _controlMap = {
     "DEFPUSHBUTTON": 0x80,
@@ -77,7 +79,7 @@ class DialogDef:
         self.styles = []
         self.stylesEx = []
         self.controls = []
-        # print "dialog def for ",self.name, self.id
+        # print("dialog def for ", self.name, self.id)
 
     def createDialogTemplate(self):
         t = None
@@ -155,7 +157,7 @@ class ControlDef:
             self.style,
             self.styleEx,
         ]
-        # print t
+        # print(t)
         return t
 
 
@@ -166,13 +168,13 @@ class StringDef:
         self.value = value
 
     def __repr__(self):
-        return "StringDef(%r, %r, %r)" % (self.id, self.idNum, self.value)
+        return f"StringDef({self.id!r}, {self.idNum!r}, {self.value!r})"
 
 
 class RCParser:
     next_id = 1001
-    dialogs = {}
-    _dialogs = {}
+    dialogs: dict[str, list[list[str | int | None | tuple[str | int, ...]]]] = {}
+    _dialogs: dict[str, DialogDef] = {}
     debugEnabled = False
     token = ""
 
@@ -204,10 +206,7 @@ class RCParser:
 
     def getCheckToken(self, expected):
         tok = self.getToken()
-        assert tok == expected, "Expected token '%s', but got token '%s'!" % (
-            expected,
-            tok,
-        )
+        assert tok == expected, f"Expected token '{expected}', but got token '{tok}'!"
         return tok
 
     def getCommaToken(self):
@@ -278,7 +277,7 @@ class RCParser:
                         pass
                         # ignore AppStudio special ones
                         # if not n.startswith("_APS_"):
-                        #    print "Duplicate id",i,"for",n,"is", self.names[i]
+                        #     print("Duplicate id", i, "for", n, "is", self.names[i])
                     else:
                         self.names[i] = n
                     if self.next_id <= i:
@@ -324,7 +323,7 @@ class RCParser:
             else:
                 rp = id_parsers.get(self.token)
                 if rp is not None:
-                    self.debug("Dispatching '%s'" % (self.token,))
+                    self.debug(f"Dispatching '{self.token}'")
                     rp(resource_id)
                 else:
                     # We don't know what the resource type is, but we
@@ -560,7 +559,7 @@ class RCParser:
                 control.styleEx, control.stylesEx = self.styles(
                     [], defaultControlStyleEx
                 )
-            # print control.toString()
+            # print(control.toString())
             dlg.controls.append(control)
 
 
@@ -590,12 +589,12 @@ def Parse(rc_name, h_name=None):
         h_name = rc_name[:-2] + "h"
         try:
             h_file = open(h_name, "r")
-        except IOError:
+        except OSError:
             # See if MSVC default of 'resource.h' in the same dir.
             h_name = os.path.join(os.path.dirname(rc_name), "resource.h")
             try:
                 h_file = open(h_name, "r")
-            except IOError:
+            except OSError:
                 # .h files are optional anyway
                 h_file = None
     rc_file = open(rc_name, "r")
@@ -605,7 +604,6 @@ def Parse(rc_name, h_name=None):
         if h_file is not None:
             h_file.close()
         rc_file.close()
-    return rcp
 
 
 def GenerateFrozenResource(rc_name, output_name, h_name=None):
@@ -639,7 +637,7 @@ def GenerateFrozenResource(rc_name, output_name, h_name=None):
     out.write("class FakeParser:\n")
 
     for name in "dialogs", "ids", "names", "bitmaps", "icons", "stringTable":
-        out.write("\t%s = \\\n" % (name,))
+        out.write(f"\t{name} = \\\n")
         pprint.pprint(getattr(rcp, name), out)
         out.write("\n")
 
@@ -657,7 +655,7 @@ if __name__ == "__main__":
     else:
         filename = sys.argv[1]
         if "-v" in sys.argv:
-            RCParser.debugEnabled = 1
+            RCParser.debugEnabled = True
         print("Dumping all resources in '%s'" % filename)
         resources = Parse(filename)
         for id, ddef in resources.dialogs.items():
@@ -665,11 +663,11 @@ if __name__ == "__main__":
             pprint.pprint(ddef)
             print()
         for id, sdef in resources.stringTable.items():
-            print("String %s=%r" % (id, sdef.value))
+            print(f"String {id}={sdef.value!r}")
             print()
         for id, sdef in resources.bitmaps.items():
-            print("Bitmap %s=%r" % (id, sdef))
+            print(f"Bitmap {id}={sdef!r}")
             print()
         for id, sdef in resources.icons.items():
-            print("Icon %s=%r" % (id, sdef))
+            print(f"Icon {id}={sdef!r}")
             print()

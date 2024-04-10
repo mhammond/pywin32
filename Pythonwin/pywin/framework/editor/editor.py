@@ -26,20 +26,23 @@ import win32ui
 from pywin.framework.editor import (
     GetEditorFontOption,
     GetEditorOption,
-    SetEditorFontOption,
-    SetEditorOption,
     defaultCharacterFormat,
 )
-from pywin.mfc import afxres, dialog, docview
+from pywin.mfc import afxres
+from pywin.mfc.docview import RichEditView as ParentEditorView
+
+from .document import EditorDocumentBase as ParentEditorDocument
+
+# from pywin.mfc.docview import EditView as ParentEditorView
+# from pywin.mfc.docview import Document as ParentEditorDocument
 
 patImport = regex.symcomp(r"import \(<name>.*\)")
 patIndent = regex.compile(r"^\([ \t]*[~ \t]\)")
 
 ID_LOCATE_FILE = 0xE200
 ID_GOTO_LINE = 0xE2001
-MSG_CHECK_EXTERNAL_FILE = (
-    win32con.WM_USER + 1999
-)  ## WARNING: Duplicated in document.py and coloreditor.py
+# WARNING: Duplicated in document.py and coloreditor.py
+MSG_CHECK_EXTERNAL_FILE = win32con.WM_USER + 1999
 
 # Key Codes that modify the bufffer when Ctrl or Alt are NOT pressed.
 MODIFYING_VK_KEYS = [
@@ -78,11 +81,6 @@ MODIFYING_VK_KEYS_ALT = [
 
 isRichText = 1  # We are using the Rich Text control.  This has not been tested with value "0" for quite some time!
 
-# ParentEditorDocument=docview.Document
-from .document import EditorDocumentBase
-
-ParentEditorDocument = EditorDocumentBase
-
 
 class EditorDocument(ParentEditorDocument):
     #
@@ -101,7 +99,7 @@ class EditorDocument(ParentEditorDocument):
         win32ui.SetStatusText("Loading file...", 1)
         try:
             f = open(filename, "rb")
-        except IOError:
+        except OSError:
             win32ui.MessageBox(
                 filename
                 + "\nCan not find this file\nPlease verify that the correct path and file name are given"
@@ -165,9 +163,6 @@ class EditorDocument(ParentEditorDocument):
 # 	def StreamTextOut(self, data): ### This seems unreliable???
 # 		self.saveFileHandle.write(data)
 # 		return 1 # keep em coming!
-
-# ParentEditorView=docview.EditView
-ParentEditorView = docview.RichEditView
 
 
 class EditorView(ParentEditorView):
@@ -268,7 +263,7 @@ class EditorView(ParentEditorView):
             else:
                 curCol = curCol + 1
         nextColumn = ((curCol / self.indentSize) + 1) * self.indentSize
-        # 		print "curCol is", curCol, "nextColumn is", nextColumn
+        # print("curCol is", curCol, "nextColumn is", nextColumn)
         ins = None
         if self.bSmartTabs:
             # Look for some context.
@@ -508,7 +503,7 @@ prefModule = GetDefaultEditorModuleName()
 if __name__ == prefModule:
     # For debugging purposes, when this module may be reloaded many times.
     try:
-        win32ui.GetApp().RemoveDocTemplate(editorTemplate)
+        win32ui.GetApp().RemoveDocTemplate(editorTemplate)  # type: ignore[has-type, used-before-def]
     except (NameError, win32ui.error):
         pass
 

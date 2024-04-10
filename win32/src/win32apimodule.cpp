@@ -2175,17 +2175,11 @@ static PyObject *PyGetTempFileName(PyObject *self, PyObject *args)
 // @pymethod tuple|win32api|GetTimeZoneInformation|Retrieves the system time-zone information.
 static PyObject *PyGetTimeZoneInformation(PyObject *self, PyObject *args)
 {
-    int bTimesAsTuples =
-#if (PY_VERSION_HEX > 0x03060000)
-        1
-#else
-        0
-#endif
-        ;
+    int bTimesAsTuples = 1;
     // @pyparm bool|times_as_tuples|?|If true, the SYSTEMTIME elements are returned as tuples instead of a time
-    // object. Defaults to False on 3.5 and earlier, True otherwise, because this function
-    // returns SYSTEMTIME information with members which datetime on 3.6 and later treats as
-    // invalid. In other words, using False on 3.6 and later will result in ValueErrors
+    // object. Defaults to True, because this function
+    // returns SYSTEMTIME information with members which datetime treats as
+    // invalid. In other words, using False will result in ValueErrors
     // instead of returning.
     if (!PyArg_ParseTuple(args, "|i:GetTimeZoneInformation", &bTimesAsTuples))
         return NULL;
@@ -5177,9 +5171,6 @@ PyObject *PyEnumResourceLanguages(PyObject *self, PyObject *args)
     return ret;
 }
 
-// @pymethod <o PyUnicode>|win32api|Unicode|Creates a new Unicode object
-PYWINTYPES_EXPORT PyObject *PyWin_NewUnicode(PyObject *self, PyObject *args);
-
 ///////////////////
 //
 // Win32 Exception Handler.
@@ -6159,7 +6150,7 @@ static struct PyMethodDef win32api_functions[] = {
                                             // specified offset into the extra class memory for the window.
     {"SetClassWord", PySetClassWord, 1},    // @pymeth SetClassWord|Replaces the specified 32-bit (long) value at the
                                             // specified offset into the extra class memory for the window.
-    {"SetClassWord", PySetWindowWord, 1},   // @pymeth SetWindowWord|
+    {"SetWindowWord", PySetWindowWord, 1},   // @pymeth SetWindowWord|
     {"SetCursor", PySetCursor, 1},          // @pymeth SetCursor|Set the cursor to the HCURSOR object.
 // @pymeth SetEnvironmentVariable|Creates, deletes, or changes the value of an environment variable.
     {"SetEnvironmentVariable", PySetEnvironmentVariableW, 1},
@@ -6182,7 +6173,6 @@ static struct PyMethodDef win32api_functions[] = {
     {"TerminateProcess", PyTerminateProcess, 1},  // @pymeth TerminateProcess|Terminates a process.
     {"ToAsciiEx", PyToAsciiEx, 1},  // @pymeth ToAsciiEx|Translates the specified virtual-key code and keyboard state to
                                     // the corresponding character or characters.
-    {"Unicode", PyWin_NewUnicode, 1},         // @pymeth Unicode|Creates a new <o PyUnicode> object
     {"UpdateResource", PyUpdateResource, 1},  // @pymeth UpdateResource|Updates a resource in a PE file.
     {"VkKeyScan", PyVkKeyScan,
      1},  // @pymeth VkKeyScan|Translates a character to the corresponding virtual-key code and shift state.

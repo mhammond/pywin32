@@ -47,7 +47,7 @@ print(win32cred.CredRead(target, win32cred.CRED_TYPE_DOMAIN_PASSWORD))
 mc = win32cred.CredMarshalCredential(win32cred.UsernameTargetCredential, target)
 
 # As of pywin32 301 this no longer works for markh and unclear when it stopped, or
-# even if it ever did! # Fails in Python 2.7 too, so not a 3.x regression.
+# even if it ever did! # Fails in Python 2.7 too, so not a Python 3 regression.
 try:
     th = win32security.LogonUser(
         mc,

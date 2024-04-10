@@ -77,10 +77,10 @@
 #define PYCOM_EXPORT
 #else
 #ifdef BUILD_PYTHONCOM
-/* We are building pythoncomxx.dll */
+/* We are building pythoncomXX.dll */
 #define PYCOM_EXPORT __declspec(dllexport)
 #else
-/* This module uses pythoncomxx.dll */
+/* This module uses pythoncomXX.dll */
 #define PYCOM_EXPORT __declspec(dllimport)
 #ifndef _DEBUG
 #pragma comment(lib, "pythoncom.lib")
@@ -89,24 +89,6 @@
 #endif
 #endif
 #endif
-
-#ifdef MS_WINCE
-// List of interfaces not supported by CE.
-#define NO_PYCOM_IDISPATCHEX
-#define NO_PYCOM_IPROVIDECLASSINFO
-#define NO_PYCOM_IENUMGUID
-#define NO_PYCOM_IENUMCATEGORYINFO
-#define NO_PYCOM_ICATINFORMATION
-#define NO_PYCOM_ICATREGISTER
-#define NO_PYCOM_ISERVICEPROVIDER
-#define NO_PYCOM_IPROPERTYSTORAGE
-#define NO_PYCOM_IPROPERTYSETSTORAGE
-#define NO_PYCOM_ENUMSTATPROPSTG
-
-#include "ocidl.h"
-#include "oleauto.h"
-
-#endif  // MS_WINCE
 
 #ifdef __MINGW32__
 // Special Mingw32 considerations.
@@ -119,9 +101,7 @@
 
 #include <PyWinTypes.h>  // Standard Win32 Types
 
-#ifndef NO_PYCOM_IDISPATCHEX
 #include <dispex.h>  // New header for IDispatchEx interface.
-#endif               // NO_PYCOM_IDISPATCHEX
 
 #if defined(MAINWIN)
 // Mainwin seems to have 1/2 the VT_RECORD infrastructure in place
@@ -492,7 +472,6 @@ class PYCOM_EXPORT PyIDispatch : public PyIUnknown {
     ~PyIDispatch();
 };
 
-#ifndef NO_PYCOM_IDISPATCHEX
 /////////////////////////////////////////////////////////////////////////////
 // class PyIDispatchEx
 
@@ -515,7 +494,6 @@ class PYCOM_EXPORT PyIDispatchEx : public PyIDispatch {
     PyIDispatchEx(IUnknown *pdisp);
     ~PyIDispatchEx();
 };
-#endif  // NO_PYCOM_IDISPATCHEX
 
 /////////////////////////////////////////////////////////////////////////////
 // class PyIClassFactory
@@ -534,8 +512,6 @@ class PYCOM_EXPORT PyIClassFactory : public PyIUnknown {
     PyIClassFactory(IUnknown *pdisp);
     ~PyIClassFactory();
 };
-
-#ifndef NO_PYCOM_IPROVIDECLASSINFO
 
 /////////////////////////////////////////////////////////////////////////////
 // class PyIProvideTypeInfo
@@ -567,7 +543,6 @@ class PYCOM_EXPORT PyIProvideClassInfo2 : public PyIProvideClassInfo {
     PyIProvideClassInfo2(IUnknown *pdisp);
     ~PyIProvideClassInfo2();
 };
-#endif  // NO_PYCOM_IPROVIDECLASSINFO
 
 /////////////////////////////////////////////////////////////////////////////
 // class PyITypeInfo

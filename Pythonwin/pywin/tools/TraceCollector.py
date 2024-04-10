@@ -49,11 +49,11 @@ class WindowOutput(winout.WindowOutput):
     def Close(self):
         self._StopThread()
         winout.WindowOutput.Close(self)
-        # 	def OnViewDestroy(self, frame):
-        # 		return winout.WindowOutput.OnViewDestroy(self, frame)
-        # 	def Create(self, title=None, style = None):
-        # 		rc = winout.WindowOutput.Create(self, title, style)
-        return rc
+        # def OnViewDestroy(self, frame):
+        #     return winout.WindowOutput.OnViewDestroy(self, frame)
+        # def Create(self, title=None, style = None):
+        #     rc = winout.WindowOutput.Create(self, title, style)
+        #     return rc
 
 
 def MakeOutputWindow():

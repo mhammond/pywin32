@@ -134,7 +134,7 @@ def test(fn):
 if __name__ == "__main__":
     test(BeginThreadsSimpleMarshal)
     win32api.Sleep(500)
-    # Doing CoUninit here stop Pythoncom.dll hanging when DLLMain shuts-down the process
+    # Doing CoUninit here stop pythoncom.dll hanging when DLLMain shuts-down the process
     pythoncom.CoUninitialize()
     if pythoncom._GetInterfaceCount() != 0 or pythoncom._GetGatewayCount() != 0:
         print(

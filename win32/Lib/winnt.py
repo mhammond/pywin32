@@ -176,7 +176,7 @@ def LANGIDFROMLCID(lcid):
 
 
 def SORTIDFROMLCID(lcid):
-    return (((lcid)) & NLS_VALID_LOCALE_MASK) >> 16
+    return ((lcid) & NLS_VALID_LOCALE_MASK) >> 16
 
 
 MAXIMUM_WAIT_OBJECTS = 64
@@ -905,11 +905,11 @@ IMAGE_SIZEOF_ARCHIVE_MEMBER_HDR = 60
 IMAGE_ORDINAL_FLAG = -2147483648
 
 
-def IMAGE_SNAP_BY_ORDINAL(Ordina):
+def IMAGE_SNAP_BY_ORDINAL(Ordinal):
     return (Ordinal & IMAGE_ORDINAL_FLAG) != 0
 
 
-def IMAGE_ORDINAL(Ordina):
+def IMAGE_ORDINAL(Ordinal):
     return Ordinal & 65535
 
 

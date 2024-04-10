@@ -1,5 +1,5 @@
-import string
 import sys
+from collections.abc import Callable
 
 import pythoncom
 import win32api
@@ -17,12 +17,12 @@ def DumpRoot():
     rootdse = ADsGetObject(path)
 
     for item in rootdse.Get("SupportedLDAPVersion"):
-        print("%s supports ldap version %s" % (path, item))
+        print(f"{path} supports ldap version {item}")
 
     attributes = ["CurrentTime", "defaultNamingContext"]
     for attr in attributes:
         val = rootdse.Get(attr)
-        print(" %s=%s" % (attr, val))
+        print(f" {attr}={val}")
 
 
 ###############################################
@@ -31,12 +31,12 @@ def DumpRoot():
 # Reading attributeSchema and classSchema Objects
 def _DumpClass(child):
     attrs = "Abstract lDAPDisplayName schemaIDGUID schemaNamingContext attributeSyntax oMSyntax"
-    _DumpTheseAttributes(child, string.split(attrs))
+    _DumpTheseAttributes(child, attrs.split())
 
 
 def _DumpAttribute(child):
     attrs = "lDAPDisplayName schemaIDGUID adminDescription adminDisplayName rDNAttID defaultHidingValue defaultObjectCategory systemOnly defaultSecurityDescriptor"
-    _DumpTheseAttributes(child, string.split(attrs))
+    _DumpTheseAttributes(child, attrs.split())
 
 
 def _DumpTheseAttributes(child, attrs):
@@ -49,9 +49,9 @@ def _DumpTheseAttributes(child, attrs):
             (hr, msg, exc, arg) = details
             if exc and exc[2]:
                 msg = exc[2]
-            val = "<Error: %s>" % (msg,)
+            val = f"<Error: {msg}>"
         if verbose_level >= 2:
-            print(" %s: %s=%s" % (child.Class, attr, val))
+            print(f" {child.Class}: {attr}={val}")
 
 
 def DumpSchema():
@@ -91,7 +91,7 @@ def DumpSchema():
 
 def _DumpObject(ob, level=0):
     prefix = "  " * level
-    print("%s%s object: %s" % (prefix, ob.Class, ob.Name))
+    print(f"{prefix}{ob.Class} object: {ob.Name}")
     # Do the directory object thing
     try:
         dir_ob = ADsGetObject(ob.ADsPath, IID_IDirectoryObject)
@@ -99,13 +99,13 @@ def _DumpObject(ob, level=0):
         dir_ob = None
     if dir_ob is not None:
         info = dir_ob.GetObjectInformation()
-        print("%s RDN='%s', ObjectDN='%s'" % (prefix, info.RDN, info.ObjectDN))
+        print(f"{prefix} RDN='{info.RDN}', ObjectDN='{info.ObjectDN}'")
         # Create a list of names to fetch
         names = ["distinguishedName"]
         attrs = dir_ob.GetObjectAttributes(names)
         for attr in attrs:
             for val, typ in attr.Values:
-                print("%s Attribute '%s' = %s" % (prefix, attr.AttrName, val))
+                print(f"{prefix} Attribute '{attr.AttrName}' = {val}")
 
     for child in ob:
         _DumpObject(child, level + 1)
@@ -140,11 +140,11 @@ for name, val in pythoncom.__dict__.items():
 
 def DumpSchema2():
     "Dumps the schema using an alternative technique"
-    path = "LDAP://%sschema" % (server,)
+    path = f"LDAP://{server}schema"
     schema = ADsGetObject(path, IID_IADsContainer)
     nclass = nprop = nsyntax = 0
     for item in schema:
-        item_class = string.lower(item.Class)
+        item_class = item.Class.lower()
         if item_class == "class":
             items = []
             if item.Abstract:
@@ -152,14 +152,15 @@ def DumpSchema2():
             if item.Auxiliary:
                 items.append("Auxiliary")
             # 			if item.Structural: items.append("Structural")
-            desc = string.join(items, ", ")
+            desc = ", ".join(items)
             import win32com.util
 
             iid_name = win32com.util.IIDToInterfaceName(item.PrimaryInterface)
             if verbose_level >= 2:
                 print(
-                    "Class: Name=%s, Flags=%s, Primary Interface=%s"
-                    % (item.Name, desc, iid_name)
+                    "Class: Name={}, Flags={}, Primary Interface={}".format(
+                        item.Name, desc, iid_name
+                    )
                 )
             nclass = nclass + 1
         elif item_class == "property":
@@ -168,12 +169,12 @@ def DumpSchema2():
             else:
                 val_type = "Single-Valued"
             if verbose_level >= 2:
-                print("Property: Name=%s, %s" % (item.Name, val_type))
+                print(f"Property: Name={item.Name}, {val_type}")
             nprop = nprop + 1
         elif item_class == "syntax":
             data_type = vt_map.get(item.OleAutoDataType, "<unknown type>")
             if verbose_level >= 2:
-                print("Syntax: Name=%s, Datatype = %s" % (item.Name, data_type))
+                print(f"Syntax: Name={item.Name}, Datatype = {data_type}")
             nsyntax = nsyntax + 1
     if verbose_level >= 1:
         print("Processed", nclass, "classes")
@@ -185,30 +186,30 @@ def DumpGC():
     "Dumps the GC: object (whatever that is!)"
     ob = ADsGetObject("GC:", IID_IADsContainer)
     for sub_ob in ob:
-        print("GC ob: %s (%s)" % (sub_ob.Name, sub_ob.ADsPath))
+        print(f"GC ob: {sub_ob.Name} ({sub_ob.ADsPath})")
 
 
 def DumpLocalUsers():
     "Dumps the local machine users"
-    path = "WinNT://%s,computer" % (local_name,)
+    path = f"WinNT://{local_name},computer"
     ob = ADsGetObject(path, IID_IADsContainer)
     ob.put_Filter(["User", "Group"])
     for sub_ob in ob:
-        print("User/Group: %s (%s)" % (sub_ob.Name, sub_ob.ADsPath))
+        print(f"User/Group: {sub_ob.Name} ({sub_ob.ADsPath})")
 
 
 def DumpLocalGroups():
     "Dumps the local machine groups"
-    path = "WinNT://%s,computer" % (local_name,)
+    path = f"WinNT://{local_name},computer"
     ob = ADsGetObject(path, IID_IADsContainer)
 
     ob.put_Filter(["Group"])
     for sub_ob in ob:
-        print("Group: %s (%s)" % (sub_ob.Name, sub_ob.ADsPath))
+        print(f"Group: {sub_ob.Name} ({sub_ob.ADsPath})")
         # get the members
         members = sub_ob.Members()
         for member in members:
-            print("  Group member: %s (%s)" % (member.Name, member.ADsPath))
+            print(f"  Group member: {member.Name} ({member.ADsPath})")
 
 
 def usage(tests):

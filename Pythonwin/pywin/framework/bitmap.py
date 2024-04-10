@@ -28,7 +28,7 @@ class BitmapDocument(docview.Document):
         try:
             try:
                 self.bitmap.LoadBitmapFile(f)
-            except IOError:
+            except OSError:
                 win32ui.MessageBox("Could not load the bitmap from %s" % filename)
                 return 0
         finally:
@@ -128,7 +128,7 @@ class BitmapTemplate(docview.DocTemplate):
 
 # For debugging purposes, when this module may be reloaded many times.
 try:
-    win32ui.GetApp().RemoveDocTemplate(bitmapTemplate)
+    win32ui.GetApp().RemoveDocTemplate(bitmapTemplate)  # type: ignore[has-type, used-before-def]
 except NameError:
     pass
 
@@ -144,9 +144,9 @@ win32ui.GetApp().AddDocTemplate(bitmapTemplate)
 # 		magic=file.readline()
 # 		if magic <> "P6\n":
 # 			raise TypeError, "The file is not a PPM format file"
-# 		rowcollist=string.split(file.readline())
-# 		cols=string.atoi(rowcollist[0])
-# 		rows=string.atoi(rowcollist[1])
+# 		rowcollist=file.readline().split()
+# 		cols=int(rowcollist[0])
+# 		rows=int(rowcollist[1])
 # 		file.readline()	# whats this one?
 # 		self.bitmap.LoadPPMFile(file,(cols,rows))
 

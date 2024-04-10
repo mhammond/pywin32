@@ -49,7 +49,7 @@ class ShellExtension:
         elif uFlags & shellcon.CMF_EXPLORE:
             print("CMF_EXPLORE...")
             items.append(msg + " - normal file, right-click in Explorer")
-        elif uFlags & CMF_DEFAULTONLY:
+        elif uFlags & shellcon.CMF_DEFAULTONLY:
             print("CMF_DEFAULTONLY...\r\n")
         else:
             print("** unknown flags", uFlags)
@@ -104,7 +104,7 @@ def DllUnregisterServer():
             winreg.HKEY_CLASSES_ROOT,
             "Python.File\\shellex\\ContextMenuHandlers\\PythonSample",
         )
-    except WindowsError as details:
+    except OSError as details:
         import errno
 
         if details.errno != errno.ENOENT:

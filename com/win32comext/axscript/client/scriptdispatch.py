@@ -5,6 +5,8 @@
  this yet, so it is not well tested!
 """
 
+from __future__ import annotations
+
 import types
 
 import pythoncom
@@ -26,7 +28,7 @@ def _is_callable(obj):
 
 
 class ScriptDispatch:
-    _public_methods_ = []
+    _public_methods_: list[str] = []
 
     def __init__(self, engine, scriptNamespace):
         self.engine = engine

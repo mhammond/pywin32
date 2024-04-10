@@ -2,15 +2,7 @@ import pywin.scintilla.config
 import win32api
 import win32con
 import win32ui
-from pywin.framework.editor import (
-    DeleteEditorOption,
-    GetEditorFontOption,
-    GetEditorOption,
-    SetEditorFontOption,
-    SetEditorOption,
-    defaultCharacterFormat,
-    editorTemplate,
-)
+from pywin.framework.editor import DeleteEditorOption, GetEditorOption, SetEditorOption
 from pywin.mfc import dialog
 
 from . import document
@@ -119,7 +111,6 @@ class EditorPropertyPage(dialog.PropertyPage):
             import traceback
 
             traceback.print_exc()
-            pass
 
         self.HookCommand(self.OnButSimple, win32ui.IDC_FOLD_ENABLE)
         self.HookCommand(self.OnButSimple, win32ui.IDC_RADIO1)

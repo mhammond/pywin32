@@ -27,10 +27,9 @@ The object responds to the _NewEnum method by returning an enumerator over
 the dictionary's keys. This allows for the following type of VB code:
 
     for each name in ob
-        debug.print name, ob(name)
+        debug.print(name, ob(name))
     next
 """
-
 
 import pythoncom
 import pywintypes

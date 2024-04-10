@@ -21,7 +21,7 @@ class DDESystemTopic(object.Object):
 
     def Exec(self, data):
         try:
-            # 			print "Executing", cmd
+            # print("Executing", cmd)
             self.app.OnDDECommand(data)
         except:
             t, v, tb = sys.exc_info()

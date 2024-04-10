@@ -4,8 +4,6 @@
 #include "stdafx.h"
 #include "PythonCOM.h"
 
-#ifndef NO_PYCOM_IENUMGUID
-
 #include <comcat.h>
 #include "PyIEnumGUID.h"
 
@@ -211,4 +209,3 @@ STDMETHODIMP PyGEnumGUID::Clone(IEnumGUID __RPC_FAR *__RPC_FAR *ppEnum)
     return PyCom_SetCOMErrorFromSimple(hr, IID_IEnumGUID);
 }
 
-#endif  // NO_PYCOM_IENUMGUID

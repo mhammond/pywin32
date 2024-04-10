@@ -294,10 +294,6 @@ PYWIN_MODULE_INIT_FUNC(axdebug)
 {
     PYWIN_MODULE_INIT_PREPARE(axdebug, axdebug_methods, "A module, encapsulating the ActiveX Debugging interfaces");
 
-#if PY_VERSION_HEX < 0x03070000
-    PyEval_InitThreads();
-#endif
-
     // Add some symbolic constants to the module
     axdebug_Error = PyErr_NewException("axdebug.error", NULL, NULL);
     if (axdebug_Error == NULL || PyDict_SetItemString(dict, "error", axdebug_Error) != 0)

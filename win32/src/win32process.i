@@ -4,9 +4,7 @@
 
 %{
 #define PY_SSIZE_T_CLEAN  // may inevitably be defined by swig_lib/python/python.swg already
-#ifndef MS_WINCE
 #include "process.h"
-#endif
 #include "windows.h"
 #include "Psapi.h"
 #include "PyWinTypes.h"
@@ -31,7 +29,6 @@ static GetModuleFileNameExfunc pfnGetModuleFileNameEx = NULL;
 typedef DWORD (WINAPI *GetProcessIdfunc)(HANDLE);
 static GetProcessIdfunc pfnGetProcessId = NULL;
 
-#ifndef MS_WINCE
 typedef BOOL (WINAPI *GetProcessMemoryInfofunc)(HANDLE, PPROCESS_MEMORY_COUNTERS, DWORD);
 static GetProcessMemoryInfofunc pfnGetProcessMemoryInfo=NULL;
 typedef BOOL (WINAPI *GetProcessTimesfunc)(HANDLE, LPFILETIME, LPFILETIME, LPFILETIME, LPFILETIME);
@@ -71,7 +68,6 @@ typedef DWORD (WINAPI *SetProcessAffinityMaskfunc)(HANDLE, DWORD_PTR);
 static SetProcessAffinityMaskfunc pfnSetProcessAffinityMask = NULL;
 typedef BOOL (WINAPI *IsWow64Processfunc)(HANDLE, PBOOL);
 static IsWow64Processfunc pfnIsWow64Process = NULL;
-#endif
 
 // Support for a STARTUPINFO object.
 class PySTARTUPINFO : public PyObject
@@ -322,16 +318,8 @@ static PyObject *mySTARTUPINFO(PyObject *self, PyObject *args)
 
 %typemap(python,in) STARTUPINFO *
 {
-#ifdef MS_WINCE
-	if ($source!=Py_None) {
-		PyErr_SetString(PyExc_TypeError, "STARTUPINFO is not supported on Windows CE");
-		return NULL;
-	}
-	$target = NULL;
-#else
 	if (!PyWinObject_AsSTARTUPINFO($source, &$target, FALSE))
 		return NULL;
-#endif
 }
 
 %typemap(python,argout) STARTUPINFO *OUTPUT {
@@ -357,8 +345,6 @@ static PyObject *mySTARTUPINFO(PyObject *self, PyObject *args)
 {
   $target = &temp;
 }
-
-#ifndef MS_WINCE
 
 %{
 class PythonThreadData
@@ -414,9 +400,6 @@ static PyObject *mybeginthreadex(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsSECURITY_ATTRIBUTES( obSA, &pSA, TRUE ))
 		return NULL;
 
-#if PY_VERSION_HEX < 0x03070000
-	PyEval_InitThreads();
-#endif
 	PythonThreadData *ptd = new PythonThreadData(obFunc, obArgs);
 	ULONG_PTR handle;
 	unsigned tid;
@@ -462,9 +445,6 @@ static PyObject *myCreateRemoteThread(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsSECURITY_ATTRIBUTES( obSA, &pSA, TRUE ))
 		return NULL;
 
-#if PY_VERSION_HEX < 0x03070000
-	PyEval_InitThreads();
-#endif
 	HANDLE handle;
 	DWORD tid;
 	handle = (*pfnCreateRemoteThread)(hprocess, pSA, stackSize,
@@ -479,7 +459,6 @@ static PyObject *myCreateRemoteThread(PyObject *self, PyObject *args)
 %}
 %native (CreateRemoteThread) myCreateRemoteThread;
 
-#endif // MS_WINCE
 
 // Wont expose ExitThread!!!  May leak all sorts of things!
 
@@ -646,10 +625,8 @@ PyObject *MyCreateProcess(
 	if (!CreateEnvironmentString(environment, &pEnv, &bEnvIsUnicode))
 		return NULL;
 
-#ifndef MS_WINCE
 	if (bEnvIsUnicode)
 		dwCreationFlags |= CREATE_UNICODE_ENVIRONMENT;
-#endif //MS_WINCE
 
 	BOOL ok;
 	Py_BEGIN_ALLOW_THREADS
@@ -717,7 +694,6 @@ PyObject *MyCreateProcess(
 
 );
 
-#ifndef MS_WINCE
 %{
 PyObject *MyCreateProcessAsUser(
 	HANDLE h,
@@ -780,7 +756,6 @@ PyObject *MyCreateProcessAsUser(
 	STARTUPINFO *lpStartupInfo // @pyparm <o PySTARTUPINFO>|startupinfo||a STARTUPINFO object that specifies how the main window for the new process should appear.
 );
 
-#endif // MS_WINCE
 
 %{
 // GetCurrentProcess returns -1 which is INVALID_HANDLE_VALUE, so can't use swig typemap for HANDLE 
@@ -802,7 +777,6 @@ DWORD GetProcessVersion(
 // @pyswig int|GetCurrentProcessId|Retrieves the process identifier of the calling process.
 DWORD GetCurrentProcessId();
 
-#ifndef MS_WINCE
 // @pyswig <o PySTARTUPINFO>|GetStartupInfo|Retrieves the contents of the STARTUPINFO structure that was specified when the calling process was created.
 void GetStartupInfo(
 	STARTUPINFO *OUTPUT
@@ -812,8 +786,6 @@ void GetStartupInfo(
 DWORD GetPriorityClass(
 	HANDLE hThread // @pyparm <o PyHANDLE>|handle||handle to the thread
 );
-
-#endif // MS_WINCE
 
 // @pyswig int|GetExitCodeThread|
 BOOLAPI GetExitCodeThread(
@@ -989,8 +961,6 @@ static PyObject *PyGetProcessId(PyObject *self, PyObject *args)
 %native (GetThreadTimes) PyGetThreadTimes;
 %native (GetProcessId) PyGetProcessId;
 
-#ifndef MS_WINCE
-
 // @pyswig |SetPriorityClass|
 BOOLAPI SetPriorityClass(
   	HANDLE hThread, // @pyparm <o PyHANDLE>|handle||handle to the process
@@ -1099,7 +1069,6 @@ static PyObject *MySetThreadAffinityMask(PyObject *self, PyObject *args)
 %native(GetProcessAffinityMask) MyGetProcessAffinityMask;
 %native(SetProcessAffinityMask) MySetProcessAffinityMask;
 %native(SetThreadAffinityMask) MySetThreadAffinityMask;
-#endif // MS_WINCE
 
 // Special result handling for SuspendThread and ResumeThread
 %typedef DWORD DWORD_SR_THREAD
@@ -1365,7 +1334,6 @@ done:
 }
 %}
 
-#ifndef MS_WINCE
 // @pyswig <o dict>|GetProcessMemoryInfo|Returns process memory statistics as a dict representing a PROCESS_MEMORY_COUNTERS struct
 %native(GetProcessMemoryInfo) PyGetProcessMemoryInfo;
 %{
@@ -1712,7 +1680,6 @@ PyObject *PyWriteProcessMemory(PyObject *self, PyObject *args)
 }
 %}
 
-#endif	// MS_WINCE
 
 %init %{
 
@@ -1729,12 +1696,9 @@ PyObject *PyWriteProcessMemory(PyObject *self, PyObject *args)
 		pfnEnumProcessModules = (EnumProcessModulesfunc)GetProcAddress(hmodule, "EnumProcessModules");
 		pfnEnumProcessModulesEx = (EnumProcessModulesExfunc)GetProcAddress(hmodule, "EnumProcessModulesEx");
 		pfnGetModuleFileNameEx = (GetModuleFileNameExfunc)GetProcAddress(hmodule, "GetModuleFileNameExW");
-#ifndef MS_WINCE
 		pfnGetProcessMemoryInfo = (GetProcessMemoryInfofunc)GetProcAddress(hmodule, "GetProcessMemoryInfo");
-#endif
 		}
 
-#ifndef MS_WINCE
 	hmodule=GetModuleHandle(_T("Kernel32.dll"));
 	if (hmodule==NULL)
 		hmodule=LoadLibrary(_T("Kernel32.dll"));
@@ -1765,7 +1729,6 @@ PyObject *PyWriteProcessMemory(PyObject *self, PyObject *args)
 		pfnGetProcessWindowStation=(GetProcessWindowStationfunc)GetProcAddress(hmodule,"GetProcessWindowStation");
 		pfnGetGuiResources=(GetGuiResourcesfunc)GetProcAddress(hmodule,"GetGuiResources");
 		}
-#endif	// MS_WINCE
 
 // *sob* - these symbols don't exist in the platform sdk needed to build
 // using Python 2.3
@@ -1779,9 +1742,7 @@ PyObject *PyWriteProcessMemory(PyObject *self, PyObject *args)
 
 #define CREATE_SUSPENDED CREATE_SUSPENDED 
 
-#ifndef MS_WINCE
 #define MAXIMUM_PROCESSORS MAXIMUM_PROCESSORS 
-#endif // MS_WINCE
 
 #define THREAD_PRIORITY_ABOVE_NORMAL THREAD_PRIORITY_ABOVE_NORMAL // Indicates 1 point above normal priority for the priority class. 
 #define THREAD_PRIORITY_BELOW_NORMAL THREAD_PRIORITY_BELOW_NORMAL // Indicates 1 point below normal priority for the priority class. 
@@ -1793,7 +1754,6 @@ PyObject *PyWriteProcessMemory(PyObject *self, PyObject *args)
 #define THREAD_MODE_BACKGROUND_BEGIN THREAD_MODE_BACKGROUND_BEGIN
 #define THREAD_MODE_BACKGROUND_END THREAD_MODE_BACKGROUND_END
 
-#ifndef MS_WINCE
 #define CREATE_DEFAULT_ERROR_MODE CREATE_DEFAULT_ERROR_MODE // The new process does not inherit the error mode of the calling process. Instead, CreateProcess gives the new process the current default error mode. An application sets the current default error mode by calling SetErrorMode.
 // This flag is particularly useful for multi-threaded shell applications that run with hard errors disabled. 
 
@@ -1810,7 +1770,6 @@ PyObject *PyWriteProcessMemory(PyObject *self, PyObject *args)
 #define CREATE_PRESERVE_CODE_AUTHZ_LEVEL CREATE_PRESERVE_CODE_AUTHZ_LEVEL
 #define CREATE_NO_WINDOW CREATE_NO_WINDOW
 
-#endif // MS_WINCE
 
 #define DEBUG_PROCESS DEBUG_PROCESS // If this flag is set, the calling process is treated as a debugger, and the new process is a process being debugged. The system notifies the debugger of all debug events that occur in the process being debugged.
 // If you create a process with this flag set, only the calling thread (the thread that called CreateProcess) can call the WaitForDebugEvent function.
@@ -1818,7 +1777,6 @@ PyObject *PyWriteProcessMemory(PyObject *self, PyObject *args)
  
 #define DEBUG_ONLY_THIS_PROCESS DEBUG_ONLY_THIS_PROCESS // If not set and the calling process is being debugged, the new process becomes another process being debugged by the calling process's debugger. If the calling process is not a process being debugged, no debugging-related actions occur. 
 
-#ifndef MS_WINCE
 #define DETACHED_PROCESS DETACHED_PROCESS // For console processes, the new process does not have access to the console of the parent process. The new process can call the AllocConsole function at a later time to create a new console. This flag cannot be used with the CREATE_NEW_CONSOLE flag. 
 
 #define ABOVE_NORMAL_PRIORITY_CLASS ABOVE_NORMAL_PRIORITY_CLASS // Windows 2000: Indicates a process that has priority above NORMAL_PRIORITY_CLASS but below HIGH_PRIORITY_CLASS.
@@ -1857,4 +1815,3 @@ PyObject *PyWriteProcessMemory(PyObject *self, PyObject *args)
 // Sets the standard input, standard output, and standard error handles for the process to the handles specified in the hStdInput, hStdOutput, and hStdError members of the STARTUPINFO structure. The CreateProcess function's fInheritHandles parameter must be set to TRUE for this to work properly. 
 // If this value is not specified, the hStdInput, hStdOutput, and hStdError members of the STARTUPINFO structure are ignored. 
 
-#endif // MS_WINCE

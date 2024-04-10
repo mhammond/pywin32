@@ -1,21 +1,19 @@
 import io
-import string
 import sys
 import traceback
 from pprint import pprint
 
 import winerror
-from win32com.server.exception import COMException
 
 from . import axdebug, gateways
-from .util import RaiseNotImpl, _wrap, _wrap_remove
+from .util import RaiseNotImpl, _wrap
 
 
 # Given an object, return a nice string
 def MakeNiceString(ob):
     stream = io.StringIO()
     pprint(ob, stream)
-    return string.strip(stream.getvalue())
+    return stream.getvalue().strip()
 
 
 class ProvideExpressionContexts(gateways.ProvideExpressionContexts):
@@ -33,7 +31,7 @@ class ExpressionContext(gateways.DebugExpressionContext):
         )
 
     def GetLanguageInfo(self):
-        #               print "GetLanguageInfo"
+        # print("GetLanguageInfo")
         return "Python", "{DF630910-1C1D-11d0-AE36-8C0F5E000000}"
 
 
@@ -65,7 +63,7 @@ class Expression(gateways.DebugExpression):
                     sys.exc_info()[0], sys.exc_info()[1]
                 )
                 # l is a list of strings with trailing "\n"
-                self.result = string.join(map(lambda s: s[:-1], l), "\n")
+                self.result = "\n".join(s[:-1] for s in l)
                 self.hresult = winerror.E_FAIL
         finally:
             self.isComplete = 1
@@ -78,7 +76,7 @@ class Expression(gateways.DebugExpression):
         return self.isComplete
 
     def GetResultAsString(self):
-        #               print "GetStrAsResult returning", self.result
+        # print("GetStrAsResult returning", self.result)
         return self.hresult, MakeNiceString(self.result)
 
     def GetResultAsDebugProperty(self):
@@ -188,8 +186,8 @@ class DebugProperty:
             dwFieldSpec,
             nRadix,
             self.hresult,
-            dictionary,
-            stackFrame,
+            self.dictionary,
+            self.stackFrame,
         )
 
     def GetExtendedInfo(self):  ### Note - not in the framework.
