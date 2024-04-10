@@ -71,30 +71,26 @@ class CommonDBTests(unittest.TestCase):
         assert crsr.__class__.__name__ == "Cursor"
 
     def testErrorHandlerInherits(self):
-        if not self.remote:
-            conn = self.getConnection()
-            mycallable = lambda connection, cursor, errorclass, errorvalue: 1
-            conn.errorhandler = mycallable
-            crsr = conn.cursor()
-            assert (
-                crsr.errorhandler == mycallable
-            ), "Error handler on crsr should be same as on connection"
+        conn = self.getConnection()
+        mycallable = lambda connection, cursor, errorclass, errorvalue: 1
+        conn.errorhandler = mycallable
+        crsr = conn.cursor()
+        assert (
+            crsr.errorhandler == mycallable
+        ), "Error handler on crsr should be same as on connection"
 
     def testDefaultErrorHandlerConnection(self):
-        if not self.remote:
-            conn = self.getConnection()
-            del conn.messages[:]
-            try:
-                conn.close()
-                conn.commit()  # Should not be able to use connection after it is closed
-            except:
-                assert len(conn.messages) == 1
-                assert len(conn.messages[0]) == 2
-                assert conn.messages[0][0] == api.ProgrammingError
+        conn = self.getConnection()
+        del conn.messages[:]
+        try:
+            conn.close()
+            conn.commit()  # Should not be able to use connection after it is closed
+        except:
+            assert len(conn.messages) == 1
+            assert len(conn.messages[0]) == 2
+            assert conn.messages[0][0] == api.ProgrammingError
 
     def testOwnErrorHandlerConnection(self):
-        if self.remote:  # ToDo: use "skip"
-            return
         mycallable = (
             lambda connection, cursor, errorclass, errorvalue: 1
         )  # does not raise anything
@@ -117,18 +113,15 @@ class CommonDBTests(unittest.TestCase):
 
     def testDefaultErrorHandlerCursor(self):
         crsr = self.getConnection().cursor()
-        if not self.remote:
-            del crsr.messages[:]
-            try:
-                crsr.execute("SELECT abbtytddrf FROM dasdasd")
-            except:
-                assert len(crsr.messages) == 1
-                assert len(crsr.messages[0]) == 2
-                assert crsr.messages[0][0] == api.DatabaseError
+        del crsr.messages[:]
+        try:
+            crsr.execute("SELECT abbtytddrf FROM dasdasd")
+        except:
+            assert len(crsr.messages) == 1
+            assert len(crsr.messages[0]) == 2
+            assert crsr.messages[0][0] == api.DatabaseError
 
     def testOwnErrorHandlerCursor(self):
-        if self.remote:  # ToDo: should be a "skip"
-            return
         mycallable = (
             lambda connection, cursor, errorclass, errorvalue: 1
         )  # does not raise anything
@@ -148,8 +141,6 @@ class CommonDBTests(unittest.TestCase):
         ), "Setting errorhandler to none  should bring back the standard error handler"
 
     def testUserDefinedConversions(self):
-        if self.remote:  ## Todo: should be a "skip"
-            return
         try:
             duplicatingConverter = lambda aStringField: aStringField * 2
             assert duplicatingConverter("gabba") == "gabbagabba"
@@ -158,42 +149,38 @@ class CommonDBTests(unittest.TestCase):
             conn = self.getConnection()
             # the variantConversions attribute should not exist on a normal connection object
             self.assertRaises(AttributeError, lambda x: conn.variantConversions[x], [2])
-            if not self.remote:
-                # create a variantConversions attribute on the connection
-                conn.variantConversions = copy.copy(api.variantConversions)
-                crsr = conn.cursor()
-                tabdef = (
-                    "CREATE TABLE xx_%s (fldData VARCHAR(100) NOT NULL, fld2 VARCHAR(20))"
-                    % config.tmp
-                )
-                crsr.execute(tabdef)
-                crsr.execute(
-                    "INSERT INTO xx_%s(fldData,fld2) VALUES('gabba','booga')"
-                    % config.tmp
-                )
-                crsr.execute(
-                    "INSERT INTO xx_%s(fldData,fld2) VALUES('hey','yo')" % config.tmp
-                )
-                # change converter for ALL adoStringTypes columns
-                conn.variantConversions[api.adoStringTypes] = duplicatingConverter
-                crsr.execute(
-                    "SELECT fldData,fld2 FROM xx_%s ORDER BY fldData" % config.tmp
-                )
+            # create a variantConversions attribute on the connection
+            conn.variantConversions = copy.copy(api.variantConversions)
+            crsr = conn.cursor()
+            tabdef = (
+                "CREATE TABLE xx_%s (fldData VARCHAR(100) NOT NULL, fld2 VARCHAR(20))"
+                % config.tmp
+            )
+            crsr.execute(tabdef)
+            crsr.execute(
+                "INSERT INTO xx_%s(fldData,fld2) VALUES('gabba','booga')" % config.tmp
+            )
+            crsr.execute(
+                "INSERT INTO xx_%s(fldData,fld2) VALUES('hey','yo')" % config.tmp
+            )
+            # change converter for ALL adoStringTypes columns
+            conn.variantConversions[api.adoStringTypes] = duplicatingConverter
+            crsr.execute("SELECT fldData,fld2 FROM xx_%s ORDER BY fldData" % config.tmp)
 
-                rows = crsr.fetchall()
-                row = rows[0]
-                self.assertEqual(row[0], "gabbagabba")
-                row = rows[1]
-                self.assertEqual(row[0], "heyhey")
-                self.assertEqual(row[1], "yoyo")
+            rows = crsr.fetchall()
+            row = rows[0]
+            self.assertEqual(row[0], "gabbagabba")
+            row = rows[1]
+            self.assertEqual(row[0], "heyhey")
+            self.assertEqual(row[1], "yoyo")
 
-                upcaseConverter = lambda aStringField: aStringField.upper()
-                assert upcaseConverter("upThis") == "UPTHIS"
+            upcaseConverter = lambda aStringField: aStringField.upper()
+            assert upcaseConverter("upThis") == "UPTHIS"
 
-                # now use a single column converter
-                rows.converters[1] = upcaseConverter  # convert second column
-                self.assertEqual(row[0], "heyhey")  # first will be unchanged
-                self.assertEqual(row[1], "YO")  # second will convert to upper case
+            # now use a single column converter
+            rows.converters[1] = upcaseConverter  # convert second column
+            self.assertEqual(row[0], "heyhey")  # first will be unchanged
+            self.assertEqual(row[1], "YO")  # second will convert to upper case
 
         finally:
             try:
@@ -210,7 +197,7 @@ class CommonDBTests(unittest.TestCase):
         # !!! no new code should use this example, to is only a test to see that the
         # !!! deprecated way of doing this still works.  (use connection.variantConversions)
         #
-        if not self.remote and sys.version_info < (3, 0):  ### Py3 need different test
+        if sys.version_info < (3, 0):  ### Py3 need different test
             oldconverter = adodbapi.variantConversions[
                 ado_consts.adNumeric
             ]  # keep old function to restore later
@@ -331,11 +318,7 @@ class CommonDBTests(unittest.TestCase):
                     (fldId, inParam),
                 )
             except:
-                if self.remote:
-                    for message in crsr.messages:
-                        print(message)
-                else:
-                    conn.printADOerrors()
+                conn.printADOerrors()
                 raise
             crsr.execute(
                 "SELECT fldData FROM xx_%s WHERE ?=fldID" % config.tmp, [fldId]
@@ -671,11 +654,8 @@ class CommonDBTests(unittest.TestCase):
 
     def testErrorConnect(self):
         conn = self.getConnection()
-        kw = {}
-        if "proxy_host" in conn.kwargs:
-            kw["proxy_host"] = conn.kwargs["proxy_host"]
         conn.close()
-        self.assertRaises(api.DatabaseError, self.db, "not a valid connect string", kw)
+        self.assertRaises(api.DatabaseError, self.db, "not a valid connect string", {})
 
     def testRowIterator(self):
         self.helpForceDropOnTblTemp()
@@ -704,11 +684,7 @@ class CommonDBTests(unittest.TestCase):
                     (fldId, inParam[0], inParam[1], inParam[2]),
                 )
             except:
-                if self.remote:
-                    for message in crsr.messages:
-                        print(message)
-                else:
-                    conn.printADOerrors()
+                conn.printADOerrors()
                 raise
             crsr.execute(
                 "SELECT fldTwo,fldThree,fldFour FROM xx_%s WHERE ?=fldID" % config.tmp,
@@ -778,11 +754,7 @@ class CommonDBTests(unittest.TestCase):
             try:
                 crsr.execute(sql, (fldId, inParam))
             except:
-                if self.remote:
-                    for message in crsr.messages:
-                        print(message)
-                else:
-                    conn.printADOerrors()
+                conn.printADOerrors()
                 raise
             crsr.execute(
                 "SELECT fldData, fldConst FROM xx_" + config.tmp + " WHERE %s=fldID",
@@ -809,8 +781,7 @@ class CommonDBTests(unittest.TestCase):
         assert crsr.command == sel, 'expected:"%s" but found "%s"' % (sel, crsr.command)
 
         # test the .parameters attribute
-        if not self.remote:  # parameter list will be altered in transit
-            self.assertEqual(crsr.parameters, params)
+        self.assertEqual(crsr.parameters, params)
         # now make sure the data made it
         crsr.execute("SELECT fldData FROM xx_%s WHERE fldID=20" % config.tmp)
         rec = crsr.fetchone()
@@ -842,11 +813,7 @@ class CommonDBTests(unittest.TestCase):
                     {"f_Val": inParam, "Id": fldId},
                 )
             except:
-                if self.remote:
-                    for message in crsr.messages:
-                        print(message)
-                else:
-                    conn.printADOerrors()
+                conn.printADOerrors()
                 raise
             crsr.execute(
                 "SELECT fldData FROM xx_%s WHERE fldID=:Id" % config.tmp, {"Id": fldId}
@@ -892,11 +859,7 @@ class CommonDBTests(unittest.TestCase):
                     {"f_Val": inParam, "Id": fldId},
                 )
             except:
-                if self.remote:
-                    for message in crsr.messages:
-                        print(message)
-                else:
-                    conn.printADOerrors()
+                conn.printADOerrors()
                 raise
             crsr.execute(
                 "SELECT fldData FROM xx_%s WHERE fldID=%%(Id)s" % config.tmp,
@@ -945,11 +908,7 @@ class CommonDBTests(unittest.TestCase):
                     (fldId, inParam),
                 )
             except:
-                if self.remote:
-                    for message in crsr.messages:
-                        print(message)
-                else:
-                    conn.printADOerrors()
+                conn.printADOerrors()
                 raise
             trouble = "thi%s :may cause? troub:1e"
             crsr.execute(
@@ -974,11 +933,7 @@ class CommonDBTests(unittest.TestCase):
                     {"f_Val": inParam, "Id": fldId},
                 )
             except:
-                if self.remote:
-                    for message in crsr.messages:
-                        print(message)
-                else:
-                    conn.printADOerrors()
+                conn.printADOerrors()
                 raise
             crsr.execute(
                 "SELECT fldData FROM xx_%s WHERE :Id=fldID" % config.tmp, {"Id": fldId}
@@ -1168,7 +1123,6 @@ class TestADOwithSQLServer(CommonDBTests):
         self.conn.timeout = 30  # turn timeout back up
         self.engine = "MSSQL"
         self.db = config.dbSqlServerconnect
-        self.remote = config.connStrSQLServer[2]
 
     def tearDown(self):
         try:
@@ -1317,7 +1271,6 @@ class TestADOwithAccessDB(CommonDBTests):
         self.conn.timeout = 30  # turn timeout back up
         self.engine = "ACCESS"
         self.db = config.dbAccessconnect
-        self.remote = config.connStrAccess[2]
 
     def tearDown(self):
         try:
@@ -1350,7 +1303,6 @@ class TestADOwithMySql(CommonDBTests):
         self.conn.timeout = 30  # turn timeout back up
         self.engine = "MySQL"
         self.db = config.dbMySqlconnect
-        self.remote = config.connStrMySql[2]
 
     def tearDown(self):
         try:
@@ -1420,7 +1372,6 @@ class TestADOwithPostgres(CommonDBTests):
         self.conn.timeout = 30  # turn timeout back up
         self.engine = "PostgreSQL"
         self.db = config.dbPostgresConnect
-        self.remote = config.connStrPostgres[2]
 
     def tearDown(self):
         try:
