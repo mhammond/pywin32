@@ -81,7 +81,7 @@ class _WIN32MASKEDSTRUCT:
                     val = default
                 vals.append(val)
             full_fmt += fmt
-        return struct.pack(*(full_fmt,) + tuple(vals))
+        return struct.pack(*(full_fmt, *tuple(vals)))
 
 
 # NOTE: See the win32gui_struct module for an alternative way of dealing

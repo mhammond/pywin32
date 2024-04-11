@@ -215,7 +215,7 @@ class NCBStruct:
             except KeyError:
                 vals.append(None)
 
-        self._buffer_[:] = struct.pack(*(self._format,) + tuple(vals))
+        self._buffer_[:] = struct.pack(*(self._format, *tuple(vals)))
 
     def _unpack(self):
         items = struct.unpack(self._format, self._buffer_)
