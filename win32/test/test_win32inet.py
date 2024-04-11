@@ -12,7 +12,7 @@ class CookieTests(unittest.TestCase):
         InternetSetCookie("http://www.python.org", None, data)
         got = InternetGetCookie("http://www.python.org", None)
         # handle that there might already be cookies for the domain.
-        bits = map(lambda x: x.strip(), got.split(";"))
+        bits = (x.strip() for x in got.split(";"))
         self.assertTrue(data in bits)
 
     def testCookiesEmpty(self):

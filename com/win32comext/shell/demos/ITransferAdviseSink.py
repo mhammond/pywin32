@@ -4,9 +4,7 @@ import pythoncom
 from win32com.server.policy import DesignatedWrapPolicy
 from win32com.shell import shell, shellcon
 
-tsf_flags = list(
-    (k, v) for k, v in list(shellcon.__dict__.items()) if k.startswith("TSF_")
-)
+tsf_flags = [(k, v) for k, v in list(shellcon.__dict__.items()) if k.startswith("TSF_")]
 
 TRANSFER_ADVISE_STATES = {}
 for k, v in list(shellcon.__dict__.items()):
@@ -52,9 +50,9 @@ class TransferAdviseSink(DesignatedWrapPolicy):
         FoldersTotal,
     ):
         print("UpdateProgress - processed so far:")
-        print("\t %s out of %s bytes" % (SizeCurrent, SizeTotal))
-        print("\t %s out of %s files" % (FilesCurrent, FilesTotal))
-        print("\t %s out of %s folders" % (FoldersCurrent, FoldersTotal))
+        print(f"\t {SizeCurrent} out of {SizeTotal} bytes")
+        print(f"\t {FilesCurrent} out of {FilesTotal} files")
+        print(f"\t {FoldersCurrent} out of {FoldersTotal} folders")
 
     def UpdateTransferState(self, State):
         print(

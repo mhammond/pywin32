@@ -108,7 +108,7 @@ def DllUnregisterServer():
             winreg.HKEY_CLASSES_ROOT,
             "Folder\\ShellEx\\ColumnHandlers\\" + str(ColumnProvider._reg_clsid_),
         )
-    except WindowsError as details:
+    except OSError as details:
         import errno
 
         if details.errno != errno.ENOENT:

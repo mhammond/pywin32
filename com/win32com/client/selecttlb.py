@@ -132,10 +132,10 @@ def EnumTlbs(excludeFlags=0):
                         continue
                     # Check for both "{lcid}\win32" and "{lcid}\win64" keys.
                     try:
-                        key4 = win32api.RegOpenKey(key3, "%s\\win32" % (lcid,))
+                        key4 = win32api.RegOpenKey(key3, f"{lcid}\\win32")
                     except win32api.error:
                         try:
-                            key4 = win32api.RegOpenKey(key3, "%s\\win64" % (lcid,))
+                            key4 = win32api.RegOpenKey(key3, f"{lcid}\\win64")
                         except win32api.error:
                             continue
                     try:

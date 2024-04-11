@@ -155,7 +155,7 @@ class TypeBrowseDialog(TypeBrowseDialog_Parent):
             typeFlags = attr[11]
 
             desc = doc[0]
-            desc = desc + ", Flags=0x%x, typeKind=0x%x, typeFlags=0x%x" % (
+            desc = desc + ", Flags=0x{:x}, typeKind=0x{:x}, typeFlags=0x{:x}".format(
                 flags,
                 typeKind,
                 typeFlags,

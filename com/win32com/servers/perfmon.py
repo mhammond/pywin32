@@ -1,13 +1,15 @@
 """A COM Server which exposes the NT Performance monitor in a very rudimentary way
 
 Usage from VB:
-	set ob = CreateObject("Python.PerfmonQuery")
-	freeBytes = ob.Query("Memory", "Available Bytes")
+    set ob = CreateObject("Python.PerfmonQuery")
+    freeBytes = ob.Query("Memory", "Available Bytes")
 """
+
 import pythoncom
 import win32pdhutil
 import winerror
-from win32com.server import exception, register
+from win32com.server import register
+from win32com.server.exception import COMException
 
 
 class PerfMonQuery:
@@ -24,9 +26,9 @@ class PerfMonQuery:
                 object, counter, instance, machine=machine
             )
         except win32pdhutil.error as exc:
-            raise exception.Exception(desc=exc.strerror)
+            raise COMException(desc=exc.strerror)
         except TypeError as desc:
-            raise exception.Exception(desc=desc, scode=winerror.DISP_E_TYPEMISMATCH)
+            raise COMException(desc=desc, scode=winerror.DISP_E_TYPEMISMATCH)
 
 
 if __name__ == "__main__":

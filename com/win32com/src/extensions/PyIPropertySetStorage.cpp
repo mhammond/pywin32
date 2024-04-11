@@ -5,7 +5,6 @@
 #include "PythonCOM.h"
 #include "PythonCOMServer.h"
 
-#ifndef NO_PYCOM_IPROPERTYSETSTORAGE
 #include "PyIPropertySetStorage.h"
 
 // @doc - This file contains autoduck documentation
@@ -235,4 +234,3 @@ STDMETHODIMP PyGPropertySetStorage::Enum(
     return hr;
 }
 
-#endif  // NO_PYCOM_IPROPERTYSETSTORAGE

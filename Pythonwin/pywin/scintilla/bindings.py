@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import traceback
 
 import win32api
@@ -13,8 +15,8 @@ HANDLER_ARGS_EXTENSION = 3
 
 next_id = 5000
 
-event_to_commands = {}  # dict of integer IDs to event names.
-command_to_events = {}  # dict of event names to int IDs
+event_to_commands: dict[str, int] = {}  # dict of event names to IDs
+command_to_events: dict[int, str] = {}  # dict of IDs to event names
 
 
 def assign_command_id(event, id=0):
@@ -106,7 +108,7 @@ class BindingsManager:
             name = handler.replace("-", "_") + "_event"
             return getattr(instance, name)
         except (ImportError, AttributeError):
-            msg = "Can not find event '%s' in IDLE extension '%s'" % (handler, ext)
+            msg = f"Can not find event '{handler}' in IDLE extension '{ext}'"
             self.report_error(msg)
             return None
 

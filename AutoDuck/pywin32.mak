@@ -43,10 +43,9 @@ WIN32_SOURCE = $(WIN32_SOURCE_DIR)/*.cpp \
 	  $(WIN32_SOURCE_DIR)/win32crypt/*.cpp \
 	  $(GENDIR)/win32evtlog.d $(GENDIR)/win32event.d $(GENDIR)/win32file.d \
 	  $(GENDIR)/win32service.d $(GENDIR)/win32pipe.d $(GENDIR)/win32security.d \
-	  $(GENDIR)/win32process.d $(GENDIR)/wincerapi.d $(GENDIR)/win32gui.d \
+	  $(GENDIR)/win32process.d $(GENDIR)/win32gui.d \
 	  $(GENDIR)/win32inet.d $(GENDIR)/_winxptheme.d \
 	  $(GENDIR)/win32job.d \
-	  winxpgui.d
 
 WIN32COM_SOURCE = \
 	  $(WIN32COM_DIR)\src\*.cpp \
@@ -160,9 +159,6 @@ $(GENDIR)/win32security.d: $(WIN32_SOURCE_DIR)/$(*B).i
 	$(PYTHON) makedfromi.py -o$*.d $(WIN32_SOURCE_DIR)/$(*B).i
 
 $(GENDIR)/win32process.d: $(WIN32_SOURCE_DIR)/$(*B).i
-	$(PYTHON) makedfromi.py -o$*.d $(WIN32_SOURCE_DIR)/$(*B).i
-
-$(GENDIR)/wincerapi.d: $(WIN32_SOURCE_DIR)/$(*B).i
 	$(PYTHON) makedfromi.py -o$*.d $(WIN32_SOURCE_DIR)/$(*B).i
 
 $(GENDIR)/win32gui.d: $(WIN32_SOURCE_DIR)/$(*B).i

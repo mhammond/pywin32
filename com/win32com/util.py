@@ -2,6 +2,7 @@
 
   This module contains a collection of general purpose utility functions.
 """
+
 import pythoncom
 import win32api
 import win32con

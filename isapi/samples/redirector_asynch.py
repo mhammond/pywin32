@@ -41,7 +41,7 @@ class Extension(threaded_extension.ThreadPoolExtension):
     "Python sample proxy server - asynch version."
 
     def Dispatch(self, ecb):
-        print('IIS dispatching "%s"' % (ecb.GetServerVariable("URL"),))
+        print('IIS dispatching "{}"'.format(ecb.GetServerVariable("URL")))
         url = ecb.GetServerVariable("URL")
 
         new_url = proxy + url

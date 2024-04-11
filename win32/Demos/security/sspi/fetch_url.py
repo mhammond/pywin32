@@ -37,7 +37,7 @@ def open_url(host, url):
     if options.show_headers:
         print("Initial response headers:")
         for name, val in list(resp.msg.items()):
-            print(" %s: %s" % (name, val))
+            print(f" {name}: {val}")
     if options.show_body:
         print(body)
     if resp.status == 401:
@@ -61,7 +61,7 @@ def open_url(host, url):
             if options.show_headers:
                 print("Token dance headers:")
                 for name, val in list(resp.msg.items()):
-                    print(" %s: %s" % (name, val))
+                    print(f" {name}: {val}")
 
             if err == 0:
                 break
@@ -85,9 +85,7 @@ def open_url(host, url):
                     data = decodestring(scheme[len(auth_scheme) + 1 :])
                     break
             else:
-                print(
-                    "Could not find scheme '%s' in schemes %r" % (auth_scheme, schemes)
-                )
+                print(f"Could not find scheme '{auth_scheme}' in schemes {schemes!r}")
                 break
 
             resp.read()
@@ -110,7 +108,7 @@ def open_url(host, url):
         if options.show_headers:
             print("Second response headers:")
             for name, val in list(resp.msg.items()):
-                print(" %s: %s" % (name, val))
+                print(f" {name}: {val}")
 
         resp.read(int(resp.msg.get("content-length", 0)))
     elif resp.status == 500:
@@ -156,5 +154,5 @@ if __name__ == "__main__":
         if (scheme != "http") or params or query or fragment:
             parser.error("Scheme must be http, URL must be simple")
 
-        print("Opening '%s' from '%s'" % (path, netloc))
+        print(f"Opening '{path}' from '{netloc}'")
         r = open_url(netloc, path)

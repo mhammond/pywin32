@@ -56,7 +56,7 @@ def walk(arg, dirname, names):
                 # Handle the "_d" thing.
                 pathname = os.path.join(dirname, name)
                 base, ext = os.path.splitext(name)
-                if base[-2:] == "_d":
+                if base.endswith("_d"):
                     name = base[:-2] + ext
                 is_dll = ext.lower() != ".exe"
                 if os.path.normcase(name) in descriptions:
@@ -78,7 +78,7 @@ def walk(arg, dirname, names):
                     # skip branding this - assume already branded or handled elsewhere
 
 
-#        print "Stamped", pathname
+# print("Stamped", pathname)
 
 
 def load_descriptions(fname, vars):

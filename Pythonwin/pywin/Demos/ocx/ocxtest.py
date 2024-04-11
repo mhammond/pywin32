@@ -228,12 +228,6 @@ def test2():
     d = None
 
 
-def test3():
-    d = TestCOMMDialog(MakeDlgTemplate())
-    d.DoModal()
-    d = None
-
-
 def testall():
     test1()
     test2()

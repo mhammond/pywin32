@@ -33,7 +33,7 @@ class Object:
         raise AttributeError(attr)
 
     def OnAttachedObjectDeath(self):
-        # 		print "object", self.__class__.__name__, "dieing"
+        # print("object", self.__class__.__name__, "dieing")
         self._obj_ = None
 
     def close(self):

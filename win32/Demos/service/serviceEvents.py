@@ -61,15 +61,15 @@ class EventDemoService(win32serviceutil.ServiceFramework):
         # docs for "HandlerEx callback" for more info.
         if control == win32service.SERVICE_CONTROL_DEVICEEVENT:
             info = win32gui_struct.UnpackDEV_BROADCAST(data)
-            msg = "A device event occurred: %x - %s" % (event_type, info)
+            msg = f"A device event occurred: {event_type:x} - {info}"
         elif control == win32service.SERVICE_CONTROL_HARDWAREPROFILECHANGE:
-            msg = "A hardware profile changed: type=%s, data=%s" % (event_type, data)
+            msg = f"A hardware profile changed: type={event_type}, data={data}"
         elif control == win32service.SERVICE_CONTROL_POWEREVENT:
             msg = "A power event: setting %s" % data
         elif control == win32service.SERVICE_CONTROL_SESSIONCHANGE:
             # data is a single elt tuple, but this could potentially grow
             # in the future if the win32 struct does
-            msg = "Session event: type=%s, data=%s" % (event_type, data)
+            msg = f"Session event: type={event_type}, data={data}"
         else:
             msg = "Other event: code=%d, type=%s, data=%s" % (control, event_type, data)
 

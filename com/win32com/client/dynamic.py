@@ -15,6 +15,7 @@ Example
  >>> xl.Visible = 1 # The Excel window becomes visible.
 
 """
+
 import traceback
 import types
 
@@ -125,10 +126,8 @@ def Dispatch(
     userName=None,
     createClass=None,
     typeinfo=None,
-    UnicodeToString=None,
     clsctx=pythoncom.CLSCTX_SERVER,
 ):
-    assert UnicodeToString is None, "this is deprecated and will go away"
     IDispatch, userName = _GetGoodDispatchAndUserName(IDispatch, userName, clsctx)
     if createClass is None:
         createClass = CDispatch
@@ -180,11 +179,9 @@ def DumbDispatch(
     IDispatch,
     userName=None,
     createClass=None,
-    UnicodeToString=None,
     clsctx=pythoncom.CLSCTX_SERVER,
 ):
     "Dispatch with no type info"
-    assert UnicodeToString is None, "this is deprecated and will go away"
     IDispatch, userName = _GetGoodDispatchAndUserName(IDispatch, userName, clsctx)
     if createClass is None:
         createClass = CDispatch
@@ -192,10 +189,7 @@ def DumbDispatch(
 
 
 class CDispatch:
-    def __init__(
-        self, IDispatch, olerepr, userName=None, UnicodeToString=None, lazydata=None
-    ):
-        assert UnicodeToString is None, "this is deprecated and will go away"
+    def __init__(self, IDispatch, olerepr, userName=None, lazydata=None):
         if userName is None:
             userName = "<unknown>"
         self.__dict__["_oleobj_"] = IDispatch
@@ -234,7 +228,7 @@ class CDispatch:
         return "<COMObject %s>" % (self._username_)
 
     def __str__(self):
-        # __str__ is used when the user does "print object", so we gracefully
+        # __str__ is used when the user does "print(object)", so we gracefully
         # fall back to the __repr__ if the object has no default method.
         try:
             return str(self.__call__())
@@ -330,7 +324,7 @@ class CDispatch:
 
     def __setitem__(self, index, *args):
         # XXX - todo - We should support calling Item() here too!
-        # 		print "__setitem__ with", index, args
+        # print("__setitem__ with", index, args)
         if self._olerepr_.defaultDispatchName:
             invkind, dispid = self._find_dispatch_type_(
                 self._olerepr_.defaultDispatchName
@@ -369,10 +363,12 @@ class CDispatch:
         return self._get_good_object_(result, user, resultCLSID)
 
     def _wrap_dispatch_(
-        self, ob, userName=None, returnCLSID=None, UnicodeToString=None
+        self,
+        ob,
+        userName=None,
+        returnCLSID=None,
     ):
         # Given a dispatch object, wrap it in a class
-        assert UnicodeToString is None, "this is deprecated and will go away"
         return Dispatch(ob, userName)
 
     def _get_good_single_object_(self, ob, userName=None, ReturnCLSID=None):
@@ -414,8 +410,8 @@ class CDispatch:
         )
         methodCode = "\n".join(methodCodeList)
         try:
-            # 			print "Method code for %s is:\n" % self._username_, methodCode
-            # 			self._print_details_()
+            # print(f"Method code for {self._username_} is:\n", methodCode)
+            # self._print_details_()
             codeObject = compile(methodCode, "<COMObject %s>" % self._username_, "exec")
             # Exec the code object
             tempNameSpace = {}
@@ -469,13 +465,13 @@ class CDispatch:
                 print("\t", method)
             print("Props:")
             for prop, entry in self._olerepr_.propMap.items():
-                print("\t%s = 0x%x - %s" % (prop, entry.dispid, repr(entry)))
+                print(f"\t{prop} = 0x{entry.dispid:x} - {repr(entry)}")
             print("Get Props:")
             for prop, entry in self._olerepr_.propMapGet.items():
-                print("\t%s = 0x%x - %s" % (prop, entry.dispid, repr(entry)))
+                print(f"\t{prop} = 0x{entry.dispid:x} - {repr(entry)}")
             print("Put Props:")
             for prop, entry in self._olerepr_.propMapPut.items():
-                print("\t%s = 0x%x - %s" % (prop, entry.dispid, repr(entry)))
+                print(f"\t{prop} = 0x{entry.dispid:x} - {repr(entry)}")
         except:
             traceback.print_exc()
 
@@ -483,7 +479,7 @@ class CDispatch:
         try:
             if self._LazyAddAttr_(attr):
                 debug_attr_print(
-                    "%s.__LazyMap__(%s) added something" % (self._username_, attr)
+                    f"{self._username_}.__LazyMap__({attr}) added something"
                 )
                 return 1
         except AttributeError:
@@ -543,8 +539,9 @@ class CDispatch:
 
     def __AttrToID__(self, attr):
         debug_attr_print(
-            "Calling GetIDsOfNames for property %s in Dispatch container %s"
-            % (attr, self._username_)
+            "Calling GetIDsOfNames for property {} in Dispatch container {}".format(
+                attr, self._username_
+            )
         )
         return self._oleobj_.GetIDsOfNames(0, attr)
 
@@ -635,7 +632,7 @@ class CDispatch:
             return self._get_good_object_(ret)
 
         # no where else to look.
-        raise AttributeError("%s.%s" % (self._username_, attr))
+        raise AttributeError(f"{self._username_}.{attr}")
 
     def __setattr__(self, attr, value):
         if (
@@ -647,8 +644,9 @@ class CDispatch:
             return
         # Allow property assignment.
         debug_attr_print(
-            "SetAttr called for %s.%s=%s on DispatchContainer"
-            % (self._username_, attr, repr(value))
+            "SetAttr called for {}.{}={} on DispatchContainer".format(
+                self._username_, attr, repr(value)
+            )
         )
 
         if self._olerepr_:
@@ -697,12 +695,11 @@ class CDispatch:
                     self._oleobj_.Invoke(entry.dispid, 0, invoke_type, 0, value)
                     self._olerepr_.propMap[attr] = entry
                     debug_attr_print(
-                        "__setattr__ property %s (id=0x%x) in Dispatch container %s"
-                        % (attr, entry.dispid, self._username_)
+                        "__setattr__ property {} (id=0x{:x}) in Dispatch container {}".format(
+                            attr, entry.dispid, self._username_
+                        )
                     )
                     return
                 except pythoncom.com_error:
                     pass
-        raise AttributeError(
-            "Property '%s.%s' can not be set." % (self._username_, attr)
-        )
+        raise AttributeError(f"Property '{self._username_}.{attr}' can not be set.")

@@ -412,7 +412,7 @@ PyObject *PyWin_NewTime(PyObject *timeOb)
         PyObject *ret = PyDateTimeAPI->DateTime_FromTimestamp((PyObject *)(&PyWinDateTimeType), args, NULL);
         if (ret == NULL) {
             // datetime throws an OSError on failure, but for compatibility with
-            // Python 2.x, we turn that into a ValueError.
+        // Python 2, we turn that into a ValueError.
             PyErr_Clear();
             PyErr_SetString(PyExc_ValueError, "invalid timestamp");
         }

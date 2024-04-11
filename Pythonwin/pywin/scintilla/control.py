@@ -455,10 +455,7 @@ class CScintillaEditInterface(ScintillaControlInterface):
             charPos = self.GetSel()[0]
         assert (
             charPos >= 0 and charPos <= self.GetTextLength()
-        ), "The charPos postion (%s) is invalid (max=%s)" % (
-            charPos,
-            self.GetTextLength(),
-        )
+        ), f"The charPos postion ({charPos}) is invalid (max={self.GetTextLength()})"
         # return self.SendScintilla(EM_EXLINEFROMCHAR, charPos)
         # EM_EXLINEFROMCHAR puts charPos in lParam, not wParam
         return self.SendScintilla(EM_EXLINEFROMCHAR, 0, charPos)

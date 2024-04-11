@@ -1,6 +1,7 @@
 """ \
 Base class for Dialogs.  Also contains a few useful utility functions
 """
+
 # dialog.py
 # Python class for Dialog Boxes in PythonWin.
 

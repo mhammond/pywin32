@@ -64,17 +64,3 @@ if len(sys.argv) >= 2 and sys.argv[0].lower() in ("/app", "-app"):
 
 # Import the application module.
 __import__(moduleName)
-
-try:
-    win32ui.GetApp()._obj_
-    # This worked - an app already exists - do nothing more
-except (AttributeError, win32ui.error):
-    # This means either no app object exists at all, or the one
-    # that does exist does not have a Python class (ie, was created
-    # by the host .EXE).  In this case, we do the "old style" init...
-    from . import app
-
-    if app.AppBuilder is None:
-        raise TypeError("No application object has been registered")
-
-    app.App = app.AppBuilder()

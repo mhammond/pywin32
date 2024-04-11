@@ -7,7 +7,7 @@ import winerror
 
 def ReadCallback(input_buffer, data, buflen):
     fnamein, fnameout, f = data
-    ## print fnamein, fnameout, buflen
+    # print(fnamein, fnameout, buflen)
     f.write(input_buffer)
     return winerror.ERROR_SUCCESS
 

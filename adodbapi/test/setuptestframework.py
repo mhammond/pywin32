@@ -6,11 +6,6 @@ import shutil
 import sys
 import tempfile
 
-try:
-    OSErrors = (WindowsError, OSError)
-except NameError:  # not running on Windows
-    OSErrors = OSError
-
 
 def maketemp():
     temphome = tempfile.gettempdir()
@@ -52,7 +47,7 @@ def makeadopackage(testfolder):
         newpackage = os.path.join(testfolder, "adodbapi")
         try:
             os.mkdir(newpackage)
-        except OSErrors:
+        except OSError:
             print(
                 "*Note: temporary adodbapi package already exists: may be two versions running?"
             )
@@ -68,7 +63,7 @@ def makeadopackage(testfolder):
             sys.stdout = save
         return testfolder
     else:
-        raise EnvironmentError("Connot find source of adodbapi to test.")
+        raise OSError("Connot find source of adodbapi to test.")
 
 
 def makemdb(testfolder, mdb_name):
@@ -80,41 +75,23 @@ def makemdb(testfolder, mdb_name):
     if os.path.isfile(_accessdatasource):
         print("using JET database=", _accessdatasource)
     else:
-        try:
-            from win32com.client import constants
-            from win32com.client.gencache import EnsureDispatch
-
-            win32 = True
-        except ImportError:  # perhaps we are running IronPython
-            win32 = False  # iron Python
-            try:
-                from System import Activator, Type
-            except:
-                pass
+        from win32com.client import constants
+        from win32com.client.gencache import EnsureDispatch
 
         # Create a brand-new database - what is the story with these?
         dbe = None
         for suffix in (".36", ".35", ".30"):
             try:
-                if win32:
-                    dbe = EnsureDispatch("DAO.DBEngine" + suffix)
-                else:
-                    type = Type.GetTypeFromProgID("DAO.DBEngine" + suffix)
-                    dbe = Activator.CreateInstance(type)
+                dbe = EnsureDispatch("DAO.DBEngine" + suffix)
                 break
             except:
                 pass
         if dbe:
             print("    ...Creating ACCESS db at " + _accessdatasource)
-            if win32:
-                workspace = dbe.Workspaces(0)
-                newdb = workspace.CreateDatabase(
-                    _accessdatasource, constants.dbLangGeneral, constants.dbVersion40
-                )
-            else:
-                newdb = dbe.CreateDatabase(
-                    _accessdatasource, ";LANGID=0x0409;CP=1252;COUNTRY=0"
-                )
+            workspace = dbe.Workspaces(0)
+            newdb = workspace.CreateDatabase(
+                _accessdatasource, constants.dbLangGeneral, constants.dbVersion40
+            )
             newdb.Close()
         else:
             print("    ...copying test ACCESS db to " + _accessdatasource)
@@ -126,9 +103,3 @@ def makemdb(testfolder, mdb_name):
             shutil.copy(mdbName, _accessdatasource)
 
     return _accessdatasource
-
-
-if __name__ == "__main__":
-    print("Setting up a Jet database for server to use for remote testing...")
-    temp = maketemp()
-    makemdb(temp, "server_test.mdb")

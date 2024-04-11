@@ -27,16 +27,16 @@ class PyHandleTestCase(unittest.TestCase):
             # this case
 
         def f2(invalidate):
-            """This function should throw an IOError."""
+            """This function should throw an OSError."""
             try:
                 f1(invalidate)
             except ZeroDivisionError as exc:
-                raise IOError("raise 2")
+                raise OSError("raise 2")
 
-        self.assertRaises(IOError, f2, False)
+        self.assertRaises(OSError, f2, False)
         # Now do it again, but so the auto object destruction
         # actually fails.
-        self.assertRaises(IOError, f2, True)
+        self.assertRaises(OSError, f2, True)
 
     def testCleanup2(self):
         # Cause an exception during object destruction.
@@ -100,12 +100,12 @@ class PyHandleTestCase(unittest.TestCase):
 
     def testHandleInDict(self):
         h = pywintypes.HANDLE(1)
-        d = dict(foo=h)
+        d = {"foo": h}
         self.assertEqual(d["foo"], h)
 
     def testHandleInDictThenInt(self):
         h = pywintypes.HANDLE(1)
-        d = dict(foo=h)
+        d = {"foo": h}
         self.assertEqual(d["foo"], 1)
 
     def testHandleCompareNone(self):

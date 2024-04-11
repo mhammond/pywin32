@@ -114,7 +114,7 @@ def discover():
   
     for i in servers:
         ex_servers.append(i.cn)
-    print '\texchange servers',string.join(ex_servers)
+    print("\texchange servers"," ".join(ex_servers))
     
     ex_first_store='CN=First Storage Group,CN=InformationStore,CN=%s,CN=Servers,CN=%s,%s'%(ex_servers[-1],admin_grp,ex_admin_grps)
 
@@ -122,7 +122,7 @@ def discover():
 
     for i in win32com.client.GetObject('LDAP://'+ex_first_store):
         ex_stores.append('cn='+i.cn+','+ex_first_store)
-    print '\tExchange stores:',string.join(ex_stores,"',")
+    print("\tExchange stores:","',".join(ex_stores))
 </code>
 
 <h3><a name="opends">Making the object</a></h3>
@@ -137,11 +137,11 @@ LDAP://cn=fred,OU=people,DC=ad,DC=company,DC=state,DC=oh,DC=us'
 <p>
 This then allows things like:
 <br>
-print('The last name: ',opends('fred').sn) #sn =surname
+print("The last name: ",opends("fred").sn) #sn =surname
 <br>
 or to get the groups fred is a member of
 <br>
-print("groups=',opends('fred').memberOf)
+print("groups=",opends("fred").memberOf)
 
 <code>
 def opends(loc,server=''):
@@ -189,23 +189,23 @@ pwdLastSet below, to extract data from them.
 def ad_dict(ldapobj,attr_dict={},recurse=0,auth=1,filter=()):
     if ldapobj.find(',')==-1: ldapobj='cn='+ldapobj+','+Ad.ldap_main_loc
     if auth: #setup authenticated connections
-        if debug: print 'auth'
+        if debug: print("auth")
         adobj=opends(ldapobj)
-        #if debug: print 'authenticated to',ldapobj    
+        # if debug: print("authenticated to",ldapobj)
     else:
         adobj=win32com.client.GetObject('LDAP://'+ldapobj)
-        if debug: print 'connected to',ldapobj    
+        if debug: print("connected to",ldapobj)
 
     if not(filter):
         #check for children
         for i in adobj:
-            if debug: print '****at',i.cn,str(adobj.cn)
+            if debug: print("****at",i.cn,str(adobj.cn))
             if recurse:
                 pass
                 #get children's attributes too
                 #attr_dict[i.distinguishedName]={}
                 #get_all(i.distinguishedName,attr_dict[i.distinguishedName],recurse,auth)
-        if debug: print 'getting schema'
+        if debug: print("getting schema")
         schema_obj=win32com.client.GetObject(adobj.schema)
         for i in schema_obj.MandatoryProperties:
             if i =='nTSecurityDescriptor':continue #takes a long time, skip it
@@ -246,7 +246,7 @@ Here's an example where you'd use it:
 
 user=opends('fred')
 
-print 'time in seconds',conv_time(user.pwdLastSet.lowpart,user.pwdLastSet.highpart)       
+print("time in seconds",conv_time(user.pwdLastSet.lowpart,user.pwdLastSet.highpart))
 
 user.pwdLastSet returns a com object, not a python data type.
 

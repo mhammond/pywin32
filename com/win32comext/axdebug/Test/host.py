@@ -3,13 +3,10 @@ import traceback
 
 import pythoncom
 import win32api
-import win32com.server.util
 import winerror
-from win32com.axdebug import adb, axdebug, codecontainer, contexts, documents, gateways
-from win32com.axdebug.util import _wrap, _wrap_remove, trace
-from win32com.axscript import axscript
-from win32com.client.util import Enumerator
-from win32com.server.exception import Exception
+from win32com.axdebug import codecontainer, gateways
+from win32com.axdebug.util import _wrap, trace
+from win32com.server.exception import COMException
 
 
 class ExternalConnection:
@@ -26,8 +23,10 @@ class ExternalConnection:
         return self.numExtRefs
 
 
-# externalConnectionManager = ExternalConnection()
-# wrappedExternalConnectionManager = _wrap(externalConnectionManager, pythoncom.IID_IExternalConnection)
+externalConnectionManager = ExternalConnection()
+wrappedExternalConnectionManager = _wrap(
+    externalConnectionManager, pythoncom.IID_IExternalConnection
+)
 
 
 def DelegatedExternalConnectionQI(iid):
@@ -49,8 +48,7 @@ class PySourceModuleDebugDocumentHost(gateways.DebugDocumentHost):
         from win32com.util import IIDToInterfaceName
 
         trace(
-            "PySourceModuleDebugDocumentHost QI with %s (%s)"
-            % (IIDToInterfaceName(iid), str(iid))
+            f"PySourceModuleDebugDocumentHost QI with {IIDToInterfaceName(iid)} ({iid})"
         )
         return 0
 
@@ -58,8 +56,8 @@ class PySourceModuleDebugDocumentHost(gateways.DebugDocumentHost):
         if self.codeContainer is None:
             try:
                 codeText = open(self.module.__file__, "rt").read()
-            except IOError as details:
-                codeText = "# Exception opening file\n# %s" % (details)
+            except OSError as details:
+                codeText = f"# COMException opening file\n# {details}"
 
             self.codeContainer = codecontainer.SourceCodeContainer(
                 codeText, self.module.__file__
@@ -81,78 +79,32 @@ class PySourceModuleDebugDocumentHost(gateways.DebugDocumentHost):
     def GetScriptTextAttributes(self, codeText, delimterText, flags):
         # Result must be an attribute sequence of same "length" as the code.
         trace("GetScriptTextAttributes", delimterText, flags)
-        raise Exception(scode=winerror.E_NOTIMPL)
+        raise COMException(scode=winerror.E_NOTIMPL)
 
     def OnCreateDocumentContext(self):
         # Result must be a PyIUnknown
         trace("OnCreateDocumentContext")
-        raise Exception(scode=winerror.E_NOTIMPL)
+        raise COMException(scode=winerror.E_NOTIMPL)
 
     def GetPathName(self):
         # Result must be (string, int) where the int is a BOOL
         # - TRUE if the path refers to the original file for the document.
         # - FALSE if the path refers to a newly created temporary file.
-        # - raise Exception(scode=E_FAIL) if no source file can be created/determined.
+        # - raise COMException(scode=E_FAIL) if no source file can be created/determined.
         trace("GetPathName")
         try:
             return win32api.GetFullPathName(self.module.__file__), 1
         except (AttributeError, win32api.error):
-            raise Exception(scode == E_FAIL)
+            raise COMException(scode=winerror.E_FAIL)
 
     def GetFileName(self):
         # Result is a string with just the name of the document, no path information.
         trace("GetFileName")
-        return os.path.split(module.__file__)
+        return os.path.split(self.module.__file__)
 
     def NotifyChanged():
         trace("NotifyChanged")
-        raise Exception(scode=winerror.E_NOTIMPL)
-
-
-def TestSmartHelper():
-    pdm = pythoncom.CoCreateInstance(
-        axdebug.CLSID_ProcessDebugManager,
-        None,
-        pythoncom.CLSCTX_ALL,
-        axdebug.IID_IProcessDebugManager,
-    )
-    app = pdm.CreateApplication()
-    app.SetName("Python Process")
-
-    pydebugger = adb.Debugger()
-
-    nodes = BuildModuleTree()
-
-    all_real_nodes = CreateDebugDocumentHelperNodes(pdm, app, nodes)
-    root = app.GetRootNode()
-    AttachParentNodes(root, nodes, all_real_nodes)
-
-    pydebugger.AttachApp(app)
-    cookie = pdm.AddApplication(app)
-    input("Waiting...")
-    ttest.test()
-
-    pdm.RemoveApplication(cookie)
-    print("Done")
-
-
-def testdumb():
-    pdm = pythoncom.CoCreateInstance(
-        axdebug.CLSID_ProcessDebugManager,
-        None,
-        pythoncom.CLSCTX_ALL,
-        axdebug.IID_IProcessDebugManager,
-    )
-    app = pdm.GetDefaultApplication()
-
-    nodes = BuildModuleTree()
-    all_real_nodes = CreateDebugDocumentHelperNodes(pdm, app, nodes)
-    AttachParentNodes(None, nodes, all_real_nodes)
-
-    parentNode = None
-    all_real_nodes = {}
-    input("Waiting...")
-    print("Done")
+        raise COMException(scode=winerror.E_NOTIMPL)
 
 
 def TestSmartProvider():
@@ -160,8 +112,8 @@ def TestSmartProvider():
     from win32com.axdebug import debugger
 
     d = debugger.AXDebugger()
-    # 	d.StartDebugger()
-    # 	d.Attach()
+    # d.StartDebugger()
+    # d.Attach()
     d.Break()
     input("Waiting...")
     ttest.test()
@@ -171,22 +123,13 @@ def TestSmartProvider():
 
 def test():
     try:
-        # 		app = TestSmartHelper()
         app = TestSmartProvider()
-    # 		app = testdumb()
     except:
         traceback.print_exc()
 
 
-# 	_wrap_remove(externalConnectionManager)
-# 	wrappedExternalConnectionManager = None
-
 if __name__ == "__main__":
     test()
-    import win32com.axdebug.util
-
-    win32com.axdebug.util._dump_wrapped()
     print(
-        " %d/%d com objects still alive"
-        % (pythoncom._GetInterfaceCount(), pythoncom._GetGatewayCount())
+        f" {pythoncom._GetInterfaceCount()}/{pythoncom._GetGatewayCount()} com objects still alive"
     )

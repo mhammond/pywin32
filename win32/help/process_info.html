@@ -356,10 +356,10 @@ The Python COM client which will call the C++ COM object and Python COM object d
 <code>
      import win32com.client
      a=win32com.client.Dispatch('NtPerf.process') # C++ com object
-     print a.procids()
+     print(a.procids())
 
      b=win32com.client.Dispatch('PyPerf.process') # python com object
-     print b.procids()
+     print(b.procids())
 </code>
 </p>
 <p>
@@ -454,9 +454,9 @@ from win32com.server.exception import COMException
 import win32com.server.util
 import win32com.client.dynamic
 
-#to generate guids use:
-#import pythoncom
-#print pythoncom.CreateGuid()
+# to generate guids use:
+# import pythoncom
+# print(pythoncom.CreateGuid())
 
 class pyperf:
     # COM attributes.

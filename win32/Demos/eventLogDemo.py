@@ -9,7 +9,7 @@ def ReadLog(computer, logType="Application", dumpEachRecord=0):
     # read the entire log back.
     h = win32evtlog.OpenEventLog(computer, logType)
     numRecords = win32evtlog.GetNumberOfEventLogRecords(h)
-    #       print "There are %d records" % numRecords
+    # print(f"There are {numRecords} records")
 
     num = 0
     while 1:
@@ -28,16 +28,17 @@ def ReadLog(computer, logType="Application", dumpEachRecord=0):
                     domain, user, typ = win32security.LookupAccountSid(
                         computer, object.Sid
                     )
-                    sidDesc = "%s/%s" % (domain, user)
+                    sidDesc = f"{domain}/{user}"
                 except win32security.error:
                     sidDesc = str(object.Sid)
-                user_desc = "Event associated with user %s" % (sidDesc,)
+                user_desc = f"Event associated with user {sidDesc}"
             else:
                 user_desc = None
             if dumpEachRecord:
                 print(
-                    "Event record from %r generated at %s"
-                    % (object.SourceName, object.TimeGenerated.Format())
+                    "Event record from {!r} generated at {}".format(
+                        object.SourceName, object.TimeGenerated.Format()
+                    )
                 )
                 if user_desc:
                     print(user_desc)

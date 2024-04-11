@@ -1,4 +1,3 @@
-# App.py
 # Application stuff.
 # The application is responsible for managing the main frame window.
 #
@@ -16,29 +15,6 @@ from pywin.mfc import afxres, dialog, window
 from pywin.mfc.thread import WinApp
 
 from . import scriptutils
-
-## NOTE: App and AppBuild should NOT be used - instead, you should contruct your
-## APP class manually whenever you like (just ensure you leave these 2 params None!)
-## Whoever wants the generic "Application" should get it via win32iu.GetApp()
-
-# These are "legacy"
-AppBuilder = None
-App = None  # default - if used, must end up a CApp derived class.
-
-
-# Helpers that should one day be removed!
-def AddIdleHandler(handler):
-    print(
-        "app.AddIdleHandler is deprecated - please use win32ui.GetApp().AddIdleHandler() instead."
-    )
-    return win32ui.GetApp().AddIdleHandler(handler)
-
-
-def DeleteIdleHandler(handler):
-    print(
-        "app.DeleteIdleHandler is deprecated - please use win32ui.GetApp().DeleteIdleHandler() instead."
-    )
-    return win32ui.GetApp().DeleteIdleHandler(handler)
 
 
 # Helper for writing a Window position by name, and later loading it.
@@ -169,10 +145,6 @@ class CApp(WinApp):
         if self._obj_:
             self._obj_.AttachObject(None)
         self._obj_ = None
-        global App
-        global AppBuilder
-        App = None
-        AppBuilder = None
         return 0
 
     def HaveIdleHandler(self, handler):
@@ -234,9 +206,7 @@ class CApp(WinApp):
                 help.OpenHelpFile(helpFile, helpCmd)
         except:
             t, v, tb = sys.exc_info()
-            win32ui.MessageBox(
-                "Internal error in help file processing\r\n%s: %s" % (t, v)
-            )
+            win32ui.MessageBox(f"Internal error in help file processing\r\n{t}: {v}")
             tb = None  # Prevent a cycle
 
     def DoLoadModules(self, modules):
@@ -364,9 +334,8 @@ class AboutBox(dialog.Dialog):
         dialog.Dialog.__init__(self, idd)
 
     def OnInitDialog(self):
-        text = (
-            "Pythonwin - Python IDE and GUI Framework for Windows.\n\n%s\n\nPython is %s\n\n%s\n\n%s\n\n%s"
-            % (win32ui.copyright, sys.copyright, scintilla, idle, contributors)
+        text = "Pythonwin - Python IDE and GUI Framework for Windows.\n\n{}\n\nPython is {}\n\n{}\n\n{}\n\n{}".format(
+            win32ui.copyright, sys.copyright, scintilla, idle, contributors
         )
         self.SetDlgItemText(win32ui.IDC_EDIT1, text)
         # Get the build number - written by installers.
@@ -379,7 +348,7 @@ class AboutBox(dialog.Dialog):
                 open(os.path.join(site_packages, "pywin32.version.txt")).read().strip()
             )
             ver = "pywin32 build %s" % build_no
-        except EnvironmentError:
+        except OSError:
             ver = None
         if ver is None:
             # See if we are Part of Active Python
@@ -387,7 +356,7 @@ class AboutBox(dialog.Dialog):
                 "SOFTWARE\\ActiveState\\ActivePython", "CurrentVersion"
             )
             if ver is not None:
-                ver = "ActivePython build %s" % (ver,)
+                ver = f"ActivePython build {ver}"
         if ver is None:
             ver = ""
         self.SetDlgItemText(win32ui.IDC_ABOUT_VERSION, ver)

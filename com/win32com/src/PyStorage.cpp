@@ -244,7 +244,6 @@ PyObject *pythoncom_StgOpenStorageOnILockBytes(PyObject *self, PyObject *args)
     return PyCom_PyObjectFromIUnknown(pResult, IID_IStorage, FALSE);
 }
 
-#ifndef MS_WINCE
 // @pymethod int|pythoncom|StgIsStorageFile|Indicates whether a particular disk file contains a storage object.
 PyObject *pythoncom_StgIsStorageFile(PyObject *self, PyObject *args)
 {
@@ -265,7 +264,6 @@ PyObject *pythoncom_StgIsStorageFile(PyObject *self, PyObject *args)
     // returns a failure HRESULT.
     return PyLong_FromLong(hr == 0);
 }
-#endif  // MS_WINCE
 
 // @pymethod <o PyIStorage>|pythoncom|StgOpenStorage|Opens an existing root storage object in the file system.
 PyObject *pythoncom_StgOpenStorage(PyObject *self, PyObject *args)

@@ -264,7 +264,7 @@ class GrepDocument(docview.RichEditDoc):
 
     def doSearch(self):
         self.dp = dirpath(self.dirpattern, self.recurse)
-        self.SetTitle("Grep for %s in %s" % (self.greppattern, self.filpattern))
+        self.SetTitle(f"Grep for {self.greppattern} in {self.filpattern}")
         # self.text = []
         self.GetFirstView().Append("#Search " + self.dirpattern + "\n")
         if self.verbose:
@@ -344,10 +344,10 @@ class GrepDocument(docview.RichEditDoc):
         )
 
     def OnSaveDocument(self, filename):
-        # 		print 'OnSaveDocument() filename=',filename
+        # print("OnSaveDocument() filename=", filename)
         savefile = open(filename, "wb")
         txt = self.GetParams() + "\n"
-        # 		print 'writing',txt
+        # print("writing", txt)
         savefile.write(txt)
         savefile.close()
         self.SetModifiedFlag(0)
@@ -751,7 +751,7 @@ class GrepParamsDialog(dialog.Dialog):
 
 
 try:
-    win32ui.GetApp().RemoveDocTemplate(greptemplate)
+    win32ui.GetApp().RemoveDocTemplate(greptemplate)  # type: ignore[has-type, used-before-def]
 except NameError:
     pass
 

@@ -6,17 +6,12 @@
 # This will execute the method 'test1' below.  See below for the list of
 # test methods that are acceptable.
 
-import urllib.error
-import urllib.parse
-import urllib.request
-
 # If we have no console (eg, am running from inside IIS), redirect output
 # somewhere useful - in this case, the standard win32 trace collector.
 import win32api
 import winerror
 
-from isapi import ExtensionError, isapicon, threaded_extension
-from isapi.simple import SimpleFilter
+from isapi import ExtensionError, threaded_extension
 
 try:
     win32api.GetConsoleTitle()
@@ -31,12 +26,12 @@ class Extension(threaded_extension.ThreadPoolExtension):
     "Python ISAPI Tester"
 
     def Dispatch(self, ecb):
-        print('Tester dispatching "%s"' % (ecb.GetServerVariable("URL"),))
+        print('Tester dispatching "{}"'.format(ecb.GetServerVariable("URL")))
         url = ecb.GetServerVariable("URL")
         test_name = url.split("/")[-1]
         meth = getattr(self, test_name, None)
         if meth is None:
-            raise AttributeError("No test named '%s'" % (test_name,))
+            raise AttributeError(f"No test named '{test_name}'")
         result = meth(ecb)
         if result is None:
             # This means the test finalized everything
