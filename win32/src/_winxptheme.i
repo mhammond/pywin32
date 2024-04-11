@@ -17,7 +17,6 @@
 %{
 #define _WIN32_IE 0x0501 // to enable balloon notifications in Shell_NotifyIcon
 #define _WIN32_WINNT 0x0501
-//#define ISOLATION_AWARE_ENABLED 1
 
 #undef PyHANDLE
 #include "pywinobjects.h"
