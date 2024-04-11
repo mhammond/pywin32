@@ -55,8 +55,8 @@ build_id_patch = build_id
 if not "." in build_id_patch:
     build_id_patch = build_id_patch + ".0"
 pywin32_version = "%d.%d.%s" % (
-    sys.version_info[0],
-    sys.version_info[1],
+    sys.version_info.major,
+    sys.version_info.minor,
     build_id_patch,
 )
 print("Building pywin32", pywin32_version)
@@ -731,8 +731,8 @@ class my_build_ext(build_ext):
                 # are expected to be pywintypes.lib.
                 created = "%s%d%d%s" % (
                     ext.name,
-                    sys.version_info[0],
-                    sys.version_info[1],
+                    sys.version_info.major,
+                    sys.version_info.minor,
                     extra,
                 )
                 needed = f"{ext.name}{extra}"
@@ -759,7 +759,7 @@ class my_build_ext(build_ext):
         # We need to fixup some target filenames.
         suffix = "_d" if self.debug else ""
         if name in ["pywintypes", "pythoncom"]:
-            ver = f"{sys.version_info[0]}{sys.version_info[1]}"
+            ver = f"{sys.version_info.major}{sys.version_info.minor}"
             return f"{name}{ver}{suffix}.dll"
         if name in ["perfmondata", "PyISAPI_loader"]:
             return f"{name}{suffix}.dll"

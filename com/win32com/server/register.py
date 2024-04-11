@@ -246,7 +246,7 @@ def RegisterServer(
             loadername = os.path.join(
                 pythoncom_dir,
                 "pythoncomloader%d%d%s.dll"
-                % (sys.version_info[0], sys.version_info[1], suffix),
+                % (sys.version_info.major, sys.version_info.minor, suffix),
             )
             dllName = loadername if os.path.isfile(loadername) else pythoncom.__file__
 
