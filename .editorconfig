@@ -15,5 +15,5 @@ max_line_length = 88 # Same as Black
 [*.md]
 trim_trailing_whitespace = false
 
-[*.{yaml,yml}]
+[*.{yaml,yml,toml}]
 indent_size = 2

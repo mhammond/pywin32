@@ -150,11 +150,7 @@ static PyObject *PyWNetAddConnection2(PyObject *self, PyObject *args, PyObject *
         goto done;
 
     Py_BEGIN_ALLOW_THREADS
-#ifdef _WIN32_WCE_  // Windows CE only has the #3 version...use NULL for HWND to simulate #2
-        ErrorNo = WNetAddConnection3(NULL, pNetResource, Password, Username, flags);
-#else
         ErrorNo = WNetAddConnection2(pNetResource, Password, Username, flags);
-#endif
     Py_END_ALLOW_THREADS if (ErrorNo != NO_ERROR) ReturnNetError("WNetAddConnection2", ErrorNo);
     else
     {
