@@ -1,23 +1,10 @@
 /* File : win32gui.i */
 // @doc
 
-%ifdef WINXPGUI
-%module winxpgui 
-%else
-%module win32gui // A module which provides an interface to the native win32
-                 // GUI API.<nl>Note that a module <o winxpgui> also exists, 
-                 // which has the same methods as win32gui, but has an XP
-                 // manifest and is setup for side-by-side sharing support for
-                 // certain system DLLs, notably commctl32.
-%endif
+%module win32gui // A module which provides an interface to the native win32 GUI API.
 
 %{
-#define _WIN32_IE 0x0501 // to enable balloon notifications in Shell_NotifyIcon
 #define _WIN32_WINNT 0x0501
-#ifdef WINXPGUI
-// This changes the entire world for XP!
-#define ISOLATION_AWARE_ENABLED 1
-#endif
 
 %}
 %include "typemaps.i"
@@ -246,9 +233,6 @@ PyObject *PyWinObject_FromHDEVNOTIFY(HGDIOBJ h)
 
 // Written to the module init function.
 %init %{
-#if PY_VERSION_HEX < 0x03070000
-PyEval_InitThreads(); /* Start the interpreter's thread-awareness */
-#endif
 PyDict_SetItemString(d, "dllhandle", PyWinLong_FromVoidPtr(g_dllhandle));
 PyDict_SetItemString(d, "error", PyWinExc_ApiError);
 
@@ -270,11 +254,7 @@ PyDict_SetItemString(d, "g_DLGMap", g_DLGMap);
 PyDict_SetItemString(d, "UNICODE", Py_True);
 
 // hack borrowed from win32security since version of SWIG we use doesn't do keyword arguments
-#ifdef WINXPGUI
-for (PyMethodDef *pmd = winxpguiMethods; pmd->ml_name; pmd++)
-#else
 for (PyMethodDef *pmd = win32guiMethods; pmd->ml_name; pmd++)
-#endif
 	if	 (strcmp(pmd->ml_name, "SetLayeredWindowAttributes")==0
 		||strcmp(pmd->ml_name, "GetLayeredWindowAttributes")==0
 		||strcmp(pmd->ml_name, "UpdateLayeredWindow")==0
@@ -5526,14 +5506,12 @@ BOOLAPI SetWindowRgn(
 	HRGN INPUT_NULLOK,	// @pyparm <o PyGdiHANDLE>|hRgn||Handle to region to be set, can be None
 	BOOL Redraw);		// @pyparm boolean|Redraw||Indicates if window should be completely redrawn
 
-#ifdef WINXPGUI
 // @pyswig int, <o PyRECT>|GetWindowRgnBox|Returns the bounding box for a window's region
 // @rdesc Returns type of region and rectangle coordinates in device units
 int_regiontype GetWindowRgnBox(
 	HWND hWnd,		// @pyparm <o PyHANDLE>|hWnd||Handle to a window that has a window region. (see <om win32gui.SetWindowRgn>)
 	RECT *OUTPUT);
-// @comm Only available in winxpgui
-#endif
+
 // @pyswig |ValidateRgn|Removes a region from a window's update region
 BOOLAPI ValidateRgn(
 	HWND hWnd,		// @pyparm <o PyHANDLE>|hWnd||Handle to the window
@@ -7456,11 +7434,6 @@ PyObject *PyEnumPropsEx(PyObject *self, PyObject *args)
 }
 %}
 %native(EnumPropsEx) PyEnumPropsEx;
-
-#ifdef WINXPGUI
-// strictly available in win2kpro, but this will do for now...
-HWND GetConsoleWindow();
-#endif
 
 %{
 // @pyswig <o PyHDEVNOTIFY>|RegisterDeviceNotification|Registers the device or type of device for which a window will receive notifications.

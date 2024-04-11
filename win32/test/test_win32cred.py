@@ -71,3 +71,22 @@ class TestCredFunctions(unittest.TestCase):
         )
         self.assertIsNone(win32cred.CredDelete(self.dummy_cred))
         self.assertFalse(self.is_dummy_cred())
+
+    def test_credgetsessiontypes(self):
+        res = win32cred.CredGetSessionTypes()
+        self.assertEqual(len(res), win32cred.CRED_TYPE_MAXIMUM)
+        for i in range(1, len(res)):
+            self.assertEqual(res[:i], win32cred.CredGetSessionTypes(i))
+            self.assertEqual(
+                res[:i], win32cred.CredGetSessionTypes(MaximumPersistCount=i)
+            )
+        self.assertRaises(
+            ValueError,
+            win32cred.CredGetSessionTypes,
+            0,
+        )
+        self.assertRaises(
+            ValueError,
+            win32cred.CredGetSessionTypes,
+            MaximumPersistCount=win32cred.CRED_TYPE_MAXIMUM + 1,
+        )

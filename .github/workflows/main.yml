@@ -122,7 +122,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # mypy 1.5 dropped support for python 3.7
+        # mypy 1.5 dropped support for Python 3.7
         python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
     steps:
       - uses: actions/checkout@v4
@@ -131,7 +131,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: pip
           cache-dependency-path: .github/workflows/main.yml
-      - run: pip install types-regex types-setuptools mypy>=1.5
+      - run: pip install types-regex types-setuptools mypy==1.9
       - run: mypy . --python-version=${{ matrix.python-version }}
 
   pyright:

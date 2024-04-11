@@ -1,6 +1,5 @@
 // shell_pch.h : header file for PCH generation for the shell COM extension
 
-#define _WIN32_IE _WIN32_IE_IE70
 #include <PythonCOM.h>
 #include <PythonCOMServer.h>
 #include <oleauto.h>

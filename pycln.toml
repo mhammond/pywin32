@@ -20,5 +20,4 @@ skip_imports = [
   "win32pipe",
   "win32ras",
   "win32ui",
-  "winxpgui",
 ]
