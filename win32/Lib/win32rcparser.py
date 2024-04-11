@@ -604,7 +604,6 @@ def Parse(rc_name, h_name=None):
         if h_file is not None:
             h_file.close()
         rc_file.close()
-    return rcp
 
 
 def GenerateFrozenResource(rc_name, output_name, h_name=None):

@@ -68,8 +68,7 @@ class TestDataObject:
         return None  # should check better
 
     def GetCanonicalFormatEtc(self, fe):
-        RaiseCOMException(winerror.DATA_S_SAMEFORMATETC)
-        # return fe
+        raise COMException(winerror.DATA_S_SAMEFORMATETC)
 
     def SetData(self, fe, medium):
         raise COMException(hresult=winerror.E_NOTIMPL)
