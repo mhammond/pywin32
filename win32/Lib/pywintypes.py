@@ -26,8 +26,8 @@ def __import_pywin32_system_module__(modname, globs):
     suffix = "_d" if "_d.pyd" in importlib.machinery.EXTENSION_SUFFIXES else ""
     filename = "%s%d%d%s.dll" % (
         modname,
-        sys.version_info[0],
-        sys.version_info[1],
+        sys.version_info.major,
+        sys.version_info.minor,
         suffix,
     )
     if hasattr(sys, "frozen"):
