@@ -3,6 +3,7 @@
 # Brand a VSS project with a "build number", then optionally
 # stamp DLL/EXE files with version information.
 
+import getopt
 import os
 import sys
 
@@ -32,7 +33,7 @@ def BrandProject(
 
     bulkstamp.scan(build, stampPath, descFile)
     for infile, outfile in filesToSubstitute:
-        SubstituteVSSInFile(vssProjectName, infile, outfile)
+        vssutil.SubstituteVSSInFile(vssProjectName, infile, outfile)
     return 1
 
 
@@ -65,7 +66,6 @@ if __name__ == "__main__":
     import getopt
 
     try:
-
         opts, args = getopt.getopt(sys.argv[1:], "af:d:r")
     except getopt.GetoptError as msg:
         usage(msg)

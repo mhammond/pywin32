@@ -41,7 +41,7 @@ class TestPythonwinExe(unittest.TestCase):
             # XXX Pythonwin.exe / win32uihostglue.h could be improved to search
             # the Python DLL itself via registry when local / relative search fails.
 
-            pydll = "Python{}{}.dll".format(*sys.version_info[:2])  # same for 32bit
+            pydll = f"Python{sys.version_info.major}{sys.version_info.minor}.dll"  # same for 32bit
             src = os.path.dirname(sys.executable) + os.sep + pydll
             dst = os.path.dirname(pythonwinexe_path) + os.sep + pydll
             if not os.path.isfile(dst):

@@ -98,7 +98,7 @@ class AXScriptException(COMException):
             linecache.clearcache()
         try:
             if issubclass(type, SyntaxError):
-                self._BuildFromSyntaxError(site, value, tb)
+                self._BuildFromSyntaxError(value)
             else:
                 self._BuildFromOther(site, type, value, tb)
         except:  # Error extracting traceback info!!!
@@ -106,27 +106,14 @@ class AXScriptException(COMException):
             # re-raise.
             raise
 
-    def _BuildFromSyntaxError(self, site, exc, tb):
-        value = exc.args
-        # All syntax errors should have a message as element 0
-        try:
-            msg = value[0]
-        except:
-            msg = f"Unknown Error ({value})"
-        try:
-            (filename, lineno, offset, line) = value[1]
-            # Some of these may be None, which upsets us!
-            if offset is None:
-                offset = 0
-            if line is None:
-                line = ""
-        except:
-            msg = "Unknown"
-            lineno = 0
-            offset = 0
-            line = "Unknown"
+    def _BuildFromSyntaxError(self, exc: SyntaxError):
+        # Some of these may be None, which upsets us!
+        msg = exc.msg or "Unknown Error"
+        offset = exc.offset or 0
+        line = exc.text or ""
+
         self.description = FormatForAX(msg)
-        self.lineno = lineno
+        self.lineno = exc.lineno
         self.colno = offset - 1
         self.linetext = ExpandTabs(line.rstrip())
 

@@ -1,8 +1,6 @@
 #include "stdafx.h"
 #include "PythonCOM.h"
 
-#ifndef NO_PYCOM_ICATREGISTER
-
 #include "comcat.h"
 #include "PyICatRegister.h"
 /***
@@ -315,4 +313,3 @@ PyComTypeObject PyICatRegister::type("PyICatRegister",
                                      &PyIUnknown::type,  // @base PyICatRegister|PyIUnknown
                                      sizeof(PyICatRegister), PyICatRegister_methods, GET_PYCOM_CTOR(PyICatRegister));
 
-#endif  // NO_PYCOM_ICATREGISTER

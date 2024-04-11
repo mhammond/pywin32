@@ -108,7 +108,7 @@ class TestCase(unittest.TestCase):
             ncb.Reset()
             ncb.Command = netbios.NCBRESET
             ncb.Lana_num = la_enum.lana[i]
-            rc = Netbios(ncb)
+            rc = win32wnet.Netbios(ncb)
             self.assertEqual(rc, 0)
             ncb.Reset()
             ncb.Command = netbios.NCBASTAT
@@ -116,7 +116,7 @@ class TestCase(unittest.TestCase):
             ncb.Callname = b"*               "
             adapter = netbios.ADAPTER_STATUS()
             ncb.Buffer = adapter
-            Netbios(ncb)
+            win32wnet.Netbios(ncb)
             # expect 6 bytes in the mac address.
             self.assertTrue(len(adapter.adapter_address), 6)
 

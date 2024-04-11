@@ -113,7 +113,7 @@ if not __gen_path__:
             __gen_path__ = os.path.join(
                 win32api.GetTempPath(),
                 "gen_py",
-                "%d.%d" % (sys.version_info[0], sys.version_info[1]),
+                "%d.%d" % (sys.version_info.major, sys.version_info.minor),
             )
 
 # we must have a __gen_path__, but may not have a gen_py module -

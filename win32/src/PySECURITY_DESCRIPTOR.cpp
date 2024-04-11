@@ -6,7 +6,6 @@
 #include "PySecurityObjects.h"
 #include "structmember.h"
 
-#ifndef NO_PYWINTYPES_SECURITY
 BOOL(WINAPI *setsecuritydescriptorcontrol)
 (PSECURITY_DESCRIPTOR, SECURITY_DESCRIPTOR_CONTROL, SECURITY_DESCRIPTOR_CONTROL) = NULL;
 
@@ -791,37 +790,3 @@ PySECURITY_DESCRIPTOR::~PySECURITY_DESCRIPTOR(void)
 }
 
 /*static*/ void PySECURITY_DESCRIPTOR::deallocFunc(PyObject *ob) { delete (PySECURITY_DESCRIPTOR *)ob; }
-#else /* NO_PYWINTYPES_SECURITY */
-
-BOOL PyWinObject_AsSECURITY_DESCRIPTOR(PyObject *ob, PSECURITY_DESCRIPTOR *ppSECURITY_DESCRIPTOR,
-                                       BOOL bNoneOK /*= TRUE*/)
-{
-    if (bNoneOK && ob == Py_None) {
-        *ppSECURITY_DESCRIPTOR = NULL;
-    }
-    else {
-        if (bNoneOK)
-            PyErr_SetString(PyExc_TypeError,
-                            "This build of pywintypes only supports None as "
-                            "a SECURITY_DESCRIPTOR");
-        else
-            PyErr_SetString(PyExc_TypeError,
-                            "This function can not work in this build, as "
-                            "only None may be used as a SECURITY_DESCRIPTOR");
-        return FALSE;
-    }
-    return TRUE;
-}
-PyObject *PyWinObject_FromSECURITY_DESCRIPTOR(PSECURITY_DESCRIPTOR psd)
-{
-    if (psd == NULL) {
-        Py_INCREF(Py_None);
-        return Py_None;
-    }
-    PyErr_SetString(PyExc_RuntimeError,
-                    "A non-NULL SECURITY_DESCRIPTOR was passed, but security "
-                    "descriptors are disabled from this build");
-    return NULL;
-}
-
-#endif /* NO_PYWINTYPES_SECURITY */
