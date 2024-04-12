@@ -1,6 +1,3 @@
-remote = False  # automatic testing of remote access has been removed here
-
-
 def try_connection(verbose, *args, **kwargs):
     import adodbapi
 
@@ -18,7 +15,7 @@ def try_connection(verbose, *args, **kwargs):
 
     print("  (successful)")
 
-    return True, (args, kwargs, remote), dbconnect
+    return True, (args, kwargs), dbconnect
 
 
 def try_operation_with_expected_exception(
