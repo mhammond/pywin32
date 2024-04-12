@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 build_id = "306"  # may optionally include a ".{patchno}" suffix.
 
 __doc__ = """This is a distutils setup-script for the pywin32 extensions.
@@ -33,17 +35,16 @@ import subprocess
 import sys
 import winreg
 from pathlib import Path
-from tempfile import gettempdir
-from typing import Iterable, List, Tuple, Union
-
-# setuptools must be imported before distutils because it monkey-patches it.
-# distutils is also removed in Python 3.12 and deprecated with setuptools
 from setuptools import Extension, setup
 from setuptools.command.build import build
 from setuptools.command.build_ext import build_ext
 from setuptools.command.install import install
 from setuptools.command.install_lib import install_lib
+from tempfile import gettempdir
+from typing import Iterable, List, Tuple, Union
 
+from distutils import ccompiler
+from distutils._msvccompiler import MSVCCompiler
 from distutils.command.install_data import install_data
 
 if sys.version_info >= (3, 8):
@@ -936,22 +937,17 @@ def my_new_compiler(**kw):
 
 
 # No way to cleanly wedge our compiler sub-class in.
-from distutils import ccompiler
-from distutils._msvccompiler import MSVCCompiler
-
 orig_new_compiler = ccompiler.new_compiler
-ccompiler.new_compiler = my_new_compiler
-
-base_compiler = MSVCCompiler
+ccompiler.new_compiler = my_new_compiler  # type: ignore[assignment] # Assuming the caller will always use only kwargs
 
 
-class my_compiler(base_compiler):
+class my_compiler(MSVCCompiler):
     # Just one GUIDS.CPP and it gives trouble on mainwin too. Maybe I
     # should just rename the file, but a case-only rename is likely to be
     # worse!  This can probably go away once we kill the VS project files
     # though, as we can just specify the lowercase name in the module def.
-    _cpp_extensions = base_compiler._cpp_extensions + [".CPP"]
-    src_extensions = base_compiler.src_extensions + [".CPP"]
+    _cpp_extensions = MSVCCompiler._cpp_extensions + [".CPP"]
+    src_extensions = MSVCCompiler.src_extensions + [".CPP"]
 
     def link(
         self,
@@ -1112,7 +1108,7 @@ pywintypes = WinExt_system32(
     pch_header="PyWinTypes.h",
 )
 
-win32_extensions = [pywintypes]
+win32_extensions: list[WinExt] = [pywintypes]
 
 win32_extensions.append(
     WinExt_win32(
@@ -1254,11 +1250,10 @@ for info in (
         windows_h_ver = info[2]
     if len(info) > 3:
         sources = info[3].split()
-    extra_compile_args = []
     ext = WinExt_win32(
         name,
         libraries=lib_names,
-        extra_compile_args=extra_compile_args,
+        extra_compile_args=[],
         windows_h_version=windows_h_ver,
         sources=sources,
     )
@@ -1425,8 +1420,8 @@ pythoncom = WinExt_system32(
     base_address=dll_base_address,
 )
 dll_base_address += 0x80000  # pythoncom is large!
-com_extensions = [pythoncom]
-com_extensions += [
+com_extensions = [
+    pythoncom,
     WinExt_win32com(
         "adsi",
         libraries="ACTIVEDS ADSIID user32 advapi32",
@@ -2089,7 +2084,7 @@ swig_interface_parents = {
 swig_include_files = "mapilib adsilib".split()
 
 
-def expand_modules(module_dir: Union[str, os.PathLike]):
+def expand_modules(module_dir: Union[str, os.PathLike[str]]):
     """Helper to allow our script specifications to include wildcards."""
     return [str(path.with_suffix("")) for path in Path(module_dir).rglob("*.py")]
 
@@ -2104,7 +2099,7 @@ def convert_data_files(files: Iterable[str]):
     for file in files:
         file = os.path.normpath(file)
         if file.find("*") >= 0:
-            files_use = (
+            files_use = tuple(
                 str(path)
                 for path in Path(file).parent.rglob(os.path.basename(file))
                 # We never want CVS
@@ -2216,6 +2211,7 @@ if "bdist_wininst" in sys.argv:
     # fixup https://github.com/pypa/setuptools/issues/3284
     def maybe_fixup_exes():
         import site
+
         from distutils.command import bdist_wininst
 
         # setuptools can't find .exe stubs in `site-packages/setuptools/_distutils`
