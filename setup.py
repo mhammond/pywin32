@@ -35,16 +35,13 @@ import subprocess
 import sys
 import winreg
 from pathlib import Path
-from tempfile import gettempdir
-from typing import Iterable, List, Tuple, Union
-
-# setuptools must be imported before distutils because it monkey-patches it.
-# distutils is also removed in Python 3.12 and deprecated with setuptools
 from setuptools import Extension, setup
 from setuptools.command.build import build
 from setuptools.command.build_ext import build_ext
 from setuptools.command.install import install
 from setuptools.command.install_lib import install_lib
+from tempfile import gettempdir
+from typing import Iterable, List, Tuple, Union
 
 from distutils import ccompiler
 from distutils._msvccompiler import MSVCCompiler
@@ -2214,6 +2211,7 @@ if "bdist_wininst" in sys.argv:
     # fixup https://github.com/pypa/setuptools/issues/3284
     def maybe_fixup_exes():
         import site
+
         from distutils.command import bdist_wininst
 
         # setuptools can't find .exe stubs in `site-packages/setuptools/_distutils`

@@ -27,12 +27,11 @@ repos:
       - id: pycln
         args: [--config=pycln.toml]
         verbose: true
-  - repo: https://github.com/pycqa/isort
-    rev: 5.13.2
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.3.4
     hooks:
-      - id: isort
-        name: isort (python)
-        verbose: true
+      - id: ruff # Run the linter.
+        args: [--fix]
   - repo: https://github.com/psf/black-pre-commit-mirror
     rev: 24.2.0
     hooks:
