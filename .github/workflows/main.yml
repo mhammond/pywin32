@@ -104,12 +104,11 @@ jobs:
         with:
           # This job only needs to target the oldest supported version (black@stable supports Python >=3.8)
           python-version: '3.8'
-      - run: pip install isort pycln
+      - run: pip install pycln
       - run: pycln . --config=pycln.toml --check
-      - run: isort . --diff --check-only
       - uses: chartboost/ruff-action@v1
         with:
-          version: '0.3.4'
+          version: '0.3.7'
       - uses: psf/black@stable
         with:
           options: "--fast --check --diff --verbose"
@@ -119,14 +118,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # mypy 1.5 dropped support for python 3.7
+        # mypy 1.5 dropped support for Python 3.7
         python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-      - run: pip install types-regex types-setuptools mypy>=1.5
+      - run: pip install types-regex types-setuptools mypy==1.9
       - run: mypy . --python-version=${{ matrix.python-version }}
 
   pyright:

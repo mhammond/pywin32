@@ -3,14 +3,29 @@ target-version = "py37"
 
 [lint]
 select = [
-    "C4",   # flake8-comprehensions
-    "F811", # redefined-while-unused
-    "FLY",  # static-join-to-f-string
-    "PLE",  # Pylint Error
-    "RSE",  # flake8-raise
-    "YTT",  # flake8-2020
+  "C4",   # flake8-comprehensions
+  "F811", # redefined-while-unused
+  "FLY",  # static-join-to-f-string
+  "I",    # isort
+  "PLE",  # Pylint Error
+  "RSE",  # flake8-raise
+  "YTT",  # flake8-2020
 ]
 
 [lint.per-file-ignores]
 # TODO: Make adodbapi changes in their own PRs
-"adodbapi/*" = ["C4", "YTT301"]
+"adodbapi/*" = ["I", "C4", "YTT301"]
+
+[lint.isort]
+combine-as-imports = true
+# Because pywin32 has a mix of relative and absolute imports, with undetectable first-party c-extensions
+# This makes import grouping more consistent
+detect-same-package = false
+known-third-party = [
+  "__main__",
+  # This forces distutils imports to always be after setuptools
+  # setuptools must be imported before distutils because it monkey-patches it.
+  # distutils is also removed in Python 3.12 and deprecated with setuptools
+  "distutils",
+]
+extra-standard-library = ["setuptools"]

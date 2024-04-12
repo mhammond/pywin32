@@ -533,6 +533,33 @@ PyObject *PyCredEnumerate(PyObject *self, PyObject *args, PyObject *kwargs)
     return ret;
 }
 
+// @pymethod dict|win32cred|CredGetSessionTypes|Returns maximum persistence supported by the current logon session
+// @rdesc Returns an integer list
+PyObject* PyCredGetSessionTypes(PyObject* self, PyObject* args, PyObject* kwargs)
+{
+    static char *keywords[] = {"MaximumPersistCount", NULL};
+    DWORD mpc = CRED_TYPE_MAXIMUM;
+    if (!PyArg_ParseTupleAndKeywords(
+            args, kwargs, "|k:CredGetSessionTypes", keywords,
+            &mpc))  // @pyparm int|MaximumPersistCount|CRED_TYPE_MAXIMUM|Maximum array entries
+        return NULL;
+    if ((mpc == 0) || (mpc > CRED_TYPE_MAXIMUM)) {
+        PyErr_SetString(PyExc_ValueError, "Argument must be between 1 and CRED_TYPE_MAXIMUM");
+        return NULL;
+    }
+    BOOL res = TRUE;
+    DWORD arr[CRED_TYPE_MAXIMUM];
+    Py_BEGIN_ALLOW_THREADS;
+    res = CredGetSessionTypes(mpc, arr);
+    Py_END_ALLOW_THREADS;
+    if (!res)
+        return PyWin_SetAPIError("CredGetSessionTypes");
+    PyObject *ret = PyList_New(mpc);
+    for (DWORD i = 0; i < mpc; ++i)
+        PyList_SET_ITEM(ret, i, PyLong_FromUnsignedLong(arr[i]));
+    return ret;
+}
+
 // @pymethod dict|win32cred|CredGetTargetInfo|Determines type and location of credential target
 // @rdesc Returns a <o PyCREDENTIAL_TARGET_INFORMATION> dict
 // @comm The target information will not be available until an attempt is made to authenticate against it
@@ -1098,6 +1125,8 @@ static struct PyMethodDef win32cred_functions[] = {
     // @pymeth CredEnumerate|Lists stored credentials for current logon session
     {"CredEnumerate", (PyCFunction)PyCredEnumerate, METH_VARARGS | METH_KEYWORDS,
      "Lists stored credentials for current logon session"},
+    {"CredGetSessionTypes", (PyCFunction)PyCredGetSessionTypes, METH_VARARGS | METH_KEYWORDS,
+     "Returns maximum persistence supported by the current logon session"},
     // @pymeth CredGetTargetInfo|Determines type and location of credential target
     {"CredGetTargetInfo", (PyCFunction)PyCredGetTargetInfo, METH_VARARGS | METH_KEYWORDS,
      "Determines type and location of credential target"},
@@ -1148,6 +1177,10 @@ PYWIN_MODULE_INIT_FUNC(win32cred)
     PyModule_AddIntConstant(module, "CRED_TYPE_DOMAIN_PASSWORD", CRED_TYPE_DOMAIN_PASSWORD);
     PyModule_AddIntConstant(module, "CRED_TYPE_DOMAIN_CERTIFICATE", CRED_TYPE_DOMAIN_CERTIFICATE);
     PyModule_AddIntConstant(module, "CRED_TYPE_DOMAIN_VISIBLE_PASSWORD", CRED_TYPE_DOMAIN_VISIBLE_PASSWORD);
+    PyModule_AddIntConstant(module, "CRED_TYPE_GENERIC_CERTIFICATE", CRED_TYPE_GENERIC_CERTIFICATE);
+    PyModule_AddIntConstant(module, "CRED_TYPE_DOMAIN_EXTENDED", CRED_TYPE_DOMAIN_EXTENDED);
+    PyModule_AddIntConstant(module, "CRED_TYPE_MAXIMUM", CRED_TYPE_MAXIMUM);
+    PyModule_AddIntConstant(module, "CRED_TYPE_MAXIMUM_EX", CRED_TYPE_MAXIMUM + 1000);
     // credential flags
     PyModule_AddIntConstant(module, "CRED_FLAGS_PROMPT_NOW", CRED_FLAGS_PROMPT_NOW);
     PyModule_AddIntConstant(module, "CRED_FLAGS_USERNAME_TARGET", CRED_FLAGS_USERNAME_TARGET);
