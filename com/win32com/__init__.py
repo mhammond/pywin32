@@ -9,7 +9,7 @@ import pythoncom
 import win32api
 
 # flag if we are in a "frozen" build.
-_frozen = getattr(sys, "frozen", 1 == 0)
+_frozen = getattr(sys, "frozen", False)
 # pythoncom dumbly defaults this to zero - we believe sys.frozen over it.
 if _frozen and not getattr(pythoncom, "frozen", 0):
     pythoncom.frozen = sys.frozen
@@ -113,7 +113,7 @@ if not __gen_path__:
             __gen_path__ = os.path.join(
                 win32api.GetTempPath(),
                 "gen_py",
-                "%d.%d" % (sys.version_info[0], sys.version_info[1]),
+                "%d.%d" % (sys.version_info.major, sys.version_info.minor),
             )
 
 # we must have a __gen_path__, but may not have a gen_py module -

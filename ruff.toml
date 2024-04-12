@@ -3,9 +3,24 @@ target-version = "py37"
 
 [lint]
 select = [
-    "W", # pycodestyle Warning
+  "I", # isort
+  "W", # pycodestyle Warning
 ]
 
 [lint.per-file-ignores]
 # TODO: Make adodbapi changes in their own PRs
 "adodbapi/*" = ["W"]
+
+[lint.isort]
+combine-as-imports = true
+# Because pywin32 has a mix of relative and absolute imports, with undetectable first-party c-extensions
+# This makes import grouping more consistent
+detect-same-package = false
+known-third-party = [
+  "__main__",
+  # This forces distutils imports to always be after setuptools
+  # setuptools must be imported before distutils because it monkey-patches it.
+  # distutils is also removed in Python 3.12 and deprecated with setuptools
+  "distutils",
+]
+extra-standard-library = ["setuptools"]

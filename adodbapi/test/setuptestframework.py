@@ -103,9 +103,3 @@ def makemdb(testfolder, mdb_name):
             shutil.copy(mdbName, _accessdatasource)
 
     return _accessdatasource
-
-
-if __name__ == "__main__":
-    print("Setting up a Jet database for server to use for remote testing...")
-    temp = maketemp()
-    makemdb(temp, "server_test.mdb")
