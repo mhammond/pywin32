@@ -9,7 +9,7 @@ select = [
 
 [lint.per-file-ignores]
 # TODO: Make adodbapi changes in their own PRs
-"adodbapi/*" = ["W"]
+"adodbapi/*" = ["I", "W"]
 
 [lint.isort]
 combine-as-imports = true
