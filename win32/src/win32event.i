@@ -62,9 +62,7 @@
 
 #define QS_ALLINPUT QS_ALLINPUT // Any message is in the queue.
 
-#ifndef MS_WINCE
 #define QS_HOTKEY QS_HOTKEY // A WM_HOTKEY message is in the queue.
-#endif
 
 #define QS_INPUT QS_INPUT // An input message is in the queue.
 
@@ -90,10 +88,8 @@
  
 #define SYNCHRONIZE SYNCHRONIZE // Windows NT only:�Enables use of the event handle in any of the wait functions�to wait for the event�s state to be signaled.
 
-#ifndef MS_WINCE
 // @pyswig |CancelWaitableTimer|Cancels a waiting timer.
 BOOLAPI CancelWaitableTimer(PyHANDLE handle);
-#endif
 
 #end
 
@@ -114,7 +110,6 @@ PyHANDLE CreateMutex(
     TCHAR * INPUT_NULLOK 	// @pyparm <o PyUnicode>|Name||Mutex-object name, or None
   );
 
-#ifndef MS_WINCE
 // @pyswig <o PyHANDLE>|CreateSemaphore|Creates a semaphore, or opens an existing one
 // @rdesc The result is a handle to the object
 // @pyseeapi CreateSemaphore
@@ -143,7 +138,6 @@ PyHANDLE CreateWaitableTimerEx(
     DWORD dwFlags,	// @pyparm int|Flags||Flags
     DWORD dwDesiredAccess	// @pyparm int|DesiredAccess||The access mask for the timer object
 );
-#endif // MS_WINCE
 
 
 %{
@@ -216,8 +210,6 @@ static PyObject * MyMsgWaitForMultipleObjects(
 }
 %}
 
-#ifndef MS_WINCE
-
 // @pyswig int|MsgWaitForMultipleObjectsEx|Returns when a message arrives of an event is signalled
 %name(MsgWaitForMultipleObjectsEx) PyObject *MyMsgWaitForMultipleObjectsEx(
     PyObject *obHandleList, // @pyparm [<o PyHANDLE>, ...]|handleList||A sequence of handles to wait on.
@@ -283,7 +275,6 @@ PyHANDLE OpenWaitableTimer(
     TCHAR *lpTimerName	// @pyparm str|timerName||pointer to timer object name
 );
 
-#endif /* MS_WINCE */
 
 // @pyswig |PulseEvent|Provides a single operation that sets (to signaled) the state of the specified event object and then resets it (to nonsignaled) after releasing the appropriate number of waiting threads.
 BOOLAPI PulseEvent(
@@ -295,7 +286,6 @@ BOOLAPI ReleaseMutex(
     PyHANDLE hMutex 	// @pyparm <o PyHANDLE>|hEvent||handle of mutex object  
    );
 
-#ifndef MS_WINCE
 // @pyswig int|ReleaseSemaphore|Releases a semaphore.
 BOOLAPI ReleaseSemaphore(
     PyHANDLE hSemaphore,	// @pyparm <o PyHANDLE>|hEvent||handle of the semaphore object  
@@ -303,7 +293,6 @@ BOOLAPI ReleaseSemaphore(
     long *OUTPUT 	// address of previous count 
 // @rdesc The result is the previous count of the semaphore.
    );
-#endif // MS_WINCE
 
 // @pyswig |ResetEvent|Resets an event
 BOOLAPI ResetEvent(
@@ -315,7 +304,6 @@ BOOLAPI SetEvent(
     PyHANDLE hEvent 	// @pyparm <o PyHANDLE>|hEvent||handle of event object 
    );	
  
-#ifndef MS_WINCE
 // @pyswig |SetWaitableTimer|Sets a waitable timer.
 BOOLAPI SetWaitableTimer(
   PyHANDLE hTimer,                          // @pyparm <o PyHANDLE>|handle||handle to timer
@@ -331,7 +319,6 @@ BOOLAPI SignalObjectAndWait(
     DWORD dwMilliseconds,	// time-out interval in milliseconds
     BOOL bAlertable	// alertable flag
    );
-#endif
 
 %{
 static PyObject *MyWaitForMultipleObjects(
@@ -365,7 +352,6 @@ static PyObject *MyWaitForMultipleObjects(
     DWORD dwMilliseconds 	// @pyparm int|milliseconds||time-out interval in milliseconds 
    );	
 
-#ifndef MS_WINCE
 %{
 static PyObject *MyWaitForMultipleObjectsEx(
 	PyObject *handleList,
@@ -398,7 +384,6 @@ static PyObject *MyWaitForMultipleObjectsEx(
     DWORD dwMilliseconds,	// @pyparm int|milliseconds||time-out interval in milliseconds 
     BOOL bAlertable 	// @pyparm bool|bAlertable||alertable wait flag.
    );
-#endif
 %typedef DWORD DWORD_WAITAPI
 %typemap(python,except) DWORD_WAITAPI {
       Py_BEGIN_ALLOW_THREADS
@@ -421,8 +406,6 @@ DWORD_WAITAPI WaitForSingleObject(
 // @flag WAIT_OBJECT_0|The state of the specified object is signaled. 
 // @flag WAIT_TIMEOUT|The time-out interval elapsed, and the object's state is nonsignaled. 
 
-
-#ifndef MS_WINCE
 // @pyswig int|WaitForSingleObjectEx|Returns when an event is signalled
 DWORD_WAITAPI WaitForSingleObjectEx(
     PyHANDLE hHandle,	// @pyparm <o PyHANDLE>|hHandle||handle of object to wait for 
@@ -430,7 +413,6 @@ DWORD_WAITAPI WaitForSingleObjectEx(
     BOOL bAlertable // @pyparm bool|bAlertable||alertable wait flag.
    );
 // @rdesc See <om win32event.WaitForSingleObject> for return values.   
-#endif /* MS_WINCE */
 
 // @pyswig int|WaitForInputIdle|Waits until the given process is waiting for user input with no input pending, or until the time-out interval has elapsed
 DWORD_WAITAPI WaitForInputIdle(
