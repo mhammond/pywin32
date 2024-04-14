@@ -19,7 +19,7 @@ genDir = "Generated4Test"
 def GetGenPath():
     import win32api
 
-    return os.path.join(win32api.GetFullPathName(win32com.test.__path__[0]), genDir)
+    return os.path.join(win32api.GetFullPathName(next(iter(win32com.test.__path__))), genDir)
 
 
 def GenerateFromRegistered(fname, *loadArgs):

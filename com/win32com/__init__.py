@@ -1,6 +1,7 @@
 #
 # Initialization for the win32com package
 #
+from __future__ import annotations
 
 import os
 import sys
@@ -26,6 +27,8 @@ __build_path__ = None
 ### TODO - Load _all_ \\Extensions subkeys - for now, we only read the default
 ### Modules will work if loaded into "win32comext" path.
 
+# Ensure we're working on __path__ as list, not Iterable
+__path__: list[str] = list(__path__)
 
 def SetupEnvironment():
     HKEY_LOCAL_MACHINE = -2147483646  # Avoid pulling in win32con for just these...
@@ -96,9 +99,7 @@ if not __gen_path__:
     try:
         import win32com.gen_py
 
-        # hrmph - 3.3 throws: TypeError: '_NamespacePath' object does not support indexing
-        # attempting to get __path__[0] - but I can't quickly repro this stand-alone.
-        # Work around it by using an iterator.
+        # __path__ is only ensured to be an Iterable, not a list.
         __gen_path__ = next(iter(sys.modules["win32com.gen_py"].__path__))
     except ImportError:
         # If a win32com\gen_py directory already exists, then we use it
