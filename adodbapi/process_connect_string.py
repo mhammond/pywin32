@@ -1,5 +1,10 @@
 """ a clumsy attempt at a macro language to let the programmer execute code on the server (ex: determine 64bit)"""
 
+import getpass
+import os
+import platform
+import tempfile
+
 from . import is64bit as is64bit
 
 
@@ -32,13 +37,9 @@ def macro_call(macro_name, args, kwargs):
             macro_name == "getuser"
         ):  # get the name of the user the server is logged in under
             if not new_key in kwargs:
-                import getpass
-
                 return new_key, getpass.getuser()
 
         elif macro_name == "getnode":  # get the name of the computer running the server
-            import platform
-
             try:
                 return new_key, args[1] % platform.node()
             except IndexError:
@@ -61,9 +62,6 @@ def macro_call(macro_name, args, kwargs):
         elif (
             macro_name == "find_temp_test_path"
         ):  # helper function for testing ado operation -- undocumented
-            import os
-            import tempfile
-
             return new_key, os.path.join(
                 tempfile.gettempdir(), "adodbapi_test", args[1]
             )
