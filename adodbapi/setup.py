@@ -41,8 +41,8 @@ a.close()
 
 
 def setup_package():
-    from setuptools.command.build_py import build_py
     from setuptools import setup
+    from setuptools.command.build_py import build_py
 
     setup(
         cmdclass={"build_py": build_py},

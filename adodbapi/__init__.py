@@ -36,25 +36,16 @@ from .apibase import (
     threadsafety as threadsafety,
 )
 
-
-def Binary(aString):
-    """This function constructs an object capable of holding a binary (long) string value."""
-    return bytes(aString)
-
-
-def Date(year, month, day):
-    "This function constructs an object holding a date value."
-    return dateconverter.Date(year, month, day)
-
-
-def Time(hour, minute, second):
-    "This function constructs an object holding a time value."
-    return dateconverter.Time(hour, minute, second)
-
-
-def Timestamp(year, month, day, hour, minute, second):
-    "This function constructs an object holding a time stamp value."
-    return dateconverter.Timestamp(year, month, day, hour, minute, second)
+# -----------------------------------------------------------
+# conversion functions mandated by PEP 249
+Binary = bytes
+"""This function constructs an object capable of holding a binary (long) string value."""
+Date = dateconverter.Date
+"This function constructs an object holding a date value."
+Time = dateconverter.Time
+"This function constructs an object holding a time value."
+Timestamp = dateconverter.Timestamp
+"This function constructs an object holding a time stamp value."
 
 
 def DateFromTicks(ticks):

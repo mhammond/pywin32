@@ -109,38 +109,36 @@ class FetchFailedError(OperationalError):
 # Note: Usage of Unix ticks for database interfacing can cause troubles because of the limited date range they cover.
 
 
-# def Date(year,month,day):
-#     "This function constructs an object holding a date value. "
-#     return dateconverter.date(year,month,day)  #dateconverter.Date(year,month,day)
+# Date = dateconverter.Date
+# "This function constructs an object holding a date value."
 #
-# def Time(hour,minute,second):
-#     "This function constructs an object holding a time value. "
-#     return dateconverter.time(hour, minute, second) # dateconverter.Time(hour,minute,second)
+# Time = dateconverter.Time
+# "This function constructs an object holding a time value."
 #
-# def Timestamp(year,month,day,hour,minute,second):
-#     "This function constructs an object holding a time stamp value. "
-#     return dateconverter.datetime(year,month,day,hour,minute,second)
+# Timestamp = dateconverter.Timestamp
+# "This function constructs an object holding a time stamp value."
 #
 # def DateFromTicks(ticks):
 #     """This function constructs an object holding a date value from the given ticks value
-#     (number of seconds since the epoch; see the documentation of the standard Python time module for details). """
+#     (number of seconds since the epoch; see the documentation of the standard Python time module for details).
+#     """
 #     return Date(*time.gmtime(ticks)[:3])
 #
 # def TimeFromTicks(ticks):
 #     """This function constructs an object holding a time value from the given ticks value
-#     (number of seconds since the epoch; see the documentation of the standard Python time module for details). """
+#     (number of seconds since the epoch; see the documentation of the standard Python time module for details).
+#     """
 #     return Time(*time.gmtime(ticks)[3:6])
 #
 # def TimestampFromTicks(ticks):
 #     """This function constructs an object holding a time stamp value from the given
 #     ticks value (number of seconds since the epoch;
-#     see the documentation of the standard Python time module for details). """
+#     see the documentation of the standard Python time module for details)."""
 #     return Timestamp(*time.gmtime(ticks)[:6])
 #
-# def Binary(aString):
-#     """This function constructs an object capable of holding a binary (long) string value. """
-#     b = bytes(aString)
-#     return b
+# Binary = bytes
+# """This function constructs an object capable of holding a binary (long) string value."""
+
 # -----     Time converters ----------------------------------------------
 class TimeConverter:  # this is a generic time converter skeleton
     def __init__(self):  # the details will be filled in by instances
@@ -397,21 +395,20 @@ def pyTypeToADOType(d):
 # ------------------------------------------------------------------------
 # variant type : function converting variant to Python value
 def variantConvertDate(v):
-    from . import dateconverter  # this function only called when adodbapi is running
+    # this function only called when adodbapi is running
+    from . import dateconverter
 
     return dateconverter.DateObjectFromCOMDate(v)
 
 
-def cvtString(variant):  # use to get old action of adodbapi v1 if desired
-    return str(variant)
+cvtString = str  # use to get old action of adodbapi v1 if desired
 
 
 def cvtDecimal(variant):  # better name
     return _convertNumberWithCulture(variant, decimal.Decimal)
 
 
-def cvtNumeric(variant):  # older name - don't break old code
-    return cvtDecimal(variant)
+cvtNumeric = cvtDecimal  # older name - don't break old code
 
 
 def cvtFloat(variant):
@@ -429,20 +426,10 @@ def _convertNumberWithCulture(variant, f):
             pass
 
 
-def cvtInt(variant):
-    return int(variant)
-
-
-def cvtLong(variant):  # only important in old versions where long and int differ
-    return int(variant)
-
-
-def cvtBuffer(variant):
-    return bytes(variant)
-
-
-def cvtUnicode(variant):
-    return str(variant)
+cvtInt = int
+cvtLong = int  # only important in old versions where long and int differ
+cvtBuffer = bytes
+cvtUnicode = str
 
 
 def identity(x):
@@ -456,9 +443,8 @@ def cvtUnusual(variant):
 
 
 def convert_to_python(variant, func):  # convert DB value into Python value
-    if variant is None:
-        return None
-    return func(variant)  # call the appropriate conversion function
+    # call the appropriate conversion function
+    return None if variant is None else func(variant)
 
 
 class MultiMap(dict):  # builds a dictionary from {(sequence,of,keys) : function}
