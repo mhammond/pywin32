@@ -63,7 +63,7 @@ def LocatePythonServiceExe(exe=None):
     # (Unlike the .exe above, we don't unconditionally copy this, and possibly
     # copy it to a different place. Doesn't seem a good reason for that!?)
     python_dll = win32api.GetModuleFileName(sys.dllhandle)
-    pyw = f"pywintypes{sys.version_info[0]}{sys.version_info[1]}{suffix}.dll"
+    pyw = f"pywintypes{sys.version_info.major}{sys.version_info.minor}{suffix}.dll"
     correct_pyw = os.path.join(os.path.dirname(python_dll), pyw)
 
     if not os.path.exists(correct_pyw):
@@ -121,7 +121,7 @@ def LocateSpecificServiceExe(serviceName):
         win32con.HKEY_LOCAL_MACHINE,
         "SYSTEM\\CurrentControlSet\\Services\\%s" % (serviceName),
         0,
-        win32con.KEY_ALL_ACCESS,
+        win32con.KEY_QUERY_VALUE,
     )
     try:
         return win32api.RegQueryValueEx(hkey, "ImagePath")[0]
