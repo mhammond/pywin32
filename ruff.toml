@@ -11,6 +11,7 @@ select = [
   "ISC002", # multi-line-implicit-string-concatenation
   "PLE",    # Pylint Error
   "RSE",    # flake8-raise
+  "W",      # pycodestyle Warning
   "YTT",    # flake8-2020
 ]
 
