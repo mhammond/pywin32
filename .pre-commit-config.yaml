@@ -28,7 +28,7 @@ repos:
         args: [--config=pycln.toml]
         verbose: true
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.3.4
+    rev: v0.4.4
     hooks:
       - id: ruff # Run the linter.
         args: [--fix]
