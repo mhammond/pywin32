@@ -188,9 +188,7 @@ def LoadSystemModule(lib_dir, modname):
     loader = importlib.machinery.ExtensionFileLoader(modname, filename)
     spec = importlib.machinery.ModuleSpec(name=modname, loader=loader, origin=filename)
     mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(  # pyright: ignore[reportOptionalMemberAccess] # We provide the loader, we know it won't be None
-        mod
-    )
+    loader.exec_module(mod)
 
 
 def SetPyKeyVal(key_name, value_name, value):

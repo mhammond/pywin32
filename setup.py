@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 build_id = "306"  # may optionally include a ".{patchno}" suffix.
 
 __doc__ = """This is a distutils setup-script for the pywin32 extensions.
@@ -33,20 +35,18 @@ import subprocess
 import sys
 import winreg
 from pathlib import Path
-from tempfile import gettempdir
-from typing import Iterable, List, Tuple, Union
-
-# setuptools must be imported before distutils because it monkey-patches it.
-# distutils is also removed in Python 3.12 and deprecated with setuptools
 from setuptools import Extension, setup
 from setuptools.command.build import build
 from setuptools.command.build_ext import build_ext
 from setuptools.command.install import install
 from setuptools.command.install_lib import install_lib
 from setuptools.modified import newer_group
+from tempfile import gettempdir
+from typing import Iterable
 
+from distutils import ccompiler
+from distutils._msvccompiler import MSVCCompiler
 from distutils.command.install_data import install_data
-
 
 build_id_patch = build_id
 if not "." in build_id_patch:
@@ -933,22 +933,17 @@ def my_new_compiler(**kw):
 
 
 # No way to cleanly wedge our compiler sub-class in.
-from distutils import ccompiler
-from distutils._msvccompiler import MSVCCompiler
-
 orig_new_compiler = ccompiler.new_compiler
-ccompiler.new_compiler = my_new_compiler
-
-base_compiler = MSVCCompiler
+ccompiler.new_compiler = my_new_compiler  # type: ignore[assignment] # Assuming the caller will always use only kwargs
 
 
-class my_compiler(base_compiler):
+class my_compiler(MSVCCompiler):
     # Just one GUIDS.CPP and it gives trouble on mainwin too. Maybe I
     # should just rename the file, but a case-only rename is likely to be
     # worse!  This can probably go away once we kill the VS project files
     # though, as we can just specify the lowercase name in the module def.
-    _cpp_extensions = base_compiler._cpp_extensions + [".CPP"]
-    src_extensions = base_compiler.src_extensions + [".CPP"]
+    _cpp_extensions = MSVCCompiler._cpp_extensions + [".CPP"]
+    src_extensions = MSVCCompiler.src_extensions + [".CPP"]
 
     def link(
         self,
@@ -1109,7 +1104,7 @@ pywintypes = WinExt_system32(
     pch_header="PyWinTypes.h",
 )
 
-win32_extensions = [pywintypes]
+win32_extensions: list[WinExt] = [pywintypes]
 
 win32_extensions.append(
     WinExt_win32(
@@ -1251,11 +1246,10 @@ for info in (
         windows_h_ver = info[2]
     if len(info) > 3:
         sources = info[3].split()
-    extra_compile_args = []
     ext = WinExt_win32(
         name,
         libraries=lib_names,
-        extra_compile_args=extra_compile_args,
+        extra_compile_args=[],
         windows_h_version=windows_h_ver,
         sources=sources,
     )
@@ -1381,9 +1375,7 @@ pythoncom = WinExt_system32(
                         {win32com}/extensions/PyICancelMethodCalls.cpp    {win32com}/extensions/PyIContext.cpp
                         {win32com}/extensions/PyIEnumContextProps.cpp     {win32com}/extensions/PyIClientSecurity.cpp
                         {win32com}/extensions/PyIServerSecurity.cpp
-                        """.format(
-            **dirs
-        )
+                        """.format(**dirs)
     ).split(),
     depends=(
         """
@@ -1410,9 +1402,7 @@ pythoncom = WinExt_system32(
                         {win32com}/include\\PyICancelMethodCalls.h    {win32com}/include\\PyIContext.h
                         {win32com}/include\\PyIEnumContextProps.h     {win32com}/include\\PyIClientSecurity.h
                         {win32com}/include\\PyIServerSecurity.h
-                        """.format(
-            **dirs
-        )
+                        """.format(**dirs)
     ).split(),
     libraries="oleaut32 ole32 user32 urlmon",
     export_symbol_file="com/win32com/src/PythonCOM.def",
@@ -1422,8 +1412,8 @@ pythoncom = WinExt_system32(
     base_address=dll_base_address,
 )
 dll_base_address += 0x80000  # pythoncom is large!
-com_extensions = [pythoncom]
-com_extensions += [
+com_extensions = [
+    pythoncom,
     WinExt_win32com(
         "adsi",
         libraries="ACTIVEDS ADSIID user32 advapi32",
@@ -1440,9 +1430,7 @@ com_extensions += [
                         {adsi}/adsilib.i
                         {adsi}/PyADSIUtil.cpp         {adsi}/PyDSOPObjects.cpp
                         {adsi}/PyIADs.cpp
-                        """.format(
-                **dirs
-            )
+                        """.format(**dirs)
         ).split(),
     ),
     WinExt_win32com(
@@ -1460,9 +1448,7 @@ com_extensions += [
                         {axcontrol}/PyIOleClientSite.cpp       {axcontrol}/PyIOleInPlaceSite.cpp
                         {axcontrol}/PyIOleObject.cpp           {axcontrol}/PyIViewObject2.cpp
                         {axcontrol}/PyIOleCommandTarget.cpp
-                        """.format(
-                **dirs
-            )
+                        """.format(**dirs)
         ).split(),
     ),
     WinExt_win32com(
@@ -1477,9 +1463,7 @@ com_extensions += [
                         {axscript}/PyIActiveScriptParse.cpp    {axscript}/PyIActiveScriptParseProcedure.cpp
                         {axscript}/PyIActiveScriptSite.cpp     {axscript}/PyIMultiInfos.cpp
                         {axscript}/PyIObjectSafety.cpp         {axscript}/stdafx.cpp
-                        """.format(
-                **dirs
-            )
+                        """.format(**dirs)
         ).split(),
         depends=(
             """
@@ -1488,9 +1472,7 @@ com_extensions += [
                              {axscript}/PyIActiveScriptError.h {axscript}/PyIObjectSafety.h
                              {axscript}/PyIProvideMultipleClassInfo.h
                              {axscript}/stdafx.h
-                             """.format(
-                **dirs
-            )
+                             """.format(**dirs)
         ).split(),
         extra_compile_args=["-DPY_BUILD_AXSCRIPT"],
         implib_name="axscript",
@@ -1546,9 +1528,7 @@ com_extensions += [
                     {axdebug}/PyIRemoteDebugApplicationEvents.cpp
                     {axdebug}/PyIRemoteDebugApplicationThread.cpp
                     {axdebug}/stdafx.cpp
-                     """.format(
-                **dirs
-            )
+                     """.format(**dirs)
         ).split(),
     ),
     WinExt_win32com(
@@ -1561,9 +1541,7 @@ com_extensions += [
                         {internet}/PyIInternetPriority.cpp        {internet}/PyIInternetProtocol.cpp
                         {internet}/PyIInternetProtocolInfo.cpp    {internet}/PyIInternetProtocolRoot.cpp
                         {internet}/PyIInternetProtocolSink.cpp    {internet}/PyIInternetSecurityManager.cpp
-                    """.format(
-                **dirs
-            )
+                    """.format(**dirs)
         ).split(),
         depends=["{internet}/internet_pch.h".format(**dirs)],
     ),
@@ -1599,9 +1577,7 @@ com_extensions += [
                         {mapi}/mapiguids.cpp
                         {mapi}/mapi_stub_library/MapiStubLibrary.cpp
                         {mapi}/mapi_stub_library/StubUtils.cpp
-                        """.format(
-                **dirs
-            )
+                        """.format(**dirs)
         ).split(),
     ),
     WinExt_win32com_mapi(
@@ -1617,9 +1593,7 @@ com_extensions += [
                                   {mapi}/exchangeguids.cpp
                                   {mapi}/mapi_stub_library/MapiStubLibrary.cpp
                                   {mapi}/mapi_stub_library/StubUtils.cpp
-                                  """.format(
-                **dirs
-            )
+                                  """.format(**dirs)
         ).split(),
     ),
     WinExt_win32com_mapi(
@@ -1631,9 +1605,7 @@ com_extensions += [
                                   {mapi}/exchdapi.i         {mapi}/exchdapi.cpp
                                   {mapi}/mapi_stub_library/MapiStubLibrary.cpp
                                   {mapi}/mapi_stub_library/StubUtils.cpp
-                                  """.format(
-                **dirs
-            )
+                                  """.format(**dirs)
         ).split(),
     ),
     WinExt_win32com(
@@ -1715,9 +1687,7 @@ com_extensions += [
                         {shell}/PyIUniformResourceLocator.cpp
                         {shell}/shell.cpp
 
-                        """.format(
-                **dirs
-            )
+                        """.format(**dirs)
         ).split(),
     ),
     WinExt_win32com(
@@ -1745,9 +1715,7 @@ com_extensions += [
                         {propsys}/PyIObjectWithPropertyKey.cpp
                         {propsys}/PyIPropertyChange.cpp
                         {propsys}/PyIPropertyChangeArray.cpp
-                        """.format(
-                **dirs
-            )
+                        """.format(**dirs)
         ).split(),
         implib_name="pypropsys",
     ),
@@ -1763,9 +1731,7 @@ com_extensions += [
                         {taskscheduler}/PyITaskScheduler.cpp
                         {taskscheduler}/PyITaskTrigger.cpp
 
-                        """.format(
-                **dirs
-            )
+                        """.format(**dirs)
         ).split(),
     ),
     WinExt_win32com(
@@ -1786,9 +1752,7 @@ com_extensions += [
                         {bits}/PyIEnumBackgroundCopyJobs.cpp
                         {bits}/PyIEnumBackgroundCopyFiles.cpp
 
-                        """.format(
-                **dirs
-            )
+                        """.format(**dirs)
         ).split(),
     ),
     WinExt_win32com(
@@ -1809,18 +1773,14 @@ com_extensions += [
                         {directsound}/PyIDirectSoundBuffer.cpp {directsound}/PyIDirectSoundCapture.cpp
                         {directsound}/PyIDirectSoundCaptureBuffer.cpp
                         {directsound}/PyIDirectSoundNotify.cpp
-                        """.format(
-                **dirs
-            )
+                        """.format(**dirs)
         ).split(),
         depends=(
             """
                         {directsound}/directsound_pch.h   {directsound}/PyIDirectSound.h
                         {directsound}/PyIDirectSoundBuffer.h {directsound}/PyIDirectSoundCapture.h
                         {directsound}/PyIDirectSoundCaptureBuffer.h {directsound}/PyIDirectSoundNotify.h
-                        """.format(
-                **dirs
-            )
+                        """.format(**dirs)
         ).split(),
         optional_headers=["dsound.h"],
         libraries="user32 dsound dxguid",
@@ -1832,9 +1792,7 @@ com_extensions += [
             """
                         {authorization}/authorization.cpp
                         {authorization}/PyGSecurityInformation.cpp
-                        """.format(
-                **dirs
-            )
+                        """.format(**dirs)
         ).split(),
     ),
 ]
@@ -2086,7 +2044,7 @@ swig_interface_parents = {
 swig_include_files = "mapilib adsilib".split()
 
 
-def expand_modules(module_dir: Union[str, os.PathLike]):
+def expand_modules(module_dir: str | os.PathLike[str]):
     """Helper to allow our script specifications to include wildcards."""
     return [str(path.with_suffix("")) for path in Path(module_dir).rglob("*.py")]
 
@@ -2097,11 +2055,11 @@ def expand_modules(module_dir: Union[str, os.PathLike]):
 # 'Lib/site-packages/pythonwin/licence.txt'.  We exploit this to
 # get 'com/win32com/whatever' installed to 'win32com/whatever'
 def convert_data_files(files: Iterable[str]):
-    ret: List[Tuple[str, Tuple[str]]] = []
+    ret: list[tuple[str, tuple[str]]] = []
     for file in files:
         file = os.path.normpath(file)
         if file.find("*") >= 0:
-            files_use = (
+            files_use = tuple(
                 str(path)
                 for path in Path(file).parent.rglob(os.path.basename(file))
                 # We never want CVS
@@ -2212,6 +2170,7 @@ if "bdist_wininst" in sys.argv:
     # fixup https://github.com/pypa/setuptools/issues/3284
     def maybe_fixup_exes():
         import site
+
         from distutils.command import bdist_wininst
 
         # setuptools can't find .exe stubs in `site-packages/setuptools/_distutils`
