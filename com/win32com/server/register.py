@@ -98,9 +98,9 @@ def _find_localserver_exe(mustfind):
     if sys.platform != "win32":
         return sys.executable
     if os.path.splitext(os.path.basename(pythoncom.__file__))[0].endswith("_d"):
-        exeBaseName = "pythonw.exe"
-    else:
         exeBaseName = "pythonw_d.exe"
+    else:
+        exeBaseName = "pythonw.exe"
     # First see if in the same directory as this .EXE
     exeName = os.path.join(os.path.split(sys.executable)[0], exeBaseName)
     if not os.path.exists(exeName):
@@ -246,7 +246,7 @@ def RegisterServer(
             loadername = os.path.join(
                 pythoncom_dir,
                 "pythoncomloader%d%d%s.dll"
-                % (sys.version_info[0], sys.version_info[1], suffix),
+                % (sys.version_info.major, sys.version_info.minor, suffix),
             )
             dllName = loadername if os.path.isfile(loadername) else pythoncom.__file__
 
@@ -544,9 +544,9 @@ def UnregisterInfoClasses(*classes, **flags):
 def ReExecuteElevated(flags):
     import tempfile
 
+    import win32console
     import win32event  # we've already checked we are running XP above
     import win32process
-    import winxpgui
     from win32com.shell import shellcon
     from win32com.shell.shell import ShellExecuteEx
 
@@ -560,12 +560,10 @@ def ReExecuteElevated(flags):
     # specifying the parent means the dialog is centered over our window,
     # which is a good usability clue.
     # hwnd is unlikely on the command-line, but flags may come from elsewhere
-    hwnd = flags.get("hwnd", None)
-    if hwnd is None:
-        try:
-            hwnd = winxpgui.GetConsoleWindow()
-        except winxpgui.error:
-            hwnd = 0
+    try:
+        hwnd = flags.get("hwnd", win32console.GetConsoleWindow())
+    except win32console.error:
+        hwnd = 0
     # Redirect output so we give the user some clue what went wrong.  This
     # also means we need to use COMSPEC.  However, the "current directory"
     # appears to end up ignored - so we execute things via a temp batch file.

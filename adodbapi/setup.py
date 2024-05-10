@@ -1,7 +1,6 @@
 """adodbapi -- a pure Python PEP 249 DB-API package using Microsoft ADO
 
 Adodbapi can be run on CPython 3.5 and later.
-or IronPython version 2.6 and later (in theory, possibly no longer in practice!)
 """
 
 CLASSIFIERS = """\
@@ -42,8 +41,8 @@ a.close()
 
 
 def setup_package():
-    from distutils.command.build_py import build_py
-    from distutils.core import setup
+    from setuptools import setup
+    from setuptools.command.build_py import build_py
 
     setup(
         cmdclass={"build_py": build_py},

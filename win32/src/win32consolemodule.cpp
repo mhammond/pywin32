@@ -110,11 +110,7 @@ BOOL PyWinObject_AsSingleWCHAR(PyObject *obchar, WCHAR *onechar)
         PyErr_SetString(PyExc_ValueError, "Object must be a single unicode character");
         return FALSE;
     }
-#if (PY_VERSION_HEX < 0x03020000)
-#define PUAWC_TYPE PyUnicodeObject *
-#else
 #define PUAWC_TYPE PyObject *
-#endif
     if (PyUnicode_AsWideChar((PUAWC_TYPE)obchar, onechar, 1) == -1)
         return FALSE;
     return TRUE;
