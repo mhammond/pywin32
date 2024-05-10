@@ -14,14 +14,13 @@ import commctrl
 import pythoncom
 import win32api
 import win32con
+import win32gui
 import winerror
-import winxpgui as win32gui  # the needs vista, let alone xp!
 from win32com.axcontrol import axcontrol  # IObjectWithSite
 from win32com.propsys import propsys
 from win32com.server.exception import COMException
 from win32com.server.util import NewEnum as _NewEnum, wrap as _wrap
 from win32com.shell import shell, shellcon
-from win32com.util import IIDToInterfaceName
 
 GUID = pythoncom.MakeIID
 

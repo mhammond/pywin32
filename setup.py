@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 build_id = "306"  # may optionally include a ".{patchno}" suffix.
 
 __doc__ = """This is a distutils setup-script for the pywin32 extensions.
@@ -33,17 +35,16 @@ import subprocess
 import sys
 import winreg
 from pathlib import Path
-from tempfile import gettempdir
-from typing import Iterable, List, Tuple, Union
-
-# setuptools must be imported before distutils because it monkey-patches it.
-# distutils is also removed in Python 3.12 and deprecated with setuptools
 from setuptools import Extension, setup
 from setuptools.command.build import build
 from setuptools.command.build_ext import build_ext
 from setuptools.command.install import install
 from setuptools.command.install_lib import install_lib
+from tempfile import gettempdir
+from typing import Iterable, List, Tuple, Union
 
+from distutils import ccompiler
+from distutils._msvccompiler import MSVCCompiler
 from distutils.command.install_data import install_data
 
 if sys.version_info >= (3, 8):
@@ -51,16 +52,12 @@ if sys.version_info >= (3, 8):
 else:
     from distutils.dep_util import newer_group
 
-# some modules need a static CRT to avoid problems caused by them having a
-# manifest.
-static_crt_modules = ["winxpgui"]
-
 build_id_patch = build_id
 if not "." in build_id_patch:
     build_id_patch = build_id_patch + ".0"
 pywin32_version = "%d.%d.%s" % (
-    sys.version_info[0],
-    sys.version_info[1],
+    sys.version_info.major,
+    sys.version_info.minor,
     build_id_patch,
 )
 print("Building pywin32", pywin32_version)
@@ -404,11 +401,6 @@ class my_build_ext(build_ext):
         if ext.name == "axdebug" and sys.version_info > (3, 10):
             return "AXDebug no longer builds on 3.11 and up"
 
-        # winxpgui cannot be build for win-arm64 due to manifest file conflicts
-        # skip extension as we probably don't want this extension for win-arm64 platforms
-        if self.plat_name == "win-arm64" and ext.name == "winxpgui":
-            return "winxpgui extension cannot be build for win-arm64"
-
         include_dirs = self.compiler.include_dirs + os.environ.get("INCLUDE", "").split(
             os.pathsep
         )
@@ -728,12 +720,6 @@ class my_build_ext(build_ext):
         # with special defines. So we cannot use a shared
         # directory for objects, we must use a special one for each extension.
         old_build_temp = self.build_temp
-        want_static_crt = ext.name in static_crt_modules
-        if want_static_crt:
-            self.compiler.compile_options.remove("/MD")
-            self.compiler.compile_options.append("/MT")
-            self.compiler.compile_options_debug.remove("/MDd")
-            self.compiler.compile_options_debug.append("/MTd")
 
         try:
             build_ext.build_extension(self, ext)
@@ -746,8 +732,8 @@ class my_build_ext(build_ext):
                 # are expected to be pywintypes.lib.
                 created = "%s%d%d%s" % (
                     ext.name,
-                    sys.version_info[0],
-                    sys.version_info[1],
+                    sys.version_info.major,
+                    sys.version_info.minor,
                     extra,
                 )
                 needed = f"{ext.name}{extra}"
@@ -769,17 +755,12 @@ class my_build_ext(build_ext):
                     self.copy_file(src, dst)
         finally:
             self.build_temp = old_build_temp
-            if want_static_crt:
-                self.compiler.compile_options.remove("/MT")
-                self.compiler.compile_options.append("/MD")
-                self.compiler.compile_options_debug.remove("/MTd")
-                self.compiler.compile_options_debug.append("/MDd")
 
     def get_ext_filename(self, name):
         # We need to fixup some target filenames.
         suffix = "_d" if self.debug else ""
         if name in ["pywintypes", "pythoncom"]:
-            ver = f"{sys.version_info[0]}{sys.version_info[1]}"
+            ver = f"{sys.version_info.major}{sys.version_info.minor}"
             return f"{name}{ver}{suffix}.dll"
         if name in ["perfmondata", "PyISAPI_loader"]:
             return f"{name}{suffix}.dll"
@@ -822,17 +803,6 @@ class my_build_ext(build_ext):
                 # Patch up the filenames for various special cases...
                 if os.path.basename(base) in swig_interface_parents:
                     swig_targets[source] = base + target_ext
-                elif (
-                    self.current_extension.name == "winxpgui"
-                    and os.path.basename(base) == "win32gui"
-                ):
-                    # More vile hacks.  winxpmodule is built from win32gui.i -
-                    # just different #defines are setup for windows.h.
-                    new_target = os.path.join(
-                        os.path.dirname(base), f"winxpgui_swig{target_ext}"
-                    )
-                    swig_targets[source] = new_target
-                    new_sources.append(new_target)
                 else:
                     new_target = f"{base}_swig{target_ext}"
                     new_sources.append(new_target)
@@ -967,22 +937,17 @@ def my_new_compiler(**kw):
 
 
 # No way to cleanly wedge our compiler sub-class in.
-from distutils import ccompiler
-from distutils._msvccompiler import MSVCCompiler
-
 orig_new_compiler = ccompiler.new_compiler
-ccompiler.new_compiler = my_new_compiler
-
-base_compiler = MSVCCompiler
+ccompiler.new_compiler = my_new_compiler  # type: ignore[assignment] # Assuming the caller will always use only kwargs
 
 
-class my_compiler(base_compiler):
+class my_compiler(MSVCCompiler):
     # Just one GUIDS.CPP and it gives trouble on mainwin too. Maybe I
     # should just rename the file, but a case-only rename is likely to be
     # worse!  This can probably go away once we kill the VS project files
     # though, as we can just specify the lowercase name in the module def.
-    _cpp_extensions = base_compiler._cpp_extensions + [".CPP"]
-    src_extensions = base_compiler.src_extensions + [".CPP"]
+    _cpp_extensions = MSVCCompiler._cpp_extensions + [".CPP"]
+    src_extensions = MSVCCompiler.src_extensions + [".CPP"]
 
     def link(
         self,
@@ -1065,9 +1030,6 @@ class my_compiler(base_compiler):
             return
         if is_link:
             # remove /MANIFESTFILE:... and add MANIFEST:NO
-            # (but note that for winxpgui, which specifies a manifest via a
-            # .rc file, this is ignored by the linker - the manifest specified
-            # in the .rc file is still added)
             for i in range(len(cmd)):
                 if cmd[i].startswith(("/MANIFESTFILE:", "/MANIFEST:EMBED")):
                     cmd[i] = "/MANIFEST:NO"
@@ -1146,7 +1108,7 @@ pywintypes = WinExt_system32(
     pch_header="PyWinTypes.h",
 )
 
-win32_extensions = [pywintypes]
+win32_extensions: list[WinExt] = [pywintypes]
 
 win32_extensions.append(
     WinExt_win32(
@@ -1288,11 +1250,10 @@ for info in (
         windows_h_ver = info[2]
     if len(info) > 3:
         sources = info[3].split()
-    extra_compile_args = []
     ext = WinExt_win32(
         name,
         libraries=lib_names,
-        extra_compile_args=extra_compile_args,
+        extra_compile_args=[],
         windows_h_version=windows_h_ver,
         sources=sources,
     )
@@ -1327,19 +1288,6 @@ win32_extensions += [
         windows_h_version=0x0500,
         libraries="gdi32 user32 comdlg32 comctl32 shell32",
         define_macros=[("WIN32GUI", None)],
-    ),
-    # winxpgui is built from win32gui.i, but sets up different #defines before
-    # including windows.h.  It also has an XP style manifest.
-    WinExt_win32(
-        "winxpgui",
-        sources="""
-                win32/src/winxpgui.rc win32/src/win32dynamicdialog.cpp
-                win32/src/win32gui.i
-               """.split(),
-        libraries="gdi32 user32 comdlg32 comctl32 shell32",
-        windows_h_version=0x0500,
-        define_macros=[("WIN32GUI", None), ("WINXPGUI", None)],
-        extra_swig_commands=["-DWINXPGUI"],
     ),
     # winxptheme
     WinExt_win32(
@@ -1472,8 +1420,8 @@ pythoncom = WinExt_system32(
     base_address=dll_base_address,
 )
 dll_base_address += 0x80000  # pythoncom is large!
-com_extensions = [pythoncom]
-com_extensions += [
+com_extensions = [
+    pythoncom,
     WinExt_win32com(
         "adsi",
         libraries="ACTIVEDS ADSIID user32 advapi32",
@@ -2136,7 +2084,7 @@ swig_interface_parents = {
 swig_include_files = "mapilib adsilib".split()
 
 
-def expand_modules(module_dir: Union[str, os.PathLike]):
+def expand_modules(module_dir: Union[str, os.PathLike[str]]):
     """Helper to allow our script specifications to include wildcards."""
     return [str(path.with_suffix("")) for path in Path(module_dir).rglob("*.py")]
 
@@ -2151,7 +2099,7 @@ def convert_data_files(files: Iterable[str]):
     for file in files:
         file = os.path.normpath(file)
         if file.find("*") >= 0:
-            files_use = (
+            files_use = tuple(
                 str(path)
                 for path in Path(file).parent.rglob(os.path.basename(file))
                 # We never want CVS
@@ -2230,7 +2178,7 @@ packages = [
     "adodbapi",
 ]
 
-py_modules = expand_modules("win32\\lib")
+py_modules = [*expand_modules("win32\\lib"), "win32\\winxpgui"]
 ext_modules = (
     win32_extensions + com_extensions + pythonwin_extensions + other_extensions
 )
@@ -2263,6 +2211,7 @@ if "bdist_wininst" in sys.argv:
     # fixup https://github.com/pypa/setuptools/issues/3284
     def maybe_fixup_exes():
         import site
+
         from distutils.command import bdist_wininst
 
         # setuptools can't find .exe stubs in `site-packages/setuptools/_distutils`
@@ -2421,7 +2370,7 @@ if "build_ext" in dist.command_obj:
     # Print the list of extension modules we skipped building.
     excluded_extensions = dist.command_obj["build_ext"].excluded_extensions
     if excluded_extensions:
-        skip_whitelist = {"exchdapi", "exchange", "axdebug", "winxpgui"}
+        skip_whitelist = {"exchdapi", "exchange", "axdebug"}
         skipped_ex = []
         print("*** NOTE: The following extensions were NOT %s:" % what_string)
         for ext, why in excluded_extensions:
