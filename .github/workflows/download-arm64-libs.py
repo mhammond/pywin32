@@ -19,7 +19,7 @@ except IndexError:
 dest = dest.absolute()
 dest.mkdir(parents=True, exist_ok=True)
 
-VERSION = "{}.{}.{}".format(*sys.version_info[:3])
+VERSION = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
 if sys.version_info.releaselevel == "alpha":
     VERSION += f"-a{sys.version_info.serial}"
 if sys.version_info.releaselevel == "beta":

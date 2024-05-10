@@ -6,28 +6,6 @@
 #include "PySecurityObjects.h"
 #include "structmember.h"
 
-#ifdef NO_PYWINTYPES_SECURITY
-
-BOOL PyWinObject_AsSECURITY_ATTRIBUTES(PyObject *ob, SECURITY_ATTRIBUTES **ppSECURITY_ATTRIBUTES,
-                                       BOOL bNoneOK /*= TRUE*/)
-{
-    if (bNoneOK && ob == Py_None) {
-        *ppSECURITY_ATTRIBUTES = NULL;
-    }
-    else {
-        if (bNoneOK)
-            PyErr_SetString(PyExc_TypeError, "This build of pywintypes only supports None as a SECURITY_ATTRIBUTE");
-        else
-            PyErr_SetString(
-                PyExc_TypeError,
-                "This function can not work in this build, as only None may be used as a SECURITY_ATTRIBUTE");
-        return FALSE;
-    }
-    return TRUE;
-}
-
-#else
-
 // @pymethod <o PySECURITY_ATTRIBUTES>|pywintypes|SECURITY_ATTRIBUTES|Creates a new SECURITY_ATTRIBUTES object
 PyObject *PyWinMethod_NewSECURITY_ATTRIBUTES(PyObject *self, PyObject *args)
 {
@@ -197,5 +175,3 @@ int PySECURITY_ATTRIBUTES::setattro(PyObject *self, PyObject *obname, PyObject *
 }
 
 /*static*/ void PySECURITY_ATTRIBUTES::deallocFunc(PyObject *ob) { delete (PySECURITY_ATTRIBUTES *)ob; }
-
-#endif /* MS_WINCE */

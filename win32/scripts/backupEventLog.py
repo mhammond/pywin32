@@ -27,7 +27,7 @@ def BackupClearLog(logType):
     # OK - have unique file name.
     try:
         hlog = win32evtlog.OpenEventLog(None, logType)
-    except win32evtlogutil.error as details:
+    except win32evtlog.error as details:
         print("Could not open the event log", details)
         return
     try:

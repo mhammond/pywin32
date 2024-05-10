@@ -93,22 +93,11 @@ class StrictDynamicPolicy(win32com.server.policy.DynamicPolicy):
         return win32com.server.policy.DynamicPolicy._getdispid_(self, name, fdex)
 
 
-def _wrap_debug(obj):
+def _wrap(obj):
+    useDispatcher = win32com.server.policy.DispatcherWin32trace if debugging else None
     return win32com.server.util.wrap(
-        obj,
-        usePolicy=StrictDynamicPolicy,
-        useDispatcher=win32com.server.policy.DispatcherWin32trace,
+        obj, usePolicy=StrictDynamicPolicy, useDispatcher=useDispatcher
     )
-
-
-def _wrap_nodebug(obj):
-    return win32com.server.util.wrap(obj, usePolicy=StrictDynamicPolicy)
-
-
-if debugging:
-    _wrap = _wrap_debug
-else:
-    _wrap = _wrap_nodebug
 
 
 def MakeScriptDispatch(engine, namespace):
