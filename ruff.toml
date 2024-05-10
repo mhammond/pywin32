@@ -6,6 +6,7 @@ select = [
   "C4",     # flake8-comprehensions
   "F811",   # redefined-while-unused
   "FLY",    # static-join-to-f-string
+  "G",      # flake8-logging-format
   "I",      # isort
   "ISC001", # single-line-implicit-string-concatenation
   "ISC002", # multi-line-implicit-string-concatenation
@@ -31,3 +32,6 @@ known-third-party = [
   "distutils",
 ]
 extra-standard-library = ["setuptools"]
+
+[lint.flake8-implicit-str-concat]
+allow-multiline = false # ignore ISC003 with this option disabled
