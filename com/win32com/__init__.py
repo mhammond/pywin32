@@ -28,7 +28,8 @@ __build_path__ = None
 ### Modules will work if loaded into "win32comext" path.
 
 # Ensure we're working on __path__ as list, not Iterable
-__path__: list[str] = list(__path__)
+__path__: list[str] = list(__path__)  # type: ignore[no-redef]
+
 
 def SetupEnvironment():
     HKEY_LOCAL_MACHINE = -2147483646  # Avoid pulling in win32con for just these...

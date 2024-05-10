@@ -31,7 +31,9 @@ class AXScript(win32com.test.util.TestCase):
 
     def testCScript(self):
         file = win32api.GetFullPathName(
-            os.path.join(next(iter(win32com.axscript.__path__)), "Demos\\Client\\wsh\\test.pys")
+            os.path.join(
+                next(iter(win32com.axscript.__path__)), "Demos\\Client\\wsh\\test.pys"
+            )
         )
         cmd = 'cscript.exe "%s"' % (file)
         if verbose:
