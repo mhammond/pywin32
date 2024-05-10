@@ -15,21 +15,6 @@
 static char BASED_CODE THIS_FILE[] = __FILE__;
 #endif
 
-#if _MFC_VER < 0x0600
-// MSVC V 5.1 and certain version of the IE4 SDK cant agree on object sizes!
-
-// God damn - inlines and DLL dont agree on object sizes!!!
-#if defined(PROPSHEETHEADERA_V1_SIZE)
-#if !defined(_WIN32_IE)
-#error "Please update the IE4 SDK to a newer version"
-#endif
-#if _WIN32_IE > 0x0300
-#error "Please recompile with _WIN32_IE set to 0x0300"
-#endif
-#endif  // PROPSHEETHEADERA_V1_SIZE
-
-#endif  // _MFC_VER
-
 #define WM_RESIZEPAGE WM_APP + 1
 
 // helper function which sets the font for a window and all its children

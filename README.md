@@ -31,13 +31,17 @@ closed. For such issues, please email the
 note that you must be subscribed to the list before posting.
 
 ## Binaries
+
 [Binary releases are deprecated.](https://mhammond.github.io/pywin32_installers.html)
 While they are still provided, [find them here](https://github.com/mhammond/pywin32/releases)
 
 ## Installing via PIP
 
 You should install pywin32 via pip - eg,
-> python -m pip install --upgrade pywin32
+
+```shell
+python -m pip install --upgrade pywin32
+```
 
 There is a post-install script (see below) which should *not* be run inside virtual environments;
 it should only be run in "global" installs.
@@ -50,7 +54,9 @@ choose any "workflow" from the `main` branch and download its "artifacts")
 Outside of a virtual environment you might want to install COM objects, services, etc. You can do
 this by executing:
 
-> python Scripts/pywin32_postinstall.py -install
+```shell
+python Scripts/pywin32_postinstall.py -install
+```
 
 From the root of your Python installation.
 
@@ -69,9 +75,10 @@ the service has access to the installation and is able to load `pywintypesXX.dll
 to your local `%USER%` directory structure.
 
 ## Troubleshooting
+
 If you encounter any problems when upgrading like the following:
 
-```
+```text
 The specified procedure could not be found
 Entry-point not found
 ```
@@ -81,7 +88,9 @@ It usually means one of 2 things:
 * You've upgraded an install where the post-install script has previously run.
 So you should run it again:
 
-    > python Scripts/pywin32_postinstall.py -install
+    ```shell
+    python Scripts/pywin32_postinstall.py -install
+    ```
 
     This will make some small attempts to cleanup older conflicting installs.
 
@@ -89,17 +98,17 @@ So you should run it again:
 but in a different location than the new ones. This sometimes happens in environments that
 come with pywin32 pre-shipped (eg, anaconda?).
 
-    The possible solutions here are:
+  The possible solutions here are:
 
-    * Run the "post_install" script documented above.
-
-    * Otherwise, find and remove all other copies of `pywintypesXX.dll` and `pythoncomXX.dll`
+  * Run the "post_install" script documented above.
+  * Otherwise, find and remove all other copies of `pywintypesXX.dll` and `pythoncomXX.dll`
   (where `XX` is the Python version - eg, "39")
 
 ## Building from source
 
 Install Visual Studio 2019 (later probably works, but options might be different),
 select "Desktop Development with C++", then the following options:
+
 * Windows 10 SDK (latest offered I guess? At time of writing, 10.0.18362)
 * "C++ for MFC for ..."
 * ARM build tools if necessary.
@@ -108,11 +117,15 @@ select "Desktop Development with C++", then the following options:
 
 `setup.py` is a standard distutils build script, so you probably want:
 
-> python setup.py install
+```shell
+python setup.py install
+```
 
 or
 
-> python setup.py --help
+```shell
+python setup.py --help
+```
 
 Some modules need obscure SDKs to build - `setup.py` should succeed, gracefully
 telling you why it failed to build them - if the build actually fails with your
@@ -121,7 +134,7 @@ configuration, please [open an issue](https://github.com/mhammond/pywin32/issues
 ## Release process
 
 The following steps are performed when making a new release - this is mainly
-to form a checklist so mhammond doesn't forget what to do :)
+to form a checklist so @mhammond doesn't forget what to do :)
 
 * Ensure CHANGES.txt has everything worth noting. Update the header to reflect
   the about-to-be released build and date, commit it.

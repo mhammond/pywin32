@@ -27,12 +27,6 @@ repos:
       - id: pycln
         args: [--config=pycln.toml]
         verbose: true
-  - repo: https://github.com/pycqa/isort
-    rev: 5.13.2
-    hooks:
-      - id: isort
-        name: isort (python)
-        verbose: true
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.3.4
     hooks:
