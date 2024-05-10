@@ -2,14 +2,7 @@
 target-version = "py37"
 
 [lint]
-select = [
-  "I", # isort
-  "W", # pycodestyle Warning
-]
-
-[lint.per-file-ignores]
-# TODO: Make adodbapi changes in their own PRs
-"adodbapi/*" = ["I"]
+select = ["I"]
 
 [lint.isort]
 combine-as-imports = true
