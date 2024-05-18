@@ -2084,7 +2084,7 @@ swig_interface_parents = {
 swig_include_files = "mapilib adsilib".split()
 
 
-def expand_modules(module_dir: Union[str, os.PathLike[str]]):
+def expand_modules(module_dir: str | os.PathLike[str]):
     """Helper to allow our script specifications to include wildcards."""
     return [str(path.with_suffix("")) for path in Path(module_dir).rglob("*.py")]
 
@@ -2095,7 +2095,7 @@ def expand_modules(module_dir: Union[str, os.PathLike[str]]):
 # 'Lib/site-packages/pythonwin/licence.txt'.  We exploit this to
 # get 'com/win32com/whatever' installed to 'win32com/whatever'
 def convert_data_files(files: Iterable[str]):
-    ret: List[Tuple[str, Tuple[str]]] = []
+    ret: list[tuple[str, tuple[str]]] = []
     for file in files:
         file = os.path.normpath(file)
         if file.find("*") >= 0:
