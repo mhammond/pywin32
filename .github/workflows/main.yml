@@ -119,7 +119,7 @@ jobs:
       fail-fast: false
       matrix:
         # mypy 1.5 dropped support for Python 3.7
-        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13-dev']
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
