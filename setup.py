@@ -631,11 +631,15 @@ class my_build_ext(build_ext):
         redist_globs = [vcbase + r"redist\%s\*MFC\mfc140u.dll" % self.plat_dir]
         m = re.search(r"\\VC\\Tools\\", vcbase)
         if m:
-            # typical path on newer Visual Studios - ensure corresponding version
+            # typical path on newer Visual Studios
+            # prefere corresponding version but accept different version
+            same_version = vcverdir is not None and os.path.isdir(
+                vcbase[: m.start()] + r"\VC\Redist\MSVC\{}{}".format(
+                    vcverdir, self.plat_dir
+                ))
             redist_globs.append(
-                vcbase[: m.start()]
-                + r"\VC\Redist\MSVC\{}{}\*\mfc140u.dll".format(
-                    vcverdir or "*\\", self.plat_dir
+                vcbase[: m.start()] + r"\VC\Redist\MSVC\{}{}\*\mfc140u.dll".format(
+                    vcverdir if same_version else "*\\", self.plat_dir
                 )
             )
         # Only mfcNNNu DLL is required (mfcmNNNX is Windows Forms, rest is ANSI)
