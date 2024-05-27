@@ -13,6 +13,14 @@ https://mhammond.github.io/pywin32_installers.html.
 
 Coming in build 307, as yet unreleased
 --------------------------------------
+### Release process changes
+
+pywin32 is now released from artifacts created by Github actions, whereas previously they were
+created from an environment where certain tools and libraries were located and installed
+by hand.
+
+This means some capabilities are no longer provided - this includes some documentation artifacts, such
+as the .chm file, certain MAPI libraries etc, and .exe installers.
 
 ### pywin32
 * Remove obsolete and unused `pywin.is_platform_unicode` (#2343, @Avasam)
