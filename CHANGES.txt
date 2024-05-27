@@ -14,6 +14,7 @@ https://mhammond.github.io/pywin32_installers.html.
 Coming in build 307, as yet unreleased
 --------------------------------------
 ### pywin32
+* Fixed VT_SAFEARRAY(VT_RECORD) which were missing the last element (#2247)
 * Release GIL when calling CreateService or StartService
 * Drop support for Internet Explorer 10 (#2229, @Avasam)
 * Removed considerations for never-built Windows CE (#2218, @Avasam)
