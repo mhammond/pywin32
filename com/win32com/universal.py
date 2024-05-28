@@ -5,9 +5,6 @@
 import pythoncom
 from win32com.client import gencache
 
-com_error = pythoncom.com_error
-_univgw = pythoncom._univgw
-
 
 def RegisterInterfaces(typelibGUID, lcid, major, minor, interface_names=None):
     ret = []  # return a list of (dispid, funcname for our policy's benefit
@@ -86,15 +83,15 @@ def RegisterInterfaces(typelibGUID, lcid, major, minor, interface_names=None):
 
 def _doCreateVTable(iid, interface_name, is_dispatch, method_defs):
     defn = Definition(iid, is_dispatch, method_defs)
-    vtbl = _univgw.CreateVTable(defn, is_dispatch)
-    _univgw.RegisterVTable(vtbl, iid, interface_name)
+    vtbl = pythoncom._univgw.CreateVTable(defn, is_dispatch)
+    pythoncom._univgw.RegisterVTable(vtbl, iid, interface_name)
 
 
 def _CalcTypeSize(typeTuple):
     t = typeTuple[0]
     if t & (pythoncom.VT_BYREF | pythoncom.VT_ARRAY):
         # Its a pointer.
-        cb = _univgw.SizeOfVT(pythoncom.VT_PTR)[1]
+        cb = pythoncom._univgw.SizeOfVT(pythoncom.VT_PTR)[1]
     elif t == pythoncom.VT_RECORD:
         # Just because a type library uses records doesn't mean the user
         # is trying to.  We need to better place to warn about this, but it
@@ -104,10 +101,10 @@ def _CalcTypeSize(typeTuple):
         #     warnings.warn("warning: records are known to not work for vtable interfaces")
         # except ImportError:
         #     print("warning: records are known to not work for vtable interfaces")
-        cb = _univgw.SizeOfVT(pythoncom.VT_PTR)[1]
+        cb = pythoncom._univgw.SizeOfVT(pythoncom.VT_PTR)[1]
         # cb = typeInfo.GetTypeAttr().cbSizeInstance
     else:
-        cb = _univgw.SizeOfVT(t)[1]
+        cb = pythoncom._univgw.SizeOfVT(t)[1]
     return cb
 
 
@@ -191,8 +188,8 @@ class Definition:
         ob,
         index,
         argPtr,
-        ReadFromInTuple=_univgw.ReadFromInTuple,
-        WriteFromOutTuple=_univgw.WriteFromOutTuple,
+        ReadFromInTuple=pythoncom._univgw.ReadFromInTuple,
+        WriteFromOutTuple=pythoncom._univgw.WriteFromOutTuple,
     ):
         "Dispatch a call to an interface method."
         meth = self._methods[index]

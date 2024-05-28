@@ -16,8 +16,7 @@ functions directly.
 # $Id$
 import sspicon
 import win32security
-
-error = win32security.error
+from win32security import error
 
 
 class _BaseAuth:

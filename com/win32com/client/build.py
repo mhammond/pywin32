@@ -29,8 +29,6 @@ from pywintypes import TimeType
 # always render the string perfectly - so just punt and fall-back to a repr()
 _makeDocString = repr
 
-error = "PythonCOM.Client.Build error"
-
 
 class NotSupportedException(Exception):
     pass  # Raised when we cant support a param type.
