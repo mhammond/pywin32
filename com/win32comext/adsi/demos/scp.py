@@ -414,14 +414,12 @@ def main():
         "-q", "--quiet", action="store_true", help="Don't print any status messages"
     )
 
-    (
-        parser.add_option(
-            "-t",
-            "--test",
-            action="store_true",
-            help="Execute a mini-test suite, providing defaults for most options and args",
-        ),
-    )
+    parser.add_option(
+        "-t",
+        "--test",
+        action="store_true",
+        help="Execute a mini-test suite, providing defaults for most options and args",
+    ),
 
     parser.add_option(
         "",
