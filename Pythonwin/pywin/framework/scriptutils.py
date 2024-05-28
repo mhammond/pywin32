@@ -528,7 +528,7 @@ def CheckFile():
 
 
 def RunTabNanny(filename):
-    import io as io
+    import io
 
     tabnanny = FindTabNanny()
     if tabnanny is None:
