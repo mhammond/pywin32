@@ -360,7 +360,7 @@ class TestOverlapped(unittest.TestCase):
         # Check that.
         try:
             win32file.CloseHandle(hv)
-            raise RuntimeError("Expected close to fail!")
+            raise AssertionError("Expected close to fail!")
         except win32file.error as details:
             self.assertEqual(details.winerror, winerror.ERROR_INVALID_HANDLE)
 
@@ -868,7 +868,7 @@ class TestTransmit(unittest.TestCase):
                         raise
                     print("Failed to use port", self.addr, "trying another random one")
             else:
-                raise RuntimeError("Failed to find an available port to bind to.")
+                raise AssertionError("Failed to find an available port to bind to.")
             s1.listen(1)
             cli, addr = s1.accept()
             buf = 1
