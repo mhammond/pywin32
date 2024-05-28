@@ -3,8 +3,17 @@ target-version = "py37"
 
 [lint]
 select = [
-  "I",   # isort
+  "I", # isort
   "PLC", # Pylint Convention
+  # Ensure modern type annotation syntax and best practices
+  # Not including those covered by type-checkers
+  "FA", # flake8-future-annotations
+  "F404", # late-future-import
+  "PYI", # flake8-pyi
+  "UP006", # non-pep585-annotation
+  "UP007", # non-pep604-annotation
+  "UP010", # unnecessary-future-import
+  "UP037", # quoted-annotation
 ]
 
 [lint.per-file-ignores]
