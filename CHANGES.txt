@@ -14,7 +14,16 @@ https://mhammond.github.io/pywin32_installers.html.
 Coming in build 307, as yet unreleased
 --------------------------------------
 ### pywin32
-* Release GIL when calling CreateService or StartService
+* Fixed `MFC redist DLLs not found` by preferring corresponding version but accepting different version (#2248, @andreabravetti)
+* Fixed `pywintypes.error: (5, 'RegOpenKeyEx', 'Access is denied.')` when running service with debug parameter and no elevation (#2238, @jmartens)
+* Fixed handling of `SyntaxError` exception from a Windows Scripting Host Python Script on Python 3.10+ (#2235, @nbbeatty)
+* Add `CredGetSessionTypes` support (#2232, @CristiFati)
+* Fixed `win32clipboard` increasing size of data when `SetClipboardData` used with `CF_DIB` (#2184, @CristiFati)
+* Add `StoreLogoff` to `PyIMsgStore` to prevent possible hang when MAPI uninitializes or during session logoff (#2196, avivbrg)
+* Enhance CredDelete to work with dictionaries (#2198, @CristiFati)
+* Add UnregisterHotKey support (#2185, @CristiFati)
+* IFolderView COM client support (#2180, #2181, #2182, @CristiFati)
+* Release GIL when calling CreateService or StartService (#2062, @adamkbmc)
 * Drop support for Internet Explorer 10 (#2229, @Avasam)
 * Removed considerations for never-built Windows CE (#2218, @Avasam)
 * Stopped building `winxpgui` (#2217, @Avasam)
@@ -69,7 +78,7 @@ Coming in build 307, as yet unreleased
 * Cleaned up and fixed Axdebug (#2126, @Avasam)
     * `win32comext.axdebug.codecontainer.SourceCodeContainer` now uses the `debugDocument` parameter 
     * `win32comext.axdebug.codecontainer` script can now be run independent of location
-    * Fixed Method Resolution Order issue in `win32comext.axdebug.documents`
+    * Fixed Method Resolution Order issue in `win32comext.axdebug.documents` (also #2071, @wxinix-2022)
     * Fixed undefined names (`NameError`) in `win32comext.axdebug.expressions.DebugProperty.GetPropertyInfo`
     * Removed unused `win32comext.axdebug.util.all_wrapped`
     * Fixed multiple `ModuleNotFoundError` in `win32comext.axdebug` (#1983, @Avasam)
