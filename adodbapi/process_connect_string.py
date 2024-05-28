@@ -1,11 +1,11 @@
-""" a clumsy attempt at a macro language to let the programmer execute code on the server (ex: determine 64bit)"""
+"""a clumsy attempt at a macro language to let the programmer execute code on the server (ex: determine 64bit)"""
 
 import getpass
 import os
 import platform
 import tempfile
 
-from . import is64bit as is64bit
+from . import is64bit
 
 
 def macro_call(macro_name, args, kwargs):
@@ -88,9 +88,7 @@ def process(
         dsn, dict
     ):  # as a convenience the first argument may be django settings
         kwargs.update(dsn)
-    elif (
-        dsn
-    ):  # the connection string is passed to the connection as part of the keyword dictionary
+    elif dsn:  # the connection string is passed to the connection as part of the keyword dictionary
         kwargs["connection_string"] = dsn
     try:
         a1 = args[1]
