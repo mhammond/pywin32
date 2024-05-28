@@ -206,8 +206,7 @@ class BasicWrapPolicy:
             )
         except win32api.error:
             raise COMException(
-                "The object is not correctly registered - %s key can not be read"
-                % (regSpec % clsid)
+                f"The object is not correctly registered - {regSpec % clsid} key can not be read"
             )
         myob = call_func(classSpec)
         self._wrap_(myob)
@@ -356,7 +355,9 @@ class BasicWrapPolicy:
         Simply raises an exception.
         """
         # Base classes should override this method (and not call the base)
-        raise COMException("This class does not provide _invokeex_ semantics")
+        raise COMException(
+            "This class does not provide _invokeex_ semantics", scode=winerror.E_NOTIMPL
+        )
 
     def _DeleteMemberByName_(self, name, fdex):
         return self._deletememberbyname_(name, fdex)
@@ -511,7 +512,9 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
         MappedWrapPolicy._wrap_(self, ob)
         if not hasattr(ob, "_public_methods_") and not hasattr(ob, "_typelib_guid_"):
             raise COMException(
-                "Object does not support DesignatedWrapPolicy, as it does not have either _public_methods_ or _typelib_guid_ attributes."
+                "Object does not support DesignatedWrapPolicy, "
+                + "as it does not have either _public_methods_ or _typelib_guid_ attributes.",
+                scode=winerror.E_NOINTERFACE,
             )
 
         # Copy existing _dispid_to_func_ entries to _name_to_dispid_
@@ -727,7 +730,10 @@ class DynamicPolicy(BasicWrapPolicy):
     def _wrap_(self, object):
         BasicWrapPolicy._wrap_(self, object)
         if not hasattr(self._obj_, "_dynamic_"):
-            raise COMException("Object does not support Dynamic COM Policy")
+            raise COMException(
+                "Object does not support Dynamic COM Policy",
+                scode=winerror.E_NOINTERFACE,
+            )
         self._next_dynamic_ = self._min_dynamic_ = 1000
         self._dyn_dispid_to_name_ = {
             DISPID_VALUE: "_value_",
