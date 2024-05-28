@@ -1384,7 +1384,9 @@ pythoncom = WinExt_system32(
                         {win32com}/extensions/PyICancelMethodCalls.cpp    {win32com}/extensions/PyIContext.cpp
                         {win32com}/extensions/PyIEnumContextProps.cpp     {win32com}/extensions/PyIClientSecurity.cpp
                         {win32com}/extensions/PyIServerSecurity.cpp
-                        """.format(**dirs)
+                        """.format(
+            **dirs
+        )
     ).split(),
     depends=(
         """
@@ -1411,7 +1413,9 @@ pythoncom = WinExt_system32(
                         {win32com}/include\\PyICancelMethodCalls.h    {win32com}/include\\PyIContext.h
                         {win32com}/include\\PyIEnumContextProps.h     {win32com}/include\\PyIClientSecurity.h
                         {win32com}/include\\PyIServerSecurity.h
-                        """.format(**dirs)
+                        """.format(
+            **dirs
+        )
     ).split(),
     libraries="oleaut32 ole32 user32 urlmon",
     export_symbol_file="com/win32com/src/PythonCOM.def",
@@ -1439,7 +1443,9 @@ com_extensions = [
                         {adsi}/adsilib.i
                         {adsi}/PyADSIUtil.cpp         {adsi}/PyDSOPObjects.cpp
                         {adsi}/PyIADs.cpp
-                        """.format(**dirs)
+                        """.format(
+                **dirs
+            )
         ).split(),
     ),
     WinExt_win32com(
@@ -1457,7 +1463,9 @@ com_extensions = [
                         {axcontrol}/PyIOleClientSite.cpp       {axcontrol}/PyIOleInPlaceSite.cpp
                         {axcontrol}/PyIOleObject.cpp           {axcontrol}/PyIViewObject2.cpp
                         {axcontrol}/PyIOleCommandTarget.cpp
-                        """.format(**dirs)
+                        """.format(
+                **dirs
+            )
         ).split(),
     ),
     WinExt_win32com(
@@ -1472,7 +1480,9 @@ com_extensions = [
                         {axscript}/PyIActiveScriptParse.cpp    {axscript}/PyIActiveScriptParseProcedure.cpp
                         {axscript}/PyIActiveScriptSite.cpp     {axscript}/PyIMultiInfos.cpp
                         {axscript}/PyIObjectSafety.cpp         {axscript}/stdafx.cpp
-                        """.format(**dirs)
+                        """.format(
+                **dirs
+            )
         ).split(),
         depends=(
             """
@@ -1481,7 +1491,9 @@ com_extensions = [
                              {axscript}/PyIActiveScriptError.h {axscript}/PyIObjectSafety.h
                              {axscript}/PyIProvideMultipleClassInfo.h
                              {axscript}/stdafx.h
-                             """.format(**dirs)
+                             """.format(
+                **dirs
+            )
         ).split(),
         extra_compile_args=["-DPY_BUILD_AXSCRIPT"],
         implib_name="axscript",
@@ -1537,7 +1549,9 @@ com_extensions = [
                     {axdebug}/PyIRemoteDebugApplicationEvents.cpp
                     {axdebug}/PyIRemoteDebugApplicationThread.cpp
                     {axdebug}/stdafx.cpp
-                     """.format(**dirs)
+                     """.format(
+                **dirs
+            )
         ).split(),
     ),
     WinExt_win32com(
@@ -1550,7 +1564,9 @@ com_extensions = [
                         {internet}/PyIInternetPriority.cpp        {internet}/PyIInternetProtocol.cpp
                         {internet}/PyIInternetProtocolInfo.cpp    {internet}/PyIInternetProtocolRoot.cpp
                         {internet}/PyIInternetProtocolSink.cpp    {internet}/PyIInternetSecurityManager.cpp
-                    """.format(**dirs)
+                    """.format(
+                **dirs
+            )
         ).split(),
         depends=["{internet}/internet_pch.h".format(**dirs)],
     ),
@@ -1586,7 +1602,9 @@ com_extensions = [
                         {mapi}/mapiguids.cpp
                         {mapi}/mapi_stub_library/MapiStubLibrary.cpp
                         {mapi}/mapi_stub_library/StubUtils.cpp
-                        """.format(**dirs)
+                        """.format(
+                **dirs
+            )
         ).split(),
     ),
     WinExt_win32com_mapi(
@@ -1602,7 +1620,9 @@ com_extensions = [
                                   {mapi}/exchangeguids.cpp
                                   {mapi}/mapi_stub_library/MapiStubLibrary.cpp
                                   {mapi}/mapi_stub_library/StubUtils.cpp
-                                  """.format(**dirs)
+                                  """.format(
+                **dirs
+            )
         ).split(),
     ),
     WinExt_win32com_mapi(
@@ -1614,7 +1634,9 @@ com_extensions = [
                                   {mapi}/exchdapi.i         {mapi}/exchdapi.cpp
                                   {mapi}/mapi_stub_library/MapiStubLibrary.cpp
                                   {mapi}/mapi_stub_library/StubUtils.cpp
-                                  """.format(**dirs)
+                                  """.format(
+                **dirs
+            )
         ).split(),
     ),
     WinExt_win32com(
@@ -1696,7 +1718,9 @@ com_extensions = [
                         {shell}/PyIUniformResourceLocator.cpp
                         {shell}/shell.cpp
 
-                        """.format(**dirs)
+                        """.format(
+                **dirs
+            )
         ).split(),
     ),
     WinExt_win32com(
@@ -1724,7 +1748,9 @@ com_extensions = [
                         {propsys}/PyIObjectWithPropertyKey.cpp
                         {propsys}/PyIPropertyChange.cpp
                         {propsys}/PyIPropertyChangeArray.cpp
-                        """.format(**dirs)
+                        """.format(
+                **dirs
+            )
         ).split(),
         implib_name="pypropsys",
     ),
@@ -1740,7 +1766,9 @@ com_extensions = [
                         {taskscheduler}/PyITaskScheduler.cpp
                         {taskscheduler}/PyITaskTrigger.cpp
 
-                        """.format(**dirs)
+                        """.format(
+                **dirs
+            )
         ).split(),
     ),
     WinExt_win32com(
@@ -1761,7 +1789,9 @@ com_extensions = [
                         {bits}/PyIEnumBackgroundCopyJobs.cpp
                         {bits}/PyIEnumBackgroundCopyFiles.cpp
 
-                        """.format(**dirs)
+                        """.format(
+                **dirs
+            )
         ).split(),
     ),
     WinExt_win32com(
@@ -1782,14 +1812,18 @@ com_extensions = [
                         {directsound}/PyIDirectSoundBuffer.cpp {directsound}/PyIDirectSoundCapture.cpp
                         {directsound}/PyIDirectSoundCaptureBuffer.cpp
                         {directsound}/PyIDirectSoundNotify.cpp
-                        """.format(**dirs)
+                        """.format(
+                **dirs
+            )
         ).split(),
         depends=(
             """
                         {directsound}/directsound_pch.h   {directsound}/PyIDirectSound.h
                         {directsound}/PyIDirectSoundBuffer.h {directsound}/PyIDirectSoundCapture.h
                         {directsound}/PyIDirectSoundCaptureBuffer.h {directsound}/PyIDirectSoundNotify.h
-                        """.format(**dirs)
+                        """.format(
+                **dirs
+            )
         ).split(),
         optional_headers=["dsound.h"],
         libraries="user32 dsound dxguid",
@@ -1801,7 +1835,9 @@ com_extensions = [
             """
                         {authorization}/authorization.cpp
                         {authorization}/PyGSecurityInformation.cpp
-                        """.format(**dirs)
+                        """.format(
+                **dirs
+            )
         ).split(),
     ),
 ]
