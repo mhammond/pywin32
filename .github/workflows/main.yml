@@ -114,7 +114,7 @@ jobs:
       - run: pycln . --config=pycln.toml --check
       - uses: chartboost/ruff-action@v1
         with:
-          version: "0.3.4"
+          version: "0.3.7"
       - uses: psf/black@stable
         with:
           options: "--fast --check --diff --verbose"
