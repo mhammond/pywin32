@@ -15,6 +15,15 @@ Coming in build 307, as yet unreleased
 --------------------------------------
 
 ### pywin32
+* Removed the following unused error names and aliases. (#2269, @Avasam)
+  Here's their replacements if you were using them:
+    * `win32com.universal.com_error` --> `pythoncom.com_error`
+    * `win32com.client.build.error` --> `"PythonCOM.Client.Build error"`
+    * `win32com.client.genpy.error` --> `"makepy.error"`
+    * `win32com.client.tlbrowse.error` --> `win32com.client.tlbrowse.TLBrowserException`
+    * `win32evtlogutil.error` -> `win32api.error` or `pywintypes.error`
+    * `win32pdhutil.error` -> `win32pdh.error` or `pywintypes.error`
+    * `sspi.error` is still importable, but no longer exposed as a public member, use `win32security.error` or `pywintypes.error` instead
 * Marked `exc_type` and `exc_traceback` in `win32comext.axscript.client.error.AXScriptException.__init__` as deprecated.
   They are now unused and all information is taken from the `exc_value` parameter.
 * Fixed non-overriden `pywin.scintilla.formatter.Formatter.ColorizeString` raising `TypeError` instead of `RuntimeError` due to too many parameters (#2216, @Avasam)
