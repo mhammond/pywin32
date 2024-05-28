@@ -21,7 +21,7 @@ def ReadLog(computer, logType="Application", dumpEachRecord=0):
         if not objects:
             break
         for object in objects:
-            # get it for testing purposes, but dont print it.
+            # get it for testing purposes, but don't print it.
             msg = win32evtlogutil.SafeFormatMessage(object, logType)
             if object.Sid is not None:
                 try:
@@ -64,8 +64,8 @@ def ReadLog(computer, logType="Application", dumpEachRecord=0):
 
 def usage():
     print("Writes an event to the event log.")
-    print("-w : Dont write any test records.")
-    print("-r : Dont read the event log")
+    print("-w : Don't write any test records.")
+    print("-r : Don't read the event log")
     print("-c : computerName : Process the log on the specified computer")
     print("-v : Verbose")
     print("-t : LogType - Use the specified log - default = 'Application'")

@@ -410,17 +410,17 @@ class EditorView(ParentEditorView):
         if res > 0 and curLine.strip():
             curIndent = patIndent.group(1)
             self._obj_.ReplaceSel(curIndent)
-        return 0  # dont pass on
+        return 0  # don't pass on
 
     def OnKeyCtrlY(self, key):
         if not self.GetDocument().CheckMakeDocumentWritable():
             return 0
         self.CutCurLine()
-        return 0  # dont let him have it!
+        return 0  # don't let him have it!
 
     def OnKeyCtrlG(self, key):
         self.GotoLine()
-        return 0  # dont let him have it!
+        return 0  # don't let him have it!
 
     def OnKeyTab(self, key):
         if not self.GetDocument().CheckMakeDocumentWritable():

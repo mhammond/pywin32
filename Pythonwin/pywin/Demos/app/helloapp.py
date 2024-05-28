@@ -19,7 +19,7 @@ from pywin.mfc.thread import WinApp
 
 
 # The main frame.
-# Does almost nothing at all - doesnt even create a child window!
+# Does almost nothing at all - doesn't even create a child window!
 class HelloWindow(window.Wnd):
     def __init__(self):
         # The window.Wnd ctor creates a Window object, and places it in

@@ -476,7 +476,7 @@ static PyObject *ui_view_scroll_to_position(PyObject *self, PyObject *args)
     RETURN_NONE;
 }
 
-// @pymethod tuple|PyCScrollView|ResizeParentToFit|Lets the size of a view dictate the size of its frame window.
+// @pymethod tuple|PyCScrollView|ResizeParentToFit|Let's the size of a view dictate the size of its frame window.
 PyObject *ui_view_resize_parent_to_fit(PyObject *self, PyObject *args)
 {
     CScrollView *view = PyCScrollView::GetViewPtr(self);

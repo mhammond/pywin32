@@ -835,7 +835,7 @@ def HandleCommandLine(
         # Note that we install the service before calling the custom option
         # handler, so if the custom handler fails, we have an installed service (from NT's POV)
         # but is unlikely to work, as the Python code controlling it failed.  Therefore
-        # we remove the service if the first bit works, but the second doesnt!
+        # we remove the service if the first bit works, but the second doesn't!
         try:
             InstallService(
                 serviceClassString,

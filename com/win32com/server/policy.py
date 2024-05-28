@@ -631,7 +631,7 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
                 try:
                     func = getattr(self._obj_, funcname)
                 except AttributeError:
-                    # May have a dispid, but that doesnt mean we have the function!
+                    # May have a dispid, but that doesn't mean we have the function!
                     raise COMException(scode=winerror.DISP_E_MEMBERNOTFOUND)
                 # Should check callable here
                 try:
@@ -780,7 +780,7 @@ def resolve_func(spec):
         idx = spec.rindex(".")
         mname = spec[:idx]
         fname = spec[idx + 1 :]
-        # Dont attempt to optimize by looking in sys.modules,
+        # Don't attempt to optimize by looking in sys.modules,
         # as another thread may also be performing the import - this
         # way we take advantage of the built-in import lock.
         module = _import_module(mname)
@@ -818,5 +818,5 @@ def _import_module(mname):
 # still reference them here.  These will end up being removed.
 try:
     from .dispatcher import DispatcherTrace, DispatcherWin32trace
-except ImportError:  # Quite likely a frozen executable that doesnt need dispatchers
+except ImportError:  # Quite likely a frozen executable that doesn't need dispatchers
     pass

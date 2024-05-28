@@ -19,7 +19,7 @@
 #include "limits.h"
 
 // allow memory leaks to give me the line number.
-//#define new DEBUG_NEW
+// #define new DEBUG_NEW
 
 // windows defines "small" as "char" which breaks Python's accu.h
 #undef small
@@ -28,7 +28,7 @@
 #include "traceback.h"
 #include "pythonrun.h"
 
-// dont need all of these for all, but it cant hurt (and keep the speed up!)
+// don't need all of these for all, but it can't hurt (and keep the speed up!)
 
 #include "pywintypes.h"
 #include "win32ui.h"

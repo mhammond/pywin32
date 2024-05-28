@@ -272,7 +272,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
             self.bindings.complete_configure()
 
     def DoConfigChange(self):
-        # Bit of a hack I dont kow what to do about - these should be "editor options"
+        # Bit of a hack I don't kow what to do about - these should be "editor options"
         from pywin.framework.editor import GetEditorOption
 
         self.bAutoCompleteAttributes = GetEditorOption("Autocomplete Attributes", 1)
@@ -491,7 +491,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
                     pass  # object has no __dict__
                 if hasattr(ob, "__class__"):
                     items_dict.update(list2dict(_get_class_attributes(ob.__class__)))
-                # The object may be a COM object with typelib support - lets see if we can get its props.
+                # The object may be a COM object with typelib support - let's see if we can get its props.
                 # (contributed by Stefan Migowsky)
                 try:
                     # Get the automation attributes
@@ -502,7 +502,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
                     # append to the already evaluated list
                 except AttributeError:
                     pass
-                # The object might be a pure COM dynamic dispatch with typelib support - lets see if we can get its props.
+                # The object might be a pure COM dynamic dispatch with typelib support - let's see if we can get its props.
                 if hasattr(ob, "_oleobj_"):
                     try:
                         for iTI in range(0, ob._oleobj_.GetTypeInfoCount()):
@@ -718,7 +718,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
     def OnPreparePrinting(self, pInfo):
         flags = (
             win32ui.PD_USEDEVMODECOPIES | win32ui.PD_ALLPAGES | win32ui.PD_NOSELECTION
-        )  # Dont support printing just a selection.
+        )  # Don't support printing just a selection.
         # NOTE: Custom print dialogs are stopping the user's values from coming back :-(
         # 		self.prtDlg = PrintDialog(pInfo, PRINTDLGORD, flags)
         # 		pInfo.SetPrintDialog(self.prtDlg)
@@ -749,7 +749,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
             self.starts[maxPage] = pageStart
         # And a sentinal for one page past the end
         self.starts[maxPage + 1] = textLen
-        # When actually printing, maxPage doesnt have any effect at this late state.
+        # When actually printing, maxPage doesn't have any effect at this late state.
         # but is needed to make the Print Preview work correctly.
         pInfo.SetMaxPage(maxPage)
 
@@ -817,7 +817,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 
 def LoadConfiguration():
     global configManager
-    # Bit of a hack I dont kow what to do about?
+    # Bit of a hack I don't kow what to do about?
     from .config import ConfigManager
 
     configName = rc = win32ui.GetProfileVal("Editor", "Keyboard Config", "default")

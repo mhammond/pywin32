@@ -77,7 +77,7 @@ class SourceCodeContainer:
             lastOffset = lineOffset
             lineNo = lineNo + 1
         else:  # for not broken.
-            # print("Cant find", charPos, "in", self.lineOffsets)
+            # print("Can't find", charPos, "in", self.lineOffsets)
             raise COMException(scode=winerror.S_FALSE)
         # print("GLOP ret=", lineNo, (charPos - lastOffset))
         return lineNo, (charPos - lastOffset)
@@ -266,7 +266,7 @@ if __name__ == "__main__":
             attrlen = attrlen + 1
     text = sc.GetText()
     if attrlen != len(text):
-        print(f"Lengths dont match!!! ({attrlen}/{len(text)})")
+        print(f"Lengths don't match!!! ({attrlen}/{len(text)})")
 
     # print("Attributes:")
     # print(attrs)

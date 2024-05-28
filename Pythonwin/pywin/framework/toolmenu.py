@@ -64,7 +64,7 @@ def WriteToolMenuItems(items):
                 break
             win32api.RegDeleteKey(toolKey, subkey)
     # Keys are now removed - write the new ones.
-    # But first check if we have the defaults - and if so, dont write anything!
+    # But first check if we have the defaults - and if so, don't write anything!
     if items == defaultToolMenuItems:
         return
     itemNo = 1

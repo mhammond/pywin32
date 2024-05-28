@@ -125,7 +125,7 @@ void *PyObject_AsDATABLOCK(PyObject *obdb)
                     &buf->bFullScreen,         // @prop bool|FullScreen|Causes console to run in full screen mode
                     &buf->bQuickEdit,          // @prop bool|QuickEdit|
                     &buf->bInsertMode,         // @prop bool|InsertMode|
-                    &buf->bAutoPosition,       // @prop bool|AutoPosition|Lets system determine window placement
+                    &buf->bAutoPosition,       // @prop bool|AutoPosition|Let's system determine window placement
                     &buf->uHistoryBufferSize,  // @prop int|HistoryBufferSize|Size of command line history buffer
                     &buf->uNumberOfHistoryBuffers,  // @prop int|NumberOfHistoryBuffers|
                     &buf->bHistoryNoDup,            // @prop bool|HistoryNoDup|

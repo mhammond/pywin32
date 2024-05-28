@@ -95,7 +95,7 @@ class FontWindow(window.Wnd):
 
 class FontFrame(window.MDIChildWnd):
     def __init__(self):
-        pass  # Dont call base class doc/view version...
+        pass  # Don't call base class doc/view version...
 
     def Create(self, title, rect=None, parent=None):
         style = win32con.WS_CHILD | win32con.WS_VISIBLE | win32con.WS_OVERLAPPEDWINDOW
@@ -134,7 +134,7 @@ class TestThread(WinThread):
 
 class ThreadedFontFrame(window.MDIChildWnd):
     def __init__(self):
-        pass  # Dont call base class doc/view version...
+        pass  # Don't call base class doc/view version...
         self.thread = None
 
     def Create(self, title, rect=None, parent=None):

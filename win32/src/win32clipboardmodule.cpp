@@ -863,7 +863,7 @@ static PyObject *py_set_clipboard_data(PyObject *self, PyObject *args)
             buf = pybuf.ptr();
             bufSize = pybuf.len();
             if ((PyBytes_Check(obhandle)) && (isTextFormat(format)))
-                bufSize++;  // size doesnt include nulls!
+                bufSize++;  // size doesn't include nulls!
                             // else assume buffer needs no terminator...
         }
         handle = GlobalAlloc(GHND, bufSize);
@@ -1043,7 +1043,7 @@ static struct PyMethodDef clipboard_functions[] = {
     // in the clipboard.
     {"EmptyClipboard", py_empty_clipboard, 1},
 
-    // @pymeth EnumClipboardFormats|Lets you enumerate the data formats that
+    // @pymeth EnumClipboardFormats|Let's you enumerate the data formats that
     // are currently available on the clipboard.
     {"EnumClipboardFormats", py_enum_clipboard_formats, 1},
 

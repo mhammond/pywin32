@@ -1,5 +1,5 @@
 # NOTE - Still seems to be a leak here somewhere
-# gateway count doesnt hit zero.  Hence the print statements!
+# gateway count doesn't hit zero.  Hence the print statements!
 
 import sys
 
@@ -190,7 +190,7 @@ def TestCommon(o, is_generated):
     assert o.GetSetUnsignedLong(-1) == 0xFFFFFFFF, "unsigned -1 failed"
 
     # We want to explicitly test > 32 bits.
-    # 'maxsize+1' is no good on 64bit platforms as its 65 bits!
+    # 'maxsize+1' is no good on 64bit platforms as it's 65 bits!
     big = 2147483647
     for l in big, big + 1, 1 << 65:
         check_get_set(o.GetSetVariant, l)
@@ -628,7 +628,7 @@ def TestCounter(counter, bIsGenerated):
         num = num + 1
     assert num == len(
         counter
-    ), "*** Length of counter and loop iterations dont match ***"
+    ), "*** Length of counter and loop iterations don't match ***"
     assert num == 10, "*** Unexpected number of loop iterations ***"
 
     try:

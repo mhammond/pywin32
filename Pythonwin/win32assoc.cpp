@@ -40,7 +40,7 @@ CAssocManager::~CAssocManager()
 #ifdef _DEBUG
     TCHAR buf[256];
     if (cacheLookups) {
-        // cant use TRACE, as CWinApp may no longer be valid.
+        // can't use TRACE, as CWinApp may no longer be valid.
         wsprintf(buf, _T("AssocManager cache hit ratio is %d percent\n"), cacheHits * 100 / cacheLookups);
         OutputDebugString(buf);
     }
@@ -74,7 +74,7 @@ void CAssocManager::RemoveAssoc(void *handle)
         map.RemoveKey(handle);
         if (ob != Py_None)
             // The object isn't necessarily dead (ie, its refcount may
-            // not be about to hit zero), but its 'dead' from our POV, so
+            // not be about to hit zero), but it's 'dead' from our POV, so
             // let it free any MFC etc resources the object owns.
             // XXX - this kinda sucks - just relying on the object
             // destructor *should* be OK...
@@ -127,7 +127,7 @@ ui_assoc_object *CAssocManager::GetAssocObject(void *handle)
     cacheLookups++;
 #endif
     // implement a basic 1 item cache.
-	// XXX - ::Assoc above means a cached "no object" might be incorrect?
+    // XXX - ::Assoc above means a cached "no object" might be incorrect?
     if (lastLookup == handle) {
         weakref = lastObjectWeakRef;
 #ifdef _DEBUG
@@ -201,11 +201,11 @@ bool ui_assoc_CObject::CheckCppObject(ui_type *ui_type_check) const
         return false;
     CObject *pObj = (CObject *)assoc;
     // Assert triggers occasionally for brand new window objects -
-    // Removing this ASSERT cant hurt too much (as I have never seen it
+    // Removing this ASSERT can't hurt too much (as I have never seen it
     // fire legitimately
     //	ASSERT_VALID(pObj); // NULL has already been handled before now.
     if (ui_type_check == NULL)
-        return true;  // Cant check anything!
+        return true;  // Can't check anything!
 
     ui_type_CObject *pTyp = (ui_type_CObject *)ui_type_check;
     if (pTyp->pCObjectClass == NULL) {

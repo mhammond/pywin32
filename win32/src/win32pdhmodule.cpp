@@ -665,7 +665,7 @@ static PyObject *PyGetFormattedCounterValue(PyObject *self, PyObject *args)
     else if (format & PDH_FMT_LARGE)
         rc = PyLong_FromLongLong(result.largeValue);
     else {
-        PyErr_SetString(PyExc_ValueError, "Dont know how to convert the result");
+        PyErr_SetString(PyExc_ValueError, "Don't know how to convert the result");
         rc = NULL;
     }
     PyObject *realrc = Py_BuildValue("iO", type, rc);
@@ -697,8 +697,7 @@ static PyObject *PyPdhGetFormattedCounterArray(PyObject *self, PyObject *args)
     pdhStatus = (*pPdhGetFormattedCounterArray)(handle, format, &size, &count, pItems);
     Py_END_ALLOW_THREADS;
     if (pdhStatus != PDH_MORE_DATA) {
-        return PyWin_SetAPIError("PdhGetFormattedCounterArray",
-                                 pdhStatus);
+        return PyWin_SetAPIError("PdhGetFormattedCounterArray", pdhStatus);
     }
     pItems = (PDH_FMT_COUNTERVALUE_ITEM *)malloc(size);
     if (pItems == NULL) {
@@ -709,8 +708,7 @@ static PyObject *PyPdhGetFormattedCounterArray(PyObject *self, PyObject *args)
     Py_BEGIN_ALLOW_THREADS;
     pdhStatus = (*pPdhGetFormattedCounterArray)(handle, format, &size, &count, pItems);
     Py_END_ALLOW_THREADS;
-    if (pdhStatus != ERROR_SUCCESS)
-    {
+    if (pdhStatus != ERROR_SUCCESS) {
         free(pItems);
         return PyWin_SetAPIError("PdhGetFormattedCounterArray", pdhStatus);
     }
@@ -733,7 +731,7 @@ static PyObject *PyPdhGetFormattedCounterArray(PyObject *self, PyObject *args)
         else if (format & PDH_FMT_LARGE)
             value = PyLong_FromLongLong(pItems[i].FmtValue.largeValue);
         else {
-            PyErr_SetString(PyExc_ValueError, "Dont know how to convert the result");
+            PyErr_SetString(PyExc_ValueError, "Don't know how to convert the result");
             Py_XDECREF(rc);
             Py_XDECREF(key);
             rc = NULL;

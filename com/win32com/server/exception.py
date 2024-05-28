@@ -18,7 +18,7 @@ import pythoncom
 
 
 # Note that we derive from com_error, which derives from builtin Exception
-# Also note that we dont support "self.args", as we dont support tuple-unpacking
+# Also note that we don't support "self.args", as we don't support tuple-unpacking
 class COMException(pythoncom.com_error):
     """An Exception object that is understood by the framework.
 
@@ -58,7 +58,7 @@ class COMException(pythoncom.com_error):
 
         # convert a WIN32 error into an HRESULT
         scode = scode or hresult
-        if scode and scode != 1:  # We dont want S_FALSE mapped!
+        if scode and scode != 1:  # We don't want S_FALSE mapped!
             if scode >= -32768 and scode < 32768:
                 # this is HRESULT_FROM_WIN32()
                 scode = -2147024896 | (scode & 0x0000FFFF)

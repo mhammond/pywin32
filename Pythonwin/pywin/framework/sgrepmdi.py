@@ -387,7 +387,7 @@ class GrepView(docview.RichEditView):
             fname = regexGrepResult.group(1)
             line = int(regexGrepResult.group(2))
             scriptutils.JumpToDocument(fname, line)
-            return 0  # dont pass on
+            return 0  # don't pass on
         return 1  # pass it on by default.
 
     def OnRClick(self, params):

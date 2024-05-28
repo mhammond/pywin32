@@ -132,7 +132,7 @@ class HierStackRoot(HierListItem):
                 self.last_stack.append((frame, lineno))
                 if (
                     frame is debugger.userbotframe
-                ):  # Dont bother showing frames below our bottom frame.
+                ):  # Don't bother showing frames below our bottom frame.
                     break
         for frame, lineno in self.last_stack:
             ret.append(HierFrameItem(frame, debugger))
@@ -455,7 +455,7 @@ class DebuggerWatchWindow(DebuggerListViewWindow):
     def DeleteSelected(self):
         try:
             num = self.GetNextItem(-1, commctrl.LVNI_SELECTED)
-            if num < self.GetItemCount() - 1:  # We cant delete the last
+            if num < self.GetItemCount() - 1:  # We can't delete the last
                 self.DeleteItem(num)
         except win32ui.error:
             win32api.MessageBeep()
@@ -608,7 +608,7 @@ class Debugger(debugger_parent):
         SetInteractiveContext(None, None)
 
         frame = win32ui.GetMainFrame()
-        # Hide the debuger toolbars (as they wont normally form part of the main toolbar state.
+        # Hide the debuger toolbars (as they won't normally form part of the main toolbar state.
         for id, klass, float in DebuggerDialogInfos:
             try:
                 tb = frame.GetControlBar(id)
@@ -623,7 +623,7 @@ class Debugger(debugger_parent):
         return 1
 
     def StopDebuggerPump(self):
-        assert self.pumping, "Can't stop the debugger pump if Im not pumping!"
+        assert self.pumping, "Can't stop the debugger pump if I'm not pumping!"
         # After stopping a pump, I may never return.
         if self.GUIAboutToFinishInteract():
             self.pumping = 0
@@ -674,7 +674,7 @@ class Debugger(debugger_parent):
         self.GUIAboutToBreak()
 
     def print_stack_entry(self, frame):
-        # We dont want a stack printed - our GUI is better :-)
+        # We don't want a stack printed - our GUI is better :-)
         pass
 
     def user_return(self, frame, return_value):
@@ -828,7 +828,7 @@ class Debugger(debugger_parent):
         self.userbotframe = None
         while frame:
             # scriptutils.py creates a local variable with name
-            # '_debugger_stop_frame_', and we dont go past it
+            # '_debugger_stop_frame_', and we don't go past it
             # (everything above this is Pythonwin framework code)
             if "_debugger_stop_frame_" in frame.f_locals:
                 self.userbotframe = frame
@@ -883,7 +883,7 @@ class Debugger(debugger_parent):
             win32ui.LoadString(win32ui.IDR_MAINFRAME) + title
         )
         if self.debuggerState == DBGSTATE_QUITTING and state != DBGSTATE_NOT_DEBUGGING:
-            print("Ignoring state change cos Im trying to stop!", state)
+            print("Ignoring state change cos I'm trying to stop!", state)
             return
         self.debuggerState = state
         try:
