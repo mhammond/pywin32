@@ -34,16 +34,12 @@ def TestEnumAgainst(o, check):
     for i in range(len(check)):
         assert (
             o(i) == check[i]
-        ), "Using default method gave the incorrect value - {}/{}".format(
-            repr(o(i)), repr(check[i])
-        )
+        ), f"Using default method gave the incorrect value - {o(i)!r}/{check[i]!r}"
 
     for i in range(len(check)):
         assert (
             o.Item(i) == check[i]
-        ), "Using Item method gave the incorrect value - {}/{}".format(
-            repr(o(i)), repr(check[i])
-        )
+        ), f"Using Item method gave the incorrect value - {o(i)!r}/{check[i]!r}"
 
     # First try looping.
     cmp = []
@@ -52,9 +48,7 @@ def TestEnumAgainst(o, check):
 
     assert (
         cmp[: len(check)] == check
-    ), "Result after looping isn't correct - {}/{}".format(
-        repr(cmp[: len(check)]), repr(check)
-    )
+    ), f"Result after looping isn't correct - {cmp[: len(check)]!r}/{check!r}"
 
     for i in range(len(check)):
         assert o[i] == check[i], "Using indexing gave the incorrect value"

@@ -151,7 +151,7 @@ def TestVB(vbtest, bUseGenerated):
         vbtest.DoSomeCallbacks(callback_ob)
 
     ret = vbtest.PassIntByVal(1)
-    assert ret != 2, f"Could not increment the integer - {ret}"
+    assert ret == 2, f"Could not increment the integer - {ret}"
 
     TestVBInterface(vbtest)
     # Python doesnt support byrefs without some sort of generated support.
