@@ -35,16 +35,13 @@ import subprocess
 import sys
 import winreg
 from pathlib import Path
-from tempfile import gettempdir
-from typing import Iterable, List, Tuple, Union
-
-# setuptools must be imported before distutils because it monkey-patches it.
-# distutils is also removed in Python 3.12 and deprecated with setuptools
 from setuptools import Extension, setup
 from setuptools.command.build import build
 from setuptools.command.build_ext import build_ext
 from setuptools.command.install import install
 from setuptools.command.install_lib import install_lib
+from tempfile import gettempdir
+from typing import Iterable, List, Tuple, Union
 
 from distutils import ccompiler
 from distutils._msvccompiler import MSVCCompiler
@@ -55,16 +52,12 @@ if sys.version_info >= (3, 8):
 else:
     from distutils.dep_util import newer_group
 
-# some modules need a static CRT to avoid problems caused by them having a
-# manifest.
-static_crt_modules = ["winxpgui"]
-
 build_id_patch = build_id
 if not "." in build_id_patch:
     build_id_patch = build_id_patch + ".0"
 pywin32_version = "%d.%d.%s" % (
-    sys.version_info[0],
-    sys.version_info[1],
+    sys.version_info.major,
+    sys.version_info.minor,
     build_id_patch,
 )
 print("Building pywin32", pywin32_version)
@@ -408,11 +401,6 @@ class my_build_ext(build_ext):
         if ext.name == "axdebug" and sys.version_info > (3, 10):
             return "AXDebug no longer builds on 3.11 and up"
 
-        # winxpgui cannot be build for win-arm64 due to manifest file conflicts
-        # skip extension as we probably don't want this extension for win-arm64 platforms
-        if self.plat_name == "win-arm64" and ext.name == "winxpgui":
-            return "winxpgui extension cannot be build for win-arm64"
-
         include_dirs = self.compiler.include_dirs + os.environ.get("INCLUDE", "").split(
             os.pathsep
         )
@@ -643,11 +631,16 @@ class my_build_ext(build_ext):
         redist_globs = [vcbase + r"redist\%s\*MFC\mfc140u.dll" % self.plat_dir]
         m = re.search(r"\\VC\\Tools\\", vcbase)
         if m:
-            # typical path on newer Visual Studios - ensure corresponding version
+            # typical path on newer Visual Studios
+            # prefere corresponding version but accept different version
+            same_version = vcverdir is not None and os.path.isdir(
+                vcbase[: m.start()]
+                + r"\VC\Redist\MSVC\{}{}".format(vcverdir, self.plat_dir)
+            )
             redist_globs.append(
                 vcbase[: m.start()]
                 + r"\VC\Redist\MSVC\{}{}\*\mfc140u.dll".format(
-                    vcverdir or "*\\", self.plat_dir
+                    vcverdir if same_version else "*\\", self.plat_dir
                 )
             )
         # Only mfcNNNu DLL is required (mfcmNNNX is Windows Forms, rest is ANSI)
@@ -732,12 +725,6 @@ class my_build_ext(build_ext):
         # with special defines. So we cannot use a shared
         # directory for objects, we must use a special one for each extension.
         old_build_temp = self.build_temp
-        want_static_crt = ext.name in static_crt_modules
-        if want_static_crt:
-            self.compiler.compile_options.remove("/MD")
-            self.compiler.compile_options.append("/MT")
-            self.compiler.compile_options_debug.remove("/MDd")
-            self.compiler.compile_options_debug.append("/MTd")
 
         try:
             build_ext.build_extension(self, ext)
@@ -750,8 +737,8 @@ class my_build_ext(build_ext):
                 # are expected to be pywintypes.lib.
                 created = "%s%d%d%s" % (
                     ext.name,
-                    sys.version_info[0],
-                    sys.version_info[1],
+                    sys.version_info.major,
+                    sys.version_info.minor,
                     extra,
                 )
                 needed = f"{ext.name}{extra}"
@@ -773,17 +760,12 @@ class my_build_ext(build_ext):
                     self.copy_file(src, dst)
         finally:
             self.build_temp = old_build_temp
-            if want_static_crt:
-                self.compiler.compile_options.remove("/MT")
-                self.compiler.compile_options.append("/MD")
-                self.compiler.compile_options_debug.remove("/MTd")
-                self.compiler.compile_options_debug.append("/MDd")
 
     def get_ext_filename(self, name):
         # We need to fixup some target filenames.
         suffix = "_d" if self.debug else ""
         if name in ["pywintypes", "pythoncom"]:
-            ver = f"{sys.version_info[0]}{sys.version_info[1]}"
+            ver = f"{sys.version_info.major}{sys.version_info.minor}"
             return f"{name}{ver}{suffix}.dll"
         if name in ["perfmondata", "PyISAPI_loader"]:
             return f"{name}{suffix}.dll"
@@ -826,17 +808,6 @@ class my_build_ext(build_ext):
                 # Patch up the filenames for various special cases...
                 if os.path.basename(base) in swig_interface_parents:
                     swig_targets[source] = base + target_ext
-                elif (
-                    self.current_extension.name == "winxpgui"
-                    and os.path.basename(base) == "win32gui"
-                ):
-                    # More vile hacks.  winxpmodule is built from win32gui.i -
-                    # just different #defines are setup for windows.h.
-                    new_target = os.path.join(
-                        os.path.dirname(base), f"winxpgui_swig{target_ext}"
-                    )
-                    swig_targets[source] = new_target
-                    new_sources.append(new_target)
                 else:
                     new_target = f"{base}_swig{target_ext}"
                     new_sources.append(new_target)
@@ -1064,9 +1035,6 @@ class my_compiler(MSVCCompiler):
             return
         if is_link:
             # remove /MANIFESTFILE:... and add MANIFEST:NO
-            # (but note that for winxpgui, which specifies a manifest via a
-            # .rc file, this is ignored by the linker - the manifest specified
-            # in the .rc file is still added)
             for i in range(len(cmd)):
                 if cmd[i].startswith(("/MANIFESTFILE:", "/MANIFEST:EMBED")):
                     cmd[i] = "/MANIFEST:NO"
@@ -1326,19 +1294,6 @@ win32_extensions += [
         libraries="gdi32 user32 comdlg32 comctl32 shell32",
         define_macros=[("WIN32GUI", None)],
     ),
-    # winxpgui is built from win32gui.i, but sets up different #defines before
-    # including windows.h.  It also has an XP style manifest.
-    WinExt_win32(
-        "winxpgui",
-        sources="""
-                win32/src/winxpgui.rc win32/src/win32dynamicdialog.cpp
-                win32/src/win32gui.i
-               """.split(),
-        libraries="gdi32 user32 comdlg32 comctl32 shell32",
-        windows_h_version=0x0500,
-        define_macros=[("WIN32GUI", None), ("WINXPGUI", None)],
-        extra_swig_commands=["-DWINXPGUI"],
-    ),
     # winxptheme
     WinExt_win32(
         "_winxptheme",
@@ -1429,9 +1384,7 @@ pythoncom = WinExt_system32(
                         {win32com}/extensions/PyICancelMethodCalls.cpp    {win32com}/extensions/PyIContext.cpp
                         {win32com}/extensions/PyIEnumContextProps.cpp     {win32com}/extensions/PyIClientSecurity.cpp
                         {win32com}/extensions/PyIServerSecurity.cpp
-                        """.format(
-            **dirs
-        )
+                        """.format(**dirs)
     ).split(),
     depends=(
         """
@@ -1458,9 +1411,7 @@ pythoncom = WinExt_system32(
                         {win32com}/include\\PyICancelMethodCalls.h    {win32com}/include\\PyIContext.h
                         {win32com}/include\\PyIEnumContextProps.h     {win32com}/include\\PyIClientSecurity.h
                         {win32com}/include\\PyIServerSecurity.h
-                        """.format(
-            **dirs
-        )
+                        """.format(**dirs)
     ).split(),
     libraries="oleaut32 ole32 user32 urlmon",
     export_symbol_file="com/win32com/src/PythonCOM.def",
@@ -1488,9 +1439,7 @@ com_extensions = [
                         {adsi}/adsilib.i
                         {adsi}/PyADSIUtil.cpp         {adsi}/PyDSOPObjects.cpp
                         {adsi}/PyIADs.cpp
-                        """.format(
-                **dirs
-            )
+                        """.format(**dirs)
         ).split(),
     ),
     WinExt_win32com(
@@ -1508,9 +1457,7 @@ com_extensions = [
                         {axcontrol}/PyIOleClientSite.cpp       {axcontrol}/PyIOleInPlaceSite.cpp
                         {axcontrol}/PyIOleObject.cpp           {axcontrol}/PyIViewObject2.cpp
                         {axcontrol}/PyIOleCommandTarget.cpp
-                        """.format(
-                **dirs
-            )
+                        """.format(**dirs)
         ).split(),
     ),
     WinExt_win32com(
@@ -1525,9 +1472,7 @@ com_extensions = [
                         {axscript}/PyIActiveScriptParse.cpp    {axscript}/PyIActiveScriptParseProcedure.cpp
                         {axscript}/PyIActiveScriptSite.cpp     {axscript}/PyIMultiInfos.cpp
                         {axscript}/PyIObjectSafety.cpp         {axscript}/stdafx.cpp
-                        """.format(
-                **dirs
-            )
+                        """.format(**dirs)
         ).split(),
         depends=(
             """
@@ -1536,9 +1481,7 @@ com_extensions = [
                              {axscript}/PyIActiveScriptError.h {axscript}/PyIObjectSafety.h
                              {axscript}/PyIProvideMultipleClassInfo.h
                              {axscript}/stdafx.h
-                             """.format(
-                **dirs
-            )
+                             """.format(**dirs)
         ).split(),
         extra_compile_args=["-DPY_BUILD_AXSCRIPT"],
         implib_name="axscript",
@@ -1594,9 +1537,7 @@ com_extensions = [
                     {axdebug}/PyIRemoteDebugApplicationEvents.cpp
                     {axdebug}/PyIRemoteDebugApplicationThread.cpp
                     {axdebug}/stdafx.cpp
-                     """.format(
-                **dirs
-            )
+                     """.format(**dirs)
         ).split(),
     ),
     WinExt_win32com(
@@ -1609,9 +1550,7 @@ com_extensions = [
                         {internet}/PyIInternetPriority.cpp        {internet}/PyIInternetProtocol.cpp
                         {internet}/PyIInternetProtocolInfo.cpp    {internet}/PyIInternetProtocolRoot.cpp
                         {internet}/PyIInternetProtocolSink.cpp    {internet}/PyIInternetSecurityManager.cpp
-                    """.format(
-                **dirs
-            )
+                    """.format(**dirs)
         ).split(),
         depends=["{internet}/internet_pch.h".format(**dirs)],
     ),
@@ -1647,9 +1586,7 @@ com_extensions = [
                         {mapi}/mapiguids.cpp
                         {mapi}/mapi_stub_library/MapiStubLibrary.cpp
                         {mapi}/mapi_stub_library/StubUtils.cpp
-                        """.format(
-                **dirs
-            )
+                        """.format(**dirs)
         ).split(),
     ),
     WinExt_win32com_mapi(
@@ -1665,9 +1602,7 @@ com_extensions = [
                                   {mapi}/exchangeguids.cpp
                                   {mapi}/mapi_stub_library/MapiStubLibrary.cpp
                                   {mapi}/mapi_stub_library/StubUtils.cpp
-                                  """.format(
-                **dirs
-            )
+                                  """.format(**dirs)
         ).split(),
     ),
     WinExt_win32com_mapi(
@@ -1679,9 +1614,7 @@ com_extensions = [
                                   {mapi}/exchdapi.i         {mapi}/exchdapi.cpp
                                   {mapi}/mapi_stub_library/MapiStubLibrary.cpp
                                   {mapi}/mapi_stub_library/StubUtils.cpp
-                                  """.format(
-                **dirs
-            )
+                                  """.format(**dirs)
         ).split(),
     ),
     WinExt_win32com(
@@ -1763,9 +1696,7 @@ com_extensions = [
                         {shell}/PyIUniformResourceLocator.cpp
                         {shell}/shell.cpp
 
-                        """.format(
-                **dirs
-            )
+                        """.format(**dirs)
         ).split(),
     ),
     WinExt_win32com(
@@ -1793,9 +1724,7 @@ com_extensions = [
                         {propsys}/PyIObjectWithPropertyKey.cpp
                         {propsys}/PyIPropertyChange.cpp
                         {propsys}/PyIPropertyChangeArray.cpp
-                        """.format(
-                **dirs
-            )
+                        """.format(**dirs)
         ).split(),
         implib_name="pypropsys",
     ),
@@ -1811,9 +1740,7 @@ com_extensions = [
                         {taskscheduler}/PyITaskScheduler.cpp
                         {taskscheduler}/PyITaskTrigger.cpp
 
-                        """.format(
-                **dirs
-            )
+                        """.format(**dirs)
         ).split(),
     ),
     WinExt_win32com(
@@ -1834,9 +1761,7 @@ com_extensions = [
                         {bits}/PyIEnumBackgroundCopyJobs.cpp
                         {bits}/PyIEnumBackgroundCopyFiles.cpp
 
-                        """.format(
-                **dirs
-            )
+                        """.format(**dirs)
         ).split(),
     ),
     WinExt_win32com(
@@ -1857,18 +1782,14 @@ com_extensions = [
                         {directsound}/PyIDirectSoundBuffer.cpp {directsound}/PyIDirectSoundCapture.cpp
                         {directsound}/PyIDirectSoundCaptureBuffer.cpp
                         {directsound}/PyIDirectSoundNotify.cpp
-                        """.format(
-                **dirs
-            )
+                        """.format(**dirs)
         ).split(),
         depends=(
             """
                         {directsound}/directsound_pch.h   {directsound}/PyIDirectSound.h
                         {directsound}/PyIDirectSoundBuffer.h {directsound}/PyIDirectSoundCapture.h
                         {directsound}/PyIDirectSoundCaptureBuffer.h {directsound}/PyIDirectSoundNotify.h
-                        """.format(
-                **dirs
-            )
+                        """.format(**dirs)
         ).split(),
         optional_headers=["dsound.h"],
         libraries="user32 dsound dxguid",
@@ -1880,9 +1801,7 @@ com_extensions = [
             """
                         {authorization}/authorization.cpp
                         {authorization}/PyGSecurityInformation.cpp
-                        """.format(
-                **dirs
-            )
+                        """.format(**dirs)
         ).split(),
     ),
 ]
@@ -2228,7 +2147,7 @@ packages = [
     "adodbapi",
 ]
 
-py_modules = expand_modules("win32\\lib")
+py_modules = [*expand_modules("win32\\lib"), "win32\\winxpgui"]
 ext_modules = (
     win32_extensions + com_extensions + pythonwin_extensions + other_extensions
 )
@@ -2261,6 +2180,7 @@ if "bdist_wininst" in sys.argv:
     # fixup https://github.com/pypa/setuptools/issues/3284
     def maybe_fixup_exes():
         import site
+
         from distutils.command import bdist_wininst
 
         # setuptools can't find .exe stubs in `site-packages/setuptools/_distutils`
@@ -2419,7 +2339,7 @@ if "build_ext" in dist.command_obj:
     # Print the list of extension modules we skipped building.
     excluded_extensions = dist.command_obj["build_ext"].excluded_extensions
     if excluded_extensions:
-        skip_whitelist = {"exchdapi", "exchange", "axdebug", "winxpgui"}
+        skip_whitelist = {"exchdapi", "exchange", "axdebug"}
         skipped_ex = []
         print("*** NOTE: The following extensions were NOT %s:" % what_string)
         for ext, why in excluded_extensions:

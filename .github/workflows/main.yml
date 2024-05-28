@@ -17,17 +17,19 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11', '3.12-dev']
-        architecture: ['x64', 'x86']
+        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11", "3.12-dev"]
+        architecture: ["x64", "x86"]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
           architecture: ${{ matrix.architecture }}
+          cache: pip
+          cache-dependency-path: .github/workflows/main.yml
 
       - name: Setup environment
         run: |
@@ -64,16 +66,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.10', '3.11', '3.12-dev']
+        python-version: ["3.10", "3.11", "3.12-dev"]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          architecture: 'x64'
+          architecture: "x64"
+          cache: pip
+          cache-dependency-path: .github/workflows/main.yml
 
       - name: Setup Environment
         run: |
@@ -99,14 +103,18 @@ jobs:
   checkers:
     runs-on: windows-2019
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           # This job only needs to target the oldest supported version (black@stable supports Python >=3.8)
-          python-version: '3.8'
-      - run: pip install isort pycln
+          python-version: "3.8"
+          cache: pip
+          cache-dependency-path: .github/workflows/main.yml
+      - run: pip install pycln
       - run: pycln . --config=pycln.toml --check
-      - run: isort . --diff --check-only
+      - uses: chartboost/ruff-action@v1
+        with:
+          version: "0.3.4"
       - uses: psf/black@stable
         with:
           options: "--fast --check --diff --verbose"
@@ -117,12 +125,14 @@ jobs:
       fail-fast: false
       matrix:
         # mypy 1.5 dropped support for Python 3.7
-        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: .github/workflows/main.yml
       - run: pip install types-regex types-setuptools mypy==1.9
       - run: mypy . --python-version=${{ matrix.python-version }}
 
@@ -131,12 +141,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11', '3.12']
+        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11", "3.12"]
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: .github/workflows/main.yml
       # pyright vendors typeshed, but let's make sure we have the most up to date stubs
       - run: pip install types-regex types-setuptools
       - uses: jakebailey/pyright-action@v2

@@ -47,7 +47,7 @@ def makeadopackage(testfolder):
         newpackage = os.path.join(testfolder, "adodbapi")
         try:
             os.mkdir(newpackage)
-        except (WindowsError, OSError):
+        except OSError:
             print(
                 "*Note: temporary adodbapi package already exists: may be two versions running?"
             )
@@ -63,7 +63,7 @@ def makeadopackage(testfolder):
             sys.stdout = save
         return testfolder
     else:
-        raise EnvironmentError("Connot find source of adodbapi to test.")
+        raise OSError("Connot find source of adodbapi to test.")
 
 
 def makemdb(testfolder, mdb_name):
@@ -103,9 +103,3 @@ def makemdb(testfolder, mdb_name):
             shutil.copy(mdbName, _accessdatasource)
 
     return _accessdatasource
-
-
-if __name__ == "__main__":
-    print("Setting up a Jet database for server to use for remote testing...")
-    temp = maketemp()
-    makemdb(temp, "server_test.mdb")
