@@ -41,7 +41,7 @@ from setuptools.command.build_ext import build_ext
 from setuptools.command.install import install
 from setuptools.command.install_lib import install_lib
 from tempfile import gettempdir
-from typing import Iterable, List, Tuple, Union
+from typing import Iterable
 
 from distutils import ccompiler
 from distutils._msvccompiler import MSVCCompiler
