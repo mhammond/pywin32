@@ -784,7 +784,7 @@ class Cursor:
             if verbose > 2:
                 print(
                     'Returned=Name: %s, Dir.: %s, Type: %s, Size: %s, Value: "%s",'
-                    " Precision: %s, NumericScale: %s"
+                    + " Precision: %s, NumericScale: %s"
                     % (
                         p.Name,
                         adc.directions[p.Direction],

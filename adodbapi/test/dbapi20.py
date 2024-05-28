@@ -286,7 +286,7 @@ class DatabaseAPI20Test(unittest.TestCase):
                 cur.description,
                 None,
                 "cursor.description should be none after executing a "
-                "statement that can return no rows (such as DDL)",
+                + "statement that can return no rows (such as DDL)",
             )
             cur.execute("select name from %sbooze" % self.table_prefix)
             self.assertEqual(
@@ -315,7 +315,7 @@ class DatabaseAPI20Test(unittest.TestCase):
                 cur.description,
                 None,
                 "cursor.description not being set to None when executing "
-                "no-result statements (eg. DDL)",
+                + "no-result statements (eg. DDL)",
             )
         finally:
             con.close()
@@ -327,8 +327,7 @@ class DatabaseAPI20Test(unittest.TestCase):
             self.executeDDL1(cur)
             self.assertTrue(
                 cur.rowcount in (-1, 0),  # Bug #543885
-                "cursor.rowcount should be -1 or 0 after executing no-result "
-                "statements",
+                "cursor.rowcount should be -1 or 0 after executing no-result statements",
             )
             cur.execute(
                 "insert into %sbooze values ('Victoria Bitter')" % (self.table_prefix)
@@ -336,20 +335,19 @@ class DatabaseAPI20Test(unittest.TestCase):
             self.assertTrue(
                 cur.rowcount in (-1, 1),
                 "cursor.rowcount should == number or rows inserted, or "
-                "set to -1 after executing an insert statement",
+                + "set to -1 after executing an insert statement",
             )
             cur.execute("select name from %sbooze" % self.table_prefix)
             self.assertTrue(
                 cur.rowcount in (-1, 1),
                 "cursor.rowcount should == number of rows returned, or "
-                "set to -1 after executing a select statement",
+                + "set to -1 after executing a select statement",
             )
             self.executeDDL2(cur)
             self.assertEqual(
                 cur.rowcount,
                 -1,
-                "cursor.rowcount not being reset to -1 after executing "
-                "no-result statements",
+                "cursor.rowcount not being reset to -1 after executing no-result statements",
             )
         finally:
             con.close()
@@ -465,13 +463,13 @@ class DatabaseAPI20Test(unittest.TestCase):
             res[0][1],
             trouble,
             "cursor.fetchall retrieved incorrect data, or data inserted "
-            "incorrectly. Got=%s, Expected=%s" % (repr(res[0][1]), repr(trouble)),
+            + "incorrectly. Got=%s, Expected=%s" % (repr(res[0][1]), repr(trouble)),
         )
         self.assertEqual(
             res[1][1],
             trouble,
             "cursor.fetchall retrieved incorrect data, or data inserted "
-            "incorrectly. Got=%s, Expected=%s" % (repr(res[1][1]), repr(trouble)),
+            + "incorrectly. Got=%s, Expected=%s" % (repr(res[1][1]), repr(trouble)),
         )
 
     def test_executemany(self):
@@ -506,8 +504,8 @@ class DatabaseAPI20Test(unittest.TestCase):
                 self.fail("Unknown paramstyle")
             self.assertTrue(
                 cur.rowcount in (-1, 2),
-                "insert using cursor.executemany set cursor.rowcount to "
-                "incorrect value %r" % cur.rowcount,
+                "insert using cursor.executemany set cursor.rowcount to incorrect value %r"
+                % cur.rowcount,
             )
             cur.execute("select name from %sbooze" % self.table_prefix)
             res = cur.fetchall()
@@ -607,7 +605,7 @@ class DatabaseAPI20Test(unittest.TestCase):
                 len(r),
                 1,
                 "cursor.fetchmany retrieved incorrect number of rows, "
-                "default of arraysize is one.",
+                + "default of arraysize is one.",
             )
             cur.arraysize = 10
             r = cur.fetchmany(3)  # Should get 3 rows
@@ -622,8 +620,7 @@ class DatabaseAPI20Test(unittest.TestCase):
             self.assertEqual(
                 len(r),
                 0,
-                "cursor.fetchmany should return an empty sequence after "
-                "results are exhausted",
+                "cursor.fetchmany should return an empty sequence after results are exhausted",
             )
             self.assertTrue(cur.rowcount in (-1, 6))
 
@@ -662,7 +659,7 @@ class DatabaseAPI20Test(unittest.TestCase):
                 len(rows),
                 0,
                 "cursor.fetchmany should return an empty sequence if "
-                "called after the whole result set has been fetched",
+                + "called after the whole result set has been fetched",
             )
             self.assertTrue(cur.rowcount in (-1, 6))
 
@@ -672,8 +669,7 @@ class DatabaseAPI20Test(unittest.TestCase):
             self.assertEqual(
                 len(r),
                 0,
-                "cursor.fetchmany should return an empty sequence if "
-                "query retrieved no rows",
+                "cursor.fetchmany should return an empty sequence if query retrieved no rows",
             )
             self.assertTrue(cur.rowcount in (-1, 0))
 
@@ -716,7 +712,7 @@ class DatabaseAPI20Test(unittest.TestCase):
                 len(rows),
                 0,
                 "cursor.fetchall should return an empty list if called "
-                "after the whole result set has been fetched",
+                + "after the whole result set has been fetched",
             )
             self.assertTrue(cur.rowcount in (-1, len(self.samples)))
 
@@ -727,8 +723,7 @@ class DatabaseAPI20Test(unittest.TestCase):
             self.assertEqual(
                 len(rows),
                 0,
-                "cursor.fetchall should return an empty list if "
-                "a select query returns no rows",
+                "cursor.fetchall should return an empty list if a select query returns no rows",
             )
 
         finally:
