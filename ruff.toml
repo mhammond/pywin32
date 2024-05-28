@@ -42,9 +42,10 @@ select = [
 "adodbapi/*" = ["C4", "YTT301", "UP031", "UP032", "ISC002"]
 
 [lint.isort]
-detect-same-package = false # Because pywin32 has a mix of relative and absolute imports, with undetectable first-party c-extensions
 combine-as-imports = true
+# Because pywin32 has a mix of relative and absolute imports, with undetectable first-party c-extensions
 # This makes import grouping more consistent
+detect-same-package = false
 known-third-party = [
   "__main__",
   # This forces distutils imports to always be after setuptools
