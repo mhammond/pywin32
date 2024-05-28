@@ -1,7 +1,24 @@
+# Target the oldest supported version
 target-version = "py37"
 
 [lint]
-select = ["I"]
+select = [
+  "I", # isort
+  "PLC", # Pylint Convention
+  # Ensure modern type annotation syntax and best practices
+  # Not including those covered by type-checkers
+  "FA", # flake8-future-annotations
+  "F404", # late-future-import
+  "PYI", # flake8-pyi
+  "UP006", # non-pep585-annotation
+  "UP007", # non-pep604-annotation
+  "UP010", # unnecessary-future-import
+  "UP037", # quoted-annotation
+]
+
+[lint.per-file-ignores]
+# Explicit re-exports is fine in __init__.py, still a code smell elsewhere.
+"__init__.py" = ["PLC0414"]
 
 [lint.isort]
 combine-as-imports = true
@@ -9,10 +26,10 @@ combine-as-imports = true
 # This makes import grouping more consistent
 detect-same-package = false
 known-third-party = [
-    "__main__",
-    # This forces distutils imports to always be after setuptools
-    # setuptools must be imported before distutils because it monkey-patches it.
-    # distutils is also removed in Python 3.12 and deprecated with setuptools
-    "distutils",
+  "__main__",
+  # This forces distutils imports to always be after setuptools
+  # setuptools must be imported before distutils because it monkey-patches it.
+  # distutils is also removed in Python 3.12 and deprecated with setuptools
+  "distutils",
 ]
 extra-standard-library = ["setuptools"]

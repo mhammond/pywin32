@@ -71,7 +71,7 @@ PyObject *PyObject_FromSAFEARRAYRecordInfo(SAFEARRAY *psa)
     hr = SafeArrayGetLBound(psa, 1, &lbound);
     if (FAILED(hr))
         goto exit;
-    nelems = ubound - lbound;
+    nelems = ubound - lbound + 1;
     hr = info->GetSize(&cb_elem);
     if (FAILED(hr))
         goto exit;
@@ -522,7 +522,7 @@ PyObject *PyRecord::getattro(PyObject *self, PyObject *obname)
         hr = sub->GetSize(&element_size);
         if (FAILED(hr))
             goto array_end;
-        nelems = ubound - lbound;
+        nelems = ubound - lbound + 1;
         ret_tuple = PyTuple_New(nelems);
         if (ret_tuple == NULL)
             goto array_end;
