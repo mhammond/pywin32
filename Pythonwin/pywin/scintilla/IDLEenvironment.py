@@ -29,8 +29,8 @@ def GetIDLEModule(module):
     except ImportError as details:
         msg = (
             f"The IDLE extension '{module}' can not be located.\r\n\r\n"
-            "Please correct the installation and restart the"
-            f" application.\r\n\r\n{details}"
+            + "Please correct the installation and restart the"
+            + f" application.\r\n\r\n{details}"
         )
         win32ui.MessageBox(msg)
         return None

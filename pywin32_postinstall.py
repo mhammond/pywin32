@@ -153,8 +153,8 @@ def CopyTo(desc, src, dest):
                 raise
             full_desc = (
                 f"Error {desc}\n\n"
-                "If you have any Python applications running, "
-                f"please close them now\nand select 'Retry'\n\n{details.strerror}"
+                + "If you have any Python applications running, "
+                + f"please close them now\nand select 'Retry'\n\n{details.strerror}"
             )
             rc = win32api.MessageBox(
                 0, full_desc, "Installation Error", win32con.MB_ABORTRETRYIGNORE
@@ -471,9 +471,9 @@ def install(lib_dir):
                 # in that place - otherwise that one will still get used!
                 if os.path.exists(dst):
                     msg = (
-                        "The file '%s' exists, but can not be replaced "
-                        "due to insufficient permissions.  You must "
-                        "reinstall this software as an Administrator" % dst
+                        f"The file '{dst}' exists, but can not be replaced "
+                        + "due to insufficient permissions.  You must "
+                        + "reinstall this software as an Administrator"
                     )
                     print(msg)
                     raise RuntimeError(msg)

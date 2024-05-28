@@ -2239,9 +2239,9 @@ if "bdist_wininst" in sys.argv:
     # keep it short and sweet as it's the first thing shown by the UI.
     long_description = (
         "Python extensions for Microsoft Windows\n"
-        "Provides access to much of the Win32 API, the\n"
-        "ability to create and use COM objects, and the\n"
-        "Pythonwin environment."
+        +"Provides access to much of the Win32 API, the\n"
+        +"ability to create and use COM objects, and the\n"
+        +"Pythonwin environment."
     )
     long_description_content_type = "text/plain"
 else:

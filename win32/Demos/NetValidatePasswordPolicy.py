@@ -60,8 +60,8 @@ def main():
         action="store_false",
         default=True,
         help="Used to specify the password does NOT match (ie, "
-        "uses False for the PasswordMatch/PasswordMatched "
-        "arg, both 'auth' and 'change' commands)",
+        + "uses False for the PasswordMatch/PasswordMatched "
+        + "arg, both 'auth' and 'change' commands)",
     )
 
     parser.add_option(

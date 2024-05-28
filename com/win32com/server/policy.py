@@ -224,7 +224,7 @@ class BasicWrapPolicy:
 
             desc = (
                 f"The object '{myob!r}' was created, but does not support the "
-                f"interface '{IIDToInterfaceName(reqIID)}'({reqIID}): {desc}"
+                + f"interface '{IIDToInterfaceName(reqIID)}'({reqIID}): {desc}"
             )
             raise pythoncom.com_error(hr, desc, exc, arg)
 

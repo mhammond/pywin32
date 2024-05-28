@@ -298,8 +298,8 @@ class InteractivePythonApp(app.CApp):
                 if dde:
                     dde.Exec(
                         "from pywin.framework import scriptutils\n"
-                        "ed = scriptutils.GetActiveEditControl()\n"
-                        "if ed: ed.SetSel(ed.LineIndex(%s - 1))" % gotoline
+                        + "ed = scriptutils.GetActiveEditControl()\n"
+                        + f"if ed: ed.SetSel(ed.LineIndex({gotoline} - 1))"
                     )
                 else:
                     from . import scriptutils

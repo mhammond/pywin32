@@ -30,7 +30,7 @@ def CheckNoOtherReaders():
         win32trace.TermWrite()
         raise RuntimeError(
             "An existing win32trace reader appears to be "
-            "running - please stop this process and try again"
+            + "running - please stop this process and try again"
         )
 
 

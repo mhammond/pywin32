@@ -924,8 +924,8 @@ def DllRegisterServer():
 
     key = winreg.CreateKey(
         winreg.HKEY_LOCAL_MACHINE,
-        "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\"
-        "Explorer\\Desktop\\Namespace\\" + ShellFolderRoot._reg_clsid_,
+        "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Desktop\\Namespace\\"
+        + ShellFolderRoot._reg_clsid_,
     )
     winreg.SetValueEx(key, None, 0, winreg.REG_SZ, ShellFolderRoot._reg_desc_)
     # And special shell keys under our CLSID
@@ -950,8 +950,8 @@ def DllUnregisterServer():
     try:
         key = winreg.DeleteKey(
             winreg.HKEY_LOCAL_MACHINE,
-            "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\"
-            "Explorer\\Desktop\\Namespace\\" + ShellFolderRoot._reg_clsid_,
+            "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Desktop\\Namespace\\"
+            + ShellFolderRoot._reg_clsid_,
         )
     except OSError as details:
         import errno

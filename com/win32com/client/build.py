@@ -99,10 +99,11 @@ class MapEntry:
 
     def __repr__(self):
         return (
-            "MapEntry(dispid={s.dispid}, desc={s.desc}, names={s.names}, doc={s.doc!r}, "
-            "resultCLSID={s.resultCLSID}, resultDocumentation={s.resultDocumentation}, "
-            "wasProperty={s.wasProperty}, hidden={s.hidden}"
-        ).format(s=self)
+            f"MapEntry(dispid={self.dispid}, desc={self.desc}, names={self.names}, "
+            + f"doc={self.doc!r}, resultCLSID={self.resultCLSID}, "
+            + f"resultDocumentation={self.resultDocumentation}, wasProperty={self.wasProperty}, "
+            + f"hidden={self.hidden})"
+        )
 
     def GetResultCLSID(self):
         rc = self.resultCLSID

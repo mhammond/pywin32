@@ -226,7 +226,7 @@ def UnpackMENUITEMINFO(s):
         text = None
     return _MakeResult(
         "MENUITEMINFO fType fState wID hSubMenu hbmpChecked "
-        "hbmpUnchecked dwItemData text hbmpItem",
+        + "hbmpUnchecked dwItemData text hbmpItem",
         (
             fType,
             fState,
@@ -503,7 +503,7 @@ def UnpackTVITEM(buffer):
         text = None
     return _MakeResult(
         "TVITEM item_hItem item_state item_stateMask "
-        "text item_image item_selimage item_cChildren item_param",
+        + "text item_image item_selimage item_cChildren item_param",
         (
             item_hItem,
             item_state,
@@ -643,7 +643,7 @@ def UnpackLVITEM(buffer):
         text = None
     return _MakeResult(
         "LVITEM item_item item_subItem item_state "
-        "item_stateMask text item_image item_param item_indent",
+        + "item_stateMask text item_image item_param item_indent",
         (
             item_item,
             item_subItem,
@@ -687,8 +687,7 @@ def UnpackLVNOTIFY(lparam):
         lparam,
     ) = struct.unpack(format, buf)
     return _MakeResult(
-        "UnpackLVNOTIFY hwndFrom id code item subitem "
-        "newstate oldstate changed pt lparam",
+        "UnpackLVNOTIFY hwndFrom id code item subitem newstate oldstate changed pt lparam",
         (
             hwndFrom,
             id,

@@ -804,8 +804,8 @@ def DllRegisterServer():
 
     key = winreg.CreateKey(
         winreg.HKEY_LOCAL_MACHINE,
-        "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\"
-        "Explorer\\Desktop\\Namespace\\" + ShellFolder._reg_clsid_,
+        "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Desktop\\Namespace\\"
+        + ShellFolder._reg_clsid_,
     )
     winreg.SetValueEx(key, None, 0, winreg.REG_SZ, ShellFolder._reg_desc_)
     # And special shell keys under our CLSID

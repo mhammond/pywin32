@@ -33,3 +33,6 @@ known-third-party = [
   "distutils",
 ]
 extra-standard-library = ["setuptools"]
+
+[lint.flake8-implicit-str-concat]
+allow-multiline = false
