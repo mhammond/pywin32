@@ -2132,7 +2132,7 @@ def convert_optional_data_files(files):
         except RuntimeError as details:
             if not str(details.args[0]).startswith("No file"):
                 raise
-            logging.info("NOTE: Optional file %s not found - skipping" % file)
+            logging.info("NOTE: Optional file %s not found - skipping", file)
         else:
             ret.append(temp[0])
     return ret

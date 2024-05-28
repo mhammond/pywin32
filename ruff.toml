@@ -3,8 +3,27 @@ target-version = "py37"
 
 [lint]
 select = [
+  "C4", # flake8-comprehensions
+  "F811", # redefined-while-unused
   "I", # isort
   "PLC", # Pylint Convention
+  "PLE", # Pylint Error
+  "RSE", # flake8-raise
+  "W", # pycodestyle Warning
+  "YTT", # flake8-2020
+
+  # String formatting, concatenating, interpolation, ...
+  "ISC001", # single-line-implicit-string-concatenation
+  # TODO: Do in a separate PR
+  # "ISC002", # multi-line-implicit-string-concatenation
+  "FLY", # static-join-to-f-string
+  "G", # flake8-logging-format
+  "UP025", # Remove unicode literals from strings
+  "UP030", # Use implicit references for positional format fields
+  # TODO: Still lots of manual fixes needed
+  # "UP031", # Use format specifiers instead of percent format
+  # "UP032", # Use f-string instead of format call
+
   # Ensure modern type annotation syntax and best practices
   # Not including those covered by type-checkers
   "FA", # flake8-future-annotations
@@ -19,6 +38,8 @@ select = [
 [lint.per-file-ignores]
 # Explicit re-exports is fine in __init__.py, still a code smell elsewhere.
 "__init__.py" = ["PLC0414"]
+# TODO: Make adodbapi changes in their own PRs
+"adodbapi/*" = ["C4", "YTT301", "UP031", "UP032", "ISC002"]
 
 [lint.isort]
 combine-as-imports = true
@@ -33,3 +54,6 @@ known-third-party = [
   "distutils",
 ]
 extra-standard-library = ["setuptools"]
+
+[lint.flake8-implicit-str-concat]
+allow-multiline = false # ignore ISC003 with this option disabled
