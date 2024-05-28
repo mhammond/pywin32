@@ -1388,7 +1388,7 @@ static PyObject *PyCryptVerifyMessageSignature(PyObject *self, PyObject *args, P
     PyWinBufferView pybuf(obbuf);
     if (!pybuf.ok())
         return NULL;
-        
+
     if (!PyWinObject_AsCRYPT_VERIFY_MESSAGE_PARA(obcvmp, &cvmp))
         return NULL;
     Py_BEGIN_ALLOW_THREADS bsuccess = CryptVerifyMessageSignature(&cvmp, signer_ind, (BYTE*)pybuf.ptr(), pybuf.len(),
@@ -1887,7 +1887,7 @@ static PyObject *PyCertNameToStr(PyObject *self, PyObject *args, PyObject *kwarg
     if (!pybuf.ok())
         return NULL;
     cnb.pbData = (BYTE*)pybuf.ptr();
-    cnb.cbData = pybuf.len();        
+    cnb.cbData = pybuf.len();
 
     Py_BEGIN_ALLOW_THREADS output_buflen = CertNameToStr(encoding, &cnb, strtype, output_buf, output_buflen);
     Py_END_ALLOW_THREADS if (output_buflen == 0) return PyWin_SetAPIError("CertNameToStr");

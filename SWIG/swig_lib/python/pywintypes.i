@@ -1,4 +1,4 @@
-/* File : pywin32.i 
+/* File : pywin32.i
 
 The start of an interface file for SWIG and the Win32 Python extensions.
 
@@ -594,4 +594,3 @@ typedef float HWND;
   PyDict_SetItemString(d, "error", PyWinExc_ApiError);
 #endif SWIG_PYTHONCOM
 %}
-

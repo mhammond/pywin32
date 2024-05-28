@@ -152,4 +152,3 @@ PyComTypeObject PyICatInformation::type("PyICatInformation",
                                         &PyIUnknown::type,  // @base PyICatInformation|PyIUnknown
                                         sizeof(PyICatInformation), PyICatInformation_methods,
                                         GET_PYCOM_CTOR(PyICatInformation));
-

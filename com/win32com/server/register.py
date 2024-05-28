@@ -130,7 +130,7 @@ def _find_localserver_exe(mustfind):
 def _find_localserver_module():
     import win32com.server
 
-    path = win32com.server.__path__[0]
+    path = next(iter(win32com.server.__path__))
     baseName = "localserver"
     pyfile = os.path.join(path, baseName + ".py")
     try:

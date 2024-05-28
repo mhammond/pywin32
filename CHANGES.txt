@@ -13,8 +13,24 @@ https://mhammond.github.io/pywin32_installers.html.
 
 Coming in build 307, as yet unreleased
 --------------------------------------
+
 ### pywin32
-* Release GIL when calling CreateService or StartService
+* Fixed non-overriden `pywin.scintilla.formatter.Formatter.ColorizeString` raising `TypeError` instead of `RuntimeError` due to too many parameters (#2216, @Avasam)
+* Fixed broken since Python 3 tokenization in `win32comext.axdebug.codecontainer.pySourceCodeContainer.GetSyntaxColorAttributes` (#2216, @Avasam)
+* Fixed a `TypeError` due to incorrect kwargs in `win32comext.axscript.client.pydumper.Register` (#2216, @Avasam)
+* Fixed error reporting of file copy failure for for installing debug dlls (#2216, @Avasam)
+* Fixed `py.exe -m win32verstamp` command and other quote typos caused by Implied String Concatenation (#2225, @Avasam)
+* Fixed VT_SAFEARRAY(VT_RECORD) which were missing the last element (#2247)
+* Fixed `MFC redist DLLs not found` by preferring corresponding version but accepting different version (#2248, @andreabravetti)
+* Fixed `pywintypes.error: (5, 'RegOpenKeyEx', 'Access is denied.')` when running service with debug parameter and no elevation (#2238, @jmartens)
+* Fixed handling of `SyntaxError` exception from a Windows Scripting Host Python Script on Python 3.10+ (#2235, @nbbeatty)
+* Add `CredGetSessionTypes` support (#2232, @CristiFati)
+* Fixed `win32clipboard` increasing size of data when `SetClipboardData` used with `CF_DIB` (#2184, @CristiFati)
+* Add `StoreLogoff` to `PyIMsgStore` to prevent possible hang when MAPI uninitializes or during session logoff (#2196, @avivbrg)
+* Enhance CredDelete to work with dictionaries (#2198, @CristiFati)
+* Add UnregisterHotKey support (#2185, @CristiFati)
+* IFolderView COM client support (#2180, #2181, #2182, @CristiFati)
+* Release GIL when calling CreateService or StartService (#2062, @adamkbmc)
 * Drop support for Internet Explorer 10 (#2229, @Avasam)
 * Removed considerations for never-built Windows CE (#2218, @Avasam)
 * Stopped building `winxpgui` (#2217, @Avasam)
@@ -67,9 +83,9 @@ Coming in build 307, as yet unreleased
 * Fixed passing a `float` to `range` in `win32pdhquery.Query.collectdatafor` (#2170, @Avasam)
 * Check that the filename w/o extension ends with `_d` rather than checking for `_d` anywhere in the file path (#2169, @Avasam)
 * Cleaned up and fixed Axdebug (#2126, @Avasam)
-    * `win32comext.axdebug.codecontainer.SourceCodeContainer` now uses the `debugDocument` parameter 
+    * `win32comext.axdebug.codecontainer.SourceCodeContainer` now uses the `debugDocument` parameter
     * `win32comext.axdebug.codecontainer` script can now be run independent of location
-    * Fixed Method Resolution Order issue in `win32comext.axdebug.documents`
+    * Fixed Method Resolution Order issue in `win32comext.axdebug.documents` (also #2071, @wxinix-2022)
     * Fixed undefined names (`NameError`) in `win32comext.axdebug.expressions.DebugProperty.GetPropertyInfo`
     * Removed unused `win32comext.axdebug.util.all_wrapped`
     * Fixed multiple `ModuleNotFoundError` in `win32comext.axdebug` (#1983, @Avasam)
@@ -84,11 +100,12 @@ Coming in build 307, as yet unreleased
   * Fixed registering Python as a scripting language for `axscript`
   * Fixed `isapi` install
 * Use collection literals and comprehensions where applicable (slight performance improvement) (#2108, @Avasam)
-* Cleanup obsolete code for unsupported Python versions (#1990, #2127, #2205, @Avasam)
+* Cleanup obsolete code for unsupported Python versions (#1990, #2127, #2205, #2214, @Avasam)
   The following public names have been removed:
     * `pywin.framework.app.Win32RawInput`
     * `win32com.client.makepy.error`
     * Long obsoleted `dbi` module, use the `odbc` module instead
+    * `win32com.client.dynamic.MakeMethod`
   Added support for the following Python 3 methods:
     * `pywin.mfc.dialog.Dialog.__contains__`
     * `win32com.client.CoClassBaseClass.__bool__`
@@ -119,17 +136,17 @@ Coming in build 307, as yet unreleased
 * General speed and size improvements due to all the removed code. (#2046, #1986, #2050, #1950, #2085, #2087, #2051, #1990, #2106, #2127, #2124, #2126, #2177, #2218, #2202, #2205, #2217)
 
 ### adodbapi
-* Remove references to outdated IronPython (#2049)
+* Remove references to outdated IronPython (#2049, @Avasam)
   This removes the following public names:
   * `adodbapi.adodbapi.onWin32`
   * `adodbapi.apibase.onIronPython`
   * `adodbapi.apibase.NullTypes`
   * `adodbapi.apibase.DateTime`
-* Remove references to outdated `mxDateTime` (#2048)
+* Remove references to outdated `mxDateTime` (#2048, @Avasam)
   This removes the following public names:
   * `adodbapi.apibase.mxDateTime`
   * `adodbapi.apibase.mxDateTimeConverter`
-* Removed obsolete Python 2 aliases (#2088)
+* Removed obsolete Python 2 aliases (#2088, @Avasam)
   This removes the following public names:
   * `adodbapi.adodbapi.unicodeType`
   * `adodbapi.adodbapi.longType`
@@ -140,8 +157,8 @@ Coming in build 307, as yet unreleased
   * `adodbapi.apibase.StringTypes`
   * `adodbapi.apibase.makeByteBuffer`
   * `adodbapi.apibase.memoryViewType`
-* Remove outdated and unused remote feature (#2098)
-* Migrated from `distutils` to `setuptools` (#2133)
+* Remove outdated and unused remote feature (#2098, @Avasam)
+* Migrated from `distutils` to `setuptools` (#2133, @Avasam)
 
 Build 306, released 2023-03-26
 ------------------------------

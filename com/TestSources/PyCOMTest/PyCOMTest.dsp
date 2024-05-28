@@ -7,21 +7,21 @@
 CFG=PyCOMTest - Win32 Release
 !MESSAGE This is not a valid makefile. To build this project using NMAKE,
 !MESSAGE use the Export Makefile command and run
-!MESSAGE 
+!MESSAGE
 !MESSAGE NMAKE /f "PyCOMTest.mak".
-!MESSAGE 
+!MESSAGE
 !MESSAGE You can specify a configuration when running NMAKE
 !MESSAGE by defining the macro CFG on the command line. For example:
-!MESSAGE 
+!MESSAGE
 !MESSAGE NMAKE /f "PyCOMTest.mak" CFG="PyCOMTest - Win32 Release"
-!MESSAGE 
+!MESSAGE
 !MESSAGE Possible choices for configuration are:
-!MESSAGE 
+!MESSAGE
 !MESSAGE "PyCOMTest - Win32 Release" (based on "Win32 (x86) Dynamic-Link Library")
 !MESSAGE "PyCOMTest - Win32 Debug" (based on "Win32 (x86) Dynamic-Link Library")
 !MESSAGE "PyCOMTest - Win32 Unicode Release" (based on "Win32 (x86) Dynamic-Link Library")
 !MESSAGE "PyCOMTest - Win32 Unicode Debug" (based on "Win32 (x86) Dynamic-Link Library")
-!MESSAGE 
+!MESSAGE
 
 # Begin Project
 # PROP AllowPerConfigDependencies 0
@@ -64,9 +64,9 @@ InputPath=\src\pywin32\com\TestSources\Build\Release\PyCOMTest.dll
 SOURCE="$(InputPath)"
 
 "$(OutDir)\regsvr32.trg" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	regsvr32 /s /c "$(TargetPath)" 
-	echo regsvr32 exec. time > "$(OutDir)\regsvr32.trg" 
-	
+	regsvr32 /s /c "$(TargetPath)"
+	echo regsvr32 exec. time > "$(OutDir)\regsvr32.trg"
+
 # End Custom Build
 
 !ELSEIF  "$(CFG)" == "PyCOMTest - Win32 Debug"
@@ -100,9 +100,9 @@ InputPath=\src\pywin32\com\TestSources\Build\Debug\PyCOMTest.dll
 SOURCE="$(InputPath)"
 
 "$(OutDir)\regsvr32.trg" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	regsvr32 /s /c "$(TargetPath)" 
-	echo regsvr32 exec. time > "$(OutDir)\regsvr32.trg" 
-	
+	regsvr32 /s /c "$(TargetPath)"
+	echo regsvr32 exec. time > "$(OutDir)\regsvr32.trg"
+
 # End Custom Build
 
 !ELSEIF  "$(CFG)" == "PyCOMTest - Win32 Unicode Release"
@@ -136,9 +136,9 @@ InputPath=\src\pywin32\com\TestSources\Build\ReleaseU\PyCOMTest.dll
 SOURCE="$(InputPath)"
 
 "$(OutDir)\regsvr32.trg" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	regsvr32 /s /c "$(TargetPath)" 
-	echo regsvr32 exec. time > "$(OutDir)\regsvr32.trg" 
-	
+	regsvr32 /s /c "$(TargetPath)"
+	echo regsvr32 exec. time > "$(OutDir)\regsvr32.trg"
+
 # End Custom Build
 
 !ELSEIF  "$(CFG)" == "PyCOMTest - Win32 Unicode Debug"
@@ -172,12 +172,12 @@ InputPath=\src\pywin32\com\TestSources\Build\DebugU\PyCOMTest.dll
 SOURCE="$(InputPath)"
 
 "$(OutDir)\regsvr32.trg" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	regsvr32 /s /c "$(TargetPath)" 
-	echo regsvr32 exec. time > "$(OutDir)\regsvr32.trg" 
-	
+	regsvr32 /s /c "$(TargetPath)"
+	echo regsvr32 exec. time > "$(OutDir)\regsvr32.trg"
+
 # End Custom Build
 
-!ENDIF 
+!ENDIF
 
 # Begin Target
 
@@ -297,7 +297,7 @@ BuildCmds= \
    $(BuildCmds)
 # End Custom Build
 
-!ENDIF 
+!ENDIF
 
 # End Source File
 # Begin Source File
