@@ -60,7 +60,7 @@ is_readonly = is_zip = hasattr(win32com, "__loader__") and hasattr(
 # Typing as Any because PyITypeLib is not exposed
 demandGeneratedTypeLibraries: dict[tuple[str, int, int, int], Any] = {}
 
-import pickle as pickle
+import pickle
 
 
 def __init__():
@@ -91,7 +91,7 @@ def _SaveDicts():
 def _LoadDicts():
     # Load the dictionary from a .zip file if that is where we live.
     if is_zip:
-        import io as io
+        import io
 
         loader = win32com.__loader__
         arc_path = loader.archive
