@@ -280,7 +280,7 @@ BOOL PyWinObject_AsCRYPT_BIT_BLOB(PyObject *obcbb, PCRYPT_BIT_BLOB pcbb)
             dummy_tuple, obcbb, "Ok:CRYPT_BIT_BLOB", cbb_keys,
             &obdata,             // @prop buffer|Data|Binary data
             &pcbb->cUnusedBits)  // @prop int|UnusedBits|Nbr of bits of last byte that are unused
-            ) 
+            )
         if (pybuf.init(obdata)) {
             // note: this might be unsafe, as we give away the buffer pointer to a
             // client outside of the scope where our RAII object 'pybuf' resides.

@@ -83,7 +83,7 @@ Coming in build 307, as yet unreleased
 * Fixed passing a `float` to `range` in `win32pdhquery.Query.collectdatafor` (#2170, @Avasam)
 * Check that the filename w/o extension ends with `_d` rather than checking for `_d` anywhere in the file path (#2169, @Avasam)
 * Cleaned up and fixed Axdebug (#2126, @Avasam)
-    * `win32comext.axdebug.codecontainer.SourceCodeContainer` now uses the `debugDocument` parameter 
+    * `win32comext.axdebug.codecontainer.SourceCodeContainer` now uses the `debugDocument` parameter
     * `win32comext.axdebug.codecontainer` script can now be run independent of location
     * Fixed Method Resolution Order issue in `win32comext.axdebug.documents` (also #2071, @wxinix-2022)
     * Fixed undefined names (`NameError`) in `win32comext.axdebug.expressions.DebugProperty.GetPropertyInfo`

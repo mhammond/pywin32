@@ -74,18 +74,18 @@
 
 #define QS_MOUSEMOVE QS_MOUSEMOVE // A WM_MOUSEMOVE message is in the queue.
 
-#define QS_PAINT QS_PAINT // A WM_PAINT message is in the queue. 
+#define QS_PAINT QS_PAINT // A WM_PAINT message is in the queue.
 
-#define QS_POSTMESSAGE QS_POSTMESSAGE // A posted message (other than those just listed) is in the queue. 
+#define QS_POSTMESSAGE QS_POSTMESSAGE // A posted message (other than those just listed) is in the queue.
 
-#define QS_SENDMESSAGE QS_SENDMESSAGE // A message sent by another thread or application is in the queue. 
+#define QS_SENDMESSAGE QS_SENDMESSAGE // A message sent by another thread or application is in the queue.
 
-#define QS_TIMER QS_TIMER // A WM_TIMER message is in the queue. 
+#define QS_TIMER QS_TIMER // A WM_TIMER message is in the queue.
 
-#define EVENT_ALL_ACCESS EVENT_ALL_ACCESS // Specifies all possible access flags for the event object. 
- 
-#define EVENT_MODIFY_STATE EVENT_MODIFY_STATE // Enables use of the event handle in the SetEvent and ResetEvent�functions to modify the event�s state. 
- 
+#define EVENT_ALL_ACCESS EVENT_ALL_ACCESS // Specifies all possible access flags for the event object.
+
+#define EVENT_MODIFY_STATE EVENT_MODIFY_STATE // Enables use of the event handle in the SetEvent and ResetEvent�functions to modify the event�s state.
+
 #define SYNCHRONIZE SYNCHRONIZE // Windows NT only:�Enables use of the event handle in any of the wait functions�to wait for the event�s state to be signaled.
 
 // @pyswig |CancelWaitableTimer|Cancels a waiting timer.
@@ -97,8 +97,8 @@ BOOLAPI CancelWaitableTimer(PyHANDLE handle);
 // @rdesc The result is a handle to the created object
 PyHANDLE CreateEvent(
     SECURITY_ATTRIBUTES *inNullSA,   // @pyparm <o PySECURITY_ATTRIBUTES>|EventAttributes||The security attributes, or None
-    BOOL bManualReset,	// @pyparm bool|bManualReset||flag for manual-reset event 
-    BOOL bInitialState,	// @pyparm bool|bInitialState||flag for initial state 
+    BOOL bManualReset,	// @pyparm bool|bManualReset||flag for manual-reset event
+    BOOL bInitialState,	// @pyparm bool|bInitialState||flag for initial state
     TCHAR *INPUT_NULLOK 	// @pyparm <o PyUnicode>|Name||event-object name, or None
 );
 
@@ -106,7 +106,7 @@ PyHANDLE CreateEvent(
 // @rdesc The result is a handle to the created object
 PyHANDLE CreateMutex(
     SECURITY_ATTRIBUTES *inNullSA, // @pyparm <o PySECURITY_ATTRIBUTES>|MutexAttributes||Specifies inheritance and security descriptor for object, or None for defaults
-    BOOL bInitialOwner,	// @pyparm bool|InitialOwner||flag for initial ownership 
+    BOOL bInitialOwner,	// @pyparm bool|InitialOwner||flag for initial ownership
     TCHAR * INPUT_NULLOK 	// @pyparm <o PyUnicode>|Name||Mutex-object name, or None
   );
 
@@ -115,7 +115,7 @@ PyHANDLE CreateMutex(
 // @pyseeapi CreateSemaphore
 PyHANDLE CreateSemaphore(
     SECURITY_ATTRIBUTES *SemaphoreAttributes, // @pyparm <o PySECURITY_ATTRIBUTES>|SemaphoreAttributes||Specifies inheritance and security descriptor for object, or None for defaults
-    LONG lInitialCount,	// @pyparm int|InitialCount||Initial count 
+    LONG lInitialCount,	// @pyparm int|InitialCount||Initial count
     LONG lMaximumCount,	// @pyparm int|MaximumCount||Maximum count
     TCHAR * INPUT_NULLOK // @pyparm str|SemaphoreName||Semaphore-object name, or None
 );
@@ -179,7 +179,7 @@ static BOOL MakeHandleList(PyObject *handleList, HANDLE **ppBuf, DWORD *pNumEntr
 %name(MsgWaitForMultipleObjects) PyObject *MyMsgWaitForMultipleObjects(
     PyObject *obHandleList, // @pyparm [<o PyHANDLE>, ...]|handleList||A sequence of handles to wait on.
     BOOL bWaitAll, // @pyparm bool|bWaitAll||If true, waits for all handles in the list.
-    DWORD dwMilliseconds,	// @pyparm int|milliseconds||time-out interval in milliseconds 
+    DWORD dwMilliseconds,	// @pyparm int|milliseconds||time-out interval in milliseconds
     DWORD dwWakeMask 	// @pyparm int|wakeMask||type of input events to wait for.  One of the win32event.QS_ constants.
 	// @comm Note that if bWaitAll is TRUE, the function will return when there is input in the queue,
 	// and all events are signalled.  This is rarely what you want!
@@ -188,8 +188,8 @@ static BOOL MakeHandleList(PyObject *handleList, HANDLE **ppBuf, DWORD *pNumEntr
 %{
 static PyObject * MyMsgWaitForMultipleObjects(
     PyObject *handleList,
-    BOOL fWaitAll,	// wait for all or wait for one 
-    DWORD dwMilliseconds,	// time-out interval in milliseconds 
+    BOOL fWaitAll,	// wait for all or wait for one
+    DWORD dwMilliseconds,	// time-out interval in milliseconds
     DWORD dwWakeMask )
 {
 	DWORD numItems;
@@ -213,15 +213,15 @@ static PyObject * MyMsgWaitForMultipleObjects(
 // @pyswig int|MsgWaitForMultipleObjectsEx|Returns when a message arrives of an event is signalled
 %name(MsgWaitForMultipleObjectsEx) PyObject *MyMsgWaitForMultipleObjectsEx(
     PyObject *obHandleList, // @pyparm [<o PyHANDLE>, ...]|handleList||A sequence of handles to wait on.
-    DWORD dwMilliseconds,	// @pyparm int|milliseconds||time-out interval in milliseconds 
-    DWORD dwWakeMask, 	// @pyparm int|wakeMask||type of input events to wait for 
+    DWORD dwMilliseconds,	// @pyparm int|milliseconds||time-out interval in milliseconds
+    DWORD dwWakeMask, 	// @pyparm int|wakeMask||type of input events to wait for
     DWORD dwFlags 	// @pyparm int|waitFlags||wait flags
    );
 
 %{
 static PyObject * MyMsgWaitForMultipleObjectsEx(
     PyObject *handleList,
-    DWORD dwMilliseconds,	// time-out interval in milliseconds 
+    DWORD dwMilliseconds,	// time-out interval in milliseconds
     DWORD dwWakeMask,
     DWORD dwFlags 	// wait flags
  )
@@ -247,24 +247,24 @@ static PyObject * MyMsgWaitForMultipleObjectsEx(
 }
 %}
 
-// @pyswig <o PyHANDLE>|OpenEvent|Returns a handle of an existing named event object. 
+// @pyswig <o PyHANDLE>|OpenEvent|Returns a handle of an existing named event object.
 PyHANDLE OpenEvent(
     DWORD dwDesiredAccess,	// @pyparm int|desiredAccess||access flag - one of <om win32event.EVENT_ALL_ACCESS>, <om win32event.EVENT_MODIFY_STATE>, or (NT only) <om win32event.SYNCHRONIZE>
-    BOOL bInheritHandle,	// @pyparm bool|bInheritHandle||inherit flag 
+    BOOL bInheritHandle,	// @pyparm bool|bInheritHandle||inherit flag
     TCHAR *lpName 	// @pyparm <o PyUnicode>|name||name of event to open.
    );
 
-// @pyswig <o PyHANDLE>|OpenMutex|Returns a handle of an existing named mutex object. 
+// @pyswig <o PyHANDLE>|OpenMutex|Returns a handle of an existing named mutex object.
 PyHANDLE OpenMutex(
-    DWORD dwDesiredAccess,	// @pyparm int|desiredAccess||access flag 
-    BOOL bInheritHandle,	// @pyparm bool|bInheritHandle||inherit flag 
+    DWORD dwDesiredAccess,	// @pyparm int|desiredAccess||access flag
+    BOOL bInheritHandle,	// @pyparm bool|bInheritHandle||inherit flag
     TCHAR *lpName 	// @pyparm <o PyUnicode>|name||name of mutex to open.
    );
 
-// @pyswig <o PyHANDLE>|OpenSemaphore|Returns a handle of an existing named semaphore object. 
+// @pyswig <o PyHANDLE>|OpenSemaphore|Returns a handle of an existing named semaphore object.
 PyHANDLE OpenSemaphore(
-    DWORD dwDesiredAccess,	// @pyparm int|desiredAccess||access flag 
-    BOOL bInheritHandle,	// @pyparm bool|bInheritHandle||inherit flag 
+    DWORD dwDesiredAccess,	// @pyparm int|desiredAccess||access flag
+    BOOL bInheritHandle,	// @pyparm bool|bInheritHandle||inherit flag
     TCHAR *lpName 	// @pyparm <o PyUnicode>|name||name of semaphore to open.
    );
 
@@ -278,32 +278,32 @@ PyHANDLE OpenWaitableTimer(
 
 // @pyswig |PulseEvent|Provides a single operation that sets (to signaled) the state of the specified event object and then resets it (to nonsignaled) after releasing the appropriate number of waiting threads.
 BOOLAPI PulseEvent(
-    PyHANDLE hEvent 	// @pyparm <o PyHANDLE>|hEvent||handle of event object 
-   );	
+    PyHANDLE hEvent 	// @pyparm <o PyHANDLE>|hEvent||handle of event object
+   );
 
 // @pyswig |ReleaseMutex|Releases a mutex.
 BOOLAPI ReleaseMutex(
-    PyHANDLE hMutex 	// @pyparm <o PyHANDLE>|hEvent||handle of mutex object  
+    PyHANDLE hMutex 	// @pyparm <o PyHANDLE>|hEvent||handle of mutex object
    );
 
 // @pyswig int|ReleaseSemaphore|Releases a semaphore.
 BOOLAPI ReleaseSemaphore(
-    PyHANDLE hSemaphore,	// @pyparm <o PyHANDLE>|hEvent||handle of the semaphore object  
-    LONG lReleaseCount,	// @pyparm int|lReleaseCount||amount to add to current count  
-    long *OUTPUT 	// address of previous count 
+    PyHANDLE hSemaphore,	// @pyparm <o PyHANDLE>|hEvent||handle of the semaphore object
+    LONG lReleaseCount,	// @pyparm int|lReleaseCount||amount to add to current count
+    long *OUTPUT 	// address of previous count
 // @rdesc The result is the previous count of the semaphore.
    );
 
 // @pyswig |ResetEvent|Resets an event
 BOOLAPI ResetEvent(
-    PyHANDLE hEvent 	// @pyparm <o PyHANDLE>|hEvent||handle of event object 
-   );	
+    PyHANDLE hEvent 	// @pyparm <o PyHANDLE>|hEvent||handle of event object
+   );
 
 // @pyswig |SetEvent|Sets an event
 BOOLAPI SetEvent(
-    PyHANDLE hEvent 	// @pyparm <o PyHANDLE>|hEvent||handle of event object 
-   );	
- 
+    PyHANDLE hEvent 	// @pyparm <o PyHANDLE>|hEvent||handle of event object
+   );
+
 // @pyswig |SetWaitableTimer|Sets a waitable timer.
 BOOLAPI SetWaitableTimer(
   PyHANDLE hTimer,                          // @pyparm <o PyHANDLE>|handle||handle to timer
@@ -323,8 +323,8 @@ BOOLAPI SignalObjectAndWait(
 %{
 static PyObject *MyWaitForMultipleObjects(
 	PyObject *handleList,
-	BOOL bWaitAll,	// wait flag 
-	DWORD dwMilliseconds 	// time-out interval in milliseconds 
+	BOOL bWaitAll,	// wait flag
+	DWORD dwMilliseconds 	// time-out interval in milliseconds
    )
 {
 	DWORD numItems;
@@ -348,16 +348,16 @@ static PyObject *MyWaitForMultipleObjects(
 // @pyswig int|WaitForMultipleObjects|Returns when an event is signalled
 %name(WaitForMultipleObjects) PyObject *MyWaitForMultipleObjects(
     PyObject *handleList,  // @pyparm [<o PyHANDLE>, ...]|handleList||A sequence of handles to wait on.
-    BOOL bWaitAll,	// @pyparm bool|bWaitAll||wait flag 
-    DWORD dwMilliseconds 	// @pyparm int|milliseconds||time-out interval in milliseconds 
-   );	
+    BOOL bWaitAll,	// @pyparm bool|bWaitAll||wait flag
+    DWORD dwMilliseconds 	// @pyparm int|milliseconds||time-out interval in milliseconds
+   );
 
 %{
 static PyObject *MyWaitForMultipleObjectsEx(
 	PyObject *handleList,
-	BOOL bWaitAll,	// wait flag 
-	DWORD dwMilliseconds, 	// time-out interval in milliseconds 
-	BOOL bAlertable 	// alertable wait flag 
+	BOOL bWaitAll,	// wait flag
+	DWORD dwMilliseconds, 	// time-out interval in milliseconds
+	BOOL bAlertable 	// alertable wait flag
    )
 {
 	DWORD numItems;
@@ -380,8 +380,8 @@ static PyObject *MyWaitForMultipleObjectsEx(
 // @pyswig int|WaitForMultipleObjectsEx|Returns when an event is signalled
 %name(WaitForMultipleObjectsEx) PyObject *MyWaitForMultipleObjectsEx(
     PyObject *handleList, // @pyparm [<o PyHANDLE>, ...]|handleList||A sequence of handles to wait on.
-    BOOL bWaitAll,	// @pyparm bool|bWaitAll||wait flag 
-    DWORD dwMilliseconds,	// @pyparm int|milliseconds||time-out interval in milliseconds 
+    BOOL bWaitAll,	// @pyparm bool|bWaitAll||wait flag
+    DWORD dwMilliseconds,	// @pyparm int|milliseconds||time-out interval in milliseconds
     BOOL bAlertable 	// @pyparm bool|bAlertable||alertable wait flag.
    );
 %typedef DWORD DWORD_WAITAPI
@@ -397,30 +397,29 @@ static PyObject *MyWaitForMultipleObjectsEx(
 
 // @pyswig int|WaitForSingleObject|Returns when an event is signalled
 DWORD_WAITAPI WaitForSingleObject(
-    PyHANDLE hHandle,	// @pyparm <o PyHANDLE>|hHandle||handle of object to wait for 
-    DWORD dwMilliseconds 	// @pyparm int|milliseconds||time-out interval in milliseconds  
+    PyHANDLE hHandle,	// @pyparm <o PyHANDLE>|hHandle||handle of object to wait for
+    DWORD dwMilliseconds 	// @pyparm int|milliseconds||time-out interval in milliseconds
    );
-// @rdesc If the function succeeds, the return value indicates the event that caused the function to return. This value can be one of the following. 
+// @rdesc If the function succeeds, the return value indicates the event that caused the function to return. This value can be one of the following.
 // @flagh Value|Meaning
-// @flag WAIT_ABANDONED|The specified object is a mutex object that was not released by the thread that owned the mutex object before the owning thread terminated. Ownership of the mutex object is granted to the calling thread, and the mutex is set to nonsignaled. 
-// @flag WAIT_OBJECT_0|The state of the specified object is signaled. 
-// @flag WAIT_TIMEOUT|The time-out interval elapsed, and the object's state is nonsignaled. 
+// @flag WAIT_ABANDONED|The specified object is a mutex object that was not released by the thread that owned the mutex object before the owning thread terminated. Ownership of the mutex object is granted to the calling thread, and the mutex is set to nonsignaled.
+// @flag WAIT_OBJECT_0|The state of the specified object is signaled.
+// @flag WAIT_TIMEOUT|The time-out interval elapsed, and the object's state is nonsignaled.
 
 // @pyswig int|WaitForSingleObjectEx|Returns when an event is signalled
 DWORD_WAITAPI WaitForSingleObjectEx(
-    PyHANDLE hHandle,	// @pyparm <o PyHANDLE>|hHandle||handle of object to wait for 
-    DWORD dwMilliseconds, // @pyparm int|milliseconds||time-out interval in milliseconds  
+    PyHANDLE hHandle,	// @pyparm <o PyHANDLE>|hHandle||handle of object to wait for
+    DWORD dwMilliseconds, // @pyparm int|milliseconds||time-out interval in milliseconds
     BOOL bAlertable // @pyparm bool|bAlertable||alertable wait flag.
    );
-// @rdesc See <om win32event.WaitForSingleObject> for return values.   
+// @rdesc See <om win32event.WaitForSingleObject> for return values.
 
 // @pyswig int|WaitForInputIdle|Waits until the given process is waiting for user input with no input pending, or until the time-out interval has elapsed
 DWORD_WAITAPI WaitForInputIdle(
-    HANDLE hProcess,	// @pyparm <o PyHANDLE>|hProcess||handle of process to wait for 
-    DWORD dwMilliseconds 	// @pyparm int|milliseconds||time-out interval in milliseconds  
+    HANDLE hProcess,	// @pyparm <o PyHANDLE>|hProcess||handle of process to wait for
+    DWORD dwMilliseconds 	// @pyparm int|milliseconds||time-out interval in milliseconds
    );
-// @rdesc The return value indicates wether the process is ready or wether it timed out. This value can be one of the following. 
+// @rdesc The return value indicates wether the process is ready or wether it timed out. This value can be one of the following.
 // @flagh Value|Meaning
-// @flag 0|The process is ready. 
-// @flag WAIT_TIMEOUT|The time-out interval elapsed, and the process is not ready. 
-
+// @flag 0|The process is ready.
+// @flag WAIT_TIMEOUT|The time-out interval elapsed, and the process is not ready.

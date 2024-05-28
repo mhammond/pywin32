@@ -40,7 +40,7 @@
                 <li><a href="#basic">User Basics</a>
                 <li><a href="#exchange">Adding Exchange access</a></li>
 		</ul>
-		 
+
                 <li><a href="#Conclusion">In Conclusion</A></li>
 	</ul>
 
@@ -52,7 +52,7 @@
 <hr>
 <h1><a name="Summary">Summary</a></h1>
 <p>
-Active Directory combines all sorts of domain-wide information into one spot. 
+Active Directory combines all sorts of domain-wide information into one spot.
 Using Microsoft's COM LDAP provider, python has good access to Active Directory.
 
 </p>
@@ -106,16 +106,16 @@ def discover():
     #get an exchange server
     ex_admin_grps='CN=Administrative Groups,cn='+ex_site+','+ex_loc+','+ldap_loc
     admin_grp=win32com.client.GetObject('LDAP://'+ex_admin_grps)[0].cn
-    
+
     ex_servers='LDAP://CN=Servers,'+'cn='+admin_grp+','+ex_admin_grps
     servers=win32com.client.GetObject(ex_servers)
 
     ex_servers=[]
-  
+
     for i in servers:
         ex_servers.append(i.cn)
     print("\texchange servers"," ".join(ex_servers))
-    
+
     ex_first_store='CN=First Storage Group,CN=InformationStore,CN=%s,CN=Servers,CN=%s,%s'%(ex_servers[-1],admin_grp,ex_admin_grps)
 
     ex_stores=[]
@@ -147,7 +147,7 @@ print("groups=",opends("fred").memberOf)
 def opends(loc,server=''):
     '''automatically buoild ldap string and authenticate
     ldap=win32com.client.Dispatch('ADsNameSpaces').getobject("","LDAP:")
-    ldap_main_loc='OU=people,DC=ad,DC=company,DC=state,DC=oh,DC=us' 
+    ldap_main_loc='OU=people,DC=ad,DC=company,DC=state,DC=oh,DC=us'
     ldap_auth='CN=admin_account,'+ldap_main_loc
 
     #if there is no ","  then they are not providing a full url
@@ -157,7 +157,7 @@ def opends(loc,server=''):
         if loc.find('=')==-1: loc='cn='+loc+','+Ad.ldap_main_loc
         else: loc=loc+','+Ad.ldap_main_loc
     if loc.find('LDAP://')==-1: loc='LDAP://'+loc
- 
+
     return ldap.OpenDSObject(loc,Ad.ldap_auth,Ad.pw,1)
 </code>
 
@@ -182,7 +182,7 @@ for i in ad_dict('fred').items():
 </code>
 <br>
 A lot of things convert to automatic python data types. For others, you'll get stuff like
-COMObject. You need to do specific processing, like the one done for 
+COMObject. You need to do specific processing, like the one done for
 pwdLastSet below, to extract data from them.
 
 <code>
@@ -216,9 +216,9 @@ def ad_dict(ldapobj,attr_dict={},recurse=0,auth=1,filter=()):
             value=getattr(adobj,i)
             if i == 'pwdLastSet':
                 #convert com object to sec since 1970
-                attr_dict[i]=conv_time(adobj.pwdLastSet.lowpart,adobj.pwdLastSet.highpart)       
+                attr_dict[i]=conv_time(adobj.pwdLastSet.lowpart,adobj.pwdLastSet.highpart)
             elif value: attr_dict[i]=value
-        
+
     else:
         attr_dict={}
         #only get data that is available
@@ -226,7 +226,7 @@ def ad_dict(ldapobj,attr_dict={},recurse=0,auth=1,filter=()):
             try:
                 if item == 'pwdLastSet':
                     #convert com object to sec since 1970
-                    attr_dict[item]=conv_time(adobj.pwdLastSet.lowpart,adobj.pwdLastSet.highpart)       
+                    attr_dict[item]=conv_time(adobj.pwdLastSet.lowpart,adobj.pwdLastSet.highpart)
                 else: attr_dict[item]=getattr(adobj,item)
             except:
                 pass
@@ -234,7 +234,7 @@ def ad_dict(ldapobj,attr_dict={},recurse=0,auth=1,filter=()):
 </code>
 
 
-<h3><a NAME="time">The time property</a></h3> 
+<h3><a NAME="time">The time property</a></h3>
 
 Time in active directory is stored in a 64 bit integer that keeps
 track of the number of 100-nanosecond intervals which have passed
@@ -258,7 +258,7 @@ def conv_time(l,h):
     #two 32 bits  stored in the structure.
     d=116444736000000000L #diference between 1601 and 1970
     #we divide by 10million to convert to seconds
-    return (((long(h)<< 32) + long(l))-d)/10000000    
+    return (((long(h)<< 32) + long(l))-d)/10000000
 </code>
 
 <hr>
@@ -280,8 +280,8 @@ So far we've only covered the basics of using Active Directory. Stay tuned for m
 </ul>
 </p>
 <hr><h1><a name="Author">Author</a></h1>
-John Nielsen, <a href="mailto:jn@who.net,">jn@who.net</a> 
-<br>-- Have a great time with programming with python! 
+John Nielsen, <a href="mailto:jn@who.net,">jn@who.net</a>
+<br>-- Have a great time with programming with python!
 		<!-- beginning of leaf footer-->
 		<p>&nbsp;</p>
 		<table border=0  cellpadding=0 cellspacing=0 width=100%>
