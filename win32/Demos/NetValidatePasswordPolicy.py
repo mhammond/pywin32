@@ -50,8 +50,7 @@ def main():
         "-p",
         "--password",
         action="store",
-        help="The clear-text password to pass to the function "
-        "(only for the 'change' command)",
+        help="The clear-text password to pass to the function (only for the 'change' command)",
     )
 
     parser.add_option(
