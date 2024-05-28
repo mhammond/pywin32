@@ -12,7 +12,7 @@ from win32com.server.util import unwrap, wrap
 from win32com.shell import shell, shellcon
 
 # event handler for the browser.
-IExplorerBrowserEvents_Methods = """OnNavigationComplete OnNavigationFailed 
+IExplorerBrowserEvents_Methods = """OnNavigationComplete OnNavigationFailed
                                     OnNavigationPending OnViewCreated""".split()
 
 
