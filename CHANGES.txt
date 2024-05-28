@@ -21,6 +21,7 @@ Coming in build 307, as yet unreleased
     * `win32com.client.build.error` --> `"PythonCOM.Client.Build error"`
     * `win32com.client.genpy.error` --> `"makepy.error"`
     * `win32com.client.tlbrowse.error` --> `win32com.client.tlbrowse.TLBrowserException`
+    * `win32serviceutil.error` --> `RuntimeError`
     * `win32evtlogutil.error` -> `win32api.error` or `pywintypes.error`
     * `win32pdhutil.error` -> `win32pdh.error` or `pywintypes.error`
     * `sspi.error` is still importable, but no longer exposed as a public member, use `win32security.error` or `pywintypes.error` instead

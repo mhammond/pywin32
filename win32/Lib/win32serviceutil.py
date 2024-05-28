@@ -17,8 +17,6 @@ import win32con
 import win32service
 import winerror
 
-error = RuntimeError
-
 
 # Returns the full path to an executable for hosting a Python service - typically
 # 'pythonservice.exe'
@@ -54,7 +52,7 @@ def LocatePythonServiceExe(exe=None):
         win32api.CopyFile(maybe, correct)
 
     if not os.path.exists(correct):
-        raise error(f"Can't find '{correct}'")
+        raise RuntimeError(f"Can't find '{correct}'")
 
     # If pywintypes.dll isn't next to us, or at least next to pythonXX.dll,
     # there's a good chance the service will not run. That's usually copied by
@@ -624,7 +622,7 @@ def GetServiceClassString(cls, argv=None):
                 # Get the long name
                 fname = os.path.join(path, filelist[0][8])
         except win32api.error:
-            raise error(
+            raise RuntimeError(
                 "Could not resolve the path name '%s' to a full path" % (argv[0])
             )
         modName = os.path.splitext(fname)[0]
