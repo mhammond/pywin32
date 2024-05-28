@@ -1603,8 +1603,8 @@ static PyObject *ui_set_dialog_bk_color(PyObject *self, PyObject *args)
     int clrCtlBk = RGB(192, 192, 192);
     int clrCtlText = RGB(0, 0, 0);
 
-    // @pyparm int|clrCtlBk|win32ui.RGB(192, 192, 192)|The color for the controls background.
-    // @pyparm int|clrCtlText|win32ui.RGB(0, 0, 0)|The color for the controls text.
+    // @pyparm int|clrCtlBk|win32api.RGB(192, 192, 192)|The color for the controls background.
+    // @pyparm int|clrCtlText|win32api.RGB(0, 0, 0)|The color for the controls text.
     if (!PyArg_ParseTuple(args, "|ii:SetDialogBkColor", &clrCtlBk, &clrCtlText))
         return NULL;
     CProtectedWinApp *pApp = GetProtectedApp();

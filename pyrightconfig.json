@@ -33,15 +33,13 @@
   "reportAttributeAccessIssue": "none",
   // FIXE: These all need to be fixed first and turned back to error
   // some of the fixes need to be done in types-pywin32 from typeshed
-  "reportAssignmentType": "warning",
   "reportCallIssue": "warning",
-  "reportIndexIssue": "warning",
   "reportOperatorIssue": "warning",
   "reportOptionalCall": "warning",
   "reportOptionalIterable": "warning",
   "reportOptionalMemberAccess": "warning",
   "reportOptionalSubscript": "warning",
-  // TODO: Leave Unbound/Undefined to its own PR(s)
+  // TODO: Leave Unbound/Undefined to their own PR(s)
   "reportUnboundVariable": "warning",
   "reportUndefinedVariable": "warning",
   // Too many dynamically generated modules. This will require type stubs to properly fix.
