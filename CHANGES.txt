@@ -100,11 +100,12 @@ Coming in build 307, as yet unreleased
   * Fixed registering Python as a scripting language for `axscript`
   * Fixed `isapi` install
 * Use collection literals and comprehensions where applicable (slight performance improvement) (#2108, @Avasam)
-* Cleanup obsolete code for unsupported Python versions (#1990, #2127, #2205, @Avasam)
+* Cleanup obsolete code for unsupported Python versions (#1990, #2127, #2205, #2214, @Avasam)
   The following public names have been removed:
     * `pywin.framework.app.Win32RawInput`
     * `win32com.client.makepy.error`
     * Long obsoleted `dbi` module, use the `odbc` module instead
+    * `win32com.client.dynamic.MakeMethod`
   Added support for the following Python 3 methods:
     * `pywin.mfc.dialog.Dialog.__contains__`
     * `win32com.client.CoClassBaseClass.__bool__`
