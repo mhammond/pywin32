@@ -2,7 +2,14 @@
 target-version = "py38"
 
 [lint]
-select = ["I"]
+select = [
+  "I", # isort
+  "PLC", # Pylint Convention
+]
+
+[lint.per-file-ignores]
+# Explicit re-exports is fine in __init__.py, still a code smell elsewhere.
+"__init__.py" = ["PLC0414"]
 
 [lint.isort]
 # Because pywin32 has a mix of relative and absolute imports, with undetectable first-party c-extensions
