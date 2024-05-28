@@ -139,6 +139,7 @@ class FetchFailedError(OperationalError):
 # Binary = bytes
 # """This function constructs an object capable of holding a binary (long) string value."""
 
+
 # -----     Time converters ----------------------------------------------
 class TimeConverter:  # this is a generic time converter skeleton
     def __init__(self):  # the details will be filled in by instances
