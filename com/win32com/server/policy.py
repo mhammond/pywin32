@@ -83,16 +83,14 @@ from pythoncom import (
     DISPATCH_PROPERTYGET,
     DISPATCH_PROPERTYPUT,
     DISPATCH_PROPERTYPUTREF,
-    DISPID_COLLECT,
-    DISPID_CONSTRUCTOR,
-    DISPID_DESTRUCTOR,
     DISPID_EVALUATE,
     DISPID_NEWENUM,
     DISPID_PROPERTYPUT,
     DISPID_STARTENUM,
-    DISPID_UNKNOWN,
     DISPID_VALUE,
 )
+
+from .exception import COMException
 
 S_OK = 0
 
@@ -100,9 +98,6 @@ S_OK = 0
 IDispatchType = pythoncom.TypeIIDs[pythoncom.IID_IDispatch]
 IUnknownType = pythoncom.TypeIIDs[pythoncom.IID_IUnknown]
 
-from .exception import COMException
-
-error = __name__ + " error"
 
 regSpec = "CLSID\\%s\\PythonCOM"
 regPolicy = "CLSID\\%s\\PythonCOMPolicy"
@@ -210,7 +205,7 @@ class BasicWrapPolicy:
                 win32con.HKEY_CLASSES_ROOT, regSpec % clsid
             )
         except win32api.error:
-            raise error(
+            raise COMException(
                 "The object is not correctly registered - %s key can not be read"
                 % (regSpec % clsid)
             )
@@ -361,7 +356,7 @@ class BasicWrapPolicy:
         Simply raises an exception.
         """
         # Base classes should override this method (and not call the base)
-        raise error("This class does not provide _invokeex_ semantics")
+        raise COMException("This class does not provide _invokeex_ semantics")
 
     def _DeleteMemberByName_(self, name, fdex):
         return self._deletememberbyname_(name, fdex)
@@ -515,7 +510,7 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
             universal_data = []
         MappedWrapPolicy._wrap_(self, ob)
         if not hasattr(ob, "_public_methods_") and not hasattr(ob, "_typelib_guid_"):
-            raise error(
+            raise COMException(
                 "Object does not support DesignatedWrapPolicy, as it does not have either _public_methods_ or _typelib_guid_ attributes."
             )
 
@@ -732,7 +727,7 @@ class DynamicPolicy(BasicWrapPolicy):
     def _wrap_(self, object):
         BasicWrapPolicy._wrap_(self, object)
         if not hasattr(self._obj_, "_dynamic_"):
-            raise error("Object does not support Dynamic COM Policy")
+            raise COMException("Object does not support Dynamic COM Policy")
         self._next_dynamic_ = self._min_dynamic_ = 1000
         self._dyn_dispid_to_name_ = {
             DISPID_VALUE: "_value_",

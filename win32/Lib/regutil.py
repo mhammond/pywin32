@@ -5,7 +5,10 @@ import sys
 import win32api
 import win32con
 
-error = "Registry utility error"
+
+class error(Exception):
+    pass
+
 
 # A .py file has a CLSID associated with it (why? - dunno!)
 CLSIDPyFile = "{b51df050-06ae-11cf-ad3b-524153480001}"
