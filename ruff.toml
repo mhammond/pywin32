@@ -1,8 +1,10 @@
+# Target the oldest supported version
 target-version = "py37"
 
 [lint]
 select = [
   "I", # isort
+  "PLC", # Pylint Convention
   # Ensure modern type annotation syntax and best practices
   # Not including those covered by type-checkers
   "FA", # flake8-future-annotations
@@ -13,6 +15,10 @@ select = [
   "UP010", # unnecessary-future-import
   "UP037", # quoted-annotation
 ]
+
+[lint.per-file-ignores]
+# Explicit re-exports is fine in __init__.py, still a code smell elsewhere.
+"__init__.py" = ["PLC0414"]
 
 [lint.isort]
 combine-as-imports = true
