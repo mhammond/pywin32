@@ -995,7 +995,7 @@ class my_compiler(MSVCCompiler):
         # allow --skip-verstamp on the cmdline - but if it's not there, the
         # verstamp must work.)
         if not skip_verstamp:
-            args = ["py.exe", "-m" "win32verstamp"]
+            args = ["py.exe", "-m", "win32verstamp"]
             args.append(f"--version={pywin32_version}")
             args.append("--comments=https://github.com/mhammond/pywin32")
             args.append(f"--original-filename={os.path.basename(output_filename)}")

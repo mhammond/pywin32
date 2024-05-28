@@ -1,12 +1,12 @@
-/* File : PyIProviderAdmin.i */ 
-   
+/* File : PyIProviderAdmin.i */
+
 %module IProviderAdmin // A COM interface to MAPI
 
 %include "typemaps.i"
 %include "pywin32.i"
 %include "pythoncom.i"
 %include "mapilib.i"
-  
+
 %{
 
 #include "PyIProviderAdmin.h"
@@ -36,22 +36,22 @@ PyObject *PyIProviderAdmin::GetLastError(PyObject *self, PyObject *args)
 	HRESULT hr, hRes;
 	ULONG flags = 0;
 	MAPIERROR *me = NULL;
-	
+
 	IProviderAdmin *_swig_self;
 	if ((_swig_self=GetI(self))==NULL) return NULL;
-	
+
     if(!PyArg_ParseTuple(args,"l|l:GetLastError",
 		&hr, // @pyparm int|hr||Contains the error code generated in the previous method call.
 		&flags)) // @pyparm int|flags||Indicates for format for the output.
         return NULL;
-		
+
 	Py_BEGIN_ALLOW_THREADS
 	hRes = _swig_self->GetLastError(hr, flags, &me);
 	Py_END_ALLOW_THREADS
 
 	if (FAILED(hRes))
 		return OleSetOleError(hRes);
-	
+
 	if (me == NULL)
 	{
 		Py_INCREF(Py_None);
@@ -84,9 +84,9 @@ HRESULT OpenProfileSection(
 %{
 
 // as defined in MSDN, exerything [in] except last arg is [out]
-//  HRESULT CreateProvider(LPTSTR lpszProvider,ULONG cValues,LPSPropValue lpProps,ULONG ulUIParam,ULONG ulFlags,MAPIUID FAR * lpUID);    
+//  HRESULT CreateProvider(LPTSTR lpszProvider,ULONG cValues,LPSPropValue lpProps,ULONG ulUIParam,ULONG ulFlags,MAPIUID FAR * lpUID);
 // @pyswig <o PyIID>|CreateProvider|Add a service provider to a message service.
-PyObject *PyIProviderAdmin::CreateProvider(PyObject *self, PyObject *args) 
+PyObject *PyIProviderAdmin::CreateProvider(PyObject *self, PyObject *args)
 {
     HRESULT hr;IProviderAdmin *_swig_self;
     //Handle the 5 input variables
@@ -95,7 +95,7 @@ PyObject *PyIProviderAdmin::CreateProvider(PyObject *self, PyObject *args)
     if(!PyArg_ParseTuple(args,"slOll",&lpszProvider,&cValues,&py_props,&ulUIParam,&ulFlags)) { return NULL; }
 
     //handle spropvalue structure
-    SPropValue *pPropValue;ULONG len;  
+    SPropValue *pPropValue;ULONG len;
     if (py_props==Py_None) {
         pPropValue = NULL;
         cValues = 0;
@@ -122,5 +122,3 @@ PyObject *PyIProviderAdmin::CreateProvider(PyObject *self, PyObject *args)
 
 %}
 %native (CreateProvider) CreateProvider;
-
-

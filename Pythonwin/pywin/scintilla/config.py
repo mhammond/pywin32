@@ -64,7 +64,7 @@ def get_section_header(line):
 
 
 def find_config_file(f):
-    return os.path.join(pywin.__path__[0], f + ".cfg")
+    return os.path.join(next(iter(pywin.__path__)), f + ".cfg")
 
 
 def find_config_files():
@@ -72,7 +72,7 @@ def find_config_files():
         os.path.split(x)[1]
         for x in [
             os.path.splitext(x)[0]
-            for x in glob.glob(os.path.join(pywin.__path__[0], "*.cfg"))
+            for x in glob.glob(os.path.join(next(iter(pywin.__path__)), "*.cfg"))
         ]
     ]
 

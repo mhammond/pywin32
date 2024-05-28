@@ -260,7 +260,7 @@ def RegisterHelpFile(register=True, lib_dir=None):
             SetPyKeyVal("Help\\Pythonwin Reference", None, chm_file)
             return chm_file
         else:
-            print("NOTE: PyWin32.chm can not be located, so has not " "been registered")
+            print("NOTE: PyWin32.chm can not be located, so has not been registered")
     else:
         UnsetPyKeyVal("Help\\Pythonwin Reference", None, delete_key=True)
     return None

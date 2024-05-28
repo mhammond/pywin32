@@ -1,4 +1,4 @@
-This directory contains stuff needed to install the Performance 
+This directory contains stuff needed to install the Performance
 Monitoring counters for the test service.
 
 This stuff is only needed at install time, and not used at runtime.

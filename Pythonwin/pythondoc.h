@@ -189,7 +189,7 @@ void CPythonDocTemp<P>::OnCloseDocument()
     }
     else {
         helper.release_full();
-        P::OnCloseDocument();        
+        P::OnCloseDocument();
     }
 }
 

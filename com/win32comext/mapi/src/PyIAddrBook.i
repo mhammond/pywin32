@@ -27,7 +27,7 @@ PyIAddrBook::~PyIAddrBook()
 
 %}
 
-// @pyswig |ResolveName|Performs name resolution, assigning entry identifiers to recipients in a recipient list. 
+// @pyswig |ResolveName|Performs name resolution, assigning entry identifiers to recipients in a recipient list.
 HRESULT ResolveName(
 	unsigned long ulUIParam, // @pyparm int|uiParm||hwnd of a dialogs parent.
 	ULONG ulFlags, // @pyparm int|flags||Bitmask of flags that controls whether a dialog box can be displayed.
@@ -37,7 +37,7 @@ HRESULT ResolveName(
 
 %{
 // @pyswig <o PyIInterface>|OpenEntry|Opens a folder or message and returns an interface object for further access.
-PyObject *PyIAddrBook::OpenEntry(PyObject *self, PyObject *args) 
+PyObject *PyIAddrBook::OpenEntry(PyObject *self, PyObject *args)
 {
     HRESULT  _result;
     char * entryString;
@@ -55,7 +55,7 @@ PyObject *PyIAddrBook::OpenEntry(PyObject *self, PyObject *args)
 	// @pyparm string|entryId||The entryID of the object
 	// @pyparm <o PyIID>|iid||The IID of the object to return, or None for the default IID
 	// @pyparm int|flags||Bitmask of flags that controls how the object is opened.
-    if(!PyArg_ParseTuple(args,"OOl:OpenEntry",&obEntry, &objIID,&flags)) 
+    if(!PyArg_ParseTuple(args,"OOl:OpenEntry",&obEntry, &objIID,&flags))
         return NULL;
 	if (obEntry==Py_None) {
 		entryString = NULL;
@@ -87,7 +87,7 @@ PyObject *PyIAddrBook::OpenEntry(PyObject *self, PyObject *args)
 %native(OpenEntry) OpenEntry; // OpenEntry manually done :-(
 
 // @pyswig int|CompareEntryIDs|Compares two entry identifiers belonging to a particular address book provider to determine if they refer to the same address book object
-// @rdesc The result is set to TRUE if the two entry identifiers refer to the same object, and FALSE otherwise. 
+// @rdesc The result is set to TRUE if the two entry identifiers refer to the same object, and FALSE otherwise.
 %native(CompareEntryIDs) CompareEntryIDs;
 %{
 PyObject *PyIAddrBook::CompareEntryIDs(PyObject *self, PyObject *args)
@@ -101,7 +101,7 @@ PyObject *PyIAddrBook::CompareEntryIDs(PyObject *self, PyObject *args)
 	IAddrBook *_swig_self;
 	PyObject *obE1, *obE2;
 	if ((_swig_self=GetI(self))==NULL) return NULL;
-    if(!PyArg_ParseTuple(args,"OO|i:CompareEntryIDs", 
+    if(!PyArg_ParseTuple(args,"OO|i:CompareEntryIDs",
 		&obE1, // @pyparm string|entryId||The first entry ID to be compared
 		&obE2, // @pyparm string|entryId||The second entry ID to be compared
 		&flags)) // @pyparm int|flags|0|Reserved - must be zero.

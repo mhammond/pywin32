@@ -1232,4 +1232,3 @@ PyACL::PyACL(PACL pacl)
 PyACL::~PyACL() { free(buf); }
 
 /*static*/ void PyACL::deallocFunc(PyObject *ob) { delete (PyACL *)ob; }
-

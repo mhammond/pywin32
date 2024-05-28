@@ -104,7 +104,7 @@ PyObject *PyIDirectorySearch::ExecuteSearch(PyObject *self, PyObject *args)
 		PyCom_BuildPyException(_result, _swig_self, IID_IDirectoryObject);
 	else {
         ret = PyLong_FromSsize_t((Py_ssize_t)handle);
-	} 
+	}
 	PyADSI_FreeNames(names, cnames);
     PyWinObject_FreeWCHAR(szFilter);
 	return ret;

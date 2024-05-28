@@ -225,7 +225,7 @@ class TestStuff(unittest.TestCase):
     def test_set_nonzero_length(self):
         self.assertEqual(
             self.cur.execute(
-                "insert into %s (userid,username) " "values (?,?)" % self.tablename,
+                "insert into %s (userid,username) values (?,?)" % self.tablename,
                 ["Frank", "Frank Millman"],
             ),
             1,
@@ -240,7 +240,7 @@ class TestStuff(unittest.TestCase):
     def test_set_zero_length(self):
         self.assertEqual(
             self.cur.execute(
-                "insert into %s (userid,username) " "values (?,?)" % self.tablename,
+                "insert into %s (userid,username) values (?,?)" % self.tablename,
                 [b"Frank", ""],
             ),
             1,
@@ -251,7 +251,7 @@ class TestStuff(unittest.TestCase):
     def test_set_zero_length_unicode(self):
         self.assertEqual(
             self.cur.execute(
-                "insert into %s (userid,username) " "values (?,?)" % self.tablename,
+                "insert into %s (userid,username) values (?,?)" % self.tablename,
                 ["Frank", ""],
             ),
             1,

@@ -279,7 +279,7 @@ class Formatter(FormatterBase):
             self.nextstylenum = self.nextstylenum + 1
         FormatterBase.RegisterStyle(self, style, stylenum)
 
-    def ColorizeString(self, str, charStart, styleStart):
+    def ColorizeString(self, str, styleStart):
         raise RuntimeError("You must override this method")
 
     def Colorize(self, start=0, end=-1):

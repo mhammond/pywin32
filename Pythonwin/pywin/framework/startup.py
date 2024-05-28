@@ -43,6 +43,10 @@ if not sys.argv:
 import pywin
 import pywin.framework
 
+# Ensure we're working on __path__ as list, not Iterable
+pywin.__path__ = list(pywin.__path__)
+pywin.framework.__path__ = list(pywin.framework.__path__)
+
 pywin.__path__[0] = win32ui.FullPath(pywin.__path__[0])
 pywin.framework.__path__[0] = win32ui.FullPath(pywin.framework.__path__[0])
 

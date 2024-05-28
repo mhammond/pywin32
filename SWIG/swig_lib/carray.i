@@ -27,9 +27,9 @@ static int *array_int(int size) {
 }
 
 static int get_int(int *array_int, int index) {
-  if (array_int) 
+  if (array_int)
     return (array_int[index]);
-  else 
+  else
     return 0;
 }
 
@@ -47,9 +47,9 @@ static double *array_double(int size) {
 }
 
 static double get_double(double *array_double, int index) {
-  if (array_double) 
+  if (array_double)
     return (array_double[index]);
-  else 
+  else
     return 0;
 }
 
@@ -69,9 +69,9 @@ static byte *array_byte(int size) {
 }
 
 static byte get_byte(byte *array_byte, int index) {
-  if (array_byte) 
+  if (array_byte)
     return (array_byte[index]);
-  else 
+  else
     return 0;
 }
 
@@ -95,9 +95,9 @@ static char **array_string(int size) {
 }
 
 static char *get_string(char **array_string, int index) {
-  if (array_string) 
+  if (array_string)
     return (array_string[index]);
-  else 
+  else
     return "";
 }
 
@@ -164,6 +164,3 @@ NULL, returns an empty string */
 char *set_string(char **array_string, int index, char * string);
 /* Sets array_string[index] = string.  string must be a 0-terminated
 ASCII string.  If string is "" then this will create a NULL pointer. */
-
-
-
