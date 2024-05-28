@@ -4,8 +4,6 @@ import pythoncom
 import winerror
 from win32com.server.exception import COMException
 
-error = "testDynamic error"
-
 iid = pythoncom.MakeIID("{b48969a0-784b-11d0-ae71-d23f56000000}")
 
 
@@ -61,23 +59,20 @@ def Test():
 
         client = win32com.client.dynamic.Dispatch(iid)
         client.ANewAttr = "Hello"
-        if client.ANewAttr != "Hello":
-            raise error("Could not set dynamic property")
+        assert client.ANewAttr == "Hello", "Could not set dynamic property"
 
         v = ["Hello", "From", "Python", 1.4]
         client.TestSequence = v
-        if v != list(client.TestSequence):
-            raise error(
-                "Dynamic sequences not working! {!r}/{!r}".format(
-                    repr(v), repr(client.testSequence)
-                )
-            )
+        assert v == list(
+            client.TestSequence
+        ), "Dynamic sequences not working! {!r}/{!r}".format(
+            repr(v), repr(client.testSequence)
+        )
 
         client.write("This", "output", "has", "come", "via", "testDynamic.py")
         # Check our new "_FlagAsMethod" works (kinda!)
         client._FlagAsMethod("NotReallyAMethod")
-        if not callable(client.NotReallyAMethod):
-            raise error("Method I flagged as callable isn't!")
+        assert callable(client.NotReallyAMethod), "Method I flagged as callable isn't!"
 
         client = None
     finally:

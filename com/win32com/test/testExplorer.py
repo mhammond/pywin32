@@ -42,8 +42,7 @@ def TestExplorerEvents():
         return
 
     iexplore.Visible = 1
-    if not bVisibleEventFired:
-        raise RuntimeError("The IE event did not appear to fire!")
+    assert bVisibleEventFired, "The IE event did not appear to fire!"
     iexplore.Quit()
     iexplore = None
 
@@ -51,8 +50,7 @@ def TestExplorerEvents():
     ie = win32com.client.Dispatch("InternetExplorer.Application")
     ie_events = win32com.client.DispatchWithEvents(ie, ExplorerEvents)
     ie.Visible = 1
-    if not bVisibleEventFired:
-        raise RuntimeError("The IE event did not appear to fire!")
+    assert bVisibleEventFired, "The IE event did not appear to fire!"
     ie.Quit()
     ie = None
     print("IE Event tests worked.")

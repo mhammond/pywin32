@@ -13,8 +13,6 @@ import win32com.server.util
 import win32com.test.util
 import winerror
 
-error = "collection test error"
-
 
 def MakeEmptyEnum():
     # create the Python enumerator object as a real COM object
@@ -34,36 +32,26 @@ def MakeTestEnum():
 
 def TestEnumAgainst(o, check):
     for i in range(len(check)):
-        if o(i) != check[i]:
-            raise error(
-                "Using default method gave the incorrect value - {}/{}".format(
-                    repr(o(i)), repr(check[i])
-                )
-            )
+        assert (
+            o(i) == check[i]
+        ), f"Using default method gave the incorrect value - {o(i)!r}/{check[i]!r}"
 
     for i in range(len(check)):
-        if o.Item(i) != check[i]:
-            raise error(
-                "Using Item method gave the incorrect value - {}/{}".format(
-                    repr(o(i)), repr(check[i])
-                )
-            )
+        assert (
+            o.Item(i) == check[i]
+        ), f"Using Item method gave the incorrect value - {o(i)!r}/{check[i]!r}"
 
     # First try looping.
     cmp = []
     for s in o:
         cmp.append(s)
 
-    if cmp[: len(check)] != check:
-        raise error(
-            "Result after looping isnt correct - {}/{}".format(
-                repr(cmp[: len(check)]), repr(check)
-            )
-        )
+    assert (
+        cmp[: len(check)] == check
+    ), f"Result after looping isn't correct - {cmp[: len(check)]!r}/{check!r}"
 
     for i in range(len(check)):
-        if o[i] != check[i]:
-            raise error("Using indexing gave the incorrect value")
+        assert o[i] == check[i], "Using indexing gave the incorrect value"
 
 
 def TestEnum(quiet=None):
@@ -109,51 +97,57 @@ def TestEnum(quiet=None):
 
     try:
         o()
-        raise error("default method with no args worked when it shouldnt have!")
+        raise AssertionError(
+            "default method with no args worked when it shouldn't have!"
+        )
     except pythoncom.com_error as exc:
-        if exc.hresult != winerror.DISP_E_BADPARAMCOUNT:
-            raise error(f"Expected DISP_E_BADPARAMCOUNT - got {exc}")
+        assert (
+            exc.hresult == winerror.DISP_E_BADPARAMCOUNT
+        ), f"Expected DISP_E_BADPARAMCOUNT - got {exc}"
 
     try:
         o.Insert("foo", 2)
-        raise error("Insert worked when it shouldnt have!")
+        raise AssertionError("Insert worked when it shouldn't have!")
     except pythoncom.com_error as exc:
-        if exc.hresult != winerror.DISP_E_TYPEMISMATCH:
-            raise error(f"Expected DISP_E_TYPEMISMATCH - got {exc}")
+        assert (
+            exc.hresult == winerror.DISP_E_TYPEMISMATCH
+        ), f"Expected DISP_E_TYPEMISMATCH - got {exc}"
 
     # Remove the sublist for this test!
     try:
         o.Remove(o.Count())
-        raise error("Remove worked when it shouldnt have!")
+        raise AssertionError("Remove worked when it shouldn't have!")
     except pythoncom.com_error as exc:
-        if exc.hresult != winerror.DISP_E_BADINDEX:
-            raise error(f"Expected DISP_E_BADINDEX - got {exc}")
+        assert (
+            exc.hresult == winerror.DISP_E_BADINDEX
+        ), f"Expected DISP_E_BADINDEX - got {exc}"
 
     # Test an empty collection
     if not quiet:
         print("Empty collection test")
     o = MakeEmptyEnum()
     for item in o:
-        raise error("Empty list performed an iteration")
+        raise AssertionError("Empty list performed an iteration")
 
     try:
         ob = o[1]
-        raise error("Empty list could be indexed")
+        raise AssertionError("Empty list could be indexed")
     except IndexError:
         pass
 
     try:
         ob = o[0]
-        raise error("Empty list could be indexed")
+        raise AssertionError("Empty list could be indexed")
     except IndexError:
         pass
 
     try:
         ob = o(0)
-        raise error("Empty list could be indexed")
+        raise AssertionError("Empty list could be indexed")
     except pythoncom.com_error as exc:
-        if exc.hresult != winerror.DISP_E_BADINDEX:
-            raise error(f"Expected DISP_E_BADINDEX - got {exc}")
+        assert (
+            exc.hresult == winerror.DISP_E_BADINDEX
+        ), f"Expected DISP_E_BADINDEX - got {exc}"
 
 
 class TestCase(win32com.test.util.TestCase):
