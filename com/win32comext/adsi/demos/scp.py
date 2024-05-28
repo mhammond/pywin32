@@ -199,7 +199,7 @@ def AllowAccessToScpProperties(
     setattr(scpObject, attribute, sd)
     # SetInfo updates the SCP object in the directory.
     scpObject.SetInfo()
-    logger.info(f"Set security on object for account '{trustee}'")
+    logger.info("Set security on object for account %r", trustee)
 
 
 # Service Principal Names functions from the same sample.
@@ -414,12 +414,14 @@ def main():
         "-q", "--quiet", action="store_true", help="Don't print any status messages"
     )
 
-    parser.add_option(
-        "-t",
-        "--test",
-        action="store_true",
-        help="Execute a mini-test suite, providing defaults for most options and args",
-    ),
+    (
+        parser.add_option(
+            "-t",
+            "--test",
+            action="store_true",
+            help="Execute a mini-test suite, providing defaults for most options and args",
+        ),
+    )
 
     parser.add_option(
         "",

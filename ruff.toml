@@ -3,20 +3,32 @@ target-version = "py37"
 
 [lint]
 select = [
-  "C4",     # flake8-comprehensions
-  "F811",   # redefined-while-unused
-  "FLY",    # static-join-to-f-string
-  "G",      # flake8-logging-format
-  "I",      # isort
+  "C4", # flake8-comprehensions
+  "F811", # redefined-while-unused
+  "FLY", # static-join-to-f-string
+  "G", # flake8-logging-format
+  "I", # isort
   "ISC001", # single-line-implicit-string-concatenation
   "ISC002", # multi-line-implicit-string-concatenation
-  "PLE",    # Pylint Error
-  "RSE",    # flake8-raise
-  "W",      # pycodestyle Warning
-  "YTT",    # flake8-2020
+  "PLC", # Pylint Convention
+  "PLE", # Pylint Error
+  "RSE", # flake8-raise
+  "W", # pycodestyle Warning
+  "YTT", # flake8-2020
+  # Ensure modern type annotation syntax and best practices
+  # Not including those covered by type-checkers
+  "FA", # flake8-future-annotations
+  "F404", # late-future-import
+  "PYI", # flake8-pyi
+  "UP006", # non-pep585-annotation
+  "UP007", # non-pep604-annotation
+  "UP010", # unnecessary-future-import
+  "UP037", # quoted-annotation
 ]
 
 [lint.per-file-ignores]
+# Explicit re-exports is fine in __init__.py, still a code smell elsewhere.
+"__init__.py" = ["PLC0414"]
 # TODO: Make adodbapi changes in their own PRs
 "adodbapi/*" = ["C4", "YTT301"]
 
