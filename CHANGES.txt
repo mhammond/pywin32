@@ -16,6 +16,8 @@ Coming in build 307, as yet unreleased
 
 ### pywin32
 * Fixed missing closing parenthesis on `win32com.client.build.MapEntry`'s string representation (#2266, @Avasam)
+* Marked `exc_type` and `exc_traceback` in `win32comext.axscript.client.error.AXScriptException.__init__` as deprecated. (#2236 , @Avasam)
+  They are now unused and all information is taken from the `exc_value` parameter.
 * Fixed non-overriden `pywin.scintilla.formatter.Formatter.ColorizeString` raising `TypeError` instead of `RuntimeError` due to too many parameters (#2216, @Avasam)
 * Fixed broken since Python 3 tokenization in `win32comext.axdebug.codecontainer.pySourceCodeContainer.GetSyntaxColorAttributes` (#2216, @Avasam)
 * Fixed a `TypeError` due to incorrect kwargs in `win32comext.axscript.client.pydumper.Register` (#2216, @Avasam)

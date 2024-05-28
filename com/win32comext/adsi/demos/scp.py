@@ -199,7 +199,7 @@ def AllowAccessToScpProperties(
     setattr(scpObject, attribute, sd)
     # SetInfo updates the SCP object in the directory.
     scpObject.SetInfo()
-    logger.info(f"Set security on object for account '{trustee}'")
+    logger.info("Set security on object for account %r", trustee)
 
 
 # Service Principal Names functions from the same sample.
