@@ -126,7 +126,7 @@ BOOL PyWinObject_AsSIZE(PyObject *obsize, SIZE *psize)
 		PyErr_SetString(PyExc_TypeError, "SIZE must be a tuple of 2 ints (x,y)");
 		return FALSE;
 		}
-	return PyArg_ParseTuple(obsize, "ll;SIZE must be a tuple of 2 ints (x,y)", 
+	return PyArg_ParseTuple(obsize, "ll;SIZE must be a tuple of 2 ints (x,y)",
 		&psize->cx, &psize->cy);
 }
 
@@ -491,7 +491,7 @@ typedef int UINT;
 %typemap(python,in) ICONINFO *INPUT(ICONINFO iconinfo_input) {
 	PyObject *obmask, *obcolor;
 	if (PyTuple_Check($source)) {
-		if (!PyArg_ParseTuple($source, "lllOO", 
+		if (!PyArg_ParseTuple($source, "lllOO",
 			&iconinfo_input.fIcon,		// @tupleitem 0|boolean|Icon|True indicates an icon, False for a cursor
 			&iconinfo_input.xHotspot,	// @tupleitem 1|int|xHotSpot|For a cursor, X coord of hotspot.  Ignored for icons
 			&iconinfo_input.yHotspot,	// @tupleitem 2|int|yHotSpot|For a cursor, Y coord of hotspot.  Ignored for icons
@@ -511,7 +511,7 @@ typedef int UINT;
 
 %typemap(python,argout) ICONINFO *OUTPUT {
     PyObject *o;
-    o = Py_BuildValue("lllNN", $source->fIcon, $source->xHotspot, $source->yHotspot, 
+    o = Py_BuildValue("lllNN", $source->fIcon, $source->xHotspot, $source->yHotspot,
 		PyWinObject_FromGdiHANDLE($source->hbmMask), PyWinObject_FromGdiHANDLE($source->hbmColor));
     if (!$target) {
       $target = o;
@@ -677,7 +677,7 @@ BOOL PyWndProc_Call(PyObject *obFuncOrMap, HWND hWnd, UINT uMsg, WPARAM wParam, 
 		return FALSE;
 
 	// We are dispatching to Python...
-	PyObject *args = Py_BuildValue("NlNN", PyWinLong_FromHANDLE(hWnd), uMsg, 
+	PyObject *args = Py_BuildValue("NlNN", PyWinLong_FromHANDLE(hWnd), uMsg,
 		PyWinObject_FromPARAM(wParam), PyWinObject_FromPARAM(lParam));
 	if (args==NULL){
 		HandleError("Error building argument tuple for python callback");
@@ -881,7 +881,7 @@ PyTypeObject PyWNDCLASSType =
 	{"cbWndExtra",       T_INT,  OFF(m_WNDCLASS.cbWndExtra)}, // @prop integer|cbWndExtra|
 	{NULL}
 
-    // ack - these are also handled now explicitly, as T_LONGLONG is too 
+    // ack - these are also handled now explicitly, as T_LONGLONG is too
     // stupid to handle ints :(
 	// @prop integer|hInstance|
 	// @prop integer|hIcon|
@@ -1056,9 +1056,9 @@ public:
 #define PyBITMAP_Check(ob)	((ob)->ob_type == &PyBITMAPType)
 
 // @object PyBITMAP|A Python object, representing an PyBITMAP structure
-// @comm Typically you get one of these from GetObject.  Note that currently 
-// the bitmap bits are not exposed via this type - but the value of the 
-// pointer is.  You can use the struct and win32gui functions to unpack 
+// @comm Typically you get one of these from GetObject.  Note that currently
+// the bitmap bits are not exposed via this type - but the value of the
+// pointer is.  You can use the struct and win32gui functions to unpack
 // these bits manually if you really need them.
 // Note that you are still responsible for the life of the win32 bitmap object.
 // The object can then be passed to any function which takes an BITMAP object
@@ -1431,7 +1431,7 @@ PyObject *set_logger(PyObject *self, PyObject *args)
 
 // @pyswig <o PyGdiHandle>|CreateFontIndirect|function creates a logical font that has the specified characteristics.
 // The font can subsequently be selected as the current font for any device context.
-HFONT CreateFontIndirect(LOGFONT *lf);	// @pyparm <o PyLOGFONT>|lplf||A LOGFONT object as returned by <om win32gui.LOGFONT> 
+HFONT CreateFontIndirect(LOGFONT *lf);	// @pyparm <o PyLOGFONT>|lplf||A LOGFONT object as returned by <om win32gui.LOGFONT>
 
 %{
 // @pyswig object|GetObject|Returns a struct containing the parameters used to create a GDI object
@@ -1520,7 +1520,7 @@ static PyObject *PyMakeBuffer(PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple(args, input_fmt, &len,&addr))
 		return NULL;
 
-	if(NULL == addr) 
+	if(NULL == addr)
 		return PyBuffer_New(len);
 	else {
 		if (IsBadReadPtr(addr, len)) {
@@ -1612,7 +1612,7 @@ static PyObject *PySetString(PyObject *self, PyObject *args)
 	static char *input_fmt="lO|l:PySetString";
 #endif
 
-	// @pyparm int|addr||Address of the memory to reference 
+	// @pyparm int|addr||Address of the memory to reference
 	// @pyparm str|String||The string to copy
 	// @pyparm int|maxLen||Maximum number of chars to copy (optional)
 	if (!PyArg_ParseTuple(args, input_fmt, &addr,&str,&maxLen))
@@ -1811,7 +1811,7 @@ static PyObject *PySetWindowLong(PyObject *self, PyObject *args)
 	int index;
 	PyObject *ob, *obhwnd;
 	LONG_PTR oldval, newval;
-	if (!PyArg_ParseTuple(args, "OiO", 
+	if (!PyArg_ParseTuple(args, "OiO",
 		&obhwnd,	// @pyparm <o PyHANDLE>|hwnd||The handle to the window
 		&index,		// @pyparm int|index||The index of the item to set.
 		&ob))		// @pyparm object|value||The value to set.
@@ -1979,7 +1979,7 @@ BOOLAPI PostMessage(HWND hwnd, UINT msg, WPARAM wParam = 0, LPARAM lParam = 0);
 // @pyparm int|lparam||An integer whose value depends on the message
 BOOLAPI PostThreadMessage(DWORD dwThreadId, UINT msg, WPARAM wParam, LPARAM lParam);
 
-// @pyswig int|ReplyMessage|Used to reply to a message sent through the SendMessage function without returning control to the function that called SendMessage. 
+// @pyswig int|ReplyMessage|Used to reply to a message sent through the SendMessage function without returning control to the function that called SendMessage.
 BOOLAPI ReplyMessage(int lResult); // @pyparm int|result||Specifies the result of the message processing. The possible values are based on the message sent.
 
 // @pyswig int|RegisterWindowMessage|Defines a new window message that is guaranteed to be unique throughout the system. The message value can be used when sending or posting messages.
@@ -2011,7 +2011,7 @@ BOOL CALLBACK PyEnumWindowsProc(
 		return FALSE;
 	PyObject *ret = PyEval_CallObject(cb->func, args);
 	Py_DECREF(args);
-	if (ret == NULL)		
+	if (ret == NULL)
 		return FALSE;
 	if (ret != Py_None){
 		result = PyLong_AsLong(ret);
@@ -2120,7 +2120,7 @@ static PyObject *PyDialogBox(PyObject *self, PyObject *args)
 	HWND hwnd;
 	LPARAM param=0;
 	PyObject *obResId, *obDlgProc, *obhinst, *obhwnd;
-	if (!PyArg_ParseTuple(args, "OOOO|l", 
+	if (!PyArg_ParseTuple(args, "OOOO|l",
 		&obhinst,	// @pyparm <o PyHANDLE>|hInstance||Handle to module that contains the dialog template
 		&obResId,	// @pyparm <o PyResourceId>|TemplateName||Name or resource id of the dialog resource
 		&obhwnd,	// @pyparm <o PyHANDLE>|hWndParent||Handle to dialog's parent window
@@ -2140,7 +2140,7 @@ static PyObject *PyDialogBox(PyObject *self, PyObject *args)
     Py_BEGIN_ALLOW_THREADS
 	rc = DialogBoxParam(hinst, resid, hwnd, PyDlgProcHDLG, (LPARAM)obExtra);
     Py_END_ALLOW_THREADS
-	
+
 	PyWinObject_FreeResourceId(resid);
 	Py_DECREF(obExtra);
 	if (rc==-1)
@@ -2164,7 +2164,7 @@ static PyObject *PyDialogBoxIndirect(PyObject *self, PyObject *args)
 	PyObject *obhinst, *obhwnd, *obList, *obDlgProc;
 	BOOL bFreeString = FALSE;
 
-	if (!PyArg_ParseTuple(args, "OOOO|O", 
+	if (!PyArg_ParseTuple(args, "OOOO|O",
 		&obhinst,		// @pyparm <o PyHANDLE>|hInstance||Handle to module creating the dialog box
 		&obList,		// @pyparm <o PyDialogTemplate>|controlList||Sequence of items defining the dialog box and subcontrols
 		&obhwnd,		// @pyparm <o PyHANDLE>|hWndParent||Handle to dialog's parent window
@@ -2264,11 +2264,11 @@ static PyObject *PyCreateDialogIndirect(PyObject *self, PyObject *args)
 
 BOOLAPI EndDialog( HWND hwnd, int result );
 
-// @pyswig HWND|GetDlgItem|Retrieves the handle to a control in the specified dialog box. 
+// @pyswig HWND|GetDlgItem|Retrieves the handle to a control in the specified dialog box.
 HWND GetDlgItem(
 	HWND hDlg,		// @pyparm <o PyHANDLE>|hDlg||Handle to a dialog window
 	int nIDDlgItem	// @pyparm int|IDDlgItem||Identifier of one of the dialog's controls
-	); 
+	);
 
 // @pyswig |GetDlgItemInt|Returns the integer value of a dialog control
 %{
@@ -2279,7 +2279,7 @@ static PyObject *PyGetDlgItemInt(PyObject *self, PyObject *args)
 	UINT val;
 	HWND hDlg;
 	PyObject *obhDlg;
-	if (!PyArg_ParseTuple(args, "Oii:GetDlgItemInt", 
+	if (!PyArg_ParseTuple(args, "Oii:GetDlgItemInt",
 		&obhDlg,	// @pyparm <o PyHANDLE>|hDlg||Handle to a dialog window
 		&id,		// @pyparm int|IDDlgItem||Identifier of one of the dialog's controls
 		&bSigned))	// @pyparm boolean|Signed||Indicates whether control value should be interpreted as signed
@@ -2313,7 +2313,7 @@ int GetDlgCtrlID( HWND hwnd);
 %native (GetDlgItemText) PyGetDlgItemText;
 %{
 static PyObject *PyGetDlgItemText(PyObject *self, PyObject *args)
-{	
+{
 	int dlgitem;
 	HWND hwnd;
 	TCHAR *buf=NULL;
@@ -2528,7 +2528,7 @@ HICON LoadIcon(HINSTANCE hInst, RESOURCE_ID name);
 HICON CopyIcon(HICON hicon);
 
 // @pyswig |DrawIcon|Draws an icon or cursor into the specified device context.
-// To specify additional drawing options, use the <om win32gui.DrawIconEx> function. 
+// To specify additional drawing options, use the <om win32gui.DrawIconEx> function.
 BOOLAPI DrawIcon(
   HDC hDC,      // @pyparm int|hDC||handle to DC
   int X,        // @pyparm int|X||x-coordinate of upper-left corner
@@ -2551,7 +2551,7 @@ BOOLAPI DrawIconEx(
   int diFlags				// @pyparm int|diFlags||icon-drawing flags (win32con.DI_*)
 );
 
-// @pyswig int|CreateIconIndirect|Creates an icon or cursor from an ICONINFO structure. 
+// @pyswig int|CreateIconIndirect|Creates an icon or cursor from an ICONINFO structure.
 HICON CreateIconIndirect(ICONINFO *INPUT);	// @pyparm <o PyICONINFO>|iconinfo||Tuple defining the icon parameters
 
 %{
@@ -2580,11 +2580,11 @@ static PyObject *PyCreateIconFromResource(PyObject *self, PyObject *args)
 %native (CreateIconFromResource) PyCreateIconFromResource;
 
 // @pyswig HANDLE|LoadImage|Loads a bitmap, cursor or icon
-HANDLE LoadImage(HINSTANCE hInst, // @pyparm int|hinst||Handle to an instance of the module that contains the image to be loaded. To load an OEM image, set this parameter to zero. 
+HANDLE LoadImage(HINSTANCE hInst, // @pyparm int|hinst||Handle to an instance of the module that contains the image to be loaded. To load an OEM image, set this parameter to zero.
 				 RESOURCE_ID name, // @pyparm int/string|name||Specifies the image to load. If the hInst parameter is non-zero and the fuLoad parameter omits LR_LOADFROMFILE, name specifies the image resource in the hInst module. If the image resource is to be loaded by name, the name parameter is a string that contains the name of the image resource.
 				 UINT type, // @pyparm int|type||Specifies the type of image to be loaded.
-				 int cxDesired, // @pyparm int|cxDesired||Specifies the width, in pixels, of the icon or cursor. If this parameter is zero and the fuLoad parameter is LR_DEFAULTSIZE, the function uses the SM_CXICON or SM_CXCURSOR system metric value to set the width. If this parameter is zero and LR_DEFAULTSIZE is not used, the function uses the actual resource width. 
-				 int cyDesired, // @pyparm int|cyDesired||Specifies the height, in pixels, of the icon or cursor. If this parameter is zero and the fuLoad parameter is LR_DEFAULTSIZE, the function uses the SM_CYICON or SM_CYCURSOR system metric value to set the height. If this parameter is zero and LR_DEFAULTSIZE is not used, the function uses the actual resource height. 
+				 int cxDesired, // @pyparm int|cxDesired||Specifies the width, in pixels, of the icon or cursor. If this parameter is zero and the fuLoad parameter is LR_DEFAULTSIZE, the function uses the SM_CXICON or SM_CXCURSOR system metric value to set the width. If this parameter is zero and LR_DEFAULTSIZE is not used, the function uses the actual resource width.
+				 int cyDesired, // @pyparm int|cyDesired||Specifies the height, in pixels, of the icon or cursor. If this parameter is zero and the fuLoad parameter is LR_DEFAULTSIZE, the function uses the SM_CYICON or SM_CYCURSOR system metric value to set the height. If this parameter is zero and LR_DEFAULTSIZE is not used, the function uses the actual resource height.
 				 UINT fuLoad); // @pyparm int|fuLoad||
 
 #define	IMAGE_BITMAP	IMAGE_BITMAP
@@ -2633,7 +2633,7 @@ static PyObject *PyDeleteObject(PyObject *self, PyObject *args)
 
 // @pyswig |BitBlt|Performs a bit-block transfer of the color data corresponding
 // to a rectangle of pixels from the specified source device context into a
-// destination device context. 
+// destination device context.
 BOOLAPI BitBlt(
   HDC hdcDest, // @pyparm int|hdcDest||handle to destination DC
   int nXDest,  // @pyparm int|x||x-coord of destination upper-left corner
@@ -2674,7 +2674,7 @@ BOOLAPI PatBlt(
 
 // @pyswig int|SetStretchBltMode|Sets the stretching mode used by <om win32gui.StretchBlt>
 // @rdesc If the function succeeds, the return value is the previous stretching mode.
-// <nl>If the function fails, the return value is zero. 
+// <nl>If the function fails, the return value is zero.
 int SetStretchBltMode(
 	HDC hdc,			// @pyparm <o PyHANDLE>|hdc||Handle to a device context
 	int StretchMode);	// @pyparm int|StretchMode||One of BLACKONWHITE,COLORONCOLOR,HALFTONE,STRETCH_ANDSCANS,STRETCH_DELETESCANS,STRETCH_HALFTONE,STRETCH_ORSCANS, or WHITEONBLACK (from win32con)
@@ -2807,10 +2807,10 @@ static PyObject *PyAlphaBlend(PyObject *self, PyObject *args)
 %native (MaskBlt) PyMaskBlt;
 %native (AlphaBlend) PyAlphaBlend;
 
-// @pyswig int|ImageList_Add|Adds an image or images to an image list. 
-// @rdesc Returns the index of the first new image if successful, or -1 otherwise. 
-int ImageList_Add(HIMAGELIST himl, // @pyparm int|himl||Handle to the image list. 
-                  HBITMAP hbmImage, // @pyparm <o PyGdiHANDLE>|hbmImage||Handle to the bitmap that contains the image or images. The number of images is inferred from the width of the bitmap. 
+// @pyswig int|ImageList_Add|Adds an image or images to an image list.
+// @rdesc Returns the index of the first new image if successful, or -1 otherwise.
+int ImageList_Add(HIMAGELIST himl, // @pyparm int|himl||Handle to the image list.
+                  HBITMAP hbmImage, // @pyparm <o PyGdiHANDLE>|hbmImage||Handle to the bitmap that contains the image or images. The number of images is inferred from the width of the bitmap.
 				  HBITMAP hbmMask); // @pyparm <o PyGdiHANDLE>|hbmMask||Handle to the bitmap that contains the mask. If no mask is used with the image list, this parameter is ignored
 
 
@@ -2871,7 +2871,7 @@ int ImageList_ReplaceIcon(HIMAGELIST himl, int i, HICON hicon);
 // @pyswig COLORREF|ImageList_SetBkColor|Set the background color for the imagelist
 COLORREF ImageList_SetBkColor(HIMAGELIST himl,COLORREF clrbk);
 
-// @pyswig |ImageList_SetOverlayImage|Adds a specified image to the list of images to be used as overlay masks. An image list can have up to four overlay masks in version 4.70 and earlier and up to 15 in version 4.71. The function assigns an overlay mask index to the specified image. 
+// @pyswig |ImageList_SetOverlayImage|Adds a specified image to the list of images to be used as overlay masks. An image list can have up to four overlay masks in version 4.70 and earlier and up to 15 in version 4.71. The function assigns an overlay mask index to the specified image.
 BOOLAPI ImageList_SetOverlayImage(
     HIMAGELIST himl, // @pyparm int|hImageList||
     int iImage, // @pyparm int|iImage||
@@ -2893,7 +2893,7 @@ int MessageBox(HWND parent, TCHAR *text, TCHAR *caption, DWORD flags);
 BOOLAPI MessageBeep(UINT type);
 
 // @pyswig int|CreateWindow|Creates a new window.
-HWND CreateWindow( 
+HWND CreateWindow(
 	STRING_OR_ATOM_CW lpClassName, // @pyparm int/string|className||
 	TCHAR *INPUT_NULLOK, // @pyparm string|windowName||
 	DWORD dwStyle, // @pyparm int|style||The style for the window.
@@ -2918,7 +2918,7 @@ BOOL EnableWindow(
 	BOOL bEnable);	// @pyparm boolean|bEnable||True to enable input to the window, False to disable input
 
 // @pyswig <o PyHANDLE>|FindWindow|Retrieves a handle to the top-level window whose class name and window name match the specified strings.
-HWND FindWindow( 
+HWND FindWindow(
 	RESOURCE_ID_NULLOK className, // @pyparm <o PyResourceId>|ClassName||Name or atom of window class to find, can be None
 	TCHAR *INPUT_NULLOK); // @pyparm string|WindowName||Title of window to find, can be None
 
@@ -2932,7 +2932,7 @@ HWND FindWindowEx(
 // @pyswig |DragAcceptFiles|Registers whether a window accepts dropped files.
 // @pyparm int|hwnd||Handle to the Window
 // @pyparm int|fAccept||Value that indicates if the window identified by the hWnd parameter accepts dropped files.
-// This value is True to accept dropped files or False to discontinue accepting dropped files. 
+// This value is True to accept dropped files or False to discontinue accepting dropped files.
 void DragAcceptFiles(HWND hWnd, BOOL fAccept);
 
 // @pyswig |DragDetect|captures the mouse and tracks its movement until the user releases the left button, presses the ESC key, or moves the mouse outside the drag rectangle around the specified point.
@@ -2954,7 +2954,7 @@ BOOLAPI HideCaret(HWND hWnd);	// @pyparm <o PyHANDLE>|hWnd||Window that owns the
 
 // @pyswig |SetCaretPos|Changes the position of the caret
 BOOLAPI SetCaretPos(
-	int X,  // @pyparm int|x||horizontal position  
+	int X,  // @pyparm int|x||horizontal position
 	int Y   // @pyparm int|y||vertical position
 );
 
@@ -3095,12 +3095,12 @@ BOOLAPI DeleteDC(
     HDC dc // @pyparm int|hdc||The source DC
 );
 
-// @pyswig HDC|CreateCompatibleDC|Creates a memory device context (DC) compatible with the specified device. 
+// @pyswig HDC|CreateCompatibleDC|Creates a memory device context (DC) compatible with the specified device.
 HDC CreateCompatibleDC(
   HDC hdc   // @pyparm int|dc||handle to DC
 );
 
-// @pyswig <o PyGdiHANDLE>|CreateCompatibleBitmap|Creates a bitmap compatible with the device that is associated with the specified device context. 
+// @pyswig <o PyGdiHANDLE>|CreateCompatibleBitmap|Creates a bitmap compatible with the device that is associated with the specified device context.
 HBITMAP CreateCompatibleBitmap(
   HDC hdc,        // @pyparm int|hdc||handle to DC
   int nWidth,     // @pyparm int|width||width of bitmap, in pixels
@@ -3116,7 +3116,7 @@ HBITMAP CreateBitmap(
   NULL_ONLY null // @pyparm None|bitmap bits||Must be None
 );
 
-// @pyswig HGDIOBJ|SelectObject|Selects an object into the specified device context (DC). The new object replaces the previous object of the same type. 
+// @pyswig HGDIOBJ|SelectObject|Selects an object into the specified device context (DC). The new object replaces the previous object of the same type.
 HGDIOBJ SelectObject(
   HDC hdc,        // @pyparm int|hdc||handle to DC
   HGDIOBJ object     // @pyparm int|object||The GDI object
@@ -3179,7 +3179,7 @@ PyGetWindowPlacement(PyObject *self, PyObject *args)
 	// @flag flags|One of the WPF_* constants
 	// @flag showCmd|Current state - one of the SW_* constants.
 	// @flag minpos|Specifies the coordinates of the window's upper-left corner when the window is minimized.
-	// @flag maxpos|Specifies the coordinates of the window's upper-left corner when the window is maximized. 
+	// @flag maxpos|Specifies the coordinates of the window's upper-left corner when the window is maximized.
 	// @flag normalpos|Specifies the window's coordinates when the window is in the restored position.
 	return Py_BuildValue("(ii(ii)(ii)(iiii))",pment.flags, pment.showCmd,
 	                     pment.ptMinPosition.x,pment.ptMinPosition.y,
@@ -3263,7 +3263,7 @@ static PyObject *PyUnregisterClass(PyObject *self, PyObject *args)
 	LPTSTR atom;
 	HINSTANCE hinst;
 	PyObject *obhinst, *obatom, *ret=NULL;
-	if (!PyArg_ParseTuple(args, "OO", 
+	if (!PyArg_ParseTuple(args, "OO",
 		&obatom,		// @pyparm <o PyResourceId>|atom||The atom or classname identifying the class previously registered.
 		&obhinst))		// @pyparm <o PyHANDLE>|hinst||The handle to the instance unregistering the class, can be None
 		return NULL;
@@ -3336,7 +3336,7 @@ static PyObject *PyPumpWaitingMessages(PyObject *self, PyObject *args)
 
     MSG msg;
 	WPARAM result = 0;
-	// Read all of the messages in this next loop, 
+	// Read all of the messages in this next loop,
 	// removing each message as we read it.
 	Py_BEGIN_ALLOW_THREADS
 	while (PeekMessage(&msg, NULL, firstMsg, lastMsg, PM_REMOVE)) {
@@ -3364,7 +3364,7 @@ static PyObject *PyPumpWaitingMessages(PyObject *self, PyObject *args)
 %native (PumpWaitingMessages) PyPumpWaitingMessages;
 
 // @pyswig MSG|GetMessage|
-BOOL GetMessage(MSG *OUTPUT, 
+BOOL GetMessage(MSG *OUTPUT,
                 HWND hwnd, // @pyparm int|hwnd||
                 UINT min, // @pyparm int|min||
                 UINT max); // @pyparm int|max||
@@ -3385,7 +3385,7 @@ int TranslateAccelerator(
 );
 
 // @pyswig MSG|PeekMessage|
-BOOL PeekMessage(MSG *OUTPUT, 
+BOOL PeekMessage(MSG *OUTPUT,
                  HWND hwnd, // @pyparm int|hwnd||
                  UINT min, // @pyparm int|filterMin||
                  UINT max, // @pyparm int|filterMax||
@@ -3424,7 +3424,7 @@ BOOL PyObject_AsNOTIFYICONDATA(PyObject *ob, NOTIFYICONDATA *pnid)
 	pnid->cbSize = sizeof(*pnid);
 	// @object PyNOTIFYICONDATA|Tuple used to fill a NOTIFYICONDATA struct as used with <om win32gui.Shell_NotifyIcon>
 	// @pyseeapi NOTIFYICONDATA
-	if (!PyArg_ParseTuple(ob, "O|iiiOOOiOi:NOTIFYICONDATA tuple", 
+	if (!PyArg_ParseTuple(ob, "O|iiiOOOiOi:NOTIFYICONDATA tuple",
 		&obhwnd,		// @tupleitem 0|<o PyHANDLE>|hWnd|Handle to window that will process icon's messages
 		&pnid->uID,		// @tupleitem 1|int|ID|Unique id used when hWnd processes messages from more than one icon
 		&pnid->uFlags,	// @tupleitem 2|int|Flags|Combination of win32gui.NIF_* flags
@@ -3479,12 +3479,12 @@ BOOL PyObject_AsNOTIFYICONDATA(PyObject *ob, NOTIFYICONDATA *pnid)
 #define NIIF_ICON_MASK NIIF_ICON_MASK
 #define NIIF_NOSOUND NIIF_NOSOUND
 
-#define NIM_ADD NIM_ADD // Adds an icon to the status area. 
-#define NIM_DELETE  NIM_DELETE // Deletes an icon from the status area. 
+#define NIM_ADD NIM_ADD // Adds an icon to the status area.
+#define NIM_DELETE  NIM_DELETE // Deletes an icon from the status area.
 #define NIM_MODIFY  NIM_MODIFY // Modifies an icon in the status area.
 #define NIM_SETVERSION NIM_SETVERSION
 #ifdef NIM_SETFOCUS
-#define NIM_SETFOCUS NIM_SETFOCUS // Give the icon focus.  
+#define NIM_SETFOCUS NIM_SETFOCUS // Give the icon focus.
 #endif
 
 %typemap(python,in) NOTIFYICONDATA *{
@@ -3541,7 +3541,7 @@ static PyObject *PyEdit_GetLine(PyObject *self, PyObject *args)
 // @pyparm int|hwnd||The handle to the window
 // @pyparm int|bRevert||
 // @rdesc The result is a HMENU to the menu.
-HMENU GetSystemMenu(HWND hWnd, BOOL bRevert); 
+HMENU GetSystemMenu(HWND hWnd, BOOL bRevert);
 
 // @pyswig |DrawMenuBar|
 // @pyparm int|hwnd||The handle to the window
@@ -3575,7 +3575,7 @@ BOOLAPI RemoveMenu(HMENU hMenu, UINT uPosition, UINT uFlags);
 HMENU CreateMenu();
 // @pyswig int|CreatePopupMenu|
 // @rdesc The result is a HMENU to the new menu.
-HMENU CreatePopupMenu(); 
+HMENU CreatePopupMenu();
 
 
 // @pyswig int|TrackPopupMenu|Display popup shortcut menu
@@ -3637,7 +3637,7 @@ DWORD CommDlgExtendedError(void);
 // @pyparm int|hinstance||
 // @pyparm string|moduleName||
 // @pyparm int|index||
-// @comm You must destroy the icon handle returned by calling the <om win32gui.DestroyIcon> function. 
+// @comm You must destroy the icon handle returned by calling the <om win32gui.DestroyIcon> function.
 // @rdesc The result is a HICON.
 HICON ExtractIcon(HINSTANCE hinst, TCHAR *modName, UINT index);
 
@@ -3645,7 +3645,7 @@ HICON ExtractIcon(HINSTANCE hinst, TCHAR *modName, UINT index);
 // @pyparm string|moduleName||
 // @pyparm int|index||
 // @pyparm int|numIcons|1|
-// @comm You must destroy each icon handle returned by calling the <om win32gui.DestroyIcon> function. 
+// @comm You must destroy each icon handle returned by calling the <om win32gui.DestroyIcon> function.
 // @rdesc If index==-1, the result is an integer with the number of icons in
 // the file, otherwise it is 2 arrays of icon handles.
 %{
@@ -3801,7 +3801,7 @@ static PyObject *PyGetTextMetrics(PyObject *self, PyObject *args)
 		"Underlined", tm.tmUnderlined,
 		"StruckOut", tm.tmStruckOut,
 		"PitchAndFamily", tm.tmPitchAndFamily,
-		"CharSet", tm.tmCharSet); 
+		"CharSet", tm.tmCharSet);
 }
 
 // @pyswig int|GetTextCharacterExtra|Returns the space between characters
@@ -3935,7 +3935,7 @@ static PyObject *PySetMapMode(PyObject *self, PyObject *args)
 }
 
 // @pyswig int|GetGraphicsMode|Determines if advanced GDI features are enabled for a device context
-// @rdesc Returns GM_COMPATIBLE or GM_ADVANCED 
+// @rdesc Returns GM_COMPATIBLE or GM_ADVANCED
 static PyObject *PyGetGraphicsMode(PyObject *self, PyObject *args)
 {
 	HDC hdc;
@@ -3953,7 +3953,7 @@ static PyObject *PyGetGraphicsMode(PyObject *self, PyObject *args)
 }
 
 // @pyswig int|SetGraphicsMode|Enables or disables advanced graphics features for a DC
-// @rdesc Returns the previous mode, one of win32con.GM_COMPATIBLE or win32con.GM_ADVANCED 
+// @rdesc Returns the previous mode, one of win32con.GM_COMPATIBLE or win32con.GM_ADVANCED
 static PyObject *PySetGraphicsMode(PyObject *self, PyObject *args)
 {
 	HDC hdc;
@@ -4011,7 +4011,7 @@ static PyObject *PySetLayout(PyObject *self, PyObject *args)
 }
 
 // @pyswig int|GetPolyFillMode|Returns the polygon filling mode for a device context
-// @rdesc Returns win32con.ALTERNATE or win32con.WINDING 
+// @rdesc Returns win32con.ALTERNATE or win32con.WINDING
 static PyObject *PyGetPolyFillMode(PyObject *self, PyObject *args)
 {
 	HDC hdc;
@@ -4029,7 +4029,7 @@ static PyObject *PyGetPolyFillMode(PyObject *self, PyObject *args)
 }
 
 // @pyswig int|SetPolyFillMode|Sets the polygon filling mode for a device context
-// @rdesc Returns the previous mode, one of win32con.ALTERNATE or win32con.WINDING 
+// @rdesc Returns the previous mode, one of win32con.ALTERNATE or win32con.WINDING
 static PyObject *PySetPolyFillMode(PyObject *self, PyObject *args)
 {
 	HDC hdc;
@@ -4037,7 +4037,7 @@ static PyObject *PySetPolyFillMode(PyObject *self, PyObject *args)
 	int newmode, prevmode;
 	if (!PyArg_ParseTuple(args, "Oi:SetPolyFillMode",
 		&obdc,			// @pyparm <o PyHANDLE>|hdc||Handle to a device context
-		&newmode))		// @pyparm int|PolyFillMode||One of ALTERNATE or WINDING 
+		&newmode))		// @pyparm int|PolyFillMode||One of ALTERNATE or WINDING
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc))
 		return NULL;
@@ -4409,7 +4409,7 @@ BOOL PyWinObject_AsMeshArray(PyObject *obmesh, ULONG mode, void **pmesh, DWORD *
 					}
 				}
 			else
-				if (!PyArg_ParseTuple(tuple_item, "kk:GRADIENT_RECT", 
+				if (!PyArg_ParseTuple(tuple_item, "kk:GRADIENT_RECT",
 					&((GRADIENT_RECT *)(*pmesh))[tuple_index].UpperLeft,
 					&((GRADIENT_RECT *)(*pmesh))[tuple_index].LowerRight)){
 					ret=FALSE;
@@ -4566,7 +4566,7 @@ static PyObject *PySetMenuItemInfo(PyObject *self, PyObject *args)
 %{
 // @pyswig |GetMenuItemInfo|Gets menu information
 // @pyparm int|hMenu||Handle to the menu
-// @pyparm int|uItem||The menu item identifier or the menu item position. 
+// @pyparm int|uItem||The menu item identifier or the menu item position.
 // @pyparm int|fByPosition||Boolean value of True if uItem is set to a menu item position. This parameter is set to False if uItem is set to a menu item identifier.
 // @pyparm buffer|menuItem||A string or buffer that will receive the information in the format of a <o MENUITEMINFO> structure.
 static PyObject *PyGetMenuItemInfo(PyObject *self, PyObject *args)
@@ -4661,7 +4661,7 @@ BOOLAPI ModifyMenu(
   TCHAR *INPUT	   // @pyparm string|newItem||menu item content
 );
 
-// @pyswig int|GetMenuItemID|Retrieves the menu item identifier of a menu item located at the specified position in a menu. 
+// @pyswig int|GetMenuItemID|Retrieves the menu item identifier of a menu item located at the specified position in a menu.
 UINT GetMenuItemID(
   HMENU hMenu,  // @pyparm int|hMenu||handle to menu
   int nPos      // @pyparm int|nPos||position of menu item
@@ -5061,7 +5061,7 @@ static PyObject *PyPolyline(PyObject *self, PyObject *args)
 	POINT *points=NULL;
 	DWORD point_cnt;
 	PyObject *obpoints, *obdc, *ret=NULL;
-	if (!PyArg_ParseTuple(args, "OO:Polyline", 
+	if (!PyArg_ParseTuple(args, "OO:Polyline",
 		&obdc,		// @pyparm <o PyHANDLE>|hdc||Handle to a device context
 		&obpoints))	// @pyparm [(int,int),...]|Points||Sequence of POINT tuples: ((x,y),...)
 		return NULL;
@@ -5087,7 +5087,7 @@ static PyObject *PyPolylineTo(PyObject *self, PyObject *args)
 	POINT *points=NULL;
 	DWORD point_cnt;
 	PyObject *obpoints, *obdc, *ret=NULL;
-	if (!PyArg_ParseTuple(args, "OO:PolylineTo", 
+	if (!PyArg_ParseTuple(args, "OO:PolylineTo",
 		&obdc,		// @pyparm <o PyHANDLE>|hdc||Handle to a device context
 		&obpoints))	// @pyparm [(int,int),...]|Points||Sequence of POINT tuples: ((x,y),...)
 		return NULL;
@@ -5114,7 +5114,7 @@ static PyObject *PyPolyBezier(PyObject *self, PyObject *args)
 	POINT *points=NULL;
 	DWORD point_cnt;
 	PyObject *obpoints, *obdc, *ret=NULL;
-	if (!PyArg_ParseTuple(args, "OO:PolyBezier", 
+	if (!PyArg_ParseTuple(args, "OO:PolyBezier",
 		&obdc,		// @pyparm <o PyHANDLE>|hdc||Handle to a device context
 		&obpoints))	// @pyparm [(int,int),...]|Points||Sequence of POINT tuples: ((x,y),...).
 		return NULL;
@@ -5141,7 +5141,7 @@ static PyObject *PyPolyBezierTo(PyObject *self, PyObject *args)
 	POINT *points=NULL;
 	DWORD point_cnt;
 	PyObject *obpoints, *obdc, *ret=NULL;
-	if (!PyArg_ParseTuple(args, "OO:PolyBezierTo", 
+	if (!PyArg_ParseTuple(args, "OO:PolyBezierTo",
 		&obdc,		// @pyparm <o PyHANDLE>|hdc||Handle to a device context
 		&obpoints))	// @pyparm [(int,int),...]|Points||Sequence of POINT tuples: ((x,y),...).
 		return NULL;
@@ -5212,7 +5212,7 @@ static PyObject *PyCreatePolygonRgn(PyObject *self, PyObject *args)
 	HRGN hrgn;
 	if (!PyArg_ParseTuple(args, "Oi:CreatePolygonRgn",
 		&obpoints,	// @pyparm [(int,int),...]|Points||Sequence of POINT tuples: ((x,y),...).
-		&fillmode))	// @pyparm int|PolyFillMode||Filling mode, one of ALTERNATE, WINDING 
+		&fillmode))	// @pyparm int|PolyFillMode||Filling mode, one of ALTERNATE, WINDING
 		return NULL;
 	if (!PyWinObject_AsPOINTArray(obpoints, &points, &point_cnt))
 		return NULL;
@@ -5281,7 +5281,7 @@ static PyObject *PyExtTextOut(PyObject *self, PyObject *args)
 					PyObject *item = PyTuple_GetItem(widthObject, i);
 					if (!PyLong_Check(item))
 						error = TRUE;
-					else 
+					else
 						widths[i] = PyLong_AsLong(item);
 				}
 			}
@@ -5332,7 +5332,7 @@ int GetBkMode(
 // @rdesc Returns the previous mode, or 0 on failure
 int SetBkMode(
 	HDC hdc,			// @pyparm int/<o PyHANDLE>|hdc||Handle to a device context
-	int mode);			// @pyparm int|BkMode||OPAQUE or TRANSPARENT 
+	int mode);			// @pyparm int|BkMode||OPAQUE or TRANSPARENT
 
 // @pyswig int|GetBkColor|Returns the background color for a device context
 // @rdesc Returns an RGB color value.  On error, returns CLR_INVALID.
@@ -5420,7 +5420,7 @@ int_regiontype CombineRgn(
 	HRGN Dest,			// @pyparm <o PyGdiHandle>|Dest||Handle to existing region that will receive combined region
 	HRGN Src1,			// @pyparm <o PyGdiHandle>|Src1||Handle to first region
 	HRGN Src2,			// @pyparm <o PyGdiHandle>|Src2||Handle to second region
-	int CombineMode);	// @pyparm int|CombineMode||One of RGN_AND,RGN_COPY,RGN_DIFF,RGN_OR,RGN_XOR 
+	int CombineMode);	// @pyparm int|CombineMode||One of RGN_AND,RGN_COPY,RGN_DIFF,RGN_OR,RGN_XOR
 
 // @pyswig |DrawAnimatedRects|Animates a rectangle in the manner of minimizing, mazimizing, or opening
 BOOLAPI DrawAnimatedRects(
@@ -5472,7 +5472,7 @@ BOOLAPI InvalidateRect(
 BOOLAPI FrameRect(
 	HDC hDC,		// @pyparm <o PyHANDLE>|hDC||Handle to a device context
 	RECT *INPUT,	// @pyparm <o PyRECT>|rc||Rectangle around which to draw
-	HBRUSH hbr);	// @pyparm <o PyGdiHANDLE>|hbr||Handle to brush created using CreateHatchBrush, CreatePatternBrush, CreateSolidBrush, or GetStockObject 
+	HBRUSH hbr);	// @pyparm <o PyGdiHANDLE>|hbr||Handle to brush created using CreateHatchBrush, CreatePatternBrush, CreateSolidBrush, or GetStockObject
 
 // @pyswig |InvertRect|Inverts the colors in a regtangular region
 BOOLAPI InvertRect(
@@ -5485,14 +5485,14 @@ HWND WindowFromDC(
 	HDC hDC);	// @pyparm <o PyHANDLE>|hDC||Handle to a device context
 
 // @pyswig int|GetUpdateRgn|Copies the update region of a window into an existing region
-// @rdesc Returns type of region, one of COMPLEXREGION, NULLREGION, or SIMPLEREGION 
+// @rdesc Returns type of region, one of COMPLEXREGION, NULLREGION, or SIMPLEREGION
 int_regiontype GetUpdateRgn(
 	HWND hWnd,		// @pyparm <o PyHANDLE>|hWnd||Handle to a window
 	HRGN hRgn,		// @pyparm <o PyGdiHANDLE>|hRgn||Handle to an existing region to receive update area
 	BOOL Erase);	// @pyparm boolean|Erase||Indicates if window background is to be erased
 
 // @pyswig int|GetWindowRgn|Copies the window region of a window into an existing region
-// @rdesc Returns type of region, one of COMPLEXREGION, NULLREGION, or SIMPLEREGION 
+// @rdesc Returns type of region, one of COMPLEXREGION, NULLREGION, or SIMPLEREGION
 int_regiontype GetWindowRgn(
 	HWND hWnd,		// @pyparm <o PyHANDLE>|hWnd||Handle to a window
 	HRGN hRgn);		// @pyparm <o PyGdiHANDLE>|hRgn||Handle to an existing region that receives window region
@@ -5524,15 +5524,15 @@ BOOLAPI InvalidateRgn(
 	BOOL Erase);	// @pyparm boolean|Erase||Indidates if background should be erased
 
 // @pyswig int, <o PyRECT>|GetRgnBox|Calculates the bounding box of a region
-// @rdesc Returns type of region (COMPLEXREGION, NULLREGION, or SIMPLEREGION) and rectangle in logical units 
+// @rdesc Returns type of region (COMPLEXREGION, NULLREGION, or SIMPLEREGION) and rectangle in logical units
 int_regiontype GetRgnBox(
-	HRGN hrgn,   // @pyparm <o PyGdiHANDLE>|hrgn||Handle to a region 
+	HRGN hrgn,   // @pyparm <o PyGdiHANDLE>|hrgn||Handle to a region
 	RECT *OUTPUT);
 
 // @pyswig int|OffsetRgn|Relocates a region
-// @rdesc Returns type of region (COMPLEXREGION, NULLREGION, or SIMPLEREGION) 
+// @rdesc Returns type of region (COMPLEXREGION, NULLREGION, or SIMPLEREGION)
 int_regiontype OffsetRgn(
-	HRGN hrgn,		// @pyparm <o PyGdiHANDLE>|hrgn||Handle to a region 
+	HRGN hrgn,		// @pyparm <o PyGdiHANDLE>|hrgn||Handle to a region
 	int XOffset,	// @pyparm int|XOffset||Horizontal offset
 	int YOffset);	// @pyparm int|YOffset||Vertical offset
 
@@ -5560,7 +5560,7 @@ HDC BeginPaint(HWND hwnd, PAINTSTRUCT *OUTPUT);
 // @pyswig |EndPaint|
 // @pyparm int|hwnd||
 // @pyparm paintstruct|ps||As returned from <om win32gui.BeginPaint>
-BOOLAPI EndPaint(HWND hWnd,  PAINTSTRUCT *INPUT); 
+BOOLAPI EndPaint(HWND hWnd,  PAINTSTRUCT *INPUT);
 
 // @pyswig |BeginPath|Initializes a path in a DC
 BOOLAPI BeginPath(HDC hdc);	// @pyparm <o PyHANDLE>|hdc||Handle to a device context
@@ -5616,7 +5616,7 @@ static PyObject *PyGetPath(PyObject *self, PyObject *args)
 	BYTE *types=NULL;
 	DWORD point_cnt=0, point_ind;
 	PyObject *obpoints=NULL, *obtypes=NULL, *obdc, *ret=NULL;
-	if (!PyArg_ParseTuple(args, "O:GetPath", 
+	if (!PyArg_ParseTuple(args, "O:GetPath",
 		&obdc))		// @pyparm <o PyHANDLE>|hdc||Handle to a device context containing a finalized path.  See <om win32gui.EndPath>
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc))
@@ -5684,7 +5684,7 @@ HRGN CreateRectRgnIndirect(RECT *INPUT);	// @pyparm <o PyRECT>|rc||Coordinates o
 HRGN CreateEllipticRgnIndirect(RECT *INPUT);	// @pyparm <o PyRECT>|rc||Coordinates of bounding rectangle in logical units
 
 // @pyswig int|CreateWindowEx|Creates a new window with Extended Style.
-HWND CreateWindowEx( 
+HWND CreateWindowEx(
 	DWORD dwExStyle,      // @pyparm int|dwExStyle||extended window style
 	STRING_OR_ATOM_CW lpClassName, // @pyparm int/string|className||
 	TCHAR *INPUT_NULLOK, // @pyparm string|windowName||
@@ -5702,22 +5702,22 @@ HWND CreateWindowEx(
 // @pyswig int|GetParent|Retrieves a handle to the specified child window's parent window.
 HWND GetParent(
 	HWND hWnd // @pyparm int|child||handle to child window
-); 
+);
 
-// @pyswig int|SetParent|changes the parent window of the specified child window. 
+// @pyswig int|SetParent|changes the parent window of the specified child window.
 HWND SetParent(
 	HWND hWndChild, // @pyparm int|child||handle to window whose parent is changing
 	HWND hWndNewParent // @pyparm int|child||handle to new parent window
-); 
+);
 
-// @pyswig (int, int)|GetCursorPos|retrieves the cursor's position, in screen coordinates. 
+// @pyswig (int, int)|GetCursorPos|retrieves the cursor's position, in screen coordinates.
 BOOLAPI GetCursorPos(
 	POINT *OUTPUT);
- 
-// @pyswig int|GetDesktopWindow|returns the desktop window 
+
+// @pyswig int|GetDesktopWindow|returns the desktop window
 HWND GetDesktopWindow();
 
-// @pyswig int|GetWindow|returns a window that has the specified relationship (Z order or owner) to the specified window.  
+// @pyswig int|GetWindow|returns a window that has the specified relationship (Z order or owner) to the specified window.
 HWND GetWindow(
 	HWND hWnd,  // @pyparm int|hWnd||handle to original window
 	UINT uCmd   // @pyparm int|uCmd||relationship flag
@@ -5737,21 +5737,21 @@ HWND GetAncestor(
 // @pyswig int|GetWindowDC|returns the device context (DC) for the entire window, including title bar, menus, and scroll bars.
 HDC GetWindowDC(
 	HWND hWnd   // @pyparm int|hWnd||handle of window
-); 
+);
 
 // @pyswig |IsIconic|determines whether the specified window is minimized (iconic).
 BOOL IsIconic(  HWND hWnd   // @pyparm int|hWnd||handle to window
-); 
+);
 
 // @pyswig |IsWindow|determines whether the specified window handle identifies an existing window.
 BOOL IsWindow(  HWND hWnd   // @pyparm int|hWnd||handle to window
-); 
+);
 
 // @pyswig |IsChild|Tests whether a window is a child window or descendant window of a specified parent window
-BOOL IsChild(  
+BOOL IsChild(
 	HWND hWndParent,   // @pyparm int|hWndParent||handle to parent window
 	HWND hWnd   // @pyparm int|hWnd||handle to window to test
-); 
+);
 
 // @pyswig |ReleaseCapture|Releases the moust capture for a window.
 BOOLAPI ReleaseCapture();
@@ -5768,7 +5768,7 @@ BOOLAPI _TrackMouseEvent(TRACKMOUSEEVENT *INPUT);
 int ReleaseDC(
 	HWND hWnd,  // @pyparm int|hWnd||handle to window
 	HDC hDC     // @pyparm int|hDC||handle to device context
-); 
+);
 
 // @pyswig |CreateCaret|Creates a new caret for a window
 BOOLAPI CreateCaret(
@@ -5776,7 +5776,7 @@ BOOLAPI CreateCaret(
 	HBITMAP hBitmap,  // @pyparm <o PyGdiHANDLE>|hBitmap||handle to bitmap for caret shape
 	int nWidth,       // @pyparm int|nWidth||caret width
 	int nHeight       // @pyparm int|nHeight||caret height
-); 
+);
 
 // @pyswig |DestroyCaret|Destroys caret for current task
 BOOLAPI DestroyCaret();
@@ -5793,7 +5793,7 @@ int_regiontype ScrollWindowEx(
 	RECT *OUTPUT,
 	UINT flags			// @pyparm int|flags||Scrolling flags, combination of SW_ERASE,SW_INVALIDATE,SW_SCROLLCHILDREN,SW_SMOOTHSCROLL.
 						//	If SW_SMOOTHSCROLL is specified, use upper 16 bits to specify time in milliseconds.
-); 
+);
 
 
 %{
@@ -5817,10 +5817,10 @@ int_regiontype ScrollWindowEx(
 // @tupleitem 2|int|max|The maximum scrolling position.  Both min and max, or neither, must be provided.
 // @tupleitem 3|int|page|Specifies the page size. A scroll bar uses this value to determine the appropriate size of the proportional scroll box.
 // @tupleitem 4|int|pos|Specifies the position of the scroll box.
-// @tupleitem 5|int|trackPos|Specifies the immediate position of a scroll box that the user 
-// is dragging. An application can retrieve this value while processing 
-// the SB_THUMBTRACK notification message. An application cannot set 
-// the immediate scroll position; the <om PyCWnd.SetScrollInfo> function ignores 
+// @tupleitem 5|int|trackPos|Specifies the immediate position of a scroll box that the user
+// is dragging. An application can retrieve this value while processing
+// the SB_THUMBTRACK notification message. An application cannot set
+// the immediate scroll position; the <om PyCWnd.SetScrollInfo> function ignores
 // this member.
 // @comm When passed to Python, will always be a tuple of size 6, and items may be None if not available.
 // @comm When passed from Python, it must have the addn mask attribute, but all other items may be None, or not exist.
@@ -5960,7 +5960,7 @@ PyGetScrollInfo (PyObject *self, PyObject *args)
 %native (GetScrollInfo) PyGetScrollInfo;
 
 %{
-// @pyswig string|GetClassName|Retrieves the name of the class to which the specified window belongs. 
+// @pyswig string|GetClassName|Retrieves the name of the class to which the specified window belongs.
 static PyObject *
 PyGetClassName(PyObject *self, PyObject *args)
 {
@@ -6004,14 +6004,14 @@ struct PySortCallback {
 	PyObject *data;
 };
 
-int CALLBACK CompareFunc(); 
+int CALLBACK CompareFunc();
 
-int CALLBACK CompareFunc(LPARAM lParam1, LPARAM lParam2, 
+int CALLBACK CompareFunc(LPARAM lParam1, LPARAM lParam2,
 LPARAM lParamSort);
 
 static int CALLBACK PySortFunc(
 	LPARAM lParam1,
-	LPARAM lParam2, 
+	LPARAM lParam2,
 	LPARAM lParamSort
     )
 {
@@ -6193,7 +6193,7 @@ void PyWinObject_FreeOPENFILENAMEW(OPENFILENAMEW *pofn)
 	if (pofn->lpstrFile!=NULL)
 		free(pofn->lpstrFile);
 	if (pofn->lpstrCustomFilter!=NULL)
-		free(pofn->lpstrCustomFilter);				
+		free(pofn->lpstrCustomFilter);
 	// these are all defined as CONST in the structure
 	PyWinObject_FreeWCHAR((WCHAR *)pofn->lpstrFilter);
 	PyWinObject_FreeWCHAR((WCHAR *)pofn->lpstrInitialDir);
@@ -6267,7 +6267,7 @@ PyObject *PyReturn_OPENFILENAMEW_Output(OPENFILENAMEW *pofn)
 // @pyparm string|DefExt|None|The default extension to use
 // @pyparm <o PyResourceId>|TemplateName|None|Name or resource id of dialog box template
 static PyObject *PyGetSaveFileNameW(PyObject *self, PyObject *args, PyObject *kwargs)
-{	
+{
 	PyObject *ret=NULL;
 	OPENFILENAMEW ofn;
 
@@ -6291,7 +6291,7 @@ static PyObject *PyGetSaveFileNameW(PyObject *self, PyObject *args, PyObject *kw
 // @comm Accepts keyword arguments, all arguments optional
 // Input parameters and return values are identical to <om win32gui.GetSaveFileNameW>
 static PyObject *PyGetOpenFileNameW(PyObject *self, PyObject *args, PyObject *kwargs)
-{	
+{
 	PyObject *ret=NULL;
 	OPENFILENAMEW ofn;
 
@@ -6317,7 +6317,7 @@ BOOL PyParse_OPENFILENAMEW_Args(PyObject *args, PyObject *kwargs, OPENFILENAMEW 
 	static char * keywords[]={"hwndOwner", "hInstance", "Filter", "CustomFilter",
 		"FilterIndex", "File", "MaxFile", "InitialDir",
 		"Title", "Flags", "DefExt", "TemplateName", NULL};
-	PyObject *obFilter=Py_None, *obCustomFilter=Py_None, *obFile=Py_None, *obInitialDir=Py_None, 
+	PyObject *obFilter=Py_None, *obCustomFilter=Py_None, *obFile=Py_None, *obInitialDir=Py_None,
 		*obTitle=Py_None, *obDefExt=Py_None, *obTemplateName=Py_None,
 		*obOwner=Py_None, *obhInstance=Py_None;
 	WCHAR *initfile=NULL, *customfilter=NULL;
@@ -6379,7 +6379,7 @@ BOOL PyParse_OPENFILENAMEW_Args(PyObject *args, PyObject *kwargs, OPENFILENAMEW 
 		PyWinObject_AsWCHAR(obTitle, (WCHAR **)&pofn->lpstrTitle, TRUE) &&
 		PyWinObject_AsWCHAR(obDefExt, (WCHAR **)&pofn->lpstrDefExt, TRUE) &&
 		PyWinObject_AsResourceId(obTemplateName, (WCHAR **)&pofn->lpTemplateName, TRUE);
-		
+
 	done:
 	if (!ret)
 		PyWinObject_FreeOPENFILENAMEW(pofn);
@@ -6394,7 +6394,7 @@ PyCFunction pfnPyGetOpenFileNameW=(PyCFunction)PyGetOpenFileNameW;
 %}
 
 %native (SystemParametersInfo) pfnPySystemParametersInfo;
-// @pyswig |SystemParametersInfo|Queries or sets system-wide parameters. This function can also update the user profile while setting a parameter. 
+// @pyswig |SystemParametersInfo|Queries or sets system-wide parameters. This function can also update the user profile while setting a parameter.
 // @rdesc SPI_SET functions all return None on success.  Types returned by SPI_GET functions are dependent on the operation
 // @comm Param and WinIni are not used with any of the SPI_GET operations<nl>
 // Boolean parameters can be any object that can be evaluated as True or False
@@ -6436,12 +6436,12 @@ BOOL PyWinObject_AsNONCLIENTMETRICS(PyObject *ob, NONCLIENTMETRICS *ncm)
 		return FALSE;
 	ret=PyArg_ParseTupleAndKeywords(dummy_args, ob, "iiiiiO&iiO&iiO&O&O&:NONCLIENTMETRICS", keywords,
 		&ncm->iBorderWidth, &ncm->iScrollWidth, &ncm->iScrollHeight,
-		&ncm->iCaptionWidth, &ncm->iCaptionHeight, 
+		&ncm->iCaptionWidth, &ncm->iCaptionHeight,
 		PyWinObject_AsLOGFONT, &ncm->lfCaptionFont,
 		&ncm->iSmCaptionWidth, &ncm->iSmCaptionHeight,
 		PyWinObject_AsLOGFONT, &ncm->lfSmCaptionFont,
-		&ncm->iMenuWidth, &ncm->iMenuHeight, 
-		PyWinObject_AsLOGFONT, &ncm->lfMenuFont, 
+		&ncm->iMenuWidth, &ncm->iMenuHeight,
+		PyWinObject_AsLOGFONT, &ncm->lfMenuFont,
 		PyWinObject_AsLOGFONT, &ncm->lfStatusFont,
 		PyWinObject_AsLOGFONT, &ncm->lfMessageFont);
 	Py_DECREF(dummy_args);
@@ -6479,7 +6479,7 @@ static PyObject *PySystemParametersInfo(PyObject *self, PyObject *args, PyObject
 	UINT uintParam;
 	long longParam;
 
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "k|Ok", keywords,	
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "k|Ok", keywords,
 		&Action,	// @pyparm int|Action||System parameter to query or set, one of the SPI_GET* or SPI_SET* constants
 		&obParam,	// @pyparm  object|Param|None|depends on action to be taken
 		&WinIni))	// @pyparm int|WinIni|0|Flags specifying whether change should be permanent, and if all windows should be notified of change. Combination of SPIF_UPDATEINIFILE, SPIF_SENDCHANGE, SPIF_SENDWININICHANGE
@@ -6503,7 +6503,7 @@ static PyObject *PySystemParametersInfo(PyObject *self, PyObject *args, PyObject
 				goto done;
 			uiParam=buflen;
 			break;
-			
+
 		// Below actions return a boolean pointed to by Param
 		// @flag SPI_GETDROPSHADOW|Returns a boolean
 		case SPI_GETDROPSHADOW:
@@ -6561,7 +6561,7 @@ static PyObject *PySystemParametersInfo(PyObject *self, PyObject *args, PyObject
 		// @flag SPI_GETACTIVEWNDTRKZORDER|Returns a boolean
 		case SPI_GETACTIVEWNDTRKZORDER:
 		// @flag SPI_GETDRAGFULLWINDOWS|Returns a boolean
-		case SPI_GETDRAGFULLWINDOWS:    
+		case SPI_GETDRAGFULLWINDOWS:
 		// @flag SPI_GETSHOWIMEUI|Returns a boolean
 		case SPI_GETSHOWIMEUI:
 		// @flag SPI_GETMOUSECLICKLOCK|Returns a boolean
@@ -6576,7 +6576,7 @@ static PyObject *PySystemParametersInfo(PyObject *self, PyObject *args, PyObject
 		case SPI_GETSHOWSOUNDS:
 			pvParam=&boolParam;
 			break;
-		
+
 		// Actions in this section accept a boolean as pvParam
 		// @flag SPI_SETDROPSHADOW|Param must be a boolean
 		case SPI_SETDROPSHADOW:
@@ -6744,7 +6744,7 @@ static PyObject *PySystemParametersInfo(PyObject *self, PyObject *args, PyObject
 		case SPI_GETMOUSECLICKLOCKTIME:
 			pvParam=&uintParam;
 			break;
-		
+
 		// Actions that take pvParam as an unsigned int
 		// @flag SPI_SETFONTSMOOTHINGCONTRAST|Param should be an int in the range 1000 to 2200
 		case SPI_SETFONTSMOOTHINGCONTRAST:
@@ -6769,7 +6769,7 @@ static PyObject *PySystemParametersInfo(PyObject *self, PyObject *args, PyObject
 			if (!PyObject_AsUINT(obParam, (UINT *)&pvParam))
 				goto done;
 			break;
-			
+
 		// @flag SPI_GETICONTITLELOGFONT|Returns a <o PyLOGFONT>,
 		case SPI_GETICONTITLELOGFONT:
 			uiParam=sizeof(LOGFONT);
@@ -6791,7 +6791,7 @@ static PyObject *PySystemParametersInfo(PyObject *self, PyObject *args, PyObject
 
 
 		// Set operations that take no parameter
-		// @flag SPI_SETLANGTOGGLE|Param is ignored. Sets the language toggle hotkey from registry key HKCU\keyboard layout\toggle 
+		// @flag SPI_SETLANGTOGGLE|Param is ignored. Sets the language toggle hotkey from registry key HKCU\keyboard layout\toggle
 		case SPI_SETLANGTOGGLE:
 		// @flag SPI_SETICONS|Reloads the system icons.  Param is not used
 		case SPI_SETICONS:
@@ -6891,7 +6891,7 @@ static PyObject *PySystemParametersInfo(PyObject *self, PyObject *args, PyObject
 			break;
 
 		// @flag SPI_GETMINIMIZEDMETRICS|Returns a dict representing a MINIMIZEDMETRICS struct.  Param is not used.
-		case SPI_GETMINIMIZEDMETRICS:		
+		case SPI_GETMINIMIZEDMETRICS:
 		// @flag SPI_SETMINIMIZEDMETRICS|Param should be a MINIMIZEDMETRICS dict as returned by SPI_GETMINIMIZEDMETRICS action
 		case SPI_SETMINIMIZEDMETRICS:
 			buflen = sizeof(MINIMIZEDMETRICS);
@@ -6953,7 +6953,7 @@ static PyObject *PySystemParametersInfo(PyObject *self, PyObject *args, PyObject
 			PyErr_Format(PyExc_NotImplementedError, "Action %d is not supported yet", Action);
 			goto done;
 		}
-		
+
 	if (!SystemParametersInfo(Action, uiParam, pvParam, WinIni)){
 		PyWin_SetAPIError("SystemParametersInfo");
 		goto done;
@@ -6990,7 +6990,7 @@ static PyObject *PySystemParametersInfo(PyObject *self, PyObject *args, PyObject
 		case SPI_GETUIEFFECTS:
 		case SPI_GETACTIVEWINDOWTRACKING:
 		case SPI_GETACTIVEWNDTRKZORDER:
-		case SPI_GETDRAGFULLWINDOWS:    
+		case SPI_GETDRAGFULLWINDOWS:
 		case SPI_GETSHOWIMEUI:
 		case SPI_GETMOUSECLICKLOCK:
 		case SPI_GETMOUSESONAR:
@@ -7161,7 +7161,7 @@ PyObject *PyGetLayeredWindowAttributes(PyObject *self, PyObject *args, PyObject 
 PyCFunction pfnPyGetLayeredWindowAttributes=(PyCFunction)PyGetLayeredWindowAttributes;
 %}
 
-// @pyswig |UpdateLayeredWindow|Updates the position, size, shape, content, and translucency of a layered window. 
+// @pyswig |UpdateLayeredWindow|Updates the position, size, shape, content, and translucency of a layered window.
 // @comm This function is only available on Windows 2000 and later
 // @comm Accepts keyword arguments.
 %{
@@ -7331,7 +7331,7 @@ static PyObject *PyExtCreatePen(PyObject *self, PyObject *args)
 %native (CreateBrushIndirect) PyCreateBrushIndirect;
 %native (ExtCreatePen) PyExtCreatePen;
 
-// @pyswig int,<o PyRECT>|DrawTextW|Draws Unicode text on a device context. 
+// @pyswig int,<o PyRECT>|DrawTextW|Draws Unicode text on a device context.
 // @comm Accepts keyword args.
 // @rdesc Returns the height of the drawn text, and the rectangle coordinates
 %{
@@ -7400,7 +7400,7 @@ BOOL CALLBACK PyEnumPropsExCallback(HWND hwnd, LPWSTR propname, HANDLE propdata,
 // @pyswig |EnumPropsEx|Enumerates properties attached to a window.
 // Each property is passed to a callback function, which receives 4 arguments:<nl>
 //	Handle to the window, name of the property, handle to the property data, and Param object passed to this function
-//  
+//
 PyObject *PyEnumPropsEx(PyObject *self, PyObject *args)
 {
 	HWND hwnd;

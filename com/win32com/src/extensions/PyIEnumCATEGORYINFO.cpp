@@ -139,4 +139,3 @@ PyComEnumTypeObject PyIEnumCATEGORYINFO::type("PyIEnumCATEGORYINFO",
                                               &PyIUnknown::type,  // @base PyIEnumCATEGORYINFO|PyIUnknown
                                               sizeof(PyIEnumCATEGORYINFO), PyIEnumCATEGORYINFO_methods,
                                               GET_PYCOM_CTOR(PyIEnumCATEGORYINFO));
-

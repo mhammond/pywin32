@@ -146,12 +146,12 @@ Usually, life is not so simple
 \...
 
 ```python
-import adodbapi 
+import adodbapi
 myhost = r".\SQLEXPRESS"
 mydatabase = "Northwind"
 myuser = "guest"
 mypassword = "12345678"
-connStr = """Provider=SQLOLEDB.1; User ID=%s; Password=%s; 
+connStr = """Provider=SQLOLEDB.1; User ID=%s; Password=%s;
     Initial Catalog=%s;Data Source= %s"""
 myConnStr = connStr % (myuser, mypassword, mydatabase, myhost)
 myConn = adodbapi.connect(myConnStr)
@@ -259,7 +259,7 @@ conn_keys['connection_string'] = "Provider=%(provider)s; ... and ... more ... st
 ```
 
 - macro "getuser": Retrieve the proxy server logged-in-user's username
-  
+
     My systems administrator gave me a test database named after myself.
 
     I thought it would be handy to let others do a similar thing. so:
@@ -613,7 +613,7 @@ The other paramstyle possibility mentioned in the PEP is:
 (If you want it, patches will be considered.):
 
 ```sql
-UPDATE cheese SET qtyonhand = :1 WHERE name = :2 
+UPDATE cheese SET qtyonhand = :1 WHERE name = :2
 ```
 
 ((Gurus: Start reading again here))

@@ -1159,4 +1159,3 @@ STDMETHODIMP PyGPropertyStorage::Stat(
     Py_DECREF(result);
     return hr;
 }
-

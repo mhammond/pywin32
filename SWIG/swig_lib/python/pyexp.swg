@@ -25,4 +25,3 @@ extern PyObject *SWIG_newvarlink(void);
 #ifdef __cplusplus
 }
 #endif
-

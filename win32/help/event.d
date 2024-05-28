@@ -8,7 +8,7 @@ filtering based off of the event log, python's win32evtlog
 win32evtlogutil libraries give you an means to do it efficiently.
 
 The library of primary importance is win32evtlog. With it you can
-connect to a server's eventlog with the call. 
+connect to a server's eventlog with the call.
 @ex Here is the basic call:|
 
 logtype='System'
@@ -60,7 +60,7 @@ def date2sec(self,evt_date):
 	converts '12/23/99 15:54:09' to seconds
 	print("333333",evt_date)
 	'''
-	regexp=re.compile('(.*)\s(.*)') 
+	regexp=re.compile('(.*)\s(.*)')
 	reg_result=regexp.search(evt_date)
 	date=reg_result.group(1)
 	the_time=reg_result.group(2)
@@ -122,7 +122,7 @@ logtype='System'
 begin_sec=time.time()
 begin_time=time.strftime('%H:%M:%S  ',time.localtime(begin_sec))
 
-#open event log 
+#open event log
 hand=win32evtlog.OpenEventLog(computer,logtype)
 print(logtype,' events found in the last 8 hours since:',begin_time)
 
@@ -131,11 +131,11 @@ try:
   while events:
     events=win32evtlog.ReadEventLog(hand,flags,0)
       for ev_obj in events:
-        #check if the event is recent enough 
+        #check if the event is recent enough
         #only want data from last 8hrs
-        the_time=ev_obj.TimeGenerated.Format() 
+        the_time=ev_obj.TimeGenerated.Format()
         seconds=date2sec(the_time)
-        if seconds < begin_sec-28800: break 
+        if seconds < begin_sec-28800: break
 
         #data is recent enough, so print it out
         computer=str(ev_obj.ComputerName)
@@ -160,7 +160,7 @@ multi-threaded and deploy it as a web application, to look at many servers.
 
 
 @ex Have a great time with programming with python!
-<nl>|John Nielsen   nielsenjf@my-deja.com       
+<nl>|John Nielsen   nielsenjf@my-deja.com
 
 
 
@@ -207,7 +207,7 @@ code you want to run many times.
 
 <nl>The basic procedure to follow is this.
 For every server in the list:
-1)create a thread class 
+1)create a thread class
 2)call start method in thread class(which invokes your run method)
 3)call join method to force main thread to wait for threads to complete
 4)compile data together from all thread classes created.
@@ -219,9 +219,9 @@ calling thread to wait for the other threads to finish.
 
 @ex Here is the skeleton of that: |
 
-#We are overiding run() method of the threading.Thread class. 
+#We are overiding run() method of the threading.Thread class.
 class thread_it ( threading.Thread ) :
-  def __init__ ( self, server) : 
+  def __init__ ( self, server) :
     threading.Thread.__init__(self)
     self.data=[] #store data here to get later
     self.server=server
@@ -237,8 +237,8 @@ class thread_it ( threading.Thread ) :
 try:
     l_servers=('fred','barney','wilma','betty')
     for server in l_servers: #make a thread for each server
-            thread = thread_it (server) 
-            threads.append ( thread ) #append to the a threads list 
+            thread = thread_it (server)
+            threads.append ( thread ) #append to the a threads list
 
     for thread in threads: #now go thru list and start threads running
             thread.start()
@@ -246,7 +246,7 @@ try:
     for thread in threads: #make main thread wait for all in list to complete
         thread.join()
 
-    for thread in threads: 
+    for thread in threads:
 		    # print(thread results)
         for event in thread.data:
 	          print(event)
@@ -279,9 +279,9 @@ import sys
 import threading
 import traceback
 
-#We are overiding run() method of the threading.Thread class. 
+#We are overiding run() method of the threading.Thread class.
 class thread_it ( threading.Thread ) :
-	def __init__ ( self, server) : 
+	def __init__ ( self, server) :
 		threading.Thread.__init__(self)
 		self.data=[] #store data here to get later
 		self.server=server
@@ -309,11 +309,11 @@ class thread_it ( threading.Thread ) :
 					now_sec=time.time()
 					now_time=time.strftime('now=%H:%M:%S  ',time.localtime(now_sec))
 
-					#check if the event is recent enough 
+					#check if the event is recent enough
 					#only want data from last 8hrs
 					the_time=ev_obj.TimeGenerated.Format()
 					seconds=self.date2sec(the_time)
-					if seconds < begin_sec-28800: break 
+					if seconds < begin_sec-28800: break
 					#data is recent enough, so print it out
 					computer=str(ev_obj.ComputerName)
 					cat=str(ev_obj.EventCategory)
@@ -324,7 +324,7 @@ class thread_it ( threading.Thread ) :
 					msg = str(win32evtlogutil.SafeFormatMessage(ev_obj, logtype))
 					results=':'.join((now_time,the_time,computer,src,cat,record,evt_id,evt_type,msg[0:15]))
 					self.data.append(results)
-				if seconds < begin_sec-28800: break 
+				if seconds < begin_sec-28800: break
 			win32evtlog.CloseEventLog(hand)
 		except:
 			self.data.append('Error for '+self.server+':'+str(traceback.print_exc(sys.exc_info())))
@@ -351,8 +351,8 @@ try:
 	data=[]
 	l_servers=['barney','betty','fred','wilma']
 	for server in l_servers: #make a thread for each server
-			thread = thread_it (server) 
-			threads.append ( thread ) #append to the a threads list 
+			thread = thread_it (server)
+			threads.append ( thread ) #append to the a threads list
 
 	for thread in threads: #now go thru list and start threads running
 			thread.start()
@@ -375,15 +375,7 @@ except:
 application. HTMLgen is a useful tool in this context.
 
 <nl>Have a great time with programming with python!
-<nl>|John Nielsen   nielsenjf@my-deja.com       
+<nl>|John Nielsen   nielsenjf@my-deja.com
 
 
 */
-
-
-
-
-
-
-
-

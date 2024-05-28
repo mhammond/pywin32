@@ -16,4 +16,3 @@ Response.Write("Python says 1+1=" + str(o.Eval("1+1")))
 </SCRIPT>
 
 </HTML>
-

@@ -35,4 +35,3 @@ Public Function NewEnum() As IEnumVARIANT
 Attribute NewEnum.VB_UserMemId = -4
     Set NewEnum = col.[_NewEnum]
 End Function
-

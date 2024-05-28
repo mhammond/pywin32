@@ -11,4 +11,3 @@ ADTAB	  = 8
 HC		  = hcw /a /c /e
 HHC		  = hhc
 PYTHON   = py -2.7
-
