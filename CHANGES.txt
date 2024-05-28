@@ -1,4 +1,4 @@
-﻿Notable changes in recent builds.
+Notable changes in recent builds.
 
 Maintained by hand, so what's "notable" is subjective! Contributors are
 encouraged to add entries for their work.
@@ -13,7 +13,10 @@ https://mhammond.github.io/pywin32_installers.html.
 
 Coming in build 307, as yet unreleased
 --------------------------------------
+
 ### pywin32
+* Fixed `py.exe -m win32verstamp` command and other quote typos caused by Implied String Concatenation (#2225, @Avasam)
+* Fixed VT_SAFEARRAY(VT_RECORD) which were missing the last element (#2247)
 * Fixed `MFC redist DLLs not found` by preferring corresponding version but accepting different version (#2248, @andreabravetti)
 * Fixed `pywintypes.error: (5, 'RegOpenKeyEx', 'Access is denied.')` when running service with debug parameter and no elevation (#2238, @jmartens)
 * Fixed handling of `SyntaxError` exception from a Windows Scripting Host Python Script on Python 3.10+ (#2235, @nbbeatty)

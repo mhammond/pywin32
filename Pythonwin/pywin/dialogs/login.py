@@ -1,6 +1,6 @@
 """login -- PythonWin user ID and password dialog box
 
-(Adapted from originally distributed with Mark Hammond's PythonWin - 
+(Adapted from originally distributed with Mark Hammond's PythonWin -
 this now replaces it!)
 
 login.GetLogin() displays a modal "OK/Cancel" dialog box with input
