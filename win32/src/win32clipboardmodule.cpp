@@ -1043,7 +1043,7 @@ static struct PyMethodDef clipboard_functions[] = {
     // in the clipboard.
     {"EmptyClipboard", py_empty_clipboard, 1},
 
-    // @pymeth EnumClipboardFormats|Let's you enumerate the data formats that
+    // @pymeth EnumClipboardFormats|Lets you enumerate the data formats that
     // are currently available on the clipboard.
     {"EnumClipboardFormats", py_enum_clipboard_formats, 1},
 

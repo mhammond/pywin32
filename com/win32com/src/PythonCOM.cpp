@@ -2400,7 +2400,7 @@ PYWIN_MODULE_INIT_FUNC(pythoncom)
 
     // RPC
     // Authentication Level used with CoInitializeSecurity
-    ADD_CONSTANT(RPC_C_AUTHN_LEVEL_DEFAULT);  // RPC_C_AUTHN_LEVEL_DEFAULT|Let's DCOM negotiate the authentication level
+    ADD_CONSTANT(RPC_C_AUTHN_LEVEL_DEFAULT);  // RPC_C_AUTHN_LEVEL_DEFAULT|Lets DCOM negotiate the authentication level
                                               // automatically. (Win2k or later)
     ADD_CONSTANT(RPC_C_AUTHN_LEVEL_NONE);     // RPC_C_AUTHN_LEVEL_NONE|Performs no authentication.
     ADD_CONSTANT(RPC_C_AUTHN_LEVEL_CONNECT);  // RPC_C_AUTHN_LEVEL_CONNECT|Authenticates only when the client
