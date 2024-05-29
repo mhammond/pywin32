@@ -28,7 +28,7 @@ def CheckNoOtherReaders():
         # Reset everything so following tests still fail with this error!
         win32trace.TermRead()
         win32trace.TermWrite()
-        raise RuntimeError(
+        raise AssertionError(
             "An existing win32trace reader appears to be "
             + "running - please stop this process and try again"
         )

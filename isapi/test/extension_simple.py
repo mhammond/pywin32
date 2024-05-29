@@ -47,7 +47,7 @@ class Extension(threaded_extension.ThreadPoolExtension):
     def test1(self, ecb):
         try:
             ecb.GetServerVariable("foo bar")
-            raise RuntimeError("should have failed!")
+            raise AssertionError("should have failed!")
         except ExtensionError as err:
             assert err.errno == winerror.ERROR_INVALID_INDEX, err
         return "worked!"
@@ -82,10 +82,10 @@ class Extension(threaded_extension.ThreadPoolExtension):
             return "This is IIS version %g - unicode only works in IIS6 and later" % ver
 
         us = ecb.GetServerVariable("UNICODE_SERVER_NAME")
-        if not isinstance(us, str):
-            raise RuntimeError("unexpected type!")
-        if us != str(ecb.GetServerVariable("SERVER_NAME")):
-            raise RuntimeError("Unicode and non-unicode values were not the same")
+        assert isinstance(us, str), "unexpected type!"
+        assert us == str(
+            ecb.GetServerVariable("SERVER_NAME")
+        ), "Unicode and non-unicode values were not the same"
         return "worked!"
 
 

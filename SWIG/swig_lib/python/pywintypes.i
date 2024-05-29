@@ -403,6 +403,10 @@ typedef float HWND;
 	$target=PyWinLong_FromHANDLE($source);
 }
 
+%typemap(python, out) HDESK {
+    $target = PyWinLong_FromHANDLE($source);
+}
+
 //---------------------------------------------------------------------------
 //
 // LARGE_INTEGER support
