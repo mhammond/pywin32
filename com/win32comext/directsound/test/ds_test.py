@@ -35,13 +35,13 @@ def wav_header_unpack(data):
         datalength,
     ) = struct.unpack("<4sl4s4slhhllhh4sl", data)
 
-    if riff != b"RIFF":
-        raise ValueError("invalid wav header")
+    assert riff == b"RIFF", "invalid wav header"
 
-    if fmtsize != 16 or fmt != b"fmt " or data != b"data":
-        # fmt chuck is not first chunk, directly followed by data chuck
-        # It is nowhere required that they are, it is just very common
-        raise ValueError("cannot understand wav header")
+    # fmt chuck is not first chunk, directly followed by data chuck
+    # It is nowhere required that they are, it is just very common
+    assert (
+        fmtsize == 16 and fmt == b"fmt " and data == b"data"
+    ), "cannot understand wav header"
 
     wfx = pywintypes.WAVEFORMATEX()
     wfx.wFormatTag = format
