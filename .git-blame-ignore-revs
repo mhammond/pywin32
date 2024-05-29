@@ -10,3 +10,6 @@
 
 # 2024-05-28 formatted trailing-whitespaces and end-of-file with pre-commit
 452e3dafc126faa978d67a946385bf2514477411
+
+# 2024-05-28 formatted c++ source with clang-format
+637448f8252ab142eedd539ddf9b08259b73eecc
