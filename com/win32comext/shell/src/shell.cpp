@@ -2802,7 +2802,7 @@ static PyObject *PySHCreateShellFolderView(PyObject *self, PyObject *args)
     else
         ret = PyCom_PyObjectFromIUnknown(view, IID_IShellView, FALSE);
     // ref on view consumed by ret object.
-done : {
+done: {
     PY_INTERFACE_PRECALL;
     if (create.pshf)
         create.pshf->Release();

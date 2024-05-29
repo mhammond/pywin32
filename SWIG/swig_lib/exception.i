@@ -142,5 +142,3 @@ static void _SWIG_exception(int code, char *msg) {
 exception.i : Guile not currently supported.
 %}
 #endif
-
-

@@ -58,7 +58,7 @@ extern "C" {
 /* Now define our own version of it.
    God forbid someone have more than 1000 built-in modules! */
 
-SWIGPyTab inittab[1000];       
+SWIGPyTab inittab[1000];
 
 static int  swig_num_modules = 0;
 
@@ -70,7 +70,7 @@ static void swig_add_module(char *name, void (*initfunc)()) {
 	swig_num_modules++;
 	inittab[swig_num_modules].name = (char *) 0;
 	inittab[swig_num_modules].initfunc = (void (*)()) 0;
-}				
+}
 
 /* Function to add all of Python's build in modules to our interpreter */
 
@@ -80,7 +80,7 @@ static void swig_add_builtin() {
 		swig_add_module(python_inittab[i].name, python_inittab[i].initfunc);
 		i++;
  	}
-	
+
 	/* Add SWIG builtin function */
 	swig_add_module(SWIG_name, SWIG_init);
 #ifdef SWIGMODINIT
@@ -193,7 +193,7 @@ main(int argc, char **argv) {
 			strcat(command, "\n");
 			break;
 		}
-		
+
 		switch (c) {
 
 		case 'd':
@@ -247,7 +247,7 @@ main(int argc, char **argv) {
 	    command == NULL && filename == NULL && isatty((int)fileno(fp)))
 		fprintf(stderr, "Python %s\n%s\n",
 			getversion(), getcopyright());
-	
+
 	if (filename != NULL) {
 		if ((fp = fopen(filename, "r")) == NULL) {
 			fprintf(stderr, "%s: can't open file '%s'\n",
@@ -255,7 +255,7 @@ main(int argc, char **argv) {
 			exit(2);
 		}
 	}
-	
+
 	Py_Initialize();
 	if (command != NULL) {
 		/* Backup optind and force sys.argv[0] = '-c' */
@@ -334,6 +334,3 @@ extern "C" {
 #endif
 
 %}
-
-
-  

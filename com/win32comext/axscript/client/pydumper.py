@@ -60,11 +60,11 @@ def Register():
     RegisterServer(
         clsid=clsid,
         pythonInstString="win32com.axscript.client.pyscript.PyDumper",
-        className="Python Debugging/Dumping ActiveX Scripting Engine",
+        desc="Python Debugging/Dumping ActiveX Scripting Engine",
         progID=languageName,
         verProgID=verProgId,
-        catids=categories,
         policy=policy,
+        catids=categories,
         dispatcher=dispatcher,
     )
 

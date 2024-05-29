@@ -146,7 +146,7 @@ static HRESULT univgw_dispatch(DWORD index, gw_object *_this, va_list argPtr)
     return hr;
 }
 
-//#define COMPILE_MOCKUP
+// #define COMPILE_MOCKUP
 #ifdef COMPILE_MOCKUP
 
 STDMETHODIMP mockup(gw_object *_this)

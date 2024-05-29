@@ -270,12 +270,12 @@ PyObject *PyCom_PyObjectFromSTATSTG(STATSTG *pStat)
         pStat->type,  // @tupleitem 1|int|type|Indicates the type of storage object. This is one of the values from the
                       // storagecon.STGTY_* values.
         obSize,       // @tupleitem 2|<o ULARGE_INTEGER>|size|Specifies the size in bytes of the stream or byte array.
-        obmtime,      // @tupleitem 3|<o PyDateTime>|modificationTime|Indicates the last modification time for this storage,
-                      // stream, or byte array.
-        obctime,  // @tupleitem 4|<o PyDateTime>|creationTime|Indicates the creation time for this storage, stream, or byte
-                  // array.
-        obatime,  // @tupleitem 5|<o PyDateTime>|accessTime|Indicates the last access time for this storage, stream or byte
-                  // array.
+        obmtime,  // @tupleitem 3|<o PyDateTime>|modificationTime|Indicates the last modification time for this storage,
+                  // stream, or byte array.
+        obctime,  // @tupleitem 4|<o PyDateTime>|creationTime|Indicates the creation time for this storage, stream, or
+                  // byte array.
+        obatime,  // @tupleitem 5|<o PyDateTime>|accessTime|Indicates the last access time for this storage, stream or
+                  // byte array.
         pStat->grfMode,  // @tupleitem 6|int|mode|Indicates the access mode specified when the object was opened. This
                          // member is only valid in calls to Stat methods.
         pStat->grfLocksSupported,  // @tupleitem 7|int|locksSupported|Indicates the types of region locking supported by
@@ -356,9 +356,8 @@ BOOL PyCom_PyObjectAsSTGOPTIONS(PyObject *obstgoptions, STGOPTIONS **ppstgoption
     (*ppstgoptions)->pwcsTemplateFile = NULL;
     dummy_tuple = PyTuple_New(0);
     ret = PyArg_ParseTupleAndKeywords(dummy_tuple, obstgoptions, "|lllU", stgmembers, &(*ppstgoptions)->usVersion,
-                                      &(*ppstgoptions)->reserved, &(*ppstgoptions)->ulSectorSize,
-                                      &ptw->u)
-        && ((*ppstgoptions)->pwcsTemplateFile=ptw->u2w());
+                                      &(*ppstgoptions)->reserved, &(*ppstgoptions)->ulSectorSize, &ptw->u) &&
+          ((*ppstgoptions)->pwcsTemplateFile = ptw->u2w());
     Py_DECREF(dummy_tuple);
     if (!ret) {
         PyErr_Clear();

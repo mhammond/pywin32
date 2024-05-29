@@ -163,7 +163,7 @@ class InteractiveFormatter(FormatterParent):
                 if ch not in "\r\n":
                     self.ColorSeg(startSeg, i - 1, state)
                     startSeg = i
-                    if ch in (sys.ps1[0], sys.ps2[0]):
+                    if ch in (str(sys.ps1)[0], str(sys.ps2)[0]):
                         state = STYLE_INTERACTIVE_PROMPT
                     elif cdoc[i : i + len(tracebackHeader)] == tracebackHeader:
                         state = STYLE_INTERACTIVE_ERROR

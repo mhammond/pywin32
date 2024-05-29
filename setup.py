@@ -991,7 +991,7 @@ class my_compiler(MSVCCompiler):
         # allow --skip-verstamp on the cmdline - but if it's not there, the
         # verstamp must work.)
         if not skip_verstamp:
-            args = ["py.exe", "-m" "win32verstamp"]
+            args = ["py.exe", "-m", "win32verstamp"]
             args.append(f"--version={pywin32_version}")
             args.append("--comments=https://github.com/mhammond/pywin32")
             args.append(f"--original-filename={os.path.basename(output_filename)}")
@@ -2128,7 +2128,7 @@ def convert_optional_data_files(files):
         except RuntimeError as details:
             if not str(details.args[0]).startswith("No file"):
                 raise
-            logging.info("NOTE: Optional file %s not found - skipping" % file)
+            logging.info("NOTE: Optional file %s not found - skipping", file)
         else:
             ret.append(temp[0])
     return ret

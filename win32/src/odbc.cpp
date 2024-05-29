@@ -716,13 +716,14 @@ static int ibindDate(cursorObject *cur, int column, PyObject *item)
     // Last 3 items are ignored.
     PyObject *obwday, *obyday, *obdst;
     if (!PyArg_ParseTuple(timeseq, "hhh|hhhOOO:TIMESTAMP_STRUCT", &dt->year, &dt->month, &dt->day, &dt->hour,
-                            &dt->minute, &dt->second, &obwday, &obyday, &obdst))
+                          &dt->minute, &dt->second, &obwday, &obyday, &obdst))
         return 0;
 
     TmpPyObject usec = PyObject_GetAttrString(item, "microsecond");
     if (usec == NULL) {
         PyErr_Clear();
-    } else {
+    }
+    else {
         dt->fraction = PyLong_AsUnsignedLong(usec);
         if (dt->fraction == -1 && PyErr_Occurred())
             return 0;
@@ -817,7 +818,9 @@ static int ibindString(cursorObject *cur, int column, PyObject *item)
 
 static int ibindUnicode(cursorObject *cur, int column, PyObject *item)
 {
-    TmpWCHAR wval = item;  if (!wval) return 0;
+    TmpWCHAR wval = item;
+    if (!wval)
+        return 0;
     Py_ssize_t nchars = wval.length + 1;
     Py_ssize_t nbytes = nchars * sizeof(WCHAR);
 
@@ -853,8 +856,7 @@ static int rewriteQuery(TCHAR *out, const TCHAR *in)
     parseContext ctx;
 
     initParseContext(&ctx, in);
-    while (*out++ = doParse(&ctx))
-        ;
+    while (*out++ = doParse(&ctx));
     return ctx.parmCount;
 }
 
@@ -893,8 +895,7 @@ static int bindInput(cursorObject *cur, PyObject *vars, int columns)
         else if (PyWinTime_Check(item)) {
             rv = ibindDate(cur, iCol, item);
         }
-        else if (PyObject_CheckBuffer(item))
-        {
+        else if (PyObject_CheckBuffer(item)) {
             rv = ibindRaw(cur, iCol, item);
         }
         else {
@@ -1016,7 +1017,8 @@ static BOOL bindOutput(cursorObject *cur)
                 break;
             case SQL_VARCHAR:
             case SQL_WVARCHAR:
-                if (!bindOutputVar(cur, wcharCopy, SQL_C_WCHAR, (((vsize == 0) ? cur->max_width : vsize) + 1) * sizeof(WCHAR), pos, false))
+                if (!bindOutputVar(cur, wcharCopy, SQL_C_WCHAR,
+                                   (((vsize == 0) ? cur->max_width : vsize) + 1) * sizeof(WCHAR), pos, false))
                     return FALSE;
                 typeOf = DbiString;
                 break;

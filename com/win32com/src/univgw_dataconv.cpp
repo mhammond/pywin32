@@ -705,7 +705,7 @@ PyObject *dataconv_ReadFromInTuple(PyObject *self, PyObject *args)
                     // barf here, we don't wtf they were thinking...
                     break;
             }  // switch
-        }      // if ARRAY
+        }  // if ARRAY
 
         if (obArg == NULL) {
             goto Error;

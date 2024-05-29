@@ -29,8 +29,8 @@ def applyHandlingSkips(func, *args):
 class TestSSPI(unittest.TestCase):
     def assertRaisesHRESULT(self, hr, func, *args):
         try:
-            return func(*args)
-            raise RuntimeError(f"expecting {hr} failure")
+            func(*args)
+            raise AssertionError(f"expecting {hr} failure")
         except win32security.error as exc:
             self.assertEqual(exc.winerror, hr)
 

@@ -171,7 +171,7 @@ ui_type::ui_type(const char *name, ui_type *pBase, Py_ssize_t typeSize,
     *((PyTypeObject *)this) = type_template;
     ((PyObject *)this)->ob_type = &PyType_Type;
     tp_methods = methodList;
-    //#define funky_offsetof_weakreflist ((size_t) &((PyObject *)(ui_base_class *)0)->weakreflist)
+    // #define funky_offsetof_weakreflist ((size_t) &((PyObject *)(ui_base_class *)0)->weakreflist)
 
     tp_weaklistoffset -= pyobjOffset;
     // cast away const, as Python doesnt use it.
@@ -1603,8 +1603,8 @@ static PyObject *ui_set_dialog_bk_color(PyObject *self, PyObject *args)
     int clrCtlBk = RGB(192, 192, 192);
     int clrCtlText = RGB(0, 0, 0);
 
-    // @pyparm int|clrCtlBk|win32ui.RGB(192, 192, 192)|The color for the controls background.
-    // @pyparm int|clrCtlText|win32ui.RGB(0, 0, 0)|The color for the controls text.
+    // @pyparm int|clrCtlBk|win32api.RGB(192, 192, 192)|The color for the controls background.
+    // @pyparm int|clrCtlText|win32api.RGB(0, 0, 0)|The color for the controls text.
     if (!PyArg_ParseTuple(args, "|ii:SetDialogBkColor", &clrCtlBk, &clrCtlText))
         return NULL;
     CProtectedWinApp *pApp = GetProtectedApp();
@@ -2473,7 +2473,8 @@ int Win32uiRun(void)
     if (!helper.HaveHandler()) {
         helper.release_full();  // important
         ret = GetApp()->CWinApp::Run();
-    } else {
+    }
+    else {
         helper.call();
         helper.retval(ret);
     }
@@ -2542,7 +2543,8 @@ BOOL Win32uiOnIdle(LONG lCount)
     return ret;
 }
 
-extern "C" PYW_EXPORT BOOL Win32uiApplicationInit(Win32uiHostGlue *pGlue, const TCHAR *cmd, const TCHAR *additionalPaths)
+extern "C" PYW_EXPORT BOOL Win32uiApplicationInit(Win32uiHostGlue *pGlue, const TCHAR *cmd,
+                                                  const TCHAR *additionalPaths)
 {
 #ifdef _DEBUG
     afxDump.SetDepth(1);  // deep dump of objects at exit.

@@ -301,8 +301,8 @@ class CPythonWndFramework : public T {
                     Py_INCREF(obPos);
                 }
                 else
-                    obPos = helper.build_args("iiiiiii", pwp->hwnd, pwp->hwndInsertAfter, pwp->x, pwp->y, pwp->cx, pwp->cy,
-                                              pwp->flags);
+                    obPos = helper.build_args("iiiiiii", pwp->hwnd, pwp->hwndInsertAfter, pwp->x, pwp->y, pwp->cx,
+                                              pwp->cy, pwp->flags);
                 helper.call_args("i(NNNN)", bCalcValidRects, rc1, rc2, rc3, obPos);
             }
             else {
@@ -877,7 +877,8 @@ class CPythonViewFramework : public CPythonWndFramework<T> {
             // @pyparm object|hint||
             helper.release_full();
             T::OnUpdate(pSender, lHint, pHint);
-        } else
+        }
+        else
             helper.call(pSender, (PyObject *)lHint);
     }
 };

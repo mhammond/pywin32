@@ -52,9 +52,7 @@ static PyObject *PyLoadModule(PyObject *self, PyObject *args)
     if (!modName)
         return NULL;
 
-    HINSTANCE hinst = LoadLibraryEx(modName, NULL,
-                                    LOAD_LIBRARY_SEARCH_DEFAULT_DIRS |
-                                    LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR);
+    HINSTANCE hinst = LoadLibraryEx(modName, NULL, LOAD_LIBRARY_SEARCH_DEFAULT_DIRS | LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR);
     PyMem_Free(modName);
     if (hinst == NULL) {
         Py_INCREF(Py_None);

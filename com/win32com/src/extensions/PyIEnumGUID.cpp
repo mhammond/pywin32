@@ -208,4 +208,3 @@ STDMETHODIMP PyGEnumGUID::Clone(IEnumGUID __RPC_FAR *__RPC_FAR *ppEnum)
 
     return PyCom_SetCOMErrorFromSimple(hr, IID_IEnumGUID);
 }
-

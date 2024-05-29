@@ -63,7 +63,7 @@ class Registry(unittest.TestCase):
         # This used to leave a stale exception behind.
         def reg_operation():
             hkey = win32api.RegCreateKey(win32con.HKEY_CURRENT_USER, self.key_name)
-            x = 3 / 0  # or a statement like: raise 'error'
+            x = 3 / 0  # or a statement like: raise Exception
 
         # do the test
         try:

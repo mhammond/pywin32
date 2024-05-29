@@ -63,7 +63,8 @@ class WndHack : public CWnd {
 
 BOOL Python_check_message(const MSG *msg)  // TRUE if fully processed.
 {
-    // Our Python convention is TRUE means "pass it on", which we only want to do if the message if valid, and the callback returns TRUE
+    // Our Python convention is TRUE means "pass it on", which we only want to do if the message if valid, and the
+    // callback returns TRUE
     BOOL ret = FALSE;
     ui_assoc_object *pObj = NULL;
     PyObject *method;
@@ -2199,7 +2200,8 @@ PyObject *ui_window_send_message(PyObject *self, PyObject *args)
         if (oblParam != Py_None) {
             if (!PyWinObject_AsPARAM(oblParam, &lp))
                 return NULL;
-        } else if (wp.bufferView.ok() && PyTuple_Size(args) == 2) {
+        }
+        else if (wp.bufferView.ok() && PyTuple_Size(args) == 2) {
             // old code compatibily: (msg, buffer_ob) -> lparam==&buffer, wparam=len(buffer)
             lp = (WPARAM)wp.bufferView.ptr();
             wp = (WPARAM)wp.bufferView.len();  // doesn't release the held bufferView so far

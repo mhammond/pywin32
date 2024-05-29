@@ -60,7 +60,7 @@ HRESULT CreateAttach(
 );
 
 // @pyswig |DeleteAttach|Deletes an attachment
-HRESULT DeleteAttach( 
+HRESULT DeleteAttach(
 	ULONG ulAttachmentNum, // @pyparm int|attachmentNum||
 	ULONG ulUIParam, // @pyparm int|ulUIParam||
 	IMAPIProgress *INPUT_NULLOK, // @pyparm <o PyIMAPIProgress>|interface||The interface to use, or None
@@ -69,7 +69,7 @@ HRESULT DeleteAttach(
 
 // @pyswig |ModifyRecipients|adds, deletes, or modifies message recipients.
 HRESULT ModifyRecipients(
-	unsigned long flags, // @pyparm int|flags||Bitmask of flags that controls the recipient changes. If zero is passed for the ulFlags parameter, ModifyRecipients replaces all existing recipients with the recipient list in the mods parameter. 
+	unsigned long flags, // @pyparm int|flags||Bitmask of flags that controls the recipient changes. If zero is passed for the ulFlags parameter, ModifyRecipients replaces all existing recipients with the recipient list in the mods parameter.
 	ADRLIST *INPUT // @pyparm object|mods||The list of recipients.
 );
 
@@ -83,4 +83,3 @@ HRESULT GetRecipientTable(
 HRESULT SubmitMessage(
 	unsigned long flags // @pyparm int|flags||Flags which specify how the message is submitted.
 );
-

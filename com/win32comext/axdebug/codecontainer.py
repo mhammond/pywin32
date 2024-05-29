@@ -159,7 +159,8 @@ class SourceCodeContainer:
         self.lastPos = 0
         self.attrs = []
         try:
-            tokenize.tokenize(self.GetNextLine, self._ProcessToken)
+            for tokens in tokenize.tokenize(self.GetNextLine):
+                self._ProcessToken(*tokens)
         except tokenize.TokenError:
             pass  # Ignore - will cause all subsequent text to be commented.
         numAtEnd = len(self.GetText()) - self.lastPos

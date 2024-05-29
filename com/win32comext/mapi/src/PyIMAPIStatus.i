@@ -56,7 +56,7 @@ HRESULT ValidateState(ULONG ulUIParam, ULONG ulFlags);
 // @pyparm int|ulFlags||
 %{
 // @pyswig |FlushQueues|
-PyObject *PyIMAPIStatus::FlushQueues(PyObject *self, PyObject *args) 
+PyObject *PyIMAPIStatus::FlushQueues(PyObject *self, PyObject *args)
 {
     IMAPIStatus *_swig_self;
     if ((_swig_self=GetI(self))==NULL) return NULL;
