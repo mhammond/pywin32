@@ -599,7 +599,7 @@ static BOOL ParseDlgItemList(CPythonDialogTemplate *dlg, PyObject *tmpl)
     if (IS_INTRESOURCE(wclass))
         ret = dlg->Add((WORD)wclass, &tpl, caption);
     else
-        ret = dlg->Add(wclass, &tpl, caption, pybuf.len(), (BYTE*)pybuf.ptr());
+        ret = dlg->Add(wclass, &tpl, caption, pybuf.len(), (BYTE *)pybuf.ptr());
 
 cleanup:
     PyWinObject_FreeResourceId(wclass);

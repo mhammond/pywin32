@@ -110,7 +110,7 @@ jobs:
           python-version: "3.8"
           cache: pip
           cache-dependency-path: .github/workflows/main.yml
-      - run: pip install pycln
+      - run: pip install clang-format pycln
       - run: pycln . --config=pycln.toml --check
       - uses: chartboost/ruff-action@v1
         with:
@@ -118,6 +118,10 @@ jobs:
       - uses: psf/black@stable
         with:
           options: "--fast --check --diff --verbose"
+      - run: | # Too many files to fit in a single command, exclude vendored Scintilla and mapi_headers
+          clang-format --Werror --dry-run $(git ls-files '*.cpp')
+          clang-format --Werror --dry-run $(git ls-files '*.h' ':!:Pythonwin/Scintilla/' ':!:com/win32comext/mapi/src/mapi_headers/')
+        shell: powershell
 
   mypy:
     runs-on: windows-2019
