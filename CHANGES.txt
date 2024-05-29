@@ -136,7 +136,7 @@ Coming in build 307, as yet unreleased
   * Use byte-string (`b""`) for constant bytes values instead of superfluous `.encode` calls (#2046, @Avasam)
   * Cleaned up unused imports (#1986, #2051, #1990, #2124, #2126, @Avasam)
   * Removed duplicated declarations, constants and definitions (#2050 , #1950, #1990, @Avasam)
-* General speed and size improvements due to all the removed code. (#2046, #1986, #2050, #1950, #2085, #2087, #2051, #1990, #2106, #2127, #2124, #2126, #2177, #2218, #2202, #2205, #2217)
+* General speed and size improvements due to all the removed code. (#2046, #1986, #2050, #1950, #2085, #2087, #2051, #1990, #2106, #2127, #2124, #2126, #2177, #2218, #2202, #2205, #2217, #2272)
 
 ### adodbapi
 * Remove references to outdated IronPython (#2049, @Avasam)

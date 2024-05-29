@@ -272,7 +272,7 @@ def RegisterServer(
             exeName = _find_localserver_exe(1)
             exeName = win32api.GetShortPathName(exeName)
             pyfile = _find_localserver_module()
-            command = f'{exeName} "{pyfile}" {str(clsid)}'
+            command = f'{exeName} "{pyfile}" {clsid}'
         _set_string(keyNameRoot + "\\LocalServer32", command)
     else:  # Remove any old LocalServer32 registrations
         _remove_key(keyNameRoot + "\\LocalServer32")
@@ -383,7 +383,7 @@ def UnregisterServer(clsid, progID=None, verProgID=None, customKeys=None):
 
 def GetRegisteredServerOption(clsid, optionName):
     """Given a CLSID for a server and option name, return the option value"""
-    keyNameRoot = f"CLSID\\{str(clsid)}\\{str(optionName)}"
+    keyNameRoot = f"CLSID\\{clsid}\\{optionName}"
     return _get_string(keyNameRoot)
 
 
