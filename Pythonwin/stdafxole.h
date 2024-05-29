@@ -19,7 +19,7 @@
 #include "limits.h"
 
 // allow memory leaks to give me the line number.
-//#define new DEBUG_NEW
+// #define new DEBUG_NEW
 
 // windows defines "small" as "char" which breaks Python's accu.h
 #undef small

@@ -85,11 +85,11 @@ void CVirtualHelper::release_full()
     release();
 }
 
-PyObject* CVirtualHelper::build_args(const char* format, ...)
+PyObject *CVirtualHelper::build_args(const char *format, ...)
 {
     // Helper to create Python objects when called outside the GIL.
     va_list va;
-    PyObject* retval;
+    PyObject *retval;
     va_start(va, format);
     retval = Py_VaBuildValue(format, va);
     va_end(va);
@@ -117,7 +117,7 @@ BOOL CVirtualHelper::do_call(PyObject *args)
             if (obRepr) {
                 if (PyBytes_Check(obRepr))
                     szRepr = PyBytes_AS_STRING(obRepr);
-                else if (TmpWCHAR tmpw=obRepr)
+                else if (TmpWCHAR tmpw = obRepr)
                     szRepr = W2A(tmpw);
             }
 
@@ -147,13 +147,13 @@ BOOL CVirtualHelper::do_call(PyObject *args)
     return TRUE;
 }
 
-BOOL CVirtualHelper::call_args(const char* format, ...)
+BOOL CVirtualHelper::call_args(const char *format, ...)
 {
     if (!handler)
         return FALSE;
     // Duplicate build_args
     va_list va;
-    PyObject* args;
+    PyObject *args;
     va_start(va, format);
     args = Py_VaBuildValue(format, va);
     va_end(va);

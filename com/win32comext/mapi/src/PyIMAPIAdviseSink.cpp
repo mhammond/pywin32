@@ -54,8 +54,8 @@ PyObject *PyObject_FromNOTIFICATION(NOTIFICATION *n)
 #else
                 "k(s#s#kNk)",
 #endif
-                n->ulEventType, newmail.lpEntryID, (Py_ssize_t)newmail.cbEntryID, newmail.lpParentID, (Py_ssize_t)newmail.cbParentID,
-                newmail.ulFlags, msg_class, newmail.ulMessageFlags);
+                n->ulEventType, newmail.lpEntryID, (Py_ssize_t)newmail.cbEntryID, newmail.lpParentID,
+                (Py_ssize_t)newmail.cbParentID, newmail.ulFlags, msg_class, newmail.ulMessageFlags);
             break;
         }
         case fnevObjectCopied:
@@ -74,8 +74,9 @@ PyObject *PyObject_FromNOTIFICATION(NOTIFICATION *n)
 #else
                 "k(s#is#s#s#N)",
 #endif
-                n->ulEventType, obj.lpEntryID, (Py_ssize_t)obj.cbEntryID, obj.ulObjType, obj.lpParentID, (Py_ssize_t)obj.cbParentID,
-                obj.lpOldID, (Py_ssize_t)obj.cbOldID, obj.lpOldParentID, (Py_ssize_t)obj.cbOldParentID, obArray);
+                n->ulEventType, obj.lpEntryID, (Py_ssize_t)obj.cbEntryID, obj.ulObjType, obj.lpParentID,
+                (Py_ssize_t)obj.cbParentID, obj.lpOldID, (Py_ssize_t)obj.cbOldID, obj.lpOldParentID,
+                (Py_ssize_t)obj.cbOldParentID, obArray);
             break;
         }
         case fnevTableModified: {

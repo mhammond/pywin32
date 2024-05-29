@@ -1058,7 +1058,7 @@ PyObject *PyCFontDialog::ui_font_dialog_create(PyObject * /*self*/, PyObject *ar
         GUI_BGN_SAVE;                                       \
         int ret = pDlg->mfcName();                          \
         GUI_END_SAVE;                                       \
-        return PyLong_FromLong(ret);                         \
+        return PyLong_FromLong(ret);                        \
     }
 
 #define MAKE_INT_PTR_METH(fnname, mfcName)                  \

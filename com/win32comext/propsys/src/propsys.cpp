@@ -309,7 +309,7 @@ static PyObject *PyStgDeserializePropVariant(PyObject *self, PyObject *args)
     if (!pybuf.ok())
         return NULL;
     PY_INTERFACE_PRECALL;
-    hr = StgDeserializePropVariant((SERIALIZEDPROPERTYVALUE*)pybuf.ptr(), pybuf.len(), &pv);
+    hr = StgDeserializePropVariant((SERIALIZEDPROPERTYVALUE *)pybuf.ptr(), pybuf.len(), &pv);
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return PyCom_BuildPyException(hr);

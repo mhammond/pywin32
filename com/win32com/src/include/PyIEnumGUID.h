@@ -39,7 +39,6 @@ class PyGEnumGUID : public PyGatewayBase, public IEnumGUID {
     STDMETHOD(Clone)(IEnumGUID __RPC_FAR *__RPC_FAR *ppenum);
 };
 
-
 /////////////////////////////////////////////////////////////////////////////
 // class PyIEnumCATEGORYINFO
 class PyIEnumCATEGORYINFO : public PyIUnknown {
