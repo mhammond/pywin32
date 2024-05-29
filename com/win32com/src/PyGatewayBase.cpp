@@ -847,7 +847,6 @@ STDMETHODIMP PyGatewayBase::GetNameSpaceParent(IUnknown **ppunk)
     return PyCom_SetCOMErrorFromPyException(IID_IDispatchEx);
 }
 
-
 ////////////////////////////////////////////////////////////////////////////
 //
 // Extra Python helpers...

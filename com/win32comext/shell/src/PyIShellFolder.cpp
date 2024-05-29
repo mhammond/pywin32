@@ -217,14 +217,14 @@ PyObject *PyIShellFolder::CompareIDs(PyObject *self, PyObject *args)
             PyCom_BuildPyException(hr, pISF, IID_IShellFolder);
         else  // special handling of hresult
             if ((short)HRESULT_CODE(hr) < 0)
-            /* pidl1 comes first */
-            ret = PyLong_FromLong(-1);
-        else if ((short)HRESULT_CODE(hr) > 0)
-            /* pidl2 comes first */
-            ret = PyLong_FromLong(1);
-        else
-            /* the two pidls are equal */
-            ret = PyLong_FromLong(0);
+                /* pidl1 comes first */
+                ret = PyLong_FromLong(-1);
+            else if ((short)HRESULT_CODE(hr) > 0)
+                /* pidl2 comes first */
+                ret = PyLong_FromLong(1);
+            else
+                /* the two pidls are equal */
+                ret = PyLong_FromLong(0);
     }
     PyObject_FreePIDL(pidl1);
     PyObject_FreePIDL(pidl2);

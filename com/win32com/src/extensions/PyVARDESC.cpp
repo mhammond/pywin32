@@ -74,11 +74,11 @@ BOOL PyObject_AsVARDESC(PyObject *ob, VARDESC **pp)
     return rc;
 }
 
-static PyObject *PyVARDESC_Repr(PyObject *self) {
+static PyObject *PyVARDESC_Repr(PyObject *self)
+{
     PyVARDESC *v = (PyVARDESC *)self;
-    return PyUnicode_FromFormat(
-        "PyVARDESC(memid=%d, value=%R, elemdescVar=%R, wVarFlags=%d, varkind=%d)",
-                   v->memid, v->value, v->elemdescVar, v->wVarFlags, v->varkind);
+    return PyUnicode_FromFormat("PyVARDESC(memid=%d, value=%R, elemdescVar=%R, wVarFlags=%d, varkind=%d)", v->memid,
+                                v->value, v->elemdescVar, v->wVarFlags, v->varkind);
 }
 
 void PyObject_FreeVARDESC(VARDESC *p) { FreeMoreBuffer(p); }
@@ -140,10 +140,10 @@ PyTypeObject PyVARDESC::Type = {
     {"memid", T_INT, OFF(memid)},     // @prop int|memid|The dispid of the member
     {"value", T_OBJECT, OFF(value)},  // @prop int/object|value|A value for the variant.  If PERINSTANCE then an offset
                                       // into the instance, otherwise a variant converted to a Python object.
-    {"elemdescVar", T_OBJECT, OFF(elemdescVar)},  // @prop <o ELEMDESC>|elemdescVar|Object describing the member.
-    {"wVarFlags", T_INT, OFF(wVarFlags)},         // @prop int|varFlags|Variable flags
-    {"varkind", T_INT, OFF(varkind)},             // @prop int|varkind|Kind flags.
-    {"desckind", T_INT, OFF(desckind), READONLY}, // @prop int|desckind|Always DESCKIND_VARDESC
+    {"elemdescVar", T_OBJECT, OFF(elemdescVar)},   // @prop <o ELEMDESC>|elemdescVar|Object describing the member.
+    {"wVarFlags", T_INT, OFF(wVarFlags)},          // @prop int|varFlags|Variable flags
+    {"varkind", T_INT, OFF(varkind)},              // @prop int|varkind|Kind flags.
+    {"desckind", T_INT, OFF(desckind), READONLY},  // @prop int|desckind|Always DESCKIND_VARDESC
     {NULL}};
 
 PyVARDESC::PyVARDESC()

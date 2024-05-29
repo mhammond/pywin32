@@ -10,7 +10,7 @@ BOOL PyWinObject_AsDATA_BLOB(PyObject *ob, DATA_BLOB *b)
         return FALSE;
     // note: this might be unsafe, as we give away the buffer pointer to a
     // client outside of the scope where our RAII object 'pybuf' resides.
-    b->pbData = (BYTE*)pybuf.ptr();
+    b->pbData = (BYTE *)pybuf.ptr();
     b->cbData = PyWin_SAFE_DOWNCAST(pybuf.len(), Py_ssize_t, int);
     return TRUE;
 }
@@ -228,12 +228,13 @@ BOOL PyWinObject_AsCRYPT_ALGORITHM_IDENTIFIER(PyObject *obcai, PCRYPT_ALGORITHM_
     }
     ZeroMemory(pcai, sizeof(CRYPT_ALGORITHM_IDENTIFIER));
     Py_ssize_t cbData;
-    BOOL ok = PyArg_ParseTupleAndKeywords(
-        dummy_tuple, obcai, "sz#:CRYPT_ALGORITHM_IDENTIFIER", cai_keys,
-        &pcai->pszObjId,  // @prop str|ObjId|An szOID_* string identifying the algorithm
-        &pcai->Parameters.pbData,
-        &cbData);  // @prop str|Parameters|Blob of binary data containing encoded parameters
-    if (ok) pcai->Parameters.cbData = (DWORD)cbData;
+    BOOL ok =
+        PyArg_ParseTupleAndKeywords(dummy_tuple, obcai, "sz#:CRYPT_ALGORITHM_IDENTIFIER", cai_keys,
+                                    &pcai->pszObjId,  // @prop str|ObjId|An szOID_* string identifying the algorithm
+                                    &pcai->Parameters.pbData,
+                                    &cbData);  // @prop str|Parameters|Blob of binary data containing encoded parameters
+    if (ok)
+        pcai->Parameters.cbData = (DWORD)cbData;
     return ok;
 }
 
@@ -280,11 +281,11 @@ BOOL PyWinObject_AsCRYPT_BIT_BLOB(PyObject *obcbb, PCRYPT_BIT_BLOB pcbb)
             dummy_tuple, obcbb, "Ok:CRYPT_BIT_BLOB", cbb_keys,
             &obdata,             // @prop buffer|Data|Binary data
             &pcbb->cUnusedBits)  // @prop int|UnusedBits|Nbr of bits of last byte that are unused
-            )
+    )
         if (pybuf.init(obdata)) {
             // note: this might be unsafe, as we give away the buffer pointer to a
             // client outside of the scope where our RAII object 'pybuf' resides.
-            pcbb->pbData = (BYTE*)pybuf.ptr();
+            pcbb->pbData = (BYTE *)pybuf.ptr();
             pcbb->cbData = pybuf.len();
             return TRUE;
         }
@@ -832,7 +833,7 @@ BOOL PyWinObject_AsPBYTEArray(PyObject *str_seq, PBYTE **pbyte_array, DWORD **by
             goto cleanup;
         // note: this might be unsafe, as we give away the buffer pointer to a
         // client outside of the scope where our RAII object 'pybuf' resides.
-        (*pbyte_array)[tuple_index] = (BYTE*)pybuf.ptr();
+        (*pbyte_array)[tuple_index] = (BYTE *)pybuf.ptr();
         (*byte_lens)[tuple_index] = pybuf.len();
     }
     ret = TRUE;
@@ -978,7 +979,7 @@ PyObject *PyWinObject_FromCERT_BASIC_CONSTRAINTS_INFO(PCERT_BASIC_CONSTRAINTS_IN
         return NULL;
     for (DWORD i = 0; i < pcbci->cSubtreesConstraint; i++) {
         PyObject *nb = PyBytes_FromStringAndSize((char *)pcbci->rgSubtreesConstraint[i].pbData,
-                                                  pcbci->rgSubtreesConstraint[i].cbData);
+                                                 pcbci->rgSubtreesConstraint[i].cbData);
         if (nb == NULL) {
             Py_DECREF(sc);
             return NULL;
@@ -1013,7 +1014,7 @@ PyObject *PyWinObject_FromCERT_POLICY_INFO(PCERT_POLICY_INFO pcpi)
         PyObject *qual = Py_BuildValue(
             "{s:s,s:N}", "PolicyQualifierId", pcpi->rgPolicyQualifier[qual_ind].pszPolicyQualifierId, "Qualifier",
             PyBytes_FromStringAndSize((char *)pcpi->rgPolicyQualifier[qual_ind].Qualifier.pbData,
-                                       pcpi->rgPolicyQualifier[qual_ind].Qualifier.cbData));
+                                      pcpi->rgPolicyQualifier[qual_ind].Qualifier.cbData));
         if (qual == NULL) {
             Py_DECREF(quals);
             return NULL;

@@ -1180,11 +1180,14 @@ static PyObject *PyLoadCursor(PyObject *self, PyObject *args)
     return PyWinLong_FromHANDLE(ret);
 }
 
-// @pymethod [string]|win32api|CommandLineToArgv|Parses a command line string and returns a list of command line arguments, in a way that is similar to sys.argv.
+// @pymethod [string]|win32api|CommandLineToArgv|Parses a command line string and returns a list of command line
+// arguments, in a way that is similar to sys.argv.
 static PyObject *PyCommandLineToArgv(PyObject *self, PyObject *args)
 {
     TmpWCHAR cmd;
-    if (!PyArg_ParseTuple(args, "U", &cmd.u) || !cmd.u2w()) // @pyparm string|cmdLine||A string that contains the full command line. If this parameter is an empty string the function returns the path to the current executable file.
+    if (!PyArg_ParseTuple(args, "U", &cmd.u) ||
+        !cmd.u2w())  // @pyparm string|cmdLine||A string that contains the full command line. If this parameter is an
+                     // empty string the function returns the path to the current executable file.
         return NULL;
     int numArgs = 0;
     LPWSTR *szArglist = CommandLineToArgvW(cmd, &numArgs);
@@ -1195,7 +1198,7 @@ static PyObject *PyCommandLineToArgv(PyObject *self, PyObject *args)
     if (!result)
         goto done;
 
-    for (int i=0; i < numArgs; i++) {
+    for (int i = 0; i < numArgs; i++) {
         PyObject *ob = PyWinObject_FromWCHAR(szArglist[i]);
         if (ob == NULL) {
             Py_DECREF(result);
@@ -1400,7 +1403,9 @@ static PyObject *PyVkKeyScan(PyObject *self, PyObject *args)
             PyErr_SetString(PyExc_TypeError, "must be a unicode string of length 1");
             return NULL;
         }
-        TmpWCHAR ts(obkey);  if (!ts) return NULL;
+        TmpWCHAR ts(obkey);
+        if (!ts)
+            return NULL;
         PyW32_BEGIN_ALLOW_THREADS
             // @pyseeapi VkKeyScanW
             ret = VkKeyScanW(ts[0]);
@@ -1445,7 +1450,9 @@ static PyObject *PyVkKeyScanEx(PyObject *self, PyObject *args)
             PyErr_SetString(PyExc_TypeError, "must be a unicode string of length 1");
             return NULL;
         }
-        TmpWCHAR ts(obkey);  if (!ts) return NULL;
+        TmpWCHAR ts(obkey);
+        if (!ts)
+            return NULL;
         PyW32_BEGIN_ALLOW_THREADS
             // @pyseeapi VkKeyScanExW
             ret = VkKeyScanExW(ts[0], hkl);
@@ -2105,9 +2112,7 @@ static PyObject *PyGetLongPathNameW(PyObject *self, PyObject *args)
             // The length is the buffer needed, which includes the NULL.
             // PyUnicode_FromWideChar adds one.
             PyW32_BEGIN_ALLOW_THREADS DWORD length2 = (*pfnGetLongPathNameW)(fileName, buf, length);
-            PyW32_END_ALLOW_THREADS
-            if (length2)
-                obLongPathNameW = PyUnicode_FromWideChar(buf, -1);
+            PyW32_END_ALLOW_THREADS if (length2) obLongPathNameW = PyUnicode_FromWideChar(buf, -1);
             // On success, it is the number of chars copied *not* including
             // the NULL.  Check this is true.
             assert(length2 + 1 == length);
@@ -2119,13 +2124,13 @@ static PyObject *PyGetLongPathNameW(PyObject *self, PyObject *args)
     return obLongPathNameW;
 }
 
-// @pymethod int|win32api|GetTickCount|Returns the (64bit) number of milliseconds since windows started. Uses Win API GetTickCount64().
+// @pymethod int|win32api|GetTickCount|Returns the (64bit) number of milliseconds since windows started. Uses Win API
+// GetTickCount64().
 static PyObject *PyGetTickCount(PyObject *self, PyObject *args)
 {
     if (!PyArg_ParseTuple(args, ":PyGetTickCount"))
         return NULL;
-    PyW32_BEGIN_ALLOW_THREADS
-    ULONGLONG count = GetTickCount64();
+    PyW32_BEGIN_ALLOW_THREADS ULONGLONG count = GetTickCount64();
     PyW32_END_ALLOW_THREADS
 
         return Py_BuildValue("K", count);
@@ -2223,9 +2228,9 @@ static PyObject *PyGetTimeZoneInformation(PyObject *self, PyObject *args)
     // example, this member could contain "EST" to indicate Eastern Standard Time. This string is not used by the
     // operating system, so anything stored there using the SetTimeZoneInformation function is returned unchanged by the
     // GetTimeZoneInformation function. This string can be empty.
-    // @tupleitem 2|<o PyDateTime>/tuple|standardTime|Specifies a SYSTEMTIME object that contains a date and local time when
-    // the transition from daylight saving time to standard time occurs on this operating system. If this date is not
-    // specified, the wMonth member in the SYSTEMTIME structure must be zero. If this date is specified, the
+    // @tupleitem 2|<o PyDateTime>/tuple|standardTime|Specifies a SYSTEMTIME object that contains a date and local time
+    // when the transition from daylight saving time to standard time occurs on this operating system. If this date is
+    // not specified, the wMonth member in the SYSTEMTIME structure must be zero. If this date is specified, the
     // DaylightDate value in the TIME_ZONE_INFORMATION structure must also be specified. <nl>To select the correct day
     // in the month, set the wYear member to zero, the wDayOfWeek member to an appropriate weekday, and the wDay member
     // to a value in the range 1 through 5. Using this notation, the first Sunday in April can be specified, as can the
@@ -2517,7 +2522,7 @@ static PyObject *PyGetVersionEx(PyObject *self, PyObject *args)
                                  // system.<nl>
             ver.dwBuildNumber,   //	@tupleitem 2|int|buildNumber|Identifies the build number of the operating system in
                                  // the low-order word. (The high-order word contains the major and minor version
-                                // numbers.)<nl>
+                                 // numbers.)<nl>
             ver.dwPlatformId,  // @tupleitem 3|int|platformId|Identifies the platform supported by the operating system.
                                // May be one of VER_PLATFORM_WIN32s, VER_PLATFORM_WIN32_WINDOWS or
                                // VER_PLATFORM_WIN32_NT<nl>
@@ -2538,7 +2543,7 @@ static PyObject *PyGetVersionEx(PyObject *self, PyObject *args)
                                  // system.<nl>
             ver.dwBuildNumber,   //	@tupleitem 2|int|buildNumber|Identifies the build number of the operating system in
                                  // the low-order word. (The high-order word contains the major and minor version
-                                // numbers.)<nl>
+                                 // numbers.)<nl>
             ver.dwPlatformId,  // @tupleitem 3|int|platformId|Identifies the platform supported by the operating system.
                                // May be one of VER_PLATFORM_WIN32s, VER_PLATFORM_WIN32_WINDOWS or
                                // VER_PLATFORM_WIN32_NT<nl>
@@ -2699,7 +2704,8 @@ PyObject *PyPostMessage(PyObject *self, PyObject *args)
     PyW32_BEGIN_ALLOW_THREADS;
     BOOL ok = ::PostMessage(hwnd, message, wParam, lParam);
     PyW32_END_ALLOW_THREADS;
-    if (!ok) return ReturnAPIError("PostMessage");
+    if (!ok)
+        return ReturnAPIError("PostMessage");
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -2727,7 +2733,8 @@ PyObject *PyPostThreadMessage(PyObject *self, PyObject *args)
     PyW32_BEGIN_ALLOW_THREADS;
     BOOL ok = ::PostThreadMessage(threadId, message, wParam, lParam);
     PyW32_END_ALLOW_THREADS;
-    if (!ok) return ReturnAPIError("PostThreadMessage");
+    if (!ok)
+        return ReturnAPIError("PostThreadMessage");
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -3268,15 +3275,14 @@ static BOOL PyWinObject_AsRegistryValue(PyObject *value, DWORD typ, BYTE **retDa
         case REG_BINARY:
         // ALSO handle ALL unknown data types here.  Even if we cant support
         // it natively, we should handle the bits.
-        default:
-        {
-            PyWinBufferView pybuf(value, false, true); // None ok
+        default: {
+            PyWinBufferView pybuf(value, false, true);  // None ok
             if (!pybuf.ok())
                 return FALSE;
 
             // note: this might be unsafe, as we give away the buffer pointer to a
             // client outside of the scope where our RAII object 'pybuf' resides.
-            *retDataBuf = (BYTE*)pybuf.ptr();
+            *retDataBuf = (BYTE *)pybuf.ptr();
             *retDataSize = pybuf.len();
             return TRUE;
         }
@@ -4772,7 +4778,10 @@ static PyObject *PySetSystemTime(PyObject *self, PyObject *args)
     {
         return ReturnAPIError("SetSystemTime");
     }
-    else { return Py_BuildValue("i", result); }
+    else
+    {
+        return Py_BuildValue("i", result);
+    }
 }
 
 // @pymethod |win32api|SetThreadLocale|Sets the current thread's locale.
@@ -5820,12 +5829,11 @@ PyObject *PyGetPwrCapabilities(PyObject *self, PyObject *args)
         "DefaultLowLatencyWake", PyLong_FromLong(spc.DefaultLowLatencyWake));
 }
 
-
 // @pymethod dict|win32api|GetSystemPowerStatus|Retrieves the power status of the system
 // @pyseeapi GetSystemPowerStatus
 // @comm Requires Winxp or later.
 // @rdesc Returns a dict representing a SYSTEM_POWER_STATUS struct
-PyObject* PyGetSystemPowerStatus(PyObject *self, PyObject *args)
+PyObject *PyGetSystemPowerStatus(PyObject *self, PyObject *args)
 {
     SYSTEM_POWER_STATUS sps;
     BOOL res = FALSE;
@@ -5835,15 +5843,12 @@ PyObject* PyGetSystemPowerStatus(PyObject *self, PyObject *args)
     if (!res)
         return PyWin_SetAPIError("GetSystemPowerStatus");
     return Py_BuildValue(
-        "{s:h, s:h, s:h, s:B, s:L, s:L}",
-        "ACLineStatus", (sps.ACLineStatus == (BYTE)-1) ? -1 : sps.ACLineStatus,
-        "BatteryFlag", (sps.BatteryFlag == (BYTE)-1) ? -1 : sps.BatteryFlag,
-        "BatteryLifePercent", (sps.BatteryLifePercent == (BYTE)-1) ? -1 : sps.BatteryLifePercent,
-        "SystemStatusFlag", sps.SystemStatusFlag,
+        "{s:h, s:h, s:h, s:B, s:L, s:L}", "ACLineStatus", (sps.ACLineStatus == (BYTE)-1) ? -1 : sps.ACLineStatus,
+        "BatteryFlag", (sps.BatteryFlag == (BYTE)-1) ? -1 : sps.BatteryFlag, "BatteryLifePercent",
+        (sps.BatteryLifePercent == (BYTE)-1) ? -1 : sps.BatteryLifePercent, "SystemStatusFlag", sps.SystemStatusFlag,
         "BatteryLifeTime", (sps.BatteryLifeTime == (DWORD)-1) ? -1 : (long long)sps.BatteryLifeTime,
         "BatteryFullLifeTime", (sps.BatteryFullLifeTime == (DWORD)-1) ? -1 : (long long)sps.BatteryFullLifeTime);
 }
-
 
 /* List of functions exported by this module */
 // @module win32api|A module, encapsulating the Windows Win32 API.
@@ -5865,10 +5870,12 @@ static struct PyMethodDef win32api_functions[] = {
      METH_VARARGS | METH_KEYWORDS},     // @pymeth ChangeDisplaySettingsEx|Changes video mode for specified display
     {"ClipCursor", PyClipCursor, 1},    // @pymeth ClipCursor|Confines the cursor to a rectangular area on the screen.
     {"CloseHandle", PyCloseHandle, 1},  // @pymeth CloseHandle|Closes an open handle.
-    {"CommandLineToArgv", PyCommandLineToArgv, 1}, // @pymeth CommandLineToArgv|Parses a Unicode command line string and returns a list of command line arguments, in a way that is similar to sys.argv.
-    {"CopyFile", PyCopyFile, 1},        // @pymeth CopyFile|Copy a file.
-    {"DebugBreak", PyDebugBreak, 1},    // @pymeth DebugBreak|Breaks into the C debugger.
-    {"DeleteFile", PyDeleteFile, 1},    // @pymeth DeleteFile|Deletes the specified file.
+    {"CommandLineToArgv", PyCommandLineToArgv,
+     1},  // @pymeth CommandLineToArgv|Parses a Unicode command line string and returns a list of command line
+          // arguments, in a way that is similar to sys.argv.
+    {"CopyFile", PyCopyFile, 1},                // @pymeth CopyFile|Copy a file.
+    {"DebugBreak", PyDebugBreak, 1},            // @pymeth DebugBreak|Breaks into the C debugger.
+    {"DeleteFile", PyDeleteFile, 1},            // @pymeth DeleteFile|Deletes the specified file.
     {"DragQueryFile", PyDragQueryFile, 1},      // @pymeth DragQueryFile|Retrieve the file names for dropped files.
     {"DragFinish", PyDragFinish, 1},            // @pymeth DragFinish|Free memory associated with dropped files.
     {"DuplicateHandle", PyDuplicateHandle, 1},  // @pymeth DuplicateHandle|Duplicates a handle.
@@ -6013,9 +6020,9 @@ static struct PyMethodDef win32api_functions[] = {
      1},  // @pymeth GetNativeSystemInfo|Retrieves information about the current system for a Wow64 process.
     {"GetSystemMetrics", PyGetSystemMetrics, 1},  // @pymeth GetSystemMetrics|Returns the specified system metrics.
     {"GetSystemPowerStatus", PyGetSystemPowerStatus,
-     METH_NOARGS},  // @pymeth GetSystemPowerStatus|Retrieves the power status of the system
-    {"GetSystemTime", PyGetSystemTime, 1},        // @pymeth GetSystemTime|Returns the current system time.
-    {"GetTempFileName", PyGetTempFileName, 1},    // @pymeth GetTempFileName|Creates a temporary file.
+     METH_NOARGS},                              // @pymeth GetSystemPowerStatus|Retrieves the power status of the system
+    {"GetSystemTime", PyGetSystemTime, 1},      // @pymeth GetSystemTime|Returns the current system time.
+    {"GetTempFileName", PyGetTempFileName, 1},  // @pymeth GetTempFileName|Creates a temporary file.
     {"GetTempPath", PyGetTempPath, 1},  // @pymeth GetTempPath|Returns the path designated as holding temporary files.
     {"GetThreadLocale", PyGetThreadLocale, 1},  // @pymeth GetThreadLocale|Returns the current thread's locale.
     {"GetTickCount", PyGetTickCount, 1},        // @pymeth GetTickCount|Returns the milliseconds since windows started.
@@ -6062,7 +6069,7 @@ static struct PyMethodDef win32api_functions[] = {
     {"MoveFile", PyMoveFile, 1},                    // @pymeth MoveFile|Moves or renames a file.
     {"MoveFileEx", PyMoveFileEx, 1},                // @pymeth MoveFileEx|Moves or renames a file.
     {"OpenProcess", PyOpenProcess, 1},              // @pymeth OpenProcess|Retrieves a handle to an existing process.
-    {"OpenThread", PyOpenThread, 1},              // @pymeth OpenProcess|Retrieves a handle to an existing thread.
+    {"OpenThread", PyOpenThread, 1},                // @pymeth OpenProcess|Retrieves a handle to an existing thread.
     {"OutputDebugString", PyOutputDebugString, 1},  // @pymeth OutputDebugString|Writes output to the Windows debugger.
     {"PostMessage", PyPostMessage, 1},              // @pymeth PostMessage|Post a message to a window.
     {"PostQuitMessage", PyPostQuitMessage, 1},      // @pymeth PostQuitMessage|Posts a quit message.
@@ -6150,9 +6157,9 @@ static struct PyMethodDef win32api_functions[] = {
                                             // specified offset into the extra class memory for the window.
     {"SetClassWord", PySetClassWord, 1},    // @pymeth SetClassWord|Replaces the specified 32-bit (long) value at the
                                             // specified offset into the extra class memory for the window.
-    {"SetWindowWord", PySetWindowWord, 1},   // @pymeth SetWindowWord|
+    {"SetWindowWord", PySetWindowWord, 1},  // @pymeth SetWindowWord|
     {"SetCursor", PySetCursor, 1},          // @pymeth SetCursor|Set the cursor to the HCURSOR object.
-// @pymeth SetEnvironmentVariable|Creates, deletes, or changes the value of an environment variable.
+    // @pymeth SetEnvironmentVariable|Creates, deletes, or changes the value of an environment variable.
     {"SetEnvironmentVariable", PySetEnvironmentVariableW, 1},
     {"SetEnvironmentVariableW", PySetEnvironmentVariableW,
      1},  // @pymeth SetEnvironmentVariableW|Creates, deletes, or changes the value of an environment variable.
@@ -6288,8 +6295,7 @@ PYWIN_MODULE_INIT_FUNC(win32api)
     if (hmodule != NULL) {
         pfnEnumDisplayMonitors = (EnumDisplayMonitorsfunc)GetProcAddress(hmodule, "EnumDisplayMonitors");
         pfnEnumDisplayDevices = (EnumDisplayDevicesfunc)GetProcAddress(hmodule, "EnumDisplayDevicesW");
-        pfnChangeDisplaySettingsEx =
-            (ChangeDisplaySettingsExfunc)GetProcAddress(hmodule, "ChangeDisplaySettingsExW");
+        pfnChangeDisplaySettingsEx = (ChangeDisplaySettingsExfunc)GetProcAddress(hmodule, "ChangeDisplaySettingsExW");
         pfnMonitorFromWindow = (MonitorFromWindowfunc)GetProcAddress(hmodule, "MonitorFromWindow");
         pfnMonitorFromRect = (MonitorFromRectfunc)GetProcAddress(hmodule, "MonitorFromRect");
         pfnMonitorFromPoint = (MonitorFromPointfunc)GetProcAddress(hmodule, "MonitorFromPoint");

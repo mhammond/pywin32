@@ -67,7 +67,7 @@ PySequenceMethods PySecBufferDesc_sequencemethods = {
     NULL,                         // objobjproc sq_contains;
     NULL,                         // binaryfunc sq_inplace_concat;
     NULL                          // intargfunc sq_inplace_repeat;
-};                                // ??? why isnt append included ???
+};  // ??? why isnt append included ???
 
 // @object PySecBufferDesc|Sequence-like object that contains a group of buffers to be used with SSPI functions.
 // @comm This object is created using win32security.PySecBufferDescType(Version), where Version is an int that
@@ -192,11 +192,11 @@ PyObject *PySecBufferDesc::tp_new(PyTypeObject *typ, PyObject *args, PyObject *k
     return new PySecBufferDesc(ulVersion);
 }
 
-PyObject * PySecBufferDesc::tp_repr(PyObject * obj)
+PyObject *PySecBufferDesc::tp_repr(PyObject *obj)
 {
     PSecBufferDesc psecbufferdesc = ((PySecBufferDesc *)obj)->GetSecBufferDesc();
     return PyUnicode_FromFormat("PySecBufferDesc(ulVersion: %i | cBuffers: %i | pBuffers: %p)",
-        psecbufferdesc->ulVersion, psecbufferdesc->cBuffers, psecbufferdesc->pBuffers);
+                                psecbufferdesc->ulVersion, psecbufferdesc->cBuffers, psecbufferdesc->pBuffers);
 }
 
 BOOL PyWinObject_AsSecBufferDesc(PyObject *ob, PSecBufferDesc *ppSecBufferDesc, BOOL bNoneOk)
@@ -365,8 +365,7 @@ PySecBuffer::PySecBuffer(ULONG cbBuffer, ULONG BufferType)
     secbuffer.BufferType = BufferType;
 
     allocBuffer = NULL;
-    if (cbBuffer > 0)
-    {
+    if (cbBuffer > 0) {
         // Stores our allocated memory in a class property so we don't try and free memory that wasn't allocated by us.
         // Windows could change where pvBuffer points to after a function call and we should only be concerned about
         // freeing memory that we have allocated ourselves.
@@ -452,11 +451,11 @@ PyObject *PySecBuffer::tp_new(PyTypeObject *typ, PyObject *args, PyObject *kwarg
     return new PySecBuffer(cbBuffer, BufferType);
 }
 
-PyObject * PySecBuffer::tp_repr(PyObject * obj)
+PyObject *PySecBuffer::tp_repr(PyObject *obj)
 {
     PSecBuffer psecbuffer = ((PySecBuffer *)obj)->GetSecBuffer();
     return PyUnicode_FromFormat("PySecBuffer(cbBuffer: %i | BufferType: %i | pvBuffer: %p)", psecbuffer->cbBuffer,
-        psecbuffer->BufferType, psecbuffer->pvBuffer);
+                                psecbuffer->BufferType, psecbuffer->pvBuffer);
 }
 
 // @pymethod |PySecBuffer|Clear|Resets the buffer to all NULL's, and set the current size to maximum
@@ -896,7 +895,8 @@ PyObject *PyCtxtHandle::QueryContextAttributes(PyObject *self, PyObject *args)
             pe = (PSecPkgContext_PasswordExpiry)&buf;
             ret = PyWinObject_FromTimeStamp(pe->tsPasswordExpires);
             break;
-        // @flag SECPKG_ATTR_LIFESPAN|(<o PyDateTime>,<o PyDateTime>) - returns time period during which context is valid
+        // @flag SECPKG_ATTR_LIFESPAN|(<o PyDateTime>,<o PyDateTime>) - returns time period during which context is
+        // valid
         case SECPKG_ATTR_LIFESPAN:
             PSecPkgContext_Lifespan ls;
             ls = (PSecPkgContext_Lifespan)&buf;

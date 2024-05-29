@@ -129,13 +129,13 @@ PyObject *PyWinObject_FromCERT_EXTENSIONArray(PCERT_EXTENSION pce, DWORD ext_cnt
     return ret;
 }
 
-#define CHECK_CERT_CONTEXT(p) \
-    if (p == NULL) { \
+#define CHECK_CERT_CONTEXT(p)                                                         \
+    if (p == NULL) {                                                                  \
         PyErr_SetString(PyExc_ValueError, "The certificate context has been closed"); \
-        return NULL; \
+        return NULL;                                                                  \
     }
 
-#define GET_CERT_CONTEXT(varname) \
+#define GET_CERT_CONTEXT(varname)                                           \
     PCCERT_CONTEXT varname = ((PyCERT_CONTEXT *)self)->GetPCCERT_CONTEXT(); \
     CHECK_CERT_CONTEXT(varname);
 
@@ -205,15 +205,14 @@ PyObject *PyCERT_CONTEXT::getattro(PyObject *self, PyObject *obname)
     return PyObject_GenericGetAttr(self, obname);
 }
 
-PyCERT_CONTEXT::~PyCERT_CONTEXT(void) {
+PyCERT_CONTEXT::~PyCERT_CONTEXT(void)
+{
     if (pccert_context) {
         CertFreeCertificateContext(pccert_context);
     }
 }
 
-void PyCERT_CONTEXT::deallocFunc(PyObject *ob) {
-    delete (PyCERT_CONTEXT *)ob;
-}
+void PyCERT_CONTEXT::deallocFunc(PyObject *ob) { delete (PyCERT_CONTEXT *)ob; }
 
 PyCERT_CONTEXT::PyCERT_CONTEXT(PCCERT_CONTEXT pccert_context)
 {
@@ -261,7 +260,8 @@ PyObject *PyCERT_CONTEXT::PyCertFreeCertificateContext(PyObject *self, PyObject 
     Py_BEGIN_ALLOW_THREADS;
     bsuccess = CertFreeCertificateContext(pcc);
     Py_END_ALLOW_THREADS;
-    if (!bsuccess) return PyWin_SetAPIError("CertFreeCertificateContext");
+    if (!bsuccess)
+        return PyWin_SetAPIError("CertFreeCertificateContext");
     ((PyCERT_CONTEXT *)self)->pccert_context = NULL;
     Py_INCREF(Py_None);
     return Py_None;
@@ -619,7 +619,7 @@ PyObject *PyCERT_CONTEXT::PyCertSetCertificateContextProperty(PyObject *self, Py
         case CERT_CTL_USAGE_PROP_ID:
             if (!pybuf.init(obData))
                 goto cleanup;
-            cdb.pbData = (BYTE*)pybuf.ptr();
+            cdb.pbData = (BYTE *)pybuf.ptr();
             cdb.cbData = pybuf.len();
             pvData = &cdb;
             break;

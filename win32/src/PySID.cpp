@@ -53,7 +53,7 @@ PyObject *PyWinMethod_NewSID(PyObject *self, PyObject *args)
             return new PySID(pNew);
         }
     }
-     if (bufSize > INT_MAX) {
+    if (bufSize > INT_MAX) {
         PyErr_SetString(PyExc_ValueError, "SID buffer size beyond INT_MAX");
         return NULL;
     }

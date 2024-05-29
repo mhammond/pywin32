@@ -697,8 +697,7 @@ static PyObject *PyPdhGetFormattedCounterArray(PyObject *self, PyObject *args)
     pdhStatus = (*pPdhGetFormattedCounterArray)(handle, format, &size, &count, pItems);
     Py_END_ALLOW_THREADS;
     if (pdhStatus != PDH_MORE_DATA) {
-        return PyWin_SetAPIError("PdhGetFormattedCounterArray",
-                                 pdhStatus);
+        return PyWin_SetAPIError("PdhGetFormattedCounterArray", pdhStatus);
     }
     pItems = (PDH_FMT_COUNTERVALUE_ITEM *)malloc(size);
     if (pItems == NULL) {
@@ -709,8 +708,7 @@ static PyObject *PyPdhGetFormattedCounterArray(PyObject *self, PyObject *args)
     Py_BEGIN_ALLOW_THREADS;
     pdhStatus = (*pPdhGetFormattedCounterArray)(handle, format, &size, &count, pItems);
     Py_END_ALLOW_THREADS;
-    if (pdhStatus != ERROR_SUCCESS)
-    {
+    if (pdhStatus != ERROR_SUCCESS) {
         free(pItems);
         return PyWin_SetAPIError("PdhGetFormattedCounterArray", pdhStatus);
     }

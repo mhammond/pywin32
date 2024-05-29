@@ -155,7 +155,8 @@ static BOOL PyCom_ExcepInfoFromServerExceptionInstance(PyObject *v, EXCEPINFO *p
     return TRUE;
 }
 
-BSTR BstrFromOb(PyObject *value) {
+BSTR BstrFromOb(PyObject *value)
+{
     BSTR result = NULL;
     if (!PyWinObject_AsBstr(value, &result, TRUE, NULL)) {
         PyCom_LoggerNonServerException(NULL, L"Failed to convert exception element to a string");
@@ -278,20 +279,15 @@ void PyCom_CleanupExcepInfo(EXCEPINFO *pexcepinfo)
     }
 }
 
-HRESULT PyCom_CheckIEnumNextResult(HRESULT hr, REFIID riid) {
+HRESULT PyCom_CheckIEnumNextResult(HRESULT hr, REFIID riid)
+{
     return PyCom_SetCOMErrorFromSimple(
-        hr,
-        riid,
-        L"Could not convert the result from Next()/Clone() into the required COM interface"
-    );
+        hr, riid, L"Could not convert the result from Next()/Clone() into the required COM interface");
 }
 
-HRESULT PyCom_HandleIEnumNoSequence(REFIID riid) {
-    return PyCom_SetCOMErrorFromSimple(
-        E_FAIL,
-        riid,
-        L"Next() did not return a sequence of objects"
-    );
+HRESULT PyCom_HandleIEnumNoSequence(REFIID riid)
+{
+    return PyCom_SetCOMErrorFromSimple(E_FAIL, riid, L"Next() did not return a sequence of objects");
 }
 
 HRESULT PyCom_SetCOMErrorFromSimple(HRESULT hr, REFIID riid /* = IID_NULL */, const WCHAR *description /* = NULL*/)
@@ -370,7 +366,7 @@ void PyCom_StreamMessage(const WCHAR *pszMessageText)
     if (pyfile) {
         PyObject *obUnicode = PyWinObject_FromWCHAR(pszMessageText);
         if (obUnicode) {
-            if (PyFile_WriteObject(obUnicode, pyfile,  Py_PRINT_RAW) != 0) {
+            if (PyFile_WriteObject(obUnicode, pyfile, Py_PRINT_RAW) != 0) {
                 // eeek - Python error writing this error - write it to stdout.
                 fwprintf(stdout, L"%s", pszMessageText);
             }
