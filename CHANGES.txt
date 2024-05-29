@@ -15,7 +15,7 @@ Coming in build 307, as yet unreleased
 --------------------------------------
 
 ### pywin32
-* Fixed tons of quote-related typos in strings, docs and comments (# , @Avasam)
+* Fixed tons of quote-related typos in strings, docs and comments (#2271 , @Avasam)
 * Marked `exc_type` and `exc_traceback` in `win32comext.axscript.client.error.AXScriptException.__init__` as deprecated. (#2236 , @Avasam)
   They are now unused and all information is taken from the `exc_value` parameter.
 * Fixed non-overriden `pywin.scintilla.formatter.Formatter.ColorizeString` raising `TypeError` instead of `RuntimeError` due to too many parameters (#2216, @Avasam)
