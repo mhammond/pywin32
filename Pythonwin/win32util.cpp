@@ -37,8 +37,8 @@ generates Windows .hlp files.
 
 class PyCRectType : public ui_type {
    public:
-    PyCRectType(const char *name, ui_type *pBaseType, Py_ssize_t typeSize, ptrdiff_t pyobjOffset, struct PyMethodDef *methodList,
-                ui_base_class *(*thector)());
+    PyCRectType(const char *name, ui_type *pBaseType, Py_ssize_t typeSize, ptrdiff_t pyobjOffset,
+                struct PyMethodDef *methodList, ui_base_class *(*thector)());
 };
 // @object PyCRect|A Python interface the the MFC CRect class.
 class PyCRect : public ui_base_class {
@@ -1137,11 +1137,12 @@ CString GetReprText(PyObject *objectUse)
     PyObject *s;
     CString csRet;
     s = PyObject_Str(objectUse);
-    if (s) if (TmpWCHAR ts=s) {
-        csRet = CString(ts);
-        Py_DECREF(s);
-        return csRet;
-    }
+    if (s)
+        if (TmpWCHAR ts = s) {
+            csRet = CString(ts);
+            Py_DECREF(s);
+            return csRet;
+        }
     PyErr_Clear();
     s = PyObject_Repr(objectUse);
     if (s == NULL) {
@@ -1152,7 +1153,7 @@ CString GetReprText(PyObject *objectUse)
 
     // repr() should always return a unicode string, but for hysterical raisens we check if it is bytes.
     if (PyUnicode_Check(s))
-        if (TmpWCHAR ts=s)
+        if (TmpWCHAR ts = s)
             csRet = ts;
         else {
             PyErr_Clear();

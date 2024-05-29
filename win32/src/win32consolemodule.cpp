@@ -1295,7 +1295,8 @@ PyObject *PyConsoleScreenBuffer::PyScrollConsoleScreenBuffer(PyObject *self, PyO
         if (!ScrollConsoleScreenBuffer(((PyConsoleScreenBuffer *)self)->m_handle, pscrollrect, pcliprect, *pdestcoord,
                                        &char_info)) {
             PyWin_SetAPIError("ScrollConsoleScreenBuffer");
-        } else {
+        }
+        else {
             Py_INCREF(Py_None);
             return Py_None;
         }
@@ -1813,7 +1814,8 @@ static PyObject *PyAddConsoleAlias(PyObject *self, PyObject *args, PyObject *kwa
         PyWinObject_AsWCHAR(obexename, &exename, FALSE)) {
         if (!(*pfnAddConsoleAlias)(source, target, exename)) {
             PyWin_SetAPIError("AddConsoleAlias");
-        } else {
+        }
+        else {
             Py_INCREF(Py_None);
             ret = Py_None;
         }

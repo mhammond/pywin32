@@ -157,7 +157,7 @@ PyObject *pythoncom_GetRecordFromGuids(PyObject *self, PyObject *args)
                           &obInfoGuid,  // @pyparm <o PyIID>|infoIID||The GUID of the record info in the library
                           &obdata))  // @pyparm string or buffer|data|None|The raw data to initialize the record with.
         return NULL;
-    PyWinBufferView pybuf(obdata, false, true); // None ok
+    PyWinBufferView pybuf(obdata, false, true);  // None ok
     if (!pybuf.ok())
         return NULL;
     GUID guid, infoGuid;

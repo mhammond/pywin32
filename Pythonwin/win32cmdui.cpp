@@ -27,18 +27,18 @@ inline void *GetPythonOleProcAddress(const char *procName)
 #endif
     hMod = GetModuleHandle(buf);
 
-// XXX It is unclear why the code previously tried to identify a loaded PythonCOM DLL of
-// any Python version 1.5 .. 3.9. If some InprocServer would load the DLL of a different
-// Python version that would likely cause a crash. Thus deactivated.
-//
-//     for (int i = 0; hMod == NULL && i < 40; i++) {
-// #ifdef _DEBUG
-//         wsprintf(buf, _T("PythonCOM3%d_d.dll"), i);
-// #else
-//         wsprintf(buf, _T("PythonCOM3%d.dll"), i);
-// #endif
-//         hMod = GetModuleHandle(buf);
-//     }
+    // XXX It is unclear why the code previously tried to identify a loaded PythonCOM DLL of
+    // any Python version 1.5 .. 3.9. If some InprocServer would load the DLL of a different
+    // Python version that would likely cause a crash. Thus deactivated.
+    //
+    //     for (int i = 0; hMod == NULL && i < 40; i++) {
+    // #ifdef _DEBUG
+    //         wsprintf(buf, _T("PythonCOM3%d_d.dll"), i);
+    // #else
+    //         wsprintf(buf, _T("PythonCOM3%d.dll"), i);
+    // #endif
+    //         hMod = GetModuleHandle(buf);
+    //     }
 
     if (hMod) {
         void *rc = GetProcAddress(hMod, procName);
@@ -143,7 +143,7 @@ BOOL Python_OnCmdMsg(CCmdTarget *obj, UINT nID, int nCode, void *pExtra, AFX_CMD
                 // user interface element.  Enable the element.
                 pUI->Enable();
                 rc = TRUE;  // did handle it.
-            }               // else RC remains FALSE.
+            }  // else RC remains FALSE.
         }
         else {  // is the command itself.
             // allow either a general or specific handler to be called

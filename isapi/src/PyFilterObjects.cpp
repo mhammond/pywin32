@@ -23,7 +23,7 @@
  ======================================================================
  */
 
-//#define PY_SSIZE_T_CLEAN  // defined by isapi\src\StdAfx.h
+// #define PY_SSIZE_T_CLEAN  // defined by isapi\src\StdAfx.h
 #include "stdafx.h"
 #include "pywintypes.h"
 #include "Utils.h"
@@ -69,7 +69,9 @@ PyObject *PyFILTER_VERSION::getattro(PyObject *self, PyObject *obname)
     PyFILTER_VERSION *me = (PyFILTER_VERSION *)self;
     if (!me->m_pfv)
         return PyErr_Format(PyExc_RuntimeError, "FILTER_VERSION structure no longer exists");
-    TmpWCHAR name = obname;  if (!name) return NULL;
+    TmpWCHAR name = obname;
+    if (!name)
+        return NULL;
     // @prop int|ServerFilterVersion|(read-only)
     if (_tcscmp(name, _T("ServerFilterVersion")) == 0) {
         return PyLong_FromLong(me->m_pfv->dwServerFilterVersion);
@@ -100,7 +102,9 @@ int PyFILTER_VERSION::setattro(PyObject *self, PyObject *obname, PyObject *v)
         PyErr_SetString(PyExc_AttributeError, "can't delete FILTER_VERSION attributes");
         return -1;
     }
-    TmpWCHAR name = obname;  if (!name) return -1;
+    TmpWCHAR name = obname;
+    if (!name)
+        return -1;
     if (_tcscmp(name, _T("FilterVersion")) == 0) {
         if (!PyLong_Check(v)) {
             PyErr_Format(PyExc_ValueError, "FilterVersion must be an int (got %s)", v->ob_type->tp_name);
@@ -416,7 +420,9 @@ PyHFC::~PyHFC()
 
 PyObject *PyHFC::getattro(PyObject *self, PyObject *obname)
 {
-    TmpWCHAR name = obname;  if (!name) return NULL;
+    TmpWCHAR name = obname;
+    if (!name)
+        return NULL;
 
     // other manual attributes.
     if (_tcscmp(name, _T("FilterContext")) == 0) {
@@ -435,7 +441,9 @@ PyObject *PyHFC::getattro(PyObject *self, PyObject *obname)
 
 int PyHFC::setattro(PyObject *self, PyObject *obname, PyObject *v)
 {
-    TmpWCHAR name = obname;  if (!name) return -1;
+    TmpWCHAR name = obname;
+    if (!name)
+        return -1;
     if (v == NULL) {
         PyErr_SetString(PyExc_AttributeError, "can't delete ECB attributes");
         return -1;
@@ -537,7 +545,9 @@ PyObject *PyURL_MAP::getattro(PyObject *self, PyObject *obname)
     if (!pMap)
         return NULL;
     // @prop string|URL|
-    TmpWCHAR name = obname;  if (!name) return NULL;
+    TmpWCHAR name = obname;
+    if (!name)
+        return NULL;
     if (_tcscmp(name, _T("URL")) == 0) {
         return PyBytes_FromString(pMap->pszURL);
     }
@@ -553,7 +563,9 @@ int PyURL_MAP::setattro(PyObject *self, PyObject *obname, PyObject *v)
     HTTP_FILTER_URL_MAP *pMap = ((PyURL_MAP *)self)->GetURLMap();
     if (!pMap)
         return NULL;
-    TmpWCHAR name = obname;  if (!name) return -1;
+    TmpWCHAR name = obname;
+    if (!name)
+        return -1;
     if (_tcscmp(name, _T("PhysicalPath")) == 0) {
         if (!PyBytes_Check(v)) {
             PyErr_Format(PyExc_TypeError, "PhysicalPath must be a string");
@@ -780,7 +792,9 @@ PyObject *PyRAW_DATA::getattro(PyObject *self, PyObject *obname)
     if (!pRD)
         return NULL;
     // @prop string|InData|
-    TmpWCHAR name = obname;  if (!name) return NULL;
+    TmpWCHAR name = obname;
+    if (!name)
+        return NULL;
     if (_tcscmp(name, _T("InData")) == 0) {
         if (pRD->pvInData == NULL) {
             Py_INCREF(Py_None);
@@ -800,7 +814,9 @@ int PyRAW_DATA::setattro(PyObject *self, PyObject *obname, PyObject *v)
     if (!pRD || !pFC)
         return NULL;
 
-    TmpWCHAR name = obname;  if (!name) return -1;
+    TmpWCHAR name = obname;
+    if (!name)
+        return -1;
     if (_tcscmp(name, _T("InData")) == 0) {
         if (!PyBytes_Check(v)) {
             PyErr_Format(PyExc_TypeError, "InData must be a string (got %s)", v->ob_type->tp_name);
@@ -886,7 +902,9 @@ PyObject *PyAUTHENT::getattro(PyObject *self, PyObject *obname)
     HTTP_FILTER_AUTHENT *pAE = ((PyAUTHENT *)self)->GetAUTHENT();
     if (!pAE)
         return NULL;
-    TmpWCHAR name = obname;  if (!name) return NULL;
+    TmpWCHAR name = obname;
+    if (!name)
+        return NULL;
     // @prop string|User|
     if (_tcscmp(name, _T("User")) == 0) {
         if (pAE->pszUser == NULL) {
@@ -914,7 +932,9 @@ int PyAUTHENT::setattro(PyObject *self, PyObject *obname, PyObject *v)
     if (!pAE || !pFC)
         return NULL;
 
-    TmpWCHAR name = obname;  if (!name) return -1;
+    TmpWCHAR name = obname;
+    if (!name)
+        return -1;
     if (_tcscmp(name, _T("User")) == 0) {
         if (!PyBytes_Check(v)) {
             PyErr_Format(PyExc_TypeError, "User must be a string (got %s)", v->ob_type->tp_name);
@@ -999,7 +1019,9 @@ PyObject *PyFILTER_LOG::getattro(PyObject *self, PyObject *obname)
     HTTP_FILTER_LOG *pLog = ((PyFILTER_LOG *)self)->GetFilterLog();
     if (!pLog)
         return NULL;
-    TmpWCHAR name = obname;  if (!name) return NULL;
+    TmpWCHAR name = obname;
+    if (!name)
+        return NULL;
     // @prop string|ClientHostName|
     if (_tcscmp(name, _T("ClientHostName")) == 0)
         return PyBytes_FromString(pLog->pszClientHostName);
@@ -1032,28 +1054,28 @@ PyObject *PyFILTER_LOG::getattro(PyObject *self, PyObject *obname)
 
 #define CHECK_SET_FILTER_LOG_STRING(struct_elem)                             \
     if (_tcscmp(name, _T(#struct_elem)) == 0) {                              \
-        if (!PyBytes_Check(v)) {                                            \
+        if (!PyBytes_Check(v)) {                                             \
             PyErr_Format(PyExc_TypeError, #struct_elem " must be a string"); \
             return -1;                                                       \
         }                                                                    \
-        int cc = PyBytes_Size(v) + sizeof(CHAR);                            \
+        int cc = PyBytes_Size(v) + sizeof(CHAR);                             \
         char *buf = (char *)pFC->AllocMem(pFC, cc, 0);                       \
         if (!buf) {                                                          \
             PyErr_NoMemory();                                                \
             return -1;                                                       \
         }                                                                    \
-        strncpy(buf, PyBytes_AS_STRING(v), cc);                             \
+        strncpy(buf, PyBytes_AS_STRING(v), cc);                              \
         pLog->psz##struct_elem = buf;                                        \
         return 0;                                                            \
     }
 
 #define CHECK_SET_FILTER_LOG_LONG(struct_elem)                                 \
     if (_tcscmp(name, _T(#struct_elem)) == 0) {                                \
-        if (!PyLong_Check(v)) {                                                 \
+        if (!PyLong_Check(v)) {                                                \
             PyErr_Format(PyExc_TypeError, #struct_elem " must be an integer"); \
             return -1;                                                         \
         }                                                                      \
-        pLog->dw##struct_elem = PyLong_AsLong(v);                               \
+        pLog->dw##struct_elem = PyLong_AsLong(v);                              \
         return 0;                                                              \
     }
 
@@ -1064,7 +1086,9 @@ int PyFILTER_LOG::setattro(PyObject *self, PyObject *obname, PyObject *v)
     HTTP_FILTER_LOG *pLog = ((PyFILTER_LOG *)self)->GetFilterLog();
     if (!pLog || !pFC)
         return NULL;
-    TmpWCHAR name = obname;  if (!name) return -1;
+    TmpWCHAR name = obname;
+    if (!name)
+        return -1;
     CHECK_SET_FILTER_LOG_STRING(ClientHostName)
     CHECK_SET_FILTER_LOG_STRING(ClientUserName)
     CHECK_SET_FILTER_LOG_STRING(ServerName)
