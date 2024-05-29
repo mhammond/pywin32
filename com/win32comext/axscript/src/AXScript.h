@@ -126,7 +126,7 @@ class PYAXSCRIPT_EXPORT PyGActiveScript : public PyGatewayBase, public IActiveSc
 
     STDMETHOD(GetScriptState)
     (THIS_
-         /* [out] */ SCRIPTSTATE *pssState);
+     /* [out] */ SCRIPTSTATE *pssState);
 
     STDMETHOD(Close)(void);
 

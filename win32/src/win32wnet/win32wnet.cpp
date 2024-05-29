@@ -149,8 +149,7 @@ static PyObject *PyWNetAddConnection2(PyObject *self, PyObject *args, PyObject *
     if (!PyWinObject_AsTCHAR(obPassword, &Password, TRUE) || !PyWinObject_AsTCHAR(obUsername, &Username, TRUE))
         goto done;
 
-    Py_BEGIN_ALLOW_THREADS
-        ErrorNo = WNetAddConnection2(pNetResource, Password, Username, flags);
+    Py_BEGIN_ALLOW_THREADS ErrorNo = WNetAddConnection2(pNetResource, Password, Username, flags);
     Py_END_ALLOW_THREADS if (ErrorNo != NO_ERROR) ReturnNetError("WNetAddConnection2", ErrorNo);
     else
     {

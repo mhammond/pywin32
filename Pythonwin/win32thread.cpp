@@ -83,7 +83,8 @@ class CPythonWinThread : public CWinThread {
         if (!helper.HaveHandler()) {
             helper.release_full();  // important
             ret = CWinThread::Run();
-        } else {
+        }
+        else {
             helper.call();
             helper.retval(ret);
         }
@@ -96,8 +97,7 @@ class CPythonWinThread : public CWinThread {
 void CProtectedWinThread::PumpIdle()
 {
     long lIdleCount = 0;
-    while (OnIdle(lIdleCount++))
-        ;
+    while (OnIdle(lIdleCount++));
     return;
 }
 

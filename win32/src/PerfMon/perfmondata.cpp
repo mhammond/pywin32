@@ -24,7 +24,7 @@
 //             LOG_DEBUG = Minimum Debugging
 //             LOG_VERBOSE = Maximum Debugging
 
-//#define  LOG_NONE     0
+// #define  LOG_NONE     0
 #define LOG_USER 1
 #define LOG_DEBUG 2
 #define LOG_VERBOSE 3

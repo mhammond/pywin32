@@ -34,6 +34,14 @@ repos:
     hooks:
       - id: black
         verbose: true
+  - repo: https://github.com/pre-commit/mirrors-clang-format
+    rev: v18.1.5
+    hooks:
+      - id: clang-format
+        # Supports a lot more filetypes, but only tagging those we use
+        # https://github.com/pre-commit/mirrors-clang-format/blob/main/.pre-commit-hooks.yaml#L6
+        types: [c++]
+
 
 # Vendored
 exclude: ^(com/win32comext/mapi/src/mapi_headers/|Pythonwin/Scintilla/).*$

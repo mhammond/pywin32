@@ -138,8 +138,8 @@ class ui_base_class;
 // helper typeobject class.
 class PYW_EXPORT ui_type : public PyTypeObject {
    public:
-    ui_type(const char *name, ui_type *pBaseType, Py_ssize_t typeSize, ptrdiff_t pyobjOffset, struct PyMethodDef *methodList,
-            ui_base_class *(*thector)());
+    ui_type(const char *name, ui_type *pBaseType, Py_ssize_t typeSize, ptrdiff_t pyobjOffset,
+            struct PyMethodDef *methodList, ui_base_class *(*thector)());
     ~ui_type();
 
    public:
@@ -154,8 +154,8 @@ class PYW_EXPORT ui_type : public PyTypeObject {
 // helper typeCObject class.
 class PYW_EXPORT ui_type_CObject : public ui_type {
    public:
-    ui_type_CObject(const char *name, ui_type *pBaseType, CRuntimeClass *pRT, Py_ssize_t typeSize, ptrdiff_t pyobjOffset,
-                    struct PyMethodDef *methodList, ui_base_class *(*thector)());
+    ui_type_CObject(const char *name, ui_type *pBaseType, CRuntimeClass *pRT, Py_ssize_t typeSize,
+                    ptrdiff_t pyobjOffset, struct PyMethodDef *methodList, ui_base_class *(*thector)());
     ~ui_type_CObject();
 
    public:
@@ -245,9 +245,9 @@ PYW_EXPORT PyObject *gui_call_object(PyObject *themeth, PyObject *thearglist);
 PYW_EXPORT void gui_print_error(void);
 void gui_decref(PyObject *o);
 
-//#endif // Py_ALLOBJECTS_H
+// #endif // Py_ALLOBJECTS_H
 //
-// CreateContext used when creating frames etc.
+//  CreateContext used when creating frames etc.
 //
 class PYW_EXPORT PythonCreateContext : public CCreateContext {
    public:
@@ -312,8 +312,8 @@ class PYW_EXPORT CVirtualHelper : public CEnterLeavePython {
     BOOL call(const MSG *);
     BOOL call(WPARAM, LPARAM);
     BOOL call(UINT nID, int nCode, void *pExtra, AFX_CMDHANDLERINFO *pHandlerInfo);
-    PyObject* build_args(const char* format, ...);
-    BOOL call_args(const char* format, ...);
+    PyObject *build_args(const char *format, ...);
+    BOOL call_args(const char *format, ...);
     // All the retval functions will ASSERT if the call failed!
     BOOL retval(int &ret);
     BOOL retval(long &ret);

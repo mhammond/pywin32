@@ -234,24 +234,21 @@ HMODULE LoadRegisteredMapiClient(LPCWSTR pwzProviderOverride)
         if (!pwzProvider) {
             // Get Outlook application path registry value
             DWORD dwSize = sizeof(rgchMailClient);
-            if
-                SUCCEEDED(RegQueryValueExW(hkey, nullptr, 0, &dwType, (LPBYTE)&rgchMailClient, &dwSize))
+            if SUCCEEDED (RegQueryValueExW(hkey, nullptr, 0, &dwType, (LPBYTE)&rgchMailClient, &dwSize))
 
-            if (dwType != REG_SZ)
-                goto Error;
+                if (dwType != REG_SZ)
+                    goto Error;
 
             pwzProvider = rgchMailClient;
         }
 
         if (pwzProvider) {
-            if
-                SUCCEEDED(RegOpenKeyExW(hkey, pwzProvider, 0, KEY_READ, &hkeyMapiClient))
-                {
-                    hinstMapi = LoadMailClientFromMSIData(hkeyMapiClient);
+            if SUCCEEDED (RegOpenKeyExW(hkey, pwzProvider, 0, KEY_READ, &hkeyMapiClient)) {
+                hinstMapi = LoadMailClientFromMSIData(hkeyMapiClient);
 
-                    if (!hinstMapi)
-                        hinstMapi = LoadMailClientFromDllPath(hkeyMapiClient);
-                }
+                if (!hinstMapi)
+                    hinstMapi = LoadMailClientFromDllPath(hkeyMapiClient);
+            }
         }
     }
 
