@@ -101,7 +101,7 @@ class PyCOMTest(TestCase):
         # Execute testPyComTest in its own process so it can play
         # with the Python thread state
         fname = os.path.join(os.path.dirname(this_file), "testPyComTest.py")
-        cmd = '%s "%s" -q 2>&1' % (sys.executable, fname)
+        cmd = f'{sys.executable} "{fname}" -q 2>&1'
         data = ExecuteSilentlyIfOK(cmd, self)
 
 
@@ -114,7 +114,7 @@ class PippoTest(TestCase):
 
         python = sys.executable
         fname = os.path.join(os.path.dirname(this_file), "testPippo.py")
-        cmd = '%s "%s" 2>&1' % (python, fname)
+        cmd = f'{python} "{fname}" 2>&1'
         ExecuteSilentlyIfOK(cmd, self)
 
 
@@ -218,7 +218,7 @@ def make_test_suite(test_level=1):
         for mod_name in unittest_modules[i]:
             mod, func = get_test_mod_and_func(mod_name, import_failures)
             if mod is None:
-                raise Exception("no such module '{}'".format(mod_name))
+                raise ModuleNotFoundError(f"no such module '{mod_name}'")
             if func is not None:
                 test = CapturingFunctionTestCase(func, description=mod_name)
             else:
@@ -305,7 +305,7 @@ if __name__ == "__main__":
         )
         for mod_name, (exc_type, exc_val) in import_failures:
             desc = "\n".join(traceback.format_exception_only(exc_type, exc_val))
-            testResult.stream.write("%s: %s" % (mod_name, desc))
+            testResult.stream.write(f"{mod_name}: {desc}")
         testResult.stream.writeln(
             "*** %d test(s) could not be run ***" % len(import_failures)
         )

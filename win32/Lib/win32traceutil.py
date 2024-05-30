@@ -14,7 +14,7 @@
 # Python X.X.X (#0, Apr 13 1999, ...
 # >>> import win32traceutil
 # Redirecting output to win32trace remote collector
-# >>> print "Hello"
+# >>> print("Hello")
 # >>>
 # And the output will appear in the first collector process.
 

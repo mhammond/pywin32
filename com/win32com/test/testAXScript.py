@@ -13,7 +13,7 @@ verbose = "-v" in sys.argv
 class AXScript(win32com.test.util.TestCase):
     def setUp(self):
         file = win32api.GetFullPathName(
-            os.path.join(win32com.axscript.client.__path__[0], "pyscript.py")
+            os.path.join(next(iter(win32com.axscript.client.__path__)), "pyscript.py")
         )
         from win32com.test.util import RegisterPythonServer
 
@@ -22,16 +22,18 @@ class AXScript(win32com.test.util.TestCase):
 
     def testHost(self):
         file = win32api.GetFullPathName(
-            os.path.join(win32com.axscript.__path__[0], "test\\testHost.py")
+            os.path.join(next(iter(win32com.axscript.__path__)), "test\\testHost.py")
         )
-        cmd = '%s "%s"' % (win32api.GetModuleFileName(0), file)
+        cmd = f'{win32api.GetModuleFileName(0)} "{file}"'
         if verbose:
             print("Testing Python Scripting host")
         win32com.test.util.ExecuteShellCommand(cmd, self)
 
     def testCScript(self):
         file = win32api.GetFullPathName(
-            os.path.join(win32com.axscript.__path__[0], "Demos\\Client\\wsh\\test.pys")
+            os.path.join(
+                next(iter(win32com.axscript.__path__)), "Demos\\Client\\wsh\\test.pys"
+            )
         )
         cmd = 'cscript.exe "%s"' % (file)
         if verbose:

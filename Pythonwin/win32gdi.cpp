@@ -33,7 +33,7 @@ bool PyCGdiObject::CheckCppObject(ui_type *ui_type_check) const
 CGdiObject *PyCGdiObject::GetGdiObject(PyObject *self, DWORD gtype)
 {
     CGdiObject *pGdi = (CGdiObject *)GetGoodCppObject(self, &type);
-    if (gtype &&  pGdi->m_hObject && ::GetObjectType(pGdi->m_hObject) != gtype)
+    if (gtype && pGdi->m_hObject && ::GetObjectType(pGdi->m_hObject) != gtype)
         RETURN_ERR("The associated GDI object is not of the required type");
     return pGdi;
 }

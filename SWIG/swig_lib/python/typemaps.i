@@ -52,7 +52,7 @@ you would use a real value instead.
          unsigned char  *INPUT
          float          *INPUT
          double         *INPUT
-         
+
 To use these, suppose you had a C function like this :
 
         double fadd(double *a, double *b) {
@@ -60,7 +60,7 @@ To use these, suppose you had a C function like this :
         }
 
 You could wrap it with SWIG as follows :
-        
+
         %include typemaps.i
         double fadd(double *INPUT, double *INPUT);
 
@@ -122,7 +122,7 @@ or you can use the %apply directive :
   temp = (unsigned char) PyLong_AsLong($source);
   $target = &temp;
 }
-                 
+
 // OUTPUT typemaps.   These typemaps are used for parameters that
 // are output only.   The output value is appended to the result as
 // a list element.
@@ -145,7 +145,7 @@ multiple output values, they are returned in the form of a Python list.
          unsigned char  *OUTPUT
          float          *OUTPUT
          double         *OUTPUT
-         
+
 A Python Tuple can also be replaced by using T_OUTPUT instead of OUTPUT.
 
 For example, suppose you were trying to wrap the modf() function in the
@@ -166,7 +166,7 @@ or you can use the %apply directive :
         double modf(double x, double *ip);
 
 The Python output of the function would be a list containing both
-output values. 
+output values.
 %}
 #endif
 
@@ -248,23 +248,23 @@ static PyObject* t_output_helper(PyObject* target, PyObject* o) {
     PyObject*   o2;
     PyObject*   o3;
 
-    if (!target) {                   
+    if (!target) {
         target = o;
-    } else if (target == Py_None) {  
+    } else if (target == Py_None) {
         Py_DECREF(Py_None);
         target = o;
-    } else {                            
-        if (!PyTuple_Check(target)) {   
+    } else {
+        if (!PyTuple_Check(target)) {
             o2 = target;
             target = PyTuple_New(1);
             PyTuple_SetItem(target, 0, o2);
         }
-        o3 = PyTuple_New(1);            
-        PyTuple_SetItem(o3, 0, o);      
+        o3 = PyTuple_New(1);
+        PyTuple_SetItem(o3, 0, o);
 
         o2 = target;
-        target = PySequence_Concat(o2, o3); 
-        Py_DECREF(o2);                      
+        target = PySequence_Concat(o2, o3);
+        Py_DECREF(o2);
         Py_DECREF(o3);
     }
     return target;
@@ -330,7 +330,7 @@ using T_BOTH instead.
          unsigned char  *BOTH
          float          *BOTH
          double         *BOTH
-         
+
 For example, suppose you were trying to wrap the following function :
 
         void neg(double *x) {
@@ -438,4 +438,3 @@ PyObject *
 %typemap(python,out) PyObject * {
   $target = $source;
 }
-

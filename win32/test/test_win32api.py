@@ -4,6 +4,7 @@ import datetime
 import os
 import sys
 import tempfile
+import time
 import unittest
 
 import win32api
@@ -19,7 +20,7 @@ class CurrentUserTestCase(unittest.TestCase):
         if domain == "NT AUTHORITY":
             # Running as a service account, so the comparison will fail
             raise TestSkipped("running as service account")
-        name = "%s\\%s" % (domain, win32api.GetUserName())
+        name = f"{domain}\\{win32api.GetUserName()}"
         self.assertEqual(name, win32api.GetUserNameEx(win32api.NameSamCompatible))
 
 
@@ -62,7 +63,7 @@ class Registry(unittest.TestCase):
         # This used to leave a stale exception behind.
         def reg_operation():
             hkey = win32api.RegCreateKey(win32con.HKEY_CURRENT_USER, self.key_name)
-            x = 3 / 0  # or a statement like: raise 'error'
+            x = 3 / 0  # or a statement like: raise Exception
 
         # do the test
         try:
@@ -149,17 +150,17 @@ class FileNames(unittest.TestCase):
         long_name = win32api.GetLongPathName(short_name).lower()
         self.assertTrue(
             long_name == fname,
-            "Expected long name ('%s') to be original name ('%s')" % (long_name, fname),
+            f"Expected long name ('{long_name}') to be original name ('{fname}')",
         )
         self.assertEqual(long_name, win32api.GetLongPathNameW(short_name).lower())
         long_name = win32api.GetLongPathNameW(short_name).lower()
         self.assertTrue(
             isinstance(long_name, str),
-            "GetLongPathNameW returned type '%s'" % (type(long_name),),
+            f"GetLongPathNameW returned type '{type(long_name)}'",
         )
         self.assertTrue(
             long_name == fname,
-            "Expected long name ('%s') to be original name ('%s')" % (long_name, fname),
+            f"Expected long name ('{long_name}') to be original name ('{fname}')",
         )
 
     def testShortUnicodeNames(self):
@@ -174,17 +175,17 @@ class FileNames(unittest.TestCase):
         long_name = win32api.GetLongPathName(short_name).lower()
         self.assertTrue(
             long_name == fname,
-            "Expected long name ('%s') to be original name ('%s')" % (long_name, fname),
+            f"Expected long name ('{long_name}') to be original name ('{fname}')",
         )
         self.assertEqual(long_name, win32api.GetLongPathNameW(short_name).lower())
         long_name = win32api.GetLongPathNameW(short_name).lower()
         self.assertTrue(
             isinstance(long_name, str),
-            "GetLongPathNameW returned type '%s'" % (type(long_name),),
+            f"GetLongPathNameW returned type '{type(long_name)}'",
         )
         self.assertTrue(
             long_name == fname,
-            "Expected long name ('%s') to be original name ('%s')" % (long_name, fname),
+            f"Expected long name ('{long_name}') to be original name ('{fname}')",
         )
 
     def testLongLongPathNames(self):

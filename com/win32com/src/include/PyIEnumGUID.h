@@ -1,6 +1,5 @@
 /////////////////////////////////////////////////////////////////////////////
 // class PyIEnumGUID
-#ifndef NO_PYCOM_IENUMGUID
 
 #include "PythonCOM.h"
 #include "PythonCOMServer.h"
@@ -40,11 +39,8 @@ class PyGEnumGUID : public PyGatewayBase, public IEnumGUID {
     STDMETHOD(Clone)(IEnumGUID __RPC_FAR *__RPC_FAR *ppenum);
 };
 
-#endif  // NO_PYCOM_IENUMGUID
-
 /////////////////////////////////////////////////////////////////////////////
 // class PyIEnumCATEGORYINFO
-#ifndef NO_PYCOM_IENUMCATEGORYINFO
 class PyIEnumCATEGORYINFO : public PyIUnknown {
    public:
     MAKE_PYCOM_CTOR(PyIEnumCATEGORYINFO);
@@ -60,4 +56,3 @@ class PyIEnumCATEGORYINFO : public PyIUnknown {
     PyIEnumCATEGORYINFO(IUnknown *);
     ~PyIEnumCATEGORYINFO();
 };
-#endif  // NO_PYCOM_IENUMCATEGORYINFO

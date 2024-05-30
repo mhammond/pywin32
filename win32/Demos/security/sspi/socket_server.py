@@ -19,7 +19,6 @@ specify --target-spn with the username under which the *server* is running.
 See the SSPI documentation for more details.
 """
 
-
 import http.client  # sorry, this demo needs 2.3+
 import optparse
 import socketserver
@@ -188,7 +187,7 @@ if __name__ == "__main__":
                 serve()
             else:
                 parser.error(
-                    "You must supply 'client' or 'server' - " "use --help for details"
+                    "You must supply 'client' or 'server' - use --help for details"
                 )
         except KeyboardInterrupt:
             pass

@@ -21,7 +21,7 @@ generates Windows .hlp files.
 
 #if _MSC_VER == 1500
 // This uses htmlhelp.lib, which causes an unresolved external for
-// __report_rangecheckfailure with vs2008 (which is what we used for python 2.x)
+// __report_rangecheckfailure with vs2008 (which is what we used for Python 2)
 // No idea why, but we define it here and cause it to kill the process if it is ever hit.
 extern "C" __declspec(noreturn, dllexport) void __cdecl __report_rangecheckfailure(void) { ::ExitProcess(1); }
 #endif
@@ -66,10 +66,8 @@ static PyObject *PyWinHelp(PyObject *self, PyObject *args)
         data = (ULONG_PTR)pybuf.ptr();
     if (!PyWinObject_AsTCHAR(obhlpFile, &hlpFile, FALSE))
         return NULL;
-    PyW32_BEGIN_ALLOW_THREADS
-    BOOL ok = ::WinHelp(hwnd, hlpFile, cmd, data);
-    PyW32_END_ALLOW_THREADS
-    PyWinObject_FreeTCHAR(hlpFile);
+    PyW32_BEGIN_ALLOW_THREADS BOOL ok = ::WinHelp(hwnd, hlpFile, cmd, data);
+    PyW32_END_ALLOW_THREADS PyWinObject_FreeTCHAR(hlpFile);
     if (!ok)
         return ReturnAPIError("WinHelp");
     Py_INCREF(Py_None);
@@ -1527,7 +1525,7 @@ PyNMHDR::PyNMHDR(const NMHDR *pNMHDR)
     memcpy(&m_NMHDR, pNMHDR, sizeof(m_NMHDR));
 }
 
-PyNMHDR::~PyNMHDR(void){};
+PyNMHDR::~PyNMHDR(void) {};
 
 /*static*/ void PyNMHDR::deallocFunc(PyObject *ob) { delete (PyNMHDR *)ob; }
 
@@ -2377,7 +2375,8 @@ file must be a string");
             }
             if (dataOb == Py_None) {
                 data = 0;
-            } else {
+            }
+            else {
                 if (!PyWinObject_AsTCHAR(dataOb, &dataObAsTCHAR, FALSE, NULL))
                     return NULL;
                 data = (DWORD_PTR)dataObAsTCHAR;
@@ -2488,11 +2487,10 @@ data tuple items must be integers");
     }
 
     HWND helpWnd;
-    PyW32_BEGIN_ALLOW_THREADS
-    helpWnd = ::HtmlHelp(hwnd, file, cmd, data);
+    PyW32_BEGIN_ALLOW_THREADS helpWnd = ::HtmlHelp(hwnd, file, cmd, data);
     PyW32_END_ALLOW_THREADS
 
-    PyWinObject_FreeTCHAR(dataObAsTCHAR);
+        PyWinObject_FreeTCHAR(dataObAsTCHAR);
     PyWinObject_FreeTCHAR(file);
 
     PyObject *ret;

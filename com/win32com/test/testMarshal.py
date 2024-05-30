@@ -52,7 +52,7 @@ class ThreadInterpCase(InterpCase):
             interp = win32com.client.Dispatch(interp)
 
         interp.Exec("import win32api")
-        # print "The test thread id is %d, Python.Interpreter's thread ID is %d" % (myThread, interp.Eval("win32api.GetCurrentThreadId()"))
+        # print(f"The test thread id is {myThread}, Python.Interpreter's thread ID is {interp.Eval('win32api.GetCurrentThreadId()')}")
         pythoncom.CoUninitialize()
 
     def BeginThreadsSimpleMarshal(self, numThreads):
@@ -108,7 +108,7 @@ class ThreadInterpCase(InterpCase):
         return threads, events
 
     def _DoTestMarshal(self, fn, bCoWait=0):
-        # print "The main thread is %d" % (win32api.GetCurrentThreadId())
+        # print(f"The main thread is {win32api.GetCurrentThreadId()}")
         threads, events = fn(2)
         numFinished = 0
         while 1:

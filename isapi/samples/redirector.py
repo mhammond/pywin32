@@ -56,7 +56,7 @@ class Extension(threaded_extension.ThreadPoolExtension):
         # Note that our ThreadPoolExtension base class will catch exceptions
         # in our Dispatch method, and write the traceback to the client.
         # That is perfect for this sample, so we don't catch our own.
-        # print 'IIS dispatching "%s"' % (ecb.GetServerVariable("URL"),)
+        # print(f'IIS dispatching "{ecb.GetServerVariable("URL")}"')
         url = ecb.GetServerVariable("URL").decode("ascii")
         for exclude in excludes:
             if url.lower().startswith(exclude):
@@ -87,7 +87,7 @@ class Extension(threaded_extension.ThreadPoolExtension):
         ecb.SendResponseHeaders("200 OK", header_text, False)
         ecb.WriteClient(fp.read())
         ecb.DoneWithSession()
-        print("Returned data from '%s'" % (new_url,))
+        print(f"Returned data from '{new_url}'")
         return isapicon.HSE_STATUS_SUCCESS
 
 

@@ -74,6 +74,7 @@ generates Windows .hlp files.
 #include "PyITransferAdviseSink.h"
 #include "PyIShellItemResources.h"
 #include "PyIEnumResources.h"
+#include "PyIFolderView.h"
 
 #include "PyIRelatedItem.h"  // Next 4 all derived from IRelatedItem
 #include "PyIDisplayItem.h"
@@ -595,9 +596,7 @@ BOOL PyObject_AsCMINVOKECOMMANDINFO(PyObject *ob, CMINVOKECOMMANDINFO *pci)
         return FALSE;
     return TRUE;
 }
-void PyObject_FreeCMINVOKECOMMANDINFO(CMINVOKECOMMANDINFO *pci) {
-    PyWinObject_FreeResourceIdA((char *)pci->lpVerb);
-}
+void PyObject_FreeCMINVOKECOMMANDINFO(CMINVOKECOMMANDINFO *pci) { PyWinObject_FreeResourceIdA((char *)pci->lpVerb); }
 
 static PyObject *PyString_FromMaybeNullString(const char *sz)
 {
@@ -947,12 +946,12 @@ BOOL PyObject_AsSHFILEOPSTRUCT(PyObject *ob, SHFILEOPSTRUCT *p)
     memset(p, 0, sizeof(*p));
     if (!PyArg_ParseTuple(
             ob, "OiOO|iOO",
-            &obhwnd,    // @tupleitem 0|int|hwnd|Handle of window in which to display status messages
-            &p->wFunc,  // @tupleitem 1|int|wFunc|One of the shellcon.FO_* values
-            &obFrom,    // @tupleitem 2|string|From|String containing source file name(s) separated by nulls
-            &obTo,  // @tupleitem 3|string|To|String containing destination file name(s) separated by nulls, can be
-                    // None
-            &p->fFlags,         // @tupleitem 4|int|flags|Combination of shellcon.FOF_* flags. Default=0
+            &obhwnd,     // @tupleitem 0|int|hwnd|Handle of window in which to display status messages
+            &p->wFunc,   // @tupleitem 1|int|wFunc|One of the shellcon.FO_* values
+            &obFrom,     // @tupleitem 2|string|From|String containing source file name(s) separated by nulls
+            &obTo,       // @tupleitem 3|string|To|String containing destination file name(s) separated by nulls, can be
+                         // None
+            &p->fFlags,  // @tupleitem 4|int|flags|Combination of shellcon.FOF_* flags. Default=0
             &obNameMappings,    // @tupleitem 5|None|NameMappings|Maps input file names to their new names.  This is
                                 // actually output, and must be None if passed as input. Default=None
             &obProgressTitle))  // @tupleitem 6|string|ProgressTitle|Title for progress dialog (flags must contain
@@ -1275,16 +1274,20 @@ static PyObject *PySHGetSpecialFolderPath(PyObject *self, PyObject *args)
     return PyWinObject_FromWCHAR(buf);
 }
 
-// @pymethod string|shell|SHGetKnownFolderPath|Retrieves the full path of a known folder identified by the folder's KNOWNFOLDERID.
+// @pymethod string|shell|SHGetKnownFolderPath|Retrieves the full path of a known folder identified by the folder's
+// KNOWNFOLDERID.
 static PyObject *PySHGetKnownFolderPath(PyObject *self, PyObject *args)
 {
     PyObject *obfid;
     PyObject *obHandle = Py_None;
     long flags = 0;
     if (!PyArg_ParseTuple(args, "O|lO:SHGetKnownFolderPath",
-                          &obfid,      // @pyparm <o IID>|fid||One of the  KNOWNFOLDERID constants.
-                          &flags,    // @pyparm int|flags|0|Flags that specify special retrieval options. This value can be 0; otherwise, one or more of the KNOWN_FOLDER_FLAG values.
-                          &obHandle))  // @pyparm <o PyHANDLE>|token|None|An access token that represents a particular user. If this parameter is NULL, which is the most common usage, the function requests the known folder for the current user.
+                          &obfid,  // @pyparm <o IID>|fid||One of the  KNOWNFOLDERID constants.
+                          &flags,  // @pyparm int|flags|0|Flags that specify special retrieval options. This value can
+                                   // be 0; otherwise, one or more of the KNOWN_FOLDER_FLAG values.
+                          &obHandle))  // @pyparm <o PyHANDLE>|token|None|An access token that represents a particular
+                                       // user. If this parameter is NULL, which is the most common usage, the function
+                                       // requests the known folder for the current user.
         return NULL;
     KNOWNFOLDERID fid;
     if (!PyWinObject_AsIID(obfid, &fid))
@@ -2799,7 +2802,7 @@ static PyObject *PySHCreateShellFolderView(PyObject *self, PyObject *args)
     else
         ret = PyCom_PyObjectFromIUnknown(view, IID_IShellView, FALSE);
     // ref on view consumed by ret object.
-done : {
+done: {
     PY_INTERFACE_PRECALL;
     if (create.pshf)
         create.pshf->Release();
@@ -3651,7 +3654,8 @@ static struct PyMethodDef shell_methods[] = {
      1},  // @pymeth SHGetSpecialFolderPath|Retrieves the path of a special folder.
     {"SHGetSpecialFolderLocation", PySHGetSpecialFolderLocation,
      1},  // @pymeth SHGetSpecialFolderLocation|Retrieves the <o PyIDL> of a special folder.
-    {"SHGetKnownFolderPath", PySHGetKnownFolderPath, 1}, // @pymeth SHGetKnownFolderPath|Retrieves the full path of a known folder identified by the folder's KNOWNFOLDERID.
+    {"SHGetKnownFolderPath", PySHGetKnownFolderPath, 1},  // @pymeth SHGetKnownFolderPath|Retrieves the full path of a
+                                                          // known folder identified by the folder's KNOWNFOLDERID.
     {"SHAddToRecentDocs", PySHAddToRecentDocs,
      1},  // @pymeth SHAddToRecentDocs|Adds a document to the shell's list of recently used documents or clears all
           // documents from the list. The user gains access to the list through the Start menu of the Windows taskbar.
@@ -3807,6 +3811,7 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] = {
     PYCOM_INTERFACE_FULL(TransferAdviseSink),
     PYCOM_INTERFACE_FULL(ShellItemResources),
     PYCOM_INTERFACE_FULL(EnumResources),
+    PYCOM_INTERFACE_CLIENT_ONLY(FolderView),
     PYCOM_INTERFACE_FULL(RelatedItem),
     PYCOM_INTERFACE_FULL(TransferMediumItem),  // based on IRelatedItem with no extra methods
     PYCOM_INTERFACE_FULL(CurrentItem),         // based on IRelatedItem with no extra methods
@@ -3972,9 +3977,6 @@ PYWIN_MODULE_INIT_FUNC(shell)
     ADD_IID(CLSID_InternetShortcut);
     ADD_IID(CLSID_ActiveDesktop);
 
-#if (_WIN32_IE >= 0x0400)
-    ADD_IID(CGID_ShellServiceObject);
-    ADD_IID(CGID_ExplorerBarDoc);
     ADD_IID(CGID_ShellServiceObject);
     ADD_IID(CGID_ExplorerBarDoc);
     ADD_IID(SID_SShellDesktop);
@@ -4008,11 +4010,7 @@ PYWIN_MODULE_INIT_FUNC(shell)
     ADD_IID(VID_Tile);
     ADD_IID(VID_Thumbnails);
     ADD_IID(VID_ThumbStrip);
-#else
-#pragma message("Please update your SDK headers - IE5 features missing!")
-#endif
 
-#if (_WIN32_IE >= 0x0500)
     ADD_IID(FMTID_ShellDetails);
     ADD_IID(FMTID_Storage);
     ADD_IID(FMTID_ImageProperties);
@@ -4036,9 +4034,6 @@ PYWIN_MODULE_INIT_FUNC(shell)
     ADD_IID(EP_PreviewPane);
     ADD_IID(EP_QueryPane);
     ADD_IID(EP_AdvQueryPane);
-#else
-#pragma message("Please update your SDK headers - IE5 features missing!")
-#endif
 
     ADD_IID(BHID_SFObject);
     ADD_IID(BHID_SFUIObject);

@@ -30,5 +30,3 @@ args = WScript.Arguments
 
 for i in range(0,args.Count()):
 	Show("Arg %d" % i, args(i))
-
-

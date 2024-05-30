@@ -18,11 +18,9 @@ def MakeTestDictionary():
 
 def TestDictAgainst(dict, check):
     for key, value in list(check.items()):
-        if dict(key) != value:
-            raise Exception(
-                "Indexing for '%s' gave the incorrect value - %s/%s"
-                % (repr(key), repr(dict[key]), repr(check[key]))
-            )
+        assert (
+            dict(key) == value
+        ), f"Indexing for '{key!r}' gave the incorrect value - {dict[key]!r}/{check[key]!r}"
 
 
 # Ensure we have the correct version registered.
@@ -67,24 +65,27 @@ def TestDict(quiet=None):
         raise Exception("default method with no args worked when it shouldnt have!")
     except pythoncom.com_error as xxx_todo_changeme:
         (hr, desc, exc, argErr) = xxx_todo_changeme.args
-        if hr != winerror.DISP_E_BADPARAMCOUNT:
-            raise Exception("Expected DISP_E_BADPARAMCOUNT - got %d (%s)" % (hr, desc))
+        assert (
+            hr == winerror.DISP_E_BADPARAMCOUNT
+        ), f"Expected DISP_E_BADPARAMCOUNT - got {hr} ({desc})"
 
     try:
         dict("hi", "there")
         raise Exception("multiple args worked when it shouldnt have!")
     except pythoncom.com_error as xxx_todo_changeme1:
         (hr, desc, exc, argErr) = xxx_todo_changeme1.args
-        if hr != winerror.DISP_E_BADPARAMCOUNT:
-            raise Exception("Expected DISP_E_BADPARAMCOUNT - got %d (%s)" % (hr, desc))
+        assert (
+            hr == winerror.DISP_E_BADPARAMCOUNT
+        ), f"Expected DISP_E_BADPARAMCOUNT - got {hr} ({desc})"
 
     try:
         dict(0)
         raise Exception("int key worked when it shouldnt have!")
     except pythoncom.com_error as xxx_todo_changeme2:
         (hr, desc, exc, argErr) = xxx_todo_changeme2.args
-        if hr != winerror.DISP_E_TYPEMISMATCH:
-            raise Exception("Expected DISP_E_TYPEMISMATCH - got %d (%s)" % (hr, desc))
+        assert (
+            hr == winerror.DISP_E_TYPEMISMATCH
+        ), f"Expected DISP_E_TYPEMISMATCH - got {hr} ({desc})"
 
     if not quiet:
         print("Python.Dictionary tests complete.")

@@ -163,8 +163,8 @@ PyObject *MySetNamedPipeHandleState(PyObject *self, PyObject *args)
 	// @pyparm int/None|MaxCollectionCount||Maximum bytes collected before transmission to the server.
 	// @pyparm int/None|CollectDataTimeout||Maximum time to wait, in milliseconds, before transmission to server.
 
-	if (!PyArg_ParseTuple(args, "OOOO:SetNamedPipeHandleState", 
-			      &obhNamedPipe, &obMode, 
+	if (!PyArg_ParseTuple(args, "OOOO:SetNamedPipeHandleState",
+			      &obhNamedPipe, &obMode,
 			      &obMaxCollectionCount, &obCollectDataTimeout))
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhNamedPipe, &hNamedPipe))
@@ -189,7 +189,7 @@ PyObject *MySetNamedPipeHandleState(PyObject *self, PyObject *args)
     }
 
 	if (!SetNamedPipeHandleState(hNamedPipe, pMode, pMaxCollectionCount,
-				     pCollectDataTimeout)) 
+				     pCollectDataTimeout))
 		return PyWin_SetAPIError("SetNamedPipeHandleState");
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -244,7 +244,7 @@ PyObject *MyTransactNamedPipe(PyObject *self, PyObject *args)
 	DWORD cbReadData;
 	HANDLE handle;
 	OVERLAPPED *pOverlapped = NULL;
-	if (!PyArg_ParseTuple(args, "OOO|O:TransactNamedPipe", 
+	if (!PyArg_ParseTuple(args, "OOO|O:TransactNamedPipe",
 		&obHandle,	// @pyparm <o PyUNICODE>|pipeName||The name of the pipe.
 		&obWriteData,   // @pyparm string/buffer|writeData||The data to write to the pipe.
 		// @pyparm <o PyOVERLAPPEDReadBuffer>/int|buffer/bufSize||Size of the buffer to create for the result,
@@ -270,7 +270,7 @@ PyObject *MyTransactNamedPipe(PyObject *self, PyObject *args)
 	// process the tricky read buffer.
 	cbReadData = PyLong_AsLong(obReadData);
 	if ((cbReadData!=(DWORD)-1) || !PyErr_Occurred()){
-		if (pOverlapped){	// guaranteed to be NULL on CE
+		if (pOverlapped){
 			obRet = PyBuffer_New(cbReadData);
 			if (obRet==NULL)
 				return NULL;
@@ -332,15 +332,15 @@ PyObject *MyCallNamedPipe(PyObject *self, PyObject *args)
 	DWORD timeOut;
 	DWORD readBufSize;
 	TCHAR *szPipeName;
-	if (!PyArg_ParseTuple(args, "OOil:CallNamedPipe", 
+	if (!PyArg_ParseTuple(args, "OOil:CallNamedPipe",
 		&obPipeName,	// @pyparm <o PyUNICODE>|pipeName||The name of the pipe.
 		&obdata,		// @pyparm string|data||The data to write.
 		&readBufSize,	// @pyparm int|bufSize||The size of the result buffer to allocate for the read.
 		&timeOut))		// @pyparm int|timeOut||Specifies the number of milliseconds to wait for the named pipe to be available. In addition to numeric values, the following special values can be specified.
-		// @flagh Value|Meaning 
-		// @flag win32pipe.NMPWAIT_NOWAIT|Does not wait for the named pipe. If the named pipe is not available, the function returns an error. 
-		// @flag win32pipe.NMPWAIT_WAIT_FOREVER|Waits indefinitely. 
-		// @flag win32pipe.NMPWAIT_USE_DEFAULT_WAIT|Uses the default time-out specified in a call to the CreateNamedPipe function. 
+		// @flagh Value|Meaning
+		// @flag win32pipe.NMPWAIT_NOWAIT|Does not wait for the named pipe. If the named pipe is not available, the function returns an error.
+		// @flag win32pipe.NMPWAIT_WAIT_FOREVER|Waits indefinitely.
+		// @flag win32pipe.NMPWAIT_USE_DEFAULT_WAIT|Uses the default time-out specified in a call to the CreateNamedPipe function.
 		return NULL;
 	PyWinBufferView pybuf(obdata);
 	if (!pybuf.ok())
@@ -374,8 +374,8 @@ PyObject *MyCreatePipe(
 		       DWORD nSize // @pyparm int|nSize||
 		       )
 {
-  HANDLE hReadPipe;		// variable for read handle 
-  HANDLE hWritePipe;		// variable for write handle 
+  HANDLE hReadPipe;		// variable for read handle
+  HANDLE hWritePipe;		// variable for write handle
   BOOL   ok;			// did CreatePipe work?
 
   ok = CreatePipe(&hReadPipe, &hWritePipe, INPUT, nSize);
@@ -396,8 +396,8 @@ PyObject *FdCreatePipe(
 	DWORD nSize,				// @pyparm int|nSize||Buffer size for pipe.  Use 0 for default size.
 	int mode)					// @pyparm int|mode||O_TEXT or O_BINARY
 {
-  HANDLE hReadPipe;		// variable for read handle 
-  HANDLE hWritePipe;		// variable for write handle 
+  HANDLE hReadPipe;		// variable for read handle
+  HANDLE hWritePipe;		// variable for write handle
   BOOL   ok;			// did CreatePipe work?
   if (mode != _O_TEXT && mode != _O_BINARY)
     {
@@ -418,7 +418,7 @@ PyObject *FdCreatePipe(
 %}
 
 // @pyswig <o PyHANDLE>|CreateNamedPipe|Creates an instance of a named pipe and returns a handle for subsequent pipe operations
-PyHANDLE CreateNamedPipe( 
+PyHANDLE CreateNamedPipe(
 	TCHAR *lpName,	// @pyparm <o PyUnicode>|pipeName||The name of the pipe
 	unsigned long dwOpenMode, // @pyparm int|openMode||OpenMode of the pipe
 	unsigned long dwPipeMode, // @pyparm int|pipeMode||
@@ -428,7 +428,7 @@ PyHANDLE CreateNamedPipe(
 	unsigned long nDefaultTimeOut, // @pyparm int|nDefaultTimeOut||
 	SECURITY_ATTRIBUTES *INPUT // @pyparm <o PySECURITY_ATTRIBUTES>|sa||
 );
-// @pyswig |DisconnectNamedPipe|Disconnects the server end of a named pipe instance from a client process. 
+// @pyswig |DisconnectNamedPipe|Disconnects the server end of a named pipe instance from a client process.
 BOOLAPI DisconnectNamedPipe(
 	PyHANDLE hFile // @pyparm <o PyHANDLE>|hFile||The handle to the pipe to disconnect.
 );
@@ -442,14 +442,14 @@ BOOLAPI GetOverlappedResult(
 	BOOL bWait	// @pyparm int|bWait||Indicates if the function should wait for data to become available.
 );
 
-// @pyswig |WaitNamedPipe|Waits until either a time-out interval elapses or an instance of the specified named pipe is available to be connected to (that is, the pipe's server process has a pending <om win32pipe.ConnectNamedPipe> operation on the pipe). 
-BOOLAPI WaitNamedPipe( 
+// @pyswig |WaitNamedPipe|Waits until either a time-out interval elapses or an instance of the specified named pipe is available to be connected to (that is, the pipe's server process has a pending <om win32pipe.ConnectNamedPipe> operation on the pipe).
+BOOLAPI WaitNamedPipe(
 	TCHAR *pipeName, // @pyparm <o PyUnicode>|pipeName||The name of the pipe
 	unsigned long timeout); // @pyparm int|timeout||The number of milliseconds the function will wait.
 	// instead of a literal value, you can specify one of the following values for the timeout:
-	// @flagh Value|Meaning 
-	// @flag NMPWAIT_USE_DEFAULT_WAIT|The time-out interval is the default value specified by the server process in the CreateNamedPipe function. 
-	// @flag NMPWAIT_WAIT_FOREVER|The function does not return until an instance of the named pipe is available 
+	// @flagh Value|Meaning
+	// @flag NMPWAIT_USE_DEFAULT_WAIT|The time-out interval is the default value specified by the server process in the CreateNamedPipe function.
+	// @flag NMPWAIT_WAIT_FOREVER|The function does not return until an instance of the named pipe is available
 
 // @pyswig (int, int, int, int)|GetNamedPipeInfo|Returns pipe's flags, buffer sizes, and max instances
 BOOLAPI GetNamedPipeInfo(
@@ -483,7 +483,7 @@ PyObject *MyPeekNamedPipe(PyObject *self, PyObject *args)
 	}
 	PyObject *rc = NULL;
 	if (PeekNamedPipe(hNamedPipe, buf, size, &bytesRead, &totalAvail, &bytesLeft)) {
-		rc = Py_BuildValue("Nii", 
+		rc = Py_BuildValue("Nii",
 			PyBytes_FromStringAndSize((char *)buf, bytesRead),
 			totalAvail, bytesLeft);
 	} else

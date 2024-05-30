@@ -146,10 +146,10 @@ SERVICE_STATUS stoppedStatus = {SERVICE_WIN32_OWN_PROCESS,
 
 SERVICE_STATUS stoppedErrorStatus = {SERVICE_WIN32_OWN_PROCESS,
                                      SERVICE_STOPPED,
-                                     0,                            // dwControlsAccepted
-                                     ERROR_SERVICE_SPECIFIC_ERROR, // dwWin32ExitCode
-                                     0x20000001,                   // dwServiceSpecificExitCode
-                                     0,                            // dwCheckPoint
+                                     0,                             // dwControlsAccepted
+                                     ERROR_SERVICE_SPECIFIC_ERROR,  // dwWin32ExitCode
+                                     0x20000001,                    // dwServiceSpecificExitCode
+                                     0,                             // dwCheckPoint
                                      0};
 // The Service Control Manager/Event Log seems to interpret dwServiceSpecificExitCode as a Win32 Error code
 // (https://docs.microsoft.com/en-us/windows/win32/debug/system-error-codes)
@@ -612,10 +612,6 @@ static void PyService_InitPython()
     Py_Initialize();
 #ifdef BUILD_FREEZE
     PyWinFreeze_ExeInit();
-#endif
-    // Ensure we are set for threading.
-#if PY_VERSION_HEX < 0x03070000
-    PyEval_InitThreads();
 #endif
     // Notes about argv: When debugging a service, the argv is currently
     // the *full* args, including the "-debug servicename" args.  This
@@ -1454,9 +1450,6 @@ int _tmain(int argc, TCHAR **argv)
         // do not free `program` since Py_SetProgramName does not copy it.
     }
     Py_Initialize();
-#if PY_VERSION_HEX < 0x03070000
-    PyEval_InitThreads();
-#endif
     module = PyImport_ImportModule("servicemanager");
     if (!module)
         goto failed;
@@ -1468,9 +1461,10 @@ int _tmain(int argc, TCHAR **argv)
     // now get the handle to the DLL, and call the main function.
     if (PyBytes_Check(f))
         hmod = GetModuleHandleA(PyBytes_AsString(f));
-    else if (TmpWCHAR tw=f) {
+    else if (TmpWCHAR tw = f) {
         hmod = GetModuleHandleW(tw);
-    } else {
+    }
+    else {
         PyErr_SetString(PyExc_TypeError, "servicemanager.__file__ is not a string or unicode !");
         goto failed;
     }

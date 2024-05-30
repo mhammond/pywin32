@@ -11,11 +11,8 @@ import pythoncom
 import win32api
 import win32com
 import win32com.client.dynamic
-from pywintypes import Unicode
 from win32com.client import gencache
 from win32com.test.util import CheckClean
-
-error = "MSOffice test error"
 
 
 # Test a few of the MSOffice components.
@@ -106,13 +103,11 @@ def TestWord8OldStyle():
 
 def TextExcel(xl):
     xl.Visible = 0
-    if xl.Visible:
-        raise error("Visible property is true.")
+    assert not xl.Visible, "Visible property is true."
     xl.Visible = 1
-    if not xl.Visible:
-        raise error("Visible property not true.")
+    assert xl.Visible, "Visible property not true."
 
-    if int(xl.Version[0]) >= 8:
+    if int(xl.Version.split(".")[0]) >= 8:
         xl.Workbooks.Add()
     else:
         xl.Workbooks().Add()
@@ -124,30 +119,27 @@ def TextExcel(xl):
     for i in range(20):
         xl.Cells(i + 1, i + 1).Value = "Hi %d" % i
 
-    if xl.Range("A1").Value != "Hi 0":
-        raise error("Single cell range failed")
-
-    if xl.Range("A1:B1").Value != ((Unicode("Hi 0"), 2),):
-        raise error("flat-horizontal cell range failed")
-
-    if xl.Range("A1:A2").Value != ((Unicode("Hi 0"),), (Unicode("x"),)):
-        raise error("flat-vertical cell range failed")
-
-    if xl.Range("A1:C3").Value != (
-        (Unicode("Hi 0"), 2, 3),
-        (Unicode("x"), Unicode("Hi 1"), Unicode("z")),
-        (3, 2, Unicode("Hi 2")),
-    ):
-        raise error("square cell range failed")
+    assert xl.Range("A1").Value == "Hi 0", "Single cell range failed"
+    assert xl.Range("A1:B1").Value == (
+        ("Hi 0", 2),
+    ), "flat-horizontal cell range failed"
+    assert xl.Range("A1:A2").Value == (
+        ("Hi 0",),
+        ("x",),
+    ), "flat-vertical cell range failed"
+    assert xl.Range("A1:C3").Value == (
+        ("Hi 0", 2, 3),
+        ("x", "Hi 1", "z"),
+        (3, 2, "Hi 2"),
+    ), "square cell range failed"
 
     xl.Range("A1:C3").Value = ((3, 2, 1), ("x", "y", "z"), (1, 2, 3))
 
-    if xl.Range("A1:C3").Value != (
+    assert xl.Range("A1:C3").Value == (
         (3, 2, 1),
-        (Unicode("x"), Unicode("y"), Unicode("z")),
+        ("x", "y", "z"),
         (1, 2, 3),
-    ):
-        raise error("Range was not what I set it to!")
+    ), "Range was not what I set it to!"
 
     # test dates out with Excel
     xl.Cells(5, 1).Value = "Excel time"

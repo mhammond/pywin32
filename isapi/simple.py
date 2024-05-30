@@ -8,6 +8,8 @@ It is not necessary to use these base-classes - but if you don't, you
 must ensure each of the required methods are implemented.
 """
 
+from __future__ import annotations
+
 
 class SimpleExtension:
     "Base class for a simple ISAPI extension"
@@ -38,7 +40,7 @@ class SimpleExtension:
 
 class SimpleFilter:
     "Base class for a a simple ISAPI filter"
-    filter_flags = None
+    filter_flags: int | None = None
 
     def __init__(self):
         pass

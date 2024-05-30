@@ -476,9 +476,9 @@ BOOL CDDEConv::Request(UINT wFmt, const TCHAR *pszItem, CString &ret)
     BYTE *pData = ::DdeAccessData(hData, &dwSize);
     DWORD nChars = (dwSize / sizeof(TCHAR)) - 1;
 
-    if(wFmt == CF_TEXT) {
+    if (wFmt == CF_TEXT) {
         nChars = (dwSize / sizeof(CHAR)) - 1;
-        ret = CString((CHAR*)pData, nChars);
+        ret = CString((CHAR *)pData, nChars);
     }
     else {
         ret = CString((TCHAR *)pData, nChars);

@@ -11,7 +11,6 @@ import sys
 import traceback
 
 import __main__
-import afxres
 import pywin.framework.app
 import pywin.scintilla.control
 import pywin.scintilla.formatter
@@ -20,6 +19,7 @@ import win32api
 import win32clipboard
 import win32con
 import win32ui
+from pywin.mfc import afxres
 
 ## sequential after ID_GOTO_LINE defined in editor.py
 ID_EDIT_COPY_CODE = 0xE2002
@@ -74,6 +74,15 @@ def LoadPreference(preference, default=""):
 
 def SavePreference(prefName, prefValue):
     win32ui.WriteProfileVal(sectionProfile, prefName, prefValue)
+
+
+def SaveFontPreferences():
+    win32ui.WriteProfileVal(sectionProfile, valueFormatTitle, str(formatTitle))
+    win32ui.WriteProfileVal(sectionProfile, valueFormatInput, str(formatInput))
+    win32ui.WriteProfileVal(sectionProfile, valueFormatOutput, str(formatOutput))
+    win32ui.WriteProfileVal(
+        sectionProfile, valueFormatOutputError, str(formatOutputError)
+    )
 
 
 def GetPromptPrefix(line):
@@ -154,7 +163,7 @@ class InteractiveFormatter(FormatterParent):
                 if ch not in "\r\n":
                     self.ColorSeg(startSeg, i - 1, state)
                     startSeg = i
-                    if ch in (sys.ps1[0], sys.ps2[0]):
+                    if ch in (str(sys.ps1)[0], str(sys.ps2)[0]):
                         state = STYLE_INTERACTIVE_PROMPT
                     elif cdoc[i : i + len(tracebackHeader)] == tracebackHeader:
                         state = STYLE_INTERACTIVE_ERROR
@@ -325,14 +334,15 @@ class InteractiveCore:
                 if win32ui.debug:
                     suffix = ", debug build"
                 sys.stderr.write(
-                    "PythonWin %s on %s%s.\n" % (sys.version, sys.platform, suffix)
+                    f"PythonWin {sys.version} on {sys.platform}{suffix}.\n"
                 )
                 sys.stderr.write(
-                    "Portions %s - see 'Help/About PythonWin' for further copyright information.\n"
-                    % (win32ui.copyright,)
+                    "Portions {} - see 'Help/About PythonWin' for further copyright information.\n".format(
+                        win32ui.copyright
+                    )
                 )
             else:
-                sys.stderr.write(banner)
+                sys.stderr.write(self.banner)
         rcfile = os.environ.get("PYTHONSTARTUP")
         if rcfile:
             import __main__

@@ -65,42 +65,42 @@ extern RPC_IF_HANDLE __MIDL__intf_0000_v0_0_s_ifspec;
  * at Fri Mar 29 16:59:57 1996
  * using MIDL 2.00.0102
  ****************************************/
-/* [unique][uuid][object] */ 
+/* [unique][uuid][object] */
 
 
 
 EXTERN_C const IID IID_IProvideClassInfo;
 
 #if defined(__cplusplus) && !defined(CINTERFACE)
-    
+
     interface IProvideClassInfo : public IUnknown
     {
     public:
-        virtual HRESULT __stdcall GetClassInfo( 
+        virtual HRESULT __stdcall GetClassInfo(
             /* [out] */ LPTYPEINFO __RPC_FAR *ppTI) = 0;
-        
+
     };
 
 #else /* C style interface */
 
     typedef struct IProvideClassInfoVtbl
     {
-        
-        HRESULT ( __stdcall __RPC_FAR *QueryInterface )( 
+
+        HRESULT ( __stdcall __RPC_FAR *QueryInterface )(
             IProvideClassInfo __RPC_FAR * This,
             /* [in] */ REFIID riid,
             /* [out] */ void __RPC_FAR *__RPC_FAR *ppvObject);
-        
-        ULONG ( __stdcall __RPC_FAR *AddRef )( 
+
+        ULONG ( __stdcall __RPC_FAR *AddRef )(
             IProvideClassInfo __RPC_FAR * This);
-        
-        ULONG ( __stdcall __RPC_FAR *Release )( 
+
+        ULONG ( __stdcall __RPC_FAR *Release )(
             IProvideClassInfo __RPC_FAR * This);
-        
-        HRESULT ( __stdcall __RPC_FAR *GetClassInfo )( 
+
+        HRESULT ( __stdcall __RPC_FAR *GetClassInfo )(
             IProvideClassInfo __RPC_FAR * This,
             /* [out] */ LPTYPEINFO __RPC_FAR *ppTI);
-        
+
     } IProvideClassInfoVtbl;
 
     interface IProvideClassInfo
@@ -124,7 +124,7 @@ EXTERN_C const IID IID_IProvideClassInfo;
 
 
 
-HRESULT __stdcall IProvideClassInfo_GetClassInfo_Proxy( 
+HRESULT __stdcall IProvideClassInfo_GetClassInfo_Proxy(
     IProvideClassInfo __RPC_FAR * This,
     /* [out] */ LPTYPEINFO __RPC_FAR *ppTI);
 
@@ -145,48 +145,48 @@ void __RPC_STUB IProvideClassInfo_GetClassInfo_Stub(
  * at Fri Mar 29 16:59:57 1996
  * using MIDL 2.00.0102
  ****************************************/
-/* [unique][uuid][object] */ 
+/* [unique][uuid][object] */
 
 
 
 EXTERN_C const IID IID_IProvideClassInfo2;
 
 #if defined(__cplusplus) && !defined(CINTERFACE)
-    
+
     interface IProvideClassInfo2 : public IProvideClassInfo
     {
     public:
-        virtual HRESULT __stdcall GetGUID( 
+        virtual HRESULT __stdcall GetGUID(
             /* [in] */ DWORD dwGuidKind,
             /* [out] */ GUID __RPC_FAR *pGUID) = 0;
-        
+
     };
 
 #else /* C style interface */
 
     typedef struct IProvideClassInfo2Vtbl
     {
-        
-        HRESULT ( __stdcall __RPC_FAR *QueryInterface )( 
+
+        HRESULT ( __stdcall __RPC_FAR *QueryInterface )(
             IProvideClassInfo2 __RPC_FAR * This,
             /* [in] */ REFIID riid,
             /* [out] */ void __RPC_FAR *__RPC_FAR *ppvObject);
-        
-        ULONG ( __stdcall __RPC_FAR *AddRef )( 
+
+        ULONG ( __stdcall __RPC_FAR *AddRef )(
             IProvideClassInfo2 __RPC_FAR * This);
-        
-        ULONG ( __stdcall __RPC_FAR *Release )( 
+
+        ULONG ( __stdcall __RPC_FAR *Release )(
             IProvideClassInfo2 __RPC_FAR * This);
-        
-        HRESULT ( __stdcall __RPC_FAR *GetClassInfo )( 
+
+        HRESULT ( __stdcall __RPC_FAR *GetClassInfo )(
             IProvideClassInfo2 __RPC_FAR * This,
             /* [out] */ LPTYPEINFO __RPC_FAR *ppTI);
-        
-        HRESULT ( __stdcall __RPC_FAR *GetGUID )( 
+
+        HRESULT ( __stdcall __RPC_FAR *GetGUID )(
             IProvideClassInfo2 __RPC_FAR * This,
             /* [in] */ DWORD dwGuidKind,
             /* [out] */ GUID __RPC_FAR *pGUID);
-        
+
     } IProvideClassInfo2Vtbl;
 
     interface IProvideClassInfo2
@@ -212,7 +212,7 @@ EXTERN_C const IID IID_IProvideClassInfo2;
 
 
 
-HRESULT __stdcall IProvideClassInfo2_GetGUID_Proxy( 
+HRESULT __stdcall IProvideClassInfo2_GetGUID_Proxy(
     IProvideClassInfo2 __RPC_FAR * This,
     /* [in] */ DWORD dwGuidKind,
     /* [out] */ GUID __RPC_FAR *pGUID);

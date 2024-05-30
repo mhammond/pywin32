@@ -65,7 +65,7 @@ class TestSimpleOps(unittest.TestCase):
             handle.Close()
             try:
                 os.unlink(filename)
-            except os.error:
+            except OSError:
                 pass
 
     # A simple test using normal read/write operations.
@@ -229,12 +229,12 @@ class TestSimpleOps(unittest.TestCase):
             ct, at, wt = win32file.GetFileTime(f)
             self.assertTrue(
                 ct >= now,
-                "File was created in the past - now=%s, created=%s" % (now, ct),
+                f"File was created in the past - now={now}, created={ct}",
             )
             self.assertTrue(now <= ct <= nowish, (now, ct))
             self.assertTrue(
                 wt >= now,
-                "File was written-to in the past now=%s, written=%s" % (now, wt),
+                f"File was written-to in the past now={now}, written={wt}",
             )
             self.assertTrue(now <= wt <= nowish, (now, wt))
 
@@ -360,7 +360,7 @@ class TestOverlapped(unittest.TestCase):
         # Check that.
         try:
             win32file.CloseHandle(hv)
-            raise RuntimeError("Expected close to fail!")
+            raise AssertionError("Expected close to fail!")
         except win32file.error as details:
             self.assertEqual(details.winerror, winerror.ERROR_INVALID_HANDLE)
 
@@ -573,7 +573,7 @@ class TestFindFiles(unittest.TestCase):
             # reference count leaks, that function showed leaks!  os.rmdir
             # doesn't have that problem.
             os.rmdir(test_path)
-        except os.error:
+        except OSError:
             pass
         os.mkdir(test_path)
         try:
@@ -662,7 +662,7 @@ class TestDirectoryChanges(unittest.TestCase):
                 else:
                     # This is "normal" exit - our 'tearDown' closes the
                     # handle.
-                    # print "looks like dir handle was closed!"
+                    # print("looks like dir handle was closed!")
                     return
             else:
                 print("ERROR: Watcher thread timed-out!")
@@ -863,12 +863,12 @@ class TestTransmit(unittest.TestCase):
                 try:
                     s1.bind(self.addr)
                     break
-                except os.error as exc:
+                except OSError as exc:
                     if exc.winerror != 10013:
                         raise
                     print("Failed to use port", self.addr, "trying another random one")
             else:
-                raise RuntimeError("Failed to find an available port to bind to.")
+                raise AssertionError("Failed to find an available port to bind to.")
             s1.listen(1)
             cli, addr = s1.accept()
             buf = 1
@@ -1013,7 +1013,7 @@ class TestWSAEnumNetworkEvents(unittest.TestCase):
         while sent < 16 * 1024 * 1024:
             try:
                 sent += client.send(data)
-            except socket.error as e:
+            except OSError as e:
                 if e.args[0] == win32file.WSAEINTR:
                     continue
                 elif e.args[0] in (win32file.WSAEWOULDBLOCK, win32file.WSAENOBUFS):
@@ -1035,7 +1035,7 @@ class TestWSAEnumNetworkEvents(unittest.TestCase):
         while received < sent:
             try:
                 received += len(server.recv(16 * 1024))
-            except socket.error as e:
+            except OSError as e:
                 if e.args[0] in [win32file.WSAEINTR, win32file.WSAEWOULDBLOCK]:
                     continue
                 else:

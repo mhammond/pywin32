@@ -13,10 +13,14 @@
 # as a scripting language - meaning the dumps produced can be quite dynamic,
 # and based on the script code you execute.
 
+import sys
+
+import win32api
+import win32con
 from win32com.axscript import axscript
 
 from . import pyscript
-from .pyscript import SCRIPTTEXT_FORCEEXECUTION, Exception, RaiseAssert, trace
+from .pyscript import SCRIPTTEXT_FORCEEXECUTION, RaiseAssert, trace
 
 PyDump_CLSID = "{ac527e60-c693-11d0-9c25-00aa00125a98}"
 
@@ -34,8 +38,6 @@ class PyScript(pyscript.PyScript):
 
 
 def Register():
-    import sys
-
     if "-d" in sys.argv:
         dispatcher = "DispatcherWin32trace"
         debug_desc = " (" + dispatcher + ")"
@@ -51,25 +53,25 @@ def Register():
     policy = None  # "win32com.axscript.client.axspolicy.AXScriptPolicy"
 
     print("Registering COM server%s..." % debug_desc)
-    from win32com.server.register import RegisterServer
+    from win32com.server.register import RegisterServer, _set_string
 
     languageName = "PyDump"
     verProgId = "Python.Dumper.1"
     RegisterServer(
         clsid=clsid,
         pythonInstString="win32com.axscript.client.pyscript.PyDumper",
-        className="Python Debugging/Dumping ActiveX Scripting Engine",
+        desc="Python Debugging/Dumping ActiveX Scripting Engine",
         progID=languageName,
         verProgID=verProgId,
-        catids=categories,
         policy=policy,
+        catids=categories,
         dispatcher=dispatcher,
     )
 
-    CreateRegKey(languageName + "\\OLEScript")
+    win32api.RegCreateKey(win32con.HKEY_CLASSES_ROOT, languageName + "\\OLEScript")
     # Basic Registration for wsh.
-    win32com.server.register._set_string(".pysDump", "pysDumpFile")
-    win32com.server.register._set_string("pysDumpFile\\ScriptEngine", languageName)
+    _set_string(".pysDump", "pysDumpFile")
+    _set_string("pysDumpFile\\ScriptEngine", languageName)
     print("Dumping Server registered.")
 
 

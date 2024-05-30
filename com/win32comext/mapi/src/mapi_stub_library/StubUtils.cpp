@@ -174,7 +174,7 @@ HMODULE LoadMailClientFromMSIData(HKEY hkeyMapiClient)
 
 /*
  *  LoadMAPIFromSystemDir
- *		Fall back for loading System32\Mapi32.dll if all else fails
+ *		Fall back for loading System32\mapi32.dll if all else fails
  */
 HMODULE LoadMAPIFromSystemDir()
 {
@@ -234,24 +234,21 @@ HMODULE LoadRegisteredMapiClient(LPCWSTR pwzProviderOverride)
         if (!pwzProvider) {
             // Get Outlook application path registry value
             DWORD dwSize = sizeof(rgchMailClient);
-            if
-                SUCCEEDED(RegQueryValueExW(hkey, nullptr, 0, &dwType, (LPBYTE)&rgchMailClient, &dwSize))
+            if SUCCEEDED (RegQueryValueExW(hkey, nullptr, 0, &dwType, (LPBYTE)&rgchMailClient, &dwSize))
 
-            if (dwType != REG_SZ)
-                goto Error;
+                if (dwType != REG_SZ)
+                    goto Error;
 
             pwzProvider = rgchMailClient;
         }
 
         if (pwzProvider) {
-            if
-                SUCCEEDED(RegOpenKeyExW(hkey, pwzProvider, 0, KEY_READ, &hkeyMapiClient))
-                {
-                    hinstMapi = LoadMailClientFromMSIData(hkeyMapiClient);
+            if SUCCEEDED (RegOpenKeyExW(hkey, pwzProvider, 0, KEY_READ, &hkeyMapiClient)) {
+                hinstMapi = LoadMailClientFromMSIData(hkeyMapiClient);
 
-                    if (!hinstMapi)
-                        hinstMapi = LoadMailClientFromDllPath(hkeyMapiClient);
-                }
+                if (!hinstMapi)
+                    hinstMapi = LoadMailClientFromDllPath(hkeyMapiClient);
+            }
         }
     }
 

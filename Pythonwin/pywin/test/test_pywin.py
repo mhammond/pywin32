@@ -26,7 +26,7 @@ _clock = time.perf_counter
 user_interaction = getattr(__main__, "user_interaction", False)  # from all.py maybe
 file_abs = os.path.abspath(__file__)
 src_dir = os.path.dirname(file_abs)
-pywin_path = pywin.__path__[0]
+pywin_path = next(iter(pywin.__path__))
 pythonwinpy_path = os.path.dirname(pywin_path) + "\\start_pythonwin.py"
 Object = argparse.Namespace
 _indebugger = "pywin.debugger" in sys.modules
@@ -88,7 +88,7 @@ class T(unittest.TestCase):
         scriptutils.JumpToDocument(__file__)
         if user_interaction:
             win32ui.MessageBox(
-                "Hello from test_pydocs() args=%s %s" % (sys.argv, os.getcwd())
+                f"Hello from test_pydocs() args={sys.argv} {os.getcwd()}"
             )
         v = scriptutils.GetActiveEditControl()
         assert file_abs == v.GetDocument().GetPathName()
@@ -377,7 +377,7 @@ class T(unittest.TestCase):
             pywin.scintilla.IDLEenvironment.test()
         ed = scriptutils.GetActiveEditControl()
         doc = ed.GetDocument()
-        assert "hi " "there" in ed.GetTextRange()
+        assert "hi there" in ed.GetTextRange()
         assert doc.IsModified()
 
         # edit w auto-indent

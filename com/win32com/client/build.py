@@ -24,13 +24,10 @@ import pythoncom
 import winerror
 from pywintypes import TimeType
 
-
 # It isn't really clear what the quoting rules are in a C/IDL string and
 # literals like a quote char and backslashes makes life a little painful to
 # always render the string perfectly - so just punt and fall-back to a repr()
-def _makeDocString(s):
-    return repr(s)
-
+_makeDocString = repr
 
 error = "PythonCOM.Client.Build error"
 
@@ -69,9 +66,7 @@ NoTranslateTypes = [
     pythoncom.VT_VOID,
 ]
 
-NoTranslateMap = {}
-for v in NoTranslateTypes:
-    NoTranslateMap[v] = None
+NoTranslateMap = set(NoTranslateTypes)
 
 
 class MapEntry:
@@ -427,27 +422,31 @@ class DispatchItem(OleItem):
                     repr(argsDesc),
                     _BuildArgList(fdesc, names),
                 )
-                s = s + "%s\tif ret is not None:\n" % (linePrefix,)
+                s = s + f"{linePrefix}\tif ret is not None:\n"
                 if rd == pythoncom.VT_UNKNOWN:
-                    s = s + "%s\t\t# See if this IUnknown is really an IDispatch\n" % (
-                        linePrefix,
-                    )
-                    s = s + "%s\t\ttry:\n" % (linePrefix,)
                     s = (
                         s
-                        + "%s\t\t\tret = ret.QueryInterface(pythoncom.IID_IDispatch)\n"
-                        % (linePrefix,)
+                        + "{}\t\t# See if this IUnknown is really an IDispatch\n".format(
+                            linePrefix,
+                        )
                     )
-                    s = s + "%s\t\texcept pythoncom.error:\n" % (linePrefix,)
-                    s = s + "%s\t\t\treturn ret\n" % (linePrefix,)
-                s = s + "%s\t\tret = Dispatch(ret, %s, %s)\n" % (
+                    s = s + f"{linePrefix}\t\ttry:\n"
+                    s = (
+                        s
+                        + "{}\t\t\tret = ret.QueryInterface(pythoncom.IID_IDispatch)\n".format(
+                            linePrefix
+                        )
+                    )
+                    s = s + f"{linePrefix}\t\texcept pythoncom.error:\n"
+                    s = s + f"{linePrefix}\t\t\treturn ret\n"
+                s = s + "{}\t\tret = Dispatch(ret, {}, {})\n".format(
                     linePrefix,
                     repr(name),
                     resclsid,
                 )
                 s = s + "%s\treturn ret" % (linePrefix)
             elif rd == pythoncom.VT_BSTR:
-                s = "%s\t# Result is a Unicode object\n" % (linePrefix,)
+                s = f"{linePrefix}\t# Result is a Unicode object\n"
                 s = (
                     s
                     + "%s\treturn self._oleobj_.InvokeTypes(%d, LCID, %s, %s, %s%s)"

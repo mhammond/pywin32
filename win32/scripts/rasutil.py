@@ -1,6 +1,7 @@
 # A demo of using the RAS API from Python
 import sys
 
+import win32api
 import win32ras
 
 
@@ -64,7 +65,7 @@ usage = """rasutil.py - Utilities for using RAS
 
 Usage:
   rasutil [-r retryCount] [-c rasname] [-d rasname]
-  
+
   -r retryCount - Number of times to retry the RAS connection
   -c rasname - Connect to the phonebook entry specified by rasname
   -d rasname - Disconnect from the phonebook entry specified by rasname

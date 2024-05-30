@@ -92,7 +92,7 @@ class FormatterBase:
         self.SetStyles()
 
     def HookFormatter(self, parent=None):
-        raise NotImplementedError()
+        raise NotImplementedError
 
     # Used by the IDLE extensions to quickly determine if a character is a string.
     def GetStringStyle(self, pos):
@@ -114,7 +114,7 @@ class FormatterBase:
         self.styles_by_id[stylenum] = style
 
     def SetStyles(self):
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def GetSampleText(self):
         return "Sample Text for the Format Dialog"
@@ -142,7 +142,7 @@ class FormatterBase:
             return
 
         assert style.stylenum is not None, "Unregistered style."
-        # print "Reformat style", style.name, style.stylenum
+        # print("Reformat style", style.name, style.stylenum)
         scintilla = self.scintilla
         stylenum = style.stylenum
         # Now we have the style number, indirect for the actual style.
@@ -252,7 +252,16 @@ class Formatter(FormatterBase):
         endStyledChar = self.scintilla.SendScintilla(scintillacon.SCI_GETENDSTYLED)
         lineEndStyled = self.scintilla.LineFromChar(endStyledChar)
         endStyled = self.scintilla.LineIndex(lineEndStyled)
-        # print "enPosPaint %d endStyledChar %d lineEndStyled %d endStyled %d" % (endPosPaint, endStyledChar, lineEndStyled, endStyled)
+        # print(
+        #     "endPosPaint",
+        #     endPosPaint,
+        #     "endStyledChar",
+        #     endStyledChar,
+        #     "lineEndStyled",
+        #     lineEndStyled,
+        #     "endStyled",
+        #     endStyled,
+        # )
         self.Colorize(endStyled, notify.position)
 
     def ColorSeg(self, start, end, styleName):
@@ -270,7 +279,7 @@ class Formatter(FormatterBase):
             self.nextstylenum = self.nextstylenum + 1
         FormatterBase.RegisterStyle(self, style, stylenum)
 
-    def ColorizeString(self, str, charStart, styleStart):
+    def ColorizeString(self, str, styleStart):
         raise RuntimeError("You must override this method")
 
     def Colorize(self, start=0, end=-1):

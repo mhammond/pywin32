@@ -113,7 +113,7 @@ class RegistryTreeView(docview.TreeView):
     def OnDeleteKey(self, command, code):
         hitem = self.hierList.GetSelectedItem()
         item = self.hierList.ItemFromHandle(hitem)
-        msg = "Are you sure you wish to delete the key '%s'?" % (item.keyName,)
+        msg = f"Are you sure you wish to delete the key '{item.keyName}'?"
         id = win32ui.MessageBox(msg, None, win32con.MB_YESNO)
         if id != win32con.IDYES:
             return
@@ -128,8 +128,6 @@ class RegistryTreeView(docview.TreeView):
             self.hierList.Refresh(hparent)
 
     def OnAddKey(self, command, code):
-        from pywin.mfc import dialog
-
         val = dialog.GetSimpleInput("New key name", "", "Add new key")
         if val is None:
             return  # cancelled.
@@ -139,8 +137,6 @@ class RegistryTreeView(docview.TreeView):
             self.hierList.Refresh(hitem)
 
     def OnAddValue(self, command, code):
-        from pywin.mfc import dialog
-
         val = dialog.GetSimpleInput("New value", "", "Add new value")
         if val is None:
             return  # cancelled.
@@ -163,9 +159,9 @@ class RegistryTreeView(docview.TreeView):
     def SearchSelectedItem(self):
         handle = self.hierList.GetChildItem(0)
         while 1:
-            # 			print "State is", self.hierList.GetItemState(handle, -1)
+            # print("State is", self.hierList.GetItemState(handle, -1))
             if self.hierList.GetItemState(handle, commctrl.TVIS_SELECTED):
-                # 				print "Item is ", self.hierList.ItemFromHandle(handle)
+                # print("Item is ", self.hierList.ItemFromHandle(handle))
                 return self.hierList.ItemFromHandle(handle)
             handle = self.hierList.GetNextSiblingItem(handle)
 
@@ -336,7 +332,7 @@ class HLIRegistryKey(hierlist.HierListItem):
         )
 
     def __repr__(self):
-        return "<%s with root=%s, key=%s>" % (
+        return "<{} with root={}, key={}>".format(
             self.__class__.__name__,
             self.keyRoot,
             self.keyName,

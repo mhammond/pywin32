@@ -15,7 +15,7 @@ def TestBuildAll(verbose=1):
     tlbInfos = selecttlb.EnumTlbs()
     for info in tlbInfos:
         if verbose:
-            print("%s (%s)" % (info.desc, info.dll))
+            print(f"{info.desc} ({info.dll})")
         try:
             makepy.GenerateFromTypeLibSpec(info)
             #          sys.stderr.write("Attr typeflags for coclass referenced object %s=%d (%d), typekind=%d\n" % (name, refAttr.wTypeFlags, refAttr.wTypeFlags & pythoncom.TYPEFLAG_FDUAL,refAttr.typekind))
@@ -31,7 +31,7 @@ def TestBuildAll(verbose=1):
                 print(details)
         except KeyboardInterrupt:
             print("Interrupted!")
-            raise KeyboardInterrupt
+            raise
         except:
             print("Failed:", info.desc)
             traceback.print_exc()

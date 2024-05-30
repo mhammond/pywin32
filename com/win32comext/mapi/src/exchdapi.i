@@ -51,7 +51,7 @@ HRESULT MyHrInstallService(
 	PyErr_Warn(PyExc_RuntimeWarning, "Not available with this version of the Exchange SDK");
 	return E_NOTIMPL;
 #else
-	return HrInstallService(lpszServer, lpszSiteDN, pszServiceDisplayName, 
+	return HrInstallService(lpszServer, lpszSiteDN, pszServiceDisplayName,
 	                        lpszServiceName, lpszCommonName, lpszObjectGuid,
 	                        lpszProductGuid, lpszExeName, lpszDependencies,
 	                        lpszAccount, lpszPassword);
@@ -71,12 +71,12 @@ HRESULT MyHrInstallService(
 	TCHAR *INPUT_NULLOK, // lpszDependencies
 	TCHAR *INPUT, // lpszAccount
 	TCHAR *INPUT_NULLOK // lpszPassword
-); 
+);
 
 
 // @pyswig |HrInstallMailboxAgent|
 %{
-HRESULT MyHrInstallMailboxAgent( 
+HRESULT MyHrInstallMailboxAgent(
 	TCHAR *Server,
 	TCHAR *SiteDN,
 	TCHAR *DisplayName,
@@ -89,13 +89,13 @@ HRESULT MyHrInstallMailboxAgent(
 	PyErr_Warn(PyExc_RuntimeWarning, "Not available with this version of the Exchange SDK");
 	return E_NOTIMPL;
 #else
-	return HrInstallMailboxAgent(Server, SiteDN, DisplayName, RDN, 
-	                               lpszExtensionName, lpszExtensionData, 
+	return HrInstallMailboxAgent(Server, SiteDN, DisplayName, RDN,
+	                               lpszExtensionName, lpszExtensionData,
 	                               lpszAccountName);
 #endif
 }
 %}
-%name(HrInstallMailboxAgent) HRESULT MyHrInstallMailboxAgent( 
+%name(HrInstallMailboxAgent) HRESULT MyHrInstallMailboxAgent(
 	TCHAR *INPUT, // Server
 	TCHAR *INPUT, // SiteDN
 	TCHAR *INPUT, // DisplayName
@@ -189,8 +189,8 @@ HRESULT MyHrEnumOrganizations(
 %name(HrEnumOrganizations) HRESULT MyHrEnumOrganizations(
 	TCHAR *INPUT_NULLOK, // @pyparm string|rootDN||Contains the distinguished name (DN) of the directory information tree (DIT) root.
 	TCHAR *INPUT_NULLOK, // @pyparm string|server||The name of the server
-	TCHAR **OUTPUT_ARRAY // lppszOrganizations 
-); 
+	TCHAR **OUTPUT_ARRAY // lppszOrganizations
+);
 
 // @pyswig [string, ...]|HrEnumSites|Lists the names of the sites in an organization.
 %{
@@ -211,7 +211,7 @@ HRESULT MyHrEnumSites(
 	TCHAR *INPUT_NULLOK, // @pyparm string|server||The name of the server
 	TCHAR *INPUT_NULLOK, // @pyparm string|organizationDN||Contains the distinguished name (DN) of the organization.
 	TCHAR **OUTPUT_ARRAY // lppszSites
-); 
+);
 
 // @pyswig [string, ...]|HrEnumContainers|Lists the names of the containers on the server
 %{

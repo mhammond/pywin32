@@ -309,7 +309,7 @@ static PyObject *PyStgDeserializePropVariant(PyObject *self, PyObject *args)
     if (!pybuf.ok())
         return NULL;
     PY_INTERFACE_PRECALL;
-    hr = StgDeserializePropVariant((SERIALIZEDPROPERTYVALUE*)pybuf.ptr(), pybuf.len(), &pv);
+    hr = StgDeserializePropVariant((SERIALIZEDPROPERTYVALUE *)pybuf.ptr(), pybuf.len(), &pv);
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return PyCom_BuildPyException(hr);
@@ -421,7 +421,7 @@ static PyObject *PyPSGetPropertyFromPropertyStorage(PyObject *self, PyObject *ar
     PROPERTYKEY key;
     PROPVARIANT val;
     PyObject *obbuf;
-    // @pyparm buffer|ps||Bytes or buffer (or str in python 2) containing a serialized property set (see <om
+    // @pyparm buffer|ps||Bytes or buffer (or str in Python 2) containing a serialized property set (see <om
     // PyIPersistSerializedPropStorage.GetPropertyStorage>)
     // @pyparm <o PyPROPERTYKEY>|key||Property to return
     if (!PyArg_ParseTuple(args, "OO&:PSGetPropertyFromPropertyStorage", &obbuf, PyWinObject_AsPROPERTYKEY, &key))
@@ -446,7 +446,7 @@ static PyObject *PyPSGetNamedPropertyFromPropertyStorage(PyObject *self, PyObjec
     TmpWCHAR name;
     PROPVARIANT val;
     PyObject *obname, *obbuf;
-    // @pyparm buffer|ps||Bytes or buffer (or str in python 2) containing a serialized property set (see <om
+    // @pyparm buffer|ps||Bytes or buffer (or str in Python 2) containing a serialized property set (see <om
     // PyIPersistSerializedPropStorage.GetPropertyStorage>)
     // @pyparm str|name||Property to return
     if (!PyArg_ParseTuple(args, "OO:PSGetNamedPropertyFromPropertyStorage", &obbuf, &obname))

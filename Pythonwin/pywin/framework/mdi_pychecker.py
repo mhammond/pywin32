@@ -38,6 +38,7 @@ import os
 import re
 import sys
 import time
+from functools import reduce
 
 import win32api
 import win32con
@@ -284,7 +285,7 @@ class TheDocument(docview.RichEditDoc):
     def doSearch(self):
         self.dp = dirpath(self.dirpattern, self.recurse)
         self.SetTitle(
-            "Pychecker Run '%s' (options: %s)" % (self.filpattern, self.greppattern)
+            f"Pychecker Run '{self.filpattern}' (options: {self.greppattern})"
         )
         # self.text = []
         self.GetFirstView().Append(
@@ -367,7 +368,7 @@ class TheDocument(docview.RichEditDoc):
                     "(or run 'setup.py install' if you have the source version)\n"
                 )
             else:
-                cmd = '%s "%s" %s %s 2>&1' % (py, pychecker, options, files)
+                cmd = f'{py} "{pychecker}" {options} {files} 2>&1'
                 ##fin,fout,ferr=os.popen3(cmd)
                 ##result=ferr.read()+fout.read()
                 result = os.popen(cmd).read()
@@ -431,10 +432,10 @@ class TheDocument(docview.RichEditDoc):
         )
 
     def OnSaveDocument(self, filename):
-        #       print 'OnSaveDocument() filename=',filename
+        # print("OnSaveDocument() filename=",filename)
         savefile = open(filename, "wb")
         txt = self.GetParams() + "\n"
-        #       print 'writing',txt
+        # print("writing",txt)
         savefile.write(txt)
         savefile.close()
         self.SetModifiedFlag(0)
@@ -842,7 +843,7 @@ class TheParamsDialog(dialog.Dialog):
 
 
 try:
-    win32ui.GetApp().RemoveDocTemplate(greptemplate)
+    win32ui.GetApp().RemoveDocTemplate(greptemplate)  # type: ignore[has-type, used-before-def]
 except NameError:
     pass
 

@@ -6,17 +6,12 @@
 # This will execute the method 'test1' below.  See below for the list of
 # test methods that are acceptable.
 
-import urllib.error
-import urllib.parse
-import urllib.request
-
 # If we have no console (eg, am running from inside IIS), redirect output
 # somewhere useful - in this case, the standard win32 trace collector.
 import win32api
 import winerror
 
-from isapi import ExtensionError, isapicon, threaded_extension
-from isapi.simple import SimpleFilter
+from isapi import ExtensionError, threaded_extension
 
 try:
     win32api.GetConsoleTitle()
@@ -31,12 +26,12 @@ class Extension(threaded_extension.ThreadPoolExtension):
     "Python ISAPI Tester"
 
     def Dispatch(self, ecb):
-        print('Tester dispatching "%s"' % (ecb.GetServerVariable("URL"),))
+        print('Tester dispatching "{}"'.format(ecb.GetServerVariable("URL")))
         url = ecb.GetServerVariable("URL")
         test_name = url.split("/")[-1]
         meth = getattr(self, test_name, None)
         if meth is None:
-            raise AttributeError("No test named '%s'" % (test_name,))
+            raise AttributeError(f"No test named '{test_name}'")
         result = meth(ecb)
         if result is None:
             # This means the test finalized everything
@@ -52,7 +47,7 @@ class Extension(threaded_extension.ThreadPoolExtension):
     def test1(self, ecb):
         try:
             ecb.GetServerVariable("foo bar")
-            raise RuntimeError("should have failed!")
+            raise AssertionError("should have failed!")
         except ExtensionError as err:
             assert err.errno == winerror.ERROR_INVALID_INDEX, err
         return "worked!"
@@ -87,10 +82,10 @@ class Extension(threaded_extension.ThreadPoolExtension):
             return "This is IIS version %g - unicode only works in IIS6 and later" % ver
 
         us = ecb.GetServerVariable("UNICODE_SERVER_NAME")
-        if not isinstance(us, str):
-            raise RuntimeError("unexpected type!")
-        if us != str(ecb.GetServerVariable("SERVER_NAME")):
-            raise RuntimeError("Unicode and non-unicode values were not the same")
+        assert isinstance(us, str), "unexpected type!"
+        assert us == str(
+            ecb.GetServerVariable("SERVER_NAME")
+        ), "Unicode and non-unicode values were not the same"
         return "worked!"
 
 

@@ -64,30 +64,30 @@ The chart control enables you to draw charts. The chart's types and styles are p
 <SCRIPT LANGUAGE="Python">
 <!-- ' This prevents script from being displayed in browsers that don't support the SCRIPT tag
 # OPTION EXPLICIT (?)
-	
+
 # Calls the AboutBox Method. This displays the Chart Object About Box
 def DoChartAboutBox():
 		ax.Chart1.AboutBox()
-	
+
 # Changes the type of chart. WhatType is passed as a value (0-5) when one of the Chart Type radio buttons is selected
 def DoChartType(WhatType):
 		ax.Chart1.ChartType = WhatType
-	
+
 # Turns horizontal gridlines on or off depending on value of chkHorizontal checkbox
 def DoHorizontalGrid():
-                print ax.chkHorizontal.Checked
+    print(ax.chkHorizontal.Checked)
 		if ax.chkHorizontal.Checked:
 			ax.Chart1.HGridStyle = 1
 		else:
 			ax.Chart1.HGridStyle = 0
-	
+
 # Sets the background of the chart to Opaque or Transparent
 def DoBackground(intBackGround):
 		ax.Chart1.BackStyle = intBackGround
 
 # Turns vertical gridlines on or off depending on value of chkVertical checkbox
 def DoVerticalGrid():
-		if ax.chkVertical.Checked:	
+		if ax.chkVertical.Checked:
 			ax.Chart1.VGridStyle = 1
 		else:
 			ax.Chart1.VGridStyle = 0

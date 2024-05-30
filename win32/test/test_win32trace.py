@@ -28,7 +28,7 @@ def CheckNoOtherReaders():
         # Reset everything so following tests still fail with this error!
         win32trace.TermRead()
         win32trace.TermWrite()
-        raise RuntimeError(
+        raise AssertionError(
             "An existing win32trace reader appears to be "
             "running - please stop this process and try again"
         )
@@ -258,8 +258,9 @@ class TraceWriteProcess:
     def start(self):
         procHandle, threadHandle, procId, threadId = win32process.CreateProcess(
             None,  # appName
-            'python.exe "%s" /run_test_process %s %s'
-            % (this_file, self.BucketCount, self.threadCount),
+            'python.exe "{}" /run_test_process {} {}'.format(
+                this_file, self.BucketCount, self.threadCount
+            ),
             None,  # process security
             None,  # thread security
             0,  # inherit handles

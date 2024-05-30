@@ -1,13 +1,13 @@
 # ModuleBrowser.py - A view that provides a module browser for an editor document.
 import pyclbr
 
-import afxres
 import commctrl
 import pywin.framework.scriptutils
 import pywin.mfc.docview
 import win32api
 import win32con
 import win32ui
+from pywin.mfc import afxres
 from pywin.tools import browser, hierlist
 
 
@@ -61,7 +61,7 @@ class HierListCLBRItem(hierlist.HierListItem):
 
     def PerformItemSelected(self):
         if self.file is None:
-            msg = "%s - source can not be located." % (self.name,)
+            msg = f"{self.name} - source can not be located."
         else:
             msg = "%s defined at line %d of %s" % (self.name, self.lineno, self.file)
         win32ui.SetStatusText(msg)
@@ -148,7 +148,7 @@ class BrowserView(pywin.mfc.docview.TreeView):
         self.DestroyList()
 
     def OnActivateView(self, activate, av, dv):
-        #        print "AV", self.bDirty, activate
+        # print("AV", self.bDirty, activate)
         if activate:
             self.CheckRefreshList()
         return self._obj_.OnActivateView(activate, av, dv)
@@ -170,7 +170,7 @@ class BrowserView(pywin.mfc.docview.TreeView):
                     pass
             else:
                 what = "Building"
-            win32ui.SetStatusText("%s class list - please wait..." % (what,), 1)
+            win32ui.SetStatusText(f"{what} class list - please wait...", 1)
             win32ui.DoWaitCursor(1)
             try:
                 reader = pyclbr.readmodule_ex  # new version post 1.5.2
