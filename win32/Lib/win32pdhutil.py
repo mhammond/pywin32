@@ -24,6 +24,8 @@ import time
 
 import win32pdh
 
+error = win32pdh.error  # Re-exported alias
+
 # Handle some localization issues.
 # see http://support.microsoft.com/default.aspx?scid=http://support.microsoft.com:80/support/kb/articles/Q287/1/59.asp&NoWebContent=1
 # Build a map of english_counter_name: counter_id

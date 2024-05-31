@@ -6,6 +6,7 @@ import win32con
 import win32evtlog
 import winerror
 
+error = win32api.error  # Re-exported alias (The error the evtlog module raises).
 langid = win32api.MAKELANGID(win32con.LANG_NEUTRAL, win32con.SUBLANG_NEUTRAL)
 
 

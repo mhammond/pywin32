@@ -16,7 +16,8 @@ functions directly.
 # $Id$
 import sspicon
 import win32security
-from win32security import error
+
+error = win32security.error  # Re-exported alias
 
 
 class _BaseAuth:

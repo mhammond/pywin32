@@ -5,6 +5,8 @@
 import pythoncom
 from win32com.client import gencache
 
+com_error = pythoncom.com_error  # Re-exported alias
+
 
 def RegisterInterfaces(typelibGUID, lcid, major, minor, interface_names=None):
     ret = []  # return a list of (dispid, funcname for our policy's benefit

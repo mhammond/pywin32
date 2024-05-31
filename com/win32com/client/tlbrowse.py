@@ -10,6 +10,8 @@ class TLBrowserException(Exception):
     "TypeLib browser internal error"
 
 
+error = TLBrowserException  # Re-exported alias
+
 FRAMEDLG_STD = win32con.WS_CAPTION | win32con.WS_SYSMENU
 SS_STD = win32con.WS_CHILD | win32con.WS_VISIBLE
 BS_STD = SS_STD | win32con.WS_TABSTOP
@@ -206,7 +208,7 @@ class TypeBrowseDialog(TypeBrowseDialog_Parent):
         elif pos >= 0:
             return pos, 0
         else:
-            raise TLBrowserException("The position is not valid")
+            raise error("The position is not valid")
 
     def CmdMemberListbox(self, id, code):
         if code == win32con.LBN_SELCHANGE:
