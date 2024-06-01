@@ -81,8 +81,8 @@ elif node == "yyy":  # ACCESS data base is known to fail some tests.
     testmdb = setuptestframework.makemdb(testfolder)
     connStr = r"Provider=%s;Data Source=%s" % (driver, testmdb)
 
-print("Using Connection String like=%s" % connStr)
-print("Keywords=%s" % repr(conn_kws))
+print(f"Using Connection String like={connStr}")
+print(f"Keywords={conn_kws!r}")
 
 
 class test_adodbapi(dbapi20.DatabaseAPI20Test):
