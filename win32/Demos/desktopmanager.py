@@ -185,7 +185,7 @@ def icon_wndproc(hwnd, msg, wp, lp):
             mf_flags = win32con.MF_STRING
             ## if you switch to winlogon yourself, there's nothing there and you're stuck
             if desktops[d - 1].lower() in ("winlogon", "disconnect"):
-                mf_flags = mf_flags | win32con.MF_GRAYED | win32con.MF_DISABLED
+                mf_flags |= win32con.MF_GRAYED | win32con.MF_DISABLED
             if desktops[d - 1] == curr_desktop_name:
                 mf_flags |= win32con.MF_CHECKED
             win32gui.AppendMenu(m, mf_flags, d, desktops[d - 1])

@@ -341,7 +341,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
                 return
             keyname = configManager.get_key_binding(event, self._GetSubConfigNames())
             if keyname is not None:
-                text = text + "\t" + keyname
+                text += "\t" + keyname
         if flags is None:
             flags = win32con.MF_STRING | win32con.MF_ENABLED
         if checked:

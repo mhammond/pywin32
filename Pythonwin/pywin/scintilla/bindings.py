@@ -164,13 +164,11 @@ class BindingsManager:
         key = msg[2]
         keyState = 0
         if win32api.GetKeyState(win32con.VK_CONTROL) & 0x8000:
-            keyState = (
-                keyState | win32con.RIGHT_CTRL_PRESSED | win32con.LEFT_CTRL_PRESSED
-            )
+            keyState |= win32con.RIGHT_CTRL_PRESSED | win32con.LEFT_CTRL_PRESSED
         if win32api.GetKeyState(win32con.VK_SHIFT) & 0x8000:
             keyState |= win32con.SHIFT_PRESSED
         if win32api.GetKeyState(win32con.VK_MENU) & 0x8000:
-            keyState = keyState | win32con.LEFT_ALT_PRESSED | win32con.RIGHT_ALT_PRESSED
+            keyState |= win32con.LEFT_ALT_PRESSED | win32con.RIGHT_ALT_PRESSED
         keyinfo = key, keyState
         # Special hacks for the dead-char key on non-US keyboards.
         # (XXX - which do not work :-(

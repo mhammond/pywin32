@@ -236,9 +236,7 @@ PyObject *Py{interfacename}::{method}(PyObject *self, PyObject *args)
                     if val:
                         f.write("\t" + argCvt.GetAutoduckString() + "\n")
                         formatChars += val
-                        argsParseTuple = (
-                            argsParseTuple + ", " + argCvt.GetParseTupleArg()
-                        )
+                        argsParseTuple += ", " + argCvt.GetParseTupleArg()
                         codePobjects += argCvt.DeclareParseArgTupleInputConverter()
                         codePost += argCvt.GetParsePostCode()
                         needConversion = needConversion or argCvt.NeedUSES_CONVERSION()
@@ -247,7 +245,7 @@ PyObject *Py{interfacename}::{method}(PyObject *self, PyObject *args)
                 comArgName, comArgDeclString = argCvt.GetInterfaceCppObjectInfo()
                 if comArgDeclString:  # If we should declare a variable
                     codeCobjects += "\t%s;\n" % comArgDeclString
-                argsCOM = argsCOM + ", " + comArgName
+                argsCOM += ", " + comArgName
             except makegwparse.error_not_supported as why:
                 f.write(
                     '// *** The input argument {} of type "{}" was not processed ***\n//     Please check the conversion function is appropriate and exists!\n'.format(
@@ -268,7 +266,7 @@ PyObject *Py{interfacename}::{method}(PyObject *self, PyObject *args)
                 formatChars += "O"
                 argsParseTuple += ", &ob%s" % arg.name
 
-                argsCOM = argsCOM + ", " + arg.name
+                argsCOM += ", " + arg.name
                 cleanup += f"\tPyObject_Free{arg.type}({arg.name});\n"
 
         if needConversion:
@@ -311,7 +309,7 @@ PyObject *Py{interfacename}::{method}(PyObject *self, PyObject *args)
                     formatChars += formatChar
                     codePre += argCvt.GetBuildForInterfacePreCode()
                     codePost += argCvt.GetBuildForInterfacePostCode()
-                    codeVarsPass = codeVarsPass + ", " + argCvt.GetBuildValueArg()
+                    codeVarsPass += ", " + argCvt.GetBuildValueArg()
                     codeDecl += argCvt.DeclareParseArgTupleInputConverter()
             except makegwparse.error_not_supported as why:
                 f.write(
@@ -469,7 +467,7 @@ STDMETHODIMP {gname}::{method.name}(
                         if formatchar:
                             formatChars += formatchar
                             codeVars += argCvt.DeclareParseArgTupleInputConverter()
-                            argStr = argStr + ", " + argCvt.GetBuildValueArg()
+                            argStr += ", " + argCvt.GetBuildValueArg()
                         codePre += argCvt.GetBuildForGatewayPreCode()
                         codePost += argCvt.GetBuildForGatewayPostCode()
                     except makegwparse.error_not_supported as why:
@@ -526,9 +524,7 @@ STDMETHODIMP {gname}::{method.name}(
                     val = argCvt.GetFormatChar()
                     if val:
                         formatChars += val
-                        argsParseTuple = (
-                            argsParseTuple + ", " + argCvt.GetParseTupleArg()
-                        )
+                        argsParseTuple += ", " + argCvt.GetParseTupleArg()
                         codePobjects += argCvt.DeclareParseArgTupleInputConverter()
                         codePost += argCvt.GetParsePostCode()
                         needConversion = needConversion or argCvt.NeedUSES_CONVERSION()

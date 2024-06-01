@@ -24,7 +24,7 @@ def GetComments(line, lineNo, lines):
         if data[1].strip().startswith("@"):
             # new command
             break
-        doc = doc + "\n// " + data[1].strip()
+        doc += "\n// " + data[1].strip()
         lineNo += 1
     # This line doesnt match - step back
     lineNo -= 1

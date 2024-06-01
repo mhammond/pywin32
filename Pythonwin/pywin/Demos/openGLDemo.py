@@ -72,7 +72,7 @@ class OpenGLView(OpenGLViewParent):
         # include CS_PARENTDC for the class style. Refer to SetPixelFormat
         # documentation in the "Comments" section for further information.
         style = cc[5]
-        style = style | win32con.WS_CLIPSIBLINGS | win32con.WS_CLIPCHILDREN
+        style |= win32con.WS_CLIPSIBLINGS | win32con.WS_CLIPCHILDREN
         cc = cc[0], cc[1], cc[2], cc[3], cc[4], style, cc[6], cc[7], cc[8]
         cc = self._obj_.PreCreateWindow(cc)
         return cc

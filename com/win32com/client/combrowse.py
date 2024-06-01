@@ -462,7 +462,7 @@ class HLITypeLibFunction(HLICOM):
             first = returnTypeDesc[0]
             result = self.MakeReturnType(first)
             if first != pythoncom.VT_USERDEFINED:
-                result = result + " " + self.MakeReturnType(returnTypeDesc[1])
+                result += " " + self.MakeReturnType(returnTypeDesc[1])
             return result
         else:
             return self.MakeReturnTypeName(returnTypeDesc)

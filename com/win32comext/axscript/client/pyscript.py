@@ -341,7 +341,7 @@ class PyScript(framework.COMScript):
         if codeBlock is not None:
             realCode = "def %s():\n" % funcName
             for line in framework.RemoveCR(codeBlock.codeText).split("\n"):
-                realCode = realCode + "\t" + line + "\n"
+                realCode += "\t" + line + "\n"
             realCode += "\n"
             if not self.CompileInScriptedSection(codeBlock, "exec", realCode):
                 return

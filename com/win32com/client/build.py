@@ -760,11 +760,11 @@ def BuildCallList(
             if is_comment:
                 strval += "#"
             strval += "\t\t\t"
-        strval = strval + ", " + argName
+        strval += ", " + argName
         if defArgVal:
-            strval = strval + "=" + defArgVal
+            strval += "=" + defArgVal
     if numOptArgs == -1:
-        strval = strval + ", *" + names[-1]
+        strval += ", *" + names[-1]
 
     return strval
 

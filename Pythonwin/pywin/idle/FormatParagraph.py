@@ -141,7 +141,7 @@ def reformat_paragraph(data, limit=70):
             if len((partial + word).expandtabs()) > limit and partial != indent1:
                 new.append(partial.rstrip())
                 partial = indent2
-            partial = partial + word + " "
+            partial += word + " "
             if j + 1 < len(words) and words[j + 1] != " ":
                 partial += " "
         i += 1
