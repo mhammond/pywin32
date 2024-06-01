@@ -218,9 +218,9 @@ class GrepDocument(docview.RichEditDoc):
             paramstr = win32ui.GetProfileVal("Grep", "Params", "\t\t\t1\t0\t0")
         params = paramstr.split("\t")
         if len(params) < 3:
-            params += [""] * (3 - len(params))
+            params.extend([""] * (3 - len(params)))
         if len(params) < 6:
-            params += [0] * (6 - len(params))
+            params.extend([0] * (6 - len(params)))
         self.dirpattern = params[0]
         self.filpattern = params[1]
         self.greppattern = params[2]
@@ -624,7 +624,7 @@ class GrepDialog(dialog.Dialog):
             i = 0
             newitems = dlg.getNew()
             if newitems:
-                items += newitems
+                items.extend(newitems)
                 for item in items:
                     win32api.WriteProfileVal(section, repr(i), item, ini)
                     i += 1

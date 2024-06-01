@@ -130,7 +130,7 @@ def _get_class_attributes(ob):
     # Recurse into base classes looking for attributes
     items = []
     try:
-        items += dir(ob)
+        items.extend(dir(ob))
         for i in ob.__bases__:
             for item in _get_class_attributes(i):
                 if item not in items:

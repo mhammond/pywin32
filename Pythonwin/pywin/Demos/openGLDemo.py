@@ -50,13 +50,13 @@ def ComponentFromIndex(i, nbits, shift):
     # val = (unsigned char) (i >> shift);
     val = (i >> shift) & 0xF
     if nbits == 1:
-        val &= 1
+        val &= 0x1
         return oneto8[val]
     elif nbits == 2:
-        val &= 3
+        val &= 0x3
         return twoto8[val]
     elif nbits == 3:
-        val &= 7
+        val &= 0x7
         return threeto8[val]
     else:
         return 0

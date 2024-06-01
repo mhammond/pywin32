@@ -41,7 +41,7 @@ def handle_globs(lGlobs):
         new = glob.glob(g)
         if len(new) == 0:
             print(f"The pattern '{g}' yielded no files!")
-        lFiles += new
+        lFiles.extend(new)
     # lFiles is now the list of origin files.
     # Normalize all of the paths:
     cFiles = len(lFiles)

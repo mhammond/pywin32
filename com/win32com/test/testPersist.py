@@ -64,7 +64,7 @@ class LockBytes:
     def SetSize(self, size):
         print("Set Size" + str(size))
         if size > len(self.data):
-            self.data += b"\x00" * (size - len(self.data))
+            self.data += b"\000" * (size - len(self.data))
         else:
             self.data = self.data[0:size]
         return S_OK

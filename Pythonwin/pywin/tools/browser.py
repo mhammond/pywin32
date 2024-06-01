@@ -175,7 +175,7 @@ class HLIClass(HLIPythonObject):
         ret = []
         for base in self.myobject.__bases__:
             ret.append(MakeHLI(base, "Base class: " + base.__name__))
-        ret += HLIPythonObject.GetSubList(self)
+        ret.extend(HLIPythonObject.GetSubList(self))
         return ret
 
 
@@ -224,7 +224,7 @@ class HLIInstance(HLIPythonObject):
     def GetSubList(self):
         ret = []
         ret.append(MakeHLI(self.myobject.__class__))
-        ret += HLIPythonObject.GetSubList(self)
+        ret.extend(HLIPythonObject.GetSubList(self))
         return ret
 
 

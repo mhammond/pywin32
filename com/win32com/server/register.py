@@ -304,7 +304,7 @@ def RegisterServer(
     if addPyComCat is None:
         addPyComCat = pythoncom.frozen == 0
     if addPyComCat:
-        catids += [CATID_PythonCOMServer]
+        catids.append(CATID_PythonCOMServer)
 
     # Set up the implemented categories
     if catids:
@@ -360,7 +360,7 @@ def GetUnregisterServerKeys(clsid, progID=None, verProgID=None, customKeys=None)
     ret.append(("AppID\\%s" % str(clsid), win32con.HKEY_CLASSES_ROOT))
     # Any custom keys?
     if customKeys:
-        ret += customKeys
+        ret.extend(customKeys)
 
     return ret
 
@@ -536,7 +536,7 @@ def UnregisterInfoClasses(*classes, **flags):
         verProgID = _get(cls, "_reg_verprogid_")
         customKeys = _get(cls, "_reg_remove_keys_")
 
-        ret += GetUnregisterServerKeys(clsid, progID, verProgID, customKeys)
+        ret.extend(GetUnregisterServerKeys(clsid, progID, verProgID, customKeys))
     return ret
 
 

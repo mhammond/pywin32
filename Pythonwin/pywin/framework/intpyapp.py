@@ -489,7 +489,7 @@ class InteractivePythonApp(app.CApp):
             except AttributeError:
                 # Template does not provide property pages!
                 continue
-            pages += getter()
+            pages.extend(getter())
 
         # Debugger template goes at the end
         try:

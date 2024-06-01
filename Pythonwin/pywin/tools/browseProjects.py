@@ -188,7 +188,7 @@ class HLIDirectoryItem(hierlist.HierListItem):
                 path = win32api.GetFullPathName(
                     os.path.join(self.path, "..\\win32comext")
                 )
-                ret += MakePathSubList(path)
+                ret.extend(MakePathSubList(path))
             except win32ui.error:
                 pass
         return ret
