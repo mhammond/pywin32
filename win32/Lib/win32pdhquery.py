@@ -443,7 +443,7 @@ class Query(BaseQuery):
         try:
             while instances[cur + 1] == object:
                 temp.append(object)
-                cur = cur + 1
+                cur += 1
         except IndexError:  # if we went over the end
             pass
         paths = []

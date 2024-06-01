@@ -84,9 +84,9 @@ def _FindIt(control, searchParams):
     # Move to the next char, so we find the next one.
     flags = 0
     if searchParams.matchWords:
-        flags = flags | win32con.FR_WHOLEWORD
+        flags |= win32con.FR_WHOLEWORD
     if searchParams.matchCase:
-        flags = flags | win32con.FR_MATCHCASE
+        flags |= win32con.FR_MATCHCASE
     if searchParams.sel == (-1, -1):
         sel = control.GetSel()
         # If the position is the same as we found last time,
@@ -500,7 +500,7 @@ class ReplaceDialog(FindReplaceDialog):
                 num = 1
                 lastSearch.replaceText = self.editReplaceText.GetWindowText()
                 while _ReplaceIt(control) == FOUND_NORMAL:
-                    num = num + 1
+                    num += 1
 
             win32ui.SetStatusText("Replaced %d occurrences" % num)
             if num > 0 and not self.butKeepDialogOpen.GetCheck():

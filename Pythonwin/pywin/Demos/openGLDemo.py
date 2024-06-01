@@ -50,13 +50,13 @@ def ComponentFromIndex(i, nbits, shift):
     # val = (unsigned char) (i >> shift);
     val = (i >> shift) & 0xF
     if nbits == 1:
-        val = val & 0x1
+        val &= 1
         return oneto8[val]
     elif nbits == 2:
-        val = val & 0x3
+        val &= 3
         return twoto8[val]
     elif nbits == 3:
-        val = val & 0x7
+        val &= 7
         return threeto8[val]
     else:
         return 0
@@ -287,9 +287,9 @@ class CubeView(OpenGLView):
         glRotatef(self.wAngleY, 0.0, 1.0, 0.0)
         glRotatef(self.wAngleZ, 0.0, 0.0, 1.0)
 
-        self.wAngleX = self.wAngleX + 1.0
-        self.wAngleY = self.wAngleY + 10.0
-        self.wAngleZ = self.wAngleZ + 5.0
+        self.wAngleX += 1.0
+        self.wAngleY += 10.0
+        self.wAngleZ += 5.0
 
         glBegin(GL_QUAD_STRIP)
         glColor3f(1.0, 0.0, 1.0)

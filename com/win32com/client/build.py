@@ -328,15 +328,15 @@ class DispatchItem(OleItem):
         for argCheck in argTuple:
             inOut = argCheck[1]
             if inOut == 0:
-                ins = ins + 1
-                out = out + 1
+                ins += 1
+                out += 1
             else:
                 if inOut & pythoncom.PARAMFLAG_FIN:
-                    ins = ins + 1
+                    ins += 1
                 if inOut & pythoncom.PARAMFLAG_FOPT:
-                    opts = opts + 1
+                    opts += 1
                 if inOut & pythoncom.PARAMFLAG_FOUT:
-                    out = out + 1
+                    out += 1
         return ins, out, opts
 
     def MakeFuncMethod(self, entry, name, bMakeClass=1):
@@ -422,42 +422,30 @@ class DispatchItem(OleItem):
                     repr(argsDesc),
                     _BuildArgList(fdesc, names),
                 )
-                s = s + f"{linePrefix}\tif ret is not None:\n"
+                s += f"{linePrefix}\tif ret is not None:\n"
                 if rd == pythoncom.VT_UNKNOWN:
-                    s = (
-                        s
-                        + "{}\t\t# See if this IUnknown is really an IDispatch\n".format(
-                            linePrefix,
-                        )
+                    s += "{}\t\t# See if this IUnknown is really an IDispatch\n".format(
+                        linePrefix
                     )
-                    s = s + f"{linePrefix}\t\ttry:\n"
-                    s = (
-                        s
-                        + "{}\t\t\tret = ret.QueryInterface(pythoncom.IID_IDispatch)\n".format(
-                            linePrefix
-                        )
+                    s += f"{linePrefix}\t\ttry:\n"
+                    s += "{}\t\t\tret = ret.QueryInterface(pythoncom.IID_IDispatch)\n".format(
+                        linePrefix
                     )
-                    s = s + f"{linePrefix}\t\texcept pythoncom.error:\n"
-                    s = s + f"{linePrefix}\t\t\treturn ret\n"
-                s = s + "{}\t\tret = Dispatch(ret, {}, {})\n".format(
-                    linePrefix,
-                    repr(name),
-                    resclsid,
+                    s += f"{linePrefix}\t\texcept pythoncom.error:\n"
+                    s += f"{linePrefix}\t\t\treturn ret\n"
+                s += "{}\t\tret = Dispatch(ret, {}, {})\n".format(
+                    linePrefix, repr(name), resclsid
                 )
-                s = s + "%s\treturn ret" % (linePrefix)
+                s += "%s\treturn ret" % linePrefix
             elif rd == pythoncom.VT_BSTR:
                 s = f"{linePrefix}\t# Result is a Unicode object\n"
-                s = (
-                    s
-                    + "%s\treturn self._oleobj_.InvokeTypes(%d, LCID, %s, %s, %s%s)"
-                    % (
-                        linePrefix,
-                        id,
-                        fdesc[4],
-                        retDesc,
-                        repr(argsDesc),
-                        _BuildArgList(fdesc, names),
-                    )
+                s += "%s\treturn self._oleobj_.InvokeTypes(%d, LCID, %s, %s, %s%s)" % (
+                    linePrefix,
+                    id,
+                    fdesc[4],
+                    retDesc,
+                    repr(argsDesc),
+                    _BuildArgList(fdesc, names),
                 )
             # else s remains None
         if s is None:
@@ -629,7 +617,7 @@ def _BuildArgList(fdesc, names):
     # As per BuildCallList(), avoid huge lines.
     # Hack a "\n" at the end of every 5th name
     for i in range(0, len(names), 5):
-        names[i] = names[i] + "\n\t\t\t"
+        names[i] += "\n\t\t\t"
     return "," + ", ".join(names)
 
 
@@ -731,7 +719,7 @@ def BuildCallList(
     strval = ""
     if numOptArgs == -1:  # Special value that says "var args after here"
         firstOptArg = numArgs
-        numArgs = numArgs - 1
+        numArgs -= 1
     else:
         firstOptArg = numArgs - numOptArgs
     for arg in range(numArgs):
@@ -768,10 +756,10 @@ def BuildCallList(
         # This may still fail if the arg names are insane, but that seems
         # unlikely.  See also _BuildArgList()
         if (arg + 1) % 5 == 0:
-            strval = strval + "\n"
+            strval += "\n"
             if is_comment:
-                strval = strval + "#"
-            strval = strval + "\t\t\t"
+                strval += "#"
+            strval += "\t\t\t"
         strval = strval + ", " + argName
         if defArgVal:
             strval = strval + "=" + defArgVal

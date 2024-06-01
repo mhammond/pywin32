@@ -211,7 +211,7 @@ class InteractiveFormatter(FormatterParent):
                 # and ask the Python colorizer to color that.
                 end = startSeg
                 while end < lengthDoc and cdoc[end] not in b"\r\n":
-                    end = end + 1
+                    end += 1
                 self.ColorizePythonCode(cdoc[:end], startSeg, state)
                 stylePyStart = self.GetStringStyle(end - 1)
                 if stylePyStart is None:
@@ -224,7 +224,7 @@ class InteractiveFormatter(FormatterParent):
                 state = STYLE_INTERACTIVE_EOL
             if lastState != state:
                 lastState = state
-            i = i + 1
+            i += 1
         # and the rest
         if startSeg < i:
             self.ColorSeg(startSeg, i - 1, state)
@@ -243,7 +243,7 @@ class InteractiveFormatter(FormatterParent):
             # If TQString, we continue it.  Otherwise, we reset.
             look = start - 1
             while look and self.scintilla.SCIGetCharAt(look) in "\n\r":
-                look = look - 1
+                look -= 1
             if look and look < start - 1:  # Did we find a char before the \n\r sets?
                 strstyle = self.GetStringStyle(look)
                 quote_char = None
@@ -454,12 +454,12 @@ class InteractiveCore:
             while startLineNo > 0:
                 if GetPromptPrefix(self.DoGetLine(startLineNo - 1)) is not None:
                     break  # there _is_ a prompt
-                startLineNo = startLineNo - 1
+                startLineNo -= 1
             endLineNo = lineNo
             while endLineNo < maxLineNo:
                 if GetPromptPrefix(self.DoGetLine(endLineNo + 1)) is not None:
                     break  # there _is_ a prompt
-                endLineNo = endLineNo + 1
+                endLineNo += 1
         else:  # Code block
             flag = 1
             startLineNo = lineNo
@@ -468,7 +468,7 @@ class InteractiveCore:
                 if prefix is None:
                     break
                     # there is no prompt.
-                startLineNo = startLineNo - 1
+                startLineNo -= 1
             endLineNo = lineNo
             while endLineNo < maxLineNo:
                 prefix = GetPromptPrefix(self.DoGetLine(endLineNo + 1))
@@ -476,7 +476,7 @@ class InteractiveCore:
                     break  # there is no prompt
                 if prefix == str(sys.ps1):
                     break  # this is another command
-                endLineNo = endLineNo + 1
+                endLineNo += 1
                 # continue until end of buffer, or no prompt
         return (startLineNo, endLineNo, flag)
 
@@ -487,7 +487,7 @@ class InteractiveCore:
             thisLine = self.DoGetLine(end)
             promptLen = len(GetPromptPrefix(thisLine))
             retList = [thisLine[promptLen:]] + retList
-            end = end - 1
+            end -= 1
         return retList
 
     def OutputGrab(self):
@@ -584,10 +584,10 @@ class InteractiveCore:
             pos = 0
             indent = ""
             while len(curLine) > pos and curLine[pos] in string.whitespace:
-                indent = indent + curLine[pos]
-                pos = pos + 1
+                indent += curLine[pos]
+                pos += 1
             if _is_block_opener(curLine):
-                indent = indent + "\t"
+                indent += "\t"
             elif _is_block_closer(curLine):
                 indent = indent[:-1]
             # use ReplaceSel to ensure it goes at the cursor rather than end of buffer.

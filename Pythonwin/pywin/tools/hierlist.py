@@ -217,7 +217,7 @@ class HierList(object.Object):
                 if old_items[iold] == new_items[inewlook]:
                     matched = 1
                     break
-                inewlook = inewlook + 1
+                inewlook += 1
             if matched:
                 # Insert the new items.
                 # print("Inserting after", old_items[iold], old_handles[iold])

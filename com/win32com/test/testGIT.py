@@ -110,7 +110,7 @@ def test(fn):
             if rc >= win32event.WAIT_OBJECT_0 and rc < win32event.WAIT_OBJECT_0 + len(
                 events
             ):
-                numFinished = numFinished + 1
+                numFinished += 1
                 if numFinished >= len(events):
                     break
             elif rc == win32event.WAIT_OBJECT_0 + len(events):  # a message

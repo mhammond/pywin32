@@ -107,11 +107,11 @@ class DebugStackFrame(gateways.DebugStackFrame):
         filename = self.frame.f_code.co_filename
         s = ""
         if 0:  # fLong:
-            s = s + filename
+            s += filename
         if self.frame.f_code.co_name:
-            s = s + self.frame.f_code.co_name
+            s += self.frame.f_code.co_name
         else:
-            s = s + "<lambda>"
+            s += "<lambda>"
         return s
 
     def GetLanguageString(self, fLong):

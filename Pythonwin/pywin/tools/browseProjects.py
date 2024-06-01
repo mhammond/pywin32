@@ -188,7 +188,7 @@ class HLIDirectoryItem(hierlist.HierListItem):
                 path = win32api.GetFullPathName(
                     os.path.join(self.path, "..\\win32comext")
                 )
-                ret = ret + MakePathSubList(path)
+                ret += MakePathSubList(path)
             except win32ui.error:
                 pass
         return ret
@@ -233,7 +233,7 @@ class HLIRoot(hierlist.HierListItem):
             while 1:
                 try:
                     ret.append(HLIProjectRoot(win32api.RegEnumKey(hKey, index)))
-                    index = index + 1
+                    index += 1
                 except win32api.error:
                     break
             return ret

@@ -59,7 +59,7 @@ def UserEnum():
         )
         for user in data:
             verbose("Found user %s" % user["name"])
-            nuser = nuser + 1
+            nuser += 1
         if not resume:
             break
     assert nuser, "Could not find any users!"
@@ -82,7 +82,7 @@ def GroupEnum():
                 )
                 for member in memberdata:
                     verbose(" Member {name}".format(**member))
-                    nmembers = nmembers + 1
+                    nmembers += 1
                 if memberresume == 0:
                     break
         if not resume:
@@ -109,7 +109,7 @@ def LocalGroupEnum():
                     username, domain, type = win32security.LookupAccountSid(
                         server, member["sid"]
                     )
-                    nmembers = nmembers + 1
+                    nmembers += 1
                     verbose(" Member {} ({})".format(username, member["domainandname"]))
                 if memberresume == 0:
                     break
@@ -242,7 +242,7 @@ def main():
             usage(tests)
         if opt == "-v":
             global verbose_level
-            verbose_level = verbose_level + 1
+            verbose_level += 1
         if opt == "-c":
             create_user = True
 

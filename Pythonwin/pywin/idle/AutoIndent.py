@@ -148,7 +148,7 @@ class AutoIndent:
         ncharsdeleted = 0
         while 1:
             chars = chars[:-1]
-            ncharsdeleted = ncharsdeleted + 1
+            ncharsdeleted += 1
             have = len(chars.expandtabs(self.tabwidth))
             if have <= want or chars[-1] not in " \t":
                 break
@@ -203,7 +203,7 @@ class AutoIndent:
             line = text.get("insert linestart", "insert")
             i, n = 0, len(line)
             while i < n and line[i] in " \t":
-                i = i + 1
+                i += 1
             if i == n:
                 # the cursor is in or at leading indentation; just inject
                 # an empty line at the start and strip space from current line
@@ -215,7 +215,7 @@ class AutoIndent:
             i = 0
             while line and line[-1] in " \t":
                 line = line[:-1]
-                i = i + 1
+                i += 1
             if i:
                 text.delete("insert - %d chars" % i, "insert")
             # strip whitespace after insert point
@@ -298,7 +298,7 @@ class AutoIndent:
             line = lines[pos]
             if line:
                 raw, effective = classifyws(line, self.tabwidth)
-                effective = effective + self.indentwidth
+                effective += self.indentwidth
                 lines[pos] = self._make_blanks(effective) + line[raw:]
         self.set_region(head, tail, chars, lines)
         return "break"
@@ -473,10 +473,10 @@ def classifyws(s, tabwidth):
     raw = effective = 0
     for ch in s:
         if ch == " ":
-            raw = raw + 1
-            effective = effective + 1
+            raw += 1
+            effective += 1
         elif ch == "\t":
-            raw = raw + 1
+            raw += 1
             effective = (effective // tabwidth + 1) * tabwidth
         else:
             break

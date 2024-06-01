@@ -391,9 +391,9 @@ def main():
             elif o == "-o":
                 outputName = v
             elif o == "-v":
-                verboseLevel = verboseLevel + 1
+                verboseLevel += 1
             elif o == "-q":
-                verboseLevel = verboseLevel - 1
+                verboseLevel -= 1
             elif o == "-i":
                 if len(args) == 0:
                     ShowInfo(None)

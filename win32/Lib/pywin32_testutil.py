@@ -31,7 +31,7 @@ class LeakTestCase(unittest.TestCase):
         self.num_test_cases = 1
         self.num_leak_iters = 2  # seems to be enough!
         if hasattr(sys, "gettotalrefcount"):
-            self.num_test_cases = self.num_test_cases + self.num_leak_iters
+            self.num_test_cases += self.num_leak_iters
 
     def countTestCases(self):
         return self.num_test_cases

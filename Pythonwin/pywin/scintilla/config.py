@@ -133,7 +133,7 @@ class ConfigManager:
                 line = fp.readline()
                 if not line:
                     break
-                lineno = lineno + 1
+                lineno += 1
                 section, subsection = get_section_header(line)
             if not line:
                 break
@@ -151,7 +151,7 @@ class ConfigManager:
                     f"Unrecognised section header '{section}:{subsection}'"
                 )
                 line = fp.readline()
-                lineno = lineno + 1
+                lineno += 1
         if b_close:
             fp.close()
         # Check critical data.
@@ -201,7 +201,7 @@ class ConfigManager:
                 for name, func in list(ns.items()):
                     if isinstance(func, types.FunctionType) and name[:1] != "_":
                         bindings.bind(name, func)
-                        num = num + 1
+                        num += 1
                 trace("Configuration Extension code loaded", num, "events")
         # Load the idle extensions
         for subsection in subsections:
@@ -218,7 +218,7 @@ class ConfigManager:
         for subsection in subsections:
             keymap = subsection_keymap.get(subsection, {})
             bindings.update_keymap(keymap)
-            num_bound = num_bound + len(keymap)
+            num_bound += len(keymap)
         trace("Configuration bound", num_bound, "keys")
 
     def get_key_binding(self, event, subsections=None):
@@ -250,7 +250,7 @@ class ConfigManager:
 
     def _readline(self, fp, lineno, bStripComments=1):
         line = fp.readline()
-        lineno = lineno + 1
+        lineno += 1
         if line:
             bBreak = (
                 get_section_header(line)[0] is not None

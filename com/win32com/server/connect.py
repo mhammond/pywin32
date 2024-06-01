@@ -52,7 +52,7 @@ class ConnectableServer:
             )
         except pythoncom.com_error:
             raise COMException(scode=olectl.CONNECT_E_NOCONNECTION)
-        self.cookieNo = self.cookieNo + 1
+        self.cookieNo += 1
         self.connections[self.cookieNo] = interface
         return self.cookieNo
 

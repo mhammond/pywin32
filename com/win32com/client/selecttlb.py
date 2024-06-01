@@ -83,7 +83,7 @@ def EnumKeys(root):
             val = ""  # code using this assumes a string.
 
         ret.append((item, val))
-        index = index + 1
+        index += 1
     return ret
 
 

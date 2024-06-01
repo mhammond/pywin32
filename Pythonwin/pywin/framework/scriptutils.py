@@ -280,7 +280,7 @@ def RunScript(defName=None, defArgs=None, bShowDialog=1, debuggingType=None):
     if (
         len(os.path.splitext(script)[1]) == 0
     ):  # check if no extension supplied, and give one.
-        script = script + ".py"
+        script += ".py"
     # If no path specified, try and locate the file
     path, fnameonly = os.path.split(script)
     if len(path) == 0:
@@ -675,7 +675,7 @@ def LocatePythonFile(fileName, bBrowseIfDir=1):
                     else:
                         return None
             else:
-                fileName = fileName + ".py"
+                fileName += ".py"
                 if os.path.isfile(fileName):
                     break  # Found it!
 

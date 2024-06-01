@@ -75,7 +75,7 @@ class SourceCodeContainer:
             if lineOffset > charPos:
                 break
             lastOffset = lineOffset
-            lineNo = lineNo + 1
+            lineNo += 1
         else:  # for not broken.
             # print("Cant find", charPos, "in", self.lineOffsets)
             raise COMException(scode=winerror.S_FALSE)
@@ -87,7 +87,7 @@ class SourceCodeContainer:
             self.nextLineNo = 0  # auto-reset.
             return ""
         rc = self.lines[self.nextLineNo]
-        self.nextLineNo = self.nextLineNo + 1
+        self.nextLineNo += 1
         return rc
 
     def GetLine(self, num):
@@ -261,9 +261,9 @@ if __name__ == "__main__":
     attrlen = 0
     for attr in attrs:
         if isinstance(attr, tuple):
-            attrlen = attrlen + attr[1]
+            attrlen += attr[1]
         else:
-            attrlen = attrlen + 1
+            attrlen += 1
     text = sc.GetText()
     if attrlen != len(text):
         print(f"Lengths dont match!!! ({attrlen}/{len(text)})")

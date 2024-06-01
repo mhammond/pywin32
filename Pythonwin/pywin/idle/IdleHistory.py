@@ -45,9 +45,9 @@ class History:
         nprefix = len(prefix)
         while 1:
             if reverse:
-                pointer = pointer - 1
+                pointer -= 1
             else:
-                pointer = pointer + 1
+                pointer += 1
             if pointer < 0 or pointer >= nhist:
                 self.text.bell()
                 if self._get_source("iomark", "end-1c") != prefix:

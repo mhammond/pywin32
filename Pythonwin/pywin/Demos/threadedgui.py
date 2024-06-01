@@ -51,7 +51,7 @@ class FontWindow(window.Wnd):
         timer.kill_timer(self.timerid)
 
     def OnTimer(self, id, timeVal):
-        self.index = self.index + self.incr
+        self.index += self.incr
         if self.index > len(self.text):
             self.incr = -1
             self.index = len(self.text)

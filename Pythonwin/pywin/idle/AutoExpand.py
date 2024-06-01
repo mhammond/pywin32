@@ -91,5 +91,5 @@ class AutoExpand:
         line = self.text.get("insert linestart", "insert")
         i = len(line)
         while i > 0 and line[i - 1] in self.wordchars:
-            i = i - 1
+            i -= 1
         return line[i:]

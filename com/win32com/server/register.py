@@ -214,9 +214,9 @@ def RegisterServer(
             sys.frozen
         ), "pythoncom is frozen, but sys.frozen is not set - don't know the context!"
         if sys.frozen == "dll":
-            clsctx = clsctx & pythoncom.CLSCTX_INPROC_SERVER
+            clsctx &= pythoncom.CLSCTX_INPROC_SERVER
         else:
-            clsctx = clsctx & pythoncom.CLSCTX_LOCAL_SERVER
+            clsctx &= pythoncom.CLSCTX_LOCAL_SERVER
     # Now setup based on the clsctx left over.
     if clsctx & pythoncom.CLSCTX_INPROC_SERVER:
         # get the module to use for registration.
@@ -304,7 +304,7 @@ def RegisterServer(
     if addPyComCat is None:
         addPyComCat = pythoncom.frozen == 0
     if addPyComCat:
-        catids = catids + [CATID_PythonCOMServer]
+        catids += [CATID_PythonCOMServer]
 
     # Set up the implemented categories
     if catids:
@@ -360,7 +360,7 @@ def GetUnregisterServerKeys(clsid, progID=None, verProgID=None, customKeys=None)
     ret.append(("AppID\\%s" % str(clsid), win32con.HKEY_CLASSES_ROOT))
     # Any custom keys?
     if customKeys:
-        ret = ret + customKeys
+        ret += customKeys
 
     return ret
 
@@ -536,7 +536,7 @@ def UnregisterInfoClasses(*classes, **flags):
         verProgID = _get(cls, "_reg_verprogid_")
         customKeys = _get(cls, "_reg_remove_keys_")
 
-        ret = ret + GetUnregisterServerKeys(clsid, progID, verProgID, customKeys)
+        ret += GetUnregisterServerKeys(clsid, progID, verProgID, customKeys)
     return ret
 
 

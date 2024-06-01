@@ -235,11 +235,11 @@ class HLIRegisteredTypeLibrary(HLICOM):
                             except win32api.error:
                                 fname = ""
                             collected.append((lcid, platform, fname))
-                            lcidnum = lcidnum + 1
+                            lcidnum += 1
                         win32api.RegCloseKey(lcidkey)
                     except ValueError:
                         pass
-                num = num + 1
+                num += 1
         finally:
             win32ui.DoWaitCursor(0)
             win32api.RegCloseKey(key)
@@ -581,12 +581,12 @@ class HLIHeadingRegisterdTypeLibs(HLICOM):
                         if versionFlt > bestVersion:
                             bestVersion = versionFlt
                             name = win32api.RegQueryValue(subKey, versionStr)
-                        subNum = subNum + 1
+                        subNum += 1
                 finally:
                     win32api.RegCloseKey(subKey)
                 if name is not None:
                     ret.append(HLIRegisteredTypeLibrary((keyName, versionStr), name))
-                num = num + 1
+                num += 1
         finally:
             win32api.RegCloseKey(key)
             win32ui.DoWaitCursor(0)
