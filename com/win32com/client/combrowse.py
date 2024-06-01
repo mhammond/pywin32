@@ -481,16 +481,16 @@ class HLITypeLibFunction(HLICOM):
             typ, flags, default = fd[8]
             val = self.MakeReturnType(typ)
             if flags:
-                val = "%s (Flags=%d, default=%s)" % (val, flags, default)
+                val += f" (Flags={flags}, default={default})"
             ret.append(browser.MakeHLI(val, "Return Type"))
 
         for argDesc in fd[2]:
             typ, flags, default = argDesc
             val = self.MakeReturnType(typ)
             if flags:
-                val = "%s (Flags=%d)" % (val, flags)
+                val += f" (Flags={flags})"
             if default is not None:
-                val = f"{val} (Default={default})"
+                val += f" (Default={default})"
             ret.append(browser.MakeHLI(val, "Argument"))
 
         try:
