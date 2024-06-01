@@ -851,7 +851,7 @@ class Debugger(debugger_parent):
                 self.curindex = index
                 break
         else:
-            assert 0, "Can't find the frame in the stack."
+            assert False, "Can't find the frame in the stack."
         SetInteractiveContext(frame.f_globals, frame.f_locals)
         self.GUIRespondDebuggerData()
         self.ShowCurrentLine()
@@ -931,7 +931,7 @@ class Debugger(debugger_parent):
         for id, klass, float in DebuggerDialogInfos:
             if klass.title == barName:
                 return frame.GetControlBar(id)
-        assert 0, "Can't find a bar of that name!"
+        assert False, "Can't find a bar of that name!"
 
     def GUIRespondDebuggerData(self):
         if not self.inited:  # GUI not inited - no toolbars etc.

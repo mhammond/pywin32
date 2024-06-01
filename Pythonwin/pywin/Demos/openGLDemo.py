@@ -160,10 +160,10 @@ class OpenGLView(OpenGLViewParent):
 
     # The methods to support OpenGL
     def DrawScene(self):
-        assert 0, "You must override this method"
+        raise NotImplementedError("You must override this method")
 
     def Init(self):
-        assert 0, "You must override this method"
+        raise NotImplementedError("You must override this method")
 
     def OnSizeChange(self, cx, cy):
         pass
