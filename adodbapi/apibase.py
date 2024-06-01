@@ -109,14 +109,17 @@ class FetchFailedError(OperationalError):
 # Note: Usage of Unix ticks for database interfacing can cause troubles because of the limited date range they cover.
 
 
-# Date = dateconverter.Date
-# "This function constructs an object holding a date value."
+# def Date(year, month, day):
+#     "This function constructs an object holding a date value."
+#     return dateconverter.date(year, month, day)  # dateconverter.Date(...)
 #
-# Time = dateconverter.Time
-# "This function constructs an object holding a time value."
+# def Time(hour, minute, second):
+#     "This function constructs an object holding a time value."
+#     return dateconverter.time(hour, minute, second)  # dateconverter.Time(...)
 #
-# Timestamp = dateconverter.Timestamp
-# "This function constructs an object holding a time stamp value."
+# def Timestamp(year, month, day, hour, minute, second):
+#     "This function constructs an object holding a time stamp value."
+#     return dateconverter.datetime(year, month, day, hour, minute, second)  # dateconverter.Timestamp(...)
 #
 # def DateFromTicks(ticks):
 #     """This function constructs an object holding a date value from the given ticks value
@@ -136,8 +139,9 @@ class FetchFailedError(OperationalError):
 #     see the documentation of the standard Python time module for details)."""
 #     return Timestamp(*time.gmtime(ticks)[:6])
 #
-# Binary = bytes
-# """This function constructs an object capable of holding a binary (long) string value."""
+# def Binary(aString):
+#     """This function constructs an object capable of holding a binary (long) string value."""
+#     return bytes(aString)
 
 
 # -----     Time converters ----------------------------------------------
@@ -339,22 +343,20 @@ class DBAPITypeObject:
         return other not in self.values
 
 
-"""This type object is used to describe columns in a database that are string-based (e.g. CHAR). """
+# -----------------------------------------------------------
+# type objects mandated by PEP 249: https://peps.python.org/pep-0249/#type-objects-and-constructors
 STRING = DBAPITypeObject(adoStringTypes)
-
-"""This type object is used to describe (long) binary columns in a database (e.g. LONG, RAW, BLOBs). """
+"""This type object is used to describe columns in a database that are string-based (e.g. CHAR). """
 BINARY = DBAPITypeObject(adoBinaryTypes)
-
-"""This type object is used to describe numeric columns in a database. """
+"""This type object is used to describe (long) binary columns in a database (e.g. LONG, RAW, BLOBs). """
 NUMBER = DBAPITypeObject(
     adoIntegerTypes + adoLongTypes + adoExactNumericTypes + adoApproximateNumericTypes
 )
-
-"""This type object is used to describe date/time columns in a database. """
-
+"""This type object is used to describe numeric columns in a database. """
 DATETIME = DBAPITypeObject(adoDateTimeTypes)
-"""This type object is used to describe the "Row ID" column in a database. """
+"""This type object is used to describe date/time columns in a database. """
 ROWID = DBAPITypeObject(adoRowIdTypes)
+"""This type object is used to describe the "Row ID" column in a database. """
 
 OTHER = DBAPITypeObject(adoRemainingTypes)
 
