@@ -15,7 +15,7 @@ else:
 filename = "xx.xls"  # file will be created if it does not exist
 extended = 'Extended Properties="Excel 8.0;Readonly=False;"'
 
-constr = "Provider=%s;Data Source=%s;%s" % (driver, filename, extended)
+constr = f"Provider={driver};Data Source={filename};{extended}"
 
 conn = adodbapi.connect(constr)
 with conn:  # will auto commit if no errors
@@ -38,4 +38,4 @@ with conn:  # will auto commit if no errors
             sql, ["John Jones", "Pvt", 987654321, 140.0, datetime.date(1921, 7, 4)]
         )  # another row of data
 conn.close()
-print("Created spreadsheet=%s worksheet=%s" % (filename, "SheetOne"))
+print("Created spreadsheet={} worksheet={}".format(filename, "SheetOne"))

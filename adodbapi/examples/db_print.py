@@ -39,8 +39,8 @@ else:
     # make a cursor on the connection
     with con.cursor() as c:
         # run an SQL statement on the cursor
-        sql = "select * from %s" % kw_args["table_name"]
-        print('performing query="%s"' % sql)
+        sql = "select * from {}".format(kw_args["table_name"])
+        print(f'performing query="{sql}"')
         c.execute(sql)
 
         # check the results

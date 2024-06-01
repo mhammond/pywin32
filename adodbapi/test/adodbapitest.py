@@ -152,20 +152,17 @@ class CommonDBTests(unittest.TestCase):
             # create a variantConversions attribute on the connection
             conn.variantConversions = copy.copy(api.variantConversions)
             crsr = conn.cursor()
-            tabdef = (
-                "CREATE TABLE xx_%s (fldData VARCHAR(100) NOT NULL, fld2 VARCHAR(20))"
-                % config.tmp
-            )
+            tabdef = f"CREATE TABLE xx_{config.tmp} (fldData VARCHAR(100) NOT NULL, fld2 VARCHAR(20))"
             crsr.execute(tabdef)
             crsr.execute(
-                "INSERT INTO xx_%s(fldData,fld2) VALUES('gabba','booga')" % config.tmp
+                f"INSERT INTO xx_{config.tmp}(fldData,fld2) VALUES('gabba','booga')"
             )
             crsr.execute(
-                "INSERT INTO xx_%s(fldData,fld2) VALUES('hey','yo')" % config.tmp
+                f"INSERT INTO xx_{config.tmp}(fldData,fld2) VALUES('hey','yo')"
             )
             # change converter for ALL adoStringTypes columns
             conn.variantConversions[api.adoStringTypes] = duplicatingConverter
-            crsr.execute("SELECT fldData,fld2 FROM xx_%s ORDER BY fldData" % config.tmp)
+            crsr.execute(f"SELECT fldData,fld2 FROM xx_{config.tmp} ORDER BY fldData")
 
             rows = crsr.fetchall()
             row = rows[0]
@@ -216,7 +213,7 @@ class CommonDBTests(unittest.TestCase):
                 self.helpTestDataType("numeric(18,2)", "NUMBER", "3.45")
                 # now a completly weird user defined convertion
                 adodbapi.variantConversions[ado_consts.adNumeric] = (
-                    lambda x: "!!This function returns a funny unicode string %s!!" % x
+                    lambda x: f"!!This function returns a funny unicode string {x}!!"
                 )
                 self.helpTestDataType(
                     "numeric(18,2)",
@@ -245,11 +242,10 @@ class CommonDBTests(unittest.TestCase):
         conn = self.getConnection()
         crsr = conn.cursor()
         tabdef = (
-            """
-            CREATE TABLE xx_%s (
+            f"""
+            CREATE TABLE xx_{config.tmp} (
                 fldId integer NOT NULL,
                 fldData """
-            % config.tmp
             + sqlDataTypeString
             + ")\n"
         )
@@ -257,50 +253,44 @@ class CommonDBTests(unittest.TestCase):
         crsr.execute(tabdef)
 
         # Test Null values mapped to None
-        crsr.execute("INSERT INTO xx_%s (fldId) VALUES (1)" % config.tmp)
+        crsr.execute(f"INSERT INTO xx_{config.tmp} (fldId) VALUES (1)")
 
-        crsr.execute("SELECT fldId,fldData FROM xx_%s" % config.tmp)
+        crsr.execute(f"SELECT fldId,fldData FROM xx_{config.tmp}")
         rs = crsr.fetchone()
         self.assertEqual(rs[1], None)  # Null should be mapped to None
         assert rs[0] == 1
 
         # Test description related
         descTuple = crsr.description[1]
-        assert descTuple[0] in ["fldData", "flddata"], 'was "%s" expected "%s"' % (
+        assert descTuple[0] in ["fldData", "flddata"], 'was "{}" expected "{}"'.format(
             descTuple[0],
             "fldData",
         )
 
         if DBAPIDataTypeString == "STRING":
-            assert descTuple[1] == api.STRING, 'was "%s" expected "%s"' % (
-                descTuple[1],
-                api.STRING.values,
-            )
+            assert (
+                descTuple[1] == api.STRING
+            ), f'was "{descTuple[1]}" expected "{api.STRING.values}"'
         elif DBAPIDataTypeString == "NUMBER":
-            assert descTuple[1] == api.NUMBER, 'was "%s" expected "%s"' % (
-                descTuple[1],
-                api.NUMBER.values,
-            )
+            assert (
+                descTuple[1] == api.NUMBER
+            ), f'was "{descTuple[1]}" expected "{api.NUMBER.values}"'
         elif DBAPIDataTypeString == "BINARY":
-            assert descTuple[1] == api.BINARY, 'was "%s" expected "%s"' % (
-                descTuple[1],
-                api.BINARY.values,
-            )
+            assert (
+                descTuple[1] == api.BINARY
+            ), f'was "{descTuple[1]}" expected "{api.BINARY.values}"'
         elif DBAPIDataTypeString == "DATETIME":
-            assert descTuple[1] == api.DATETIME, 'was "%s" expected "%s"' % (
-                descTuple[1],
-                api.DATETIME.values,
-            )
+            assert (
+                descTuple[1] == api.DATETIME
+            ), f'was "{descTuple[1]}" expected "{api.DATETIME.values}"'
         elif DBAPIDataTypeString == "ROWID":
-            assert descTuple[1] == api.ROWID, 'was "%s" expected "%s"' % (
-                descTuple[1],
-                api.ROWID.values,
-            )
+            assert (
+                descTuple[1] == api.ROWID
+            ), f'was "{descTuple[1]}" expected "{api.ROWID.values}"'
         elif DBAPIDataTypeString == "UUID":
-            assert descTuple[1] == api.OTHER, 'was "%s" expected "%s"' % (
-                descTuple[1],
-                api.OTHER.values,
-            )
+            assert (
+                descTuple[1] == api.OTHER
+            ), f'was "{descTuple[1]}" expected "{api.OTHER.values}"'
         else:
             raise NotImplementedError  # "DBAPIDataTypeString not provided"
 
@@ -314,28 +304,23 @@ class CommonDBTests(unittest.TestCase):
             fldId += 1
             try:
                 crsr.execute(
-                    "INSERT INTO xx_%s (fldId,fldData) VALUES (?,?)" % config.tmp,
+                    f"INSERT INTO xx_{config.tmp} (fldId,fldData) VALUES (?,?)",
                     (fldId, inParam),
                 )
             except:
                 conn.printADOerrors()
                 raise
-            crsr.execute(
-                "SELECT fldData FROM xx_%s WHERE ?=fldID" % config.tmp, [fldId]
-            )
+            crsr.execute(f"SELECT fldData FROM xx_{config.tmp} WHERE ?=fldID", [fldId])
             rs = crsr.fetchone()
             if allowedReturnValues:
                 allowedTypes = tuple([type(aRV) for aRV in allowedReturnValues])
                 assert isinstance(
                     rs[0], allowedTypes
-                ), 'result type "%s" must be one of %s' % (type(rs[0]), allowedTypes)
+                ), f'result type "{type(rs[0])}" must be one of {allowedTypes}'
             else:
                 assert isinstance(
                     rs[0], type(pyData)
-                ), 'result type "%s" must be instance of %s' % (
-                    type(rs[0]),
-                    type(pyData),
-                )
+                ), f'result type "{type(rs[0])}" must be instance of {type(pyData)}'
 
             if compareAlmostEqual and DBAPIDataTypeString == "DATETIME":
                 iso1 = adodbapi.dateconverter.DateObjectToIsoFormatString(rs[0])
@@ -346,7 +331,7 @@ class CommonDBTests(unittest.TestCase):
                 v = float(rs[0])
                 assert (
                     abs(v - s) / s < 0.00001
-                ), "Values not almost equal recvd=%s, expected=%f" % (rs[0], s)
+                ), f"Values not almost equal recvd={rs[0]}, expected={s:f}"
             else:
                 if allowedReturnValues:
                     ok = False
@@ -358,8 +343,7 @@ class CommonDBTests(unittest.TestCase):
                     self.assertEqual(
                         rs[0],
                         pyData,
-                        'Values are not equal recvd="%s", expected="%s"'
-                        % (rs[0], pyData),
+                        f'Values are not equal recvd="{rs[0]}", expected="{pyData}"',
                     )
 
     def testDataTypeFloat(self):
@@ -516,21 +500,18 @@ class CommonDBTests(unittest.TestCase):
         conn = self.getConnection()
         with conn.cursor() as crsr:
             try:
-                crsr.execute("DROP TABLE xx_%s" % config.tmp)
+                crsr.execute(f"DROP TABLE xx_{config.tmp}")
                 if not conn.autocommit:
                     conn.commit()
             except:
                 pass
 
     def helpCreateAndPopulateTableTemp(self, crsr):
-        tabdef = (
-            """
-            CREATE TABLE xx_%s (
+        tabdef = f"""
+            CREATE TABLE xx_{config.tmp} (
                 fldData INTEGER
             )
             """
-            % config.tmp
-        )
         try:  # EAFP
             crsr.execute(tabdef)
         except api.DatabaseError:  # was not dropped before
@@ -543,7 +524,7 @@ class CommonDBTests(unittest.TestCase):
     def testFetchAll(self):
         crsr = self.getCursor()
         self.helpCreateAndPopulateTableTemp(crsr)
-        crsr.execute("SELECT fldData FROM xx_%s" % config.tmp)
+        crsr.execute(f"SELECT fldData FROM xx_{config.tmp}")
         rs = crsr.fetchall()
         assert len(rs) == 9
         # test slice of rows
@@ -556,7 +537,7 @@ class CommonDBTests(unittest.TestCase):
     def testPreparedStatement(self):
         crsr = self.getCursor()
         self.helpCreateAndPopulateTableTemp(crsr)
-        crsr.prepare("SELECT fldData FROM xx_%s" % config.tmp)
+        crsr.prepare(f"SELECT fldData FROM xx_{config.tmp}")
         crsr.execute(crsr.command)  # remember the one that was prepared
         rs = crsr.fetchall()
         assert len(rs) == 9
@@ -568,7 +549,7 @@ class CommonDBTests(unittest.TestCase):
         self.helpCreateAndPopulateTableTemp(crsr)
         crsr.prepare("SELECT * FROM nowhere")
         crsr.execute(
-            "SELECT fldData FROM xx_%s" % config.tmp
+            f"SELECT fldData FROM xx_{config.tmp}"
         )  # should execute this one, not the prepared one
         rs = crsr.fetchall()
         assert len(rs) == 9
@@ -578,7 +559,7 @@ class CommonDBTests(unittest.TestCase):
     def testIterator(self):
         crsr = self.getCursor()
         self.helpCreateAndPopulateTableTemp(crsr)
-        crsr.execute("SELECT fldData FROM xx_%s" % config.tmp)
+        crsr.execute(f"SELECT fldData FROM xx_{config.tmp}")
         for i, row in enumerate(
             crsr
         ):  # using cursor as an iterator, rather than fetchxxx
@@ -590,7 +571,7 @@ class CommonDBTests(unittest.TestCase):
         self.helpCreateAndPopulateTableTemp(crsr)
         seq_of_values = [(111,), (222,)]
         crsr.executemany(
-            "INSERT INTO xx_%s (fldData) VALUES (?)" % config.tmp, seq_of_values
+            f"INSERT INTO xx_{config.tmp} (fldData) VALUES (?)", seq_of_values
         )
         if crsr.rowcount == -1:
             print(
@@ -599,7 +580,7 @@ class CommonDBTests(unittest.TestCase):
             )
         else:
             self.assertEqual(crsr.rowcount, 2)
-        crsr.execute("SELECT fldData FROM xx_%s" % config.tmp)
+        crsr.execute(f"SELECT fldData FROM xx_{config.tmp}")
         rs = crsr.fetchall()
         assert len(rs) == 11
         self.helpRollbackTblTemp()
@@ -607,7 +588,7 @@ class CommonDBTests(unittest.TestCase):
     def testRowCount(self):
         crsr = self.getCursor()
         self.helpCreateAndPopulateTableTemp(crsr)
-        crsr.execute("SELECT fldData FROM xx_%s" % config.tmp)
+        crsr.execute(f"SELECT fldData FROM xx_{config.tmp}")
         if crsr.rowcount == -1:
             # print("provider does not support rowcount on select")
             pass
@@ -618,7 +599,7 @@ class CommonDBTests(unittest.TestCase):
     def testRowCountNoRecordset(self):
         crsr = self.getCursor()
         self.helpCreateAndPopulateTableTemp(crsr)
-        crsr.execute("DELETE FROM xx_%s WHERE fldData >= 5" % config.tmp)
+        crsr.execute(f"DELETE FROM xx_{config.tmp} WHERE fldData >= 5")
         if crsr.rowcount == -1:
             print(self.getEngine() + " Provider does not support rowcount (on DELETE)")
         else:
@@ -628,7 +609,7 @@ class CommonDBTests(unittest.TestCase):
     def testFetchMany(self):
         crsr = self.getCursor()
         self.helpCreateAndPopulateTableTemp(crsr)
-        crsr.execute("SELECT fldData FROM xx_%s" % config.tmp)
+        crsr.execute(f"SELECT fldData FROM xx_{config.tmp}")
         rs = crsr.fetchmany(3)
         assert len(rs) == 3
         rs = crsr.fetchmany(5)
@@ -640,7 +621,7 @@ class CommonDBTests(unittest.TestCase):
     def testFetchManyWithArraySize(self):
         crsr = self.getCursor()
         self.helpCreateAndPopulateTableTemp(crsr)
-        crsr.execute("SELECT fldData FROM xx_%s" % config.tmp)
+        crsr.execute(f"SELECT fldData FROM xx_{config.tmp}")
         rs = crsr.fetchmany()
         assert len(rs) == 1  # arraysize Defaults to one
         crsr.arraysize = 4
@@ -661,16 +642,13 @@ class CommonDBTests(unittest.TestCase):
         self.helpForceDropOnTblTemp()
         conn = self.getConnection()
         crsr = conn.cursor()
-        tabdef = (
-            """
-            CREATE TABLE xx_%s (
+        tabdef = f"""
+            CREATE TABLE xx_{config.tmp} (
                 fldId integer NOT NULL,
                 fldTwo integer,
                 fldThree integer,
                 fldFour integer)
                 """
-            % config.tmp
-        )
         crsr.execute(tabdef)
 
         inputs = [(2, 3, 4), (102, 103, 104)]
@@ -679,15 +657,14 @@ class CommonDBTests(unittest.TestCase):
             fldId += 1
             try:
                 crsr.execute(
-                    "INSERT INTO xx_%s (fldId,fldTwo,fldThree,fldFour) VALUES (?,?,?,?)"
-                    % config.tmp,
+                    f"INSERT INTO xx_{config.tmp} (fldId,fldTwo,fldThree,fldFour) VALUES (?,?,?,?)",
                     (fldId, inParam[0], inParam[1], inParam[2]),
                 )
             except:
                 conn.printADOerrors()
                 raise
             crsr.execute(
-                "SELECT fldTwo,fldThree,fldFour FROM xx_%s WHERE ?=fldID" % config.tmp,
+                f"SELECT fldTwo,fldThree,fldFour FROM xx_{config.tmp} WHERE ?=fldID",
                 [fldId],
             )
             rec = crsr.fetchone()
@@ -695,7 +672,7 @@ class CommonDBTests(unittest.TestCase):
             for j in range(len(inParam)):
                 assert (
                     rec[j] == inParam[j]
-                ), 'returned value:"%s" != test value:"%s"' % (rec[j], inParam[j])
+                ), f'returned value:"{rec[j]}" != test value:"{inParam[j]}"'
             # check that we can get a complete tuple from a row
             assert (
                 tuple(rec) == inParam
@@ -712,7 +689,7 @@ class CommonDBTests(unittest.TestCase):
             assert rec.fldFour == inParam[2]
         # test array operation
         # note that the fields vv        vv     vv    are out of order
-        crsr.execute("select fldThree,fldFour,fldTwo from xx_%s" % config.tmp)
+        crsr.execute(f"select fldThree,fldFour,fldTwo from xx_{config.tmp}")
         recs = crsr.fetchall()
         assert recs[1][0] == 103
         assert recs[0][1] == 4
@@ -729,15 +706,12 @@ class CommonDBTests(unittest.TestCase):
         conn = self.getConnection()
         conn.paramstyle = "format"  # test nonstandard use of paramstyle
         crsr = conn.cursor()
-        tabdef = (
-            """
-            CREATE TABLE xx_%s (
+        tabdef = f"""
+            CREATE TABLE xx_{config.tmp} (
                 fldId integer NOT NULL,
                 fldData varchar(10),
                 fldConst varchar(30))
                 """
-            % config.tmp
-        )
         crsr.execute(tabdef)
 
         inputs = ["one", "two", "three"]
@@ -762,7 +736,7 @@ class CommonDBTests(unittest.TestCase):
             self.assertEqual(
                 rec[0],
                 inParam,
-                'returned value:"%s" != test value:"%s"' % (rec[0], inParam),
+                f'returned value:"{rec[0]}" != test value:"{inParam}"',
             )
             self.assertEqual(rec[1], "thi%s :may cause? trouble")
 
@@ -774,14 +748,14 @@ class CommonDBTests(unittest.TestCase):
         crsr.execute(sel, params)
 
         # test the .query implementation
-        assert "(?," in crsr.query, 'expected:"%s" in "%s"' % ("(?,", crsr.query)
+        assert "(?," in crsr.query, 'expected:"{}" in "{}"'.format("(?,", crsr.query)
         # test the .command attribute
-        assert crsr.command == sel, 'expected:"%s" but found "%s"' % (sel, crsr.command)
+        assert crsr.command == sel, f'expected:"{sel}" but found "{crsr.command}"'
 
         # test the .parameters attribute
         self.assertEqual(crsr.parameters, params)
         # now make sure the data made it
-        crsr.execute("SELECT fldData FROM xx_%s WHERE fldID=20" % config.tmp)
+        crsr.execute(f"SELECT fldData FROM xx_{config.tmp} WHERE fldID=20")
         rec = crsr.fetchone()
         self.assertEqual(rec[0], "four%sfive")
 
@@ -790,14 +764,11 @@ class CommonDBTests(unittest.TestCase):
         conn = self.getConnection()
         crsr = conn.cursor()
         crsr.paramstyle = "named"  # test nonstandard use of paramstyle
-        tabdef = (
-            """
-            CREATE TABLE xx_%s (
+        tabdef = f"""
+            CREATE TABLE xx_{config.tmp} (
                 fldId integer NOT NULL,
                 fldData varchar(10))
                 """
-            % config.tmp
-        )
         crsr.execute(tabdef)
 
         inputs = ["four", "five", "six"]
@@ -806,28 +777,27 @@ class CommonDBTests(unittest.TestCase):
             fldId += 1
             try:
                 crsr.execute(
-                    "INSERT INTO xx_%s (fldId,fldData) VALUES (:Id,:f_Val)"
-                    % config.tmp,
+                    f"INSERT INTO xx_{config.tmp} (fldId,fldData) VALUES (:Id,:f_Val)",
                     {"f_Val": inParam, "Id": fldId},
                 )
             except:
                 conn.printADOerrors()
                 raise
             crsr.execute(
-                "SELECT fldData FROM xx_%s WHERE fldID=:Id" % config.tmp, {"Id": fldId}
+                f"SELECT fldData FROM xx_{config.tmp} WHERE fldID=:Id", {"Id": fldId}
             )
             rec = crsr.fetchone()
             self.assertEqual(
                 rec[0],
                 inParam,
-                'returned value:"%s" != test value:"%s"' % (rec[0], inParam),
+                f'returned value:"{rec[0]}" != test value:"{inParam}"',
             )
         # now a test with a ":" as part of a literal
         crsr.execute(
-            "insert into xx_%s (fldId,fldData) VALUES (:xyz,'six:five')" % config.tmp,
+            f"insert into xx_{config.tmp} (fldId,fldData) VALUES (:xyz,'six:five')",
             {"xyz": 30},
         )
-        crsr.execute("SELECT fldData FROM xx_%s WHERE fldID=30" % config.tmp)
+        crsr.execute(f"SELECT fldData FROM xx_{config.tmp} WHERE fldID=30")
         rec = crsr.fetchone()
         self.assertEqual(rec[0], "six:five")
 
@@ -836,14 +806,11 @@ class CommonDBTests(unittest.TestCase):
         conn = self.getConnection()
         crsr = conn.cursor()
         crsr.paramstyle = "pyformat"  # test nonstandard use of paramstyle
-        tabdef = (
-            """
-            CREATE TABLE xx_%s (
+        tabdef = f"""
+            CREATE TABLE xx_{config.tmp} (
                 fldId integer NOT NULL,
                 fldData varchar(10))
                 """
-            % config.tmp
-        )
         crsr.execute(tabdef)
 
         inputs = ["four", "five", "six"]
@@ -852,30 +819,28 @@ class CommonDBTests(unittest.TestCase):
             fldId += 1
             try:
                 crsr.execute(
-                    "INSERT INTO xx_%s (fldId,fldData) VALUES (%%(Id)s,%%(f_Val)s)"
-                    % config.tmp,
+                    f"INSERT INTO xx_{config.tmp} (fldId,fldData) VALUES (%(Id)s,%(f_Val)s)",
                     {"f_Val": inParam, "Id": fldId},
                 )
             except:
                 conn.printADOerrors()
                 raise
             crsr.execute(
-                "SELECT fldData FROM xx_%s WHERE fldID=%%(Id)s" % config.tmp,
+                f"SELECT fldData FROM xx_{config.tmp} WHERE fldID=%(Id)s",
                 {"Id": fldId},
             )
             rec = crsr.fetchone()
             self.assertEqual(
                 rec[0],
                 inParam,
-                'returned value:"%s" != test value:"%s"' % (rec[0], inParam),
+                f'returned value:"{rec[0]}" != test value:"{inParam}"',
             )
         # now a test with a "%" as part of a literal
         crsr.execute(
-            "insert into xx_%s (fldId,fldData) VALUES (%%(xyz)s,'six%%five')"
-            % config.tmp,
+            f"insert into xx_{config.tmp} (fldId,fldData) VALUES (%(xyz)s,'six%five')",
             {"xyz": 30},
         )
-        crsr.execute("SELECT fldData FROM xx_%s WHERE fldID=30" % config.tmp)
+        crsr.execute(f"SELECT fldData FROM xx_{config.tmp} WHERE fldID=30")
         rec = crsr.fetchone()
         self.assertEqual(rec[0], "six%five")
 
@@ -884,15 +849,12 @@ class CommonDBTests(unittest.TestCase):
         conn = self.getConnection()
         conn.paramstyle = "dynamic"  # test nonstandard use of paramstyle
         crsr = conn.cursor()
-        tabdef = (
-            """
-            CREATE TABLE xx_%s (
+        tabdef = f"""
+            CREATE TABLE xx_{config.tmp} (
                 fldId integer NOT NULL,
                 fldData varchar(10),
                 fldConst varchar(30))
                 """
-            % config.tmp
-        )
         crsr.execute(tabdef)
         inputs = ["one", "two", "three"]
         fldId = 2
@@ -917,7 +879,7 @@ class CommonDBTests(unittest.TestCase):
             self.assertEqual(
                 rec[0],
                 inParam,
-                'returned value:"%s" != test value:"%s"' % (rec[0], inParam),
+                f'returned value:"{rec[0]}" != test value:"{inParam}"',
             )
             self.assertEqual(rec[1], trouble)
         #     inputs = [u'four',u'five',u'six']
@@ -926,29 +888,26 @@ class CommonDBTests(unittest.TestCase):
             fldId += 1
             try:
                 crsr.execute(
-                    "INSERT INTO xx_%s (fldId,fldData) VALUES (:Id,:f_Val)"
-                    % config.tmp,
+                    f"INSERT INTO xx_{config.tmp} (fldId,fldData) VALUES (:Id,:f_Val)",
                     {"f_Val": inParam, "Id": fldId},
                 )
             except:
                 conn.printADOerrors()
                 raise
             crsr.execute(
-                "SELECT fldData FROM xx_%s WHERE :Id=fldID" % config.tmp, {"Id": fldId}
+                f"SELECT fldData FROM xx_{config.tmp} WHERE :Id=fldID", {"Id": fldId}
             )
             rec = crsr.fetchone()
             self.assertEqual(
                 rec[0],
                 inParam,
-                'returned value:"%s" != test value:"%s"' % (rec[0], inParam),
+                f'returned value:"{rec[0]}" != test value:"{inParam}"',
             )
         # now a test with a ":" as part of a literal -- and use a prepared query
-        ppdcmd = (
-            "insert into xx_%s (fldId,fldData) VALUES (:xyz,'six:five')" % config.tmp
-        )
+        ppdcmd = f"insert into xx_{config.tmp} (fldId,fldData) VALUES (:xyz,'six:five')"
         crsr.prepare(ppdcmd)
         crsr.execute(ppdcmd, {"xyz": 30})
-        crsr.execute("SELECT fldData FROM xx_%s WHERE fldID=30" % config.tmp)
+        crsr.execute(f"SELECT fldData FROM xx_{config.tmp} WHERE fldID=30")
         rec = crsr.fetchone()
         self.assertEqual(rec[0], "six:five")
 
@@ -959,9 +918,9 @@ class CommonDBTests(unittest.TestCase):
         self.helpCreateAndPopulateTableTemp(crsr)
         crsr.connection.commit()  # commit the first bunch
 
-        crsr.execute("INSERT INTO xx_%s (fldData) VALUES(100)" % config.tmp)
+        crsr.execute(f"INSERT INTO xx_{config.tmp} (fldData) VALUES(100)")
 
-        selectSql = "SELECT fldData FROM xx_%s WHERE fldData=100" % config.tmp
+        selectSql = f"SELECT fldData FROM xx_{config.tmp} WHERE fldData=100"
         crsr.execute(selectSql)
         rs = crsr.fetchall()
         assert len(rs) == 1
@@ -970,7 +929,7 @@ class CommonDBTests(unittest.TestCase):
         assert (
             crsr.fetchone() is None
         ), "cursor.fetchone should return None if a query retrieves no rows"
-        crsr.execute("SELECT fldData from xx_%s" % config.tmp)
+        crsr.execute(f"SELECT fldData from xx_{config.tmp}")
         rs = crsr.fetchall()
         assert len(rs) == 9, "the original records should still be present"
         self.helpRollbackTblTemp()
@@ -984,10 +943,10 @@ class CommonDBTests(unittest.TestCase):
         crsr = con2.cursor()
         self.helpCreateAndPopulateTableTemp(crsr)
 
-        crsr.execute("INSERT INTO xx_%s (fldData) VALUES(100)" % config.tmp)
+        crsr.execute(f"INSERT INTO xx_{config.tmp} (fldData) VALUES(100)")
         con2.commit()
 
-        selectSql = "SELECT fldData FROM xx_%s WHERE fldData=100" % config.tmp
+        selectSql = f"SELECT fldData FROM xx_{config.tmp} WHERE fldData=100"
         crsr.execute(selectSql)
         rs = crsr.fetchall()
         assert len(rs) == 1
@@ -1010,8 +969,8 @@ class CommonDBTests(unittest.TestCase):
         assert not con2.autocommit, "unexpected beginning condition"
         crsr = con2.cursor()
         self.helpCreateAndPopulateTableTemp(crsr)
-        crsr.execute("INSERT INTO xx_%s (fldData) VALUES(100)" % config.tmp)
-        selectSql = "SELECT fldData FROM xx_%s WHERE fldData=100" % config.tmp
+        crsr.execute(f"INSERT INTO xx_{config.tmp} (fldData) VALUES(100)")
+        selectSql = f"SELECT fldData FROM xx_{config.tmp} WHERE fldData=100"
         crsr.execute(selectSql)
         rs = crsr.fetchall()
         assert len(rs) == 1
@@ -1037,10 +996,10 @@ class CommonDBTests(unittest.TestCase):
             return  # should be "SKIP" for ACCESS
         crsr = ac_conn.cursor()
         self.helpCreateAndPopulateTableTemp(crsr)
-        crsr.execute("INSERT INTO xx_%s (fldData) VALUES(100)" % config.tmp)
+        crsr.execute(f"INSERT INTO xx_{config.tmp} (fldData) VALUES(100)")
         crsr.close()
         with self.getCursor() as crsr:
-            selectSql = "SELECT fldData from xx_%s" % config.tmp
+            selectSql = f"SELECT fldData from xx_{config.tmp}"
             crsr.execute(
                 selectSql
             )  # closing the connection should _not_ have forced rollback
@@ -1057,12 +1016,12 @@ class CommonDBTests(unittest.TestCase):
         ac_conn.autocommit = True
         crsr = ac_conn.cursor()
         self.helpCreateAndPopulateTableTemp(crsr)
-        crsr.execute("INSERT INTO xx_%s (fldData) VALUES(100)" % config.tmp)
+        crsr.execute(f"INSERT INTO xx_{config.tmp} (fldData) VALUES(100)")
         crsr.close()
         conn = self.getConnection()
         ac_conn.close()
         with self.getCursor() as crsr:
-            selectSql = "SELECT fldData from xx_%s" % config.tmp
+            selectSql = f"SELECT fldData from xx_{config.tmp}"
             crsr.execute(
                 selectSql
             )  # closing the connection should _not_ have forced rollback
@@ -1086,22 +1045,19 @@ class CommonDBTests(unittest.TestCase):
         self.helpForceDropOnTblTemp()
         conn = self.getConnection()
         crsr = conn.cursor()
-        tabdef = (
-            """
-            CREATE TABLE xx_%s (
+        tabdef = f"""
+            CREATE TABLE xx_{config.tmp} (
                 s VARCHAR(40) NOT NULL,
                 i INTEGER NOT NULL,
                 f REAL NOT NULL)"""
-            % config.tmp
-        )
         crsr.execute(tabdef)
         crsr.execute(
-            "INSERT INTO xx_%s (s, i, f) VALUES (?, ?, ?)" % config.tmp, (xs, xi, xf)
+            f"INSERT INTO xx_{config.tmp} (s, i, f) VALUES (?, ?, ?)", (xs, xi, xf)
         )
         crsr.close()
         conn = self.getConnection()
         with self.getCursor() as crsr:
-            selectSql = "SELECT s, i, f from xx_%s" % config.tmp
+            selectSql = f"SELECT s, i, f from xx_{config.tmp}"
             crsr.execute(
                 selectSql
             )  # closing the connection should _not_ have forced rollback
@@ -1172,17 +1128,13 @@ class TestADOwithSQLServer(CommonDBTests):
         crsr = self.getCursor()
         self.helpCreateAndPopulateTableTemp(crsr)
 
-        spdef = """
+        spdef = f"""
             CREATE PROCEDURE sp_DeleteMe_OnlyForTesting
             AS
-                SELECT fldData FROM xx_%s ORDER BY fldData ASC
-                SELECT fldData From xx_%s where fldData = -9999
-                SELECT fldData FROM xx_%s ORDER BY fldData DESC
-                    """ % (
-            config.tmp,
-            config.tmp,
-            config.tmp,
-        )
+                SELECT fldData FROM xx_{config.tmp} ORDER BY fldData ASC
+                SELECT fldData From xx_{config.tmp} where fldData = -9999
+                SELECT fldData FROM xx_{config.tmp} ORDER BY fldData DESC
+                    """
         try:
             crsr.execute("DROP PROCEDURE sp_DeleteMe_OnlyForTesting")
             self.conn.commit()
@@ -1224,7 +1176,7 @@ class TestADOwithSQLServer(CommonDBTests):
             [adodbapi.Timestamp(2014, 12, 25, 0, 1, 0), "Beep", " " * 30],
         )
 
-        assert result[2] == "Dec 25 2014 12:01AM Beep", 'value was="%s"' % result[2]
+        assert result[2] == "Dec 25 2014 12:01AM Beep", f'value was="{result[2]}"'
         self.conn.rollback()
 
     def testIncorrectStoredProcedureParameter(self):
@@ -1473,7 +1425,7 @@ class TestPythonTimeConverter(TimeConverterInterfaceTest):
         t = time.localtime(mk)
         # Fri, 28 Jun 2002 18:15:01 +0000
         cmd = self.tc.COMDate(t)
-        assert abs(cmd - 37435.7604282) < 1.0 / 24, "%f more than an hour wrong" % cmd
+        assert abs(cmd - 37435.7604282) < 1.0 / 24, f"{cmd:f} more than an hour wrong"
 
     def testDateObjectFromCOMDate(self):
         cmd = self.tc.DateObjectFromCOMDate(37435.7604282)
@@ -1573,7 +1525,7 @@ if __name__ == "__main__":
     with cleanup_manager():
         defaultDateConverter = adodbapi.dateconverter
         print(__doc__)
-        print("Default Date Converter is %s" % (defaultDateConverter,))
+        print(f"Default Date Converter is {defaultDateConverter}")
         dateconverter = defaultDateConverter
         unittest.TextTestRunner().run(mysuite)
 
