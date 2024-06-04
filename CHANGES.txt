@@ -15,7 +15,18 @@ Coming in build 307, as yet unreleased
 --------------------------------------
 
 ### pywin32
-* Removed the following unused symbols. They were meant to be used as Exceptions, but were accidentally strings. (#2269, @Avasam)
+* Fixed accidentally trying to raise a `str` instead of an `Exception` in (#2270, @Avasam)
+  * `Pythonwin/pywin/debugger/debugger.py`
+  * `Pythonwin/pywin/framework/dlgappcore.py`
+  * `com/win32com/server/policy.py`
+  * `win32/Lib/regutil.py`
+  * `win32/scripts/VersionStamp/vssutil.py`
+* Removed the following unused symbols. They were meant to be used as Exceptions, but were accidentally strings (#2270, #2269, @Avasam)
+  * `pywin.debugger.debugger.error`
+  * `pywin.framework.dlgappcore.error`
+  * `win32com.server.policy.error`
+  * `regutil.error`
+  * `win32.scripts.VersionStamp.vssutil.error`
   * `win32com.universal.com_error`
   * `win32com.client.build.error`
   * `win32com.client.genpy.error`

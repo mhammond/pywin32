@@ -10,8 +10,6 @@ from pywin.mfc import dialog
 
 from . import app
 
-error = "Dialog Application Error"
-
 
 class AppDialog(dialog.Dialog):
     "The dialog box for the application"
@@ -62,8 +60,9 @@ class DialogApp(app.CApp):
         self.dlg = self.frame = self.CreateDialog()
 
         if self.frame is None:
-            raise error("No dialog was created by CreateDialog()")
-            return
+            raise NotImplementedError(
+                "No dialog was created by CreateDialog(). Subclasses need to implement CreateDialog."
+            )
 
         self._obj_.InitDlgInstance(self.dlg)
         self.PreDoModal()
