@@ -12,11 +12,10 @@ select = [
   "YTT", # flake8-2020
 
   # String formatting, concatenating, interpolation, ...
-  "ISC001", # single-line-implicit-string-concatenation
-  # TODO: Do in a separate PR
-  # "ISC002", # multi-line-implicit-string-concatenation
   "FLY", # static-join-to-f-string
   "G", # flake8-logging-format
+  # Note, we still want to allow multiline ISC
+  "ISC001", # single-line-implicit-string-concatenation
   "UP025", # Remove unicode literals from strings
   "UP030", # Use implicit references for positional format fields
   # TODO: Still lots of manual fixes needed
@@ -53,6 +52,3 @@ known-third-party = [
   "distutils",
 ]
 extra-standard-library = ["setuptools"]
-
-[lint.flake8-implicit-str-concat]
-allow-multiline = false # ignore ISC003 with this option disabled
