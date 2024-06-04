@@ -5,7 +5,7 @@ Documentation File for Pythonwin
 
 @topic Keyboard Bindings|Pythonwin has a new, flexible keyboard
 binding mechanism. Bindings (and even code) can be defined in a
-configuration file, stored in the pywin directory. 
+configuration file, stored in the pywin directory.
 
 <nl>Many bindings are still builtin to Python using Window's accelerators -
 see the Pythonwin menus for the specific keyboard shortcuts.
@@ -113,9 +113,9 @@ then the indentation should always follow your preferences, regardless
 of any existing indentation in the source.
 <nl>
 Otherwise, the preferences for tab settings are only used when a new file is created.
-If smart-tabs are enabled and an existing file is opened, its first 
+If smart-tabs are enabled and an existing file is opened, its first
 block is located, and the indentation
-it uses overrides the default.  Thus, regardless of your preferences, if the first 
+it uses overrides the default.  Thus, regardless of your preferences, if the first
 indent in the file is a tab, Pythonwin uses tabs for the entire file (and
 similarly, uses spaces if the first block is indented with spaces)
 <nl>
@@ -128,7 +128,7 @@ was used for the first block is used for the entire file.
 Another common scenario where things go wrong is when pasting code into a new file.
 You create a new file (which sets the tabs to your defaults), then
 paste in a huge chunk of code that is indented differently.  The editor is still using
-the defaults, which dont reflect the code that now exists in the buffer.
+the defaults, which don't reflect the code that now exists in the buffer.
 <nl>
 The "tab-timmy" shows up these problems very quickly, and you can quickly toggle the
 current tab settings by pressing Ctrl+T, or change the indent width by pressing Ctrl+U.
@@ -140,7 +140,7 @@ Before using the VSS integration, you must create a "mssccprj.scc" file
 in the directory, or a parent directory, of the files you wish to
 integrate. There are no limits on how many of these files exist. This is
 the same name and format as VB uses for VSS integration - a Windows INI
-file. 
+file.
 
 This file must have a section [Python] with entry "Project=ProjectName".
 The project name is the name of the VSS project used to check the out

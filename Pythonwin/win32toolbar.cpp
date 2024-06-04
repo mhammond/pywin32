@@ -923,7 +923,7 @@ ui_type_CObject PyCToolBar::type("PyCToolBar", &PyCControlBar::type, RUNTIME_CLA
         RETURN_NONE;                                                   \
     }
 
-//#define MAKE_SET_INT_BOOL_METHOD(mfcName) MAKE_SET_INT_INT_METHOD(mfcName)
+// #define MAKE_SET_INT_BOOL_METHOD(mfcName) MAKE_SET_INT_INT_METHOD(mfcName)
 
 PyCToolBarCtrl::PyCToolBarCtrl()
 {

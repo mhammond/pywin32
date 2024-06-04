@@ -103,7 +103,7 @@ class ListsDialog(ListDialog):
         for col in self.colHeadings:
             itemDetails = (commctrl.LVCFMT_LEFT, int(width / numCols), col, 0)
             self.itemsControl.InsertColumn(index, itemDetails)
-            index = index + 1
+            index += 1
         index = 0
         for items in self.items:
             index = self.itemsControl.InsertItem(index + 1, str(items[0]), 0)

@@ -137,7 +137,7 @@ PyObject *PyCRYPTHASH::PyCryptHashData(PyObject *self, PyObject *args, PyObject 
     dwDataLen = pybuf.len();
     if (dwFlags & CRYPT_USERDATA)
         dwDataLen = 0;
-    if (CryptHashData(hcrypthash, (BYTE*)pybuf.ptr(), dwDataLen, dwFlags)) {
+    if (CryptHashData(hcrypthash, (BYTE *)pybuf.ptr(), dwDataLen, dwFlags)) {
         Py_INCREF(Py_None);
         return Py_None;
     }

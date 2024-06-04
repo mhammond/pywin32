@@ -322,7 +322,7 @@ PyObject *PyIDirectSoundCaptureBuffer::Update(PyObject *self, PyObject *args)
 
     return obData;
 
-error : {
+error: {
     // need extra block for local variables from PY_INTERFACE_UPCALL macro
     PY_INTERFACE_PRECALL;
     hr = pIDSCB->Unlock(lpAudioPtr1, dwAudioBytes1, lpAudioPtr2, dwAudioBytes2);

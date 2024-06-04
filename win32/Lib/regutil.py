@@ -76,7 +76,7 @@ def RegisterPythonExe(exeFullPath, exeAlias=None, exeAppPath=None):
               of the filename is used.
     exeAppPath -- Not supported.
     """
-    # Note - Dont work on win32s (but we dont care anymore!)
+    # Note - Don't work on win32s (but we don't care anymore!)
     if exeAppPath:
         raise error("Do not support exeAppPath argument currently")
     if exeAlias is None:
@@ -107,7 +107,7 @@ def RegisterNamedPath(name, path):
     """Register a named path - ie, a named PythonPath entry."""
     keyStr = BuildDefaultPythonKey() + "\\PythonPath"
     if name:
-        keyStr = keyStr + "\\" + name
+        keyStr += "\\" + name
     win32api.RegSetValue(GetRootKey(), keyStr, win32con.REG_SZ, path)
 
 
@@ -125,10 +125,10 @@ def UnregisterNamedPath(name):
 
 
 def GetRegisteredNamedPath(name):
-    """Get a registered named path, or None if it doesnt exist."""
+    """Get a registered named path, or None if it doesn't exist."""
     keyStr = BuildDefaultPythonKey() + "\\PythonPath"
     if name:
-        keyStr = keyStr + "\\" + name
+        keyStr += "\\" + name
     try:
         return win32api.RegQueryValue(GetRootKey(), keyStr)
     except win32api.error as exc:

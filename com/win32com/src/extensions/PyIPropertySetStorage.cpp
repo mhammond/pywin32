@@ -233,4 +233,3 @@ STDMETHODIMP PyGPropertySetStorage::Enum(
     Py_DECREF(result);
     return hr;
 }
-

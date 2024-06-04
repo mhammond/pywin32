@@ -20,52 +20,24 @@ typedef struct {
 
 } PyCom_InterfaceSupportInfo;
 
-#define PYCOM_INTERFACE_IID_ONLY(ifc)                   \
-    {                                                   \
-        &IID_I##ifc, "I" #ifc, "IID_I" #ifc, NULL, NULL \
-    }
-#define PYCOM_INTERFACE_CLSID_ONLY(ifc)                        \
-    {                                                          \
-        &CLSID_##ifc, "CLSID_" #ifc, "CLSID_" #ifc, NULL, NULL \
-    }
-#define PYCOM_INTERFACE_CATID_ONLY(ifc)                        \
-    {                                                          \
-        &CATID_##ifc, "CATID_" #ifc, "CATID_" #ifc, NULL, NULL \
-    }
-#define PYCOM_INTERFACE_CLIENT_ONLY(ifc)                           \
-    {                                                              \
-        &IID_I##ifc, "I" #ifc, "IID_I" #ifc, &PyI##ifc::type, NULL \
-    }
-#define PYCOM_INTERFACE_SERVER_ONLY(ifc)                                        \
-    {                                                                           \
-        &IID_I##ifc, "I" #ifc, "IID_I" #ifc, NULL, GET_PYGATEWAY_CTOR(PyG##ifc) \
-    }
-#define PYCOM_INTERFACE_FULL(ifc)                                                          \
-    {                                                                                      \
-        &IID_I##ifc, "I" #ifc, "IID_I" #ifc, &PyI##ifc::type, GET_PYGATEWAY_CTOR(PyG##ifc) \
-    }
+#define PYCOM_INTERFACE_IID_ONLY(ifc) {&IID_I##ifc, "I" #ifc, "IID_I" #ifc, NULL, NULL}
+#define PYCOM_INTERFACE_CLSID_ONLY(ifc) {&CLSID_##ifc, "CLSID_" #ifc, "CLSID_" #ifc, NULL, NULL}
+#define PYCOM_INTERFACE_CATID_ONLY(ifc) {&CATID_##ifc, "CATID_" #ifc, "CATID_" #ifc, NULL, NULL}
+#define PYCOM_INTERFACE_CLIENT_ONLY(ifc) {&IID_I##ifc, "I" #ifc, "IID_I" #ifc, &PyI##ifc::type, NULL}
+#define PYCOM_INTERFACE_SERVER_ONLY(ifc) {&IID_I##ifc, "I" #ifc, "IID_I" #ifc, NULL, GET_PYGATEWAY_CTOR(PyG##ifc)}
+#define PYCOM_INTERFACE_FULL(ifc) {&IID_I##ifc, "I" #ifc, "IID_I" #ifc, &PyI##ifc::type, GET_PYGATEWAY_CTOR(PyG##ifc)}
 
 // Versions that use __uuidof() to get the IID, which seems to avoid the need
 // to link with a lib holding the IIDs.  Note that almost all extensions
 // build with __uuidof() being the default; the build failed at 'shell' - so
 // we could consider making this the default and making the 'explicit' version
 // above the special case.
-#define PYCOM_INTERFACE_IID_ONLY_UUIDOF(ifc)                  \
-    {                                                         \
-        &__uuidof(I##ifc), "I" #ifc, "IID_I" #ifc, NULL, NULL \
-    }
-#define PYCOM_INTERFACE_CLIENT_ONLY_UUIDOF(ifc)                          \
-    {                                                                    \
-        &__uuidof(I##ifc), "I" #ifc, "IID_I" #ifc, &PyI##ifc::type, NULL \
-    }
-#define PYCOM_INTERFACE_SERVER_ONLY_UUIDOF(ifc)                                       \
-    {                                                                                 \
-        &__uuidof(I##ifc), "I" #ifc, "IID_I" #ifc, NULL, GET_PYGATEWAY_CTOR(PyG##ifc) \
-    }
-#define PYCOM_INTERFACE_FULL_UUIDOF(ifc)                                                         \
-    {                                                                                            \
-        &__uuidof(I##ifc), "I" #ifc, "IID_I" #ifc, &PyI##ifc::type, GET_PYGATEWAY_CTOR(PyG##ifc) \
-    }
+#define PYCOM_INTERFACE_IID_ONLY_UUIDOF(ifc) {&__uuidof(I##ifc), "I" #ifc, "IID_I" #ifc, NULL, NULL}
+#define PYCOM_INTERFACE_CLIENT_ONLY_UUIDOF(ifc) {&__uuidof(I##ifc), "I" #ifc, "IID_I" #ifc, &PyI##ifc::type, NULL}
+#define PYCOM_INTERFACE_SERVER_ONLY_UUIDOF(ifc) \
+    {&__uuidof(I##ifc), "I" #ifc, "IID_I" #ifc, NULL, GET_PYGATEWAY_CTOR(PyG##ifc)}
+#define PYCOM_INTERFACE_FULL_UUIDOF(ifc) \
+    {&__uuidof(I##ifc), "I" #ifc, "IID_I" #ifc, &PyI##ifc::type, GET_PYGATEWAY_CTOR(PyG##ifc)}
 
 // Prototypes for the register functions
 

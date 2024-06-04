@@ -9,4 +9,3 @@ if bFailed then
 else
 	WScript.Echo "VBScript test worked OK"
 end if
-

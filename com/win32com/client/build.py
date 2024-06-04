@@ -24,19 +24,16 @@ import pythoncom
 import winerror
 from pywintypes import TimeType
 
-
 # It isn't really clear what the quoting rules are in a C/IDL string and
 # literals like a quote char and backslashes makes life a little painful to
 # always render the string perfectly - so just punt and fall-back to a repr()
-def _makeDocString(s):
-    return repr(s)
-
+_makeDocString = repr
 
 error = "PythonCOM.Client.Build error"
 
 
 class NotSupportedException(Exception):
-    pass  # Raised when we cant support a param type.
+    pass  # Raised when we can't support a param type.
 
 
 DropIndirection = "DropIndirection"
@@ -236,7 +233,7 @@ class DispatchItem(OleItem):
         hidden = (funcflags & pythoncom.FUNCFLAG_FHIDDEN) != 0
         if invkind == pythoncom.INVOKE_PROPERTYGET:
             map = self.propMapGet
-        # This is not the best solution, but I dont think there is
+        # This is not the best solution, but I don't think there is
         # one without specific "set" syntax.
         # If there is a single PUT or PUTREF, it will function as a property.
         # If there are both, then the PUT remains a property, and the PUTREF
@@ -254,7 +251,7 @@ class DispatchItem(OleItem):
                     self.mapFuncs["Set" + name] = existing
                     map = self.propMapPut  # existing gets overwritten below.
             else:
-                map = self.propMapPut  # first time weve seen it.
+                map = self.propMapPut  # first time we've seen it.
 
         elif invkind == pythoncom.INVOKE_FUNC:
             map = self.mapFuncs
@@ -265,7 +262,7 @@ class DispatchItem(OleItem):
             # 					sys.stderr.write("Warning - overwriting existing method/attribute %s\n" % name)
             map[name] = MapEntry(fdesc, names, doc, resultCLSID, resultDoc, hidden)
             # any methods that can't be reached via DISPATCH we return None
-            # for, so dynamic dispatch doesnt see it.
+            # for, so dynamic dispatch doesn't see it.
             if fdesc.funckind != pythoncom.FUNC_DISPATCH:
                 return None
             return (name, map)
@@ -331,15 +328,15 @@ class DispatchItem(OleItem):
         for argCheck in argTuple:
             inOut = argCheck[1]
             if inOut == 0:
-                ins = ins + 1
-                out = out + 1
+                ins += 1
+                out += 1
             else:
                 if inOut & pythoncom.PARAMFLAG_FIN:
-                    ins = ins + 1
+                    ins += 1
                 if inOut & pythoncom.PARAMFLAG_FOPT:
-                    opts = opts + 1
+                    opts += 1
                 if inOut & pythoncom.PARAMFLAG_FOUT:
-                    out = out + 1
+                    out += 1
         return ins, out, opts
 
     def MakeFuncMethod(self, entry, name, bMakeClass=1):
@@ -425,42 +422,30 @@ class DispatchItem(OleItem):
                     repr(argsDesc),
                     _BuildArgList(fdesc, names),
                 )
-                s = s + f"{linePrefix}\tif ret is not None:\n"
+                s += f"{linePrefix}\tif ret is not None:\n"
                 if rd == pythoncom.VT_UNKNOWN:
-                    s = (
-                        s
-                        + "{}\t\t# See if this IUnknown is really an IDispatch\n".format(
-                            linePrefix,
-                        )
+                    s += "{}\t\t# See if this IUnknown is really an IDispatch\n".format(
+                        linePrefix
                     )
-                    s = s + f"{linePrefix}\t\ttry:\n"
-                    s = (
-                        s
-                        + "{}\t\t\tret = ret.QueryInterface(pythoncom.IID_IDispatch)\n".format(
-                            linePrefix
-                        )
+                    s += f"{linePrefix}\t\ttry:\n"
+                    s += "{}\t\t\tret = ret.QueryInterface(pythoncom.IID_IDispatch)\n".format(
+                        linePrefix
                     )
-                    s = s + f"{linePrefix}\t\texcept pythoncom.error:\n"
-                    s = s + f"{linePrefix}\t\t\treturn ret\n"
-                s = s + "{}\t\tret = Dispatch(ret, {}, {})\n".format(
-                    linePrefix,
-                    repr(name),
-                    resclsid,
+                    s += f"{linePrefix}\t\texcept pythoncom.error:\n"
+                    s += f"{linePrefix}\t\t\treturn ret\n"
+                s += "{}\t\tret = Dispatch(ret, {}, {})\n".format(
+                    linePrefix, repr(name), resclsid
                 )
-                s = s + "%s\treturn ret" % (linePrefix)
+                s += "%s\treturn ret" % linePrefix
             elif rd == pythoncom.VT_BSTR:
                 s = f"{linePrefix}\t# Result is a Unicode object\n"
-                s = (
-                    s
-                    + "%s\treturn self._oleobj_.InvokeTypes(%d, LCID, %s, %s, %s%s)"
-                    % (
-                        linePrefix,
-                        id,
-                        fdesc[4],
-                        retDesc,
-                        repr(argsDesc),
-                        _BuildArgList(fdesc, names),
-                    )
+                s += "%s\treturn self._oleobj_.InvokeTypes(%d, LCID, %s, %s, %s%s)" % (
+                    linePrefix,
+                    id,
+                    fdesc[4],
+                    retDesc,
+                    repr(argsDesc),
+                    _BuildArgList(fdesc, names),
                 )
             # else s remains None
         if s is None:
@@ -508,7 +493,7 @@ class DispatchItem(OleItem):
 class VTableItem(DispatchItem):
     def Build(self, typeinfo, attr, bForUser=1):
         DispatchItem.Build(self, typeinfo, attr, bForUser)
-        assert typeinfo is not None, "Cant build vtables without type info!"
+        assert typeinfo is not None, "Can't build vtables without type info!"
 
         meth_list = (
             list(self.mapFuncs.values())
@@ -554,7 +539,7 @@ def _ResolveType(typerepr, itypeinfo):
             # We need to drop an indirection level on pointer to user defined interfaces.
             # eg, (VT_PTR, (VT_USERDEFINED, somehandle)) needs to become VT_DISPATCH
             # only when "somehandle" is an object.
-            # but (VT_PTR, (VT_USERDEFINED, otherhandle)) doesnt get the indirection dropped.
+            # but (VT_PTR, (VT_USERDEFINED, otherhandle)) doesn't get the indirection dropped.
             was_user = (
                 isinstance(subrepr, tuple) and subrepr[0] == pythoncom.VT_USERDEFINED
             )
@@ -632,7 +617,7 @@ def _BuildArgList(fdesc, names):
     # As per BuildCallList(), avoid huge lines.
     # Hack a "\n" at the end of every 5th name
     for i in range(0, len(names), 5):
-        names[i] = names[i] + "\n\t\t\t"
+        names[i] += "\n\t\t\t"
     return "," + ", ".join(names)
 
 
@@ -652,7 +637,7 @@ def demunge_leading_underscores(className):
 def MakePublicAttributeName(className, is_global=False):
     # Given a class attribute that needs to be public, convert it to a
     # reasonable name.
-    # Also need to be careful that the munging doesnt
+    # Also need to be careful that the munging doesn't
     # create duplicates - eg, just removing a leading "_" is likely to cause
     # a clash.
     # if is_global is True, then the name is a global variable that may
@@ -734,7 +719,7 @@ def BuildCallList(
     strval = ""
     if numOptArgs == -1:  # Special value that says "var args after here"
         firstOptArg = numArgs
-        numArgs = numArgs - 1
+        numArgs -= 1
     else:
         firstOptArg = numArgs - numOptArgs
     for arg in range(numArgs):
@@ -771,15 +756,15 @@ def BuildCallList(
         # This may still fail if the arg names are insane, but that seems
         # unlikely.  See also _BuildArgList()
         if (arg + 1) % 5 == 0:
-            strval = strval + "\n"
+            strval += "\n"
             if is_comment:
-                strval = strval + "#"
-            strval = strval + "\t\t\t"
-        strval = strval + ", " + argName
+                strval += "#"
+            strval += "\t\t\t"
+        strval += ", " + argName
         if defArgVal:
-            strval = strval + "=" + defArgVal
+            strval += "=" + defArgVal
     if numOptArgs == -1:
-        strval = strval + ", *" + names[-1]
+        strval += ", *" + names[-1]
 
     return strval
 

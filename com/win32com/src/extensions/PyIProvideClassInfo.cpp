@@ -84,4 +84,3 @@ PyComTypeObject PyIProvideClassInfo2::type(
     "PyIProvideClassInfo2",
     &PyIProvideClassInfo::type,  // @base PyIProvideClassInfo2|PyIProvideClassInfo
     sizeof(PyIProvideClassInfo2), PyIProvideClassInfo2_methods, GET_PYCOM_CTOR(PyIProvideClassInfo2));
-

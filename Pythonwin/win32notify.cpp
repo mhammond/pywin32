@@ -50,7 +50,7 @@ PyObject *PyNotifyMakeExtraTuple(NMHDR *ptr, char *fmt)
             {
                 char *use = (*fmt == 'z') ? *(char **)pUse : pUse;
                 ob = bIgnore ? NULL : PyBytes_FromString("");  // HACK HACK - FIX ME FIX ME
-                if (*fmt == 's') {                              // followed by buffer size;
+                if (*fmt == 's') {                             // followed by buffer size;
                     int val = 0;
                     while (fmt[1] && isdigit(fmt[1])) {
                         val = val * 10 + (fmt[1] - '0');
@@ -68,7 +68,7 @@ PyObject *PyNotifyMakeExtraTuple(NMHDR *ptr, char *fmt)
             {
                 char *use = (*fmt == 'Z') ? *(char **)pUse : pUse;
                 ob = bIgnore ? NULL : PyBytes_FromString("");  // HACK HACK - FIX ME FIX ME
-                if (*fmt == 'S') {                              // followed by buffer size;
+                if (*fmt == 'S') {                             // followed by buffer size;
                     int val = 0;
                     while (fmt[1] && isdigit(fmt[1])) {
                         val = val * 10 + (fmt[1] - '0');
@@ -372,7 +372,7 @@ BOOL Python_OnNotify(CWnd *pFrom, WPARAM, LPARAM lParam, LRESULT *pResult)
     PyObject *result = Python_do_callback(method, args);
     if (result == NULL)
         PyErr_Warn(PyExc_Warning, "Exception in OnNotify() handler");
-    else if (result == Py_None)  // allow for None "dont pass on", else result to windows
+    else if (result == Py_None)  // allow for None "don't pass on", else result to windows
         bPassOn = TRUE;
     else if (PyTuple_Check(result)) {
         // Result should be a tuple of the LRESULT and a tuple to fill the appropriate
@@ -382,11 +382,12 @@ BOOL Python_OnNotify(CWnd *pFrom, WPARAM, LPARAM lParam, LRESULT *pResult)
         if (PyErr_Occurred()) {
             gui_print_error();
             PyErr_Format(ui_module_error, "Error parsing OnNotify() extra return info for code %d, fmt='%s'", code,
-                            fmt);
+                         fmt);
             gui_print_error();
         }
-    // Otherwise result is just the LRESULT, which can be anything that fits in pointer size
-    } else if (!PyWinObject_AsSimplePARAM(result, (LPARAM *)&rc)) {
+        // Otherwise result is just the LRESULT, which can be anything that fits in pointer size
+    }
+    else if (!PyWinObject_AsSimplePARAM(result, (LPARAM *)&rc)) {
         gui_print_error();
         PyErr_SetString(ui_module_error,
                         "OnNotify did not return an LRESULT, or a tuple of (LRESULT, notify info tuple)");

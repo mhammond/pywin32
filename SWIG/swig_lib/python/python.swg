@@ -97,7 +97,7 @@ swig_varlink_print(swig_varlinkobject *v, FILE *fp, int flags)
 
 /* --------------------------------------------------------------------
    swig_varlink_getattr
- 
+
    This function gets the value of a variable and returns it as a
    PyObject.   In our case, we'll be looking at the datatype and
    converting into a number or string
@@ -144,17 +144,17 @@ swig_varlink_setattr(swig_varlinkobject *v, char *n, PyObject *p)
 
 statichere PyTypeObject varlinktype = {
 /*  PyObject_HEAD_INIT(&PyType_Type)  Note : This doesn't work on some machines */
-  PyObject_HEAD_INIT(0)              
+  PyObject_HEAD_INIT(0)
   0,
   "varlink",                          /* Type name    */
   sizeof(swig_varlinkobject),         /* Basic size   */
   0,                                  /* Itemsize     */
-  0,                                  /* Deallocator  */ 
+  0,                                  /* Deallocator  */
   (printfunc) swig_varlink_print,     /* Print        */
   (getattrfunc) swig_varlink_getattr, /* get attr     */
   (setattrfunc) swig_varlink_setattr, /* Set attr     */
   0,                                  /* tp_compare   */
-  (reprfunc) swig_varlink_repr,       /* tp_repr      */    
+  (reprfunc) swig_varlink_repr,       /* tp_repr      */
   0,                                  /* tp_as_number */
   0,                                  /* tp_as_mapping*/
   0,                                  /* tp_hash      */
@@ -184,7 +184,7 @@ SWIG_addvarlink(PyObject *p, char *name,
 {
   swig_varlinkobject *v;
   v= (swig_varlinkobject *) p;
-	
+
   if (v->nvars >= v->maxvars -1) {
     v->maxvars = 2*v->maxvars;
     v->vars = (swig_globalvar **) realloc(v->vars,v->maxvars*sizeof(swig_globalvar *));

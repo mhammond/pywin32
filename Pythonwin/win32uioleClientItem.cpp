@@ -61,7 +61,8 @@ class PythonOleClientItem : public COleClientItem {
         BOOL bRet;
         if (helper.call_args("(iiii)", rectPos.left, rectPos.top, rectPos.right, rectPos.bottom)) {
             helper.retval(bRet);
-        } else {
+        }
+        else {
             helper.release_full();
             bRet = COleClientItem::OnChangeItemPosition(rectPos);
         }

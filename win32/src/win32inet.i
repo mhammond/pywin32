@@ -170,7 +170,7 @@ PyObject *PyWinObject_FromStatusInformation(DWORD status, void *buf, DWORD bufsi
 			return PyWinObject_FromWCHAR((TCHAR *)buf);
 		case INTERNET_STATUS_NAME_RESOLVED:
 		// ??? MSDN claims the 2 below return pointer to SOCKADDR struct,
-		//	but it appears to be a plain string ??? 
+		//	but it appears to be a plain string ???
 		case INTERNET_STATUS_CONNECTED_TO_SERVER:
 		case INTERNET_STATUS_CONNECTING_TO_SERVER:
 			return PyBytes_FromString((char *)buf);
@@ -239,7 +239,7 @@ void CALLBACK PyHINTERNET_StatusChange(
 				Py_DECREF(obret);
 			}
 		}
-	
+
 	// When handle is closed automatically by the closure of its parent handle,
 	//	must make sure the handle is cleared, so that when the Python
 	//	object is destroyed it won't attempt to close the handle again.
@@ -296,7 +296,7 @@ PyObject *PyObject_FromHINTERNET(HINTERNET hi)
 		Py_INCREF(context->obPyHINTERNET);
 		return context->obPyHINTERNET;
 		}
-	
+
 	PyHINTERNET *ret=new PyHINTERNET(hi);
 	if (ret==NULL)
 		return PyErr_NoMemory();
@@ -457,14 +457,14 @@ PyObject *PyInternetConnect(PyObject *self, PyObject *args, PyObject *kwargs)
 						//	server. Alternately, the string can contain the IP number of the site,
 						//	in ASCII dotted-decimal format (for example, 11.0.1.45).
 		&ServerPort,	// @pyparm int|ServerPort||Number of the TCP/IP port on the server to connect to.
-						//	These flags set only the port that will be used. The service is set by 
+						//	These flags set only the port that will be used. The service is set by
 						//	the value of dwService. This can be one of the INTERNET_DEFAULT_*_PORT
 						//	constants or INTERNET_INVALID_PORT_NUMBER, which uses the default
-						//	port for the service specified by dwService. 
+						//	port for the service specified by dwService.
 		&obUsername,	// @pyparm string|Username||A string that contains the name of the user
 						//	to log on. If this parameter is	None, the function uses	an appropriate
 						//	default, except	for	HTTP; a	NULL parameter in HTTP causes the server
-						//	to return an error.	For	the	FTP	protocol, the default is "anonymous". 
+						//	to return an error.	For	the	FTP	protocol, the default is "anonymous".
 		&obPassword,	// @pyparm string|Password||Address	of a null-terminated string	that
 						//	contains the password to use to	log	on.	If both	Password
 						//	and	Username are None, the function	uses the default
@@ -492,7 +492,7 @@ PyObject *PyInternetConnect(PyObject *self, PyObject *args, PyObject *kwargs)
 		PyErr_NoMemory();
 		goto done;
 		}
-		
+
 	Py_BEGIN_ALLOW_THREADS
 	hret=InternetConnect(hInternet, ServerName, ServerPort, Username, Password,
 		Service, Flags, (DWORD_PTR)context);
@@ -511,7 +511,7 @@ PyObject *PyInternetConnect(PyObject *self, PyObject *args, PyObject *kwargs)
 		else
 			PyWin_SetAPIError("InternetConnect", err);
 		}
-		
+
 	done:
 	PyWinObject_FreeTCHAR(ServerName);
 	PyWinObject_FreeTCHAR(Username);
@@ -530,7 +530,7 @@ PyCFunction pfnPyInternetConnect = (PyCFunction)PyInternetConnect;
 PyHINTERNET InternetOpen(
     TCHAR *lpszAgent, // @pyparm string|agent||A string that contains the name of the application
                       // or entity calling the Internet functions. This name is used as the user
-                      // agent in the HTTP protocol. 
+                      // agent in the HTTP protocol.
     DWORD dwAccessType, // pyparm int|accessType||dwAccessType|Type of access required. This can be one
                         // of INTERNET_OPEN_TYPE_DIRECT, INTERNET_OPEN_TYPE_PRECONFIG,
                         // INTERNET_OPEN_TYPE_PRECONFIG_WITH_NO_AUTOPROXY or
@@ -577,7 +577,7 @@ PyObject *PyInternetOpenUrl(PyObject *self, PyObject *args, PyObject *kwargs)
 		PyErr_NoMemory();
 		goto done;
 		}
-		
+
 	Py_BEGIN_ALLOW_THREADS
 	hiret =	InternetOpenUrl(hiin, szURL, szHeaders,	headerLen, flags, (DWORD_PTR)context);
 	Py_END_ALLOW_THREADS
@@ -625,12 +625,12 @@ PyObject *PyInternetCanonicalizeUrl(PyObject *self, PyObject *args)
     // @pyparm string|url||The URL to canonicalize.
     // @pyparm int|flags|0|integer value that contains the flags that control
     // canonicalization. This can be one of the following values:
-    // @flag ICU_BROWSER_MODE|Does not encode or decode characters after "#" or "?", and does not remove trailing white space after "?". If this value is not specified, the entire URL is encoded and trailing white space is removed. 
-    // @flag ICU_DECODE|Converts all %XX sequences to characters, including escape sequences, before the URL is parsed. 
-    // @flag ICU_ENCODE_PERCENT|Encodes any percent signs encountered. By default, percent signs are not encoded. This value is available in Microsoft� Internet Explorer 5 and later versions of the Win32� Internet functions. 
-    // @flag ICU_ENCODE_SPACES_ONLY|Encodes spaces only. 
-    // @flag ICU_NO_ENCODE|Does not convert unsafe characters to escape sequences. 
-    // @flag ICU_NO_META|Does not remove meta sequences (such as "." and "..") from the URL. 
+    // @flag ICU_BROWSER_MODE|Does not encode or decode characters after "#" or "?", and does not remove trailing white space after "?". If this value is not specified, the entire URL is encoded and trailing white space is removed.
+    // @flag ICU_DECODE|Converts all %XX sequences to characters, including escape sequences, before the URL is parsed.
+    // @flag ICU_ENCODE_PERCENT|Encodes any percent signs encountered. By default, percent signs are not encoded. This value is available in Microsoft� Internet Explorer 5 and later versions of the Win32� Internet functions.
+    // @flag ICU_ENCODE_SPACES_ONLY|Encodes spaces only.
+    // @flag ICU_NO_ENCODE|Does not convert unsafe characters to escape sequences.
+    // @flag ICU_NO_META|Does not remove meta sequences (such as "." and "..") from the URL.
     // If no flags are specified (dwFlags = 0), the function converts all unsafe characters and meta sequences (such as \.,\ .., and \...) to escape sequences.
     if (!PyArg_ParseTuple(args, "O|i:InternetCanonicalizeUrl", &obURL, &flags))
         return NULL;
@@ -751,7 +751,7 @@ PyObject *PyInternetWriteFile(PyObject *self, PyObject *args)
     DWORD bytes_written;
     HINTERNET hFile;
 	BOOL ok;
-	
+
 	if (!PyArg_ParseTuple(args,	"OO:InternetWriteFile",
 		&obFile,	// @pyparm <o PyHINTERNET>|File||Writeable internet	handle
 		&obBuffer))	// @pyparm string|Buffer||String or	buffer containing data to be written
@@ -761,7 +761,7 @@ PyObject *PyInternetWriteFile(PyObject *self, PyObject *args)
 	PyWinBufferView pybuf(obBuffer);
 	if (!pybuf.ok())
 		return NULL;
-		
+
 	Py_BEGIN_ALLOW_THREADS
 	ok = InternetWriteFile(hFile, pybuf.ptr(), pybuf.len(), &bytes_written);
 	Py_END_ALLOW_THREADS
@@ -784,7 +784,7 @@ PyObject *PyFtpOpenFile(PyObject *self, PyObject *args, PyObject *kwargs)
 	PyObject *obConnect, *obFileName, *obContext=Py_None;
 	PyObject *ret=NULL;
 	static char *keywords[]={"Connect","FileName","Access","Flags","Context", NULL};
-	
+
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOkk|O:FtpOpenFile", keywords,
 		&obConnect,		// @pyparm <o PyHINTERNET>|hConnect||Valid HINTERNET handle to an FTP session.
 		&obFileName,	// @pyparm string|FileName||The name of the file to access on the remote system.
@@ -840,11 +840,11 @@ PyObject *PyFtpCommand(PyObject *self, PyObject *args, PyObject *kwargs)
 		&obConnect,		// @pyparm <o PyHINTERNET>|Connect||Valid HINTERNET	handle to an FTP session.
 		&ExpectResponse,	// @pyparm	bool|ExpectResponse||Boolean value	that indicates whether or not
 							//	the application expects a response	from the FTP server.
-							//	This must be set to True if a response	is expected, or	False otherwise. 
+							//	This must be set to True if a response	is expected, or	False otherwise.
 		&Flags,	// @pyparm int|Flags||Unsigned long integer value that contains the flags that
 				// control this function. This can be set to	either FTP_TRANSFER_TYPE_ASCII or
 				// FTP_TRANSFER_TYPE_BINARY
-		&obCommand,		// @pyparm string|Command||The command to send to the FTP server. 
+		&obCommand,		// @pyparm string|Command||The command to send to the FTP server.
 		&obContext))	// @pyparm object|Context|None|Arbitrary object	to be passed to	callback
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obConnect, &hConnect))
@@ -915,8 +915,8 @@ PyObject *PyInternetQueryOption(PyObject *self, PyObject *args)
 			}
 		Py_INCREF(context->obContext);
 		return context->obContext;
-		}			
-				
+		}
+
 	InternetQueryOption(h, option, buf, &bufsize);
 	DWORD rc=GetLastError();
 	if (rc!=ERROR_INSUFFICIENT_BUFFER)
@@ -926,7 +926,7 @@ PyObject *PyInternetQueryOption(PyObject *self, PyObject *args)
 		Returned buffer size is always 1, so allocate a large buffer as workaround ??? */
 	if (option==INTERNET_OPTION_SECURITY_CERTIFICATE && bufsize==1)
 		bufsize=8192;
-		
+
 	buf=malloc(bufsize);
 	if (buf==NULL)
 		return PyErr_NoMemory();
@@ -939,7 +939,7 @@ PyObject *PyInternetQueryOption(PyObject *self, PyObject *args)
 		// @flag INTERNET_OPTION_CALLBACK|Python callback function
 		// @flag INTERNET_OPTION_CONTEXT_VALUE|Context object
 		case INTERNET_OPTION_SEND_TIMEOUT:	// @flag INTERNET_OPTION_SEND_TIMEOUT|Int - timeout in millseconds
-											// @flag INTERNET_OPTION_CONTROL_SEND_TIMEOUT|Int - timeout in millseconds							
+											// @flag INTERNET_OPTION_CONTROL_SEND_TIMEOUT|Int - timeout in millseconds
 		case INTERNET_OPTION_RECEIVE_TIMEOUT:	// @flag INTERNET_OPTION_RECEIVE_TIMEOUT|Int - timeout in millseconds
 												// @flag INTERNET_OPTION_CONTROL_RECEIVE_TIMEOUT|Int - timeout in millseconds
 		case INTERNET_OPTION_CODEPAGE:		// @flag INTERNET_OPTION_CODEPAGE|Int - Codepage of host part of URL
@@ -960,7 +960,7 @@ PyObject *PyInternetQueryOption(PyObject *self, PyObject *args)
 		case INTERNET_OPTION_REQUEST_FLAGS:		// @flag INTERNET_OPTION_REQUEST_FLAGS|Int, combination of INTERNET_REQFLAG_*
 		case INTERNET_OPTION_REQUEST_PRIORITY:	// @flag INTERNET_OPTION_REQUEST_PRIORITY|Int
 		case INTERNET_OPTION_SECURITY_FLAGS:	// @flag INTERNET_OPTION_SECURITY_FLAGS|Int, SECURITY_FLAG_*
-		case INTERNET_OPTION_SECURITY_KEY_BITNESS:		// @flag INTERNET_OPTION_SECURITY_KEY_BITNESS|Int		
+		case INTERNET_OPTION_SECURITY_KEY_BITNESS:		// @flag INTERNET_OPTION_SECURITY_KEY_BITNESS|Int
 			ret=PyLong_FromUnsignedLong(*(unsigned long *)buf);
 			break;
 		case INTERNET_OPTION_BYPASS_EDITED_ENTRY:		// @flag INTERNET_OPTION_BYPASS_EDITED_ENTRY|Boolean
@@ -978,7 +978,7 @@ PyObject *PyInternetQueryOption(PyObject *self, PyObject *args)
 		case INTERNET_OPTION_URL:		// @flag INTERNET_OPTION_URL|String
 		case INTERNET_OPTION_USER_AGENT:		// @flag INTERNET_OPTION_USER_AGENT|String
 			ret=PyWinObject_FromTCHAR((TCHAR *)buf);
-			break;			
+			break;
 		case INTERNET_OPTION_CACHE_TIMESTAMPS:{		// @flag INTERNET_OPTION_CACHE_TIMESTAMPS|dict - Expiration and last modified times
 			INTERNET_CACHE_TIMESTAMPS *ct=(INTERNET_CACHE_TIMESTAMPS *)buf;
 			ret=Py_BuildValue("{s:N, s:N}",
@@ -988,14 +988,14 @@ PyObject *PyInternetQueryOption(PyObject *self, PyObject *args)
 			}
 		case INTERNET_OPTION_HTTP_VERSION:{		// @flag INTERNET_OPTION_HTTP_VERSION|dict - HTTP_VERSION_INFO
 			HTTP_VERSION_INFO *vi=(HTTP_VERSION_INFO *)buf;
-			ret=Py_BuildValue("{s:k, s:k}", 
-				"MajorVersion", vi->dwMajorVersion, 
+			ret=Py_BuildValue("{s:k, s:k}",
+				"MajorVersion", vi->dwMajorVersion,
 				"MinorVersion", vi->dwMinorVersion);
 			break;
 			}
 		case INTERNET_OPTION_VERSION:{	// @flag INTERNET_OPTION_VERSION|dict - INTERNET_VERSION_INFO
 			INTERNET_VERSION_INFO *vi=(INTERNET_VERSION_INFO *)buf;
-			ret=Py_BuildValue("{s:k, s:k}", 
+			ret=Py_BuildValue("{s:k, s:k}",
 				"MajorVersion", vi->dwMajorVersion,
 				"MinorVersion", vi->dwMinorVersion);
 			break;
@@ -1063,7 +1063,7 @@ void PyWinObject_FreeINTERNET_PROXY_INFO(INTERNET_PROXY_INFO *pipi)
 	PyWinObject_FreeTCHAR((TCHAR *)pipi->lpszProxyBypass);
 	ZeroMemory(pipi, sizeof(*pipi));
 }
-	
+
 BOOL PyWinObject_AsINTERNET_PROXY_INFO(PyObject *ob, INTERNET_PROXY_INFO *pipi)
 {
 	static char *keywords[] = {"AccessType","Proxy","ProxyBypass", NULL};
@@ -1107,7 +1107,7 @@ PyObject *PyInternetSetOption(PyObject *self, PyObject *args)
 		&option,	// @pyparm int|Option||The option to set, INTERNET_OPTION_*
 		&obbuf))	// @pyparm object|Buffer||Type is dependent on Option
 		return NULL;
-		
+
 	// Special handling for context object and callback function, which are both stored in
 	//	a PyCallbackContext instance which is the handle's *real* context pointer.
 	if (option==INTERNET_OPTION_CALLBACK || option==INTERNET_OPTION_CONTEXT_VALUE){
@@ -1136,14 +1136,14 @@ PyObject *PyInternetSetOption(PyObject *self, PyObject *args)
 			}
 		Py_INCREF(Py_None);
 		return Py_None;
-		}	
-		
+		}
+
 	switch (option){
 		// @flagh Option|Type of input object
 		// @flag INTERNET_OPTION_CALLBACK|Python function called on status change
 		// @flag INTERNET_OPTION_CONTEXT_VALUE|Any Python object to be passed to callback function
 		case INTERNET_OPTION_SEND_TIMEOUT:	// @flag INTERNET_OPTION_SEND_TIMEOUT|Int - timeout in millseconds
-											// @flag INTERNET_OPTION_CONTROL_SEND_TIMEOUT|Int - timeout in millseconds							
+											// @flag INTERNET_OPTION_CONTROL_SEND_TIMEOUT|Int - timeout in millseconds
 		case INTERNET_OPTION_RECEIVE_TIMEOUT:	// @flag INTERNET_OPTION_RECEIVE_TIMEOUT|Int - timeout in millseconds
 												// @flag INTERNET_OPTION_CONTROL_RECEIVE_TIMEOUT|Int - timeout in millseconds
 		case INTERNET_OPTION_CODEPAGE:		// @flag INTERNET_OPTION_CODEPAGE|Int - Codepage of host part of URL
@@ -1296,7 +1296,7 @@ public:
 };
 
 PyObject *PyWinObject_FromUrlCacheHANDLE(HANDLE h)
-{	
+{
 	PyUrlCacheHANDLE *ret=new PyUrlCacheHANDLE(h);
 	if (ret==NULL)
 		PyErr_NoMemory();
@@ -1365,7 +1365,7 @@ PyObject *PyFindFirstUrlCacheEntry(PyObject *self, PyObject *args, PyObject *kwa
 			break;
 			}
 		}
-		
+
 	PyWinObject_FreeTCHAR(pattern);
 	if (buf)
 		free(buf);
@@ -1406,8 +1406,8 @@ PyObject *PyFindNextUrlCacheEntry(PyObject *self, PyObject *args, PyObject *kwar
 			PyWin_SetAPIError("FindNextUrlCacheEntry", err);
 			break;
 			}
-		}  
-  
+		}
+
 	if (buf)
 		free(buf);
 	return ret;
@@ -1459,8 +1459,8 @@ PyObject *PyFindFirstUrlCacheEntryEx(PyObject *self, PyObject *args, PyObject *k
 			ret=Py_BuildValue("NN", PyWinObject_FromUrlCacheHANDLE(h), PyWinObject_FromINTERNET_CACHE_ENTRY_INFO(buf));
 			break;
 			}
-		}  
-  
+		}
+
 	PyWinObject_FreeTCHAR(pattern);
 	if (buf)
 		free(buf);
@@ -1502,8 +1502,8 @@ PyObject *PyFindNextUrlCacheEntryEx(PyObject *self, PyObject *args, PyObject *kw
 			PyWin_SetAPIError("FindNextUrlCacheEntryEx", err);
 			break;
 			}
-		}  
-  
+		}
+
 	if (buf)
 		free(buf);
 	return ret;
@@ -1520,14 +1520,14 @@ PyObject *PyFindCloseUrlCache(PyObject *self, PyObject *args, PyObject *kwargs)
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O:FindCloseUrlCache", keywords,
 		&obh))	// @pyparm <o PyUrlCacheHANDLE>|EnumHandle||Cache enumeration handle as returned by <om win32inet.FindFirstUrlCacheEntry>
 		return NULL;
-		
+
 	if (PyHANDLE_Check(obh)){
 		if (!((PyHANDLE *)obh)->Close())
 			return NULL;
 		Py_INCREF(Py_None);
 		return Py_None;
 		}
-		
+
 	if (!PyWinObject_AsHANDLE(obh, &h))
 		return NULL;
 	if (!FindCloseUrlCache(h))
@@ -1606,7 +1606,7 @@ PyObject *PyGetUrlCacheEntryInfo(PyObject *self, PyObject *args, PyObject *kwarg
 	INTERNET_CACHE_ENTRY_INFO *buf=NULL;
 	DWORD err, bufsize=512;
 	TCHAR *url=NULL;
-	
+
 	static char *keywords[]={"UrlName", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O:GetUrlCacheEntryInfo", keywords,
 		&oburl))	// @pyparm str|UrlName||Cache enumeration handle as returned by <om win32inet.FindFirstUrlCacheEntry>
@@ -1632,7 +1632,7 @@ PyObject *PyGetUrlCacheEntryInfo(PyObject *self, PyObject *args, PyObject *kwarg
 			break;
 			}
 		}
-	
+
 	PyWinObject_FreeTCHAR(url);
 	if (buf)
 		free(buf);
@@ -1695,7 +1695,7 @@ PyObject *PyCreateUrlCacheEntry(PyObject *self, PyObject *args, PyObject *kwargs
 			&ExpectedFileSize,	// @pyparm int|ExpectedFileSize||Size of content, use 0 if unknown
 			&obFileExtension))	// @pyparm str|FileExtension||Extension to use for filename
 		return NULL;
-		
+
 	if (PyWinObject_AsTCHAR(obUrlName, &UrlName, FALSE)
 		&&PyWinObject_AsTCHAR(obFileExtension, &FileExtension, TRUE)){
 		if (!CreateUrlCacheEntry(UrlName, ExpectedFileSize, FileExtension, filename, Reserved))
@@ -1734,7 +1734,7 @@ PyObject *PyCommitUrlCacheEntry(PyObject *self, PyObject *args, PyObject *kwargs
 			&obHeaderInfo,			// @pyparm str|HeaderInfo|None|Header data used to request Url
 			&obOriginalUrl))		// @pyparm str|OriginalUrl|None|If redirected, original site requested
 		return NULL;
-		
+
 	if (PyWinObject_AsTCHAR(obUrlName, &UrlName, FALSE)
 		&&PyWinObject_AsTCHAR(obLocalFileName, &LocalFileName, TRUE)
 		&&(obExpireTime==Py_None || PyWinObject_AsFILETIME(obExpireTime, &ExpireTime))
@@ -1768,7 +1768,7 @@ PyObject *PySetUrlCacheEntryGroup(PyObject *self, PyObject *args, PyObject *kwar
 	GROUPID GroupId;
 	LPBYTE GroupAttributes=NULL;
 	LPVOID Reserved=NULL;
-	
+
 	static char *keywords[]={"UrlName","Flags","GroupId", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OkK:SetUrlCacheEntryGroup", keywords,
 		&obUrlName,		// @pyparm str|UrlName||Url whose cache is to be added to the group
@@ -1797,8 +1797,8 @@ BOOL PyWinObject_AsINTERNET_CACHE_GROUP_INFO(PyObject *ob, INTERNET_CACHE_GROUP_
 	TCHAR *GroupName=NULL;
 	DWORD namelen, dword_cnt;
 	DWORD *OwnerStorage;
-	
-	BOOL bsuccess = PyArg_ParseTupleAndKeywords(dummy_tuple, ob, "|kkkkkOO:INTERNET_CACHE_GROUP_INFO", keywords,	
+
+	BOOL bsuccess = PyArg_ParseTupleAndKeywords(dummy_tuple, ob, "|kkkkkOO:INTERNET_CACHE_GROUP_INFO", keywords,
 		&GroupInfo->dwGroupSize,
 		&GroupInfo->dwGroupFlags,
 		&GroupInfo->dwGroupType,
@@ -1808,7 +1808,7 @@ BOOL PyWinObject_AsINTERNET_CACHE_GROUP_INFO(PyObject *ob, INTERNET_CACHE_GROUP_
 		&obGroupName)
 		&&PyWinObject_AsDWORDArray(obOwnerStorage, &OwnerStorage, &dword_cnt, TRUE)
 		&&PyWinObject_AsTCHAR(obGroupName, &GroupName, TRUE, &namelen);
-	
+
 	if (bsuccess && OwnerStorage){
 		if (dword_cnt != GROUP_OWNER_STORAGE_SIZE){
 			PyErr_Format(PyExc_ValueError, "OwnerStorage must contain %d ints", GROUP_OWNER_STORAGE_SIZE);

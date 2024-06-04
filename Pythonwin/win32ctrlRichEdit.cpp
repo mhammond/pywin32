@@ -436,7 +436,7 @@ static PyObject *PyCRichEditCtrl_get_line(PyObject *self, PyObject *args)
         TRACE0("Doubling buffer for GetLine value\n");
     }
     if (bytesCopied == size)  // hit max.
-        --bytesCopied;        // so NULL doesnt overshoot.
+        --bytesCopied;        // so NULL doesn't overshoot.
                               //	if (buf[bytesCopied-1]=='\r' || buf[bytesCopied-1]=='\n')	// kill newlines.
                               //		--bytesCopied;
     buf[bytesCopied] = '\0';

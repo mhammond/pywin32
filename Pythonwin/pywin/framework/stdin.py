@@ -119,7 +119,7 @@ class Stdin:
             line = self.readline()
             if line == "":
                 break
-            total_read = total_read + len(line)
+            total_read += len(line)
             result.append(line)
         return result
 

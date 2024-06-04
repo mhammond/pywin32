@@ -47,7 +47,7 @@ def ado_direction_name(ado_dir):
     try:
         return "adParam" + directions[ado_dir]
     except:
-        return "unknown direction (" + str(ado_dir) + ")"
+        return f"unknown direction ({ado_dir})"
 
 
 # ObjectStateEnum
@@ -166,7 +166,7 @@ adTypeNames = {
 
 
 def ado_type_name(ado_type):
-    return adTypeNames.get(ado_type, "unknown type (" + str(ado_type) + ")")
+    return adTypeNames.get(ado_type, f"unknown type ({ado_type})")
 
 
 # here in decimal, sorted by value

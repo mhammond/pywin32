@@ -497,7 +497,7 @@ typedef unsigned long BOOKMARK;
 
 %typemap(python,argout) MAPIINIT_0 *OUTPUT {
 	Py_DECREF($target);
-	$target = Py_BuildValue("ll", 
+	$target = Py_BuildValue("ll",
 		$source->ulVersion,
 		$source->ulFlags);
 }
@@ -513,9 +513,9 @@ typedef unsigned long BOOKMARK;
 			return NULL;
 		}
 	}
-}	
+}
 
-%typemap(python,ignore) SPropTagArray **OUTPUT (SPropTagArray *temp) 
+%typemap(python,ignore) SPropTagArray **OUTPUT (SPropTagArray *temp)
 {
 	$target = &temp;
 }
@@ -538,27 +538,27 @@ typedef unsigned long BOOKMARK;
 }
 
 
-%typemap(python,in) SPropTagArray *INPUT 
+%typemap(python,in) SPropTagArray *INPUT
 {
 	if (!PyMAPIObject_AsSPropTagArray($source, &$target))
 		return NULL;
-}	
+}
 
-%typemap(python,freearg) SPropTagArray *INPUT 
+%typemap(python,freearg) SPropTagArray *INPUT
 {
 	if ($source) MAPIFreeBuffer($source);
-}	
+}
 
 %typemap(python,in) SRestriction *INPUT {
 	if (!PyMAPIObject_AsSRestriction($source, &$target))
 		return NULL;
-}	
+}
 %typemap(python,freearg) SRestriction *INPUT
 {
 	PyMAPIObject_FreeSRestriction($source);
 }
 
-%typemap(python,in) SSortOrderSet *INPUT 
+%typemap(python,in) SSortOrderSet *INPUT
 {
 	if (!PyMAPIObject_AsSSortOrderSet($source, &$target))
 		return NULL;

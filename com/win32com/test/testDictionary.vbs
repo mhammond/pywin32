@@ -22,5 +22,3 @@ end if
 if ok then
     WScript.Echo "VBScript has successfully tested Python.Dictionary"
 end if
-
-
