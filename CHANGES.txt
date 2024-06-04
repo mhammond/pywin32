@@ -15,6 +15,14 @@ Coming in build 307, as yet unreleased
 --------------------------------------
 
 ### pywin32
+* Fixed accidentally trying to raise a `str` instead of an `Exception` in (#2270, @Avasam)
+  * `Pythonwin/pywin/framework/dlgappcore.py`
+  * `com/win32com/server/policy.py`
+  * `win32/Lib/regutil.py`
+  * `win32/scripts/VersionStamp/vssutil.py`
+* Removed the following unused symbols. They were meant to be used as Exceptions, but were accidentally strings (#2270, @Avasam)
+  * `pywin.debugger.debugger.error`
+  * `win32.scripts.VersionStamp.vssutil.error`
 * Marked `exc_type` and `exc_traceback` in `win32comext.axscript.client.error.AXScriptException.__init__` as deprecated.
   They are now unused and all information is taken from the `exc_value` parameter.
 * Fixed non-overriden `pywin.scintilla.formatter.Formatter.ColorizeString` raising `TypeError` instead of `RuntimeError` due to too many parameters (#2216, @Avasam)
