@@ -1051,7 +1051,7 @@ static PyObject *PyCComboBox_get_lb_text(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "i", &pos))
         return NULL;
     CString cs;
-    // Prevent MFC ASSERTing when empty - dont use the CString version.
+    // Prevent MFC ASSERTing when empty - don't use the CString version.
     GUI_BGN_SAVE;
     int size = pLB->GetLBTextLen(pos);
     if (size != LB_ERR) {

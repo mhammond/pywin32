@@ -87,7 +87,7 @@ def GroupEnum():
                     break
         if not resume:
             break
-    assert nmembers, "Couldnt find a single member in a single group!"
+    assert nmembers, "Couldn't find a single member in a single group!"
     print("Enumerated all the groups")
 
 
@@ -115,7 +115,7 @@ def LocalGroupEnum():
                     break
         if not resume:
             break
-    assert nmembers, "Couldnt find a single member in a single group!"
+    assert nmembers, "Couldn't find a single member in a single group!"
     print("Enumerated all the local groups")
 
 
@@ -206,7 +206,7 @@ def SetInfo(userName=None):
 
 
 def SetComputerInfo():
-    "Doesnt actually change anything, just make sure we could ;-)"
+    "Doesn't actually change anything, just make sure we could ;-)"
     info = win32net.NetWkstaGetInfo(None, 502)
     # *sob* - but we can't!  Why not!!!
     # win32net.NetWkstaSetInfo(None, 502, info)

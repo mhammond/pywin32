@@ -52,7 +52,7 @@ def OpenHelpFile(fileName, helpCmd=None, helpArg=None):
             global htmlhelp_handle
             helpCmd = html_help_command_translators.get(helpCmd, helpCmd)
             # frame = win32ui.GetMainFrame().GetSafeHwnd()
-            frame = 0  # Dont want it overlapping ours!
+            frame = 0  # Don't want it overlapping ours!
             if htmlhelp_handle is None:
                 htmlhelp_hwnd, htmlhelp_handle = win32help.HtmlHelp(
                     frame, None, win32help.HH_INITIALIZE
@@ -154,7 +154,7 @@ def SetHelpMenuOtherHelp(mainMenu):
     helpMenu = mainMenu.GetSubMenu(
         mainMenu.GetMenuItemCount() - 1
     )  # Help menu always last.
-    otherHelpMenuPos = 2  # cant search for ID, as sub-menu has no ID.
+    otherHelpMenuPos = 2  # can't search for ID, as sub-menu has no ID.
     otherMenu = helpMenu.GetSubMenu(otherHelpMenuPos)
     while otherMenu.GetMenuItemCount():
         otherMenu.DeleteMenu(0, win32con.MF_BYPOSITION)

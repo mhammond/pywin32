@@ -22,7 +22,7 @@ class CPythonSplitter : public CPythonWndFramework<CSplitterWnd> {
     DECLARE_MESSAGE_MAP()
 
     void AssertValid() const
-    {  // MFCs version wont allow us to call it before created, and our framework want's to!
+    {  // MFCs version won't allow us to call it before created, and our framework want's to!
         CWnd::AssertValid();
     }
 };

@@ -23,6 +23,7 @@ Coming in build 307, as yet unreleased
 * Fixed a `TypeError` due to incorrect kwargs in `win32comext.axscript.client.pydumper.Register` (#2216, @Avasam)
 * Fixed error reporting of file copy failure for for installing debug dlls (#2216, @Avasam)
 * Fixed `py.exe -m win32verstamp` command and other quote typos caused by Implied String Concatenation (#2225, @Avasam)
+* Fixed tons of quote-related typos in strings, docs and comments (#2271 , @Avasam)
 * Fixed VT_SAFEARRAY(VT_RECORD) which were missing the last element (#2247)
 * Fixed `MFC redist DLLs not found` by preferring corresponding version but accepting different version (#2248, @andreabravetti)
 * Fixed `pywintypes.error: (5, 'RegOpenKeyEx', 'Access is denied.')` when running service with debug parameter and no elevation (#2238, @jmartens)

@@ -537,7 +537,7 @@ PYWINTYPES_EXPORT PyObject *PyWinMethod_NewHANDLE(PyObject *self, PyObject *args
 
 // A global function that does the right thing wrt closing a "handle".
 // The object can be either a PyHANDLE or an integer.
-// If result is FALSE, a Python error is all setup (cf PyHANDLE::Close(), which doesnt set the Python error)
+// If result is FALSE, a Python error is all setup (cf PyHANDLE::Close(), which doesn't set the Python error)
 PYWINTYPES_EXPORT BOOL PyWinObject_CloseHANDLE(PyObject *obHandle);
 
 PYWINTYPES_EXPORT BOOL PyWinObject_AsHKEY(PyObject *ob, HKEY *pRes);

@@ -24,7 +24,7 @@ class PyCGdiObject : public ui_assoc_CObject {
 
     // XXX - PyCGDIObject used to have an 'm_deleteObject' attribute - but all
     // it did was cause a normal 'delete' of the object - ie, identical to the
-    // base-class bManualDelete.  Its likely the original intent was for the new
+    // base-class bManualDelete.  It's likely the original intent was for the new
     // attribute to determine if ::DeleteObject() should have been called, but
     // that apparently has never happened...
 };

@@ -45,7 +45,7 @@ fixed (eg, all MSOffice test run both as dynamic and makepy - the only differenc
 speed.  Note that Office97 can be _very_ slow at startup without makep support loaded.
 
 * Full support for Office 97.  Note that Word97 has changed its object model, and
-their "compatibility" layer doesnt work with Python - you will need to change any code
+their "compatibility" layer doesn't work with Python - you will need to change any code
 that uses Word.  See the win32com\test\testMSOffice.py for a demo of talking to word.
 
 * Support for interfaces with variable arguments supported.

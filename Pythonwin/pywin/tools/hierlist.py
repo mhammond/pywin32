@@ -121,7 +121,7 @@ class HierList(object.Object):
         self.filledItemHandlesMap = {}
 
     def HierTerm(self):
-        # Dont want notifies as we kill the list.
+        # Don't want notifies as we kill the list.
         parent = self.notify_parent  # GetParentFrame()
         parent.HookNotify(None, commctrl.TVN_ITEMEXPANDINGW)
         parent.HookNotify(None, commctrl.TVN_SELCHANGEDW)
