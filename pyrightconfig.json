@@ -35,7 +35,6 @@
   // some of the fixes need to be done in types-pywin32 from typeshed
   "reportCallIssue": "warning",
   "reportOperatorIssue": "warning",
-  "reportOptionalCall": "warning",
   "reportOptionalIterable": "warning",
   "reportOptionalMemberAccess": "warning",
   "reportOptionalSubscript": "warning",
