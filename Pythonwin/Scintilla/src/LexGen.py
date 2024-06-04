@@ -132,10 +132,8 @@ def Generate(inpath, outpath, commentPrefix, eolType, *lists):
         file. It should be one of following constants: LF, CRLF,
         CR, or NATIVE.
     """
-    # print(
-    #     f"generate '{inpath}' -> '{outpath}' "
-    #     + f"(comment prefix: {commentPrefix!r}, eols: {eolType!r})"
-    # )
+    # print "generate '%s' -> '%s' (comment prefix: %r, eols: %r)"\
+    #      % (inpath, outpath, commentPrefix, eolType)
     try:
         infile = open(inpath, "r")
     except OSError:
