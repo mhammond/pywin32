@@ -67,7 +67,7 @@ CPrintInfo *ui_prinfo_object::GetPrintInfo(PyObject *self)
 
 void ui_prinfo_object::SetAssocInvalid()
 {
-    return;  // do nothing.  Dont call base as dont want my handle wiped.
+    return;  // do nothing.  Don't call base as don't want my handle wiped.
 }
 
 ui_prinfo_object::~ui_prinfo_object()

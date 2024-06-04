@@ -41,7 +41,7 @@ from setuptools.command.build_ext import build_ext
 from setuptools.command.install import install
 from setuptools.command.install_lib import install_lib
 from tempfile import gettempdir
-from typing import Iterable, List, Tuple, Union
+from typing import Iterable
 
 from distutils import ccompiler
 from distutils._msvccompiler import MSVCCompiler
@@ -54,7 +54,7 @@ else:
 
 build_id_patch = build_id
 if not "." in build_id_patch:
-    build_id_patch = build_id_patch + ".0"
+    build_id_patch += ".0"
 pywin32_version = "%d.%d.%s" % (
     sys.version_info.major,
     sys.version_info.minor,
@@ -174,7 +174,7 @@ class WinExt(Extension):
 
             # like Python, always use debug info, even in release builds
             # (note the compiler doesn't include debug info, so you only get
-            # basic info - but its better than nothing!)
+            # basic info - but it's better than nothing!)
             # For now use the temp dir - later we may package them, so should
             # maybe move them next to the output file.
             pch_dir = os.path.join(build_ext.build_temp)
@@ -631,11 +631,16 @@ class my_build_ext(build_ext):
         redist_globs = [vcbase + r"redist\%s\*MFC\mfc140u.dll" % self.plat_dir]
         m = re.search(r"\\VC\\Tools\\", vcbase)
         if m:
-            # typical path on newer Visual Studios - ensure corresponding version
+            # typical path on newer Visual Studios
+            # prefere corresponding version but accept different version
+            same_version = vcverdir is not None and os.path.isdir(
+                vcbase[: m.start()]
+                + r"\VC\Redist\MSVC\{}{}".format(vcverdir, self.plat_dir)
+            )
             redist_globs.append(
                 vcbase[: m.start()]
                 + r"\VC\Redist\MSVC\{}{}\*\mfc140u.dll".format(
-                    vcverdir or "*\\", self.plat_dir
+                    vcverdir if same_version else "*\\", self.plat_dir
                 )
             )
         # Only mfcNNNu DLL is required (mfcmNNNX is Windows Forms, rest is ANSI)
@@ -990,7 +995,7 @@ class my_compiler(MSVCCompiler):
         # allow --skip-verstamp on the cmdline - but if it's not there, the
         # verstamp must work.)
         if not skip_verstamp:
-            args = ["py.exe", "-m" "win32verstamp"]
+            args = ["py.exe", "-m", "win32verstamp"]
             args.append(f"--version={pywin32_version}")
             args.append("--comments=https://github.com/mhammond/pywin32")
             args.append(f"--original-filename={os.path.basename(output_filename)}")
@@ -1038,7 +1043,7 @@ class my_compiler(MSVCCompiler):
             # We want mt.exe run with the original manifest
             for i in range(len(cmd)):
                 if cmd[i] == "-manifest":
-                    cmd[i + 1] = cmd[i + 1] + ".orig"
+                    cmd[i + 1] += ".orig"
                     break
         super().spawn(cmd)
         if is_link:
@@ -2084,7 +2089,7 @@ swig_interface_parents = {
 swig_include_files = "mapilib adsilib".split()
 
 
-def expand_modules(module_dir: Union[str, os.PathLike[str]]):
+def expand_modules(module_dir: str | os.PathLike[str]):
     """Helper to allow our script specifications to include wildcards."""
     return [str(path.with_suffix("")) for path in Path(module_dir).rglob("*.py")]
 
@@ -2095,7 +2100,7 @@ def expand_modules(module_dir: Union[str, os.PathLike[str]]):
 # 'Lib/site-packages/pythonwin/licence.txt'.  We exploit this to
 # get 'com/win32com/whatever' installed to 'win32com/whatever'
 def convert_data_files(files: Iterable[str]):
-    ret: List[Tuple[str, Tuple[str]]] = []
+    ret: list[tuple[str, tuple[str]]] = []
     for file in files:
         file = os.path.normpath(file)
         if file.find("*") >= 0:
@@ -2127,7 +2132,7 @@ def convert_optional_data_files(files):
         except RuntimeError as details:
             if not str(details.args[0]).startswith("No file"):
                 raise
-            logging.info("NOTE: Optional file %s not found - skipping" % file)
+            logging.info("NOTE: Optional file %s not found - skipping", file)
         else:
             ret.append(temp[0])
     return ret

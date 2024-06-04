@@ -21,10 +21,8 @@ debugging = 0
 
 PyIDispatchType = pythoncom.TypeIIDs[pythoncom.IID_IDispatch]
 
-
-def _is_callable(obj):
-    return isinstance(obj, (types.FunctionType, types.MethodType))
-    # ignore hasattr(obj, "__call__") as this means all COM objects!
+# ignore hasattr(obj, "__call__") as this means all COM objects!
+_CallableTypes = (types.FunctionType, types.MethodType)
 
 
 class ScriptDispatch:
@@ -42,7 +40,7 @@ class ScriptDispatch:
             # attempt to call a function
             try:
                 func = getattr(self.scriptNamespace, name)
-                if not _is_callable(func):
+                if not isinstance(func, _CallableTypes):
                     raise AttributeError(name)  # Not a function.
                 realArgs = []
                 for arg in args:
@@ -60,7 +58,7 @@ class ScriptDispatch:
             # attempt to get a property
             try:
                 ret = getattr(self.scriptNamespace, name)
-                if _is_callable(ret):
+                if isinstance(ret, _CallableTypes):
                     raise AttributeError(name)  # Not a property.
             except AttributeError:
                 raise COMException(scode=winerror.DISP_E_MEMBERNOTFOUND)
@@ -91,7 +89,7 @@ class StrictDynamicPolicy(win32com.server.policy.DynamicPolicy):
             func = getattr(self._obj_.scriptNamespace, str(name))
         except AttributeError:
             raise COMException(scode=winerror.DISP_E_MEMBERNOTFOUND)
-        # 		if not _is_callable(func):
+        # if not isinstance(func, _CallableTypes):
         return win32com.server.policy.DynamicPolicy._getdispid_(self, name, fdex)
 
 

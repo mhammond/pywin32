@@ -99,11 +99,10 @@ class TestRunner:
             base = os.path.basename(self.argv[1])
             # See if we can detect and reconstruct an exception in the output.
             reconstituted = find_exception_in_output(output)
-            if reconstituted is not None:
-                raise reconstituted
-            raise AssertionError(
-                f"{base} failed with exit code {rc}.  Output is:\n{output}"
-            )
+            assert (
+                reconstituted is not None
+            ), f"{base} failed with exit code {rc}.  Output is:\n{output}"
+            raise reconstituted
 
 
 def get_demo_tests():

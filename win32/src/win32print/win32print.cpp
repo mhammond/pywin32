@@ -218,7 +218,7 @@ static PyObject *PyWinObject_FromPRINTER_INFO(LPBYTE printer_info, DWORD level)
                                  pi5->TransmissionRetryTimeout);
         case 6:
             PRINTER_INFO_6 *pi6;
-            pi6 = (PRINTER_INFO_6*)printer_info;
+            pi6 = (PRINTER_INFO_6 *)printer_info;
             return Py_BuildValue("{s:k}", "Status", pi6->dwStatus);
         case 7:
             PRINTER_INFO_7 *pi7;
@@ -335,16 +335,15 @@ void PyWinObject_FreePRINTER_INFO(DWORD level, LPBYTE pbuf)
     free(pbuf);
 }
 
-#define AsPRINTER_INFO__INIT_PRINTER_INFO_X(_PRINTER_INFO_X, _PIX_PTR) \
-    _PRINTER_INFO_X *_PIX_PTR; \
-    bufsize = sizeof(_PRINTER_INFO_X); \
-    if ((*pbuf = (LPBYTE)malloc(bufsize)) == NULL) { \
+#define AsPRINTER_INFO__INIT_PRINTER_INFO_X(_PRINTER_INFO_X, _PIX_PTR)          \
+    _PRINTER_INFO_X *_PIX_PTR;                                                  \
+    bufsize = sizeof(_PRINTER_INFO_X);                                          \
+    if ((*pbuf = (LPBYTE)malloc(bufsize)) == NULL) {                            \
         PyErr_Format(PyExc_MemoryError, "Malloc failed for %d bytes", bufsize); \
-        break; \
-    } \
-    ZeroMemory(*pbuf, bufsize); \
-    _PIX_PTR = (_PRINTER_INFO_X*)*pbuf;
-
+        break;                                                                  \
+    }                                                                           \
+    ZeroMemory(*pbuf, bufsize);                                                 \
+    _PIX_PTR = (_PRINTER_INFO_X *)*pbuf;
 
 BOOL PyWinObject_AsPRINTER_INFO(DWORD level, PyObject *obinfo, LPBYTE *pbuf)
 {
@@ -459,9 +458,7 @@ BOOL PyWinObject_AsPRINTER_INFO(DWORD level, PyObject *obinfo, LPBYTE *pbuf)
             break;
         }
         case 6: {
-            static char *pi6_keys[] = {
-                "Status",
-                NULL };
+            static char *pi6_keys[] = {"Status", NULL};
             static char *pi6_format = "k:PRINTER_INFO_6";
             AsPRINTER_INFO__INIT_PRINTER_INFO_X(PRINTER_INFO_6, pi6);
             ret = PyArg_ParseTupleAndKeywords(dummy_tuple, obinfo, pi6_format, pi6_keys, &pi6->dwStatus);
@@ -1139,7 +1136,7 @@ static PyObject *PyGetJob(PyObject *self, PyObject *args)
 
 // Convert a python dictionary to a JOB_INFO_* structure.
 // Returned buffer must be freed.
-BOOL PytoJob(DWORD level, PyObject *pyjobinfo, LPBYTE *pbuf, TmpWCHAR* tmpw_shelve)
+BOOL PytoJob(DWORD level, PyObject *pyjobinfo, LPBYTE *pbuf, TmpWCHAR *tmpw_shelve)
 {
     static char *job1_keys[] = {"JobId",      "pPrinterName", "pMachineName", "pUserName", "pDocument",
                                 "pDatatype",  "pStatus",      "Status",       "Priority",  "Position",
@@ -1161,7 +1158,7 @@ BOOL PytoJob(DWORD level, PyObject *pyjobinfo, LPBYTE *pbuf, TmpWCHAR* tmpw_shel
     // record  conversions unicode / None --> WCHAR* / NULL
     int i, u2w_count = 0;
     TmpWCHAR *ptw = tmpw_shelve;
-#define U2W(target)  (ptw->u=(PyObject*)target, ptw++, u2w_count++, target)
+#define U2W(target) (ptw->u = (PyObject *)target, ptw++, u2w_count++, target)
 
     *pbuf = NULL;
     switch (level) {
@@ -1185,9 +1182,9 @@ BOOL PytoJob(DWORD level, PyObject *pyjobinfo, LPBYTE *pbuf, TmpWCHAR* tmpw_shel
             ZeroMemory(job1, sizeof(JOB_INFO_1));
             if (PyArg_ParseTupleAndKeywords(dummy_tuple, pyjobinfo, job1_format, job1_keys, &job1->JobId,
                                             U2W(&job1->pPrinterName), U2W(&job1->pMachineName), U2W(&job1->pUserName),
-                                            U2W(&job1->pDocument), U2W(&job1->pDatatype), U2W(&job1->pStatus), &job1->Status,
-                                            &job1->Priority, &job1->Position, &job1->TotalPages, &job1->PagesPrinted,
-                                            &obsubmitted) &&
+                                            U2W(&job1->pDocument), U2W(&job1->pDatatype), U2W(&job1->pStatus),
+                                            &job1->Status, &job1->Priority, &job1->Position, &job1->TotalPages,
+                                            &job1->PagesPrinted, &obsubmitted) &&
                 ((obsubmitted == Py_None) || PyWinObject_AsSYSTEMTIME(obsubmitted, &job1->Submitted)))
                 ret = TRUE;
             break;
@@ -1205,10 +1202,11 @@ BOOL PytoJob(DWORD level, PyObject *pyjobinfo, LPBYTE *pbuf, TmpWCHAR* tmpw_shel
             ZeroMemory(job2, sizeof(JOB_INFO_2));
             if (PyArg_ParseTupleAndKeywords(
                     dummy_tuple, pyjobinfo, job2_format, job2_keys, &job2->JobId, U2W(&job2->pPrinterName),
-                    U2W(&job2->pMachineName), U2W(&job2->pUserName), U2W(&job2->pDocument), U2W(&job2->pNotifyName), U2W(&job2->pDatatype),
-                    U2W(&job2->pPrintProcessor), U2W(&job2->pParameters), U2W(&job2->pDriverName), &obdevmode, U2W(&job2->pStatus),
-                    &obsecurity_descriptor, &job2->Status, &job2->Priority, &job2->Position, &job2->StartTime,
-                    &job2->UntilTime, &job2->TotalPages, &job2->Size, &obsubmitted, &job2->Time, &job2->PagesPrinted) &&
+                    U2W(&job2->pMachineName), U2W(&job2->pUserName), U2W(&job2->pDocument), U2W(&job2->pNotifyName),
+                    U2W(&job2->pDatatype), U2W(&job2->pPrintProcessor), U2W(&job2->pParameters),
+                    U2W(&job2->pDriverName), &obdevmode, U2W(&job2->pStatus), &obsecurity_descriptor, &job2->Status,
+                    &job2->Priority, &job2->Position, &job2->StartTime, &job2->UntilTime, &job2->TotalPages,
+                    &job2->Size, &obsubmitted, &job2->Time, &job2->PagesPrinted) &&
                 PyWinObject_AsDEVMODE(obdevmode, &job2->pDevMode, TRUE) &&
                 PyWinObject_AsSECURITY_DESCRIPTOR(obsecurity_descriptor, &job2->pSecurityDescriptor, TRUE) &&
                 ((obsubmitted == Py_None) || PyWinObject_AsSYSTEMTIME(obsubmitted, &job2->Submitted)))
@@ -1234,11 +1232,11 @@ BOOL PytoJob(DWORD level, PyObject *pyjobinfo, LPBYTE *pbuf, TmpWCHAR* tmpw_shel
     }
 
     // Conversions unicode / None --> WCHAR* / NULL  (held by tmpw_shelve)
-    for (i=0, ptw = tmpw_shelve;  ret && i < u2w_count;  i++, ptw++) {
-        PyObject *o = *(PyObject**)ptw->u;
+    for (i = 0, ptw = tmpw_shelve; ret && i < u2w_count; i++, ptw++) {
+        PyObject *o = *(PyObject **)ptw->u;
         if (o == Py_None)
-            *(WCHAR**)ptw->u = NULL;
-        else if (!(*(WCHAR**)ptw->u = *ptw = o))  // convert, hold and store in target
+            *(WCHAR **)ptw->u = NULL;
+        else if (!(*(WCHAR **)ptw->u = *ptw = o))  // convert, hold and store in target
             ret = FALSE;
     }
 #undef U2W
@@ -1710,7 +1708,7 @@ BOOL PyWinObject_AsSIZEL(PyObject *obsizel, SIZEL *sizel)
 // @prop dict|ImageableArea|A dictionary representing a RECTL structure {'left':int, 'top':int, 'right':int,
 // 'bottom':int}
 
-BOOL PyWinObject_AsFORM_INFO_1(PyObject *obform, FORM_INFO_1W *fi1, TmpWCHAR* ptw)
+BOOL PyWinObject_AsFORM_INFO_1(PyObject *obform, FORM_INFO_1W *fi1, TmpWCHAR *ptw)
 {
     static char *form_keys[] = {"Flags", "Name", "Size", "ImageableArea", 0};
     static char *err_msg =
@@ -1720,8 +1718,8 @@ BOOL PyWinObject_AsFORM_INFO_1(PyObject *obform, FORM_INFO_1W *fi1, TmpWCHAR* pt
         return FALSE;
     }
     return PyArg_ParseTupleAndKeywords(dummy_tuple, obform, "kUO&O&:FORM_INFO_1", form_keys, &fi1->Flags, &ptw->u,
-                                       PyWinObject_AsSIZEL, &fi1->Size, PyWinObject_AsRECTL, &fi1->ImageableArea)
-        && (fi1->pName=ptw->u2w());
+                                       PyWinObject_AsSIZEL, &fi1->Size, PyWinObject_AsRECTL, &fi1->ImageableArea) &&
+           (fi1->pName = ptw->u2w());
 }
 
 // @pymethod |win32print|AddForm|Adds a form for a printer
@@ -1736,8 +1734,8 @@ static PyObject *PyAddForm(PyObject *self, PyObject *args)
 
     PyObject *py_form1;
     TmpWCHAR tmpw_shelve[1];
-    if (!PyArg_ParseTuple(args, "O&O:AddForm", PyWinObject_AsPrinterHANDLE, &hprinter, &py_form1)
-        || !PyWinObject_AsFORM_INFO_1(py_form1, &fi1, tmpw_shelve))
+    if (!PyArg_ParseTuple(args, "O&O:AddForm", PyWinObject_AsPrinterHANDLE, &hprinter, &py_form1) ||
+        !PyWinObject_AsFORM_INFO_1(py_form1, &fi1, tmpw_shelve))
         return NULL;
     if (!(*pfnAddForm)(hprinter, 1, (LPBYTE)&fi1))
         return PyWin_SetAPIError("AddForm");
@@ -1755,7 +1753,8 @@ static PyObject *PyDeleteForm(PyObject *self, PyObject *args)
     TmpWCHAR formname;
     CHECK_PFN(DeleteForm);
 
-    if (!PyArg_ParseTuple(args, "O&U:DeleteForm", PyWinObject_AsPrinterHANDLE, &hprinter, &formname.u) || !formname.u2w())
+    if (!PyArg_ParseTuple(args, "O&U:DeleteForm", PyWinObject_AsPrinterHANDLE, &hprinter, &formname.u) ||
+        !formname.u2w())
         return NULL;
     if (!(*pfnDeleteForm)(hprinter, formname))
         return PyWin_SetAPIError("DeleteForm");
@@ -1809,8 +1808,8 @@ static PyObject *PySetForm(PyObject *self, PyObject *args)
     TmpWCHAR tmpw_shelve[1];
     CHECK_PFN(SetForm);
 
-    if (!PyArg_ParseTuple(args, "O&UO:SetForm", PyWinObject_AsPrinterHANDLE, &hprinter, &formname.u, &py_form1)
-        || !formname.u2w() || !PyWinObject_AsFORM_INFO_1(py_form1, &fi1, tmpw_shelve))
+    if (!PyArg_ParseTuple(args, "O&UO:SetForm", PyWinObject_AsPrinterHANDLE, &hprinter, &formname.u, &py_form1) ||
+        !formname.u2w() || !PyWinObject_AsFORM_INFO_1(py_form1, &fi1, tmpw_shelve))
         return NULL;
     if (!(*pfnSetForm)(hprinter, formname, 1, (LPBYTE)&fi1))
         return PyWin_SetAPIError("SetForm");
@@ -1892,7 +1891,7 @@ static PyObject *PyDeviceCapabilities(PyObject *self, PyObject *args)
     static DWORD papernamesize = 64;    // same for DC_PAPERNAMES, DC_MEDIATYPENAMES, DC_MEDIAREADY, DC_FILEDEPENDENCIES
     static DWORD binnamesize = 24;      // DC_BINNAMES
     static DWORD personalitysize = 32;  // DC_PERSONALITY
-    DWORD retsize, actual_ret_size ;
+    DWORD retsize, actual_ret_size;
 
     if (!PyArg_ParseTuple(args, "OOh|O:DeviceCapabilities", &obdevice, &obport, &capability, &obdevmode))
         return NULL;
@@ -2459,7 +2458,8 @@ static PyObject *PyDeletePrinterDriver(PyObject *self, PyObject *args)
     // @comm Does not delete associated driver files - use <om win32print.DeletePrinterDriverEx> if this is required
     if (PyArg_ParseTuple(args, "OOO:DeletePrinterDriver", &observername, &obenvironment, &obdrivername) &&
         PyWinObject_AsWCHAR(observername, &servername, TRUE) &&
-        PyWinObject_AsWCHAR(obenvironment, &environment, TRUE) && PyWinObject_AsWCHAR(obdrivername, &drivername, FALSE)) {
+        PyWinObject_AsWCHAR(obenvironment, &environment, TRUE) &&
+        PyWinObject_AsWCHAR(obdrivername, &drivername, FALSE)) {
         if (DeletePrinterDriverW(servername, environment, drivername)) {
             Py_INCREF(Py_None);
             ret = Py_None;
@@ -2495,7 +2495,8 @@ static PyObject *PyDeletePrinterDriverEx(PyObject *self, PyObject *args)
     if (PyArg_ParseTuple(args, "OOOll:DeletePrinterDriverEx", &observername, &obenvironment, &obdrivername, &deleteflag,
                          &versionflag) &&
         PyWinObject_AsWCHAR(observername, &servername, TRUE) &&
-        PyWinObject_AsWCHAR(obenvironment, &environment, TRUE) && PyWinObject_AsWCHAR(obdrivername, &drivername, FALSE)) {
+        PyWinObject_AsWCHAR(obenvironment, &environment, TRUE) &&
+        PyWinObject_AsWCHAR(obdrivername, &drivername, FALSE)) {
         if ((*pfnDeletePrinterDriverEx)(servername, environment, drivername, deleteflag, versionflag)) {
             Py_INCREF(Py_None);
             ret = Py_None;

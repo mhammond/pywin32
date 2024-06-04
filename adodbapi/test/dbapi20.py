@@ -453,25 +453,25 @@ class DatabaseAPI20Test(unittest.TestCase):
         self.assertEqual(
             beers[0],
             "Cooper's",
-            "cursor.fetchall retrieved incorrect data, or data inserted " "incorrectly",
+            "cursor.fetchall retrieved incorrect data, or data inserted incorrectly",
         )
         self.assertEqual(
             beers[1],
             "Victoria Bitter",
-            "cursor.fetchall retrieved incorrect data, or data inserted " "incorrectly",
+            "cursor.fetchall retrieved incorrect data, or data inserted incorrectly",
         )
         trouble = "thi%s :may ca%(u)se? troub:1e"
         self.assertEqual(
             res[0][1],
             trouble,
             "cursor.fetchall retrieved incorrect data, or data inserted "
-            "incorrectly. Got=%s, Expected=%s" % (repr(res[0][1]), repr(trouble)),
+            f"incorrectly. Got={res[0][1]!r}, Expected={trouble!r}",
         )
         self.assertEqual(
             res[1][1],
             trouble,
             "cursor.fetchall retrieved incorrect data, or data inserted "
-            "incorrectly. Got=%s, Expected=%s" % (repr(res[1][1]), repr(trouble)),
+            f"incorrectly. Got={res[1][1]!r}, Expected={trouble!r}",
         )
 
     def test_executemany(self):
@@ -541,7 +541,7 @@ class DatabaseAPI20Test(unittest.TestCase):
             self.assertEqual(
                 cur.fetchone(),
                 None,
-                "cursor.fetchone should return None if a query retrieves " "no rows",
+                "cursor.fetchone should return None if a query retrieves no rows",
             )
             self.assertTrue(cur.rowcount in (-1, 0))
 

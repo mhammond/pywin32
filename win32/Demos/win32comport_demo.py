@@ -11,7 +11,7 @@
 
 # This demo uses userlapped IO, so that none of the read or write operations actually block (however,
 # in this sample, the very next thing we do _is_ block - so it shows off the concepts even though it
-# doesnt exploit them.
+# doesn't exploit them.
 
 import msvcrt  # For the getch() function.
 import sys

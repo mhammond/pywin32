@@ -36,7 +36,7 @@ new_task.SetComment("test task with idle trigger")
 new_task.SetApplicationName("py.exe")
 new_task.SetPriority(taskscheduler.REALTIME_PRIORITY_CLASS)
 new_task.SetParameters(
-    "-c\"import win32ui,time;win32ui.MessageBox('why aint you doing no work ?');\""
+    "-c\"import win32ui,time;win32ui.MessageBox('why ain't you doing no work ?');\""
 )
 new_task.SetCreator("test_addtask_1.py")
 new_task.SetAccountInformation(win32api.GetUserName(), None)

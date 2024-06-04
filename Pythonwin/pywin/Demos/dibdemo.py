@@ -1,6 +1,6 @@
 # A demo which creates a view and a frame which displays a PPM format bitmap
 #
-# This hasnnt been run in a while, as I dont have many of that format around!
+# This hasnnt been run in a while, as I don't have many of that format around!
 
 import win32api
 import win32con
@@ -46,7 +46,7 @@ class DIBDemo:
             rowcollist = f.readline().split()
             cols = int(rowcollist[0])
             rows = int(rowcollist[1])
-            f.readline()  # whats this one?
+            f.readline()  # what's this one?
             dib.LoadPBMData(f, (cols, rows))
         else:
             dib.LoadWindowsFormatFile(f)

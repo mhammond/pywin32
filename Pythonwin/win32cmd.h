@@ -8,7 +8,7 @@
 class PYW_EXPORT PyCCmdTarget : public ui_assoc_CObject {
     friend CVirtualHelper::CVirtualHelper(const char *iname, void *iassoc, EnumVirtualErrorHandling veh);
 
-   public:  // some probably shouldnt be, but...
+   public:  // some probably shouldn't be, but...
     CMapWordToPtr *pNotifyHookList;
     CMapWordToPtr *pCommandHookList;
     CMapWordToPtr *pOleEventHookList;

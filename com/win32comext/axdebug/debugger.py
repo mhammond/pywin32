@@ -81,7 +81,7 @@ class CodeContainerProvider(documents.CodeContainerProvider):
         self.axdebugger.RefreshAllModules(self.nodes, self)
 
     def FromFileName(self, fname):
-        # It appears we cant add modules during a debug session!
+        # It appears we can't add modules during a debug session!
         # if self.currentNumModules != len(sys.modules):
         #     self.axdebugger.RefreshAllModules(self.nodes, self)
         #     self.currentNumModules = len(sys.modules)

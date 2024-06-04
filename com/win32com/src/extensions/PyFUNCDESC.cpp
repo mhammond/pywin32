@@ -107,11 +107,14 @@ static PySequenceMethods PyFUNCDESC_Sequence = {
     NULL,                   // sq_ass_slice;
 };
 
-static PyObject *PyFUNCDESC_Repr(PyObject *self) {
+static PyObject *PyFUNCDESC_Repr(PyObject *self)
+{
     PyFUNCDESC *f = (PyFUNCDESC *)self;
     return PyUnicode_FromFormat(
-        "PyFUNCDESC(memid=%d, scodeArray=%R, args=%R, funckind=%d, invkind=%d, callconv=%d, cParamsOpt=%d, oVft=%d, rettype=%R, wFuncFlags=%d)",
-                    f->memid, f->scodeArray, f->args, f->funckind, f->invkind, f->callconv, f->cParamsOpt, f->oVft, f->rettype, f->wFuncFlags);
+        "PyFUNCDESC(memid=%d, scodeArray=%R, args=%R, funckind=%d, invkind=%d, callconv=%d, cParamsOpt=%d, oVft=%d, "
+        "rettype=%R, wFuncFlags=%d)",
+        f->memid, f->scodeArray, f->args, f->funckind, f->invkind, f->callconv, f->cParamsOpt, f->oVft, f->rettype,
+        f->wFuncFlags);
 }
 
 PyTypeObject PyFUNCDESC::Type = {
@@ -157,17 +160,17 @@ PyTypeObject PyFUNCDESC::Type = {
 #define OFF(e) offsetof(PyFUNCDESC, e)
 
 /*static*/ struct PyMemberDef PyFUNCDESC::members[] = {
-    {"memid", T_INT, OFF(memid)},               // @prop integer|memid|
-    {"scodeArray", T_OBJECT, OFF(scodeArray)},  // @prop (int, ...)|scodeArray|
-    {"args", T_OBJECT, OFF(args)},              // @prop (<o ELEMDESC>, ...)|args|
-    {"funckind", T_INT, OFF(funckind)},         // @prop int|funckind|
-    {"invkind", T_INT, OFF(invkind)},           // @prop int|invkind|
-    {"callconv", T_INT, OFF(callconv)},         // @prop int|callconv|
-    {"cParamsOpt", T_INT, OFF(cParamsOpt)},     // @prop int|cParamsOpt|
-    {"oVft", T_INT, OFF(oVft)},                 // @prop int|oVft|
-    {"rettype", T_OBJECT, OFF(rettype)},        // @prop <o ELEMDESC>|rettype|
-    {"wFuncFlags", T_INT, OFF(wFuncFlags)},     // @prop int|wFuncFlags|
-    {"desckind", T_INT, OFF(desckind), READONLY}, // @prop int|desckind|Always DESCKIND_FUNCDESC
+    {"memid", T_INT, OFF(memid)},                  // @prop integer|memid|
+    {"scodeArray", T_OBJECT, OFF(scodeArray)},     // @prop (int, ...)|scodeArray|
+    {"args", T_OBJECT, OFF(args)},                 // @prop (<o ELEMDESC>, ...)|args|
+    {"funckind", T_INT, OFF(funckind)},            // @prop int|funckind|
+    {"invkind", T_INT, OFF(invkind)},              // @prop int|invkind|
+    {"callconv", T_INT, OFF(callconv)},            // @prop int|callconv|
+    {"cParamsOpt", T_INT, OFF(cParamsOpt)},        // @prop int|cParamsOpt|
+    {"oVft", T_INT, OFF(oVft)},                    // @prop int|oVft|
+    {"rettype", T_OBJECT, OFF(rettype)},           // @prop <o ELEMDESC>|rettype|
+    {"wFuncFlags", T_INT, OFF(wFuncFlags)},        // @prop int|wFuncFlags|
+    {"desckind", T_INT, OFF(desckind), READONLY},  // @prop int|desckind|Always DESCKIND_FUNCDESC
     {NULL}};
 
 PyFUNCDESC::PyFUNCDESC()

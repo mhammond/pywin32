@@ -102,10 +102,11 @@ inline HKEY Win32uiHostGlue::GetRegistryRootKey()
 
 #ifndef LINK_WITH_WIN32UI
 
-#define CHECK_PFN(p) if (!p) { \
-    wsprintf(err_buf, _T("Failed to load ##p - %d\n"), GetLastError()); \
-    goto fail_with_error_dlg; \
-}
+#define CHECK_PFN(p)                                                        \
+    if (!p) {                                                               \
+        wsprintf(err_buf, _T("Failed to load ##p - %d\n"), GetLastError()); \
+        goto fail_with_error_dlg;                                           \
+    }
 
 inline BOOL Win32uiHostGlue::DynamicApplicationInit(const TCHAR *cmd, const TCHAR *additionalPaths)
 {
@@ -186,19 +187,23 @@ inline BOOL Win32uiHostGlue::DynamicApplicationInit(const TCHAR *cmd, const TCHA
         (*pfnPyInit)();
     }
 
-    PyObject* (*pPyImport_ImportModule)(const char *name) = (PyObject* (*)(const char *name))GetProcAddress(hModCore, "PyImport_ImportModule");
+    PyObject *(*pPyImport_ImportModule)(const char *name) =
+        (PyObject * (*)(const char *name)) GetProcAddress(hModCore, "PyImport_ImportModule");
     CHECK_PFN(pPyImport_ImportModule);
-    PyObject* (*pPyObject_GetAttrString)(PyObject *o, const char *attr_name) = (PyObject* (*)(PyObject *o, const char *attr_name))GetProcAddress(hModCore, "PyObject_GetAttrString");
+    PyObject *(*pPyObject_GetAttrString)(PyObject *o, const char *attr_name) =
+        (PyObject * (*)(PyObject * o, const char *attr_name)) GetProcAddress(hModCore, "PyObject_GetAttrString");
     CHECK_PFN(pPyObject_GetAttrString);
-    Py_ssize_t (*pPyUnicode_AsWideChar)(PyObject *unicode, wchar_t *w, Py_ssize_t size) = (Py_ssize_t (*)(PyObject *unicode, wchar_t *w, Py_ssize_t size))GetProcAddress(hModCore, "PyUnicode_AsWideChar");
+    Py_ssize_t (*pPyUnicode_AsWideChar)(PyObject *unicode, wchar_t *w, Py_ssize_t size) =
+        (Py_ssize_t(*)(PyObject * unicode, wchar_t * w, Py_ssize_t size))
+            GetProcAddress(hModCore, "PyUnicode_AsWideChar");
     CHECK_PFN(pPyUnicode_AsWideChar);
 
-    PyObject* win32ui = pPyImport_ImportModule("win32ui");
+    PyObject *win32ui = pPyImport_ImportModule("win32ui");
     if (!win32ui) {
         wsprintf(err_buf, _T("Failed to import win32ui\n"));
         goto fail_with_error_dlg;
     }
-    PyObject* pyfn = pPyObject_GetAttrString(win32ui, "__file__");
+    PyObject *pyfn = pPyObject_GetAttrString(win32ui, "__file__");
     if (!pyfn) {
         wsprintf(err_buf, _T("Failed to get __file__ from win32ui\n"));
         goto fail_with_error_dlg;
@@ -231,14 +236,14 @@ fail_with_error_dlg:
     Py_ssize_t len = _tcslen(err_buf);
     Py_ssize_t bufLeft = sizeof(err_buf) / sizeof(TCHAR) - len;
     FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL),
-                    err_buf + len, PyWin_SAFE_DOWNCAST(bufLeft, Py_ssize_t, DWORD), NULL);
+                  err_buf + len, PyWin_SAFE_DOWNCAST(bufLeft, Py_ssize_t, DWORD), NULL);
     AfxMessageBox(err_buf);
     return FALSE;
 }
 #else  // LINK_WITH_WIN32UI defined
 
-extern "C" __declspec(dllimport) BOOL
-    Win32uiApplicationInit(Win32uiHostGlue *pGlue, const TCHAR *cmd, const TCHAR *addnPaths);
+extern "C" __declspec(dllimport) BOOL Win32uiApplicationInit(Win32uiHostGlue *pGlue, const TCHAR *cmd,
+                                                             const TCHAR *addnPaths);
 extern "C" void initwin32ui();
 
 inline BOOL Win32uiHostGlue::ApplicationInit(const TCHAR *cmd, const TCHAR *additionalPaths)
@@ -248,7 +253,7 @@ inline BOOL Win32uiHostGlue::ApplicationInit(const TCHAR *cmd, const TCHAR *addi
         Py_Initialize();
     }
     // Make sure the statically linked win32ui is the one Python sees
-    // (and doesnt go searching for a new one)
+    // (and doesn't go searching for a new one)
 
     PyInit_win32ui();
     return Win32uiApplicationInit(this, cmd, additionalPaths);

@@ -38,7 +38,7 @@
 %typemap(python,in) IExchangeManageStore *INPUT_NULLOK {
 	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IExchangeManageStore, (void **)&$target, 1))
 		return NULL;
-}		
+}
 
 %{
 

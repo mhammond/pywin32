@@ -16,7 +16,7 @@ def TestExcel():
         def OnNewWorkbook(self, wb):
             if not isinstance(wb, types.InstanceType):
                 raise RuntimeError(
-                    "The transformer doesnt appear to have translated this for us!"
+                    "The transformer doesn't appear to have translated this for us!"
                 )
             self.seen_events["OnNewWorkbook"] = None
 
@@ -25,7 +25,7 @@ def TestExcel():
                 wn, types.InstanceType
             ):
                 raise RuntimeError(
-                    "The transformer doesnt appear to have translated this for us!"
+                    "The transformer doesn't appear to have translated this for us!"
                 )
             self.seen_events["OnWindowActivate"] = None
 

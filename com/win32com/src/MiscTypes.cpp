@@ -32,8 +32,8 @@ static PyTypeObject PyInterfaceType_Type = {
     "Define the behavior of a PythonCOM Interface type.", /* tp_doc */
 };
 
-PyComTypeObject::PyComTypeObject(const char *name, PyComTypeObject *pBase, Py_ssize_t typeSize, struct PyMethodDef *methodList,
-                                 PyIUnknown *(*thector)(IUnknown *))
+PyComTypeObject::PyComTypeObject(const char *name, PyComTypeObject *pBase, Py_ssize_t typeSize,
+                                 struct PyMethodDef *methodList, PyIUnknown *(*thector)(IUnknown *))
 {
     // originally, this copied the typeobject of the parent, but as it is impossible
     // to guarantee order of static object construction, I went this way.  This is
@@ -75,7 +75,7 @@ PyComTypeObject::PyComTypeObject(const char *name, PyComTypeObject *pBase, Py_ss
     *((PyTypeObject *)this) = type_template;
     ctor = thector;
 
-    // cast away const, as Python doesnt use it.
+    // cast away const, as Python doesn't use it.
     tp_name = (char *)name;
     tp_basicsize = typeSize;
     ((PyObject *)this)->ob_type = &PyType_Type;

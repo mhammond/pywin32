@@ -71,7 +71,7 @@ PyObject *PyIsProcessInJob(PyObject *self, PyObject *args)
 	PyObject *obph, *objh;
 	HANDLE ph, jh;
 	BOOL res;
-	if (!PyArg_ParseTuple(args, "OO", 
+	if (!PyArg_ParseTuple(args, "OO",
 		&obph,		// @pyparm <o PyHANDLE>|hProcess||Handle to a process
 		&objh))		// @pyparm <o PyHANDLE>|hJob||Handle to a job, use None to check if process is part of any job
 		return NULL;
@@ -143,7 +143,7 @@ PyObject *PyQueryInformationJobObject(PyObject *self, PyObject *args)
 			if (!QueryInformationJobObject(jh, infoclass, &info, sizeof(info), NULL))
 				return PyWin_SetAPIError("QueryInformationJobObject");
 			return Py_BuildValue("{s:N,s:N}",
-				"BasicInfo",PyWinObject_FromJOBOBJECT_BASIC_ACCOUNTING_INFORMATION(&info.BasicInfo), 
+				"BasicInfo",PyWinObject_FromJOBOBJECT_BASIC_ACCOUNTING_INFORMATION(&info.BasicInfo),
 				"IoInfo",	PyWinObject_FromIO_COUNTERS(&info.IoInfo));
 			}
 		// @flag JobObjectBasicLimitInformation|Returns a dict representing a JOBOBJECT_BASIC_LIMIT_INFORMATION struct
@@ -492,4 +492,3 @@ PyObject *PySetInformationJobObject(PyObject *self, PyObject *args)
 #define JobObjectExtendedLimitInformation JobObjectExtendedLimitInformation
 #define JobObjectJobSetInformation JobObjectJobSetInformation
 #define MaxJobObjectInfoClass MaxJobObjectInfoClass
-

@@ -535,13 +535,12 @@ PyObject *PyCredEnumerate(PyObject *self, PyObject *args, PyObject *kwargs)
 
 // @pymethod dict|win32cred|CredGetSessionTypes|Returns maximum persistence supported by the current logon session
 // @rdesc Returns an integer list
-PyObject* PyCredGetSessionTypes(PyObject* self, PyObject* args, PyObject* kwargs)
+PyObject *PyCredGetSessionTypes(PyObject *self, PyObject *args, PyObject *kwargs)
 {
     static char *keywords[] = {"MaximumPersistCount", NULL};
     DWORD mpc = CRED_TYPE_MAXIMUM;
-    if (!PyArg_ParseTupleAndKeywords(
-            args, kwargs, "|k:CredGetSessionTypes", keywords,
-            &mpc))  // @pyparm int|MaximumPersistCount|CRED_TYPE_MAXIMUM|Maximum array entries
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|k:CredGetSessionTypes", keywords,
+                                     &mpc))  // @pyparm int|MaximumPersistCount|CRED_TYPE_MAXIMUM|Maximum array entries
         return NULL;
     if ((mpc == 0) || (mpc > CRED_TYPE_MAXIMUM)) {
         PyErr_SetString(PyExc_ValueError, "Argument must be between 1 and CRED_TYPE_MAXIMUM");
@@ -555,8 +554,7 @@ PyObject* PyCredGetSessionTypes(PyObject* self, PyObject* args, PyObject* kwargs
     if (!res)
         return PyWin_SetAPIError("CredGetSessionTypes");
     PyObject *ret = PyList_New(mpc);
-    for (DWORD i = 0; i < mpc; ++i)
-        PyList_SET_ITEM(ret, i, PyLong_FromUnsignedLong(arr[i]));
+    for (DWORD i = 0; i < mpc; ++i) PyList_SET_ITEM(ret, i, PyLong_FromUnsignedLong(arr[i]));
     return ret;
 }
 

@@ -103,7 +103,7 @@ def FindPerformanceAttributesByName(
     instance_dict = {}
     for instance in instances:
         try:
-            instance_dict[instance] = instance_dict[instance] + 1
+            instance_dict[instance] += 1
         except KeyError:
             instance_dict[instance] = 0
 
@@ -128,7 +128,7 @@ def ShowAllProcesses():
     instance_dict = {}
     for instance in instances:
         try:
-            instance_dict[instance] = instance_dict[instance] + 1
+            instance_dict[instance] += 1
         except KeyError:
             instance_dict[instance] = 0
 

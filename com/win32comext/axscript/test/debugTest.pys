@@ -14,4 +14,3 @@ for i in range(2):
 a = """\
 A multi-line string!
 """
-

@@ -180,9 +180,9 @@ class WindowOutputViewImpl:
                 fileNameSpec = fileName
                 fileName = scriptutils.LocatePythonFile(fileName)
                 if fileName is None:
-                    # Dont force update, so it replaces the idle prompt.
+                    # Don't force update, so it replaces the idle prompt.
                     win32ui.SetStatusText(
-                        "Cant locate the file '%s'" % (fileNameSpec), 0
+                        "Can't locate the file '%s'" % (fileNameSpec), 0
                     )
                     return 1
 
@@ -228,7 +228,7 @@ class WindowOutputViewRTF(docview.RichEditView, WindowOutputViewImpl):
 
     def OnLDoubleClick(self, params):
         if self.HandleSpecialLine():
-            return 0  # dont pass on
+            return 0  # don't pass on
         return 1  # pass it on by default.
 
     def RestoreKillBuffer(self):
@@ -290,7 +290,7 @@ class WindowOutputViewScintilla(
         self.HandleSpecialLine()
 
     ##	def OnLDoubleClick(self,params):
-    ##			return 0	# never dont pass on
+    ##			return 0	# never don't pass on
 
     def RestoreKillBuffer(self):
         assert len(self.template.killBuffer) in (0, 1), "Unexpected killbuffer contents"
@@ -463,7 +463,7 @@ class WindowOutput(docview.DocTemplate):
         except KeyboardInterrupt:
             # First interrupt since idle we just pass on.
             # later ones we dump the queue and give up.
-            self.interruptCount = self.interruptCount + 1
+            self.interruptCount += 1
             if self.interruptCount > 1:
                 # Drop the queue quickly as the user is already annoyed :-)
                 self.outputQueue = queue.Queue(-1)
@@ -511,7 +511,7 @@ class WindowOutput(docview.DocTemplate):
                 rc = 1
                 break
             if max is not None:
-                max = max - 1
+                max -= 1
         if len(items) != 0:
             if not self.CheckRecreateWindow():
                 debug(":Recreate failed!\n")
