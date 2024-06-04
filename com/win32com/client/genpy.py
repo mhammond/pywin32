@@ -276,7 +276,7 @@ class VTableItem(build.VTableItem, WritableItem):
                 if item_num % 5 == 0:
                     print("\n\t\t\t", end=" ", file=stream)
             print(
-                "), %d, (%r, %r, [" % (dispid, desc.memid, desc.scodeArray),
+                f"), {dispid}, ({desc.memid!r}, {desc.scodeArray!r}, [",
                 end=" ",
                 file=stream,
             )
