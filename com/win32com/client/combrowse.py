@@ -173,7 +173,7 @@ class HLIHelpFile(HLICOM):
 
         fname, ctx = self.myobject
         base = os.path.split(fname)[1]
-        return "Help reference in %s" % (base)
+        return "Help reference in {}".format(base)
 
     def TakeDefaultAction(self):
         fname, ctx = self.myobject
@@ -252,10 +252,10 @@ class HLIRegisteredTypeLibrary(HLICOM):
             if platform != "win32":
                 extraDescs.append(platform)
             if lcid:
-                extraDescs.append("locale=%s" % lcid)
+                extraDescs.append("locale={}".format(lcid))
             extraDesc = ""
             if extraDescs:
-                extraDesc = " (%s)" % ", ".join(extraDescs)
+                extraDesc = " ({})".format(", ".join(extraDescs))
             ret.append(HLITypeLib(fname, "Type Library" + extraDesc))
         ret.sort()
         return ret
@@ -534,7 +534,7 @@ class HLITypeLib(HLICOM):
         try:
             tlb = pythoncom.LoadTypeLib(self.myobject)
         except pythoncom.com_error:
-            return [browser.MakeHLI("%s can not be loaded" % self.myobject)]
+            return [browser.MakeHLI("{} can not be loaded".format(self.myobject))]
 
         for i in range(tlb.GetTypeInfoCount()):
             try:

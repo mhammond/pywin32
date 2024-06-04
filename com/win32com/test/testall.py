@@ -53,7 +53,7 @@ def CleanGenerated():
 
     if os.path.isdir(win32com.__gen_path__):
         if verbosity > 1:
-            print("Deleting files from %s" % (win32com.__gen_path__))
+            print("Deleting files from {}".format(win32com.__gen_path__))
         shutil.rmtree(win32com.__gen_path__)
     import win32com.client.gencache
 

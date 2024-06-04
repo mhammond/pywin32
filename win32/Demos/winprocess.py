@@ -216,7 +216,7 @@ _this_is_a_test_of_stderr_\r
         print(
             "NOTEPAD exit code:",
             run(
-                "notepad.exe %s" % out.name,
+                "notepad.exe {}".format(out.name),
                 show=win32con.SW_MAXIMIZE,
                 mSec=timeoutSeconds * 1000,
             ),

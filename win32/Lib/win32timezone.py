@@ -357,7 +357,7 @@ class TimeZoneDefinition(DYNAMIC_TIME_ZONE_INFORMATION):
         except TypeError:
             pass
 
-        raise TypeError("Invalid arguments for %s" % self.__class__)
+        raise TypeError("Invalid arguments for {}".format(self.__class__))
 
     def __init_from_bytes(
         self,
@@ -514,7 +514,7 @@ class TimeZoneInfo(datetime.tzinfo):
         try:
             result = key.subkey(timeZoneName)
         except Exception:
-            raise ValueError("Timezone Name %s not found." % timeZoneName)
+            raise ValueError("Timezone Name {} not found.".format(timeZoneName))
         return result
 
     def _LoadInfoFromKey(self):

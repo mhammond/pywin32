@@ -161,7 +161,7 @@ def _FindIt(control, searchParams):
             rc = FOUND_LOOPED_BACK
         else:
             lastSearch.sel = -1, -1
-            win32ui.SetStatusText("Can not find '%s'" % searchParams.findText)
+            win32ui.SetStatusText("Can not find '{}'".format(searchParams.findText))
 
     if rc != FOUND_NOTHING:
         lastSearch.sel = foundSel
@@ -184,7 +184,7 @@ def _FindIt(control, searchParams):
 
 def _ReplaceIt(control):
     control = _GetControl(control)
-    statusText = "Can not find '%s'." % lastSearch.findText
+    statusText = "Can not find '{}'.".format(lastSearch.findText)
     rc = FOUND_NOTHING
     if control is not None and lastSearch.sel != (-1, -1):
         control.ReplaceSel(lastSearch.replaceText)

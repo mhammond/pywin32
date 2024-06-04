@@ -284,7 +284,7 @@ def genCategoryHTML(output_dir, cats):
 
 
 def _genItemsFromDict(dict, cat, output, target, do_children=1):
-    CHM = "mk:@MSITStore:%s.chm::/" % target
+    CHM = "mk:@MSITStore:{}.chm::/".format(target)
     keys = list(dict.keys())
     keys.sort()
     for k in keys:
@@ -324,7 +324,7 @@ def _genItemsFromDict(dict, cat, output, target, do_children=1):
 
 
 def genTOC(cats, output, title, target):
-    CHM = "mk:@MSITStore:%s.chm::/" % target
+    CHM = "mk:@MSITStore:{}.chm::/".format(target)
     output.write(
         """
 <!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">

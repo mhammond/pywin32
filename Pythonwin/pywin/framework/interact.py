@@ -357,7 +357,7 @@ class InteractiveCore:
                 )
             except:
                 sys.stderr.write(
-                    ">>> \nError executing PYTHONSTARTUP script %r\n" % (rcfile)
+                    ">>> \nError executing PYTHONSTARTUP script {!r}\n".format(rcfile)
                 )
                 traceback.print_exc(file=sys.stderr)
         self.AppendToPrompt([])
@@ -370,8 +370,8 @@ class InteractiveCore:
             sys.ps2 = "... "
             locals = globals = __main__.__dict__
         else:
-            sys.ps1 = "[%s]>>> " % name
-            sys.ps2 = "[%s]... " % name
+            sys.ps1 = "[{}]>>> ".format(name)
+            sys.ps2 = "[{}]... ".format(name)
         self.interp.locals = locals
         self.interp.globals = globals
         self.AppendToPrompt([], oldPrompt)

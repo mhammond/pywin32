@@ -566,6 +566,6 @@ class QueryError:
         self.query = query
 
     def __repr__(self):
-        return "<Query Error in %s>" % repr(self.query)
+        return "<Query Error in {}>".format(repr(self.query))
 
     __str__ = __repr__

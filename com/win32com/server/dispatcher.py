@@ -223,7 +223,7 @@ class DispatcherWin32trace(DispatcherTrace):
             # If we have no logger, setup our output.
             import win32traceutil  # Sets up everything.
         self._trace_(
-            "Object with win32trace dispatcher created (object=%s)" % repr(object)
+            "Object with win32trace dispatcher created (object={})".format(repr(object))
         )
 
 

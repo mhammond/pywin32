@@ -177,7 +177,7 @@ def BrowseCallBackDemo(counters):
         result = GetPerformanceAttributes(
             object, counterName, instance, index, win32pdh.PDH_FMT_DOUBLE, machine
         )
-        print("Value of '%s' is" % counter, result)
+        print("Value of '{}' is".format(counter), result)
         print(
             "Added '%s' on object '%s' (machine %s), instance %s(%d)-parent of %s"
             % (counterName, object, machine, instance, index, parentInstance)

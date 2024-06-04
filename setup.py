@@ -170,7 +170,9 @@ class WinExt(Extension):
             if build_ext.plat_name == "win32":
                 self.extra_link_args.append("/MACHINE:x86")
             else:
-                self.extra_link_args.append("/MACHINE:%s" % build_ext.plat_name[4:])
+                self.extra_link_args.append(
+                    "/MACHINE:{}".format(build_ext.plat_name[4:])
+                )
 
             # like Python, always use debug info, even in release builds
             # (note the compiler doesn't include debug info, so you only get
@@ -193,7 +195,7 @@ class WinExt(Extension):
             if self.delay_load_libraries:
                 self.libraries.append("delayimp")
                 for delay_lib in self.delay_load_libraries:
-                    self.extra_link_args.append("/delayload:%s.dll" % delay_lib)
+                    self.extra_link_args.append("/delayload:{}.dll".format(delay_lib))
 
             # If someone needs a specially named implib created, handle that
             if self.implib_name:
@@ -212,7 +214,7 @@ class WinExt(Extension):
                     check = os.path.join(incl, candidate)
                     if os.path.isfile(check):
                         self.extra_compile_args.append(
-                            '/DMFC_OCC_IMPL_H=\\"%s\\"' % candidate
+                            '/DMFC_OCC_IMPL_H=\\"{}\\"'.format(candidate)
                         )
                         found_mfc = True
                         break
@@ -359,7 +361,7 @@ class my_build(build):
         ver_fname = os.path.join(gettempdir(), "pywin32.version.txt")
         try:
             f = open(ver_fname, "w")
-            f.write("%s\n" % build_id)
+            f.write("{}\n".format(build_id))
             f.close()
         except OSError as why:
             print(f"Failed to open '{ver_fname}': {why}")
@@ -432,7 +434,7 @@ class my_build_ext(build_ext):
                 found = self.compiler.find_library_file(look_dirs, lib, self.debug)
                 if not found:
                     logging.debug("Lib '%s' not found in %s", lib, look_dirs)
-                    return "No library '%s'" % lib
+                    return "No library '{}'".format(lib)
                 self.found_libraries[lib.lower()] = found
             patched_libs.append(os.path.splitext(os.path.basename(found))[0])
 
@@ -468,9 +470,9 @@ class my_build_ext(build_ext):
             cmd = cs + ' /c for %I in ("' + build_temp + '",) do @echo %~sI'
             build_temp = os.popen(cmd).read().strip()
             assert os.path.isdir(build_temp), build_temp
-        makeargs.append("SUB_DIR_O=%s" % build_temp)
-        makeargs.append("SUB_DIR_BIN=%s" % build_temp)
-        makeargs.append("DIR_PYTHON=%s" % sys.prefix)
+        makeargs.append("SUB_DIR_O={}".format(build_temp))
+        makeargs.append("SUB_DIR_BIN={}".format(build_temp))
+        makeargs.append("DIR_PYTHON={}".format(sys.prefix))
 
         nmake = "nmake.exe"
         # Attempt to resolve nmake to the same one that our compiler object
@@ -628,7 +630,7 @@ class my_build_ext(build_ext):
             return
         if not vcbase:
             raise RuntimeError("Can't find MFC redist DLLs with unkown VC base path")
-        redist_globs = [vcbase + r"redist\%s\*MFC\mfc140u.dll" % self.plat_dir]
+        redist_globs = [vcbase + r"redist\{}\*MFC\mfc140u.dll".format(self.plat_dir)]
         m = re.search(r"\\VC\\Tools\\", vcbase)
         if m:
             # typical path on newer Visual Studios
@@ -646,7 +648,9 @@ class my_build_ext(build_ext):
         # Only mfcNNNu DLL is required (mfcmNNNX is Windows Forms, rest is ANSI)
         mfc_contents = next(filter(None, map(glob.glob, redist_globs)), [])[:1]
         if not mfc_contents:
-            raise RuntimeError("MFC redist DLLs not found like %r!" % redist_globs)
+            raise RuntimeError(
+                "MFC redist DLLs not found like {!r}!".format(redist_globs)
+            )
 
         target_dir = os.path.join(self.build_lib, win32ui_ext.get_pywin32_dir())
         for mfc_content in mfc_contents:
@@ -1079,7 +1083,7 @@ class my_install_data(install_data):
         if self.install_dir is None:
             installobj = self.distribution.get_command_obj("install")
             self.install_dir = installobj.install_lib
-        print("Installing data files to %s" % self.install_dir)
+        print("Installing data files to {}".format(self.install_dir))
         install_data.finalize_options(self)
 
 
@@ -2111,10 +2115,10 @@ def convert_data_files(files: Iterable[str]):
                 if not ("\\CVS\\" in file or path.suffix in {".pyc", ".pyo"})
             )
             if not files_use:
-                raise RuntimeError("No files match '%s'" % file)
+                raise RuntimeError("No files match '{}'".format(file))
         else:
             if not os.path.isfile(file):
-                raise RuntimeError("No file '%s'" % file)
+                raise RuntimeError("No file '{}'".format(file))
             files_use = (file,)
         for fname in files_use:
             path_use = os.path.dirname(fname)
@@ -2377,7 +2381,7 @@ if "build_ext" in dist.command_obj:
     if excluded_extensions:
         skip_whitelist = {"exchdapi", "exchange", "axdebug"}
         skipped_ex = []
-        print("*** NOTE: The following extensions were NOT %s:" % what_string)
+        print("*** NOTE: The following extensions were NOT {}:".format(what_string))
         for ext, why in excluded_extensions:
             print(f" {ext.name}: {why}")
             if ext.name not in skip_whitelist:
@@ -2386,8 +2390,9 @@ if "build_ext" in dist.command_obj:
         print("please execute this script with no arguments (or see the docstring)")
         if skipped_ex:
             print(
-                "*** Non-zero exit status. Missing for complete release build: %s"
-                % skipped_ex
+                "*** Non-zero exit status. Missing for complete release build: {}".format(
+                    skipped_ex
+                )
             )
             sys.exit(1000 + len(skipped_ex))
     else:

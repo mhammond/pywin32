@@ -153,4 +153,4 @@ if __name__ == "__main__":
             what = ""
             if newpassword != password:
                 what = "not "
-            print("The passwords did %smatch" % (what))
+            print("The passwords did {}match".format(what))

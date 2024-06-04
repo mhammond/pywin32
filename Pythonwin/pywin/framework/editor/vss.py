@@ -53,7 +53,7 @@ def FindVssProjectInfo(fullfname):
         retPaths.insert(0, addpath)
     if not project:
         win32ui.MessageBox(
-            "%s\r\n\r\nThis directory is not configured for Python/VSS" % origPath
+            "{}\r\n\r\nThis directory is not configured for Python/VSS".format(origPath)
         )
         return
     return project, "/".join(retPaths), database

@@ -29,7 +29,7 @@ if __name__ == "__main__":
     shell.SHBrowseForFolder(
         0,  # parent HWND
         None,  # root PIDL.
-        "Default of %s" % os.getcwd(),  # title
+        "Default of {}".format(os.getcwd()),  # title
         flags,  # flags
         BrowseCallbackProc,  # callback function
         os.getcwd(),  # 'data' param for the callback
@@ -41,5 +41,5 @@ if __name__ == "__main__":
     shell.SHBrowseForFolder(
         0,  # parent HWND
         pidl,  # root PIDL.
-        "From %s down only" % os.getcwd(),  # title
+        "From {} down only".format(os.getcwd()),  # title
     )
