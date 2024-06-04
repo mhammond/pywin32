@@ -1,5 +1,4 @@
-# Target the oldest supported version
-target-version = "py37"
+target-version = "py37" # Target the oldest supported version
 
 [lint]
 select = [
