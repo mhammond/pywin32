@@ -358,7 +358,7 @@ void PyCom_StreamMessage(const WCHAR *pszMessageText)
 {
     OutputDebugString(pszMessageText);
     // PySys_WriteStderr has an internal 1024 limit due to varargs.
-    // weve already resolved them, so we gotta do it the hard way
+    // we've already resolved them, so we gotta do it the hard way
     // We can't afford to screw with the Python exception state
     PyObject *typ, *val, *tb;
     PyErr_Fetch(&typ, &val, &tb);

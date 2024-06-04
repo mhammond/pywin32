@@ -25,7 +25,7 @@ class TypelibSpec:
     def __getitem__(self, item):
         if item == 0:
             return self.ver_desc
-        raise IndexError("Cant index me!")
+        raise IndexError("Can't index me!")
 
     def __lt__(self, other):
         me = (
@@ -83,7 +83,7 @@ def EnumKeys(root):
             val = ""  # code using this assumes a string.
 
         ret.append((item, val))
-        index = index + 1
+        index += 1
     return ret
 
 

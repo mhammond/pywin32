@@ -64,7 +64,7 @@ def RegisterPythonServer(filename, progids=None, verbose=0):
         else:
             # print(f"Skipping registration of '{filename}' - already registered")
             return
-    # needs registration - see if its likely!
+    # needs registration - see if it's likely!
     try:
         from win32com.shell.shell import IsUserAnAdmin
     except ImportError:
@@ -105,7 +105,7 @@ def ExecuteShellCommand(
     tracebacks_ok=0,  # OK if the output contains a t/b?
 ):
     output_name = tempfile.mktemp("win32com_test")
-    cmd = cmd + ' > "%s" 2>&1' % output_name
+    cmd += ' > "%s" 2>&1' % output_name
     rc = os.system(cmd)
     output = open(output_name, "r").read().strip()
     os.remove(output_name)

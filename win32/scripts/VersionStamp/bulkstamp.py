@@ -63,7 +63,7 @@ def walk(arg, dirname, names):
                     desc = descriptions[os.path.normcase(name)]
                     try:
                         verstamp.stamp(vars, pathname, desc, is_dll=is_dll)
-                        numStamped = numStamped + 1
+                        numStamped += 1
                     except win32api.error as exc:
                         print(
                             "Could not stamp",

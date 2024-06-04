@@ -75,7 +75,7 @@ PyComTypeObject::PyComTypeObject(const char *name, PyComTypeObject *pBase, Py_ss
     *((PyTypeObject *)this) = type_template;
     ctor = thector;
 
-    // cast away const, as Python doesnt use it.
+    // cast away const, as Python doesn't use it.
     tp_name = (char *)name;
     tp_basicsize = typeSize;
     ((PyObject *)this)->ob_type = &PyType_Type;

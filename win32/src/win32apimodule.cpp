@@ -1927,7 +1927,7 @@ static PyObject *PyGetProfileSection(PyObject *self, PyObject *args)
                 delete[] szRetBuf;
                 size *= 2;
             }
-            szRetBuf = new TCHAR[size]; /* cant fail - may raise exception */
+            szRetBuf = new TCHAR[size]; /* can't fail - may raise exception */
             if (szRetBuf == NULL) {
                 PyErr_SetString(PyExc_MemoryError, "Error allocating space for return buffer");
                 break;
@@ -3273,7 +3273,7 @@ static BOOL PyWinObject_AsRegistryValue(PyObject *value, DWORD typ, BYTE **retDa
             }
             return FALSE;
         case REG_BINARY:
-        // ALSO handle ALL unknown data types here.  Even if we cant support
+        // ALSO handle ALL unknown data types here.  Even if we can't support
         // it natively, we should handle the bits.
         default: {
             PyWinBufferView pybuf(value, false, true);  // None ok
@@ -3353,7 +3353,7 @@ static PyObject *PyWinObject_FromRegistryValue(BYTE *retDataBuf, DWORD retDataSi
             break;
         }
         case REG_BINARY:
-        // ALSO handle ALL unknown data types here.  Even if we cant support
+        // ALSO handle ALL unknown data types here.  Even if we can't support
         // it natively, we should handle the bits.
         default:
             if (retDataSize == 0) {
@@ -5185,8 +5185,8 @@ PyObject *PyEnumResourceLanguages(PyObject *self, PyObject *args)
 // Win32 Exception Handler.
 //
 // A recursive routine called by the exception handler!
-// (I hope this doesnt wind too far on a stack overflow :-)
-// Limited testing indicates it doesnt, and this can handle
+// (I hope this doesn't wind too far on a stack overflow :-)
+// Limited testing indicates it doesn't, and this can handle
 // a stack overflow fine.
 PyObject *MakeExceptionRecord(PEXCEPTION_RECORD pExceptionRecord)
 {

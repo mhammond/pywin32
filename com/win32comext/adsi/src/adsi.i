@@ -135,7 +135,7 @@ class PyIADsEnumVARIANT : public PyIEnumVARIANT {
 	virtual ~PyIADsEnumVARIANT() {
 		if (m_obj) {
 			ADsFreeEnumerator((IEnumVARIANT *)m_obj);
-			m_obj = NULL; // so base dtor doesnt "Release"
+			m_obj = NULL; // so base dtor doesn't "Release"
 		}
 	}
 };

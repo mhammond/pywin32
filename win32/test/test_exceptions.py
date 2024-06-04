@@ -5,7 +5,6 @@ import unittest
 import pythoncom
 import pywintypes
 import win32api
-import win32file
 import winerror
 
 
@@ -100,7 +99,7 @@ class TestAPISimple(TestBase):
             raise pywintypes.error("foo")
             self.fail("Expected exception")
         except pywintypes.error as exc:
-            assert exc.args[0] == "foo"
+            self.assertEqual(exc.args[0], "foo")
             # 'winerror' always args[0]
             self.assertEqual(exc.winerror, "foo")
             self.assertEqual(exc.funcname, None)

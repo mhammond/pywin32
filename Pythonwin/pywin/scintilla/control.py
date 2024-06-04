@@ -26,7 +26,7 @@ if win32ui.debug:  # If running _d version of Pythonwin...
         )
     except (
         win32api.error
-    ):  # Not there - we dont _need_ a debug ver, so ignore this error.
+    ):  # Not there - we don't _need_ a debug ver, so ignore this error.
         pass
 if dllid is None:
     try:
@@ -36,7 +36,7 @@ if dllid is None:
     except win32api.error:
         pass
 if dllid is None:
-    # Still not there - lets see if Windows can find it by searching?
+    # Still not there - let's see if Windows can find it by searching?
     dllid = win32api.LoadLibrary("Scintilla.DLL")
 
 null_byte = b"\0"
@@ -514,7 +514,7 @@ class CScintillaEditInterface(ScintillaControlInterface):
 
     def SetWordWrap(self, mode):
         if mode != win32ui.CRichEditView_WrapNone:
-            raise ValueError("We dont support word-wrap (I dont think :-)")
+            raise ValueError("We don't support word-wrap (I don't think :-)")
 
 
 class CScintillaColorEditInterface(CScintillaEditInterface):

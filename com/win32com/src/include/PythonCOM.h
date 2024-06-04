@@ -347,7 +347,7 @@ PYCOM_EXPORT HRESULT PyCom_HandleIEnumNoSequence(REFIID riid);
 PYCOM_EXPORT HRESULT PyCom_SetCOMErrorFromPyException(REFIID riid = IID_NULL);
 
 // A couple of EXCEPINFO helpers - could be private to IDispatch
-// if it wasnt for the AXScript support (and ITypeInfo if we get around to that :-)
+// if it wasn't for the AXScript support (and ITypeInfo if we get around to that :-)
 // These functions do not set any error states to either Python or
 // COM - they simply convert to/from PyObjects and EXCEPINFOs
 
@@ -367,7 +367,7 @@ PYCOM_EXPORT PyObject *PyCom_PyObjectFromExcepInfo(const EXCEPINFO *pexcepInfo);
 ///////////////////////////////////////////////////////////////////
 //
 // External C++ helpers - these helpers are for other DLLs which
-// may need similar functionality, but dont want to duplicate all
+// may need similar functionality, but don't want to duplicate all
 
 // This helper is for an application that has an IDispatch, and COM arguments
 // and wants to call a Python function.  It is assumed the caller can map the IDispatch
@@ -648,9 +648,9 @@ class PYCOM_EXPORT PyIConnectionPointContainer : public PyIUnknown {
 // which need to convert from a Python object when the specific OLE
 // type is known - eg, when a TypeInfo is available.
 //
-// The type of conversion determines who owns what buffers etc.  I wish BYREF didnt exist :-)
+// The type of conversion determines who owns what buffers etc.  I wish BYREF didn't exist :-)
 typedef enum {
-    // We dont know what sort of conversion it is yet.
+    // We don't know what sort of conversion it is yet.
     POAH_CONVERT_UNKNOWN,
     // A PyObject is given, we convert to a VARIANT, make the COM call, then BYREFs back to a PyObject
     // ie, this is typically a "normal" COM call, where Python initiates the call

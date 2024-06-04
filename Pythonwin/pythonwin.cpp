@@ -59,7 +59,7 @@ BOOL CPythonWinApp::InitInstance()
 {
     if (!glue.InitInstance())
         return FALSE;
-    // dialog based apps dont have a message pump.
+    // dialog based apps don't have a message pump.
     return m_pMainWnd && !m_pMainWnd->IsKindOf(RUNTIME_CLASS(CDialog));
 }
 int CPythonWinApp::ExitInstance()

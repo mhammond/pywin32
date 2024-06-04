@@ -50,7 +50,7 @@ from distutils.command.install_data import install_data
 
 build_id_patch = build_id
 if not "." in build_id_patch:
-    build_id_patch = build_id_patch + ".0"
+    build_id_patch += ".0"
 pywin32_version = "%d.%d.%s" % (
     sys.version_info.major,
     sys.version_info.minor,
@@ -170,7 +170,7 @@ class WinExt(Extension):
 
             # like Python, always use debug info, even in release builds
             # (note the compiler doesn't include debug info, so you only get
-            # basic info - but its better than nothing!)
+            # basic info - but it's better than nothing!)
             # For now use the temp dir - later we may package them, so should
             # maybe move them next to the output file.
             pch_dir = os.path.join(build_ext.build_temp)
@@ -1039,7 +1039,7 @@ class my_compiler(MSVCCompiler):
             # We want mt.exe run with the original manifest
             for i in range(len(cmd)):
                 if cmd[i] == "-manifest":
-                    cmd[i + 1] = cmd[i + 1] + ".orig"
+                    cmd[i + 1] += ".orig"
                     break
         super().spawn(cmd)
         if is_link:

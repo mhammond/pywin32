@@ -440,7 +440,7 @@ class DebugDocumentTextConnectServer:
         # Creates a connection to the client.  Simply allocate a new cookie,
         # find the clients interface, and store it in a dictionary.
         interface = pUnk.QueryInterface(axdebug.IID_IDebugDocumentTextEvents, 1)
-        self.cookieNo = self.cookieNo + 1
+        self.cookieNo += 1
         self.connections[self.cookieNo] = interface
         return self.cookieNo
 

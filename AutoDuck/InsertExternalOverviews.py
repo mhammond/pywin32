@@ -25,21 +25,21 @@ def processFile(input, out, extLinksHTML, extTopicHTML, importantHTML):
 def genHTML(doc):
     s = ""
     for cat in doc:
-        s = s + f"<H3>{cat.label}</H3>\n"
+        s += f"<H3>{cat.label}</H3>\n"
         dict = {}
         for item in cat.overviewItems.items:
             dict[item.name] = item.href
         keys = list(dict.keys())
         keys.sort()
         for k in keys:
-            s = s + f'<LI><A HREF="html/{dict[k]}">{k}</A>\n'
+            s += f'<LI><A HREF="html/{dict[k]}">{k}</A>\n'
     return s
 
 
 def genLinksHTML(links):
     s = ""
     for link in links:
-        s = s + f'<LI><A HREF="{link.href}">{link.name}</A>\n'
+        s += f'<LI><A HREF="{link.href}">{link.name}</A>\n'
     return s
 
 

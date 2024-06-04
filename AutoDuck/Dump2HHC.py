@@ -412,7 +412,7 @@ def genTOC(cats, output, title, target):
                 **locals()
             )
         )
-        # Dont show 'children' for objects - params etc don't need their own child nodes!
+        # Don't show 'children' for objects - params etc don't need their own child nodes!
         _genItemsFromDict(cat.objects, cat, output, target, do_children=0)
         output.write(
             """

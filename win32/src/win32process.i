@@ -460,7 +460,7 @@ static PyObject *myCreateRemoteThread(PyObject *self, PyObject *args)
 %native (CreateRemoteThread) myCreateRemoteThread;
 
 
-// Wont expose ExitThread!!!  May leak all sorts of things!
+// Won't expose ExitThread!!!  May leak all sorts of things!
 
 %{
 

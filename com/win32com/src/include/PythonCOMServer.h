@@ -125,7 +125,7 @@ class PYCOM_EXPORT PyGatewayBase : public IDispatchEx,  // IDispatch comes along
     STDMETHOD(Unwrap)(PyObject **ppPyObject);
 
     // Basically just PYGATEWAY_MAKE_SUPPORT(PyGatewayBase, IDispatch, IID_IDispatch);
-    // but with special handling as its the base class.
+    // but with special handling as it's the base class.
     static HRESULT PyGatewayConstruct(PyObject *pPyInstance, PyGatewayBase *gatewayBase, void **ppResult, REFIID iid)
     {
         if (ppResult == NULL)
@@ -139,7 +139,7 @@ class PYCOM_EXPORT PyGatewayBase : public IDispatchEx,  // IDispatch comes along
     }
     // Currently this is used only for ISupportErrorInfo,
     // so hopefully this will never be called in this base class.
-    // (however, this is not a rule, so we wont assert or anything!)
+    // (however, this is not a rule, so we won't assert or anything!)
     virtual IID GetIID(void) { return IID_IUnknown; }
     virtual void *ThisAsIID(IID iid);
     // End of PYGATEWAY_MAKE_SUPPORT

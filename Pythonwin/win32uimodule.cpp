@@ -174,7 +174,7 @@ ui_type::ui_type(const char *name, ui_type *pBase, Py_ssize_t typeSize,
     // #define funky_offsetof_weakreflist ((size_t) &((PyObject *)(ui_base_class *)0)->weakreflist)
 
     tp_weaklistoffset -= pyobjOffset;
-    // cast away const, as Python doesnt use it.
+    // cast away const, as Python doesn't use it.
     tp_name = (char *)name;
     tp_basicsize = typeSize;
     tp_base = pBase;
@@ -244,7 +244,7 @@ ui_base_class *ui_base_class::make(ui_type &makeTypeRef)
     _Py_NewReference(pNew);
 #ifdef _DEBUG  // this is really only for internal errors, and they should be ironed out!
     if (!pNew->is_uiobject(makeType))
-        RETURN_ERR("Internal error - created type isnt what was requested!");
+        RETURN_ERR("Internal error - created type isn't what was requested!");
 #endif
 #ifdef TRACE_LIFETIMES
     TRACE("Constructing a '%s' at %p\n", pNew->ob_type->tp_name, pNew);
@@ -506,7 +506,7 @@ BOOL DisplayPythonTraceback(PyObject *exc_type, PyObject *exc_val, PyObject *exc
             free(msg_free);
 #ifdef _DEBUG
             {
-                // doesnt seem to like long strings.
+                // doesn't seem to like long strings.
                 CString cs(useMsg);
                 int i = 0;
                 while (i < cs.GetLength()) {
@@ -566,8 +566,8 @@ int Python_run_command_with_log(const char *command)
 
 void Python_set_error(const char *msg) {}
 // In DEBUG builds, access voilations will normally trip my debugger, and
-// hence I dont want them trapped.  Stack Overflows normally mean runaway Python
-// code, and I dont really want these trapped.
+// hence I don't want them trapped.  Stack Overflows normally mean runaway Python
+// code, and I don't really want these trapped.
 #ifdef _DEBUG
 static int bTrapAccessViolations = FALSE;
 #endif
@@ -857,7 +857,7 @@ static PyObject *ui_output_debug(PyObject *self, PyObject *args)
 
     while (*msg) {
         // not sure what's going on here.  NT seems to add a \n each call..
-        // Im sure msvc16 doesnt...(well, I _think_ Im sure..:)
+        // I'm sure msvc16 doesn't...(well, I _think_ I'm sure..:)
         while (*msg && *msg != '\n') *uiod++ = *msg++;
         *uiod = '\0';  // replace with NULL;
         if (*msg) {    // must be \n
@@ -2416,7 +2416,7 @@ PYWIN_MODULE_INIT_FUNC(win32ui)
     Py_XDECREF(dllhandle);
     // Ensure we have a __file__ attribute (Python itself normally
     // adds one, but if this is called not as part of the standard
-    // import process, we dont have one!
+    // import process, we don't have one!
     TCHAR pathName[MAX_PATH];
     GetModuleFileName(hWin32uiDll, pathName, sizeof(pathName) / sizeof(pathName[0]));
     PyObject *obPathName = PyWinObject_FromTCHAR(pathName);

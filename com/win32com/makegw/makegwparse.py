@@ -254,9 +254,9 @@ class ArgFormatterFloat(ArgFormatter):
     def GetParsePostCode(self):
         s = "\t"
         if self.gatewayMode:
-            s = s + self._IndirectPrefix(self._GetDeclaredIndirection(), 0)
-        s = s + self.arg.name
-        s = s + " = (float)dbl%s;\n" % self.arg.name
+            s += self._IndirectPrefix(self._GetDeclaredIndirection(), 0)
+        s += self.arg.name
+        s += " = (float)dbl%s;\n" % self.arg.name
         return s
 
 
@@ -293,9 +293,9 @@ class ArgFormatterShort(ArgFormatter):
     def GetParsePostCode(self):
         s = "\t"
         if self.gatewayMode:
-            s = s + self._IndirectPrefix(self._GetDeclaredIndirection(), 0)
-        s = s + self.arg.name
-        s = s + " = i%s;\n" % self.arg.name
+            s += self._IndirectPrefix(self._GetDeclaredIndirection(), 0)
+        s += self.arg.name
+        s += " = i%s;\n" % self.arg.name
         return s
 
 
@@ -471,7 +471,7 @@ class ArgFormatterTime(ArgFormatterPythonCOM):
         if arg.indirectionLevel == 0 and arg.unc_type[:2] == "LP":
             arg.unc_type = arg.unc_type[2:]
             # reduce the builtin and increment the declaration
-            arg.indirectionLevel = arg.indirectionLevel + 1
+            arg.indirectionLevel += 1
             builtinIndirection = 0
         ArgFormatterPythonCOM.__init__(
             self, arg, builtinIndirection, declaredIndirection
@@ -873,7 +873,7 @@ class Argument:
     def GetRawDeclaration(self):
         ret = f"{self.raw_type} {self.name}"
         if self.arrayDecl:
-            ret = ret + "[]"
+            ret += "[]"
         return ret
 
 

@@ -3,7 +3,7 @@
 # The ONLY purpose for this script is testing/demoing the
 # Pythonwin debugger package.
 
-# It does nothing useful, and it even doesnt do that!
+# It does nothing useful, and it even doesn't do that!
 
 import sys
 import time

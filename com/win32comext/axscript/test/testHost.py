@@ -69,7 +69,7 @@ class Test:
 #    self._connect_server_.Broadcast(last)
 
 
-#### Connections currently wont work, as there is no way for the engine to
+#### Connections currently won't work, as there is no way for the engine to
 #### know what events we support.  We need typeinfo support.
 
 IID_ITestEvents = pythoncom.MakeIID("{8EB72F90-0D44-11d1-9C4B-00AA00125A98}")

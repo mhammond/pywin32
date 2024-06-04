@@ -3,7 +3,7 @@
 //
 #pragma once
 // afxmt.h is often not included by default in stdafx.h
-// Try and include it here - it wont hurt if stfafx.h has already done it!
+// Try and include it here - it won't hurt if stfafx.h has already done it!
 #include <afxmt.h>  // CCriticalSection, etc
 
 // Handle Manager maps between pointers of some sort, and an associated
@@ -43,7 +43,7 @@ class CAssocManager
 // ui_assoc_object
 //
 class PYW_EXPORT ui_assoc_object : public ui_base_class {
-   public:  // some probably shouldnt be, but...
+   public:  // some probably shouldn't be, but...
     PyObject *GetGoodRet();
     static ui_assoc_object *make(ui_type &makeType, void *search, bool skipLookup = false);
 

@@ -121,7 +121,7 @@ extern "C" void WINAPI DoIOCallback(EXTENSION_CONTROL_BLOCK *ecb, PVOID pContext
     Py_DECREF(result);
     worked = TRUE;
 done:
-    // If the callback failed, then its likely this request will end
+    // If the callback failed, then it's likely this request will end
     // up hanging.  So on error we nuke ourselves from the map then
     // call DoneWithSession.  We still hold the GIL, so we should be
     // safe from races...

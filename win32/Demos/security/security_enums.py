@@ -37,7 +37,7 @@ class Enum:
         for k, v in self.__dict__.items():
             if flags & v == v:
                 flag_names.append(k)
-                unknown_flags = unknown_flags & ~v
+                unknown_flags &= ~v
         return flag_names, unknown_flags
 
 

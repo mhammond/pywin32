@@ -86,7 +86,7 @@ class TestDialog(dialog.Dialog):
     def OnOK(self):
         # NB: StepIt wraps at the end if you increment past the upper limit!
         # self.pbar.StepIt()
-        self.progress = self.progress + self.pincr
+        self.progress += self.pincr
         if self.progress > 100:
             self.progress = 100
         if self.progress <= 100:

@@ -37,7 +37,7 @@ PyObject *OleSetADSIError(HRESULT hr, IUnknown *pUnk, REFIID iid)
             info.bstrSource = SysAllocString(szNameBuf);
             info.bstrDescription = SysAllocString(szErrorBuf);
             // Technically, we probably should return DISP_E_EXCEPTION so we
-            // appear to follow COM's rules - however, we really dont
+            // appear to follow COM's rules - however, we really don't
             // _need_ to (as only Python sees this result), and having the native
             // HRESULT is preferable.
             return PyCom_BuildPyExceptionFromEXCEPINFO(dwErrCode, &info);
@@ -61,7 +61,7 @@ PyObject *OleSetADSIError(HRESULT hr, IUnknown *pUnk, REFIID iid)
             info.bstrSource = SysAllocString(szNameBuf);
             info.bstrDescription = SysAllocString(szErrorBuf);
             // Technically, we probably should return DISP_E_EXCEPTION so we
-            // appear to follow COM's rules - however, we really dont
+            // appear to follow COM's rules - however, we really don't
             // _need_ to (as only Python sees this result), and having the native
             // HRESULT is preferable.
             return PyCom_BuildPyExceptionFromEXCEPINFO(dwErrCode, &info);
@@ -162,7 +162,7 @@ BOOL PyADSIObject_AsTypedValue(PyObject *val, ADSVALUE &v)
 {
     BOOL ok = TRUE;
     switch (v.dwType) {
-        // OK - get lazy - we know its a union!
+        // OK - get lazy - we know it's a union!
         case ADSTYPE_DN_STRING:
         case ADSTYPE_CASE_EXACT_STRING:
         case ADSTYPE_CASE_IGNORE_STRING:
@@ -184,7 +184,7 @@ BOOL PyADSIObject_AsTypedValue(PyObject *val, ADSVALUE &v)
             ok = PyWinObject_AsLARGE_INTEGER(val, &v.LargeInteger);
             break;
         default:
-            PyErr_SetString(PyExc_TypeError, "Cant convert to this type");
+            PyErr_SetString(PyExc_TypeError, "Can't convert to this type");
             return FALSE;
     }
     return ok;
@@ -675,7 +675,7 @@ done:
 // ADSERR.h is built from a message file.
 // Therefore, there _must_ be a DLL around we can call
 // FormatMessage with.
-// However, its not obvious, and this code was cut directly from MSDN.
+// However, it's not obvious, and this code was cut directly from MSDN.
 #include "adserr.h"
 typedef struct tagADSERRMSG {
     HRESULT hr;

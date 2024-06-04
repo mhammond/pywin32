@@ -52,7 +52,7 @@ def Test():
     while num < 1000:
         print("Hello there no " + str(num))
         win32api.Sleep(50)
-        num = num + 1
+        num += 1
 
 
 class flags:

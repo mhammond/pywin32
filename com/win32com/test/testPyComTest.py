@@ -1,5 +1,5 @@
 # NOTE - Still seems to be a leak here somewhere
-# gateway count doesnt hit zero.  Hence the print statements!
+# gateway count doesn't hit zero.  Hence the print statements!
 
 import sys
 
@@ -96,7 +96,7 @@ class RandomEventHandler:
 
     def OnFire(self, no):
         try:
-            self.fireds[no] = self.fireds[no] + 1
+            self.fireds[no] += 1
         except KeyError:
             self.fireds[no] = 0
 
@@ -190,7 +190,7 @@ def TestCommon(o, is_generated):
     assert o.GetSetUnsignedLong(-1) == 0xFFFFFFFF, "unsigned -1 failed"
 
     # We want to explicitly test > 32 bits.
-    # 'maxsize+1' is no good on 64bit platforms as its 65 bits!
+    # 'maxsize+1' is no good on 64bit platforms as it's 65 bits!
     big = 2147483647
     for l in big, big + 1, 1 << 65:
         check_get_set(o.GetSetVariant, l)
@@ -625,10 +625,10 @@ def TestCounter(counter, bIsGenerated):
         counter.SetBounds(bounds[0], bounds[1])
 
     for item in counter:
-        num = num + 1
+        num += 1
     assert num == len(
         counter
-    ), "*** Length of counter and loop iterations dont match ***"
+    ), "*** Length of counter and loop iterations don't match ***"
     assert num == 10, "*** Unexpected number of loop iterations ***"
 
     try:
@@ -640,7 +640,7 @@ def TestCounter(counter, bIsGenerated):
     counter.Reset()
     num = 0
     for item in counter:
-        num = num + 1
+        num += 1
     assert num == 10, f"*** Unexpected number of loop iterations - got {num} ***"
     progress("Finished testing counter")
 
