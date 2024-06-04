@@ -27,7 +27,7 @@ class SearchParams:
         else:
             self.__dict__.update(other.__dict__)
 
-    # Helper so we cant misspell attributes :-)
+    # Helper so we can't misspell attributes :-)
     def __setattr__(self, attr, val):
         if not hasattr(self, attr):
             raise AttributeError(attr)
@@ -119,7 +119,7 @@ def _FindIt(control, searchParams):
                 try:
                     doc = control.GetParent().GetDocument()
                 except AttributeError:
-                    print("Cant find a document for the control!")
+                    print("Can't find a document for the control!")
                     doc = None
             if doc is not None:
                 template = doc.GetDocTemplate()

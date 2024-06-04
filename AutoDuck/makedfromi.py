@@ -26,7 +26,7 @@ def GetComments(line, lineNo, lines):
             break
         doc += "\n// " + data[1].strip()
         lineNo += 1
-    # This line doesnt match - step back
+    # This line doesn't match - step back
     lineNo -= 1
     return doc, lineNo
 

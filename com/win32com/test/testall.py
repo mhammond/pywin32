@@ -226,7 +226,7 @@ def make_test_suite(test_level=1):
                     test = mod.suite()
                 else:
                     test = loader.loadTestsFromModule(mod)
-            assert test.countTestCases() > 0, "No tests loaded from %r" % mod
+            assert test.countTestCases() > 0, f"No tests loaded from {mod!r}"
             suite.addTest(test)
         for cmd, output in output_checked_programs[i]:
             suite.addTest(ShellTestCase(cmd, output))
@@ -247,7 +247,7 @@ def make_test_suite(test_level=1):
                 test = mod.suite()
             else:
                 test = loader.loadTestsFromModule(mod)
-            assert test.countTestCases() > 0, "No tests loaded from %r" % mod
+            assert test.countTestCases() > 0, f"No tests loaded from {mod!r}"
             suite.addTest(test)
 
     return suite, import_failures

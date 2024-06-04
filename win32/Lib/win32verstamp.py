@@ -121,7 +121,7 @@ def VS_VERSION_INFO(maj, min, sub, build, sdata, vdata, debug=0, is_dll=1):
 
 def stamp(pathname, options):
     # For some reason, the API functions report success if the file is open
-    # but doesnt work!  Try and open the file for writing, just to see if it is
+    # but doesn't work!  Try and open the file for writing, just to see if it is
     # likely the stamp will work!
     try:
         f = open(pathname, "a+b")

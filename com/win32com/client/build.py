@@ -33,7 +33,7 @@ error = "PythonCOM.Client.Build error"
 
 
 class NotSupportedException(Exception):
-    pass  # Raised when we cant support a param type.
+    pass  # Raised when we can't support a param type.
 
 
 DropIndirection = "DropIndirection"
@@ -233,7 +233,7 @@ class DispatchItem(OleItem):
         hidden = (funcflags & pythoncom.FUNCFLAG_FHIDDEN) != 0
         if invkind == pythoncom.INVOKE_PROPERTYGET:
             map = self.propMapGet
-        # This is not the best solution, but I dont think there is
+        # This is not the best solution, but I don't think there is
         # one without specific "set" syntax.
         # If there is a single PUT or PUTREF, it will function as a property.
         # If there are both, then the PUT remains a property, and the PUTREF
@@ -251,7 +251,7 @@ class DispatchItem(OleItem):
                     self.mapFuncs["Set" + name] = existing
                     map = self.propMapPut  # existing gets overwritten below.
             else:
-                map = self.propMapPut  # first time weve seen it.
+                map = self.propMapPut  # first time we've seen it.
 
         elif invkind == pythoncom.INVOKE_FUNC:
             map = self.mapFuncs
@@ -262,7 +262,7 @@ class DispatchItem(OleItem):
             # 					sys.stderr.write("Warning - overwriting existing method/attribute %s\n" % name)
             map[name] = MapEntry(fdesc, names, doc, resultCLSID, resultDoc, hidden)
             # any methods that can't be reached via DISPATCH we return None
-            # for, so dynamic dispatch doesnt see it.
+            # for, so dynamic dispatch doesn't see it.
             if fdesc.funckind != pythoncom.FUNC_DISPATCH:
                 return None
             return (name, map)
@@ -493,7 +493,7 @@ class DispatchItem(OleItem):
 class VTableItem(DispatchItem):
     def Build(self, typeinfo, attr, bForUser=1):
         DispatchItem.Build(self, typeinfo, attr, bForUser)
-        assert typeinfo is not None, "Cant build vtables without type info!"
+        assert typeinfo is not None, "Can't build vtables without type info!"
 
         meth_list = (
             list(self.mapFuncs.values())
@@ -539,7 +539,7 @@ def _ResolveType(typerepr, itypeinfo):
             # We need to drop an indirection level on pointer to user defined interfaces.
             # eg, (VT_PTR, (VT_USERDEFINED, somehandle)) needs to become VT_DISPATCH
             # only when "somehandle" is an object.
-            # but (VT_PTR, (VT_USERDEFINED, otherhandle)) doesnt get the indirection dropped.
+            # but (VT_PTR, (VT_USERDEFINED, otherhandle)) doesn't get the indirection dropped.
             was_user = (
                 isinstance(subrepr, tuple) and subrepr[0] == pythoncom.VT_USERDEFINED
             )
@@ -637,7 +637,7 @@ def demunge_leading_underscores(className):
 def MakePublicAttributeName(className, is_global=False):
     # Given a class attribute that needs to be public, convert it to a
     # reasonable name.
-    # Also need to be careful that the munging doesnt
+    # Also need to be careful that the munging doesn't
     # create duplicates - eg, just removing a leading "_" is likely to cause
     # a clash.
     # if is_global is True, then the name is a global variable that may

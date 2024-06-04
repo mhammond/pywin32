@@ -295,7 +295,7 @@ class DockingBar(window.Wnd):
         if not self.bTracking:
             return 1  # pass it on.
         self.StopTracking(1)
-        return 0  # Dont pass on
+        return 0  # Don't pass on
 
     def OnLButtonDown(self, msg):
         # UINT nFlags, CPoint point)
@@ -374,7 +374,7 @@ class DockingBar(window.Wnd):
                 self.rectTracker = OffsetRect(self.rectTracker, (pt[0] - cpt[0], 0))
                 self.OnInvertTracker(self.rectTracker)
 
-        return 0  # Dont pass it on.
+        return 0  # Don't pass it on.
 
     # 	def OnBarStyleChange(self, old, new):
 

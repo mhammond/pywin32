@@ -236,7 +236,7 @@ def TkIndexToOffset(bm, edit, marks):
             if col == "first" or col == "last":
                 # Tag name
                 if line != "sel":
-                    raise ValueError("Tags arent here!")
+                    raise ValueError("Tags aren't here!")
                 sel = edit.GetSel()
                 if sel[0] == sel[1]:
                     raise EmptyRange
@@ -322,8 +322,8 @@ class TkText:
     ##			size = self.edit.GetTabWidth()
     ##			if size==8: return "" # Tk default
     ##			return size # correct semantics?
-    ##		elif item=="font": # Used for measurements we dont need to do!
-    ##			return "Dont know the font"
+    ##		elif item=="font": # Used for measurements we don't need to do!
+    ##			return "Don't know the font"
     ##		raise IndexError, "Invalid index '%s'" % item
     def make_calltip_window(self):
         if self.calltips is None:
@@ -480,7 +480,7 @@ class TkText:
 
     def tag_remove(self, name, start, end):
         if name != "sel" or start != "1.0" or end != "end":
-            raise ValueError("Cant remove this tag")
+            raise ValueError("Can't remove this tag")
         # Turn the sel into a cursor
         self.edit.SetSel(self.edit.GetSel()[0])
 

@@ -262,7 +262,7 @@ class AutoIndent:
                     else:
                         self.reindent_to(y.compute_backslash_indent())
                 else:
-                    assert 0, "bogus continuation type " + repr(c)
+                    raise ValueError(f"bogus continuation type {c!r}")
                 return "break"
 
             # This line starts a brand new stmt; indent relative to

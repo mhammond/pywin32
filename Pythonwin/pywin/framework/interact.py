@@ -539,7 +539,7 @@ class InteractiveCore:
 
         lines = self.ExtractCommand((start, end))
 
-        # If we are in a code-block, but it isnt at the end of the buffer
+        # If we are in a code-block, but it isn't at the end of the buffer
         # then copy it to the end ready for editing and subsequent execution
         if end != self.GetLineCount() - 1:
             win32ui.SetStatusText("Press ENTER to execute command")
@@ -567,7 +567,7 @@ class InteractiveCore:
                 ):  # Need more input!
                     bNeedIndent = 1
                 else:
-                    # If the last line isnt empty, append a newline
+                    # If the last line isn't empty, append a newline
                     if self.history is not None:
                         self.history.history_store(source)
                     self.AppendToPrompt([])

@@ -151,7 +151,7 @@ class CScintillaDocument(ParentScintillaDocument):
         if view.IsWindow():
             # Turn off undo collection while loading
             view.SendScintilla(scintillacon.SCI_SETUNDOCOLLECTION, 0, 0)
-            # Make sure the control isnt read-only
+            # Make sure the control isn't read-only
             view.SetReadOnly(0)
             view.SendScintilla(scintillacon.SCI_CLEARALL)
             view.SendMessage(scintillacon.SCI_ADDTEXT, text)

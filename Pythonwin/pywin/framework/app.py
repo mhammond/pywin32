@@ -211,7 +211,7 @@ class CApp(WinApp):
 
     def DoLoadModules(self, modules):
         # XXX - this should go, but the debugger uses it :-(
-        # dont do much checking!
+        # don't do much checking!
         for module in modules:
             __import__(module)
 
@@ -270,7 +270,7 @@ class CApp(WinApp):
     # No longer used by Pythonwin, as the C++ code has this same basic functionality
     # but handles errors slightly better.
     # It all still works, tho, so if you need similar functionality, you can use it.
-    # Therefore I havent deleted this code completely!
+    # Therefore I haven't deleted this code completely!
     # 	def CallbackManager( self, ob, args = () ):
     # 		"""Manage win32 callbacks.  Trap exceptions, report on them, then return 'All OK'
     # 		to the frame-work. """

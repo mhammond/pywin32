@@ -77,7 +77,7 @@ STDMETHODIMP CPyFactory::CreateInstance(IUnknown *punkOuter, REFIID riid, void *
                 hr = E_FAIL;
             }
         }
-        Py_XDECREF(pNewInstance);  // Dont need it any more.
+        Py_XDECREF(pNewInstance);  // Don't need it any more.
     }
     PyCom_DLLReleaseRef();
     return hr;

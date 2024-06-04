@@ -99,7 +99,7 @@ class FormatterBase:
         try:
             style = self.styles_by_id[self.scintilla.SCIGetStyleAt(pos)]
         except KeyError:
-            # A style we dont know about - probably not even a .py file - can't be a string
+            # A style we don't know about - probably not even a .py file - can't be a string
             return None
         if style.name in self.string_style_names:
             return style
@@ -238,7 +238,7 @@ class FormatterBase:
 class Formatter(FormatterBase):
     def __init__(self, scintilla):
         self.bCompleteWhileIdle = 0
-        self.bHaveIdleHandler = 0  # Dont currently have an idle handle
+        self.bHaveIdleHandler = 0  # Don't currently have an idle handle
         self.nextstylenum = 0
         FormatterBase.__init__(self, scintilla)
 

@@ -2,7 +2,7 @@
 
 Uses standard COM marshalling to pass objects between threads.  Even
 though Python generally seems to work when you just pass COM objects
-between threads, it shouldnt.
+between threads, it shouldn't.
 
 This shows the "correct" way to do it.
 
@@ -74,14 +74,14 @@ class ThreadInterpCase(InterpCase):
             t = threading.Thread(
                 target=self._testInterpInThread, args=(hEvent, interpStream)
             )
-            t.setDaemon(1)  # so errors dont cause shutdown hang
+            t.setDaemon(1)  # so errors don't cause shutdown hang
             t.start()
             threads.append(t)
         interp = None
         return threads, events
 
     #
-    # NOTE - this doesnt quite work - Im not even sure it should, but Greg reckons
+    # NOTE - this doesn't quite work - I'm not even sure it should, but Greg reckons
     # you should be able to avoid the marshal per thread!
     # I think that refers to CoMarshalInterface though...
     def BeginThreadsFastMarshal(self, numThreads):
@@ -101,7 +101,7 @@ class ThreadInterpCase(InterpCase):
         for i in range(numThreads):
             hEvent = win32event.CreateEvent(None, 0, 0, None)
             t = threading.Thread(target=self._testInterpInThread, args=(hEvent, interp))
-            t.setDaemon(1)  # so errors dont cause shutdown hang
+            t.setDaemon(1)  # so errors don't cause shutdown hang
             t.start()
             events.append(hEvent)
             threads.append(t)

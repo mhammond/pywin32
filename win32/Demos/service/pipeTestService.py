@@ -85,7 +85,7 @@ class TestPipeService(win32serviceutil.ServiceFramework):
                 ok = 0
 
             # A secure service would handle (and ignore!) errors writing to the
-            # pipe, but for the sake of this demo we dont (if only to see what errors
+            # pipe, but for the sake of this demo we don't (if only to see what errors
             # we can get when our clients break at strange times :-)
             if ok:
                 msg = (

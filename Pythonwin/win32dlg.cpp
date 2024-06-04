@@ -403,7 +403,7 @@ void Python_do_exchange(CDialog *pDlg, CDataExchange *pDX)
     PyCDialog *dob = (PyCDialog *)ui_assoc_object::GetAssocObject(pDlg);
     if (!dob) {
         TRACE("do_exchange called on dialog with no Python object!\n");
-        return;  // dont print an exception
+        return;  // don't print an exception
     }
     for (int i = 0; i < PyList_Size(dob->ddlist); i++) {
         PyObject *ob = PyList_GetItem(dob->ddlist, i);
@@ -569,7 +569,7 @@ static PyObject *ui_dialog_do_modal(PyObject *self, PyObject *args)
         RETURN_ERR("InitModalIndirect failed");
     }
 
-    Py_INCREF(self);  // make sure Python doesnt kill the object while in a modal call.
+    Py_INCREF(self);  // make sure Python doesn't kill the object while in a modal call.
                       // really only for the common dialog, and other non CPythonDlg's
     INT_PTR ret;
     GUI_BGN_SAVE;
@@ -737,7 +737,7 @@ ui_type_CObject PyCDialog::type("PyCDialog",
 static struct PyMethodDef ui_common_dialog_methods[] = {{NULL, NULL}};
 
 ui_type_CObject PyCCommonDialog::type("PyCCommonDialog", &PyCDialog::type,
-                                      NULL,  // CCommonDialog doesnt have RTTI???
+                                      NULL,  // CCommonDialog doesn't have RTTI???
                                       sizeof(PyCCommonDialog), PYOBJ_OFFSET(PyCCommonDialog), ui_common_dialog_methods,
                                       NULL);
 

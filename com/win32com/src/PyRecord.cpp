@@ -493,7 +493,7 @@ PyObject *PyRecord::getattro(PyObject *self, PyObject *obname)
         return PyCom_BuildPyException(hr, pyrec->pri, IID_IRecordInfo);
     }
 
-    // Short-circuit sub-structs and arrays here, so we dont allocate a new chunk
+    // Short-circuit sub-structs and arrays here, so we don't allocate a new chunk
     // of memory and copy it - we need sub-structs to persist.
     if (V_VT(&vret) == (VT_BYREF | VT_RECORD))
         return new PyRecord(V_RECORDINFO(&vret), V_RECORD(&vret), pyrec->owner);

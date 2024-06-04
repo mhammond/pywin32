@@ -665,7 +665,7 @@ static PyObject *PyGetFormattedCounterValue(PyObject *self, PyObject *args)
     else if (format & PDH_FMT_LARGE)
         rc = PyLong_FromLongLong(result.largeValue);
     else {
-        PyErr_SetString(PyExc_ValueError, "Dont know how to convert the result");
+        PyErr_SetString(PyExc_ValueError, "Don't know how to convert the result");
         rc = NULL;
     }
     PyObject *realrc = Py_BuildValue("iO", type, rc);
@@ -731,7 +731,7 @@ static PyObject *PyPdhGetFormattedCounterArray(PyObject *self, PyObject *args)
         else if (format & PDH_FMT_LARGE)
             value = PyLong_FromLongLong(pItems[i].FmtValue.largeValue);
         else {
-            PyErr_SetString(PyExc_ValueError, "Dont know how to convert the result");
+            PyErr_SetString(PyExc_ValueError, "Don't know how to convert the result");
             Py_XDECREF(rc);
             Py_XDECREF(key);
             rc = NULL;

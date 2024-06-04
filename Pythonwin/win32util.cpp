@@ -178,7 +178,7 @@ PyCRectType PyCRect::type("PyCRect", &ui_base_class::type, sizeof(PyCRect), PYOB
                           NULL);
 
 // The CREATESTRUCT just has pointers (no buffers) for the name
-// and classname.  Therefore, I dont treat them as strings, just
+// and classname.  Therefore, I don't treat them as strings, just
 // pointers (via long casts)
 // @object CREATESTRUCT|A representation of a Windows CREATESTRUCT structure.
 PyObject *PyObjectFromCreateStruct(LPCREATESTRUCT lpcs)
@@ -260,7 +260,7 @@ BOOL DictToLogFont(PyObject *font_props, LOGFONT *pLF)
         szFontClipPrecision, szFontQuality,   szFontPitch,      szFontName,        NULL};
 
     // font default values
-    pLF->lfCharSet = DEFAULT_CHARSET;  // dont use ANSI_CHARSET to support Japanese charset.
+    pLF->lfCharSet = DEFAULT_CHARSET;  // don't use ANSI_CHARSET to support Japanese charset.
     pLF->lfQuality = PROOF_QUALITY;    // don't scale raster fonts and force anti aliasing
     if (!PyDict_Check(font_props)) {
         PyErr_Format(PyExc_TypeError, "LOGFONT must be a dict, not %s", font_props->ob_type->tp_name);

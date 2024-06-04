@@ -39,7 +39,7 @@ static BOOL hasInitialized = FALSE;
 
 void PyCom_DLLAddRef(void)
 {
-    // Must be thread-safe, although cant have the Python lock!
+    // Must be thread-safe, although can't have the Python lock!
     CEnterLeaveFramework _celf;
     LONG cnt = InterlockedIncrement(&g_cLockCount);
     if (cnt == 1) {  // First call
@@ -83,7 +83,7 @@ void PyCom_DLLReleaseRef(void)
     /*** NOTE: We no longer finalize Python EVER in the COM world
          see pycom-dev mailing list archives from April 2000 for why
     ***/
-    // Must be thread-safe, although cant have the Python lock!
+    // Must be thread-safe, although can't have the Python lock!
     // only needed when we finalize.
     //	CEnterLeaveFramework _celf;
     LONG cnt = InterlockedDecrement(&g_cLockCount);
@@ -161,7 +161,7 @@ typedef HRESULT(WINAPI *PFNCoInitializeEx)(LPVOID pvReserved, DWORD dwCoInit);
 // XXX - Needs more thought about threading implications.
 HRESULT PyCom_CoInitializeEx(LPVOID reserved, DWORD dwInit)
 {
-    // Must be thread-safe, although doesnt need the Python lock.
+    // Must be thread-safe, although doesn't need the Python lock.
     CEnterLeaveFramework _celf;
     if (g_bCoInitThreadHasInit && g_dwCoInitThread == GetCurrentThreadId())
         return S_OK;
@@ -197,7 +197,7 @@ HRESULT PyCom_CoInitializeEx(LPVOID reserved, DWORD dwInit)
 
 HRESULT PyCom_CoInitialize(LPVOID reserved)
 {
-    // Must be thread-safe, although doesnt need the Python lock.
+    // Must be thread-safe, although doesn't need the Python lock.
     CEnterLeaveFramework _celf;
     // If our "main" thread has ever called this before, just
     // ignore it.  If it is another thread, then that thread
@@ -220,7 +220,7 @@ HRESULT PyCom_CoInitialize(LPVOID reserved)
 
 void PyCom_CoUninitialize()
 {
-    // Must be thread-safe, although doesnt need the Python lock.
+    // Must be thread-safe, although doesn't need the Python lock.
     CEnterLeaveFramework _celf;
     if (g_dwCoInitThread == GetCurrentThreadId()) {
         // being asked to terminate on our "main" thread
@@ -241,7 +241,7 @@ void PyCom_CoUninitialize()
 
 STDAPI DllCanUnloadNow(void)
 {
-    // If we dont finalize Python, we should never unload!
+    // If we don't finalize Python, we should never unload!
     return S_FALSE;
     //	return g_cLockCount ? S_FALSE : S_OK;
 }

@@ -64,7 +64,7 @@ def RegisterPythonServer(filename, progids=None, verbose=0):
         else:
             # print(f"Skipping registration of '{filename}' - already registered")
             return
-    # needs registration - see if its likely!
+    # needs registration - see if it's likely!
     try:
         from win32com.shell.shell import IsUserAnAdmin
     except ImportError:

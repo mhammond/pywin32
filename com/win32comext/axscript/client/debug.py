@@ -61,7 +61,7 @@ class DebugManager:
 
         if self.debugApplication is None:
             # Try to get/create the default one
-            # NOTE - Dont catch exceptions here - let the parent do it,
+            # NOTE - Don't catch exceptions here - let the parent do it,
             # so it knows debug support is available.
             pdm = pythoncom.CoCreateInstance(
                 axdebug.CLSID_ProcessDebugManager,
@@ -144,7 +144,7 @@ class DebugManager:
         self.adb.ResetAXDebugging()
 
     def AddScriptBlock(self, codeBlock):
-        # If we dont have debugging support, dont bother.
+        # If we don't have debugging support, don't bother.
         cc = DebugCodeBlockContainer(codeBlock, self.scriptSiteDebug)
         if self.IsSimpleHost():
             document = documents.DebugDocumentText(cc)

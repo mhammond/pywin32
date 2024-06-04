@@ -176,7 +176,7 @@ class ThreadPoolExtension(isapi.simple.SimpleExtension):
                 )
             except ExtensionError:
                 # The client disconnected without reading the error body -
-                # its probably not a real browser at the other end, ignore it.
+                # it's probably not a real browser at the other end, ignore it.
                 pass
             except:
                 print("FAILED to render the error message!")

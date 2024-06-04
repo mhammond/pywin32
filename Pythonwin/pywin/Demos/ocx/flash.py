@@ -60,7 +60,7 @@ class BrowserFrame(window.MDIChildWnd):
             self.url = regutil.GetRegisteredHelpFile("Main Python Documentation")
         else:
             self.url = url
-        pass  # Dont call base class doc/view version...
+        pass  # Don't call base class doc/view version...
 
     def Create(self, title, rect=None, parent=None):
         style = win32con.WS_CHILD | win32con.WS_VISIBLE | win32con.WS_OVERLAPPEDWINDOW

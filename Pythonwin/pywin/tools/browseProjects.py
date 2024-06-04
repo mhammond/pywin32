@@ -209,7 +209,7 @@ class HLIProjectRoot(hierlist.HierListItem):
     def GetSubList(self):
         paths = regutil.GetRegisteredNamedPath(self.projectName)
         pathList = paths.split(";")
-        if len(pathList) == 1:  # Single dir - dont bother putting the dir in
+        if len(pathList) == 1:  # Single dir - don't bother putting the dir in
             ret = MakePathSubList(pathList[0])
         else:
             ret = list(map(HLIDirectoryItem, pathList))

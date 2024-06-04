@@ -1,4 +1,4 @@
-## AHH - I cant make this work!!!
+## AHH - I can't make this work!!!
 
 # But this is the general idea.
 

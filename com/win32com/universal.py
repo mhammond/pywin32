@@ -93,7 +93,7 @@ def _doCreateVTable(iid, interface_name, is_dispatch, method_defs):
 def _CalcTypeSize(typeTuple):
     t = typeTuple[0]
     if t & (pythoncom.VT_BYREF | pythoncom.VT_ARRAY):
-        # Its a pointer.
+        # It's a pointer.
         cb = _univgw.SizeOfVT(pythoncom.VT_PTR)[1]
     elif t == pythoncom.VT_RECORD:
         # Just because a type library uses records doesn't mean the user
@@ -131,7 +131,7 @@ class Method:
 
         self.dispid = dispid
         self.invkind = invkind
-        # We dont use this ATM.
+        # We don't use this ATM.
         #        self.ret = Arg(ret_def)
         if isEventSink and name[:2] != "On":
             name = "On%s" % name

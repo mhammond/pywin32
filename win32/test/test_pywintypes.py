@@ -22,7 +22,7 @@ class TestCase(unittest.TestCase):
     def testPyTimePrint(self):
         # This used to crash with an invalid, or too early time.
         # We don't really want to check that it does cause a ValueError
-        # (as hopefully this wont be true forever).  So either working, or
+        # (as hopefully this won't be true forever).  So either working, or
         # ValueError is OK.
         try:
             t = pywintypes.Time(-2)

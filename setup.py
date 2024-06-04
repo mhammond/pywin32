@@ -174,7 +174,7 @@ class WinExt(Extension):
 
             # like Python, always use debug info, even in release builds
             # (note the compiler doesn't include debug info, so you only get
-            # basic info - but its better than nothing!)
+            # basic info - but it's better than nothing!)
             # For now use the temp dir - later we may package them, so should
             # maybe move them next to the output file.
             pch_dir = os.path.join(build_ext.build_temp)

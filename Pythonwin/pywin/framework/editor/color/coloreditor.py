@@ -258,14 +258,14 @@ class SyntEditView(SyntEditViewParent):
             # Tab size can never be guessed - set at user preference.
             ext.config(usetabs=usetabs, indentwidth=indentwidth, tabwidth=tabSize)
         else:
-            # Dont want smart-tabs - just set the options!
+            # Don't want smart-tabs - just set the options!
             ext.config(usetabs=bUseTabs, tabwidth=tabSize, indentwidth=indentSize)
         self.SCISetIndent(indentSize)
         self.SCISetTabWidth(tabSize)
 
     def OnDebuggerStateChange(self, state):
         if state == dbgcon.DBGSTATE_NOT_DEBUGGING:
-            # Indicate breakpoints arent really usable.
+            # Indicate breakpoints aren't really usable.
             # Not quite white - useful when no marker margin, so set as background color.
             self.SCIMarkerSetBack(MARKER_BREAKPOINT, win32api.RGB(0xEF, 0xEF, 0xEF))
         else:
@@ -287,7 +287,7 @@ class SyntEditView(SyntEditViewParent):
         scrollOff = info[1] - self.GetFirstVisibleLine()
         if scrollOff:
             self.LineScroll(scrollOff)
-        # Make sure we dont reset the cursor beyond the buffer.
+        # Make sure we don't reset the cursor beyond the buffer.
         max = self.GetTextLength()
         newPos = min(info[0][0], max), min(info[0][1], max)
         self.SetSel(newPos)

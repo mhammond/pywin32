@@ -12,7 +12,7 @@
 #   applied.
 # * If a comment block has leading whitespace that mixes tabs and
 #   spaces, they will not be considered part of the same block.
-# * Fancy comments, like this bulleted list, arent handled :-)
+# * Fancy comments, like this bulleted list, aren't handled :-)
 
 import re
 
@@ -61,9 +61,9 @@ class FormatParagraph:
             newdata = reformat_paragraph(data, format_width)
             # re-split and re-insert the comment header.
             newdata = newdata.split("\n")
-            # If the block ends in a \n, we dont want the comment
-            # prefix inserted after it. (Im not sure it makes sense to
-            # reformat a comment block that isnt made of complete
+            # If the block ends in a \n, we don't want the comment
+            # prefix inserted after it. (I'm not sure it makes sense to
+            # reformat a comment block that isn't made of complete
             # lines, but whatever!)  Can't think of a clean soltution,
             # so we hack away
             block_suffix = ""

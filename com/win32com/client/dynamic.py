@@ -216,7 +216,7 @@ class CDispatch:
 
     def __bool__(self):
         return True  # ie "if object:" should always be "true" - without this, __len__ is tried.
-        # _Possibly_ want to defer to __len__ if available, but Im not sure this is
+        # _Possibly_ want to defer to __len__ if available, but I'm not sure this is
         # desirable???
 
     def __repr__(self):
@@ -426,7 +426,7 @@ class CDispatch:
         return None
 
     def _Release_(self):
-        """Cleanup object - like a close - to force cleanup when you dont
+        """Cleanup object - like a close - to force cleanup when you don't
         want to rely on Python's reference counting."""
         for childCont in self._mapCachedItems_.values():
             childCont._Release_()

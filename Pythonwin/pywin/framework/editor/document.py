@@ -239,7 +239,7 @@ class EditorDocumentBase(ParentEditorDocument):
         try:
             # This seems necessary so the internal state of the window becomes
             # "visible".  without it, it is still shown, but certain functions
-            # (such as updating the title) dont immediately work?
+            # (such as updating the title) don't immediately work?
             self.GetFirstView().ShowWindow(win32con.SW_SHOW)
             title = win32ui.GetFileTitle(filename)
         except win32ui.error:

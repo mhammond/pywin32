@@ -24,7 +24,7 @@ class TestEnum(win32com.test.util.TestCase):
             storagecon.STGM_READWRITE
             | storagecon.STGM_CREATE
             | storagecon.STGM_SHARE_EXCLUSIVE,
-        )  ## its very picky about flag combinations!
+        )  ## it's very picky about flag combinations!
         psuser.WriteMultiple((3, 4), ("hey", "bubba"))
         psuser.WritePropertyNames((3, 4), ("property3", "property4"))
         expected_summaries = []

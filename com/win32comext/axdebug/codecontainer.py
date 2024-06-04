@@ -55,7 +55,7 @@ class SourceCodeContainer:
         return self.text
 
     def GetName(self, dnt):
-        assert 0, "You must subclass this"
+        raise NotImplementedError("You must subclass this")
 
     def GetFileName(self):
         return self.fileName
@@ -77,7 +77,7 @@ class SourceCodeContainer:
             lastOffset = lineOffset
             lineNo += 1
         else:  # for not broken.
-            # print("Cant find", charPos, "in", self.lineOffsets)
+            # print("Can't find", charPos, "in", self.lineOffsets)
             raise COMException(scode=winerror.S_FALSE)
         # print("GLOP ret=", lineNo, (charPos - lastOffset))
         return lineNo, (charPos - lastOffset)
@@ -266,7 +266,7 @@ if __name__ == "__main__":
             attrlen += 1
     text = sc.GetText()
     if attrlen != len(text):
-        print(f"Lengths dont match!!! ({attrlen}/{len(text)})")
+        print(f"Lengths don't match!!! ({attrlen}/{len(text)})")
 
     # print("Attributes:")
     # print(attrs)

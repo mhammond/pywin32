@@ -352,7 +352,7 @@ class CommonDBTests(unittest.TestCase):
                     ok = False
                     self.assertTrue(
                         rs[0] in allowedReturnValues,
-                        'Value "%s" not in %s' % (repr(rs[0]), allowedReturnValues),
+                        f'Value "{rs[0]!r}" not in {allowedReturnValues}',
                     )
                 else:
                     self.assertEqual(
@@ -697,17 +697,15 @@ class CommonDBTests(unittest.TestCase):
                     rec[j] == inParam[j]
                 ), 'returned value:"%s" != test value:"%s"' % (rec[j], inParam[j])
             # check that we can get a complete tuple from a row
-            assert tuple(rec) == inParam, 'returned value:"%s" != test value:"%s"' % (
-                repr(rec),
-                repr(inParam),
-            )
+            assert (
+                tuple(rec) == inParam
+            ), f'returned value:"{rec!r}" != test value:"{inParam!r}"'
             # test that slices of rows work
             slice1 = tuple(rec[:-1])
             slice2 = tuple(inParam[0:2])
-            assert slice1 == slice2, 'returned value:"%s" != test value:"%s"' % (
-                repr(slice1),
-                repr(slice2),
-            )
+            assert (
+                slice1 == slice2
+            ), f'returned value:"{slice1!r}" != test value:"{slice2!r}"'
             # now test named column retrieval
             assert rec["fldTwo"] == inParam[0]
             assert rec.fldThree == inParam[1]
@@ -1027,10 +1025,9 @@ class CommonDBTests(unittest.TestCase):
             row = crsr.fetchone()
         except api.DatabaseError:
             row = None  # if the entire table disappeared the rollback was perfect and the test passed
-        assert row is None, (
-            "cursor.fetchone should return None if a query retrieves no rows. Got %s"
-            % repr(row)
-        )
+        assert (
+            row is None
+        ), f"cursor.fetchone should return None if a query retrieves no rows. Got {row!r}"
         self.helpRollbackTblTemp()
 
     def testAutoCommit(self):
@@ -1164,11 +1161,11 @@ class TestADOwithSQLServer(CommonDBTests):
         retvalues = crsr.callproc(
             "sp_DeleteMeOnlyForTesting", ("Dodsworth", "Anne", "              ")
         )
-        assert retvalues[0] == "Dodsworth", '%s is not "Dodsworth"' % repr(retvalues[0])
-        assert retvalues[1] == "Anne", '%s is not "Anne"' % repr(retvalues[1])
-        assert retvalues[2] == "DodsworthAnne", '%s is not "DodsworthAnne"' % repr(
-            retvalues[2]
-        )
+        assert retvalues[0] == "Dodsworth", f'{retvalues[0]!r} is not "Dodsworth"'
+        assert retvalues[1] == "Anne", f'{retvalues[1]!r} is not "Anne"'
+        assert (
+            retvalues[2] == "DodsworthAnne"
+        ), f'{retvalues[2]!r} is not "DodsworthAnne"'
         self.conn.rollback()
 
     def testMultipleSetReturn(self):
@@ -1344,19 +1341,16 @@ class TestADOwithMySql(CommonDBTests):
     #                 /* (SELECT 'a small string' as result; */
     #                 END $$
     #             """
-    #
     #     crsr.execute(spdef)
-    #
     #     retvalues = crsr.callproc(
     #         "DeleteMeOnlyForTesting", ("Dodsworth", "Anne", "              ")
     #     )
-    #     print("return value (mysql)=", repr(crsr.returnValue))
-    #     assert retvalues[0] == "Dodsworth", '%s is not "Dodsworth"' % repr(retvalues[0])
-    #     assert retvalues[1] == "Anne", '%s is not "Anne"' % repr(retvalues[1])
-    #     assert retvalues[2] == "DodsworthAnne", '%s is not "DodsworthAnne"' % repr(
-    #         retvalues[2]
-    #     )
-    #
+    #     # print(f"return value (mysql)={crsr.returnValue!r}")
+    #     assert retvalues[0] == "Dodsworth", f'{retvalues[0]!r} is not "Dodsworth"'
+    #     assert retvalues[1] == "Anne", f'{retvalues[1]!r} is not "Anne"'
+    #     assert (
+    #         retvalues[2] == "DodsworthAnne"
+    #     ), f'{retvalues[2]!r} is not "DodsworthAnne"'
     #     try:
     #         crsr.execute("DROP PROCEDURE, DeleteMeOnlyForTesting")
     #         self.conn.commit()
@@ -1413,12 +1407,12 @@ class TestADOwithPostgres(CommonDBTests):
     #     retvalues = crsr.callproc(
     #         "DeleteMeOnlyForTesting", ("Dodsworth", "Anne", "              ")
     #     )
-    #     # print("return value (pg)=", repr(crsr.returnValue))
-    #     assert retvalues[0] == "Dodsworth", '%s is not "Dodsworth"' % repr(retvalues[0])
-    #     assert retvalues[1] == "Anne", '%s is not "Anne"' % repr(retvalues[1])
-    #     assert retvalues[2] == "Dodsworth Anne", '%s is not "Dodsworth Anne"' % repr(
-    #         retvalues[2]
-    #     )
+    #     # print(f"return value (pg)={crsr.returnValue!r}")
+    #     assert retvalues[0] == "Dodsworth", f'{retvalues[0]!r} is not "Dodsworth"'
+    #     assert retvalues[1] == "Anne", f'{retvalues[1]!r} is not "Anne"'
+    #     assert (
+    #         retvalues[2] == "DodsworthAnne"
+    #     ), f'{retvalues[2]!r} is not "DodsworthAnne"'
     #     self.conn.rollback()
     #     try:
     #         crsr.execute("DROP PROCEDURE, DeleteMeOnlyForTesting")
@@ -1490,7 +1484,7 @@ class TestPythonTimeConverter(TimeConverterInterfaceTest):
         t2 = time.gmtime(
             time.mktime((2002, 6, 29, 12, 14, 2, 4, 31 + 28 + 31 + 30 + 31 + 28, -1))
         )
-        assert t1 < cmd < t2, '"%s" should be about 2002-6-28 12:15:01' % repr(cmd)
+        assert t1 < cmd < t2, f'"{cmd}" should be about 2002-6-28 12:15:01'
 
     def testDate(self):
         t1 = time.mktime((2002, 6, 28, 18, 15, 1, 4, 31 + 28 + 31 + 30 + 31 + 30, 0))
