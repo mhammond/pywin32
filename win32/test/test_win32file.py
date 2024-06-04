@@ -351,7 +351,7 @@ class TestOverlapped(unittest.TestCase):
             sock.listen(1)
             socks.append(sock)
             new = win32file.CreateIoCompletionPort(sock.fileno(), ioport, PORT, 0)
-            assert new is ioport
+            self.assertIs(new, ioport)
         for s in socks:
             s.close()
         hv = int(ioport)
@@ -552,7 +552,7 @@ class TestFindFiles(unittest.TestCase):
         set2 = set()
         for file in win32file.FindFilesIterator(dir):
             set2.add(file)
-        assert len(set2) > 5, "This directory has less than 5 files!?"
+        self.assertGreater(len(set2), 5, "This directory has less than 5 files!?")
         self.assertEqual(set1, set2)
 
     def testBadDir(self):

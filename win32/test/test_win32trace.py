@@ -152,7 +152,7 @@ class TestTraceObjectOps(BasicSetupTearDown):
 
     def testIsatty(self):
         tracer = win32trace.GetTracer()
-        assert tracer.isatty() == False
+        self.assertFalse(tracer.isatty())
 
     def testRoundTrip(self):
         traceObject = win32trace.GetTracer()
@@ -195,7 +195,7 @@ class TestMultipleThreadsWriting(unittest.TestCase):
     def areBucketsFull(self):
         bucketsAreFull = True
         for each in self.buckets:
-            assert each <= self.FullBucket, each
+            self.assertLessEqual(each, self.FullBucket)
             if each != self.FullBucket:
                 bucketsAreFull = False
                 break
@@ -207,7 +207,7 @@ class TestMultipleThreadsWriting(unittest.TestCase):
             for ch in readString:
                 integer = int(ch)
                 count = self.buckets[integer]
-                assert count != -1
+                self.assertNotEqual(count, -1)
                 self.buckets[integer] = count + 1
                 if self.buckets[integer] == self.FullBucket:
                     if self.areBucketsFull():
@@ -220,8 +220,8 @@ class TestMultipleThreadsWriting(unittest.TestCase):
         for each in self.threads:
             each.join()
         for each in self.threads:
-            assert each.verifyWritten()
-        assert self.areBucketsFull()
+            self.assertTrue(each.verifyWritten())
+        self.assertTrue(self.areBucketsFull())
 
 
 class TestHugeChunks(unittest.TestCase):
@@ -307,7 +307,7 @@ class TestOutofProcess(unittest.TestCase):
     def areBucketsFull(self):
         bucketsAreFull = True
         for each in self.buckets:
-            assert each <= self.FullBucket, each
+            self.assertLessEqual(each, self.FullBucket)
             if each != self.FullBucket:
                 bucketsAreFull = False
                 break
@@ -319,7 +319,7 @@ class TestOutofProcess(unittest.TestCase):
             for ch in readString:
                 integer = int(ch)
                 count = self.buckets[integer]
-                assert count != -1
+                self.assertNotEqual(count, -1)
                 self.buckets[integer] = count + 1
                 if self.buckets[integer] == self.FullBucket:
                     if self.areBucketsFull():
@@ -332,8 +332,8 @@ class TestOutofProcess(unittest.TestCase):
         for each in self.processes:
             each.join()
         for each in self.processes:
-            assert each.verifyWritten()
-        assert self.areBucketsFull()
+            self.assertTrue(each.verifyWritten())
+        self.assertTrue(self.areBucketsFull())
 
 
 def _RunAsTestProcess():

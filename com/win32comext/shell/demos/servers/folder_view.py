@@ -538,12 +538,12 @@ class ContextMenu:
             if matches:
                 break
         else:
-            assert False, ci  # failed to find our ID
+            raise AssertionError(ci, "failed to find our ID")
         if verb_id == MENUVERB_DISPLAY:
             sia = shell.SHCreateShellItemArrayFromDataObject(self.dataobj)
             DisplayItem(hwnd, sia)
         else:
-            assert False, ci  # Got some verb we weren't expecting?
+            raise AssertionError(ci, "Got some verb we weren't expecting?")
 
     def GetCommandString(self, cmd, typ):
         raise COMException(hresult=winerror.E_NOTIMPL)

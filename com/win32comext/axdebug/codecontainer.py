@@ -55,7 +55,7 @@ class SourceCodeContainer:
         return self.text
 
     def GetName(self, dnt):
-        assert 0, "You must subclass this"
+        raise NotImplementedError("You must subclass this")
 
     def GetFileName(self):
         return self.fileName
