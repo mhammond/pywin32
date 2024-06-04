@@ -201,7 +201,7 @@ class PropertyPage(Dialog):
             dlg = win32ui.CreatePropertyPage(id, caption)
         if self.dll:
             win32ui.SetResource(oldRes)
-        # dont call dialog init!
+        # don't call dialog init!
         window.Wnd.__init__(self, dlg)
         self.HookCommands()
 

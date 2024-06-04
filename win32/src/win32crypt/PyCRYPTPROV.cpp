@@ -401,7 +401,7 @@ PyObject *PyCRYPTPROV::PyCryptImportKey(PyObject *self, PyObject *args, PyObject
     if (!pybuf.ok())
         return NULL;
 
-    if (!CryptImportKey(hcryptprov, (BYTE*)pybuf.ptr(), pybuf.len(), pubkey, flags, &retkey))
+    if (!CryptImportKey(hcryptprov, (BYTE *)pybuf.ptr(), pybuf.len(), pubkey, flags, &retkey))
         return PyWin_SetAPIError("PyCRYPTPROV::CryptImportKey");
     return new PyCRYPTKEY(retkey, self);
 }

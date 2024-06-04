@@ -116,7 +116,7 @@ class TestCerts(unittest.TestCase):
             except ValueError:
                 pass
             else:
-                raise RuntimeError("should not be able to close the context twice")
+                raise AssertionError("should not be able to close the context twice")
 
     def testCertBase64(self):
         self.checkCertFile(

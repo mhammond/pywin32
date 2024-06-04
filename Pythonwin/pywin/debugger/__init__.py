@@ -85,7 +85,7 @@ def set_trace():
         return  # App closing
 
     if d.stopframe != d.botframe:
-        # If im not "running"
+        # If I'm not "running"
         return
 
     sys.settrace(None)  # May be hooked

@@ -863,7 +863,7 @@ static PyObject *py_set_clipboard_data(PyObject *self, PyObject *args)
             buf = pybuf.ptr();
             bufSize = pybuf.len();
             if ((PyBytes_Check(obhandle)) && (isTextFormat(format)))
-                bufSize++;  // size doesnt include nulls!
+                bufSize++;  // size doesn't include nulls!
                             // else assume buffer needs no terminator...
         }
         handle = GlobalAlloc(GHND, bufSize);

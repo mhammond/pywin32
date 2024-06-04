@@ -1995,121 +1995,159 @@ LRESULT DefWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 %{
 struct PyEnumWindowsCallback {
-	PyObject *func;
-	PyObject *extra;
+    PyObject *func;
+    PyObject *extra;
 };
 
 BOOL CALLBACK PyEnumWindowsProc(
   HWND hwnd,      // handle to parent window
   LPARAM lParam   // application-defined value
 ) {
-	BOOL result = TRUE;
-	PyEnumWindowsCallback *cb = (PyEnumWindowsCallback *)lParam;
-	CEnterLeavePython _celp;
-	PyObject *args = Py_BuildValue("(NO)", PyWinLong_FromHANDLE(hwnd), cb->extra);
-	if (args == NULL)
-		return FALSE;
-	PyObject *ret = PyEval_CallObject(cb->func, args);
-	Py_DECREF(args);
-	if (ret == NULL)
-		return FALSE;
-	if (ret != Py_None){
-		result = PyLong_AsLong(ret);
-		if (result == -1 && PyErr_Occurred())
-			result = FALSE;
-		}
-	Py_DECREF(ret);
-	return result;
+    BOOL result = TRUE;
+    PyEnumWindowsCallback *cb = (PyEnumWindowsCallback *)lParam;
+    CEnterLeavePython _celp;
+    PyObject *args = Py_BuildValue("(NO)", PyWinLong_FromHANDLE(hwnd), cb->extra);
+    if (args == NULL)
+        return FALSE;
+    PyObject *ret = PyObject_CallObject(cb->func, args);
+    Py_DECREF(args);
+    if (ret == NULL)
+        return FALSE;
+    if (ret != Py_None) {
+        result = PyLong_AsLong(ret);
+        if ((result == -1) && (PyErr_Occurred()))
+            result = FALSE;
+    }
+    Py_DECREF(ret);
+    return result;
 }
 
 // @pyswig |EnumWindows|Enumerates all top-level windows on the screen by passing the handle to each window, in turn, to an application-defined callback function.
 static PyObject *PyEnumWindows(PyObject *self, PyObject *args)
 {
-	BOOL rc;
-	PyObject *obFunc, *obOther;
-	// @pyparm function|callback||A Python function to be used as the callback.  Function can return False to stop enumeration, or raise an exception.
-	// @pyparm object|extra||Any python object - this is passed to the callback function as the second param (first is the hwnd).
-	if (!PyArg_ParseTuple(args, "OO", &obFunc, &obOther))
-		return NULL;
-	if (!PyCallable_Check(obFunc)) {
-		PyErr_SetString(PyExc_TypeError, "First param must be a callable object");
-		return NULL;
-	}
-	PyEnumWindowsCallback cb;
-	cb.func = obFunc;
-	cb.extra = obOther;
+    BOOL rc;
+    PyObject *obFunc, *obOther;
+    // @pyparm function|callback||A Python function to be used as the callback.  Function can return False to stop enumeration, or raise an exception.
+    // @pyparm object|extra||Any python object - this is passed to the callback function as the second param (first is the hwnd).
+    if (!PyArg_ParseTuple(args, "OO", &obFunc, &obOther))
+        return NULL;
+    if (!PyCallable_Check(obFunc)) {
+        PyErr_SetString(PyExc_TypeError, "First param must be a callable object");
+        return NULL;
+    }
+    PyEnumWindowsCallback cb;
+    cb.func = obFunc;
+    cb.extra = obOther;
     Py_BEGIN_ALLOW_THREADS
-	rc = EnumWindows(PyEnumWindowsProc, (LPARAM)&cb);
+    rc = EnumWindows(PyEnumWindowsProc, (LPARAM)&cb);
     Py_END_ALLOW_THREADS
-	if (!rc){
-		// Callback may have raised an exception already
-		if (PyErr_Occurred())
-			return NULL;
-		return PyWin_SetAPIError("EnumWindows");
-		}
-	Py_INCREF(Py_None);
-	return Py_None;
+    if (!rc) {
+        // Callback may have raised an exception already
+        if (PyErr_Occurred())
+            return NULL;
+        return PyWin_SetAPIErrorOrReturnNone("EnumWindows");
+    }
+    Py_RETURN_NONE;
 }
 
 // @pyswig |EnumThreadWindows|Enumerates all top-level windows associated with a thread on the screen by passing the handle to each window, in turn, to an application-defined callback function. EnumThreadWindows continues until the last top-level window associated with the thread is enumerated or the callback function returns FALSE
 static PyObject *PyEnumThreadWindows(PyObject *self, PyObject *args)
 {
-	BOOL rc;
-	PyObject *obFunc, *obOther;
-	DWORD dwThreadId;
-	// @pyparm int|dwThreadId||The id of the thread for which the windows need to be enumerated.
-	// @pyparm object|callback||A Python function to be used as the callback.
-	// @pyparm object|extra||Any python object - this is passed to the callback function as the second param (first is the hwnd).
-	if (!PyArg_ParseTuple(args, "lOO", &dwThreadId, &obFunc, &obOther))
-		return NULL;
-	if (!PyCallable_Check(obFunc)) {
-		PyErr_SetString(PyExc_TypeError, "Second param must be a callable object");
-		return NULL;
-	}
-	PyEnumWindowsCallback cb;
-	cb.func = obFunc;
-	cb.extra = obOther;
+    BOOL rc;
+    PyObject *obFunc, *obOther;
+    DWORD dwThreadId;
+    // @pyparm int|dwThreadId||The id of the thread for which the windows need to be enumerated.
+    // @pyparm object|callback||A Python function to be used as the callback.
+    // @pyparm object|extra||Any python object - this is passed to the callback function as the second param (first is the hwnd).
+    if (!PyArg_ParseTuple(args, "lOO", &dwThreadId, &obFunc, &obOther))
+        return NULL;
+    if (!PyCallable_Check(obFunc)) {
+        PyErr_SetString(PyExc_TypeError, "Second param must be a callable object");
+        return NULL;
+    }
+    PyEnumWindowsCallback cb;
+    cb.func = obFunc;
+    cb.extra = obOther;
     Py_BEGIN_ALLOW_THREADS
-	rc = EnumThreadWindows(dwThreadId, PyEnumWindowsProc, (LPARAM)&cb);
+    rc = EnumThreadWindows(dwThreadId, PyEnumWindowsProc, (LPARAM)&cb);
     Py_END_ALLOW_THREADS
-	if (!rc)
-		return PyWin_SetAPIError("EnumThreadWindows");
-	Py_INCREF(Py_None);
-	return Py_None;
+    if (!rc) {
+        // Callback may have raised an exception already
+        if (PyErr_Occurred())
+            return NULL;
+        return PyWin_SetAPIErrorOrReturnNone("EnumThreadWindows");
+        }
+    Py_RETURN_NONE;
 }
 
 // @pyswig |EnumChildWindows|Enumerates the child windows that belong to the specified parent window by passing the handle to each child window, in turn, to an application-defined callback function. EnumChildWindows continues until the last child window is enumerated or the callback function returns FALSE.
 static PyObject *PyEnumChildWindows(PyObject *self, PyObject *args)
 {
-	PyObject *obhwnd, *obFunc, *obOther;
-	HWND hwnd;
-	// @pyparm <o PyHANDLE>|hwnd||The handle to the window to enumerate.
-	// @pyparm object|callback||A Python function to be used as the callback.
-	// @pyparm object|extra||Any python object - this is passed to the callback function as the second param (first is the hwnd).
-	if (!PyArg_ParseTuple(args, "OOO", &obhwnd, &obFunc, &obOther))
-		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
-		return NULL;
-	if (!PyCallable_Check(obFunc)) {
-		PyErr_SetString(PyExc_TypeError, "First param must be a callable object");
-		return NULL;
-	}
-	PyEnumWindowsCallback cb;
-	cb.func = obFunc;
-	cb.extra = obOther;
+    PyObject *obhwnd, *obFunc, *obOther;
+    HWND hwnd;
+    // @pyparm <o PyHANDLE>|hwnd||The handle to the window to enumerate.
+    // @pyparm object|callback||A Python function to be used as the callback.
+    // @pyparm object|extra||Any python object - this is passed to the callback function as the second param (first is the hwnd).
+    if (!PyArg_ParseTuple(args, "OOO", &obhwnd, &obFunc, &obOther))
+        return NULL;
+    if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
+        return NULL;
+    if (!PyCallable_Check(obFunc)) {
+        PyErr_SetString(PyExc_TypeError, "Second param must be a callable object");
+        return NULL;
+    }
+    PyEnumWindowsCallback cb;
+    cb.func = obFunc;
+    cb.extra = obOther;
     Py_BEGIN_ALLOW_THREADS
-	// According to MSDN, the return value is not used, and according to
-	// #1350, may cause spurious exceptions.
-	EnumChildWindows(hwnd, PyEnumWindowsProc, (LPARAM)&cb);
+    // According to MSDN, the return value is not used, and according to
+    // #1350, may cause spurious exceptions.
+    EnumChildWindows(hwnd, PyEnumWindowsProc, (LPARAM)&cb);
     Py_END_ALLOW_THREADS
-	Py_INCREF(Py_None);
-	return Py_None;
+    if (PyErr_Occurred())
+        return NULL;
+    Py_RETURN_NONE;
+}
+
+// @pyswig |EnumDesktopWindows|Enumerates all top-level windows associated with a desktop on the screen by passing the handle to each window, in turn, to an application-defined callback function. EnumThreadWindows continues until the last top-level window associated with the thread is enumerated or the callback function returns FALSE
+static PyObject *PyEnumDesktopWindows(PyObject *self, PyObject *args)
+{
+    BOOL rc;
+    PyObject *obDesktop, *obFunc, *obOther;
+    HDESK hDesktop = NULL;
+    // @pyparm <o PyHANDLE>|hDesktop||The id of the desktop for which the windows need to be enumerated.
+    // @pyparm object|callback||A Python function to be used as the callback.
+    // @pyparm object|extra||Any python object - this is passed to the callback function as the second param (first is the hwnd).
+    if (!PyArg_ParseTuple(args, "OOO", &obDesktop, &obFunc, &obOther))
+        return NULL;
+    if (!PyWinObject_AsHANDLE(obDesktop, (HANDLE *)&hDesktop))
+        return NULL;
+    if (!PyCallable_Check(obFunc)) {
+        PyErr_SetString(PyExc_TypeError, "Second param must be a callable object");
+        return NULL;
+    }
+    PyEnumWindowsCallback cb;
+    cb.func = obFunc;
+    cb.extra = obOther;
+    Py_BEGIN_ALLOW_THREADS
+    rc = EnumDesktopWindows(hDesktop, PyEnumWindowsProc, (LPARAM)&cb);
+    Py_END_ALLOW_THREADS
+    if (!rc) {
+        // Callback may have raised an exception already
+        if (PyErr_Occurred())
+            return NULL;
+        return PyWin_SetAPIErrorOrReturnNone("EnumDesktopWindows");
+        }
+    Py_RETURN_NONE;
 }
 
 %}
 %native (EnumWindows) PyEnumWindows;
 %native (EnumThreadWindows) PyEnumThreadWindows;
 %native (EnumChildWindows) PyEnumChildWindows;
+%native (EnumDesktopWindows) PyEnumDesktopWindows;
+
+HDESK GetThreadDesktop(DWORD dwThreadId);
 
 // @pyswig int|DialogBox|Creates a modal dialog box.
 %{
@@ -5972,7 +6010,7 @@ PyGetClassName(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
-	// dont bother with lock - no callback possible.
+	// don't bother with lock - no callback possible.
 	int nchars = GetClassName(hwnd, buf, sizeof buf/sizeof buf[0]);
 	if (nchars==0)
 		return PyWin_SetAPIError("GetClassName");

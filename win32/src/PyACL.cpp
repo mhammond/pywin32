@@ -727,7 +727,7 @@ PyObject *PyACL::AddAuditAccessAce(PyObject *self, PyObject *args)
         unsigned int required_size = psacl->AclSize + sizeof(SYSTEM_AUDIT_ACE) + GetLengthSid(psid);
         // max ACL size is USHRT_MAX
         if (required_size > USHRT_MAX)
-            return PyErr_Format(PyExc_OverflowError, "%s: adding ACE would put ACL over size limit", __FUNCTION__ );
+            return PyErr_Format(PyExc_OverflowError, "%s: adding ACE would put ACL over size limit", __FUNCTION__);
         psacl_padded = (ACL *)malloc(required_size);
         if (psacl_padded == NULL)
             return PyErr_Format(PyExc_MemoryError, "AddAuditAccessAce: unable to allocated %d bytes", required_size);
@@ -789,7 +789,7 @@ PyObject *PyACL::AddAuditAccessAceEx(PyObject *self, PyObject *args)
         unsigned int required_size = psacl->AclSize + sizeof(SYSTEM_AUDIT_ACE) + GetLengthSid(psid);
         // max ACL size is USHRT_MAX
         if (required_size > USHRT_MAX)
-            return PyErr_Format(PyExc_OverflowError, "%s: adding ACE would put ACL over size limit", __FUNCTION__ );
+            return PyErr_Format(PyExc_OverflowError, "%s: adding ACE would put ACL over size limit", __FUNCTION__);
         psacl_padded = (ACL *)malloc(required_size);
         if (psacl_padded == NULL)
             return PyErr_Format(PyExc_MemoryError, "AddAuditAccessAceEx: unable to allocated %d bytes", required_size);
@@ -867,10 +867,10 @@ PyObject *PyACL::AddAuditAccessObjectAce(PyObject *self, PyObject *args)
         if (err != ERROR_ALLOTTED_SPACE_EXCEEDED)
             return PyWin_SetAPIError("AddAuditAccessObjectAce", err);
         // resize if acl too small
-       unsigned int required_size = psacl->AclSize + sizeof(SYSTEM_AUDIT_OBJECT_ACE) + GetLengthSid(psid);
+        unsigned int required_size = psacl->AclSize + sizeof(SYSTEM_AUDIT_OBJECT_ACE) + GetLengthSid(psid);
         // max ACL size is USHRT_MAX
         if (required_size > USHRT_MAX)
-            return PyErr_Format(PyExc_OverflowError, "%s: adding ACE would put ACL over size limit", __FUNCTION__ );
+            return PyErr_Format(PyExc_OverflowError, "%s: adding ACE would put ACL over size limit", __FUNCTION__);
         psacl_padded = (ACL *)malloc(required_size);
         if (psacl_padded == NULL)
             return PyErr_Format(PyExc_MemoryError, "AddAuditAccessObjectAce: unable to allocated %d bytes",

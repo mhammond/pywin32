@@ -88,7 +88,7 @@ class ADSIDispatch(win32com.client.CDispatch):
         try:
             return ADSIEnumerator(self)
         except pythoncom.com_error:
-            # doesnt support it - let our base try!
+            # doesn't support it - let our base try!
             return win32com.client.CDispatch._NewEnum(self)
 
     def __getattr__(self, attr):

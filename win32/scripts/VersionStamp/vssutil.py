@@ -113,7 +113,7 @@ def SubstituteVSSInFile(projectName, inName, outName):
         if version.Label:
             break
     else:
-        print("Couldnt find a label in the sourcesafe project!")
+        print("Couldn't find a label in the sourcesafe project!")
         return
     # Setup some local helpers for the conversion strings.
     vss_label = version.Label

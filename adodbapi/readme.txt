@@ -40,7 +40,7 @@ notes for 2.6.2:
     The definitive source has been moved to https://github.com/mhammond/pywin32/tree/master/adodbapi.
     Remote has proven too hard to configure and test with Pyro4. I am moving it to unsupported status
     until I can change to a different connection method.
-whats new in version 2.6
+what's new in version 2.6
    A cursor.prepare() method and support for prepared SQL statements.
    Lots of refactoring, especially of the Remote and Server modules (still to be treated as Beta code).
    The quick start document 'quick_reference.odt' will export as a nice-looking pdf.
@@ -48,7 +48,7 @@ whats new in version 2.6
       parameters to your .execute() method. If your 'paramstyle' is 'format' 'pyformat' or 'dynamic', you _may_
       pass a dictionary of parameters -- provided your SQL operation string is formatted correctly.
 
-whats new in version 2.5
+what's new in version 2.5
    Remote module: (works on Linux!) allows a Windows computer to serve ADO databases via PyRO
    Server module: PyRO server for ADO.  Run using a command like= C:>python -m adodbapi.server
    (server has simple connection string macros: is64bit, getuser, sql_provider, auto_security)

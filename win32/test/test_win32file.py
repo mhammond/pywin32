@@ -351,7 +351,7 @@ class TestOverlapped(unittest.TestCase):
             sock.listen(1)
             socks.append(sock)
             new = win32file.CreateIoCompletionPort(sock.fileno(), ioport, PORT, 0)
-            assert new is ioport
+            self.assertIs(new, ioport)
         for s in socks:
             s.close()
         hv = int(ioport)
@@ -360,7 +360,7 @@ class TestOverlapped(unittest.TestCase):
         # Check that.
         try:
             win32file.CloseHandle(hv)
-            raise RuntimeError("Expected close to fail!")
+            raise AssertionError("Expected close to fail!")
         except win32file.error as details:
             self.assertEqual(details.winerror, winerror.ERROR_INVALID_HANDLE)
 
@@ -552,11 +552,11 @@ class TestFindFiles(unittest.TestCase):
         set2 = set()
         for file in win32file.FindFilesIterator(dir):
             set2.add(file)
-        assert len(set2) > 5, "This directory has less than 5 files!?"
+        self.assertGreater(len(set2), 5, "This directory has less than 5 files!?")
         self.assertEqual(set1, set2)
 
     def testBadDir(self):
-        dir = os.path.join(os.getcwd(), "a dir that doesnt exist", "*")
+        dir = os.path.join(os.getcwd(), "a dir that doesn't exist", "*")
         self.assertRaises(win32file.error, win32file.FindFilesIterator, dir)
 
     def testEmptySpec(self):
@@ -724,7 +724,7 @@ class TestEncrypt(unittest.TestCase):
             except win32file.error as details:
                 if details.winerror != winerror.ERROR_ACCESS_DENIED:
                     raise
-                print("It appears this is not NTFS - cant encrypt/decrypt")
+                print("It appears this is not NTFS - can't encrypt/decrypt")
             win32file.DecryptFile(fname)
         finally:
             if f is not None:
@@ -868,7 +868,7 @@ class TestTransmit(unittest.TestCase):
                         raise
                     print("Failed to use port", self.addr, "trying another random one")
             else:
-                raise RuntimeError("Failed to find an available port to bind to.")
+                raise AssertionError("Failed to find an available port to bind to.")
             s1.listen(1)
             cli, addr = s1.accept()
             buf = 1

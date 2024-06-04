@@ -61,7 +61,7 @@ class LeakTestCase(unittest.TestCase):
             result.addFailure(self.real_test, (exc.__class__, exc, None))
 
     def runTest(self):
-        assert 0, "not used"
+        raise NotImplementedError("not used")
 
     def _do_leak_tests(self, result=None):
         try:

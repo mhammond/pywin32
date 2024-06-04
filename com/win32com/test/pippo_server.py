@@ -52,8 +52,7 @@ def BuildTypelib():
     if newer(idl, tlb):
         print(f"Compiling {idl}")
         rc = os.system(f'midl "{idl}"')
-        if rc:
-            raise RuntimeError("Compiling MIDL failed!")
+        assert not rc, "Compiling MIDL failed!"
         # Can't work out how to prevent MIDL from generating the stubs.
         # just nuke them
         for fname in "dlldata.c pippo_i.c pippo_p.c pippo.h".split():

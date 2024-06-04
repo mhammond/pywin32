@@ -1,4 +1,4 @@
-//#define PY_SSIZE_T_CLEAN  // defined in win32virt.cpp which runs the z# format here
+// #define PY_SSIZE_T_CLEAN  // defined in win32virt.cpp which runs the z# format here
 
 extern PyObject *BASED_CODE dde_module_error;
 

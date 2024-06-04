@@ -29,7 +29,7 @@
 // allow memory leaks to give me the line number.
 // #define new DEBUG_NEW
 
-/* dont really need to undef these anymore, but helpful to
+/* don't really need to undef these anymore, but helpful to
 programmers who forget to use the new names. */
 #undef INCREF
 #undef DECREF
@@ -42,7 +42,7 @@ programmers who forget to use the new names. */
 #include "import.h"  // Python: for dynamicattach routines.
 
 #include "pywintypes.h"
-// dont need all of these for all, but it cant hurt (and keep the speed up!)
+// don't need all of these for all, but it can't hurt (and keep the speed up!)
 
 #include "win32ui.h"
 

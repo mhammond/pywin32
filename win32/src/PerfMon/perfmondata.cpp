@@ -24,7 +24,7 @@
 //             LOG_DEBUG = Minimum Debugging
 //             LOG_VERBOSE = Maximum Debugging
 
-//#define  LOG_NONE     0
+// #define  LOG_NONE     0
 #define LOG_USER 1
 #define LOG_DEBUG 2
 #define LOG_VERBOSE 3
@@ -171,7 +171,7 @@ DWORD APIENTRY OpenPerformanceData(LPWSTR lpDeviceNames)
     if (!dwOpenCount) {  // open Eventlog interface
                          // The memmapped file name is derived from the DLL name.
                          // Later we may offer to look up a string resource, but not now!
-                         // NOTE - We dont open the event log yet, as we may wish to open it with a custom name
+                         // NOTE - We don't open the event log yet, as we may wish to open it with a custom name
         // open shared memory used by application to pass performance values
         hSharedMemory = OpenFileMapping(FILE_MAP_READ, FALSE, szFileMapping);
 

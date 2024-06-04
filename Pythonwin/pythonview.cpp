@@ -96,9 +96,9 @@ void CPythonListViewImpl::DrawItem(LPDRAWITEMSTRUCT lpDIS)
         obDC = Py_None;
     }
 
-    helper.call_args("iiiiiiO(iiii)O", lpDIS->CtlType, lpDIS->CtlID, lpDIS->itemID, lpDIS->itemAction,
-                     lpDIS->itemState, lpDIS->hwndItem, obDC, lpDIS->rcItem.left, lpDIS->rcItem.top,
-                     lpDIS->rcItem.right, lpDIS->rcItem.bottom, obData);
+    helper.call_args("iiiiiiO(iiii)O", lpDIS->CtlType, lpDIS->CtlID, lpDIS->itemID, lpDIS->itemAction, lpDIS->itemState,
+                     lpDIS->hwndItem, obDC, lpDIS->rcItem.left, lpDIS->rcItem.top, lpDIS->rcItem.right,
+                     lpDIS->rcItem.bottom, obData);
     // The DC is no longer valid.
     Python_delete_assoc(pDC);
 }
@@ -132,9 +132,9 @@ void CPythonTreeViewImpl::DrawItem(LPDRAWITEMSTRUCT lpDIS)
         obDC = Py_None;
     }
 
-    helper.call_args("iiiiiiO(iiii)O", lpDIS->CtlType, lpDIS->CtlID, lpDIS->itemID, lpDIS->itemAction,
-                     lpDIS->itemState, lpDIS->hwndItem, obDC, lpDIS->rcItem.left, lpDIS->rcItem.top,
-                     lpDIS->rcItem.right, lpDIS->rcItem.bottom, obData);
+    helper.call_args("iiiiiiO(iiii)O", lpDIS->CtlType, lpDIS->CtlID, lpDIS->itemID, lpDIS->itemAction, lpDIS->itemState,
+                     lpDIS->hwndItem, obDC, lpDIS->rcItem.left, lpDIS->rcItem.top, lpDIS->rcItem.right,
+                     lpDIS->rcItem.bottom, obData);
     // The DC is no longer valid.
     Python_delete_assoc(pDC);
 }

@@ -2,7 +2,7 @@
 
 Uses standard COM marshalling to pass objects between threads.  Even
 though Python generally seems to work when you just pass COM objects
-between threads, it shouldnt.
+between threads, it shouldn't.
 
 This shows the "correct" way to do it.
 
@@ -30,18 +30,16 @@ import win32event
 
 
 def TestInterp(interp):
-    if interp.Eval("1+1") != 2:
-        raise ValueError("The interpreter returned the wrong result.")
+    assert interp.Eval("1+1") == 2, "The interpreter returned the wrong result."
     try:
         interp.Eval(1 + 1)
-        raise ValueError("The interpreter did not raise an exception")
+        raise AssertionError("The interpreter did not raise an exception")
     except pythoncom.com_error as details:
         import winerror
 
-        if details[0] != winerror.DISP_E_TYPEMISMATCH:
-            raise ValueError(
-                "The interpreter exception was not winerror.DISP_E_TYPEMISMATCH."
-            )
+        assert (
+            details[0] == winerror.DISP_E_TYPEMISMATCH
+        ), "The interpreter exception was not winerror.DISP_E_TYPEMISMATCH."
 
 
 def TestInterpInThread(stopEvent, cookie):

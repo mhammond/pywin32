@@ -218,7 +218,7 @@ def make_test_suite(test_level=1):
         for mod_name in unittest_modules[i]:
             mod, func = get_test_mod_and_func(mod_name, import_failures)
             if mod is None:
-                raise Exception(f"no such module '{mod_name}'")
+                raise ModuleNotFoundError(f"no such module '{mod_name}'")
             if func is not None:
                 test = CapturingFunctionTestCase(func, description=mod_name)
             else:
@@ -226,7 +226,7 @@ def make_test_suite(test_level=1):
                     test = mod.suite()
                 else:
                     test = loader.loadTestsFromModule(mod)
-            assert test.countTestCases() > 0, "No tests loaded from %r" % mod
+            assert test.countTestCases() > 0, f"No tests loaded from {mod!r}"
             suite.addTest(test)
         for cmd, output in output_checked_programs[i]:
             suite.addTest(ShellTestCase(cmd, output))
@@ -247,7 +247,7 @@ def make_test_suite(test_level=1):
                 test = mod.suite()
             else:
                 test = loader.loadTestsFromModule(mod)
-            assert test.countTestCases() > 0, "No tests loaded from %r" % mod
+            assert test.countTestCases() > 0, f"No tests loaded from {mod!r}"
             suite.addTest(test)
 
     return suite, import_failures

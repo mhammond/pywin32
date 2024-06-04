@@ -87,7 +87,7 @@ class HLIPythonObject(hierlist.HierListItem):
             pass
         try:
             for name in self.myobject.__methods__:
-                ret.append(HLIMethod(name))  # no MakeHLI, as cant auto detect
+                ret.append(HLIMethod(name))  # no MakeHLI, as can't auto detect
         except (AttributeError, TypeError):
             pass
         try:
@@ -298,7 +298,7 @@ class HLIDict(HLIPythonObject):
         return ret
 
 
-# strings and Unicode have builtin methods, but we dont really want to see these
+# strings and Unicode have builtin methods, but we don't really want to see these
 class HLIString(HLIPythonObject):
     def IsExpandable(self):
         return 0
@@ -327,7 +327,7 @@ def MakeHLI(ob, name=None):
         cls = TypeMap[type(ob)]
     except KeyError:
         # hrmph - this check gets more and more bogus as Python
-        # improves.  Its possible we should just *always* use
+        # improves.  It's possible we should just *always* use
         # HLIInstance?
         if hasattr(ob, "__class__"):  # 'new style' class
             cls = HLIInstance

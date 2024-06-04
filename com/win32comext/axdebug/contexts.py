@@ -11,7 +11,7 @@ from .util import _wrap
 class DebugCodeContext(gateways.DebugCodeContext, gateways.DebugDocumentContext):
     # NOTE: We also implement the IDebugDocumentContext interface for Simple Hosts.
     # Thus, debugDocument may be NULL when we have smart hosts - but in that case, we
-    # wont be called upon to provide it.
+    # won't be called upon to provide it.
     _public_methods_ = (
         gateways.DebugCodeContext._public_methods_
         + gateways.DebugDocumentContext._public_methods_
@@ -40,7 +40,7 @@ class DebugCodeContext(gateways.DebugCodeContext, gateways.DebugDocumentContext)
                 self.codeContainer.sourceContext, self.offset, self.length
             )
         else:
-            # Simple host - Fine - Ill do it myself!
+            # Simple host - Fine - I'll do it myself!
             return _wrap(self, axdebug.IID_IDebugDocumentContext)
 
     def SetBreakPoint(self, bps):
