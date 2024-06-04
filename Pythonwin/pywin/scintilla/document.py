@@ -151,7 +151,7 @@ class CScintillaDocument(ParentScintillaDocument):
         if view.IsWindow():
             # Turn off undo collection while loading
             view.SendScintilla(scintillacon.SCI_SETUNDOCOLLECTION, 0, 0)
-            # Make sure the control isnt read-only
+            # Make sure the control isn't read-only
             view.SetReadOnly(0)
             view.SendScintilla(scintillacon.SCI_CLEARALL)
             view.SendMessage(scintillacon.SCI_ADDTEXT, text)
@@ -240,7 +240,7 @@ class CScintillaDocument(ParentScintillaDocument):
 
     def MarkerCheck(self, lineNo, marker):
         v = self.GetEditorView()
-        lineNo = lineNo - 1  # Make 0 based
+        lineNo -= 1  # Make 0 based
         markerState = v.SCIMarkerGet(lineNo)
         return markerState & (1 << marker) != 0
 

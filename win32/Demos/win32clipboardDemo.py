@@ -34,7 +34,7 @@ def TestText():
         SetClipboardText(text)
         got = GetClipboardData(win32con.CF_TEXT)
         # CF_TEXT always gives us 'bytes' back .
-        assert got == text_bytes, f"Didnt get the correct result back - '{got!r}'."
+        assert got == text_bytes, f"Didn't get the correct result back - '{got!r}'."
     finally:
         CloseClipboard()
 
@@ -42,12 +42,12 @@ def TestText():
     try:
         # CF_UNICODE text always gives unicode objects back.
         got = GetClipboardData(win32con.CF_UNICODETEXT)
-        assert got == text, f"Didnt get the correct result back - '{got!r}'."
-        assert isinstance(got, str), f"Didnt get the correct result back - '{got!r}'."
+        assert got == text, f"Didn't get the correct result back - '{got!r}'."
+        assert isinstance(got, str), f"Didn't get the correct result back - '{got!r}'."
 
         # CF_OEMTEXT is a bytes-based format.
         got = GetClipboardData(win32con.CF_OEMTEXT)
-        assert got == text_bytes, f"Didnt get the correct result back - '{got!r}'."
+        assert got == text_bytes, f"Didn't get the correct result back - '{got!r}'."
 
         # Unicode tests
         EmptyClipboard()
@@ -57,8 +57,8 @@ def TestText():
         SetClipboardData(win32con.CF_UNICODETEXT, text)
         # Get it in Unicode.
         got = GetClipboardData(win32con.CF_UNICODETEXT)
-        assert got == text, f"Didnt get the correct result back - '{got!r}'."
-        assert isinstance(got, str), f"Didnt get the correct result back - '{got!r}'."
+        assert got == text, f"Didn't get the correct result back - '{got!r}'."
+        assert isinstance(got, str), f"Didn't get the correct result back - '{got!r}'."
 
         # Close and open the clipboard to ensure auto-conversions take place.
     finally:
@@ -68,12 +68,12 @@ def TestText():
     try:
         # Make sure I can still get the text as bytes
         got = GetClipboardData(win32con.CF_TEXT)
-        assert got == text_bytes, f"Didnt get the correct result back - '{got!r}'."
+        assert got == text_bytes, f"Didn't get the correct result back - '{got!r}'."
         # Make sure we get back the correct types.
         got = GetClipboardData(win32con.CF_UNICODETEXT)
-        assert isinstance(got, str), f"Didnt get the correct result back - '{got!r}'."
+        assert isinstance(got, str), f"Didn't get the correct result back - '{got!r}'."
         got = GetClipboardData(win32con.CF_OEMTEXT)
-        assert got == text_bytes, f"Didnt get the correct result back - '{got!r}'."
+        assert got == text_bytes, f"Didn't get the correct result back - '{got!r}'."
         print("Clipboard text tests worked correctly")
     finally:
         CloseClipboard()
@@ -127,7 +127,7 @@ def TestCustomFormat():
         # Now read it back.
         data = GetClipboardData(fmt)
         loaded_object = pickle.loads(data)
-        assert pickle.loads(data) == pickled_object, "Didnt get the correct data!"
+        assert pickle.loads(data) == pickled_object, "Didn't get the correct data!"
 
         print("Clipboard custom format tests worked correctly")
     finally:

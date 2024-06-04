@@ -107,7 +107,7 @@ def TestVB(vbtest, bUseGenerated):
 
     assert vbtest.TakeByValObject(vbtest) == vbtest
 
-    # Python doesnt support PUTREF properties without a typeref
+    # Python doesn't support PUTREF properties without a typeref
     # (although we could)
     if bUseGenerated:
         ob = vbtest.TakeByRefObject(vbtest)
@@ -118,7 +118,7 @@ def TestVB(vbtest, bUseGenerated):
         assert (
             vbtest.VariantPutref._oleobj_ == vbtest._oleobj_
         ), "Could not set the VariantPutref property correctly."
-        # Cant test further types for this VariantPutref, as only
+        # Can't test further types for this VariantPutref, as only
         # COM objects can be stored ByRef.
 
         # A "set" type property - only works for generated.
@@ -133,7 +133,7 @@ def TestVB(vbtest, bUseGenerated):
         # Result should be just the byref.
         assert vbtest.IncrementIntegerParam(1) == 2, "Could not pass an integer byref"
 
-        # Sigh - we cant have *both* "ommited byref" and optional args
+        # Sigh - we can't have *both* "ommited byref" and optional args
         # We really have to opt that args nominated as optional work as optional
         # rather than simply all byrefs working as optional.
         # assert vbtest.IncrementIntegerParam() == 1, "Could not pass an omitted integer byref"
@@ -154,7 +154,7 @@ def TestVB(vbtest, bUseGenerated):
     assert ret == 2, f"Could not increment the integer - {ret}"
 
     TestVBInterface(vbtest)
-    # Python doesnt support byrefs without some sort of generated support.
+    # Python doesn't support byrefs without some sort of generated support.
     if bUseGenerated:
         # This is a VB function that takes a single byref
         # Hence 2 return values - function and byref.
@@ -260,7 +260,7 @@ def _DoTestArray(vbtest, data, expected_exception=None):
 
 def TestArrays(vbtest, bUseGenerated):
     # Try and use a safe array (note that the VB code has this declared as a VARIANT
-    # and I cant work out how to force it to use native arrays!
+    # and I can't work out how to force it to use native arrays!
     # (NOTE Python will convert incoming arrays to tuples, so we pass a tuple, even tho
     # a list works fine - just makes it easier for us to compare the result!
     # Empty array
@@ -315,7 +315,7 @@ def TestArrays(vbtest, bUseGenerated):
     except pythoncom.com_error as exc:
         assert (
             exc.excepinfo[1] == "Python COM Server Internal Error"
-        ), f"Didnt get the correct exception - '{exc}'"
+        ), f"Didn't get the correct exception - '{exc}'"
 
     if bUseGenerated:
         # This one is a bit strange!  The array param is "ByRef", as VB insists.

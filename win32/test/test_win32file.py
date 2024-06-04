@@ -313,7 +313,7 @@ class TestOverlapped(unittest.TestCase):
         for i in range(num_loops):
             win32file.WriteFile(h, chunk_data, overlapped)
             win32event.WaitForSingleObject(overlapped.hEvent, win32event.INFINITE)
-            overlapped.Offset = overlapped.Offset + len(chunk_data)
+            overlapped.Offset += len(chunk_data)
         h.Close()
         # Now read the data back overlapped
         overlapped = pywintypes.OVERLAPPED()
@@ -328,7 +328,7 @@ class TestOverlapped(unittest.TestCase):
             try:
                 hr, data = win32file.ReadFile(h, buffer, overlapped)
                 win32event.WaitForSingleObject(overlapped.hEvent, win32event.INFINITE)
-                overlapped.Offset = overlapped.Offset + len(data)
+                overlapped.Offset += len(data)
                 if not data is buffer:
                     self.fail(
                         "Unexpected result from ReadFile - should be the same buffer we passed it"
@@ -351,7 +351,7 @@ class TestOverlapped(unittest.TestCase):
             sock.listen(1)
             socks.append(sock)
             new = win32file.CreateIoCompletionPort(sock.fileno(), ioport, PORT, 0)
-            assert new is ioport
+            self.assertIs(new, ioport)
         for s in socks:
             s.close()
         hv = int(ioport)
@@ -552,11 +552,11 @@ class TestFindFiles(unittest.TestCase):
         set2 = set()
         for file in win32file.FindFilesIterator(dir):
             set2.add(file)
-        assert len(set2) > 5, "This directory has less than 5 files!?"
+        self.assertGreater(len(set2), 5, "This directory has less than 5 files!?")
         self.assertEqual(set1, set2)
 
     def testBadDir(self):
-        dir = os.path.join(os.getcwd(), "a dir that doesnt exist", "*")
+        dir = os.path.join(os.getcwd(), "a dir that doesn't exist", "*")
         self.assertRaises(win32file.error, win32file.FindFilesIterator, dir)
 
     def testEmptySpec(self):
@@ -724,7 +724,7 @@ class TestEncrypt(unittest.TestCase):
             except win32file.error as details:
                 if details.winerror != winerror.ERROR_ACCESS_DENIED:
                     raise
-                print("It appears this is not NTFS - cant encrypt/decrypt")
+                print("It appears this is not NTFS - can't encrypt/decrypt")
             win32file.DecryptFile(fname)
         finally:
             if f is not None:

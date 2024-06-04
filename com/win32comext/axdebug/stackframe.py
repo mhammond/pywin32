@@ -30,7 +30,7 @@ class EnumDebugStackFrames(gateways.EnumDebugStackFrames):
                 try:
                     address = frame.f_locals["__axstack_address__"]
                 except KeyError:
-                    # print("Couldnt find stack address for",frame.f_code.co_filename, frame.f_lineno-1)
+                    # print("Couldn't find stack address for",frame.f_code.co_filename, frame.f_lineno-1)
                     # Use this one, even tho it is wrong :-(
                     address = axdebug.GetStackAddress()
                 frameInfo = (
@@ -107,11 +107,11 @@ class DebugStackFrame(gateways.DebugStackFrame):
         filename = self.frame.f_code.co_filename
         s = ""
         if 0:  # fLong:
-            s = s + filename
+            s += filename
         if self.frame.f_code.co_name:
-            s = s + self.frame.f_code.co_name
+            s += self.frame.f_code.co_name
         else:
-            s = s + "<lambda>"
+            s += "<lambda>"
         return s
 
     def GetLanguageString(self, fLong):

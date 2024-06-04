@@ -271,7 +271,7 @@ class VTableItem(build.VTableItem, WritableItem):
             print("\t((", end=" ", file=stream)
             for name in names:
                 print(repr(name), ",", end=" ", file=stream)
-                item_num = item_num + 1
+                item_num += 1
                 if item_num % 5 == 0:
                     print("\n\t\t\t", end=" ", file=stream)
             print(
@@ -280,7 +280,7 @@ class VTableItem(build.VTableItem, WritableItem):
                 file=stream,
             )
             for arg in desc.args:
-                item_num = item_num + 1
+                item_num += 1
                 if item_num % 5 == 0:
                     print("\n\t\t\t", end=" ", file=stream)
                 defval = build.MakeDefaultArgRepr(arg)
@@ -478,7 +478,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
                 lkey = "value"
             elif dispid == pythoncom.DISPID_NEWENUM:
                 specialItems["_newenum"] = (entry, entry.desc.invkind, None)
-                continue  # Dont build this one now!
+                continue  # Don't build this one now!
             else:
                 lkey = name.lower()
             if (
@@ -609,7 +609,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
                 if defArgDesc is None:
                     defArgDesc = ""
                 else:
-                    defArgDesc = defArgDesc + ","
+                    defArgDesc += ","
                 print(
                     '\t\t"%s" : ((%s, LCID, %d, 0),(%s)),'
                     % (
@@ -676,7 +676,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
         else:
             invkind = pythoncom.DISPATCH_METHOD | pythoncom.DISPATCH_PROPERTYGET
             resultCLSID = "None"
-        # If we dont have a good CLSID for the enum result, assume it is the same as the Item() method.
+        # If we don't have a good CLSID for the enum result, assume it is the same as the Item() method.
         if resultCLSID == "None" and "Item" in self.mapFuncs:
             resultCLSID = self.mapFuncs["Item"].GetResultCLSIDStr()
         print("\tdef __iter__(self):", file=stream)
@@ -985,7 +985,7 @@ class Generator:
     def BuildOleItemsFromType(self):
         assert (
             self.bBuildHidden
-        ), "This code doesnt look at the hidden flag - I thought everyone set it true!?!?!"
+        ), "This code doesn't look at the hidden flag - I thought everyone set it true!?!?!"
         oleItems = {}
         enumItems = {}
         recordItems = {}
@@ -1011,7 +1011,7 @@ class Generator:
                 newItem = RecordItem(info, attr, doc)
                 recordItems[newItem.clsid] = newItem
             elif infotype == pythoncom.TKIND_ALIAS:
-                # We dont care about alias' - handled intrinsicly.
+                # We don't care about alias' - handled intrinsicly.
                 continue
             elif infotype == pythoncom.TKIND_COCLASS:
                 newItem, child_infos = self._Build_CoClass(type_info_tuple)
@@ -1325,7 +1325,7 @@ class Generator:
 
             assert (
                 found
-            ), f"Cant find the '{child}' interface in the CoClasses, or the interfaces"
+            ), f"Can't find the '{child}' interface in the CoClasses, or the interfaces"
             # Make a map of iid: dispitem, vtableitem)
             items = {}
             for key, value in oleItems.items():

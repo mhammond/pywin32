@@ -130,7 +130,7 @@ def DispatchEx(
     if clsctx is None:
         clsctx = pythoncom.CLSCTX_SERVER
         if machine is not None:
-            clsctx = clsctx & ~pythoncom.CLSCTX_INPROC
+            clsctx &= ~pythoncom.CLSCTX_INPROC
     if machine is None:
         serverInfo = None
     else:
@@ -507,7 +507,7 @@ class DispatchBaseClass:
                 if details.hresult != winerror.E_NOINTERFACE:
                     raise
                 oobj = oobj._oleobj_
-        self.__dict__["_oleobj_"] = oobj  # so we dont call __setattr__
+        self.__dict__["_oleobj_"] = oobj  # so we don't call __setattr__
 
     def __dir__(self):
         lst = (

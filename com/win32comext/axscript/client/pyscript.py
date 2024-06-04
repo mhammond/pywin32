@@ -238,7 +238,7 @@ class PyScript(framework.COMScript):
         return framework.COMScript.Reset(self)
 
     def _GetNextCodeBlockNumber(self):
-        self.codeBlockCounter = self.codeBlockCounter + 1
+        self.codeBlockCounter += 1
         return self.codeBlockCounter
 
     def RegisterNamedItem(self, item):
@@ -341,8 +341,8 @@ class PyScript(framework.COMScript):
         if codeBlock is not None:
             realCode = "def %s():\n" % funcName
             for line in framework.RemoveCR(codeBlock.codeText).split("\n"):
-                realCode = realCode + "\t" + line + "\n"
-            realCode = realCode + "\n"
+                realCode += "\t" + line + "\n"
+            realCode += "\n"
             if not self.CompileInScriptedSection(codeBlock, "exec", realCode):
                 return
             dict = {}
@@ -382,7 +382,7 @@ class PyScript(framework.COMScript):
         num = self._GetNextCodeBlockNumber()
         if num == 1:
             num = ""
-        name = f"{name} {num}"
+        name += f" {num}"
         codeBlock = AXScriptCodeBlock(
             name, code, sourceContextCookie, startLineNumber, flags
         )

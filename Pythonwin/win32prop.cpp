@@ -314,7 +314,7 @@ PyObject *ui_propsheet_do_modal(PyObject *self, PyObject *args)
         return NULL;
     if (!PropSheetCheckForDisplay(pPS))
         return NULL;
-    Py_INCREF(self);  // make sure Python doesnt kill the object while in a modal call.
+    Py_INCREF(self);  // make sure Python doesn't kill the object while in a modal call.
                       // really only for the common dialog(!?), and other non CPythonPropSheet's
     INT_PTR ret;
     GUI_BGN_SAVE;
@@ -590,7 +590,7 @@ ui_type_CObject PyCPropertySheet::type("PyCPropertySheet", &PyCWnd::type, RUNTIM
 //////////////////////////////////////////////////////////////////////
 PyCPropertyPage::PyCPropertyPage()
 {
-    bManualDelete = FALSE;  // dont "delete" the CWnd.
+    bManualDelete = FALSE;  // don't "delete" the CWnd.
 }
 PyCPropertyPage::~PyCPropertyPage()
 {

@@ -128,7 +128,7 @@ was used for the first block is used for the entire file.
 Another common scenario where things go wrong is when pasting code into a new file.
 You create a new file (which sets the tabs to your defaults), then
 paste in a huge chunk of code that is indented differently.  The editor is still using
-the defaults, which dont reflect the code that now exists in the buffer.
+the defaults, which don't reflect the code that now exists in the buffer.
 <nl>
 The "tab-timmy" shows up these problems very quickly, and you can quickly toggle the
 current tab settings by pressing Ctrl+T, or change the indent width by pressing Ctrl+U.

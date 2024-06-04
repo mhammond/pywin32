@@ -523,7 +523,7 @@ BOOL CVirtualHelper::retnone()
 {
     ASSERT(retVal);
     if (!retVal)
-        return FALSE;  // failed - assume didnt work in non debug
+        return FALSE;  // failed - assume didn't work in non debug
     return (retVal == Py_None);
 }
 
@@ -531,7 +531,7 @@ BOOL CVirtualHelper::retval(MSG *msg)
 {
     ASSERT(retVal);
     if (!retVal)
-        return FALSE;  // failed - assume didnt work in non debug
+        return FALSE;  // failed - assume didn't work in non debug
     if (!PyWinObject_AsMSG(retVal, msg)) {
         gui_print_error();
         return FALSE;
@@ -542,7 +542,7 @@ BOOL CVirtualHelper::retval(int &ret)
 {
     ASSERT(retVal);
     if (!retVal)
-        return FALSE;  // failed - assume didnt work in non debug
+        return FALSE;  // failed - assume didn't work in non debug
     if (retVal == Py_None) {
         ret = 0;
         return TRUE;
@@ -559,7 +559,7 @@ BOOL CVirtualHelper::retval(long &ret)
 {
     ASSERT(retVal);
     if (!retVal)
-        return FALSE;  // failed - assume didnt work in non debug
+        return FALSE;  // failed - assume didn't work in non debug
     if (retVal == Py_None) {
         ret = 0;
         return TRUE;
@@ -576,7 +576,7 @@ BOOL CVirtualHelper::retval(HANDLE &ret)
 {
     ASSERT(retVal);
     if (!retVal)
-        return FALSE;  // failed - assume didnt work in non debug
+        return FALSE;  // failed - assume didn't work in non debug
     if (retVal == Py_None) {
         ret = 0;
         return TRUE;
@@ -592,7 +592,7 @@ BOOL CVirtualHelper::retval(CString &ret)
 {
     ASSERT(retVal);
     if (!retVal)
-        return FALSE;  // failed - assume didnt work in non debug
+        return FALSE;  // failed - assume didn't work in non debug
     if (retVal == Py_None) {
         ret.Empty();
         return TRUE;
@@ -611,7 +611,7 @@ BOOL CVirtualHelper::retval(_object *&ret)
 {
     ASSERT(retVal);
     if (!retVal)
-        return FALSE;  // failed - assume didnt work in non debug
+        return FALSE;  // failed - assume didn't work in non debug
     ret = retVal;
     /** what was I thinking?
         if (!PyArg_Parse(retVal, "O",&ret)) {
@@ -627,7 +627,7 @@ BOOL CVirtualHelper::retval(CREATESTRUCT &cs)
     USES_CONVERSION;
     ASSERT(retVal);
     if (!retVal || retVal == Py_None)
-        return FALSE;  // failed - assume didnt work in non debug
+        return FALSE;  // failed - assume didn't work in non debug
     if (!CreateStructFromPyObject(&cs, retVal)) {
         gui_print_error();
         CString msgBuf;

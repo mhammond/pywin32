@@ -236,7 +236,7 @@ class EditorView(ParentEditorView):
             try:
                 if color is None:
                     color = self.defCharFormat[4]
-                lineNo = lineNo - 1
+                lineNo -= 1
                 startIndex = self.LineIndex(lineNo)
                 if startIndex != -1:
                     self.SetSel(startIndex, self.LineIndex(lineNo + 1))
@@ -261,7 +261,7 @@ class EditorView(ParentEditorView):
             if ch == "\t":
                 curCol = ((curCol / self.tabSize) + 1) * self.tabSize
             else:
-                curCol = curCol + 1
+                curCol += 1
         nextColumn = ((curCol / self.indentSize) + 1) * self.indentSize
         # print("curCol is", curCol, "nextColumn is", nextColumn)
         ins = None
@@ -274,7 +274,7 @@ class EditorView(ParentEditorView):
                     if check in ("\t", " "):
                         ins = check
                         break
-                    lookLine = lookLine - 1
+                    lookLine -= 1
             else:  # See if the previous char can tell us
                 check = line[realCol - 1]
                 if check in ("\t", " "):
@@ -290,7 +290,7 @@ class EditorView(ParentEditorView):
 
         if ins == " ":
             # Calc the number of spaces to take us to the next stop
-            ins = ins * (nextColumn - curCol)
+            ins *= nextColumn - curCol
 
         self._obj_.ReplaceSel(ins)
 
@@ -410,17 +410,17 @@ class EditorView(ParentEditorView):
         if res > 0 and curLine.strip():
             curIndent = patIndent.group(1)
             self._obj_.ReplaceSel(curIndent)
-        return 0  # dont pass on
+        return 0  # don't pass on
 
     def OnKeyCtrlY(self, key):
         if not self.GetDocument().CheckMakeDocumentWritable():
             return 0
         self.CutCurLine()
-        return 0  # dont let him have it!
+        return 0  # don't let him have it!
 
     def OnKeyCtrlG(self, key):
         self.GotoLine()
-        return 0  # dont let him have it!
+        return 0  # don't let him have it!
 
     def OnKeyTab(self, key):
         if not self.GetDocument().CheckMakeDocumentWritable():

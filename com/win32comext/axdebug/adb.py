@@ -148,7 +148,7 @@ class Adb(bdb.Bdb, gateways.RemoteDebugApplicationEvents):
     def dispatch_return(self, frame, arg):
         traceenter("dispatch_return", _dumpf(frame), arg)
         if self.logicalbotframe is frame:
-            # We dont want to debug parent frames.
+            # We don't want to debug parent frames.
             tracev("dispatch_return resetting sys.trace")
             sys.settrace(None)
             return

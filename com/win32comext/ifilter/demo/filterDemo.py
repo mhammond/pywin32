@@ -126,11 +126,11 @@ class FileParser:
                     errCnt = 0
 
                     if flags == CHUNK_TEXT:
-                        # its a text segment - get all available text for this chunk.
+                        # it's a text segment - get all available text for this chunk.
                         body_chunks = properties.setdefault(propName, [])
                         self._get_text(body_chunks)
                     elif flags == CHUNK_VALUE:
-                        # its a data segment - get the value
+                        # it's a data segment - get the value
                         properties[propName] = self.f.GetValue()
                     else:
                         self._trace("Unknown flag returned by GetChunk:", flags)

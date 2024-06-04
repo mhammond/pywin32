@@ -752,7 +752,7 @@ static PyObject *pythoncom_WrapObject(PyObject *self, PyObject *args)
     IUnknown *pLook = (IUnknown *)(*ppv);
     IInternalUnwrapPythonObject *pTemp;
     if (pLook->QueryInterface(IID_IInternalUnwrapPythonObject, (void **)&pTemp)==S_OK) {
-        // One of our objects, so set the base object if it doesnt already have one
+        // One of our objects, so set the base object if it doesn't already have one
         PyGatewayBase *pG = (PyGatewayBase *)pTemp;
         // Eeek - just these few next lines need to be thread-safe :-(
         PyWin_AcquireGlobalLock();
@@ -2185,7 +2185,7 @@ PYWIN_MODULE_INIT_FUNC(pythoncom)
     HRESULT hr = PyCom_CoInitializeEx(NULL, coinit_flags);
     if (hr == E_NOTIMPL)  // Special return val from PyCom_Co.. indicates not DCOM.
         hr = PyCom_CoInitialize(NULL);
-    // If HR fails, we really dont care - the import should work.  User can
+    // If HR fails, we really don't care - the import should work.  User can
     // manually CoInit() to see!
 
     PYWIN_MODULE_INIT_PREPARE(pythoncom, pythoncom_methods, "A module, encapsulating the OLE automation API");
@@ -2625,12 +2625,12 @@ PYWIN_MODULE_INIT_FUNC(pythoncom)
 
     ADD_CONSTANT(DESCKIND_FUNCDESC);
     ADD_CONSTANT(DESCKIND_VARDESC);
-    // Expose the frozen flag, as Python itself doesnt!!
+    // Expose the frozen flag, as Python itself doesn't!!
     // @prop int|frozen|1 if the host is a frozen program, else 0
     AddConstant(dict, "frozen", Py_FrozenFlag);
 
     // And finally some gross hacks relating to DCOM
-    // Im really not sure what a better option is!
+    // I'm really not sure what a better option is!
     //
     // If these #error pragma's fire it means this needs revisiting for
     // an upgrade to the MSVC header files!

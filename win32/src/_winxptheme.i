@@ -168,7 +168,7 @@ typedef long FLAGS;
 //                        class name) to provide the class an opportunity
 //                        to get the "best" match between the class and
 //                        the current theme.  For example, a button might
-//                        pass L"OkButton, Button" if its ID=ID_OK.  If
+//                        pass L"OkButton, Button" if it's ID=ID_OK.  If
 //                        the current theme has an entry for OkButton,
 //                        that will be used.  Otherwise, we fall back on
 //                        the normal Button entry.

@@ -253,7 +253,7 @@ inline BOOL Win32uiHostGlue::ApplicationInit(const TCHAR *cmd, const TCHAR *addi
         Py_Initialize();
     }
     // Make sure the statically linked win32ui is the one Python sees
-    // (and doesnt go searching for a new one)
+    // (and doesn't go searching for a new one)
 
     PyInit_win32ui();
     return Win32uiApplicationInit(this, cmd, additionalPaths);

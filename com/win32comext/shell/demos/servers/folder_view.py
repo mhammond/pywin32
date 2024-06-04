@@ -58,7 +58,7 @@ def _make_ids(s):
 
 
 # These strings are what the user sees and would be localized.
-# XXX - its possible that the shell might persist these values, so
+# XXX - it's possible that the shell might persist these values, so
 # this scheme wouldn't really be suitable in a real ap.
 IDS_UNSPECIFIED = _make_ids("unspecified")
 IDS_SMALL = _make_ids("small")
@@ -529,7 +529,7 @@ class ContextMenu:
 
     def InvokeCommand(self, ci):
         mask, hwnd, verb, params, dir, nShow, hotkey, hicon = ci
-        # this seems very convuluted, but its what the sample does :)
+        # this seems very convuluted, but it's what the sample does :)
         for verb_name, verb_id, flag in folderViewImplContextMenuIDs:
             if isinstance(verb, int):
                 matches = verb == verb_id
@@ -538,12 +538,12 @@ class ContextMenu:
             if matches:
                 break
         else:
-            assert False, ci  # failed to find our ID
+            raise AssertionError(ci, "failed to find our ID")
         if verb_id == MENUVERB_DISPLAY:
             sia = shell.SHCreateShellItemArrayFromDataObject(self.dataobj)
             DisplayItem(hwnd, sia)
         else:
-            assert False, ci  # Got some verb we weren't expecting?
+            raise AssertionError(ci, "Got some verb we weren't expecting?")
 
     def GetCommandString(self, cmd, typ):
         raise COMException(hresult=winerror.E_NOTIMPL)
@@ -642,7 +642,7 @@ class ShellFolder:
     #  Retrieves an OLE interface that can be used to carry out
     #  actions on the specified file objects or folders.
     def GetUIObjectOf(self, hwndOwner, pidls, iid, inout):
-        assert len(pidls) == 1, "oops - arent expecting more than one!"
+        assert len(pidls) == 1, "oops - aren't expecting more than one!"
         assert len(pidls[0]) == 1, "assuming relative pidls!"
         item = pidl_to_item(pidls[0])
         if iid == shell.IID_IContextMenu:
@@ -780,7 +780,7 @@ class ShellFolder:
     #  IPersistFolder2 methods
     #  Retrieves the PIDLIST_ABSOLUTE for the folder object.
     def GetCurFolder(self):
-        # The docs say this is OK, but I suspect its a problem in this case :)
+        # The docs say this is OK, but I suspect it's a problem in this case :)
         # assert self.pidl, "haven't been initialized?"
         return self.pidl
 

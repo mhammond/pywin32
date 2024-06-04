@@ -31,7 +31,7 @@ class LeakTestCase(unittest.TestCase):
         self.num_test_cases = 1
         self.num_leak_iters = 2  # seems to be enough!
         if hasattr(sys, "gettotalrefcount"):
-            self.num_test_cases = self.num_test_cases + self.num_leak_iters
+            self.num_test_cases += self.num_leak_iters
 
     def countTestCases(self):
         return self.num_test_cases
@@ -61,7 +61,7 @@ class LeakTestCase(unittest.TestCase):
             result.addFailure(self.real_test, (exc.__class__, exc, None))
 
     def runTest(self):
-        assert 0, "not used"
+        raise NotImplementedError("not used")
 
     def _do_leak_tests(self, result=None):
         try:

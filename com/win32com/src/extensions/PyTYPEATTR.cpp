@@ -144,7 +144,7 @@ PyTYPEATTR::PyTYPEATTR(const TYPEATTR *attr)
     wMinorVerNum = attr->wMinorVerNum;
 
     // Some (only a few 16 bit MSOffice only one so far, and even then only occasionally!)
-    // servers seem to send invalid tdescAlias when its not actually an alias.
+    // servers seem to send invalid tdescAlias when it's not actually an alias.
     if (attr->typekind == TKIND_ALIAS)
         obDescAlias = PyObject_FromTYPEDESC(&attr->tdescAlias);
     else {

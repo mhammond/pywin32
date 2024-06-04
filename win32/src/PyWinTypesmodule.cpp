@@ -1084,15 +1084,15 @@ PYWINTYPES_EXPORT WCHAR *GetPythonTraceback(PyObject *exc_type, PyObject *exc_va
     modStringIO = PyImport_ImportModule("io");
 
     if (modStringIO == NULL)
-        GPEM_ERROR("cant import cStringIO");
+        GPEM_ERROR("can't import cStringIO");
     modTB = PyImport_ImportModule("traceback");
     if (modTB == NULL)
-        GPEM_ERROR("cant import traceback");
+        GPEM_ERROR("can't import traceback");
 
     /* Construct a cStringIO object */
     obFuncStringIO = PyObject_GetAttrString(modStringIO, "StringIO");
     if (obFuncStringIO == NULL)
-        GPEM_ERROR("cant find cStringIO.StringIO");
+        GPEM_ERROR("can't find cStringIO.StringIO");
     obStringIO = PyObject_CallObject(obFuncStringIO, NULL);
     if (obStringIO == NULL)
         GPEM_ERROR("cStringIO.StringIO() failed");
@@ -1100,7 +1100,7 @@ PYWINTYPES_EXPORT WCHAR *GetPythonTraceback(PyObject *exc_type, PyObject *exc_va
     /* Get the traceback.print_exception function, and call it. */
     obFuncTB = PyObject_GetAttrString(modTB, "print_exception");
     if (obFuncTB == NULL)
-        GPEM_ERROR("cant find traceback.print_exception");
+        GPEM_ERROR("can't find traceback.print_exception");
     // Py3k has added an undocumented 'chain' argument which defaults to True
     // and causes all kinds of exceptions while trying to print a traceback!
     // This *could* be useful thought if we can tame it - later!
@@ -1111,7 +1111,7 @@ PYWINTYPES_EXPORT WCHAR *GetPythonTraceback(PyObject *exc_type, PyObject *exc_va
                            Py_None,  // limit
                            obStringIO, chain);
     if (argsTB == NULL)
-        GPEM_ERROR("cant make print_exception arguments");
+        GPEM_ERROR("can't make print_exception arguments");
 
     obResult = PyObject_CallObject(obFuncTB, argsTB);
     if (obResult == NULL) {
@@ -1127,7 +1127,7 @@ PYWINTYPES_EXPORT WCHAR *GetPythonTraceback(PyObject *exc_type, PyObject *exc_va
     Py_DECREF(obFuncStringIO);
     obFuncStringIO = PyObject_GetAttrString(obStringIO, "getvalue");
     if (obFuncStringIO == NULL)
-        GPEM_ERROR("cant find getvalue function");
+        GPEM_ERROR("can't find getvalue function");
     Py_DECREF(obResult);
     obResult = PyObject_CallObject(obFuncStringIO, NULL);
     if (obResult == NULL)

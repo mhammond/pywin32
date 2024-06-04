@@ -106,7 +106,7 @@ BOOL PyObject_AsBINDINFO(PyObject *ob, BINDINFO *pPD)
     if (!PyWinObject_AsTaskAllocatedWCHAR(obExtra, &pPD->szExtraInfo, /*bNoneOK=*/TRUE))
         goto done;
     if (obSTGM != Py_None) {
-        PyErr_SetString(PyExc_TypeError, "Sorry - dont support STGMEDIUM yet - must be None");
+        PyErr_SetString(PyExc_TypeError, "Sorry - don't support STGMEDIUM yet - must be None");
         goto done;
     }
     if (!PyWinObject_AsTaskAllocatedWCHAR(obCustomVerb, &pPD->szCustomVerb, /*bNoneOK=*/TRUE))

@@ -188,7 +188,7 @@ class HLIDirectoryItem(hierlist.HierListItem):
                 path = win32api.GetFullPathName(
                     os.path.join(self.path, "..\\win32comext")
                 )
-                ret = ret + MakePathSubList(path)
+                ret.extend(MakePathSubList(path))
             except win32ui.error:
                 pass
         return ret
@@ -209,7 +209,7 @@ class HLIProjectRoot(hierlist.HierListItem):
     def GetSubList(self):
         paths = regutil.GetRegisteredNamedPath(self.projectName)
         pathList = paths.split(";")
-        if len(pathList) == 1:  # Single dir - dont bother putting the dir in
+        if len(pathList) == 1:  # Single dir - don't bother putting the dir in
             ret = MakePathSubList(pathList[0])
         else:
             ret = list(map(HLIDirectoryItem, pathList))
@@ -233,7 +233,7 @@ class HLIRoot(hierlist.HierListItem):
             while 1:
                 try:
                     ret.append(HLIProjectRoot(win32api.RegEnumKey(hKey, index)))
-                    index = index + 1
+                    index += 1
                 except win32api.error:
                     break
             return ret

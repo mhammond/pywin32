@@ -33,9 +33,9 @@ class MyFlashComponent(activex.Control, FlashModule.ShockwaveFlash):
 
     def OnFSCommand(self, command, args):
         print("FSCommend", command, args)
-        self.x = self.x + 20
-        self.y = self.y + 20
-        self.angle = self.angle + 20
+        self.x += 20
+        self.y += 20
+        self.angle += 20
         if self.x > 200 or self.y > 200:
             self.x = 0
             self.y = 0
@@ -60,7 +60,7 @@ class BrowserFrame(window.MDIChildWnd):
             self.url = regutil.GetRegisteredHelpFile("Main Python Documentation")
         else:
             self.url = url
-        pass  # Dont call base class doc/view version...
+        pass  # Don't call base class doc/view version...
 
     def Create(self, title, rect=None, parent=None):
         style = win32con.WS_CHILD | win32con.WS_VISIBLE | win32con.WS_OVERLAPPEDWINDOW

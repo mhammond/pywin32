@@ -195,7 +195,7 @@ PyObject *ui_bitmap_load_bitmap_file(PyObject *self, PyObject *args)
     }
     BITMAPFILEHEADER bmFileHeader;
     memcpy(&bmFileHeader, PyBytes_AsString(result), len);
-    Py_DECREF(result);  // dont need this anymore
+    Py_DECREF(result);  // don't need this anymore
     if (bmFileHeader.bfType != DIB_HEADER_MARKER) {
         Py_DECREF(reader);
         PyErr_SetString(PyExc_TypeError, "File is not a DIB format file");
@@ -242,7 +242,7 @@ PyObject *ui_bitmap_load_bitmap_file(PyObject *self, PyObject *args)
     char *pBits = new char[len];
     // XXX - need memory exception handler.
     memcpy(pBits, PyBytes_AsString(result), len);
-    Py_DECREF(result);  // dont need this.
+    Py_DECREF(result);  // don't need this.
     Py_DECREF(reader);  // or this.
 
     // kill old palette
@@ -335,7 +335,7 @@ PyObject *ui_bitmap_load_ppm_file(PyObject *self, PyObject *args)
             pMem[col + 2] = pImg[col];
         }
 
-    Py_DECREF(result);  // dont need this.
+    Py_DECREF(result);  // don't need this.
     Py_DECREF(reader);  // or this.
 
     // delete old palette - none for this format

@@ -599,7 +599,7 @@ static void PyService_InitPython()
     have_init = TRUE;
     // Often for a service, __argv[0] will be just "ExeName", rather
     // than "c:\path\to\ExeName.exe"
-    // This, however, shouldnt be a problem, as Python itself
+    // This, however, shouldn't be a problem, as Python itself
     // knows how to get the .EXE name when it needs.
     int pyargc;
     WCHAR **pyargv = CommandLineToArgvW(GetCommandLineW(), &pyargc);
@@ -844,7 +844,7 @@ void WINAPI service_main(DWORD dwArgc, LPTSTR *lpszArgv)
         instance = LoadPythonServiceInstance(pe->klass, dwArgc, lpszArgv);
     // If Python has not yet registered the service control handler, then
     // we are in serious trouble - it is likely the service will enter a
-    // zombie state, where it wont do anything, but you can not start
+    // zombie state, where it won't do anything, but you can not start
     // another.  Therefore, we still create register the handler, thereby
     // getting a handle, so we can immediately tell Windows the service
     // is rooted (that is a technical term!)
@@ -899,7 +899,7 @@ cleanup:
     // try to report the stopped status to the service control manager.
     Py_XDECREF(start);
     Py_XDECREF(instance);
-    if (pe && pe->sshStatusHandle) {  // Wont be true if debugging.
+    if (pe && pe->sshStatusHandle) {  // Won't be true if debugging.
         if (!SetServiceStatus(pe->sshStatusHandle, (stopWithError ? &stoppedErrorStatus : &stoppedStatus)))
             ReportAPIError(PYS_E_API_CANT_SET_STOPPED);
     }

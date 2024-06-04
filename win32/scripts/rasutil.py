@@ -42,7 +42,7 @@ def Connect(rasEntryName, numRetries=5):
             break
         print("Retrying...")
         win32api.Sleep(5000)
-        retryCount = retryCount - 1
+        retryCount -= 1
 
     if errCode:
         raise ConnectionError(errCode, win32ras.GetErrorString(errCode))

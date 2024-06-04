@@ -15,7 +15,7 @@ class GenericFrame(window.MDIChildWnd):
         # handlers for toolbar buttons
         self.HookCommand(self.OnPrevious, 401)
         self.HookCommand(self.OnNext, 402)
-        # Its not necessary for us to hook both of these - the
+        # It's not necessary for us to hook both of these - the
         # common controls should fall-back all by themselves.
         # Indeed, given we hook TTN_NEEDTEXTW, commctrl.TTN_NEEDTEXTA
         # will not be called.
@@ -85,7 +85,7 @@ This toolbar was dynamically created.\r
 \r
 The first item's tooltips is provided by Python code.\r
 \r
-(Dont close the window with the toolbar in a floating state - it may not re-appear!)\r
+(Don't close the window with the toolbar in a floating state - it may not re-appear!)\r
 """
 
 
