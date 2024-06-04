@@ -245,7 +245,7 @@ class EditorDocumentBase(ParentEditorDocument):
         except win32ui.error:
             title = filename
         if self._IsReadOnly():
-            title = title + " (read-only)"
+            title += " (read-only)"
         self.SetTitle(title)
 
     def MakeDocumentWritable(self):
@@ -261,7 +261,7 @@ class EditorDocumentBase(ParentEditorDocument):
         msg = "Would you like to check this file out?"
         defButton = win32con.MB_YESNO
         if self.IsModified():
-            msg = msg + "\r\n\r\nALL CHANGES IN THE EDITOR WILL BE LOST"
+            msg += "\r\n\r\nALL CHANGES IN THE EDITOR WILL BE LOST"
             defButton = win32con.MB_YESNO
         if win32ui.MessageBox(msg, None, defButton) != win32con.IDYES:
             return 0

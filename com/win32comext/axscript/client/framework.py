@@ -487,7 +487,7 @@ class ScriptItem:
                     fdesc = defaultType.GetFuncDesc(index)
                 except pythoncom.com_error:
                     break  # No more funcs
-                index = index + 1
+                index += 1
                 dispid = fdesc[0]
                 funckind = fdesc[3]
                 invkind = fdesc[4]
@@ -690,9 +690,9 @@ class COMScript:
             or self.scriptState == axscript.SCRIPTSTATE_CONNECTED
             or self.scriptState == axscript.SCRIPTSTATE_DISCONNECTED
         ):
-            flags = flags | SCRIPTTEXT_FORCEEXECUTION
+            flags |= SCRIPTTEXT_FORCEEXECUTION
         else:
-            flags = flags & (~SCRIPTTEXT_FORCEEXECUTION)
+            flags &= ~SCRIPTTEXT_FORCEEXECUTION
 
         if flags & SCRIPTTEXT_FORCEEXECUTION:
             # About to execute the code.

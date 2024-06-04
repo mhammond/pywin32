@@ -54,7 +54,7 @@ def getsubdirs(d):
     for f in flist:
         if os.path.isdir(f):
             dlist.append(f)
-            dlist = dlist + getsubdirs(f)
+            dlist.extend(getsubdirs(f))
     return dlist
 
 
@@ -234,9 +234,9 @@ class TheDocument(docview.RichEditDoc):
             paramstr = win32ui.GetProfileVal("Pychecker", "Params", "\t\t\t1\t0\t0")
         params = paramstr.split("\t")
         if len(params) < 3:
-            params = params + [""] * (3 - len(params))
+            params.extend([""] * (3 - len(params)))
         if len(params) < 6:
-            params = params + [0] * (6 - len(params))
+            params.extend([0] * (6 - len(params)))
         self.dirpattern = params[0]
         self.filpattern = params[1]
         self.greppattern = params[2] or "-#1000 --only"
@@ -381,7 +381,7 @@ class TheDocument(docview.RichEditDoc):
             self.SetModifiedFlag(0)
 
     def _inactive_idleHandler(self, handler, count):
-        self.fndx = self.fndx + 1
+        self.fndx += 1
         if self.fndx < len(self.flist):
             f = self.flist[self.fndx]
             if self.verbose:
@@ -394,14 +394,14 @@ class TheDocument(docview.RichEditDoc):
                     self.GetFirstView().Append(f + "(" + repr(i + 1) + ") " + line)
         else:
             self.fndx = -1
-            self.fpndx = self.fpndx + 1
+            self.fpndx += 1
             if self.fpndx < len(self.fplist):
                 self.flist = glob.glob(
                     self.dp[self.dpndx] + "\\" + self.fplist[self.fpndx]
                 )
             else:
                 self.fpndx = 0
-                self.dpndx = self.dpndx + 1
+                self.dpndx += 1
                 if self.dpndx < len(self.dp):
                     self.flist = glob.glob(
                         self.dp[self.dpndx] + "\\" + self.fplist[self.fpndx]
@@ -712,10 +712,10 @@ class TheDialog(dialog.Dialog):
             i = 0
             newitems = dlg.getNew()
             if newitems:
-                items = items + newitems
+                items.extend(newitems)
                 for item in items:
                     win32api.WriteProfileVal(section, repr(i), item, ini)
-                    i = i + 1
+                    i += 1
             self.UpdateData(0)
 
     def OnOK(self):

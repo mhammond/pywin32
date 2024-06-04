@@ -520,9 +520,9 @@ def EnsureModule(
             filePath = filePathPrefix + ".py"
             filePathPyc = filePathPrefix + ".py"
             if __debug__:
-                filePathPyc = filePathPyc + "c"
+                filePathPyc += "c"
             else:
-                filePathPyc = filePathPyc + "o"
+                filePathPyc += "o"
             # Verify that type library is up to date.
             # If we have a differing MinorVersion or genpy has bumped versions, update the file
             from . import genpy

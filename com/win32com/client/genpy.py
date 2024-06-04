@@ -272,7 +272,7 @@ class VTableItem(build.VTableItem, WritableItem):
             print("\t((", end=" ", file=stream)
             for name in names:
                 print(repr(name), ",", end=" ", file=stream)
-                item_num = item_num + 1
+                item_num += 1
                 if item_num % 5 == 0:
                     print("\n\t\t\t", end=" ", file=stream)
             print(
@@ -281,7 +281,7 @@ class VTableItem(build.VTableItem, WritableItem):
                 file=stream,
             )
             for arg in desc.args:
-                item_num = item_num + 1
+                item_num += 1
                 if item_num % 5 == 0:
                     print("\n\t\t\t", end=" ", file=stream)
                 defval = build.MakeDefaultArgRepr(arg)
@@ -610,7 +610,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
                 if defArgDesc is None:
                     defArgDesc = ""
                 else:
-                    defArgDesc = defArgDesc + ","
+                    defArgDesc += ","
                 print(
                     '\t\t"%s" : ((%s, LCID, %d, 0),(%s)),'
                     % (

@@ -609,7 +609,7 @@ class SyntEditTemplate(EditorTemplateBase):
                     event, ["editor"]
                 )
                 if keyname is not None:
-                    text = text + "\t" + keyname
+                    text += "\t" + keyname
                 submenu.AppendMenu(flags, id, text)
 
         mainMenu = self.GetSharedMenu()

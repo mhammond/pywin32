@@ -107,7 +107,7 @@ def RegisterNamedPath(name, path):
     """Register a named path - ie, a named PythonPath entry."""
     keyStr = BuildDefaultPythonKey() + "\\PythonPath"
     if name:
-        keyStr = keyStr + "\\" + name
+        keyStr += "\\" + name
     win32api.RegSetValue(GetRootKey(), keyStr, win32con.REG_SZ, path)
 
 
@@ -128,7 +128,7 @@ def GetRegisteredNamedPath(name):
     """Get a registered named path, or None if it doesn't exist."""
     keyStr = BuildDefaultPythonKey() + "\\PythonPath"
     if name:
-        keyStr = keyStr + "\\" + name
+        keyStr += "\\" + name
     try:
         return win32api.RegQueryValue(GetRootKey(), keyStr)
     except win32api.error as exc:

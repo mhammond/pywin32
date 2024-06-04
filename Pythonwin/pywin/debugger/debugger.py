@@ -289,7 +289,7 @@ class DebuggerListViewWindow(DebuggerWindow):
         list.InsertColumn(0, itemDetails)
         col = 1
         for title, width in self.columns[1:]:
-            col = col + 1
+            col += 1
             itemDetails = (commctrl.LVCFMT_LEFT, width, title, 0)
             list.InsertColumn(col, itemDetails)
         parent.HookNotify(self.OnListEndLabelEdit, LVN_ENDLABELEDIT)
@@ -746,7 +746,7 @@ class Debugger(debugger_parent):
             self.prep_run(cmd)
             sys.settrace(self.trace_dispatch)
             if not isinstance(cmd, types.CodeType):
-                cmd = cmd + "\n"
+                cmd += "\n"
             try:
                 try:
                     if start_stepping:

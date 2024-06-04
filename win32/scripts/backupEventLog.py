@@ -23,7 +23,7 @@ def BackupClearLog(logType):
             os.stat(fname)
         except OSError:
             fileExists = 0
-        retry = retry + 1
+        retry += 1
     # OK - have unique file name.
     try:
         hlog = win32evtlog.OpenEventLog(None, logType)

@@ -25,7 +25,7 @@ def SaveWindowSize(section, rect, state=""):
                  (same format as CREATESTRUCT position tuples)."""
     left, top, right, bottom = rect
     if state:
-        state = state + " "
+        state += " "
     win32ui.WriteProfileVal(section, state + "left", left)
     win32ui.WriteProfileVal(section, state + "top", top)
     win32ui.WriteProfileVal(section, state + "right", right)
@@ -35,7 +35,7 @@ def SaveWindowSize(section, rect, state=""):
 def LoadWindowSize(section, state=""):
     """Loads a section from an INI file, and returns a rect in a tuple (see SaveWindowSize)"""
     if state:
-        state = state + " "
+        state += " "
     left = win32ui.GetProfileVal(section, state + "left", 0)
     top = win32ui.GetProfileVal(section, state + "top", 0)
     right = win32ui.GetProfileVal(section, state + "right", 0)

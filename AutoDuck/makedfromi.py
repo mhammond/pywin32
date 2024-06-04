@@ -13,7 +13,7 @@ def GetComments(line, lineNo, lines):
     doc = ""
     if len(data) == 2:
         doc = data[1].strip()
-    lineNo = lineNo + 1
+    lineNo += 1
     while lineNo < len(lines):
         line = lines[lineNo]
         data = line.split("//", 2)
@@ -24,10 +24,10 @@ def GetComments(line, lineNo, lines):
         if data[1].strip().startswith("@"):
             # new command
             break
-        doc = doc + "\n// " + data[1].strip()
-        lineNo = lineNo + 1
+        doc += "\n// " + data[1].strip()
+        lineNo += 1
     # This line doesn't match - step back
-    lineNo = lineNo - 1
+    lineNo -= 1
     return doc, lineNo
 
 
@@ -87,7 +87,7 @@ def make_doc_summary(inFile, outFile):
             _, msg, _ = sys.exc_info()
             print("Line %d is badly formed - %s" % (lineNo, msg))
 
-        lineNo = lineNo + 1
+        lineNo += 1
 
     # autoduck seems to crash when > ~97 methods.  Loop multiple times,
     # creating a synthetic module name when this happens.
@@ -106,9 +106,9 @@ def make_doc_summary(inFile, outFile):
         if chunk_number == 0:
             pass
         elif chunk_number == 1:
-            thisModName = thisModName + " (more)"
+            thisModName += " (more)"
         else:
-            thisModName = thisModName + " (more %d)" % (chunk_number + 1,)
+            thisModName += " (more %d)" % (chunk_number + 1,)
 
         outFile.write("\n")
         for meth, extras in these_methods:

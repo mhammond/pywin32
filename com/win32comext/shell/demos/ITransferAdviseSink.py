@@ -19,7 +19,7 @@ def decode_flags(flags):
     for k, v in tsf_flags:
         if flags & v:
             if flag_txt:
-                flag_txt = flag_txt + "|" + k
+                flag_txt += "|" + k
             else:
                 flag_txt = k
     return flag_txt

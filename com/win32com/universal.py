@@ -141,7 +141,7 @@ class Method:
         for argDesc in arg_defs:
             arg = Arg(argDesc)
             arg.offset = cbArgs
-            cbArgs = cbArgs + arg.size
+            cbArgs += arg.size
             self.args.append(arg)
         self.cbArgs = cbArgs
         self._gw_in_args = self._GenerateInArgTuple()

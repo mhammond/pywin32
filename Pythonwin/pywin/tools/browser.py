@@ -175,7 +175,7 @@ class HLIClass(HLIPythonObject):
         ret = []
         for base in self.myobject.__bases__:
             ret.append(MakeHLI(base, "Base class: " + base.__name__))
-        ret = ret + HLIPythonObject.GetSubList(self)
+        ret.extend(HLIPythonObject.GetSubList(self))
         return ret
 
 
@@ -224,7 +224,7 @@ class HLIInstance(HLIPythonObject):
     def GetSubList(self):
         ret = []
         ret.append(MakeHLI(self.myobject.__class__))
-        ret = ret + HLIPythonObject.GetSubList(self)
+        ret.extend(HLIPythonObject.GetSubList(self))
         return ret
 
 
@@ -261,7 +261,7 @@ class HLISeq(HLIPythonObject):
         pos = 0
         for item in self.myobject:
             ret.append(MakeHLI(item, "[" + str(pos) + "]"))
-            pos = pos + 1
+            pos += 1
         self.InsertDocString(ret)
         return ret
 

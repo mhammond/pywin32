@@ -77,7 +77,7 @@ def CheckPythonPaths(verbose):
                 else:
                     if verbose:
                         print("(empty)")
-                keyNo = keyNo + 1
+                keyNo += 1
             except win32api.error:
                 break
     finally:
@@ -116,7 +116,7 @@ def CheckHelpFiles(verbose):
                         print(helpFile)
                 except OSError:
                     print("** Help file %s does not exist" % helpFile)
-                keyNo = keyNo + 1
+                keyNo += 1
             except win32api.error as exc:
                 import winerror
 

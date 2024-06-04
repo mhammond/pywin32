@@ -313,7 +313,7 @@ class TestOverlapped(unittest.TestCase):
         for i in range(num_loops):
             win32file.WriteFile(h, chunk_data, overlapped)
             win32event.WaitForSingleObject(overlapped.hEvent, win32event.INFINITE)
-            overlapped.Offset = overlapped.Offset + len(chunk_data)
+            overlapped.Offset += len(chunk_data)
         h.Close()
         # Now read the data back overlapped
         overlapped = pywintypes.OVERLAPPED()
@@ -328,7 +328,7 @@ class TestOverlapped(unittest.TestCase):
             try:
                 hr, data = win32file.ReadFile(h, buffer, overlapped)
                 win32event.WaitForSingleObject(overlapped.hEvent, win32event.INFINITE)
-                overlapped.Offset = overlapped.Offset + len(data)
+                overlapped.Offset += len(data)
                 if not data is buffer:
                     self.fail(
                         "Unexpected result from ReadFile - should be the same buffer we passed it"

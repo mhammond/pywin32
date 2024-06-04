@@ -96,7 +96,7 @@ class RandomEventHandler:
 
     def OnFire(self, no):
         try:
-            self.fireds[no] = self.fireds[no] + 1
+            self.fireds[no] += 1
         except KeyError:
             self.fireds[no] = 0
 
@@ -625,7 +625,7 @@ def TestCounter(counter, bIsGenerated):
         counter.SetBounds(bounds[0], bounds[1])
 
     for item in counter:
-        num = num + 1
+        num += 1
     assert num == len(
         counter
     ), "*** Length of counter and loop iterations don't match ***"
@@ -640,7 +640,7 @@ def TestCounter(counter, bIsGenerated):
     counter.Reset()
     num = 0
     for item in counter:
-        num = num + 1
+        num += 1
     assert num == 10, f"*** Unexpected number of loop iterations - got {num} ***"
     progress("Finished testing counter")
 

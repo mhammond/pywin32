@@ -315,7 +315,7 @@ class ServiceDlg(dialog.Dialog):
                     svc[0],
                 )
             )
-            i = i + 1
+            i += 1
 
             if service and service[1] == svc[0]:
                 self.listCtrl.SetCurSel(pos)

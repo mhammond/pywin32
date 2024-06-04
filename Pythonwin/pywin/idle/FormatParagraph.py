@@ -91,7 +91,7 @@ def find_paragraph(text, mark):
     lineno, col = list(map(int, mark.split(".")))
     line = text.get("%d.0" % lineno, "%d.0 lineend" % lineno)
     while text.compare("%d.0" % lineno, "<", "end") and is_all_white(line):
-        lineno = lineno + 1
+        lineno += 1
         line = text.get("%d.0" % lineno, "%d.0 lineend" % lineno)
     first_lineno = lineno
     comment_header = get_comment_header(line)
@@ -99,7 +99,7 @@ def find_paragraph(text, mark):
     while get_comment_header(line) == comment_header and not is_all_white(
         line[comment_header_len:]
     ):
-        lineno = lineno + 1
+        lineno += 1
         line = text.get("%d.0" % lineno, "%d.0 lineend" % lineno)
     last = "%d.0" % lineno
     # Search back to beginning of paragraph
@@ -110,7 +110,7 @@ def find_paragraph(text, mark):
         and get_comment_header(line) == comment_header
         and not is_all_white(line[comment_header_len:])
     ):
-        lineno = lineno - 1
+        lineno -= 1
         line = text.get("%d.0" % lineno, "%d.0 lineend" % lineno)
     first = "%d.0" % (lineno + 1)
     return first, last, comment_header, text.get(first, last)
@@ -121,7 +121,7 @@ def reformat_paragraph(data, limit=70):
     i = 0
     n = len(lines)
     while i < n and is_all_white(lines[i]):
-        i = i + 1
+        i += 1
     if i >= n:
         return data
     indent1 = get_indent(lines[i])
@@ -141,10 +141,10 @@ def reformat_paragraph(data, limit=70):
             if len((partial + word).expandtabs()) > limit and partial != indent1:
                 new.append(partial.rstrip())
                 partial = indent2
-            partial = partial + word + " "
+            partial += word + " "
             if j + 1 < len(words) and words[j + 1] != " ":
-                partial = partial + " "
-        i = i + 1
+                partial += " "
+        i += 1
     new.append(partial.rstrip())
     # XXX Should reformat remaining paragraphs as well
     new.extend(lines[i:])

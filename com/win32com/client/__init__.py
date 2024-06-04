@@ -130,7 +130,7 @@ def DispatchEx(
     if clsctx is None:
         clsctx = pythoncom.CLSCTX_SERVER
         if machine is not None:
-            clsctx = clsctx & ~pythoncom.CLSCTX_INPROC
+            clsctx &= ~pythoncom.CLSCTX_INPROC
     if machine is None:
         serverInfo = None
     else:

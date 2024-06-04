@@ -238,7 +238,7 @@ class TestHugeChunks(unittest.TestCase):
         data = "*" * 1023 + "\n"
         while len(data) <= self.BiggestChunk:
             win32trace.write(data)
-            data = data + data
+            data += data
         # If we made it here, we passed.
 
     def tearDown(self):

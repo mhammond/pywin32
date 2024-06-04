@@ -50,7 +50,7 @@ class LockBytes:
             newdata = self.data[0:offset] + data
         print(len(newdata))
         if len(self.data) >= offset + len(data):
-            newdata = newdata + self.data[offset + len(data) :]
+            newdata += self.data[offset + len(data) :]
         print(len(newdata))
         self.data = newdata
         return len(data)
@@ -64,7 +64,7 @@ class LockBytes:
     def SetSize(self, size):
         print("Set Size" + str(size))
         if size > len(self.data):
-            self.data = self.data + b"\000" * (size - len(self.data))
+            self.data += b"\000" * (size - len(self.data))
         else:
             self.data = self.data[0:size]
         return S_OK

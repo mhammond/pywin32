@@ -130,7 +130,7 @@ def _get_class_attributes(ob):
     # Recurse into base classes looking for attributes
     items = []
     try:
-        items = items + dir(ob)
+        items.extend(dir(ob))
         for i in ob.__bases__:
             for item in _get_class_attributes(i):
                 if item not in items:
@@ -295,7 +295,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
     def OnMouseWheel(self, msg):
         zDelta = msg[2] >> 16
         vpos = self.GetScrollPos(win32con.SB_VERT)
-        vpos = vpos - zDelta / 40  # 3 lines per notch
+        vpos -= zDelta / 40  # 3 lines per notch
         self.SetScrollPos(win32con.SB_VERT, vpos)
         self.SendScintilla(
             win32con.WM_VSCROLL, (vpos << 16) | win32con.SB_THUMBPOSITION, 0
@@ -322,7 +322,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
         lineEnd = self.LineFromChar(max(start, end))
         while lineStart <= lineEnd:
             self.SCIEnsureVisible(lineStart)
-            lineStart = lineStart + 1
+            lineStart += 1
 
     # Helper to add an event to a menu.
     def AppendMenu(self, menu, text="", event=None, flags=None, checked=0):
@@ -341,11 +341,11 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
                 return
             keyname = configManager.get_key_binding(event, self._GetSubConfigNames())
             if keyname is not None:
-                text = text + "\t" + keyname
+                text += "\t" + keyname
         if flags is None:
             flags = win32con.MF_STRING | win32con.MF_ENABLED
         if checked:
-            flags = flags | win32con.MF_CHECKED
+            flags |= win32con.MF_CHECKED
         menu.AppendMenu(flags, cmdid, text)
 
     def OnKeyDown(self, msg):
@@ -677,20 +677,20 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
         index = pos - 1
         wordbreaks_use = wordbreaks
         if bAllowCalls:
-            wordbreaks_use = wordbreaks_use + "()[]"
+            wordbreaks_use += "()[]"
         while index >= 0:
             char = self.SCIGetCharAt(index)
             if char not in wordbreaks_use:
                 break
             before.insert(0, char)
-            index = index - 1
+            index -= 1
         index = pos
         while index <= limit:
             char = self.SCIGetCharAt(index)
             if char not in wordbreaks_use:
                 break
             after.append(char)
-            index = index + 1
+            index += 1
         return "".join(before), "".join(after)
 
     def OnPrepareDC(self, dc, pInfo):
@@ -745,7 +745,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
         textLen = self.GetTextLength()
         while pageStart < textLen:
             pageStart = self.FormatRange(dc, pageStart, textLen, rc, 0)
-            maxPage = maxPage + 1
+            maxPage += 1
             self.starts[maxPage] = pageStart
         # And a sentinal for one page past the end
         self.starts[maxPage + 1] = textLen
@@ -805,10 +805,10 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
         dc.SetTextAlign(win32con.TA_RIGHT)
         dc.TextOut(right, 2 * cyChar, pagenum_str)
         dc.SetTextAlign(win32con.TA_LEFT)
-        top = top + int((7 * cyChar) / 2)
+        top += int(7 * cyChar / 2)
         dc.MoveTo(left, top)
         dc.LineTo(right, top)
-        top = top + cyChar
+        top += cyChar
         rc = (left, top, right, bottom)
         nextPageStart = self.FormatRange(
             dc, self.starts[pageNum], self.starts[pageNum + 1], rc, 1
@@ -829,7 +829,7 @@ def LoadConfiguration():
             configManager.last_error,
         )
         if configName != "default":
-            msg = msg + "\n\nThe default configuration will be loaded."
+            msg += "\n\nThe default configuration will be loaded."
             bTryDefault = 1
         win32ui.MessageBox(msg)
         if bTryDefault:
