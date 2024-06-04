@@ -43,7 +43,7 @@ def main():
         "-u",
         "--username",
         action="store",
-        help="The username to pass to the function (only for the " "change command",
+        help="The username to pass to the function (only for the 'change' command)",
     )
 
     parser.add_option(

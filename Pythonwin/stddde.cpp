@@ -476,9 +476,9 @@ BOOL CDDEConv::Request(UINT wFmt, const TCHAR *pszItem, CString &ret)
     BYTE *pData = ::DdeAccessData(hData, &dwSize);
     DWORD nChars = (dwSize / sizeof(TCHAR)) - 1;
 
-    if(wFmt == CF_TEXT) {
+    if (wFmt == CF_TEXT) {
         nChars = (dwSize / sizeof(CHAR)) - 1;
-        ret = CString((CHAR*)pData, nChars);
+        ret = CString((CHAR *)pData, nChars);
     }
     else {
         ret = CString((TCHAR *)pData, nChars);
@@ -1431,7 +1431,7 @@ BOOL CDDEServer::DoCallback(WORD wType, WORD wFmt, HCONV hConv, HSZ hszTopic, HS
             if (!b) {
                 //
                 // Nobody took the data.
-                // Maybe its not a supported item or format
+                // Maybe it's not a supported item or format
                 //
 
                 Status(_T("Poke %s|%s failed"), (const TCHAR *)strTopic, (const TCHAR *)strItem);
@@ -1473,7 +1473,7 @@ BOOL CDDEServer::DoCallback(WORD wType, WORD wFmt, HCONV hConv, HSZ hszTopic, HS
             if (!b) {
                 //
                 // Nobody took the data.
-                // Maybe its not of interrest
+                // Maybe it's not of interrest
                 //
 
                 Status(_T("AdviseData %s|%s failed"), (const TCHAR *)strTopic, (const TCHAR *)strItem);

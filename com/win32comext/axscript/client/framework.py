@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import re
 import sys
+from typing import NoReturn
 
 import pythoncom  # Need simple connection point support
 import win32api
@@ -112,7 +113,7 @@ def trace(*args):
     print()
 
 
-def RaiseAssert(scode, desc):
+def RaiseAssert(scode, desc) -> NoReturn:
     """A debugging function that raises an exception considered an "Assertion"."""
     print("**************** ASSERTION FAILED *******************")
     print(desc)
@@ -122,7 +123,14 @@ def RaiseAssert(scode, desc):
 class AXScriptCodeBlock:
     """An object which represents a chunk of code in an AX Script"""
 
-    def __init__(self, name, codeText, sourceContextCookie, startLineNumber, flags):
+    def __init__(
+        self,
+        name: str,
+        codeText: str,
+        sourceContextCookie: int,
+        startLineNumber: int,
+        flags,
+    ):
         self.name = name
         self.codeText = codeText
         self.codeObject = None
@@ -132,14 +140,14 @@ class AXScriptCodeBlock:
         self.beenExecuted = 0
 
     def GetFileName(self):
-        # Gets the "file name" for Python - uses <...> so Python doesnt think
+        # Gets the "file name" for Python - uses <...> so Python doesn't think
         # it is a real file.
         return "<%s>" % self.name
 
     def GetDisplayName(self):
         return self.name
 
-    def GetLineNo(self, no):
+    def GetLineNo(self, no: int):
         pos = -1
         for i in range(no - 1):
             pos = self.codeText.find("\n", pos + 1)
@@ -479,7 +487,7 @@ class ScriptItem:
                     fdesc = defaultType.GetFuncDesc(index)
                 except pythoncom.com_error:
                     break  # No more funcs
-                index = index + 1
+                index += 1
                 dispid = fdesc[0]
                 funckind = fdesc[3]
                 invkind = fdesc[4]
@@ -628,7 +636,7 @@ class COMScript:
         self.safetyOptions = 0
         self.lcid = 0
         self.subItems = {}
-        self.scriptCodeBlocks = {}
+        self.scriptCodeBlocks: dict[str, AXScriptCodeBlock] = {}
 
     def _query_interface_(self, iid):
         if self.debugManager:
@@ -682,9 +690,9 @@ class COMScript:
             or self.scriptState == axscript.SCRIPTSTATE_CONNECTED
             or self.scriptState == axscript.SCRIPTSTATE_DISCONNECTED
         ):
-            flags = flags | SCRIPTTEXT_FORCEEXECUTION
+            flags |= SCRIPTTEXT_FORCEEXECUTION
         else:
-            flags = flags & (~SCRIPTTEXT_FORCEEXECUTION)
+            flags &= ~SCRIPTTEXT_FORCEEXECUTION
 
         if flags & SCRIPTTEXT_FORCEEXECUTION:
             # About to execute the code.
@@ -918,7 +926,7 @@ class COMScript:
     # IObjectSafety
 
     # Note that IE seems to insist we say we support all the flags, even tho
-    # we dont accept them all.  If unknown flags come in, they are ignored, and never
+    # we don't accept them all.  If unknown flags come in, they are ignored, and never
     # reflected in GetInterfaceSafetyOptions and the QIs obviously fail, but still IE
     # allows our engine to initialize.
     def SetInterfaceSafetyOptions(self, iid, optionsMask, enabledOptions):
@@ -1086,7 +1094,7 @@ class COMScript:
         else:
             return fn(*args)
 
-    def ApplyInScriptedSection(self, codeBlock, fn, args):
+    def ApplyInScriptedSection(self, codeBlock: AXScriptCodeBlock | None, fn, args):
         self.BeginScriptedSection()
         try:
             try:
@@ -1105,7 +1113,9 @@ class COMScript:
             self.debugManager.OnEnterScript()
         return compile(code, name, type)
 
-    def CompileInScriptedSection(self, codeBlock, type, realCode=None):
+    def CompileInScriptedSection(
+        self, codeBlock: AXScriptCodeBlock, type, realCode=None
+    ):
         if codeBlock.codeObject is not None:  # already compiled
             return 1
         if realCode is None:
@@ -1137,7 +1147,7 @@ class COMScript:
         else:
             exec(codeObject, globals, locals)
 
-    def ExecInScriptedSection(self, codeBlock, globals, locals=None):
+    def ExecInScriptedSection(self, codeBlock: AXScriptCodeBlock, globals, locals=None):
         if locals is None:
             locals = globals
         assert (
@@ -1185,31 +1195,26 @@ class COMScript:
         except:
             self.HandleException(codeBlock)
 
-    def HandleException(self, codeBlock):
-        # NOTE - Never returns - raises a ComException
-        exc_type, exc_value, exc_traceback = sys.exc_info()
+    def HandleException(self, codeBlock: AXScriptCodeBlock | None) -> NoReturn:
+        """Never returns - raises a ComException"""
+        exc_type, exc_value, *_ = sys.exc_info()
         # If a SERVER exception, re-raise it.  If a client side COM error, it is
         # likely to have originated from the script code itself, and therefore
         # needs to be reported like any other exception.
         if IsCOMServerException(exc_type):
-            # Ensure the traceback doesnt cause a cycle.
-            exc_traceback = None
+            # Ensure the traceback doesn't cause a cycle.
             raise
         # It could be an error by another script.
         if (
-            issubclass(pythoncom.com_error, exc_type)
+            isinstance(exc_value, pythoncom.com_error)
             and exc_value.hresult == axscript.SCRIPT_E_REPORTED
         ):
-            # Ensure the traceback doesnt cause a cycle.
-            exc_traceback = None
+            # Ensure the traceback doesn't cause a cycle.
             raise COMException(scode=exc_value.hresult)
 
-        exception = error.AXScriptException(
-            self, codeBlock, exc_type, exc_value, exc_traceback
-        )
+        exception = error.AXScriptException(self, codeBlock, exc_value=exc_value)
 
-        # Ensure the traceback doesnt cause a cycle.
-        exc_traceback = None
+        # Ensure the traceback doesn't cause a cycle.
         result_exception = error.ProcessAXScriptException(
             self.scriptSite, self.debugManager, exception
         )

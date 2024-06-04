@@ -7,10 +7,6 @@ import win32com.test.util
 import winerror
 
 
-class Error(Exception):
-    pass
-
-
 # An object representing a list of numbers
 class PythonSemanticClass:
     _public_methods_ = ["In"]  # DISPIDs are allocated.
@@ -62,8 +58,13 @@ def DispExTest(ob):
             assert hr == winerror.S_FALSE, "Bad result at end of enum"
             break
     dispids.sort()
-    if dispids != [pythoncom.DISPID_EVALUATE, pythoncom.DISPID_NEWENUM, 10, 11, 1000]:
-        raise Error("Got back the wrong dispids: %s" % dispids)
+    assert dispids == [
+        pythoncom.DISPID_EVALUATE,
+        pythoncom.DISPID_NEWENUM,
+        10,
+        11,
+        1000,
+    ], f"Got back the wrong dispids: {dispids}"
 
 
 def SemanticTest(ob):
@@ -72,8 +73,7 @@ def SemanticTest(ob):
     ob.Add(2)
     ob.Add(3)
     # invoke _value_
-    if ob() != (1, 2, 3):
-        raise Error("Bad result - got %s" % (repr(ob())))
+    assert ob() == (1, 2, 3), f"Bad result - got {ob()!r}"
 
     dispob = ob._oleobj_
 
@@ -83,8 +83,7 @@ def SemanticTest(ob):
         pythoncom.DISPATCH_METHOD | pythoncom.DISPATCH_PROPERTYGET,
         1,
     )
-    if rc != 6:
-        raise Error("Evaluate returned %d" % rc)
+    assert rc == 6, f"Evaluate returned {rc}"
 
 
 class Tester(win32com.test.util.TestCase):

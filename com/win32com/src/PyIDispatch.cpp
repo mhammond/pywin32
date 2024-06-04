@@ -666,7 +666,7 @@ PyObject *PyIDispatchEx::InvokeEx(PyObject *self, PyObject *args)
     }
 
     // TODO - We do not yet support the Type Description here
-    // (Im not even sure if we need it!)
+    // (I'm not even sure if we need it!)
     if (types != Py_None || obReturnDesc != Py_None) {
         PyErr_SetString(PyExc_TypeError, "Type descriptions are not yet supported.");
         return NULL;
@@ -843,4 +843,3 @@ static struct PyMethodDef PyIDispatchEx_methods[] = {
 PyComTypeObject PyIDispatchEx::type("PyIDispatchEx",
                                     &PyIDispatch::type,  // @base PyIDispatchEx|PyIDispatch
                                     sizeof(PyIDispatchEx), PyIDispatchEx_methods, GET_PYCOM_CTOR(PyIDispatchEx));
-

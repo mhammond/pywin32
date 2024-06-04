@@ -1,6 +1,6 @@
 // dialog objects
 
-// hack the associations a bit.  When the dialog window closes, I dont
+// hack the associations a bit.  When the dialog window closes, I don't
 // destroy the association.
 
 /////////////////////////////////////////////////////////

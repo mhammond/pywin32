@@ -601,7 +601,8 @@ void PyWinObject_FreeResourceId(WCHAR *resource_id)
 // Conversion for WPARAM and LPARAM from a simple integer value. Used when we
 // can't guarantee memory pointed at will remain valid as long as necessary.
 // In that scenario, the caller is responsible for arranging memory safety.
-BOOL PyWinObject_AsSimplePARAM(PyObject *ob, WPARAM *wparam) {
+BOOL PyWinObject_AsSimplePARAM(PyObject *ob, WPARAM *wparam)
+{
     // convert simple integers directly
     void *simple = PyLong_AsVoidPtr(ob);
     if (simple || !PyErr_Occurred()) {
@@ -615,8 +616,7 @@ BOOL PyWinObject_AsSimplePARAM(PyObject *ob, WPARAM *wparam) {
         return TRUE;
     }
 
-    PyErr_Format(PyExc_TypeError, "WPARAM is simple, so must be an int object (got %s)",
-                 ob->ob_type->tp_name);
+    PyErr_Format(PyExc_TypeError, "WPARAM is simple, so must be an int object (got %s)", ob->ob_type->tp_name);
     return FALSE;
 }
 
@@ -691,9 +691,11 @@ bool PyWinBufferView::init(PyObject *ob, bool bWrite, bool bNoneOk)
             m_view.obj = Py_None;
             m_view.buf = NULL;
             m_view.len = 0;
-        } else
+        }
+        else
             PyErr_SetString(PyExc_TypeError, "Buffer cannot be None");
-    } else if (ob != NULL) {
+    }
+    else if (ob != NULL) {
         PyObject_GetBuffer(ob, &m_view, bWrite ? PyBUF_WRITABLE : PyBUF_SIMPLE);
 
 #ifdef _WIN64
@@ -702,7 +704,8 @@ bool PyWinBufferView::init(PyObject *ob, bool bWrite, bool bNoneOk)
             PyErr_Format(PyExc_ValueError, "Buffer length can be at most %d characters", MAXDWORD);
         }
 #endif
-    } else  // ob == NULL handled as not ok
+    }
+    else  // ob == NULL handled as not ok
         m_view.obj = NULL;
     return ok();
 }
@@ -764,9 +767,9 @@ static struct PyMethodDef pywintypes_functions[] = {
 #endif
     {"Time", PyWinMethod_NewTime, 1},            // @pymeth Time|Makes a <o PyDateTime> object from the argument.
     {"TimeStamp", PyWinMethod_NewTimeStamp, 1},  // @pymeth Time|Makes a <o PyDateTime> object from the argument.
-    {"CreateGuid", PyWin_CreateGuid, 1},  // @pymeth CreateGuid|Creates a new, unique GUIID.
-    {"ACL", PyWinMethod_NewACL, 1},  // @pymeth ACL|Creates a new <o PyACL> object.
-    {"SID", PyWinMethod_NewSID, 1},  // @pymeth SID|Creates a new <o PySID> object.
+    {"CreateGuid", PyWin_CreateGuid, 1},         // @pymeth CreateGuid|Creates a new, unique GUIID.
+    {"ACL", PyWinMethod_NewACL, 1},              // @pymeth ACL|Creates a new <o PyACL> object.
+    {"SID", PyWinMethod_NewSID, 1},              // @pymeth SID|Creates a new <o PySID> object.
     {"SECURITY_ATTRIBUTES", PyWinMethod_NewSECURITY_ATTRIBUTES,
      1},  // @pymeth SECURITY_ATTRIBUTES|Creates a new <o PySECURITY_ATTRIBUTES> object.
     {"SECURITY_DESCRIPTOR", PyWinMethod_NewSECURITY_DESCRIPTOR,
@@ -798,8 +801,7 @@ int PyWinGlobals_Ensure()
         PyDict_SetItemString(d, "Exception", PyExc_Exception);
         PyDict_SetItemString(d, "__name__", name);
         Py_DECREF(name);
-        PyObject *bimod = PyImport_ImportModule(
-            "builtins");
+        PyObject *bimod = PyImport_ImportModule("builtins");
         if ((bimod == NULL) || PyDict_SetItemString(d, "__builtins__", bimod) == -1) {
             Py_XDECREF(bimod);
             return -1;
@@ -875,14 +877,12 @@ int PyWinGlobals_Ensure()
         ??? All extension modules that call this need to be changed to check the exit code ???
     */
     if (PyType_Ready(&PyHANDLEType) == -1 || PyType_Ready(&PyOVERLAPPEDType) == -1 ||
-        PyType_Ready(&PyDEVMODEWType) == -1 ||
-        PyType_Ready(&PyWAVEFORMATEXType) == -1
+        PyType_Ready(&PyDEVMODEWType) == -1 || PyType_Ready(&PyWAVEFORMATEXType) == -1
 #ifndef NO_PYWINTYPES_IID
         || PyType_Ready(&PyIIDType) == -1
 #endif  // NO_PYWINTYPES_IID
         || PyType_Ready(&PySECURITY_DESCRIPTORType) == -1 || PyType_Ready(&PySECURITY_ATTRIBUTESType) == -1 ||
-        PyType_Ready(&PySIDType) == -1 || PyType_Ready(&PyACLType) == -1
-    )
+        PyType_Ready(&PySIDType) == -1 || PyType_Ready(&PyACLType) == -1)
         return -1;
 
     if (!_PyWinDateTime_Init())
@@ -966,8 +966,7 @@ PYWIN_MODULE_INIT_FUNC(pywintypes)
     PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }
 
-extern "C" __declspec(dllexport)
-    BOOL WINAPI DllMain(HANDLE hInstance, DWORD dwReason, LPVOID lpReserved)
+extern "C" __declspec(dllexport) BOOL WINAPI DllMain(HANDLE hInstance, DWORD dwReason, LPVOID lpReserved)
 {
     FARPROC fp;
     // dll usually will already be loaded
@@ -1063,10 +1062,10 @@ extern "C" __declspec(dllexport)
 }
 
 // Function to format a python traceback into a character string.
-#define GPEM_ERROR(what)                                     \
-    {                                                        \
+#define GPEM_ERROR(what)                                      \
+    {                                                         \
         errorMsg = L"<Error getting traceback - "##what##">"; \
-        goto done;                                           \
+        goto done;                                            \
     }
 PYWINTYPES_EXPORT WCHAR *GetPythonTraceback(PyObject *exc_type, PyObject *exc_value, PyObject *exc_tb)
 {
@@ -1085,15 +1084,15 @@ PYWINTYPES_EXPORT WCHAR *GetPythonTraceback(PyObject *exc_type, PyObject *exc_va
     modStringIO = PyImport_ImportModule("io");
 
     if (modStringIO == NULL)
-        GPEM_ERROR("cant import cStringIO");
+        GPEM_ERROR("can't import cStringIO");
     modTB = PyImport_ImportModule("traceback");
     if (modTB == NULL)
-        GPEM_ERROR("cant import traceback");
+        GPEM_ERROR("can't import traceback");
 
     /* Construct a cStringIO object */
     obFuncStringIO = PyObject_GetAttrString(modStringIO, "StringIO");
     if (obFuncStringIO == NULL)
-        GPEM_ERROR("cant find cStringIO.StringIO");
+        GPEM_ERROR("can't find cStringIO.StringIO");
     obStringIO = PyObject_CallObject(obFuncStringIO, NULL);
     if (obStringIO == NULL)
         GPEM_ERROR("cStringIO.StringIO() failed");
@@ -1101,21 +1100,18 @@ PYWINTYPES_EXPORT WCHAR *GetPythonTraceback(PyObject *exc_type, PyObject *exc_va
     /* Get the traceback.print_exception function, and call it. */
     obFuncTB = PyObject_GetAttrString(modTB, "print_exception");
     if (obFuncTB == NULL)
-        GPEM_ERROR("cant find traceback.print_exception");
+        GPEM_ERROR("can't find traceback.print_exception");
     // Py3k has added an undocumented 'chain' argument which defaults to True
     // and causes all kinds of exceptions while trying to print a traceback!
     // This *could* be useful thought if we can tame it - later!
     int chain = 0;
 
-    argsTB = Py_BuildValue(
-        "OOOOOi",
-        exc_type ? exc_type : Py_None, exc_value ? exc_value : Py_None, exc_tb ? exc_tb : Py_None,
-        Py_None,  // limit
-        obStringIO,
-        chain
-    );
+    argsTB = Py_BuildValue("OOOOOi", exc_type ? exc_type : Py_None, exc_value ? exc_value : Py_None,
+                           exc_tb ? exc_tb : Py_None,
+                           Py_None,  // limit
+                           obStringIO, chain);
     if (argsTB == NULL)
-        GPEM_ERROR("cant make print_exception arguments");
+        GPEM_ERROR("can't make print_exception arguments");
 
     obResult = PyObject_CallObject(obFuncTB, argsTB);
     if (obResult == NULL) {
@@ -1131,7 +1127,7 @@ PYWINTYPES_EXPORT WCHAR *GetPythonTraceback(PyObject *exc_type, PyObject *exc_va
     Py_DECREF(obFuncStringIO);
     obFuncStringIO = PyObject_GetAttrString(obStringIO, "getvalue");
     if (obFuncStringIO == NULL)
-        GPEM_ERROR("cant find getvalue function");
+        GPEM_ERROR("can't find getvalue function");
     Py_DECREF(obResult);
     obResult = PyObject_CallObject(obFuncStringIO, NULL);
     if (obResult == NULL)

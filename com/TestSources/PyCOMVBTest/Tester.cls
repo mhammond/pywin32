@@ -23,7 +23,7 @@ Private mvarCollectionProperty As Collection 'local copy
 'local variable(s) to hold property value(s)
 Private mvarVariantPutref As Variant 'local copy
 'local variable(s) to hold property value(s)
-' I cant seem to declare properties as returning native arrays.
+' I can't seem to declare properties as returning native arrays.
 ' I can only declare them as variant which hopefully holds an array.
 Private mvarArrayProperty As Variant 'local copy
 
@@ -200,7 +200,7 @@ Private Sub Class_Initialize()
     mvarCollectionProperty.Add (1)
     mvarCollectionProperty.Add ("Two")
     mvarCollectionProperty.Add ("3")
-    
+
     mvarStructProperty.int_val = 99
     mvarStructProperty.str_val = "hello"
     mvarStructProperty.sub_val.int_val = 66
@@ -211,7 +211,7 @@ Private Sub Class_Initialize()
     mvarStructProperty.sub_val.array_val(1).str_val = "one"
     mvarStructProperty.sub_val.array_val(2).int_val = 2
     mvarStructProperty.sub_val.array_val(2).str_val = "two"
-  
+
 End Sub
 
 Public Sub IncrementIntegerParam(intVal As Integer)
@@ -250,8 +250,8 @@ Public Sub DoSomeCallbacks(ob As Object)
     Dim rg(1) As Integer
     Dim rgv(1) As Variant
     Dim rg_new As Variant
-    Rem On Error GoTo failed    ' Dont really need this - error is correctly propogated back to Python!
-    
+    Rem On Error GoTo failed    ' Don't really need this - error is correctly propogated back to Python!
+
     Rem Can check byrefs for gateways here, as VB passes all params byref!
     i = 99
     ret = ob.CallbackResultOneByRef(i)
@@ -270,7 +270,7 @@ Public Sub DoSomeCallbacks(ob As Object)
     If variantResult <> Null Then MsgBox "After CallbackResultOneByRefButReturnNone, the param was in error - was " & variantResult & " but expected Null"
     ' See what happens to a ByRef with a void function!
     ' XXX - was expecting this to fail - VB passes as VT_VARIANT|VT_BYREF
-    ' and Python sets the Variant to NULL - but VB doesnt complain!
+    ' and Python sets the Variant to NULL - but VB doesn't complain!
     ob.CallbackVoidOneByRefButReturnNone i
     If i <> 100 Then MsgBox "After CallbackVoidOneByRefButReturnNone, the param was in error - was " & i & " but expected 100"
     rgv(0) = 0
@@ -292,7 +292,7 @@ Public Sub DoSomeCallbacks(ob As Object)
     ' rg_new should now be rg before the call.
     If rg_new(0) <> 1 Or rg_new(1) <> 2 Then MsgBox "CallbackArrayResultOneArrayByRef - result wrong - - (" & rg_new(0) & "," & rg_new(1) & ")!!"
     ' The byref array gets incremented.
-    ' EEEK - this doesnt work.
+    ' EEEK - this doesn't work.
     ' Cos we are using function call syntax, the array is _not_ passed byref!!!
     'If rg(0) <> 1 Or rg(1) <> 2 Then MsgBox "CallbackArrayResultOneArrayByRef - byref param wrong - - (" & rg(0) & "," & rg(1) & ")!!"
     Exit Sub

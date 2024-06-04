@@ -1,13 +1,13 @@
 /* File : adsi.i */
 
-/* 
+/*
    This is designed to be an interface to the ADSI API
 
 */
 
 %module adsi // A COM interface to ADSI
 
-// @ comm Generally you will not use this module (win32com.adsi.adsi) 
+// @ comm Generally you will not use this module (win32com.adsi.adsi)
 // directly, but use win32com.adsi - this top-level interface does
 // smarter integration with Python IDispatch support, so offers a more
 // convenient technique.
@@ -135,7 +135,7 @@ class PyIADsEnumVARIANT : public PyIEnumVARIANT {
 	virtual ~PyIADsEnumVARIANT() {
 		if (m_obj) {
 			ADsFreeEnumerator((IEnumVARIANT *)m_obj);
-			m_obj = NULL; // so base dtor doesnt "Release"
+			m_obj = NULL; // so base dtor doesn't "Release"
 		}
 	}
 };

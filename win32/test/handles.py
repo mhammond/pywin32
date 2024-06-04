@@ -93,7 +93,7 @@ class PyHandleTestCase(unittest.TestCase):
         # but the above doesn't really test everything - we want a way to
         # pass the handle directly into PyWinLong_AsVoidPtr.  One way to
         # to that is to abuse win32api.GetProcAddress() - the 2nd param
-        # is passed to PyWinLong_AsVoidPtr() if its not a string.
+        # is passed to PyWinLong_AsVoidPtr() if it's not a string.
         # passing a handle value of '1' should work - there is something
         # at that ordinal
         win32api.GetProcAddress(sys.dllhandle, h)

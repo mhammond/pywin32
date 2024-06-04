@@ -31,7 +31,7 @@ def TestBuildAll(verbose=1):
                 print(details)
         except KeyboardInterrupt:
             print("Interrupted!")
-            raise KeyboardInterrupt
+            raise
         except:
             print("Failed:", info.desc)
             traceback.print_exc()

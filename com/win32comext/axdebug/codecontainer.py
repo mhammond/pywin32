@@ -55,7 +55,7 @@ class SourceCodeContainer:
         return self.text
 
     def GetName(self, dnt):
-        assert 0, "You must subclass this"
+        raise NotImplementedError("You must subclass this")
 
     def GetFileName(self):
         return self.fileName
@@ -75,9 +75,9 @@ class SourceCodeContainer:
             if lineOffset > charPos:
                 break
             lastOffset = lineOffset
-            lineNo = lineNo + 1
+            lineNo += 1
         else:  # for not broken.
-            # print("Cant find", charPos, "in", self.lineOffsets)
+            # print("Can't find", charPos, "in", self.lineOffsets)
             raise COMException(scode=winerror.S_FALSE)
         # print("GLOP ret=", lineNo, (charPos - lastOffset))
         return lineNo, (charPos - lastOffset)
@@ -87,7 +87,7 @@ class SourceCodeContainer:
             self.nextLineNo = 0  # auto-reset.
             return ""
         rc = self.lines[self.nextLineNo]
-        self.nextLineNo = self.nextLineNo + 1
+        self.nextLineNo += 1
         return rc
 
     def GetLine(self, num):
@@ -159,7 +159,8 @@ class SourceCodeContainer:
         self.lastPos = 0
         self.attrs = []
         try:
-            tokenize.tokenize(self.GetNextLine, self._ProcessToken)
+            for tokens in tokenize.tokenize(self.GetNextLine):
+                self._ProcessToken(*tokens)
         except tokenize.TokenError:
             pass  # Ignore - will cause all subsequent text to be commented.
         numAtEnd = len(self.GetText()) - self.lastPos
@@ -260,12 +261,12 @@ if __name__ == "__main__":
     attrlen = 0
     for attr in attrs:
         if isinstance(attr, tuple):
-            attrlen = attrlen + attr[1]
+            attrlen += attr[1]
         else:
-            attrlen = attrlen + 1
+            attrlen += 1
     text = sc.GetText()
     if attrlen != len(text):
-        print(f"Lengths dont match!!! ({attrlen}/{len(text)})")
+        print(f"Lengths don't match!!! ({attrlen}/{len(text)})")
 
     # print("Attributes:")
     # print(attrs)

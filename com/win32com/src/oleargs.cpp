@@ -119,7 +119,7 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
     BOOL bGoodEmpty = FALSE;  // Set if VT_EMPTY should really be used.
     V_VT(var) = VT_EMPTY;
     if (
-// In py3k we don't convert PyBytes_Check objects (ie, bytes) to BSTR...
+        // In py3k we don't convert PyBytes_Check objects (ie, bytes) to BSTR...
         PyUnicode_Check(obj)) {
         if (!PyWinObject_AsBstr(obj, &V_BSTR(var))) {
             PyErr_SetString(PyExc_MemoryError, "Making BSTR for variant");
@@ -327,13 +327,13 @@ PyObject *PyCom_PyObjectFromVariant(const VARIANT *var)
         return Py_None;
     }
     /* skip past any variant references to a "real" variant
-      (Why do we do this?  Why is it only a VARIANT?  whats the story, morning glory?
+      (Why do we do this?  Why is it only a VARIANT?  what's the story, morning glory?
     */
     while (V_VT(var) == (VT_BYREF | VT_VARIANT)) var = V_VARIANTREF(var);
 
     /* ### note: we shouldn't see this, it is illegal in a VARIANT */
     if (V_ISVECTOR(var)) {
-        return OleSetTypeError(_T("Cant convert vectors!"));
+        return OleSetTypeError(_T("Can't convert vectors!"));
     }
 
     if (V_ISARRAY(var)) {
@@ -692,7 +692,7 @@ static BOOL PyCom_SAFEARRAYFromPyObjectEx(PyObject *obj, SAFEARRAY **ppSA, bool 
     // Seek down searching for total dimension count.
     // Item zero of each element will do for now
     // (as all must be same)
-    // First we _will_ allow None here (just dont use it if it crashes :-)
+    // First we _will_ allow None here (just don't use it if it crashes :-)
     if (obj == Py_None) {
         if (bAllocNewArray)
             *ppSA = NULL;
@@ -1075,7 +1075,7 @@ PythonOleArgHelper::~PythonOleArgHelper()
     // First check we actually have ownership of any buffers.
     if (m_convertDirection == POAH_CONVERT_UNKNOWN || m_convertDirection == POAH_CONVERT_FROM_VARIANT)
         return;
-    // OK - its is possible we own the buffers - check for sure based on the type...
+    // OK - it is possible we own the buffers - check for sure based on the type...
     if (m_reqdType & VT_ARRAY) {
         // Array datatype - cleanup (but how?)
         if (m_reqdType & VT_BYREF) {
@@ -1089,8 +1089,8 @@ PythonOleArgHelper::~PythonOleArgHelper()
                 }
 #endif
             }  // have array pointer
-#endif         // BYREF_ARRAY_USE_EXISTING_ARRAY
-        }      // BYREF array.
+#endif  // BYREF_ARRAY_USE_EXISTING_ARRAY
+        }  // BYREF array.
     }
     else {
         switch (m_reqdType) {
@@ -1154,7 +1154,7 @@ BOOL PythonOleArgHelper::ParseTypeInformation(PyObject *reqdObjectTuple)
 
 BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject *reqdObjectTuple)
 {
-    // Check my logic still holds up - basically we cant call this twice on the same object.
+    // Check my logic still holds up - basically we can't call this twice on the same object.
     assert(m_convertDirection == POAH_CONVERT_UNKNOWN || m_convertDirection == POAH_CONVERT_FROM_VARIANT);
     // If this is the "driving" conversion, then we allocate buffers.
     // Otherwise, we are simply filling in the buffers as provided by the caller.
@@ -1225,7 +1225,7 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
         return TRUE;  // All done with array!
     }
     if (m_reqdType & VT_VECTOR) {  // we have been asked for an array.
-        OleSetTypeError(_T("Sorry - cant support VT_VECTOR arguments"));
+        OleSetTypeError(_T("Sorry - can't support VT_VECTOR arguments"));
         return FALSE;
     }
     BOOL rc = TRUE;
@@ -1610,7 +1610,7 @@ PyObject *PythonOleArgHelper::MakeVariantToObj(VARIANT *var)
     // performed first, then Python called, then the ObjToVariant conversion will
     // happen later.  In this case, remember the buffer for the Variant
 
-    // Check my logic still holds up - basically we cant call this twice on the same object.
+    // Check my logic still holds up - basically we can't call this twice on the same object.
     assert(m_convertDirection == POAH_CONVERT_UNKNOWN || m_convertDirection == POAH_CONVERT_FROM_PYOBJECT);
     // If this is the "driving" conversion, then the callers owns the buffers - we just use-em
     if (m_convertDirection == POAH_CONVERT_UNKNOWN) {

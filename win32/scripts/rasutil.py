@@ -42,7 +42,7 @@ def Connect(rasEntryName, numRetries=5):
             break
         print("Retrying...")
         win32api.Sleep(5000)
-        retryCount = retryCount - 1
+        retryCount -= 1
 
     if errCode:
         raise ConnectionError(errCode, win32ras.GetErrorString(errCode))
@@ -65,7 +65,7 @@ usage = """rasutil.py - Utilities for using RAS
 
 Usage:
   rasutil [-r retryCount] [-c rasname] [-d rasname]
-  
+
   -r retryCount - Number of times to retry the RAS connection
   -c rasname - Connect to the phonebook entry specified by rasname
   -d rasname - Disconnect from the phonebook entry specified by rasname

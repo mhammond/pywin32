@@ -125,9 +125,9 @@ static HRESULT univgw_dispatch(DWORD index, gw_object *_this, va_list argPtr)
     Py_DECREF(result);
 
     // ### Greg> what to do for non-HRESULT return values?
-    // ### Bill> If its not a float/double then
+    // ### Bill> If it's not a float/double then
     // ###       then they'll see a 32bit sign-extended value.
-    // ###       If its a float/double they're currently out of luck.
+    // ###       If it's a float/double they're currently out of luck.
     // ###       The smart ones only declare int, HRESULT, or void
     // ###       functions in any event...
     // ### on X86s __stdcall return values go into:
@@ -146,7 +146,7 @@ static HRESULT univgw_dispatch(DWORD index, gw_object *_this, va_list argPtr)
     return hr;
 }
 
-//#define COMPILE_MOCKUP
+// #define COMPILE_MOCKUP
 #ifdef COMPILE_MOCKUP
 
 STDMETHODIMP mockup(gw_object *_this)
@@ -263,7 +263,7 @@ static pfnGWMethod make_method(DWORD index, UINT argsize, UINT argc)
     }
 #else  // other arches
     /* The MAINWIN toolkit allows us to build this on Linux!!! */
-#pragma message("XXXXXXXXX - win32com.universal wont work on this platform - need make_method")
+#pragma message("XXXXXXXXX - win32com.universal won't work on this platform - need make_method")
     PyErr_SetString(PyExc_NotImplementedError, "not implemented on this platform");
     code = NULL;
 #endif

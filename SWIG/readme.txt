@@ -18,4 +18,3 @@ fully qualified path to the .exe in this archive.  Note that as this
 environment variable is used by MSVC, you probably need to set this
 variable globally (ie, either in autoexec.bat, or Control Panel->System-
 >Environment.
-

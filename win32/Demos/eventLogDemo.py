@@ -21,7 +21,7 @@ def ReadLog(computer, logType="Application", dumpEachRecord=0):
         if not objects:
             break
         for object in objects:
-            # get it for testing purposes, but dont print it.
+            # get it for testing purposes, but don't print it.
             msg = win32evtlogutil.SafeFormatMessage(object, logType)
             if object.Sid is not None:
                 try:
@@ -48,7 +48,7 @@ def ReadLog(computer, logType="Application", dumpEachRecord=0):
                     print("(unicode error printing message: repr() follows...)")
                     print(repr(msg))
 
-        num = num + len(objects)
+        num += len(objects)
 
     if numRecords == num:
         print("Successfully read all", numRecords, "records")
@@ -64,8 +64,8 @@ def ReadLog(computer, logType="Application", dumpEachRecord=0):
 
 def usage():
     print("Writes an event to the event log.")
-    print("-w : Dont write any test records.")
-    print("-r : Dont read the event log")
+    print("-w : Don't write any test records.")
+    print("-r : Don't read the event log")
     print("-c : computerName : Process the log on the specified computer")
     print("-v : Verbose")
     print("-t : LogType - Use the specified log - default = 'Application'")
@@ -104,7 +104,7 @@ def test():
         if opt == "-w":
             do_write = 0
         if opt == "-v":
-            verbose = verbose + 1
+            verbose += 1
     if do_write:
         ph = win32api.GetCurrentProcess()
         th = win32security.OpenProcessToken(ph, win32con.TOKEN_READ)

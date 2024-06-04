@@ -312,4 +312,3 @@ static struct PyMethodDef PyICatRegister_methods[] = {
 PyComTypeObject PyICatRegister::type("PyICatRegister",
                                      &PyIUnknown::type,  // @base PyICatRegister|PyIUnknown
                                      sizeof(PyICatRegister), PyICatRegister_methods, GET_PYCOM_CTOR(PyICatRegister));
-

@@ -86,7 +86,7 @@ def GetMapiTypeName(propType, rawType=True):
                 ptTable[value] = name
 
     if rawType:
-        propType = propType & ~mapitags.MV_FLAG
+        propType &= ~mapitags.MV_FLAG
     return ptTable.get(propType, str(hex(propType)))
 
 
@@ -206,6 +206,6 @@ def SetProperties(msg, propDict):
                     f"The type of object {repr(val)}({type(val)}) can not be written"
                 )
             key = mapitags.PROP_TAG(tagType, mapitags.PROP_ID(newIds[newIdNo]))
-            newIdNo = newIdNo + 1
+            newIdNo += 1
         newProps.append((key, val))
     msg.SetProps(newProps)

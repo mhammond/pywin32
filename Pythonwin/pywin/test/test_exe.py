@@ -46,7 +46,7 @@ class TestPythonwinExe(unittest.TestCase):
             dst = os.path.dirname(pythonwinexe_path) + os.sep + pydll
             if not os.path.isfile(dst):
                 try:
-                    assert os.path.isfile(src)
+                    self.assertTrue(os.path.isfile(src))
                     print(f"-- symlink {dst!r} -> {src!r}", file=sys.stderr)
                     os.symlink(src, dst)
                 except (OSError, AssertionError) as e:
@@ -62,8 +62,8 @@ class TestPythonwinExe(unittest.TestCase):
             rc = "TIMEOUT"
         with open(self.tfn) as f:
             outs = f.read()
-        assert rc == 0, f"rc is {rc!r}, outs={outs!r}"
-        assert "Success!" in outs, outs
+        self.assertEqual(rc, 0, f"outs={outs!r}")
+        self.assertIn("Success!", outs)
         print("-- test_exe Ok! --", file=sys.stderr)
 
     def tearDown(self):

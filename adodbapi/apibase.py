@@ -173,7 +173,7 @@ class TimeConverter:  # this is a generic time converter skeleton
             try:
                 return self.ComDateFromTuple(obj)
             except:
-                raise ValueError('Cannot convert "%s" to COMdate.' % repr(obj))
+                raise ValueError(f'Cannot convert "{obj!r}" to COMdate.')
 
     def ComDateFromTuple(self, t, microseconds=0):
         d = datetime.date(t[0], t[1], t[2])
@@ -210,7 +210,7 @@ class TimeConverter:  # this is a generic time converter skeleton
                 try:  # but may be time.struct_time
                     s = time.strftime("%Y-%m-%d %H:%M:%S", obj)
                 except:
-                    raise ValueError('Cannot convert "%s" to isoformat' % repr(obj))
+                    raise ValueError(f'Cannot convert "{obj!r}" to isoformat')
         return s
 
 
@@ -390,7 +390,7 @@ def pyTypeToADOType(d):
             return adc.adBigInt
         if isinstance(d, numbers.Real):
             return adc.adDouble
-        raise DataError('cannot convert "%s" (type=%s) to ADO' % (repr(d), tp))
+        raise DataError(f'cannot convert "{d!r}" (type={tp}) to ADO')
 
 
 # # # # # # # # # # # # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -441,7 +441,7 @@ def identity(x):
 
 def cvtUnusual(variant):
     if verbose > 1:
-        sys.stderr.write("Conversion called for Unusual data=%s\n" % repr(variant))
+        sys.stderr.write(f"Conversion called for Unusual data={variant!r}\n")
     return variant  # cannot find conversion function -- just give the data to the user
 
 
@@ -534,9 +534,7 @@ class SQLrow:  # a single database row
             )  # extension row[columnName] designation
         except (KeyError, TypeError):
             er, st, tr = sys.exc_info()
-            raise er(
-                'No such key as "%s" in %s' % (repr(key), self.__repr__())
-            ).with_traceback(tr)
+            raise er(f'No such key as "{key!r}" in {self!r}').with_traceback(tr)
 
     def __iter__(self):
         return iter(self.__next__())
@@ -549,7 +547,7 @@ class SQLrow:  # a single database row
         taglist = sorted(list(self.rows.columnNames.items()), key=lambda x: x[1])
         s = "<SQLrow={"
         for name, i in taglist:
-            s += name + ":" + repr(self._getValue(i)) + ", "
+            s += f"{name}:{self._getValue(i)!r}, "
         return s[:-2] + "}>"
 
     def __str__(self):  # create a pretty human readable representation
@@ -598,7 +596,7 @@ class SQLrows:
                 try:
                     j = self.columnNames[j.lower()]  # convert named column to numeric
                 except KeyError:
-                    raise KeyError('adodbapi: no such column name as "%s"' % repr(j))
+                    raise KeyError(f"adodbapi: no such column name as {j!r}")
             if self.recordset_format == RS_ARRAY:  # retrieve from two-dimensional array
                 v = self.ado_results[j, i]
             elif self.recordset_format == RS_REMOTE:

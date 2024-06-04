@@ -6,13 +6,13 @@
   Version="1"
   ClassID="{2eeb6080-cd58-11d1-b81e-00a0240b2fef}">
 
-  <SCRIPT LANGUAGE="VBScript">      
+  <SCRIPT LANGUAGE="VBScript">
 	Function Register()
-		Msgbox "Scriptlet 'Test' registered."      
+		Msgbox "Scriptlet 'Test' registered."
 	End Function
-    
+
 	Function Unregister()
-		Msgbox "Scriptlet 'Test' unregistered."      
+		Msgbox "Scriptlet 'Test' unregistered."
 	End Function
    </SCRIPT>
 </Registration>
@@ -61,4 +61,3 @@ def PyMethod2():
 </script>
 
 </scriptlet>
-

@@ -83,7 +83,8 @@ class CPythonWinThread : public CWinThread {
         if (!helper.HaveHandler()) {
             helper.release_full();  // important
             ret = CWinThread::Run();
-        } else {
+        }
+        else {
             helper.call();
             helper.retval(ret);
         }
@@ -96,8 +97,7 @@ class CPythonWinThread : public CWinThread {
 void CProtectedWinThread::PumpIdle()
 {
     long lIdleCount = 0;
-    while (OnIdle(lIdleCount++))
-        ;
+    while (OnIdle(lIdleCount++));
     return;
 }
 
@@ -245,7 +245,7 @@ static PyObject *ui_thread_set_main_frame(PyObject *self, PyObject *args)
 
     if (wndObject == Py_None) {
         // @comm You can pass None to this function to reset the main frame.
-        pThread->m_pMainWnd = NULL;  // Should I free this?  I dont think so!
+        pThread->m_pMainWnd = NULL;  // Should I free this?  I don't think so!
     }
     else {
         CWnd *pMainWnd = GetWndPtr(wndObject);

@@ -167,4 +167,3 @@ class PYWINTYPES_EXPORT PyACL : public PyObject {
    protected:
     void *buf;
 };
-
