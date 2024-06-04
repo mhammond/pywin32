@@ -62,7 +62,7 @@ def TestDict(quiet=None):
         print("Failure tests")
     try:
         dict()
-        raise Exception("default method with no args worked when it shouldnt have!")
+        raise Exception("default method with no args worked when it shouldn't have!")
     except pythoncom.com_error as xxx_todo_changeme:
         (hr, desc, exc, argErr) = xxx_todo_changeme.args
         assert (
@@ -71,7 +71,7 @@ def TestDict(quiet=None):
 
     try:
         dict("hi", "there")
-        raise Exception("multiple args worked when it shouldnt have!")
+        raise Exception("multiple args worked when it shouldn't have!")
     except pythoncom.com_error as xxx_todo_changeme1:
         (hr, desc, exc, argErr) = xxx_todo_changeme1.args
         assert (
@@ -80,7 +80,7 @@ def TestDict(quiet=None):
 
     try:
         dict(0)
-        raise Exception("int key worked when it shouldnt have!")
+        raise Exception("int key worked when it shouldn't have!")
     except pythoncom.com_error as xxx_todo_changeme2:
         (hr, desc, exc, argErr) = xxx_todo_changeme2.args
         assert (

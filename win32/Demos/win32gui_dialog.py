@@ -69,7 +69,7 @@ class _WIN32MASKEDSTRUCT:
                     # alternate strategy would be to use unicode natively
                     # and use the 'W' version of the messages - eg,
                     # LVM_SETITEMW etc.
-                    val = val + "\0"
+                    val += "\x00"
                     if isinstance(val, str):
                         val = val.encode("mbcs")
                     str_buf = array.array("b", val)

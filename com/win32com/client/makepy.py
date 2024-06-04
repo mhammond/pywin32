@@ -212,7 +212,7 @@ def GetTypeLibsForSpec(arg):
                 print("Could not locate a type library matching '%s'" % (arg))
             for spec in tlbs:
                 # Version numbers not always reliable if enumerated from registry.
-                # (as some libs use hex, other's dont.  Both examples from MS, of course.)
+                # (as some libs use hex, other's don't.  Both examples from MS, of course.)
                 if spec.dll is None:
                     tlb = pythoncom.LoadRegTypeLib(
                         spec.clsid, spec.major, spec.minor, spec.lcid
@@ -391,9 +391,9 @@ def main():
             elif o == "-o":
                 outputName = v
             elif o == "-v":
-                verboseLevel = verboseLevel + 1
+                verboseLevel += 1
             elif o == "-q":
-                verboseLevel = verboseLevel - 1
+                verboseLevel -= 1
             elif o == "-i":
                 if len(args) == 0:
                     ShowInfo(None)

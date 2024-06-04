@@ -51,7 +51,7 @@ class Stream:
 
     def Read(self, amount):
         result = self.data[self.index : self.index + amount]
-        self.index = self.index + amount
+        self.index += amount
         return result
 
     def Write(self, data):
@@ -63,7 +63,7 @@ class Stream:
         if origin == pythoncom.STREAM_SEEK_SET:
             self.index = dist
         elif origin == pythoncom.STREAM_SEEK_CUR:
-            self.index = self.index + dist
+            self.index += dist
         elif origin == pythoncom.STREAM_SEEK_END:
             self.index = len(self.data) + dist
         else:

@@ -50,13 +50,13 @@ def ComponentFromIndex(i, nbits, shift):
     # val = (unsigned char) (i >> shift);
     val = (i >> shift) & 0xF
     if nbits == 1:
-        val = val & 0x1
+        val &= 0x1
         return oneto8[val]
     elif nbits == 2:
-        val = val & 0x3
+        val &= 0x3
         return twoto8[val]
     elif nbits == 3:
-        val = val & 0x7
+        val &= 0x7
         return threeto8[val]
     else:
         return 0
@@ -72,7 +72,7 @@ class OpenGLView(OpenGLViewParent):
         # include CS_PARENTDC for the class style. Refer to SetPixelFormat
         # documentation in the "Comments" section for further information.
         style = cc[5]
-        style = style | win32con.WS_CLIPSIBLINGS | win32con.WS_CLIPCHILDREN
+        style |= win32con.WS_CLIPSIBLINGS | win32con.WS_CLIPCHILDREN
         cc = cc[0], cc[1], cc[2], cc[3], cc[4], style, cc[6], cc[7], cc[8]
         cc = self._obj_.PreCreateWindow(cc)
         return cc
@@ -160,10 +160,10 @@ class OpenGLView(OpenGLViewParent):
 
     # The methods to support OpenGL
     def DrawScene(self):
-        assert 0, "You must override this method"
+        raise NotImplementedError("You must override this method")
 
     def Init(self):
-        assert 0, "You must override this method"
+        raise NotImplementedError("You must override this method")
 
     def OnSizeChange(self, cx, cy):
         pass
@@ -287,9 +287,9 @@ class CubeView(OpenGLView):
         glRotatef(self.wAngleY, 0.0, 1.0, 0.0)
         glRotatef(self.wAngleZ, 0.0, 0.0, 1.0)
 
-        self.wAngleX = self.wAngleX + 1.0
-        self.wAngleY = self.wAngleY + 10.0
-        self.wAngleZ = self.wAngleZ + 5.0
+        self.wAngleX += 1.0
+        self.wAngleY += 10.0
+        self.wAngleZ += 5.0
 
         glBegin(GL_QUAD_STRIP)
         glColor3f(1.0, 0.0, 1.0)

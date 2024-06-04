@@ -123,7 +123,7 @@ class MainFrame(app.MainFrame):
 
 
 class InteractivePythonApp(app.CApp):
-    # This works if necessary - just we dont need to override the Run method.
+    # This works if necessary - just we don't need to override the Run method.
     # 	def Run(self):
     # 		return self._obj_.Run()
 
@@ -484,12 +484,12 @@ class InteractivePythonApp(app.CApp):
         pages = []
         for template in self.GetDocTemplateList():
             try:
-                # Dont actually call the function with the exception handler.
+                # Don't actually call the function with the exception handler.
                 getter = template.GetPythonPropertyPages
             except AttributeError:
                 # Template does not provide property pages!
                 continue
-            pages = pages + getter()
+            pages.extend(getter())
 
         # Debugger template goes at the end
         try:
@@ -521,7 +521,7 @@ class InteractivePythonApp(app.CApp):
         try:
             interact = sys.modules["pywin.framework.interact"]
             state = interact.IsInteractiveWindowVisible()
-        except KeyError:  # Interactive module hasnt ever been imported.
+        except KeyError:  # Interactive module hasn't ever been imported.
             state = 0
         cmdui.Enable()
         cmdui.SetCheck(state)

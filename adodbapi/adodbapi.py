@@ -166,7 +166,7 @@ def _configure_parameter(p, value, adotype, settings_known):
                 L = min(L, p.Size)  # v2.1 Cole limit data to defined size
             p.Value = value[:L]  # v2.1 Jevon & v2.1 Cole
         else:
-            p.Value = value  # dont limit if db column is numeric
+            p.Value = value  # don't limit if db column is numeric
         if L > 0:  # v2.1 Cole something does not like p.Size as Zero
             p.Size = L  # v2.1 Jevon
 

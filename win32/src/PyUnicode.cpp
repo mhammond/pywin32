@@ -21,7 +21,7 @@ BOOL PyWinObject_AsPfnAllocatedWCHAR(PyObject *stringObject, void *(*pfnAllocato
         if (buf == NULL)
             return FALSE;
 
-        /* We assume that we dont need more 'wide characters' for the result
+        /* We assume that we don't need more 'wide characters' for the result
            then the number of bytes in the input. Often we
            will need less, as the input may contain multi-byte chars, but we
            should never need more

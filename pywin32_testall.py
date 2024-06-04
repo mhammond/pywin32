@@ -76,7 +76,7 @@ def main():
 
     extras = []
     if args.user_interaction:
-        extras += ["-user-interaction"]
+        extras.append("-user-interaction")
     extras.extend(remains)
     scripts = [
         "win32/test/testall.py",

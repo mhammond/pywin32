@@ -77,7 +77,7 @@ class TestPipeService(win32serviceutil.ServiceFramework):
                 hr = winerror.ERROR_MORE_DATA
                 while hr == winerror.ERROR_MORE_DATA:
                     hr, thisd = ReadFile(pipeHandle, 256)
-                    d = d + thisd
+                    d += thisd
                 print("Read", d)
                 ok = 1
             except error:
@@ -85,7 +85,7 @@ class TestPipeService(win32serviceutil.ServiceFramework):
                 ok = 0
 
             # A secure service would handle (and ignore!) errors writing to the
-            # pipe, but for the sake of this demo we dont (if only to see what errors
+            # pipe, but for the sake of this demo we don't (if only to see what errors
             # we can get when our clients break at strange times :-)
             if ok:
                 msg = (
@@ -162,7 +162,7 @@ class TestPipeService(win32serviceutil.ServiceFramework):
             else:
                 # Pipe event - spawn thread to deal with it.
                 _thread.start_new_thread(self.ProcessClient, (pipeHandle,))
-                num_connections = num_connections + 1
+                num_connections += 1
 
         # Sleep to ensure that any new threads are in the list, and then
         # wait for all current threads to finish.

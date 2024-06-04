@@ -130,7 +130,7 @@ def _get_class_attributes(ob):
     # Recurse into base classes looking for attributes
     items = []
     try:
-        items = items + dir(ob)
+        items.extend(dir(ob))
         for i in ob.__bases__:
             for item in _get_class_attributes(i):
                 if item not in items:
@@ -272,7 +272,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
             self.bindings.complete_configure()
 
     def DoConfigChange(self):
-        # Bit of a hack I dont kow what to do about - these should be "editor options"
+        # Bit of a hack I don't kow what to do about - these should be "editor options"
         from pywin.framework.editor import GetEditorOption
 
         self.bAutoCompleteAttributes = GetEditorOption("Autocomplete Attributes", 1)
@@ -295,7 +295,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
     def OnMouseWheel(self, msg):
         zDelta = msg[2] >> 16
         vpos = self.GetScrollPos(win32con.SB_VERT)
-        vpos = vpos - zDelta / 40  # 3 lines per notch
+        vpos -= zDelta / 40  # 3 lines per notch
         self.SetScrollPos(win32con.SB_VERT, vpos)
         self.SendScintilla(
             win32con.WM_VSCROLL, (vpos << 16) | win32con.SB_THUMBPOSITION, 0
@@ -322,7 +322,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
         lineEnd = self.LineFromChar(max(start, end))
         while lineStart <= lineEnd:
             self.SCIEnsureVisible(lineStart)
-            lineStart = lineStart + 1
+            lineStart += 1
 
     # Helper to add an event to a menu.
     def AppendMenu(self, menu, text="", event=None, flags=None, checked=0):
@@ -341,11 +341,11 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
                 return
             keyname = configManager.get_key_binding(event, self._GetSubConfigNames())
             if keyname is not None:
-                text = text + "\t" + keyname
+                text += "\t" + keyname
         if flags is None:
             flags = win32con.MF_STRING | win32con.MF_ENABLED
         if checked:
-            flags = flags | win32con.MF_CHECKED
+            flags |= win32con.MF_CHECKED
         menu.AppendMenu(flags, cmdid, text)
 
     def OnKeyDown(self, msg):
@@ -491,7 +491,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
                     pass  # object has no __dict__
                 if hasattr(ob, "__class__"):
                     items_dict.update(list2dict(_get_class_attributes(ob.__class__)))
-                # The object may be a COM object with typelib support - lets see if we can get its props.
+                # The object may be a COM object with typelib support - let's see if we can get its props.
                 # (contributed by Stefan Migowsky)
                 try:
                     # Get the automation attributes
@@ -502,7 +502,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
                     # append to the already evaluated list
                 except AttributeError:
                     pass
-                # The object might be a pure COM dynamic dispatch with typelib support - lets see if we can get its props.
+                # The object might be a pure COM dynamic dispatch with typelib support - let's see if we can get its props.
                 if hasattr(ob, "_oleobj_"):
                     try:
                         for iTI in range(0, ob._oleobj_.GetTypeInfoCount()):
@@ -677,20 +677,20 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
         index = pos - 1
         wordbreaks_use = wordbreaks
         if bAllowCalls:
-            wordbreaks_use = wordbreaks_use + "()[]"
+            wordbreaks_use += "()[]"
         while index >= 0:
             char = self.SCIGetCharAt(index)
             if char not in wordbreaks_use:
                 break
             before.insert(0, char)
-            index = index - 1
+            index -= 1
         index = pos
         while index <= limit:
             char = self.SCIGetCharAt(index)
             if char not in wordbreaks_use:
                 break
             after.append(char)
-            index = index + 1
+            index += 1
         return "".join(before), "".join(after)
 
     def OnPrepareDC(self, dc, pInfo):
@@ -718,7 +718,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
     def OnPreparePrinting(self, pInfo):
         flags = (
             win32ui.PD_USEDEVMODECOPIES | win32ui.PD_ALLPAGES | win32ui.PD_NOSELECTION
-        )  # Dont support printing just a selection.
+        )  # Don't support printing just a selection.
         # NOTE: Custom print dialogs are stopping the user's values from coming back :-(
         # 		self.prtDlg = PrintDialog(pInfo, PRINTDLGORD, flags)
         # 		pInfo.SetPrintDialog(self.prtDlg)
@@ -745,11 +745,11 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
         textLen = self.GetTextLength()
         while pageStart < textLen:
             pageStart = self.FormatRange(dc, pageStart, textLen, rc, 0)
-            maxPage = maxPage + 1
+            maxPage += 1
             self.starts[maxPage] = pageStart
         # And a sentinal for one page past the end
         self.starts[maxPage + 1] = textLen
-        # When actually printing, maxPage doesnt have any effect at this late state.
+        # When actually printing, maxPage doesn't have any effect at this late state.
         # but is needed to make the Print Preview work correctly.
         pInfo.SetMaxPage(maxPage)
 
@@ -805,10 +805,10 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
         dc.SetTextAlign(win32con.TA_RIGHT)
         dc.TextOut(right, 2 * cyChar, pagenum_str)
         dc.SetTextAlign(win32con.TA_LEFT)
-        top = top + int((7 * cyChar) / 2)
+        top += int(7 * cyChar / 2)
         dc.MoveTo(left, top)
         dc.LineTo(right, top)
-        top = top + cyChar
+        top += cyChar
         rc = (left, top, right, bottom)
         nextPageStart = self.FormatRange(
             dc, self.starts[pageNum], self.starts[pageNum + 1], rc, 1
@@ -817,7 +817,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 
 def LoadConfiguration():
     global configManager
-    # Bit of a hack I dont kow what to do about?
+    # Bit of a hack I don't kow what to do about?
     from .config import ConfigManager
 
     configName = rc = win32ui.GetProfileVal("Editor", "Keyboard Config", "default")
@@ -829,7 +829,7 @@ def LoadConfiguration():
             configManager.last_error,
         )
         if configName != "default":
-            msg = msg + "\n\nThe default configuration will be loaded."
+            msg += "\n\nThe default configuration will be loaded."
             bTryDefault = 1
         win32ui.MessageBox(msg)
         if bTryDefault:

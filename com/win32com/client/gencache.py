@@ -413,7 +413,7 @@ def ForgetAboutTypelibInterface(typelib_ob):
     try:
         del demandGeneratedTypeLibraries[info]
     except KeyError:
-        # Not worth raising an exception - maybe they dont know we only remember for demand generated, etc.
+        # Not worth raising an exception - maybe they don't know we only remember for demand generated, etc.
         print(
             "ForgetAboutTypelibInterface:: Warning - type library with info {} is not being remembered!".format(
                 info
@@ -520,9 +520,9 @@ def EnsureModule(
             filePath = filePathPrefix + ".py"
             filePathPyc = filePathPrefix + ".py"
             if __debug__:
-                filePathPyc = filePathPyc + "c"
+                filePathPyc += "c"
             else:
-                filePathPyc = filePathPyc + "o"
+                filePathPyc += "o"
             # Verify that type library is up to date.
             # If we have a differing MinorVersion or genpy has bumped versions, update the file
             from . import genpy
@@ -738,7 +738,7 @@ def Rebuild(verbose=1):
     """Rebuild the cache indexes from the file system."""
     clsidToTypelib.clear()
     infos = GetGeneratedInfos()
-    if verbose and len(infos):  # Dont bother reporting this when directory is empty!
+    if verbose and len(infos):  # Don't bother reporting this when directory is empty!
         print("Rebuilding cache of generated files for COM support...")
     for info in infos:
         iid, lcid, major, minor = info
@@ -752,7 +752,7 @@ def Rebuild(verbose=1):
                     info, sys.exc_info()[0], sys.exc_info()[1]
                 )
             )
-    if verbose and len(infos):  # Dont bother reporting this when directory is empty!
+    if verbose and len(infos):  # Don't bother reporting this when directory is empty!
         print("Done.")
     _SaveDicts()
 

@@ -106,7 +106,7 @@ CDC *ui_dc_object::GetDC(PyObject *self) { return (CDC *)GetGoodCppObject(self, 
 
 void ui_dc_object::SetAssocInvalid()
 {
-    return;  // do nothing.  Dont call base as dont want my handle wiped.
+    return;  // do nothing.  Don't call base as don't want my handle wiped.
 }
 
 ui_dc_object::~ui_dc_object()

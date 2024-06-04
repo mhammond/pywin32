@@ -16,13 +16,14 @@ Coming in build 307, as yet unreleased
 
 ### pywin32
 * Add EnumDesktopWindows (#2219, @CristiFati)
-* Marked `exc_type` and `exc_traceback` in `win32comext.axscript.client.error.AXScriptException.__init__` as deprecated.
+* Marked `exc_type` and `exc_traceback` in `win32comext.axscript.client.error.AXScriptException.__init__` as deprecated. (#2236 , @Avasam)
   They are now unused and all information is taken from the `exc_value` parameter.
 * Fixed non-overriden `pywin.scintilla.formatter.Formatter.ColorizeString` raising `TypeError` instead of `RuntimeError` due to too many parameters (#2216, @Avasam)
 * Fixed broken since Python 3 tokenization in `win32comext.axdebug.codecontainer.pySourceCodeContainer.GetSyntaxColorAttributes` (#2216, @Avasam)
 * Fixed a `TypeError` due to incorrect kwargs in `win32comext.axscript.client.pydumper.Register` (#2216, @Avasam)
 * Fixed error reporting of file copy failure for for installing debug dlls (#2216, @Avasam)
 * Fixed `py.exe -m win32verstamp` command and other quote typos caused by Implied String Concatenation (#2225, @Avasam)
+* Fixed tons of quote-related typos in strings, docs and comments (#2271 , @Avasam)
 * Fixed VT_SAFEARRAY(VT_RECORD) which were missing the last element (#2247)
 * Fixed `MFC redist DLLs not found` by preferring corresponding version but accepting different version (#2248, @andreabravetti)
 * Fixed `pywintypes.error: (5, 'RegOpenKeyEx', 'Access is denied.')` when running service with debug parameter and no elevation (#2238, @jmartens)
@@ -136,6 +137,7 @@ Coming in build 307, as yet unreleased
   * Use byte-string (`b""`) for constant bytes values instead of superfluous `.encode` calls (#2046, @Avasam)
   * Cleaned up unused imports (#1986, #2051, #1990, #2124, #2126, @Avasam)
   * Removed duplicated declarations, constants and definitions (#2050 , #1950, #1990, @Avasam)
+* Small generalized optimization by using augmented assignements (in-place operators) where possible (#2274, @Avasam)
 * General speed and size improvements due to all the removed code. (#2046, #1986, #2050, #1950, #2085, #2087, #2051, #1990, #2106, #2127, #2124, #2126, #2177, #2218, #2202, #2205, #2217)
 
 ### adodbapi

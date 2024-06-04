@@ -2,7 +2,7 @@
 #
 # We used to support optional editors - eg, color or non-color.
 #
-# This really isnt necessary with Scintilla, and scintilla
+# This really isn't necessary with Scintilla, and scintilla
 # is getting so deeply embedded that it was too much work.
 
 import win32ui
@@ -45,7 +45,7 @@ def LoadDefaultEditor():
 ##			del rc
 ##
 ##	try:
-##		# Try and load the default one - dont catch errors here.
+##		# Try and load the default one - don't catch errors here.
 ##		if mod is None:
 ##			prefModule = "pywin.framework.editor.color.coloreditor"
 ##			mod = __import__(prefModule)
