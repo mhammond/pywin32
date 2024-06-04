@@ -99,9 +99,7 @@ class HierList(object.Object):
             lbid = listControl.GetDlgCtrlID()
             assert (
                 self.listBoxId is None or self.listBoxId == lbid
-            ), "An invalid listbox control ID has been specified (specified as {}, but exists as {})".format(
-                self.listBoxId, lbid
-            )
+            ), f"An invalid listbox control ID has been specified (specified as {self.listBoxId}, but exists as {lbid})"
             self.listBoxId = lbid
         self.listControl.SetImageList(self.imageList, commctrl.LVSIL_NORMAL)
         # 		self.list.AttachObject(self)

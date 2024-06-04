@@ -99,10 +99,10 @@ class MapEntry:
 
     def __repr__(self):
         return (
-            "MapEntry(dispid={s.dispid}, desc={s.desc}, names={s.names}, doc={s.doc!r}, "
-            "resultCLSID={s.resultCLSID}, resultDocumentation={s.resultDocumentation}, "
-            "wasProperty={s.wasProperty}, hidden={s.hidden}"
-        ).format(s=self)
+            f"MapEntry(dispid={self.dispid}, desc={self.desc}, names={self.names}, doc={self.doc!r}, "
+            f"resultCLSID={self.resultCLSID}, resultDocumentation={self.resultDocumentation}, "
+            f"wasProperty={self.wasProperty}, hidden={self.hidden}"
+        )
 
     def GetResultCLSID(self):
         rc = self.resultCLSID
@@ -424,18 +424,12 @@ class DispatchItem(OleItem):
                 )
                 s += f"{linePrefix}\tif ret is not None:\n"
                 if rd == pythoncom.VT_UNKNOWN:
-                    s += "{}\t\t# See if this IUnknown is really an IDispatch\n".format(
-                        linePrefix
-                    )
+                    s += f"{linePrefix}\t\t# See if this IUnknown is really an IDispatch\n"
                     s += f"{linePrefix}\t\ttry:\n"
-                    s += "{}\t\t\tret = ret.QueryInterface(pythoncom.IID_IDispatch)\n".format(
-                        linePrefix
-                    )
+                    s += f"{linePrefix}\t\t\tret = ret.QueryInterface(pythoncom.IID_IDispatch)\n"
                     s += f"{linePrefix}\t\texcept pythoncom.error:\n"
                     s += f"{linePrefix}\t\t\treturn ret\n"
-                s += "{}\t\tret = Dispatch(ret, {}, {})\n".format(
-                    linePrefix, repr(name), resclsid
-                )
+                s += f"{linePrefix}\t\tret = Dispatch(ret, {repr(name)}, {resclsid})\n"
                 s += "%s\treturn ret" % linePrefix
             elif rd == pythoncom.VT_BSTR:
                 s = f"{linePrefix}\t# Result is a Unicode object\n"
