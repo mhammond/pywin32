@@ -5,8 +5,6 @@ import sys
 import win32api
 import win32con
 
-error = "Registry utility error"
-
 # A .py file has a CLSID associated with it (why? - dunno!)
 CLSIDPyFile = "{b51df050-06ae-11cf-ad3b-524153480001}"
 
@@ -78,7 +76,7 @@ def RegisterPythonExe(exeFullPath, exeAlias=None, exeAppPath=None):
     """
     # Note - Don't work on win32s (but we don't care anymore!)
     if exeAppPath:
-        raise error("Do not support exeAppPath argument currently")
+        raise ValueError("Do not support exeAppPath argument currently")
     if exeAlias is None:
         exeAlias = os.path.basename(exeFullPath)
     win32api.RegSetValue(
