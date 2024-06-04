@@ -436,7 +436,7 @@ class DispatchItem(OleItem):
                 s += f"{linePrefix}\treturn ret"
             elif rd == pythoncom.VT_BSTR:
                 s = f"{linePrefix}\t# Result is a Unicode object\n"
-                s += "{}\treturn self._oleobj_.InvokeTypes({}, LCID, {}, {}, {}{})".format(
+                s += "{}\treturn self._oleobj_.InvokeTypes({}, LCID, {}, {}, {!r}{})".format(
                     linePrefix,
                     id,
                     fdesc[4],
