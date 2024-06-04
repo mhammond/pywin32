@@ -21,12 +21,15 @@ Coming in build 307, as yet unreleased
   * `com/win32com/server/policy.py`
   * `win32/Lib/regutil.py`
   * `win32/scripts/VersionStamp/vssutil.py`
-* Removed the following unused symbols. They were meant to be used as Exceptions, but were accidentally strings (#2270, @Avasam)
+* Removed the following unused symbols. They were meant to be used as Exceptions, but were accidentally strings (#2270, #2269, @Avasam)
   * `pywin.debugger.debugger.error`
   * `pywin.framework.dlgappcore.error`
   * `win32com.server.policy.error`
   * `regutil.error`
   * `win32.scripts.VersionStamp.vssutil.error`
+  * `win32com.universal.com_error`
+  * `win32com.client.build.error`
+  * `win32com.client.genpy.error`
 * Add EnumDesktopWindows (#2219, @CristiFati)
 * Marked `exc_type` and `exc_traceback` in `win32comext.axscript.client.error.AXScriptException.__init__` as deprecated. (#2236 , @Avasam)
   They are now unused and all information is taken from the `exc_value` parameter.

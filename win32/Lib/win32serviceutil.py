@@ -17,7 +17,7 @@ import win32con
 import win32service
 import winerror
 
-error = RuntimeError
+error = RuntimeError  # Re-exported alias
 
 
 # Returns the full path to an executable for hosting a Python service - typically
