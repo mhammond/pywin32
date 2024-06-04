@@ -208,19 +208,19 @@ def _NextTok(str, pos):
     if pos >= end:
         return None, 0
     while pos < end and str[pos] in string.whitespace:
-        pos = pos + 1
+        pos += 1
     # Special case for +-
     if str[pos] in "+-":
         return str[pos], pos + 1
     # Digits also a special case.
     endPos = pos
     while endPos < end and str[endPos] in string.digits + ".":
-        endPos = endPos + 1
+        endPos += 1
     if pos != endPos:
         return str[pos:endPos], endPos
     endPos = pos
     while endPos < end and str[endPos] not in string.whitespace + string.digits + "+-":
-        endPos = endPos + 1
+        endPos += 1
     if pos != endPos:
         return str[pos:endPos], endPos
     return None, 0
@@ -236,7 +236,7 @@ def TkIndexToOffset(bm, edit, marks):
             if col == "first" or col == "last":
                 # Tag name
                 if line != "sel":
-                    raise ValueError("Tags arent here!")
+                    raise ValueError("Tags aren't here!")
                 sel = edit.GetSel()
                 if sel[0] == sel[1]:
                     raise EmptyRange
@@ -253,7 +253,7 @@ def TkIndexToOffset(bm, edit, marks):
                     pos = edit.LineIndex(line)
                     if pos == -1:
                         pos = edit.GetTextLength()
-                    pos = pos + int(col)
+                    pos += int(col)
         except (ValueError, IndexError):
             raise ValueError("Unexpected literal in '%s'" % base)
     elif base == "insert":
@@ -262,7 +262,7 @@ def TkIndexToOffset(bm, edit, marks):
         pos = edit.GetTextLength()
         # Pretend there is a trailing '\n' if necessary
         if pos and edit.SCIGetCharAt(pos - 1) != "\n":
-            pos = pos + 1
+            pos += 1
     else:
         try:
             pos = marks[base]
@@ -283,23 +283,23 @@ def TkIndexToOffset(bm, edit, marks):
             if what[0] != "c":
                 raise ValueError("+/- only supports chars")
             if word == "+":
-                pos = pos + int(num)
+                pos += int(num)
             else:
-                pos = pos - int(num)
+                pos -= int(num)
         elif word == "wordstart":
             while pos > 0 and edit.SCIGetCharAt(pos - 1) in wordchars:
-                pos = pos - 1
+                pos -= 1
         elif word == "wordend":
             end = edit.GetTextLength()
             while pos < end and edit.SCIGetCharAt(pos) in wordchars:
-                pos = pos + 1
+                pos += 1
         elif word == "linestart":
             while pos > 0 and edit.SCIGetCharAt(pos - 1) not in "\n\r":
-                pos = pos - 1
+                pos -= 1
         elif word == "lineend":
             end = edit.GetTextLength()
             while pos < end and edit.SCIGetCharAt(pos) not in "\n\r":
-                pos = pos + 1
+                pos += 1
         else:
             raise ValueError("Unsupported relative offset '%s'" % word)
     return max(pos, 0)  # Tkinter is tollerant of -ve indexes - we aren't
@@ -322,8 +322,8 @@ class TkText:
     ##			size = self.edit.GetTabWidth()
     ##			if size==8: return "" # Tk default
     ##			return size # correct semantics?
-    ##		elif item=="font": # Used for measurements we dont need to do!
-    ##			return "Dont know the font"
+    ##		elif item=="font": # Used for measurements we don't need to do!
+    ##			return "Don't know the font"
     ##		raise IndexError, "Invalid index '%s'" % item
     def make_calltip_window(self):
         if self.calltips is None:
@@ -351,13 +351,13 @@ class TkText:
             and self.edit.SCIGetCharAt(start) == "\n"
             and self.edit.SCIGetCharAt(start - 1) == "\r"
         ):
-            start = start - 1
+            start -= 1
         if (
             end < self.edit.GetTextLength()
             and self.edit.SCIGetCharAt(end - 1) == "\r"
             and self.edit.SCIGetCharAt(end) == "\n"
         ):
-            end = end + 1
+            end += 1
         return start, end
 
     ##	def get_tab_width(self):
@@ -397,7 +397,7 @@ class TkText:
         ret = self.edit.GetTextRange(start, end)
         # pretend a trailing '\n' exists if necessary.
         if checkEnd and (not ret or ret[-1] != "\n"):
-            ret = ret + "\n"
+            ret += "\n"
         return ret.replace("\r", "")
 
     def index(self, spec):
@@ -447,7 +447,7 @@ class TkText:
         if old >= start and old < end:
             old = start
         elif old >= end:
-            old = old - (end - start)
+            old -= end - start
         self.edit.SetSel(old)
 
     def bell(self):
@@ -480,7 +480,7 @@ class TkText:
 
     def tag_remove(self, name, start, end):
         if name != "sel" or start != "1.0" or end != "end":
-            raise ValueError("Cant remove this tag")
+            raise ValueError("Can't remove this tag")
         # Turn the sel into a cursor
         self.edit.SetSel(self.edit.GetSel()[0])
 

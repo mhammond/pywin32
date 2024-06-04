@@ -29,7 +29,7 @@ template <class T>
 class CPythonWndFramework : public T {
    public:
     // EEEK - It seem necessary to have the _union_ of all possible base class ctors.
-    // The ctors seem to only be referenced when used, so they dont worry classes that dont use them??
+    // The ctors seem to only be referenced when used, so they don't worry classes that don't use them??
     // What a pain - anyone know how to avoid????
 
     // CWnd

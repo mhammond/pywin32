@@ -104,7 +104,7 @@ PyObject *ui_doc_get_first_view(PyObject *self, PyObject *args)
     GUI_END_SAVE;
 
     // @comm For more info, see <om PyCDocument.GetAllViews>
-    ASSERT(pWnd);  // shouldnt be possible.
+    ASSERT(pWnd);  // shouldn't be possible.
     return ui_assoc_object::make(UITypeFromCObject(pWnd), pWnd)->GetGoodRet();
 }
 
@@ -123,7 +123,7 @@ PyObject *ui_doc_get_all_views(PyObject *self, PyObject *args)
         GUI_BGN_SAVE;
         CView *pWnd = pDoc->GetNextView(pos);  // @pyseemfc CDocument|GetNextView
         GUI_END_SAVE;
-        ASSERT(pWnd);  // shouldnt be possible.
+        ASSERT(pWnd);  // shouldn't be possible.
         if (pWnd == NULL) {
             Py_DECREF(retList);
             RETURN_ERR("No view was available!");

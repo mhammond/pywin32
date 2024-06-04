@@ -175,7 +175,7 @@ class ShellFolderFileSystem(ShellFolderBase):
 
     def GetUIObjectOf(self, hwndOwner, pidls, iid, inout):
         # delegate to the shell.
-        assert len(pidls) == 1, "oops - arent expecting more than one!"
+        assert len(pidls) == 1, "oops - aren't expecting more than one!"
         pidl = pidls[0]
         folder, child_pidl = self._GetFolderAndPIDLForPIDL(pidl)
         try:

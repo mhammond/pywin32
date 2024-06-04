@@ -39,7 +39,7 @@ if not sys.argv:
 # To fix a problem with Pythonwin when started from the Pythonwin directory,
 # we update the pywin path to ensure it is absolute.
 # If it is indeed relative, it will be relative to our current directory.
-# If its already absolute, then this will have no affect.
+# If it's already absolute, then this will have no affect.
 import pywin
 import pywin.framework
 

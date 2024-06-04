@@ -5,7 +5,7 @@
 // A PERF_OBJECT_TYPE
 // A number of PERF_COUNTER_DEFINITIONs
 
-// dont manage these size better cos I cant be bothered!
+// don't manage these size better cos I can't be bothered!
 const int MMCD_SERVICE_SIZE = 25;
 const int MMCD_EVENTSOURCE_SIZE = 25;
 

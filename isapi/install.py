@@ -364,7 +364,7 @@ def _AssignScriptMapsReplace(target, script_maps):
 
 def _AssignScriptMapsEnd(target, script_maps):
     unique_new_maps = get_unique_items(script_maps, target.ScriptMaps)
-    target.ScriptMaps = target.ScriptMaps + unique_new_maps
+    target.ScriptMaps += unique_new_maps
 
 
 def _AssignScriptMapsStart(target, script_maps):

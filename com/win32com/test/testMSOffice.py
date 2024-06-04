@@ -86,7 +86,7 @@ def TestWord8(word):
     # XXX - note that
     # for para in paras:
     #       para().Font...
-    # doesnt seem to work - no error, just doesnt work
+    # doesn't seem to work - no error, just doesn't work
     # Should check if it works for VB!
     doc.Close(SaveChanges=0)
     word.Quit()

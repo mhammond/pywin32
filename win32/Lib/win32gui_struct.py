@@ -80,9 +80,9 @@ def UnpackNMITEMACTIVATE(lparam):
     if is64bit:
         # the struct module doesn't handle this correctly as some of the items
         # are actually structs in structs, which get individually aligned.
-        format = format + "iiiiiiixxxxP"
+        format += "iiiiiiixxxxP"
     else:
-        format = format + "iiiiiiiP"
+        format += "iiiiiiiP"
     buf = win32gui.PyMakeBuffer(struct.calcsize(format), lparam)
     return _MakeResult(
         "NMITEMACTIVATE hwndFrom idFrom code iItem iSubItem uNewState uOldState uChanged actionx actiony lParam",
@@ -522,10 +522,10 @@ def UnpackTVNOTIFY(lparam):
     item_size = struct.calcsize(_tvitem_fmt)
     format = _nmhdr_fmt + _nmhdr_align_padding
     if is64bit:
-        format = format + "ixxxx"
+        format += "ixxxx"
     else:
-        format = format + "i"
-    format = format + "%ds%ds" % (item_size, item_size)
+        format += "i"
+    format += "%ds%ds" % (item_size, item_size)
     buf = win32gui.PyGetMemory(lparam, struct.calcsize(format))
     hwndFrom, id, code, action, buf_old, buf_new = struct.unpack(format, buf)
     item_old = UnpackTVITEM(buf_old)
@@ -670,8 +670,8 @@ def UnpackLVDISPINFO(lparam):
 def UnpackLVNOTIFY(lparam):
     format = _nmhdr_fmt + _nmhdr_align_padding + "7i"
     if is64bit:
-        format = format + "xxxx"  # point needs padding.
-    format = format + "P"
+        format += "xxxx"  # point needs padding.
+    format += "P"
     buf = win32gui.PyGetMemory(lparam, struct.calcsize(format))
     (
         hwndFrom,

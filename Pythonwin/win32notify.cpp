@@ -372,7 +372,7 @@ BOOL Python_OnNotify(CWnd *pFrom, WPARAM, LPARAM lParam, LRESULT *pResult)
     PyObject *result = Python_do_callback(method, args);
     if (result == NULL)
         PyErr_Warn(PyExc_Warning, "Exception in OnNotify() handler");
-    else if (result == Py_None)  // allow for None "dont pass on", else result to windows
+    else if (result == Py_None)  // allow for None "don't pass on", else result to windows
         bPassOn = TRUE;
     else if (PyTuple_Check(result)) {
         // Result should be a tuple of the LRESULT and a tuple to fill the appropriate

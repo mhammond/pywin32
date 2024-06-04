@@ -35,7 +35,7 @@ class EventHandler:
         # be that view!
         try:
             pyview = unwrap(view)
-            print("and look - its a Python implemented view!", pyview)
+            print("and look - it's a Python implemented view!", pyview)
         except ValueError:
             pass
 

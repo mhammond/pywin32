@@ -54,7 +54,7 @@ class TestNetwork(unittest.TestCase):
             chunks.append(chunk)
         data = b"".join(chunks)
         # This must appear somewhere on the main page!
-        assert data.find(b"Python") > 0, repr(data)
+        self.assertGreater(data.find(b"Python"), 0, repr(data))
 
     def testFtpCommand(self):
         # ftp.python.org doesn't exist.  ftp.gnu.org is what Python's urllib

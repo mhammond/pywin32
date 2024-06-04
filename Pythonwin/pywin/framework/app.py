@@ -25,7 +25,7 @@ def SaveWindowSize(section, rect, state=""):
                  (same format as CREATESTRUCT position tuples)."""
     left, top, right, bottom = rect
     if state:
-        state = state + " "
+        state += " "
     win32ui.WriteProfileVal(section, state + "left", left)
     win32ui.WriteProfileVal(section, state + "top", top)
     win32ui.WriteProfileVal(section, state + "right", right)
@@ -35,7 +35,7 @@ def SaveWindowSize(section, rect, state=""):
 def LoadWindowSize(section, state=""):
     """Loads a section from an INI file, and returns a rect in a tuple (see SaveWindowSize)"""
     if state:
-        state = state + " "
+        state += " "
     left = win32ui.GetProfileVal(section, state + "left", 0)
     top = win32ui.GetProfileVal(section, state + "top", 0)
     right = win32ui.GetProfileVal(section, state + "right", 0)
@@ -211,7 +211,7 @@ class CApp(WinApp):
 
     def DoLoadModules(self, modules):
         # XXX - this should go, but the debugger uses it :-(
-        # dont do much checking!
+        # don't do much checking!
         for module in modules:
             __import__(module)
 
@@ -270,7 +270,7 @@ class CApp(WinApp):
     # No longer used by Pythonwin, as the C++ code has this same basic functionality
     # but handles errors slightly better.
     # It all still works, tho, so if you need similar functionality, you can use it.
-    # Therefore I havent deleted this code completely!
+    # Therefore I haven't deleted this code completely!
     # 	def CallbackManager( self, ob, args = () ):
     # 		"""Manage win32 callbacks.  Trap exceptions, report on them, then return 'All OK'
     # 		to the frame-work. """

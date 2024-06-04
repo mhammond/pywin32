@@ -4,7 +4,7 @@
 // Window Objects
 //
 class PYW_EXPORT PyCWnd : public PyCCmdTarget {
-   public:  // probably shouldnt be, but...
+   public:  // probably shouldn't be, but...
     MAKE_PY_CTOR(PyCWnd)
     CMapWordToPtr *pMessageHookList;
     CMapWordToPtr *pKeyHookList;

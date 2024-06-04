@@ -26,7 +26,7 @@ typedef enum // Missing EnumTestAttributes2
 	uuid(6bcdcb60-5605-11d0-ae5f-cadd4c000000),
 	version(1.1),
 	// an extended character in the help string should stress things...
-	helpstring("Python COM Test Harness 1.0 Type Library, © pywin32 contributors")
+	helpstring("Python COM Test Harness 1.0 Type Library, ï¿½ pywin32 contributors")
 ]
 library PyCOMTestLib
 {
@@ -70,7 +70,7 @@ library PyCOMTestLib
 		const long LongTest2 = 0x7FFFFFFFL;
 		const unsigned char UCharTest = 255;
 		const char CharTest = -1;
-		const LPWSTR StringTest = L"Hello Wo®ld";
+		const LPWSTR StringTest = L"Hello Woï¿½ld";
 	};
 
 	enum TestAttributes3{ // Note missing the enum name.
@@ -371,7 +371,7 @@ library PyCOMTestLib
 
 	[
 		uuid(638630ac-a734-45a2-8080-fda5c1e47f66),
-		helpstring("PyCOMTest Class that doesnt derive from IDispatch")
+		helpstring("PyCOMTest Class that doesn't derive from IDispatch")
 	]
 	coclass CoPyCOMTestNoDispatch
 	{

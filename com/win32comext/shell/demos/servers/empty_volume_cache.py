@@ -87,14 +87,14 @@ class EmptyVolumeCache:
         ]
 
     def _WalkCallback(self, arg, directory, files):
-        # callback function for os.path.walk - no need to be member, but its
+        # callback function for os.path.walk - no need to be member, but it's
         # close to the callers :)
         callback, total_list = arg
         for file in files:
             fqn = os.path.join(directory, file).lower()
             if file.endswith(".pyc") or file.endswith(".pyo"):
                 # See below - total_list is None means delete files,
-                # otherwise it is a list where the result is stored. Its a
+                # otherwise it is a list where the result is stored. It's a
                 # list simply due to the way os.walk works - only [0] is
                 # referenced
                 if total_list is None:

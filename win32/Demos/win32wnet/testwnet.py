@@ -115,7 +115,7 @@ def TestGetUser():
     u = win32wnet.WNetGetUser()
     print(f"Current global user is {u!r}")
     if u != win32wnet.WNetGetUser(None):
-        raise RuntimeError("Default value didnt seem to work!")
+        raise RuntimeError("Default value didn't seem to work!")
 
 
 TestGetUser()

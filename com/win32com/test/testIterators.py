@@ -124,7 +124,7 @@ class WrappedPythonCOMServerTestCase(_BaseTestCase):
 
 
 def suite():
-    # We dont want our base class run
+    # We don't want our base class run
     suite = unittest.TestSuite()
     for item in list(globals().values()):
         if (

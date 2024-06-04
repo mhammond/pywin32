@@ -74,14 +74,14 @@ def VssLog(project, linePrefix="", noLabels=5, maxItems=150):
     num = 0
     labelNum = 0
     for i in project.GetVersions(constants.VSSFLAG_RECURSYES):
-        num = num + 1
+        num += 1
         if num > maxItems:
             break
         commentDesc = itemDesc = ""
         if i.Action[:5] == "Added":
             continue
         if len(i.Label):
-            labelNum = labelNum + 1
+            labelNum += 1
             itemDesc = i.Action
         else:
             itemDesc = i.VSSItem.Name
@@ -115,7 +115,7 @@ def SubstituteVSSInFile(projectName, inName, outName):
         if version.Label:
             break
     else:
-        print("Couldnt find a label in the sourcesafe project!")
+        print("Couldn't find a label in the sourcesafe project!")
         return
     # Setup some local helpers for the conversion strings.
     vss_label = version.Label
@@ -128,10 +128,10 @@ def CountCheckouts(item):
     num = 0
     if item.Type == constants.VSSITEM_PROJECT:
         for sub in item.Items:
-            num = num + CountCheckouts(sub)
+            num += CountCheckouts(sub)
     else:
         if item.IsCheckedOut:
-            num = num + 1
+            num += 1
     return num
 
 
@@ -170,7 +170,7 @@ def MakeNewBuildNo(project, buildDesc=None, auto=0, bRebrand=0):
         try:
             buildNo = int(buildNo)
             if not bRebrand:
-                buildNo = buildNo + 1
+                buildNo += 1
             buildNo = str(buildNo)
         except ValueError:
             raise error("The previous label could not be incremented: %s" % (oldBuild))

@@ -151,7 +151,7 @@ PyTypeObject PyWinDateTimeType = {
     PyWinDateTimeType_methods,                /* tp_methods */
     0,                                        /* tp_members */
     0,                                        /* tp_getset */
-    // we fill tp_base in at runtime; its not available statically.
+    // we fill tp_base in at runtime; it's not available statically.
     0, /* tp_base */
     0, /* tp_dict */
     0, /* tp_descr_get */

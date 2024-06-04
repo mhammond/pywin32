@@ -4,9 +4,7 @@
 
 import argparse
 import os
-import re
 import sys
-import time
 import traceback
 import types
 import unittest
@@ -20,8 +18,6 @@ import win32con as wc
 import win32gui
 import win32ui
 from pywin.framework import scriptutils
-
-_clock = time.perf_counter
 
 user_interaction = getattr(__main__, "user_interaction", False)  # from all.py maybe
 file_abs = os.path.abspath(__file__)
@@ -76,13 +72,13 @@ class T(unittest.TestCase):
 
         # open a source file
         some_fn = src_dir + "\\_dbgscript.py"
-        assert some_fn != file_abs
+        self.assertNotEqual(some_fn, file_abs)
         scriptutils.JumpToDocument(some_fn)
         a = scriptutils.GetActiveFileName()
-        assert some_fn == a
+        self.assertEqual(some_fn, a)
         v = scriptutils.GetActiveEditControl()
         s = read_file(some_fn, encoding="latin-1", newline="\r\n")
-        assert s == v.GetTextRange(), "doc encoding not detected"
+        self.assertEqual(s, v.GetTextRange(), "doc encoding not detected")
 
         # open my own source file and check the text content
         scriptutils.JumpToDocument(__file__)
@@ -91,14 +87,14 @@ class T(unittest.TestCase):
                 f"Hello from test_pydocs() args={sys.argv} {os.getcwd()}"
             )
         v = scriptutils.GetActiveEditControl()
-        assert file_abs == v.GetDocument().GetPathName()
+        self.assertEqual(file_abs, v.GetDocument().GetPathName())
         t = v.GetTextRange()
         testpat = "self.app = thisApp"
-        assert testpat in t
+        self.assertIn(testpat, t)
         # Umlauts for encoding test: áéúäöü
-        assert read_file(__file__, encoding="utf-8", newline="\r\n") == t
+        self.assertEqual(read_file(__file__, encoding="utf-8", newline="\r\n"), t)
         v.SetSel(0)
-        assert v.GetSel() == (0, 0)
+        self.assertEqual(v.GetSel(), (0, 0))
 
         # raise the Find dialog using the menu and test it
         import pywin.scintilla.find
@@ -111,15 +107,15 @@ class T(unittest.TestCase):
         if "&Edit" != es:
             ix += 1
             es = m.GetMenuString(ix, wc.MF_BYPOSITION)
-        assert "&Edit" == es
+        self.assertEqual("&Edit", es)
         editm = m.GetSubMenu(ix)
-        assert editm.GetMenuItemCount() > 10
+        self.assertGreater(editm.GetMenuItemCount(), 10)
         for i in range(14):
             s = editm.GetMenuString(i, wc.MF_BYPOSITION)
             if s.startswith("R&eplace"):
                 break
         else:
-            assert 0, "Replace menu entry not found"
+            raise AssertionError("Replace menu entry not found")
         replace_id = editm.GetMenuItemID(i)
         win32gui.PumpWaitingMessages()
         v.SendMessage(wc.WM_COMMAND, replace_id)
@@ -127,7 +123,8 @@ class T(unittest.TestCase):
         d.editFindText.SetWindowText(testpat)
         d.OnFindNext(0, 0)
         s, e = v.GetSel()
-        assert e - s == len(testpat) and s > 0
+        self.assertEqual(e - s, len(testpat))
+        self.assertGreater(s, 0)
 
     def test_browseobj(self):
         """Test object browser"""
@@ -148,41 +145,43 @@ class T(unittest.TestCase):
         ), mock.patch("pywin.tools.browser.Browse", t_Browse):
             self.app.OnViewBrowse(0, 0)
         hl = o.dlg.hier_list
-        assert len(hl.itemHandleMap) > 10
-        assert hl.listControl.GetCount() > 10
+        self.assertGreater(len(hl.itemHandleMap), 10)
+        self.assertGreater(hl.listControl.GetCount(), 10)
         item = hl.GetSelectedItem()
-        assert "TestCase" in str(hl.listControl.GetItem(item))
-        assert "TestCase" in hl.ItemFromHandle(item).GetText()
+        self.assertIn("TestCase", str(hl.listControl.GetItem(item)))
+        self.assertIn("TestCase", hl.ItemFromHandle(item).GetText())
         item2 = hl.listControl.GetNextVisibleItem(item)
-        assert "Runs and tests" in str(hl.listControl.GetItem(item2))
+        self.assertIn("Runs and tests", str(hl.listControl.GetItem(item2)))
 
     def test_options_propsheet(self):
         """Check Pythonwin options property sheet"""
         lres = []
+
+        test = self
 
         def t_DoModal(self):
             self.CreateWindow()
             p = self.GetPage(4)  # format_page
             self.SetActivePage(p)
             p = self.GetPage(4)
-            assert p._DoButDefaultFont
-            assert (  # fixed / prop. font radio
+            test.assertTrue(p._DoButDefaultFont)
+            test.assertTrue(  # fixed / prop. font radio
                 p.GetDlgItem(win32ui.IDC_RADIO1).GetCheck()
                 ^ p.GetDlgItem(win32ui.IDC_RADIO2).GetCheck()
             )
-            assert p.listbox.GetCount() >= 16  # styles list
-            assert p.GetSelectedStyle().name
+            test.assertGreaterEqual(p.listbox.GetCount(), 16)  # styles list
+            test.assertTrue(p.GetSelectedStyle().name)
             lres.append("done")
 
             w_obj = weakref.ref(p._obj_)
-            assert w_obj()
+            test.assertTrue(w_obj())
             self.DestroyWindow()
-            assert p._obj_ is None
-            assert self._obj_ is None
+            test.assertIsNone(p._obj_)
+            test.assertIsNone(self._obj_)
 
         with mock.patch("pywin.mfc.dialog.PropertySheet.DoModal", t_DoModal):
             self.app.OnViewOptions(0, 0)
-            assert lres
+            self.assertTrue(lres)
 
     def test_ctrls(self):
         from pywin.mfc import dialog
@@ -213,9 +212,9 @@ class T(unittest.TestCase):
         slider.CreateWindow(_cst, (0, 10, 200, 40), d, 100)
         win32gui.PumpWaitingMessages()
         mi, ma = slider.GetRange()
-        assert slider.GetPos() == 0
+        self.assertEqual(slider.GetPos(), 0)
         slider.SetPos(20)
-        assert slider.GetPos() == 20
+        self.assertEqual(slider.GetPos(), 20)
 
         # progress
         pc = win32ui.CreateProgressCtrl()
@@ -227,9 +226,9 @@ class T(unittest.TestCase):
         # edit
         edit = win32ui.CreateEdit()
         edit.CreateWindow(_cst | wc.WS_BORDER, (5, 60, 100, 80), d, 101)
-        assert d.GetDlgItem(101) is edit
+        self.assertIs(d.GetDlgItem(101), edit)
         d.DestroyWindow()
-        assert d._obj_ is None
+        self.assertIsNone(d._obj_)
 
     def test_dc(self):
         from pywin.mfc import window
@@ -290,8 +289,16 @@ class T(unittest.TestCase):
         self.addCleanup(lambda: (o.cnt_ondestroy or w.DestroyWindow()))
         win32gui.PumpWaitingMessages()
         dc = w.GetDC()
-        assert o.cnt_onpaint > 0, "".join(
-            traceback.format_exception(None, o.exc, o.exc.__traceback__)
+        self.assertGreater(
+            o.cnt_onpaint,
+            0,
+            (
+                "".join(
+                    traceback.format_exception(type(o.exc), o.exc, o.exc.__traceback__)
+                )
+                if hasattr(o, "exc")
+                else None
+            ),
         )
         pix = dc.GetPixel(1, 1)
         bmp = win32ui.CreateBitmap()
@@ -300,13 +307,13 @@ class T(unittest.TestCase):
         dcb.SelectObject(bmp)
         dcb.BitBlt((0, 0), (30, 30), dc, (0, 0), wc.SRCCOPY)
         sbits = bmp.GetBitmapBits(0)
-        assert any(sbits[:4])
+        self.assertTrue(any(sbits[:4]))
         w.ReleaseDC(dc)
 
-        assert pix == 255  # red
-        assert o.cnt_ondestroy == 0
+        self.assertEqual(pix, 255, "not red")
+        self.assertEqual(o.cnt_ondestroy, 0)
         w.DestroyWindow()
-        assert o.cnt_ondestroy == 1
+        self.assertEqual(o.cnt_ondestroy, 1)
 
     def test_ia(self):
         """Test interactive, run, autocomplete, exec"""
@@ -318,8 +325,9 @@ class T(unittest.TestCase):
         scriptutils.JumpToDocument(fn)
         cmGo = win32ui.IDC_DBG_GO
         mf.SendMessage(wc.WM_COMMAND, cmGo)
-        assert __main__.aa == 33 == ia.interp.globals["aa"]
-        assert __main__.ff() == 132
+        self.assertEqual(__main__.aa, 33)
+        self.assertEqual(ia.interp.globals["aa"], 33)
+        self.assertEqual(__main__.ff(), 132)
 
         # ia auto-indent + auto-complete + exec
         ia.SetFocus()
@@ -329,18 +337,20 @@ class T(unittest.TestCase):
         ia.ProcessEnterEvent(None)
         ia.ReplaceSel("CC")
         tail1 = ia.GetTextRange(ia.GetTextLength() - 20)
-        assert tail1.endswith("... \tCC"), "wrong auto-indent: %r" % tail1
+        self.assertTrue(tail1.endswith("... \tCC"), f"wrong auto-indent: {tail1!r}")
         ia.SendMessage(wc.WM_KEYDOWN, win32api.VkKeyScan("."))
         ia.SendMessage(wc.WM_KEYUP, win32api.VkKeyScan("."))
         ia.SendMessage(wc.WM_KEYDOWN, wc.VK_TAB)  # select 1st entry
         ia.SendMessage(wc.WM_KEYUP, wc.VK_TAB)
         tail2 = ia.GetTextRange(ia.GetTextLength() - 20)
-        assert tail2.endswith("... \tCC.cc"), "wrong auto-complete: %r" % tail2
+        self.assertTrue(
+            tail2.endswith("... \tCC.cc"), f"wrong auto-complete: {tail2!r}"
+        )
         ia.ProcessEnterEvent(None)
         ia.SendMessage(wc.WM_KEYDOWN, wc.VK_RETURN)
         ia.SendMessage(wc.WM_KEYUP, wc.VK_RETURN)
         execd = ia.GetTextRange(ia.GetTextLength() - 20)
-        assert "\n44" in execd, "wrong result: %r" % execd  # CC.cc == 44
+        self.assertIn("\n44", execd, "wrong result")  # CC.cc == 44
 
         # ia calltip + call exec
         ia.SetFocus()
@@ -350,18 +360,18 @@ class T(unittest.TestCase):
         shift = ss_vk & 0x100  ## N/E win32api.SendInput()
         t_GKS = lambda key: (key == wc.VK_SHIFT and shift) and 0x8000 or 0
         with mock.patch("win32api.GetKeyState", t_GKS):
-            assert not ia.SCICallTipActive()
+            self.assertFalse(ia.SCICallTipActive())
             ia.SendMessage(wc.WM_KEYDOWN, ss_vk & 0xFF)
             ia.SendMessage(wc.WM_CHAR, ord("("))
             ia.SendMessage(wc.WM_KEYUP, ss_vk & 0xFF)
-        assert ia.SCICallTipActive()
+        self.assertTrue(ia.SCICallTipActive())
         if ia.GetSel()[1] == ia.GetTextLength():  # no auto close bracket
             ia.SendMessage(wc.WM_CHAR, ord(")"))
         ia.GotoEndOfFileEvent(None)
         ia.SendMessage(wc.WM_KEYDOWN, wc.VK_RETURN)
         ia.SendMessage(wc.WM_KEYUP, wc.VK_RETURN)
         execd = ia.GetTextRange(ia.GetTextLength() - 20)
-        assert "\n132" in execd, execd  # ff() == 132
+        self.assertIn("\n132", execd)  # ff() == 132
 
     def test_docedit(self):
         import tempfile
@@ -370,15 +380,15 @@ class T(unittest.TestCase):
 
         ##doc = pywin.framework.editor.editorTemplate.OpenDocumentFile(None)
         def t_print(*args):
-            assert "ERROR" not in str(args)  # XXX put asserts into that test()
-            assert 0, "should not print at all"
+            self.assertNotIn("ERROR", str(args))  # XXX put asserts into that test()
+            raise AssertionError("should not print at all")
 
         with mock.patch("builtins.print", t_print):
             pywin.scintilla.IDLEenvironment.test()
         ed = scriptutils.GetActiveEditControl()
         doc = ed.GetDocument()
-        assert "hi there" in ed.GetTextRange()
-        assert doc.IsModified()
+        self.assertIn("hi there", ed.GetTextRange())
+        self.assertTrue(doc.IsModified())
 
         # edit w auto-indent
         ed.SetWindowText("")
@@ -389,7 +399,7 @@ class T(unittest.TestCase):
         ed.SendMessage(wc.WM_KEYDOWN, wc.VK_RETURN)
         ed.SendMessage(wc.WM_KEYUP, wc.VK_RETURN)
         s = ed.GetTextRange()
-        assert re.match(r"(?m)if 1:\r\n[ \t]+CC\r\n[ \t]+\r\n$", s), "no auto-indent"
+        self.assertRegex(s, r"(?m)if 1:\r\n[ \t]+CC\r\n[ \t]+\r\n$", "no auto-indent")
 
         # save doc to temp file
         fh, tfn = tempfile.mkstemp(suffix=".py", prefix="pywintest-")
@@ -397,7 +407,7 @@ class T(unittest.TestCase):
         self.addCleanup(lambda: os.remove(tfn))
         doc.OnSaveDocument(tfn)
         r = read_file(tfn, "rb").decode()
-        assert s == r
+        self.assertEqual(s, r)
         doc.OnCloseDocument()
 
     def test_debugger(self):
@@ -413,7 +423,7 @@ class T(unittest.TestCase):
         win32gui.PumpWaitingMessages()
 
         src = v.GetTextRange()
-        assert "aa = 33" in src
+        self.assertIn("aa = 33", src)
 
         def getlno(s):
             return src[: src.index(s)].count("\n") + 1
@@ -438,10 +448,10 @@ class T(unittest.TestCase):
             "pywin.debugger.debugger.Debugger.GUIAboutToBreak", t_brk
         ):
             mf.SendMessage(wc.WM_COMMAND, cmGo)  # debh.OnGo(0, 0)
-        assert not cmds_brk_next, "break commands remaining"
-        assert obj.brk_linenos[0] == getlno("aa = 22")
-        assert obj.brk_linenos[1] == getlno("aa = 77")
-        assert dmod.aa == 22  # aa = 33 not executed / cmClose
+        self.assertFalse(cmds_brk_next, "break commands remaining")
+        self.assertEqual(obj.brk_linenos[0], getlno("aa = 22"))
+        self.assertEqual(obj.brk_linenos[1], getlno("aa = 77"))
+        self.assertEqual(dmod.aa, 22)  # aa = 33 not executed / cmClose
 
 
 if __name__ == "__main__":
@@ -451,7 +461,7 @@ if __name__ == "__main__":
         ##ts = unittest.TestLoader().loadTestsFromTestCase(T)
         _tests = ts._tests[:]
         r = ts.debug()
-        assert teared_down
+        t.assertTrue(teared_down)
         print(_tests, "ok!")
         sys.exit()
 

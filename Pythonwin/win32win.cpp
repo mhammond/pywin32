@@ -622,7 +622,7 @@ BOOL PyCWnd::check_key_stroke(WPARAM ch)
 
 CWnd *PyCWnd::GetPythonGenericWnd(PyObject *self, ui_type_CObject *pType)
 {
-    // Damn it - only pass PyCWnd::type so the RTTI check wont fail
+    // Damn it - only pass PyCWnd::type so the RTTI check won't fail
     // for builtin controls.
     return (CWnd *)GetGoodCppObject(self, &type);
 }
@@ -647,7 +647,7 @@ CWnd *PyCWnd::GetPythonGenericWnd(PyObject *self, ui_type_CObject *pType)
                 #include "D:\Program Files\DevStudio\VC\mfc\src\WINHAND_.H"
                 extern AFX_MODULE_THREAD_STATE * PyWin_MainModuleThreadState;
 
-                // Lets see if it is in the main thread state
+                // Let's see if it is in the main thread state
                 if (PyWin_MainModuleThreadState->m_pmapHWND &&
                     (AfxGetModuleThreadState() != PyWin_MainModuleThreadState)) {
                     // Gross hack - look it up in the internal map structure.
@@ -667,7 +667,7 @@ CWnd *PyCWnd::GetPythonGenericWnd(PyObject *self, ui_type_CObject *pType)
         if (makeType.pCObjectClass && makeType.pCObjectClass->m_pfnCreateObject) {
             pWnd = (CWnd *)makeType.pCObjectClass->CreateObject();
             if (pWnd == NULL) {
-                PyErr_SetString(PyExc_MemoryError, "Cant create the window object");
+                PyErr_SetString(PyExc_MemoryError, "Can't create the window object");
                 return NULL;
             }
             ASSERT(pWnd->IsKindOf(RUNTIME_CLASS(CWnd)));  // Must be a window object we just created!
@@ -3515,7 +3515,7 @@ static PyObject *PyCFrameWnd_DockControlBar(PyObject *self, PyObject *args)
         Py_INCREF(Py_None);
     }
     __except (EXCEPTION_EXECUTE_HANDLER) {
-        rc = NULL;  // Cant set Python error till we have the lock back.
+        rc = NULL;  // Can't set Python error till we have the lock back.
     }
     GUI_END_SAVE;
     if (rc == NULL)

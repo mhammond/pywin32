@@ -67,7 +67,7 @@ PySequenceMethods PySecBufferDesc_sequencemethods = {
     NULL,                         // objobjproc sq_contains;
     NULL,                         // binaryfunc sq_inplace_concat;
     NULL                          // intargfunc sq_inplace_repeat;
-};  // ??? why isnt append included ???
+};  // ??? why isn't append included ???
 
 // @object PySecBufferDesc|Sequence-like object that contains a group of buffers to be used with SSPI functions.
 // @comm This object is created using win32security.PySecBufferDescType(Version), where Version is an int that

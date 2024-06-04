@@ -373,7 +373,7 @@ static PyObject *PyNetShareEnum1(WCHAR *szServerName)
                         return NULL;
                     }
 
-                    p_nr++;  // next object (its a ++ because it is a typed pointer)
+                    p_nr++;  // next object (it's a ++ because it is a typed pointer)
                     dwCount--;
                 } while (dwCount);
             };  // if dwCount

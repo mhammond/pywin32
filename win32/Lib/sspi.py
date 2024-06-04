@@ -39,7 +39,7 @@ class _BaseAuth:
         implementation is to increment a counter
         """
         ret = self.next_seq_num
-        self.next_seq_num = self.next_seq_num + 1
+        self.next_seq_num += 1
         return ret
 
     def encrypt(self, data):

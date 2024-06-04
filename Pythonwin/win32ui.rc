@@ -909,7 +909,7 @@ BEGIN
     CONTROL         "View end of line markers",IDC_VIEW_EOL,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,141,50,97,12
     GROUPBOX        "Tab-Timmy",IDC_STATIC,7,67,242,48
-    CONTROL         "Dont show inconsistent indentation",IDC_TABTIMMY_NONE,
+    CONTROL         "Don't show inconsistent indentation",IDC_TABTIMMY_NONE,
                     "Button",BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,14,
                     76,122,12
     CONTROL         "Show as indicator",IDC_TABTIMMY_IND,"Button",

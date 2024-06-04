@@ -2,7 +2,7 @@
 
 Uses standard COM marshalling to pass objects between threads.  Even
 though Python generally seems to work when you just pass COM objects
-between threads, it shouldnt.
+between threads, it shouldn't.
 
 This shows the "correct" way to do it.
 
@@ -110,7 +110,7 @@ def test(fn):
             if rc >= win32event.WAIT_OBJECT_0 and rc < win32event.WAIT_OBJECT_0 + len(
                 events
             ):
-                numFinished = numFinished + 1
+                numFinished += 1
                 if numFinished >= len(events):
                     break
             elif rc == win32event.WAIT_OBJECT_0 + len(events):  # a message

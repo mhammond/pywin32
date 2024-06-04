@@ -253,7 +253,7 @@ class EditorWhitespacePropertyPage(dialog.PropertyPage):
         for c in paletteVGA:
             if tt_color == win32api.RGB(c[1], c[2], c[3]):
                 break
-            sel = sel + 1
+            sel += 1
         else:
             sel = -1
         self.cbo.SetCurSel(sel)

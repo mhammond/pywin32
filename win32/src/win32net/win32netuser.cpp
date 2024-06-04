@@ -511,7 +511,7 @@ PyObject *PyNetUserGetGroups(PyObject *self, PyObject *args)
                     return NULL;
                 }
 
-                p_nr++;  // next object (its a ++ because it is a typed pointer!)
+                p_nr++;  // next object (it's a ++ because it is a typed pointer!)
                 dwCount--;
             } while (dwCount);
         };  // if (dwCount > 0)
@@ -597,7 +597,7 @@ PyObject *PyNetUserGetLocalGroups(PyObject *self, PyObject *args)
                     return NULL;
                 }
 
-                p_nr++;  // next object (its a ++ because it is a typed pointer!)
+                p_nr++;  // next object (it's a ++ because it is a typed pointer!)
                 dwCount--;
             } while (dwCount);
         };  // if (dwCount > 0)
