@@ -253,7 +253,7 @@ class SourceModuleContainer(SourceCodeContainer):
 
 
 if __name__ == "__main__":
-    from Test import ttest
+    from test import ttest
 
     sc = SourceModuleContainer(ttest)
     # sc = SourceCodeContainer(open(sys.argv[1], "rb").read(), sys.argv[1])
