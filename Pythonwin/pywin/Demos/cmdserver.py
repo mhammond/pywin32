@@ -107,7 +107,7 @@ def ServerThread(myout, cmd, title, bCloseOnEnd):
 # assist for reloading (when debugging) - use only 1 tracer object,
 # else a large chain of tracer objects will exist.
 try:
-    writer
+    writer  # type: ignore[has-type, used-before-def]
 except NameError:
     writer = ThreadWriter()
 if __name__ == "__main__":

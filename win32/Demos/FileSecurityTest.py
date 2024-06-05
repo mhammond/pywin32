@@ -1,4 +1,6 @@
 # Contributed by Kelly Kranabetter.
+from __future__ import annotations
+
 import os
 import sys
 
@@ -116,7 +118,7 @@ else:
             "GENERIC_ALL",
         )
         if os.path.isfile(name):
-            permissions = permissions_file
+            permissions: tuple[str, ...] = permissions_file
         else:
             permissions = permissions_dir
             # directories also contain an ACE that is inherited by children (files) within them

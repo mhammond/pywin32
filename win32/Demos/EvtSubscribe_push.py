@@ -1,4 +1,6 @@
 ## Demonstrates a "push" subscription with a callback function
+from __future__ import annotations
+
 import win32evtlog
 
 query_text = '*[System[Provider[@Name="Microsoft-Windows-Winlogon"]]]'
@@ -15,7 +17,7 @@ def c(reason, context, evt):
     return 0
 
 
-evttext = []
+evttext: list[str] = []
 s = win32evtlog.EvtSubscribe(
     "System",
     win32evtlog.EvtSubscribeStartAtOldestRecord,
