@@ -36,7 +36,6 @@
   "reportCallIssue": "warning",
   "reportOperatorIssue": "warning",
   "reportOptionalCall": "warning",
-  "reportOptionalIterable": "warning",
   "reportOptionalMemberAccess": "warning",
   "reportOptionalSubscript": "warning",
   // TODO: Leave Unbound/Undefined to their own PR(s)
