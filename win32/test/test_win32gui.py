@@ -72,7 +72,7 @@ class TestEnumWindowsFamily(unittest.TestCase):
 
     @classmethod
     def enum_callback_exc(cls, handle, data):
-        raise ValueError
+        raise ValueError()
 
     @classmethod
     def enum_callback(cls, handle, data):

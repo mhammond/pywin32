@@ -45,7 +45,7 @@ Coming in build 307, as yet unreleased
 * Fixed handling of `SyntaxError` exception from a Windows Scripting Host Python Script on Python 3.10+ (#2235, @nbbeatty)
 * Add `CredGetSessionTypes` support (#2232, @CristiFati)
 * Fixed `win32clipboard` increasing size of data when `SetClipboardData` used with `CF_DIB` (#2184, @CristiFati)
-* Add `StoreLogoff` to `PyIMsgStore` to prevent possible hang when MAPI uninitializes or during session logoff (#2196, @avivbrg)
+* Add `StoreLogoff` to `PyIMsgStore` to prevent possible hang when MAPI uninitializes or during session logoff (#2196, avivbrg)
 * Enhance CredDelete to work with dictionaries (#2198, @CristiFati)
 * Add UnregisterHotKey support (#2185, @CristiFati)
 * IFolderView COM client support (#2180, #2181, #2182, @CristiFati)

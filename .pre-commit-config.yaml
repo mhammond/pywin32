@@ -46,5 +46,8 @@ repos:
 # Vendored
 exclude: ^(com/win32comext/mapi/src/mapi_headers/|Pythonwin/Scintilla/).*$
 
+# Vendored
+exclude: ^(com/win32comext/mapi/src/mapi_headers/|Pythonwin/Scintilla/).*$
+
 ci:
   autoupdate_schedule: quarterly

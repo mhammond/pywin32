@@ -2,9 +2,7 @@ target-version = "py37" # Target the oldest supported version
 
 [lint]
 select = [
-  "C4", # flake8-comprehensions
-  "F811", # redefined-while-unused
-  "I", # isort
+  "I",   # isort
   "PLC", # Pylint Convention
   "PLE", # Pylint Error
   "RSE", # flake8-raise
@@ -36,8 +34,6 @@ select = [
 [lint.per-file-ignores]
 # Explicit re-exports is fine in __init__.py, still a code smell elsewhere.
 "__init__.py" = ["PLC0414"]
-# TODO: Make adodbapi changes in their own PRs
-"adodbapi/*" = ["C4", "YTT301", "UP031", "UP032", "ISC002"]
 
 [lint.isort]
 combine-as-imports = true
