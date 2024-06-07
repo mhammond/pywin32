@@ -1068,7 +1068,7 @@ static int CALLBACK PyBrowseCallbackProc(HWND hwnd, UINT uMsg, LPARAM lParam, LP
 #endif
     if (!args)
         goto done;
-    result = PyEval_CallObject(pc->fn, args);
+    result = PyObject_CallObject(pc->fn, args);
     // API says must return 0, but there might be a good reason.
     if (result && PyLong_Check(result))
         rc = PyLong_AsLong(result);
