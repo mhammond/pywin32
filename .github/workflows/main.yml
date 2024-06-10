@@ -30,6 +30,7 @@ jobs:
           architecture: ${{ matrix.architecture }}
           cache: pip
           cache-dependency-path: .github/workflows/main.yml
+          check-latest: true
 
       - name: Setup environment
         run: |
@@ -77,6 +78,7 @@ jobs:
           architecture: "x64"
           cache: pip
           cache-dependency-path: .github/workflows/main.yml
+          check-latest: true
 
       - name: Setup Environment
         run: |
@@ -136,6 +138,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: pip
           cache-dependency-path: .github/workflows/main.yml
+          check-latest: true
       - run: pip install types-regex types-setuptools mypy==1.9
       - run: mypy . --python-version=${{ matrix.python-version }}
 
@@ -152,6 +155,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: pip
           cache-dependency-path: .github/workflows/main.yml
+          check-latest: true
       # pyright vendors typeshed, but let's make sure we have the most up to date stubs
       - run: pip install types-regex types-setuptools
       - uses: jakebailey/pyright-action@v2
