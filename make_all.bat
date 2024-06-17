@@ -40,6 +40,10 @@ py -3.9 setup.py -q bdist_wininst --skip-build --target-version=3.12
 py -3.12-32 setup.py -q bdist_wheel --skip-build
 py -3.12 setup.py -q bdist_wheel --skip-build
 
+py -3.9 setup.py -q bdist_wininst --skip-build --target-version=3.13
+py -3.13-32 setup.py -q bdist_wheel --skip-build
+py -3.13 setup.py -q bdist_wheel --skip-build
+
 rem ARM64 builds - requires you to select:
 rem * "Visual C++ compilers and libraries for ARM64"
 rem * "Visual C++ for MFC for ARM64"
@@ -47,6 +51,7 @@ rem from "Individual Components" in VS setup.
 py -3.10 setup.py -q build_ext --plat-name win-arm64 build --plat-name win-arm64 bdist_wheel --plat-name win-arm64
 py -3.11 setup.py -q build_ext --plat-name win-arm64 build --plat-name win-arm64 bdist_wheel --plat-name win-arm64
 py -3.12 setup.py -q build_ext --plat-name win-arm64 build --plat-name win-arm64 bdist_wheel --plat-name win-arm64
+py -3.13 setup.py -q build_ext --plat-name win-arm64 build --plat-name win-arm64 bdist_wheel --plat-name win-arm64
 
 @goto xit
 :couldnt_rm

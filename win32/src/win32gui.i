@@ -6065,7 +6065,7 @@ static int CALLBACK PySortFunc(
 	assert(!PyErr_Occurred());
 	args = Py_BuildValue("llO", lParam1, lParam2, pc->data);
 	if (!args) goto done;
-	result = PyEval_CallObject(pc->fn, args);
+	result = PyObject_CallObject(pc->fn, args);
 	// API says must return 0, but there might be a good reason.
 	if (!result) goto done;
 	if (!PyLong_Check(result)) {
