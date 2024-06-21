@@ -409,6 +409,9 @@ static PyObject *PyWTSQuerySessionInformation(PyObject *self, PyObject *args, Py
         case WTSConnectState:  // @flag WTSConnectState|Int, from WTS_CONNECTSTATE_CLASS
             ret = PyLong_FromLong(*(INT *)buf);
             break;
+        case WTSIsRemoteSession:  // @flag WTSIsRemoteSession|Boolean
+            ret = PyBool_FromLong(*(BYTE *)buf);
+            break;
         case WTSClientDisplay: {  // @flag WTSClientDisplay|Dict containing client's display settings
             WTS_CLIENT_DISPLAY *wcd = (WTS_CLIENT_DISPLAY *)buf;
             ret = Py_BuildValue("{s:k, s:k, s:k}", "HorizontalResolution", wcd->HorizontalResolution,
@@ -768,6 +771,7 @@ PYWIN_MODULE_INIT_FUNC(win32ts)
     PyModule_AddIntConstant(module, "WTSClientAddress", WTSClientAddress);
     PyModule_AddIntConstant(module, "WTSClientDisplay", WTSClientDisplay);
     PyModule_AddIntConstant(module, "WTSClientProtocolType", WTSClientProtocolType);
+    PyModule_AddIntConstant(module, "WTSIsRemoteSession", WTSIsRemoteSession);
 
     // WTS_CONFIG_CLASS
     PyModule_AddIntConstant(module, "WTSUserConfigInitialProgram", WTSUserConfigInitialProgram);
