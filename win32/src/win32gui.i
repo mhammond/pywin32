@@ -5998,23 +5998,25 @@ PyGetScrollInfo (PyObject *self, PyObject *args)
 %native (GetScrollInfo) PyGetScrollInfo;
 
 %{
+#define MAX_CHARS 0x100
+
 // @pyswig string|GetClassName|Retrieves the name of the class to which the specified window belongs.
 static PyObject *
 PyGetClassName(PyObject *self, PyObject *args)
 {
-	HWND hwnd;
-	PyObject *obhwnd;
-	TCHAR buf[256];
-	// @pyparm <o PyHANDLE>|hwnd||The handle to the window
-	if (!PyArg_ParseTuple(args, "O:GetClassName", &obhwnd))
-		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
-		return NULL;
-	// don't bother with lock - no callback possible.
-	int nchars = GetClassName(hwnd, buf, sizeof buf/sizeof buf[0]);
-	if (nchars==0)
-		return PyWin_SetAPIError("GetClassName");
-	return PyWinObject_FromTCHAR(buf, nchars);
+    HWND hwnd;
+    PyObject *obhwnd;
+    TCHAR buf[MAX_CHARS];
+    // @pyparm <o PyHANDLE>|hwnd||The handle to the window
+    if (!PyArg_ParseTuple(args, "O:GetClassName", &obhwnd))
+        return NULL;
+    if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE*)&hwnd))
+        return NULL;
+    // don't bother with lock - no callback possible.
+    int nchars = GetClassName(hwnd, buf, MAX_CHARS);
+    if (nchars == 0)
+        return PyWin_SetAPIErrorOrReturnNone("GetClassName");
+    return PyWinObject_FromTCHAR(buf, nchars);
 }
 %}
 %native (GetClassName) PyGetClassName;
