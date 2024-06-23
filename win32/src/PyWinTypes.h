@@ -48,6 +48,22 @@
     if (!(dict = PyModule_GetDict(module)))                                                                 \
         return NULL;
 
+// clang-format off
+#define PYWIN_BEGIN_LOAD_LIBRARY(NAME) \
+{ \
+    DWORD lastErr = GetLastError(); \
+    HMODULE hmodule = GetModuleHandle(TEXT(NAME)); \
+    if (hmodule == NULL) \
+        hmodule = LoadLibrary(TEXT(NAME)); \
+    if (hmodule != NULL) { \
+        SetLastError(lastErr);
+
+
+#define PYWIN_END_LOAD_LIBRARY \
+    } \
+}
+// clang-format om
+
 // Helpers for our types.
 // Macro to handle PyObject layout changes in Py3k
 #define PYWIN_OBJECT_HEAD PyVarObject_HEAD_INIT(NULL, 0)
