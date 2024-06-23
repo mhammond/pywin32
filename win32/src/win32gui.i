@@ -266,42 +266,33 @@ for (PyMethodDef *pmd = win32guiMethods; pmd->ml_name; pmd++)
 		)
 		pmd->ml_flags = METH_VARARGS | METH_KEYWORDS;
 
-HMODULE hmodule=GetModuleHandle(TEXT("user32.dll"));
-if (hmodule==NULL)
-	hmodule=LoadLibrary(TEXT("user32.dll"));
-if (hmodule){
-	pfnSetLayeredWindowAttributes=(SetLayeredWindowAttributesfunc)GetProcAddress(hmodule,"SetLayeredWindowAttributes");
-	pfnGetLayeredWindowAttributes=(GetLayeredWindowAttributesfunc)GetProcAddress(hmodule,"GetLayeredWindowAttributes");
-	pfnUpdateLayeredWindow=(UpdateLayeredWindowfunc)GetProcAddress(hmodule,"UpdateLayeredWindow");
-	pfnAnimateWindow=(AnimateWindowfunc)GetProcAddress(hmodule,"AnimateWindow");
-	pfnGetMenuInfo=(GetMenuInfofunc)GetProcAddress(hmodule,"GetMenuInfo");
-	pfnSetMenuInfo=(SetMenuInfofunc)GetProcAddress(hmodule,"SetMenuInfo");
-	pfnDrawTextW=(DrawTextWfunc)GetProcAddress(hmodule, "DrawTextW");
-	}
+PYWIN_BEGIN_LOAD_LIBRARY("user32.dll")
+    pfnSetLayeredWindowAttributes = (SetLayeredWindowAttributesfunc)GetProcAddress(hmodule,"SetLayeredWindowAttributes");
+    pfnGetLayeredWindowAttributes = (GetLayeredWindowAttributesfunc)GetProcAddress(hmodule,"GetLayeredWindowAttributes");
+    pfnUpdateLayeredWindow = (UpdateLayeredWindowfunc)GetProcAddress(hmodule,"UpdateLayeredWindow");
+    pfnAnimateWindow = (AnimateWindowfunc)GetProcAddress(hmodule,"AnimateWindow");
+    pfnGetMenuInfo = (GetMenuInfofunc)GetProcAddress(hmodule,"GetMenuInfo");
+    pfnSetMenuInfo = (SetMenuInfofunc)GetProcAddress(hmodule,"SetMenuInfo");
+    pfnDrawTextW = (DrawTextWfunc)GetProcAddress(hmodule, "DrawTextW");
+PYWIN_END_LOAD_LIBRARY
 
-hmodule=GetModuleHandle(TEXT("gdi32.dll"));
-if (hmodule==NULL)
-	hmodule=LoadLibrary(TEXT("gdi32.dll"));
-if (hmodule){
-	pfnAngleArc=(AngleArcfunc)GetProcAddress(hmodule,"AngleArc");
-	pfnPlgBlt=(PlgBltfunc)GetProcAddress(hmodule,"PlgBlt");
-	pfnGetWorldTransform=(GetWorldTransformfunc)GetProcAddress(hmodule,"GetWorldTransform");
-	pfnSetWorldTransform=(SetWorldTransformfunc)GetProcAddress(hmodule,"SetWorldTransform");
-	pfnModifyWorldTransform=(ModifyWorldTransformfunc)GetProcAddress(hmodule,"ModifyWorldTransform");
-	pfnCombineTransform=(CombineTransformfunc)GetProcAddress(hmodule,"CombineTransform");
-	pfnMaskBlt=(MaskBltfunc)GetProcAddress(hmodule,"MaskBlt");
-	pfnGetLayout=(GetLayoutfunc)GetProcAddress(hmodule,"GetLayout");
-	pfnSetLayout=(SetLayoutfunc)GetProcAddress(hmodule,"SetLayout");
-	}
+PYWIN_BEGIN_LOAD_LIBRARY("gdi32.dll")
+    pfnAngleArc = (AngleArcfunc)GetProcAddress(hmodule,"AngleArc");
+    pfnPlgBlt = (PlgBltfunc)GetProcAddress(hmodule,"PlgBlt");
+    pfnGetWorldTransform = (GetWorldTransformfunc)GetProcAddress(hmodule,"GetWorldTransform");
+    pfnSetWorldTransform = (SetWorldTransformfunc)GetProcAddress(hmodule,"SetWorldTransform");
+    pfnModifyWorldTransform = (ModifyWorldTransformfunc)GetProcAddress(hmodule,"ModifyWorldTransform");
+    pfnCombineTransform = (CombineTransformfunc)GetProcAddress(hmodule,"CombineTransform");
+    pfnMaskBlt = (MaskBltfunc)GetProcAddress(hmodule,"MaskBlt");
+    pfnGetLayout = (GetLayoutfunc)GetProcAddress(hmodule,"GetLayout");
+    pfnSetLayout = (SetLayoutfunc)GetProcAddress(hmodule,"SetLayout");
+PYWIN_END_LOAD_LIBRARY
 
-hmodule=GetModuleHandle(TEXT("msimg32.dll"));
-if (hmodule==NULL)
-	hmodule=LoadLibrary(TEXT("msimg32.dll"));
-if (hmodule){
-	pfnGradientFill=(GradientFillfunc)GetProcAddress(hmodule,"GradientFill");
-	pfnTransparentBlt=(TransparentBltfunc)GetProcAddress(hmodule,"TransparentBlt");
-	pfnAlphaBlend=(AlphaBlendfunc)GetProcAddress(hmodule,"AlphaBlend");
-	}
+PYWIN_BEGIN_LOAD_LIBRARY("msimg32.dll")
+    pfnGradientFill = (GradientFillfunc)GetProcAddress(hmodule,"GradientFill");
+    pfnTransparentBlt = (TransparentBltfunc)GetProcAddress(hmodule,"TransparentBlt");
+    pfnAlphaBlend = (AlphaBlendfunc)GetProcAddress(hmodule,"AlphaBlend");
+PYWIN_END_LOAD_LIBRARY
 %}
 
 %{
