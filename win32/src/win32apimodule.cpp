@@ -4778,10 +4778,7 @@ static PyObject *PySetSystemTime(PyObject *self, PyObject *args)
     {
         return ReturnAPIError("SetSystemTime");
     }
-    else
-    {
-        return Py_BuildValue("i", result);
-    }
+    else { return Py_BuildValue("i", result); }
 }
 
 // @pymethod |win32api|SetThreadLocale|Sets the current thread's locale.
@@ -6263,18 +6260,13 @@ PYWIN_MODULE_INIT_FUNC(win32api)
     PyModule_AddIntConstant(module, "VS_FF_PRIVATEBUILD", VS_FF_PRIVATEBUILD);
     PyModule_AddIntConstant(module, "VS_FF_SPECIALBUILD", VS_FF_SPECIALBUILD);
 
-    HMODULE hmodule = GetModuleHandle(TEXT("secur32.dll"));
-    if (hmodule == NULL)
-        hmodule = LoadLibrary(TEXT("secur32.dll"));
-    if (hmodule != NULL) {
+    // clang-format off
+    PYWIN_BEGIN_LOAD_LIBRARY("secur32.dll")
         pfnGetUserNameEx = (GetUserNameExfunc)GetProcAddress(hmodule, "GetUserNameExW");
         pfnGetComputerObjectName = (GetUserNameExfunc)GetProcAddress(hmodule, "GetComputerObjectNameW");
-    }
+    PYWIN_END_LOAD_LIBRARY
 
-    hmodule = GetModuleHandle(TEXT("kernel32.dll"));
-    if (hmodule == NULL)
-        hmodule = LoadLibrary(TEXT("kernel32.dll"));
-    if (hmodule != NULL) {
+    PYWIN_BEGIN_LOAD_LIBRARY("kernel32.dll")
         pfnGetComputerNameEx = (GetComputerNameExfunc)GetProcAddress(hmodule, "GetComputerNameExW");
         pfnGetLongPathNameA = (GetLongPathNameAfunc)GetProcAddress(hmodule, "GetLongPathNameA");
         pfnGetLongPathNameW = (GetLongPathNameWfunc)GetProcAddress(hmodule, "GetLongPathNameW");
@@ -6287,12 +6279,10 @@ PYWIN_MODULE_INIT_FUNC(win32api)
         pfnSetDllDirectory = (SetDllDirectoryfunc)GetProcAddress(hmodule, "SetDllDirectoryW");
         pfnSetSystemPowerState = (SetSystemPowerStatefunc)GetProcAddress(hmodule, "SetSystemPowerState");
         pfnGetNativeSystemInfo = (GetNativeSystemInfofunc)GetProcAddress(hmodule, "GetNativeSystemInfo");
-    }
+    PYWIN_END_LOAD_LIBRARY
 
-    hmodule = GetModuleHandle(TEXT("user32.dll"));
-    if (hmodule == NULL)
-        hmodule = LoadLibrary(TEXT("user32.dll"));
-    if (hmodule != NULL) {
+
+    PYWIN_BEGIN_LOAD_LIBRARY("user32.dll")
         pfnEnumDisplayMonitors = (EnumDisplayMonitorsfunc)GetProcAddress(hmodule, "EnumDisplayMonitors");
         pfnEnumDisplayDevices = (EnumDisplayDevicesfunc)GetProcAddress(hmodule, "EnumDisplayDevicesW");
         pfnChangeDisplaySettingsEx = (ChangeDisplaySettingsExfunc)GetProcAddress(hmodule, "ChangeDisplaySettingsExW");
@@ -6302,12 +6292,9 @@ PYWIN_MODULE_INIT_FUNC(win32api)
         pfnGetMonitorInfo = (GetMonitorInfofunc)GetProcAddress(hmodule, "GetMonitorInfoW");
         pfnEnumDisplaySettingsEx = (EnumDisplaySettingsExfunc)GetProcAddress(hmodule, "EnumDisplaySettingsExW");
         pfnGetLastInputInfo = (GetLastInputInfofunc)GetProcAddress(hmodule, "GetLastInputInfo");
-    }
+    PYWIN_END_LOAD_LIBRARY
 
-    hmodule = GetModuleHandle(TEXT("Advapi32.dll"));
-    if (hmodule == NULL)
-        hmodule = LoadLibrary(TEXT("Advapi32.dll"));
-    if (hmodule != NULL) {
+    PYWIN_BEGIN_LOAD_LIBRARY("Advapi32.dll")
         pfnRegRestoreKey = (RegRestoreKeyfunc)GetProcAddress(hmodule, "RegRestoreKeyW");
         pfnRegSaveKeyEx = (RegSaveKeyExfunc)GetProcAddress(hmodule, "RegSaveKeyExW");
         pfnRegCreateKeyTransacted = (RegCreateKeyTransactedfunc)GetProcAddress(hmodule, "RegCreateKeyTransactedW");
@@ -6318,7 +6305,8 @@ PYWIN_MODULE_INIT_FUNC(win32api)
         pfnRegDeleteTree = (RegDeleteTreefunc)GetProcAddress(hmodule, "RegDeleteTreeW");
         pfnRegOpenCurrentUser = (RegOpenCurrentUserfunc)GetProcAddress(hmodule, "RegOpenCurrentUser");
         pfnRegOverridePredefKey = (RegOverridePredefKeyfunc)GetProcAddress(hmodule, "RegOverridePredefKey");
-    }
+    PYWIN_END_LOAD_LIBRARY
+    // clang-format on
 
     PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }
