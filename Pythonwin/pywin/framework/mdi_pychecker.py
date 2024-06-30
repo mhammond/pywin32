@@ -289,12 +289,12 @@ class TheDocument(docview.RichEditDoc):
         )
         # self.text = []
         self.GetFirstView().Append(
-            "#Pychecker Run in " + self.dirpattern + "  %s\n" % time.asctime()
+            f"#Pychecker Run in {self.dirpattern} {time.asctime()}\n"
         )
         if self.verbose:
-            self.GetFirstView().Append("#   =" + repr(self.dp.dirs) + "\n")
-        self.GetFirstView().Append("# Files   " + self.filpattern + "\n")
-        self.GetFirstView().Append("# Options " + self.greppattern + "\n")
+            self.GetFirstView().Append(f"#   ={self.dp.dirs!r}\n")
+        self.GetFirstView().Append(f"# Files   {self.filpattern}\n")
+        self.GetFirstView().Append(f"# Options {self.greppattern}\n")
         self.fplist = self.filpattern.split(";")
         self.GetFirstView().Append(
             "# Running...  ( double click on result lines in order to jump to the source code ) \n"
@@ -391,7 +391,7 @@ class TheDocument(docview.RichEditDoc):
             for i in range(len(lines)):
                 line = lines[i]
                 if self.pat.search(line) is not None:
-                    self.GetFirstView().Append(f + "(" + repr(i + 1) + ") " + line)
+                    self.GetFirstView().Append(f"{f} ({i + 1!r}) {line}")
         else:
             self.fndx = -1
             self.fpndx += 1
@@ -417,18 +417,13 @@ class TheDocument(docview.RichEditDoc):
         return 1
 
     def GetParams(self):
-        return (
-            self.dirpattern
-            + "\t"
-            + self.filpattern
-            + "\t"
-            + self.greppattern
-            + "\t"
-            + repr(self.casesensitive)
-            + "\t"
-            + repr(self.recurse)
-            + "\t"
-            + repr(self.verbose)
+        return "{}\t{}\t{}\t{!r}\t{!r}\t{!r}".format(
+            self.dirpattern,
+            self.filpattern,
+            self.greppattern,
+            self.casesensitive,
+            self.recurse,
+            self.verbose,
         )
 
     def OnSaveDocument(self, filename):
@@ -542,9 +537,11 @@ class TheView(docview.RichEditView):
                 if view.GetTextRange(pos - 1, pos) in ("\r", "\n"):
                     pos -= 1
                 view.SetSel(pos, pos)
-                errtext = m.group(3)
-                if start != end and line_start == line_end:
-                    errtext = self.GetSelText()
+                errtext = (
+                    self.GetSelText()
+                    if start != end and line_start == line_end
+                    else m.group(3)
+                )
                 errtext = repr(re.escape(errtext).replace(r"\ ", " "))
                 view.ReplaceSel(addspecific and cmnt % locals() or cmnt)
         return 0

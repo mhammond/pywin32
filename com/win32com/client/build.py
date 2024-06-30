@@ -113,9 +113,8 @@ class MapEntry:
         rc = self.GetResultCLSID()
         if rc is None:
             return "None"
-        return repr(
-            str(rc)
-        )  # Convert the IID object to a string, then to a string in a string.
+        # Convert the IID object to a string in a string.
+        return f"'{rc}'"
 
     def GetResultName(self):
         if self.resultDocumentation is None:
@@ -403,7 +402,7 @@ class DispatchItem(OleItem):
         if len(bad_params) == 0 and len(retDesc) == 2 and retDesc[1] == 0:
             rd = retDesc[0]
             if rd in NoTranslateMap:
-                s = "%s\treturn self._oleobj_.InvokeTypes(%d, LCID, %s, %s, %s%s)" % (
+                s = "{}\treturn self._oleobj_.InvokeTypes({}, LCID, {}, {}, {}{})".format(
                     linePrefix,
                     id,
                     fdesc[4],
@@ -412,12 +411,12 @@ class DispatchItem(OleItem):
                     _BuildArgList(fdesc, names),
                 )
             elif rd in [pythoncom.VT_DISPATCH, pythoncom.VT_UNKNOWN]:
-                s = "%s\tret = self._oleobj_.InvokeTypes(%d, LCID, %s, %s, %s%s)\n" % (
+                s = "{}\tret = self._oleobj_.InvokeTypes({}, LCID, {}, {}, {!r}{})\n".format(
                     linePrefix,
                     id,
                     fdesc[4],
                     retDesc,
-                    repr(argsDesc),
+                    argsDesc,
                     _BuildArgList(fdesc, names),
                 )
                 s += f"{linePrefix}\tif ret is not None:\n"
@@ -431,29 +430,27 @@ class DispatchItem(OleItem):
                     )
                     s += f"{linePrefix}\t\texcept pythoncom.error:\n"
                     s += f"{linePrefix}\t\t\treturn ret\n"
-                s += "{}\t\tret = Dispatch(ret, {}, {})\n".format(
-                    linePrefix, repr(name), resclsid
-                )
-                s += "%s\treturn ret" % linePrefix
+                s += f"{linePrefix}\t\tret = Dispatch(ret, {name!r}, {resclsid})\n"
+                s += f"{linePrefix}\treturn ret"
             elif rd == pythoncom.VT_BSTR:
                 s = f"{linePrefix}\t# Result is a Unicode object\n"
-                s += "%s\treturn self._oleobj_.InvokeTypes(%d, LCID, %s, %s, %s%s)" % (
+                s += "{}\treturn self._oleobj_.InvokeTypes({}, LCID, {}, {}, {!r}{})".format(
                     linePrefix,
                     id,
                     fdesc[4],
                     retDesc,
-                    repr(argsDesc),
+                    argsDesc,
                     _BuildArgList(fdesc, names),
                 )
             # else s remains None
         if s is None:
-            s = "%s\treturn self._ApplyTypes_(%d, %s, %s, %s, %s, %s%s)" % (
+            s = "{}\treturn self._ApplyTypes_({}, {}, {}, {}, {!r}, {}{})".format(
                 linePrefix,
                 id,
                 fdesc[4],
                 retDesc,
                 argsDesc,
-                repr(name),
+                name,
                 resclsid,
                 _BuildArgList(fdesc, names),
             )
