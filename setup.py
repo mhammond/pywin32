@@ -634,8 +634,7 @@ class my_build_ext(build_ext):
             # typical path on newer Visual Studios
             # prefere corresponding version but accept different version
             same_version = vcverdir is not None and os.path.isdir(
-                vcbase[: m.start()]
-                + r"\VC\Redist\MSVC\{}{}".format(vcverdir, self.plat_dir)
+                vcbase[: m.start()] + rf"\VC\Redist\MSVC\{vcverdir}{self.plat_dir}"
             )
             redist_globs.append(
                 vcbase[: m.start()]
