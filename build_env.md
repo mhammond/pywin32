@@ -94,7 +94,7 @@ where mc
 ```
 
 (Note that the above process for 'mc' doesn't appear necessary for VS2017, but
-markh hasn't tried with VS2019 - please share your experiences!)
+@mhammond hasn't tried with VS2019 - please share your experiences!)
 
 # Build
 
