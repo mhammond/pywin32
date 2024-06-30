@@ -99,26 +99,43 @@ access api specification is found at:
 The PEP requires several module level attributes. Older versions of
 adodbapi (which was once all one big file) defined a hundred or two. I
 hate that, but can\'t break old code, so I decided to fix the problem
-for Python 3. If using Python3 the programmer must take the time to pick
+for Python 3. The programmer must take the time to pick
 up the symbols she needs from apibase and ado\_consts.
 
 Part of the adodbapi package\'s \_\_init\_\_.py looks something like
 this:
 
 ```python
-if sys.version_info < (3,0): # in Python 2, define all symbols, just like before
-    from apibase import *  # using this is bad
-    from ado_consts import *  # using this is worse
-else:
-    # but if the user is running Python 3, then keep the dictionary clean
-    from apibase import apilevel, threadsafety, paramstyle
-    from apibase import Warning, Error, InterfaceError, DatabaseError, DataError
-    from apibase import OperationalError, IntegrityError
-    from apibase import InternalError, ProgrammingError, NotSupportedError
-    from apibase import NUMBER, STRING, BINARY, DATETIME, ROWID
+from .adodbapi import (
+    Connection as Connection,
+    Cursor as Cursor,
+    __version__,
+    connect as connect,
+    dateconverter,
+)
+from .apibase import (
+    BINARY as BINARY,
+    DATETIME as DATETIME,
+    NUMBER as NUMBER,
+    ROWID as ROWID,
+    STRING as STRING,
+    DatabaseError as DatabaseError,
+    DataError as DataError,
+    Error as Error,
+    FetchFailedError as FetchFailedError,
+    IntegrityError as IntegrityError,
+    InterfaceError as InterfaceError,
+    InternalError as InternalError,
+    NotSupportedError as NotSupportedError,
+    OperationalError as OperationalError,
+    ProgrammingError as ProgrammingError,
+    Warning as Warning,
+    apilevel as apilevel,
+    paramstyle as paramstyle,
+    threadsafety as threadsafety,
+)
 
-from adodbapi import connect, Connection, __version__
-version = 'adodbapi v' + __version__
+version = "adodbapi v" + __version__
 ```
 
 Please, use only those last four symbols from adodbapi. All others
@@ -816,7 +833,7 @@ Running the tests
 The test folder contains a set of unittest programs. Setting them up can
 be a bit complex, because you need several database servers to do a
 complete test, and each one has a different configuration. Scripts in
-this folder try to work in Python 2.7 or Python 3.5(+)
+this folder try to work in Python 3.5(+)
 
 - dbapi20.py
 
@@ -846,9 +863,8 @@ the database servers are distant, this can take a while.
 It does some lightweight command line processing (actually the config
 does it).
 
-"\--package" tries to build a proper Python package in a temporary
-location and adds it to sys.path so it can import a test version of the
-code. It will run 2to3 when it does this, if needed.
+"\--package" tries to build a proper Python package in a temporary location
+and adds it to sys.path so it can import a test version of the code.
 
 "\--all" run as many of the 12 passes as possible.
 
