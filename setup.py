@@ -646,7 +646,7 @@ class my_build_ext(build_ext):
         # Only mfcNNNu DLL is required (mfcmNNNX is Windows Forms, rest is ANSI)
         mfc_contents = next(filter(None, map(glob.glob, redist_globs)), [])[:1]
         if not mfc_contents:
-            raise RuntimeError("MFC redist DLLs not found like %r!" % redist_globs)
+            raise RuntimeError(f"MFC redist DLLs not found like {redist_globs!r}!")
 
         target_dir = os.path.join(self.build_lib, win32ui_ext.get_pywin32_dir())
         for mfc_content in mfc_contents:
