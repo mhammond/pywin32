@@ -1,4 +1,4 @@
-""" Unit tests version 2.6.1.0 for adodbapi"""
+"""Unit tests version 2.6.1.0 for adodbapi"""
 
 """
     adodbapi - A python DB API 2.0 interface to Microsoft ADO
@@ -52,7 +52,7 @@ def randomstring(length):
 
 
 class CommonDBTests(unittest.TestCase):
-    "Self contained super-simple tests in easy syntax, should work on everything between mySQL and Oracle"
+    """Self contained super-simple tests in easy syntax, should work on everything between mySQL and Oracle"""
 
     def setUp(self):
         self.engine = "unknown"
