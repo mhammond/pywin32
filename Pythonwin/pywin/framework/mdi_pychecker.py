@@ -85,7 +85,7 @@ class dirpath:
                         root = eval("win32con." + keystr[0])
                     except:
                         win32ui.MessageBox(
-                            "Can't interpret registry key name '%s'" % keystr[0]
+                            "Can't interpret registry key name '{}'".format(keystr[0])
                         )
                     try:
                         subkey = "\\".join(keystr[1:])
@@ -94,14 +94,16 @@ class dirpath:
                             x = dirpath(val)
                         else:
                             win32ui.MessageBox(
-                                "Registry path '%s' did not return a path entry" % d
+                                "Registry path '{}' did not return a path entry".format(
+                                    d
+                                )
                             )
                     except:
                         win32ui.MessageBox(
-                            "Can't interpret registry key value: %s" % keystr[1:]
+                            "Can't interpret registry key value: {}".format(keystr[1:])
                         )
                 else:
-                    win32ui.MessageBox("Directory '%s' not found" % d)
+                    win32ui.MessageBox("Directory '{}' not found".format(d))
                 if x:
                     for xd in x:
                         if xd not in dirs:
@@ -289,7 +291,7 @@ class TheDocument(docview.RichEditDoc):
         )
         # self.text = []
         self.GetFirstView().Append(
-            "#Pychecker Run in " + self.dirpattern + "  %s\n" % time.asctime()
+            "#Pychecker Run in " + self.dirpattern + "  {}\n".format(time.asctime())
         )
         if self.verbose:
             self.GetFirstView().Append("#   =" + repr(self.dp.dirs) + "\n")
@@ -304,8 +306,9 @@ class TheDocument(docview.RichEditDoc):
         self.fndx = -1
         if not self.dp:
             self.GetFirstView().Append(
-                "# ERROR: '%s' does not resolve to any search locations"
-                % self.dirpattern
+                "# ERROR: '{}' does not resolve to any search locations".format(
+                    self.dirpattern
+                )
             )
             self.SetModifiedFlag(0)
         else:

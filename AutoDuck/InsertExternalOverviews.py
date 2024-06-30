@@ -60,7 +60,7 @@ def main():
     processFile(input, out, linksHTML, extTopicHTML, importantHTML)
     input.close()
     out.close()
-    sCmd = 'del "%s"' % file
+    sCmd = 'del "{}"'.format(file)
     os.unlink(file)
     os.rename(file + ".2", file)
 
