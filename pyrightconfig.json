@@ -16,8 +16,6 @@
     "**/test/",
     "**/Demos/",
     "**/demo/",
-    // TODO: adodbapi should be updated and fixed separately
-    "adodbapi/",
   ],
   // Packages that will be accessible globally.
   // Setting this makes pyright use the repo's code for those modules instead of typeshed or pywin32 in site-packages

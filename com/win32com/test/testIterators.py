@@ -132,7 +132,7 @@ def suite():
             and issubclass(item, unittest.TestCase)
             and item != _BaseTestCase
         ):
-            suite.addTest(unittest.makeSuite(item))
+            suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(item))
     return suite
 
 
