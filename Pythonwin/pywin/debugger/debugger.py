@@ -29,7 +29,6 @@ from pywin.tools import browser, hierlist
 from .dbgcon import *
 
 LVN_ENDLABELEDIT = commctrl.LVN_ENDLABELEDITW
-error = "pywin.debugger.error"
 
 
 def SetInteractiveContext(globs, locs):
@@ -635,8 +634,8 @@ class Debugger(debugger_parent):
         """Public interface into debugger options"""
         try:
             return self.options[option]
-        except KeyError:
-            raise error("Option %s is not a valid option" % option)
+        except KeyError as error:
+            raise KeyError(f"Option {option} is not a valid option") from error
 
     def prep_run(self, cmd):
         pass
