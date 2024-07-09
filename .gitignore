@@ -75,3 +75,4 @@ venv.bak/
 .idea/
 .DS_Store
 vagrant_helpers/bootstrap-salt.ps1
+.vscode/

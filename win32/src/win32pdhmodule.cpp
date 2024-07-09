@@ -977,7 +977,7 @@ PDH_STATUS __stdcall PyCounterPathCallback(DWORD_PTR dwArg)
         rc = ERROR_OUTOFMEMORY;
     }
     else {
-        result = PyEval_CallObject(pMy->func, args);
+        result = PyObject_CallObject(pMy->func, args);
         if (result == NULL) {
             PyErr_Print();  // *Don't* leave exception hanging
             rc = PDH_INVALID_DATA;

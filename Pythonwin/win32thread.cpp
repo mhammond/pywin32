@@ -164,7 +164,7 @@ unsigned int ThreadWorkerEntryPoint(LPVOID lpvoid)
 {
     CPythonWinThread *pThis = (CPythonWinThread *)lpvoid;
     CEnterLeavePython _celp;
-    PyObject *result = PyEval_CallObject(pThis->obFunc, pThis->obArgs);
+    PyObject *result = PyObject_CallObject(pThis->obFunc, pThis->obArgs);
     if (result == NULL) {
         if (PyErr_Occurred() == PyExc_SystemExit)
             PyErr_Clear();

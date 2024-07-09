@@ -600,7 +600,7 @@ static DWORD FilterFunc(DWORD dwExceptionCode)
     return (dwRet);
 }
 
-PyObject *gui_call_object(PyObject *themeth, PyObject *thearglst) { return PyEval_CallObject(themeth, thearglst); }
+PyObject *gui_call_object(PyObject *themeth, PyObject *thearglst) { return PyObject_CallObject(themeth, thearglst); }
 
 void gui_print_error(void)
 {
