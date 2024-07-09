@@ -16,6 +16,8 @@ Coming in build 307, as yet unreleased
 
 ### pywin32
 * The `EvtSubscribe_push` demo now actually demonstrates the callback action and the event context being filled. (#2281, @Avasam)
+* Add RealGetWindowClass (#2299, @CristiFati)
+* Make it compile on Python 3.13 (#2260, @clin1234)
 * Fixed accidentally trying to raise a `str` instead of an `Exception` in (#2270, @Avasam)
   * `Pythonwin/pywin/debugger/debugger.py`
   * `Pythonwin/pywin/framework/dlgappcore.py`

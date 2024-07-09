@@ -480,7 +480,7 @@ VOID CALLBACK PyRasDialFunc1(HRASCONN hrasconn,      // handle to RAS connection
     PyObject *args = Py_BuildValue("Niiii", PyWinLong_FromHANDLE(hrasconn), unMsg, rascs, dwError, dwExtendedError);
     if (args == NULL)
         return;
-    PyObject *res = PyEval_CallObject(handler, args);
+    PyObject *res = PyObject_CallObject(handler, args);
     Py_DECREF(args);
     if (res == NULL) {
         PyErr_Print();

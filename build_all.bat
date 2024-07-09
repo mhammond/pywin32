@@ -22,6 +22,10 @@ py -3.12-32 setup.py -q build
 @if errorlevel 1 goto failed
 py -3.12 setup.py -q build
 @if errorlevel 1 goto failed
+py -3.13-32 setup.py -q build
+@if errorlevel 1 goto failed
+py -3.13 setup.py -q build
+@if errorlevel 1 goto failed
 
 goto xit
 :failed
