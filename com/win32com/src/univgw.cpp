@@ -98,7 +98,7 @@ static HRESULT univgw_dispatch(DWORD index, gw_object *_this, va_list argPtr)
     PyTuple_SET_ITEM(obArgs, 2, obArgPtr);
 
     // call the provided method
-    PyObject *result = PyEval_CallObjectWithKeywords(vtbl->dispatcher, obArgs, NULL);
+    PyObject *result = PyObject_CallObject(vtbl->dispatcher, obArgs);
 
     // done with the arguments and the contained objects
     Py_DECREF(obArgs);
