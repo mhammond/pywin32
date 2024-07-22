@@ -240,9 +240,12 @@ import re
 import struct
 import winreg
 from itertools import count
-from typing import Dict
+from typing import TYPE_CHECKING, ClassVar, Dict
 
 import win32api
+
+if TYPE_CHECKING:
+    from typing_extensions import Self
 
 __author__ = "Jason R. Coombs <jaraco@jaraco.com>"
 
@@ -402,10 +405,10 @@ class TimeZoneDefinition(DYNAMIC_TIME_ZONE_INFORMATION):
         return value
 
     @classmethod
-    def current(class_):
+    def current(cls):
         "Windows Platform SDK GetTimeZoneInformation"
         code, tzi = win32api.GetTimeZoneInformation(True)
-        return code, class_(*tzi)
+        return code, cls(*tzi)
 
     def set(self):
         tzi = tuple(getattr(self, n) for n, t in self._fields_)
@@ -691,7 +694,7 @@ class TimeZoneInfo(datetime.tzinfo):
         return self.__dict__ != other.__dict__
 
     @classmethod
-    def local(class_):
+    def local(cls):
         """Returns the local time zone as defined by the operating system in the
         registry.
         >>> localTZ = TimeZoneInfo.local()
@@ -717,10 +720,12 @@ class TimeZoneInfo(datetime.tzinfo):
         # not sufficient to represent the time zone in which
         # the current user is operating due
         # to dynamic time zones.
-        return class_(info, fix_standard_time)
+        return cls(info, fix_standard_time)
+
+    _tzutc: ClassVar[Self | None] = None
 
     @classmethod
-    def utc(class_):
+    def utc(cls):
         """Returns a time-zone representing UTC.
 
         Same as TimeZoneInfo('GMT Standard Time', True) but caches the result
@@ -729,9 +734,9 @@ class TimeZoneInfo(datetime.tzinfo):
         >>> isinstance(TimeZoneInfo.utc(), TimeZoneInfo)
         True
         """
-        if "_tzutc" not in class_.__dict__:
-            setattr(class_, "_tzutc", class_("GMT Standard Time", True))
-        return class_._tzutc
+        if not cls._tzutc:
+            cls._tzutc = cls("GMT Standard Time", True)
+        return cls._tzutc
 
     # helper methods for accessing the timezone info from the registry
     @staticmethod
