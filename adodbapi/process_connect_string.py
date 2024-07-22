@@ -18,7 +18,7 @@ def macro_call(macro_name, args, kwargs):
     :kwargs - the connection keyword dictionary. ??key has been removed
     --> the value to put in for kwargs['name'] = value
     """
-    if isinstance(args, (str, str)):
+    if isinstance(args, str):
         args = [
             args
         ]  # the user forgot to pass a sequence, so make a string into args[0]
