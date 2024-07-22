@@ -545,7 +545,6 @@ def _ResolveType(typerepr, itypeinfo):
             if was_user and subrepr in [
                 pythoncom.VT_DISPATCH,
                 pythoncom.VT_UNKNOWN,
-                pythoncom.VT_RECORD,
             ]:
                 # Drop the VT_PTR indirection
                 return subrepr, sub_clsid, sub_doc
