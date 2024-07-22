@@ -35,17 +35,17 @@ is now the "official" way to create a Dispatch object.  If you have previously
 imported a makepy generated support file, win32com.client.Dispatch() will correctly
 return a class from the makepy file.  If no support is available, it will return a
 win32com.client.dynamic.Dispatch() object.
-As previously, win32com.client.dynamic.Dispatch() will always return a dynamic object, 
+As previously, win32com.client.dynamic.Dispatch() will always return a dynamic object,
 whether makepy support is loaded or not.
 
-* Far less divergence between "makepy" and "dynamic" objects.  In the past, it was 
-often necessary to use a different coding style depending on whether you had makepy 
-support or not (eg, Excel 7 needed quite different code).  In general, this has been 
+* Far less divergence between "makepy" and "dynamic" objects.  In the past, it was
+often necessary to use a different coding style depending on whether you had makepy
+support or not (eg, Excel 7 needed quite different code).  In general, this has been
 fixed (eg, all MSOffice test run both as dynamic and makepy - the only difference is
 speed.  Note that Office97 can be _very_ slow at startup without makep support loaded.
 
 * Full support for Office 97.  Note that Word97 has changed its object model, and
-their "compatibility" layer doesnt work with Python - you will need to change any code
+their "compatibility" layer doesn't work with Python - you will need to change any code
 that uses Word.  See the win32com\test\testMSOffice.py for a demo of talking to word.
 
 * Support for interfaces with variable arguments supported.
@@ -119,14 +119,14 @@ Dec 1, 96
 
 - Even more changes to makepy/dynamic.py and its infrastructure.
   Specifically:
-  * Python COM clients can now call Python COM Servers (ironic problem, 
+  * Python COM clients can now call Python COM Servers (ironic problem,
     that!:)  All clients without type information should work better.
   * Makepy generated classes, once imported, can share across each other.
     Eg, the MSACCESS type library references interfaces in the DAO library.
     This now works totally seamlessly.
   * Makepy makes some simple detection of enumerators.  Notably, DAO and
     MSACCESS work well - eg "for table in db.TableDefs:" now works as expected.
-  * Circular reference cleaned up.  Previously, (almost) all dynamic.py 
+  * Circular reference cleaned up.  Previously, (almost) all dynamic.py
     created objects were immortal!  This has removed most reference counting
     problems (apart from the standard Python ones, including the "last traceback"
     one, which does bite here.)
@@ -149,4 +149,3 @@ Dec 1, 96
 - expanded capabilities from policy.py
 - pythoncom.CoInitialize and CoUninitialize for threaded COM clients
 - other fun things
-

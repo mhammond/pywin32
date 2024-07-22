@@ -15,11 +15,11 @@ class ExternalConnection:
     numExtRefs = 0
 
     def AddConnection(self, extconn, reserved):
-        self.numExtRefs = self.numExtRefs + 1
+        self.numExtRefs += 1
         return self.numExtRefs
 
     def ReleaseConnection(self, extconn, reserved, fLastReleaseCloses):
-        self.numExtRefs = self.numExtRefs - 1
+        self.numExtRefs -= 1
         return self.numExtRefs
 
 

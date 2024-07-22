@@ -28,11 +28,7 @@ class BadConversions:
 
 class TestCase(win32com.test.util.TestCase):
     def test_float(self):
-        try:
-            test_ob().TestValue(BadConversions())
-            raise Exception("Should not have worked")
-        except Exception as e:
-            assert isinstance(e, TestException)
+        self.assertRaises(TestException, test_ob().TestValue, BadConversions())
 
 
 if __name__ == "__main__":

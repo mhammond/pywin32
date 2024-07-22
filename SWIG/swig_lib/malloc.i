@@ -34,7 +34,7 @@ typedef unsigned int size_t;
 
 void  *calloc(size_t nobj, size_t size);
 /* Returns a pointer to a space for an array of nobj objects, each with
-   size bytes.   Returns NULL if the request can't be satisfied. 
+   size bytes.   Returns NULL if the request can't be satisfied.
    Initializes the space to zero bytes. */
 
 void  *malloc(size_t size);
@@ -42,7 +42,7 @@ void  *malloc(size_t size);
    upon failure. */
 
 void  *realloc(void *ptr, size_t size);
-/* Changes the size of the object pointed to by ptr to size bytes. 
+/* Changes the size of the object pointed to by ptr to size bytes.
    The contents will be unchanged up the minimum of the old and new
    sizes.  Returns a pointer to the new space of NULL upon failure,
    in which case *ptr is unchanged. */
@@ -50,4 +50,3 @@ void  *realloc(void *ptr, size_t size);
 void   free(void *ptr);
 /* Deallocates the space pointed to by ptr.  Does nothing if ptr is NULL.
    ptr must be a space previously allocated by calloc, malloc, or realloc. */
-

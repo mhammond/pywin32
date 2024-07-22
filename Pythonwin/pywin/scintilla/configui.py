@@ -230,7 +230,7 @@ class ScintillaFormatPropertyPage(dialog.PropertyPage):
             if format[4] == c[1]:
                 # print("Style", style.name, "is", c[0])
                 break
-            sel = sel + 1
+            sel += 1
         else:
             sel = -1
         self.cbo.SetCurSel(sel)

@@ -241,7 +241,7 @@ PyObject *PyObject_FromPIDL(LPCITEMIDLIST pidl, BOOL bFreeSystemPIDL)
             }
             // The length may be too large to read (and causing an
             // exception deep inside Python doesn't always leave
-            // things in a good state!  Its also inconvenient to
+            // things in a good state!  It's also inconvenient to
             // always pass the size of the object - so explicitly
             // check we can read the memory.
             UINT cbdata = pidl->mkid.cb - sizeof(pidl->mkid.cb);
@@ -2802,7 +2802,7 @@ static PyObject *PySHCreateShellFolderView(PyObject *self, PyObject *args)
     else
         ret = PyCom_PyObjectFromIUnknown(view, IID_IShellView, FALSE);
     // ref on view consumed by ret object.
-done : {
+done: {
     PY_INTERFACE_PRECALL;
     if (create.pshf)
         create.pshf->Release();

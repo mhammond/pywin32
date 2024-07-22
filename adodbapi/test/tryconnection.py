@@ -10,7 +10,7 @@ def try_connection(verbose, *args, **kwargs):
         s.close()  # thanks, it worked, goodbye
     except adodbapi.DatabaseError as inst:
         print(inst.args[0])  # should be the error message
-        print("***Failed getting connection using=", repr(args), repr(kwargs))
+        print(f"***Failed getting connection using= {args!r} {kwargs!r}")
         return False, (args, kwargs), None
 
     print("  (successful)")

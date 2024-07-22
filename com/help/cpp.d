@@ -20,7 +20,7 @@ python and C++.
 //C++ interfaces
 class IFlintstone
 {
-public: 
+public:
   virtual TellWilma(long when)=0;
 };
 
@@ -85,7 +85,7 @@ class BedRock : public IFlintstone, public IRubble {
     LONG m_references;
 
 public:
-   BedRock() : m_references(0){ } // constructor  
+   BedRock() : m_references(0){ } // constructor
    ~BedRock(void) { } //destructor
 
    // IUnknown Methods not shown in their entirety
@@ -144,7 +144,7 @@ class BedRock(IFlintstone, IRubble): #no need to use MIDL for these
     _reg_progid_ = "Python.Bedrock"
     _reg_clsid_ = "{12345678-1234-5678-1234-567812345678}"
     def __init__(self): #constructur
-	pass #not doing anthing w/it 
+	pass #not doing anthing w/it
              #no need to keep track of reference counts
     def __del__(self): #destructor
 	pass #not much going on here either
@@ -158,7 +158,7 @@ if __name__=='__main__':
 
 
 @ex Have a great time with programming with python!
-<nl>|John Nielsen   nielsenjf@my-deja.com       
+<nl>|John Nielsen   nielsenjf@my-deja.com
 
 
 */

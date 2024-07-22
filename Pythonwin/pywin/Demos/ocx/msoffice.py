@@ -88,7 +88,7 @@ class ExcelView(docview.ScrollView):
             wnd = item.GetInPlaceWindow()
             if wnd is not None:
                 wnd.SetFocus()
-            return 0  # Dont get the base version called.
+            return 0  # Don't get the base version called.
         return 1  # Call the base version.
 
     def OnSize(self, params):
@@ -115,7 +115,7 @@ class WordFrame(window.MDIChildWnd):
     def __init__(self, doc=None):
         self._obj_ = win32ui.CreateMDIChild()
         self._obj_.AttachObject(self)
-        # Dont call base class doc/view version...
+        # Don't call base class doc/view version...
 
     def Create(self, title, rect=None, parent=None):
         WordModule = gencache.EnsureModule(

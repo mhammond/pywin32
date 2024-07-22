@@ -226,7 +226,7 @@ STDMETHODIMP PyGEnum{enumtype}::GetTypeInfo(UINT itinfo, LCID lcid, ITypeInfo FA
 STDMETHODIMP PyGEnum{enumtype}::GetIDsOfNames(REFIID refiid, OLECHAR FAR* FAR* rgszNames, UINT cNames, LCID lcid, DISPID FAR* rgdispid) {{return PyGatewayBase::GetIDsOfNames( refiid, rgszNames, cNames, lcid, rgdispid);}}
 STDMETHODIMP PyGEnum{enumtype}::Invoke(DISPID dispid, REFIID riid, LCID lcid, WORD wFlags, DISPPARAMS FAR* params, VARIANT FAR* pVarResult, EXCEPINFO FAR* pexcepinfo, UINT FAR* puArgErr) {{return PyGatewayBase::Invoke( dispid, riid, lcid, wFlags, params, pVarResult, pexcepinfo, puArgErr);}}
 
-STDMETHODIMP PyGEnum{enumtype}::Next( 
+STDMETHODIMP PyGEnum{enumtype}::Next(
             /* [in] */ ULONG celt,
             /* [length_is][size_is][out] */ {argdeclare},
             /* [out] */ ULONG __RPC_FAR *pCeltFetched)
@@ -273,7 +273,7 @@ STDMETHODIMP PyGEnum{enumtype}::Next(
     return PyCom_HandleIEnumNoSequence(IID_IEnum{enumtype});
 }}
 
-STDMETHODIMP PyGEnum{enumtype}::Skip( 
+STDMETHODIMP PyGEnum{enumtype}::Skip(
             /* [in] */ ULONG celt)
 {{
     PY_GATEWAY_METHOD;
@@ -286,7 +286,7 @@ STDMETHODIMP PyGEnum{enumtype}::Reset(void)
     return InvokeViaPolicy("Reset");
 }}
 
-STDMETHODIMP PyGEnum{enumtype}::Clone( 
+STDMETHODIMP PyGEnum{enumtype}::Clone(
             /* [out] */ IEnum{enumtype} __RPC_FAR *__RPC_FAR *ppEnum)
 {{
     PY_GATEWAY_METHOD;

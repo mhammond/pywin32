@@ -10,7 +10,7 @@
 ' obligations or liability for any Sample Application Files.
 ' ------------------------------------------------------------------------
 '
-' This sample demonstrates how to write/delete from the registry. 
+' This sample demonstrates how to write/delete from the registry.
 """
 
 WshShell = WScript.CreateObject("WScript.Shell")
@@ -42,4 +42,3 @@ WshShell.Popup ("Delete key HKCU\\Foo")
 WshShell.RegDelete ("HKCU\\Foo\\")
 
 WScript.Echo ("Done")
-

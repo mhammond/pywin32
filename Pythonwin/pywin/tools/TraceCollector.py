@@ -62,7 +62,7 @@ def MakeOutputWindow():
     global outputWindow
     if outputWindow is None:
         title = "Python Trace Collector"
-        # queueingFlag doesnt matter, as all output will come from new thread
+        # queueingFlag doesn't matter, as all output will come from new thread
         outputWindow = WindowOutput(title, title)
         # Let people know what this does!
         msg = """\

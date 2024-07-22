@@ -42,10 +42,10 @@ Permissions</A></li>
 <H1><A NAME="SUMMARY">SUMMARY</A></H1>
 <p>
 Python has a good framework in place to extend it's capabilites with C or C++. Often this is done for reasons of performance
-or to give it capabilities that aren't present in it's standard libraries. For example, standard python does not provide a way to 
-acquire file and directory permissions on windows. However, Microsoft's GetSecurityInfo/GetNamedSecurityInfo 
-does and is accessible via C++. We'll look at how one can build a small module that uses GetNamedSecurityInfo to 
-return to python permission information for a file or directory. 
+or to give it capabilities that aren't present in it's standard libraries. For example, standard python does not provide a way to
+acquire file and directory permissions on windows. However, Microsoft's GetSecurityInfo/GetNamedSecurityInfo
+does and is accessible via C++. We'll look at how one can build a small module that uses GetNamedSecurityInfo to
+return to python permission information for a file or directory.
 </p>
 
 <HR>
@@ -89,7 +89,7 @@ The approach to wrap has a few standard todos. You need a to:
 Python has helper objects and functions to make this as painless as
 possible. You need to include Python.h to get access to these.
 <br>
-To define the the function, you need to follow a specific format: 
+To define the the function, you need to follow a specific format:
 static PyObject * module_function<br>
 PyObject is the base type of Python Object. The name of the function needs
 to be the module followed by an '_' followed by the function.
@@ -104,7 +104,7 @@ in this extension are:
 <li>PyArg_ParseTuple -- accept data from python and convert to C</li>
 </ul>
 </p>
-<p> 
+<p>
 You also need to create a structure of all the functions that you want  the
 Python interpreter to see. To do this you make an array of arrays of type
 static PyMethodDef. The array needs to end w/a NULL entry to mark it's end.
@@ -151,7 +151,7 @@ for info about the various win32 calls made.
 <HR>
 <H2><A NAME="Extend_get">Extending Python for Directory Permissions</A></H2>
 To setup Visual Studio correctly for building an extension, it is easiest to
-use a program called <A HREF="http://starship.python.net/crew/da/compile">compile.py</A> 
+use a program called <A HREF="http://starship.python.net/crew/da/compile">compile.py</A>
 which builds the project for you. The Extension creates a dictionary of
 user or group plus the access mask. To Python it will look like:
 <pre>
@@ -189,10 +189,10 @@ void lookup_sid ( ACCESS_ALLOWED_ACE* pACE, char user_domain[] ) {
 	ULONG len_username = sizeof(username);
 	ULONG len_domain = sizeof(domain);
 	PSID pSID =(PSID)(&(pACE->SidStart));
-	SID_NAME_USE sid_name_use;         
+	SID_NAME_USE sid_name_use;
 
-	if (!LookupAccountSid(NULL, pSID, 
-		username, &len_username, domain, &len_domain, &sid_name_use)){  
+	if (!LookupAccountSid(NULL, pSID,
+		username, &len_username, domain, &len_domain, &sid_name_use)){
 		strcpy(user_domain, "unknown");
 	} else {
 		strcat(user_domain,domain);
@@ -205,13 +205,13 @@ void lookup_sid ( ACCESS_ALLOWED_ACE* pACE, char user_domain[] ) {
 
 //Store the mask and username in the file_perms structure.
 //call lookup_sid to get the username
-void acl_info( PACL pACL, ULONG AceCount, file_perms fp[]){		
+void acl_info( PACL pACL, ULONG AceCount, file_perms fp[]){
 	for (ULONG acl_index = 0;acl_index < AceCount;acl_index++){
 		ACCESS_ALLOWED_ACE* pACE;
-		
-		if (GetAce(pACL, acl_index, (PVOID*)&pACE))			
-		{		
-			char user_domain[2050]="";	
+
+		if (GetAce(pACL, acl_index, (PVOID*)&pACE))
+		{
+			char user_domain[2050]="";
 			lookup_sid(pACE,user_domain);
 			strcpy(fp[acl_index].user_domain,user_domain);
 			fp[acl_index].user_mask=(ULONG)pACE->Mask;
@@ -231,31 +231,31 @@ static PyObject *get_perms(PyObject *self, PyObject *args)
 
 	//setup security code
 	PSECURITY_DESCRIPTOR pSD;
-	PACL pDACL; 
+	PACL pDACL;
     //GetNamedSecurityInfo() will give you the DACL when you ask for
-    //DACL_SECURITY_INFORMATION. At this point, you have SIDs in the ACEs contained in the DACL. 
-	ULONG result = GetNamedSecurityInfo(file,SE_FILE_OBJECT, DACL_SECURITY_INFORMATION, NULL, NULL, 
+    //DACL_SECURITY_INFORMATION. At this point, you have SIDs in the ACEs contained in the DACL.
+	ULONG result = GetNamedSecurityInfo(file,SE_FILE_OBJECT, DACL_SECURITY_INFORMATION, NULL, NULL,
 	&pDACL, NULL, &pSD);
 
 	if (result != ERROR_SUCCESS){ return NULL;}
 	if (result == ERROR_SUCCESS){
 		ACL_SIZE_INFORMATION aclSize = {0};
-		if(pDACL != NULL){   
+		if(pDACL != NULL){
 			if(!GetAclInformation(pDACL, &aclSize, sizeof(aclSize),
 				AclSizeInformation)){
 				return NULL;
 			}
 		}
-	
+
 		file_perms *fp = new file_perms[aclSize.AceCount];
 		acl_info(pDACL, aclSize.AceCount, fp );
-		
+
 		//Dict
 		for (ULONG i=0;i<aclSize.AceCount;++i){
-			PyDict_SetItem( py_perms, PyBytes_FromString(fp[i].user_domain) , 
-				PyLong_FromUnsignedLong ((unsigned long) fp[i].user_mask));      
+			PyDict_SetItem( py_perms, PyBytes_FromString(fp[i].user_domain) ,
+				PyLong_FromUnsignedLong ((unsigned long) fp[i].user_mask));
 		}
-		
+
 		//List
 		for (i=0;i<aclSize.AceCount;++i){
 			PyList_Append(py_perms,PyBytes_FromString(fp[i].user_domain));
@@ -266,8 +266,8 @@ static PyObject *get_perms(PyObject *self, PyObject *args)
 }
 
 //Boilerplate functions
-//create a structure that has references to the functions 
-//3 parts 
+//create a structure that has references to the functions
+//3 parts
 //name of python function
 //C++ function
 //flags METH_VARARGS means function takes variable number of args
@@ -291,7 +291,7 @@ Py_InitModule("fileperm",fileperm_methods);
 
 //Boilerplate functions
 
-//3 parts 
+//3 parts
 //name of python function
 //C++ function
 //flags METH_VARARGS means function takes variable number of args
@@ -438,7 +438,7 @@ def get_perms(arg, d, files):
                 (domain,sys_id)=domain_id.split('\\',1)
             else:
                 sys_id=domain_id
-            mask_name=get_mask(mask)    
+            mask_name=get_mask(mask)
             Results.append(file+','+sys_id+','+mask_name)
     Results.sort()
     return Results
@@ -460,7 +460,7 @@ if len(sys.argv)==1:
     print(sys.argv[0],"<all options> file or directory<return>")
     print("-r for recursive mode \n-o for output file (default screen) \n-d for directories only")
     print("Example:",sys.argv[0],"-o a.txt -r c:\\junk  \n ----goes down dir tree in c:\\junk and saves in a.txt")
-    sys.exit(0)    
+    sys.exit(0)
 else:
     try:
         optlist, args = getopt.getopt(sys.argv[1:], 'dho:r')
@@ -493,7 +493,7 @@ else:
         else:
             print("Directory or file",args[0],"does not exist")
             sys.exit(0)
-        
+
     # now print out the results
     if opts['-o']:
         # send to a file
@@ -533,8 +533,8 @@ reference counting, threading, and error handeling. The python website has docum
 </ul>
 </p>
 <HR><H1><A NAME="Author">Author</A></H1>
-John Nielsen, <A HREF="mailto:jn@who.net,">jn@who.net</A> 
-<br>-- Have a great time with programming with python! 
+John Nielsen, <A HREF="mailto:jn@who.net,">jn@who.net</A>
+<br>-- Have a great time with programming with python!
 		<!-- beginning of leaf footer-->
 		<p>&nbsp;</p>
 		<TABLE border=0  cellpadding=0 cellspacing=0 width=100%>
@@ -548,13 +548,3 @@ John Nielsen, <A HREF="mailto:jn@who.net,">jn@who.net</A>
 		<!-- end of leaf footer-->
 </BODY>
 </HTML>
-
-
-
-
-
-
-
-
-
-

@@ -101,9 +101,9 @@ new_sd = win32security.GetNamedSecurityInfo(
 
 ## could do additional checking to make sure added ACE contains expected info
 if new_sd.GetSecurityDescriptorDacl().GetAceCount() != dacl_ace_cnt + 1:
-    print("New dacl doesn" "t contain extra ace ????")
+    print("New dacl doesn't contain extra ace ????")
 if new_sd.GetSecurityDescriptorSacl().GetAceCount() != sacl_ace_cnt + 1:
-    print("New Sacl doesn" "t contain extra ace ????")
+    print("New Sacl doesn't contain extra ace ????")
 if (
     win32security.LookupAccountSid("", new_sd.GetSecurityDescriptorOwner())[0]
     != "Power Users"

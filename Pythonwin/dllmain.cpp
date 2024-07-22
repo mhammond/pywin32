@@ -100,13 +100,12 @@ CInProcApp::CInProcApp(LPCTSTR lpszAppName) : CWinApp(lpszAppName)
 /////////////////////////////////////////////////////////////////////////////
 // CInProcApp initialization
 
-extern "C" PYW_EXPORT BOOL
-    Win32uiApplicationInit(Win32uiHostGlue *pGlue, const TCHAR *cmd, const TCHAR *addnPaths);
+extern "C" PYW_EXPORT BOOL Win32uiApplicationInit(Win32uiHostGlue *pGlue, const TCHAR *cmd, const TCHAR *addnPaths);
 
 BOOL CInProcApp::InitInstance()
 {
     // Avoid dynamic search for Win32uiApplicationInit from inside DLL
-    //if (!glue.DynamicApplicationInit())
+    // if (!glue.DynamicApplicationInit())
     if (!Win32uiApplicationInit(&glue, NULL, NULL))
         return FALSE;
     return glue.InitInstance();
@@ -115,9 +114,9 @@ BOOL CInProcApp::InitInstance()
 // Check that we have a valid CWinApp object to use.
 bool CheckGoodWinApp()
 {
-    // Shouldnt need special symbols now that we delay the creation.
+    // shouldn't need special symbols now that we delay the creation.
     // If the host exports a special symbol, then
-    // dont create a host app.
+    // don't create a host app.
     //	HMODULE hModule = GetModuleHandle(NULL);
     //	BOOL hasSymbol = (GetProcAddress(hModule, "NoCreateWinApp") != NULL);
     if (AfxGetApp() == NULL) {  // && !hasSymbol) {
@@ -207,7 +206,7 @@ extern "C" __declspec(dllexport) int __stdcall DllMainwin32ui(HINSTANCE hInstanc
 
         if (pCreatedApp) {
             pCreatedApp->CleanupMainWindow();
-            // We dont call ExitInstance, as the InitInstance we called could
+            // We don't call ExitInstance, as the InitInstance we called could
             // not have possibly called back to Python, as the Python app object
             // could not have been created.  Let the Python code manage if it wants!
             Win32uiFinalize();

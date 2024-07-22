@@ -144,9 +144,9 @@ class TimerManager:
             if nextTime:
                 timeDiffSeconds = nextTime - now
                 timeDiffMinutes = int(timeDiffSeconds / 60)
-                timeDiffSeconds = timeDiffSeconds % 60
+                timeDiffSeconds %= 60
                 timeDiffHours = int(timeDiffMinutes / 60)
-                timeDiffMinutes = timeDiffMinutes % 60
+                timeDiffMinutes %= 60
                 self.dlg.prompt1.SetWindowText(
                     "Next connection due in %02d:%02d:%02d"
                     % (timeDiffHours, timeDiffMinutes, timeDiffSeconds)
@@ -200,7 +200,7 @@ class EachAnyIntervaler(TimerIntervaler):
             lst[pos] = 0
         ret = time.mktime(tuple(lst))
         if bAdd:
-            ret = ret + self.timeAdd
+            ret += self.timeAdd
         return ret
 
     def SetNextTime(self, lastTime, now):

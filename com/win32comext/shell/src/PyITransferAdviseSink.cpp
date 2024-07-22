@@ -385,11 +385,9 @@ STDMETHODIMP PyGTransferAdviseSink::SubStreamFailure(
     HRESULT hr = InvokeViaPolicy("SubStreamFailure", &result, "OOl", obpsi, obpszStreamName, hrError);
     Py_XDECREF(obpsi);
     Py_XDECREF(obpszStreamName);
-    if
-        FAILED(hr)
-    hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("SubStreamFailure");
-    else
-    {
+    if FAILED (hr)
+        hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("SubStreamFailure");
+    else {
         hr = PyLong_AsLong(result);
         if (hr == -1 && PyErr_Occurred())
             hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("SubStreamFailure");
@@ -418,11 +416,9 @@ STDMETHODIMP PyGTransferAdviseSink::PropertyFailure(
     HRESULT hr = InvokeViaPolicy("PropertyFailure", &result, "OOl", obpsi, obkey, hrError);
     Py_XDECREF(obpsi);
     Py_DECREF(obkey);
-    if
-        FAILED(hr)
-    hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("PropertyFailure");
-    else
-    {
+    if FAILED (hr)
+        hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("PropertyFailure");
+    else {
         hr = PyLong_AsLong(result);
         if (hr == -1 && PyErr_Occurred())
             hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("PropertyFailure");

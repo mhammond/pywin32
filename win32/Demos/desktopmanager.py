@@ -81,7 +81,7 @@ def get_new_desktop_name(parent_hwnd):
 def new_icon(hdesk, desktop_name):
     """Runs as a thread on each desktop to create a new tray icon and handle its messages"""
     global id
-    id = id + 1
+    id += 1
     hdesk.SetThreadDesktop()
     ## apparently the threads can't use same hinst, so each needs its own window class
     windowclassname = "PythonDesktopManager" + desktop_name
@@ -185,9 +185,9 @@ def icon_wndproc(hwnd, msg, wp, lp):
             mf_flags = win32con.MF_STRING
             ## if you switch to winlogon yourself, there's nothing there and you're stuck
             if desktops[d - 1].lower() in ("winlogon", "disconnect"):
-                mf_flags = mf_flags | win32con.MF_GRAYED | win32con.MF_DISABLED
+                mf_flags |= win32con.MF_GRAYED | win32con.MF_DISABLED
             if desktops[d - 1] == curr_desktop_name:
-                mf_flags = mf_flags | win32con.MF_CHECKED
+                mf_flags |= win32con.MF_CHECKED
             win32gui.AppendMenu(m, mf_flags, d, desktops[d - 1])
         win32gui.AppendMenu(m, win32con.MF_STRING, desktop_cnt + 1, "Create new ...")
         win32gui.AppendMenu(m, win32con.MF_STRING, desktop_cnt + 2, "Exit")

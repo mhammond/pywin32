@@ -17,10 +17,12 @@ from pywin.mfc.docview import TreeView
 
 from .cmdline import ParseArgs
 
-RS_DEBUGGER_NONE = 0  # Dont run under the debugger.
+RS_DEBUGGER_NONE = 0  # Don't run under the debugger.
 RS_DEBUGGER_STEP = 1  # Start stepping under the debugger
 RS_DEBUGGER_GO = 2  # Just run under the debugger, stopping only at break-points.
-RS_DEBUGGER_PM = 3  # Dont run under debugger, but do post-mortem analysis on exception.
+RS_DEBUGGER_PM = (
+    3  # Don't run under debugger, but do post-mortem analysis on exception.
+)
 
 debugging_options = """No debugging
 Step-through in the debugger
@@ -159,7 +161,7 @@ def GetActiveEditControl():
 
 def GetActiveEditorDocument():
     """Returns the active editor document and view, or (None,None) if no
-    active document or its not an editor document.
+    active document or it's not an editor document.
     """
     view = GetActiveView()
     if view is None or isinstance(view, TreeView):
@@ -173,7 +175,7 @@ def GetActiveEditorDocument():
 def GetActiveFileName(bAutoSave=1):
     """Gets the file name for the active frame, saving it if necessary.
 
-    Returns None if it cant be found, or raises KeyboardInterrupt.
+    Returns None if it can't be found, or raises KeyboardInterrupt.
     """
     pathName = None
     active = GetActiveView()
@@ -280,7 +282,7 @@ def RunScript(defName=None, defArgs=None, bShowDialog=1, debuggingType=None):
     if (
         len(os.path.splitext(script)[1]) == 0
     ):  # check if no extension supplied, and give one.
-        script = script + ".py"
+        script += ".py"
     # If no path specified, try and locate the file
     path, fnameonly = os.path.split(script)
     if len(path) == 0:
@@ -365,7 +367,7 @@ def RunScript(defName=None, defArgs=None, bShowDialog=1, debuggingType=None):
             exec(codeObject, __main__.__dict__)
         bWorked = 1
     except bdb.BdbQuit:
-        # Dont print tracebacks when the debugger quit, but do print a message.
+        # Don't print tracebacks when the debugger quit, but do print a message.
         print("Debugging session cancelled.")
         exitCode = 1
         bWorked = 1
@@ -373,7 +375,7 @@ def RunScript(defName=None, defArgs=None, bShowDialog=1, debuggingType=None):
         exitCode = code
         bWorked = 1
     except KeyboardInterrupt:
-        # Consider this successful, as we dont want the debugger.
+        # Consider this successful, as we don't want the debugger.
         # (but we do want a traceback!)
         if interact.edit and interact.edit.currentView:
             interact.edit.currentView.EnsureNoPrompt()
@@ -431,7 +433,7 @@ def ImportFile():
 
         pathName = dlg.GetPathName()
 
-    # If already imported, dont look for package
+    # If already imported, don't look for package
     path, modName = os.path.split(pathName)
     modName, modExt = os.path.splitext(modName)
     newPath = None
@@ -505,7 +507,7 @@ def CheckFile():
     try:
         f = open(pathName)
     except OSError as details:
-        print(f"Cant open file '{pathName}' - {details}")
+        print(f"Can't open file '{pathName}' - {details}")
         return
     try:
         code = f.read() + "\n"
@@ -556,7 +558,7 @@ def RunTabNanny(filename):
                 pass
             win32ui.SetStatusText("The TabNanny found trouble at line %d" % lineno)
         except (IndexError, TypeError, ValueError):
-            print("The tab nanny complained, but I cant see where!")
+            print("The tab nanny complained, but I can't see where!")
             print(data)
         return 0
     return 1
@@ -568,7 +570,7 @@ def _JumpToPosition(fileName, lineno, col=1):
 
 def JumpToDocument(fileName, lineno=0, col=1, nChars=0, bScrollToTop=0):
     # Jump to the position in a file.
-    # If lineno is <= 0, dont move the position - just open/restore.
+    # If lineno is <= 0, don't move the position - just open/restore.
     # if nChars > 0, select that many characters.
     # if bScrollToTop, the specified line will be moved to the top of the window
     #  (eg, bScrollToTop should be false when jumping to an error line to retain the
@@ -592,7 +594,7 @@ def JumpToDocument(fileName, lineno=0, col=1, nChars=0, bScrollToTop=0):
         try:
             view.EnsureCharsVisible(charNo)
         except AttributeError:
-            print("Doesnt appear to be one of our views?")
+            print("Doesn't appear to be one of our views?")
         view.SetSel(min(start, size), min(start + nChars, size))
     if bScrollToTop:
         curTop = view.GetFirstVisibleLine()
@@ -675,7 +677,7 @@ def LocatePythonFile(fileName, bBrowseIfDir=1):
                     else:
                         return None
             else:
-                fileName = fileName + ".py"
+                fileName += ".py"
                 if os.path.isfile(fileName):
                     break  # Found it!
 

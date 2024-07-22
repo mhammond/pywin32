@@ -218,7 +218,7 @@ def InstallService(
         startType = win32service.SERVICE_DEMAND_START
     serviceType = win32service.SERVICE_WIN32_OWN_PROCESS
     if bRunInteractive:
-        serviceType = serviceType | win32service.SERVICE_INTERACTIVE_PROCESS
+        serviceType |= win32service.SERVICE_INTERACTIVE_PROCESS
     if errorControl is None:
         errorControl = win32service.SERVICE_ERROR_NORMAL
 
@@ -304,7 +304,7 @@ def ChangeServiceConfig(
     hscm = win32service.OpenSCManager(None, None, win32service.SC_MANAGER_ALL_ACCESS)
     serviceType = win32service.SERVICE_WIN32_OWN_PROCESS
     if bRunInteractive:
-        serviceType = serviceType | win32service.SERVICE_INTERACTIVE_PROCESS
+        serviceType |= win32service.SERVICE_INTERACTIVE_PROCESS
     commandLine = _GetCommandLine(exeName, exeArgs)
     try:
         hs = SmartOpenService(hscm, serviceName, win32service.SERVICE_ALL_ACCESS)
@@ -452,7 +452,7 @@ def __FindSvcDeps(findName):
             svc = win32api.RegEnumKey(k, num)
         except win32api.error:
             break
-        num = num + 1
+        num += 1
         sk = win32api.RegOpenKey(k, svc)
         try:
             deps, typ = win32api.RegQueryValueEx(sk, "DependOnService")
@@ -835,7 +835,7 @@ def HandleCommandLine(
         # Note that we install the service before calling the custom option
         # handler, so if the custom handler fails, we have an installed service (from NT's POV)
         # but is unlikely to work, as the Python code controlling it failed.  Therefore
-        # we remove the service if the first bit works, but the second doesnt!
+        # we remove the service if the first bit works, but the second doesn't!
         try:
             InstallService(
                 serviceClassString,
@@ -981,11 +981,11 @@ class ServiceFramework:
         # override this.
         accepted = 0
         if hasattr(self, "SvcStop"):
-            accepted = accepted | win32service.SERVICE_ACCEPT_STOP
+            accepted |= win32service.SERVICE_ACCEPT_STOP
         if hasattr(self, "SvcPause") and hasattr(self, "SvcContinue"):
-            accepted = accepted | win32service.SERVICE_ACCEPT_PAUSE_CONTINUE
+            accepted |= win32service.SERVICE_ACCEPT_PAUSE_CONTINUE
         if hasattr(self, "SvcShutdown"):
-            accepted = accepted | win32service.SERVICE_ACCEPT_SHUTDOWN
+            accepted |= win32service.SERVICE_ACCEPT_SHUTDOWN
         return accepted
 
     def ReportServiceStatus(
@@ -1004,7 +1004,7 @@ class ServiceFramework:
         ]:
             checkPoint = 0
         else:
-            self.checkPoint = self.checkPoint + 1
+            self.checkPoint += 1
             checkPoint = self.checkPoint
 
         # Now report the status to the control manager

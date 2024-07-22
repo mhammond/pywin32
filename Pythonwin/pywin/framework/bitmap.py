@@ -81,7 +81,7 @@ class BitmapFrame(window.MDIChildWnd):
         borderX = win32api.GetSystemMetrics(win32con.SM_CXFRAME)
         borderY = win32api.GetSystemMetrics(win32con.SM_CYFRAME)
         titleY = win32api.GetSystemMetrics(win32con.SM_CYCAPTION)  # includes border
-        # try and maintain default window pos, else adjust if cant fit
+        # try and maintain default window pos, else adjust if can't fit
         # get the main client window dimensions.
         mdiClient = win32ui.GetMainFrame().GetWindow(win32con.GW_CHILD)
         clientWindowRect = mdiClient.ScreenToClient(mdiClient.GetWindowRect())
@@ -138,7 +138,7 @@ bitmapTemplate.SetDocStrings(
 )
 win32ui.GetApp().AddDocTemplate(bitmapTemplate)
 
-# This works, but just didnt make it through the code reorg.
+# This works, but just didn't make it through the code reorg.
 # class PPMBitmap(Bitmap):
 # 	def LoadBitmapFile(self, file ):
 # 		magic=file.readline()
@@ -147,7 +147,7 @@ win32ui.GetApp().AddDocTemplate(bitmapTemplate)
 # 		rowcollist=file.readline().split()
 # 		cols=int(rowcollist[0])
 # 		rows=int(rowcollist[1])
-# 		file.readline()	# whats this one?
+# 		file.readline()	# what's this one?
 # 		self.bitmap.LoadPPMFile(file,(cols,rows))
 
 

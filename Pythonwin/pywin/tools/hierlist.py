@@ -121,7 +121,7 @@ class HierList(object.Object):
         self.filledItemHandlesMap = {}
 
     def HierTerm(self):
-        # Dont want notifies as we kill the list.
+        # Don't want notifies as we kill the list.
         parent = self.notify_parent  # GetParentFrame()
         parent.HookNotify(None, commctrl.TVN_ITEMEXPANDINGW)
         parent.HookNotify(None, commctrl.TVN_SELCHANGEDW)
@@ -217,7 +217,7 @@ class HierList(object.Object):
                 if old_items[iold] == new_items[inewlook]:
                     matched = 1
                     break
-                inewlook = inewlook + 1
+                inewlook += 1
             if matched:
                 # Insert the new items.
                 # print("Inserting after", old_items[iold], old_handles[iold])

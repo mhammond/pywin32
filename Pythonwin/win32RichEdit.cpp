@@ -199,7 +199,7 @@ static PyObject *PyCRichEditView_save_text_file(PyObject *self, PyObject *args)
             size += size;  // try doubling!
         }
         if (bytesCopied == size)  // hit max.
-            --bytesCopied;        // so NULL doesnt overshoot.
+            --bytesCopied;        // so NULL doesn't overshoot.
         buf[bytesCopied] = 0;
         if (i < lineCount - 1)
             fwrite(buf, sizeof(TCHAR), bytesCopied, f);
