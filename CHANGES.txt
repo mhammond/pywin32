@@ -15,6 +15,11 @@ Coming in build 307, as yet unreleased
 --------------------------------------
 
 ### pywin32
+* Update calls to removed (in Python 3) calls to `os.path.walk`, which fixes the following: (#2314, @Avasam)
+  * `VersionStamp/bulkstamp.py` script
+  * `com/win32comext/shell/demos/dump_link.py` demo
+  * `com/win32comext/shell/demos/servers/empty_volume_cache.py` demo
+  * `com/win32comext/shell/demos/viewstate.py` demo
 * Add RealGetWindowClass (#2299, @CristiFati)
 * Make it compile on Python 3.13 (#2260, @clin1234)
 * Fixed accidentally trying to raise a `str` instead of an `Exception` in (#2270, @Avasam)
