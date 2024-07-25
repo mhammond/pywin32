@@ -9,7 +9,7 @@
 from __future__ import annotations
 
 import sys
-from typing import Any
+from typing import Any, ClassVar
 
 import pythoncom
 import pywintypes
@@ -494,9 +494,18 @@ def Record(name, object):
 ############################################
 class DispatchBaseClass:
 
-    # _prop_map_*_ are set externally
-    _prop_map_get_: dict[str, tuple[object, ...]]
-    _prop_map_put_: dict[str, tuple[tuple[object, ...], tuple[object, ...]]]
+    # _prop_map_*_ are set in generated subclasses by gen_py
+    _prop_map_get_: ClassVar[
+        dict[
+            str,
+            tuple[
+                int, int, tuple[int, int], tuple[tuple[int, int], ...], str, str | None
+            ],
+        ]
+    ]
+    _prop_map_put_: ClassVar[
+        dict[str, tuple[tuple[int, int, int, int], tuple[int, ...]]]
+    ]
 
     def __init__(self, oobj=None):
         if oobj is None:
