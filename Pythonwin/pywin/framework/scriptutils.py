@@ -609,8 +609,8 @@ def _HandlePythonFailure(what: str, syntaxErrorPathName: str | None = None):
     typ, details, tb = sys.exc_info()
     if isinstance(details, SyntaxError):
         filename = details.filename
-        if (not fileName or fileName == "<string>") and syntaxErrorPathName:
-            fileName = syntaxErrorPathName
+        if (not filename or filename == "<string>") and syntaxErrorPathName:
+            filename = syntaxErrorPathName
         try:
             _JumpToPosition(filename, details.lineno, details.offset)
         except (TypeError, ValueError):
