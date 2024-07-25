@@ -7,6 +7,7 @@ from __future__ import annotations
 import array
 import code
 import os
+import re
 import string
 import sys
 import traceback
@@ -22,15 +23,13 @@ import win32con
 import win32ui
 from pywin.mfc import afxres
 
+from . import winout
+
 ## sequential after ID_GOTO_LINE defined in editor.py
 ID_EDIT_COPY_CODE = 0xE2002
 ID_EDIT_EXEC_CLIPBOARD = 0x2003
 
 trace = pywin.scintilla.formatter.trace
-
-import re
-
-from . import winout
 
 # from IDLE.
 _is_block_opener = re.compile(r":\s*(#.*)?$").search
