@@ -556,7 +556,7 @@ def RunTabNanny(filename):
                 GetActiveEditControl().SCISetViewWS(1)
             except:
                 pass
-            win32ui.SetStatusText("The TabNanny found trouble at line %d" % lineno)
+            win32ui.SetStatusText(f"The TabNanny found trouble at line {lineno}")
         except (IndexError, TypeError, ValueError):
             print("The tab nanny complained, but I can't see where!")
             print(data)
@@ -608,16 +608,15 @@ def _HandlePythonFailure(what, syntaxErrorPathName=None):
     typ, details, tb = sys.exc_info()
     if isinstance(details, SyntaxError):
         try:
-            msg, (fileName, line, col, text) = details
+            filename = details.filename
             if (not fileName or fileName == "<string>") and syntaxErrorPathName:
                 fileName = syntaxErrorPathName
-            _JumpToPosition(fileName, line, col)
+            _JumpToPosition(filename, details.lineno, details.offset)
         except (TypeError, ValueError):
-            msg = str(details)
-        win32ui.SetStatusText("Failed to " + what + " - syntax error - %s" % msg)
+            pass
     else:
         traceback.print_exc()
-        win32ui.SetStatusText("Failed to " + what + " - " + str(details))
+    win32ui.SetStatusText(f"Failed to {what} - {type(details)} - {details}")
     tb = None  # Clean up a cycle.
 
 
