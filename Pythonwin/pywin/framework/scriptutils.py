@@ -2,6 +2,8 @@
 Various utilities for running/importing a script
 """
 
+from __future__ import annotations
+
 import bdb
 import linecache
 import os
@@ -549,8 +551,7 @@ def RunTabNanny(filename):
     data = newout.getvalue()
     if data:
         try:
-            lineno = data.split()[1]
-            lineno = int(lineno)
+            lineno = int(data.split()[1])
             _JumpToPosition(filename, lineno)
             try:  # Try and display whitespace
                 GetActiveEditControl().SCISetViewWS(1)
@@ -604,7 +605,7 @@ def JumpToDocument(fileName, lineno=0, col=1, nChars=0, bScrollToTop=0):
     return view
 
 
-def _HandlePythonFailure(what, syntaxErrorPathName=None):
+def _HandlePythonFailure(what: str, syntaxErrorPathName: str | None = None):
     typ, details, tb = sys.exc_info()
     if isinstance(details, SyntaxError):
         try:
