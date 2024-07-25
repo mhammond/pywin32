@@ -561,7 +561,7 @@ class Query(BaseQuery):
         self.volatilecounters = volatilecounters
 
 
-class QueryError:
+class QueryError(Exception):
     def __init__(self, query):
         self.query = query
 
