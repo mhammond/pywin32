@@ -15,6 +15,7 @@ Coming in build 307, as yet unreleased
 --------------------------------------
 
 ### pywin32
+* Fixed unbound globals in `Pythonwin/pywin/dialogs/ideoptions.py` (#, @Avasam)
 * Add RealGetWindowClass (#2299, @CristiFati)
 * Make it compile on Python 3.13 (#2260, @clin1234)
 * Fixed accidentally trying to raise a `str` instead of an `Exception` in (#2270, @Avasam)
@@ -154,7 +155,7 @@ Coming in build 307, as yet unreleased
   * Use byte-string (`b""`) for constant bytes values instead of superfluous `.encode` calls (#2046, @Avasam)
   * Cleaned up unused imports (#1986, #2051, #1990, #2124, #2126, @Avasam)
   * Removed duplicated declarations, constants and definitions (#2050 , #1950, #1990, @Avasam)
-* Small generalized optimization by using augmented assignements (in-place operators) where possible (#2274, @Avasam)
+* Small generalized optimization by using augmented assignments (in-place operators) where possible (#2274, @Avasam)
 * General speed and size improvements due to all the removed code. (#2046, #1986, #2050, #1950, #2085, #2087, #2051, #1990, #2106, #2127, #2124, #2126, #2177, #2218, #2202, #2205, #2217)
 
 ### adodbapi
