@@ -608,10 +608,10 @@ def JumpToDocument(fileName, lineno=0, col=1, nChars=0, bScrollToTop=0):
 def _HandlePythonFailure(what: str, syntaxErrorPathName: str | None = None):
     typ, details, tb = sys.exc_info()
     if isinstance(details, SyntaxError):
+        filename = details.filename
+        if (not fileName or fileName == "<string>") and syntaxErrorPathName:
+            fileName = syntaxErrorPathName
         try:
-            filename = details.filename
-            if (not fileName or fileName == "<string>") and syntaxErrorPathName:
-                fileName = syntaxErrorPathName
             _JumpToPosition(filename, details.lineno, details.offset)
         except (TypeError, ValueError):
             pass
