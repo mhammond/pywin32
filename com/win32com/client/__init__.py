@@ -495,7 +495,7 @@ def Record(name, object):
 class DispatchBaseClass:
 
     # _prop_map_*_ are set externally
-    _prop_map_get_: dict[str, tuple[tuple[object, ...], tuple[object, ...]]]
+    _prop_map_get_: dict[str, tuple[object, ...]]
     _prop_map_put_: dict[str, tuple[tuple[object, ...], tuple[object, ...]]]
 
     def __init__(self, oobj=None):
