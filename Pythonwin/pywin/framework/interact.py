@@ -10,6 +10,7 @@ import os
 import string
 import sys
 import traceback
+from typing import TYPE_CHECKING
 
 import __main__
 import pywin.framework.app
@@ -900,7 +901,10 @@ def CreateDockedInteractiveWindow():
 InteractiveDocument = winout.WindowOutputDocument
 
 # We remember our one and only interactive window in the "edit" variable.
-edit: CInteractivePython | None = None
+if TYPE_CHECKING:  # Python 3.7 bug https://github.com/python/cpython/issues/79120
+    edit: CInteractivePython | None = None
+else:
+    edit = None
 
 
 def CreateInteractiveWindowUserPreference(makeDoc=None, makeFrame=None):
