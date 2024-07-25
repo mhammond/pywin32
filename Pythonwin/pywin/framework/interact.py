@@ -901,10 +901,7 @@ def CreateDockedInteractiveWindow():
 InteractiveDocument = winout.WindowOutputDocument
 
 # We remember our one and only interactive window in the "edit" variable.
-if TYPE_CHECKING:  # Python 3.7 bug https://github.com/python/cpython/issues/79120
-    edit: CInteractivePython | None = None
-else:
-    edit = None
+edit = None
 
 
 def CreateInteractiveWindowUserPreference(makeDoc=None, makeFrame=None):
