@@ -10,7 +10,6 @@ import os
 import string
 import sys
 import traceback
-from typing import TYPE_CHECKING
 
 import __main__
 import pywin.framework.app
