@@ -2,6 +2,7 @@
 ##
 ## Interactive Shell Window
 ##
+from __future__ import annotations
 
 import array
 import code
@@ -899,7 +900,7 @@ def CreateDockedInteractiveWindow():
 InteractiveDocument = winout.WindowOutputDocument
 
 # We remember our one and only interactive window in the "edit" variable.
-edit = None
+edit: CInteractivePython | None = None
 
 
 def CreateInteractiveWindowUserPreference(makeDoc=None, makeFrame=None):

@@ -21,6 +21,7 @@
 import glob
 import os
 import re
+from collections.abc import Sequence
 
 import win32api
 import win32con
@@ -646,8 +647,8 @@ class GrepDialog(dialog.Dialog):
 
 
 class GrepParamsDialog(dialog.Dialog):
-    def __init__(self, items):
-        self.items = items
+    def __init__(self, items: Sequence):
+        self.items: Sequence = items  # Sequence to avoid 1-time iterable
         self.newitems = []
         style = (
             win32con.DS_MODALFRAME
