@@ -17,7 +17,7 @@ Coming in build 307, as yet unreleased
 ### pywin32
 * Add RealGetWindowClass (#2299, @CristiFati)
 * Make it compile on Python 3.13 (#2260, @clin1234)
-* Fixed accidentally trying to raise a `str` instead of an `Exception` in (#2270, @Avasam)
+* Fixed accidentally trying to raise a `str` instead of an `Exception` in (#2270, #2326, @Avasam)
   * `Pythonwin/pywin/debugger/debugger.py`
   * `Pythonwin/pywin/framework/dlgappcore.py`
   * `com/win32com/server/policy.py`
