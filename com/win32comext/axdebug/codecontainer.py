@@ -9,6 +9,7 @@ from __future__ import annotations
 import os
 import sys
 import tokenize
+from typing import Any
 
 import win32api
 import winerror
@@ -41,7 +42,8 @@ class SourceCodeContainer:
             self._buildlines()
         self.nextLineNo = 0
         self.fileName = fileName
-        self.codeContexts = {}
+        # Any: PyIDispatch type is not statically exposed
+        self.codeContexts: dict[int, Any] = {}
         self.site = site
         self.startLineNumber = startLineNumber
         self.debugDocument = debugDocument
