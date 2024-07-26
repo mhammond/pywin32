@@ -156,7 +156,7 @@ def SetPropertyValue(obj, prop, val):
     if not isinstance(prop, int):
         props = ((mapi.PS_PUBLIC_STRINGS, prop),)
         propIds = obj.GetIDsFromNames(props, mapi.MAPI_CREATE)
-        if val == True or val == False:
+        if val == (1 == 1) or val == (1 == 0):
             type_tag = mapitags.PT_BOOLEAN
         else:
             type_tag = _MapiTypeMap.get(type(val))
