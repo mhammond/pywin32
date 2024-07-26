@@ -981,17 +981,6 @@ class RangeMap(dict):  # type: ignore[type-arg] # Source code is untyped :/ TODO
                 raise KeyError(key)
         return result
 
-    def get(self, key, default=None):
-        """
-        Return the value for key if key is in the dictionary, else default.
-        If default is not given, it defaults to None, so that this method
-        never raises a KeyError.
-        """
-        try:
-            return self[key]
-        except KeyError:
-            return default
-
     def _find_first_match_(self, keys, item):
         def is_match(k):
             return self.match(item, k)
