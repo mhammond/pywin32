@@ -4,6 +4,8 @@ A code container is a class which holds source code for a debugger.  It knows ho
 to color the text, and also how to translate lines into offsets, and back.
 """
 
+from __future__ import annotations
+
 import os
 import sys
 import tokenize
@@ -26,7 +28,7 @@ for name in """
 class SourceCodeContainer:
     def __init__(
         self,
-        text,
+        text: str | None,
         fileName="<Remove Me!>",
         sourceContext=0,
         startLineNumber=0,
@@ -34,7 +36,7 @@ class SourceCodeContainer:
         debugDocument=None,
     ):
         self.sourceContext = sourceContext  # The source context added by a smart host.
-        self.text = text
+        self.text: str | None = text
         if text:
             self._buildlines()
         self.nextLineNo = 0

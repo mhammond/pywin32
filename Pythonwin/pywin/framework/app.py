@@ -6,6 +6,7 @@
 import os
 import sys
 import traceback
+from typing import Literal
 
 import regutil
 import win32api
@@ -61,7 +62,7 @@ class MainFrame(window.MDIFrameWnd):
         win32ui.ID_INDICATOR_COLNUM,
     )
 
-    def OnCreate(self, cs):
+    def OnCreate(self, cs) -> Literal[-1, 0, 1]:
         self._CreateStatusBar()
         return 0
 
