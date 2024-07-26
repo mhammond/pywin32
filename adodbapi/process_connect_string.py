@@ -124,7 +124,7 @@ def process(
             except KeyError:
                 raise TypeError("Must define 'connection_string' for ado connections")
     if expand_macros:
-        for kwarg in kwargs:
+        for kwarg in list(kwargs.keys()):
             if kwarg.startswith("macro_"):  # If a key defines a macro
                 macro_name = kwarg[6:]  # name without the "macro_"
                 macro_code = kwargs.pop(

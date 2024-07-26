@@ -564,7 +564,7 @@ class SQLrow:  # a single database row
             yield self._getValue(n)
 
     def __repr__(self):  # create a human readable representation
-        taglist = sorted(self.rows.columnNames.items(), key=lambda x: x[1])
+        taglist = sorted(list(self.rows.columnNames.items()), key=lambda x: x[1])
         s = "<SQLrow={"
         for name, i in taglist:
             s += f"{name}:{self._getValue(i)!r}, "
