@@ -246,6 +246,7 @@ from typing import (
     Callable,
     ClassVar,
     Dict,
+    Generator,
     Iterable,
     Mapping,
     TypeVar,
@@ -544,7 +545,7 @@ class TimeZoneInfo(datetime.tzinfo):
             raise ValueError("Timezone Name %s not found." % timeZoneName)
         return result
 
-    def _LoadInfoFromKey(self):
+    def _LoadInfoFromKey(self) -> None:
         """Loads the information from an opened time zone registry key
         into relevant fields of this TZI object"""
         key = self._FindTimeZoneKey()
@@ -561,7 +562,7 @@ class TimeZoneInfo(datetime.tzinfo):
         self.daylightName = tzi.daylight_name
         self.staticInfo = tzi
 
-    def _LoadDynamicInfoFromKey(self, key):
+    def _LoadDynamicInfoFromKey(self, key) -> None:
         """
         >>> tzi = TimeZoneInfo('Central Standard Time')
 
@@ -623,7 +624,9 @@ class TimeZoneInfo(datetime.tzinfo):
         return self.displayName
 
     def tzname(self, dt: datetime.datetime | None) -> str:
-        winInfo = self.getWinInfo(dt)
+        # FIXME/TODO: Real issue !
+        # Are we meant to return the last item if passing a datetime to getWinInfo?
+        winInfo = self.getWinInfo(dt)  # type: ignore[arg-type]
         if self.dst(dt) == winInfo.daylight_bias:
             result = self.daylightName
         elif self.dst(dt) == winInfo.standard_bias:
@@ -650,7 +653,7 @@ class TimeZoneInfo(datetime.tzinfo):
         winInfo = self.getWinInfo(dt.year)
         return winInfo.bias + winInfo.daylight_bias
 
-    @overload
+    @overload  # type: ignore[override] # False-positive, our overload covers all base types
     def utcoffset(self, dt: None) -> None: ...
     @overload
     def utcoffset(self, dt: datetime.datetime) -> datetime.timedelta: ...
@@ -661,7 +664,7 @@ class TimeZoneInfo(datetime.tzinfo):
         winInfo = self.getWinInfo(dt.year)
         return -winInfo.bias + self.dst(dt)
 
-    @overload
+    @overload  # type: ignore[override] # False-positive, our overload covers all base types
     def dst(self, dt: None) -> None: ...
     @overload
     def dst(self, dt: datetime.datetime) -> datetime.timedelta: ...
@@ -828,16 +831,18 @@ class TimeZoneInfo(datetime.tzinfo):
 
 
 class _RegKeyDict(Dict[str, str]):
-    def __init__(self, key: winreg.HKEYType):
+    def __init__(self, key: winreg._KeyType):
         dict.__init__(self)
         self.key = key
         self.__load_values()
 
     @classmethod
-    def open(cls, *args, **kargs):
-        return _RegKeyDict(winreg.OpenKeyEx(*args, **kargs))
+    def open(
+        cls, key: winreg._KeyType, sub_key: str, reserved: int = 0, access: int = 131097
+    ) -> _RegKeyDict:
+        return _RegKeyDict(winreg.OpenKeyEx(key, sub_key, reserved, access))
 
-    def subkey(self, name) -> _RegKeyDict:
+    def subkey(self, name: str) -> _RegKeyDict:
         return _RegKeyDict(winreg.OpenKeyEx(self.key, name))
 
     def __load_values(self):
@@ -856,7 +861,9 @@ class _RegKeyDict(Dict[str, str]):
         return _RegKeyDict._enumerate_reg(key, winreg.EnumKey)
 
     @staticmethod
-    def _enumerate_reg(key, func):
+    def _enumerate_reg(
+        key: _T, func: Callable[[_T, int], _VT]
+    ) -> Generator[_VT, None, None]:
         "Enumerates an open registry key as an iterable generator"
         try:
             for index in count():
