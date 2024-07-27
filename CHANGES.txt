@@ -181,6 +181,7 @@ Coming in build 307, as yet unreleased
   * `adodbapi.apibase.memoryViewType`
 * Remove outdated and unused remote feature (#2098, @Avasam)
 * Migrated from `distutils` to `setuptools` (#2133, @Avasam)
+* Simplify dict iterations from Python 2 to 3 migration (#2332, @Avasam)
 
 Build 306, released 2023-03-26
 ------------------------------
