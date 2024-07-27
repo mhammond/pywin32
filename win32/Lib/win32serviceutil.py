@@ -5,6 +5,7 @@
 # (which is win32service.error, pywintypes.error, etc)
 # when things go wrong - eg, not enough permissions to hit the
 # registry etc.
+from __future__ import annotations
 
 import importlib.machinery
 import os
@@ -572,6 +573,9 @@ def RestartService(serviceName, args=None, waitSeconds=30, machine=None):
         print("Gave up waiting for the old service to stop!")
 
 
+g_debugService: ServiceFramework | None = None
+
+
 def _DebugCtrlHandler(evt):
     if evt in (win32con.CTRL_C_EVENT, win32con.CTRL_BREAK_EVENT):
         assert g_debugService
@@ -581,7 +585,7 @@ def _DebugCtrlHandler(evt):
     return False
 
 
-def DebugService(cls, argv=[]):
+def DebugService(cls: type[ServiceFramework], argv=[]):
     # Run a service in "debug" mode.  Re-implements what pythonservice.exe
     # does when it sees a "-debug" param.
     # Currently only used by "frozen" (ie, py2exe) programs (but later may
