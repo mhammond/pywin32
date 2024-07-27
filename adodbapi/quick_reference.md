@@ -846,9 +846,8 @@ the database servers are distant, this can take a while.
 It does some lightweight command line processing (actually the config
 does it).
 
-"\--package" tries to build a proper Python package in a temporary
-location and adds it to sys.path so it can import a test version of the
-code. It will run 2to3 when it does this, if needed.
+"\--package" tries to build a proper Python package in a temporary location
+and adds it to sys.path so it can import a test version of the code.
 
 "\--all" run as many of the 12 passes as possible.
 

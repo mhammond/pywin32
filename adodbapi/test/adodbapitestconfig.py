@@ -32,7 +32,7 @@ except:
 if "--help" in sys.argv:
     print(
         """Valid command-line switches are:
-    --package - create a temporary test package, run 2to3 if needed.
+    --package - create a temporary test package
     --all - run all possible tests
     --time - do time format test
     --nojet - do not test against an ACCESS database file
@@ -56,7 +56,7 @@ mdb_name = "xx_" + tmp + ".mdb"  # generate a non-colliding name for the tempora
 testfolder = setuptestframework.maketemp()
 
 if "--package" in sys.argv:
-    #  create a new adodbapi module -- running 2to3 if needed.
+    #  create a new adodbapi module
     pth = setuptestframework.makeadopackage(testfolder)
 else:
     #  use the adodbapi module in which this file appears
