@@ -76,7 +76,7 @@ class Enumerator:
         return self._oleobj_.Reset()
 
     def Clone(self):
-        return self.__class__(self._oleobj_.Clone(), self.resultCLSID)
+        return self.__class__(self._oleobj_.Clone())
 
     def _make_retval_(self, result):
         return result

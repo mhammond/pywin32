@@ -3,10 +3,12 @@
 # Exposes Python classes that allow you to use Scintilla as
 # a "standard" MFC edit control (eg, control.GetTextLength(), control.GetSel()
 # plus many Scintilla specific features (eg control.SCIAddStyledText())
+from __future__ import annotations
 
 import array
 import os
 import struct
+from typing import TYPE_CHECKING, overload
 
 import win32api
 import win32con
@@ -15,6 +17,9 @@ from pywin import default_scintilla_encoding
 from pywin.mfc import window
 
 from . import scintillacon
+
+if TYPE_CHECKING:
+    from typing_extensions import Literal
 
 # Load Scintilla.dll to get access to the control.
 # We expect to find this in the same directory as win32ui.pyd
@@ -472,7 +477,34 @@ class CScintillaEditInterface(ScintillaControlInterface):
     def GetTextLength(self):
         return self.SendScintilla(scintillacon.SCI_GETTEXTLENGTH)
 
-    def GetTextRange(self, start=0, end=-1, decode=True):
+    @overload
+    def GetTextRange(
+        self,
+        start: int,
+        end: int,
+        decode: Literal[False],
+    ) -> bytes: ...
+    @overload
+    def GetTextRange(
+        self,
+        start: int = 0,
+        end: int = -1,
+        *,
+        decode: Literal[False],
+    ) -> bytes: ...
+    @overload
+    def GetTextRange(
+        self,
+        start: int = 0,
+        end: int = -1,
+        decode: Literal[True] = True,
+    ) -> str: ...
+    def GetTextRange(
+        self,
+        start: int = 0,
+        end: int = -1,
+        decode: bool = True,
+    ) -> str | bytes:
         if end == -1:
             end = self.SendScintilla(scintillacon.SCI_GETTEXTLENGTH)
         assert end >= start, "Negative index requested (%d/%d)" % (start, end)
