@@ -29,7 +29,7 @@ def _SetupSharedMenu_(self):
 
 from pywin.mfc import docview
 
-docview.DocTemplate._SetupSharedMenu_ = _SetupSharedMenu_
+docview.DocTemplate._SetupSharedMenu_ = _SetupSharedMenu_  # type: ignore[method-assign]
 
 
 class MainFrame(app.MainFrame):

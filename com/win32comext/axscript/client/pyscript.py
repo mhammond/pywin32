@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import re
 import types
-from typing import Any, Callable, Sequence
 
 import pythoncom
 import win32api
