@@ -575,12 +575,14 @@ class TimeZoneInfo(datetime.tzinfo):
             return
         del info["FirstEntry"]
         del info["LastEntry"]
-        years = map(int, list(info.keys()))
-        values = map(TimeZoneDefinition, list(info.values()))
+
+        infos = [
+            (int(year), TimeZoneDefinition(values)) for year, values in info.items()
+        ]
         # create a range mapping that searches by descending year and matches
         # if the target year is greater or equal.
         self.dynamicInfo = RangeMap(
-            zip(years, values),
+            infos,
             sort_params={"reverse": True},
             key_match_comparator=operator.ge,
         )
@@ -971,7 +973,7 @@ class RangeMap(dict):  # type: ignore[type-arg] # Source code is untyped :/ TODO
         self.match = key_match_comparator
 
     def __getitem__(self, item):
-        sorted_keys = sorted(self.keys(), **self.sort_params)
+        sorted_keys = sorted(self, **self.sort_params)
         if isinstance(item, RangeMap.Item):
             result = self.__getitem__(sorted_keys[item])
         else:
@@ -980,6 +982,18 @@ class RangeMap(dict):  # type: ignore[type-arg] # Source code is untyped :/ TODO
             if result is RangeMap.undefined_value:
                 raise KeyError(key)
         return result
+
+    def get(self, key, default=None):
+        """
+        Return the value for key if key is in the dictionary, else default.
+        If default is not given, it defaults to None, so that this method
+        never raises a KeyError.
+        """
+        # Necessary to use our own __getitem__ and not dict's
+        try:
+            return self[key]
+        except KeyError:
+            return default
 
     def _find_first_match_(self, keys, item):
         def is_match(k):
@@ -991,7 +1005,7 @@ class RangeMap(dict):  # type: ignore[type-arg] # Source code is untyped :/ TODO
         raise KeyError(item)
 
     def bounds(self):
-        sorted_keys = sorted(self.keys(), **self.sort_params)
+        sorted_keys = sorted(self, **self.sort_params)
         return (
             sorted_keys[RangeMap.first_item],
             sorted_keys[RangeMap.last_item],
