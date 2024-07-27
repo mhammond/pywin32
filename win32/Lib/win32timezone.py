@@ -233,6 +233,7 @@ datetime.datetime(2011, 11, 6, 1, 0, tzinfo=TimeZoneInfo('Pacific Standard Time'
 from __future__ import annotations
 
 import datetime
+import functools
 import logging
 import operator
 import re
@@ -246,6 +247,7 @@ from typing import (
     ClassVar,
     Dict,
     Iterable,
+    Mapping,
     TypeVar,
     overload,
 )
@@ -254,7 +256,7 @@ import win32api
 
 if TYPE_CHECKING:
     from _typeshed import SupportsKeysAndGetItem
-    from typing_extensions import Literal, Self
+    from typing_extensions import Self
 
 _T = TypeVar("_T")
 _VT = TypeVar("_VT")
@@ -565,7 +567,7 @@ class TimeZoneInfo(datetime.tzinfo):
 
         Here's how the RangeMap is supposed to work:
         >>> m = RangeMap(zip([2006,2007], 'BC'),
-        ...     sort_params = dict(reverse=True),
+        ...     sort_params = {"reverse": True},
         ...     key_match_comparator=operator.ge)
         >>> m.get(2000, 'A')
         'A'
@@ -937,9 +939,7 @@ def resolveMUITimeZone(spec: str) -> str | None:
     return result
 
 
-# from jaraco.util.dictlib 5.3.1
-# TODO: Resync with implementation in jaraco.collections
-class RangeMap(Dict[int, _VT]):
+class RangeMap(Dict[int, _VT]):  # from jaraco.collections 5.0.1 with additional typing
     """
     A dictionary-like object that uses the keys as bounds for a range.
     Inclusion of the value for that range is determined by the
@@ -948,25 +948,30 @@ class RangeMap(Dict[int, _VT]):
     the sorted list of keys.
 
     One may supply keyword parameters to be passed to the sort function used
-    to sort keys (i.e. keys, reverse) as sort_params.
+    to sort keys (i.e. key, reverse) as sort_params.
 
-    Let's create a map that maps 1-3 -> 'a', 4-6 -> 'b'
+    Create a map that maps 1-3 -> 'a', 4-6 -> 'b'
+
     >>> r = RangeMap({3: 'a', 6: 'b'})  # boy, that was easy
     >>> r[1], r[2], r[3], r[4], r[5], r[6]
     ('a', 'a', 'a', 'b', 'b', 'b')
 
     Even float values should work so long as the comparison operator
     supports it.
+
     >>> r[4.5]
     'b'
 
-    But you'll notice that the way rangemap is defined, it must be open-ended on one side.
+    Notice that the way rangemap is defined, it must be open-ended
+    on one side.
+
     >>> r[0]
     'a'
     >>> r[-1]
     'a'
 
     One can close the open-end of the RangeMap by using undefined_value
+
     >>> r = RangeMap({0: RangeMap.undefined_value, 3: 'a', 6: 'b'})
     >>> r[0]
     Traceback (most recent call last):
@@ -974,49 +979,77 @@ class RangeMap(Dict[int, _VT]):
     KeyError: 0
 
     One can get the first or last elements in the range by using RangeMap.Item
+
     >>> last_item = RangeMap.Item(-1)
     >>> r[last_item]
     'b'
 
     .last_item is a shortcut for Item(-1)
+
     >>> r[RangeMap.last_item]
     'b'
 
     Sometimes it's useful to find the bounds for a RangeMap
+
     >>> r.bounds()
     (0, 6)
 
     RangeMap supports .get(key, default)
+
     >>> r.get(0, 'not found')
     'not found'
 
     >>> r.get(7, 'not found')
     'not found'
 
+    One often wishes to define the ranges by their left-most values,
+    which requires use of sort params and a key_match_comparator.
+
+    >>> r = RangeMap({1: 'a', 4: 'b'},
+    ...     sort_params={"reverse": True},
+    ...     key_match_comparator=operator.ge)
+    >>> r[1], r[2], r[3], r[4], r[5], r[6]
+    ('a', 'a', 'a', 'b', 'b', 'b')
+
+    That wasn't nearly as easy as before, so an alternate constructor
+    is provided:
+
+    >>> r = RangeMap.left({1: 'a', 4: 'b', 7: RangeMap.undefined_value})
+    >>> r[1], r[2], r[3], r[4], r[5], r[6]
+    ('a', 'a', 'a', 'b', 'b', 'b')
+
     """
 
     def __init__(
         self,
         source: SupportsKeysAndGetItem[int, _VT] | Iterable[tuple[int, _VT]],
-        sort_params={},
+        sort_params: Mapping[str, Any] = {},
         key_match_comparator: Callable[[int, int], bool] = operator.le,
     ):
         dict.__init__(self, source)
         self.sort_params = sort_params
         self.match = key_match_comparator
 
+    @classmethod
+    def left(
+        cls, source: SupportsKeysAndGetItem[int, _VT] | Iterable[tuple[int, _VT]]
+    ) -> Self:
+        return cls(
+            source, sort_params={"reverse": True}, key_match_comparator=operator.ge
+        )
+
     def __getitem__(self, item: int) -> _VT:
         sorted_keys = sorted(self.keys(), **self.sort_params)
         if isinstance(item, RangeMap.Item):
-            return self.__getitem__(sorted_keys[item])
-
-        key = self._find_first_match_(sorted_keys, item)
-        result = dict.__getitem__(self, key)
-        if result is RangeMap.undefined_value:
-            raise KeyError(key)
+            result = self.__getitem__(sorted_keys[item])
+        else:
+            key = self._find_first_match_(sorted_keys, item)
+            result = dict.__getitem__(self, key)
+            if result is RangeMap.undefined_value:
+                raise KeyError(key)
         return result
 
-    @overload
+    @overload  # type: ignore[override] # Signature simplified over dict and Mapping
     def get(self, key: int, default: _T) -> _VT | _T: ...
     @overload
     def get(self, key: int, default: None = None) -> _VT | None: ...
@@ -1032,9 +1065,7 @@ class RangeMap(Dict[int, _VT]):
             return default
 
     def _find_first_match_(self, keys: Iterable[int], item: int) -> int:
-        def is_match(k: int):
-            return self.match(item, k)
-
+        is_match = functools.partial(self.match, item)
         matches = filter(is_match, keys)
         try:
             return next(matches)
@@ -1043,16 +1074,13 @@ class RangeMap(Dict[int, _VT]):
 
     def bounds(self) -> tuple[int, int]:
         sorted_keys = sorted(self.keys(), **self.sort_params)
-        return (
-            sorted_keys[RangeMap.first_item],
-            sorted_keys[RangeMap.last_item],
-        )
+        return (sorted_keys[RangeMap.first_item], sorted_keys[RangeMap.last_item])
 
     # some special values for the RangeMap
-    undefined_value = type("RangeValueUndefined", (object,), {})()
+    undefined_value = type("RangeValueUndefined", (), {})()
 
     class Item(int):
-        pass
+        "RangeMap Item"
 
     first_item = Item(0)
     last_item = Item(-1)
