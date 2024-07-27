@@ -1,6 +1,4 @@
 # -*- coding: UTF-8 -*-
-from __future__ import annotations
-
 """
 win32timezone:
     Module for handling datetime.tzinfo time zones using the windows
@@ -232,6 +230,7 @@ Test offsets that occur right at the DST changeover
 datetime.datetime(2011, 11, 6, 1, 0, tzinfo=TimeZoneInfo('Pacific Standard Time'))
 
 """
+from __future__ import annotations
 
 import datetime
 import logging
@@ -240,9 +239,25 @@ import re
 import struct
 import winreg
 from itertools import count
-from typing import Dict
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    ClassVar,
+    Dict,
+    Iterable,
+    TypeVar,
+    overload,
+)
 
 import win32api
+
+if TYPE_CHECKING:
+    from _typeshed import SupportsKeysAndGetItem
+    from typing_extensions import Literal, Self
+
+_T = TypeVar("_T")
+_VT = TypeVar("_VT")
 
 __author__ = "Jason R. Coombs <jaraco@jaraco.com>"
 
@@ -252,9 +267,9 @@ log = logging.getLogger(__file__)
 # A couple of objects for working with objects as if they were native C-type
 # structures.
 class _SimpleStruct:
-    _fields_: list[tuple[str, type]] = []  # must be overridden by subclasses
+    _fields_: ClassVar[list[tuple[str, type]]] = []  # must be overridden by subclasses
 
-    def __init__(self, *args, **kw):
+    def __init__(self, *args, **kw) -> None:
         for i, (name, typ) in enumerate(self._fields_):
             def_arg = None
             if i < len(args):
@@ -274,10 +289,10 @@ class _SimpleStruct:
                 def_val = typ(*def_arg)
             setattr(self, name, def_val)
 
-    def field_names(self):
+    def field_names(self) -> list[str]:
         return [f[0] for f in self._fields_]
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         if not hasattr(other, "_fields_"):
             return False
         if self._fields_ != other._fields_:
@@ -287,7 +302,7 @@ class _SimpleStruct:
                 return False
         return True
 
-    def __ne__(self, other):
+    def __ne__(self, other: object) -> bool:
         return not self.__eq__(other)
 
 
@@ -316,7 +331,7 @@ class TIME_ZONE_INFORMATION(_SimpleStruct):
     ]
 
 
-class DYNAMIC_TIME_ZONE_INFORMATION(_SimpleStruct):
+class DYNAMIC_TIME_ZONE_INFORMATION(TIME_ZONE_INFORMATION):
     _fields_ = TIME_ZONE_INFORMATION._fields_ + [
         ("key_name", str),
         ("dynamic_daylight_time_disabled", bool),
@@ -332,7 +347,7 @@ class TimeZoneDefinition(DYNAMIC_TIME_ZONE_INFORMATION):
     additional bias applies (standard_bias and daylight_bias).
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         """
         Try to construct a TimeZoneDefinition from
         a) [DYNAMIC_]TIME_ZONE_INFORMATION args
@@ -384,45 +399,55 @@ class TimeZoneDefinition(DYNAMIC_TIME_ZONE_INFORMATION):
             daylight_disabled,
         )
 
-    def __init_from_other(self, other):
+    def __init_from_other(self, other: TIME_ZONE_INFORMATION) -> None:
         if not isinstance(other, TIME_ZONE_INFORMATION):
             raise TypeError("Not a TIME_ZONE_INFORMATION")
         for name in other.field_names():
             # explicitly get the value from the underlying structure
-            value = super(TimeZoneDefinition, other).__getattribute__(other, name)
+            value = super(TIME_ZONE_INFORMATION, other).__getattribute__(name)
             setattr(self, name, value)
         # consider instead of the loop above just copying the memory directly
         # size = max(ctypes.sizeof(DYNAMIC_TIME_ZONE_INFO), ctypes.sizeof(other))
         # ctypes.memmove(ctypes.addressof(self), other, size)
 
-    def __getattribute__(self, attr):
+    if TYPE_CHECKING:
+        # TIME_ZONE_INFORMATION fields as obtained by __getattribute__
+        bias: datetime.timedelta
+        standard_name: str
+        standard_start: SYSTEMTIME
+        standard_bias: datetime.timedelta
+        daylight_name: str
+        daylight_start: SYSTEMTIME
+        daylight_bias: datetime.timedelta
+
+    def __getattribute__(self, attr: str) -> Any:
         value = super().__getattribute__(attr)
         if "bias" in attr:
             value = datetime.timedelta(minutes=value)
         return value
 
     @classmethod
-    def current(class_):
+    def current(cls):
         "Windows Platform SDK GetTimeZoneInformation"
         code, tzi = win32api.GetTimeZoneInformation(True)
-        return code, class_(*tzi)
+        return code, cls(*tzi)
 
-    def set(self):
+    def set(self) -> None:
         tzi = tuple(getattr(self, n) for n, t in self._fields_)
         win32api.SetTimeZoneInformation(tzi)
 
-    def copy(self):
+    def copy(self) -> Self:
         # XXX - this is no longer a copy!
         return self.__class__(self)
 
-    def locate_daylight_start(self, year):
+    def locate_daylight_start(self, year) -> datetime.datetime:
         return self._locate_day(year, self.daylight_start)
 
-    def locate_standard_start(self, year):
+    def locate_standard_start(self, year) -> datetime.datetime:
         return self._locate_day(year, self.standard_start)
 
     @staticmethod
-    def _locate_day(year, cutoff):
+    def _locate_day(year, cutoff) -> datetime.datetime:
         """
         Takes a SYSTEMTIME object, such as retrieved from a TIME_ZONE_INFORMATION
         structure or call to GetTimeZoneInformation and interprets it based on the given
@@ -494,7 +519,7 @@ class TimeZoneInfo(datetime.tzinfo):
     # this key works for WinNT+, but not for the Win95 line.
     tzRegKey = r"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Time Zones"
 
-    def __init__(self, param=None, fix_standard_time=False):
+    def __init__(self, param=None, fix_standard_time=False) -> None:
         if isinstance(param, TimeZoneDefinition):
             self._LoadFromTZI(param)
         if isinstance(param, str):
@@ -502,7 +527,7 @@ class TimeZoneInfo(datetime.tzinfo):
             self._LoadInfoFromKey()
         self.fixedStandardTime = fix_standard_time
 
-    def _FindTimeZoneKey(self):
+    def _FindTimeZoneKey(self) -> _RegKeyDict:
         """Find the registry key for the time zone name (self.timeZoneName)."""
         # for multi-language compatability, match the time zone name in the
         # "Std" key of the time zone key.
@@ -527,7 +552,7 @@ class TimeZoneInfo(datetime.tzinfo):
         self.staticInfo = TimeZoneDefinition(key["TZI"])
         self._LoadDynamicInfoFromKey(key)
 
-    def _LoadFromTZI(self, tzi):
+    def _LoadFromTZI(self, tzi: TimeZoneDefinition):
         self.timeZoneName = tzi.standard_name
         self.displayName = "Unknown"
         self.standardName = tzi.standard_name
@@ -585,17 +610,17 @@ class TimeZoneInfo(datetime.tzinfo):
             key_match_comparator=operator.ge,
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         result = f"{self.__class__.__name__}({repr(self.timeZoneName)}"
         if self.fixedStandardTime:
             result += ", True"
         result += ")"
         return result
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.displayName
 
-    def tzname(self, dt):
+    def tzname(self, dt: datetime.datetime | None) -> str:
         winInfo = self.getWinInfo(dt)
         if self.dst(dt) == winInfo.daylight_bias:
             result = self.daylightName
@@ -603,12 +628,12 @@ class TimeZoneInfo(datetime.tzinfo):
             result = self.standardName
         return result
 
-    def getWinInfo(self, targetYear):
+    def getWinInfo(self, targetYear: int) -> TimeZoneDefinition:
         """
         Return the most relevant "info" for this time zone
         in the target year.
         """
-        if not hasattr(self, "dynamicInfo") or not self.dynamicInfo:
+        if not getattr(self, "dynamicInfo", {}):
             return self.staticInfo
         # Find the greatest year entry in self.dynamicInfo which is for
         #  a year greater than or equal to our targetYear. If not found,
@@ -623,20 +648,28 @@ class TimeZoneInfo(datetime.tzinfo):
         winInfo = self.getWinInfo(dt.year)
         return winInfo.bias + winInfo.daylight_bias
 
-    def utcoffset(self, dt):
+    @overload
+    def utcoffset(self, dt: None) -> None: ...
+    @overload
+    def utcoffset(self, dt: datetime.datetime) -> datetime.timedelta: ...
+    def utcoffset(self, dt: datetime.datetime | None) -> datetime.timedelta | None:
         "Calculates the utcoffset according to the datetime.tzinfo spec"
         if dt is None:
-            return
+            return None
         winInfo = self.getWinInfo(dt.year)
         return -winInfo.bias + self.dst(dt)
 
-    def dst(self, dt):
+    @overload
+    def dst(self, dt: None) -> None: ...
+    @overload
+    def dst(self, dt: datetime.datetime) -> datetime.timedelta: ...
+    def dst(self, dt: datetime.datetime | None) -> datetime.timedelta | None:
         """
         Calculate the daylight savings offset according to the
         datetime.tzinfo spec.
         """
         if dt is None:
-            return
+            return None
         winInfo = self.getWinInfo(dt.year)
         if not self.fixedStandardTime and self._inDaylightSavings(dt):
             result = winInfo.daylight_bias
@@ -673,25 +706,22 @@ class TimeZoneInfo(datetime.tzinfo):
 
         return in_dst
 
-    def GetDSTStartTime(self, year):
+    def GetDSTStartTime(self, year: int) -> datetime.datetime:
         "Given a year, determines the time when daylight savings time starts"
         return self.getWinInfo(year).locate_daylight_start(year)
 
-    def GetDSTEndTime(self, year):
+    def GetDSTEndTime(self, year: int) -> datetime.datetime:
         "Given a year, determines the time when daylight savings ends."
         return self.getWinInfo(year).locate_standard_start(year)
 
-    def __le__(self, other):
-        return self.__dict__ < other.__dict__
-
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         return self.__dict__ == other.__dict__
 
-    def __ne__(self, other):
+    def __ne__(self, other: object) -> bool:
         return self.__dict__ != other.__dict__
 
     @classmethod
-    def local(class_):
+    def local(cls) -> Self:
         """Returns the local time zone as defined by the operating system in the
         registry.
         >>> localTZ = TimeZoneInfo.local()
@@ -717,10 +747,12 @@ class TimeZoneInfo(datetime.tzinfo):
         # not sufficient to represent the time zone in which
         # the current user is operating due
         # to dynamic time zones.
-        return class_(info, fix_standard_time)
+        return cls(info, fix_standard_time)
+
+    _tzutc: ClassVar[Self | None] = None
 
     @classmethod
-    def utc(class_):
+    def utc(cls) -> Self:
         """Returns a time-zone representing UTC.
 
         Same as TimeZoneInfo('GMT Standard Time', True) but caches the result
@@ -729,9 +761,9 @@ class TimeZoneInfo(datetime.tzinfo):
         >>> isinstance(TimeZoneInfo.utc(), TimeZoneInfo)
         True
         """
-        if "_tzutc" not in class_.__dict__:
-            setattr(class_, "_tzutc", class_("GMT Standard Time", True))
-        return class_._tzutc
+        if not cls._tzutc:
+            cls._tzutc = cls("GMT Standard Time", True)
+        return cls._tzutc
 
     # helper methods for accessing the timezone info from the registry
     @staticmethod
@@ -766,7 +798,7 @@ class TimeZoneInfo(datetime.tzinfo):
         )
 
     @staticmethod
-    def get_sorted_time_zone_names():
+    def get_sorted_time_zone_names() -> list[str]:
         """
         Return a list of time zone names that can
         be used to initialize TimeZoneInfo instances.
@@ -775,11 +807,11 @@ class TimeZoneInfo(datetime.tzinfo):
         return [tz.standardName for tz in tzs]
 
     @staticmethod
-    def get_all_time_zones():
+    def get_all_time_zones() -> list[TimeZoneInfo]:
         return [TimeZoneInfo(n) for n in TimeZoneInfo._get_time_zone_key_names()]
 
     @staticmethod
-    def get_sorted_time_zones(key=None):
+    def get_sorted_time_zones(key=None) -> list[TimeZoneInfo]:
         """
         Return the time zones sorted by some key.
         key must be a function that takes a TimeZoneInfo object and returns
@@ -793,7 +825,7 @@ class TimeZoneInfo(datetime.tzinfo):
         return zones
 
 
-class _RegKeyDict(Dict[str, int]):
+class _RegKeyDict(Dict[str, str]):
     def __init__(self, key: winreg.HKEYType):
         dict.__init__(self)
         self.key = key
@@ -803,7 +835,7 @@ class _RegKeyDict(Dict[str, int]):
     def open(cls, *args, **kargs):
         return _RegKeyDict(winreg.OpenKeyEx(*args, **kargs))
 
-    def subkey(self, name):
+    def subkey(self, name) -> _RegKeyDict:
         return _RegKeyDict(winreg.OpenKeyEx(self.key, name))
 
     def __load_values(self):
@@ -831,18 +863,16 @@ class _RegKeyDict(Dict[str, int]):
             pass
 
 
-def utcnow():
+def utcnow() -> datetime.datetime:
     """
     Return the UTC time now with timezone awareness as enabled
     by this module
     >>> now = utcnow()
     """
-    now = datetime.datetime.utcnow()
-    now = now.replace(tzinfo=TimeZoneInfo.utc())
-    return now
+    return datetime.datetime.utcnow().replace(tzinfo=TimeZoneInfo.utc())
 
 
-def now():
+def now() -> datetime.datetime:
     """
     Return the local time now with timezone awareness as enabled
     by this module
@@ -851,7 +881,7 @@ def now():
     return datetime.datetime.now(TimeZoneInfo.local())
 
 
-def GetTZCapabilities():
+def GetTZCapabilities() -> dict[str, bool]:
     """
     Run a few known tests to determine the capabilities of
     the time zone database on this machine.
@@ -878,10 +908,10 @@ def GetTZCapabilities():
 
 
 class DLLHandleCache:
-    def __init__(self):
-        self.__cache = {}
+    def __init__(self) -> None:
+        self.__cache: dict[str, int] = {}
 
-    def __getitem__(self, filename):
+    def __getitem__(self, filename: str) -> int:
         key = filename.lower()
         return self.__cache.setdefault(key, win32api.LoadLibrary(key))
 
@@ -889,7 +919,7 @@ class DLLHandleCache:
 DLLCache = DLLHandleCache()
 
 
-def resolveMUITimeZone(spec):
+def resolveMUITimeZone(spec: str) -> str | None:
     """Resolve a multilingual user interface resource for the time zone name
 
     spec should be of the format @path,-stringID[;comment]
@@ -908,8 +938,8 @@ def resolveMUITimeZone(spec):
 
 
 # from jaraco.util.dictlib 5.3.1
-# TODO: Update to implementation in jaraco.collections
-class RangeMap(dict):  # type: ignore[type-arg] # Source code is untyped :/ TODO: Add generics!
+# TODO: Resync with implementation in jaraco.collections
+class RangeMap(Dict[int, _VT]):
     """
     A dictionary-like object that uses the keys as bounds for a range.
     Inclusion of the value for that range is determined by the
@@ -965,23 +995,32 @@ class RangeMap(dict):  # type: ignore[type-arg] # Source code is untyped :/ TODO
 
     """
 
-    def __init__(self, source, sort_params={}, key_match_comparator=operator.le):
+    def __init__(
+        self,
+        source: SupportsKeysAndGetItem[int, _VT] | Iterable[tuple[int, _VT]],
+        sort_params={},
+        key_match_comparator: Callable[[int, int], bool] = operator.le,
+    ):
         dict.__init__(self, source)
         self.sort_params = sort_params
         self.match = key_match_comparator
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: int) -> _VT:
         sorted_keys = sorted(self.keys(), **self.sort_params)
         if isinstance(item, RangeMap.Item):
-            result = self.__getitem__(sorted_keys[item])
-        else:
-            key = self._find_first_match_(sorted_keys, item)
-            result = dict.__getitem__(self, key)
-            if result is RangeMap.undefined_value:
-                raise KeyError(key)
+            return self.__getitem__(sorted_keys[item])
+
+        key = self._find_first_match_(sorted_keys, item)
+        result = dict.__getitem__(self, key)
+        if result is RangeMap.undefined_value:
+            raise KeyError(key)
         return result
 
-    def get(self, key, default=None):
+    @overload
+    def get(self, key: int, default: _T) -> _VT | _T: ...
+    @overload
+    def get(self, key: int, default: None = None) -> _VT | None: ...
+    def get(self, key: int, default: _T | None = None) -> _VT | _T | None:
         """
         Return the value for key if key is in the dictionary, else default.
         If default is not given, it defaults to None, so that this method
@@ -992,16 +1031,17 @@ class RangeMap(dict):  # type: ignore[type-arg] # Source code is untyped :/ TODO
         except KeyError:
             return default
 
-    def _find_first_match_(self, keys, item):
-        def is_match(k):
+    def _find_first_match_(self, keys: Iterable[int], item: int) -> int:
+        def is_match(k: int):
             return self.match(item, k)
 
-        matches = list(filter(is_match, keys))
-        if matches:
-            return matches[0]
-        raise KeyError(item)
+        matches = filter(is_match, keys)
+        try:
+            return next(matches)
+        except StopIteration:
+            raise KeyError(item) from None
 
-    def bounds(self):
+    def bounds(self) -> tuple[int, int]:
         sorted_keys = sorted(self.keys(), **self.sort_params)
         return (
             sorted_keys[RangeMap.first_item],
