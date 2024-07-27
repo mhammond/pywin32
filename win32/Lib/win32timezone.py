@@ -938,9 +938,10 @@ def resolveMUITimeZone(spec: str) -> str | None:
     matcher = pattern.match(spec)
     assert matcher, "Could not parse MUI spec"
 
+    groupdict = matcher.groupdict()
     try:
-        handle = DLLCache[matcher.groupdict()["dllname"]]
-        result = win32api.LoadString(handle, int(matcher.groupdict()["index"]))
+        handle = DLLCache[groupdict["dllname"]]
+        result: str | None = win32api.LoadString(handle, int(groupdict["index"]))
     except win32api.error:
         result = None
     return result
