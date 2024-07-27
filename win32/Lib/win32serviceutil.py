@@ -5,6 +5,7 @@
 # (which is win32service.error, pywintypes.error, etc)
 # when things go wrong - eg, not enough permissions to hit the
 # registry etc.
+from __future__ import annotations
 
 import importlib.machinery
 import os
@@ -441,8 +442,8 @@ def ControlService(serviceName, code, machine=None):
     return status
 
 
-def __FindSvcDeps(findName):
-    dict = {}
+def __FindSvcDeps(findName: str):
+    deps_dict: dict[str, list[str]] = {}
     k = win32api.RegOpenKey(
         win32con.HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Services"
     )
@@ -460,19 +461,19 @@ def __FindSvcDeps(findName):
             deps = ()
         for dep in deps:
             dep = dep.lower()
-            dep_on = dict.get(dep, [])
+            dep_on = deps_dict.get(dep, [])
             dep_on.append(svc)
-            dict[dep] = dep_on
+            deps_dict[dep] = dep_on
 
-    return __ResolveDeps(findName, dict)
+    return __ResolveDeps(findName, deps_dict)
 
 
-def __ResolveDeps(findName, dict):
-    items = dict.get(findName.lower(), [])
-    retList = []
+def __ResolveDeps(findName: str, deps_dict: dict[str, list[str]]):
+    items = deps_dict.get(findName.lower(), [])
+    retList: list[str] = []
     for svc in items:
         retList.insert(0, svc)
-        retList = __ResolveDeps(svc, dict) + retList
+        retList = __ResolveDeps(svc, deps_dict) + retList
     return retList
 
 

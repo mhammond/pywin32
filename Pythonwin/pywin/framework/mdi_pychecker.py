@@ -61,18 +61,18 @@ def getsubdirs(d):
 class dirpath:
     def __init__(self, str, recurse=0):
         dp = str.split(";")
-        dirs = {}
+        dirs = set()
         for d in dp:
             if os.path.isdir(d):
                 d = d.lower()
                 if d not in dirs:
-                    dirs[d] = None
+                    dirs.add(d)
                     if recurse:
                         subdirs = getsubdirs(d)
                         for sd in subdirs:
                             sd = sd.lower()
                             if sd not in dirs:
-                                dirs[sd] = None
+                                dirs.add(sd)
             elif os.path.isfile(d):
                 pass
             else:
@@ -105,16 +105,14 @@ class dirpath:
                 if x:
                     for xd in x:
                         if xd not in dirs:
-                            dirs[xd] = None
+                            dirs.add(xd)
                             if recurse:
                                 subdirs = getsubdirs(xd)
                                 for sd in subdirs:
                                     sd = sd.lower()
                                     if sd not in dirs:
-                                        dirs[sd] = None
-        self.dirs = []
-        for d in dirs.keys():
-            self.dirs.append(d)
+                                        dirs.add(sd)
+        self.dirs = list(dirs)
 
     def __getitem__(self, key):
         return self.dirs[key]

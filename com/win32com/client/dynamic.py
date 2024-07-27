@@ -409,7 +409,7 @@ class CDispatch:
             # self._print_details_()
             codeObject = compile(methodCode, "<COMObject %s>" % self._username_, "exec")
             # Exec the code object
-            tempNameSpace = {}
+            tempNameSpace: dict[str, object] = {}
             # "Dispatch" in the exec'd code is win32com.client.Dispatch, not ours.
             globNameSpace = globals().copy()
             globNameSpace["Dispatch"] = win32com.client.Dispatch

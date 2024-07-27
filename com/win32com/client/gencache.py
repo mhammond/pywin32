@@ -760,10 +760,8 @@ def Rebuild(verbose=1):
 def _Dump():
     print("Cache is in directory", win32com.__gen_path__)
     # Build a unique dir
-    d = {}
-    for clsid, (typelibCLSID, lcid, major, minor) in clsidToTypelib.items():
-        d[typelibCLSID, lcid, major, minor] = None
-    for typelibCLSID, lcid, major, minor in d.keys():
+    d = set(clsidToTypelib.values())
+    for typelibCLSID, lcid, major, minor in d:
         mod = GetModuleForTypelib(typelibCLSID, lcid, major, minor)
         print(f"{mod.__doc__} - {typelibCLSID}")
 

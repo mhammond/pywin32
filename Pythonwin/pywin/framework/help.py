@@ -79,7 +79,7 @@ def ListAllHelpFiles():
 def _ListAllHelpFilesInRoot(root):
     """Returns a list of (helpDesc, helpFname) for all registered help files"""
 
-    retList = []
+    retList: list[tuple[str, str]] = []
     try:
         key = win32api.RegOpenKey(
             root, regutil.BuildDefaultPythonKey() + "\\Help", 0, win32con.KEY_READ

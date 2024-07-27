@@ -7,8 +7,11 @@ either double-click on it, or run "python.exe pyscript.py" from the
 command line.
 """
 
+from __future__ import annotations
+
 import re
 import types
+from typing import Any, Callable, Sequence
 
 import pythoncom
 import win32api
@@ -291,7 +294,7 @@ class PyScript(framework.COMScript):
             )
         return self.scriptDispatch
 
-    def MakeEventMethodName(self, subItemName, eventName):
+    def MakeEventMethodName(self, subItemName: str, eventName: str):
         return (
             subItemName[0].upper()
             + subItemName[1:]
