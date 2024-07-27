@@ -1,4 +1,3 @@
-# -*- coding: UTF-8 -*-
 """
 win32timezone:
     Module for handling datetime.tzinfo time zones using the windows
@@ -230,6 +229,7 @@ Test offsets that occur right at the DST changeover
 datetime.datetime(2011, 11, 6, 1, 0, tzinfo=TimeZoneInfo('Pacific Standard Time'))
 
 """
+
 from __future__ import annotations
 
 import datetime
@@ -352,7 +352,7 @@ class TimeZoneDefinition(DYNAMIC_TIME_ZONE_INFORMATION):
 
     def __init__(self, *args, **kwargs) -> None:
         """
-        Try to construct a TimeZoneDefinition from
+        Try to construct a TimeZoneDefinition from:
         a) [DYNAMIC_]TIME_ZONE_INFORMATION args
         b) another TimeZoneDefinition
         c) a byte structure (using _from_bytes)
@@ -522,7 +522,11 @@ class TimeZoneInfo(datetime.tzinfo):
     # this key works for WinNT+, but not for the Win95 line.
     tzRegKey = r"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Time Zones"
 
-    def __init__(self, param=None, fix_standard_time=False) -> None:
+    def __init__(
+        self,
+        param: str | TimeZoneDefinition,
+        fix_standard_time: bool = False,
+    ):
         if isinstance(param, TimeZoneDefinition):
             self._LoadFromTZI(param)
         if isinstance(param, str):
@@ -599,7 +603,7 @@ class TimeZoneInfo(datetime.tzinfo):
         """
         try:
             info = key.subkey("Dynamic DST")
-        except OSError:
+        except FileNotFoundError:
             return
         del info["FirstEntry"]
         del info["LastEntry"]
@@ -614,7 +618,7 @@ class TimeZoneInfo(datetime.tzinfo):
         )
 
     def __repr__(self) -> str:
-        result = f"{self.__class__.__name__}({repr(self.timeZoneName)}"
+        result = f"{self.__class__.__name__}({self.timeZoneName!r}"
         if self.fixedStandardTime:
             result += ", True"
         result += ")"
@@ -933,6 +937,12 @@ def resolveMUITimeZone(spec: str) -> str | None:
 
     spec should be of the format @path,-stringID[;comment]
     see http://msdn2.microsoft.com/en-us/library/ms725481.aspx for details
+
+    >>> import sys
+    >>> result = resolveMUITimeZone('@tzres.dll,-110')
+    >>> expectedResultType = [type(None),str][sys.getwindowsversion() >= (6,)]
+    >>> type(result) is expectedResultType
+    True
     """
     pattern = re.compile(r"@(?P<dllname>.*),-(?P<index>\d+)(?:;(?P<comment>.*))?")
     matcher = pattern.match(spec)
