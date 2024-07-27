@@ -315,10 +315,10 @@ class DispatchItem(OleItem):
         # Now post-process the maps.  For any "Get" or "Set" properties
         # that have arguments, we must turn them into methods.  If a method
         # of the same name already exists, change the name.
-        for key, item in self.propMapGet.items():
+        for key, item in list(self.propMapGet.items()):
             self._propMapGetCheck_(key, item)
 
-        for key, item in self.propMapPut.items():
+        for key, item in list(self.propMapPut.items()):
             self._propMapPutCheck_(key, item)
 
     def CountInOutOptArgs(self, argTuple):
