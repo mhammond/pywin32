@@ -1,5 +1,4 @@
 # -*- coding: UTF-8 -*-
-from __future__ import annotations
 
 """
 win32timezone:
@@ -232,6 +231,8 @@ Test offsets that occur right at the DST changeover
 datetime.datetime(2011, 11, 6, 1, 0, tzinfo=TimeZoneInfo('Pacific Standard Time'))
 
 """
+
+from __future__ import annotations
 
 import datetime
 import logging
@@ -489,15 +490,25 @@ class TimeZoneInfo(datetime.tzinfo):
     >>> offsets = set(tzi.utcoffset(year) for year in subsequent_years)
     >>> len(offsets)
     1
+
+    Cannot create a `TimeZoneInfo` with an invalid name.
+    >>> TimeZoneInfo('Does not exist')
+    ValueError: Timezone Name 'Does not exist' not found.
+    >>> TimeZoneInfo(None)
+    ValueError: subkey name cannot be empty.
     """
 
     # this key works for WinNT+, but not for the Win95 line.
     tzRegKey = r"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Time Zones"
 
-    def __init__(self, param=None, fix_standard_time=False):
+    def __init__(
+        self,
+        param: str | TimeZoneDefinition,
+        fix_standard_time: bool = False,
+    ):
         if isinstance(param, TimeZoneDefinition):
             self._LoadFromTZI(param)
-        if isinstance(param, str):
+        else:
             self.timeZoneName = param
             self._LoadInfoFromKey()
         self.fixedStandardTime = fix_standard_time
@@ -513,8 +524,9 @@ class TimeZoneInfo(datetime.tzinfo):
         key = _RegKeyDict.open(winreg.HKEY_LOCAL_MACHINE, self.tzRegKey)
         try:
             result = key.subkey(timeZoneName)
-        except Exception:
-            raise ValueError("Timezone Name %s not found." % timeZoneName)
+        except FileNotFoundError:
+            # Don't catch ValueError, keep the original error message
+            raise ValueError(f"Timezone Name {timeZoneName!r} not found.")
         return result
 
     def _LoadInfoFromKey(self):
@@ -804,6 +816,8 @@ class _RegKeyDict(Dict[str, int]):
         return _RegKeyDict(winreg.OpenKeyEx(*args, **kargs))
 
     def subkey(self, name):
+        if not name:
+            raise ValueError("subkey name cannot be empty.")
         return _RegKeyDict(winreg.OpenKeyEx(self.key, name))
 
     def __load_values(self):
