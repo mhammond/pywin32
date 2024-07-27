@@ -520,9 +520,7 @@ class CScintillaEditInterface(ScintillaControlInterface):
         addressTrBuff = trBuff.buffer_info()[0]
         num_bytes = self.SendScintilla(EM_GETTEXTRANGE, 0, addressTrBuff)
         ret = buff.tobytes()[:num_bytes]
-        if decode:
-            ret = ret.decode(default_scintilla_encoding)
-        return ret
+        return ret.decode(default_scintilla_encoding) if decode else ret
 
     def ReplaceSel(self, str):
         buff = (str + "\0").encode(default_scintilla_encoding)

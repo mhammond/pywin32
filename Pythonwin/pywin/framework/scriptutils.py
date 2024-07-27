@@ -174,7 +174,7 @@ def GetActiveEditorDocument():
     return (None, None)
 
 
-def GetActiveFileName(bAutoSave=1) -> str | None:
+def GetActiveFileName(bAutoSave=1):
     """Gets the file name for the active frame, saving it if necessary.
 
     Returns None if it can't be found, or raises KeyboardInterrupt.
