@@ -328,7 +328,8 @@ class Connection:
         an Error (or subclass) exception will be raised if any operation is attempted with the connection.
         The same applies to all cursor objects trying to use the connection.
         """
-        for crsr in self.cursors.values():
+        # copy the list of cursors to avoid size changing during iteration, then close each one
+        for crsr in list(self.cursors.values()):
             crsr.close(dont_tell_me=True)  # close without back-link clearing
         self.messages = []
         try:
