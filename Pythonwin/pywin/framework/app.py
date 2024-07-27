@@ -3,6 +3,8 @@
 #
 # We also grab the FileOpen command, to invoke our Python editor
 " The PythonWin application code. Manages most aspects of MDI, etc "
+from __future__ import annotations
+
 import os
 import sys
 import traceback
