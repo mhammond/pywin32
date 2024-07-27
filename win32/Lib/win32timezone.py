@@ -316,7 +316,7 @@ class TIME_ZONE_INFORMATION(_SimpleStruct):
     ]
 
 
-class DYNAMIC_TIME_ZONE_INFORMATION(_SimpleStruct):
+class DYNAMIC_TIME_ZONE_INFORMATION(TIME_ZONE_INFORMATION):
     _fields_ = TIME_ZONE_INFORMATION._fields_ + [
         ("key_name", str),
         ("dynamic_daylight_time_disabled", bool),
@@ -336,8 +336,29 @@ class TimeZoneDefinition(DYNAMIC_TIME_ZONE_INFORMATION):
         """
         Try to construct a TimeZoneDefinition from
         a) [DYNAMIC_]TIME_ZONE_INFORMATION args
-        b) another TimeZoneDefinition
+        b) another TimeZoneDefinition or [DYNAMIC_]TIME_ZONE_INFORMATION
         c) a byte structure (using _from_bytes)
+
+        Tests:
+
+        a)
+
+        >>> TimeZoneDefinition(1).bias
+        datetime.timedelta(seconds=60)
+
+        b)
+
+        >>> TimeZoneDefinition(TimeZoneDefinition(1)).bias
+        datetime.timedelta(seconds=60)
+        >>> TimeZoneDefinition(DYNAMIC_TIME_ZONE_INFORMATION(1)).bias
+        datetime.timedelta(seconds=60)
+        >>> TimeZoneDefinition(TIME_ZONE_INFORMATION(1)).bias
+        datetime.timedelta(seconds=60)
+
+        c)
+
+        >>> TimeZoneDefinition(b'\x01' + b'\x00' * 43).bias
+        datetime.timedelta(seconds=60)
         """
         try:
             super().__init__(*args, **kwargs)
@@ -357,7 +378,7 @@ class TimeZoneDefinition(DYNAMIC_TIME_ZONE_INFORMATION):
         except TypeError:
             pass
 
-        raise TypeError("Invalid arguments for %s" % self.__class__)
+        raise TypeError(f"Invalid arguments for {self.__class__}")
 
     def __init_from_bytes(
         self,
@@ -389,7 +410,7 @@ class TimeZoneDefinition(DYNAMIC_TIME_ZONE_INFORMATION):
             raise TypeError("Not a TIME_ZONE_INFORMATION")
         for name in other.field_names():
             # explicitly get the value from the underlying structure
-            value = super(TimeZoneDefinition, other).__getattribute__(other, name)
+            value = super(TIME_ZONE_INFORMATION, other).__getattribute__(name)
             setattr(self, name, value)
         # consider instead of the loop above just copying the memory directly
         # size = max(ctypes.sizeof(DYNAMIC_TIME_ZONE_INFO), ctypes.sizeof(other))
