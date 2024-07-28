@@ -171,11 +171,11 @@ def LocateWebServerPath(description):
     Find an IIS web server whose name or comment matches the provided
     description (case-insensitive).
 
-    >>> LocateWebServerPath('Default Web Site') # doctest: +SKIP
+    >>> LocateWebServerPath("Default Web Site")  # doctest: +SKIP
 
     or
 
-    >>> LocateWebServerPath('1') #doctest: +SKIP
+    >>> LocateWebServerPath("1")  # doctest: +SKIP
     """
     assert len(description) >= 1, "Server name or comment is required"
     iis = GetObject(_IIS_OBJECT)
@@ -238,22 +238,22 @@ def split_path(path):
     """
     Get the parent path and basename.
 
-    >>> split_path('/')
+    >>> split_path("/")
     ['', '']
 
-    >>> split_path('')
+    >>> split_path("")
     ['', '']
 
-    >>> split_path('foo')
+    >>> split_path("foo")
     ['', 'foo']
 
-    >>> split_path('/foo')
+    >>> split_path("/foo")
     ['', 'foo']
 
-    >>> split_path('/foo/bar')
+    >>> split_path("/foo/bar")
     ['/foo', 'bar']
 
-    >>> split_path('foo/bar')
+    >>> split_path("foo/bar")
     ['/foo', 'bar']
     """
 

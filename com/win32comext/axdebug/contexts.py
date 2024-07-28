@@ -1,6 +1,4 @@
-""" A module for managing the AXDebug I*Contexts
-
-"""
+"""A module for managing the AXDebug I*Contexts"""
 
 from . import adb, axdebug, gateways
 

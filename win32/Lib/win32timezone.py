@@ -478,14 +478,13 @@ class TimeZoneInfo(datetime.tzinfo):
     If <Fix Standard Time> evaluates to True, daylight savings time is
     calculated in the same way as standard time.
 
-    >>> tzi = TimeZoneInfo('Pacific Standard Time')
-    >>> march31 = datetime.datetime(2000,3,31)
+    >>> tzi = TimeZoneInfo("Pacific Standard Time")
+    >>> march31 = datetime.datetime(2000, 3, 31)
 
     We know that time zone definitions haven't changed from 2007
     to 2012, so regardless of whether dynamic info is available,
     there should be consistent results for these years.
-    >>> subsequent_years = [march31.replace(year=year)
-    ...     for year in range(2007, 2013)]
+    >>> subsequent_years = [march31.replace(year=year) for year in range(2007, 2013)]
     >>> offsets = set(tzi.utcoffset(year) for year in subsequent_years)
     >>> len(offsets)
     1
@@ -536,13 +535,15 @@ class TimeZoneInfo(datetime.tzinfo):
 
     def _LoadDynamicInfoFromKey(self, key):
         """
-        >>> tzi = TimeZoneInfo('Central Standard Time')
+        >>> tzi = TimeZoneInfo("Central Standard Time")
 
         Here's how the RangeMap is supposed to work:
-        >>> m = RangeMap(zip([2006,2007], 'BC'),
-        ...     sort_params = dict(reverse=True),
-        ...     key_match_comparator=operator.ge)
-        >>> m.get(2000, 'A')
+        >>> m = RangeMap(
+        ...     zip([2006, 2007], "BC"),
+        ...     sort_params=dict(reverse=True),
+        ...     key_match_comparator=operator.ge,
+        ... )
+        >>> m.get(2000, "A")
         'A'
         >>> m[2006]
         'B'
@@ -561,7 +562,7 @@ class TimeZoneInfo(datetime.tzinfo):
         Now test the dynamic info (but fallback to our simple RangeMap
         on systems that don't have dynamicInfo).
 
-        >>> dinfo = getattr(tzi, 'dynamicInfo', m)
+        >>> dinfo = getattr(tzi, "dynamicInfo", m)
         >>> 2007 in dinfo
         True
         >>> 2008 in dinfo
@@ -697,15 +698,15 @@ class TimeZoneInfo(datetime.tzinfo):
         >>> localTZ = TimeZoneInfo.local()
         >>> now_local = datetime.datetime.now(localTZ)
         >>> now_UTC = datetime.datetime.utcnow()
-        >>> (now_UTC - now_local) < datetime.timedelta(seconds = 5)
+        >>> (now_UTC - now_local) < datetime.timedelta(seconds=5)
         Traceback (most recent call last):
         ...
         TypeError: can't subtract offset-naive and offset-aware datetimes
 
-        >>> now_UTC = now_UTC.replace(tzinfo = TimeZoneInfo('GMT Standard Time', True))
+        >>> now_UTC = now_UTC.replace(tzinfo=TimeZoneInfo("GMT Standard Time", True))
 
         Now one can compare the results of the two offset aware values
-        >>> (now_UTC - now_local) < datetime.timedelta(seconds = 5)
+        >>> (now_UTC - now_local) < datetime.timedelta(seconds=5)
         True
         """
         code, info = TimeZoneDefinition.current()
@@ -921,7 +922,7 @@ class RangeMap(dict):  # type: ignore[type-arg] # Source code is untyped :/ TODO
     to sort keys (i.e. keys, reverse) as sort_params.
 
     Let's create a map that maps 1-3 -> 'a', 4-6 -> 'b'
-    >>> r = RangeMap({3: 'a', 6: 'b'})  # boy, that was easy
+    >>> r = RangeMap({3: "a", 6: "b"})  # boy, that was easy
     >>> r[1], r[2], r[3], r[4], r[5], r[6]
     ('a', 'a', 'a', 'b', 'b', 'b')
 
@@ -937,7 +938,7 @@ class RangeMap(dict):  # type: ignore[type-arg] # Source code is untyped :/ TODO
     'a'
 
     One can close the open-end of the RangeMap by using undefined_value
-    >>> r = RangeMap({0: RangeMap.undefined_value, 3: 'a', 6: 'b'})
+    >>> r = RangeMap({0: RangeMap.undefined_value, 3: "a", 6: "b"})
     >>> r[0]
     Traceback (most recent call last):
     ...
@@ -957,10 +958,10 @@ class RangeMap(dict):  # type: ignore[type-arg] # Source code is untyped :/ TODO
     (0, 6)
 
     RangeMap supports .get(key, default)
-    >>> r.get(0, 'not found')
+    >>> r.get(0, "not found")
     'not found'
 
-    >>> r.get(7, 'not found')
+    >>> r.get(7, "not found")
     'not found'
 
     """

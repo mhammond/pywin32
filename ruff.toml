@@ -1,4 +1,7 @@
 target-version = "py37" # Target the oldest supported version
+exclude = [
+  "Pythonwin/pywin/test/_dbgscript.py", # Not UTF-8
+]
 
 [lint]
 select = [
@@ -10,7 +13,6 @@ select = [
   "RSE", # flake8-raise
   "W", # pycodestyle Warning
   "YTT", # flake8-2020
-
   # String formatting, concatenating, interpolation, ...
   "FLY", # static-join-to-f-string
   "G", # flake8-logging-format
@@ -18,10 +20,6 @@ select = [
   "ISC001", # single-line-implicit-string-concatenation
   "UP025", # Remove unicode literals from strings
   "UP030", # Use implicit references for positional format fields
-  # TODO: Still lots of manual fixes needed
-  # "UP031", # Use format specifiers instead of percent format
-  # "UP032", # Use f-string instead of format call
-
   # Ensure modern type annotation syntax and best practices
   # Not including those covered by type-checkers
   "FA", # flake8-future-annotations
@@ -52,3 +50,7 @@ known-third-party = [
   "distutils",
 ]
 extra-standard-library = ["setuptools"]
+
+[format]
+line-ending = "cr-lf"
+docstring-code-format = true
