@@ -334,31 +334,25 @@ class TimeZoneDefinition(DYNAMIC_TIME_ZONE_INFORMATION):
 
     def __init__(self, *args, **kwargs):
         """
+        >>> test_args = [1] * 44
+
         Try to construct a TimeZoneDefinition from
+
         a) [DYNAMIC_]TIME_ZONE_INFORMATION args
+        >>> TimeZoneDefinition(*test_args).bias
+        datetime.timedelta(seconds=60)
+
         b) another TimeZoneDefinition or [DYNAMIC_]TIME_ZONE_INFORMATION
+        >>> TimeZoneDefinition(TimeZoneDefinition(*test_args)).bias
+        datetime.timedelta(seconds=60)
+        >>> TimeZoneDefinition(DYNAMIC_TIME_ZONE_INFORMATION(*test_args)).bias
+        datetime.timedelta(seconds=60)
+        >>> TimeZoneDefinition(TIME_ZONE_INFORMATION(*test_args)).bias
+        datetime.timedelta(seconds=60)
+
         c) a byte structure (using _from_bytes)
-
-        Tests:
-
-        a)
-
-        >>> TimeZoneDefinition(1).bias
-        datetime.timedelta(seconds=60)
-
-        b)
-
-        >>> TimeZoneDefinition(TimeZoneDefinition(1)).bias
-        datetime.timedelta(seconds=60)
-        >>> TimeZoneDefinition(DYNAMIC_TIME_ZONE_INFORMATION(1)).bias
-        datetime.timedelta(seconds=60)
-        >>> TimeZoneDefinition(TIME_ZONE_INFORMATION(1)).bias
-        datetime.timedelta(seconds=60)
-
-        c)
-
-        >>> TimeZoneDefinition(b'\x01' * 44).bias
-        datetime.timedelta(seconds=60)
+        >>> TimeZoneDefinition(bytes(test_args)).bias
+        datetime.timedelta(days=11696, seconds=46140)
         """
         try:
             super().__init__(*args, **kwargs)
