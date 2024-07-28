@@ -2,7 +2,6 @@
 ##
 ## Interactive Shell Window
 ##
-from __future__ import annotations
 
 import array
 import code
