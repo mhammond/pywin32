@@ -1,4 +1,3 @@
-import gc
 import logging
 import os
 import sys
@@ -13,7 +12,7 @@ import win32api
 import win32com
 import winerror
 from pythoncom import _GetGatewayCount, _GetInterfaceCount
-from pywin32_testutil import LeakTestCase, TestLoader, TestResult, TestRunner
+from pywin32_testutil import LeakTestCase
 
 
 def CheckClean():

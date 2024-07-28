@@ -5,7 +5,7 @@ import unittest
 from typing import Any, Iterator
 
 import win32crypt
-from pywin32_testutil import TestSkipped, find_test_fixture, testmain
+from pywin32_testutil import find_test_fixture, testmain
 from win32cryptcon import *
 
 

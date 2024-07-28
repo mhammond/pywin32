@@ -22,7 +22,6 @@ from win32com.axscript.client.framework import (
     SCRIPTTEXT_FORCEEXECUTION,
     SCRIPTTEXT_ISEXPRESSION,
     SCRIPTTEXT_ISPERSISTENT,
-    RaiseAssert,
     trace,
 )
 from win32com.server.exception import COMException

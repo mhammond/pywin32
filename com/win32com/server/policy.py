@@ -66,8 +66,6 @@ Error Handling
  problem, rather than a COM error.
 """
 
-__author__ = "Greg Stein and Mark Hammond"
-
 import sys
 import types
 
@@ -91,6 +89,8 @@ from pythoncom import (
 )
 
 from .exception import COMException
+
+__author__ = "Greg Stein and Mark Hammond"
 
 S_OK = 0
 
@@ -812,6 +812,9 @@ def _import_module(mname):
 # These have been moved to a new source file, but some code may
 # still reference them here.  These will end up being removed.
 try:
-    from .dispatcher import DispatcherTrace, DispatcherWin32trace
+    from .dispatcher import (  # nopycln: import
+        DispatcherTrace as DispatcherTrace,  # noqa: PLC0414 # Explicit re-export of unused symbol
+        DispatcherWin32trace as DispatcherWin32trace,  # noqa: PLC0414 # Explicit re-export of unused symbol
+    )
 except ImportError:  # Quite likely a frozen executable that doesn't need dispatchers
     pass

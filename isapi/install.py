@@ -14,8 +14,7 @@ import traceback
 import pythoncom
 import win32api
 import winerror
-from win32com.client import Dispatch, GetObject
-from win32com.client.gencache import EnsureDispatch, EnsureModule
+from win32com.client import GetObject
 
 _APP_INPROC = 0
 _APP_OUTPROC = 1

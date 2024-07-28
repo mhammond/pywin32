@@ -4,4 +4,5 @@
 # that functionality is now in win32ras.
 #
 # This exists just to avoid breaking old scripts.
-from win32ras import *
+
+from win32ras import *  # nopycln: import

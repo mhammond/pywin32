@@ -1,23 +1,23 @@
 [tool.pycln]
 # Many imports with side-effects
-all = false
+all = true
 skip_imports = [
-  # Star imported C wrapped modules
-  "_winxptheme",
-  "dde",
-  "ntsecuritycon",
-  "odbc",
+  # TODO: Confirm whether these produce side-effects,
+  # if yes: add to the list below
+  # if not: remove from here
+  "pythoncom",
+  "pywintypes",
   "win32api",
-  "win32clipboard",
-  "win32com",
-  "win32cryptcon",
-  "win32event",
   "win32file",
-  "win32gui_struct",
   "win32gui",
-  "win32inet",
-  "win32inetcon",
-  "win32pipe",
-  "win32ras",
-  "win32ui",
+  "win32process",
+  "win32security",
+  "win32uiole",
+  # Modules with known side-effects
+  "IDLEenvironment", # Injects fast_readline into the IDLE auto-indent extension
+  "coloreditor", # Adds doc template
+  "win32com", # Sets pythoncom.frozen and adds modules to path based on the registry
+  "win32traceutil", # Redirects output to win32trace remote collector
+  "win32ui", # Must always be imported before dde
 ]
+# Note: com/win32com/client/gencache.py does read files but only to fill in it's own dicts from cache

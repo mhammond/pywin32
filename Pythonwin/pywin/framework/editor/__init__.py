@@ -100,4 +100,4 @@ def SetEditorFontOption(option, newValue):
     SetEditorOption(option, str(newValue))
 
 
-from pywin.framework.editor.color.coloreditor import editorTemplate
+import pywin.framework.editor.color.coloreditor  # nopycln: import # Adds doc template
