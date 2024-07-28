@@ -499,7 +499,7 @@ class TimeZoneInfo(datetime.tzinfo):
     >>> TimeZoneInfo('Does not exist')
     Traceback (most recent call last):
     ...
-    ValueError: Timezone Name 'Does not exist' not found.
+    ValueError: Timezone Name 'Does not exist' not found
     >>> TimeZoneInfo(None)
     Traceback (most recent call last):
     ...
