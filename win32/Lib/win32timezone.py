@@ -32,7 +32,7 @@ True
 (note that the result of utcoffset call will be different based on when now was
 generated, unless standard time is always used)
 
->>> now = datetime.datetime.now(TimeZoneInfo('Mountain Standard Time', True))
+>>> now = datetime.datetime.now(win32timezone.TimeZoneInfo('Mountain Standard Time', True))
 >>> now.utcoffset()
 datetime.timedelta(days=-1, seconds=61200)
 
@@ -76,9 +76,13 @@ True
 
 It's possible to construct a TimeZoneInfo from a TimeZoneDescription
 including the currently-defined zone.
->>> tz = win32timezone.TimeZoneInfo(TimeZoneDefinition.current())
+>>> code, info = win32timezone.TimeZoneDefinition.current()
+>>> tz = win32timezone.TimeZoneInfo(info, not code)
 >>> tz == pickle.loads(pickle.dumps(tz))
 True
+
+Although it's easier to use TimeZoneInfo.local() to get the local info
+>>> tz == TimeZoneInfo.local()
 
 >>> aest = win32timezone.TimeZoneInfo('AUS Eastern Standard Time')
 >>> est = win32timezone.TimeZoneInfo('E. Australia Standard Time')
@@ -493,9 +497,17 @@ class TimeZoneInfo(datetime.tzinfo):
 
     Cannot create a `TimeZoneInfo` with an invalid name.
     >>> TimeZoneInfo('Does not exist')
+    Traceback (most recent call last):
+    ...
     ValueError: Timezone Name 'Does not exist' not found.
     >>> TimeZoneInfo(None)
-    ValueError: subkey name cannot be empty.
+    Traceback (most recent call last):
+    ...
+    ValueError: subkey name cannot be empty
+    >>> TimeZoneInfo("")
+    Traceback (most recent call last):
+    ...
+    ValueError: subkey name cannot be empty
     """
 
     # this key works for WinNT+, but not for the Win95 line.
@@ -505,13 +517,17 @@ class TimeZoneInfo(datetime.tzinfo):
         self,
         param: str | TimeZoneDefinition,
         fix_standard_time: bool = False,
-    ):
+    ) -> None:
         if isinstance(param, TimeZoneDefinition):
             self._LoadFromTZI(param)
         else:
             self.timeZoneName = param
             self._LoadInfoFromKey()
         self.fixedStandardTime = fix_standard_time
+
+    # For tzinfo pickle support
+    def __getinitargs__(self) -> tuple[TimeZoneDefinition, bool]:
+        return (self.staticInfo, self.fixedStandardTime)
 
     def _FindTimeZoneKey(self):
         """Find the registry key for the time zone name (self.timeZoneName)."""
@@ -526,7 +542,7 @@ class TimeZoneInfo(datetime.tzinfo):
             result = key.subkey(timeZoneName)
         except FileNotFoundError:
             # Don't catch ValueError, keep the original error message
-            raise ValueError(f"Timezone Name {timeZoneName!r} not found.")
+            raise ValueError(f"Timezone Name {timeZoneName!r} not found")
         return result
 
     def _LoadInfoFromKey(self):
@@ -817,7 +833,7 @@ class _RegKeyDict(Dict[str, int]):
 
     def subkey(self, name):
         if not name:
-            raise ValueError("subkey name cannot be empty.")
+            raise ValueError("subkey name cannot be empty")
         return _RegKeyDict(winreg.OpenKeyEx(self.key, name))
 
     def __load_values(self):
