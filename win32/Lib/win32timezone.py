@@ -357,7 +357,7 @@ class TimeZoneDefinition(DYNAMIC_TIME_ZONE_INFORMATION):
 
         c)
 
-        >>> TimeZoneDefinition(b'\x01' + b'\x00' * 43).bias
+        >>> TimeZoneDefinition(b'\x01' * 44).bias
         datetime.timedelta(seconds=60)
         """
         try:
