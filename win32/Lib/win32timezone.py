@@ -83,6 +83,7 @@ True
 
 Although it's easier to use TimeZoneInfo.local() to get the local info
 >>> tz == TimeZoneInfo.local()
+True
 
 >>> aest = win32timezone.TimeZoneInfo('AUS Eastern Standard Time')
 >>> est = win32timezone.TimeZoneInfo('E. Australia Standard Time')
