@@ -13,12 +13,14 @@
 import platform
 import random
 import sys
+from pathlib import Path
 
 import is64bit
 import setuptestframework
 import tryconnection
 
 __version__ = "2.6.2.B00"
+version = f"{Path(__file__).name} v{__version__}"
 
 print("\nPython", sys.version)
 node = platform.node()
@@ -75,11 +77,9 @@ except SyntaxError:
         '\n* * * Are you trying to run Python2 code using Python3? Re-run this test using the "--package" switch.'
     )
     sys.exit(11)
-try:
-    print(adodbapi.version)  # show version
-except:
-    print('"adodbapi.version" not present or not working.')
-print(__doc__)
+# show versions
+print(adodbapi.version)
+print(version)
 
 verbose = False
 for a in sys.argv:
