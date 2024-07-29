@@ -1,7 +1,6 @@
 # Ported from the win32 and MFC OpenGL Samples.
 
 import sys
-from ctypes import sizeof
 
 try:
     from OpenGL.GL import (
