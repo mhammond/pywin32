@@ -1,13 +1,13 @@
-"""is64bit.Python() --> boolean value of detected Python word size. is64bit.os() --> os build version"""
-
 import sys
 
 
 def Python():
+    """boolean value of detected Python word size."""
     return sys.maxsize > 2147483647
 
 
 def os():
+    """os build version"""
     import platform
 
     pm = platform.machine()
@@ -22,7 +22,7 @@ def os():
             return os.environ["PROCESSOR_ARCHITECTURE"].endswith(
                 "64"
             )  # 64 bit Windows 64 bit program
-        except (IndexError, KeyError):
+        except KeyError:
             pass  # not Windows
         try:
             return "64" in platform.architecture()[0]  # this often works in Linux
