@@ -67,17 +67,10 @@ if pth not in sys.path:
 
 # function to clean up the temporary folder -- calling program must run this function before exit.
 cleanup = setuptestframework.getcleanupfunction()
-try:
-    import adodbapi  # will (hopefully) be imported using the "pth" discovered above
-except SyntaxError:
-    print(
-        '\n* * * Are you trying to run Python2 code using Python3? Re-run this test using the "--package" switch.'
-    )
-    sys.exit(11)
-try:
-    print(adodbapi.version)  # show version
-except:
-    print('"adodbapi.version" not present or not working.')
+
+import adodbapi  # will (hopefully) be imported using the "pth" discovered above
+
+print(adodbapi.version)  # show version
 print(__doc__)
 
 verbose = False
@@ -183,7 +176,7 @@ if doPostgresTest:
         _password,
         _computername,
         _databasename,
-        **kws
+        **kws,
     )
 
 assert (
