@@ -1,26 +1,29 @@
-""" Unit tests version 2.6.1.0 for adodbapi"""
-
 """
-    adodbapi - A python DB API 2.0 interface to Microsoft ADO
+Unit tests for adodbapi
+-----------------------
 
-    Copyright (C) 2002  Henrik Ekelund
+adodbapi - A python DB API 2.0 interface to Microsoft ADO
 
-    This library is free software; you can redistribute it and/or
-    modify it under the terms of the GNU Lesser General Public
-    License as published by the Free Software Foundation; either
-    version 2.1 of the License, or (at your option) any later version.
+Copyright (C) 2002  Henrik Ekelund
 
-    This library is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-    Lesser General Public License for more details.
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
 
-    You should have received a copy of the GNU Lesser General Public
-    License along with this library; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
 
-    Updates by Vernon Cole
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+Updates by Vernon Cole
 """
+
+__version__ = "2.6.1.0"
 
 import copy
 import datetime
@@ -488,7 +491,7 @@ class CommonDBTests(unittest.TestCase):
             )
 
     def testDataTypeBinary(self):
-        binfld = b"\x07\x00\xE2\x40*"
+        binfld = b"\x07\x00\xe2\x40*"
         arv = [binfld, adodbapi.Binary(binfld), bytes(binfld)]
         if self.getEngine() == "PostgreSQL":
             self.helpTestDataType(

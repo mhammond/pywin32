@@ -1,5 +1,4 @@
-# Configure this to _YOUR_ environment in order to run the testcases.
-"testADOdbapiConfig.py v 2.6.2.B00"
+"""Configure this to _YOUR_ environment in order to run the testcases."""
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # #
@@ -18,6 +17,8 @@ import sys
 import is64bit
 import setuptestframework
 import tryconnection
+
+__version__ = "2.6.2.B00"
 
 print("\nPython", sys.version)
 node = platform.node()
@@ -183,7 +184,7 @@ if doPostgresTest:
         _password,
         _computername,
         _databasename,
-        **kws
+        **kws,
     )
 
 assert (
