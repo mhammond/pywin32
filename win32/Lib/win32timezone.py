@@ -442,7 +442,7 @@ class TimeZoneDefinition(DYNAMIC_TIME_ZONE_INFORMATION):
         """
         # MS stores Sunday as 0, Python datetime stores Monday as zero
         target_weekday = (cutoff.day_of_week + 6) % 7
-        # For SYSTEMTIMEs relating to time zone inforamtion, cutoff.day
+        # For SYSTEMTIMEs relating to time zone information, cutoff.day
         #  is the week of the month
         week_of_month = cutoff.day
         # so the following is the first day of that week
