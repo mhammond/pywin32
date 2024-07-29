@@ -1,4 +1,4 @@
-"""
+"""\
 Unit tests for adodbapi
 -----------------------
 
@@ -1587,8 +1587,8 @@ if __name__ == "__main__":
     mysuite = copy.deepcopy(suite)
     with cleanup_manager():
         defaultDateConverter = adodbapi.dateconverter
-        print(__doc__)
-        print("Default Date Converter is %s" % (defaultDateConverter,))
+        print(str(__doc__).split("\n")[0], "version", __version__)
+        print(f"Default Date Converter is {defaultDateConverter}")
         dateconverter = defaultDateConverter
         unittest.TextTestRunner().run(mysuite)
 
