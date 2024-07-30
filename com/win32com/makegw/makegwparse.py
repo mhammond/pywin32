@@ -12,6 +12,8 @@
  interface
 """
 
+from __future__ import annotations
+
 import re
 import traceback
 
@@ -701,7 +703,9 @@ class ArgFormatterSimple(ArgFormatter):
         return ConvertSimpleTypes[self.arg.type][1]
 
 
-AllConverters = {
+AllConverters: dict[
+    str, tuple[type[ArgFormatter], int, int] | tuple[type[ArgFormatter], int]
+] = {
     "const OLECHAR": (ArgFormatterOLECHAR, 0, 1),
     "WCHAR": (ArgFormatterOLECHAR, 0, 1),
     "OLECHAR": (ArgFormatterOLECHAR, 0, 1),

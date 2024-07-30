@@ -129,6 +129,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        # mypy won't understand "3.13-dev", keeping the CI simple by just omitting it
         python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
     steps:
       - uses: actions/checkout@v4
@@ -138,7 +139,7 @@ jobs:
           cache: pip
           cache-dependency-path: .github/workflows/main.yml
           check-latest: true
-      - run: pip install types-regex types-setuptools mypy==1.9
+      - run: pip install types-regex types-setuptools mypy==1.11
       - run: mypy . --python-version=${{ matrix.python-version }}
 
   pyright:
