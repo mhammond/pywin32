@@ -33,9 +33,15 @@
 import fnmatch
 import os
 import sys
+from collections.abc import Mapping
+from optparse import Values
 
-import verstamp
-import win32api
+try:
+    import win32verstamp
+except ModuleNotFoundError:
+    # If run with pywin32 not already installed
+    sys.path.append(os.path.abspath(__file__ + "/../../../Lib"))
+    import win32verstamp
 
 numStamped = 0
 
@@ -47,9 +53,8 @@ g_patterns = [
 ]
 
 
-def walk(arg, dirname, names):
+def walk(vars: Mapping[str, str], debug, descriptions, dirname, names):
     global numStamped
-    vars, debug, descriptions = arg
     for name in names:
         for pat in g_patterns:
             if fnmatch.fnmatch(name, pat):
@@ -60,18 +65,21 @@ def walk(arg, dirname, names):
                     name = base[:-2] + ext
                 is_dll = ext.lower() != ".exe"
                 if os.path.normcase(name) in descriptions:
-                    desc = descriptions[os.path.normcase(name)]
+                    description = descriptions[os.path.normcase(name)]
                     try:
-                        verstamp.stamp(vars, pathname, desc, is_dll=is_dll)
+                        options = Values(
+                            {**vars, "description": description, "dll": is_dll}
+                        )
+                        win32verstamp.stamp(pathname, options)
                         numStamped += 1
-                    except win32api.error as exc:
+                    except Exception as exc:
                         print(
                             "Could not stamp",
                             pathname,
-                            "Error",
-                            exc.winerror,
+                            "with",
+                            options,
                             "-",
-                            exc.strerror,
+                            repr(exc),
                         )
                 else:
                     print("WARNING: description not provided for:", name)
@@ -82,7 +90,7 @@ def walk(arg, dirname, names):
 
 
 def load_descriptions(fname, vars):
-    retvars = {}
+    retvars: dict[str, str] = {}
     descriptions = {}
 
     lines = open(fname, "r").readlines()
@@ -118,7 +126,8 @@ def load_descriptions(fname, vars):
     return retvars, descriptions
 
 
-def scan(build, root, desc, **custom_vars):
+def scan(build, root: str, desc, **custom_vars):
+    print(build, root, desc)
     global numStamped
     numStamped = 0
     try:
@@ -135,8 +144,8 @@ def scan(build, root, desc, **custom_vars):
     vars["build"] = build
     vars.update(custom_vars)
 
-    arg = vars, debug, descriptions
-    os.path.walk(root, walk, arg)
+    for directory, dirnames, filenames in os.walk(root):
+        walk(vars, debug, descriptions, directory, filenames)
 
     print("Stamped %d files." % (numStamped))
 
@@ -146,4 +155,4 @@ if __name__ == "__main__":
         print("ERROR: incorrect invocation. See script's header comments.")
         sys.exit(1)
 
-    scan(*tuple(sys.argv[1:]))
+    scan(*sys.argv[1:])
