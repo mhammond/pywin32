@@ -3,6 +3,7 @@
 
 import os
 import sys
+import traceback
 
 import win32api
 import win32com.server.policy
@@ -46,13 +47,8 @@ def RaiseNotImpl(who=None):
         print(f"********* Function {who} Raising E_NOTIMPL  ************")
 
     # Print a sort-of "traceback", dumping all the frames leading to here.
-    try:
-        1 / 0
-    except:
-        frame = sys.exc_info()[2].tb_frame
-    while frame:
+    for frame, i in traceback.walk_stack(sys._getframe()):
         print(f"File: {frame.f_code.co_filename}, Line: {frame.f_lineno}")
-        frame = frame.f_back
 
     # and raise the exception for COM
     raise COMException(scode=winerror.E_NOTIMPL)
