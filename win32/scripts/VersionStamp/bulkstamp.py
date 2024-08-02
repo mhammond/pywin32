@@ -72,14 +72,14 @@ def walk(vars: Mapping[str, str], debug, descriptions, dirname, names):
                         )
                         win32verstamp.stamp(pathname, options)
                         numStamped += 1
-                    except Exception as exc:
+                    except OSError as exc:
                         print(
                             "Could not stamp",
                             pathname,
-                            "with",
-                            options,
+                            "Error",
+                            exc.winerror,
                             "-",
-                            repr(exc),
+                            exc.strerror,
                         )
                 else:
                     print("WARNING: description not provided for:", name)

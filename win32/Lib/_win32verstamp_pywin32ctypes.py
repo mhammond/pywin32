@@ -20,8 +20,8 @@ https://github.com/enthought/pywin32-ctypes/blob/main/LICENSE.txt
 
 from __future__ import annotations
 
-from collections.abc import Callable, Iterable
-from ctypes import FormatError, WinDLL, _SimpleCData, get_last_error
+from collections.abc import Iterable
+from ctypes import FormatError, WinDLL, get_last_error
 from ctypes.wintypes import (
     BOOL,
     DWORD,
@@ -30,7 +30,7 @@ from ctypes.wintypes import (
     LPVOID,
     WORD,
 )
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from ctypes import _NamedFuncPointer
@@ -45,26 +45,12 @@ kernel32 = WinDLL("kernel32", use_last_error=True)
 ###
 
 
-def function_factory(
-    function: _NamedFuncPointer,
-    argument_types: list[type[_SimpleCData[Any]]],
-    return_type: type[_SimpleCData[Any]],
-    error_checking: Callable[..., Any],  # Simplified over errcheck's signature
-) -> _NamedFuncPointer:
-    function.argtypes = argument_types
-    function.restype = return_type
-    function.errcheck = error_checking
-    return function
-
-
 def make_error(function: _NamedFuncPointer) -> OSError:
     code = get_last_error()
-    description = FormatError(code).strip()
-    function_name = function.__name__
     exception = OSError()
     exception.winerror = code
-    exception.function = function_name
-    exception.strerror = description
+    exception.function = function.__name__
+    exception.strerror = FormatError(code).strip()
     return exception
 
 
@@ -85,41 +71,21 @@ def check_false(result: int | None, function: _NamedFuncPointer, *_) -> Literal[
 # https://github.com/enthought/pywin32-ctypes/blob/main/win32ctypes/core/cffi/_resource.py
 ###
 
-
-def _UpdateResource(
-    hUpdate: int,
-    lpType: str | int,
-    lpName: str | int,
-    wLanguage: int,
-    lpData: bytes,
-    cbData: int,
-):
-    lp_type = LPCWSTR(lpType)
-    lp_name = LPCWSTR(lpName)
-    _BaseUpdateResource(hUpdate, lp_type, lp_name, wLanguage, lpData, cbData)
+_BeginUpdateResource = kernel32.BeginUpdateResourceW
+_BeginUpdateResource.argtypes = [LPCWSTR, BOOL]
+_BeginUpdateResource.restype = HANDLE
+_BeginUpdateResource.errcheck = check_null
 
 
-_BeginUpdateResource = function_factory(
-    kernel32.BeginUpdateResourceW,
-    [LPCWSTR, BOOL],
-    HANDLE,
-    check_null,
-)
+_EndUpdateResource = kernel32.EndUpdateResourceW
+_EndUpdateResource.argtypes = [HANDLE, BOOL]
+_EndUpdateResource.restype = BOOL
+_EndUpdateResource.errcheck = check_false
 
-
-_EndUpdateResource = function_factory(
-    kernel32.EndUpdateResourceW,
-    [HANDLE, BOOL],
-    BOOL,
-    check_false,
-)
-
-_BaseUpdateResource = function_factory(
-    kernel32.UpdateResourceW,
-    [HANDLE, LPCWSTR, LPCWSTR, WORD, LPVOID, DWORD],
-    BOOL,
-    check_false,
-)
+_UpdateResource = kernel32.UpdateResourceW
+_UpdateResource.argtypes = [HANDLE, LPCWSTR, LPCWSTR, WORD, LPVOID, DWORD]
+_UpdateResource.restype = BOOL
+_UpdateResource.errcheck = check_false
 
 
 ###
@@ -134,7 +100,7 @@ def BeginUpdateResource(filename: str, delete: bool):
 
     Parameters
     ----------
-    fileName : unicode
+    fileName : str
         The filename of the module to load.
     delete : bool
         When true all existing resources are deleted
@@ -169,7 +135,7 @@ def UpdateResource(
     type: str | int,
     name: str | int,
     data: Iterable[SupportsIndex] | SupportsIndex | SupportsBytes | ReadableBuffer,
-    language=LANG_NEUTRAL,
+    language: int = LANG_NEUTRAL,
 ) -> None:
     """Update a resource.
 
@@ -179,29 +145,20 @@ def UpdateResource(
         The handle of the resource file as returned by
         :func:`BeginUpdateResource`.
 
-    type : str : int
+    type : str | int
         The type of resource to update.
 
-    name : str : int
+    name : str | int
         The name or Id of the resource to update.
 
-    data : bytes
+    data : bytes-like
         A bytes like object is expected.
-
-        .. note::
-          PyWin32 version 219, on Python 2.7, can handle unicode inputs.
-          However, the data are stored as bytes and it is not really
-          possible to convert the information back into the original
-          unicode string. To be consistent with the Python 3 behaviour
-          of PyWin32, we raise an error if the input cannot be
-          converted to `bytes`.
 
     language : int
         Language to use, default is LANG_NEUTRAL.
 
     """
-    try:
-        lp_data = bytes(data)
-    except UnicodeEncodeError:
-        raise TypeError("a bytes-like object is required, not a 'unicode'")
-    _UpdateResource(handle, type, name, language, lp_data, len(lp_data))
+    lp_data = bytes(data)
+    _UpdateResource(
+        handle, LPCWSTR(type), LPCWSTR(name), language, lp_data, len(lp_data)
+    )
