@@ -74,18 +74,18 @@ def check_false(result: int | None, function: _NamedFuncPointer, *_) -> Literal[
 _BeginUpdateResource = kernel32.BeginUpdateResourceW
 _BeginUpdateResource.argtypes = [LPCWSTR, BOOL]
 _BeginUpdateResource.restype = HANDLE
-_BeginUpdateResource.errcheck = check_null
+_BeginUpdateResource.errcheck = check_null  # type: ignore[assignment] # ctypes is badly typed
 
 
 _EndUpdateResource = kernel32.EndUpdateResourceW
 _EndUpdateResource.argtypes = [HANDLE, BOOL]
 _EndUpdateResource.restype = BOOL
-_EndUpdateResource.errcheck = check_false
+_EndUpdateResource.errcheck = check_false  # type: ignore[assignment] # ctypes is badly typed
 
 _UpdateResource = kernel32.UpdateResourceW
 _UpdateResource.argtypes = [HANDLE, LPCWSTR, LPCWSTR, WORD, LPVOID, DWORD]
 _UpdateResource.restype = BOOL
-_UpdateResource.errcheck = check_false
+_UpdateResource.errcheck = check_false  # type: ignore[assignment] # ctypes is badly typed
 
 
 ###
