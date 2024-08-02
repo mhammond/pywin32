@@ -158,6 +158,7 @@ Coming in build 307, as yet unreleased
 * General speed and size improvements due to all the removed code. (#2046, #1986, #2050, #1950, #2085, #2087, #2051, #1990, #2106, #2127, #2124, #2126, #2177, #2218, #2202, #2205, #2217)
 
 ### adodbapi
+* When `errorhandler` is called, the `errorvalue` argument is now always an `Exception` and the `errortype` is the `type` of that specific `errorvalue` (#2351, @Avasam)
 * Remove references to outdated IronPython (#2049, @Avasam)
   This removes the following public names:
   * `adodbapi.adodbapi.onWin32`
