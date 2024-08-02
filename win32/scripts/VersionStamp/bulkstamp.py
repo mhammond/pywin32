@@ -43,8 +43,6 @@ except ModuleNotFoundError:
     sys.path.append(os.path.abspath(__file__ + "/../../../Lib"))
     import win32verstamp
 
-numStamped = 0
-
 g_patterns = [
     "*.dll",
     "*.pyd",
@@ -53,8 +51,9 @@ g_patterns = [
 ]
 
 
-def walk(vars: Mapping[str, str], debug, descriptions, dirname, names):
-    global numStamped
+def walk(vars: Mapping[str, str], debug, descriptions, dirname, names) -> int:
+    """Returns the number of stamped files."""
+    numStamped = 0
     for name in names:
         for pat in g_patterns:
             if fnmatch.fnmatch(name, pat):
@@ -84,6 +83,7 @@ def walk(vars: Mapping[str, str], debug, descriptions, dirname, names):
                 else:
                     print("WARNING: description not provided for:", name)
                     # skip branding this - assume already branded or handled elsewhere
+    return numStamped
 
 
 # print("Stamped", pathname)
@@ -127,9 +127,6 @@ def load_descriptions(fname, vars):
 
 
 def scan(build, root: str, desc, **custom_vars):
-    print(build, root, desc)
-    global numStamped
-    numStamped = 0
     try:
         build = int(build)
     except ValueError:
@@ -144,10 +141,11 @@ def scan(build, root: str, desc, **custom_vars):
     vars["build"] = build
     vars.update(custom_vars)
 
+    numStamped = 0
     for directory, dirnames, filenames in os.walk(root):
-        walk(vars, debug, descriptions, directory, filenames)
+        numStamped += walk(vars, debug, descriptions, directory, filenames)
 
-    print("Stamped %d files." % (numStamped))
+    print(f"Stamped {numStamped} files.")
 
 
 if __name__ == "__main__":
