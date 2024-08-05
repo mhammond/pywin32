@@ -181,8 +181,7 @@ class AXScriptException(COMException):
             tb_top = tb
 
         bits = ["Traceback (most recent call last):\n"]
-        # Fixed in https://github.com/python/typeshed/pull/11675 , to be included in next mypy release
-        bits.extend(traceback.format_list(format_items))  # type: ignore[arg-type]
+        bits.extend(traceback.format_list(format_items))
         if isinstance(value, pythoncom.com_error):
             desc = f"{value.strerror} (0x{value.hresult:x})"
             if (
