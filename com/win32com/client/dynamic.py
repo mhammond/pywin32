@@ -220,7 +220,7 @@ class CDispatch:
         # desirable???
 
     def __repr__(self):
-        return "<COMObject %s>" % (self._username_)
+        return "<COMObject {}>".format(self._username_)
 
     def __str__(self):
         # __str__ is used when the user does "print(object)", so we gracefully
@@ -407,7 +407,9 @@ class CDispatch:
         try:
             # print(f"Method code for {self._username_} is:\n", methodCode)
             # self._print_details_()
-            codeObject = compile(methodCode, "<COMObject %s>" % self._username_, "exec")
+            codeObject = compile(
+                methodCode, "<COMObject {}>".format(self._username_), "exec"
+            )
             # Exec the code object
             tempNameSpace = {}
             # "Dispatch" in the exec'd code is win32com.client.Dispatch, not ours.
@@ -606,13 +608,13 @@ class CDispatch:
                 debug_attr_print("Cached items has attribute!", ret)
                 return ret
             except (KeyError, AttributeError):
-                debug_attr_print("Attribute %s not in cache" % attr)
+                debug_attr_print("Attribute {} not in cache".format(attr))
 
         # If we are still here, and have a retEntry, get the OLE item
         if retEntry is not None:
             invoke_type = _GetDescInvokeType(retEntry, pythoncom.INVOKE_PROPERTYGET)
             debug_attr_print(
-                "Getting property Id 0x%x from OLE object" % retEntry.dispid
+                "Getting property Id 0x{:x} from OLE object".format(retEntry.dispid)
             )
             try:
                 ret = self._oleobj_.Invoke(retEntry.dispid, 0, invoke_type, 1)

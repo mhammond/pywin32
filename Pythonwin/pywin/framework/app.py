@@ -164,7 +164,7 @@ class CApp(WinApp):
                 try:
                     thisRet = handler(handler, count)
                 except:
-                    print("Idle handler %s failed" % (repr(handler)))
+                    print("Idle handler {} failed".format(repr(handler)))
                     traceback.print_exc()
                     print("Idle handler removed from list")
                     try:
@@ -347,7 +347,7 @@ class AboutBox(dialog.Dialog):
             build_no = (
                 open(os.path.join(site_packages, "pywin32.version.txt")).read().strip()
             )
-            ver = "pywin32 build %s" % build_no
+            ver = "pywin32 build {}".format(build_no)
         except OSError:
             ver = None
         if ver is None:
