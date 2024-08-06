@@ -744,7 +744,7 @@ class my_build_ext(build_ext):
                 needed = f"{ext.name}{extra}"
             elif ext.name in ("win32ui",):
                 # This one just needs a copy.
-                created = needed = ext.name + extra
+                created = needed = f"{ext.name}{extra}"
             else:
                 created = needed = None
             if created is not None:
