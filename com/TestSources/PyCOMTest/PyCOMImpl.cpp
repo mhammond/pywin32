@@ -618,6 +618,14 @@ HRESULT CPyCOMTest::GetStruct(TestStruct1 *ret)
     *ret = r;
     return S_OK;
 }
+
+HRESULT CPyCOMTest::ModifyStruct(TestStruct1 *prec)
+{
+    prec->int_value = 100;
+    prec->str_value = SysAllocString(L"Nothing is as constant as change");
+    return S_OK;
+}
+
 HRESULT CPyCOMTest::DoubleString(BSTR in, BSTR *out)
 {
     *out = SysAllocStringLen(NULL, SysStringLen(in) * 2);
