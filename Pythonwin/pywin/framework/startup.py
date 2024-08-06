@@ -50,7 +50,7 @@ pywin.framework.__path__ = list(pywin.framework.__path__)
 pywin.__path__[0] = win32ui.FullPath(pywin.__path__[0])
 pywin.framework.__path__[0] = win32ui.FullPath(pywin.framework.__path__[0])
 
-# make a few wierd sys values.  This is so later we can clobber sys.argv to trick
+# make a few weird sys values.  This is so later we can clobber sys.argv to trick
 # scripts when running under a GUI environment.
 
 moduleName = "pywin.framework.intpyapp"

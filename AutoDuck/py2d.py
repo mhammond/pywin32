@@ -75,7 +75,7 @@ def format_desc(desc):
     # 'first_para_of_docstring'
     # '@comm next para of docstring'
     # '@comm next para of docstring' ... etc
-    # BUT - also handling enbedded doctests, where we write
+    # BUT - also handling embedded doctests, where we write
     # '@iex >>> etc.'
     if not desc:
         return ""
