@@ -110,7 +110,7 @@ class DictionaryPolicy(policy.BasicWrapPolicy):
             return len(self._obj_)
 
         if dispid == pythoncom.DISPID_NEWENUM:
-            return util.NewEnum(list(self._obj_.keys()))
+            return util.NewEnum(list(self._obj_))
 
         raise COMException(scode=winerror.DISP_E_MEMBERNOTFOUND)
 

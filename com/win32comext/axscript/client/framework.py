@@ -987,7 +987,7 @@ class COMScript:
         # Due to the way we work, we re-create persistent ones.
         existing = self.subItems
         self.subItems = {}
-        for name, item in existing.items():
+        for item in existing.values():
             item.Close()
             if item.flags & axscript.SCRIPTITEM_ISPERSISTENT:
                 self.AddNamedItem(item.name, item.flags)
