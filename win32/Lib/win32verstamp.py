@@ -1,5 +1,4 @@
-""" Stamp a Win32 binary with version information.
-"""
+"""Stamp a Win32 binary with version information."""
 
 import glob
 import optparse

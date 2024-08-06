@@ -15,11 +15,12 @@
 """Generate a .py file from an OLE TypeLibrary file.
 
 
- This module is concerned only with the actual writing of
- a .py file.  It draws on the @build@ module, which builds
- the knowledge of a COM interface.
+This module is concerned only with the actual writing of
+a .py file.  It draws on the @build@ module, which builds
+the knowledge of a COM interface.
 
 """
+
 usageHelp = """ \
 
 Usage:

@@ -293,9 +293,8 @@ def DispatchWithEvents(clsid, user_event_class):
     Example:
 
     >>> class IEEvents:
-    ...    def OnVisible(self, visible):
-    ...       print("Visible changed:", visible)
-    ...
+    ...     def OnVisible(self, visible):
+    ...         print("Visible changed:", visible)
     >>> ie = DispatchWithEvents("InternetExplorer.Application", IEEvents)
     >>> ie.Visible = 1
     Visible changed: 1
@@ -348,9 +347,8 @@ def WithEvents(disp, user_event_class):
     The difference is best summarised by example.
 
     >>> class IEEvents:
-    ...    def OnVisible(self, visible):
-    ...       print("Visible changed:", visible)
-    ...
+    ...     def OnVisible(self, visible):
+    ...         print("Visible changed:", visible)
     >>> ie = Dispatch("InternetExplorer.Application")
     >>> ie_events = WithEvents(ie, IEEvents)
     >>> ie.Visible = 1
@@ -426,14 +424,15 @@ def getevents(clsid):
     >>>win32com.client.gencache.EnsureModule('{EAB22AC0-30C1-11CF-A7EB-0000C05BAE0B}',0,1,1)
     <module 'win32com.gen_py.....
     >>>
-    >>> class InternetExplorerEvents(win32com.client.getevents("InternetExplorer.Application.1")):
-    ...    def OnVisible(self, Visible):
-    ...        print("Visibility changed: ", Visible)
-    ...
+    >>> class InternetExplorerEvents(
+    ...     win32com.client.getevents("InternetExplorer.Application.1")
+    ... ):
+    ...     def OnVisible(self, Visible):
+    ...         print("Visibility changed: ", Visible)
     >>>
-    >>> ie=win32com.client.Dispatch("InternetExplorer.Application.1")
-    >>> events=InternetExplorerEvents(ie)
-    >>> ie.Visible=1
+    >>> ie = win32com.client.Dispatch("InternetExplorer.Application.1")
+    >>> events = InternetExplorerEvents(ie)
+    >>> ie.Visible = 1
     Visibility changed:  1
     >>>
     """

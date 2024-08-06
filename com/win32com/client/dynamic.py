@@ -12,7 +12,7 @@ Example
  >>> xl = win32com.client.Dispatch("Excel.Application")
  # The line above invokes the functionality of this class.
  # xl is now an object we can use to talk to Excel.
- >>> xl.Visible = 1 # The Excel window becomes visible.
+ >>> xl.Visible = 1  # The Excel window becomes visible.
 
 """
 
