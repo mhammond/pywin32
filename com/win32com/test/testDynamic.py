@@ -37,8 +37,8 @@ class VeryPermissive:
             )  # Probably call as PROPGET.
 
         for arg in args[:-1]:
-            print(str(arg), end=" ")
-        print(str(args[-1]))
+            print(arg, end=" ")
+        print(args[-1])
 
 
 def Test():
@@ -65,9 +65,7 @@ def Test():
         client.TestSequence = v
         assert v == list(
             client.TestSequence
-        ), "Dynamic sequences not working! {!r}/{!r}".format(
-            repr(v), repr(client.testSequence)
-        )
+        ), f"Dynamic sequences not working! {v!r}/{client.testSequence!r}"
 
         client.write("This", "output", "has", "come", "via", "testDynamic.py")
         # Check our new "_FlagAsMethod" works (kinda!)

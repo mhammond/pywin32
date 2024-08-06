@@ -41,7 +41,7 @@ class object_document(docview.Document):
 
 class object_view(docview.EditView):
     def OnInitialUpdate(self):
-        self.ReplaceSel("Object is %s" % repr(self.GetDocument().object))
+        self.ReplaceSel(f"Object is {self.GetDocument().object!r}")
 
 
 def demo():

@@ -61,7 +61,7 @@ def _docopy(src, dest):
         return 1
     except:
         print(f"Error copying '{src}' -> '{dest}'")
-        print(str(sys.exc_info()[1]))
+        print(sys.exc_info()[1])
         usage_and_die(3)
 
 
