@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11", "3.12", "3.13-dev"]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13-dev"]
         architecture: ["x64", "x86"]
 
     steps:
@@ -129,7 +129,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # mypy 1.5 dropped support for Python 3.7
         # mypy won't understand "3.13-dev", keeping the CI simple by just omitting it
         python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
     steps:
@@ -148,7 +147,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11", "3.12", "3.13-dev"]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13-dev"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
