@@ -5,8 +5,6 @@ import win32con
 import win32ui
 from pywin.mfc import docview, window
 
-from . import app
-
 bStretch = 1
 
 

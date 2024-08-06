@@ -46,7 +46,6 @@
 # a field sep just 'cos we can (and 'cos it can't possibly conflict with the
 # string content)
 
-import _thread
 import os
 import pyclbr
 import sys
