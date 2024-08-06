@@ -15,19 +15,10 @@ import platform
 import random
 import sys
 
-import is64bit
 import setuptestframework
 import tryconnection
 
 print("\nPython", sys.version)
-node = platform.node()
-try:
-    print(
-        "node=%s, is64bit.os()= %s, is64bit.Python()= %s"
-        % (node, is64bit.os(), is64bit.Python())
-    )
-except:
-    pass
 
 if "--help" in sys.argv:
     print(
@@ -74,10 +65,11 @@ except SyntaxError:
         '\n* * * Are you trying to run Python2 code using Python3? Re-run this test using the "--package" switch.'
     )
     sys.exit(11)
-try:
-    print(adodbapi.version)  # show version
-except:
-    print('"adodbapi.version" not present or not working.')
+from adodbapi import is64bit
+
+node = platform.node()
+print(f"node={node}, is64bit.os()={is64bit.os()}, is64bit.Python()={is64bit.Python()}")
+print(adodbapi.version)  # show version
 print(__doc__)
 
 verbose = False
@@ -183,7 +175,7 @@ if doPostgresTest:
         _password,
         _computername,
         _databasename,
-        **kws
+        **kws,
     )
 
 assert (
