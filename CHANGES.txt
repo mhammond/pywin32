@@ -60,6 +60,7 @@ Coming in build 307, as yet unreleased
   * `winxpgui.GetConsoleWindow` now aliases `win32console.GetConsoleWindow`
   * Everything else is re-exported from `win32gui`
 * Fixed the `win32com.demos.ietoolbar` demo (#2217, @Avasam)
+* Fixed unbound globals in `Pythonwin/pywin/dialogs/ideoptions.py` (#2325, @Avasam)
 * Fixed undefined names reported by Flake8/Ruff (#2101, @Avasam, @kxrob)
   Fixed the following public API:
     * Fixed `NameError` in `pywin.Demos`'s `fontdemo.FontView.SetFont`
@@ -154,7 +155,7 @@ Coming in build 307, as yet unreleased
   * Use byte-string (`b""`) for constant bytes values instead of superfluous `.encode` calls (#2046, @Avasam)
   * Cleaned up unused imports (#1986, #2051, #1990, #2124, #2126, @Avasam)
   * Removed duplicated declarations, constants and definitions (#2050 , #1950, #1990, @Avasam)
-* Small generalized optimization by using augmented assignements (in-place operators) where possible (#2274, @Avasam)
+* Small generalized optimization by using augmented assignments (in-place operators) where possible (#2274, @Avasam)
 * General speed and size improvements due to all the removed code. (#2046, #1986, #2050, #1950, #2085, #2087, #2051, #1990, #2106, #2127, #2124, #2126, #2177, #2218, #2202, #2205, #2217)
 
 ### adodbapi
