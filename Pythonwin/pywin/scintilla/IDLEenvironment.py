@@ -517,9 +517,7 @@ def TestGet(fr, to, t, expected):
     got = t.get(fr, to)
     if got != expected:
         print(
-            "ERROR: get({}, {}) expected {}, but got {}".format(
-                repr(fr), repr(to), repr(expected), repr(got)
-            )
+            f"ERROR: get({repr(fr)}, {repr(to)}) expected {repr(expected)}, but got {repr(got)}"
         )
 
 
