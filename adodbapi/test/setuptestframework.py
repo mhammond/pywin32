@@ -1,9 +1,8 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 # Configure this in order to run the testcases.
-"setuptestframework.py v 2.6.0.8"
+"setuptestframework.py v 3.7.0.0"
 import os
 import shutil
-import sys
 import tempfile
 
 
@@ -17,7 +16,7 @@ def maketemp():
     return tempdir
 
 
-def _cleanup_function(testfolder, mdb_name):
+def cleanup_function(testfolder, mdb_name):
     try:
         os.unlink(os.path.join(testfolder, mdb_name))
     except:
@@ -27,10 +26,6 @@ def _cleanup_function(testfolder, mdb_name):
         print("   cleaned up folder", testfolder)
     except:
         pass  # test package not present
-
-
-def getcleanupfunction():
-    return _cleanup_function
 
 
 def find_ado_path():
@@ -54,13 +49,7 @@ def makeadopackage(testfolder):
         for f in os.listdir(adoPath):
             if f.endswith(".py"):
                 shutil.copy(os.path.join(adoPath, f), newpackage)
-        if sys.version_info >= (3, 0):  # only when running Py3.n
-            save = sys.stdout
-            sys.stdout = None
-            from lib2to3.main import main  # use 2to3 to make test package
 
-            main("lib2to3.fixes", args=["-n", "-w", newpackage])
-            sys.stdout = save
         return testfolder
     else:
         raise OSError("Connot find source of adodbapi to test.")
