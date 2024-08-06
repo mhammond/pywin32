@@ -77,10 +77,7 @@ def RegisterPythonServer(filename, progids=None, verbose=0):
             # old, less-secure OS - assume *is* admin.
             is_admin = True
     if not is_admin:
-        msg = (
-            "%r isn't registered, but I'm not an administrator who can register it."
-            % progids[0]
-        )
+        msg = f"{progids[0]!r} isn't registered, but I'm not an administrator who can register it."
         if why_not:
             msg += "\n(registration check failed as %s)" % why_not
         # throw a normal "class not registered" exception - we don't report
@@ -122,7 +119,7 @@ def ExecuteShellCommand(
             raise Failed("traceback in program output")
         return output
     except Failed as why:
-        print("Failed to exec command '%r'" % cmd)
+        print(f"Failed to exec command '{cmd}'")
         print("Failed as", why)
         print("** start of program output **")
         print(output)
