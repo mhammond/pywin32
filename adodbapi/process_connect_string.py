@@ -45,6 +45,8 @@ def macro_call(macro_name, args, kwargs):
                 return new_key, platform.node()
 
         elif macro_name == "getenv":  # expand the server's environment variable args[1]
+            import os
+
             try:
                 dflt = args[2]  # if not found, default from args[2]
             except IndexError:  # or blank
