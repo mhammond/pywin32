@@ -303,9 +303,9 @@ def DispatchWithEvents(clsid, user_event_class):
     """
     # Create/Get the object.
     disp = Dispatch(clsid)
-    if not disp.__class__.__dict__.get(
-        "CLSID"
-    ):  # Eeek - no makepy support - try and build it.
+    disp_class = None
+    if not disp.__class__.__dict__.get("CLSID"):
+        # Eeek - no makepy support - try and build it.
         try:
             ti = disp._oleobj_.GetTypeInfo()
             disp_clsid = ti.GetTypeAttr()[0]
@@ -315,11 +315,13 @@ def DispatchWithEvents(clsid, user_event_class):
             # Get the class from the module.
             disp_class = gencache.GetClassForProgID(str(disp_clsid))
         except pythoncom.com_error:
-            raise TypeError(
-                "This COM object can not automate the makepy process - please run makepy manually for this object"
-            )
+            pass
     else:
         disp_class = disp.__class__
+    if disp_class is None:
+        raise TypeError(
+            "This COM object can not automate the makepy process - please run makepy manually for this object"
+        )
     # If the clsid was an object, get the clsid
     clsid = disp_class.CLSID
     # Create a new class that derives from 3 classes - the dispatch class, the event sink class and the user class.
@@ -554,7 +556,7 @@ class DispatchBaseClass:
     def __getattr__(self, attr):
         args = self._prop_map_get_.get(attr)
         if args is None:
-            raise AttributeError(f"'{repr(self)}' object has no attribute '{attr}'")
+            raise AttributeError(f"'{self!r}' object has no attribute '{attr}'")
         return self._ApplyTypes_(*args)
 
     def __setattr__(self, attr, value):
@@ -564,7 +566,7 @@ class DispatchBaseClass:
         try:
             args, defArgs = self._prop_map_put_[attr]
         except KeyError:
-            raise AttributeError(f"'{repr(self)}' object has no attribute '{attr}'")
+            raise AttributeError(f"'{self!r}' object has no attribute '{attr}'")
         self._oleobj_.Invoke(*(args + (value,) + defArgs))
 
     def _get_good_single_object_(self, obj, obUserName=None, resultCLSID=None):
