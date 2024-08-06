@@ -136,7 +136,7 @@ def scan(build, root, desc, **custom_vars):
     vars.update(custom_vars)
 
     arg = vars, debug, descriptions
-    os.path.walk(root, walk, arg)
+    os.walk(root, walk, arg)
 
     print("Stamped %d files." % (numStamped))
 
