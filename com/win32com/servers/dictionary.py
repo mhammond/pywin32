@@ -85,10 +85,7 @@ class DictionaryPolicy(policy.BasicWrapPolicy):
             if wFlags & (DISPATCH_METHOD | DISPATCH_PROPERTYGET):
                 if l > 1:
                     raise COMException(scode=winerror.DISP_E_BADPARAMCOUNT)
-                try:
-                    return self._obj_[key]
-                except KeyError:
-                    return None  # unknown keys return None (VT_NULL)
+                return self._obj_.get(key)  # unknown keys return None (VT_NULL)
 
             if l != 2:
                 raise COMException(scode=winerror.DISP_E_BADPARAMCOUNT)

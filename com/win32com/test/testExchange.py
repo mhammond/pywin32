@@ -86,10 +86,7 @@ def TestUser(session):
     print("User has %d fields" % len(fields))
     for f in range(len(fields)):
         field = fields[f + 1]
-        try:
-            id = PropTagsById[field.ID]
-        except KeyError:
-            id = field.ID
+        id = PropTagsById.get(field.ID, field.ID)
         print(f"{field.Name}/{id}={field.Value}")
 
 
