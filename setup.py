@@ -5,7 +5,7 @@ build_id = "306"  # may optionally include a ".{patchno}" suffix.
 __doc__ = """This is a distutils setup-script for the pywin32 extensions.
 
 The canonical source of truth for supported versions and build environments
-is [the github CI](https://github.com/mhammond/pywin32/tree/main/.github/workflows).
+is [the GitHub CI](https://github.com/mhammond/pywin32/tree/main/.github/workflows).
 
 To build and install locally for testing etc, you need a build environment
 which is capable of building the version of Python you are targeting, then:
@@ -61,12 +61,6 @@ pywin32_version = "%d.%d.%s" % (
     build_id_patch,
 )
 print("Building pywin32", pywin32_version)
-
-try:
-    sys.argv.remove("--skip-verstamp")
-    skip_verstamp = True
-except ValueError:
-    skip_verstamp = False
 
 try:
     this_file = __file__
@@ -985,35 +979,18 @@ class my_compiler(MSVCCompiler):
         # target.  Do this externally to avoid suddenly dragging in the
         # modules needed by this process, and which we will soon try and
         # update.
-        # Further, we don't really want to use sys.executable, because that
-        # means the build environment must have a current pywin32 installed
-        # in every version, which is a bit of a burden only for this.
-        # So we assume the "default" Python version (ie, the version run by
-        # py.exe) has pywin32 installed.
-        # (This creates a chicken-and-egg problem though! We used to work around
-        # this by ignoring failure to verstamp, but that's easy to miss. So now
-        # allow --skip-verstamp on the cmdline - but if it's not there, the
-        # verstamp must work.)
-        if not skip_verstamp:
-            args = ["py.exe", "-m", "win32verstamp"]
-            args.append(f"--version={pywin32_version}")
-            args.append("--comments=https://github.com/mhammond/pywin32")
-            args.append(f"--original-filename={os.path.basename(output_filename)}")
-            args.append("--product=PyWin32")
-            if "-v" not in sys.argv:
-                args.append("--quiet")
-            args.append(output_filename)
-            try:
-                self.spawn(args)
-            except Exception:
-                print("** Failed to versionstamp the binaries.")
-                # py.exe is not yet available for windows-arm64 so version stamp will fail
-                # ignore it for now
-                if platform.machine() != "ARM64":
-                    print(
-                        "** If you want to skip this step, pass '--skip-verstamp' on the setup.py command-line"
-                    )
-                    raise
+        args = [
+            sys.executable,
+            # NOTE: On Python 3.7, all args must be str
+            str(Path(__file__).parent / "win32" / "Lib" / "win32verstamp.py"),
+            f"--version={pywin32_version}",
+            "--comments=https://github.com/mhammond/pywin32",
+            f"--original-filename={os.path.basename(output_filename)}",
+            "--product=PyWin32",
+            "--quiet" if "-v" not in sys.argv else "",
+            output_filename,
+        ]
+        self.spawn(args)
 
     # Work around bpo-36302/bpo-42009 - it sorts sources but this breaks
     # support for building .mc files etc :(
