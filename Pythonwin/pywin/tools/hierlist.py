@@ -12,7 +12,7 @@
 # If you need to use the Tree Control, you may still find this API a reasonable
 # choice.  However, you should investigate using the tree control directly
 # to provide maximum flexibility (but with extra work).
-
+from __future__ import annotations
 
 import commctrl
 import win32api
@@ -259,7 +259,7 @@ class HierList(object.Object):
         else:
             return 4
 
-    def GetSelectedBitmapColumn(self, item):
+    def GetSelectedBitmapColumn(self, item) -> int | None:
         return 0
 
     def CheckChangedChildren(self):
