@@ -418,9 +418,8 @@ class Connection:
                     f"paramstyle={value!r} not in:{api.accepted_paramstyles!r}",
                 )
         elif name == "variantConversions":
-            value = copy.copy(
-                value
-            )  # make a new copy -- no changes in the default, please
+            # make a new copy -- no changes in the default, please
+            value = copy.copy(value)
         object.__setattr__(self, name, value)
 
     def __getattr__(self, item):
