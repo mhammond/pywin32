@@ -84,7 +84,7 @@ jobs:
         run: |
           python --version
           pip --version
-          pip install --upgrade setuptools wheel
+          pip install --upgrade setuptools<74 wheel
 
       - name: Obtain ARM64 library files
         run: |
