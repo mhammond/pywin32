@@ -1,4 +1,10 @@
+# Local installations and builds
 MANIFEST
+build
+dist
+__pycache__
+*.exe
+*.zip
 *.dbg
 *.exp
 *.ncb
@@ -8,17 +14,10 @@ MANIFEST
 *.chm
 *.chw
 *.pyo
-__pycache__
+arm64libs/
+pywin32.egg-info/
 Pythonwin/Scintilla/win32/*.pdb
 PyWin32.kpf
-
-# Local installations and builds
-*.exe
-*.zip
-build
-dist
-pywin32.egg-info/
-arm64libs/
 
 # COM test bits
 com/TestSources/Build
