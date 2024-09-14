@@ -30,10 +30,12 @@ import logging
 import os
 import platform
 import re
+import setuptools
 import shutil
 import subprocess
 import sys
 import winreg
+from collections.abc import MutableSequence
 from pathlib import Path
 from setuptools import Extension, setup
 from setuptools.command.build import build
@@ -51,6 +53,8 @@ if sys.version_info >= (3, 8):
     from setuptools.modified import newer_group
 else:
     from distutils.dep_util import newer_group
+
+print(setuptools.__version__)
 
 build_id_patch = build_id
 if not "." in build_id_patch:
@@ -1027,9 +1031,10 @@ class my_compiler(MSVCCompiler):
         sources = sorted(sources, key=key_reverse_mc)
         return MSVCCompiler.compile(self, sources, **kwargs)
 
-    def spawn(self, cmd):
-        is_link = cmd[0].endswith("link.exe") or cmd[0].endswith('"link.exe"')
-        is_mt = cmd[0].endswith("mt.exe") or cmd[0].endswith('"mt.exe"')
+    def spawn(self, cmd: MutableSequence[str]) -> None:
+        executable = cmd[0].replace('"', "")
+        is_link = executable.endswith("link.exe")
+        is_mt = executable.endswith("mt.exe")
         if is_mt:
             # We don't want mt.exe run...
             return

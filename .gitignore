@@ -1,8 +1,4 @@
 MANIFEST
-build
-dist
-*.exe
-*.zip
 *.dbg
 *.exp
 *.ncb
@@ -11,11 +7,18 @@ dist
 *.flg
 *.chm
 *.chw
-*.pyc
 *.pyo
-pywin32.egg-info/
+__pycache__
 Pythonwin/Scintilla/win32/*.pdb
 PyWin32.kpf
+
+# Local installations and builds
+*.exe
+*.zip
+build
+dist
+pywin32.egg-info/
+arm64libs/
 
 # COM test bits
 com/TestSources/Build
@@ -26,7 +29,6 @@ com/TestSources/PyCOMTest/PyCOMTest.tlb
 com/TestSources/PyCOMTest/PyCOMTest.vc*proj*
 com/TestSources/PyCOMTest/PyCOMTest_i.c
 com/TestSources/PyCOMTest/.vs/
-
 
 # SWIG generated files.
 com/win32comext/adsi/src/*.cpp
@@ -42,7 +44,6 @@ com/win32comext/mapi/src/Py*.h
 !com/win32comext/mapi/src/PyIMAPIAdviseSink.h
 !com/win32comext/mapi/src/PyMAPIUtil.h
 win32/src/*_swig.cpp
-
 
 # Generated from message files
 win32/src/PerfMon/PyPerfMsgs.h
