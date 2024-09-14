@@ -7,8 +7,8 @@ but note that Python 3.5 -> 3.13 all use version 14.X of the compiler, which,
 confusingly, report themselves as V.19XX (eg, note in Python's banner,
 3.5's "MSC v.1900", even 3.9b4's "MSC v.1924")
 
-This compiler first shipped with Visual Studio 2015, although Visual Studio 2017
-and Visual Studio VS2019 both have this compiler available, just not installed
+This compiler first shipped with Visual Studio 2015, although Visual Studio
+2017, 2019 and 2022 all have this compiler available, just not installed
 by default.
 
 In the Visual Studio Installer:
@@ -131,7 +131,7 @@ from the pywin32 directory.
 
 ## Cross-compiling for ARM64 (Microsoft Visual C++ 14.1 and up)
 
-- Follow the `For Visual Studio 2019` instructions above and pick the optional ARM64 build tools
+- Follow the `For Visual Studio XXXX` instructions above and pick the optional ARM64 build tools
 
 - Download prebuilt Python ARM64 binaries to a temporary location on your machine. You will need this location in a later step.
 
@@ -143,7 +143,7 @@ from the pywin32 directory.
 - Setup the cross-compilation environment:
 
     ```shell
-    "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\vc\Auxiliary\Build\vcvarsall.bat" x86_arm64
+    "C:\Program Files (x86)\Microsoft Visual Studio\XXXX\BuildTools\vc\Auxiliary\Build\vcvarsall.bat" x86_arm64
     ```
 
 - Update `setuptools` and set the following environment variables to ensure it is used:
