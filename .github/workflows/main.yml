@@ -111,11 +111,11 @@ jobs:
           python-version: "3.8"
           cache: pip
           cache-dependency-path: .github/workflows/main.yml
-      - run: pip install clang-format pycln
+      - run: pip install clang-format==18.* pycln
       - run: pycln . --config=pycln.toml --check
       - uses: chartboost/ruff-action@v1
         with:
-          version: "0.4.5"
+          version: "0.4.9"
       - uses: psf/black@stable
         with:
           options: "--fast --check --diff --verbose"
@@ -140,7 +140,7 @@ jobs:
           cache: pip
           cache-dependency-path: .github/workflows/main.yml
           check-latest: true
-      - run: pip install types-regex types-setuptools mypy==1.11
+      - run: pip install types-regex types-setuptools mypy==1.11.*
       - run: mypy . --python-version=${{ matrix.python-version }}
 
   pyright:
@@ -162,5 +162,5 @@ jobs:
       - uses: jakebailey/pyright-action@v2
         with:
           python-version: ${{ matrix.python-version }}
-          version: "1.1.358"
+          version: "1.1.383"
           annotate: errors
