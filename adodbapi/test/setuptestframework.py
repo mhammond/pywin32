@@ -3,7 +3,6 @@
 "setuptestframework.py v 2.6.0.8"
 import os
 import shutil
-import sys
 import tempfile
 
 
@@ -46,7 +45,7 @@ def makeadopackage(testfolder):
     if os.path.exists(adoName):
         newpackage = os.path.join(testfolder, "adodbapi")
         try:
-            os.mkdir(newpackage)
+            os.makedirs(newpackage)
         except OSError:
             print(
                 "*Note: temporary adodbapi package already exists: may be two versions running?"
@@ -54,13 +53,6 @@ def makeadopackage(testfolder):
         for f in os.listdir(adoPath):
             if f.endswith(".py"):
                 shutil.copy(os.path.join(adoPath, f), newpackage)
-        if sys.version_info >= (3, 0):  # only when running Py3.n
-            save = sys.stdout
-            sys.stdout = None
-            from lib2to3.main import main  # use 2to3 to make test package
-
-            main("lib2to3.fixes", args=["-n", "-w", newpackage])
-            sys.stdout = save
         return testfolder
     else:
         raise OSError("Cannot find source of adodbapi to test.")
