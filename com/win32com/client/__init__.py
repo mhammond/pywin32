@@ -6,7 +6,10 @@
 # dispatch object, the known class will be used.  This contrasts
 # with dynamic.Dispatch behaviour, where dynamic objects are always used.
 
+from __future__ import annotations
+
 import sys
+from typing import Any, ClassVar
 
 import pythoncom
 import pywintypes
@@ -490,6 +493,20 @@ def Record(name, object):
 # The base of all makepy generated classes
 ############################################
 class DispatchBaseClass:
+
+    # _prop_map_*_ are set in generated subclasses by gen_py
+    _prop_map_get_: ClassVar[
+        dict[
+            str,
+            tuple[
+                int, int, tuple[int, int], tuple[tuple[int, int], ...], str, str | None
+            ],
+        ]
+    ]
+    _prop_map_put_: ClassVar[
+        dict[str, tuple[tuple[int, int, int, int], tuple[int, ...]]]
+    ]
+
     def __init__(self, oobj=None):
         if oobj is None:
             oobj = pythoncom.new(self.CLSID)
@@ -551,13 +568,13 @@ class DispatchBaseClass:
             resultCLSID,
         )
 
-    def __getattr__(self, attr):
+    def __getattr__(self, attr: str):
         args = self._prop_map_get_.get(attr)
         if args is None:
             raise AttributeError(f"'{repr(self)}' object has no attribute '{attr}'")
         return self._ApplyTypes_(*args)
 
-    def __setattr__(self, attr, value):
+    def __setattr__(self, attr: str, value):
         if attr in self.__dict__:
             self.__dict__[attr] = value
             return
