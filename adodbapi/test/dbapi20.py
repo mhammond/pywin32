@@ -11,15 +11,17 @@
     -- Ian Bicking
 """
 
-__version__ = "$Revision: 1.15.0 $"[11:-2]
+__version__ = "$Revision: 1.16.0 $"[11:-2]
 __author__ = "Stuart Bishop <stuart@stuartbishop.net>"
 
-import sys
 import time
 import unittest
 
 # set this to "True" to follow API 2.0 to the letter
 TEST_FOR_NON_IDEMPOTENT_CLOSE = False
+
+# Revision 1.16  2022/12/07 22:00:00  Avasam
+# Drop support for EOL Python 3.6 and below
 
 # Revision 1.15  2019/11/22 00:50:00  kf7xm
 # Make Turn off IDEMPOTENT_CLOSE a proper skipTest
@@ -199,12 +201,8 @@ class DatabaseAPI20Test(unittest.TestCase):
     def test_Exceptions(self):
         # Make sure required exceptions exist, and are in the
         # defined heirarchy.
-        if sys.version[0] == "3":  # under Python 3 StardardError no longer exists
-            self.assertTrue(issubclass(self.driver.Warning, Exception))
-            self.assertTrue(issubclass(self.driver.Error, Exception))
-        else:
-            self.failUnless(issubclass(self.driver.Warning, Exception))
-            self.failUnless(issubclass(self.driver.Error, Exception))
+        self.assertTrue(issubclass(self.driver.Warning, Exception))
+        self.assertTrue(issubclass(self.driver.Error, Exception))
 
         self.assertTrue(issubclass(self.driver.InterfaceError, self.driver.Error))
         self.assertTrue(issubclass(self.driver.DatabaseError, self.driver.Error))

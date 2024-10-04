@@ -16,7 +16,7 @@ else:
 if pth not in sys.path:
     sys.path.insert(1, pth)
 # function to clean up the temporary folder -- calling program must run this function before exit.
-cleanup = setuptestframework.getcleanupfunction()
+cleanup = setuptestframework.cleanup_function
 
 import adodbapi
 import adodbapi.is64bit as is64bit

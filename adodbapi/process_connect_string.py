@@ -1,4 +1,9 @@
-""" a clumsy attempt at a macro language to let the programmer execute code on the server (ex: determine 64bit)"""
+"""a clumsy attempt at a macro language to let the programmer execute code on the server (ex: determine 64bit)"""
+
+import getpass
+import os
+import platform
+import tempfile
 
 from . import is64bit
 
@@ -13,7 +18,7 @@ def macro_call(macro_name, args, kwargs):
     :kwargs - the connection keyword dictionary. ??key has been removed
     --> the value to put in for kwargs['name'] = value
     """
-    if isinstance(args, (str, str)):
+    if isinstance(args, str):
         args = [
             args
         ]  # the user forgot to pass a sequence, so make a string into args[0]
@@ -32,13 +37,9 @@ def macro_call(macro_name, args, kwargs):
             macro_name == "getuser"
         ):  # get the name of the user the server is logged in under
             if not new_key in kwargs:
-                import getpass
-
                 return new_key, getpass.getuser()
 
         elif macro_name == "getnode":  # get the name of the computer running the server
-            import platform
-
             try:
                 return new_key, args[1] % platform.node()
             except IndexError:
@@ -61,9 +62,6 @@ def macro_call(macro_name, args, kwargs):
         elif (
             macro_name == "find_temp_test_path"
         ):  # helper function for testing ado operation -- undocumented
-            import os
-            import tempfile
-
             return new_key, os.path.join(
                 tempfile.gettempdir(), "adodbapi_test", args[1]
             )
@@ -86,13 +84,11 @@ def process(
         dsn = args[0]
     except IndexError:
         dsn = None
-    if isinstance(
-        dsn, dict
-    ):  # as a convenience the first argument may be django settings
+    # as a convenience the first argument may be django settings
+    if isinstance(dsn, dict):
         kwargs.update(dsn)
-    elif (
-        dsn
-    ):  # the connection string is passed to the connection as part of the keyword dictionary
+    # the connection string is passed to the connection as part of the keyword dictionary
+    elif dsn:
         kwargs["connection_string"] = dsn
     try:
         a1 = args[1]
