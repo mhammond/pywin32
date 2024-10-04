@@ -877,7 +877,7 @@ class Debugger(debugger_parent):
             else:
                 title = " - break"
         else:
-            raise error("Invalid debugger state passed!")
+            raise ValueError("Invalid debugger state passed!")
         win32ui.GetMainFrame().SetWindowText(
             win32ui.LoadString(win32ui.IDR_MAINFRAME) + title
         )
