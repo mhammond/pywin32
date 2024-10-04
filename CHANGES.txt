@@ -14,6 +14,8 @@ https://mhammond.github.io/pywin32_installers.html.
 Coming in build 308, as yet unreleased
 --------------------------------------
 
+* Fix Python failure handling in `Pythonwin/pywin/framework/scriptutils.py` and improve error message (#2319, @Avasam)
+
 Build 307, released 2024-10-04
 ------------------------------
 ### Release process changes
