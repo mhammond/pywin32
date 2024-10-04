@@ -16,6 +16,7 @@ Coming in build 307, as yet unreleased
 
 ### pywin32
 * Remove obsolete and unused `pywin.is_platform_unicode` (#2343, @Avasam)
+* Fix `isapi.ThreadPoolExtension`'s printing of exception traceback broken on Python 3.8+ (#2312, @Avasam)
 * Add RealGetWindowClass (#2299, @CristiFati)
 * Make it compile on Python 3.13 (#2260, @clin1234)
 * Fixed accidentally trying to raise a `str` instead of an `Exception` in (#2270, @Avasam)
