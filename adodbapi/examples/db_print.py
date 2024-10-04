@@ -1,4 +1,4 @@
-""" db_print.py -- a simple demo for ADO database reads."""
+"""a simple demo for ADO database reads."""
 
 import sys
 

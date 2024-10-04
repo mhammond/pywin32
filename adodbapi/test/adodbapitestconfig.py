@@ -1,5 +1,4 @@
-# Configure this to _YOUR_ environment in order to run the testcases.
-"testADOdbapiConfig.py v 2.6.2.B00"
+"""Configure this to _YOUR_ environment in order to run the testcases."""
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # #
@@ -14,10 +13,14 @@
 import platform
 import random
 import sys
+from pathlib import Path
 
 import is64bit
 import setuptestframework
 import tryconnection
+
+__version__ = "2.6.2.B00"
+version = f"{Path(__file__).name} v{__version__}"
 
 print("\nPython", sys.version)
 node = platform.node()
@@ -70,8 +73,9 @@ cleanup = setuptestframework.getcleanupfunction()
 
 import adodbapi  # will (hopefully) be imported using the "pth" discovered above
 
-print(adodbapi.version)  # show version
-print(__doc__)
+# show versions
+print(adodbapi.version)
+print(version)
 
 verbose = False
 for a in sys.argv:
