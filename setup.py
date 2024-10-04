@@ -2330,7 +2330,7 @@ dist = setup(
             "com/win32comext/shell/demos/servers/*.py",
             "com/win32comext/shell/demos/*.py",
             "com/win32comext/taskscheduler/test/*.py",
-            "com/win32comext/ifilter/demo/*.py",
+            "com/win32comext/ifilter/demos/*.py",
             "com/win32comext/authorization/demos/*.py",
             "com/win32comext/bits/test/*.py",
             "isapi/*.txt",
