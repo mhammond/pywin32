@@ -14,6 +14,8 @@ https://mhammond.github.io/pywin32_installers.html.
 Coming in build 308, as yet unreleased
 --------------------------------------
 
+* Fix re-raising exceptions as `QueryError` in `win32pdhquery.BaseQuery.open` (#2318, @Avasam)
+
 Build 307, released 2024-10-04
 ------------------------------
 ### Release process changes
