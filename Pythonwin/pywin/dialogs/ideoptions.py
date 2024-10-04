@@ -11,6 +11,11 @@ buttonControlMap = {
     win32ui.IDC_BUTTON3: win32ui.IDC_EDIT3,
 }
 
+formatTitle = interact.formatTitle
+formatInput = interact.formatInput
+formatOutput = interact.formatOutput
+formatOutputError = interact.formatOutputError
+
 
 class OptionsPropPage(dialog.PropertyPage):
     def __init__(self):
@@ -111,8 +116,9 @@ class OptionsPropPage(dialog.PropertyPage):
             return None
         return dlg.GetCharFormat()
 
-    def OnFormatTitle(self, command, code):
-        fmt = self.GetFormat(interact.formatTitle)
+    def OnFormatTitle(self, command, code) -> None:
+        global formatTitle
+        fmt = self.GetFormat(formatTitle)
         if fmt:
             formatTitle = fmt
             interact.SaveFontPreferences()
