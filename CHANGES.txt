@@ -14,6 +14,8 @@ https://mhammond.github.io/pywin32_installers.html.
 Coming in build 308, as yet unreleased
 --------------------------------------
 
+* The `EvtSubscribe_push` demo now actually demonstrates the callback action and the event context being filled. (#2281, @Avasam)
+
 Build 307, released 2024-10-04
 ------------------------------
 ### Release process changes
