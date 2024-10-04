@@ -614,10 +614,10 @@ def _HandlePythonFailure(what, syntaxErrorPathName=None):
             _JumpToPosition(fileName, line, col)
         except (TypeError, ValueError):
             msg = str(details)
-        win32ui.SetStatusText("Failed to " + what + " - syntax error - %s" % msg)
+        win32ui.SetStatusText(f"Failed to {what} - syntax error - {msg}")
     else:
         traceback.print_exc()
-        win32ui.SetStatusText("Failed to " + what + " - " + str(details))
+        win32ui.SetStatusText(f"Failed to {what} - {details}")
     tb = None  # Clean up a cycle.
 
 

@@ -92,7 +92,7 @@ class Dispatcher(win32com.server.policy.DispatcherWin32trace):
             tb = None  # A cycle
             scode = v.scode
             try:
-                desc = " (" + str(v.description) + ")"
+                desc = f" ({v.description})"
             except AttributeError:
                 desc = ""
             print(f"*** Invoke of {dispid} raised COM exception 0x{scode:x}{desc}")
