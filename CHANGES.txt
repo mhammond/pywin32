@@ -14,6 +14,8 @@ https://mhammond.github.io/pywin32_installers.html.
 Coming in build 308, as yet unreleased
 --------------------------------------
 
+* Fixed import issues in ocx and app pywin Demos (#2291, @Avasam)
+
 Build 307, released 2024-10-04
 ------------------------------
 ### Release process changes
