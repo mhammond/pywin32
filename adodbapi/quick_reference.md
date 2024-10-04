@@ -816,7 +816,7 @@ Running the tests
 The test folder contains a set of unittest programs. Setting them up can
 be a bit complex, because you need several database servers to do a
 complete test, and each one has a different configuration. Scripts in
-this folder try to work in Python 2.7 or Python 3.7(+)
+this folder try to work in Python 3.7(+)
 
 - dbapi20.py
 
@@ -846,9 +846,8 @@ the database servers are distant, this can take a while.
 It does some lightweight command line processing (actually the config
 does it).
 
-"\--package" tries to build a proper Python package in a temporary
-location and adds it to sys.path so it can import a test version of the
-code. It will run 2to3 when it does this, if needed.
+"\--package" tries to build a proper Python package in a temporary location
+and adds it to sys.path so it can import a test version of the code.
 
 "\--all" run as many of the 12 passes as possible.
 

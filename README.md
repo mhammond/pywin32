@@ -107,11 +107,8 @@ come with pywin32 pre-shipped (eg, anaconda?).
 ## Building from source
 
 Install Visual Studio 2019 (later probably works, but options might be different),
-select "Desktop Development with C++", then the following options:
-
-* Windows 10 SDK (latest offered I guess? At time of writing, 10.0.18362)
-* "C++ for MFC for ..."
-* ARM build tools if necessary.
+follow the instructions in [Build environment](/build_env.md#build-environment)
+for the version you install.
 
 (the free compilers probably work too, but haven't been tested - let me know your experiences!)
 
