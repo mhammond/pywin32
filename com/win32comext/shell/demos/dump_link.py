@@ -27,7 +27,7 @@ def DumpLink(fname):
 
 
 def FavDumper(nothing, path, names):
-    # called by os.path.walk
+    # called by os.walk
     for name in names:
         print(name, end=" ")
         try:
@@ -39,7 +39,7 @@ def FavDumper(nothing, path, names):
 def DumpFavorites():
     favfold = str(shell.SHGetSpecialFolderPath(0, shellcon.CSIDL_FAVORITES))
     print("Your favourites are at", favfold)
-    os.path.walk(favfold, FavDumper, None)
+    os.walk(favfold, FavDumper, None)
 
 
 if __name__ == "__main__":

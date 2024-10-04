@@ -14,6 +14,12 @@ https://mhammond.github.io/pywin32_installers.html.
 Coming in build 308, as yet unreleased
 --------------------------------------
 
+* Update calls to removed (in Python 3) calls to `os.path.walk`, which fixes the following: (#2314, @Avasam)
+  * `VersionStamp/bulkstamp.py` script
+  * `com/win32comext/shell/demos/dump_link.py` demo
+  * `com/win32comext/shell/demos/servers/empty_volume_cache.py` demo
+  * `com/win32comext/shell/demos/viewstate.py` demo
+
 Build 307, released 2024-10-04
 ------------------------------
 ### Release process changes
