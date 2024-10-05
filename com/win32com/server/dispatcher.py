@@ -236,7 +236,7 @@ class DispatcherOutputDebugString(DispatcherTrace):
         win32api.OutputDebugString(str(args[-1]) + "\n")
 
 
-DispatcherWin32dbg_deprecation_message = """\
+_DispatcherWin32dbg_deprecation_message = """\
 The DispatcherWin32dbg dispatcher is deprecated!
 Please open an issue at https://github.com/mhammond/pywin32 is this is a problem.
 Comment the relevant DeprecationWarning in dispatcher.py to re-enable.\
@@ -253,7 +253,7 @@ class DispatcherWin32dbg(DispatcherBase):
     """
 
     def __init__(self, policyClass, ob):
-        raise DeprecationWarning(DispatcherWin32dbg_deprecation_message)
+        raise DeprecationWarning(_DispatcherWin32dbg_deprecation_message)
         # No one uses this, and it just causes py2exe to drag all of pythonwin in.
         import pywin.debugger
 
@@ -266,7 +266,7 @@ class DispatcherWin32dbg(DispatcherBase):
 
     def _HandleException_(self):
         """Invoke the debugger post mortem capability"""
-        raise DeprecationWarning(DispatcherWin32dbg_deprecation_message)
+        raise DeprecationWarning(_DispatcherWin32dbg_deprecation_message)
         # Save details away.
         typ, val, tb = exc_info()
         import pywin.debugger
