@@ -56,7 +56,7 @@ def macro_call(macro_name, args, kwargs):
                 not "user" in kwargs or not kwargs["user"]
             ):  # missing, blank, or Null username
                 return new_key, "Integrated Security=SSPI"
-            return new_key, "User ID=%(user)s; Password=%(password)s" % kwargs
+            return new_key, "User ID={user}; Password={password}".format(**kwargs)
 
         elif (
             macro_name == "find_temp_test_path"

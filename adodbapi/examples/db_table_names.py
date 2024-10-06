@@ -15,7 +15,7 @@ constr = "Provider=%(prv)s;Data Source=%(db)s"
 # create the connection
 con = adodbapi.connect(constr, db=databasename, macro_is64bit=provider)
 
-print("Table names in= %s" % databasename)
+print(f"Table names in= {databasename}")
 
 for table in con.get_table_names():
     print(table)
