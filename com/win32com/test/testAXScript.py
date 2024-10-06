@@ -35,7 +35,7 @@ class AXScript(win32com.test.util.TestCase):
                 next(iter(win32com.axscript.__path__)), "Demos\\Client\\wsh\\test.pys"
             )
         )
-        cmd = 'cscript.exe "%s"' % (file)
+        cmd = 'cscript.exe "{}"'.format(file)
         if verbose:
             print("Testing Windows Scripting host with Python script")
         win32com.test.util.ExecuteShellCommand(cmd, self)
