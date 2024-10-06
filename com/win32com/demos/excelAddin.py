@@ -45,8 +45,10 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
 # OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
+from __future__ import annotations
 
 import sys
+from typing import ClassVar
 
 import pythoncom
 from win32com import universal
@@ -77,7 +79,7 @@ class ButtonEvent:
 
 class ExcelAddin:
     _com_interfaces_ = ["_IDTExtensibility2"]
-    _public_methods_ = []
+    _public_methods_: ClassVar[list[str]] = []
     _reg_clsctx_ = pythoncom.CLSCTX_INPROC_SERVER
     _reg_clsid_ = "{C5482ECA-F559-45A0-B078-B2036E6F011A}"
     _reg_progid_ = "Python.Test.ExcelAddin"

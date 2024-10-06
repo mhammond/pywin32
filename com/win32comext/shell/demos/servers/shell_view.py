@@ -45,6 +45,7 @@
 # 'file' or 'object', and every other string is variable.  We use '\0' as
 # a field sep just 'cos we can (and 'cos it can't possibly conflict with the
 # string content)
+from __future__ import annotations
 
 import _thread
 import os
@@ -92,10 +93,11 @@ def GetFolderAndPIDLForPath(filename):
 
 
 # A cache of pyclbr module objects, so we only parse a given filename once.
-clbr_modules = {}  # Indexed by path, item is dict as returned from pyclbr
+clbr_modules: dict[str, dict[str, pyclbr.Class | pyclbr.Function | list[str]]] = {}
+"""Indexed by path, item is dict as returned from pyclbr"""
 
 
-def get_clbr_for_file(path):
+def get_clbr_for_file(path: str):
     try:
         objects = clbr_modules[path]
     except KeyError:
