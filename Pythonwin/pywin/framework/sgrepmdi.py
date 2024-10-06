@@ -17,6 +17,7 @@
 # - You can save grep results by right clicking in the result window.
 # Hats off to Mark Hammond for providing an environment where I could cobble
 # something like this together in a couple evenings!
+from __future__ import annotations
 
 import glob
 import os
