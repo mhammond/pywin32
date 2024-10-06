@@ -6,7 +6,6 @@ Please see policy.py for a discussion on dispatchers and policies
 from __future__ import annotations
 
 import traceback
-from sys import exc_info
 
 import pythoncom
 import win32api
