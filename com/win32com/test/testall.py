@@ -300,14 +300,14 @@ if __name__ == "__main__":
     testRunner = TestRunner(verbosity=verbosity)
     testResult = testRunner.run(suite)
     if import_failures:
-        testResult.stream.writeln(
+        testResult.stream.write(
             "*** The following test modules could not be imported ***"
         )
         for mod_name, (exc_type, exc_val) in import_failures:
             desc = "\n".join(traceback.format_exception_only(exc_type, exc_val))
             testResult.stream.write(f"{mod_name}: {desc}")
-        testResult.stream.writeln(
-            "*** %d test(s) could not be run ***" % len(import_failures)
+        testResult.stream.write(
+            f"*** {len(import_failures)} test(s) could not be run ***"
         )
 
     # re-print unit-test error here so it is noticed
