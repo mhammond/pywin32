@@ -15,6 +15,7 @@ Coming in build 308, as yet unreleased
 --------------------------------------
 
 * The `EvtSubscribe_push` demo now actually demonstrates the callback action and the event context being filled. (#2281, @Avasam)
+* Fixed a circular import between `win32comext.axscript.client.framework` and `win32comext.axscript.client.error` (#2381, @Avasam)
 
 Build 307, released 2024-10-04
 ------------------------------
