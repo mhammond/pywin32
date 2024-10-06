@@ -15,6 +15,7 @@ Coming in build 308, as yet unreleased
 --------------------------------------
 
 * Fixed the `com/win32comext/shell/demos/create_link.py` demo for link file that don't exist (#2288, @Avasam)
+* Fixed a circular import between `win32comext.axscript.client.framework` and `win32comext.axscript.client.error` (#2381, @Avasam)
 
 Build 307, released 2024-10-04
 ------------------------------
