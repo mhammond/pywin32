@@ -15,6 +15,7 @@ Coming in build 308, as yet unreleased
 --------------------------------------
 
 * Fail sooner on invalid `win32timezone.TimeZoneInfo` creation (#2338, @Avasam)
+* Fixed a circular import between `win32comext.axscript.client.framework` and `win32comext.axscript.client.error` (#2381, @Avasam)
 
 Build 307, released 2024-10-04
 ------------------------------
