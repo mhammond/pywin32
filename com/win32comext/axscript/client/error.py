@@ -10,15 +10,19 @@ import re
 import traceback
 import warnings
 from types import TracebackType
+from typing import TYPE_CHECKING
 
 import pythoncom
 import win32com.server.util
 import winerror
 from win32com.axscript import axscript
 from win32com.server.exception import COMException
-from win32comext.axscript.client.debug import DebugManager
-from win32comext.axscript.client.framework import AXScriptCodeBlock, COMScript
-from win32comext.axscript.server.axsite import AXSite
+
+if TYPE_CHECKING:
+    # Prevent circular imports
+    from win32comext.axscript.client.debug import DebugManager
+    from win32comext.axscript.client.framework import AXScriptCodeBlock, COMScript
+    from win32comext.axscript.server.axsite import AXSite
 
 debugging = 0
 
