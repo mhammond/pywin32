@@ -16,6 +16,7 @@ Coming in build 308, as yet unreleased
 
 * Gracefully fallback to disabling the cmdui if the bar name can't be obtained from ID
   in `pywin.framework.dbgcommands.OnUpdateDebuggerBar`, instead of raising a `TypeError` (#2320, @Avasam)
+* Fixed a circular import between `win32comext.axscript.client.framework` and `win32comext.axscript.client.error` (#2381, @Avasam)
 
 Build 307, released 2024-10-04
 ------------------------------
