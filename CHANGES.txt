@@ -14,6 +14,11 @@ https://mhammond.github.io/pywin32_installers.html.
 Coming in build 308, as yet unreleased
 --------------------------------------
 
+* Update calls to removed (in Python 3) calls to `os.path.walk`, which fixes the following: (#2314, @Avasam)
+  * `VersionStamp/bulkstamp.py` script
+  * `com/win32comext/shell/demos/dump_link.py` demo
+  * `com/win32comext/shell/demos/servers/empty_volume_cache.py` demo
+  * `com/win32comext/shell/demos/viewstate.py` demo
 * Fixed a circular import between `win32comext.axscript.client.framework` and `win32comext.axscript.client.error` (#2381, @Avasam)
 * Remove long-deprecated `win32com.server.dispatcher.DispatcherWin32dbg` (#2382, @Avasam)
 
