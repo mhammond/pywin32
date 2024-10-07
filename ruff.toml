@@ -33,6 +33,11 @@ select = [
   "UP037", # quoted-annotation
 ]
 
+extend-ignore = [
+  # TODO: Consider passing exception around to ensure methods are only ever used within exception handlers
+  "PLE0704",
+]
+
 [lint.per-file-ignores]
 # Explicit re-exports is fine in __init__.py, still a code smell elsewhere.
 "__init__.py" = ["PLC0414"]
