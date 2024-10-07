@@ -3,15 +3,22 @@ name: docs
 on:
   create:
     tags:
-    # https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#filter-pattern-cheat-sheet
+      # https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#filter-pattern-cheat-sheet
       - b[0-9][0-9][0-9]
       - publish-docs*
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'AutoDuck/**'
+      - '**/.html'
+      - .github/workflows/docs.yml
 
 jobs:
-  decompile:
+  generate:
     runs-on: windows-latest
 
     steps:
@@ -19,47 +26,38 @@ jobs:
 
       - name: Set up Python
         uses: actions/setup-python@v5
-        with:
-          python-version: '3.9'
 
-      - name: Install latest release
-        run: pip install --user --upgrade pywin32
+      - name: Generate help file
+        run: python AutoDuck/make.py
 
-      - name: Set Python user site directory
-        run: python -c "import os,site;open(os.environ['GITHUB_ENV'], 'a').write(f'USER_DIR={site.USER_SITE}\n')"
-
-      - name: Decompile shipped help file
-        run: hh -decompile site ${env:USER_DIR}\PyWin32.chm
+      - name: Decompile help file
+        run: hh -decompile site PyWin32.chm
 
       - name: Rename root HTML file
         run: mv site\PyWin32.HTML site\index.html
 
-    # Compress first to avoid slowly uploading thousands of individual files
-      - name: Create archive
-        run: python -m zipfile -c site.zip site
-
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: documentation
-          path: site.zip
+          path: site/
 
   publish:
     runs-on: ubuntu-latest
     needs:
-      - decompile
+      - generate
 
     # Only publish tags
     if: github.event_name == 'create' && github.event.ref_type == 'tag'
 
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: documentation
 
       - name: Unpack archive
         run: python -m zipfile -e site.zip .
 
-      - uses: peaceiris/actions-gh-pages@v3
+      - uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: site
