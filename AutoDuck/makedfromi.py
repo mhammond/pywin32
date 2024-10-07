@@ -20,7 +20,7 @@ def GetComments(line, lineNo, lines):
         if len(data) != 2:
             break
         if data[0].strip():
-            break  # Not a continutation!
+            break  # Not a continuation!
         if data[1].strip().startswith("@"):
             # new command
             break

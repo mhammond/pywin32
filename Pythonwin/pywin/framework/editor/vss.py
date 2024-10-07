@@ -86,7 +86,7 @@ def CheckoutFile(fileName):
         project, vssFname, database = rc
         if g_sourceSafe is None:
             g_sourceSafe = win32com.client.Dispatch("SourceSafe")
-            # SS seems a bit wierd.  It defaults the arguments as empty strings, but
+            # SS seems a bit weird.  It defaults the arguments as empty strings, but
             # then complains when they are used - so we pass "Missing"
             if not database:
                 database = pythoncom.Missing
