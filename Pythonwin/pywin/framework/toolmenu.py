@@ -6,8 +6,6 @@ import win32api
 import win32con
 import win32ui
 
-from . import app
-
 tools = {}
 idPos = 100
 

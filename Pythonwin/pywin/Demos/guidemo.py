@@ -2,11 +2,11 @@
 import sys
 
 import __main__
-import regutil
 import win32api
 import win32ui
 
-demos = [  # 	('Font', 'import fontdemo;fontdemo.FontDemo()'),
+demos = [
+    # ("Font", "import fontdemo;fontdemo.FontDemo()"),
     ("Open GL Demo", "import openGLDemo;openGLDemo.test()"),
     ("Threaded GUI", "import threadedgui;threadedgui.ThreadedDemo()"),
     ("Tree View Demo", "import hiertest;hiertest.demoboth()"),
@@ -26,30 +26,28 @@ demos = [  # 	('Font', 'import fontdemo;fontdemo.FontDemo()'),
 
 
 def demo():
-    try:
-        # seeif I can locate the demo files.
-        import fontdemo
-    except ImportError:
-        # else put the demos direectory on the path (if not already)
-        try:
-            instPath = regutil.GetRegistryDefaultValue(
-                regutil.BuildDefaultPythonKey() + "\\InstallPath"
-            )
-        except win32api.error:
-            print(
-                "The InstallPath can not be located, and the Demos directory is not on the path"
-            )
-            instPath = "."
+    # try:
+    #     # seeif I can locate the demo files.
+    #     import fontdemo
+    # except ImportError:
+    #     # else put the demos direectory on the path (if not already)
+    #     try:
+    #         instPath = regutil.GetRegistryDefaultValue(
+    #             regutil.BuildDefaultPythonKey() + "\\InstallPath"
+    #         )
+    #     except win32api.error:
+    #         print(
+    #             "The InstallPath can not be located, and the Demos directory is not on the path"
+    #         )
+    #         instPath = "."
 
-        demosDir = win32ui.FullPath(instPath + "\\Demos")
-        for path in sys.path:
-            if win32ui.FullPath(path) == demosDir:
-                break
-        else:
-            sys.path.append(demosDir)
-        import fontdemo
-
-    import sys
+    #     demosDir = win32ui.FullPath(instPath + "\\Demos")
+    #     for path in sys.path:
+    #         if win32ui.FullPath(path) == demosDir:
+    #             break
+    #     else:
+    #         sys.path.append(demosDir)
+    #     import fontdemo
 
     if "/go" in sys.argv:
         for name, cmd in demos:

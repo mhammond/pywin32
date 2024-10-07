@@ -6,7 +6,9 @@ import win32api
 import win32con
 import win32ui
 
-from . import IDLEenvironment, keycodes
+from . import (  # nopycln: import # Injects fast_readline into the IDLE auto-indent extension
+    IDLEenvironment,
+)
 
 HANDLER_ARGS_GUESS = 0
 HANDLER_ARGS_NATIVE = 1

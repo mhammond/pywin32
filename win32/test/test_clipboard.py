@@ -7,7 +7,18 @@ import unittest
 import pywintypes
 import win32con
 import win32gui
-from win32clipboard import *
+from win32clipboard import (
+    CloseClipboard,
+    EmptyClipboard,
+    GetClipboardData,
+    GetClipboardDataHandle,
+    GetClipboardFormatName,
+    GetGlobalMemory,
+    OpenClipboard,
+    RegisterClipboardFormat,
+    SetClipboardData,
+    SetClipboardText,
+)
 
 custom_format_name = "PythonClipboardTestFormat"
 

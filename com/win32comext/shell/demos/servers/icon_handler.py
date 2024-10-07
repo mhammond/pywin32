@@ -15,7 +15,7 @@ import sys
 import pythoncom
 import win32gui
 import winerror
-from win32com.shell import shell, shellcon
+from win32com.shell import shell
 
 ico_files = glob.glob(os.path.join(sys.prefix, "*.ico"))
 if not ico_files:

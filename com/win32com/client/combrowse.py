@@ -93,8 +93,6 @@ class HLI_Enum(HLI_Interface):
             rc = 0
         return rc
 
-    pass
-
 
 class HLI_IEnumMoniker(HLI_Enum):
     def GetSubList(self):
@@ -595,7 +593,6 @@ class HLIHeadingRegisterdTypeLibs(HLICOM):
 
 
 def main(modal=True, mdi=False):
-    from pywin.tools import hierlist
 
     root = HLIRoot("COM Browser")
     if mdi and "pywin.framework.app" in sys.modules:
