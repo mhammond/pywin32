@@ -37,8 +37,7 @@
   "reportOptionalIterable": "warning",
   "reportOptionalMemberAccess": "warning",
   "reportOptionalSubscript": "warning",
-  // TODO: Leave Unbound/Undefined to their own PR(s)
-  "reportUnboundVariable": "warning",
+  // TODO: Leave Undefined to its own PR(s)
   "reportUndefinedVariable": "warning",
   // Too many dynamically generated modules. This will require type stubs to properly fix.
   "reportMissingImports": "warning",
