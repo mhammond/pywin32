@@ -10,7 +10,7 @@ import traceback
 
 import win32api
 import win32ui
-from dde import *
+from dde import CreateServer, CreateServerSystemTopic
 from pywin.mfc import object
 
 
