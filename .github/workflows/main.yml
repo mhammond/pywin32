@@ -119,9 +119,9 @@ jobs:
       - uses: psf/black@stable
         with:
           options: "--fast --check --diff --verbose"
-      - run: | # Too many files to fit in a single command, exclude vendored Scintilla and mapi_headers
+      - run: | # Too many files to fit in a single command, also exclude vendored Scintilla and MAPIStubLibrary
           clang-format --Werror --dry-run $(git ls-files '*.cpp')
-          clang-format --Werror --dry-run $(git ls-files '*.h' ':!:Pythonwin/Scintilla/' ':!:com/win32comext/mapi/src/mapi_headers/')
+          clang-format --Werror --dry-run $(git ls-files '*.h' ':!:Pythonwin/Scintilla/' ':!:com/win32comext/mapi/src/MAPIStubLibrary/')
         shell: powershell
 
   mypy:

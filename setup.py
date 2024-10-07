@@ -1574,7 +1574,7 @@ com_extensions = [
         "mapi",
         libraries="advapi32",
         pch_header="PythonCOM.h",
-        include_dirs=["{mapi}/mapi_headers".format(**dirs)],
+        include_dirs=["{mapi}/MapiStubLibrary/include".format(**dirs)],
         sources=(
             """
                         {mapi}/mapi.i                 {mapi}/mapi.cpp
@@ -1600,8 +1600,8 @@ com_extensions = [
                         {mapi}/PyIMAPIAdviseSink.cpp
                         {mapi}/mapiutil.cpp
                         {mapi}/mapiguids.cpp
-                        {mapi}/mapi_stub_library/MapiStubLibrary.cpp
-                        {mapi}/mapi_stub_library/StubUtils.cpp
+                        {mapi}/MAPIStubLibrary/library/mapiStubLibrary.cpp
+                        {mapi}/MAPIStubLibrary/library/stubutils.cpp
                         """.format(
                 **dirs
             )
@@ -1610,7 +1610,7 @@ com_extensions = [
     WinExt_win32com_mapi(
         "exchange",
         libraries="advapi32 legacy_stdio_definitions",
-        include_dirs=["{mapi}/mapi_headers".format(**dirs)],
+        include_dirs=["{mapi}/MapiStubLibrary/include".format(**dirs)],
         sources=(
             """
                                   {mapi}/exchange.i         {mapi}/exchange.cpp
@@ -1618,8 +1618,8 @@ com_extensions = [
                                   {mapi}/PyIExchangeManageStoreEx.i {mapi}/PyIExchangeManageStoreEx.cpp
                                   {mapi}/mapiutil.cpp
                                   {mapi}/exchangeguids.cpp
-                                  {mapi}/mapi_stub_library/MapiStubLibrary.cpp
-                                  {mapi}/mapi_stub_library/StubUtils.cpp
+                                  {mapi}/MAPIStubLibrary/library/mapiStubLibrary.cpp
+                                  {mapi}/MAPIStubLibrary/library/stubutils.cpp
                                   """.format(
                 **dirs
             )
@@ -1628,12 +1628,12 @@ com_extensions = [
     WinExt_win32com_mapi(
         "exchdapi",
         libraries="advapi32",
-        include_dirs=["{mapi}/mapi_headers".format(**dirs)],
+        include_dirs=["{mapi}/MapiStubLibrary/include".format(**dirs)],
         sources=(
             """
                                   {mapi}/exchdapi.i         {mapi}/exchdapi.cpp
-                                  {mapi}/mapi_stub_library/MapiStubLibrary.cpp
-                                  {mapi}/mapi_stub_library/StubUtils.cpp
+                                  {mapi}/MAPIStubLibrary/library/mapiStubLibrary.cpp
+                                  {mapi}/MAPIStubLibrary/library/stubutils.cpp
                                   """.format(
                 **dirs
             )

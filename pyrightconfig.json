@@ -1,5 +1,6 @@
 {
   "typeCheckingMode": "basic",
+  "typeshedPath": "E:/Users/Avasam/Documents/Git/typeshed",
   // Target the oldest supported version in editors and default CLI
   "pythonVersion": "3.7",
   // Keep it simple for now by allowing both mypy and pyright to use `type: ignore`
