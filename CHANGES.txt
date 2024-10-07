@@ -14,6 +14,7 @@ https://mhammond.github.io/pywin32_installers.html.
 Coming in build 308, as yet unreleased
 --------------------------------------
 
+* Fix `ddeclient` and `ddeserver` demos import error (#2290, @Avasam)
 * Fixed a circular import between `win32comext.axscript.client.framework` and `win32comext.axscript.client.error` (#2381, @Avasam)
 * Remove long-deprecated `win32com.server.dispatcher.DispatcherWin32dbg` (#2382, @Avasam)
 
