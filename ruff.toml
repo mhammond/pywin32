@@ -20,7 +20,7 @@ select = [
   "UP030", # Use implicit references for positional format fields
   # TODO: Still lots of manual fixes needed
   # "UP031", # Use format specifiers instead of percent format
-  # "UP032", # Use f-string instead of format call
+  "UP032", # Use f-string instead of format call
 
   # Ensure modern type annotation syntax and best practices
   # Not including those covered by type-checkers
@@ -37,7 +37,7 @@ select = [
 # Explicit re-exports is fine in __init__.py, still a code smell elsewhere.
 "__init__.py" = ["PLC0414"]
 # TODO: Make adodbapi changes in their own PRs
-"adodbapi/*" = ["C4", "YTT301", "UP031", "UP032", "ISC002"]
+"adodbapi/*" = ["C4", "YTT301", "UP031", "UP032"]
 
 [lint.isort]
 combine-as-imports = true
