@@ -1,5 +1,4 @@
-"""The glue between the Python debugger interface and the Active Debugger interface
-"""
+"""The glue between the Python debugger interface and the Active Debugger interface"""
 
 import _thread
 import bdb

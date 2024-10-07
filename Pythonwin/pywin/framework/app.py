@@ -2,7 +2,8 @@
 # The application is responsible for managing the main frame window.
 #
 # We also grab the FileOpen command, to invoke our Python editor
-" The PythonWin application code. Manages most aspects of MDI, etc "
+"The PythonWin application code. Manages most aspects of MDI, etc"
+
 import os
 import sys
 import traceback
