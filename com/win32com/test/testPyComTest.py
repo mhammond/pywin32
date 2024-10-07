@@ -198,6 +198,18 @@ def TestCommon(o, is_generated):
     progress("Checking structs")
     r = o.GetStruct()
     assert r.int_value == 99 and str(r.str_value) == "Hello from C++"
+    # Dynamic does not support struct byref as [ in, out ] parameters
+    if hasattr(o, "CLSID"):
+        progress("Checking struct byref as [ in, out ] parameter")
+        mod_r = o.ModifyStruct(r)
+        # We expect the input value to stay unchanged
+        assert r.int_value == 99 and str(r.str_value) == "Hello from C++"
+        # and the return value to reflect the modifications performed on the COM server side
+        assert (
+            mod_r.int_value == 100
+            and str(mod_r.str_value) == "Nothing is as constant as change"
+        )
+
     assert o.DoubleString("foo") == "foofoo"
 
     progress("Checking var args")
