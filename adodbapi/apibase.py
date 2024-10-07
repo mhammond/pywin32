@@ -1,4 +1,4 @@
-"""adodbapi.apibase - A python DB API 2.0 (PEP 249) interface to Microsoft ADO
+"""adodbapi - A python DB API 2.0 (PEP 249) interface to Microsoft ADO
 
 Copyright (C) 2002 Henrik Ekelund, version 2.1 by Vernon Cole
 * http://sourceforge.net/projects/pywin32
