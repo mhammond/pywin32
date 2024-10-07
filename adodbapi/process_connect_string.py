@@ -1,7 +1,5 @@
 """ a clumsy attempt at a macro language to let the programmer execute code on the server (ex: determine 64bit)"""
 
-from . import is64bit
-
 
 def macro_call(macro_name, args, kwargs):
     """allow the programmer to perform limited processing on the server by passing macro names and args
@@ -20,6 +18,8 @@ def macro_call(macro_name, args, kwargs):
     new_key = args[0]
     try:
         if macro_name == "is64bit":
+            from . import is64bit
+
             if is64bit.Python():  # if on 64 bit Python
                 return new_key, args[1]  # return first argument
             else:
@@ -45,6 +45,8 @@ def macro_call(macro_name, args, kwargs):
                 return new_key, platform.node()
 
         elif macro_name == "getenv":  # expand the server's environment variable args[1]
+            import os
+
             try:
                 dflt = args[2]  # if not found, default from args[2]
             except IndexError:  # or blank
