@@ -58,9 +58,7 @@ def RegisterInterfaces(typelibGUID, lcid, major, minor, interface_names=None):
                 ret.append((dispid, invkind, names[0]))
     else:
         # Cool - can used cached info.
-        if not interface_names:
-            interface_names = list(mod.VTablesToClassMap.values())
-        for name in interface_names:
+        for name in interface_names or mod.VTablesToClassMap.values():
             try:
                 iid = mod.NamesToIIDMap[name]
             except KeyError:
