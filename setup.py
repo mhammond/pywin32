@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-build_id = "307"  # may optionally include a ".{patchno}" suffix.
+build_id = "307.1"  # may optionally include a ".{patchno}" suffix.
 
 __doc__ = """This is a distutils setup-script for the pywin32 extensions.
 
@@ -315,8 +315,8 @@ class WinExt_win32com_mapi(WinExt_win32com):
         WinExt_win32com.__init__(self, name, **kw)
 
     def get_pywin32_dir(self):
-        # 'win32com.mapi.exchange' and 'win32com.mapi.exchdapi' currently only
-        # ones with this special requirement
+        # 'win32com.mapi.exchange' is currently the only
+        # one with this special requirement
         return "win32comext/mapi"
 
 
@@ -383,14 +383,7 @@ class my_build_ext(build_ext):
         self.swig_cpp = True  # hrm - deprecated - should use swig_opts=-c++??
 
     def _why_cant_build_extension(self, ext):
-        # Return None, or a reason it can't be built.
-        # Exclude exchange 32-bit utility libraries from 64-bit
-        # builds. Note that the exchange module now builds, but only
-        # includes interfaces for 64-bit builds.
-        if self.plat_name in ["win-amd64", "win-arm64"] and ext.name == "exchdapi":
-            return "No 64-bit library for utility functions available."
-        if ext.name == "exchdapi":
-            return "Haven't worked out how to build on vs2015"
+        """Return None, or a reason it can't be built."""
         # axdebug fails to build on 3.11 due to Python "frame" objects changing.
         # This could be fixed, but is almost certainly not in use any more, so
         # just skip it.
@@ -1621,20 +1614,6 @@ com_extensions = [
             )
         ).split(),
     ),
-    WinExt_win32com_mapi(
-        "exchdapi",
-        libraries="advapi32",
-        include_dirs=["{mapi}/mapi_headers".format(**dirs)],
-        sources=(
-            """
-                                  {mapi}/exchdapi.i         {mapi}/exchdapi.cpp
-                                  {mapi}/mapi_stub_library/MapiStubLibrary.cpp
-                                  {mapi}/mapi_stub_library/StubUtils.cpp
-                                  """.format(
-                **dirs
-            )
-        ).split(),
-    ),
     WinExt_win32com(
         "shell",
         libraries="shell32",
@@ -2064,9 +2043,7 @@ swig_interface_parents = {
     "PyIProfAdmin": "",
     "PyIProfSect": "IMAPIProp",
     "PyIConverterSession": "",
-    # exchange and exchdapi
-    "exchange": None,
-    "exchdapi": None,
+    "exchange": None,  # mapi module
     "PyIExchangeManageStore": "",
     "PyIExchangeManageStoreEx": "",
     # ADSI
@@ -2371,7 +2348,7 @@ if "build_ext" in dist.command_obj:
     # Print the list of extension modules we skipped building.
     excluded_extensions = dist.command_obj["build_ext"].excluded_extensions
     if excluded_extensions:
-        skip_whitelist = {"exchdapi", "exchange", "axdebug"}
+        skip_whitelist = {"exchange", "axdebug"}
         skipped_ex = []
         print("*** NOTE: The following extensions were NOT %s:" % what_string)
         for ext, why in excluded_extensions:

@@ -15,6 +15,8 @@ Coming in build 308, as yet unreleased
 --------------------------------------
 
 * Dropped support for Python 3.7 (#2207, @Avasam)
+* Fixed a circular import between `win32comext.axscript.client.framework` and `win32comext.axscript.client.error` (#2381, @Avasam)
+* Remove long-deprecated `win32com.server.dispatcher.DispatcherWin32dbg` (#2382, @Avasam)
 
 Build 307, released 2024-10-04
 ------------------------------
