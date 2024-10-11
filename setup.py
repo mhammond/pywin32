@@ -875,27 +875,27 @@ class my_build_ext(build_ext):
 
 class my_install(install):
     def run(self):
+        """Custom script we run at the end of installing"""
         install.run(self)
-        # Custom script we run at the end of installing - this is the same script
-        # run by bdist_wininst
-        # This child process won't be able to install the system DLLs until our
-        # process has terminated (as distutils imports win32api!), so we must use
-        # some 'no wait' executor - spawn seems fine!  We pass the PID of this
-        # process so the child will wait for us.
-        # XXX - hmm - a closer look at distutils shows it only uses win32api
-        # if _winreg fails - and this never should.  Need to revisit this!
-        # If self.root has a value, it means we are being "installed" into
-        # some other directory than Python itself (eg, into a temp directory
-        # for bdist_wininst to use) - in which case we must *not* run our
-        # installer
-        if not self.dry_run and not self.root:
+        # If self.root has a value, it means we are being "installed" into some other
+        # directory than Python itself - in which case we must *not* run our installer.
+        # bdist_wininst used to trigger this by using a temp directory.
+        # Is this still a concern ?
+        if self.root:
+            print(
+                f"Not executing post install script when not installing in Python itself (self.root={self.root})"
+            )
+        if not self.dry_run:
             # We must run the script we just installed into Scripts, as it
             # may have had 2to3 run over it.
             filename = os.path.join(self.install_scripts, "pywin32_postinstall.py")
             if not os.path.isfile(filename):
                 raise RuntimeError(f"Can't find '{filename}'")
+            if not self.install_lib:
+                raise RuntimeError(f"Missing destination (install_lib is empty)")
             print("Executing post install script...")
-            # What executable to use?  This one I guess.
+            # As of setuptools>=74.0.0, we no longer need to
+            # be concerned about distutils calling win32api
             subprocess.Popen(
                 [
                     sys.executable,
@@ -912,15 +912,6 @@ class my_install(install):
 
 class my_install_lib(install_lib):
     def install(self):
-        # This is crazy - in setuptools 61.1.0 (and probably some earlier versions), the
-        # install_lib and build comments don't agree on where the .py files to install can
-        # be found, so we end up with a warning logged:
-        # `warning: my_install_lib: 'build\lib.win-amd64-3.7' does not exist -- no Python modules to install`
-        # (because they are actually in `build\lib.win-amd64-cpython-37`!)
-        # It's not an error though, so we end up with .exe installers lacking our lib files!
-        builder = self.get_finalized_command("build")
-        if os.path.isdir(builder.build_platlib) and not os.path.isdir(self.build_dir):
-            self.build_dir = builder.build_platlib
         # We want a failure to find .py files be an error rather than a warning.
         outfiles = super().install()
         if not outfiles:
@@ -2188,47 +2179,10 @@ classifiers = [
     "Programming Language :: Python :: Implementation :: CPython",
 ]
 
-# 3.10 stopped supporting bdist_wininst, but we can still build them with 3.9.
-# This can be kept until Python 3.9 or exe installers support is dropped.
-if "bdist_wininst" in sys.argv:
-    # fixup https://github.com/pypa/setuptools/issues/3284
-    def maybe_fixup_exes():
-        import site
-
-        from distutils.command import bdist_wininst
-
-        # setuptools can't find .exe stubs in `site-packages/setuptools/_distutils`
-        # but they might exist in the original `lib/distutils`.
-        expected_dir = os.path.dirname(bdist_wininst.__file__)
-        if not len(glob.glob(f"{expected_dir}/*.exe")):
-            # might die, see if we can not!
-            for maybe in site.getsitepackages():
-                maybe_dir = os.path.abspath(f"{maybe}/../distutils/command")
-                if len(glob.glob(f"{maybe_dir}/*.exe")):
-                    print(f"pointing setuptools at '{maybe_dir}'")
-                    bdist_wininst.__file__ = os.path.join(maybe_dir, "bdist_wininst.py")
-                    break
-            else:
-                print("can't fixup distutils/setuptools exe stub location, good luck!")
-
-    maybe_fixup_exes()
-
-    # It doesn't really make sense to put README.md as the long description, so
-    # keep it short and sweet as it's the first thing shown by the UI.
-    long_description = (
-        "Python extensions for Microsoft Windows\n"
-        "Provides access to much of the Win32 API, the\n"
-        "ability to create and use COM objects, and the\n"
-        "Pythonwin environment."
-    )
-    long_description_content_type = "text/plain"
-else:
-    # For wheels, the readme makes more sense as pypi does something sane
-    # with it.
-    my_dir = os.path.abspath(os.path.dirname(__file__))
-    with open(os.path.join(my_dir, "README.md")) as f:
-        long_description = f.read()
-    long_description_content_type = "text/markdown"
+my_dir = os.path.abspath(os.path.dirname(__file__))
+with open(os.path.join(my_dir, "README.md")) as f:
+    long_description = f.read()
+long_description_content_type = "text/markdown"
 
 dist = setup(
     name="pywin32",
@@ -2242,13 +2196,6 @@ dist = setup(
     license="PSF",
     classifiers=classifiers,
     cmdclass=cmdclass,
-    options={
-        "bdist_wininst": {
-            "install_script": "pywin32_postinstall.py",
-            "title": f"pywin32-{build_id}",
-            "user_access_control": "auto",
-        },
-    },
     scripts=["pywin32_postinstall.py", "pywin32_testall.py"],
     ext_modules=ext_modules,
     package_dir={
