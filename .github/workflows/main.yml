@@ -119,7 +119,7 @@ jobs:
       - uses: chartboost/ruff-action@v1
         with:
           version: "0.4.5"
-      - uses: psf/black@24.8.0 # stable/24.10.0 doesn't install, seemingly due to caching issue? Revert later
+      - uses: psf/black@stable
         with:
           options: "--fast --check --diff --verbose"
       - run: | # Too many files to fit in a single command, exclude vendored Scintilla and mapi_headers
