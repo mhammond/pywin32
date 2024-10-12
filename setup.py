@@ -2179,17 +2179,12 @@ classifiers = [
     "Programming Language :: Python :: Implementation :: CPython",
 ]
 
-my_dir = os.path.abspath(os.path.dirname(__file__))
-with open(os.path.join(my_dir, "README.md")) as f:
-    long_description = f.read()
-long_description_content_type = "text/markdown"
-
 dist = setup(
     name="pywin32",
-    version=str(build_id),
+    version=build_id,
     description="Python for Window Extensions",
-    long_description=long_description,
-    long_description_content_type=long_description_content_type,
+    long_description=(Path(__file__).parent / "README.md").read_text(),
+    long_description_content_type="text/markdown",
     author="Mark Hammond (et al)",
     author_email="mhammond@skippinet.com.au",
     url="https://github.com/mhammond/pywin32",
