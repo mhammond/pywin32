@@ -322,7 +322,11 @@ class PyScript(framework.COMScript):
         funcName = self.MakeEventMethodName(subItemName, eventName)
 
         codeBlock = AXScriptCodeBlock(
-            "Script Event %s" % funcName, code, sourceContextCookie, startLineNumber, 0
+            "Script Event {}".format(funcName),
+            code,
+            sourceContextCookie,
+            startLineNumber,
+            0,
         )
         self._AddScriptCodeBlock(codeBlock)
         subItem.scriptlets[funcName] = codeBlock
@@ -339,7 +343,7 @@ class PyScript(framework.COMScript):
         except KeyError:
             pass
         if codeBlock is not None:
-            realCode = "def %s():\n" % funcName
+            realCode = "def {}():\n".format(funcName)
             for line in framework.RemoveCR(codeBlock.codeText).split("\n"):
                 realCode += "\t" + line + "\n"
             realCode += "\n"

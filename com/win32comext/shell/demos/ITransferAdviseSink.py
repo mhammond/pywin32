@@ -57,7 +57,7 @@ class TransferAdviseSink(DesignatedWrapPolicy):
     def UpdateTransferState(self, State):
         print(
             "Current state: ",
-            TRANSFER_ADVISE_STATES.get(State, "??? Unknown state %s ???" % State),
+            TRANSFER_ADVISE_STATES.get(State, "??? Unknown state {} ???".format(State)),
         )
 
     def ConfirmOverwrite(self, Source, DestParent, Name):
