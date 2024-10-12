@@ -273,7 +273,7 @@ PyObject *PyWin_NewTime(PyObject *timeOb)
     if (method == NULL)
         PyErr_Clear();
     else {
-        timeOb = PyEval_CallObject(method, NULL);
+        timeOb = PyObject_CallObject(method, NULL);
         Py_DECREF(method);
         if (!timeOb)
             return NULL;
