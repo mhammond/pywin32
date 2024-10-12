@@ -43,6 +43,12 @@ jobs:
         run: |
           python setup.py install --user
 
+      - name: Run postinstall install/remove # Smokescreen test to validate it doesn't crash
+        run: | # Run this from the installed Python location given by actions/setup-python
+          cd ${{ env.pythonLocation }}
+          python Scripts/pywin32_postinstall.py -install
+          python Scripts/pywin32_postinstall.py -remove
+
       - name: Run tests
         # Run the tests directly from the source dir so support files (eg, .wav files etc)
         # can be found - they aren't installed into the Python tree.
