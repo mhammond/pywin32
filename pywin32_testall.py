@@ -97,6 +97,14 @@ def main():
     extras = remains + ["1"]  # only run "level 1" tests in CI
     find_and_run(maybes, extras)
 
+    # postinstall
+    maybes = [
+        os.path.join(directory, "pywin32_postinstall.py")
+        for directory in code_directories
+    ]
+    find_and_run(maybes, ["-install"])
+    find_and_run(maybes, ["-remove"])
+
     # adodbapi
     if not args.skip_adodbapi:
         maybes = [
