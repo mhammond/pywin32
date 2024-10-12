@@ -110,8 +110,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          # This job only needs to target the oldest supported version (black@stable supports Python >=3.8)
-          python-version: "3.8"
+          # This job only needs to target the oldest version supported by our checkers
+          # (black>=24.10.0 supports Python >=3.9)
+          python-version: "3.9"
           cache: pip
           cache-dependency-path: .github/workflows/main.yml
       - run: pip install clang-format pycln
