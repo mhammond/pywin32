@@ -1,12 +1,15 @@
-""" Stamp a Win32 binary with version information.
-"""
+"""Stamp a Win32 binary with version information."""
 
 import glob
 import optparse
 import os
 import struct
 
-from win32api import BeginUpdateResource, EndUpdateResource, UpdateResource
+from _win32verstamp_pywin32ctypes import (
+    BeginUpdateResource,
+    EndUpdateResource,
+    UpdateResource,
+)
 
 VS_FFI_SIGNATURE = -17890115  # 0xFEEF04BD
 VS_FFI_STRUCVERSION = 0x00010000
