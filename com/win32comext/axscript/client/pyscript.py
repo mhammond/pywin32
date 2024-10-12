@@ -101,7 +101,7 @@ class AXScriptAttribute:
 
 
 class NamedScriptAttribute:
-    "An explicitely named object in an objects namespace"
+    "An explicitly named object in an objects namespace"
 
     # Each named object holds a reference to one of these.
     # Whenever a sub-item appears in a namespace, it is really one of these

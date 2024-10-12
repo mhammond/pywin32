@@ -42,7 +42,7 @@ CVirtualHelper::CVirtualHelper(const char *iname, void *iassoc, EnumVirtualError
         PyErr_Fetch(&t, &v, &tb);
         handler = PyObject_GetAttrString(py_bob->virtualInst, (char *)iname);
         if (handler) {
-            // explicitely check a method returned, else the classes
+            // explicitly check a method returned, else the classes
             // delegation may cause a circular call chain.
             if (!PyMethod_Check(handler)) {
                 if (!PyCFunction_Check(handler)) {
