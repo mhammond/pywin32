@@ -46,8 +46,8 @@ jobs:
       - name: Run postinstall install/remove # Smokescreen test to validate it doesn't crash
         run: |
           cd "$(python -m site --user-site)/../Scripts"
-          python Scripts/pywin32_postinstall.py -install
-          python Scripts/pywin32_postinstall.py -remove
+          python pywin32_postinstall.py -install
+          python pywin32_postinstall.py -remove
 
       - name: Run tests
         # Run the tests directly from the source dir so support files (eg, .wav files etc)
