@@ -874,12 +874,6 @@ class my_install(install):
         install.run(self)
         # Custom script we run at the end of installing - this is the same script
         # run by bdist_wininst
-        # This child process won't be able to install the system DLLs until our
-        # process has terminated (as distutils imports win32api!), so we must use
-        # some 'no wait' executor - spawn seems fine!  We pass the PID of this
-        # process so the child will wait for us.
-        # XXX - hmm - a closer look at distutils shows it only uses win32api
-        # if _winreg fails - and this never should.  Need to revisit this!
         # If self.root has a value, it means we are being "installed" into
         # some other directory than Python itself (eg, into a temp directory
         # for bdist_wininst to use) - in which case we must *not* run our
@@ -891,7 +885,8 @@ class my_install(install):
             if not os.path.isfile(filename):
                 raise RuntimeError(f"Can't find '{filename}'")
             print("Executing post install script...")
-            # What executable to use?  This one I guess.
+            # As of setuptools>=74.0.0, we no longer need to
+            # be concerned about distutils calling win32api
             subprocess.Popen(
                 [
                     sys.executable,
