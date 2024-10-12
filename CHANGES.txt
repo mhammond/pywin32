@@ -11,11 +11,18 @@ or
 As of build 305, installation .exe files have been deprecated; see
 https://mhammond.github.io/pywin32_installers.html.
 
-Coming in build 308, as yet unreleased
+Coming in build 309, as yet unreleased
 --------------------------------------
 
 * Fixed "Open GL Demo" (`Pythonwin/pywin/Demos/openGLDemo.py`) and restore "Font" demo in `Pythonwin/pywin/Demos/guidemo.py` (#2345, @Avasam)
+
+Build 308, released 2024-10-12
+------------------------------
+* Fix Pythonwin displaying syntax errors in Python 3.13 (#2393)
+* Allowed installs from source w/o having pywin32 pre-installed (for instance, from GitHub) (#2349, @Avasam)
+* Restored version stamping of installed DLLs (#2349, @Avasam)
 * Fixed a circular import between `win32comext.axscript.client.framework` and `win32comext.axscript.client.error` (#2381, @Avasam)
+* Remove long-deprecated `win32com.server.dispatcher.DispatcherWin32dbg` (#2382, @Avasam)
 
 Build 307, released 2024-10-04
 ------------------------------
