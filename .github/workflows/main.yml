@@ -41,7 +41,7 @@ jobs:
 
       - name: Build and install
         run: |
-          python setup.py --skip-verstamp install --user
+          python setup.py install --user
 
       - name: Run tests
         # Run the tests directly from the source dir so support files (eg, .wav files etc)
@@ -93,7 +93,7 @@ jobs:
           python .github\workflows\download-arm64-libs.py .\arm64libs
 
       - name: Build wheels
-        run: python setup.py --skip-verstamp build_ext -L .\arm64libs --plat-name win-arm64 build --plat-name win-arm64 bdist_wheel --plat-name win-arm64
+        run: python setup.py build_ext -L .\arm64libs --plat-name win-arm64 build --plat-name win-arm64 bdist_wheel --plat-name win-arm64
 
       - uses: actions/upload-artifact@v3
         if: ${{ always() }}
@@ -110,8 +110,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          # This job only needs to target the oldest supported version (black@stable supports Python >=3.8)
-          python-version: "3.8"
+          # This job only needs to target the oldest version supported by our checkers
+          # (black>=24.10.0 supports Python >=3.9)
+          python-version: "3.9"
           cache: pip
           cache-dependency-path: .github/workflows/main.yml
       - run: pip install clang-format pycln
