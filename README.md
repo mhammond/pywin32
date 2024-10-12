@@ -170,7 +170,7 @@ the builds. Build 306 was the last released with this process.
 
 * Update setup.py with the new build number.
 
-* Execute `make.bat`, wait forever, test the artifacts.
+* Execute `make_all.bat`, wait forever, test the artifacts.
 
 * Upload .whl artifacts to pypi - we do this before pushing the tag because they might be
   rejected for an invalid `README.md`. Done via `py -3.? -m twine upload dist/*XXX*.whl`.

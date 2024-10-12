@@ -1,4 +1,4 @@
-/* File : exchdapi.i */
+/* File : exchange.i */
 
 /*
    This is designed to be an interface to the Exchange specific
