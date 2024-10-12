@@ -44,8 +44,8 @@ jobs:
           python setup.py install --user
 
       - name: Run postinstall install/remove # Smokescreen test to validate it doesn't crash
-        run: | # Run this from the installed Python location given by actions/setup-python
-          cd ${{ env.pythonLocation }}
+        run: |
+          cd "$(python -m site --user-site)/../Scripts"
           python Scripts/pywin32_postinstall.py -install
           python Scripts/pywin32_postinstall.py -remove
 
