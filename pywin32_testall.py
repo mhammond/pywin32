@@ -99,8 +99,7 @@ def main():
 
     # postinstall
     maybes = [
-        os.path.join(directory, "pywin32_postinstall.py")
-        for directory in code_directories
+        os.path.join(directory, "pywin32_postinstall.py") for directory in site_packages
     ]
     find_and_run(maybes, ["-install"])
     find_and_run(maybes, ["-remove"])
