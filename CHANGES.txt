@@ -14,6 +14,7 @@ https://mhammond.github.io/pywin32_installers.html.
 Coming in build 309, as yet unreleased
 --------------------------------------
 
+* Improved handling of dict iterations (small general speed improvement) (#2332, @Avasam)
 * Fixed "Open GL Demo" (`Pythonwin/pywin/Demos/openGLDemo.py`) and restore "Font" demo in `Pythonwin/pywin/Demos/guidemo.py` (#2345, @Avasam)
 
 Build 308, released 2024-10-12
@@ -178,7 +179,7 @@ as the .chm file, certain MAPI libraries etc, and .exe installers.
   * Cleaned up unused imports (#1986, #2051, #1990, #2124, #2126, @Avasam)
   * Removed duplicated declarations, constants and definitions (#2050 , #1950, #1990, @Avasam)
 * Small generalized optimization by using augmented assignements (in-place operators) where possible (#2274, @Avasam)
-* General speed and size improvements due to all the removed code. (#2046, #1986, #2050, #1950, #2085, #2087, #2051, #1990, #2106, #2127, #2124, #2126, #2177, #2218, #2202, #2205, #2217, #2332)
+* General speed and size improvements due to all the removed code. (#2046, #1986, #2050, #1950, #2085, #2087, #2051, #1990, #2106, #2127, #2124, #2126, #2177, #2218, #2202, #2205, #2217)
 
 ### adodbapi
 * Remove references to outdated IronPython (#2049, @Avasam)
