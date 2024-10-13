@@ -110,7 +110,7 @@ def build_module(mod_name: str) -> None:
     functions: list[DocInfo[FunctionType]] = []
     classes: list[DocInfo[type]] = []
     constants: list[tuple[str, int | str]] = []
-    for name, ob in list(mod.__dict__.items()):
+    for name, ob in mod.__dict__.items():
         if name.startswith("_"):
             continue
         if hasattr(ob, "__module__") and ob.__module__ != mod_name:
@@ -148,7 +148,7 @@ def build_module(mod_name: str) -> None:
         func_infos: list[DocInfo[FunctionType | MethodType]] = []
         # We need to iter the keys then to a getattr() so the funky descriptor
         # things work.
-        for n in list(ob.ob.__dict__.keys()):
+        for n in ob.ob.__dict__:
             o = getattr(ob.ob, n)
             if isinstance(o, (FunctionType, MethodType)):
                 if should_build_function(o):
