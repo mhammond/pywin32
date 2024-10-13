@@ -39,7 +39,7 @@
   "reportOptionalSubscript": "warning",
   // Needs fixes in types-pywin32 and requires Python 3.8 to annotate ambiguous global variables
   "reportUnnecessaryComparison": "warning",
-  // TODO: Leave Unbound its own PR(s)
+  // TODO: Leave Unbound to its own PR(s)
   "reportUnboundVariable": "warning",
   // Too many dynamically generated modules. This will require type stubs to properly fix.
   "reportMissingImports": "warning",
