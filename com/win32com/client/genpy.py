@@ -18,6 +18,7 @@ from __future__ import annotations
 import os
 import sys
 import time
+from itertools import chain
 
 import pythoncom
 import win32com
@@ -92,14 +93,14 @@ def MakeEventMethodName(eventName):
 
 def WriteSinkEventMap(obj, stream):
     print("\t_dispid_to_func_ = {", file=stream)
-    for name, entry in (
-        list(obj.propMapGet.items())
-        + list(obj.propMapPut.items())
-        + list(obj.mapFuncs.items())
+    for entry in chain(
+        obj.propMapGet.values(),
+        obj.propMapPut.values(),
+        obj.mapFuncs.values(),
     ):
-        fdesc = entry.desc
+        memid = entry.desc.memid
         print(
-            '\t\t%9d : "%s",' % (fdesc.memid, MakeEventMethodName(entry.names[0])),
+            '\t\t%9d : "%s",' % (memid, MakeEventMethodName(entry.names[0])),
             file=stream,
         )
     print("\t\t}", file=stream)
@@ -217,9 +218,7 @@ class EnumerationItem(build.OleItem, WritableItem):
         num = 0
         enumName = self.doc[0]
         # Write in name alpha order
-        names = list(self.mapVars.keys())
-        names.sort()
-        for name in names:
+        for name in sorted(self.mapVars):
             entry = self.mapVars[name]
             vdesc = entry.desc
             if vdesc[4] == pythoncom.VAR_CONST:
@@ -421,10 +420,8 @@ class DispatchItem(build.DispatchItem, WritableItem):
             "\t# If you create handlers, they should have the following prototypes:",
             file=stream,
         )
-        for name, entry in (
-            list(self.propMapGet.items())
-            + list(self.propMapPut.items())
-            + list(self.mapFuncs.items())
+        for entry in chain(
+            self.propMapGet.values(), self.propMapPut.values(), self.mapFuncs.values()
         ):
             fdesc = entry.desc
             methName = MakeEventMethodName(entry.names[0])
@@ -451,17 +448,14 @@ class DispatchItem(build.DispatchItem, WritableItem):
 
     def WriteClassBody(self, generator):
         stream = generator.file
-        # Write in alpha order.
-        names = list(self.mapFuncs.keys())
-        names.sort()
         specialItems: dict[str, tuple | None] = {
             "count": None,
             "item": None,
             "value": None,
             "_newenum": None,
         }  # If found, will end up with (entry, invoke_tupe)
-        itemCount = None
-        for name in names:
+        # Write in alpha order.
+        for name in sorted(self.mapFuncs):
             entry = self.mapFuncs[name]
             assert entry.desc.desckind == pythoncom.DESCKIND_FUNCDESC
             # skip [restricted] methods, unless it is the
@@ -500,9 +494,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
                 for line in ret:
                     print(line, file=stream)
         print("\t_prop_map_get_ = {", file=stream)
-        names = list(self.propMap.keys())
-        names.sort()
-        for key in names:
+        for key in sorted(self.propMap):
             entry = self.propMap[key]
             if generator.bBuildHidden or not entry.hidden:
                 resultName = entry.GetResultName()
@@ -547,9 +539,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
                     f'\t\t"{build.MakePublicAttributeName(key)}": {mapEntry},',
                     file=stream,
                 )
-        names = list(self.propMapGet.keys())
-        names.sort()
-        for key in names:
+        for key in sorted(self.propMapGet):
             entry = self.propMapGet[key]
             if generator.bBuildHidden or not entry.hidden:
                 if entry.GetResultName():
@@ -599,9 +589,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
 
         print("\t_prop_map_put_ = {", file=stream)
         # These are "Invoke" args
-        names = list(self.propMap.keys())
-        names.sort()
-        for key in names:
+        for key in sorted(self.propMap):
             entry = self.propMap[key]
             if generator.bBuildHidden or not entry.hidden:
                 lkey = key.lower()
@@ -623,9 +611,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
                     file=stream,
                 )
 
-        names = list(self.propMapPut.keys())
-        names.sort()
-        for key in names:
+        for key in sorted(self.propMapPut):
             entry = self.propMapPut[key]
             if generator.bBuildHidden or not entry.hidden:
                 details = entry.desc
@@ -1162,10 +1148,8 @@ class Generator:
         # Generate the constants and their support.
         if enumItems:
             print("class constants:", file=stream)
-            items = list(enumItems.values())
-            items.sort()
             num_written = 0
-            for oleitem in items:
+            for oleitem in sorted(enumItems.values()):
                 num_written += oleitem.WriteEnumerationItems(stream)
                 self.progress.Tick()
             if not num_written:
@@ -1173,15 +1157,11 @@ class Generator:
             print(file=stream)
 
         if self.generate_type == GEN_FULL:
-            items = [l for l in oleItems.values() if l is not None]
-            items.sort()
-            for oleitem in items:
+            for oleitem in sorted(filter(None, oleItems.values())):
                 self.progress.Tick()
                 oleitem.WriteClass(self)
 
-            items = list(vtableItems.values())
-            items.sort()
-            for oleitem in items:
+            for oleitem in sorted(vtableItems.values()):
                 self.progress.Tick()
                 oleitem.WriteClass(self)
         else:
