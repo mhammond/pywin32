@@ -989,6 +989,7 @@ class RangeMap(dict):  # type: ignore[type-arg] # Source code is untyped :/ TODO
         If default is not given, it defaults to None, so that this method
         never raises a KeyError.
         """
+        # Necessary to use our own __getitem__ and not dict's
         try:
             return self[key]
         except KeyError:
