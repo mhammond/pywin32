@@ -185,7 +185,7 @@ class FormatterBase:
         defaultStyle = Style("default", baseFormat)
         defaultStyle.stylenum = scintillacon.STYLE_DEFAULT
         self._ReformatStyle(defaultStyle)
-        for style in list(self.styles.values()):
+        for style in self.styles.values():
             if style.aliased is None:
                 style.NormalizeAgainstDefault(baseFormat)
             self._ReformatStyle(style)
@@ -202,7 +202,7 @@ class FormatterBase:
         )
         self.bUseFixed = int(self.LoadPreference("Use Fixed", 1))
 
-        for style in list(self.styles.values()):
+        for style in self.styles.values():
             new = self.LoadPreference(style.name, str(style.format))
             try:
                 style.format = eval(new)
@@ -222,7 +222,7 @@ class FormatterBase:
         self.SavePreference("Base Format Fixed", str(self.baseFormatFixed))
         self.SavePreference("Base Format Proportional", str(self.baseFormatProp))
         self.SavePreference("Use Fixed", self.bUseFixed)
-        for style in list(self.styles.values()):
+        for style in self.styles.values():
             if style.aliased is None:
                 self.SavePreference(style.name, str(style.format))
                 bg_name = style.name + " background"
