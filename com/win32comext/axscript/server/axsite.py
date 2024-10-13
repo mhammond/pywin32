@@ -99,7 +99,7 @@ class AXSite:
             | axscript.SCRIPTITEM_GLOBALMEMBERS
             | axscript.SCRIPTITEM_ISPERSISTENT
         )
-        for name in self.objModel.keys():
+        for name in self.objModel:
             newEngine.AddNamedItem(name, flags)
             newEngine.SetScriptState(axscript.SCRIPTSTATE_INITIALIZED)
         return newEngine

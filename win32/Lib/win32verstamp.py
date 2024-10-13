@@ -168,7 +168,7 @@ def stamp(pathname, options):
     if is_debug is None:
         is_debug = os.path.splitext(pathname)[0].lower().endswith("_d")
     # convert None to blank strings
-    for k, v in list(sdata.items()):
+    for k, v in sdata.items():
         if v is None:
             sdata[k] = ""
     vs = VS_VERSION_INFO(vmaj, vmin, vsub, vbuild, sdata, vdata, is_debug, is_dll)
