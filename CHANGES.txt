@@ -153,7 +153,7 @@ Coming in build 307, as yet unreleased
   * Removed redundant and obsolete references to older python unicode compatibility (#2085, @Avasam)
   * Use byte-string (`b""`) for constant bytes values instead of superfluous `.encode` calls (#2046, @Avasam)
   * Cleaned up unused imports (#1986, #2051, #1990, #2124, #2126, @Avasam)
-  * Removed duplicated declarations, constants and definitions (#2050, #1950, #1990, #2328, @Avasam)
+  * Removed duplicated declarations, constants and definitions (#2050, #1950, #1990, @Avasam)
 * Small generalized optimization by using augmented assignements (in-place operators) where possible (#2274, @Avasam)
 * General speed and size improvements due to all the removed code. (#2046, #1986, #2050, #1950, #2085, #2087, #2051, #1990, #2106, #2127, #2124, #2126, #2177, #2218, #2202, #2205, #2217)
 
