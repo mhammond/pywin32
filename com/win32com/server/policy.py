@@ -801,15 +801,3 @@ def _import_module(mname):
     # Eeek - result of _import_ is "win32com" - not "win32com.a.b.c"
     # Get the full module from sys.modules
     return sys.modules[mname]
-
-
-#######
-#
-# Temporary hacks until all old code moves.
-#
-# These have been moved to a new source file, but some code may
-# still reference them here.  These will end up being removed.
-try:
-    from .dispatcher import DispatcherTrace, DispatcherWin32trace
-except ImportError:  # Quite likely a frozen executable that doesn't need dispatchers
-    pass
