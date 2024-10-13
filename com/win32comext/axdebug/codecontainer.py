@@ -193,7 +193,6 @@ class SourceCodeContainer:
         charPos = self.GetPositionOfLine(lineNo)
         try:
             cc = self.codeContexts[charPos]
-            # trace(" GetContextOfPos using existing")
         except KeyError:
             cc = self._MakeContextAtPosition(charPos)
             self.codeContexts[charPos] = cc
