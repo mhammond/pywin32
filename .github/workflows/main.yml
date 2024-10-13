@@ -49,8 +49,8 @@ jobs:
           $pythonInstallerUrl = "https://www.python.org/ftp/python/3.13.0/python-3.13.0-amd64.exe"
           Invoke-WebRequest $pythonInstallerUrl -OutFile setup-python.exe
           Start-Process "setup-python.exe" -argumentlist "/quiet PrependPath=1 TargetDir=C:\Python313 Include_freethreaded=1" -wait
-          C:\Python313\python3.13t.exe -m pip install -r requirements.txt
-          C:\Python313\python3.13t.exe -c "import sys; print(sys._is_gil_enabled())"
+          Copy-Item C:\Python313\python3.13t.exe C:\Python313\python.exe
+          python -c "import sys; print(sys._is_gil_enabled())"
 
       - name: Setup environment
         run: |
@@ -117,8 +117,8 @@ jobs:
           $pythonInstallerUrl = "https://www.python.org/ftp/python/3.13.0/python-3.13.0-amd64.exe"
           Invoke-WebRequest $pythonInstallerUrl -OutFile setup-python.exe
           Start-Process "setup-python.exe" -argumentlist "/quiet PrependPath=1 TargetDir=C:\Python313 Include_freethreaded=1" -wait
-          C:\Python313\python3.13t.exe -m pip install -r requirements.txt
-          C:\Python313\python3.13t.exe -c "import sys; print(sys._is_gil_enabled())"
+          Copy-Item C:\Python313\python3.13t.exe C:\Python313\python.exe
+          python -c "import sys; print(sys._is_gil_enabled())"
 
       - name: Setup Environment
         run: |
