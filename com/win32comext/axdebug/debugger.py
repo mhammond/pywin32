@@ -64,7 +64,7 @@ def BuildModule(module, built_nodes, rootNode, create_node_fn, create_node_args)
 
 
 def RefreshAllModules(builtItems, rootNode, create_node, create_node_args):
-    for module in list(sys.modules.values()):
+    for module in sys.modules.values():
         BuildModule(module, builtItems, rootNode, create_node, create_node_args)
 
 
@@ -85,7 +85,7 @@ class CodeContainerProvider(documents.CodeContainerProvider):
         # if self.currentNumModules != len(sys.modules):
         #     self.axdebugger.RefreshAllModules(self.nodes, self)
         #     self.currentNumModules = len(sys.modules)
-        # for key in self.ccsAndNodes.keys():
+        # for key in self.ccsAndNodes:
         #     print("File:", key)
         return documents.CodeContainerProvider.FromFileName(self, fname)
 

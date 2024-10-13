@@ -184,7 +184,7 @@ def GetInfo(userName=None):
         userName = win32api.GetUserName()
     print("Dumping level 3 information about user")
     info = win32net.NetUserGetInfo(server, userName, 3)
-    for key, val in list(info.items()):
+    for key, val in info.items():
         verbose(f"{key}={val}")
 
 
@@ -228,10 +228,7 @@ def usage(tests):
 
 
 def main():
-    tests = []
-    for ob in list(globals().values()):
-        if isinstance(ob, Callable) and ob.__doc__:
-            tests.append(ob)
+    tests = [ob for ob in globals().values() if isinstance(ob, Callable) and ob.__doc__]
     opts, args = getopt.getopt(sys.argv[1:], "s:hvc")
     create_user = False
     for opt, val in opts:
