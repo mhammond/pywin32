@@ -37,11 +37,10 @@ jobs:
         run: |
           python --version
           pip --version
-          pip install --upgrade setuptools wheel
+          pip install --upgrade setuptools>=64 wheel
 
       - name: Build and install
-        run: |
-          python setup.py install --user
+        run: pip install . -v --user
 
       - name: Run tests
         # Run the tests directly from the source dir so support files (eg, .wav files etc)
@@ -49,8 +48,7 @@ jobs:
         run: python pywin32_testall.py -v -skip-adodbapi
 
       - name: Build wheels
-        run: |
-          python setup.py bdist_wheel --skip-build
+        run: pip wheel .
 
       - uses: actions/upload-artifact@v3
         # Upload artefacts even if tests fail
@@ -85,21 +83,18 @@ jobs:
         run: |
           python --version
           pip --version
-          pip install --upgrade setuptools wheel
+          pip install --upgrade setuptools>=64 wheel
 
       - name: Obtain ARM64 library files
-        run: |
-          python .github\workflows\download-arm64-libs.py .\arm64libs
+        run: python .github\workflows\download-arm64-libs.py .\arm64libs
 
       - name: Build wheels
-        run: python setup.py build_ext -L .\arm64libs --plat-name win-arm64 build --plat-name win-arm64 bdist_wheel --plat-name win-arm64
+        run: python -m build --wheel --config-setting="--build-option=build_ext -L .\arm64libs --plat-name win-arm64 build --plat-name win-arm64 bdist_wheel --plat-name win-arm64"
 
       - uses: actions/upload-artifact@v3
-        if: ${{ always() }}
         with:
           name: artifacts
-          path: |-
-            dist/*.whl
+          path: dist/*.whl
 
   # This job can be run locally by running `pre-commit run`
   checkers:

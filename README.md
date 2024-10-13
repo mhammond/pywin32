@@ -114,22 +114,6 @@ for the version you install.
 
 (the free compilers probably work too, but haven't been tested - let me know your experiences!)
 
-`setup.py` is a standard distutils build script, so you probably want:
-
-```shell
-python setup.py install
-```
-
-or
-
-```shell
-python setup.py --help
-```
-
-Some modules need obscure SDKs to build - `setup.py` should succeed, gracefully
-telling you why it failed to build them - if the build actually fails with your
-configuration, please [open an issue](https://github.com/mhammond/pywin32/issues).
-
 ## Release process
 
 The following steps are performed when making a new release - this is mainly
