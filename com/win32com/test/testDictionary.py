@@ -17,7 +17,7 @@ def MakeTestDictionary():
 
 
 def TestDictAgainst(dict, check):
-    for key, value in list(check.items()):
+    for key, value in check.items():
         assert (
             dict(key) == value
         ), f"Indexing for '{key!r}' gave the incorrect value - {dict[key]!r}/{check[key]!r}"
