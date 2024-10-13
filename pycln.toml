@@ -5,8 +5,8 @@ skip_imports = [
   # TODO: Confirm whether these produce side-effects,
   # if yes: add to the list below
   # if not: remove from here
-  "pythoncom",
-  "pywintypes",
+  # NOTE: https://github.com/mhammond/pywin32/pull/2342#discussion_r1798419855
+  # It seems we should be able to remove these. TODO in its own PR.
   "win32api",
   "win32file",
   "win32gui",
@@ -14,8 +14,10 @@ skip_imports = [
   "win32security",
   "win32uiole",
   # Modules with known side-effects
-  "IDLEenvironment", # Injects fast_readline into the IDLE auto-indent extension
   "coloreditor", # Adds doc template
+  "IDLEenvironment", # Injects fast_readline into the IDLE auto-indent extension
+  "pythoncom", # pythoncomXX.dll loader
+  "pywintypes", # pywintypesXX.dll loader
   "win32com", # Sets pythoncom.frozen and adds modules to path based on the registry
   "win32traceutil", # Redirects output to win32trace remote collector
   "win32ui", # Must always be imported before dde
