@@ -97,7 +97,7 @@ def build_module(fp, mod_name):
     functions = []
     classes = []
     constants = []
-    for name, ob in list(mod.__dict__.items()):
+    for name, ob in mod.__dict__.items():
         if name.startswith("_"):
             continue
         if hasattr(ob, "__module__") and ob.__module__ != mod_name:
@@ -136,7 +136,7 @@ def build_module(fp, mod_name):
         func_infos = []
         # We need to iter the keys then to a getattr() so the funky descriptor
         # things work.
-        for n in list(ob.ob.__dict__.keys()):
+        for n in ob.ob.__dict__:
             o = getattr(ob.ob, n)
             if isinstance(o, (types.FunctionType, types.MethodType)):
                 info = BuildInfo(n, o)
