@@ -16,7 +16,7 @@ Coming in build 309, as yet unreleased
 
 * Improved handling of dict iterations (removes Python 2 support code, small general speed improvement) (#2332, @Avasam)
 * Fixed "Open GL Demo" (`Pythonwin/pywin/Demos/openGLDemo.py`) and restore "Font" demo in `Pythonwin/pywin/Demos/guidemo.py` (#2345, @Avasam)
-* Fixed accidentally trying to raise a an undefined name instead of an `Exception` in `Pythonwin/pywin/debugger/debugger.py` (#2326, @Avasam)
+* Fixed accidentally trying to raise an undefined name instead of an `Exception` in `Pythonwin/pywin/debugger/debugger.py` (#2326, @Avasam)
 
 Build 308, released 2024-10-12
 ------------------------------
