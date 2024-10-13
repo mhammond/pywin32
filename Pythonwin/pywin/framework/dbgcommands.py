@@ -37,7 +37,7 @@ class DebuggerCommandHandler:
             if not methUpdate is None:
                 frame.HookCommandUpdate(methUpdate, id)
 
-        for id in list(IdToBarNames.keys()):
+        for id in IdToBarNames:
             frame.HookCommand(self.OnDebuggerBar, id)
             frame.HookCommandUpdate(self.OnUpdateDebuggerBar, id)
 
