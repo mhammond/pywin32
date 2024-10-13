@@ -53,12 +53,11 @@ jobs:
           python setup.py bdist_wheel --skip-build
 
       - uses: actions/upload-artifact@v3
+        # Upload artefacts even if tests fail
         if: ${{ always() }}
         with:
           name: artifacts
-          path: |
-            dist/*.whl
-            dist/*.exe
+          path: dist/*.whl
 
   # We cannot build and test on ARM64, so we cross-compile.
   # Later, when available, we can add tests using this wheel on ARM64 VMs

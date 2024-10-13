@@ -2,7 +2,6 @@ MANIFEST
 build
 dist
 __pycache__
-*.exe
 *.zip
 *.dbg
 *.exp
