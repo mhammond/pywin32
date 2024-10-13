@@ -14,7 +14,8 @@ https://mhammond.github.io/pywin32_installers.html.
 Coming in build 309, as yet unreleased
 --------------------------------------
 
-* Remove temporary `win32com.server.policy` reexports hack (#2344, @Avasam)
+* Fail sooner on invalid `win32timezone.TimeZoneInfo` creation (#2338, @Avasam)
+* Removed temporary `win32com.server.policy` reexports hack (#2344, @Avasam)
   Import `DispatcherWin32trace` and `DispatcherTrace` from `win32com.server.dispatcher` instead.
 * Fixed `win32timezone.TimeZoneInfo` initialization from a `[DYNAMIC_]TIME_ZONE_INFORMATION` (#2339, @Avasam)
 * Added runtime deprecation warning of `win2kras`, use `win32ras` instead (#2356, @Avasam)
