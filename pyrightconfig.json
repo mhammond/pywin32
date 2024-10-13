@@ -37,6 +37,9 @@
   "reportOptionalIterable": "warning",
   "reportOptionalMemberAccess": "warning",
   "reportOptionalSubscript": "warning",
+  // Needs fixes in types-pywin32 and requires Python 3.8 to annotate ambiguous global variables
+  "reportUnnecessaryComparison": "warning",
+  // TODO: Leave Unbound its own PR(s)
   "reportUnboundVariable": "warning",
   // Too many dynamically generated modules. This will require type stubs to properly fix.
   "reportMissingImports": "warning",
@@ -47,8 +50,6 @@
   "reportMissingModuleSource": "none",
   // External type stubs may not be completable, and this will require type stubs for dynamic modules.
   "reportMissingTypeStubs": "information",
-  // Sometimes used for extra runtime safety
-  "reportUnnecessaryComparison": "warning",
   // Use Flake8/Pycln/Ruff instead
   "reportUnusedImport": "none",
 }
