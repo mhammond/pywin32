@@ -14,6 +14,7 @@ https://mhammond.github.io/pywin32_installers.html.
 Coming in build 309, as yet unreleased
 --------------------------------------
 
+* Fixed `AttributeError: 'Enumerator' object has no attribute 'resultCLSID'` when cloning a win32com client enumerator (#2333, @Avasam)
 * Fixed `win32timezone.TimeZoneInfo` initialization from a `[DYNAMIC_]TIME_ZONE_INFORMATION` (#2339, @Avasam)
 * Added runtime deprecation warning of `win2kras`, use `win32ras` instead (#2356, @Avasam)
 * Improved handling of dict iterations and fallbacks (removes Python 2 support code, small general speed improvement) (#2332, #2330, @Avasam)

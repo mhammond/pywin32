@@ -810,7 +810,7 @@ class TimeZoneInfo(datetime.tzinfo):
         return zones
 
 
-class _RegKeyDict(Dict[str, int]):
+class _RegKeyDict(Dict[str, str]):
     def __init__(self, key: winreg.HKEYType):
         dict.__init__(self)
         self.key = key

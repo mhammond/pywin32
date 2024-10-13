@@ -2,6 +2,8 @@
 Various utilities for running/importing a script
 """
 
+from __future__ import annotations
+
 import bdb
 import linecache
 import os
@@ -441,7 +443,7 @@ def ImportFile():
     # meaning sys.modules can change as a side-effect of looking at
     # module.__file__ - so we must take a copy (ie, list(items()))
     for key, mod in sys.modules.items():
-        if getattr(mod, "__file__", None):
+        if hasattr(mod, "__file__") and mod.__file__:
             fname = mod.__file__
             base, ext = os.path.splitext(fname)
             if ext.lower() in (".pyo", ".pyc"):
@@ -497,7 +499,7 @@ def CheckFile():
     without actually executing any code (ie, by compiling only)
     """
     try:
-        pathName = GetActiveFileName()
+        pathName = str(GetActiveFileName())
     except KeyboardInterrupt:
         return
 
