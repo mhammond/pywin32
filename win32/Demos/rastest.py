@@ -63,8 +63,9 @@ def Connect(entryName, bUseCallback):
         win32event.ResetEvent(callbackEvent)
     else:
         theCallback = None
-    #       in order to *use* the username/password of a particular dun entry, one must
-    #       explicitly get those params under win95....
+    # in order to *use* the username/password of a particular dun entry,
+    # one must explicitly get those params under Win95 ...
+    # TODO: We no longer support Windows 95, how should this code be updated ?
     try:
         dp, b = win32ras.GetEntryDialParams(None, entryName)
     except:

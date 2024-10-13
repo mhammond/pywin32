@@ -36,8 +36,6 @@ class EmptyVolumeCache:
     _public_methods_ = IEmptyVolumeCache_Methods + IEmptyVolumeCache2_Methods
 
     def Initialize(self, hkey, volume, flags):
-        # This should never be called, except on win98.
-        print("Unless we are on 98, Initialize call is unexpected!")
         raise COMException(hresult=winerror.E_NOTIMPL)
 
     def InitializeEx(self, hkey, volume, key_name, flags):

@@ -506,7 +506,6 @@ class TimeZoneInfo(datetime.tzinfo):
     1
     """
 
-    # this key works for WinNT+, but not for the Win95 line.
     tzRegKey = r"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Time Zones"
 
     def __init__(self, param=None, fix_standard_time=False):
@@ -519,7 +518,7 @@ class TimeZoneInfo(datetime.tzinfo):
 
     def _FindTimeZoneKey(self):
         """Find the registry key for the time zone name (self.timeZoneName)."""
-        # for multi-language compatability, match the time zone name in the
+        # for multi-language compatibility, match the time zone name in the
         # "Std" key of the time zone key.
         zoneNames = dict(self._get_indexed_time_zone_keys("Std"))
         # Also match the time zone key name itself, to be compatible with

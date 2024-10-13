@@ -284,18 +284,14 @@ BOOL PySECURITY_DESCRIPTOR::SetSD(PSECURITY_DESCRIPTOR psd)
     if (this->m_psd)
         free(this->m_psd);
     DWORD sdsize = GetSecurityDescriptorLength(psd);
-    if (sdsize == 0) {
-        // GetSecurityDescriptorLength returns 0 on Win9x where the
-        // SECURITY_DESCRIPTOR stuff is not supported.
-        this->m_psd = NULL;
-        return TRUE;
-    }
-    else if (_IsSelfRelative(psd)) {
+    else if (_IsSelfRelative(psd))
+    {
         this->m_psd = malloc(sdsize);
         memcpy(this->m_psd, psd, sdsize);
         return TRUE;
     }
-    else {
+    else
+    {
         // should be last-ditch fallback, everything should pass SD already in self-relative form
         if (!_MakeSelfRelativeSD(psd, &(this->m_psd)))
             return FALSE;
