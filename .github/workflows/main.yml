@@ -123,9 +123,9 @@ jobs:
       - uses: psf/black@stable
         with:
           options: "--fast --check --diff --verbose"
-      - run: | # Too many files to fit in a single command, exclude vendored Scintilla and mapi_headers
+      - run: | # Too many files to fit in a single command, also exclude vendored Scintilla and MAPIStubLibrary
           clang-format --Werror --dry-run $(git ls-files '*.cpp')
-          clang-format --Werror --dry-run $(git ls-files '*.h' ':!:Pythonwin/Scintilla/' ':!:com/win32comext/mapi/src/mapi_headers/')
+          clang-format --Werror --dry-run $(git ls-files '*.h' ':!:Pythonwin/Scintilla/' ':!:com/win32comext/mapi/src/MAPIStubLibrary/')
         shell: powershell
 
   mypy:
@@ -144,7 +144,7 @@ jobs:
           cache: pip
           cache-dependency-path: .github/workflows/main.yml
           check-latest: true
-      - run: pip install types-regex types-setuptools mypy==1.11
+      - run: pip install types-regex types-setuptools PyOpenGL mypy==1.11
       - run: mypy . --python-version=${{ matrix.python-version }}
 
   pyright:
@@ -163,7 +163,7 @@ jobs:
           cache-dependency-path: .github/workflows/main.yml
           check-latest: true
       # pyright vendors typeshed, but let's make sure we have the most up to date stubs
-      - run: pip install types-regex types-setuptools
+      - run: pip install types-regex types-setuptools PyOpenGL
       - uses: jakebailey/pyright-action@v2
         with:
           python-version: ${{ matrix.python-version }}
