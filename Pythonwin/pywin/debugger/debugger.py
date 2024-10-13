@@ -869,15 +869,14 @@ class Debugger(debugger_parent):
         elif state == DBGSTATE_RUNNING:  # Code is running under the debugger.
             title = " - running"
         elif state == DBGSTATE_BREAK:  # We are at a breakpoint or stepping or whatever.
-            if self.bAtException:
-                if self.bAtPostMortem:
-                    title = " - post mortem exception"
-                else:
-                    title = " - exception"
-            else:
+            if not self.bAtException:
                 title = " - break"
+            elif self.bAtPostMortem:
+                title = " - post mortem exception"
+            else:
+                title = " - exception"
         else:
-            raise error("Invalid debugger state passed!")
+            raise ValueError("Invalid debugger state passed!")
         win32ui.GetMainFrame().SetWindowText(
             win32ui.LoadString(win32ui.IDR_MAINFRAME) + title
         )
