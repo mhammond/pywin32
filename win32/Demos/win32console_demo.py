@@ -3,10 +3,7 @@ import time
 import win32con
 import win32console
 
-virtual_keys = {}
-for k, v in list(win32con.__dict__.items()):
-    if k.startswith("VK_"):
-        virtual_keys[v] = k
+virtual_keys = {k: v for k, v in win32con.__dict__.items() if k.startswith("VK_")}
 
 free_console = True
 try:

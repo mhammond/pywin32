@@ -83,13 +83,13 @@ class Dialog(window.Wnd):
         self._obj_.data[key] = item  # self.UpdateData(0)
 
     def keys(self):
-        return list(self.data.keys())
+        return self.data.keys()
 
     def items(self):
-        return list(self.data.items())
+        return self.data.items()
 
     def values(self):
-        return list(self.data.values())
+        return self.data.values()
 
     def __contains__(self, key):
         return key in self.data

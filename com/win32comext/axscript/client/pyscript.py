@@ -160,15 +160,12 @@ class ScriptItem(framework.ScriptItem):
         self.attributeObject = NamedScriptAttribute(self)
         if self.dispatch:
             # Need to avoid the new Python "lazy" dispatch behaviour.
+            olerepr, clsid = None
             try:
                 engine = self.GetEngine()
-                olerepr = clsid = None
                 typeinfo = self.dispatch.GetTypeInfo()
                 clsid = typeinfo.GetTypeAttr()[0]
-                try:
-                    olerepr = engine.mapKnownCOMTypes[clsid]
-                except KeyError:
-                    pass
+                olerepr = engine.mapKnownCOMTypes.get(clsid)
             except pythoncom.com_error:
                 typeinfo = None
             if olerepr is None:
@@ -359,7 +356,7 @@ class PyScript(framework.COMScript):
             except KeyError:
                 # Not there _exactly_ - do case ins search.
                 funcNameLook = funcName.lower()
-                for attr in self.globalNameSpaceModule.__dict__.keys():
+                for attr in self.globalNameSpaceModule.__dict__:
                     if funcNameLook == attr.lower():
                         function = self.globalNameSpaceModule.__dict__[attr]
                         # cache back in scriptlets, to avoid this overhead next time
