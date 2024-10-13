@@ -39,7 +39,6 @@ from setuptools import Extension, setup
 from setuptools.command.build import build
 from setuptools.command.build_ext import build_ext
 from setuptools.command.install import install
-from setuptools.command.install_lib import install_lib
 from tempfile import gettempdir
 from typing import Iterable
 
@@ -899,15 +898,6 @@ class my_install(install):
                 str(os.getpid()),
             ]
         )
-
-
-class my_install_lib(install_lib):
-    def install(self):
-        # We want a failure to find .py files be an error rather than a warning.
-        outfiles = super().install()
-        if not outfiles:
-            raise RuntimeError("No Python files were found to install")
-        return outfiles
 
 
 def my_new_compiler(**kw):
@@ -2135,7 +2125,6 @@ cmdclass = {
     "build": my_build,
     "build_ext": my_build_ext,
     "install_data": my_install_data,
-    "install_lib": my_install_lib,
 }
 
 classifiers = [
