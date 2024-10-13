@@ -14,6 +14,11 @@ https://mhammond.github.io/pywin32_installers.html.
 Coming in build 309, as yet unreleased
 --------------------------------------
 
+* Update calls to removed (in Python 3) `os.path.walk`, which fixes the following: (#2314, @Avasam)
+  * `VersionStamp/bulkstamp.py` script
+  * `com/win32comext/shell/demos/dump_link.py` demo
+  * `com/win32comext/shell/demos/servers/empty_volume_cache.py` demo
+  * `com/win32comext/shell/demos/viewstate.py` demo
 * Fixed `win32timezone.TimeZoneInfo` initialization from a `[DYNAMIC_]TIME_ZONE_INFORMATION` (#2339, @Avasam)
 * Added runtime deprecation warning of `win2kras`, use `win32ras` instead (#2356, @Avasam)
 * Improved handling of dict iterations and fallbacks (removes Python 2 support code, small general speed improvement) (#2332, #2330, @Avasam)
