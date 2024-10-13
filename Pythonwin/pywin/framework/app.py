@@ -3,10 +3,13 @@
 #
 # We also grab the FileOpen command, to invoke our Python editor
 " The PythonWin application code. Manages most aspects of MDI, etc "
+from __future__ import annotations
+
 import os
 import sys
 import traceback
 import warnings
+from typing import TYPE_CHECKING
 
 import regutil
 import win32api
@@ -16,6 +19,9 @@ from pywin.mfc import afxres, dialog, window
 from pywin.mfc.thread import WinApp
 
 from . import scriptutils
+
+if TYPE_CHECKING:
+    from typing_extensions import Literal
 
 
 # Helper for writing a Window position by name, and later loading it.
@@ -62,7 +68,7 @@ class MainFrame(window.MDIFrameWnd):
         win32ui.ID_INDICATOR_COLNUM,
     )
 
-    def OnCreate(self, cs):
+    def OnCreate(self, cs) -> Literal[-1, 0, 1]:
         self._CreateStatusBar()
         return 0
 

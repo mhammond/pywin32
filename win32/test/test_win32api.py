@@ -262,7 +262,7 @@ class Misc(unittest.TestCase):
             "BatteryLifeTime",
             "BatteryFullLifeTime",
         )
-        self.assertEqual(set(test_keys), set(sps.keys()))
+        self.assertEqual(set(test_keys), set(sps))
 
 
 if __name__ == "__main__":

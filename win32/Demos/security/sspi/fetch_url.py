@@ -36,7 +36,7 @@ def open_url(host, url):
         print("After redirect response is", resp.status, resp.reason)
     if options.show_headers:
         print("Initial response headers:")
-        for name, val in list(resp.msg.items()):
+        for name, val in resp.msg.items():
             print(f" {name}: {val}")
     if options.show_body:
         print(body)
@@ -60,7 +60,7 @@ def open_url(host, url):
             resp = h.getresponse()
             if options.show_headers:
                 print("Token dance headers:")
-                for name, val in list(resp.msg.items()):
+                for name, val in resp.msg.items():
                     print(f" {name}: {val}")
 
             if err == 0:
@@ -107,7 +107,7 @@ def open_url(host, url):
         print("Second fetch response is", resp.status, resp.reason)
         if options.show_headers:
             print("Second response headers:")
-            for name, val in list(resp.msg.items()):
+            for name, val in resp.msg.items():
                 print(f" {name}: {val}")
 
         resp.read(int(resp.msg.get("content-length", 0)))
