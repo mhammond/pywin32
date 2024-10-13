@@ -42,9 +42,8 @@ repos:
         # https://github.com/pre-commit/mirrors-clang-format/blob/main/.pre-commit-hooks.yaml#L6
         types: [c++]
 
-
 # Vendored
-exclude: ^(com/win32comext/mapi/src/mapi_headers/|Pythonwin/Scintilla/).*$
+exclude: ^(com/win32comext/mapi/src/MAPIStubLibrary/|Pythonwin/Scintilla/).*$
 
 ci:
   autoupdate_schedule: quarterly
