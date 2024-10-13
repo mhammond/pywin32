@@ -19,7 +19,7 @@ class DebuggerOptionsPropPage(dialog.PropertyPage):
     def OnOK(self):
         self.UpdateData()
         dirty = 0
-        for key, val in list(self.items()):
+        for key, val in self.items():
             if key in self.options:
                 if self.options[key] != val:
                     self.options[key] = val
