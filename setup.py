@@ -820,21 +820,17 @@ class my_build_ext(build_ext):
             else:
                 swig_cmd.append("-DSWIG_PY32BIT")
             target = swig_targets[source]
-            try:
-                interface_parent = swig_interface_parents[
-                    os.path.basename(os.path.splitext(source)[0])
-                ]
-            except KeyError:
-                # "normal" swig file - no special win32 issues.
-                pass
-            else:
-                # Using win32 extensions to SWIG for generating COM classes.
-                if interface_parent is not None:
-                    # generating a class, not a module.
-                    swig_cmd.append("-pythoncom")
-                    if interface_parent:
-                        # A class deriving from other than the default
-                        swig_cmd.extend(["-com_interface_parent", interface_parent])
+            interface_parent = swig_interface_parents.get(
+                os.path.basename(os.path.splitext(source)[0]),
+                None,  # "normal" swig file - no special win32 issues.
+            )
+            # Using win32 extensions to SWIG for generating COM classes.
+            if interface_parent is not None:
+                # generating a class, not a module.
+                swig_cmd.append("-pythoncom")
+                if interface_parent:
+                    # A class deriving from other than the default
+                    swig_cmd.extend(["-com_interface_parent", interface_parent])
 
             # This 'newer' check helps Python 2.2 builds, which otherwise
             # *always* regenerate the .cpp files, meaning every future
@@ -1536,7 +1532,7 @@ com_extensions = [
         "mapi",
         libraries="advapi32",
         pch_header="PythonCOM.h",
-        include_dirs=["{mapi}/mapi_headers".format(**dirs)],
+        include_dirs=["{mapi}/MapiStubLibrary/include".format(**dirs)],
         sources=(
             """
                         {mapi}/mapi.i                 {mapi}/mapi.cpp
@@ -1562,8 +1558,8 @@ com_extensions = [
                         {mapi}/PyIMAPIAdviseSink.cpp
                         {mapi}/mapiutil.cpp
                         {mapi}/mapiguids.cpp
-                        {mapi}/mapi_stub_library/MapiStubLibrary.cpp
-                        {mapi}/mapi_stub_library/StubUtils.cpp
+                        {mapi}/MAPIStubLibrary/library/mapiStubLibrary.cpp
+                        {mapi}/MAPIStubLibrary/library/stubutils.cpp
                         """.format(
                 **dirs
             )
@@ -1572,7 +1568,7 @@ com_extensions = [
     WinExt_win32com_mapi(
         "exchange",
         libraries="advapi32 legacy_stdio_definitions",
-        include_dirs=["{mapi}/mapi_headers".format(**dirs)],
+        include_dirs=["{mapi}/MapiStubLibrary/include".format(**dirs)],
         sources=(
             """
                                   {mapi}/exchange.i         {mapi}/exchange.cpp
@@ -1580,8 +1576,8 @@ com_extensions = [
                                   {mapi}/PyIExchangeManageStoreEx.i {mapi}/PyIExchangeManageStoreEx.cpp
                                   {mapi}/mapiutil.cpp
                                   {mapi}/exchangeguids.cpp
-                                  {mapi}/mapi_stub_library/MapiStubLibrary.cpp
-                                  {mapi}/mapi_stub_library/StubUtils.cpp
+                                  {mapi}/MAPIStubLibrary/library/mapiStubLibrary.cpp
+                                  {mapi}/MAPIStubLibrary/library/stubutils.cpp
                                   """.format(
                 **dirs
             )
