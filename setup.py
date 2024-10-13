@@ -879,8 +879,6 @@ class my_install(install):
         # for bdist_wininst to use) - in which case we must *not* run our
         # installer
         if not self.dry_run and not self.root:
-            # We must run the script we just installed into Scripts, as it
-            # may have had 2to3 run over it.
             filename = os.path.join(self.install_scripts, "pywin32_postinstall.py")
             if not os.path.isfile(filename):
                 raise RuntimeError(f"Can't find '{filename}'")
