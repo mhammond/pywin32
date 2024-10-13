@@ -5,7 +5,7 @@ import pythoncom
 from win32com.server.policy import DesignatedWrapPolicy
 from win32com.shell import shell, shellcon
 
-tsf_flags = [(k, v) for k, v in list(shellcon.__dict__.items()) if k.startswith("TSF_")]
+tsf_flags = [(k, v) for k, v in shellcon.__dict__.items() if k.startswith("TSF_")]
 
 
 def decode_flags(flags):

@@ -15,6 +15,11 @@ Coming in build 309, as yet unreleased
 --------------------------------------
 
 * Fixed import issues in ocx and app pywin Demos (#2291, @Avasam)
+* Fixed `win32timezone.TimeZoneInfo` initialization from a `[DYNAMIC_]TIME_ZONE_INFORMATION` (#2339, @Avasam)
+* Added runtime deprecation warning of `win2kras`, use `win32ras` instead (#2356, @Avasam)
+* Improved handling of dict iterations and fallbacks (removes Python 2 support code, small general speed improvement) (#2332, #2330, @Avasam)
+* Fixed "Open GL Demo" (`Pythonwin/pywin/Demos/openGLDemo.py`) and restore "Font" demo in `Pythonwin/pywin/Demos/guidemo.py` (#2345, @Avasam)
+* Fixed accidentally trying to raise an undefined name instead of an `Exception` in `Pythonwin/pywin/debugger/debugger.py` (#2326, @Avasam)
 
 Build 308, released 2024-10-12
 ------------------------------
@@ -176,7 +181,7 @@ as the .chm file, certain MAPI libraries etc, and .exe installers.
   * Removed redundant and obsolete references to older python unicode compatibility (#2085, @Avasam)
   * Use byte-string (`b""`) for constant bytes values instead of superfluous `.encode` calls (#2046, @Avasam)
   * Cleaned up unused imports (#1986, #2051, #1990, #2124, #2126, @Avasam)
-  * Removed duplicated declarations, constants and definitions (#2050 , #1950, #1990, @Avasam)
+  * Removed duplicated declarations, constants and definitions (#2050, #1950, #1990, @Avasam)
 * Small generalized optimization by using augmented assignements (in-place operators) where possible (#2274, @Avasam)
 * General speed and size improvements due to all the removed code. (#2046, #1986, #2050, #1950, #2085, #2087, #2051, #1990, #2106, #2127, #2124, #2126, #2177, #2218, #2202, #2205, #2217)
 
