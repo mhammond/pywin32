@@ -83,7 +83,7 @@ jobs:
         run: |
           python --version
           pip --version
-          pip install --upgrade setuptools>=64 wheel
+          pip install --upgrade setuptools>=64 wheel build
 
       - name: Obtain ARM64 library files
         run: python .github\workflows\download-arm64-libs.py .\arm64libs
