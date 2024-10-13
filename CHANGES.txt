@@ -11,10 +11,41 @@ or
 As of build 305, installation .exe files have been deprecated; see
 https://mhammond.github.io/pywin32_installers.html.
 
-Coming in build 307, as yet unreleased
+Coming in build 309, as yet unreleased
 --------------------------------------
 
+## pywin32
+* Fixed `win32timezone.TimeZoneInfo` initialization from a `[DYNAMIC_]TIME_ZONE_INFORMATION` (#2339, @Avasam)
+* Added runtime deprecation warning of `win2kras`, use `win32ras` instead (#2356, @Avasam)
+* Improved handling of dict iterations and fallbacks (removes Python 2 support code, small general speed improvement) (#2332, #2330, @Avasam)
+* Fixed "Open GL Demo" (`Pythonwin/pywin/Demos/openGLDemo.py`) and restore "Font" demo in `Pythonwin/pywin/Demos/guidemo.py` (#2345, @Avasam)
+* Fixed accidentally trying to raise an undefined name instead of an `Exception` in `Pythonwin/pywin/debugger/debugger.py` (#2326, @Avasam)
+
+## adodbapi
+* Fix unbound `os` module in `adodbapi.process_connect_string.macro_call` for `"getenv"` macro (#2324, @Avasam)
+
+Build 308, released 2024-10-12
+------------------------------
+* Fix Pythonwin displaying syntax errors in Python 3.13 (#2393)
+* Allowed installs from source w/o having pywin32 pre-installed (for instance, from GitHub) (#2349, @Avasam)
+* Restored version stamping of installed DLLs (#2349, @Avasam)
+* Fixed a circular import between `win32comext.axscript.client.framework` and `win32comext.axscript.client.error` (#2381, @Avasam)
+* Remove long-deprecated `win32com.server.dispatcher.DispatcherWin32dbg` (#2382, @Avasam)
+
+Build 307, released 2024-10-04
+------------------------------
+### Release process changes
+
+pywin32 is now released from artifacts created by Github actions, whereas previously they were
+created from an environment where certain tools and libraries were located and installed
+by hand.
+
+This means some capabilities are no longer provided - this includes some documentation artifacts, such
+as the .chm file, certain MAPI libraries etc, and .exe installers.
+
 ### pywin32
+* Remove obsolete and unused `pywin.is_platform_unicode` (#2343, @Avasam)
+* Fix `isapi.ThreadPoolExtension`'s printing of exception traceback broken on Python 3.8+ (#2312, @Avasam)
 * Add RealGetWindowClass (#2299, @CristiFati)
 * Make it compile on Python 3.13 (#2260, @clin1234)
 * Fixed accidentally trying to raise a `str` instead of an `Exception` in (#2270, @Avasam)
@@ -153,12 +184,11 @@ Coming in build 307, as yet unreleased
   * Removed redundant and obsolete references to older python unicode compatibility (#2085, @Avasam)
   * Use byte-string (`b""`) for constant bytes values instead of superfluous `.encode` calls (#2046, @Avasam)
   * Cleaned up unused imports (#1986, #2051, #1990, #2124, #2126, @Avasam)
-  * Removed duplicated declarations, constants and definitions (#2050 , #1950, #1990, @Avasam)
+  * Removed duplicated declarations, constants and definitions (#2050, #1950, #1990, @Avasam)
 * Small generalized optimization by using augmented assignments (in-place operators) where possible (#2274, @Avasam)
 * General speed and size improvements due to all the removed code. (#2046, #1986, #2050, #1950, #2085, #2087, #2051, #1990, #2106, #2127, #2124, #2126, #2177, #2218, #2202, #2205, #2217)
 
 ### adodbapi
-* Fix unbound `os` module in `adodbapi.process_connect_string.macro_call` for `"getenv"` macro (#2324, @Avasam)
 * Remove references to outdated IronPython (#2049, @Avasam)
   This removes the following public names:
   * `adodbapi.adodbapi.onWin32`
