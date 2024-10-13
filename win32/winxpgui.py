@@ -10,10 +10,4 @@ from win32console import (  # nopycln: import
 )
 from win32gui import *
 
-warnings.warn(
-    """\
-The `winxpgui` module is obsolete and has been completely replaced \
-by `win32gui` and `win32console.GetConsoleWindow`. Use those instead. \
-""",
-    category=DeprecationWarning,
-)
+warnings.warn(str(__doc__), category=DeprecationWarning)

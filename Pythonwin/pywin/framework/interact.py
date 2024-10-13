@@ -300,7 +300,7 @@ class PythonwinInteractiveInterpreter(code.InteractiveInterpreter):
         self.globals = globals
         code.InteractiveInterpreter.__init__(self, locals)
 
-    def showsyntaxerror(self, filename=None):
+    def showsyntaxerror(self, filename=None, **kwargs):
         sys.stderr.write(
             tracebackHeader.decode("ascii")
         )  # So the color syntaxer recognises it.

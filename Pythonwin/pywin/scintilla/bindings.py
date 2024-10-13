@@ -58,7 +58,7 @@ class BindingsManager:
         self.keymap = {}
 
     def complete_configure(self):
-        for id in command_to_events.keys():
+        for id in command_to_events:
             self.parent_view.HookCommand(self._OnCommand, id)
 
     def close(self):

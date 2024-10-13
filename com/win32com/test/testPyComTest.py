@@ -250,9 +250,9 @@ def TestCommon(o, is_generated):
     ), f"Property value wrong - got {o.ULongProp} (expected {check})"
     TestApplyResult(o.Test, ("Unused", 99), 1)  # A bool function
     TestApplyResult(o.Test, ("Unused", -1), 1)  # A bool function
-    TestApplyResult(o.Test, ("Unused", 1 == 1), 1)  # A bool function
+    TestApplyResult(o.Test, ("Unused", True), 1)  # A bool function
     TestApplyResult(o.Test, ("Unused", 0), 0)
-    TestApplyResult(o.Test, ("Unused", 1 == 0), 0)
+    TestApplyResult(o.Test, ("Unused", False), 0)
 
     assert o.DoubleString("foo") == "foofoo"
 

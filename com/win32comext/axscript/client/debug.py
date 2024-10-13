@@ -9,11 +9,7 @@ from win32com.axdebug.codecontainer import SourceCodeContainer
 from win32com.axdebug.util import _wrap
 from win32com.server.exception import COMException
 
-try:
-    os.environ["DEBUG_AXDEBUG"]
-    debuggingTrace = 1  # Should we print "trace" output?
-except KeyError:
-    debuggingTrace = 0
+debuggingTrace = "DEBUG_AXDEBUG" in os.environ  # Should we print "trace" output?
 
 
 def trace(*args):
