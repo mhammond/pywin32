@@ -29,6 +29,13 @@ select = [
   "UP007", # non-pep604-annotation
   "UP010", # unnecessary-future-import
   "UP037", # quoted-annotation
+
+  # Helps prevent circular imports and other unneeded imports
+  "TCH", # flake8-type-checking
+]
+extend-ignore = [
+  # No such concerns for stdlib
+  "TCH003", # typing-only-standard-library-import
 ]
 
 [lint.per-file-ignores]

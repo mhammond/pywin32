@@ -5,7 +5,11 @@ import optparse
 import os
 import struct
 
-from win32api import BeginUpdateResource, EndUpdateResource, UpdateResource
+from _win32verstamp_pywin32ctypes import (
+    BeginUpdateResource,
+    EndUpdateResource,
+    UpdateResource,
+)
 
 VS_FFI_SIGNATURE = -17890115  # 0xFEEF04BD
 VS_FFI_STRUCVERSION = 0x00010000
@@ -164,7 +168,7 @@ def stamp(pathname, options):
     if is_debug is None:
         is_debug = os.path.splitext(pathname)[0].lower().endswith("_d")
     # convert None to blank strings
-    for k, v in list(sdata.items()):
+    for k, v in sdata.items():
         if v is None:
             sdata[k] = ""
     vs = VS_VERSION_INFO(vmaj, vmin, vsub, vbuild, sdata, vdata, is_debug, is_dll)

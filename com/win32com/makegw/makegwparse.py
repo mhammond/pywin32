@@ -771,11 +771,9 @@ AllConverters: dict[
     "const PUITEMID_CHILD": (ArgFormatterIDLIST, 0),
     "PCUITEMID_CHILD_ARRAY": (ArgFormatterIDLIST, 2),
     "const PCUITEMID_CHILD_ARRAY": (ArgFormatterIDLIST, 2),
+    # Auto-add all the simple types
+    **{key: (ArgFormatterSimple, 0) for key in ConvertSimpleTypes},
 }
-
-# Auto-add all the simple types
-for key in ConvertSimpleTypes.keys():
-    AllConverters[key] = ArgFormatterSimple, 0
 
 
 def make_arg_converter(arg):
