@@ -356,7 +356,7 @@ class PyScript(framework.COMScript):
             except KeyError:
                 # Not there _exactly_ - do case ins search.
                 funcNameLook = funcName.lower()
-                for attr in self.globalNameSpaceModule.__dict__.keys():
+                for attr in self.globalNameSpaceModule.__dict__:
                     if funcNameLook == attr.lower():
                         function = self.globalNameSpaceModule.__dict__[attr]
                         # cache back in scriptlets, to avoid this overhead next time
