@@ -322,7 +322,7 @@ class TIME_ZONE_INFORMATION(_SimpleStruct):
     ]
 
 
-class DYNAMIC_TIME_ZONE_INFORMATION(_SimpleStruct):
+class DYNAMIC_TIME_ZONE_INFORMATION(TIME_ZONE_INFORMATION):
     _fields_ = TIME_ZONE_INFORMATION._fields_ + [
         ("key_name", str),
         ("dynamic_daylight_time_disabled", bool),
@@ -340,10 +340,25 @@ class TimeZoneDefinition(DYNAMIC_TIME_ZONE_INFORMATION):
 
     def __init__(self, *args, **kwargs):
         """
+        >>> test_args = [1] * 44
+
         Try to construct a TimeZoneDefinition from
+
         a) [DYNAMIC_]TIME_ZONE_INFORMATION args
-        b) another TimeZoneDefinition
+        >>> TimeZoneDefinition(*test_args).bias
+        datetime.timedelta(seconds=60)
+
+        b) another TimeZoneDefinition or [DYNAMIC_]TIME_ZONE_INFORMATION
+        >>> TimeZoneDefinition(TimeZoneDefinition(*test_args)).bias
+        datetime.timedelta(seconds=60)
+        >>> TimeZoneDefinition(DYNAMIC_TIME_ZONE_INFORMATION(*test_args)).bias
+        datetime.timedelta(seconds=60)
+        >>> TimeZoneDefinition(TIME_ZONE_INFORMATION(*test_args)).bias
+        datetime.timedelta(seconds=60)
+
         c) a byte structure (using _from_bytes)
+        >>> TimeZoneDefinition(bytes(test_args)).bias
+        datetime.timedelta(days=11696, seconds=46140)
         """
         try:
             super().__init__(*args, **kwargs)
@@ -363,7 +378,7 @@ class TimeZoneDefinition(DYNAMIC_TIME_ZONE_INFORMATION):
         except TypeError:
             pass
 
-        raise TypeError("Invalid arguments for %s" % self.__class__)
+        raise TypeError(f"Invalid arguments for {self.__class__}")
 
     def __init_from_bytes(
         self,
@@ -395,7 +410,7 @@ class TimeZoneDefinition(DYNAMIC_TIME_ZONE_INFORMATION):
             raise TypeError("Not a TIME_ZONE_INFORMATION")
         for name in other.field_names():
             # explicitly get the value from the underlying structure
-            value = super(TimeZoneDefinition, other).__getattribute__(other, name)
+            value = super(TIME_ZONE_INFORMATION, other).__getattribute__(name)
             setattr(self, name, value)
         # consider instead of the loop above just copying the memory directly
         # size = max(ctypes.sizeof(DYNAMIC_TIME_ZONE_INFO), ctypes.sizeof(other))
@@ -604,12 +619,14 @@ class TimeZoneInfo(datetime.tzinfo):
             return
         del info["FirstEntry"]
         del info["LastEntry"]
-        years = map(int, list(info.keys()))
-        values = map(TimeZoneDefinition, list(info.values()))
+
+        infos = [
+            (int(year), TimeZoneDefinition(values)) for year, values in info.items()
+        ]
         # create a range mapping that searches by descending year and matches
         # if the target year is greater or equal.
         self.dynamicInfo = RangeMap(
-            zip(years, values),
+            infos,
             sort_params={"reverse": True},
             key_match_comparator=operator.ge,
         )
@@ -1002,7 +1019,7 @@ class RangeMap(dict):  # type: ignore[type-arg] # Source code is untyped :/ TODO
         self.match = key_match_comparator
 
     def __getitem__(self, item):
-        sorted_keys = sorted(self.keys(), **self.sort_params)
+        sorted_keys = sorted(self, **self.sort_params)
         if isinstance(item, RangeMap.Item):
             result = self.__getitem__(sorted_keys[item])
         else:
@@ -1018,6 +1035,7 @@ class RangeMap(dict):  # type: ignore[type-arg] # Source code is untyped :/ TODO
         If default is not given, it defaults to None, so that this method
         never raises a KeyError.
         """
+        # Necessary to use our own __getitem__ and not dict's
         try:
             return self[key]
         except KeyError:
@@ -1033,7 +1051,7 @@ class RangeMap(dict):  # type: ignore[type-arg] # Source code is untyped :/ TODO
         raise KeyError(item)
 
     def bounds(self):
-        sorted_keys = sorted(self.keys(), **self.sort_params)
+        sorted_keys = sorted(self, **self.sort_params)
         return (
             sorted_keys[RangeMap.first_item],
             sorted_keys[RangeMap.last_item],
