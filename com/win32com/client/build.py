@@ -18,6 +18,7 @@ dynamically, or possibly even generate .html documentation for objects.
 
 import datetime
 import string
+from itertools import chain
 from keyword import iskeyword
 
 import pythoncom
@@ -490,18 +491,20 @@ class VTableItem(DispatchItem):
         DispatchItem.Build(self, typeinfo, attr, bForUser)
         assert typeinfo is not None, "Can't build vtables without type info!"
 
-        meth_list = (
-            list(self.mapFuncs.values())
-            + list(self.propMapGet.values())
-            + list(self.propMapPut.values())
+        meth_list = sorted(
+            chain(
+                self.mapFuncs.values(),
+                self.propMapGet.values(),
+                self.propMapPut.values(),
+            ),
+            key=lambda m: m.desc[7],
         )
-        meth_list.sort(key=lambda m: m.desc[7])
 
         # Now turn this list into the run-time representation
         # (ready for immediate use or writing to gencache)
-        self.vtableFuncs = []
-        for entry in meth_list:
-            self.vtableFuncs.append((entry.names, entry.dispid, entry.desc))
+        self.vtableFuncs = [
+            (entry.names, entry.dispid, entry.desc) for entry in meth_list
+        ]
 
 
 # A Lazy dispatch item - builds an item on request using info from

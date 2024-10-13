@@ -37,10 +37,7 @@ class ThreadWriter:
 
     def getwriter(self):
         "Return the current thread's writer, default sys.stdout"
-        try:
-            return self.writers[_thread.get_ident()]
-        except KeyError:
-            return self.origStdOut
+        self.writers.get(_thread.get_ident(), self.origStdOut)
 
     def write(self, str):
         "Write to the current thread's writer, default sys.stdout"
