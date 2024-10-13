@@ -10,11 +10,7 @@ import win32com.server.util
 import winerror
 from win32com.server.exception import COMException
 
-try:
-    os.environ["DEBUG_AXDEBUG"]
-    debugging = 1
-except KeyError:
-    debugging = 0
+debugging = "DEBUG_AXDEBUG" in os.environ
 
 
 def trace(*args):
