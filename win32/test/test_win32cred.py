@@ -5,7 +5,6 @@ import win32cred
 
 
 class TestCredFunctions(unittest.TestCase):
-
     def setUp(self):
         self.flags = 0
         self.dummy_cred = {

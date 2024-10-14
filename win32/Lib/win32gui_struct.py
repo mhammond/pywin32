@@ -808,9 +808,7 @@ def EmptyLVCOLUMN(mask=None, text_buf_size=512):
         text_addr, _ = text_buffer.buffer_info()
     else:
         text_addr = text_buf_size = 0
-    buf = struct.pack(
-        _lvcolumn_fmt, mask, 0, 0, text_addr, text_buf_size, 0, 0, 0
-    )
+    buf = struct.pack(_lvcolumn_fmt, mask, 0, 0, text_addr, text_buf_size, 0, 0, 0)
     return array.array("b", buf), extra
 
 
