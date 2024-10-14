@@ -23,6 +23,7 @@ Hacks, to do, etc
 
 from __future__ import annotations
 
+import contextlib
 import glob
 import os
 import sys
@@ -34,6 +35,7 @@ import pythoncom
 import pywintypes
 import win32com
 import win32com.client
+import win32event
 
 from . import CLSIDToClass
 
@@ -131,6 +133,22 @@ def _LoadDicts():
         versionRedirectMap.clear()
     finally:
         f.close()
+
+
+@contextlib.contextmanager
+def ModuleMutex(module_name):
+    """Given the output of GetGeneratedFilename, acquire a named mutex for that module
+
+    This is required so that writes (generation) don't interfere with each other and with reads (import)
+    """
+    mutex = win32event.CreateMutex(None, False, module_name)
+    with contextlib.closing(mutex):
+        # acquire mutex
+        win32event.WaitForSingleObject(mutex, win32event.INFINITE)
+        try:
+            yield
+        finally:
+            win32event.ReleaseMutex(mutex)
 
 
 def GetGeneratedFileName(clsid, lcid, major, minor):
@@ -258,7 +276,8 @@ def GetModuleForCLSID(clsid):
         if sub_mod is not None:
             sub_mod_name = mod.__name__ + "." + sub_mod
             try:
-                __import__(sub_mod_name)
+                with ModuleMutex(mod.__name__.split(".")[-1]):
+                    __import__(sub_mod_name)
             except ImportError:
                 info = typelibCLSID, lcid, major, minor
                 # Force the generation.  If this typelibrary has explicitly been added,
@@ -730,7 +749,8 @@ def GetGeneratedInfos():
 def _GetModule(fname):
     """Given the name of a module in the gen_py directory, import and return it."""
     mod_name = "win32com.gen_py.%s" % fname
-    mod = __import__(mod_name)
+    with ModuleMutex(fname):
+        __import__(mod_name)
     return sys.modules[mod_name]
 
 
