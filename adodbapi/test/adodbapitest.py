@@ -33,7 +33,6 @@ import unittest
 
 import adodbapitestconfig as config  # run the configuration module. # will set sys.path to find correct version of adodbapi
 import tryconnection  # in our code below, all our switches are from config.whatever
-import win32com.client
 
 import adodbapi
 import adodbapi.apibase as api
@@ -1546,17 +1545,29 @@ class TestPythonDateTimeConverter(TimeConverterInterfaceTest):
         assert t1 < obj < t2, obj
 
 
-suites = [unittest.makeSuite(TestPythonDateTimeConverter, "test")]
+suites = [
+    unittest.defaultTestLoader.loadTestsFromModule(TestPythonDateTimeConverter, "test")
+]
 if config.doTimeTest:
-    suites.append(unittest.makeSuite(TestPythonTimeConverter, "test"))
+    suites.append(
+        unittest.defaultTestLoader.loadTestsFromModule(TestPythonTimeConverter, "test")
+    )
 if config.doAccessTest:
-    suites.append(unittest.makeSuite(TestADOwithAccessDB, "test"))
+    suites.append(
+        unittest.defaultTestLoader.loadTestsFromModule(TestADOwithAccessDB, "test")
+    )
 if config.doSqlServerTest:
-    suites.append(unittest.makeSuite(TestADOwithSQLServer, "test"))
+    suites.append(
+        unittest.defaultTestLoader.loadTestsFromModule(TestADOwithSQLServer, "test")
+    )
 if config.doMySqlTest:
-    suites.append(unittest.makeSuite(TestADOwithMySql, "test"))
+    suites.append(
+        unittest.defaultTestLoader.loadTestsFromModule(TestADOwithMySql, "test")
+    )
 if config.doPostgresTest:
-    suites.append(unittest.makeSuite(TestADOwithPostgres, "test"))
+    suites.append(
+        unittest.defaultTestLoader.loadTestsFromModule(TestADOwithPostgres, "test")
+    )
 
 
 class cleanup_manager:

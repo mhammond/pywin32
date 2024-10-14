@@ -1671,7 +1671,7 @@ BOOL PyCom_MakeOlePythonCall(PyObject *handler, DISPPARAMS FAR *params, VARIANT 
         argList = Py_BuildValue("OO", varArgs, addnlArgs);
         Py_DECREF(varArgs);
     }
-    PyObject *result = PyEval_CallObject(handler, argList);
+    PyObject *result = PyObject_CallObject(handler, argList);
     Py_XDECREF(argList);
     Py_XDECREF(namedArgList);
     // handlers reference cleaned up by virtual manager.

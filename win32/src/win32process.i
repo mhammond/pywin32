@@ -361,7 +361,7 @@ unsigned __stdcall ThreadEntryPoint( void *arg )
 {
 	CEnterLeavePython _celp;
 	PythonThreadData *ptd = (PythonThreadData *)arg;
-	PyObject *pyrc = PyEval_CallObject(ptd->m_obFunc, ptd->m_obArgs);
+	PyObject *pyrc = PyObject_CallObject(ptd->m_obFunc, ptd->m_obArgs);
 	delete ptd;
 	if (pyrc==NULL) {
 		fprintf(stderr, "Unhandled exception in beginthreadex created thread:\n");

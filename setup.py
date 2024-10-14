@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-build_id = "306"  # may optionally include a ".{patchno}" suffix.
+build_id = "308.1"  # may optionally include a ".{patchno}" suffix.
 
 __doc__ = """This is a distutils setup-script for the pywin32 extensions.
 
 The canonical source of truth for supported versions and build environments
-is [the github CI](https://github.com/mhammond/pywin32/tree/main/.github/workflows).
+is [the GitHub CI](https://github.com/mhammond/pywin32/tree/main/.github/workflows).
 
 To build and install locally for testing etc, you need a build environment
 which is capable of building the version of Python you are targeting, then:
@@ -61,12 +61,6 @@ pywin32_version = "%d.%d.%s" % (
     build_id_patch,
 )
 print("Building pywin32", pywin32_version)
-
-try:
-    sys.argv.remove("--skip-verstamp")
-    skip_verstamp = True
-except ValueError:
-    skip_verstamp = False
 
 try:
     this_file = __file__
@@ -319,8 +313,8 @@ class WinExt_win32com_mapi(WinExt_win32com):
         WinExt_win32com.__init__(self, name, **kw)
 
     def get_pywin32_dir(self):
-        # 'win32com.mapi.exchange' and 'win32com.mapi.exchdapi' currently only
-        # ones with this special requirement
+        # 'win32com.mapi.exchange' is currently the only
+        # one with this special requirement
         return "win32comext/mapi"
 
 
@@ -387,14 +381,7 @@ class my_build_ext(build_ext):
         self.swig_cpp = True  # hrm - deprecated - should use swig_opts=-c++??
 
     def _why_cant_build_extension(self, ext):
-        # Return None, or a reason it can't be built.
-        # Exclude exchange 32-bit utility libraries from 64-bit
-        # builds. Note that the exchange module now builds, but only
-        # includes interfaces for 64-bit builds.
-        if self.plat_name in ["win-amd64", "win-arm64"] and ext.name == "exchdapi":
-            return "No 64-bit library for utility functions available."
-        if ext.name == "exchdapi":
-            return "Haven't worked out how to build on vs2015"
+        """Return None, or a reason it can't be built."""
         # axdebug fails to build on 3.11 due to Python "frame" objects changing.
         # This could be fixed, but is almost certainly not in use any more, so
         # just skip it.
@@ -833,21 +820,17 @@ class my_build_ext(build_ext):
             else:
                 swig_cmd.append("-DSWIG_PY32BIT")
             target = swig_targets[source]
-            try:
-                interface_parent = swig_interface_parents[
-                    os.path.basename(os.path.splitext(source)[0])
-                ]
-            except KeyError:
-                # "normal" swig file - no special win32 issues.
-                pass
-            else:
-                # Using win32 extensions to SWIG for generating COM classes.
-                if interface_parent is not None:
-                    # generating a class, not a module.
-                    swig_cmd.append("-pythoncom")
-                    if interface_parent:
-                        # A class deriving from other than the default
-                        swig_cmd.extend(["-com_interface_parent", interface_parent])
+            interface_parent = swig_interface_parents.get(
+                os.path.basename(os.path.splitext(source)[0]),
+                None,  # "normal" swig file - no special win32 issues.
+            )
+            # Using win32 extensions to SWIG for generating COM classes.
+            if interface_parent is not None:
+                # generating a class, not a module.
+                swig_cmd.append("-pythoncom")
+                if interface_parent:
+                    # A class deriving from other than the default
+                    swig_cmd.extend(["-com_interface_parent", interface_parent])
 
             # This 'newer' check helps Python 2.2 builds, which otherwise
             # *always* regenerate the .cpp files, meaning every future
@@ -985,35 +968,18 @@ class my_compiler(MSVCCompiler):
         # target.  Do this externally to avoid suddenly dragging in the
         # modules needed by this process, and which we will soon try and
         # update.
-        # Further, we don't really want to use sys.executable, because that
-        # means the build environment must have a current pywin32 installed
-        # in every version, which is a bit of a burden only for this.
-        # So we assume the "default" Python version (ie, the version run by
-        # py.exe) has pywin32 installed.
-        # (This creates a chicken-and-egg problem though! We used to work around
-        # this by ignoring failure to verstamp, but that's easy to miss. So now
-        # allow --skip-verstamp on the cmdline - but if it's not there, the
-        # verstamp must work.)
-        if not skip_verstamp:
-            args = ["py.exe", "-m", "win32verstamp"]
-            args.append(f"--version={pywin32_version}")
-            args.append("--comments=https://github.com/mhammond/pywin32")
-            args.append(f"--original-filename={os.path.basename(output_filename)}")
-            args.append("--product=PyWin32")
-            if "-v" not in sys.argv:
-                args.append("--quiet")
-            args.append(output_filename)
-            try:
-                self.spawn(args)
-            except Exception:
-                print("** Failed to versionstamp the binaries.")
-                # py.exe is not yet available for windows-arm64 so version stamp will fail
-                # ignore it for now
-                if platform.machine() != "ARM64":
-                    print(
-                        "** If you want to skip this step, pass '--skip-verstamp' on the setup.py command-line"
-                    )
-                    raise
+        args = [
+            sys.executable,
+            # NOTE: On Python 3.7, all args must be str
+            str(Path(__file__).parent / "win32" / "Lib" / "win32verstamp.py"),
+            f"--version={pywin32_version}",
+            "--comments=https://github.com/mhammond/pywin32",
+            f"--original-filename={os.path.basename(output_filename)}",
+            "--product=PyWin32",
+            "--quiet" if "-v" not in sys.argv else "",
+            output_filename,
+        ]
+        self.spawn(args)
 
     # Work around bpo-36302/bpo-42009 - it sorts sources but this breaks
     # support for building .mc files etc :(
@@ -1574,7 +1540,7 @@ com_extensions = [
         "mapi",
         libraries="advapi32",
         pch_header="PythonCOM.h",
-        include_dirs=["{mapi}/mapi_headers".format(**dirs)],
+        include_dirs=["{mapi}/MapiStubLibrary/include".format(**dirs)],
         sources=(
             """
                         {mapi}/mapi.i                 {mapi}/mapi.cpp
@@ -1600,8 +1566,8 @@ com_extensions = [
                         {mapi}/PyIMAPIAdviseSink.cpp
                         {mapi}/mapiutil.cpp
                         {mapi}/mapiguids.cpp
-                        {mapi}/mapi_stub_library/MapiStubLibrary.cpp
-                        {mapi}/mapi_stub_library/StubUtils.cpp
+                        {mapi}/MAPIStubLibrary/library/mapiStubLibrary.cpp
+                        {mapi}/MAPIStubLibrary/library/stubutils.cpp
                         """.format(
                 **dirs
             )
@@ -1610,7 +1576,7 @@ com_extensions = [
     WinExt_win32com_mapi(
         "exchange",
         libraries="advapi32 legacy_stdio_definitions",
-        include_dirs=["{mapi}/mapi_headers".format(**dirs)],
+        include_dirs=["{mapi}/MapiStubLibrary/include".format(**dirs)],
         sources=(
             """
                                   {mapi}/exchange.i         {mapi}/exchange.cpp
@@ -1618,22 +1584,8 @@ com_extensions = [
                                   {mapi}/PyIExchangeManageStoreEx.i {mapi}/PyIExchangeManageStoreEx.cpp
                                   {mapi}/mapiutil.cpp
                                   {mapi}/exchangeguids.cpp
-                                  {mapi}/mapi_stub_library/MapiStubLibrary.cpp
-                                  {mapi}/mapi_stub_library/StubUtils.cpp
-                                  """.format(
-                **dirs
-            )
-        ).split(),
-    ),
-    WinExt_win32com_mapi(
-        "exchdapi",
-        libraries="advapi32",
-        include_dirs=["{mapi}/mapi_headers".format(**dirs)],
-        sources=(
-            """
-                                  {mapi}/exchdapi.i         {mapi}/exchdapi.cpp
-                                  {mapi}/mapi_stub_library/MapiStubLibrary.cpp
-                                  {mapi}/mapi_stub_library/StubUtils.cpp
+                                  {mapi}/MAPIStubLibrary/library/mapiStubLibrary.cpp
+                                  {mapi}/MAPIStubLibrary/library/stubutils.cpp
                                   """.format(
                 **dirs
             )
@@ -2068,9 +2020,7 @@ swig_interface_parents = {
     "PyIProfAdmin": "",
     "PyIProfSect": "IMAPIProp",
     "PyIConverterSession": "",
-    # exchange and exchdapi
-    "exchange": None,
-    "exchdapi": None,
+    "exchange": None,  # mapi module
     "PyIExchangeManageStore": "",
     "PyIExchangeManageStoreEx": "",
     # ADSI
@@ -2207,6 +2157,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: Implementation :: CPython",
 ]
 
@@ -2375,7 +2326,7 @@ if "build_ext" in dist.command_obj:
     # Print the list of extension modules we skipped building.
     excluded_extensions = dist.command_obj["build_ext"].excluded_extensions
     if excluded_extensions:
-        skip_whitelist = {"exchdapi", "exchange", "axdebug"}
+        skip_whitelist = {"exchange", "axdebug"}
         skipped_ex = []
         print("*** NOTE: The following extensions were NOT %s:" % what_string)
         for ext, why in excluded_extensions:
