@@ -30,7 +30,6 @@ import sys
 import pythoncom
 from win32com import universal
 from win32com.client import DispatchWithEvents, constants, gencache
-from win32com.server.exception import COMException
 
 # Support for COM objects we use.
 gencache.EnsureModule(
@@ -124,7 +123,7 @@ def UnregisterAddin(klass):
             winreg.HKEY_CURRENT_USER,
             "Software\\Microsoft\\Office\\Outlook\\Addins\\" + klass._reg_progid_,
         )
-    except WindowsError:
+    except OSError:
         pass
 
 

@@ -43,10 +43,9 @@ WIN32_SOURCE = $(WIN32_SOURCE_DIR)/*.cpp \
 	  $(WIN32_SOURCE_DIR)/win32crypt/*.cpp \
 	  $(GENDIR)/win32evtlog.d $(GENDIR)/win32event.d $(GENDIR)/win32file.d \
 	  $(GENDIR)/win32service.d $(GENDIR)/win32pipe.d $(GENDIR)/win32security.d \
-	  $(GENDIR)/win32process.d $(GENDIR)/wincerapi.d $(GENDIR)/win32gui.d \
+	  $(GENDIR)/win32process.d $(GENDIR)/win32gui.d \
 	  $(GENDIR)/win32inet.d $(GENDIR)/_winxptheme.d \
 	  $(GENDIR)/win32job.d \
-	  winxpgui.d
 
 WIN32COM_SOURCE = \
 	  $(WIN32COM_DIR)\src\*.cpp \
@@ -83,7 +82,6 @@ WIN32COM_SOURCE = \
 	  $(GENDIR)\PyIProfAdmin.d \
 	  $(GENDIR)\PyIProfSect.d \
 	  $(GENDIR)\exchange.d \
-	  $(GENDIR)\exchdapi.d \
 	  $(ADSI_DIR)\src\*.cpp \
 	  $(GENDIR)\adsi.d \
 	  $(GENDIR)\PyIADsContainer.d \
@@ -126,7 +124,7 @@ $(GENDIR)\sspi.d: py2d.py pseudo
 $(GENDIR)\win32timezone.d: py2d.py pseudo
     $(PYTHON) py2d.py win32timezone > $(GENDIR)\win32timezone.d
 
-"$(GENDIR)\$(TARGET).hhc" : $(SOURCE) Dump2HHC.py $(DOCUMENT_FILE) 
+"$(GENDIR)\$(TARGET).hhc" : $(SOURCE) Dump2HHC.py $(DOCUMENT_FILE)
     rem Run autoduck over each category so we can create a nested TOC.
     $(ADHTMLFMT) /r html "/O$(GENDIR)\temp.html" "/G$(GENDIR)\win32.dump" /t8 $(WIN32_SOURCE)
     $(ADHTMLFMT) /r html "/O$(GENDIR)\temp.html" "/G$(GENDIR)\pythonwin.dump" /t8 $(PYTHONWIN_SOURCE)
@@ -140,7 +138,7 @@ $(GENDIR)\win32timezone.d: py2d.py pseudo
 ##
 $(GENDIR)/win32inet.d: $(WIN32_SOURCE_DIR)/win32inet.i
 	$(PYTHON) makedfromi.py -o$*.d $(WIN32_SOURCE_DIR)/$(*B).i
-    
+
 $(GENDIR)/win32file.d: $(WIN32_SOURCE_DIR)/win32file.i
 	$(PYTHON) makedfromi.py -o$*.d $(WIN32_SOURCE_DIR)/$(*B).i
 
@@ -160,9 +158,6 @@ $(GENDIR)/win32security.d: $(WIN32_SOURCE_DIR)/$(*B).i
 	$(PYTHON) makedfromi.py -o$*.d $(WIN32_SOURCE_DIR)/$(*B).i
 
 $(GENDIR)/win32process.d: $(WIN32_SOURCE_DIR)/$(*B).i
-	$(PYTHON) makedfromi.py -o$*.d $(WIN32_SOURCE_DIR)/$(*B).i
-
-$(GENDIR)/wincerapi.d: $(WIN32_SOURCE_DIR)/$(*B).i
 	$(PYTHON) makedfromi.py -o$*.d $(WIN32_SOURCE_DIR)/$(*B).i
 
 $(GENDIR)/win32gui.d: $(WIN32_SOURCE_DIR)/$(*B).i
@@ -235,10 +230,6 @@ $(GENDIR)\PyIProfSect.d: $(MAPI_DIR)/src/$(*B).i
 $(GENDIR)\exchange.d: $(MAPI_DIR)/src/$(*B).i
 	$(PYTHON) makedfromi.py -o$*.d $(MAPI_DIR)/src/$(*B).i
 
-# Exchange stuff.
-$(GENDIR)\exchdapi.d: $(MAPI_DIR)/src/$(*B).i
-	$(PYTHON) makedfromi.py -o$*.d $(MAPI_DIR)/src/$(*B).i
-
 # ADSI
 $(GENDIR)\adsi.d: $(ADSI_DIR)/src/$(*B).i
 	$(PYTHON) makedfromi.py -o$*.d $(ADSI_DIR)/src/$(*B).i
@@ -259,4 +250,3 @@ $(GENDIR)\PyIDsObjectPicker.d: $(ADSI_DIR)/src/$(*B).i
 	$(PYTHON) makedfromi.py -o$*.d -p PyIUnknown $(ADSI_DIR)/src/$(*B).i
 
 !include "common.mak"
-

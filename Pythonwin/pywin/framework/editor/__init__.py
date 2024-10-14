@@ -2,12 +2,9 @@
 #
 # We used to support optional editors - eg, color or non-color.
 #
-# This really isnt necessary with Scintilla, and scintilla
+# This really isn't necessary with Scintilla, and scintilla
 # is getting so deeply embedded that it was too much work.
 
-import sys
-
-import win32con
 import win32ui
 
 defaultCharacterFormat = (-402653169, 0, 200, 0, 0, 0, 49, "Courier New")
@@ -48,7 +45,7 @@ def LoadDefaultEditor():
 ##			del rc
 ##
 ##	try:
-##		# Try and load the default one - dont catch errors here.
+##		# Try and load the default one - don't catch errors here.
 ##		if mod is None:
 ##			prefModule = "pywin.framework.editor.color.coloreditor"
 ##			mod = __import__(prefModule)
@@ -103,4 +100,6 @@ def SetEditorFontOption(option, newValue):
     SetEditorOption(option, str(newValue))
 
 
-from pywin.framework.editor.color.coloreditor import editorTemplate
+from pywin.framework.editor.color.coloreditor import (  # nopycln: import
+    editorTemplate as editorTemplate,  # Adds doc template & Re-export
+)

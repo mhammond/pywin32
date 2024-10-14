@@ -6,8 +6,7 @@ import win32con
 import win32evtlog
 import winerror
 
-error = win32api.error  # The error the evtlog module raises.
-
+error = win32api.error  # Re-exported alias (The error the evtlog module raises).
 langid = win32api.MAKELANGID(win32con.LANG_NEUTRAL, win32con.SUBLANG_NEUTRAL)
 
 
@@ -43,8 +42,7 @@ def AddSourceToRegistry(
     # Create a new key for our application
     hkey = win32api.RegCreateKey(
         win32con.HKEY_LOCAL_MACHINE,
-        "SYSTEM\\CurrentControlSet\\Services\\EventLog\\%s\\%s"
-        % (eventLogType, appName),
+        f"SYSTEM\\CurrentControlSet\\Services\\EventLog\\{eventLogType}\\{appName}",
     )
 
     # Add the Event-ID message-file name to the subkey.
@@ -100,8 +98,7 @@ def RemoveSourceFromRegistry(appName, eventLogType="Application"):
     try:
         win32api.RegDeleteKey(
             win32con.HKEY_LOCAL_MACHINE,
-            "SYSTEM\\CurrentControlSet\\Services\\EventLog\\%s\\%s"
-            % (eventLogType, appName),
+            f"SYSTEM\\CurrentControlSet\\Services\\EventLog\\{eventLogType}\\{appName}",
         )
     except win32api.error as exc:
         if exc.winerror != winerror.ERROR_FILE_NOT_FOUND:
@@ -148,7 +145,7 @@ def FormatMessage(eventLogRecord, logType="Application"):
     # key to look under for the name of the message DLL that contains
     # the messages we need to extract with FormatMessage. So first get
     # the event log source name...
-    keyName = "SYSTEM\\CurrentControlSet\\Services\\EventLog\\%s\\%s" % (
+    keyName = "SYSTEM\\CurrentControlSet\\Services\\EventLog\\{}\\{}".format(
         logType,
         eventLogRecord.SourceName,
     )

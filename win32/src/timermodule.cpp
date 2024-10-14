@@ -9,7 +9,7 @@
 // @doc - Contains autoduck comments for documentation
 
 #include "pywintypes.h"
-//#include "abstract.h"
+// #include "abstract.h"
 
 static PyObject *timer_id_callback_map = NULL;
 
@@ -34,7 +34,7 @@ VOID CALLBACK py_win32_timer_callback(HWND hwnd, UINT msg, UINT_PTR timer_id, DW
     // the callback itself removes the function from the map.
     Py_INCREF(callback_function);
     PyObject *callback_args = Py_BuildValue("(Ok)", py_timer_id, time);
-    PyObject *result = PyEval_CallObject(callback_function, callback_args);
+    PyObject *result = PyObject_CallObject(callback_function, callback_args);
 
     if (!result) {
         // Is this necessary, or will python already have flagged

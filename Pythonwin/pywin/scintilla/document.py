@@ -13,8 +13,8 @@ crlf_bytes = b"\r\n"
 lf_bytes = b"\n"
 
 # re from pep263 - but we use it both on bytes and strings.
-re_encoding_bytes = re.compile(b"coding[:=]\s*([-\w.]+)")
-re_encoding_text = re.compile("coding[:=]\s*([-\w.]+)")
+re_encoding_bytes = re.compile(rb"coding[:=]\s*([-\w.]+)")
+re_encoding_text = re.compile(r"coding[:=]\s*([-\w.]+)")
 
 ParentScintillaDocument = docview.Document
 
@@ -37,7 +37,7 @@ class CScintillaDocument(ParentScintillaDocument):
 
     def OnOpenDocument(self, filename):
         # init data members
-        # print "Opening", filename
+        # print("Opening", filename)
         self.SetPathName(filename)  # Must set this early!
         try:
             # load the text as binary we can get smart
@@ -47,7 +47,7 @@ class CScintillaDocument(ParentScintillaDocument):
                 self._LoadTextFromFile(f)
             finally:
                 f.close()
-        except IOError:
+        except OSError:
             rc = win32ui.MessageBox(
                 "Could not load the file from %s\n\nDo you want to create a new file?"
                 % filename,
@@ -63,7 +63,7 @@ class CScintillaDocument(ParentScintillaDocument):
                     self._LoadTextFromFile(f)
                 finally:
                     f.close()
-            except IOError as e:
+            except OSError as e:
                 rc = win32ui.MessageBox("Cannot create the file %s" % filename)
         return 1
 
@@ -151,7 +151,7 @@ class CScintillaDocument(ParentScintillaDocument):
         if view.IsWindow():
             # Turn off undo collection while loading
             view.SendScintilla(scintillacon.SCI_SETUNDOCOLLECTION, 0, 0)
-            # Make sure the control isnt read-only
+            # Make sure the control isn't read-only
             view.SetReadOnly(0)
             view.SendScintilla(scintillacon.SCI_CLEARALL)
             view.SendMessage(scintillacon.SCI_ADDTEXT, text)
@@ -168,7 +168,7 @@ class CScintillaDocument(ParentScintillaDocument):
                 source_encoding = self.source_encoding
             else:
                 # no BOM - look for an encoding.
-                bits = re.split("[\r\n]+", s, 3)
+                bits = re.split(r"[\r\n]+", s, 3)
                 for look in bits[:-1]:
                     match = re_encoding_text.search(look)
                     if match is not None:
@@ -240,7 +240,7 @@ class CScintillaDocument(ParentScintillaDocument):
 
     def MarkerCheck(self, lineNo, marker):
         v = self.GetEditorView()
-        lineNo = lineNo - 1  # Make 0 based
+        lineNo -= 1  # Make 0 based
         markerState = v.SCIMarkerGet(lineNo)
         return markerState & (1 << marker) != 0
 

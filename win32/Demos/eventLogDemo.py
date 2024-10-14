@@ -9,7 +9,7 @@ def ReadLog(computer, logType="Application", dumpEachRecord=0):
     # read the entire log back.
     h = win32evtlog.OpenEventLog(computer, logType)
     numRecords = win32evtlog.GetNumberOfEventLogRecords(h)
-    #       print "There are %d records" % numRecords
+    # print(f"There are {numRecords} records")
 
     num = 0
     while 1:
@@ -21,23 +21,24 @@ def ReadLog(computer, logType="Application", dumpEachRecord=0):
         if not objects:
             break
         for object in objects:
-            # get it for testing purposes, but dont print it.
+            # get it for testing purposes, but don't print it.
             msg = win32evtlogutil.SafeFormatMessage(object, logType)
             if object.Sid is not None:
                 try:
                     domain, user, typ = win32security.LookupAccountSid(
                         computer, object.Sid
                     )
-                    sidDesc = "%s/%s" % (domain, user)
+                    sidDesc = f"{domain}/{user}"
                 except win32security.error:
                     sidDesc = str(object.Sid)
-                user_desc = "Event associated with user %s" % (sidDesc,)
+                user_desc = f"Event associated with user {sidDesc}"
             else:
                 user_desc = None
             if dumpEachRecord:
                 print(
-                    "Event record from %r generated at %s"
-                    % (object.SourceName, object.TimeGenerated.Format())
+                    "Event record from {!r} generated at {}".format(
+                        object.SourceName, object.TimeGenerated.Format()
+                    )
                 )
                 if user_desc:
                     print(user_desc)
@@ -47,7 +48,7 @@ def ReadLog(computer, logType="Application", dumpEachRecord=0):
                     print("(unicode error printing message: repr() follows...)")
                     print(repr(msg))
 
-        num = num + len(objects)
+        num += len(objects)
 
     if numRecords == num:
         print("Successfully read all", numRecords, "records")
@@ -63,8 +64,8 @@ def ReadLog(computer, logType="Application", dumpEachRecord=0):
 
 def usage():
     print("Writes an event to the event log.")
-    print("-w : Dont write any test records.")
-    print("-r : Dont read the event log")
+    print("-w : Don't write any test records.")
+    print("-r : Don't read the event log")
     print("-c : computerName : Process the log on the specified computer")
     print("-v : Verbose")
     print("-t : LogType - Use the specified log - default = 'Application'")
@@ -103,7 +104,7 @@ def test():
         if opt == "-w":
             do_write = 0
         if opt == "-v":
-            verbose = verbose + 1
+            verbose += 1
     if do_write:
         ph = win32api.GetCurrentProcess()
         th = win32security.OpenProcessToken(ph, win32con.TOKEN_READ)

@@ -2,34 +2,42 @@
 
  This contains the core exceptions that the implementations should raise
  as well as the IActiveScriptError interface code.
- 
 """
 
+from __future__ import annotations
+
 import re
-import sys
 import traceback
+import warnings
+from types import TracebackType
+from typing import TYPE_CHECKING
 
 import pythoncom
-import win32com.server.exception
 import win32com.server.util
 import winerror
 from win32com.axscript import axscript
+from win32com.server.exception import COMException
+
+if TYPE_CHECKING:
+    from win32comext.axscript.client.debug import DebugManager
+    from win32comext.axscript.client.framework import AXScriptCodeBlock, COMScript
+    from win32comext.axscript.server.axsite import AXSite
 
 debugging = 0
 
 
-def FormatForAX(text):
+def FormatForAX(text: str):
     """Format a string suitable for an AX Host"""
     # Replace all " with ', so it works OK in HTML (ie, ASP)
     return ExpandTabs(AddCR(text))
 
 
-def ExpandTabs(text):
-    return re.sub("\t", "    ", text)
+def ExpandTabs(text: str):
+    return re.sub(r"\t", "    ", text)
 
 
-def AddCR(text):
-    return re.sub("\n", "\r\n", text)
+def AddCR(text: str):
+    return re.sub(r"\n", "\r\n", text)
 
 
 class IActiveScriptError:
@@ -47,7 +55,7 @@ class IActiveScriptError:
         print("IActiveScriptError QI - unknown IID", iid)
         return 0
 
-    def _SetExceptionInfo(self, exc):
+    def _SetExceptionInfo(self, exc: AXScriptException):
         self.exception = exc
 
     def GetSourceLineText(self):
@@ -66,7 +74,7 @@ class IActiveScriptError:
         return self.exception
 
 
-class AXScriptException(win32com.server.exception.COMException):
+class AXScriptException(COMException):
     """A class used as a COM exception.
 
     Note this has attributes which conform to the standard attributes
@@ -74,14 +82,26 @@ class AXScriptException(win32com.server.exception.COMException):
     object.
     """
 
-    def __init__(self, site, codeBlock, exc_type, exc_value, exc_traceback):
+    def __init__(
+        self,
+        site: COMScript,
+        codeBlock: AXScriptCodeBlock | None,
+        exc_type: None = None,
+        exc_value: BaseException | None = None,
+        exc_traceback: None = None,
+    ):
         # set properties base class shares via base ctor...
-        win32com.server.exception.COMException.__init__(
-            self,
+        super().__init__(
             description="Unknown Exception",
             scode=winerror.DISP_E_EXCEPTION,
             source="Python ActiveX Scripting Engine",
         )
+
+        if exc_type is not None or exc_traceback is not None:
+            warnings.warn(
+                "`exc_type` and `exc_traceback` were redundant and are now unused.",
+                category=DeprecationWarning,
+            )
 
         # And my other values...
         if codeBlock is None:
@@ -92,48 +112,38 @@ class AXScriptException(win32com.server.exception.COMException):
             self.startLineNo = codeBlock.startLineNumber
         self.linetext = ""
 
-        self.__BuildFromException(site, exc_type, exc_value, exc_traceback)
+        self.__BuildFromException(site, exc_value)
 
-    def __BuildFromException(self, site, type, value, tb):
+    def __BuildFromException(self, site: COMScript, value: BaseException | None):
         if debugging:
             import linecache
 
             linecache.clearcache()
         try:
-            if issubclass(type, SyntaxError):
-                self._BuildFromSyntaxError(site, value, tb)
+            if isinstance(value, SyntaxError):
+                self._BuildFromSyntaxError(value)
             else:
-                self._BuildFromOther(site, type, value, tb)
+                self._BuildFromOther(site, value)
         except:  # Error extracting traceback info!!!
             traceback.print_exc()
             # re-raise.
             raise
 
-    def _BuildFromSyntaxError(self, site, exc, tb):
-        value = exc.args
-        # All syntax errors should have a message as element 0
-        try:
-            msg = value[0]
-        except:
-            msg = "Unknown Error (%s)" % (value,)
-        try:
-            (filename, lineno, offset, line) = value[1]
-            # Some of these may be None, which upsets us!
-            if offset is None:
-                offset = 0
-            if line is None:
-                line = ""
-        except:
-            msg = "Unknown"
-            lineno = 0
-            offset = 0
-            line = "Unknown"
+    def _BuildFromSyntaxError(self, exc: SyntaxError):
+        # Some of these may be None, which upsets us!
+        msg = exc.msg or "Unknown Error"
+        offset = exc.offset or 0
+        line = exc.text or ""
+        lineno = exc.lineno or 0
+
         self.description = FormatForAX(msg)
         self.lineno = lineno
         self.colno = offset - 1
         self.linetext = ExpandTabs(line.rstrip())
 
-    def _BuildFromOther(self, site, exc_type, value, tb):
+    def _BuildFromOther(self, site: COMScript, value: BaseException | None):
+        tb = value.__traceback__ if value else None
+        exc_type = type(value) if value else None
         self.colno = -1
         self.lineno = 0
         if debugging:  # Full traceback if debugging.
@@ -148,7 +158,6 @@ class AXScriptException(win32com.server.exception.COMException):
             "r_reload",
             "r_open",
         ]  # hide from these functions down in the traceback.
-        depth = None
         tb_top = tb
         while tb_top:
             filename, lineno, name, line = self.ExtractTracebackInfo(tb_top, site)
@@ -157,8 +166,7 @@ class AXScriptException(win32com.server.exception.COMException):
             tb_top = tb_top.tb_next
         format_items = []
         if tb_top:  # found one.
-            depth = 0
-            tb_look = tb_top
+            tb_look: TracebackType | None = tb_top
             # Look down for our bottom
             while tb_look:
                 filename, lineno, name, line = self.ExtractTracebackInfo(tb_look, site)
@@ -171,16 +179,14 @@ class AXScriptException(win32com.server.exception.COMException):
                     self.lineno = lineno
                     self.linetext = line
                 format_items.append((filename, lineno, name, line))
-                depth = depth + 1
                 tb_look = tb_look.tb_next
         else:
-            depth = None
             tb_top = tb
 
         bits = ["Traceback (most recent call last):\n"]
         bits.extend(traceback.format_list(format_items))
-        if exc_type == pythoncom.com_error:
-            desc = "%s (0x%x)" % (value.strerror, value.hresult)
+        if isinstance(value, pythoncom.com_error):
+            desc = f"{value.strerror} (0x{value.hresult:x})"
             if (
                 value.hresult == winerror.DISP_E_EXCEPTION
                 and value.excepinfo
@@ -191,39 +197,18 @@ class AXScriptException(win32com.server.exception.COMException):
         else:
             bits.extend(traceback.format_exception_only(exc_type, value))
 
-        # XXX - this utf8 encoding seems bogus.  From well before py3k,
-        # we had the comment:
-        # > all items in the list are utf8 courtesy of Python magically
-        # > converting unicode to utf8 before compilation.
-        # but that is likely just confusion from early unicode days;
-        # Python isn't doing it, pywin32 probably was, so 'mbcs' would
-        # be the default encoding.  We should never hit this these days
-        # anyway, but on py3k, we *never* will, and str objects there
-        # don't have a decode method...
-        if sys.version_info < (3,):
-            for i in range(len(bits)):
-                if type(bits[i]) is str:
-                    # assert type(bits[i]) is str, type(bits[i])
-                    bits[i] = bits[i].decode("utf8")
-
         self.description = ExpandTabs("".join(bits))
-        # Clear tracebacks etc.
-        tb = tb_top = tb_look = None
 
-    def ExtractTracebackInfo(self, tb, site):
+    def ExtractTracebackInfo(self, tb: TracebackType, site: COMScript):
         import linecache
 
-        f = tb.tb_frame
         lineno = tb.tb_lineno
-        co = f.f_code
+        co = tb.tb_frame.f_code
         filename = co.co_filename
         name = co.co_name
-        line = linecache.getline(filename, lineno)
+        line: str | None = linecache.getline(filename, lineno)
         if not line:
-            try:
-                codeBlock = site.scriptCodeBlocks[filename]
-            except KeyError:
-                codeBlock = None
+            codeBlock = site.scriptCodeBlocks.get(filename)
             if codeBlock:
                 # Note: 'line' will now be unicode.
                 line = codeBlock.GetLineNo(lineno)
@@ -237,7 +222,11 @@ class AXScriptException(win32com.server.exception.COMException):
         return "AXScriptException Object with description:" + self.description
 
 
-def ProcessAXScriptException(scriptingSite, debugManager, exceptionInstance):
+def ProcessAXScriptException(
+    scriptingSite: AXSite,
+    debugManager: DebugManager,
+    exceptionInstance: AXScriptException,
+):
     """General function to handle any exception in AX code
 
     This function creates an instance of our IActiveScriptError interface, and
@@ -245,7 +234,7 @@ def ProcessAXScriptException(scriptingSite, debugManager, exceptionInstance):
     likely call back on the IActiveScriptError interface to get the source text
     and other information not normally in COM exceptions.
     """
-    # 	traceback.print_exc()
+    # traceback.print_exc()
     instance = IActiveScriptError()
     instance._SetExceptionInfo(exceptionInstance)
     gateway = win32com.server.util.wrap(instance, axscript.IID_IActiveScriptError)
@@ -265,7 +254,7 @@ def ProcessAXScriptException(scriptingSite, debugManager, exceptionInstance):
     if result == winerror.S_OK:
         # If the above  returns NOERROR, it is assumed the error has been
         # correctly registered and the value SCRIPT_E_REPORTED is returned.
-        ret = win32com.server.exception.COMException(scode=axscript.SCRIPT_E_REPORTED)
+        ret = COMException(scode=axscript.SCRIPT_E_REPORTED)
         return ret
     else:
         # The error is taken to be unreported and is propagated up the call stack

@@ -4,16 +4,11 @@
 # It is not comlpete yet, but it _does_ show an Excel spreadsheet in a frame!
 #
 
-import regutil
 import win32con
 import win32ui
 import win32uiole
 from pywin.mfc import activex, docview, object, window
 from win32com.client import gencache
-
-# WordModule = gencache.EnsureModule('{00020905-0000-0000-C000-000000000046}', 1033, 8, 0)
-# if WordModule is None:
-# 	raise ImportError, "Microsoft Word version 8 does not appear to be installed."
 
 
 class OleClientItem(object.CmdTarget):
@@ -93,7 +88,7 @@ class ExcelView(docview.ScrollView):
             wnd = item.GetInPlaceWindow()
             if wnd is not None:
                 wnd.SetFocus()
-            return 0  # Dont get the base version called.
+            return 0  # Don't get the base version called.
         return 1  # Call the base version.
 
     def OnSize(self, params):
@@ -120,9 +115,20 @@ class WordFrame(window.MDIChildWnd):
     def __init__(self, doc=None):
         self._obj_ = win32ui.CreateMDIChild()
         self._obj_.AttachObject(self)
-        # Dont call base class doc/view version...
+        # Don't call base class doc/view version...
 
     def Create(self, title, rect=None, parent=None):
+        WordModule = gencache.EnsureModule(
+            "{00020905-0000-0000-C000-000000000046}", 1033, 8, 0
+        )
+        if WordModule is None:
+            raise ImportError(
+                "Microsoft Word version 8 does not appear to be installed."
+            )
+
+        # WordModule.Word doesn't exist in WordModule, WordModule.Words does, but CreateControl still fails
+        class MyWordControl(activex.Control, WordModule.Word): ...
+
         style = win32con.WS_CHILD | win32con.WS_VISIBLE | win32con.WS_OVERLAPPEDWINDOW
         self._obj_.CreateWindow(None, title, style, rect, parent)
 
@@ -142,11 +148,12 @@ def Demo():
     docName = None
     if len(sys.argv) > 1:
         docName = win32api.GetFullPathName(sys.argv[1])
-    OleTemplate().OpenDocumentFile(None)
+    OleTemplate().OpenDocumentFile(docName)
 
+    # ActiveX not currently working
+    # f = WordFrame(docName)
+    # f.Create("Microsoft Office")
 
-# 	f = WordFrame(docName)
-# 	f.Create("Microsoft Office")
 
 if __name__ == "__main__":
     Demo()

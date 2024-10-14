@@ -2,12 +2,13 @@
 
   A collection of helpers for server side connection points.
 """
+
 import pythoncom
 import win32com.server.util
 import winerror
 from win32com import olectl
 
-from .exception import Exception
+from .exception import COMException
 
 # Methods implemented by the interfaces.
 IConnectionPointContainer_methods = ["EnumConnectionPoints", "FindConnectionPoint"]
@@ -34,10 +35,10 @@ class ConnectableServer:
 
     # IConnectionPoint interfaces
     def EnumConnections(self):
-        raise Exception(winerror.E_NOTIMPL)
+        raise COMException(winerror.E_NOTIMPL)
 
     def GetConnectionInterface(self):
-        raise Exception(winerror.E_NOTIMPL)
+        raise COMException(winerror.E_NOTIMPL)
 
     def GetConnectionPointContainer(self):
         return win32com.server.util.wrap(self)
@@ -50,8 +51,8 @@ class ConnectableServer:
                 self._connect_interfaces_[0], pythoncom.IID_IDispatch
             )
         except pythoncom.com_error:
-            raise Exception(scode=olectl.CONNECT_E_NOCONNECTION)
-        self.cookieNo = self.cookieNo + 1
+            raise COMException(scode=olectl.CONNECT_E_NOCONNECTION)
+        self.cookieNo += 1
         self.connections[self.cookieNo] = interface
         return self.cookieNo
 
@@ -60,11 +61,11 @@ class ConnectableServer:
         try:
             del self.connections[cookie]
         except KeyError:
-            raise Exception(scode=winerror.E_UNEXPECTED)
+            raise COMException(scode=winerror.E_UNEXPECTED)
 
     # IConnectionPointContainer interfaces
     def EnumConnectionPoints(self):
-        raise Exception(winerror.E_NOTIMPL)
+        raise COMException(winerror.E_NOTIMPL)
 
     def FindConnectionPoint(self, iid):
         # Find a connection we support.  Only support the single event interface.

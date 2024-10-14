@@ -7,7 +7,7 @@ from pywin.tools import hierlist
 
 
 # directory listbox
-# This has obvious limitations - doesnt track subdirs, etc.  Demonstrates
+# This has obvious limitations - doesn't track subdirs, etc.  Demonstrates
 # simple use of Python code for querying the tree as needed.
 # Only use strings, and lists of strings (from curdir())
 class DirHierList(hierlist.HierList):
@@ -105,7 +105,7 @@ class HLIFileDir(hierlist.HierListItem):
                 os.path.basename(self.filename),
                 os.stat(self.filename)[6],
             )
-        except os.error as details:
+        except OSError as details:
             return "%-20s - %s" % (self.filename, details[1])
 
     def IsExpandable(self):

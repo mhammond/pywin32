@@ -77,10 +77,10 @@
 #define PYCOM_EXPORT
 #else
 #ifdef BUILD_PYTHONCOM
-/* We are building pythoncomxx.dll */
+/* We are building pythoncomXX.dll */
 #define PYCOM_EXPORT __declspec(dllexport)
 #else
-/* This module uses pythoncomxx.dll */
+/* This module uses pythoncomXX.dll */
 #define PYCOM_EXPORT __declspec(dllimport)
 #ifndef _DEBUG
 #pragma comment(lib, "pythoncom.lib")
@@ -89,24 +89,6 @@
 #endif
 #endif
 #endif
-
-#ifdef MS_WINCE
-// List of interfaces not supported by CE.
-#define NO_PYCOM_IDISPATCHEX
-#define NO_PYCOM_IPROVIDECLASSINFO
-#define NO_PYCOM_IENUMGUID
-#define NO_PYCOM_IENUMCATEGORYINFO
-#define NO_PYCOM_ICATINFORMATION
-#define NO_PYCOM_ICATREGISTER
-#define NO_PYCOM_ISERVICEPROVIDER
-#define NO_PYCOM_IPROPERTYSTORAGE
-#define NO_PYCOM_IPROPERTYSETSTORAGE
-#define NO_PYCOM_ENUMSTATPROPSTG
-
-#include "ocidl.h"
-#include "oleauto.h"
-
-#endif  // MS_WINCE
 
 #ifdef __MINGW32__
 // Special Mingw32 considerations.
@@ -119,9 +101,7 @@
 
 #include <PyWinTypes.h>  // Standard Win32 Types
 
-#ifndef NO_PYCOM_IDISPATCHEX
 #include <dispex.h>  // New header for IDispatchEx interface.
-#endif               // NO_PYCOM_IDISPATCHEX
 
 #if defined(MAINWIN)
 // Mainwin seems to have 1/2 the VT_RECORD infrastructure in place
@@ -178,8 +158,8 @@ class PYCOM_EXPORT PyComEnumTypeObject : public PyComTypeObject {
    public:
     static PyObject *iter(PyObject *self);
     static PyObject *iternext(PyObject *self);
-    PyComEnumTypeObject(const char *name, PyComTypeObject *pBaseType, Py_ssize_t typeSize, struct PyMethodDef *methodList,
-                        PyIUnknown *(*thector)(IUnknown *));
+    PyComEnumTypeObject(const char *name, PyComTypeObject *pBaseType, Py_ssize_t typeSize,
+                        struct PyMethodDef *methodList, PyIUnknown *(*thector)(IUnknown *));
 };
 
 // Very very base class - not COM specific - Should exist in the
@@ -367,7 +347,7 @@ PYCOM_EXPORT HRESULT PyCom_HandleIEnumNoSequence(REFIID riid);
 PYCOM_EXPORT HRESULT PyCom_SetCOMErrorFromPyException(REFIID riid = IID_NULL);
 
 // A couple of EXCEPINFO helpers - could be private to IDispatch
-// if it wasnt for the AXScript support (and ITypeInfo if we get around to that :-)
+// if it wasn't for the AXScript support (and ITypeInfo if we get around to that :-)
 // These functions do not set any error states to either Python or
 // COM - they simply convert to/from PyObjects and EXCEPINFOs
 
@@ -387,7 +367,7 @@ PYCOM_EXPORT PyObject *PyCom_PyObjectFromExcepInfo(const EXCEPINFO *pexcepInfo);
 ///////////////////////////////////////////////////////////////////
 //
 // External C++ helpers - these helpers are for other DLLs which
-// may need similar functionality, but dont want to duplicate all
+// may need similar functionality, but don't want to duplicate all
 
 // This helper is for an application that has an IDispatch, and COM arguments
 // and wants to call a Python function.  It is assumed the caller can map the IDispatch
@@ -433,11 +413,11 @@ class PYCOM_EXPORT PyOleNothing : public PyObject {
 // These helpers allow each type object to create it.
 #define MAKE_PYCOM_CTOR(classname) \
     static PyIUnknown *PyObConstruct(IUnknown *pInitObj) { return new classname(pInitObj); }
-#define MAKE_PYCOM_CTOR_ERRORINFO(classname, iid)                                                       \
-    static PyIUnknown *PyObConstruct(IUnknown *pInitObj) { return new classname(pInitObj); }            \
-    static PyObject *SetPythonCOMError(PyObject *self, HRESULT hr)                                      \
-    {                                                                                                   \
-        return PyCom_BuildPyException(hr, GetI(self), iid);                                             \
+#define MAKE_PYCOM_CTOR_ERRORINFO(classname, iid)                                            \
+    static PyIUnknown *PyObConstruct(IUnknown *pInitObj) { return new classname(pInitObj); } \
+    static PyObject *SetPythonCOMError(PyObject *self, HRESULT hr)                           \
+    {                                                                                        \
+        return PyCom_BuildPyException(hr, GetI(self), iid);                                  \
     }
 #define GET_PYCOM_CTOR(classname) classname::PyObConstruct
 
@@ -492,7 +472,6 @@ class PYCOM_EXPORT PyIDispatch : public PyIUnknown {
     ~PyIDispatch();
 };
 
-#ifndef NO_PYCOM_IDISPATCHEX
 /////////////////////////////////////////////////////////////////////////////
 // class PyIDispatchEx
 
@@ -515,7 +494,6 @@ class PYCOM_EXPORT PyIDispatchEx : public PyIDispatch {
     PyIDispatchEx(IUnknown *pdisp);
     ~PyIDispatchEx();
 };
-#endif  // NO_PYCOM_IDISPATCHEX
 
 /////////////////////////////////////////////////////////////////////////////
 // class PyIClassFactory
@@ -534,8 +512,6 @@ class PYCOM_EXPORT PyIClassFactory : public PyIUnknown {
     PyIClassFactory(IUnknown *pdisp);
     ~PyIClassFactory();
 };
-
-#ifndef NO_PYCOM_IPROVIDECLASSINFO
 
 /////////////////////////////////////////////////////////////////////////////
 // class PyIProvideTypeInfo
@@ -567,7 +543,6 @@ class PYCOM_EXPORT PyIProvideClassInfo2 : public PyIProvideClassInfo {
     PyIProvideClassInfo2(IUnknown *pdisp);
     ~PyIProvideClassInfo2();
 };
-#endif  // NO_PYCOM_IPROVIDECLASSINFO
 
 /////////////////////////////////////////////////////////////////////////////
 // class PyITypeInfo
@@ -673,9 +648,9 @@ class PYCOM_EXPORT PyIConnectionPointContainer : public PyIUnknown {
 // which need to convert from a Python object when the specific OLE
 // type is known - eg, when a TypeInfo is available.
 //
-// The type of conversion determines who owns what buffers etc.  I wish BYREF didnt exist :-)
+// The type of conversion determines who owns what buffers etc.  I wish BYREF didn't exist :-)
 typedef enum {
-    // We dont know what sort of conversion it is yet.
+    // We don't know what sort of conversion it is yet.
     POAH_CONVERT_UNKNOWN,
     // A PyObject is given, we convert to a VARIANT, make the COM call, then BYREFs back to a PyObject
     // ie, this is typically a "normal" COM call, where Python initiates the call

@@ -1,6 +1,7 @@
 # A demo of using the RAS API from Python
 import sys
 
+import win32api
 import win32ras
 
 
@@ -41,7 +42,7 @@ def Connect(rasEntryName, numRetries=5):
             break
         print("Retrying...")
         win32api.Sleep(5000)
-        retryCount = retryCount - 1
+        retryCount -= 1
 
     if errCode:
         raise ConnectionError(errCode, win32ras.GetErrorString(errCode))
@@ -49,7 +50,7 @@ def Connect(rasEntryName, numRetries=5):
 
 
 def Disconnect(handle):
-    if type(handle) == type(""):  # have they passed a connection name?
+    if isinstance(handle, str):  # have they passed a connection name?
         for info in win32ras.EnumConnections():
             if info[1].lower() == handle.lower():
                 handle = info[0]
@@ -64,7 +65,7 @@ usage = """rasutil.py - Utilities for using RAS
 
 Usage:
   rasutil [-r retryCount] [-c rasname] [-d rasname]
-  
+
   -r retryCount - Number of times to retry the RAS connection
   -c rasname - Connect to the phonebook entry specified by rasname
   -d rasname - Disconnect from the phonebook entry specified by rasname

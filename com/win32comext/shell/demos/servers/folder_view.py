@@ -14,14 +14,13 @@ import commctrl
 import pythoncom
 import win32api
 import win32con
+import win32gui
 import winerror
-import winxpgui as win32gui  # the needs vista, let alone xp!
 from win32com.axcontrol import axcontrol  # IObjectWithSite
 from win32com.propsys import propsys
 from win32com.server.exception import COMException
 from win32com.server.util import NewEnum as _NewEnum, wrap as _wrap
 from win32com.shell import shell, shellcon
-from win32com.util import IIDToInterfaceName
 
 GUID = pythoncom.MakeIID
 
@@ -59,7 +58,7 @@ def _make_ids(s):
 
 
 # These strings are what the user sees and would be localized.
-# XXX - its possible that the shell might persist these values, so
+# XXX - it's possible that the shell might persist these values, so
 # this scheme wouldn't really be suitable in a real ap.
 IDS_UNSPECIFIED = _make_ids("unspecified")
 IDS_SMALL = _make_ids("small")
@@ -150,9 +149,13 @@ def make_item_enum(level, flags):
             else:
                 skip = not (flags & shellcon.SHCONTF_NONFOLDERS)
         if not skip:
-            data = dict(
-                name=name, size=size, sides=sides, level=level, is_folder=is_folder
-            )
+            data = {
+                "name": name,
+                "size": size,
+                "sides": sides,
+                "level": level,
+                "is_folder": is_folder,
+            }
             pidls.append([pickle.dumps(data)])
     return NewEnum(pidls, shell.IID_IEnumIDList)
 
@@ -526,7 +529,7 @@ class ContextMenu:
 
     def InvokeCommand(self, ci):
         mask, hwnd, verb, params, dir, nShow, hotkey, hicon = ci
-        # this seems very convuluted, but its what the sample does :)
+        # this seems very convuluted, but it's what the sample does :)
         for verb_name, verb_id, flag in folderViewImplContextMenuIDs:
             if isinstance(verb, int):
                 matches = verb == verb_id
@@ -535,12 +538,12 @@ class ContextMenu:
             if matches:
                 break
         else:
-            assert False, ci  # failed to find our ID
+            raise AssertionError(ci, "failed to find our ID")
         if verb_id == MENUVERB_DISPLAY:
             sia = shell.SHCreateShellItemArrayFromDataObject(self.dataobj)
             DisplayItem(hwnd, sia)
         else:
-            assert False, ci  # Got some verb we weren't expecting?
+            raise AssertionError(ci, "Got some verb we weren't expecting?")
 
     def GetCommandString(self, cmd, typ):
         raise COMException(hresult=winerror.E_NOTIMPL)
@@ -583,7 +586,7 @@ class ShellFolder:
         self.pidl = None  # set when Initialize is called
 
     def ParseDisplayName(self, hwnd, reserved, displayName, attr):
-        # print "ParseDisplayName", displayName
+        # print("ParseDisplayName", displayName)
         raise COMException(hresult=winerror.E_NOTIMPL)
 
     def EnumObjects(self, hwndOwner, flags):
@@ -639,7 +642,7 @@ class ShellFolder:
     #  Retrieves an OLE interface that can be used to carry out
     #  actions on the specified file objects or folders.
     def GetUIObjectOf(self, hwndOwner, pidls, iid, inout):
-        assert len(pidls) == 1, "oops - arent expecting more than one!"
+        assert len(pidls) == 1, "oops - aren't expecting more than one!"
         assert len(pidls[0]) == 1, "assuming relative pidls!"
         item = pidl_to_item(pidls[0])
         if iid == shell.IID_IContextMenu:
@@ -777,7 +780,7 @@ class ShellFolder:
     #  IPersistFolder2 methods
     #  Retrieves the PIDLIST_ABSOLUTE for the folder object.
     def GetCurFolder(self):
-        # The docs say this is OK, but I suspect its a problem in this case :)
+        # The docs say this is OK, but I suspect it's a problem in this case :)
         # assert self.pidl, "haven't been initialized?"
         return self.pidl
 
@@ -818,7 +821,7 @@ def DllRegisterServer():
     s = struct.pack("i", attr)
     winreg.SetValueEx(key, "Attributes", 0, winreg.REG_BINARY, s)
     # register the context menu handler under the FolderViewSampleType type.
-    keypath = "%s\\shellex\\ContextMenuHandlers\\%s" % (
+    keypath = "{}\\shellex\\ContextMenuHandlers\\{}".format(
         ContextMenu._context_menu_type_,
         ContextMenu._reg_desc_,
     )
@@ -834,17 +837,18 @@ def DllUnregisterServer():
     paths = [
         "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Desktop\\Namespace\\"
         + ShellFolder._reg_clsid_,
-        "%s\\shellex\\ContextMenuHandlers\\%s"
-        % (ContextMenu._context_menu_type_, ContextMenu._reg_desc_),
+        "{}\\shellex\\ContextMenuHandlers\\{}".format(
+            ContextMenu._context_menu_type_, ContextMenu._reg_desc_
+        ),
     ]
     for path in paths:
         try:
             winreg.DeleteKey(winreg.HKEY_LOCAL_MACHINE, path)
-        except WindowsError as details:
+        except OSError as details:
             import errno
 
             if details.errno != errno.ENOENT:
-                print("FAILED to remove %s: %s" % (path, details))
+                print(f"FAILED to remove {path}: {details}")
 
     propsys.PSUnregisterPropertySchema(get_schema_fname())
     print(ShellFolder._reg_desc_, "unregistration complete.")

@@ -13,7 +13,7 @@ def GetComments(line, lineNo, lines):
     doc = ""
     if len(data) == 2:
         doc = data[1].strip()
-    lineNo = lineNo + 1
+    lineNo += 1
     while lineNo < len(lines):
         line = lines[lineNo]
         data = line.split("//", 2)
@@ -24,10 +24,10 @@ def GetComments(line, lineNo, lines):
         if data[1].strip().startswith("@"):
             # new command
             break
-        doc = doc + "\n// " + data[1].strip()
-        lineNo = lineNo + 1
-    # This line doesnt match - step back
-    lineNo = lineNo - 1
+        doc += "\n// " + data[1].strip()
+        lineNo += 1
+    # This line doesn't match - step back
+    lineNo -= 1
     return doc, lineNo
 
 
@@ -87,7 +87,7 @@ def make_doc_summary(inFile, outFile):
             _, msg, _ = sys.exc_info()
             print("Line %d is badly formed - %s" % (lineNo, msg))
 
-        lineNo = lineNo + 1
+        lineNo += 1
 
     # autoduck seems to crash when > ~97 methods.  Loop multiple times,
     # creating a synthetic module name when this happens.
@@ -106,9 +106,9 @@ def make_doc_summary(inFile, outFile):
         if chunk_number == 0:
             pass
         elif chunk_number == 1:
-            thisModName = thisModName + " (more)"
+            thisModName += " (more)"
         else:
-            thisModName = thisModName + " (more %d)" % (chunk_number + 1,)
+            thisModName += " (more %d)" % (chunk_number + 1,)
 
         outFile.write("\n")
         for meth, extras in these_methods:
@@ -117,19 +117,18 @@ def make_doc_summary(inFile, outFile):
                 print("**Error - %s does not have enough fields" % meth)
             else:
                 outFile.write(
-                    "// @pymethod %s|%s|%s|%s\n"
-                    % (fields[0], thisModName, fields[1], fields[2])
+                    f"// @pymethod {fields[0]}|{thisModName}|{fields[1]}|{fields[2]}\n"
                 )
             for extra in extras:
                 outFile.write(extra)
         if g_com_parent:
-            outFile.write("\n// @object %s|%s" % (thisModName, modDoc))
+            outFile.write(f"\n// @object {thisModName}|{modDoc}")
             outFile.write("\n// <nl>Derived from <o %s>\n" % (g_com_parent))
         else:
-            outFile.write("\n// @module %s|%s\n" % (thisModName, modDoc))
+            outFile.write(f"\n// @module {thisModName}|{modDoc}\n")
         for meth, extras in these_methods:
             fields = meth.split("|")
-            outFile.write("// @pymeth %s|%s\n" % (fields[1], fields[2]))
+            outFile.write(f"// @pymeth {fields[1]}|{fields[2]}\n")
         chunk_number += 1
         method_num += max_methods
 
@@ -137,7 +136,7 @@ def make_doc_summary(inFile, outFile):
     for extra in extra_tags:
         outFile.write("%s\n" % (extra))
     for cname, doc in constants:
-        outFile.write("// @const %s|%s|%s\n" % (modName, cname, doc))
+        outFile.write(f"// @const {modName}|{cname}|{doc}\n")
 
 
 def doit():

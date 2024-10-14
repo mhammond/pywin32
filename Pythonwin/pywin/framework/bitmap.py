@@ -1,11 +1,10 @@
 import os
+import sys
 
 import win32api
 import win32con
 import win32ui
 from pywin.mfc import docview, window
-
-from . import app
 
 bStretch = 1
 
@@ -28,7 +27,7 @@ class BitmapDocument(docview.Document):
         try:
             try:
                 self.bitmap.LoadBitmapFile(f)
-            except IOError:
+            except OSError:
                 win32ui.MessageBox("Could not load the bitmap from %s" % filename)
                 return 0
         finally:
@@ -81,7 +80,7 @@ class BitmapFrame(window.MDIChildWnd):
         borderX = win32api.GetSystemMetrics(win32con.SM_CXFRAME)
         borderY = win32api.GetSystemMetrics(win32con.SM_CYFRAME)
         titleY = win32api.GetSystemMetrics(win32con.SM_CYCAPTION)  # includes border
-        # try and maintain default window pos, else adjust if cant fit
+        # try and maintain default window pos, else adjust if can't fit
         # get the main client window dimensions.
         mdiClient = win32ui.GetMainFrame().GetWindow(win32con.GW_CHILD)
         clientWindowRect = mdiClient.ScreenToClient(mdiClient.GetWindowRect())
@@ -128,7 +127,7 @@ class BitmapTemplate(docview.DocTemplate):
 
 # For debugging purposes, when this module may be reloaded many times.
 try:
-    win32ui.GetApp().RemoveDocTemplate(bitmapTemplate)
+    win32ui.GetApp().RemoveDocTemplate(bitmapTemplate)  # type: ignore[has-type, used-before-def]
 except NameError:
     pass
 
@@ -138,16 +137,16 @@ bitmapTemplate.SetDocStrings(
 )
 win32ui.GetApp().AddDocTemplate(bitmapTemplate)
 
-# This works, but just didnt make it through the code reorg.
+# This works, but just didn't make it through the code reorg.
 # class PPMBitmap(Bitmap):
 # 	def LoadBitmapFile(self, file ):
 # 		magic=file.readline()
 # 		if magic <> "P6\n":
 # 			raise TypeError, "The file is not a PPM format file"
-# 		rowcollist=string.split(file.readline())
-# 		cols=string.atoi(rowcollist[0])
-# 		rows=string.atoi(rowcollist[1])
-# 		file.readline()	# whats this one?
+# 		rowcollist=file.readline().split()
+# 		cols=int(rowcollist[0])
+# 		rows=int(rowcollist[1])
+# 		file.readline()	# what's this one?
 # 		self.bitmap.LoadPPMFile(file,(cols,rows))
 
 
@@ -160,5 +159,10 @@ def demo():
     import glob
 
     winDir = win32api.GetWindowsDirectory()
-    for fileName in glob.glob1(winDir, "*.bmp")[:2]:
+    if sys.version_info >= (3, 10):
+        fileNames = glob.glob("*.bmp", root_dir=winDir)[:2]
+    else:
+        fileNames = glob.glob1(winDir, "*.bmp")[:2]
+
+    for fileName in fileNames:
         bitmapTemplate.OpenDocumentFile(os.path.join(winDir, fileName))

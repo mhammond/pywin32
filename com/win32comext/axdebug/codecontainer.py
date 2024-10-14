@@ -4,16 +4,18 @@ A code container is a class which holds source code for a debugger.  It knows ho
 to color the text, and also how to translate lines into offsets, and back.
 """
 
+from __future__ import annotations
+
+import os
 import sys
 import tokenize
+from typing import Any
 
 import win32api
 import winerror
-from win32com.axdebug import axdebug
-from win32com.server.exception import Exception
-
-from . import contexts
-from .util import RaiseNotImpl, _wrap
+from win32com.axdebug import axdebug, contexts
+from win32com.axdebug.util import _wrap
+from win32com.server.exception import COMException
 
 _keywords = {}  # set of Python keywords
 for name in """
@@ -27,7 +29,7 @@ for name in """
 class SourceCodeContainer:
     def __init__(
         self,
-        text,
+        text: str | None,
         fileName="<Remove Me!>",
         sourceContext=0,
         startLineNumber=0,
@@ -35,15 +37,16 @@ class SourceCodeContainer:
         debugDocument=None,
     ):
         self.sourceContext = sourceContext  # The source context added by a smart host.
-        self.text = text
+        self.text: str | None = text
         if text:
             self._buildlines()
         self.nextLineNo = 0
         self.fileName = fileName
-        self.codeContexts = {}
+        # Any: PyIDispatch type is not statically exposed
+        self.codeContexts: dict[int, Any] = {}
         self.site = site
         self.startLineNumber = startLineNumber
-        self.debugDocument = None
+        self.debugDocument = debugDocument
 
     def _Close(self):
         self.text = self.lines = self.lineOffsets = None
@@ -56,7 +59,7 @@ class SourceCodeContainer:
         return self.text
 
     def GetName(self, dnt):
-        assert 0, "You must subclass this"
+        raise NotImplementedError("You must subclass this")
 
     def GetFileName(self):
         return self.fileName
@@ -66,7 +69,7 @@ class SourceCodeContainer:
         try:
             return self.lineOffsets[cLineNumber]
         except IndexError:
-            raise Exception(scode=winerror.S_FALSE)
+            raise COMException(scode=winerror.S_FALSE)
 
     def GetLineOfPosition(self, charPos):
         self.GetText()  # Prime us.
@@ -76,11 +79,11 @@ class SourceCodeContainer:
             if lineOffset > charPos:
                 break
             lastOffset = lineOffset
-            lineNo = lineNo + 1
+            lineNo += 1
         else:  # for not broken.
-            #                       print "Cant find", charPos, "in", self.lineOffsets
-            raise Exception(scode=winerror.S_FALSE)
-        #               print "GLOP ret=",lineNo,       (charPos-lastOffset)
+            # print("Can't find", charPos, "in", self.lineOffsets)
+            raise COMException(scode=winerror.S_FALSE)
+        # print("GLOP ret=", lineNo, (charPos - lastOffset))
         return lineNo, (charPos - lastOffset)
 
     def GetNextLine(self):
@@ -88,7 +91,7 @@ class SourceCodeContainer:
             self.nextLineNo = 0  # auto-reset.
             return ""
         rc = self.lines[self.nextLineNo]
-        self.nextLineNo = self.nextLineNo + 1
+        self.nextLineNo += 1
         return rc
 
     def GetLine(self, num):
@@ -160,7 +163,8 @@ class SourceCodeContainer:
         self.lastPos = 0
         self.attrs = []
         try:
-            tokenize.tokenize(self.GetNextLine, self._ProcessToken)
+            for tokens in tokenize.tokenize(self.GetNextLine):
+                self._ProcessToken(*tokens)
         except tokenize.TokenError:
             pass  # Ignore - will cause all subsequent text to be commented.
         numAtEnd = len(self.GetText()) - self.lastPos
@@ -187,13 +191,12 @@ class SourceCodeContainer:
 
     # Returns a DebugCodeContext.  debugDocument can be None for smart hosts.
     def GetCodeContextAtPosition(self, charPos):
-        #               trace("GetContextOfPos", charPos, maxChars)
+        # trace("GetContextOfPos", charPos, maxChars)
         # Convert to line number.
         lineNo, offset = self.GetLineOfPosition(charPos)
         charPos = self.GetPositionOfLine(lineNo)
         try:
             cc = self.codeContexts[charPos]
-        #                       trace(" GetContextOfPos using existing")
         except KeyError:
             cc = self._MakeContextAtPosition(charPos)
             self.codeContexts[charPos] = cc
@@ -225,10 +228,10 @@ class SourceModuleContainer(SourceCodeContainer):
             if fname:
                 try:
                     self.text = open(fname, "r").read()
-                except IOError as details:
-                    self.text = "# Exception opening file\n# %s" % (repr(details))
+                except OSError as details:
+                    self.text = f"# COMException opening file\n# {repr(details)}"
             else:
-                self.text = "# No file available for module '%s'" % (self.module)
+                self.text = f"# No file available for module '{self.module}'"
             self._buildlines()
         return self.text
 
@@ -247,30 +250,29 @@ class SourceModuleContainer(SourceCodeContainer):
         elif dnt == axdebug.DOCUMENTNAMETYPE_FILE_TAIL:
             return os.path.split(fname)[1]
         elif dnt == axdebug.DOCUMENTNAMETYPE_URL:
-            return "file:%s" % fname
+            return f"file:{fname}"
         else:
-            raise Exception(scode=winerror.E_UNEXPECTED)
+            raise COMException(scode=winerror.E_UNEXPECTED)
 
 
 if __name__ == "__main__":
-    sys.path.append(".")
-    import ttest
+    from Test import ttest
 
     sc = SourceModuleContainer(ttest)
-    #       sc = SourceCodeContainer(open(sys.argv[1], "rb").read(), sys.argv[1])
+    # sc = SourceCodeContainer(open(sys.argv[1], "rb").read(), sys.argv[1])
     attrs = sc.GetSyntaxColorAttributes()
     attrlen = 0
     for attr in attrs:
-        if type(attr) == type(()):
-            attrlen = attrlen + attr[1]
+        if isinstance(attr, tuple):
+            attrlen += attr[1]
         else:
-            attrlen = attrlen + 1
+            attrlen += 1
     text = sc.GetText()
     if attrlen != len(text):
-        print("Lengths dont match!!! (%d/%d)" % (attrlen, len(text)))
+        print(f"Lengths don't match!!! ({attrlen}/{len(text)})")
 
-    #       print "Attributes:"
-    #       print attrs
+    # print("Attributes:")
+    # print(attrs)
     print("GetLineOfPos=", sc.GetLineOfPosition(0))
     print("GetLineOfPos=", sc.GetLineOfPosition(4))
     print("GetLineOfPos=", sc.GetLineOfPosition(10))

@@ -15,8 +15,10 @@ Example
  >>> xl.Visible = 1 # The Excel window becomes visible.
 
 """
+
 import traceback
-import types
+from itertools import chain
+from types import MethodType
 
 import pythoncom  # Needed as code we eval() references it.
 import win32com.client
@@ -63,16 +65,11 @@ def debug_attr_print(*args):
         print()
 
 
-def MakeMethod(func, inst, cls):
-    return types.MethodType(func, inst)
-
-
 # get the type objects for IDispatch and IUnknown
 PyIDispatchType = pythoncom.TypeIIDs[pythoncom.IID_IDispatch]
 PyIUnknownType = pythoncom.TypeIIDs[pythoncom.IID_IUnknown]
 
 _GoodDispatchTypes = (str, IIDType)
-_defaultDispatchItem = build.DispatchItem
 
 
 def _GetGoodDispatch(IDispatch, clsctx=pythoncom.CLSCTX_SERVER):
@@ -125,10 +122,8 @@ def Dispatch(
     userName=None,
     createClass=None,
     typeinfo=None,
-    UnicodeToString=None,
     clsctx=pythoncom.CLSCTX_SERVER,
 ):
-    assert UnicodeToString is None, "this is deprecated and will go away"
     IDispatch, userName = _GetGoodDispatchAndUserName(IDispatch, userName, clsctx)
     if createClass is None:
         createClass = CDispatch
@@ -180,11 +175,9 @@ def DumbDispatch(
     IDispatch,
     userName=None,
     createClass=None,
-    UnicodeToString=None,
     clsctx=pythoncom.CLSCTX_SERVER,
 ):
     "Dispatch with no type info"
-    assert UnicodeToString is None, "this is deprecated and will go away"
     IDispatch, userName = _GetGoodDispatchAndUserName(IDispatch, userName, clsctx)
     if createClass is None:
         createClass = CDispatch
@@ -192,10 +185,7 @@ def DumbDispatch(
 
 
 class CDispatch:
-    def __init__(
-        self, IDispatch, olerepr, userName=None, UnicodeToString=None, lazydata=None
-    ):
-        assert UnicodeToString is None, "this is deprecated and will go away"
+    def __init__(self, IDispatch, olerepr, userName=None, lazydata=None):
         if userName is None:
             userName = "<unknown>"
         self.__dict__["_oleobj_"] = IDispatch
@@ -227,14 +217,14 @@ class CDispatch:
 
     def __bool__(self):
         return True  # ie "if object:" should always be "true" - without this, __len__ is tried.
-        # _Possibly_ want to defer to __len__ if available, but Im not sure this is
+        # _Possibly_ want to defer to __len__ if available, but I'm not sure this is
         # desirable???
 
     def __repr__(self):
         return "<COMObject %s>" % (self._username_)
 
     def __str__(self):
-        # __str__ is used when the user does "print object", so we gracefully
+        # __str__ is used when the user does "print(object)", so we gracefully
         # fall back to the __repr__ if the object has no default method.
         try:
             return str(self.__call__())
@@ -244,19 +234,19 @@ class CDispatch:
             return self.__repr__()
 
     def __dir__(self):
-        lst = list(self.__dict__.keys()) + dir(self.__class__) + self._dir_ole_()
+        attributes = chain(self.__dict__, dir(self.__class__), self._dir_ole_())
         try:
-            lst += [p.Name for p in self.Properties_]
+            attributes = chain(attributes, [p.Name for p in self.Properties_])
         except AttributeError:
             pass
-        return list(set(lst))
+        return list(set(attributes))
 
     def _dir_ole_(self):
         items_dict = {}
         for iTI in range(0, self._oleobj_.GetTypeInfoCount()):
             typeInfo = self._oleobj_.GetTypeInfo(iTI)
             self._UpdateWithITypeInfo_(items_dict, typeInfo)
-        return list(items_dict.keys())
+        return list(items_dict)
 
     def _UpdateWithITypeInfo_(self, items_dict, typeInfo):
         typeInfos = [typeInfo]
@@ -330,7 +320,7 @@ class CDispatch:
 
     def __setitem__(self, index, *args):
         # XXX - todo - We should support calling Item() here too!
-        # 		print "__setitem__ with", index, args
+        # print("__setitem__ with", index, args)
         if self._olerepr_.defaultDispatchName:
             invkind, dispid = self._find_dispatch_type_(
                 self._olerepr_.defaultDispatchName
@@ -369,10 +359,12 @@ class CDispatch:
         return self._get_good_object_(result, user, resultCLSID)
 
     def _wrap_dispatch_(
-        self, ob, userName=None, returnCLSID=None, UnicodeToString=None
+        self,
+        ob,
+        userName=None,
+        returnCLSID=None,
     ):
         # Given a dispatch object, wrap it in a class
-        assert UnicodeToString is None, "this is deprecated and will go away"
         return Dispatch(ob, userName)
 
     def _get_good_single_object_(self, ob, userName=None, ReturnCLSID=None):
@@ -414,8 +406,8 @@ class CDispatch:
         )
         methodCode = "\n".join(methodCodeList)
         try:
-            # 			print "Method code for %s is:\n" % self._username_, methodCode
-            # 			self._print_details_()
+            # print(f"Method code for {self._username_} is:\n", methodCode)
+            # self._print_details_()
             codeObject = compile(methodCode, "<COMObject %s>" % self._username_, "exec")
             # Exec the code object
             tempNameSpace = {}
@@ -428,15 +420,14 @@ class CDispatch:
             name = methodName
             # Save the function in map.
             fn = self._builtMethods_[name] = tempNameSpace[name]
-            newMeth = MakeMethod(fn, self, self.__class__)
-            return newMeth
+            return MethodType(fn, self)
         except:
             debug_print("Error building OLE definition for code ", methodCode)
             traceback.print_exc()
         return None
 
     def _Release_(self):
-        """Cleanup object - like a close - to force cleanup when you dont
+        """Cleanup object - like a close - to force cleanup when you don't
         want to rely on Python's reference counting."""
         for childCont in self._mapCachedItems_.values():
             childCont._Release_()
@@ -465,17 +456,17 @@ class CDispatch:
         print("AxDispatch container", self._username_)
         try:
             print("Methods:")
-            for method in self._olerepr_.mapFuncs.keys():
+            for method in self._olerepr_.mapFuncs:
                 print("\t", method)
             print("Props:")
             for prop, entry in self._olerepr_.propMap.items():
-                print("\t%s = 0x%x - %s" % (prop, entry.dispid, repr(entry)))
+                print(f"\t{prop} = 0x{entry.dispid:x} - {repr(entry)}")
             print("Get Props:")
             for prop, entry in self._olerepr_.propMapGet.items():
-                print("\t%s = 0x%x - %s" % (prop, entry.dispid, repr(entry)))
+                print(f"\t{prop} = 0x{entry.dispid:x} - {repr(entry)}")
             print("Put Props:")
             for prop, entry in self._olerepr_.propMapPut.items():
-                print("\t%s = 0x%x - %s" % (prop, entry.dispid, repr(entry)))
+                print(f"\t{prop} = 0x{entry.dispid:x} - {repr(entry)}")
         except:
             traceback.print_exc()
 
@@ -483,7 +474,7 @@ class CDispatch:
         try:
             if self._LazyAddAttr_(attr):
                 debug_attr_print(
-                    "%s.__LazyMap__(%s) added something" % (self._username_, attr)
+                    f"{self._username_}.__LazyMap__({attr}) added something"
                 )
                 return 1
         except AttributeError:
@@ -543,8 +534,9 @@ class CDispatch:
 
     def __AttrToID__(self, attr):
         debug_attr_print(
-            "Calling GetIDsOfNames for property %s in Dispatch container %s"
-            % (attr, self._username_)
+            "Calling GetIDsOfNames for property {} in Dispatch container {}".format(
+                attr, self._username_
+            )
         )
         return self._oleobj_.GetIDsOfNames(0, attr)
 
@@ -576,7 +568,7 @@ class CDispatch:
             raise AttributeError(attr)
         # If a known method, create new instance and return.
         try:
-            return MakeMethod(self._builtMethods_[attr], self, self.__class__)
+            return MethodType(self._builtMethods_[attr], self)
         except KeyError:
             pass
         # XXX - Note that we current are case sensitive in the method.
@@ -635,7 +627,7 @@ class CDispatch:
             return self._get_good_object_(ret)
 
         # no where else to look.
-        raise AttributeError("%s.%s" % (self._username_, attr))
+        raise AttributeError(f"{self._username_}.{attr}")
 
     def __setattr__(self, attr, value):
         if (
@@ -647,8 +639,9 @@ class CDispatch:
             return
         # Allow property assignment.
         debug_attr_print(
-            "SetAttr called for %s.%s=%s on DispatchContainer"
-            % (self._username_, attr, repr(value))
+            "SetAttr called for {}.{}={} on DispatchContainer".format(
+                self._username_, attr, repr(value)
+            )
         )
 
         if self._olerepr_:
@@ -697,12 +690,11 @@ class CDispatch:
                     self._oleobj_.Invoke(entry.dispid, 0, invoke_type, 0, value)
                     self._olerepr_.propMap[attr] = entry
                     debug_attr_print(
-                        "__setattr__ property %s (id=0x%x) in Dispatch container %s"
-                        % (attr, entry.dispid, self._username_)
+                        "__setattr__ property {} (id=0x{:x}) in Dispatch container {}".format(
+                            attr, entry.dispid, self._username_
+                        )
                     )
                     return
                 except pythoncom.com_error:
                     pass
-        raise AttributeError(
-            "Property '%s.%s' can not be set." % (self._username_, attr)
-        )
+        raise AttributeError(f"Property '{self._username_}.{attr}' can not be set.")

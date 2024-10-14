@@ -1,4 +1,4 @@
-# This demo uses the IE4 Web Browser control.
+# This demo uses the Internet Explorer Web Browser control.
 
 # It catches an "OnNavigate" event, and updates the frame title.
 # (event stuff by Neil Hodgson)
@@ -16,7 +16,7 @@ WebBrowserModule = gencache.EnsureModule(
     "{EAB22AC0-30C1-11CF-A7EB-0000C05BAE0B}", 0, 1, 1
 )
 if WebBrowserModule is None:
-    raise ImportError("IE4 does not appear to be installed.")
+    raise ImportError("Internet Explorer does not appear to be installed.")
 
 
 class MyWebBrowser(activex.Control, WebBrowserModule.WebBrowser):
@@ -24,7 +24,7 @@ class MyWebBrowser(activex.Control, WebBrowserModule.WebBrowser):
         self, pDisp, URL, Flags, TargetFrameName, PostData, Headers, Cancel
     ):
         self.GetParent().OnNavigate(URL)
-        # print "BeforeNavigate2", pDisp, URL, Flags, TargetFrameName, PostData, Headers, Cancel
+        # print("BeforeNavigate2", pDisp, URL, Flags, TargetFrameName, PostData, Headers, Cancel)
 
 
 class BrowserFrame(window.MDIChildWnd):
@@ -35,7 +35,7 @@ class BrowserFrame(window.MDIChildWnd):
                 self.url = "http://www.python.org"
         else:
             self.url = url
-        pass  # Dont call base class doc/view version...
+        pass  # Don't call base class doc/view version...
 
     def Create(self, title, rect=None, parent=None):
         style = win32con.WS_CHILD | win32con.WS_VISIBLE | win32con.WS_OVERLAPPEDWINDOW
@@ -57,7 +57,7 @@ class BrowserFrame(window.MDIChildWnd):
         self.ocx.SetWindowPos(0, rect, 0)
 
     def OnNavigate(self, url):
-        title = "Web Browser - %s" % (url,)
+        title = f"Web Browser - {url}"
         self.SetWindowText(title)
 
 

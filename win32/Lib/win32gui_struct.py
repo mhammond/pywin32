@@ -30,28 +30,22 @@
 import array
 import struct
 import sys
+from collections import namedtuple
 
 import commctrl
 import pywintypes
 import win32con
 import win32gui
 
+
+def _MakeResult(names_str, values):
+    names = names_str.split()
+    # TODO: Dynamic namedtuple. This could be made static, also exposing the types
+    nt = namedtuple(names[0], names[1:])  # noqa: PYI024
+    return nt(*values)
+
+
 is64bit = "64 bit" in sys.version
-
-try:
-    from collections import namedtuple
-
-    def _MakeResult(names_str, values):
-        names = names_str.split()
-        nt = namedtuple(names[0], names[1:])
-        return nt(*values)
-
-except ImportError:
-    # no namedtuple support - just return the values as a normal tuple.
-    def _MakeResult(names_str, values):
-        return values
-
-
 _nmhdr_fmt = "PPi"
 if is64bit:
     # When the item past the NMHDR gets aligned (eg, when it is a struct)
@@ -60,48 +54,18 @@ if is64bit:
 else:
     _nmhdr_align_padding = ""
 
+
 # Encode a string suitable for passing in a win32gui related structure
-# If win32gui is built with UNICODE defined (ie, py3k), then functions
-# like InsertMenuItem are actually calling InsertMenuItemW etc, so all
-# strings will need to be unicode.
-if win32gui.UNICODE:
-
-    def _make_text_buffer(text):
-        # XXX - at this stage win32gui.UNICODE is only True in py3k,
-        # and in py3k is makes sense to reject bytes.
-        if not isinstance(text, str):
-            raise TypeError("MENUITEMINFO text must be unicode")
-        data = (text + "\0").encode("utf-16le")
-        return array.array("b", data)
-
-else:
-
-    def _make_text_buffer(text):
-        if isinstance(text, str):
-            text = text.encode("mbcs")
-        return array.array("b", text + "\0")
+def _make_text_buffer(text):
+    if not isinstance(text, str):
+        raise TypeError("MENUITEMINFO text must be unicode")
+    data = (text + "\0").encode("utf-16le")
+    return array.array("b", data)
 
 
 # make an 'empty' buffer, ready for filling with cch characters.
 def _make_empty_text_buffer(cch):
     return _make_text_buffer("\0" * cch)
-
-
-if sys.version_info < (3, 0):
-
-    def _make_memory(ob):
-        return str(buffer(ob))
-
-    def _make_bytes(sval):
-        return sval
-
-else:
-
-    def _make_memory(ob):
-        return bytes(memoryview(ob))
-
-    def _make_bytes(sval):
-        return sval.encode("ascii")
 
 
 # Generic WM_NOTIFY unpacking
@@ -116,9 +80,9 @@ def UnpackNMITEMACTIVATE(lparam):
     if is64bit:
         # the struct module doesn't handle this correctly as some of the items
         # are actually structs in structs, which get individually aligned.
-        format = format + "iiiiiiixxxxP"
+        format += "iiiiiiixxxxP"
     else:
-        format = format + "iiiiiiiP"
+        format += "iiiiiiiP"
     buf = win32gui.PyMakeBuffer(struct.calcsize(format), lparam)
     return _MakeResult(
         "NMITEMACTIVATE hwndFrom idFrom code iItem iSubItem uNewState uOldState uChanged actionx actiony lParam",
@@ -558,10 +522,10 @@ def UnpackTVNOTIFY(lparam):
     item_size = struct.calcsize(_tvitem_fmt)
     format = _nmhdr_fmt + _nmhdr_align_padding
     if is64bit:
-        format = format + "ixxxx"
+        format += "ixxxx"
     else:
-        format = format + "i"
-    format = format + "%ds%ds" % (item_size, item_size)
+        format += "i"
+    format += "%ds%ds" % (item_size, item_size)
     buf = win32gui.PyGetMemory(lparam, struct.calcsize(format))
     hwndFrom, id, code, action, buf_old, buf_new = struct.unpack(format, buf)
     item_old = UnpackTVITEM(buf_old)
@@ -706,8 +670,8 @@ def UnpackLVDISPINFO(lparam):
 def UnpackLVNOTIFY(lparam):
     format = _nmhdr_fmt + _nmhdr_align_padding + "7i"
     if is64bit:
-        format = format + "xxxx"  # point needs padding.
-    format = format + "P"
+        format += "xxxx"  # point needs padding.
+    format += "P"
     buf = win32gui.PyGetMemory(lparam, struct.calcsize(format))
     (
         hwndFrom,
@@ -898,11 +862,11 @@ def PackHDITEM(
 
 # Generic function for packing a DEV_BROADCAST_* structure - generally used
 # by the other PackDEV_BROADCAST_* functions in this module.
-def PackDEV_BROADCAST(devicetype, rest_fmt, rest_data, extra_data=_make_bytes("")):
+def PackDEV_BROADCAST(devicetype, rest_fmt, rest_data, extra_data=b""):
     # It seems a requirement is 4 byte alignment, even for the 'BYTE data[1]'
     # field (eg, that would make DEV_BROADCAST_HANDLE 41 bytes, but we must
     # be 44.
-    extra_data += _make_bytes("\0" * (4 - len(extra_data) % 4))
+    extra_data += b"\0" * (4 - len(extra_data) % 4)
     format = "iii" + rest_fmt
     full_size = struct.calcsize(format) + len(extra_data)
     data = (full_size, devicetype, 0) + rest_data
@@ -912,14 +876,14 @@ def PackDEV_BROADCAST(devicetype, rest_fmt, rest_data, extra_data=_make_bytes(""
 def PackDEV_BROADCAST_HANDLE(
     handle,
     hdevnotify=0,
-    guid=_make_bytes("\0" * 16),
+    guid=b"\0" * 16,
     name_offset=0,
-    data=_make_bytes("\0"),
+    data=b"\0",
 ):
     return PackDEV_BROADCAST(
         win32con.DBT_DEVTYP_HANDLE,
         "PP16sl",
-        (int(handle), int(hdevnotify), _make_memory(guid), name_offset),
+        (int(handle), int(hdevnotify), bytes(memoryview(guid)), name_offset),
         data,
     )
 
@@ -929,20 +893,14 @@ def PackDEV_BROADCAST_VOLUME(unitmask, flags):
 
 
 def PackDEV_BROADCAST_DEVICEINTERFACE(classguid, name=""):
-    if win32gui.UNICODE:
-        # This really means "is py3k?" - so not accepting bytes is OK
-        if not isinstance(name, str):
-            raise TypeError("Must provide unicode for the name")
-        name = name.encode("utf-16le")
-    else:
-        # py2k was passed a unicode object - encode as mbcs.
-        if isinstance(name, str):
-            name = name.encode("mbcs")
+    if not isinstance(name, str):
+        raise TypeError("Must provide unicode for the name")
+    name = name.encode("utf-16le")
 
     # 16 bytes for the IID followed by \0 term'd string.
     rest_fmt = "16s%ds" % len(name)
-    # _make_memory(iid) hoops necessary to get the raw IID bytes.
-    rest_data = (_make_memory(pywintypes.IID(classguid)), name)
+    # bytes(memoryview(iid)) hoops necessary to get the raw IID bytes.
+    rest_data = (bytes(memoryview(pywintypes.IID(classguid))), name)
     return PackDEV_BROADCAST(win32con.DBT_DEVTYP_DEVICEINTERFACE, rest_fmt, rest_data)
 
 

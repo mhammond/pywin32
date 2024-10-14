@@ -1,17 +1,15 @@
 """ Management of documents for AXDebugging.
 """
 
-
 import pythoncom
 import win32api
-from win32com.server.exception import Exception
 from win32com.server.util import unwrap
 
-from . import axdebug, codecontainer, contexts, gateways
-from .util import RaiseNotImpl, _wrap, _wrap_remove, trace
+from . import axdebug, gateways
+from .util import _wrap, trace
 
 # def trace(*args):
-#       pass
+#     pass
 
 
 def GetGoodFileName(fname):
@@ -34,9 +32,7 @@ class DebugDocumentProvider(gateways.DebugDocumentProvider):
         return self.doc
 
 
-class DebugDocumentText(
-    gateways.DebugDocumentInfo, gateways.DebugDocumentText, gateways.DebugDocument
-):
+class DebugDocumentText(gateways.DebugDocumentText):
     _com_interfaces_ = (
         gateways.DebugDocumentInfo._com_interfaces_
         + gateways.DebugDocumentText._com_interfaces_
@@ -58,7 +54,7 @@ class DebugDocumentText(
 
     def _Close(self):
         self.docContexts = None
-        #               self.codeContainer._Close()
+        # self.codeContainer._Close()
         self.codeContainer = None
 
     # IDebugDocumentInfo
@@ -74,7 +70,7 @@ class DebugDocumentText(
     # IDebugDocumentText methods.
     # def GetDocumentAttributes
     def GetSize(self):
-        #               trace("GetSize")
+        # trace("GetSize")
         return self.codeContainer.GetNumLines(), self.codeContainer.GetNumChars()
 
     def GetPositionOfLine(self, cLineNumber):
@@ -86,7 +82,7 @@ class DebugDocumentText(
     def GetText(self, charPos, maxChars, wantAttr):
         # Get all the attributes, else the tokenizer will get upset.
         # XXX - not yet!
-        #               trace("GetText", charPos, maxChars, wantAttr)
+        # trace("GetText", charPos, maxChars, wantAttr)
         cont = self.codeContainer
         attr = cont.GetSyntaxColorAttributes()
         return cont.GetText(), attr
@@ -123,8 +119,8 @@ class CodeContainerProvider:
 
     def FromFileName(self, fname):
         cc, node = self.ccsAndNodes.get(GetGoodFileName(fname), (None, None))
-        #               if cc is None:
-        #                       print "FromFileName for %s returning None" % fname
+        # if cc is None:
+        #     print(f"FromFileName for {fname} returning None")
         return cc
 
     def Close(self):

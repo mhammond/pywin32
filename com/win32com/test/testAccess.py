@@ -26,7 +26,7 @@ def CreateTestAccessDatabase(dbname=None):
 
     try:
         os.unlink(dbname)
-    except os.error:
+    except OSError:
         print(
             "WARNING - Unable to delete old test database - expect a COM exception RSN!"
         )
@@ -95,15 +95,15 @@ def CreateTestAccessDatabase(dbname=None):
     # Reset the bookmark to the one we saved.
     # But first check the test is actually doing something!
     tab1.MoveLast()
-    if tab1.Fields("First Name").Value != "Second":
-        raise RuntimeError("Unexpected record is last - makes bookmark test pointless!")
+    assert (
+        tab1.Fields("First Name").Value == "Second"
+    ), "Unexpected record is last - makes bookmark test pointless!"
 
     tab1.Bookmark = bk
-    if tab1.Bookmark != bk:
-        raise RuntimeError("The bookmark data is not the same")
-
-    if tab1.Fields("First Name").Value != "Mark":
-        raise RuntimeError("The bookmark did not reset the record pointer correctly")
+    assert tab1.Bookmark == bk, "The bookmark data is not the same"
+    assert (
+        tab1.Fields("First Name").Value == "Mark"
+    ), "The bookmark did not reset the record pointer correctly"
 
     return dbname
 
@@ -122,8 +122,8 @@ def DoDumpAccessInfo(dbname):
         forms = a.Forms
         print("There are %d forms open." % (len(forms)))
         # Uncommenting these lines means Access remains open.
-        #               for form in forms:
-        #                       print " %s" % form.Name
+        # for form in forms:
+        #     print(f" {form.Name}")
         reports = a.Reports
         print("There are %d reports open" % (len(reports)))
     finally:

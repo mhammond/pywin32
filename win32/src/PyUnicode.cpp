@@ -13,20 +13,20 @@ BOOL PyWinObject_AsPfnAllocatedWCHAR(PyObject *stringObject, void *(*pfnAllocato
 {
     BOOL rc = TRUE;
     if (PyBytes_Check(stringObject)) {
-        // XXX - this was ported from the python 2 string api - which I thought
-        // included the trailing \0. But the 3.x `Bytes` API does not (right?),
+        // XXX - this was ported from the Python 2 string api - which I thought
+        // included the trailing \0. But the Python 3 `Bytes` API does not (right?),
         // so there's some trailing \0 confusion here.
         Py_ssize_t cch = PyBytes_Size(stringObject);
         const char *buf = PyBytes_AsString(stringObject);
         if (buf == NULL)
             return FALSE;
 
-        /* We assume that we dont need more 'wide characters' for the result
+        /* We assume that we don't need more 'wide characters' for the result
            then the number of bytes in the input. Often we
            will need less, as the input may contain multi-byte chars, but we
            should never need more
         */
-        PYWIN_CHECK_SSIZE_DWORD(cch+1, FALSE);
+        PYWIN_CHECK_SSIZE_DWORD(cch + 1, FALSE);
         *ppResult = (LPWSTR)(*pfnAllocator)((cch + 1) * sizeof(WCHAR));
         if (*ppResult)
             /* convert and get the final character size */
@@ -34,7 +34,9 @@ BOOL PyWinObject_AsPfnAllocatedWCHAR(PyObject *stringObject, void *(*pfnAllocato
     }
     else if (PyUnicode_Check(stringObject)) {
         // copy the value, including embedded NULLs
-        TmpWCHAR v = stringObject;  if (!v) return FALSE;
+        TmpWCHAR v = stringObject;
+        if (!v)
+            return FALSE;
         Py_ssize_t cch = v.length;
         *ppResult = (WCHAR *)pfnAllocator((cch + 1) * sizeof(WCHAR));
         if (*ppResult)
@@ -175,14 +177,16 @@ void PyWin_AutoFreeBstr::SetBstr(BSTR bstr)
 BOOL PyWinObject_AsBstr(PyObject *stringObject, BSTR *pResult, BOOL bNoneOK /*= FALSE*/, DWORD *pResultLen /*= NULL*/)
 {
     BOOL rc = TRUE;
-    // This used to support bytes as we moved to 3.x, but a BSTR has always been
+    // This used to support bytes as we moved to Python 3, but a BSTR has always been
     // unicode (ie, you'd never *try* and use bytes to create it), so there's no
     // sane b/w compat reason to support that any more.
     if (PyUnicode_Check(stringObject)) {
         // copy the value, including embedded NULLs
         // Py3.12+: only conversion yields the correct number of wide chars (incl. surrogate pairs).
         // For simplicity we use a temp buffer.
-        TmpWCHAR tw = stringObject;  if (!tw) return FALSE;
+        TmpWCHAR tw = stringObject;
+        if (!tw)
+            return FALSE;
         PYWIN_CHECK_SSIZE_DWORD(tw.length, NULL);
         // SysAllocStringLen allocates length+1 wchars (and puts a \0 at end); like PyUnicode_AsWideCharString
         *pResult = SysAllocStringLen(tw, (UINT)tw.length);

@@ -19,7 +19,9 @@ genDir = "Generated4Test"
 def GetGenPath():
     import win32api
 
-    return os.path.join(win32api.GetFullPathName(win32com.test.__path__[0]), genDir)
+    return os.path.join(
+        win32api.GetFullPathName(next(iter(win32com.test.__path__))), genDir
+    )
 
 
 def GenerateFromRegistered(fname, *loadArgs):
@@ -27,7 +29,7 @@ def GenerateFromRegistered(fname, *loadArgs):
     genPath = GetGenPath()
     try:
         os.stat(genPath)
-    except os.error:
+    except OSError:
         os.mkdir(genPath)
     # Ensure an __init__ exists.
     open(os.path.join(genPath, "__init__.py"), "w").close()
@@ -38,7 +40,7 @@ def GenerateFromRegistered(fname, *loadArgs):
     )
     f.close()
     print("compiling -", end=" ")
-    fullModName = "win32com.test.%s.%s" % (genDir, fname)
+    fullModName = f"win32com.test.{genDir}.{fname}"
     exec("import " + fullModName)
     # Inject the generated module as a top level module.
     sys.modules[fname] = sys.modules[fullModName]
@@ -67,14 +69,14 @@ def CleanAll():
         try:
             name = args[0] + ".py"
             os.unlink(os.path.join(genPath, name))
-        except os.error as details:
-            if type(details) == type(()) and details[0] != 2:
+        except OSError as details:
+            if isinstance(details, tuple) and details[0] != 2:
                 print("Could not deleted generated", name, details)
         try:
             name = args[0] + ".pyc"
             os.unlink(os.path.join(genPath, name))
-        except os.error as details:
-            if type(details) == type(()) and details[0] != 2:
+        except OSError as details:
+            if isinstance(details, tuple) and details[0] != 2:
                 print("Could not deleted generated", name, details)
         try:
             os.unlink(os.path.join(genPath, "__init__.py"))
@@ -86,7 +88,7 @@ def CleanAll():
             pass
     try:
         os.rmdir(genPath)
-    except os.error as details:
+    except OSError as details:
         print("Could not delete test directory -", details)
 
 

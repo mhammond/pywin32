@@ -10,8 +10,6 @@ from pywin.mfc import dialog
 
 from . import app
 
-error = "Dialog Application Error"
-
 
 class AppDialog(dialog.Dialog):
     "The dialog box for the application"
@@ -27,12 +25,14 @@ class AppDialog(dialog.Dialog):
     def OnPaint(self):
         if not self.IsIconic():
             return self._obj_.OnPaint()
+        dc, paintStruct = self.BeginPaint()
         self.DefWindowProc(win32con.WM_ICONERASEBKGND, dc.GetHandleOutput(), 0)
         left, top, right, bottom = self.GetClientRect()
         left = (right - win32api.GetSystemMetrics(win32con.SM_CXICON)) >> 1
         top = (bottom - win32api.GetSystemMetrics(win32con.SM_CYICON)) >> 1
         hIcon = win32ui.GetApp().LoadIcon(self.iconId)
-        self.GetDC().DrawIcon((left, top), hIcon)
+        dc.DrawIcon((left, top), hIcon)
+        self.EndPaint(paintStruct)
 
     # Only needed to provide a minimized icon (and this seems
     # less important under win95/NT4
@@ -60,8 +60,9 @@ class DialogApp(app.CApp):
         self.dlg = self.frame = self.CreateDialog()
 
         if self.frame is None:
-            raise error("No dialog was created by CreateDialog()")
-            return
+            raise NotImplementedError(
+                "No dialog was created by CreateDialog(). Subclasses need to implement CreateDialog."
+            )
 
         self._obj_.InitDlgInstance(self.dlg)
         self.PreDoModal()

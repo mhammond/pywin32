@@ -2,14 +2,13 @@ import glob
 import os
 import pyclbr
 
-import afxres
 import commctrl
 import pywin.framework.scriptutils
 import regutil
 import win32api
 import win32con
 import win32ui
-from pywin.mfc import dialog
+from pywin.mfc import afxres, dialog
 
 from . import hierlist
 
@@ -24,7 +23,7 @@ class HLIErrorItem(hierlist.HierListItem):
 
 
 class HLICLBRItem(hierlist.HierListItem):
-    def __init__(self, name, file, lineno, suffix=""):
+    def __init__(self, name: str, file, lineno, suffix=""):
         # If the 'name' object itself has a .name, use it.  Not sure
         # how this happens, but seems pyclbr related.
         # See PyWin32 bug 817035
@@ -52,7 +51,7 @@ class HLICLBRItem(hierlist.HierListItem):
 
     def PerformItemSelected(self):
         if self.file is None:
-            msg = "%s - source can not be located." % (self.name,)
+            msg = f"{self.name} - source can not be located."
         else:
             msg = "%s defined at line %d of %s" % (self.name, self.lineno, self.file)
         win32ui.SetStatusText(msg)
@@ -145,7 +144,7 @@ class HLIModuleItem(hierlist.HierListItem):
                 ret.sort()
                 return ret
             else:
-                return [HLIErrorItem("No Python classes%s in module." % (extra_msg,))]
+                return [HLIErrorItem(f"No Python classes{extra_msg} in module.")]
         finally:
             win32ui.DoWaitCursor(0)
             win32ui.SetStatusText(win32ui.LoadString(afxres.AFX_IDS_IDLEMESSAGE))
@@ -189,7 +188,7 @@ class HLIDirectoryItem(hierlist.HierListItem):
                 path = win32api.GetFullPathName(
                     os.path.join(self.path, "..\\win32comext")
                 )
-                ret = ret + MakePathSubList(path)
+                ret.extend(MakePathSubList(path))
             except win32ui.error:
                 pass
         return ret
@@ -210,7 +209,7 @@ class HLIProjectRoot(hierlist.HierListItem):
     def GetSubList(self):
         paths = regutil.GetRegisteredNamedPath(self.projectName)
         pathList = paths.split(";")
-        if len(pathList) == 1:  # Single dir - dont bother putting the dir in
+        if len(pathList) == 1:  # Single dir - don't bother putting the dir in
             ret = MakePathSubList(pathList[0])
         else:
             ret = list(map(HLIDirectoryItem, pathList))
@@ -234,7 +233,7 @@ class HLIRoot(hierlist.HierListItem):
             while 1:
                 try:
                     ret.append(HLIProjectRoot(win32api.RegEnumKey(hKey, index)))
-                    index = index + 1
+                    index += 1
                 except win32api.error:
                     break
             return ret

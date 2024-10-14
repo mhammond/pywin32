@@ -6,7 +6,7 @@ import timer
 import win32api
 import win32con
 import win32ui
-from pywin.mfc import docview, thread, window
+from pywin.mfc import window
 from pywin.mfc.thread import WinThread
 
 WM_USER_PREPARE_TO_CLOSE = win32con.WM_USER + 32
@@ -51,7 +51,7 @@ class FontWindow(window.Wnd):
         timer.kill_timer(self.timerid)
 
     def OnTimer(self, id, timeVal):
-        self.index = self.index + self.incr
+        self.index += self.incr
         if self.index > len(self.text):
             self.incr = -1
             self.index = len(self.text)
@@ -61,7 +61,7 @@ class FontWindow(window.Wnd):
         self.InvalidateRect()
 
     def OnPaint(self):
-        # 		print "Paint message from thread", win32api.GetCurrentThreadId()
+        # print("Paint message from thread", win32api.GetCurrentThreadId())
         dc, paintStruct = self.BeginPaint()
         self.OnPrepareDC(dc, None)
 
@@ -95,7 +95,7 @@ class FontWindow(window.Wnd):
 
 class FontFrame(window.MDIChildWnd):
     def __init__(self):
-        pass  # Dont call base class doc/view version...
+        pass  # Don't call base class doc/view version...
 
     def Create(self, title, rect=None, parent=None):
         style = win32con.WS_CHILD | win32con.WS_VISIBLE | win32con.WS_OVERLAPPEDWINDOW
@@ -134,7 +134,7 @@ class TestThread(WinThread):
 
 class ThreadedFontFrame(window.MDIChildWnd):
     def __init__(self):
-        pass  # Dont call base class doc/view version...
+        pass  # Don't call base class doc/view version...
         self.thread = None
 
     def Create(self, title, rect=None, parent=None):

@@ -8,7 +8,8 @@
 class PYW_EXPORT PyCCtrlView_Type : public ui_type_CObject {
    public:
     PyCCtrlView_Type(const char *name, ui_type *pBaseType, ui_type_CObject *pControlType, CRuntimeClass *rtClass,
-                     Py_ssize_t typeSize, ptrdiff_t pyobjOffset, struct PyMethodDef *methodList, ui_base_class *(*thector)());
+                     Py_ssize_t typeSize, ptrdiff_t pyobjOffset, struct PyMethodDef *methodList,
+                     ui_base_class *(*thector)());
 
    public:
     ui_type_CObject *control;

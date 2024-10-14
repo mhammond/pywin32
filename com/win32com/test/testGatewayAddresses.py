@@ -59,8 +59,8 @@ def CheckObjectIdentity(ob1, ob2):
 def FailObjectIdentity(ob1, ob2, when):
     if not CheckObjectIdentity(ob1, ob2):
         global numErrors
-        numErrors = numErrors + 1
-        print(when, "are not identical (%s, %s)" % (repr(ob1), repr(ob2)))
+        numErrors += 1
+        print(when, f"are not identical ({repr(ob1)}, {repr(ob2)})")
 
 
 class Dummy:
@@ -76,7 +76,7 @@ class Dummy2:
     ]
 
 
-class DeletgatedDummy:
+class DelegatedDummy:
     _public_methods_ = []
 
 
@@ -93,7 +93,7 @@ class Dummy3:
 def TestGatewayInheritance():
     # By default, wrap() creates and discards a temporary object.
     # This is not necessary, but just the current implementation of wrap.
-    # As the object is correctly discarded, it doesnt affect this test.
+    # As the object is correctly discarded, it doesn't affect this test.
     o = wrap(Dummy(), pythoncom.IID_IPersistStorage)
     o2 = o.QueryInterface(pythoncom.IID_IUnknown)
     FailObjectIdentity(o, o2, "IID_IPersistStorage->IID_IUnknown")

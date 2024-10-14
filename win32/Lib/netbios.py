@@ -1,5 +1,4 @@
 import struct
-import sys
 
 import win32wnet
 
@@ -211,10 +210,7 @@ class NCBStruct:
     def _pack(self):
         vals = []
         for format, name in self._items:
-            try:
-                vals.append(self.__dict__[name])
-            except KeyError:
-                vals.append(None)
+            vals.append(self.__dict__.get(name))
 
         self._buffer_[:] = struct.pack(*(self._format,) + tuple(vals))
 
@@ -266,14 +262,6 @@ def ACTION_HEADER():
     return NCBStruct(ACTION_HEADER_ITEMS)
 
 
-def byte_to_int(b):
-    """Given an element in a binary buffer, return its integer value"""
-    if sys.version_info >= (3, 0):
-        # a byte is already an int in py3k
-        return b
-    return ord(b)  # its a char from a string in py2k.
-
-
 if __name__ == "__main__":
     # code ported from "HOWTO: Get the MAC Address for an Ethernet Adapter"
     # MS KB ID: Q118623
@@ -287,18 +275,18 @@ if __name__ == "__main__":
     for i in range(la_enum.length):
         ncb.Reset()
         ncb.Command = NCBRESET
-        ncb.Lana_num = byte_to_int(la_enum.lana[i])
+        ncb.Lana_num = la_enum.lana[i]
         rc = Netbios(ncb)
         if rc != 0:
             raise RuntimeError("Unexpected result %d" % (rc,))
         ncb.Reset()
         ncb.Command = NCBASTAT
-        ncb.Lana_num = byte_to_int(la_enum.lana[i])
+        ncb.Lana_num = la_enum.lana[i]
         ncb.Callname = b"*               "
         adapter = ADAPTER_STATUS()
         ncb.Buffer = adapter
         Netbios(ncb)
         print("Adapter address:", end=" ")
         for ch in adapter.adapter_address:
-            print("%02x" % (byte_to_int(ch),), end=" ")
+            print(f"{ch:02x}", end=" ")
         print()

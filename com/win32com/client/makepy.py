@@ -34,10 +34,7 @@ Usage:
 
   -h    -- Do not generate hidden methods.
 
-  -u    -- Python 1.5 and earlier: Do NOT convert all Unicode objects to
-           strings.
-
-           Python 1.6 and later: Convert all Unicode objects to strings.
+  -u    -- Convert all Unicode objects to strings.
 
   -o    -- Create output in a specified output file.  If the path leading
            to the file does not exist, any missing directories will be
@@ -75,8 +72,6 @@ from win32com.client import Dispatch, gencache, genpy, selecttlb
 
 bForDemandDefault = 0  # Default value of bForDemand - toggle this to change the world - see also gencache.py
 
-error = "makepy.error"
-
 
 def usage():
     sys.stderr.write(usageHelp)
@@ -110,14 +105,16 @@ def ShowInfo(spec):
                 desc = tlb.GetDocumentation(-1)[0]
         print(desc)
         print(
-            " %s, lcid=%s, major=%s, minor=%s"
-            % (tlbSpec.clsid, tlbSpec.lcid, tlbSpec.major, tlbSpec.minor)
+            " {}, lcid={}, major={}, minor={}".format(
+                tlbSpec.clsid, tlbSpec.lcid, tlbSpec.major, tlbSpec.minor
+            )
         )
         print(" >>> # Use these commands in Python code to auto generate .py support")
         print(" >>> from win32com.client import gencache")
         print(
-            " >>> gencache.EnsureModule('%s', %s, %s, %s)"
-            % (tlbSpec.clsid, tlbSpec.lcid, tlbSpec.major, tlbSpec.minor)
+            " >>> gencache.EnsureModule('{}', {}, {}, {})".format(
+                tlbSpec.clsid, tlbSpec.lcid, tlbSpec.major, tlbSpec.minor
+            )
         )
 
 
@@ -215,7 +212,7 @@ def GetTypeLibsForSpec(arg):
                 print("Could not locate a type library matching '%s'" % (arg))
             for spec in tlbs:
                 # Version numbers not always reliable if enumerated from registry.
-                # (as some libs use hex, other's dont.  Both examples from MS, of course.)
+                # (as some libs use hex, other's don't.  Both examples from MS, of course.)
                 if spec.dll is None:
                     tlb = pythoncom.LoadRegTypeLib(
                         spec.clsid, spec.major, spec.minor, spec.lcid
@@ -233,7 +230,7 @@ def GetTypeLibsForSpec(arg):
         return typelibs
     except pythoncom.com_error:
         t, v, tb = sys.exc_info()
-        sys.stderr.write("Unable to load type library from '%s' - %s\n" % (arg, v))
+        sys.stderr.write(f"Unable to load type library from '{arg}' - {v}\n")
         tb = None  # Storing tb in a local is a cycle!
         sys.exit(1)
 
@@ -243,11 +240,9 @@ def GenerateFromTypeLibSpec(
     file=None,
     verboseLevel=None,
     progressInstance=None,
-    bUnicodeToString=None,
     bForDemand=bForDemandDefault,
     bBuildHidden=1,
 ):
-    assert bUnicodeToString is None, "this is deprecated and will go away"
     if verboseLevel is None:
         verboseLevel = 0  # By default, we use no gui and no verbose level!
 
@@ -305,15 +300,15 @@ def GenerateFromTypeLibSpec(
             if bForDemand:
                 try:
                     os.unlink(full_name + ".py")
-                except os.error:
+                except OSError:
                     pass
                 try:
                     os.unlink(full_name + ".pyc")
-                except os.error:
+                except OSError:
                     pass
                 try:
                     os.unlink(full_name + ".pyo")
-                except os.error:
+                except OSError:
                     pass
                 if not os.path.isdir(full_name):
                     os.mkdir(full_name)
@@ -341,14 +336,13 @@ def GenerateFromTypeLibSpec(
 
 
 def GenerateChildFromTypeLibSpec(
-    child, typelibInfo, verboseLevel=None, progressInstance=None, bUnicodeToString=None
+    child, typelibInfo, verboseLevel=None, progressInstance=None
 ):
-    assert bUnicodeToString is None, "this is deprecated and will go away"
     if verboseLevel is None:
         verboseLevel = (
             0  # By default, we use no gui, and no verbose level for the children.
         )
-    if type(typelibInfo) == type(()):
+    if isinstance(typelibInfo, tuple):
         typelibCLSID, lcid, major, minor = typelibInfo
         tlb = pythoncom.LoadRegTypeLib(typelibCLSID, major, minor, lcid)
     else:
@@ -397,9 +391,9 @@ def main():
             elif o == "-o":
                 outputName = v
             elif o == "-v":
-                verboseLevel = verboseLevel + 1
+                verboseLevel += 1
             elif o == "-q":
-                verboseLevel = verboseLevel - 1
+                verboseLevel -= 1
             elif o == "-i":
                 if len(args) == 0:
                     ShowInfo(None)
@@ -410,7 +404,7 @@ def main():
             elif o == "-d":
                 bForDemand = not bForDemand
 
-    except (getopt.error, error) as msg:
+    except getopt.error as msg:
         sys.stderr.write(str(msg) + "\n")
         usage()
 
@@ -430,12 +424,8 @@ def main():
         path = os.path.dirname(outputName)
         if path != "" and not os.path.exists(path):
             os.makedirs(path)
-        if sys.version_info > (3, 0):
-            f = open(outputName, "wt", encoding="mbcs")
-        else:
-            import codecs  # not available in py3k.
+        f = open(outputName, "wt", encoding="mbcs")
 
-            f = codecs.open(outputName, "w", "mbcs")
     else:
         f = None
 

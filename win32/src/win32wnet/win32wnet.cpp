@@ -149,12 +149,7 @@ static PyObject *PyWNetAddConnection2(PyObject *self, PyObject *args, PyObject *
     if (!PyWinObject_AsTCHAR(obPassword, &Password, TRUE) || !PyWinObject_AsTCHAR(obUsername, &Username, TRUE))
         goto done;
 
-    Py_BEGIN_ALLOW_THREADS
-#ifdef _WIN32_WCE_  // Windows CE only has the #3 version...use NULL for HWND to simulate #2
-        ErrorNo = WNetAddConnection3(NULL, pNetResource, Password, Username, flags);
-#else
-        ErrorNo = WNetAddConnection2(pNetResource, Password, Username, flags);
-#endif
+    Py_BEGIN_ALLOW_THREADS ErrorNo = WNetAddConnection2(pNetResource, Password, Username, flags);
     Py_END_ALLOW_THREADS if (ErrorNo != NO_ERROR) ReturnNetError("WNetAddConnection2", ErrorNo);
     else
     {
@@ -319,7 +314,7 @@ static PyObject *PyWNetEnumResource(PyObject *self, PyObject *args)
     // nothing hard & fast here, just a rough sizing..have to figure out something better later
 
     if (dwMaxCount == 0)            // using 0 to mean a default
-        dwMaxCount = dwCount = 64;  // lets default at 64 items
+        dwMaxCount = dwCount = 64;  // let's default at 64 items
     else
         dwCount = dwMaxCount;  // yes virginia, 0xffffffff is a LOT of items
 
@@ -369,7 +364,7 @@ static PyObject *PyWNetEnumResource(PyObject *self, PyObject *args)
                         return (ReturnError("Unable to create return list", "WNetEnumResource"));
                     }
 
-                    p_nr++;  // next NETRESOURCE object (its a ++ because it is a typed pointer)
+                    p_nr++;  // next NETRESOURCE object (it's a ++ because it is a typed pointer)
                     dwCount--;
                 } while (dwCount);
             };  // if
@@ -462,7 +457,7 @@ static PyObject *PyWNetGetUniversalName(PyObject *self, PyObject *args)
 
     // First get the buffer size.
     {
-        Py_BEGIN_ALLOW_THREADS char temp_buf[] = "";  // doesnt appear to like NULL!!
+        Py_BEGIN_ALLOW_THREADS char temp_buf[] = "";  // doesn't appear to like NULL!!
         errcode = WNetGetUniversalName(szLocalPath, level, &temp_buf, &length);
         Py_END_ALLOW_THREADS
     }

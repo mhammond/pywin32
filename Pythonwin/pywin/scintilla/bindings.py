@@ -1,10 +1,14 @@
+from __future__ import annotations
+
 import traceback
 
 import win32api
 import win32con
 import win32ui
 
-from . import IDLEenvironment, keycodes
+from . import (  # nopycln: import # Injects fast_readline into the IDLE auto-indent extension
+    IDLEenvironment,
+)
 
 HANDLER_ARGS_GUESS = 0
 HANDLER_ARGS_NATIVE = 1
@@ -13,8 +17,8 @@ HANDLER_ARGS_EXTENSION = 3
 
 next_id = 5000
 
-event_to_commands = {}  # dict of integer IDs to event names.
-command_to_events = {}  # dict of event names to int IDs
+event_to_commands: dict[str, int] = {}  # dict of event names to IDs
+command_to_events: dict[int, str] = {}  # dict of IDs to event names
 
 
 def assign_command_id(event, id=0):
@@ -23,7 +27,7 @@ def assign_command_id(event, id=0):
         id = event_to_commands.get(event, 0)
         if id == 0:
             id = next_id
-            next_id = next_id + 1
+            next_id += 1
         # Only map the ones we allocated - specified ones are assumed to have a handler
         command_to_events[id] = event
     event_to_commands[event] = id
@@ -54,7 +58,7 @@ class BindingsManager:
         self.keymap = {}
 
     def complete_configure(self):
-        for id in command_to_events.keys():
+        for id in command_to_events:
             self.parent_view.HookCommand(self._OnCommand, id)
 
     def close(self):
@@ -106,7 +110,7 @@ class BindingsManager:
             name = handler.replace("-", "_") + "_event"
             return getattr(instance, name)
         except (ImportError, AttributeError):
-            msg = "Can not find event '%s' in IDLE extension '%s'" % (handler, ext)
+            msg = f"Can not find event '{handler}' in IDLE extension '{ext}'"
             self.report_error(msg)
             return None
 
@@ -162,13 +166,11 @@ class BindingsManager:
         key = msg[2]
         keyState = 0
         if win32api.GetKeyState(win32con.VK_CONTROL) & 0x8000:
-            keyState = (
-                keyState | win32con.RIGHT_CTRL_PRESSED | win32con.LEFT_CTRL_PRESSED
-            )
+            keyState |= win32con.RIGHT_CTRL_PRESSED | win32con.LEFT_CTRL_PRESSED
         if win32api.GetKeyState(win32con.VK_SHIFT) & 0x8000:
-            keyState = keyState | win32con.SHIFT_PRESSED
+            keyState |= win32con.SHIFT_PRESSED
         if win32api.GetKeyState(win32con.VK_MENU) & 0x8000:
-            keyState = keyState | win32con.LEFT_ALT_PRESSED | win32con.RIGHT_ALT_PRESSED
+            keyState |= win32con.LEFT_ALT_PRESSED | win32con.RIGHT_ALT_PRESSED
         keyinfo = key, keyState
         # Special hacks for the dead-char key on non-US keyboards.
         # (XXX - which do not work :-(

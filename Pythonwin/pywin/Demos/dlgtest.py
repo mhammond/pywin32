@@ -50,8 +50,8 @@ class TestDialog(dialog.Dialog):
     # kill focus for the edit box.
     # Simply increment the value in the text box.
     def KillFocus(self, msg):
-        self.counter = self.counter + 1
-        if self.edit != None:
+        self.counter += 1
+        if self.edit is not None:
             self.edit.SetWindowText(str(self.counter))
 
     # Called when the dialog box is terminating...

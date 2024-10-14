@@ -23,8 +23,7 @@ def CheckRegisteredExe(exename):
                 regutil.GetRootKey(), regutil.GetAppPathsKey() + "\\" + exename
             )
         )
-    # 	except SystemError:
-    except (os.error, win32api.error):
+    except (OSError, win32api.error):
         print("Registration of %s - Not registered correctly" % exename)
 
 
@@ -78,7 +77,7 @@ def CheckPythonPaths(verbose):
                 else:
                     if verbose:
                         print("(empty)")
-                keyNo = keyNo + 1
+                keyNo += 1
             except win32api.error:
                 break
     finally:
@@ -115,9 +114,9 @@ def CheckHelpFiles(verbose):
                     os.stat(helpFile)
                     if verbose:
                         print(helpFile)
-                except os.error:
+                except OSError:
                     print("** Help file %s does not exist" % helpFile)
-                keyNo = keyNo + 1
+                keyNo += 1
             except win32api.error as exc:
                 import winerror
 

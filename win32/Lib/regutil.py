@@ -5,8 +5,6 @@ import sys
 import win32api
 import win32con
 
-error = "Registry utility error"
-
 # A .py file has a CLSID associated with it (why? - dunno!)
 CLSIDPyFile = "{b51df050-06ae-11cf-ad3b-524153480001}"
 
@@ -46,9 +44,9 @@ def SetRegistryDefaultValue(subKey, value, rootkey=None):
     """A helper to set the default value for a key in the registry"""
     if rootkey is None:
         rootkey = GetRootKey()
-    if type(value) == str:
+    if isinstance(value, str):
         typeId = win32con.REG_SZ
-    elif type(value) == int:
+    elif isinstance(value, int):
         typeId = win32con.REG_DWORD
     else:
         raise TypeError("Value must be string or integer - was passed " + repr(value))
@@ -76,9 +74,9 @@ def RegisterPythonExe(exeFullPath, exeAlias=None, exeAppPath=None):
               of the filename is used.
     exeAppPath -- Not supported.
     """
-    # Note - Dont work on win32s (but we dont care anymore!)
+    # Note - Don't work on win32s (but we don't care anymore!)
     if exeAppPath:
-        raise error("Do not support exeAppPath argument currently")
+        raise ValueError("Do not support exeAppPath argument currently")
     if exeAlias is None:
         exeAlias = os.path.basename(exeFullPath)
     win32api.RegSetValue(
@@ -107,7 +105,7 @@ def RegisterNamedPath(name, path):
     """Register a named path - ie, a named PythonPath entry."""
     keyStr = BuildDefaultPythonKey() + "\\PythonPath"
     if name:
-        keyStr = keyStr + "\\" + name
+        keyStr += "\\" + name
     win32api.RegSetValue(GetRootKey(), keyStr, win32con.REG_SZ, path)
 
 
@@ -125,10 +123,10 @@ def UnregisterNamedPath(name):
 
 
 def GetRegisteredNamedPath(name):
-    """Get a registered named path, or None if it doesnt exist."""
+    """Get a registered named path, or None if it doesn't exist."""
     keyStr = BuildDefaultPythonKey() + "\\PythonPath"
     if name:
-        keyStr = keyStr + "\\" + name
+        keyStr += "\\" + name
     try:
         return win32api.RegQueryValue(GetRootKey(), keyStr)
     except win32api.error as exc:
@@ -151,7 +149,7 @@ def RegisterModule(modName, modPath):
         import os
 
         os.stat(modPath)
-    except os.error:
+    except OSError:
         print("Warning: Registering non-existant module %s" % modPath)
     win32api.RegSetValue(
         GetRootKey(),
@@ -209,7 +207,7 @@ def RegisterHelpFile(helpFile, helpPath, helpDesc=None, bCheckFile=1):
     try:
         if bCheckFile:
             os.stat(fullHelpFile)
-    except os.error:
+    except OSError:
         raise ValueError("Help file does not exist")
     # Now register with Python itself.
     win32api.RegSetValue(
@@ -269,7 +267,7 @@ def RegisterCoreDLL(coredllName=None):
     else:
         try:
             os.stat(coredllName)
-        except os.error:
+        except OSError:
             print("Warning: Registering non-existant core DLL %s" % coredllName)
 
     hKey = win32api.RegCreateKey(GetRootKey(), BuildDefaultPythonKey())

@@ -49,11 +49,11 @@ class WindowOutput(winout.WindowOutput):
     def Close(self):
         self._StopThread()
         winout.WindowOutput.Close(self)
-        # 	def OnViewDestroy(self, frame):
-        # 		return winout.WindowOutput.OnViewDestroy(self, frame)
-        # 	def Create(self, title=None, style = None):
-        # 		rc = winout.WindowOutput.Create(self, title, style)
-        return rc
+        # def OnViewDestroy(self, frame):
+        #     return winout.WindowOutput.OnViewDestroy(self, frame)
+        # def Create(self, title=None, style = None):
+        #     rc = winout.WindowOutput.Create(self, title, style)
+        #     return rc
 
 
 def MakeOutputWindow():
@@ -62,7 +62,7 @@ def MakeOutputWindow():
     global outputWindow
     if outputWindow is None:
         title = "Python Trace Collector"
-        # queueingFlag doesnt matter, as all output will come from new thread
+        # queueingFlag doesn't matter, as all output will come from new thread
         outputWindow = WindowOutput(title, title)
         # Let people know what this does!
         msg = """\

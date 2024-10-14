@@ -2,14 +2,14 @@
 
 Please see policy.py for a discussion on dispatchers and policies
 """
+
+from __future__ import annotations
+
 import traceback
-from sys import exc_info
 
 import pythoncom
 import win32api
 import win32com
-
-#
 from win32com.server.exception import IsCOMServerException
 from win32com.util import IIDToInterfaceName
 
@@ -152,8 +152,9 @@ class DispatcherTrace(DispatcherBase):
         rc = DispatcherBase._QueryInterface_(self, iid)
         if not rc:
             self._trace_(
-                "in %s._QueryInterface_ with unsupported IID %s (%s)"
-                % (repr(self.policy._obj_), IIDToInterfaceName(iid), iid)
+                "in {}._QueryInterface_ with unsupported IID {} ({})".format(
+                    repr(self.policy._obj_), IIDToInterfaceName(iid), iid
+                )
             )
         return rc
 
@@ -179,8 +180,9 @@ class DispatcherTrace(DispatcherBase):
 
     def _InvokeEx_(self, dispid, lcid, wFlags, args, kwargs, serviceProvider):
         self._trace_(
-            "in %r._InvokeEx_-%s%r [%x,%s,%r]"
-            % (self.policy._obj_, dispid, args, wFlags, lcid, serviceProvider)
+            "in {!r}._InvokeEx_-{}{!r} [{:x},{},{!r}]".format(
+                self.policy._obj_, dispid, args, wFlags, lcid, serviceProvider
+            )
         )
         return DispatcherBase._InvokeEx_(
             self, dispid, lcid, wFlags, args, kwargs, serviceProvider
@@ -233,59 +235,9 @@ class DispatcherOutputDebugString(DispatcherTrace):
         win32api.OutputDebugString(str(args[-1]) + "\n")
 
 
-class DispatcherWin32dbg(DispatcherBase):
-    """A source-level debugger dispatcher
-
-    A dispatcher which invokes the debugger as an object is instantiated, or
-    when an unexpected exception occurs.
-
-    Requires Pythonwin.
-    """
-
-    def __init__(self, policyClass, ob):
-        # No one uses this, and it just causes py2exe to drag all of
-        # pythonwin in.
-        # import pywin.debugger
-        pywin.debugger.brk()
-        print("The DispatcherWin32dbg dispatcher is deprecated!")
-        print("Please let me know if this is a problem.")
-        print("Uncomment the relevant lines in dispatcher.py to re-enable")
-        # DEBUGGER Note - You can either:
-        # * Hit Run and wait for a (non Exception class) exception to occur!
-        # * Set a breakpoint and hit run.
-        # * Step into the object creation (a few steps away!)
-        DispatcherBase.__init__(self, policyClass, ob)
-
-    def _HandleException_(self):
-        """Invoke the debugger post mortem capability"""
-        # Save details away.
-        typ, val, tb = exc_info()
-        # import pywin.debugger, pywin.debugger.dbgcon
-        debug = 0
-        try:
-            raise typ(val)
-        except Exception:  # AARG - What is this Exception???
-            # Use some inside knowledge to borrow a Debugger option which dictates if we
-            # stop at "expected" exceptions.
-            debug = pywin.debugger.GetDebugger().get_option(
-                pywin.debugger.dbgcon.OPT_STOP_EXCEPTIONS
-            )
-        except:
-            debug = 1
-        if debug:
-            try:
-                pywin.debugger.post_mortem(tb, typ, val)  # The original exception
-            except:
-                traceback.print_exc()
-
-        # But still raise it.
-        del tb
-        raise
-
-
 try:
-    import win32trace
+    import win32trace  # nopycln: import # Check for win32traceutil w/o importing it
 
-    DefaultDebugDispatcher = DispatcherWin32trace
+    DefaultDebugDispatcher: type[DispatcherTrace] = DispatcherWin32trace
 except ImportError:  # no win32trace module - just use a print based one.
     DefaultDebugDispatcher = DispatcherTrace

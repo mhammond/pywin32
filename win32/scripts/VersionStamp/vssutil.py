@@ -1,4 +1,3 @@
-import string
 import time
 import traceback
 
@@ -10,8 +9,6 @@ import win32con
 constants = win32com.client.constants
 
 win32com.client.gencache.EnsureModule("{783CD4E0-9D54-11CF-B8EE-00608CC9A71F}", 0, 5, 0)
-
-error = "vssutil error"
 
 
 def GetSS():
@@ -29,15 +26,14 @@ def test(projectName):
     for item in project.GetVersions(constants.VSSFLAG_RECURSYES):
         print(item.VSSItem.Name, item.VersionNumber, item.Action)
 
-
-# 	item=i.Versions[0].VSSItem
-# 	for h in i.Versions:
-# 		print `h.Comment`, h.Action, h.VSSItem.Name
+    # item=i.Versions[0].VSSItem
+    # for h in i.Versions:
+    #     print("h.Comment", h.Action, h.VSSItem.Name)
 
 
 def SubstituteInString(inString, evalEnv):
     substChar = "$"
-    fields = string.split(inString, substChar)
+    fields = inString.split(substChar)
     newFields = []
     for i in range(len(fields)):
         didSubst = 0
@@ -52,7 +48,7 @@ def SubstituteInString(inString, evalEnv):
                 print("Could not substitute", strVal)
         if not didSubst:
             newFields.append(strVal)
-    return string.join(map(str, newFields), "")
+    return "".join(map(str, newFields))
 
 
 def SubstituteInFile(inName, outName, evalEnv):
@@ -76,24 +72,23 @@ def VssLog(project, linePrefix="", noLabels=5, maxItems=150):
     num = 0
     labelNum = 0
     for i in project.GetVersions(constants.VSSFLAG_RECURSYES):
-        num = num + 1
+        num += 1
         if num > maxItems:
             break
         commentDesc = itemDesc = ""
         if i.Action[:5] == "Added":
             continue
         if len(i.Label):
-            labelNum = labelNum + 1
+            labelNum += 1
             itemDesc = i.Action
         else:
             itemDesc = i.VSSItem.Name
             if str(itemDesc[-4:]) == ".dsp":
                 continue
         if i.Comment:
-            commentDesc = "\n%s\t%s" % (linePrefix, i.Comment)
+            commentDesc = f"\n{linePrefix}\t{i.Comment}"
         lines.append(
-            "%s%s\t%s%s"
-            % (
+            "{}{}\t{}{}".format(
                 linePrefix,
                 time.asctime(time.localtime(int(i.Date))),
                 itemDesc,
@@ -102,7 +97,7 @@ def VssLog(project, linePrefix="", noLabels=5, maxItems=150):
         )
         if labelNum > noLabels:
             break
-    return string.join(lines, "\n")
+    return "\n".join(lines)
 
 
 def SubstituteVSSInFile(projectName, inName, outName):
@@ -118,7 +113,7 @@ def SubstituteVSSInFile(projectName, inName, outName):
         if version.Label:
             break
     else:
-        print("Couldnt find a label in the sourcesafe project!")
+        print("Couldn't find a label in the sourcesafe project!")
         return
     # Setup some local helpers for the conversion strings.
     vss_label = version.Label
@@ -131,10 +126,10 @@ def CountCheckouts(item):
     num = 0
     if item.Type == constants.VSSITEM_PROJECT:
         for sub in item.Items:
-            num = num + CountCheckouts(sub)
+            num += CountCheckouts(sub)
     else:
         if item.IsCheckedOut:
-            num = num + 1
+            num += 1
     return num
 
 
@@ -171,24 +166,26 @@ def MakeNewBuildNo(project, buildDesc=None, auto=0, bRebrand=0):
         oldBuild = "<None>"
     else:
         try:
-            buildNo = string.atoi(buildNo)
+            buildNo = int(buildNo)
             if not bRebrand:
-                buildNo = buildNo + 1
+                buildNo += 1
             buildNo = str(buildNo)
-        except ValueError:
-            raise error("The previous label could not be incremented: %s" % (oldBuild))
+        except ValueError as error:
+            raise ValueError(
+                f"The previous label could not be incremented: {oldBuild}"
+            ) from error
 
     if not auto:
         from pywin.mfc import dialog
 
         buildNo = dialog.GetSimpleInput(
-            "Enter new build number", buildNo, "%s - Prev: %s" % (project, oldBuild)
+            "Enter new build number", buildNo, f"{project} - Prev: {oldBuild}"
         )
         if buildNo is None:
             return
-    i.Label(buildNo, "Build %s: %s" % (buildNo, buildDesc))
+    i.Label(buildNo, f"Build {buildNo}: {buildDesc}")
     if auto:
-        print("Branded project %s with label %s" % (project, buildNo))
+        print(f"Branded project {project} with label {buildNo}")
     return buildNo
 
 

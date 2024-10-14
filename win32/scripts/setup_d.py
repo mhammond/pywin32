@@ -1,4 +1,4 @@
-# Install and register pythonxx_d.dll, pywintypesxx_d.dll and pythoncomxx_d.dll
+# Install and register pythonXX_d.dll, pywintypesXX_d.dll and pythoncomXX_d.dll
 #
 # Assumes the _d files can be found in the same directory as this script
 # or in the cwd.
@@ -14,7 +14,7 @@ import win32api
 def usage_and_die(rc):
     print()
     print("This script is designed to copy and register the Python debug")
-    print("binaries.  It looks for pythonxx_d.dll, pythoncomxx_d.dll etc,")
+    print("binaries.  It looks for pythonXX_d.dll, pythoncomXX_d.dll etc,")
     print("and installs them to work correctly with Python debug builds.")
     print()
     print("You will generally find this script in the. zip file that")
@@ -23,7 +23,7 @@ def usage_and_die(rc):
     sys.exit(rc)
 
 
-if win32api.__file__.find("_d") > 0:
+if os.path.splitext(os.path.basename(win32api.__file__))[0].endswith("_d"):
     print("This scripts appears to be running a DEBUG version of Python.")
     print("Please run it using a normal release build (python.exe)")
     usage_and_die(1)
@@ -32,7 +32,7 @@ try:
     import pythoncom
 except ImportError as details:
     print("Could not import the release version of pythoncom")
-    print("The error details are: %s" % (details,))
+    print(f"The error details are: {details}")
     print("Please correct this error and rerun the script")
     usage_and_die(2)
 
@@ -40,7 +40,7 @@ try:
     import pywintypes
 except ImportError as details:
     print("Could not import the release version of pywintypes")
-    print("The error details are: %s" % (details,))
+    print(f"The error details are: {details}")
     print("Please correct this error and rerun the script")
     usage_and_die(2)
 
@@ -50,17 +50,18 @@ def _docopy(src, dest):
     if not os.path.isfile(src):
         src = os.path.join(os.path.split(sys.argv[0])[0], src)
         print(
-            "Can not find %s or %s to copy"
-            % (os.path.abspath(orig_src), os.path.abspath(src))
+            "Can not find {} or {} to copy".format(
+                os.path.abspath(orig_src), os.path.abspath(src)
+            )
         )
         return 0
     try:
         shutil.copy(src, dest)
-        print("Copied %s -> %s" % (src, dest))
+        print(f"Copied {src} -> {dest}")
         return 1
     except:
-        print("Error copying '%s' -> '%s'" % (src, dest))
-        print(str(sys.exc_info[1]))
+        print(f"Error copying '{src}' -> '{dest}'")
+        print(str(sys.exc_info()[1]))
         usage_and_die(3)
 
 
@@ -69,25 +70,25 @@ def _doregister(mod_name, dll_name):
     try:
         key = winreg.OpenKey(
             winreg.HKEY_LOCAL_MACHINE,
-            "Software\\Python\\PythonCore\\%s\\Modules\\%s" % (sys.winver, mod_name),
+            f"Software\\Python\\PythonCore\\{sys.winver}\\Modules\\{mod_name}",
         )
     except winreg.error:
         try:
             key = winreg.OpenKey(
                 winreg.HKEY_LOCAL_MACHINE,
-                "Software\\Python\\PythonCore\\%s\\Modules\\%s"
-                % (sys.winver, mod_name),
+                f"Software\\Python\\PythonCore\\{sys.winver}\\Modules\\{mod_name}",
             )
         except winreg.error:
             print(
-                "Could not find the existing '%s' module registered in the registry"
-                % (mod_name,)
+                "Could not find the existing '{}' module registered in the registry".format(
+                    mod_name
+                )
             )
             usage_and_die(4)
     # Create the debug key.
     sub_key = winreg.CreateKey(key, "Debug")
     winreg.SetValue(sub_key, None, winreg.REG_SZ, dll_name)
-    print("Registered '%s' in the registry" % (dll_name,))
+    print(f"Registered '{dll_name}' in the registry")
 
 
 def _domodule(mod_name, release_mod_filename):

@@ -2,9 +2,7 @@
 
 import pythoncom
 import winerror
-from win32com.server.exception import Exception
-
-error = "testDynamic error"
+from win32com.server.exception import COMException
 
 iid = pythoncom.MakeIID("{b48969a0-784b-11d0-ae71-d23f56000000}")
 
@@ -18,11 +16,11 @@ class VeryPermissive:
             try:
                 # to avoid problems with byref param handling, tuple results are converted to lists.
                 ret = self.__dict__[name]
-                if type(ret) == type(()):
+                if isinstance(ret, tuple):
                     ret = list(ret)
                 return ret
             except KeyError:  # Probably a method request.
-                raise Exception(scode=winerror.DISP_E_MEMBERNOTFOUND)
+                raise COMException(scode=winerror.DISP_E_MEMBERNOTFOUND)
 
         if wFlags & (
             pythoncom.DISPATCH_PROPERTYPUT | pythoncom.DISPATCH_PROPERTYPUTREF
@@ -30,11 +28,11 @@ class VeryPermissive:
             setattr(self, name, args[0])
             return
 
-        raise Exception(scode=winerror.E_INVALIDARG, desc="invalid wFlags")
+        raise COMException(scode=winerror.E_INVALIDARG, desc="invalid wFlags")
 
     def write(self, *args):
         if len(args) == 0:
-            raise Exception(
+            raise COMException(
                 scode=winerror.DISP_E_BADPARAMCOUNT
             )  # Probably call as PROPGET.
 
@@ -61,22 +59,20 @@ def Test():
 
         client = win32com.client.dynamic.Dispatch(iid)
         client.ANewAttr = "Hello"
-        if client.ANewAttr != "Hello":
-            raise error("Could not set dynamic property")
+        assert client.ANewAttr == "Hello", "Could not set dynamic property"
 
         v = ["Hello", "From", "Python", 1.4]
         client.TestSequence = v
-        if v != list(client.TestSequence):
-            raise error(
-                "Dynamic sequences not working! %r/%r"
-                % (repr(v), repr(client.testSequence))
-            )
+        assert v == list(
+            client.TestSequence
+        ), "Dynamic sequences not working! {!r}/{!r}".format(
+            repr(v), repr(client.testSequence)
+        )
 
         client.write("This", "output", "has", "come", "via", "testDynamic.py")
         # Check our new "_FlagAsMethod" works (kinda!)
         client._FlagAsMethod("NotReallyAMethod")
-        if not callable(client.NotReallyAMethod):
-            raise error("Method I flagged as callable isn't!")
+        assert callable(client.NotReallyAMethod), "Method I flagged as callable isn't!"
 
         client = None
     finally:

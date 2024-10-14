@@ -51,7 +51,7 @@ class Stream:
 
     def Read(self, amount):
         result = self.data[self.index : self.index + amount]
-        self.index = self.index + amount
+        self.index += amount
         return result
 
     def Write(self, data):
@@ -63,7 +63,7 @@ class Stream:
         if origin == pythoncom.STREAM_SEEK_SET:
             self.index = dist
         elif origin == pythoncom.STREAM_SEEK_CUR:
-            self.index = self.index + dist
+            self.index += dist
         elif origin == pythoncom.STREAM_SEEK_END:
             self.index = len(self.data) + dist
         else:
@@ -127,7 +127,7 @@ class StreamTest(win32com.test.util.TestCase):
     def testseek(self):
         s = Stream(b"yo")
         s = win32com.server.util.wrap(s, pythoncom.IID_IStream)
-        # we used to die in py3k passing a value > 32bits
+        # we used to die passing a value > 32bits
         s.Seek(0x100000000, pythoncom.STREAM_SEEK_SET)
 
     def testerrors(self):

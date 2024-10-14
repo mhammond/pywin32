@@ -123,7 +123,7 @@ class MainFrame(app.MainFrame):
 
 
 class InteractivePythonApp(app.CApp):
-    # This works if necessary - just we dont need to override the Run method.
+    # This works if necessary - just we don't need to override the Run method.
     # 	def Run(self):
     # 		return self._obj_.Run()
 
@@ -205,7 +205,7 @@ class InteractivePythonApp(app.CApp):
             self.ddeServer = None
 
         win32ui.SetRegistryKey(
-            "Python %s" % (sys.winver,)
+            f"Python {sys.winver}"
         )  # MFC automatically puts the main frame caption on!
         app.CApp.InitInstance(self)
 
@@ -317,8 +317,9 @@ class InteractivePythonApp(app.CApp):
                     # pywin.scintilla.document.CScintillaDocument.OnOpenDocument)
                     # segfaults Pythonwin on recent PY3 builds (b228)
                     win32ui.MessageBox(
-                        "No such file: %s\n\nCommand Line: %s"
-                        % (fname, win32api.GetCommandLine()),
+                        "No such file: {}\n\nCommand Line: {}".format(
+                            fname, win32api.GetCommandLine()
+                        ),
                         "Open file for edit",
                         win32con.MB_ICONERROR,
                     )
@@ -330,8 +331,9 @@ class InteractivePythonApp(app.CApp):
             elif argType == "/rundlg":
                 if dde:
                     dde.Exec(
-                        "from pywin.framework import scriptutils;scriptutils.RunScript(%r, %r, 1)"
-                        % (par, " ".join(args[i + 1 :]))
+                        "from pywin.framework import scriptutils;scriptutils.RunScript({!r}, {!r}, 1)".format(
+                            par, " ".join(args[i + 1 :])
+                        )
                     )
                 else:
                     from . import scriptutils
@@ -341,8 +343,9 @@ class InteractivePythonApp(app.CApp):
             elif argType == "/run":
                 if dde:
                     dde.Exec(
-                        "from pywin.framework import scriptutils;scriptutils.RunScript(%r, %r, 0)"
-                        % (par, " ".join(args[i + 1 :]))
+                        "from pywin.framework import scriptutils;scriptutils.RunScript({!r}, {!r}, 0)".format(
+                            par, " ".join(args[i + 1 :])
+                        )
                     )
                 else:
                     from . import scriptutils
@@ -481,12 +484,12 @@ class InteractivePythonApp(app.CApp):
         pages = []
         for template in self.GetDocTemplateList():
             try:
-                # Dont actually call the function with the exception handler.
+                # Don't actually call the function with the exception handler.
                 getter = template.GetPythonPropertyPages
             except AttributeError:
                 # Template does not provide property pages!
                 continue
-            pages = pages + getter()
+            pages.extend(getter())
 
         # Debugger template goes at the end
         try:
@@ -518,7 +521,7 @@ class InteractivePythonApp(app.CApp):
         try:
             interact = sys.modules["pywin.framework.interact"]
             state = interact.IsInteractiveWindowVisible()
-        except KeyError:  # Interactive module hasnt ever been imported.
+        except KeyError:  # Interactive module hasn't ever been imported.
             state = 0
         cmdui.Enable()
         cmdui.SetCheck(state)
@@ -548,8 +551,4 @@ class InteractivePythonApp(app.CApp):
         help.SelectAndRunHelpFile()
 
 
-# As per the comments in app.py, this use is depreciated.
-# app.AppBuilder = InteractivePythonApp
-
-# Now all we do is create the application
 thisApp = InteractivePythonApp()

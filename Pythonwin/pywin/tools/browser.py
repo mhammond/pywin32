@@ -87,7 +87,7 @@ class HLIPythonObject(hierlist.HierListItem):
             pass
         try:
             for name in self.myobject.__methods__:
-                ret.append(HLIMethod(name))  # no MakeHLI, as cant auto detect
+                ret.append(HLIMethod(name))  # no MakeHLI, as can't auto detect
         except (AttributeError, TypeError):
             pass
         try:
@@ -110,7 +110,7 @@ class HLIPythonObject(hierlist.HierListItem):
         if hasattr(self.myobject, "__doc__"):
             return 1
         try:
-            for key in self.myobject.__dict__.keys():
+            for key in self.myobject.__dict__:
                 if key not in special_names:
                     return 1
         except (AttributeError, TypeError):
@@ -175,7 +175,7 @@ class HLIClass(HLIPythonObject):
         ret = []
         for base in self.myobject.__bases__:
             ret.append(MakeHLI(base, "Base class: " + base.__name__))
-        ret = ret + HLIPythonObject.GetSubList(self)
+        ret.extend(HLIPythonObject.GetSubList(self))
         return ret
 
 
@@ -224,7 +224,7 @@ class HLIInstance(HLIPythonObject):
     def GetSubList(self):
         ret = []
         ret.append(MakeHLI(self.myobject.__class__))
-        ret = ret + HLIPythonObject.GetSubList(self)
+        ret.extend(HLIPythonObject.GetSubList(self))
         return ret
 
 
@@ -241,21 +241,10 @@ class HLIFunction(HLIPythonObject):
         return 1
 
     def GetSubList(self):
-        ret = []
-        # 		ret.append( MakeHLI( self.myobject.func_argcount, "Arg Count" ))
-        try:
-            ret.append(MakeHLI(self.myobject.func_argdefs, "Arg Defs"))
-        except AttributeError:
-            pass
-        try:
-            code = self.myobject.__code__
-            globs = self.myobject.__globals__
-        except AttributeError:
-            # must be py2.5 or earlier...
-            code = self.myobject.func_code
-            globs = self.myobject.func_globals
-        ret.append(MakeHLI(code, "Code"))
-        ret.append(MakeHLI(globs, "Globals"))
+        ret = [
+            MakeHLI(self.myobject.__code__, "Code"),
+            MakeHLI(self.myobject.__globals__, "Globals"),
+        ]
         self.InsertDocString(ret)
         return ret
 
@@ -272,7 +261,7 @@ class HLISeq(HLIPythonObject):
         pos = 0
         for item in self.myobject:
             ret.append(MakeHLI(item, "[" + str(pos) + "]"))
-            pos = pos + 1
+            pos += 1
         self.InsertDocString(ret)
         return ret
 
@@ -299,17 +288,12 @@ class HLIDict(HLIPythonObject):
             return len(self.myobject) > 0
 
     def GetSubList(self):
-        ret = []
-        keys = list(self.myobject.keys())
-        keys.sort()
-        for key in keys:
-            ob = self.myobject[key]
-            ret.append(MakeHLI(ob, str(key)))
+        ret = [MakeHLI(self.myobject[key], str(key)) for key in sorted(self.myobject)]
         self.InsertDocString(ret)
         return ret
 
 
-# In Python 1.6, strings and Unicode have builtin methods, but we dont really want to see these
+# strings and Unicode have builtin methods, but we don't really want to see these
 class HLIString(HLIPythonObject):
     def IsExpandable(self):
         return 0
@@ -338,7 +322,7 @@ def MakeHLI(ob, name=None):
         cls = TypeMap[type(ob)]
     except KeyError:
         # hrmph - this check gets more and more bogus as Python
-        # improves.  Its possible we should just *always* use
+        # improves.  It's possible we should just *always* use
         # HLIInstance?
         if hasattr(ob, "__class__"):  # 'new style' class
             cls = HLIInstance
@@ -367,9 +351,9 @@ class DialogShowObject(dialog.Dialog):
             strval = str(self.object)
         except:
             t, v, tb = sys.exc_info()
-            strval = "Exception getting object value\n\n%s:%s" % (t, v)
+            strval = f"Exception getting object value\n\n{t}:{v}"
             tb = None
-        strval = re.sub("\n", "\r\n", strval)
+        strval = re.sub(r"\n", "\r\n", strval)
         self.edit.ReplaceSel(strval)
 
 

@@ -110,11 +110,7 @@ BOOL PyWinObject_AsSingleWCHAR(PyObject *obchar, WCHAR *onechar)
         PyErr_SetString(PyExc_ValueError, "Object must be a single unicode character");
         return FALSE;
     }
-#if (PY_VERSION_HEX < 0x03020000)
-#define PUAWC_TYPE PyUnicodeObject *
-#else
 #define PUAWC_TYPE PyObject *
-#endif
     if (PyUnicode_AsWideChar((PUAWC_TYPE)obchar, onechar, 1) == -1)
         return FALSE;
     return TRUE;
@@ -1299,7 +1295,8 @@ PyObject *PyConsoleScreenBuffer::PyScrollConsoleScreenBuffer(PyObject *self, PyO
         if (!ScrollConsoleScreenBuffer(((PyConsoleScreenBuffer *)self)->m_handle, pscrollrect, pcliprect, *pdestcoord,
                                        &char_info)) {
             PyWin_SetAPIError("ScrollConsoleScreenBuffer");
-        } else {
+        }
+        else {
             Py_INCREF(Py_None);
             return Py_None;
         }
@@ -1817,7 +1814,8 @@ static PyObject *PyAddConsoleAlias(PyObject *self, PyObject *args, PyObject *kwa
         PyWinObject_AsWCHAR(obexename, &exename, FALSE)) {
         if (!(*pfnAddConsoleAlias)(source, target, exename)) {
             PyWin_SetAPIError("AddConsoleAlias");
-        } else {
+        }
+        else {
             Py_INCREF(Py_None);
             ret = Py_None;
         }

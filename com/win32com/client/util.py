@@ -3,8 +3,9 @@
 This module contains utility functions, used primarily by advanced COM
 programmers, or other COM modules.
 """
+
 import pythoncom
-from win32com.client import Dispatch, _get_good_object_
+from win32com.client import _get_good_object_
 
 PyIDispatchType = pythoncom.TypeIIDs[pythoncom.IID_IDispatch]
 
@@ -16,7 +17,7 @@ def WrapEnum(ob, resultCLSID=None):
     (which may be either a class instance, or a dynamic.Dispatch type object).
 
     """
-    if type(ob) != pythoncom.TypeIIDs[pythoncom.IID_IEnumVARIANT]:
+    if not isinstance(ob, pythoncom.TypeIIDs[pythoncom.IID_IEnumVARIANT]):
         ob = ob.QueryInterface(pythoncom.IID_IEnumVARIANT)
     return EnumVARIANT(ob, resultCLSID)
 
@@ -44,7 +45,7 @@ class Enumerator:
         return self.__GetIndex(index)
 
     def __GetIndex(self, index):
-        if type(index) != type(0):
+        if not isinstance(index, int):
             raise TypeError("Only integer indexes are supported for enumerators")
         # NOTE
         # In this context, self.index is users purely as a flag to say

@@ -1,19 +1,8 @@
-import sys
 import tokenize
 
 from pywin import default_scintilla_encoding
 
 from . import PyParse
-
-if sys.version_info < (3,):
-    # in py2k, tokenize() takes a 'token eater' callback, while
-    # generate_tokens is a generator that works with str objects.
-    token_generator = tokenize.generate_tokens
-else:
-    # in py3k tokenize() is the generator working with 'byte' objects, and
-    # token_generator is the 'undocumented b/w compat' function that
-    # theoretically works with str objects - but actually seems to fail)
-    token_generator = tokenize.tokenize
 
 
 class AutoIndent:
@@ -159,7 +148,7 @@ class AutoIndent:
         ncharsdeleted = 0
         while 1:
             chars = chars[:-1]
-            ncharsdeleted = ncharsdeleted + 1
+            ncharsdeleted += 1
             have = len(chars.expandtabs(self.tabwidth))
             if have <= want or chars[-1] not in " \t":
                 break
@@ -214,7 +203,7 @@ class AutoIndent:
             line = text.get("insert linestart", "insert")
             i, n = 0, len(line)
             while i < n and line[i] in " \t":
-                i = i + 1
+                i += 1
             if i == n:
                 # the cursor is in or at leading indentation; just inject
                 # an empty line at the start and strip space from current line
@@ -226,7 +215,7 @@ class AutoIndent:
             i = 0
             while line and line[-1] in " \t":
                 line = line[:-1]
-                i = i + 1
+                i += 1
             if i:
                 text.delete("insert - %d chars" % i, "insert")
             # strip whitespace after insert point
@@ -273,7 +262,7 @@ class AutoIndent:
                     else:
                         self.reindent_to(y.compute_backslash_indent())
                 else:
-                    assert 0, "bogus continuation type " + repr(c)
+                    raise ValueError(f"bogus continuation type {c!r}")
                 return "break"
 
             # This line starts a brand new stmt; indent relative to
@@ -309,7 +298,7 @@ class AutoIndent:
             line = lines[pos]
             if line:
                 raw, effective = classifyws(line, self.tabwidth)
-                effective = effective + self.indentwidth
+                effective += self.indentwidth
                 lines[pos] = self._make_blanks(effective) + line[raw:]
         self.set_region(head, tail, chars, lines)
         return "break"
@@ -484,10 +473,10 @@ def classifyws(s, tabwidth):
     raw = effective = 0
     for ch in s:
         if ch == " ":
-            raw = raw + 1
-            effective = effective + 1
+            raw += 1
+            effective += 1
         elif ch == "\t":
-            raw = raw + 1
+            raw += 1
             effective = (effective // tabwidth + 1) * tabwidth
         else:
             break
@@ -516,7 +505,7 @@ class IndentSearcher:
                 val = ""
             else:
                 val = self.text.get(mark, mark + " lineend+1c")
-        # hrm - not sure this is correct in py3k - the source code may have
+        # hrm - not sure this is correct - the source code may have
         # an encoding declared, but the data will *always* be in
         # default_scintilla_encoding - so if anyone looks at the encoding decl
         # in the source they will be wrong.  I think.  Maybe.  Or something...
@@ -531,7 +520,7 @@ class IndentSearcher:
         tokenize.tabsize = self.tabwidth
         try:
             try:
-                for typ, token, start, end, line in token_generator(self.readline):
+                for typ, token, start, end, line in tokenize.tokenize(self.readline):
                     if typ == NAME and token in OPENERS:
                         self.blkopenline = line
                     elif typ == INDENT and self.blkopenline:

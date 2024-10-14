@@ -36,7 +36,7 @@ class Style:
         # Default background for each style is only used when there are no
         # saved settings (generally on first startup)
         self.background = self.default_background = background
-        if type(format) == type(""):
+        if isinstance(format, str):
             self.aliased = format
             self.format = None
         else:
@@ -92,14 +92,14 @@ class FormatterBase:
         self.SetStyles()
 
     def HookFormatter(self, parent=None):
-        raise NotImplementedError()
+        raise NotImplementedError
 
     # Used by the IDLE extensions to quickly determine if a character is a string.
     def GetStringStyle(self, pos):
         try:
             style = self.styles_by_id[self.scintilla.SCIGetStyleAt(pos)]
         except KeyError:
-            # A style we dont know about - probably not even a .py file - can't be a string
+            # A style we don't know about - probably not even a .py file - can't be a string
             return None
         if style.name in self.string_style_names:
             return style
@@ -114,7 +114,7 @@ class FormatterBase:
         self.styles_by_id[stylenum] = style
 
     def SetStyles(self):
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def GetSampleText(self):
         return "Sample Text for the Format Dialog"
@@ -142,7 +142,7 @@ class FormatterBase:
             return
 
         assert style.stylenum is not None, "Unregistered style."
-        # print "Reformat style", style.name, style.stylenum
+        # print("Reformat style", style.name, style.stylenum)
         scintilla = self.scintilla
         stylenum = style.stylenum
         # Now we have the style number, indirect for the actual style.
@@ -185,7 +185,7 @@ class FormatterBase:
         defaultStyle = Style("default", baseFormat)
         defaultStyle.stylenum = scintillacon.STYLE_DEFAULT
         self._ReformatStyle(defaultStyle)
-        for style in list(self.styles.values()):
+        for style in self.styles.values():
             if style.aliased is None:
                 style.NormalizeAgainstDefault(baseFormat)
             self._ReformatStyle(style)
@@ -202,7 +202,7 @@ class FormatterBase:
         )
         self.bUseFixed = int(self.LoadPreference("Use Fixed", 1))
 
-        for style in list(self.styles.values()):
+        for style in self.styles.values():
             new = self.LoadPreference(style.name, str(style.format))
             try:
                 style.format = eval(new)
@@ -222,7 +222,7 @@ class FormatterBase:
         self.SavePreference("Base Format Fixed", str(self.baseFormatFixed))
         self.SavePreference("Base Format Proportional", str(self.baseFormatProp))
         self.SavePreference("Use Fixed", self.bUseFixed)
-        for style in list(self.styles.values()):
+        for style in self.styles.values():
             if style.aliased is None:
                 self.SavePreference(style.name, str(style.format))
                 bg_name = style.name + " background"
@@ -238,7 +238,7 @@ class FormatterBase:
 class Formatter(FormatterBase):
     def __init__(self, scintilla):
         self.bCompleteWhileIdle = 0
-        self.bHaveIdleHandler = 0  # Dont currently have an idle handle
+        self.bHaveIdleHandler = 0  # Don't currently have an idle handle
         self.nextstylenum = 0
         FormatterBase.__init__(self, scintilla)
 
@@ -252,25 +252,34 @@ class Formatter(FormatterBase):
         endStyledChar = self.scintilla.SendScintilla(scintillacon.SCI_GETENDSTYLED)
         lineEndStyled = self.scintilla.LineFromChar(endStyledChar)
         endStyled = self.scintilla.LineIndex(lineEndStyled)
-        # print "enPosPaint %d endStyledChar %d lineEndStyled %d endStyled %d" % (endPosPaint, endStyledChar, lineEndStyled, endStyled)
+        # print(
+        #     "endPosPaint",
+        #     endPosPaint,
+        #     "endStyledChar",
+        #     endStyledChar,
+        #     "lineEndStyled",
+        #     lineEndStyled,
+        #     "endStyled",
+        #     endStyled,
+        # )
         self.Colorize(endStyled, notify.position)
 
     def ColorSeg(self, start, end, styleName):
-        end = end + 1
+        end += 1
         # 		assert end-start>=0, "Can't have negative styling"
         stylenum = self.styles[styleName].stylenum
         while start < end:
             self.style_buffer[start] = stylenum
-            start = start + 1
+            start += 1
         # self.scintilla.SCISetStyling(end - start + 1, stylenum)
 
     def RegisterStyle(self, style, stylenum=None):
         if stylenum is None:
             stylenum = self.nextstylenum
-            self.nextstylenum = self.nextstylenum + 1
+            self.nextstylenum += 1
         FormatterBase.RegisterStyle(self, style, stylenum)
 
-    def ColorizeString(self, str, charStart, styleStart):
+    def ColorizeString(self, str, styleStart):
         raise RuntimeError("You must override this method")
 
     def Colorize(self, start=0, end=-1):
@@ -510,7 +519,7 @@ class PythonSourceFormatter(Formatter):
                     startSeg = i
                     state = STYLE_COMMENT
                     if chNext == '"' and chNext2 == '"':
-                        i = i + 2
+                        i += 2
                         state = STYLE_TQDSTRING
                         ch = " "
                         chPrev = " "
@@ -524,7 +533,7 @@ class PythonSourceFormatter(Formatter):
                     startSeg = i
                     state = STYLE_COMMENT
                     if chNext == "'" and chNext2 == "'":
-                        i = i + 2
+                        i += 2
                         state = STYLE_TQSSTRING
                         ch = " "
                         chPrev = " "
@@ -549,7 +558,7 @@ class PythonSourceFormatter(Formatter):
                             state = STYLE_COMMENT
                     elif ch == '"':
                         if chNext == '"' and chNext2 == '"':
-                            i = i + 2
+                            i += 2
                             state = STYLE_TQDSTRING
                             ch = " "
                             chPrev = " "
@@ -560,7 +569,7 @@ class PythonSourceFormatter(Formatter):
                             state = STYLE_STRING
                     elif ch == "'":
                         if chNext == "'" and chNext2 == "'":
-                            i = i + 2
+                            i += 2
                             state = STYLE_TQSSTRING
                             ch = " "
                             chPrev = " "
@@ -580,7 +589,7 @@ class PythonSourceFormatter(Formatter):
             elif state == STYLE_STRING:
                 if ch == "\\":
                     if chNext == '"' or chNext == "'" or chNext == "\\":
-                        i = i + 1
+                        i += 1
                         ch = chNext
                         chNext = " "
                         if i + 1 < lengthDoc:
@@ -592,7 +601,7 @@ class PythonSourceFormatter(Formatter):
             elif state == STYLE_SQSTRING:
                 if ch == "\\":
                     if chNext == '"' or chNext == "'" or chNext == "\\":
-                        i = i + 1
+                        i += 1
                         ch = chNext
                         chNext = " "
                         if i + 1 < lengthDoc:
@@ -619,7 +628,7 @@ class PythonSourceFormatter(Formatter):
             chPrev3 = chPrev2
             chPrev2 = chPrev
             chPrev = ch
-            i = i + 1
+            i += 1
         if startSeg < lengthDoc:
             if state == STYLE_KEYWORD:
                 self.ClassifyWord(cdoc, startSeg, lengthDoc - 1, prevWord)
@@ -659,7 +668,7 @@ class BuiltinSourceFormatter(FormatterBase):
         assert style.stylenum is None, "Style has already been registered"
         if stylenum is None:
             stylenum = self.nextstylenum
-            self.nextstylenum = self.nextstylenum + 1
+            self.nextstylenum += 1
         assert self.styles.get(stylenum) is None, "We are reusing a style number!"
         style.stylenum = stylenum
         self.styles[style.name] = style

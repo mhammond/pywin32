@@ -1,7 +1,7 @@
 import win32com
 import win32com.client
 
-if type(__path__) == type(""):
+if isinstance(__path__, str):
     # For freeze to work!
     import sys
 
@@ -25,7 +25,7 @@ else:
 # interface, as well as via IDispatch.
 import pythoncom
 
-from .adsi import *
+from .adsi import *  # nopycln: import # Re-export everything from win32comext/adsi/adsi.pyd
 
 LCID = 0
 
@@ -51,8 +51,8 @@ def _get_good_ret(
 class ADSIEnumerator:
     def __init__(self, ob):
         # Query the object for the container interface.
-        self._cont_ = ob.QueryInterface(IID_IADsContainer)
-        self._oleobj_ = ADsBuildEnumerator(self._cont_)  # a PyIADsEnumVARIANT
+        self._cont_ = ob.QueryInterface(adsi.IID_IADsContainer)
+        self._oleobj_ = adsi.ADsBuildEnumerator(self._cont_)  # a PyIADsEnumVARIANT
         self.index = -1
 
     def __getitem__(self, index):
@@ -62,26 +62,23 @@ class ADSIEnumerator:
         return self.__GetIndex(index)
 
     def __GetIndex(self, index):
-        if type(index) != type(0):
+        if not isinstance(index, int):
             raise TypeError("Only integer indexes are supported for enumerators")
         if index != self.index + 1:
             # Index requested out of sequence.
             raise ValueError("You must index this object sequentially")
         self.index = index
-        result = ADsEnumerateNext(self._oleobj_, 1)
+        result = adsi.ADsEnumerateNext(self._oleobj_, 1)
         if len(result):
             return _get_good_ret(result[0])
         # Failed - reset for next time around.
         self.index = -1
-        self._oleobj_ = ADsBuildEnumerator(self._cont_)  # a PyIADsEnumVARIANT
+        self._oleobj_ = adsi.ADsBuildEnumerator(self._cont_)  # a PyIADsEnumVARIANT
         raise IndexError("list index out of range")
 
 
 class ADSIDispatch(win32com.client.CDispatch):
-    def _wrap_dispatch_(
-        self, ob, userName=None, returnCLSID=None, UnicodeToString=None
-    ):
-        assert UnicodeToString is None, "this is deprectated and will be removed"
+    def _wrap_dispatch_(self, ob, userName=None, returnCLSID=None):
         if not userName:
             userName = "ADSI-object"
         olerepr = win32com.client.dynamic.MakeOleRepr(ob, None, None)
@@ -91,7 +88,7 @@ class ADSIDispatch(win32com.client.CDispatch):
         try:
             return ADSIEnumerator(self)
         except pythoncom.com_error:
-            # doesnt support it - let our base try!
+            # doesn't support it - let our base try!
             return win32com.client.CDispatch._NewEnum(self)
 
     def __getattr__(self, attr):
@@ -105,18 +102,12 @@ class ADSIDispatch(win32com.client.CDispatch):
         return _get_good_ret(ret)
 
 
-# We override the global methods to do the right thing.
-_ADsGetObject = ADsGetObject  # The one in the .pyd
-
-
+# We override the adsi.pyd methods to do the right thing.
 def ADsGetObject(path, iid=pythoncom.IID_IDispatch):
-    ret = _ADsGetObject(path, iid)
+    ret = adsi.ADsGetObject(path, iid)
     return _get_good_ret(ret)
 
 
-_ADsOpenObject = ADsOpenObject
-
-
 def ADsOpenObject(path, username, password, reserved=0, iid=pythoncom.IID_IDispatch):
-    ret = _ADsOpenObject(path, username, password, reserved, iid)
+    ret = adsi.ADsOpenObject(path, username, password, reserved, iid)
     return _get_good_ret(ret)

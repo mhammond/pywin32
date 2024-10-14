@@ -143,7 +143,7 @@ STDMETHODIMP PyGActiveScript::GetScriptThreadID(
             hr = PyCom_SetCOMErrorFromPyException(GetIID());
     }
     else
-        hr = PyCom_SetCOMErrorFromSimple(E_FAIL, GetIID(), L"Python didnt return an integer");
+        hr = PyCom_SetCOMErrorFromSimple(E_FAIL, GetIID(), L"Python didn't return an integer");
     return hr;
 }
 

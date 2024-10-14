@@ -1,5 +1,7 @@
 """Utilities for working with Connections"""
+
 import pythoncom
+import win32com.server.policy
 import win32com.server.util
 
 
@@ -21,11 +23,9 @@ class SimpleConnection:
             pass
 
     def _wrap(self, obj):
-        useDispatcher = None
-        if self.debug:
-            from win32com.server import dispatcher
-
-            useDispatcher = dispatcher.DefaultDebugDispatcher
+        useDispatcher = (
+            win32com.server.policy.DispatcherWin32trace if self.debug else None
+        )
         return win32com.server.util.wrap(obj, useDispatcher=useDispatcher)
 
     def Connect(self, coInstance, eventInstance, eventCLSID=None):

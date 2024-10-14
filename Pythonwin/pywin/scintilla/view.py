@@ -1,6 +1,5 @@
 # A general purpose MFC CCtrlView view that uses Scintilla.
 
-import array
 import os
 import re
 import string
@@ -8,13 +7,16 @@ import struct
 import sys
 
 import __main__  # for attribute lookup
-import afxres
 import win32con
 import win32ui
-from pywin.mfc import dialog, docview
+from pywin.mfc import afxres, docview
 
-from . import IDLEenvironment  # IDLE emulation.
-from . import bindings, control, keycodes, scintillacon
+from . import (
+    IDLEenvironment,  # nopycln: import # Injects fast_readline into the IDLE auto-indent extension
+    bindings,
+    control,
+    scintillacon,
+)
 
 PRINTDLGORD = 1538
 IDC_PRINT_MAG_EDIT = 1010
@@ -22,7 +24,7 @@ EM_FORMATRANGE = win32con.WM_USER + 57
 
 wordbreaks = "._" + string.ascii_uppercase + string.ascii_lowercase + string.digits
 
-patImport = re.compile("import (?P<name>.*)")
+patImport = re.compile(r"import (?P<name>.*)")
 
 _event_commands = [
     # File menu
@@ -128,7 +130,7 @@ def _get_class_attributes(ob):
     # Recurse into base classes looking for attributes
     items = []
     try:
-        items = items + dir(ob)
+        items.extend(dir(ob))
         for i in ob.__bases__:
             for item in _get_class_attributes(i):
                 if item not in items:
@@ -270,7 +272,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
             self.bindings.complete_configure()
 
     def DoConfigChange(self):
-        # Bit of a hack I dont kow what to do about - these should be "editor options"
+        # Bit of a hack I don't kow what to do about - these should be "editor options"
         from pywin.framework.editor import GetEditorOption
 
         self.bAutoCompleteAttributes = GetEditorOption("Autocomplete Attributes", 1)
@@ -293,7 +295,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
     def OnMouseWheel(self, msg):
         zDelta = msg[2] >> 16
         vpos = self.GetScrollPos(win32con.SB_VERT)
-        vpos = vpos - zDelta / 40  # 3 lines per notch
+        vpos -= zDelta / 40  # 3 lines per notch
         self.SetScrollPos(win32con.SB_VERT, vpos)
         self.SendScintilla(
             win32con.WM_VSCROLL, (vpos << 16) | win32con.SB_THUMBPOSITION, 0
@@ -320,7 +322,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
         lineEnd = self.LineFromChar(max(start, end))
         while lineStart <= lineEnd:
             self.SCIEnsureVisible(lineStart)
-            lineStart = lineStart + 1
+            lineStart += 1
 
     # Helper to add an event to a menu.
     def AppendMenu(self, menu, text="", event=None, flags=None, checked=0):
@@ -332,17 +334,18 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
             if cmdid is None:
                 # No event of that name - no point displaying it.
                 print(
-                    'View.AppendMenu(): Unknown event "%s" specified for menu text "%s" - ignored'
-                    % (event, text)
+                    'View.AppendMenu(): Unknown event "{}" specified for menu text "{}" - ignored'.format(
+                        event, text
+                    )
                 )
                 return
             keyname = configManager.get_key_binding(event, self._GetSubConfigNames())
             if keyname is not None:
-                text = text + "\t" + keyname
+                text += "\t" + keyname
         if flags is None:
             flags = win32con.MF_STRING | win32con.MF_ENABLED
         if checked:
-            flags = flags | win32con.MF_CHECKED
+            flags |= win32con.MF_CHECKED
         menu.AppendMenu(flags, cmdid, text)
 
     def OnKeyDown(self, msg):
@@ -488,7 +491,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
                     pass  # object has no __dict__
                 if hasattr(ob, "__class__"):
                     items_dict.update(list2dict(_get_class_attributes(ob.__class__)))
-                # The object may be a COM object with typelib support - lets see if we can get its props.
+                # The object may be a COM object with typelib support - let's see if we can get its props.
                 # (contributed by Stefan Migowsky)
                 try:
                     # Get the automation attributes
@@ -499,7 +502,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
                     # append to the already evaluated list
                 except AttributeError:
                     pass
-                # The object might be a pure COM dynamic dispatch with typelib support - lets see if we can get its props.
+                # The object might be a pure COM dynamic dispatch with typelib support - let's see if we can get its props.
                 if hasattr(ob, "_oleobj_"):
                     try:
                         for iTI in range(0, ob._oleobj_.GetTypeInfoCount()):
@@ -509,14 +512,19 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
                         pass
             except:
                 win32ui.SetStatusText(
-                    "Error attempting to get object attributes - %s"
-                    % (repr(sys.exc_info()[0]),)
+                    "Error attempting to get object attributes - {}".format(
+                        repr(sys.exc_info()[0])
+                    )
                 )
 
-        # ensure all keys are strings.
-        items = [str(k) for k in items_dict.keys()]
-        # All names that start with "_" go!
-        items = [k for k in items if not k.startswith("_")]
+        items = [
+            k
+            for k in
+            # ensure all keys are strings.
+            map(str, items_dict)
+            # All names that start with "_" go!
+            if not k.startswith("_")
+        ]
 
         if not items:
             # Heuristics a-la AutoExpand
@@ -533,7 +541,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
             endpos = self.LineIndex(maxline)
             text = self.GetTextRange(self.LineIndex(minline), endpos)
             try:
-                l = re.findall(r"\b" + left + "\.\w+", text)
+                l = re.findall(r"\b" + left + r"\.\w+", text)
             except re.error:
                 # parens etc may make an invalid RE, but this code wouldnt
                 # benefit even if the RE did work :-)
@@ -546,9 +554,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
             if curclass and left == "self":
                 self._UpdateWithClassMethods(unique, curclass)
 
-            items = [
-                word for word in unique.keys() if word[:2] != "__" or word[-2:] != "__"
-            ]
+            items = [word for word in unique if word[:2] != "__" or word[-2:] != "__"]
             # Ignore the word currently to the right of the dot - probably a red-herring.
             try:
                 items.remove(right[1:])
@@ -673,24 +679,33 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
         index = pos - 1
         wordbreaks_use = wordbreaks
         if bAllowCalls:
-            wordbreaks_use = wordbreaks_use + "()[]"
+            wordbreaks_use += "()[]"
         while index >= 0:
             char = self.SCIGetCharAt(index)
             if char not in wordbreaks_use:
                 break
             before.insert(0, char)
-            index = index - 1
+            index -= 1
         index = pos
         while index <= limit:
             char = self.SCIGetCharAt(index)
             if char not in wordbreaks_use:
                 break
             after.append(char)
-            index = index + 1
+            index += 1
         return "".join(before), "".join(after)
 
     def OnPrepareDC(self, dc, pInfo):
-        # 		print "OnPrepareDC for page", pInfo.GetCurPage(), "of", pInfo.GetFromPage(), "to", pInfo.GetToPage(), ", starts=", self.starts
+        # print(
+        #     "OnPrepareDC for page",
+        #     pInfo.GetCurPage(),
+        #     "of",
+        #     pInfo.GetFromPage(),
+        #     "to",
+        #     pInfo.GetToPage(),
+        #     ", starts=",
+        #     self.starts,
+        # )
         if dc.IsPrinting():
             # Check if we are beyond the end.
             # (only do this when actually printing, else messes up print preview!)
@@ -705,7 +720,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
     def OnPreparePrinting(self, pInfo):
         flags = (
             win32ui.PD_USEDEVMODECOPIES | win32ui.PD_ALLPAGES | win32ui.PD_NOSELECTION
-        )  # Dont support printing just a selection.
+        )  # Don't support printing just a selection.
         # NOTE: Custom print dialogs are stopping the user's values from coming back :-(
         # 		self.prtDlg = PrintDialog(pInfo, PRINTDLGORD, flags)
         # 		pInfo.SetPrintDialog(self.prtDlg)
@@ -732,11 +747,11 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
         textLen = self.GetTextLength()
         while pageStart < textLen:
             pageStart = self.FormatRange(dc, pageStart, textLen, rc, 0)
-            maxPage = maxPage + 1
+            maxPage += 1
             self.starts[maxPage] = pageStart
         # And a sentinal for one page past the end
         self.starts[maxPage + 1] = textLen
-        # When actually printing, maxPage doesnt have any effect at this late state.
+        # When actually printing, maxPage doesn't have any effect at this late state.
         # but is needed to make the Print Preview work correctly.
         pInfo.SetMaxPage(maxPage)
 
@@ -778,7 +793,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 
     def OnPrint(self, dc, pInfo):
         metrics = dc.GetTextMetrics()
-        # 		print "dev", w, h, l, metrics['tmAscent'], metrics['tmDescent']
+        # print("dev", w, h, l, metrics["tmAscent"], metrics["tmDescent"])
         if self.starts is None:
             self.CalculatePageRanges(dc, pInfo)
         pageNum = pInfo.GetCurPage() - 1
@@ -792,10 +807,10 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
         dc.SetTextAlign(win32con.TA_RIGHT)
         dc.TextOut(right, 2 * cyChar, pagenum_str)
         dc.SetTextAlign(win32con.TA_LEFT)
-        top = top + int((7 * cyChar) / 2)
+        top += int(7 * cyChar / 2)
         dc.MoveTo(left, top)
         dc.LineTo(right, top)
-        top = top + cyChar
+        top += cyChar
         rc = (left, top, right, bottom)
         nextPageStart = self.FormatRange(
             dc, self.starts[pageNum], self.starts[pageNum + 1], rc, 1
@@ -804,19 +819,19 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 
 def LoadConfiguration():
     global configManager
-    # Bit of a hack I dont kow what to do about?
+    # Bit of a hack I don't kow what to do about?
     from .config import ConfigManager
 
     configName = rc = win32ui.GetProfileVal("Editor", "Keyboard Config", "default")
     configManager = ConfigManager(configName)
     if configManager.last_error:
         bTryDefault = 0
-        msg = "Error loading configuration '%s'\n\n%s" % (
+        msg = "Error loading configuration '{}'\n\n{}".format(
             configName,
             configManager.last_error,
         )
         if configName != "default":
-            msg = msg + "\n\nThe default configuration will be loaded."
+            msg += "\n\nThe default configuration will be loaded."
             bTryDefault = 1
         win32ui.MessageBox(msg)
         if bTryDefault:

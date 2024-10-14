@@ -70,7 +70,7 @@ modifiers = {
 
 
 def parse_key_name(name):
-    name = name + "-"  # Add a sentinal
+    name += "-"  # Add a sentinal
     start = pos = 0
     max = len(name)
     toks = []
@@ -121,7 +121,7 @@ def make_key_name(vk, flags):
         for name, checkflag in moddata:
             if flags & checkflag:
                 parts.append(name)
-                flags_done = flags_done & checkflag
+                flags_done &= checkflag
                 break
     if flags_done & flags:
         parts.append(hex(flags & ~flags_done))
@@ -156,7 +156,7 @@ def test1():
 
 def _pkn(n):
     vk, flags = parse_key_name(n)
-    print("%s -> %s,%s -> %s" % (n, vk, flags, make_key_name(vk, flags)))
+    print(f"{n} -> {vk},{flags} -> {make_key_name(vk, flags)}")
 
 
 def test2():

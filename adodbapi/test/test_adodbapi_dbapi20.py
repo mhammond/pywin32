@@ -51,9 +51,9 @@ if host is None:
 else:
     conn_kws["host"] = host
 
-conn_kws[
-    "provider"
-] = "Provider=MSOLEDBSQL;DataTypeCompatibility=80;MARS Connection=True;"
+conn_kws["provider"] = (
+    "Provider=MSOLEDBSQL;DataTypeCompatibility=80;MARS Connection=True;"
+)
 connStr = "%(provider)s; %(security)s; Initial Catalog=%(name)s;Data Source=%(host)s"
 
 if onWindows and node != "z-PC":
@@ -80,14 +80,9 @@ elif node == "yyy":  # ACCESS data base is known to fail some tests.
         driver = "Microsoft.Jet.OLEDB.4.0"
     testmdb = setuptestframework.makemdb(testfolder)
     connStr = r"Provider=%s;Data Source=%s" % (driver, testmdb)
-else:  # try a remote connection to an SQL server
-    conn_kws["proxy_host"] = "25.44.77.176"
-    import adodbapi.remote
 
-    db = adodbapi.remote
-
-print("Using Connection String like=%s" % connStr)
-print("Keywords=%s" % repr(conn_kws))
+print(f"Using Connection String like={connStr}")
+print(f"Keywords={conn_kws!r}")
 
 
 class test_adodbapi(dbapi20.DatabaseAPI20Test):
@@ -108,7 +103,7 @@ class test_adodbapi(dbapi20.DatabaseAPI20Test):
         if self.getTestMethodName() == "test_callproc":
             con = self._connect()
             engine = con.dbms_name
-            ## print('Using database Engine=%s' % engine) ##
+            # print(f"Using database Engine={engine}")
             if engine != "MS Jet":
                 sql = """
                     create procedure templower
@@ -184,7 +179,7 @@ class test_adodbapi(dbapi20.DatabaseAPI20Test):
             names = cur.fetchall()
             assert len(names) == len(self.samples)
             s = cur.nextset()
-            assert s == None, "No more return sets, should return None"
+            assert s is None, "No more return sets, should return None"
         finally:
             try:
                 self.help_nextset_tearDown(cur)

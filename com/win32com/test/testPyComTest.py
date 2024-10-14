@@ -1,5 +1,5 @@
 # NOTE - Still seems to be a leak here somewhere
-# gateway count doesnt hit zero.  Hence the print statements!
+# gateway count doesn't hit zero.  Hence the print statements!
 
 import sys
 
@@ -14,18 +14,15 @@ import pywintypes
 import win32api
 import win32com
 import win32com.client.connect
+import win32com.test.util
 import win32timezone
 import winerror
-from pywin32_testutil import str2memory
 from win32com.client import VARIANT, CastTo, DispatchBaseClass, constants
-from win32com.test.util import CheckClean, RegisterPythonServer
 
 importMsg = "**** PyCOMTest is not installed ***\n  PyCOMTest is a Python test specific COM client and server.\n  It is likely this server is not installed on this machine\n  To install the server, you must get the win32com sources\n  and build it using MS Visual C++"
 
-error = Exception
-
 # This test uses a Python implemented COM server - ensure correctly registered.
-RegisterPythonServer(
+win32com.test.util.RegisterPythonServer(
     os.path.join(os.path.dirname(__file__), "..", "servers", "test_pycomtest.py"),
     "Python.Test.PyCOMTest",
 )
@@ -50,8 +47,7 @@ verbose = 0
 
 def check_get_set(func, arg):
     got = func(arg)
-    if got != arg:
-        raise error("%s failed - expected %r, got %r" % (func, arg, got))
+    assert got == arg, f"{func} failed - expected {arg!r}, got {got!r}"
 
 
 def check_get_set_raises(exc, func, arg):
@@ -60,8 +56,8 @@ def check_get_set_raises(exc, func, arg):
     except exc as e:
         pass  # what we expect!
     else:
-        raise error(
-            "%s with arg %r didn't raise %s - returned %r" % (func, arg, exc, got)
+        raise AssertionError(
+            f"{func} with arg {arg!r} didn't raise {exc} - returned {got!r}"
         )
 
 
@@ -80,20 +76,17 @@ def TestApplyResult(fn, args, result):
     progress("Testing ", fnName)
     pref = "function " + fnName
     rc = fn(*args)
-    if rc != result:
-        raise error("%s failed - result not %r but %r" % (pref, result, rc))
+    assert rc == result, f"{pref} failed - result not {result!r} but {rc!r}"
 
 
 def TestConstant(constName, pyConst):
     try:
         comConst = getattr(constants, constName)
     except:
-        raise error("Constant %s missing" % (constName,))
-    if comConst != pyConst:
-        raise error(
-            "Constant value wrong for %s - got %s, wanted %s"
-            % (constName, comConst, pyConst)
-        )
+        raise AssertionError(f"Constant {constName} missing")
+    assert (
+        comConst == pyConst
+    ), f"Constant value wrong for {constName} - got {comConst}, wanted {pyConst}"
 
 
 # Simple handler class.  This demo only fires one event.
@@ -103,7 +96,7 @@ class RandomEventHandler:
 
     def OnFire(self, no):
         try:
-            self.fireds[no] = self.fireds[no] + 1
+            self.fireds[no] += 1
         except KeyError:
             self.fireds[no] = 0
 
@@ -117,39 +110,7 @@ class RandomEventHandler:
             assert no + 1 == out1, "expecting 'out1' param to be ID+1"
             assert no + 2 == out2, "expecting 'out2' param to be ID+2"
         # The middle must be a boolean.
-        assert a_bool is Missing or type(a_bool) == bool, "middle param not a bool"
-        return out1 + 2, out2 + 2
-
-    def _DumpFireds(self):
-        if not self.fireds:
-            print("ERROR: Nothing was received!")
-        for firedId, no in self.fireds.items():
-            progress("ID %d fired %d times" % (firedId, no))
-
-
-# A simple handler class that derives from object (ie, a "new style class") -
-# only relevant for Python 2.x (ie, the 2 classes should be identical in 3.x)
-class NewStyleRandomEventHandler(object):
-    def _Init(self):
-        self.fireds = {}
-
-    def OnFire(self, no):
-        try:
-            self.fireds[no] = self.fireds[no] + 1
-        except KeyError:
-            self.fireds[no] = 0
-
-    def OnFireWithNamedParams(self, no, a_bool, out1, out2):
-        # This test exists mainly to help with an old bug, where named
-        # params would come in reverse.
-        Missing = pythoncom.Missing
-        if no is not Missing:
-            # We know our impl called 'OnFire' with the same ID
-            assert no in self.fireds
-            assert no + 1 == out1, "expecting 'out1' param to be ID+1"
-            assert no + 2 == out2, "expecting 'out2' param to be ID+2"
-        # The middle must be a boolean.
-        assert a_bool is Missing or type(a_bool) == bool, "middle param not a bool"
+        assert a_bool is Missing or isinstance(a_bool, bool), "middle param not a bool"
         return out1 + 2, out2 + 2
 
     def _DumpFireds(self):
@@ -168,21 +129,22 @@ def TestCommon(o, is_generated):
 
     progress("Checking default args")
     rc = o.TestOptionals()
-    if rc[:-1] != ("def", 0, 1) or abs(rc[-1] - 3.14) > 0.01:
-        print(rc)
-        raise error("Did not get the optional values correctly")
+    assert rc[:-1] == ("def", 0, 1) and abs(rc[-1] - 3.14) <= 0.01, (
+        "Did not get the optional values correctly",
+        rc,
+    )
     rc = o.TestOptionals("Hi", 2, 3, 1.1)
-    if rc[:-1] != ("Hi", 2, 3) or abs(rc[-1] - 1.1) > 0.01:
-        print(rc)
-        raise error("Did not get the specified optional values correctly")
+    assert rc[:-1] == ("Hi", 2, 3) and abs(rc[-1] - 1.1) <= 0.01, (
+        "Did not get the specified optional values correctly",
+        rc,
+    )
     rc = o.TestOptionals2(0)
-    if rc != (0, "", 1):
-        print(rc)
-        raise error("Did not get the optional2 values correctly")
+    assert rc == (0, "", 1), ("Did not get the optional2 values correctly", rc)
     rc = o.TestOptionals2(1.1, "Hi", 2)
-    if rc[1:] != ("Hi", 2) or abs(rc[0] - 1.1) > 0.01:
-        print(rc)
-        raise error("Did not get the specified optional2 values correctly")
+    assert rc[1:] == ("Hi", 2) and abs(rc[0] - 1.1) <= 0.01, (
+        "Did not get the specified optional2 values correctly",
+        rc,
+    )
 
     progress("Checking getting/passing IUnknown")
     check_get_set(o.GetSetUnknown, o)
@@ -192,13 +154,13 @@ def TestCommon(o, is_generated):
     expected_class = o.__class__
     # CoClass instances have `default_interface`
     expected_class = getattr(expected_class, "default_interface", expected_class)
-    if not isinstance(o.GetSetDispatch(o), expected_class):
-        raise error("GetSetDispatch failed: %r" % (o.GetSetDispatch(o),))
+    assert isinstance(
+        o.GetSetDispatch(o), expected_class
+    ), f"GetSetDispatch failed: {o.GetSetDispatch(o)!r}"
     progress("Checking getting/passing IDispatch of known type")
     expected_class = o.__class__
     expected_class = getattr(expected_class, "default_interface", expected_class)
-    if o.GetSetInterface(o).__class__ != expected_class:
-        raise error("GetSetDispatch failed")
+    assert o.GetSetInterface(o).__class__ == expected_class, "GetSetDispatch failed"
 
     progress("Checking misc args")
     check_get_set(o.GetSetVariant, 4)
@@ -213,10 +175,9 @@ def TestCommon(o, is_generated):
     check_get_set(o.GetSetUnsignedInt, 0)
     check_get_set(o.GetSetUnsignedInt, 1)
     check_get_set(o.GetSetUnsignedInt, 0x80000000)
-    if o.GetSetUnsignedInt(-1) != 0xFFFFFFFF:
-        # -1 is a special case - we accept a negative int (silently converting to
-        # unsigned) but when getting it back we convert it to a long.
-        raise error("unsigned -1 failed")
+    # -1 is a special case - we accept a negative int (silently converting to unsigned)
+    # but when getting it back we convert it to a long.
+    assert o.GetSetUnsignedInt(-1) == 0xFFFFFFFF, "unsigned -1 failed"
 
     check_get_set(o.GetSetLong, 0)
     check_get_set(o.GetSetLong, -1)
@@ -226,12 +187,11 @@ def TestCommon(o, is_generated):
     check_get_set(o.GetSetUnsignedLong, 1)
     check_get_set(o.GetSetUnsignedLong, 0x80000000)
     # -1 is a special case - see above.
-    if o.GetSetUnsignedLong(-1) != 0xFFFFFFFF:
-        raise error("unsigned -1 failed")
+    assert o.GetSetUnsignedLong(-1) == 0xFFFFFFFF, "unsigned -1 failed"
 
-    # We want to explicitly test > 32 bits.  py3k has no 'maxint' and
-    # 'maxsize+1' is no good on 64bit platforms as its 65 bits!
-    big = 2147483647  # sys.maxint on py2k
+    # We want to explicitly test > 32 bits.
+    # 'maxsize+1' is no good on 64bit platforms as it's 65 bits!
+    big = 2147483647
     for l in big, big + 1, 1 << 65:
         check_get_set(o.GetSetVariant, l)
 
@@ -242,8 +202,13 @@ def TestCommon(o, is_generated):
 
     progress("Checking var args")
     o.SetVarArgs("Hi", "There", "From", "Python", 1)
-    if o.GetLastVarArgs() != ("Hi", "There", "From", "Python", 1):
-        raise error("VarArgs failed -" + str(o.GetLastVarArgs()))
+    assert o.GetLastVarArgs() == (
+        "Hi",
+        "There",
+        "From",
+        "Python",
+        1,
+    ), f"VarArgs failed -{o.GetLastVarArgs()}"
 
     progress("Checking arrays")
     l = []
@@ -264,30 +229,30 @@ def TestCommon(o, is_generated):
     )
 
     # and binary
-    TestApplyResult(o.SetBinSafeArray, (str2memory("foo\0bar"),), 7)
+    TestApplyResult(o.SetBinSafeArray, (memoryview(b"foo\0bar"),), 7)
 
     progress("Checking properties")
     o.LongProp = 3
-    if o.LongProp != 3 or o.IntProp != 3:
-        raise error("Property value wrong - got %d/%d" % (o.LongProp, o.IntProp))
+    assert (
+        o.LongProp == o.IntProp == 3
+    ), f"Property value wrong - got {o.LongProp}/{o.IntProp}"
     o.LongProp = o.IntProp = -3
-    if o.LongProp != -3 or o.IntProp != -3:
-        raise error("Property value wrong - got %d/%d" % (o.LongProp, o.IntProp))
+    assert (
+        o.LongProp == o.IntProp == -3
+    ), f"Property value wrong - got {o.LongProp}/{o.IntProp}"
     # This number fits in an unsigned long.  Attempting to set it to a normal
     # long will involve overflow, which is to be expected. But we do
     # expect it to work in a property explicitly a VT_UI4.
     check = 3 * 10**9
     o.ULongProp = check
-    if o.ULongProp != check:
-        raise error(
-            "Property value wrong - got %d (expected %d)" % (o.ULongProp, check)
-        )
-
+    assert (
+        o.ULongProp == check
+    ), f"Property value wrong - got {o.ULongProp} (expected {check})"
     TestApplyResult(o.Test, ("Unused", 99), 1)  # A bool function
     TestApplyResult(o.Test, ("Unused", -1), 1)  # A bool function
-    TestApplyResult(o.Test, ("Unused", 1 == 1), 1)  # A bool function
+    TestApplyResult(o.Test, ("Unused", True), 1)  # A bool function
     TestApplyResult(o.Test, ("Unused", 0), 0)
-    TestApplyResult(o.Test, ("Unused", 1 == 0), 0)
+    TestApplyResult(o.Test, ("Unused", False), 0)
 
     assert o.DoubleString("foo") == "foofoo"
 
@@ -317,12 +282,10 @@ def TestCommon(o, is_generated):
     progress("Checking currency")
     # currency.
     pythoncom.__future_currency__ = 1
-    if o.CurrencyProp != 0:
-        raise error("Expecting 0, got %r" % (o.CurrencyProp,))
+    assert o.CurrencyProp == 0, f"Expecting 0, got {o.CurrencyProp!r}"
     for val in ("1234.5678", "1234.56", "1234"):
         o.CurrencyProp = decimal.Decimal(val)
-        if o.CurrencyProp != decimal.Decimal(val):
-            raise error("%s got %r" % (val, o.CurrencyProp))
+        assert o.CurrencyProp == decimal.Decimal(val), f"{val} got {o.CurrencyProp!r}"
     v1 = decimal.Decimal("1234.5678")
     TestApplyResult(o.DoubleCurrency, (v1,), v1 * 2)
 
@@ -343,8 +306,7 @@ def TestTrickyTypesWithVariants(o, is_generated):
         v = VARIANT(pythoncom.VT_BYREF | pythoncom.VT_VARIANT, 2)
         o.TestByRefVariant(v)
         got = v.value
-    if got != 4:
-        raise error("TestByRefVariant failed")
+    assert got == 4, "TestByRefVariant failed"
 
     if is_generated:
         got = o.TestByRefString("Foo")
@@ -352,8 +314,7 @@ def TestTrickyTypesWithVariants(o, is_generated):
         v = VARIANT(pythoncom.VT_BYREF | pythoncom.VT_BSTR, "Foo")
         o.TestByRefString(v)
         got = v.value
-    if got != "FooFoo":
-        raise error("TestByRefString failed")
+    assert got == "FooFoo", "TestByRefString failed"
 
     # check we can pass ints as a VT_UI1
     vals = [1, 2, 3, 4]
@@ -384,8 +345,7 @@ def TestTrickyTypesWithVariants(o, is_generated):
     else:
         arg = VARIANT(pythoncom.VT_BYREF | pythoncom.VT_ARRAY | pythoncom.VT_R8, vals)
         o.ChangeDoubleSafeArray(arg)
-        if arg.value != expected:
-            raise error("ChangeDoubleSafeArray got the wrong value")
+        assert arg.value == expected, "ChangeDoubleSafeArray got the wrong value"
 
     if is_generated:
         got = o.DoubleInOutString("foo")
@@ -419,7 +379,7 @@ def TestDynamic():
     # TypeMismatch error.
     try:
         check_get_set_raises(ValueError, o.GetSetInt, "foo")
-        raise error("no exception raised")
+        raise AssertionError("no exception raised")
     except pythoncom.com_error as exc:
         if exc.hresult != winerror.DISP_E_TYPEMISMATCH:
             raise
@@ -434,8 +394,7 @@ def TestDynamic():
 
     # damn - props with params don't work for dynamic objects :(
     # o.SetParamProp(0, 1)
-    # if o.ParamProp(0) != 1:
-    #    raise RuntimeError, o.paramProp(0)
+    # assert o.ParamProp(0) == 1, o.paramProp(0)
 
 
 def TestGenerated():
@@ -464,11 +423,10 @@ def TestGenerated():
 
     # XXX - this is failing in dynamic tests, but should work fine.
     i1, i2 = o.GetMultipleInterfaces()
-    if not isinstance(i1, DispatchBaseClass) or not isinstance(i2, DispatchBaseClass):
-        # Yay - is now an instance returned!
-        raise error(
-            "GetMultipleInterfaces did not return instances - got '%s', '%s'" % (i1, i2)
-        )
+    # Yay - is now an instance returned!
+    assert isinstance(i1, DispatchBaseClass) and isinstance(
+        i2, DispatchBaseClass
+    ), f"GetMultipleInterfaces did not return instances - got '{i1}', '{i2}'"
     del i1
     del i2
 
@@ -483,12 +441,12 @@ def TestGenerated():
     # Pass some non-sequence objects to our array decoder, and watch it fail.
     try:
         o.SetVariantSafeArray("foo")
-        raise error("Expected a type error")
+        raise AssertionError("Expected a type error")
     except TypeError:
         pass
     try:
         o.SetVariantSafeArray(666)
-        raise error("Expected a type error")
+        raise AssertionError("Expected a type error")
     except TypeError:
         pass
 
@@ -520,25 +478,19 @@ def TestGenerated():
     TestApplyResult(o.TestInOut, (2.0, True, 4), (4.0, False, 8))
 
     o.SetParamProp(0, 1)
-    if o.ParamProp(0) != 1:
-        raise RuntimeError(o.paramProp(0))
+    assert o.ParamProp(0) == 1, o.paramProp(0)
 
     # Make sure CastTo works - even though it is only casting it to itself!
     o2 = CastTo(o, "IPyCOMTest")
-    if o != o2:
-        raise error("CastTo should have returned the same object")
+    assert o == o2, "CastTo should have returned the same object"
 
     # Do the connection point thing...
     # Create a connection object.
     progress("Testing connection points")
     o2 = win32com.client.DispatchWithEvents(o, RandomEventHandler)
     TestEvents(o2, o2)
-    o2 = win32com.client.DispatchWithEvents(o, NewStyleRandomEventHandler)
-    TestEvents(o2, o2)
     # and a plain "WithEvents".
     handler = win32com.client.WithEvents(o, RandomEventHandler)
-    TestEvents(o, handler)
-    handler = win32com.client.WithEvents(o, NewStyleRandomEventHandler)
     TestEvents(o, handler)
     progress("Finished generated .py test.")
 
@@ -577,7 +529,7 @@ def _TestPyVariant(o, is_generated, val, checker=None):
     assert vt == val.varianttype, (vt, val.varianttype)
     # Handle our safe-array test - if the passed value is a list of variants,
     # compare against the actual values.
-    if type(val.value) in (tuple, list):
+    if isinstance(val.value, (tuple, list)):
         check = [v.value if isinstance(v, VARIANT) else v for v in val.value]
         # pythoncom always returns arrays as tuples.
         got = list(got)
@@ -590,7 +542,7 @@ def _TestPyVariant(o, is_generated, val, checker=None):
 def _TestPyVariantFails(o, is_generated, val, exc):
     try:
         _TestPyVariant(o, is_generated, val)
-        raise error("Setting %r didn't raise %s" % (val, exc))
+        raise AssertionError(f"Setting {val!r} didn't raise {exc}")
     except exc:
         pass
 
@@ -643,23 +595,19 @@ def TestCounter(counter, bIsGenerated):
                 ret = counter.Item(num + 1)
             else:
                 ret = counter[num]
-            if ret != num + 1:
-                raise error(
-                    "Random access into element %d failed - return was %s"
-                    % (num, repr(ret))
-                )
+            assert (
+                ret == num + 1
+            ), f"Random access into element {num} failed - return was {ret!r}"
         except IndexError:
-            raise error("** IndexError accessing collection element %d" % num)
+            raise AssertionError(f"** IndexError accessing collection element {num}")
 
     num = 0
     if bIsGenerated:
         counter.SetTestProperty(1)
         counter.TestProperty = 1  # Note this has a second, default arg.
         counter.SetTestProperty(1, 2)
-        if counter.TestPropertyWithDef != 0:
-            raise error("Unexpected property set value!")
-        if counter.TestPropertyNoDef(1) != 1:
-            raise error("Unexpected property set value!")
+        assert counter.TestPropertyWithDef == 0, "Unexpected property set value!"
+        assert counter.TestPropertyNoDef(1) == 1, "Unexpected property set value!"
     else:
         pass
         # counter.TestProperty = 1
@@ -671,16 +619,17 @@ def TestCounter(counter, bIsGenerated):
 
     if bIsGenerated:
         bounds = counter.GetBounds()
-        if bounds[0] != 1 or bounds[1] != 10:
-            raise error("** Error - counter did not give the same properties back")
+        assert (
+            bounds[0] == 1 and bounds[1] == 10
+        ), "** Error - counter did not give the same properties back"
         counter.SetBounds(bounds[0], bounds[1])
 
     for item in counter:
-        num = num + 1
-    if num != len(counter):
-        raise error("*** Length of counter and loop iterations dont match ***")
-    if num != 10:
-        raise error("*** Unexpected number of loop iterations ***")
+        num += 1
+    assert num == len(
+        counter
+    ), "*** Length of counter and loop iterations don't match ***"
+    assert num == 10, "*** Unexpected number of loop iterations ***"
 
     try:
         counter = iter(counter)._iter_.Clone()  # Test Clone() and enum directly
@@ -691,16 +640,14 @@ def TestCounter(counter, bIsGenerated):
     counter.Reset()
     num = 0
     for item in counter:
-        num = num + 1
-    if num != 10:
-        raise error("*** Unexpected number of loop iterations - got %d ***" % num)
+        num += 1
+    assert num == 10, f"*** Unexpected number of loop iterations - got {num} ***"
     progress("Finished testing counter")
 
 
 def TestLocalVTable(ob):
     # Python doesn't fully implement this interface.
-    if ob.DoubleString("foo") != "foofoo":
-        raise error("couldn't foofoo")
+    assert ob.DoubleString("foo") == "foofoo", "couldn't foofoo"
 
 
 ###############################

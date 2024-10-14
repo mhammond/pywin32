@@ -26,20 +26,23 @@ import win32ui
 from pywin.framework.editor import (
     GetEditorFontOption,
     GetEditorOption,
-    SetEditorFontOption,
-    SetEditorOption,
     defaultCharacterFormat,
 )
-from pywin.mfc import afxres, dialog, docview
+from pywin.mfc import afxres
+from pywin.mfc.docview import RichEditView as ParentEditorView
 
-patImport = regex.symcomp("import \(<name>.*\)")
-patIndent = regex.compile("^\\([ \t]*[~ \t]\\)")
+from .document import EditorDocumentBase as ParentEditorDocument
+
+# from pywin.mfc.docview import EditView as ParentEditorView
+# from pywin.mfc.docview import Document as ParentEditorDocument
+
+patImport = regex.symcomp(r"import \(<name>.*\)")
+patIndent = regex.compile(r"^\([ \t]*[~ \t]\)")
 
 ID_LOCATE_FILE = 0xE200
 ID_GOTO_LINE = 0xE2001
-MSG_CHECK_EXTERNAL_FILE = (
-    win32con.WM_USER + 1999
-)  ## WARNING: Duplicated in document.py and coloreditor.py
+# WARNING: Duplicated in document.py and coloreditor.py
+MSG_CHECK_EXTERNAL_FILE = win32con.WM_USER + 1999
 
 # Key Codes that modify the bufffer when Ctrl or Alt are NOT pressed.
 MODIFYING_VK_KEYS = [
@@ -78,11 +81,6 @@ MODIFYING_VK_KEYS_ALT = [
 
 isRichText = 1  # We are using the Rich Text control.  This has not been tested with value "0" for quite some time!
 
-# ParentEditorDocument=docview.Document
-from .document import EditorDocumentBase
-
-ParentEditorDocument = EditorDocumentBase
-
 
 class EditorDocument(ParentEditorDocument):
     #
@@ -101,7 +99,7 @@ class EditorDocument(ParentEditorDocument):
         win32ui.SetStatusText("Loading file...", 1)
         try:
             f = open(filename, "rb")
-        except IOError:
+        except OSError:
             win32ui.MessageBox(
                 filename
                 + "\nCan not find this file\nPlease verify that the correct path and file name are given"
@@ -131,7 +129,7 @@ class EditorDocument(ParentEditorDocument):
             win32ui.SetStatusText(
                 "Translating from Unix file format - please wait...", 1
             )
-            return re.sub("\r*\n", "\r\n", data)
+            return re.sub(r"\r*\n", "\r\n", data)
         else:
             return data
 
@@ -165,9 +163,6 @@ class EditorDocument(ParentEditorDocument):
 # 	def StreamTextOut(self, data): ### This seems unreliable???
 # 		self.saveFileHandle.write(data)
 # 		return 1 # keep em coming!
-
-# ParentEditorView=docview.EditView
-ParentEditorView = docview.RichEditView
 
 
 class EditorView(ParentEditorView):
@@ -241,7 +236,7 @@ class EditorView(ParentEditorView):
             try:
                 if color is None:
                     color = self.defCharFormat[4]
-                lineNo = lineNo - 1
+                lineNo -= 1
                 startIndex = self.LineIndex(lineNo)
                 if startIndex != -1:
                     self.SetSel(startIndex, self.LineIndex(lineNo + 1))
@@ -266,9 +261,9 @@ class EditorView(ParentEditorView):
             if ch == "\t":
                 curCol = ((curCol / self.tabSize) + 1) * self.tabSize
             else:
-                curCol = curCol + 1
+                curCol += 1
         nextColumn = ((curCol / self.indentSize) + 1) * self.indentSize
-        # 		print "curCol is", curCol, "nextColumn is", nextColumn
+        # print("curCol is", curCol, "nextColumn is", nextColumn)
         ins = None
         if self.bSmartTabs:
             # Look for some context.
@@ -279,7 +274,7 @@ class EditorView(ParentEditorView):
                     if check in ("\t", " "):
                         ins = check
                         break
-                    lookLine = lookLine - 1
+                    lookLine -= 1
             else:  # See if the previous char can tell us
                 check = line[realCol - 1]
                 if check in ("\t", " "):
@@ -295,7 +290,7 @@ class EditorView(ParentEditorView):
 
         if ins == " ":
             # Calc the number of spaces to take us to the next stop
-            ins = ins * (nextColumn - curCol)
+            ins *= nextColumn - curCol
 
         self._obj_.ReplaceSel(ins)
 
@@ -415,17 +410,17 @@ class EditorView(ParentEditorView):
         if res > 0 and curLine.strip():
             curIndent = patIndent.group(1)
             self._obj_.ReplaceSel(curIndent)
-        return 0  # dont pass on
+        return 0  # don't pass on
 
     def OnKeyCtrlY(self, key):
         if not self.GetDocument().CheckMakeDocumentWritable():
             return 0
         self.CutCurLine()
-        return 0  # dont let him have it!
+        return 0  # don't let him have it!
 
     def OnKeyCtrlG(self, key):
         self.GotoLine()
-        return 0  # dont let him have it!
+        return 0  # don't let him have it!
 
     def OnKeyTab(self, key):
         if not self.GetDocument().CheckMakeDocumentWritable():
@@ -508,7 +503,7 @@ prefModule = GetDefaultEditorModuleName()
 if __name__ == prefModule:
     # For debugging purposes, when this module may be reloaded many times.
     try:
-        win32ui.GetApp().RemoveDocTemplate(editorTemplate)
+        win32ui.GetApp().RemoveDocTemplate(editorTemplate)  # type: ignore[has-type, used-before-def]
     except (NameError, win32ui.error):
         pass
 

@@ -12,7 +12,7 @@
 #   applied.
 # * If a comment block has leading whitespace that mixes tabs and
 #   spaces, they will not be considered part of the same block.
-# * Fancy comments, like this bulleted list, arent handled :-)
+# * Fancy comments, like this bulleted list, aren't handled :-)
 
 import re
 
@@ -61,9 +61,9 @@ class FormatParagraph:
             newdata = reformat_paragraph(data, format_width)
             # re-split and re-insert the comment header.
             newdata = newdata.split("\n")
-            # If the block ends in a \n, we dont want the comment
-            # prefix inserted after it. (Im not sure it makes sense to
-            # reformat a comment block that isnt made of complete
+            # If the block ends in a \n, we don't want the comment
+            # prefix inserted after it. (I'm not sure it makes sense to
+            # reformat a comment block that isn't made of complete
             # lines, but whatever!)  Can't think of a clean soltution,
             # so we hack away
             block_suffix = ""
@@ -91,7 +91,7 @@ def find_paragraph(text, mark):
     lineno, col = list(map(int, mark.split(".")))
     line = text.get("%d.0" % lineno, "%d.0 lineend" % lineno)
     while text.compare("%d.0" % lineno, "<", "end") and is_all_white(line):
-        lineno = lineno + 1
+        lineno += 1
         line = text.get("%d.0" % lineno, "%d.0 lineend" % lineno)
     first_lineno = lineno
     comment_header = get_comment_header(line)
@@ -99,7 +99,7 @@ def find_paragraph(text, mark):
     while get_comment_header(line) == comment_header and not is_all_white(
         line[comment_header_len:]
     ):
-        lineno = lineno + 1
+        lineno += 1
         line = text.get("%d.0" % lineno, "%d.0 lineend" % lineno)
     last = "%d.0" % lineno
     # Search back to beginning of paragraph
@@ -110,7 +110,7 @@ def find_paragraph(text, mark):
         and get_comment_header(line) == comment_header
         and not is_all_white(line[comment_header_len:])
     ):
-        lineno = lineno - 1
+        lineno -= 1
         line = text.get("%d.0" % lineno, "%d.0 lineend" % lineno)
     first = "%d.0" % (lineno + 1)
     return first, last, comment_header, text.get(first, last)
@@ -121,7 +121,7 @@ def reformat_paragraph(data, limit=70):
     i = 0
     n = len(lines)
     while i < n and is_all_white(lines[i]):
-        i = i + 1
+        i += 1
     if i >= n:
         return data
     indent1 = get_indent(lines[i])
@@ -133,7 +133,7 @@ def reformat_paragraph(data, limit=70):
     partial = indent1
     while i < n and not is_all_white(lines[i]):
         # XXX Should take double space after period (etc.) into account
-        words = re.split("(\s+)", lines[i])
+        words = re.split(r"(\s+)", lines[i])
         for j in range(0, len(words), 2):
             word = words[j]
             if not word:
@@ -141,10 +141,10 @@ def reformat_paragraph(data, limit=70):
             if len((partial + word).expandtabs()) > limit and partial != indent1:
                 new.append(partial.rstrip())
                 partial = indent2
-            partial = partial + word + " "
+            partial += word + " "
             if j + 1 < len(words) and words[j + 1] != " ":
-                partial = partial + " "
-        i = i + 1
+                partial += " "
+        i += 1
     new.append(partial.rstrip())
     # XXX Should reformat remaining paragraphs as well
     new.extend(lines[i:])

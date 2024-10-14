@@ -2,11 +2,55 @@
 
 import sys
 
-from pywin.mfc import docview
-
 try:
-    from OpenGL.GL import *  # nopycln: import
-    from OpenGL.GLU import *  # nopycln: import
+    from OpenGL.GL import (
+        GL_COLOR_BUFFER_BIT,
+        GL_DEPTH_BUFFER_BIT,
+        GL_DEPTH_TEST,
+        GL_MODELVIEW,
+        GL_PROJECTION,
+        GL_QUAD_STRIP,
+        GL_QUADS,
+        GL_TRIANGLE_FAN,
+        glBegin,
+        glClear,
+        glClearColor,
+        glClearDepth,
+        glColor3f,
+        glEnable,
+        glEnd,
+        glFinish,
+        glLoadIdentity,
+        glMatrixMode,
+        glPopMatrix,
+        glPushMatrix,
+        glRotatef,
+        glTranslatef,
+        glVertex3f,
+        glViewport,
+    )
+    from OpenGL.GLU import (
+        GLU_FILL,
+        GLU_SMOOTH,
+        gluCylinder,
+        gluNewQuadric,
+        gluPerspective,
+        gluQuadricDrawStyle,
+        gluQuadricNormals,
+    )
+    from OpenGL.WGL import (
+        PIXELFORMATDESCRIPTOR,
+        ChoosePixelFormat,
+        DescribePixelFormat,
+        GetPixelFormat,
+        SetPixelFormat,
+        SwapBuffers,
+        wglCreateContext,
+        wglDeleteContext,
+        wglGetCurrentContext,
+        wglGetCurrentDC,
+        wglMakeCurrent,
+    )
 except ImportError:
     print("The OpenGL extensions do not appear to be installed.")
     print("This Pythonwin demo can not run")
@@ -16,6 +60,7 @@ import timer
 import win32api
 import win32con
 import win32ui
+from pywin.mfc import docview
 
 PFD_TYPE_RGBA = 0
 PFD_TYPE_COLORINDEX = 1
@@ -50,13 +95,13 @@ def ComponentFromIndex(i, nbits, shift):
     # val = (unsigned char) (i >> shift);
     val = (i >> shift) & 0xF
     if nbits == 1:
-        val = val & 0x1
+        val &= 0x1
         return oneto8[val]
     elif nbits == 2:
-        val = val & 0x3
+        val &= 0x3
         return twoto8[val]
     elif nbits == 3:
-        val = val & 0x7
+        val &= 0x7
         return threeto8[val]
     else:
         return 0
@@ -72,7 +117,7 @@ class OpenGLView(OpenGLViewParent):
         # include CS_PARENTDC for the class style. Refer to SetPixelFormat
         # documentation in the "Comments" section for further information.
         style = cc[5]
-        style = style | win32con.WS_CLIPSIBLINGS | win32con.WS_CLIPCHILDREN
+        style |= win32con.WS_CLIPSIBLINGS | win32con.WS_CLIPCHILDREN
         cc = cc[0], cc[1], cc[2], cc[3], cc[4], style, cc[6], cc[7], cc[8]
         cc = self._obj_.PreCreateWindow(cc)
         return cc
@@ -117,7 +162,7 @@ class OpenGLView(OpenGLViewParent):
     # The OpenGL helpers
     def _SetupPixelFormat(self):
         dc = self.dc.GetSafeHdc()
-        pfd = CreatePIXELFORMATDESCRIPTOR()
+        pfd = PIXELFORMATDESCRIPTOR()
         pfd.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER
         pfd.iPixelType = PFD_TYPE_RGBA
         pfd.cColorBits = 24
@@ -125,16 +170,16 @@ class OpenGLView(OpenGLViewParent):
         pfd.iLayerType = PFD_MAIN_PLANE
         pixelformat = ChoosePixelFormat(dc, pfd)
         SetPixelFormat(dc, pixelformat, pfd)
-        self._CreateRGBPalette()
+        self._CreateRGBPalette(pfd)
 
-    def _CreateRGBPalette(self):
-        dc = self.dc.GetSafeHdc()
-        n = GetPixelFormat(dc)
-        pfd = DescribePixelFormat(dc, n)
+    def _CreateRGBPalette(self, pfd):
+        hdc = self.dc.GetSafeHdc()
+        iPixelFormat = GetPixelFormat(hdc)
+        DescribePixelFormat(hdc, iPixelFormat, pfd.nSize, pfd)
         if pfd.dwFlags & PFD_NEED_PALETTE:
-            n = 1 << pfd.cColorBits
+            iPixelFormat = 1 << pfd.cColorBits
             pal = []
-            for i in range(n):
+            for i in range(iPixelFormat):
                 this = (
                     ComponentFromIndex(i, pfd.cRedBits, pfd.cRedShift),
                     ComponentFromIndex(i, pfd.cGreenBits, pfd.cGreenShift),
@@ -160,10 +205,10 @@ class OpenGLView(OpenGLViewParent):
 
     # The methods to support OpenGL
     def DrawScene(self):
-        assert 0, "You must override this method"
+        raise NotImplementedError("You must override this method")
 
     def Init(self):
-        assert 0, "You must override this method"
+        raise NotImplementedError("You must override this method")
 
     def OnSizeChange(self, cx, cy):
         pass
@@ -287,9 +332,9 @@ class CubeView(OpenGLView):
         glRotatef(self.wAngleY, 0.0, 1.0, 0.0)
         glRotatef(self.wAngleZ, 0.0, 0.0, 1.0)
 
-        self.wAngleX = self.wAngleX + 1.0
-        self.wAngleY = self.wAngleY + 10.0
-        self.wAngleZ = self.wAngleZ + 5.0
+        self.wAngleX += 1.0
+        self.wAngleY += 10.0
+        self.wAngleZ += 5.0
 
         glBegin(GL_QUAD_STRIP)
         glColor3f(1.0, 0.0, 1.0)

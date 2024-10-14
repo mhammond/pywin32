@@ -71,7 +71,7 @@ PyObject *PyObject_FromSAFEARRAYRecordInfo(SAFEARRAY *psa)
     hr = SafeArrayGetLBound(psa, 1, &lbound);
     if (FAILED(hr))
         goto exit;
-    nelems = ubound - lbound;
+    nelems = ubound - lbound + 1;
     hr = info->GetSize(&cb_elem);
     if (FAILED(hr))
         goto exit;
@@ -157,7 +157,7 @@ PyObject *pythoncom_GetRecordFromGuids(PyObject *self, PyObject *args)
                           &obInfoGuid,  // @pyparm <o PyIID>|infoIID||The GUID of the record info in the library
                           &obdata))  // @pyparm string or buffer|data|None|The raw data to initialize the record with.
         return NULL;
-    PyWinBufferView pybuf(obdata, false, true); // None ok
+    PyWinBufferView pybuf(obdata, false, true);  // None ok
     if (!pybuf.ok())
         return NULL;
     GUID guid, infoGuid;
@@ -493,7 +493,7 @@ PyObject *PyRecord::getattro(PyObject *self, PyObject *obname)
         return PyCom_BuildPyException(hr, pyrec->pri, IID_IRecordInfo);
     }
 
-    // Short-circuit sub-structs and arrays here, so we dont allocate a new chunk
+    // Short-circuit sub-structs and arrays here, so we don't allocate a new chunk
     // of memory and copy it - we need sub-structs to persist.
     if (V_VT(&vret) == (VT_BYREF | VT_RECORD))
         return new PyRecord(V_RECORDINFO(&vret), V_RECORD(&vret), pyrec->owner);
@@ -522,7 +522,7 @@ PyObject *PyRecord::getattro(PyObject *self, PyObject *obname)
         hr = sub->GetSize(&element_size);
         if (FAILED(hr))
             goto array_end;
-        nelems = ubound - lbound;
+        nelems = ubound - lbound + 1;
         ret_tuple = PyTuple_New(nelems);
         if (ret_tuple == NULL)
             goto array_end;

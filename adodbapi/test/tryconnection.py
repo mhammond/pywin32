@@ -1,6 +1,3 @@
-remote = False  # automatic testing of remote access has been removed here
-
-
 def try_connection(verbose, *args, **kwargs):
     import adodbapi
 
@@ -13,12 +10,12 @@ def try_connection(verbose, *args, **kwargs):
         s.close()  # thanks, it worked, goodbye
     except adodbapi.DatabaseError as inst:
         print(inst.args[0])  # should be the error message
-        print("***Failed getting connection using=", repr(args), repr(kwargs))
+        print(f"***Failed getting connection using= {args!r} {kwargs!r}")
         return False, (args, kwargs), None
 
     print("  (successful)")
 
-    return True, (args, kwargs, remote), dbconnect
+    return True, (args, kwargs), dbconnect
 
 
 def try_operation_with_expected_exception(

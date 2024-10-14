@@ -7,16 +7,13 @@ import win32com
 import win32com.client
 import win32com.client.dynamic
 import win32com.server.util
+import win32timezone
 import win32ui
-from pywintypes import Unicode
 from win32com import storagecon
 from win32com.axcontrol import axcontrol
 from win32com.test.util import CheckClean
 
 S_OK = 0
-
-
-import win32timezone
 
 now = win32timezone.now()
 
@@ -48,12 +45,12 @@ class LockBytes:
         print("WriteAt " + str(offset))
         print("len " + str(len(data)))
         print("data:")
-        # print data
+        # print(data)
         if len(self.data) >= offset:
             newdata = self.data[0:offset] + data
         print(len(newdata))
         if len(self.data) >= offset + len(data):
-            newdata = newdata + self.data[offset + len(data) :]
+            newdata += self.data[offset + len(data) :]
         print(len(newdata))
         self.data = newdata
         return len(data)
@@ -67,7 +64,7 @@ class LockBytes:
     def SetSize(self, size):
         print("Set Size" + str(size))
         if size > len(self.data):
-            self.data = self.data + b"\000" * (size - len(self.data))
+            self.data += b"\000" * (size - len(self.data))
         else:
             self.data = self.data[0:size]
         return S_OK
@@ -118,7 +115,7 @@ class OleClientSite:
 
     def SaveObject(self):
         print("SaveObject")
-        if self.IPersistStorage != None and self.IStorage != None:
+        if self.IPersistStorage is not None and self.IStorage is not None:
             self.IPersistStorage.Save(self.IStorage, 1)
             self.IStorage.Commit(0)
         return S_OK
@@ -209,7 +206,7 @@ def test():
     # XXX - note that
     # for para in paras:
     #       para().Font...
-    # doesnt seem to work - no error, just doesnt work
+    # doesn't seem to work - no error, just doesn't work
     # Should check if it works for VB!
 
     dpcom.Save(stcom, 0)

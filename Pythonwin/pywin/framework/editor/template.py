@@ -1,6 +1,5 @@
 import os
 
-import pywin.framework.window
 import win32api
 import win32ui
 from pywin.mfc import docview
@@ -19,10 +18,10 @@ class EditorTemplateBase(ParentEditorTemplate):
         ParentEditorTemplate.__init__(self, res, makeDoc, makeFrame, makeView)
 
     def _CreateDocTemplate(self, resourceId):
-        assert 0, "You must override this"
+        raise NotImplementedError("You must override this")
 
     def CreateWin32uiDocument(self):
-        assert 0, "You must override this"
+        raise NotImplementedError("You must override this")
 
     def GetFileExtensions(self):
         return ".txt", ".py"
@@ -50,11 +49,11 @@ class EditorTemplateBase(ParentEditorTemplate):
         if filename is not None:
             try:
                 path = os.path.split(filename)[0]
-                # 				print "The editor is translating", `filename`,"to",
+                # print("The editor is translating", "filename", "to")
                 filename = win32api.FindFiles(filename)[0][8]
                 filename = os.path.join(path, filename)
-            # 				print `filename`
+                # print("filename")
             except (win32api.error, IndexError) as details:
+                # print("Couldn't get the full filename!", details)
                 pass
-        # 				print "Couldnt get the full filename!", details
         return self._obj_.OpenDocumentFile(filename, bMakeVisible)

@@ -4,13 +4,13 @@
 <BODY BGCOLOR="#FFFFFF" TOPMARGIN=8>
 <FONT SIZE=5>
 <TABLE Border=0><TR VALIGN=MIDDLE><TD>
-<A ID="Image"> <IMG 
-SRC="file:..\..\..\..\..\win32com\html\image\pycom_blowing.gif" 
+<A ID="Image"> <IMG
+SRC="file:..\..\..\..\..\win32com\html\image\pycom_blowing.gif"
 ALT="Clickable Map Image" HEIGHT=113 WIDTH=624 BORDER=0></A>
 
 </TD></TR>
  <TR><TD>&nbsp;</TD></TR>
- <TR VALIGN=MIDDLE><TD VALIGN=MIDDLE ALIGN=CENTER><FONT SIZE=5><INPUT 
+ <TR VALIGN=MIDDLE><TD VALIGN=MIDDLE ALIGN=CENTER><FONT SIZE=5><INPUT
 TYPE="text" NAME="TxtLinkDescription" SIZE=50></FONT></TD></TR></TABLE>
 </FONT>
 
@@ -18,9 +18,9 @@ TYPE="text" NAME="TxtLinkDescription" SIZE=50></FONT></TD></TR></TABLE>
 A mouse tracking demo.  Move the mouse over the image above...
 
 <SCRIPT Language="Python">
-<!-- 
+<!--
 # Remember the last location clicked
-#print "here we go", 1
+# print("here we go", 1)
 mx = my = 0
 
 # class for rectangle testing
@@ -29,15 +29,15 @@ class rect:
        self.lowx, self.lowy, self.upx, self.upy, self.desc, self.url = \
          lowx, lowy, upx, upy, desc, url
    def inside(self, x, y):
-#       print (x,y), "inside", self.desc,
+       # print((x,y), "inside", self.desc)
        result = self.lowx <= x <= self.upx and self.lowy <= y <= self.upy
-#       print result
+       # print(result)
        return result
    def mouse_move(self):
-#       print "move", self.desc
+       # print("move", self.desc)
        ax.TxtLinkDescription.Value = coords + " - " + self.desc
    def onclick(self):
-#       print "click", self.desc
+       # print("click", self.desc)
        ax.TxtLinkDescription.Value = coords +" click! " + `self.url`
        if self.url: ax.location = self.url
 
@@ -55,15 +55,15 @@ default = rect(0,0,0,0,"Click on an icon","")
 def Image_MouseMove(s, b, x, y):
     global mx, my, coords
     coords =`(x,y)`
-#    print coords,
+    # print(coords)
     mx, my = x, y
     for r in rects:
         if r.inside(x,y):
-#           print r.desc
+           # print(r.desc)
            r.mouse_move()
            break
     else:
-#        print default.desc
+        # print(default.desc)
         default.mouse_move()
 
 def Image_OnClick():
@@ -80,4 +80,3 @@ def Image_OnClick():
 
 </BODY>
 </HTML>
-

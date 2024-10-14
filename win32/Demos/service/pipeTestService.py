@@ -11,23 +11,24 @@
 import _thread
 import traceback
 
-# Old versions of the service framework would not let you import this
-# module at the top-level.  Now you can, and can check 'Debugging()' and
-# 'RunningAsService()' to check your context.
 import pywintypes
+
+# Old versions of the service framework would not let you import this
+# module at the top-level.  Now you can, and can check 'servicemanager.Debugging()'
+# and 'servicemanager.RunningAsService()' to check your context.
 import servicemanager
 import win32con
 import win32service
 import win32serviceutil
 import winerror
-from ntsecuritycon import *
-from win32api import *
 
-# Use "import *" to keep this looking as much as a "normal" service
+# # Use "import *" to keep this looking as much as a "normal" service
 # as possible.  Real code shouldn't do this.
-from win32event import *
-from win32file import *
-from win32pipe import *
+from ntsecuritycon import *  # nopycln: import
+from win32api import *  # nopycln: import
+from win32event import *  # nopycln: import
+from win32file import *  # nopycln: import
+from win32pipe import *  # nopycln: import
 
 
 def ApplyIgnoreError(fn, args):
@@ -77,7 +78,7 @@ class TestPipeService(win32serviceutil.ServiceFramework):
                 hr = winerror.ERROR_MORE_DATA
                 while hr == winerror.ERROR_MORE_DATA:
                     hr, thisd = ReadFile(pipeHandle, 256)
-                    d = d + thisd
+                    d += thisd
                 print("Read", d)
                 ok = 1
             except error:
@@ -85,7 +86,7 @@ class TestPipeService(win32serviceutil.ServiceFramework):
                 ok = 0
 
             # A secure service would handle (and ignore!) errors writing to the
-            # pipe, but for the sake of this demo we dont (if only to see what errors
+            # pipe, but for the sake of this demo we don't (if only to see what errors
             # we can get when our clients break at strange times :-)
             if ok:
                 msg = (
@@ -162,7 +163,7 @@ class TestPipeService(win32serviceutil.ServiceFramework):
             else:
                 # Pipe event - spawn thread to deal with it.
                 _thread.start_new_thread(self.ProcessClient, (pipeHandle,))
-                num_connections = num_connections + 1
+                num_connections += 1
 
         # Sleep to ensure that any new threads are in the list, and then
         # wait for all current threads to finish.

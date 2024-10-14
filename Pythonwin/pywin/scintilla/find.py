@@ -1,10 +1,11 @@
 # find.py - Find and Replace
-import afxres
+from __future__ import annotations
+
 import win32api
 import win32con
 import win32ui
 from pywin.framework import scriptutils
-from pywin.mfc import dialog
+from pywin.mfc import afxres, dialog
 
 FOUND_NOTHING = 0
 FOUND_NORMAL = 1
@@ -26,7 +27,7 @@ class SearchParams:
         else:
             self.__dict__.update(other.__dict__)
 
-    # Helper so we cant misspell attributes :-)
+    # Helper so we can't misspell attributes :-)
     def __setattr__(self, attr, val):
         if not hasattr(self, attr):
             raise AttributeError(attr)
@@ -35,7 +36,7 @@ class SearchParams:
 
 curDialog = None
 lastSearch = defaultSearch = SearchParams()
-searchHistory = []
+searchHistory: list[str] = []
 
 
 def ShowFindDialog():
@@ -83,9 +84,9 @@ def _FindIt(control, searchParams):
     # Move to the next char, so we find the next one.
     flags = 0
     if searchParams.matchWords:
-        flags = flags | win32con.FR_WHOLEWORD
+        flags |= win32con.FR_WHOLEWORD
     if searchParams.matchCase:
-        flags = flags | win32con.FR_MATCHCASE
+        flags |= win32con.FR_MATCHCASE
     if searchParams.sel == (-1, -1):
         sel = control.GetSel()
         # If the position is the same as we found last time,
@@ -118,7 +119,7 @@ def _FindIt(control, searchParams):
                 try:
                     doc = control.GetParent().GetDocument()
                 except AttributeError:
-                    print("Cant find a document for the control!")
+                    print("Can't find a document for the control!")
                     doc = None
             if doc is not None:
                 template = doc.GetDocTemplate()
@@ -499,7 +500,7 @@ class ReplaceDialog(FindReplaceDialog):
                 num = 1
                 lastSearch.replaceText = self.editReplaceText.GetWindowText()
                 while _ReplaceIt(control) == FOUND_NORMAL:
-                    num = num + 1
+                    num += 1
 
             win32ui.SetStatusText("Replaced %d occurrences" % num)
             if num > 0 and not self.butKeepDialogOpen.GetCheck():

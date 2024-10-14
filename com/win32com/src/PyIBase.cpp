@@ -3,7 +3,8 @@
 
 static PyComTypeObject type("PyIBase", NULL, sizeof(PyIBase), NULL, NULL);
 
-PyIBase::PyIBase() {
+PyIBase::PyIBase()
+{
     // ob_type will be overridden to the real type once the subclasses
     // constructor body runs, however, _Py_NewReference() sometimes wants
     // ob_type to be valid (particularly when tracemalloc is enabled!)

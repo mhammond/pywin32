@@ -3,21 +3,13 @@ import sys
 
 import pythoncom
 import win32api
-import win32com.client.connect
-import win32com.server.util
 import winerror
-from win32com.axdebug import adb, axdebug, contexts, documents, gateways, stackframe
+from win32com.axdebug import adb, axdebug, documents, gateways
 from win32com.axdebug.codecontainer import SourceCodeContainer
-from win32com.axdebug.util import _wrap, _wrap_remove
-from win32com.client.util import Enumerator
+from win32com.axdebug.util import _wrap
 from win32com.server.exception import COMException
-from win32com.util import IIDToInterfaceName
 
-try:
-    os.environ["DEBUG_AXDEBUG"]
-    debuggingTrace = 1  # Should we print "trace" output?
-except KeyError:
-    debuggingTrace = 0
+debuggingTrace = "DEBUG_AXDEBUG" in os.environ  # Should we print "trace" output?
 
 
 def trace(*args):
@@ -62,7 +54,7 @@ class DebugManager:
 
         if self.debugApplication is None:
             # Try to get/create the default one
-            # NOTE - Dont catch exceptions here - let the parent do it,
+            # NOTE - Don't catch exceptions here - let the parent do it,
             # so it knows debug support is available.
             pdm = pythoncom.CoCreateInstance(
                 axdebug.CLSID_ProcessDebugManager,
@@ -87,9 +79,7 @@ class DebugManager:
 
     def Close(self):
         # Called by the language engine when it receives a close request
-        if self.activeScriptDebug is not None:
-            _wrap_remove(self.activeScriptDebug)
-            self.activeScriptDebug = None
+        self.activeScriptDebug = None
         self.scriptEngine = None
         self.rootNode = None
         self.debugApplication = None
@@ -102,7 +92,7 @@ class DebugManager:
             self.adb.CloseApp()
             self.adb = None
 
-    # 		print "Close complete"
+    # print("Close complete")
 
     def IsAnyHost(self):
         "Do we have _any_ debugging interfaces installed?"
@@ -147,7 +137,7 @@ class DebugManager:
         self.adb.ResetAXDebugging()
 
     def AddScriptBlock(self, codeBlock):
-        # If we dont have debugging support, dont bother.
+        # If we don't have debugging support, don't bother.
         cc = DebugCodeBlockContainer(codeBlock, self.scriptSiteDebug)
         if self.IsSimpleHost():
             document = documents.DebugDocumentText(cc)

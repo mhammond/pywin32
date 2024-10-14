@@ -33,12 +33,11 @@ new_task.SetFlags(
 )
 new_task.SetIdleWait(1, 10000)
 new_task.SetComment("test task with idle trigger")
-new_task.SetApplicationName("c:\\python23\\python.exe")
+new_task.SetApplicationName("py.exe")
 new_task.SetPriority(taskscheduler.REALTIME_PRIORITY_CLASS)
 new_task.SetParameters(
-    "-c\"import win32ui,time;win32ui.MessageBox('why aint you doing no work ?');\""
+    "-c\"import win32ui,time;win32ui.MessageBox('why ain't you doing no work ?');\""
 )
-new_task.SetWorkingDirectory("c:\\python23")
 new_task.SetCreator("test_addtask_1.py")
 new_task.SetAccountInformation(win32api.GetUserName(), None)
 ## None is only valid for local system acct or if Flags contain TASK_FLAG_RUN_ONLY_IF_LOGGED_ON

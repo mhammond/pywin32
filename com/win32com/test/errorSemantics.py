@@ -19,11 +19,6 @@ from win32com.server.util import wrap
 from win32com.test.util import CaptureWriter
 
 
-class error(Exception):
-    def __init__(self, msg, com_exception=None):
-        Exception.__init__(self, msg, str(com_exception))
-
-
 # Our COM server.
 class TestServer:
     _public_methods_ = ["Clone", "Commit", "LockRegion", "Read"]
@@ -56,23 +51,21 @@ def test():
     com_server = wrap(TestServer(), pythoncom.IID_IStream)
     try:
         com_server.Clone()
-        raise error("Expecting this call to fail!")
+        raise AssertionError("Expecting this call to fail!")
     except pythoncom.com_error as com_exc:
-        if com_exc.hresult != winerror.E_UNEXPECTED:
-            raise error(
-                "Calling the object natively did not yield the correct scode", com_exc
-            )
+        assert com_exc.hresult == winerror.E_UNEXPECTED, (
+            "Calling the object natively did not yield the correct scode",
+            str(com_exc),
+        )
         exc = com_exc.excepinfo
-        if not exc or exc[-1] != winerror.E_UNEXPECTED:
-            raise error(
-                "The scode element of the exception tuple did not yield the correct scode",
-                com_exc,
-            )
-        if exc[2] != "Not today":
-            raise error(
-                "The description in the exception tuple did not yield the correct string",
-                com_exc,
-            )
+        assert exc and exc[-1] == winerror.E_UNEXPECTED, (
+            "The scode element of the exception tuple did not yield the correct scode",
+            str(com_exc),
+        )
+        assert exc[2] == "Not today", (
+            "The description in the exception tuple did not yield the correct string",
+            str(com_exc),
+        )
     cap = CaptureWriter()
     try:
         cap.capture()
@@ -80,41 +73,40 @@ def test():
             com_server.Commit(0)
         finally:
             cap.release()
-        raise error("Expecting this call to fail!")
+        raise AssertionError("Expecting this call to fail!")
     except pythoncom.com_error as com_exc:
-        if com_exc.hresult != winerror.E_FAIL:
-            raise error("The hresult was not E_FAIL for an internal error", com_exc)
-        if com_exc.excepinfo[1] != "Python COM Server Internal Error":
-            raise error(
-                "The description in the exception tuple did not yield the correct string",
-                com_exc,
-            )
+        assert com_exc.hresult == winerror.E_FAIL, (
+            "The hresult was not E_FAIL for an internal error",
+            str(com_exc),
+        )
+        assert com_exc.excepinfo[1] == "Python COM Server Internal Error", (
+            "The description in the exception tuple did not yield the correct string",
+            str(com_exc),
+        )
     # Check we saw a traceback in stderr
-    if cap.get_captured().find("Traceback") < 0:
-        raise error("Could not find a traceback in stderr: %r" % (cap.get_captured(),))
+    assert (
+        cap.get_captured().find("Traceback") >= 0
+    ), f"Could not find a traceback in stderr: {cap.get_captured()!r}"
 
     # Now do it all again, but using IDispatch
     com_server = Dispatch(wrap(TestServer()))
     try:
         com_server.Clone()
-        raise error("Expecting this call to fail!")
+        raise AssertionError("Expecting this call to fail!")
     except pythoncom.com_error as com_exc:
-        if com_exc.hresult != winerror.DISP_E_EXCEPTION:
-            raise error(
-                "Calling the object via IDispatch did not yield the correct scode",
-                com_exc,
-            )
+        assert com_exc.hresult == winerror.DISP_E_EXCEPTION, (
+            "Calling the object via IDispatch did not yield the correct scode",
+            str(com_exc),
+        )
         exc = com_exc.excepinfo
-        if not exc or exc[-1] != winerror.E_UNEXPECTED:
-            raise error(
-                "The scode element of the exception tuple did not yield the correct scode",
-                com_exc,
-            )
-        if exc[2] != "Not today":
-            raise error(
-                "The description in the exception tuple did not yield the correct string",
-                com_exc,
-            )
+        assert exc and exc[-1] == winerror.E_UNEXPECTED, (
+            "The scode element of the exception tuple did not yield the correct scode",
+            str(com_exc),
+        )
+        assert exc[2] == "Not today", (
+            "The description in the exception tuple did not yield the correct string",
+            str(com_exc),
+        )
 
     cap.clear()
     try:
@@ -123,27 +115,25 @@ def test():
             com_server.Commit(0)
         finally:
             cap.release()
-        raise error("Expecting this call to fail!")
+        raise AssertionError("Expecting this call to fail!")
     except pythoncom.com_error as com_exc:
-        if com_exc.hresult != winerror.DISP_E_EXCEPTION:
-            raise error(
-                "Calling the object via IDispatch did not yield the correct scode",
-                com_exc,
-            )
+        assert com_exc.hresult == winerror.DISP_E_EXCEPTION, (
+            "Calling the object via IDispatch did not yield the correct scode",
+            str(com_exc),
+        )
         exc = com_exc.excepinfo
-        if not exc or exc[-1] != winerror.E_FAIL:
-            raise error(
-                "The scode element of the exception tuple did not yield the correct scode",
-                com_exc,
-            )
-        if exc[1] != "Python COM Server Internal Error":
-            raise error(
-                "The description in the exception tuple did not yield the correct string",
-                com_exc,
-            )
+        assert exc and exc[-1] == winerror.E_FAIL, (
+            "The scode element of the exception tuple did not yield the correct scode",
+            str(com_exc),
+        )
+        assert exc[1] == "Python COM Server Internal Error", (
+            "The description in the exception tuple did not yield the correct string",
+            str(com_exc),
+        )
     # Check we saw a traceback in stderr
-    if cap.get_captured().find("Traceback") < 0:
-        raise error("Could not find a traceback in stderr: %r" % (cap.get_captured(),))
+    assert (
+        cap.get_captured().find("Traceback") >= 0
+    ), f"Could not find a traceback in stderr: {cap.get_captured()!r}"
 
     # And an explicit com_error
     cap.clear()
@@ -153,39 +143,33 @@ def test():
             com_server.Commit(1)
         finally:
             cap.release()
-        raise error("Expecting this call to fail!")
+        raise AssertionError("Expecting this call to fail!")
     except pythoncom.com_error as com_exc:
-        if com_exc.hresult != winerror.DISP_E_EXCEPTION:
-            raise error(
-                "Calling the object via IDispatch did not yield the correct scode",
-                com_exc,
-            )
+        assert com_exc.hresult == winerror.DISP_E_EXCEPTION, (
+            "Calling the object via IDispatch did not yield the correct scode",
+            str(com_exc),
+        )
         exc = com_exc.excepinfo
-        if not exc or exc[-1] != winerror.E_FAIL:
-            raise error(
-                "The scode element of the exception tuple did not yield the correct scode",
-                com_exc,
-            )
-        if exc[1] != "source":
-            raise error(
-                "The source in the exception tuple did not yield the correct string",
-                com_exc,
-            )
-        if exc[2] != "\U0001F600":
-            raise error(
-                "The description in the exception tuple did not yield the correct string",
-                com_exc,
-            )
-        if exc[3] != "helpfile":
-            raise error(
-                "The helpfile in the exception tuple did not yield the correct string",
-                com_exc,
-            )
-        if exc[4] != 1:
-            raise error(
-                "The help context in the exception tuple did not yield the correct string",
-                com_exc,
-            )
+        assert exc and exc[-1] == winerror.E_FAIL, (
+            "The scode element of the exception tuple did not yield the correct scode",
+            str(com_exc),
+        )
+        assert exc[1] == "source", (
+            "The source in the exception tuple did not yield the correct string",
+            str(com_exc),
+        )
+        assert exc[2] == "\U0001F600", (
+            "The description in the exception tuple did not yield the correct string",
+            str(com_exc),
+        )
+        assert exc[3] == "helpfile", (
+            "The helpfile in the exception tuple did not yield the correct string",
+            str(com_exc),
+        )
+        assert exc[4] == 1, (
+            "The help context in the exception tuple did not yield the correct string",
+            str(com_exc),
+        )
 
 
 try:
@@ -225,7 +209,7 @@ if logging is not None:
         com_server = wrap(TestServer(), pythoncom.IID_IStream)
         try:
             com_server.Commit(0)
-            raise RuntimeError("should have failed")
+            raise AssertionError("should have failed")
         except pythoncom.error as exc:
             # `excepinfo` is a tuple with elt 2 being the traceback we captured.
             message = exc.excepinfo[2]
@@ -240,7 +224,7 @@ if logging is not None:
         com_server = Dispatch(wrap(TestServer()))
         try:
             com_server.Commit(0)
-            raise RuntimeError("should have failed")
+            raise AssertionError("should have failed")
         except pythoncom.error as exc:
             # `excepinfo` is a tuple with elt 2 being the traceback we captured.
             message = exc.excepinfo[2]

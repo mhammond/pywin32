@@ -9,7 +9,7 @@ import win32security
 
 
 def lookup_ret_code(err):
-    for k, v in list(sspicon.__dict__.items()):
+    for k, v in sspicon.__dict__.items():
         if k[0:6] in ("SEC_I_", "SEC_E_") and v == err:
             return k
 
@@ -18,7 +18,7 @@ def lookup_ret_code(err):
 pkg_name='Kerberos'
 sspiclient=SSPIClient(pkg_name, win32api.GetUserName(),  ## target spn is ourself
     None, None,   ## use none for client name and authentication information for current context
-    ## u'username', (u'username',u'domain.com',u'passwd'),
+    ## 'username', ('username','domain.com','passwd'),
     sspicon.ISC_REQ_INTEGRITY|sspicon.ISC_REQ_SEQUENCE_DETECT|sspicon.ISC_REQ_REPLAY_DETECT|    \
         sspicon.ISC_REQ_DELEGATE|sspicon.ISC_REQ_CONFIDENTIALITY|sspicon.ISC_REQ_USE_SESSION_KEY)
 sspiserver=SSPIServer(pkg_name, None,

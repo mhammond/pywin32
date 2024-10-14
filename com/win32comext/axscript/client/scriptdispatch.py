@@ -5,13 +5,14 @@
  this yet, so it is not well tested!
 """
 
+from __future__ import annotations
+
 import types
 
 import pythoncom
 import win32com.server.policy
 import win32com.server.util
 import winerror
-from win32com.axscript import axscript
 from win32com.client import Dispatch
 from win32com.server.exception import COMException
 
@@ -19,14 +20,12 @@ debugging = 0
 
 PyIDispatchType = pythoncom.TypeIIDs[pythoncom.IID_IDispatch]
 
-
-def _is_callable(obj):
-    return type(obj) in [types.FunctionType, types.MethodType]
-    # ignore hasattr(obj, "__call__") as this means all COM objects!
+# ignore hasattr(obj, "__call__") as this means all COM objects!
+_CallableTypes = (types.FunctionType, types.MethodType)
 
 
 class ScriptDispatch:
-    _public_methods_ = []
+    _public_methods_: list[str] = []
 
     def __init__(self, engine, scriptNamespace):
         self.engine = engine
@@ -40,11 +39,11 @@ class ScriptDispatch:
             # attempt to call a function
             try:
                 func = getattr(self.scriptNamespace, name)
-                if not _is_callable(func):
+                if not isinstance(func, _CallableTypes):
                     raise AttributeError(name)  # Not a function.
                 realArgs = []
                 for arg in args:
-                    if type(arg) == PyIDispatchType:
+                    if isinstance(arg, PyIDispatchType):
                         realArgs.append(Dispatch(arg))
                     else:
                         realArgs.append(arg)
@@ -58,7 +57,7 @@ class ScriptDispatch:
             # attempt to get a property
             try:
                 ret = getattr(self.scriptNamespace, name)
-                if _is_callable(ret):
+                if isinstance(ret, _CallableTypes):
                     raise AttributeError(name)  # Not a property.
             except AttributeError:
                 raise COMException(scode=winerror.DISP_E_MEMBERNOTFOUND)
@@ -89,26 +88,15 @@ class StrictDynamicPolicy(win32com.server.policy.DynamicPolicy):
             func = getattr(self._obj_.scriptNamespace, str(name))
         except AttributeError:
             raise COMException(scode=winerror.DISP_E_MEMBERNOTFOUND)
-        # 		if not _is_callable(func):
+        # if not isinstance(func, _CallableTypes):
         return win32com.server.policy.DynamicPolicy._getdispid_(self, name, fdex)
 
 
-def _wrap_debug(obj):
+def _wrap(obj):
+    useDispatcher = win32com.server.policy.DispatcherWin32trace if debugging else None
     return win32com.server.util.wrap(
-        obj,
-        usePolicy=StrictDynamicPolicy,
-        useDispatcher=win32com.server.policy.DispatcherWin32trace,
+        obj, usePolicy=StrictDynamicPolicy, useDispatcher=useDispatcher
     )
-
-
-def _wrap_nodebug(obj):
-    return win32com.server.util.wrap(obj, usePolicy=StrictDynamicPolicy)
-
-
-if debugging:
-    _wrap = _wrap_debug
-else:
-    _wrap = _wrap_nodebug
 
 
 def MakeScriptDispatch(engine, namespace):

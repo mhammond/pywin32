@@ -11,15 +11,15 @@ import sys
 import traceback
 
 import __main__
-import afxres
 import pywin.framework.app
 import pywin.scintilla.control
 import pywin.scintilla.formatter
-import pywin.scintilla.IDLEenvironment
+import pywin.scintilla.IDLEenvironment  # nopycln: import # Injects fast_readline into the IDLE auto-indent extension
 import win32api
 import win32clipboard
 import win32con
 import win32ui
+from pywin.mfc import afxres
 
 ## sequential after ID_GOTO_LINE defined in editor.py
 ID_EDIT_COPY_CODE = 0xE2002
@@ -74,6 +74,15 @@ def LoadPreference(preference, default=""):
 
 def SavePreference(prefName, prefValue):
     win32ui.WriteProfileVal(sectionProfile, prefName, prefValue)
+
+
+def SaveFontPreferences():
+    win32ui.WriteProfileVal(sectionProfile, valueFormatTitle, str(formatTitle))
+    win32ui.WriteProfileVal(sectionProfile, valueFormatInput, str(formatInput))
+    win32ui.WriteProfileVal(sectionProfile, valueFormatOutput, str(formatOutput))
+    win32ui.WriteProfileVal(
+        sectionProfile, valueFormatOutputError, str(formatOutputError)
+    )
 
 
 def GetPromptPrefix(line):
@@ -138,7 +147,7 @@ class InteractiveFormatter(FormatterParent):
             return
         state = styleStart
         # As per comments in Colorize(), we work with the raw utf8
-        # bytes. To avoid too muych py3k pain, we treat each utf8 byte
+        # bytes. To avoid too much pain, we treat each utf8 byte
         # as a latin-1 unicode character - we only use it to compare
         # against ascii chars anyway...
         chNext = cdoc[0:1].decode("latin-1")
@@ -154,7 +163,7 @@ class InteractiveFormatter(FormatterParent):
                 if ch not in "\r\n":
                     self.ColorSeg(startSeg, i - 1, state)
                     startSeg = i
-                    if ch in (sys.ps1[0], sys.ps2[0]):
+                    if ch in (str(sys.ps1)[0], str(sys.ps2)[0]):
                         state = STYLE_INTERACTIVE_PROMPT
                     elif cdoc[i : i + len(tracebackHeader)] == tracebackHeader:
                         state = STYLE_INTERACTIVE_ERROR
@@ -202,7 +211,7 @@ class InteractiveFormatter(FormatterParent):
                 # and ask the Python colorizer to color that.
                 end = startSeg
                 while end < lengthDoc and cdoc[end] not in b"\r\n":
-                    end = end + 1
+                    end += 1
                 self.ColorizePythonCode(cdoc[:end], startSeg, state)
                 stylePyStart = self.GetStringStyle(end - 1)
                 if stylePyStart is None:
@@ -215,7 +224,7 @@ class InteractiveFormatter(FormatterParent):
                 state = STYLE_INTERACTIVE_EOL
             if lastState != state:
                 lastState = state
-            i = i + 1
+            i += 1
         # and the rest
         if startSeg < i:
             self.ColorSeg(startSeg, i - 1, state)
@@ -234,7 +243,7 @@ class InteractiveFormatter(FormatterParent):
             # If TQString, we continue it.  Otherwise, we reset.
             look = start - 1
             while look and self.scintilla.SCIGetCharAt(look) in "\n\r":
-                look = look - 1
+                look -= 1
             if look and look < start - 1:  # Did we find a char before the \n\r sets?
                 strstyle = self.GetStringStyle(look)
                 quote_char = None
@@ -291,7 +300,7 @@ class PythonwinInteractiveInterpreter(code.InteractiveInterpreter):
         self.globals = globals
         code.InteractiveInterpreter.__init__(self, locals)
 
-    def showsyntaxerror(self, filename=None):
+    def showsyntaxerror(self, filename=None, **kwargs):
         sys.stderr.write(
             tracebackHeader.decode("ascii")
         )  # So the color syntaxer recognises it.
@@ -325,14 +334,15 @@ class InteractiveCore:
                 if win32ui.debug:
                     suffix = ", debug build"
                 sys.stderr.write(
-                    "PythonWin %s on %s%s.\n" % (sys.version, sys.platform, suffix)
+                    f"PythonWin {sys.version} on {sys.platform}{suffix}.\n"
                 )
                 sys.stderr.write(
-                    "Portions %s - see 'Help/About PythonWin' for further copyright information.\n"
-                    % (win32ui.copyright,)
+                    "Portions {} - see 'Help/About PythonWin' for further copyright information.\n".format(
+                        win32ui.copyright
+                    )
                 )
             else:
-                sys.stderr.write(banner)
+                sys.stderr.write(self.banner)
         rcfile = os.environ.get("PYTHONSTARTUP")
         if rcfile:
             import __main__
@@ -444,12 +454,12 @@ class InteractiveCore:
             while startLineNo > 0:
                 if GetPromptPrefix(self.DoGetLine(startLineNo - 1)) is not None:
                     break  # there _is_ a prompt
-                startLineNo = startLineNo - 1
+                startLineNo -= 1
             endLineNo = lineNo
             while endLineNo < maxLineNo:
                 if GetPromptPrefix(self.DoGetLine(endLineNo + 1)) is not None:
                     break  # there _is_ a prompt
-                endLineNo = endLineNo + 1
+                endLineNo += 1
         else:  # Code block
             flag = 1
             startLineNo = lineNo
@@ -458,7 +468,7 @@ class InteractiveCore:
                 if prefix is None:
                     break
                     # there is no prompt.
-                startLineNo = startLineNo - 1
+                startLineNo -= 1
             endLineNo = lineNo
             while endLineNo < maxLineNo:
                 prefix = GetPromptPrefix(self.DoGetLine(endLineNo + 1))
@@ -466,7 +476,7 @@ class InteractiveCore:
                     break  # there is no prompt
                 if prefix == str(sys.ps1):
                     break  # this is another command
-                endLineNo = endLineNo + 1
+                endLineNo += 1
                 # continue until end of buffer, or no prompt
         return (startLineNo, endLineNo, flag)
 
@@ -477,7 +487,7 @@ class InteractiveCore:
             thisLine = self.DoGetLine(end)
             promptLen = len(GetPromptPrefix(thisLine))
             retList = [thisLine[promptLen:]] + retList
-            end = end - 1
+            end -= 1
         return retList
 
     def OutputGrab(self):
@@ -529,7 +539,7 @@ class InteractiveCore:
 
         lines = self.ExtractCommand((start, end))
 
-        # If we are in a code-block, but it isnt at the end of the buffer
+        # If we are in a code-block, but it isn't at the end of the buffer
         # then copy it to the end ready for editing and subsequent execution
         if end != self.GetLineCount() - 1:
             win32ui.SetStatusText("Press ENTER to execute command")
@@ -557,7 +567,7 @@ class InteractiveCore:
                 ):  # Need more input!
                     bNeedIndent = 1
                 else:
-                    # If the last line isnt empty, append a newline
+                    # If the last line isn't empty, append a newline
                     if self.history is not None:
                         self.history.history_store(source)
                     self.AppendToPrompt([])
@@ -574,10 +584,10 @@ class InteractiveCore:
             pos = 0
             indent = ""
             while len(curLine) > pos and curLine[pos] in string.whitespace:
-                indent = indent + curLine[pos]
-                pos = pos + 1
+                indent += curLine[pos]
+                pos += 1
             if _is_block_opener(curLine):
-                indent = indent + "\t"
+                indent += "\t"
             elif _is_block_closer(curLine):
                 indent = indent[:-1]
             # use ReplaceSel to ensure it goes at the cursor rather than end of buffer.

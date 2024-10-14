@@ -6,9 +6,9 @@
 
 <H2>Introduction</H2>
 <p>
-win32com attempts to provide a seamless COM interface and hide many COM 
-implementation details, including the use of COM VARIANT structures.  This 
-means that in most cases, you just call a COM object using normal Python 
+win32com attempts to provide a seamless COM interface and hide many COM
+implementation details, including the use of COM VARIANT structures.  This
+means that in most cases, you just call a COM object using normal Python
 objects as parameters and get back normal Python objects as results.
 </p>
 
@@ -19,15 +19,15 @@ objects which only declare a parameter is a VARIANT.
 </p>
 
 <p>
-The <code>win32com.client.VARIANT</code> object is designed to overcome these 
+The <code>win32com.client.VARIANT</code> object is designed to overcome these
 problems.
 </p>
 
 <h2>Drawbacks</h2>
-The primary issue with this approach is that the programmer must learn more 
-about COM VARIANTs than otherwise - they need to know concepts such as 
-variants being <em>byref</em>, holding arrays, or that some may hold 32bit 
-unsigned integers while others hold 64bit signed ints, and they need to 
+The primary issue with this approach is that the programmer must learn more
+about COM VARIANTs than otherwise - they need to know concepts such as
+variants being <em>byref</em>, holding arrays, or that some may hold 32bit
+unsigned integers while others hold 64bit signed ints, and they need to
 understand this in the context of a single method call.  In short, this is
 a relatively advanced feature.  The good news though is that use of these
 objects should never cause your program to hard-crash - the worst you should
@@ -35,12 +35,12 @@ expect are Python or COM exceptions being thrown.
 
 <h2>The VARIANT object</h2>
 
-The VARIANT object lives in <code>win32com.client</code>.  The constructor 
-takes 2 parameters - the 'variant type' and the value.  The 'variant type' is 
+The VARIANT object lives in <code>win32com.client</code>.  The constructor
+takes 2 parameters - the 'variant type' and the value.  The 'variant type' is
 an integer and can be one or more of the <code>pythoncom.VT_*</code> values,
 possibly or'd together.
 
-<p>For example, to create a VARIANT object which defines a byref array of 
+<p>For example, to create a VARIANT object which defines a byref array of
 32bit integers, you could use:
 
 <pre>
@@ -57,7 +57,7 @@ This variable can then be used whereever a COM VARIANT is expected.
 
 <h2>Example usage with dynamic objects.</h2>
 
-For this example we will use the COM object used for win32com testing, 
+For this example we will use the COM object used for win32com testing,
 <code>PyCOMTest.PyCOMTest</code>.  This object defines a method which is
 defined in IDL as:
 <pre>
@@ -115,7 +115,7 @@ u'HelloHello'
 
 <h2>Usage with generated objects</h2>
 
-In most cases, objects with makepy support (ie, 'generated' objects) don't 
+In most cases, objects with makepy support (ie, 'generated' objects) don't
 need to use the VARIANT object - the type information means win32com can guess
 the right thing to pass.  However, in some cases the VARIANT object can still
 be useful.
@@ -126,22 +126,22 @@ Imagine a poorly specified object with IDL like:
 HRESULT DoSomething([in] VARIANT value);
 </pre>
 
-But also imagine that the object has a limitation that if the parameter is an 
+But also imagine that the object has a limitation that if the parameter is an
 integer, it must be a 32bit unsigned value - any other integer representation
 will fail.
 
-<p>If you just pass a regular Python integer to this function, it will 
+<p>If you just pass a regular Python integer to this function, it will
 generally be passed as a 32bit signed integer and given the limitation above,
 will fail.  The VARIANT object allows you to work around the limitation - just
-create a variant object <code>VARIANT(pythoncom.VT_UI4, int_value)</code> and 
-pass that - the function will then be called with the explicit type you 
+create a variant object <code>VARIANT(pythoncom.VT_UI4, int_value)</code> and
+pass that - the function will then be called with the explicit type you
 specified and will succeed.
 
 <p>Note that you can not use a VARIANT object to override the types described
-in a type library.  If a makepy generated class specifies that a VT_UI2 is 
-expected, attempting to pass a VARIANT object will fail.  In this case you 
+in a type library.  If a makepy generated class specifies that a VT_UI2 is
+expected, attempting to pass a VARIANT object will fail.  In this case you
 would need to hack around the problem.  For example, imagine <code>ob</code>
-was a COM object which a method called <code>foo</code> and you wanted to 
+was a COM object which a method called <code>foo</code> and you wanted to
 override the type declaration for <code>foo</code> by passing a VARIANT.
 You could do something like:
 

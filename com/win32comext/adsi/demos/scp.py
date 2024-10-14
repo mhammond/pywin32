@@ -199,7 +199,7 @@ def AllowAccessToScpProperties(
     setattr(scpObject, attribute, sd)
     # SetInfo updates the SCP object in the directory.
     scpObject.SetInfo()
-    logger.info("Set security on object for account '%s'" % (trustee,))
+    logger.info("Set security on object for account %r", trustee)
 
 
 # Service Principal Names functions from the same sample.
@@ -219,7 +219,7 @@ def SpnRegister(
     spns,  # List of SPNs to register
     operation,  # Add, replace, or delete SPNs
 ):
-    assert type(spns) not in [str, str] and hasattr(spns, "__iter__"), (
+    assert not isinstance(spns, str) and hasattr(spns, "__iter__"), (
         "spns must be a sequence of strings (got %r)" % spns
     )
     # Bind to a domain controller.
@@ -391,7 +391,7 @@ def main():
     arg_descs = []
     for arg, func in handlers:
         this_desc = "\n".join(textwrap.wrap(func.__doc__, subsequent_indent=" " * 8))
-        arg_descs.append("  %s: %s" % (arg, this_desc))
+        arg_descs.append(f"  {arg}: {this_desc}")
         _handlers_dict[arg.lower()] = func
 
     description = __doc__ + "\ncommands:\n" + "\n".join(arg_descs) + "\n"

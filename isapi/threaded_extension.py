@@ -1,4 +1,5 @@
 """An ISAPI extension base class implemented using a thread-pool."""
+
 # $Id$
 
 import sys
@@ -45,7 +46,7 @@ class WorkerThread(threading.Thread):
             # Let the parent extension handle the command.
             dispatcher = self.extension.dispatch_map.get(key)
             if dispatcher is None:
-                raise RuntimeError("Bad request '%s'" % (key,))
+                raise RuntimeError(f"Bad request '{key}'")
 
             dispatcher(errCode, bytes, key, overlapped)
 
@@ -155,7 +156,7 @@ class ThreadPoolExtension(isapi.simple.SimpleExtension):
         limit = None
         try:
             try:
-                import cgi
+                import html
 
                 ecb.SendResponseHeaders(
                     "200 OK", "Content-type: text/html\r\n\r\n", False
@@ -165,17 +166,17 @@ class ThreadPoolExtension(isapi.simple.SimpleExtension):
                 list = traceback.format_tb(
                     exc_tb, limit
                 ) + traceback.format_exception_only(exc_typ, exc_val)
+                bold = list.pop()
                 print(
-                    "<PRE>%s<B>%s</B></PRE>"
-                    % (
-                        cgi.escape("".join(list[:-1])),
-                        cgi.escape(list[-1]),
+                    "<PRE>{}<B>{}</B></PRE>".format(
+                        html.escape("".join(list)),
+                        html.escape(bold),
                     ),
                     file=ecb,
                 )
             except ExtensionError:
                 # The client disconnected without reading the error body -
-                # its probably not a real browser at the other end, ignore it.
+                # it's probably not a real browser at the other end, ignore it.
                 pass
             except:
                 print("FAILED to render the error message!")

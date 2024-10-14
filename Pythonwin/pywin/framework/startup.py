@@ -39,9 +39,13 @@ if not sys.argv:
 # To fix a problem with Pythonwin when started from the Pythonwin directory,
 # we update the pywin path to ensure it is absolute.
 # If it is indeed relative, it will be relative to our current directory.
-# If its already absolute, then this will have no affect.
+# If it's already absolute, then this will have no affect.
 import pywin
 import pywin.framework
+
+# Ensure we're working on __path__ as list, not Iterable
+pywin.__path__ = list(pywin.__path__)
+pywin.framework.__path__ = list(pywin.framework.__path__)
 
 pywin.__path__[0] = win32ui.FullPath(pywin.__path__[0])
 pywin.framework.__path__[0] = win32ui.FullPath(pywin.framework.__path__[0])
@@ -64,17 +68,3 @@ if len(sys.argv) >= 2 and sys.argv[0].lower() in ("/app", "-app"):
 
 # Import the application module.
 __import__(moduleName)
-
-try:
-    win32ui.GetApp()._obj_
-    # This worked - an app already exists - do nothing more
-except (AttributeError, win32ui.error):
-    # This means either no app object exists at all, or the one
-    # that does exist does not have a Python class (ie, was created
-    # by the host .EXE).  In this case, we do the "old style" init...
-    from . import app
-
-    if app.AppBuilder is None:
-        raise TypeError("No application object has been registered")
-
-    app.App = app.AppBuilder()

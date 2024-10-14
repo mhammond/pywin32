@@ -1,5 +1,4 @@
 import re
-import string
 import sys
 
 # Reason last stmt is continued (or C_NONE if it's not).
@@ -122,10 +121,6 @@ for ch in ")}]":
     _tran[ord(ch)] = ")"
 for ch in "\"'\\\n#":
     _tran[ord(ch)] = ch
-# We are called with unicode strings, and str.translate is one of the few
-# py2k functions which can't 'do the right thing' - so take care to ensure
-# _tran is full of unicode...
-_tran = "".join(_tran)
 del ch
 
 
@@ -135,7 +130,7 @@ class Parser:
         self.tabwidth = tabwidth
 
     def set_str(self, str):
-        assert len(str) == 0 or str[-1] == "\n", "Oops - have str %r" % (str,)
+        assert len(str) == 0 or str[-1] == "\n", f"Oops - have str {str!r}"
         self.str = str
         self.study_level = 0
 
@@ -154,7 +149,7 @@ class Parser:
     # no way to tell the differences between output, >>> etc and
     # user input.  Indeed, IDLE's first output line makes the rest
     # look like it's in an unclosed paren!:
-    # Python 1.5.2 (#0, Apr 13 1999, ...
+    # Python X.X.X (#0, Apr 13 1999, ...
 
     def find_good_parse_start(self, use_ps1, is_char_in_string=None):
         str, pos = self.str, None
@@ -257,26 +252,26 @@ class Parser:
         i, n = 0, len(str)
         while i < n:
             ch = str[i]
-            i = i + 1
+            i += 1
 
             # cases are checked in decreasing order of frequency
             if ch == "x":
                 continue
 
             if ch == "\n":
-                lno = lno + 1
+                lno += 1
                 if level == 0:
                     push_good(lno)
                     # else we're in an unclosed bracket structure
                 continue
 
             if ch == "(":
-                level = level + 1
+                level += 1
                 continue
 
             if ch == ")":
                 if level:
-                    level = level - 1
+                    level -= 1
                     # else the program is invalid, but we can't complain
                 continue
 
@@ -284,22 +279,22 @@ class Parser:
                 # consume the string
                 quote = ch
                 if str[i - 1 : i + 2] == quote * 3:
-                    quote = quote * 3
+                    quote *= 3
                 w = len(quote) - 1
-                i = i + w
+                i += w
                 while i < n:
                     ch = str[i]
-                    i = i + 1
+                    i += 1
 
                     if ch == "x":
                         continue
 
                     if str[i - 1 : i + w] == quote:
-                        i = i + w
+                        i += w
                         break
 
                     if ch == "\n":
-                        lno = lno + 1
+                        lno += 1
                         if w == 0:
                             # unterminated single-quoted string
                             if level == 0:
@@ -310,8 +305,8 @@ class Parser:
                     if ch == "\\":
                         assert i < n
                         if str[i] == "\n":
-                            lno = lno + 1
-                        i = i + 1
+                            lno += 1
+                        i += 1
                         continue
 
                     # else comment char or paren inside string
@@ -331,10 +326,10 @@ class Parser:
             assert ch == "\\"
             assert i < n
             if str[i] == "\n":
-                lno = lno + 1
+                lno += 1
                 if i + 1 == n:
                     continuation = C_BACKSLASH
-            i = i + 1
+            i += 1
 
         # The last stmt may be continued for all 3 reasons.
         # String continuation takes precedence over bracket
@@ -366,7 +361,6 @@ class Parser:
     #         if continuation is C_BRACKET, index of last open bracket
 
     def _study2(self):
-        _ws = string.whitespace
         if self.study_level >= 2:
             return
         self._study1()
@@ -387,7 +381,7 @@ class Parser:
             # The stmt str[p:q] isn't a continuation, but may be blank
             # or a non-indenting comment line.
             if _junkre(str, p):
-                i = i - 1
+                i -= 1
             else:
                 break
         if i == 0:
@@ -410,7 +404,7 @@ class Parser:
                 # back up over totally boring whitespace
                 i = newp - 1  # index of last boring char
                 while i >= p and str[i] in " \t\n":
-                    i = i - 1
+                    i -= 1
                 if i >= p:
                     lastch = str[i]
                 p = newp
@@ -422,14 +416,14 @@ class Parser:
             if ch in "([{":
                 push_stack(p)
                 lastch = ch
-                p = p + 1
+                p += 1
                 continue
 
             if ch in ")]}":
                 if stack:
                     del stack[-1]
                 lastch = ch
-                p = p + 1
+                p += 1
                 continue
 
             if ch == '"' or ch == "'":
@@ -451,12 +445,12 @@ class Parser:
                 continue
 
             assert ch == "\\"
-            p = p + 1  # beyond backslash
+            p += 1  # beyond backslash
             assert p < q
             if str[p] != "\n":
                 # the program is invalid, but can't complain
                 lastch = ch + str[p]
-            p = p + 1  # beyond escaped char
+            p += 1  # beyond escaped char
 
         # end while p < q:
 
@@ -474,7 +468,7 @@ class Parser:
         str = self.str
         n = len(str)
         origi = i = str.rfind("\n", 0, j) + 1
-        j = j + 1  # one beyond open bracket
+        j += 1  # one beyond open bracket
         # find first list item; set i to start of its line
         while j < n:
             m = _itemre(str, j)
@@ -490,7 +484,7 @@ class Parser:
             # reproduce the bracket line's indentation + a level
             j = i = origi
             while str[j] in " \t":
-                j = j + 1
+                j += 1
             extra = self.indentwidth
         return len(str[i:j].expandtabs(self.tabwidth)) + extra
 
@@ -513,7 +507,7 @@ class Parser:
         str = self.str
         i = self.stmt_start
         while str[i] in " \t":
-            i = i + 1
+            i += 1
         startpos = i
 
         # See whether the initial line starts an assignment stmt; i.e.,
@@ -523,12 +517,12 @@ class Parser:
         while i < endpos:
             ch = str[i]
             if ch in "([{":
-                level = level + 1
-                i = i + 1
+                level += 1
+                i += 1
             elif ch in ")]}":
                 if level:
-                    level = level - 1
-                i = i + 1
+                    level -= 1
+                i += 1
             elif ch == '"' or ch == "'":
                 i = _match_stringre(str, i, endpos).end()
             elif ch == "#":
@@ -542,12 +536,12 @@ class Parser:
                 found = 1
                 break
             else:
-                i = i + 1
+                i += 1
 
         if found:
             # found a legit =, but it may be the last interesting
             # thing on the line
-            i = i + 1  # move beyond the =
+            i += 1  # move beyond the =
             found = re.match(r"\s*\\", str[i:endpos]) is None
 
         if not found:
@@ -555,7 +549,7 @@ class Parser:
             # of non-whitespace chars
             i = startpos
             while str[i] not in " \t\n":
-                i = i + 1
+                i += 1
 
         return len(str[self.stmt_start : i].expandtabs(self.tabwidth)) + 1
 
@@ -568,7 +562,7 @@ class Parser:
         j = i
         str = self.str
         while j < n and str[j] in " \t":
-            j = j + 1
+            j += 1
         return str[i:j]
 
     # Did the last interesting stmt open a block?

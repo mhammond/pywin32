@@ -234,15 +234,15 @@ class DockingBar(window.Wnd):
             return 0
         lparam = msg[3]
         """ LPARAM used with WM_WINDOWPOSCHANGED:
-			typedef struct {
-				HWND hwnd;
-				HWND hwndInsertAfter;
-				int x;
-				int y;
-				int cx;
-				int cy;
-				UINT flags;} WINDOWPOS;
-		"""
+            typedef struct {
+                HWND hwnd;
+                HWND hwndInsertAfter;
+                int x;
+                int y;
+                int cx;
+                int cy;
+                UINT flags;} WINDOWPOS;
+        """
         format = "PPiiiii"
         bytes = win32ui.GetBytes(lparam, struct.calcsize(format))
         hwnd, hwndAfter, x, y, cx, cy, flags = struct.unpack(format, bytes)
@@ -295,7 +295,7 @@ class DockingBar(window.Wnd):
         if not self.bTracking:
             return 1  # pass it on.
         self.StopTracking(1)
-        return 0  # Dont pass on
+        return 0  # Don't pass on
 
     def OnLButtonDown(self, msg):
         # UINT nFlags, CPoint point)
@@ -356,10 +356,10 @@ class DockingBar(window.Wnd):
         # Convert unsigned 16 bit to signed 32 bit.
         x = win32api.LOWORD(lparam)
         if x & 32768:
-            x = x | -65536
+            x |= -65536
         y = win32api.HIWORD(lparam)
         if y & 32768:
-            y = y | -65536
+            y |= -65536
         pt = x, y
         cpt = CenterPoint(self.rectTracker)
         pt = self.ClientToWnd(pt)
@@ -374,7 +374,7 @@ class DockingBar(window.Wnd):
                 self.rectTracker = OffsetRect(self.rectTracker, (pt[0] - cpt[0], 0))
                 self.OnInvertTracker(self.rectTracker)
 
-        return 0  # Dont pass it on.
+        return 0  # Don't pass it on.
 
     # 	def OnBarStyleChange(self, old, new):
 
@@ -388,11 +388,11 @@ class DockingBar(window.Wnd):
         dwBorderStyle = self._obj_.dwStyle | afxres.CBRS_BORDER_ANY
 
         if self.nDockBarID == afxres.AFX_IDW_DOCKBAR_TOP:
-            dwBorderStyle = dwBorderStyle & ~afxres.CBRS_BORDER_BOTTOM
-            rc0.left = rc0.left + self.cxGripper
-            rc0.bottom = rc0.bottom - self.cxEdge
-            rc0.top = rc0.top + self.cxBorder
-            rc0.right = rc0.right - self.cxBorder
+            dwBorderStyle &= ~afxres.CBRS_BORDER_BOTTOM
+            rc0.left += self.cxGripper
+            rc0.bottom -= self.cxEdge
+            rc0.top += self.cxBorder
+            rc0.right -= self.cxBorder
             self.rectBorder = (
                 self.rectBorder[0],
                 self.rectBorder[3] - self.cxEdge,
@@ -400,11 +400,11 @@ class DockingBar(window.Wnd):
                 self.rectBorder[3],
             )
         elif self.nDockBarID == afxres.AFX_IDW_DOCKBAR_BOTTOM:
-            dwBorderStyle = dwBorderStyle & ~afxres.CBRS_BORDER_TOP
-            rc0.left = rc0.left + self.cxGripper
-            rc0.top = rc0.top + self.cxEdge
-            rc0.bottom = rc0.bottom - self.cxBorder
-            rc0.right = rc0.right - self.cxBorder
+            dwBorderStyle &= ~afxres.CBRS_BORDER_TOP
+            rc0.left += self.cxGripper
+            rc0.top += self.cxEdge
+            rc0.bottom -= self.cxBorder
+            rc0.right -= self.cxBorder
             self.rectBorder = (
                 self.rectBorder[0],
                 self.rectBorder[1],
@@ -412,11 +412,11 @@ class DockingBar(window.Wnd):
                 self.rectBorder[1] + self.cxEdge,
             )
         elif self.nDockBarID == afxres.AFX_IDW_DOCKBAR_LEFT:
-            dwBorderStyle = dwBorderStyle & ~afxres.CBRS_BORDER_RIGHT
-            rc0.right = rc0.right - self.cxEdge
-            rc0.left = rc0.left + self.cxBorder
-            rc0.bottom = rc0.bottom - self.cxBorder
-            rc0.top = rc0.top + self.cxGripper
+            dwBorderStyle &= ~afxres.CBRS_BORDER_RIGHT
+            rc0.right -= self.cxEdge
+            rc0.left += self.cxBorder
+            rc0.bottom -= self.cxBorder
+            rc0.top += self.cxGripper
             self.rectBorder = (
                 self.rectBorder[2] - self.cxEdge,
                 self.rectBorder[1],
@@ -424,11 +424,11 @@ class DockingBar(window.Wnd):
                 self.rectBorder[3],
             )
         elif self.nDockBarID == afxres.AFX_IDW_DOCKBAR_RIGHT:
-            dwBorderStyle = dwBorderStyle & ~afxres.CBRS_BORDER_LEFT
-            rc0.left = rc0.left + self.cxEdge
-            rc0.right = rc0.right - self.cxBorder
-            rc0.bottom = rc0.bottom - self.cxBorder
-            rc0.top = rc0.top + self.cxGripper
+            dwBorderStyle &= ~afxres.CBRS_BORDER_LEFT
+            rc0.left += self.cxEdge
+            rc0.right -= self.cxBorder
+            rc0.bottom -= self.cxBorder
+            rc0.top += self.cxGripper
             self.rectBorder = (
                 self.rectBorder[0],
                 self.rectBorder[1],
@@ -486,7 +486,7 @@ class DockingBar(window.Wnd):
         self.rectTracker = self.rectBorder
         if not self.IsHorz():
             l, t, r, b = self.rectTracker
-            b = b - 4
+            b -= 4
             self.rectTracker = l, t, r, b
 
         self.OnInvertTracker(self.rectTracker)
@@ -517,13 +517,13 @@ class DockingBar(window.Wnd):
 
         pt = CenterPoint(self.rectTracker)
         if self.nDockBarID == afxres.AFX_IDW_DOCKBAR_TOP:
-            newsize = newsize + (pt[1] - self.ptOld[1])
+            newsize += pt[1] - self.ptOld[1]
         elif self.nDockBarID == afxres.AFX_IDW_DOCKBAR_BOTTOM:
-            newsize = newsize + (-pt[1] + self.ptOld[1])
+            newsize += -pt[1] + self.ptOld[1]
         elif self.nDockBarID == afxres.AFX_IDW_DOCKBAR_LEFT:
-            newsize = newsize + (pt[0] - self.ptOld[0])
+            newsize += pt[0] - self.ptOld[0]
         elif self.nDockBarID == afxres.AFX_IDW_DOCKBAR_RIGHT:
-            newsize = newsize + (-pt[0] + self.ptOld[0])
+            newsize += -pt[0] + self.ptOld[0]
         newsize = max(minsize, min(maxsize, newsize))
         if self.IsHorz():
             self.sizeHorz = self.sizeHorz[0], newsize
@@ -565,9 +565,9 @@ class DockingBar(window.Wnd):
     def ClientToWnd(self, pt):
         x, y = pt
         if self.nDockBarID == afxres.AFX_IDW_DOCKBAR_BOTTOM:
-            y = y + self.cxEdge
+            y += self.cxEdge
         elif self.nDockBarID == afxres.AFX_IDW_DOCKBAR_RIGHT:
-            x = x + self.cxEdge
+            x += self.cxEdge
         return x, y
 
     def DrawGripper(self, dc):
@@ -600,9 +600,9 @@ class DockingBar(window.Wnd):
                 self.rectUndock, win32con.DFC_CAPTION, win32con.DFCS_CAPTIONMAX
             )
 
-            gt = gt + 38
-            gb = gb - 10
-            gl = gl + 10
+            gt += 38
+            gb -= 10
+            gl += 10
             gr = gl + 3
             gripper = gl, gt, gr, gb
             dc.Draw3dRect(gripper, clrBtnHilight, clrBtnShadow)
@@ -620,9 +620,9 @@ class DockingBar(window.Wnd):
             dc.DrawFrameControl(
                 self.rectUndock, win32con.DFC_CAPTION, win32con.DFCS_CAPTIONMAX
             )
-            gr = gr - 38
-            gl = gl + 10
-            gt = gt + 10
+            gr -= 38
+            gl += 10
+            gt += 10
             gb = gt + 3
 
             gripper = gl, gt, gr, gb
@@ -658,8 +658,6 @@ def EditCreator(parent):
 
 
 def test():
-    import pywin.mfc.dialog
-
     global bar
     bar = DockingBar()
     creator = EditCreator

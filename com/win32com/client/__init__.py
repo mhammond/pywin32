@@ -7,6 +7,7 @@
 # with dynamic.Dispatch behaviour, where dynamic objects are always used.
 
 import sys
+from itertools import chain
 
 import pythoncom
 import pywintypes
@@ -21,7 +22,6 @@ def __WrapDispatch(
     userName=None,
     resultCLSID=None,
     typeinfo=None,
-    UnicodeToString=None,
     clsctx=pythoncom.CLSCTX_SERVER,
     WrapperClass=None,
 ):
@@ -29,7 +29,6 @@ def __WrapDispatch(
     Helper function to return a makepy generated class for a CLSID if it exists,
     otherwise cope by using CDispatch.
     """
-    assert UnicodeToString is None, "this is deprecated and will go away"
     if resultCLSID is None:
         try:
             typeinfo = dispatch.GetTypeInfo()
@@ -55,7 +54,7 @@ def __WrapDispatch(
 
 
 def GetObject(Pathname=None, Class=None, clsctx=None):
-    """
+    r"""
     Mimic VB's GetObject() function.
 
     ob = GetObject(Class = "ProgID") or GetObject(Class = clsid) will
@@ -110,11 +109,9 @@ def Dispatch(
     userName=None,
     resultCLSID=None,
     typeinfo=None,
-    UnicodeToString=None,
     clsctx=pythoncom.CLSCTX_SERVER,
 ):
     """Creates a Dispatch based COM object."""
-    assert UnicodeToString is None, "this is deprecated and will go away"
     dispatch, userName = dynamic._GetGoodDispatchAndUserName(dispatch, userName, clsctx)
     return __WrapDispatch(dispatch, userName, resultCLSID, typeinfo, clsctx=clsctx)
 
@@ -125,18 +122,16 @@ def DispatchEx(
     userName=None,
     resultCLSID=None,
     typeinfo=None,
-    UnicodeToString=None,
     clsctx=None,
 ):
     """Creates a Dispatch based COM object on a specific machine."""
-    assert UnicodeToString is None, "this is deprecated and will go away"
     # If InProc is registered, DCOM will use it regardless of the machine name
     # (and regardless of the DCOM config for the object.)  So unless the user
     # specifies otherwise, we exclude inproc apps when a remote machine is used.
     if clsctx is None:
         clsctx = pythoncom.CLSCTX_SERVER
         if machine is not None:
-            clsctx = clsctx & ~pythoncom.CLSCTX_INPROC
+            clsctx &= ~pythoncom.CLSCTX_INPROC
     if machine is None:
         serverInfo = None
     else:
@@ -157,11 +152,8 @@ class CDispatch(dynamic.CDispatch):
     if/when possible.
     """
 
-    def _wrap_dispatch_(
-        self, ob, userName=None, returnCLSID=None, UnicodeToString=None
-    ):
-        assert UnicodeToString is None, "this is deprecated and will go away"
-        return Dispatch(ob, userName, returnCLSID, None)
+    def _wrap_dispatch_(self, ob, userName=None, returnCLSID=None):
+        return Dispatch(ob, userName, returnCLSID)
 
     def __dir__(self):
         return dynamic.CDispatch.__dir__(self)
@@ -179,8 +171,8 @@ def CastTo(ob, target, typelib=None):
         )
         if not hasattr(mod, target):
             raise ValueError(
-                "The interface name '%s' does not appear in the "
-                "specified library %r" % (target, typelib.ver_desc)
+                f"The interface name '{target}' does not appear in the "
+                f"specified library {typelib.ver_desc!r}"
             )
 
     elif hasattr(target, "index"):  # string like
@@ -207,8 +199,8 @@ def CastTo(ob, target, typelib=None):
         target_clsid = mod.NamesToIIDMap.get(target)
         if target_clsid is None:
             raise ValueError(
-                "The interface name '%s' does not appear in the "
-                "same library as object '%r'" % (target, ob)
+                f"The interface name '{target}' does not appear in the "
+                f"same library as object '{ob!r}'"
             )
         mod = gencache.GetModuleForCLSID(target_clsid)
     if mod is not None:
@@ -303,7 +295,7 @@ def DispatchWithEvents(clsid, user_event_class):
 
     >>> class IEEvents:
     ...    def OnVisible(self, visible):
-    ...       print "Visible changed:", visible
+    ...       print("Visible changed:", visible)
     ...
     >>> ie = DispatchWithEvents("InternetExplorer.Application", IEEvents)
     >>> ie.Visible = 1
@@ -332,16 +324,10 @@ def DispatchWithEvents(clsid, user_event_class):
     # If the clsid was an object, get the clsid
     clsid = disp_class.CLSID
     # Create a new class that derives from 3 classes - the dispatch class, the event sink class and the user class.
-    # XXX - we are still "classic style" classes in py2x, so we need can't yet
-    # use 'type()' everywhere - revisit soon, as py2x will move to new-style too...
-    try:
-        from types import ClassType as new_type
-    except ImportError:
-        new_type = type  # py3k
     events_class = getevents(clsid)
     if events_class is None:
         raise ValueError("This COM object does not support events.")
-    result_class = new_type(
+    result_class = type(
         "COMEventClass",
         (disp_class, events_class, user_event_class),
         {"__setattr__": _event_setattr_},
@@ -364,7 +350,7 @@ def WithEvents(disp, user_event_class):
 
     >>> class IEEvents:
     ...    def OnVisible(self, visible):
-    ...       print "Visible changed:", visible
+    ...       print("Visible changed:", visible)
     ...
     >>> ie = Dispatch("InternetExplorer.Application")
     >>> ie_events = WithEvents(ie, IEEvents)
@@ -401,14 +387,10 @@ def WithEvents(disp, user_event_class):
     clsid = disp_class.CLSID
     # Create a new class that derives from 2 classes - the event sink
     # class and the user class.
-    try:
-        from types import ClassType as new_type
-    except ImportError:
-        new_type = type  # py3k
     events_class = getevents(clsid)
     if events_class is None:
         raise ValueError("This COM object does not support events.")
-    result_class = new_type("COMEventClass", (events_class, user_event_class), {})
+    result_class = type("COMEventClass", (events_class, user_event_class), {})
     instance = result_class(disp)  # This only calls the first base class __init__.
     if hasattr(user_event_class, "__init__"):
         user_event_class.__init__(instance)
@@ -447,7 +429,7 @@ def getevents(clsid):
     >>>
     >>> class InternetExplorerEvents(win32com.client.getevents("InternetExplorer.Application.1")):
     ...    def OnVisible(self, Visible):
-    ...        print "Visibility changed: ", Visible
+    ...        print("Visibility changed: ", Visible)
     ...
     >>>
     >>> ie=win32com.client.Dispatch("InternetExplorer.Application.1")
@@ -499,9 +481,7 @@ def Record(name, object):
     try:
         struct_guid = package.RecordMap[name]
     except KeyError:
-        raise ValueError(
-            "The structure '%s' is not defined in module '%s'" % (name, package)
-        )
+        raise ValueError(f"The structure '{name}' is not defined in module '{package}'")
     return pythoncom.GetRecordFromGuids(
         module.CLSID, module.MajorVersion, module.MinorVersion, module.LCID, struct_guid
     )
@@ -528,20 +508,21 @@ class DispatchBaseClass:
                 if details.hresult != winerror.E_NOINTERFACE:
                     raise
                 oobj = oobj._oleobj_
-        self.__dict__["_oleobj_"] = oobj  # so we dont call __setattr__
+        self.__dict__["_oleobj_"] = oobj  # so we don't call __setattr__
 
     def __dir__(self):
-        lst = (
-            list(self.__dict__.keys())
-            + dir(self.__class__)
-            + list(self._prop_map_get_.keys())
-            + list(self._prop_map_put_.keys())
+        attributes = chain(
+            self.__dict__,
+            dir(self.__class__),
+            self._prop_map_get_,
+            self._prop_map_put_,
         )
+
         try:
-            lst += [p.Name for p in self.Properties_]
+            attributes = chain(attributes, [p.Name for p in self.Properties_])
         except AttributeError:
             pass
-        return list(set(lst))
+        return list(set(attributes))
 
     # Provide a prettier name than the CLSID
     def __repr__(self):
@@ -554,11 +535,7 @@ class DispatchBaseClass:
                 mod_name = sys.modules[self.__class__.__module__].__name__
         except KeyError:
             mod_name = "win32com.gen_py.unknown"
-        return "<%s.%s instance at 0x%s>" % (
-            mod_name,
-            self.__class__.__name__,
-            id(self),
-        )
+        return f"<{mod_name}.{self.__class__.__name__} instance at 0x{id(self)}>"
 
     # Delegate comparison to the oleobjs, as they know how to do identity.
     def __eq__(self, other):
@@ -579,9 +556,7 @@ class DispatchBaseClass:
     def __getattr__(self, attr):
         args = self._prop_map_get_.get(attr)
         if args is None:
-            raise AttributeError(
-                "'%s' object has no attribute '%s'" % (repr(self), attr)
-            )
+            raise AttributeError(f"'{repr(self)}' object has no attribute '{attr}'")
         return self._ApplyTypes_(*args)
 
     def __setattr__(self, attr, value):
@@ -591,9 +566,7 @@ class DispatchBaseClass:
         try:
             args, defArgs = self._prop_map_put_[attr]
         except KeyError:
-            raise AttributeError(
-                "'%s' object has no attribute '%s'" % (repr(self), attr)
-            )
+            raise AttributeError(f"'{repr(self)}' object has no attribute '{attr}'")
         self._oleobj_.Invoke(*(args + (value,) + defArgs))
 
     def _get_good_single_object_(self, obj, obUserName=None, resultCLSID=None):
@@ -605,7 +578,7 @@ class DispatchBaseClass:
 
 # XXX - These should be consolidated with dynamic.py versions.
 def _get_good_single_object_(obj, obUserName=None, resultCLSID=None):
-    if _PyIDispatchType == type(obj):
+    if isinstance(obj, _PyIDispatchType):
         return Dispatch(obj, obUserName, resultCLSID)
     return obj
 
@@ -633,13 +606,13 @@ class CoClassBaseClass:
             "__int__",
             "__iter__",
             "__len__",
-            "__nonzero__",
+            "__bool__",
         ]:
             if hasattr(dispobj, maybe):
                 setattr(self, maybe, getattr(self, "__maybe" + maybe))
 
     def __repr__(self):
-        return "<win32com.gen_py.%s.%s>" % (__doc__, self.__class__.__name__)
+        return f"<win32com.gen_py.{__doc__}.{self.__class__.__name__}>"
 
     def __getattr__(self, attr):
         d = self.__dict__["_dispobj_"]
@@ -683,8 +656,8 @@ class CoClassBaseClass:
     def __maybe__len__(self):
         return self.__dict__["_dispobj_"].__len__()
 
-    def __maybe__nonzero__(self):
-        return self.__dict__["_dispobj_"].__nonzero__()
+    def __maybe__bool__(self):
+        return self.__dict__["_dispobj_"].__bool__()
 
 
 # A very simple VARIANT class.  Only to be used with poorly-implemented COM
@@ -692,7 +665,7 @@ class CoClassBaseClass:
 # is very pickly about the actual variant type (eg, isn't happy with a VT_I4,
 # which it would get from a Python integer), you can use this to force a
 # particular VT.
-class VARIANT(object):
+class VARIANT:
     def __init__(self, vt, value):
         self.varianttype = vt
         self._value = value
@@ -711,4 +684,4 @@ class VARIANT(object):
     value = property(_get_value, _set_value, _del_value)
 
     def __repr__(self):
-        return "win32com.client.VARIANT(%r, %r)" % (self.varianttype, self._value)
+        return f"win32com.client.VARIANT({self.varianttype!r}, {self._value!r})"

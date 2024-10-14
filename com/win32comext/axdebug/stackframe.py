@@ -4,13 +4,12 @@ Provides Implements a nearly complete wrapper for a stack frame.
 """
 
 import pythoncom
-from win32com.server.exception import COMException
 
 from . import axdebug, expressions, gateways
 from .util import RaiseNotImpl, _wrap, trace
 
 # def trace(*args):
-#       pass
+#     pass
 
 
 class EnumDebugStackFrames(gateways.EnumDebugStackFrames):
@@ -21,9 +20,9 @@ class EnumDebugStackFrames(gateways.EnumDebugStackFrames):
     def __init__(self, debugger):
         infos = []
         frame = debugger.currentframe
-        #               print "Stack check"
+        # print("Stack check")
         while frame:
-            #                       print " Checking frame", frame.f_code.co_filename, frame.f_lineno-1, frame.f_trace,
+            # print(" Checking frame", frame.f_code.co_filename, frame.f_lineno-1, frame.f_trace)
             # Get a DebugCodeContext for the stack frame.  If we fail, then it
             # is not debuggable, and therefore not worth displaying.
             cc = debugger.codeContainerProvider.FromFileName(frame.f_code.co_filename)
@@ -31,7 +30,7 @@ class EnumDebugStackFrames(gateways.EnumDebugStackFrames):
                 try:
                     address = frame.f_locals["__axstack_address__"]
                 except KeyError:
-                    #                                       print "Couldnt find stack address for",frame.f_code.co_filename, frame.f_lineno-1
+                    # print("Couldn't find stack address for",frame.f_code.co_filename, frame.f_lineno-1)
                     # Use this one, even tho it is wrong :-(
                     address = axdebug.GetStackAddress()
                 frameInfo = (
@@ -42,23 +41,23 @@ class EnumDebugStackFrames(gateways.EnumDebugStackFrames):
                     None,
                 )
                 infos.append(frameInfo)
-            #                               print "- Kept!"
-            #                       else:
-            #                               print "- rejected"
+            #     print("- Kept!")
+            # else:
+            #     print("- rejected")
             frame = frame.f_back
 
         gateways.EnumDebugStackFrames.__init__(self, infos, 0)
 
-    #       def __del__(self):
-    #               print "EnumDebugStackFrames dieing"
+    # def __del__(self):
+    #     print("EnumDebugStackFrames dieing")
 
     def Next(self, count):
         return gateways.EnumDebugStackFrames.Next(self, count)
 
-    #       def _query_interface_(self, iid):
-    #               from win32com.util import IIDToInterfaceName
-    #               print "EnumDebugStackFrames QI with %s (%s)" % (IIDToInterfaceName(iid), str(iid))
-    #               return 0
+    # def _query_interface_(self, iid):
+    #     from win32com.util import IIDToInterfaceName
+    #     print(f"EnumDebugStackFrames QI with {IIDToInterfaceName(iid)} ({iid})")
+    #     return 0
     def _wrap(self, obj):
         # This enum returns a tuple, with 2 com objects in it.
         obFrame, min, lim, fFinal, obFinal = obj
@@ -75,8 +74,8 @@ class DebugStackFrame(gateways.DebugStackFrame):
         self.codeContainer = codeContainer
         self.expressionContext = None
 
-    #       def __del__(self):
-    #               print "DSF dieing"
+    # def __del__(self):
+    #     print("DSF dieing")
     def _query_interface_(self, iid):
         if iid == axdebug.IID_IDebugExpressionContext:
             if self.expressionContext is None:
@@ -85,8 +84,8 @@ class DebugStackFrame(gateways.DebugStackFrame):
                     axdebug.IID_IDebugExpressionContext,
                 )
             return self.expressionContext
-        #               from win32com.util import IIDToInterfaceName
-        #               print "DebugStackFrame QI with %s (%s)" % (IIDToInterfaceName(iid), str(iid))
+        # from win32com.util import IIDToInterfaceName
+        # print(f"DebugStackFrame QI with {IIDToInterfaceName(iid)} ({iid})")
         return 0
 
     #
@@ -108,11 +107,11 @@ class DebugStackFrame(gateways.DebugStackFrame):
         filename = self.frame.f_code.co_filename
         s = ""
         if 0:  # fLong:
-            s = s + filename
+            s += filename
         if self.frame.f_code.co_name:
-            s = s + self.frame.f_code.co_name
+            s += self.frame.f_code.co_name
         else:
-            s = s + "<lambda>"
+            s += "<lambda>"
         return s
 
     def GetLanguageString(self, fLong):
@@ -133,8 +132,8 @@ class DebugStackFrameSniffer:
         self.debugger = debugger
         trace("DebugStackFrameSniffer instantiated")
 
-    #       def __del__(self):
-    #               print "DSFS dieing"
+    # def __del__(self):
+    #     print("DSFS dieing")
     def EnumStackFrames(self):
         trace("DebugStackFrameSniffer.EnumStackFrames called")
         return _wrap(

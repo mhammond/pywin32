@@ -9,7 +9,7 @@ being run.
 
 Running either the client or server as a different user can be informative.
 A command-line such as the following may be useful:
-`runas /user:{user} {fqp}\python.exe {fqp}\socket_server.py --wait client|server`
+`runas /user:{user} {fqp}\\python.exe {fqp}\\socket_server.py --wait client|server`
 
 {fqp} should specify the relevant fully-qualified path names.
 
@@ -18,7 +18,6 @@ specify --target-spn with the username under which the *server* is running.
 
 See the SSPI documentation for more details.
 """
-
 
 import http.client  # sorry, this demo needs 2.3+
 import optparse
@@ -188,7 +187,7 @@ if __name__ == "__main__":
                 serve()
             else:
                 parser.error(
-                    "You must supply 'client' or 'server' - " "use --help for details"
+                    "You must supply 'client' or 'server' - use --help for details"
                 )
         except KeyboardInterrupt:
             pass

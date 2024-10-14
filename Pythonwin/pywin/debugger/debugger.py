@@ -23,18 +23,12 @@ import win32con
 import win32ui
 from pywin.framework import app, editor, interact, scriptutils
 from pywin.framework.editor.color.coloreditor import MARKER_BREAKPOINT, MARKER_CURRENT
-from pywin.mfc import afxres, dialog, object, window
+from pywin.mfc import afxres, window
 from pywin.tools import browser, hierlist
-
-# import win32traceutil
-if win32ui.UNICODE:
-    LVN_ENDLABELEDIT = commctrl.LVN_ENDLABELEDITW
-else:
-    LVN_ENDLABELEDIT = commctrl.LVN_ENDLABELEDITA
 
 from .dbgcon import *
 
-error = "pywin.debugger.error"
+LVN_ENDLABELEDIT = commctrl.LVN_ENDLABELEDITW
 
 
 def SetInteractiveContext(globs, locs):
@@ -123,11 +117,11 @@ class HierStackRoot(HierListItem):
         HierListItem.__init__(self, debugger, None)
         self.last_stack = []
 
-    ##	def __del__(self):
-    ##		print "HierStackRoot dieing"
+    # def __del__(self):
+    #     print("HierStackRoot dieing")
     def GetSubList(self):
         debugger = self.myobject
-        # 		print self.debugger.stack, self.debugger.curframe
+        # print(self.debugger.stack, self.debugger.curframe)
         ret = []
         if debugger.debuggerState == DBGSTATE_BREAK:
             stackUse = debugger.stack[:]
@@ -137,7 +131,7 @@ class HierStackRoot(HierListItem):
                 self.last_stack.append((frame, lineno))
                 if (
                     frame is debugger.userbotframe
-                ):  # Dont bother showing frames below our bottom frame.
+                ):  # Don't bother showing frames below our bottom frame.
                     break
         for frame, lineno in self.last_stack:
             ret.append(HierFrameItem(frame, debugger))
@@ -294,7 +288,7 @@ class DebuggerListViewWindow(DebuggerWindow):
         list.InsertColumn(0, itemDetails)
         col = 1
         for title, width in self.columns[1:]:
-            col = col + 1
+            col += 1
             itemDetails = (commctrl.LVCFMT_LEFT, width, title, 0)
             list.InsertColumn(col, itemDetails)
         parent.HookNotify(self.OnListEndLabelEdit, LVN_ENDLABELEDIT)
@@ -395,7 +389,7 @@ class DebuggerBreakpointsWindow(DebuggerListViewWindow):
             item_id = self.GetItem(num)[6]
             from bdb import Breakpoint
 
-            for bplist in list(Breakpoint.bplist.values()):
+            for bplist in Breakpoint.bplist.values():
                 for bp in bplist:
                     if id(bp) == item_id:
                         self.debugger.clear_break(bp.file, bp.line)
@@ -416,7 +410,7 @@ class DebuggerBreakpointsWindow(DebuggerListViewWindow):
                 cond = bp.cond
                 item = index + 1, 0, 0, 0, str(cond), 0, id(bp)
                 index = l.InsertItem(item)
-                l.SetItemText(index, 1, "%s: %s" % (baseName, bp.line))
+                l.SetItemText(index, 1, f"{baseName}: {bp.line}")
 
 
 class DebuggerWatchWindow(DebuggerListViewWindow):
@@ -460,7 +454,7 @@ class DebuggerWatchWindow(DebuggerListViewWindow):
     def DeleteSelected(self):
         try:
             num = self.GetNextItem(-1, commctrl.LVNI_SELECTED)
-            if num < self.GetItemCount() - 1:  # We cant delete the last
+            if num < self.GetItemCount() - 1:  # We can't delete the last
                 self.DeleteItem(num)
         except win32ui.error:
             win32api.MessageBeep()
@@ -613,7 +607,7 @@ class Debugger(debugger_parent):
         SetInteractiveContext(None, None)
 
         frame = win32ui.GetMainFrame()
-        # Hide the debuger toolbars (as they wont normally form part of the main toolbar state.
+        # Hide the debuger toolbars (as they won't normally form part of the main toolbar state.
         for id, klass, float in DebuggerDialogInfos:
             try:
                 tb = frame.GetControlBar(id)
@@ -628,7 +622,7 @@ class Debugger(debugger_parent):
         return 1
 
     def StopDebuggerPump(self):
-        assert self.pumping, "Can't stop the debugger pump if Im not pumping!"
+        assert self.pumping, "Can't stop the debugger pump if I'm not pumping!"
         # After stopping a pump, I may never return.
         if self.GUIAboutToFinishInteract():
             self.pumping = 0
@@ -640,8 +634,8 @@ class Debugger(debugger_parent):
         """Public interface into debugger options"""
         try:
             return self.options[option]
-        except KeyError:
-            raise error("Option %s is not a valid option" % option)
+        except KeyError as error:
+            raise KeyError(f"Option {option} is not a valid option") from error
 
     def prep_run(self, cmd):
         pass
@@ -679,7 +673,7 @@ class Debugger(debugger_parent):
         self.GUIAboutToBreak()
 
     def print_stack_entry(self, frame):
-        # We dont want a stack printed - our GUI is better :-)
+        # We don't want a stack printed - our GUI is better :-)
         pass
 
     def user_return(self, frame, return_value):
@@ -700,13 +694,12 @@ class Debugger(debugger_parent):
         if self.get_option(OPT_STOP_EXCEPTIONS):
             frame.f_locals["__exception__"] = exc_type, exc_value
             print("Unhandled exception while debugging...")
-            # on both py2k and py3k, we may be called with exc_value
+            # We may be called with exc_value
             # being the args to the exception, or it may already be
             # instantiated (IOW, PyErr_Normalize() hasn't been
-            # called on the args).  In py2k this is fine, but in
-            # py3k, traceback.print_exception fails.  So on py3k
-            # we instantiate an exception instance to print.
-            if sys.version_info > (3,) and not isinstance(exc_value, BaseException):
+            # called on the args). traceback.print_exception fails.
+            # So we instantiate an exception instance to print.
+            if not isinstance(exc_value, BaseException):
                 # they are args - may be a single item or already a tuple
                 if not isinstance(exc_value, tuple):
                     exc_value = (exc_value,)
@@ -751,8 +744,8 @@ class Debugger(debugger_parent):
             self.reset()
             self.prep_run(cmd)
             sys.settrace(self.trace_dispatch)
-            if type(cmd) != types.CodeType:
-                cmd = cmd + "\n"
+            if not isinstance(cmd, types.CodeType):
+                cmd += "\n"
             try:
                 try:
                     if start_stepping:
@@ -834,7 +827,7 @@ class Debugger(debugger_parent):
         self.userbotframe = None
         while frame:
             # scriptutils.py creates a local variable with name
-            # '_debugger_stop_frame_', and we dont go past it
+            # '_debugger_stop_frame_', and we don't go past it
             # (everything above this is Pythonwin framework code)
             if "_debugger_stop_frame_" in frame.f_locals:
                 self.userbotframe = frame
@@ -857,7 +850,7 @@ class Debugger(debugger_parent):
                 self.curindex = index
                 break
         else:
-            assert 0, "Can't find the frame in the stack."
+            assert False, "Can't find the frame in the stack."
         SetInteractiveContext(frame.f_globals, frame.f_locals)
         self.GUIRespondDebuggerData()
         self.ShowCurrentLine()
@@ -876,20 +869,19 @@ class Debugger(debugger_parent):
         elif state == DBGSTATE_RUNNING:  # Code is running under the debugger.
             title = " - running"
         elif state == DBGSTATE_BREAK:  # We are at a breakpoint or stepping or whatever.
-            if self.bAtException:
-                if self.bAtPostMortem:
-                    title = " - post mortem exception"
-                else:
-                    title = " - exception"
-            else:
+            if not self.bAtException:
                 title = " - break"
+            elif self.bAtPostMortem:
+                title = " - post mortem exception"
+            else:
+                title = " - exception"
         else:
-            raise error("Invalid debugger state passed!")
+            raise ValueError("Invalid debugger state passed!")
         win32ui.GetMainFrame().SetWindowText(
             win32ui.LoadString(win32ui.IDR_MAINFRAME) + title
         )
         if self.debuggerState == DBGSTATE_QUITTING and state != DBGSTATE_NOT_DEBUGGING:
-            print("Ignoring state change cos Im trying to stop!", state)
+            print("Ignoring state change cos I'm trying to stop!", state)
             return
         self.debuggerState = state
         try:
@@ -937,7 +929,7 @@ class Debugger(debugger_parent):
         for id, klass, float in DebuggerDialogInfos:
             if klass.title == barName:
                 return frame.GetControlBar(id)
-        assert 0, "Can't find a bar of that name!"
+        assert False, "Can't find a bar of that name!"
 
     def GUIRespondDebuggerData(self):
         if not self.inited:  # GUI not inited - no toolbars etc.

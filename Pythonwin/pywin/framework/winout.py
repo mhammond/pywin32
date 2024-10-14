@@ -23,17 +23,21 @@
 import queue
 import re
 
+import pywin.scintilla.document
 import win32api
 import win32con
 import win32ui
 from pywin.framework import app, window
 from pywin.mfc import docview
+from pywin.scintilla import scintillacon
 
 debug = lambda msg: None
-
-##debug=win32ui.OutputDebugString
-##import win32trace;win32trace.InitWrite() # for debugging - delete me!
-##debug = win32trace.write
+# debug=win32ui.OutputDebugString
+# import win32trace;win32trace.InitWrite() # for debugging - delete me!
+# debug = win32trace.write
+# WindowOutputDocumentParent=docview.RichEditDoc
+# WindowOutputDocumentParent=docview.Document
+WindowOutputDocumentParent = pywin.scintilla.document.CScintillaDocument
 
 
 class flags:
@@ -41,15 +45,6 @@ class flags:
     WQ_NONE = 0
     WQ_LINE = 1
     WQ_IDLE = 2
-
-
-# WindowOutputDocumentParent=docview.RichEditDoc
-# WindowOutputDocumentParent=docview.Document
-import pywin.scintilla.document
-from pywin import default_scintilla_encoding
-from pywin.scintilla import scintillacon
-
-WindowOutputDocumentParent = pywin.scintilla.document.CScintillaDocument
 
 
 class WindowOutputDocument(WindowOutputDocumentParent):
@@ -60,7 +55,7 @@ class WindowOutputDocument(WindowOutputDocumentParent):
         win32ui.SetStatusText("Saving file...", 1)
         try:
             self.SaveFile(fileName)
-        except IOError as details:
+        except OSError as details:
             win32ui.MessageBox("Error - could not save file\r\n\r\n%s" % details)
             return 0
         win32ui.SetStatusText("Ready")
@@ -101,7 +96,7 @@ class WindowOutputFrame(window.MDIChildWnd):
 
 class WindowOutputViewImpl:
     def __init__(self):
-        self.patErrorMessage = re.compile('\W*File "(.*)", line ([0-9]+)')
+        self.patErrorMessage = re.compile(r'\W*File "(.*)", line ([0-9]+)')
         self.template = self.GetDocument().GetDocTemplate()
 
     def HookHandlers(self):
@@ -129,7 +124,7 @@ class WindowOutputViewImpl:
         paramsList = self.GetRightMenuItems()
         menu = win32ui.CreatePopupMenu()
         for appendParams in paramsList:
-            if type(appendParams) != type(()):
+            if not isinstance(appendParams, tuple):
                 appendParams = (appendParams,)
             menu.AppendMenu(*appendParams)
         menu.TrackPopupMenu(params[5])  # track at mouse position.
@@ -185,9 +180,9 @@ class WindowOutputViewImpl:
                 fileNameSpec = fileName
                 fileName = scriptutils.LocatePythonFile(fileName)
                 if fileName is None:
-                    # Dont force update, so it replaces the idle prompt.
+                    # Don't force update, so it replaces the idle prompt.
                     win32ui.SetStatusText(
-                        "Cant locate the file '%s'" % (fileNameSpec), 0
+                        "Can't locate the file '%s'" % (fileNameSpec), 0
                     )
                     return 1
 
@@ -233,7 +228,7 @@ class WindowOutputViewRTF(docview.RichEditView, WindowOutputViewImpl):
 
     def OnLDoubleClick(self, params):
         if self.HandleSpecialLine():
-            return 0  # dont pass on
+            return 0  # don't pass on
         return 1  # pass it on by default.
 
     def RestoreKillBuffer(self):
@@ -295,7 +290,7 @@ class WindowOutputViewScintilla(
         self.HandleSpecialLine()
 
     ##	def OnLDoubleClick(self,params):
-    ##			return 0	# never dont pass on
+    ##			return 0	# never don't pass on
 
     def RestoreKillBuffer(self):
         assert len(self.template.killBuffer) in (0, 1), "Unexpected killbuffer contents"
@@ -377,7 +372,7 @@ class WindowOutput(docview.DocTemplate):
         self.title = title
         self.bCreating = 0
         self.interruptCount = 0
-        if type(defSize) == type(""):  # is a string - maintain size pos from ini file.
+        if isinstance(defSize, str):  # maintain size pos from ini file.
             self.iniSizeSection = defSize
             self.defSize = app.LoadWindowSize(defSize)
             self.loadedSize = self.defSize
@@ -468,7 +463,7 @@ class WindowOutput(docview.DocTemplate):
         except KeyboardInterrupt:
             # First interrupt since idle we just pass on.
             # later ones we dump the queue and give up.
-            self.interruptCount = self.interruptCount + 1
+            self.interruptCount += 1
             if self.interruptCount > 1:
                 # Drop the queue quickly as the user is already annoyed :-)
                 self.outputQueue = queue.Queue(-1)
@@ -516,7 +511,7 @@ class WindowOutput(docview.DocTemplate):
                 rc = 1
                 break
             if max is not None:
-                max = max - 1
+                max -= 1
         if len(items) != 0:
             if not self.CheckRecreateWindow():
                 debug(":Recreate failed!\n")

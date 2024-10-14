@@ -1,6 +1,6 @@
 """login -- PythonWin user ID and password dialog box
 
-(Adapted from originally distributed with Mark Hammond's PythonWin - 
+(Adapted from originally distributed with Mark Hammond's PythonWin -
 this now replaces it!)
 
 login.GetLogin() displays a modal "OK/Cancel" dialog box with input
@@ -141,7 +141,7 @@ if __name__ == "__main__":
     if len(sys.argv) > 2:
         def_userid = sys.argv[2]
     userid, password = GetLogin(title, def_user)
-    if userid == password == None:
+    if userid == password is None:
         print("User pressed Cancel")
     else:
         print("User ID: ", userid)

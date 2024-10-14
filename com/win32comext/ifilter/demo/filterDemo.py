@@ -93,9 +93,9 @@ class FileParser:
                         # the set guid and property id. (note: the id can be a number or a string.
                         propSet = self.propertyToName.get(attr[0])
                         if propSet:
-                            propName = propSet.get(attr[1], "%s:%s" % attr)
+                            propName = propSet.get(attr[1], "{}:{}".format(*attr))
                         else:
-                            propName = "%s:%s" % attr
+                            propName = "{}:{}".format(*attr)
 
                     except pythoncom.com_error as e:
                         if e[0] == FILTER_E_END_OF_CHUNKS:
@@ -126,11 +126,11 @@ class FileParser:
                     errCnt = 0
 
                     if flags == CHUNK_TEXT:
-                        # its a text segment - get all available text for this chunk.
+                        # it's a text segment - get all available text for this chunk.
                         body_chunks = properties.setdefault(propName, [])
                         self._get_text(body_chunks)
                     elif flags == CHUNK_VALUE:
-                        # its a data segment - get the value
+                        # it's a data segment - get the value
                         properties[propName] = self.f.GetValue()
                     else:
                         self._trace("Unknown flag returned by GetChunk:", flags)
@@ -220,14 +220,14 @@ class FileParser:
             ret = " ".join([str(arg) for arg in args])
             try:
                 print(ret)
-            except IOError:
+            except OSError:
                 pass
 
 
 def _usage():
     import os
 
-    print("Usage: %s filename [verbose [dumpbody]]" % (os.path.basename(sys.argv[0]),))
+    print(f"Usage: {os.path.basename(sys.argv[0])} filename [verbose [dumpbody]]")
     print()
     print("Where:-")
     print("filename = name of the file to extract text & properties from")
@@ -291,7 +291,7 @@ if __name__ == "__main__":
                     reduce(operator.add, [len(p) for p in propValue]),
                 )
             )
-        elif type(propValue) == type([]):
+        elif isinstance(propValue, list):
             print()
             for pv in propValue:
                 print(pv)

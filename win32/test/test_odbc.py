@@ -6,7 +6,7 @@ import unittest
 
 import odbc
 import pythoncom
-from pywin32_testutil import TestSkipped, str2memory
+from pywin32_testutil import TestSkipped
 from win32com.client import constants
 
 # We use the DAO ODBC driver
@@ -43,10 +43,12 @@ class TestStuff(unittest.TestCase):
 
             newdb.Close()
 
-            conn_str = "Driver={Microsoft Access Driver (*.mdb)};dbq=%s;Uid=;Pwd=;" % (
-                self.db_filename,
+            conn_str = (
+                "Driver={{Microsoft Access Driver (*.mdb)}};dbq={};Uid=;Pwd=;".format(
+                    self.db_filename,
+                )
             )
-        ## print 'Connection string:', conn_str
+        # print("Connection string:", conn_str)
         self.conn = odbc.odbc(conn_str)
         # And we expect a 'users' table for these tests.
         self.cur = self.conn.cursor()
@@ -163,14 +165,13 @@ class TestStuff(unittest.TestCase):
             self.cur.execute("delete from %s where userid='Frank'" % self.tablename)
             self.assertEqual(
                 self.cur.execute(
-                    "insert into %s (userid, %s) values (?,?)"
-                    % (self.tablename, fieldName),
+                    f"insert into {self.tablename} (userid, {fieldName}) values (?,?)",
                     ["Frank", value],
                 ),
                 1,
             )
             self.cur.execute(
-                "select %s from %s where userid = ?" % (fieldName, self.tablename),
+                f"select {fieldName} from {self.tablename} where userid = ?",
                 ["Frank"],
             )
             rows = self.cur.fetchmany()
@@ -185,11 +186,7 @@ class TestStuff(unittest.TestCase):
     def testInt(self):
         self._test_val("intfield", 1)
         self._test_val("intfield", 0)
-        try:
-            big = sys.maxsize
-        except AttributeError:
-            big = sys.maxint
-        self._test_val("intfield", big)
+        self._test_val("intfield", sys.maxsize)
 
     def testFloat(self):
         self._test_val("floatfield", 1.01)
@@ -206,11 +203,11 @@ class TestStuff(unittest.TestCase):
 
     def testLongBinary(self):
         """Test a long raw field in excess of internal cursor data size (65536)"""
-        self._test_val("longbinaryfield", str2memory("\0\1\2" * 70000))
+        self._test_val("longbinaryfield", memoryview(b"\0\1\2" * 70000))
 
     def testRaw(self):
         ## Test binary data
-        self._test_val("rawfield", str2memory("\1\2\3\4\0\5\6\7\8"))
+        self._test_val("rawfield", memoryview(b"\1\2\3\4\0\5\6\7"))
 
     def test_widechar(self):
         """Test a unicode character that would be mangled if bound as plain character.
@@ -228,7 +225,7 @@ class TestStuff(unittest.TestCase):
     def test_set_nonzero_length(self):
         self.assertEqual(
             self.cur.execute(
-                "insert into %s (userid,username) " "values (?,?)" % self.tablename,
+                "insert into %s (userid,username) values (?,?)" % self.tablename,
                 ["Frank", "Frank Millman"],
             ),
             1,
@@ -243,7 +240,7 @@ class TestStuff(unittest.TestCase):
     def test_set_zero_length(self):
         self.assertEqual(
             self.cur.execute(
-                "insert into %s (userid,username) " "values (?,?)" % self.tablename,
+                "insert into %s (userid,username) values (?,?)" % self.tablename,
                 [b"Frank", ""],
             ),
             1,
@@ -254,7 +251,7 @@ class TestStuff(unittest.TestCase):
     def test_set_zero_length_unicode(self):
         self.assertEqual(
             self.cur.execute(
-                "insert into %s (userid,username) " "values (?,?)" % self.tablename,
+                "insert into %s (userid,username) values (?,?)" % self.tablename,
                 ["Frank", ""],
             ),
             1,

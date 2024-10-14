@@ -32,14 +32,13 @@ except:
 if "--help" in sys.argv:
     print(
         """Valid command-line switches are:
-    --package - create a temporary test package, run 2to3 if needed.
+    --package - create a temporary test package
     --all - run all possible tests
-    --time - loop over time format tests (including mxdatetime if present)
+    --time - do time format test
     --nojet - do not test against an ACCESS database file
     --mssql - test against Microsoft SQL server
     --pg - test against PostgreSQL
     --mysql - test against MariaDB
-    --remote= - test unsing remote server at= (experimental) 
     """
     )
     exit()
@@ -57,7 +56,7 @@ mdb_name = "xx_" + tmp + ".mdb"  # generate a non-colliding name for the tempora
 testfolder = setuptestframework.maketemp()
 
 if "--package" in sys.argv:
-    #  create a new adodbapi module -- running 2to3 if needed.
+    #  create a new adodbapi module
     pth = setuptestframework.makeadopackage(testfolder)
 else:
     #  use the adodbapi module in which this file appears
@@ -66,28 +65,12 @@ if pth not in sys.path:
     #  look here _first_ to find modules
     sys.path.insert(1, pth)
 
-proxy_host = None
-for arg in sys.argv:
-    if arg.startswith("--remote="):
-        proxy_host = arg.split("=")[1]
-        import adodbapi.remote as remote
-
-        break
-
-
 # function to clean up the temporary folder -- calling program must run this function before exit.
 cleanup = setuptestframework.getcleanupfunction()
-try:
-    import adodbapi  # will (hopefully) be imported using the "pth" discovered above
-except SyntaxError:
-    print(
-        '\n* * * Are you trying to run Python2 code using Python3? Re-run this test using the "--package" switch.'
-    )
-    sys.exit(11)
-try:
-    print(adodbapi.version)  # show version
-except:
-    print('"adodbapi.version" not present or not working.')
+
+import adodbapi  # will (hopefully) be imported using the "pth" discovered above
+
+print(adodbapi.version)  # show version
 print(__doc__)
 
 verbose = False
@@ -106,41 +89,27 @@ doAccessTest = not ("--nojet" in sys.argv)
 doSqlServerTest = "--mssql" in sys.argv or doAllTests
 doMySqlTest = "--mysql" in sys.argv or doAllTests
 doPostgresTest = "--pg" in sys.argv or doAllTests
-iterateOverTimeTests = ("--time" in sys.argv or doAllTests) and onWindows
+doTimeTest = ("--time" in sys.argv or doAllTests) and onWindows
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # # start your environment setup here v v v
 SQL_HOST_NODE = "testsql.2txt.us,1430"
 
-try:  # If mx extensions are installed, use mxDateTime
-    import mx.DateTime
-
-    doMxDateTimeTest = True
-except:
-    doMxDateTimeTest = False  # Requires eGenixMXExtensions
-
-doTimeTest = True  # obsolete python time format
-
 if doAccessTest:
-    if proxy_host:  # determine the (probably remote) database file folder
-        c = {"macro_find_temp_test_path": ["mdb", mdb_name], "proxy_host": proxy_host}
-    else:
-        c = {"mdb": setuptestframework.makemdb(testfolder, mdb_name)}
+    c = {
+        "mdb": setuptestframework.makemdb(testfolder, mdb_name),
+        # macro definition for keyword "provider"  using macro "is64bit" -- see documentation
+        # is64bit will return true for 64 bit versions of Python, so the macro will select the ACE provider
+        "macro_is64bit": [
+            "provider",
+            "Microsoft.ACE.OLEDB.12.0",  # 64 bit provider
+            "Microsoft.Jet.OLEDB.4.0",  # 32 bit provider
+        ],
+    }
 
-    # macro definition for keyword "provider"  using macro "is64bit" -- see documentation
-    # is64bit will return true for 64 bit versions of Python, so the macro will select the ACE provider
-    # (If running a remote ADO service, this will test the 64-bitedness of the ADO server.)
-    c["macro_is64bit"] = [
-        "provider",
-        "Microsoft.ACE.OLEDB.12.0",  # 64 bit provider
-        "Microsoft.Jet.OLEDB.4.0",
-    ]  # 32 bit provider
-    connStrAccess = "Provider=%(provider)s;Data Source=%(mdb)s"  # ;Mode=ReadWrite;Persist Security Info=False;Jet OLEDB:Bypass UserInfo Validation=True"
-    print(
-        "    ...Testing ACCESS connection to {} file...".format(
-            c.get("mdb", "remote .mdb")
-        )
-    )
+    # ;Mode=ReadWrite;Persist Security Info=False;Jet OLEDB:Bypass UserInfo Validation=True"
+    connStrAccess = "Provider=%(provider)s;Data Source=%(mdb)s"
+    print("    ...Testing ACCESS connection to {} file...".format(c["mdb"]))
     doAccessTest, connStrAccess, dbAccessconnect = tryconnection.try_connection(
         verbose, connStrAccess, 10, **c
     )
@@ -155,8 +124,6 @@ if doSqlServerTest:
         "macro_auto_security": "security",
         "provider": "MSOLEDBSQL; MARS Connection=True",
     }
-    if proxy_host:
-        c["proxy_host"] = proxy_host
     connStr = "Provider=%(provider)s; Initial Catalog=%(database)s; Data Source=%(host)s; %(security)s;"
     print("    ...Testing MS-SQL login to {}...".format(c["host"]))
     (
@@ -174,8 +141,6 @@ if doMySqlTest:
         "port": "3330",  # note the nonstandard port for obfuscation
         "driver": "MySQL ODBC 5.1 Driver",
     }  # or _driver="MySQL ODBC 3.51 Driver
-    if proxy_host:
-        c["proxy_host"] = proxy_host
     c["macro_is64bit"] = [
         "provider",
         "Provider=MSDASQL;",
@@ -203,8 +168,6 @@ if doPostgresTest:
     ]
     # get driver from http://www.postgresql.org/ftp/odbc/versions/
     # test using positional and keyword arguments (bad example for real code)
-    if proxy_host:
-        kws["proxy_host"] = proxy_host
     print("    ...Testing PostgreSQL login to {}...".format(_computername))
     doPostgresTest, connStrPostgres, dbPostgresConnect = tryconnection.try_connection(
         verbose,
@@ -213,7 +176,7 @@ if doPostgresTest:
         _password,
         _computername,
         _databasename,
-        **kws
+        **kws,
     )
 
 assert (

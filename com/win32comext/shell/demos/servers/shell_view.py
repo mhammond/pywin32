@@ -46,7 +46,6 @@
 # a field sep just 'cos we can (and 'cos it can't possibly conflict with the
 # string content)
 
-import _thread
 import os
 import pyclbr
 import sys
@@ -127,7 +126,7 @@ class ShellFolderBase:
     )
 
     def GetFrameOptions(self, mask):
-        # print "GetFrameOptions", self, mask
+        # print("GetFrameOptions", self, mask)
         return 0
 
     def ParseDisplayName(self, hwnd, reserved, displayName, attr):
@@ -175,7 +174,7 @@ class ShellFolderFileSystem(ShellFolderBase):
 
     def GetUIObjectOf(self, hwndOwner, pidls, iid, inout):
         # delegate to the shell.
-        assert len(pidls) == 1, "oops - arent expecting more than one!"
+        assert len(pidls) == 1, "oops - aren't expecting more than one!"
         pidl = pidls[0]
         folder, child_pidl = self._GetFolderAndPIDLForPIDL(pidl)
         try:
@@ -260,7 +259,7 @@ class ShellFolderFile(ShellFolderBase):
     def EnumObjects(self, hwndOwner, flags):
         objects = get_clbr_for_file(self.path)
         pidls = []
-        for name, ob in objects.items():
+        for name in objects:
             pidls.append(["object\0" + self.path + "\0" + name])
         return NewEnum(pidls, iid=shell.IID_IEnumIDList, useDispatcher=(debug > 0))
 
@@ -325,7 +324,7 @@ class ShellFolderObject(ShellFolderBase):
         mod_objects = get_clbr_for_file(self.path)
         my_objects = mod_objects[self.class_name]
         pidls = []
-        for func_name, lineno in my_objects.methods.items():
+        for func_name in my_objects.methods:
             pidl = ["object\0" + self.path + "\0" + self.class_name + "." + func_name]
             pidls.append(pidl)
         return NewEnum(pidls, iid=shell.IID_IEnumIDList, useDispatcher=(debug > 0))
@@ -370,7 +369,7 @@ class ShellFolderRoot(ShellFolderFileSystem):
         # This is the PIDL of us, as created by the shell.  This is our
         # top-level ID.  All other items under us have PIDLs defined
         # by us - see the notes at the top of the file.
-        # print "Initialize called with pidl", repr(pidl)
+        # print("Initialize called with pidl", repr(pidl))
         self.pidl = pidl
 
     def CreateViewObject(self, hwnd, iid):
@@ -646,7 +645,7 @@ class FileSystemView:
 
     def OnNotify(self, hwnd, msg, wparam, lparam):
         hwndFrom, idFrom, code = win32gui_struct.UnpackWMNOTIFY(lparam)
-        # print "OnNotify code=0x%x (0x%x, 0x%x)" % (code, wparam, lparam)
+        # print("OnNotify code=0x%x (0x%x, 0x%x)" % (code, wparam, lparam))
         if code == commctrl.NM_SETFOCUS:
             # Control got focus - Explorer may not know - tell it
             if self.browser is not None:
@@ -780,7 +779,7 @@ class FileSystemView:
             cm.InvokeCommand(ci)
 
     def OnSize(self, hwnd, msg, wparam, lparam):
-        # print "OnSize", self.hwnd_child, win32api.LOWORD(lparam), win32api.HIWORD(lparam)
+        # print("OnSize", self.hwnd_child, win32api.LOWORD(lparam), win32api.HIWORD(lparam))
         if self.hwnd_child is not None:
             x = win32api.LOWORD(lparam)
             y = win32api.HIWORD(lparam)
@@ -849,11 +848,11 @@ class ScintillaShellView:
         }
         #        win32gui.SetWindowLong(self.hwnd, win32con.GWL_WNDPROC, message_map)
 
-        file_data = file(self.filename, "U").read()
+        file_data = open(self.filename, "U").read()
 
         self._SetupLexer()
         self._SendSci(scintillacon.SCI_ADDTEXT, len(file_data), file_data)
-        if self.lineno != None:
+        if self.lineno is not None:
             self._SendSci(scintillacon.SCI_GOTOLINE, self.lineno)
         print("Scintilla's hwnd is", self.hwnd)
 
@@ -953,7 +952,7 @@ def DllUnregisterServer():
             "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\"
             "Explorer\\Desktop\\Namespace\\" + ShellFolderRoot._reg_clsid_,
         )
-    except WindowsError as details:
+    except OSError as details:
         import errno
 
         if details.errno != errno.ENOENT:

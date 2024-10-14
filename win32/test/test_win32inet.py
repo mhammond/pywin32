@@ -2,8 +2,25 @@ import unittest
 
 import winerror
 from pywin32_testutil import TestSkipped, testmain
-from win32inet import *
-from win32inetcon import *
+from win32inet import (
+    FtpCommand,
+    InternetCanonicalizeUrl,
+    InternetConnect,
+    InternetGetCookie,
+    InternetGetLastResponseInfo,
+    InternetOpen,
+    InternetOpenUrl,
+    InternetReadFile,
+    InternetSetCookie,
+    error,
+)
+from win32inetcon import (
+    FTP_TRANSFER_TYPE_ASCII,
+    INTERNET_FLAG_EXISTING_CONNECT,
+    INTERNET_INVALID_PORT_NUMBER,
+    INTERNET_OPEN_TYPE_DIRECT,
+    INTERNET_SERVICE_FTP,
+)
 
 
 class CookieTests(unittest.TestCase):
@@ -12,7 +29,7 @@ class CookieTests(unittest.TestCase):
         InternetSetCookie("http://www.python.org", None, data)
         got = InternetGetCookie("http://www.python.org", None)
         # handle that there might already be cookies for the domain.
-        bits = map(lambda x: x.strip(), got.split(";"))
+        bits = (x.strip() for x in got.split(";"))
         self.assertTrue(data in bits)
 
     def testCookiesEmpty(self):
@@ -53,9 +70,8 @@ class TestNetwork(unittest.TestCase):
                 break
             chunks.append(chunk)
         data = b"".join(chunks)
-        assert data.find(b"Python") > 0, repr(
-            data
-        )  # This must appear somewhere on the main page!
+        # This must appear somewhere on the main page!
+        self.assertGreater(data.find(b"Python"), 0, repr(data))
 
     def testFtpCommand(self):
         # ftp.python.org doesn't exist.  ftp.gnu.org is what Python's urllib

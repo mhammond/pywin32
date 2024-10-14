@@ -173,7 +173,7 @@ def GetTestVideoDialogClass():
 #
 class OCXFrame(window.MDIChildWnd):
     def __init__(self):
-        pass  # Dont call base class doc/view version...
+        pass  # Don't call base class doc/view version...
 
     def Create(self, controlClass, title, rect=None, parent=None):
         style = win32con.WS_CHILD | win32con.WS_VISIBLE | win32con.WS_OVERLAPPEDWINDOW
@@ -224,12 +224,6 @@ def test2():
         print("or no AVI files can be found.")
         return
     d = klass(MakeDlgTemplate())
-    d.DoModal()
-    d = None
-
-
-def test3():
-    d = TestCOMMDialog(MakeDlgTemplate())
     d.DoModal()
     d = None
 

@@ -40,8 +40,8 @@ def handle_globs(lGlobs):
     for g in lGlobs:
         new = glob.glob(g)
         if len(new) == 0:
-            print("The pattern '%s' yielded no files!" % (g,))
-        lFiles = lFiles + new
+            print(f"The pattern '{g}' yielded no files!")
+        lFiles.extend(new)
     # lFiles is now the list of origin files.
     # Normalize all of the paths:
     cFiles = len(lFiles)
@@ -52,9 +52,9 @@ def handle_globs(lGlobs):
     while i < cFiles:
         if not os.path.isfile(lFiles[i]):
             del lFiles[i]
-            cFiles = cFiles - 1
+            cFiles -= 1
             continue
-        i = i + 1
+        i += 1
     # Find the common prefix of all of the files
     sCommonPrefix = os.path.commonprefix(lFiles)
     # Damn - more commonprefix problems
@@ -67,7 +67,7 @@ def handle_globs(lGlobs):
     # else we have a trailing slash - it means we _expect_ it to be a patch as-is.
     assert (
         os.path.isdir(sCommonPrefix) and sCommonPrefix[-1] == "\\"
-    ), "commonprefix splitting aint gunna work!"
+    ), "commonprefix splitting ain't gunna work!"
     print("sCommonPrefix=", sCommonPrefix)
     # Ok, now remove this common prefix from every file:
     lRelativeFiles = []
@@ -111,12 +111,12 @@ def main():
             shutil.copyfile(lSrcFiles[i], file)
 
         for file in lDestFiles:
-            html_files = html_files + "%s\\%s\n" % (html_dir, file)
+            html_files += f"{html_dir}\\{file}\n"
 
     for cat in doc:
-        html_files = html_files + "%s\\%s.html\n" % (output_dir, cat.id)
+        html_files += f"{output_dir}\\{cat.id}.html\n"
         for suffix in "_overview _modules _objects _constants".split():
-            html_files = html_files + "%s\\%s%s.html\n" % (output_dir, cat.id, suffix)
+            html_files += f"{output_dir}\\{cat.id}{suffix}.html\n"
 
     f.write(sHHPFormat % {"output": output, "target": target, "html_files": html_files})
     f.close()

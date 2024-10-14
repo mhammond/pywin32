@@ -5,39 +5,20 @@ Copyright (C) 2002 Henrik Ekelund, version 2.1 by Vernon Cole
 * http://sourceforge.net/projects/adodbapi
 """
 
+from __future__ import annotations
+
 import datetime
 import decimal
 import numbers
 import sys
 import time
+from collections.abc import Callable, Iterable, Mapping
+from typing import Dict
 
 # noinspection PyUnresolvedReferences
 from . import ado_consts as adc
 
 verbose = False  # debugging flag
-
-onIronPython = sys.platform == "cli"
-if onIronPython:  # we need type definitions for odd data we may need to convert
-    # noinspection PyUnresolvedReferences
-    from System import DateTime, DBNull
-
-    NullTypes = (type(None), DBNull)
-else:
-    DateTime = type(NotImplemented)  # should never be seen on win32
-    NullTypes = type(None)
-
-# --- define objects to smooth out Python3 <-> Python 2.x differences
-unicodeType = str
-longType = int
-StringTypes = str
-makeByteBuffer = bytes
-memoryViewType = memoryview
-_BaseException = Exception
-
-try:  # jdhardy -- handle bytes under IronPython & Py3
-    bytes
-except NameError:
-    bytes = str  # define it for old Pythons
 
 
 # ------- Error handlers ------
@@ -55,8 +36,7 @@ def standardErrorHandler(connection, cursor, errorclass, errorvalue):
     raise errorclass(errorvalue)
 
 
-# Note: _BaseException is defined differently between Python 2.x and 3.x
-class Error(_BaseException):
+class Error(Exception):
     pass  # Exception that is the base class of all other error
     # exceptions. You can use this to catch all errors with one
     # single 'except' statement. Warnings are not considered
@@ -65,7 +45,7 @@ class Error(_BaseException):
     # module exceptions).
 
 
-class Warning(_BaseException):
+class Warning(Exception):
     pass
 
 
@@ -163,14 +143,15 @@ class FetchFailedError(OperationalError):
 #
 # def Binary(aString):
 #     """This function constructs an object capable of holding a binary (long) string value. """
-#     b = makeByteBuffer(aString)
+#     b = bytes(aString)
 #     return b
 # -----     Time converters ----------------------------------------------
-class TimeConverter(object):  # this is a generic time converter skeleton
+class TimeConverter:  # this is a generic time converter skeleton
     def __init__(self):  # the details will be filled in by instances
         self._ordinal_1899_12_31 = datetime.date(1899, 12, 31).toordinal() - 1
         # Use cls.types to compare if an input parameter is a datetime
         self.types = {
+            # Dynamically get the types as the methods may be overriden
             type(self.Date(2000, 1, 1)),
             type(self.Time(12, 1, 1)),
             type(self.Timestamp(2000, 1, 1, 12, 1, 1)),
@@ -192,11 +173,8 @@ class TimeConverter(object):  # this is a generic time converter skeleton
         except:  # might be a tuple
             try:
                 return self.ComDateFromTuple(obj)
-            except:  # try an mxdate
-                try:
-                    return obj.COMDate()
-                except:
-                    raise ValueError('Cannot convert "%s" to COMdate.' % repr(obj))
+            except:
+                raise ValueError(f'Cannot convert "{obj!r}" to COMdate.')
 
     def ComDateFromTuple(self, t, microseconds=0):
         d = datetime.date(t[0], t[1], t[2])
@@ -230,46 +208,11 @@ class TimeConverter(object):  # this is a generic time converter skeleton
             if isinstance(obj, datetime.date):
                 s = obj.isoformat() + " 00:00:00"  # return exact midnight
             else:
-                try:  # maybe it has a strftime method, like mx
-                    s = obj.strftime("%Y-%m-%d %H:%M:%S")
-                except AttributeError:
-                    try:  # but may be time.struct_time
-                        s = time.strftime("%Y-%m-%d %H:%M:%S", obj)
-                    except:
-                        raise ValueError('Cannot convert "%s" to isoformat' % repr(obj))
+                try:  # but may be time.struct_time
+                    s = time.strftime("%Y-%m-%d %H:%M:%S", obj)
+                except:
+                    raise ValueError(f'Cannot convert "{obj!r}" to isoformat')
         return s
-
-
-# -- Optional: if mx extensions are installed you may use mxDateTime ----
-try:
-    import mx.DateTime
-
-    mxDateTime = True
-except:
-    mxDateTime = False
-if mxDateTime:
-
-    class mxDateTimeConverter(TimeConverter):  # used optionally if installed
-        def __init__(self):
-            TimeConverter.__init__(self)
-            self.types.add(type(mx.DateTime))
-
-        def DateObjectFromCOMDate(self, comDate):
-            return mx.DateTime.DateTimeFromCOMDate(comDate)
-
-        def Date(self, year, month, day):
-            return mx.DateTime.Date(year, month, day)
-
-        def Time(self, hour, minute, second):
-            return mx.DateTime.Time(hour, minute, second)
-
-        def Timestamp(self, year, month, day, hour, minute, second):
-            return mx.DateTime.Timestamp(year, month, day, hour, minute, second)
-
-else:
-
-    class mxDateTimeConverter(TimeConverter):
-        pass  # if no mx is installed
 
 
 class pythonDateTimeConverter(TimeConverter):  # standard since Python 2.3
@@ -283,8 +226,6 @@ class pythonDateTimeConverter(TimeConverter):  # standard since Python 2.3
             new = datetime.datetime.combine(datetime.datetime.fromordinal(odn), tim)
             return new
             # return comDate.replace(tzinfo=None) # make non aware
-        elif isinstance(comDate, DateTime):
-            fComDate = comDate.ToOADate()  # ironPython clr Date/Time
         else:
             fComDate = float(comDate)  # ComDate is number of days since 1899-12-31
         integerPart = int(fComDate)
@@ -316,8 +257,6 @@ class pythonTimeConverter(TimeConverter):  # the old, ?nix type date and time
         "Returns ticks since 1970"
         if isinstance(comDate, datetime.datetime):
             return comDate.timetuple()
-        elif isinstance(comDate, DateTime):  # ironPython clr date/time
-            fcomDate = comDate.ToOADate()
         else:
             fcomDate = float(comDate)
         secondsperday = 86400  # 24*60*60
@@ -394,7 +333,7 @@ adoRemainingTypes = (
 
 
 # this class is a trick to determine whether a type is a member of a related group of types. see PEP notes
-class DBAPITypeObject(object):
+class DBAPITypeObject:
     def __init__(self, valuesTuple):
         self.values = frozenset(valuesTuple)
 
@@ -426,7 +365,7 @@ OTHER = DBAPITypeObject(adoRemainingTypes)
 
 # ------- utilities for translating python data types to ADO data types ---------------------------------
 typeMap = {
-    memoryViewType: adc.adVarBinary,
+    memoryview: adc.adVarBinary,
     float: adc.adDouble,
     type(None): adc.adEmpty,
     str: adc.adBSTR,
@@ -444,18 +383,17 @@ def pyTypeToADOType(d):
     except KeyError:  #   The type was not defined in the pre-computed Type table
         from . import dateconverter
 
-        if (
-            tp in dateconverter.types
-        ):  # maybe it is one of our supported Date/Time types
+        # maybe it is one of our supported Date/Time types
+        if tp in dateconverter.types:
             return adc.adDate
         #  otherwise, attempt to discern the type by probing the data object itself -- to handle duck typing
-        if isinstance(d, StringTypes):
+        if isinstance(d, str):
             return adc.adBSTR
         if isinstance(d, numbers.Integral):
             return adc.adBigInt
         if isinstance(d, numbers.Real):
             return adc.adDouble
-        raise DataError('cannot convert "%s" (type=%s) to ADO' % (repr(d), tp))
+        raise DataError(f'cannot convert "{d!r}" (type={tp}) to ADO')
 
 
 # # # # # # # # # # # # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -469,11 +407,6 @@ def variantConvertDate(v):
 
 
 def cvtString(variant):  # use to get old action of adodbapi v1 if desired
-    if onIronPython:
-        try:
-            return variant.ToString()
-        except:
-            pass
     return str(variant)
 
 
@@ -522,36 +455,35 @@ def identity(x):
 
 def cvtUnusual(variant):
     if verbose > 1:
-        sys.stderr.write("Conversion called for Unusual data=%s\n" % repr(variant))
-    if isinstance(variant, DateTime):  # COMdate or System.Date
-        from .adodbapi import (  # this will only be called when adodbapi is in use, and very rarely
-            dateconverter,
-        )
-
-        return dateconverter.DateObjectFromCOMDate(variant)
+        sys.stderr.write(f"Conversion called for Unusual data={variant!r}\n")
     return variant  # cannot find conversion function -- just give the data to the user
 
 
 def convert_to_python(variant, func):  # convert DB value into Python value
-    if isinstance(variant, NullTypes):  # IronPython Null or None
+    if variant is None:
         return None
     return func(variant)  # call the appropriate conversion function
 
 
-class MultiMap(dict):  # builds a dictionary from {(sequence,of,keys) : function}
-    """A dictionary of ado.type : function -- but you can set multiple items by passing a sequence of keys"""
+class MultiMap(Dict[int, Callable[[object], object]]):
+    # builds a dictionary from {(iterable,of,keys) : function}
+    """A dictionary of ado.type : function
+    -- but you can set multiple items by passing an iterable of keys"""
 
     # useful for defining conversion functions for groups of similar data types.
-    def __init__(self, aDict):
-        for k, v in list(aDict.items()):
+    def __init__(self, aDict: Mapping[Iterable[int] | int, Callable[[object], object]]):
+        for k, v in aDict.items():
             self[k] = v  # we must call __setitem__
 
-    def __setitem__(self, adoType, cvtFn):
-        "set a single item, or a whole sequence of items"
-        try:  # user passed us a sequence, set them individually
+    def __setitem__(
+        self, adoType: Iterable[int] | int, cvtFn: Callable[[object], object]
+    ):
+        "set a single item, or a whole iterable of items"
+        if isinstance(adoType, Iterable):
+            # user passed us an iterable, set them individually
             for type in adoType:
                 dict.__setitem__(self, type, cvtFn)
-        except TypeError:  # a single value fails attempt to iterate
+        else:
             dict.__setitem__(self, adoType, cvtFn)
 
 
@@ -578,7 +510,7 @@ variantConversions = MultiMap(
 RS_WIN_32, RS_ARRAY, RS_REMOTE = list(range(1, 4))
 
 
-class SQLrow(object):  # a single database row
+class SQLrow:  # a single database row
     # class to emulate a sequence, so that a column may be retrieved by either number or name
     def __init__(self, rows, index):  # "rows" is an _SQLrows object, index is which row
         self.rows = rows  # parent 'fetch' container object
@@ -622,9 +554,7 @@ class SQLrow(object):  # a single database row
             )  # extension row[columnName] designation
         except (KeyError, TypeError):
             er, st, tr = sys.exc_info()
-            raise er(
-                'No such key as "%s" in %s' % (repr(key), self.__repr__())
-            ).with_traceback(tr)
+            raise er(f'No such key as "{key!r}" in {self!r}').with_traceback(tr)
 
     def __iter__(self):
         return iter(self.__next__())
@@ -637,7 +567,7 @@ class SQLrow(object):  # a single database row
         taglist = sorted(list(self.rows.columnNames.items()), key=lambda x: x[1])
         s = "<SQLrow={"
         for name, i in taglist:
-            s += name + ":" + repr(self._getValue(i)) + ", "
+            s += f"{name}:{self._getValue(i)!r}, "
         return s[:-2] + "}>"
 
     def __str__(self):  # create a pretty human readable representation
@@ -654,7 +584,7 @@ class SQLrow(object):  # a single database row
     # # # #
 
 
-class SQLrows(object):
+class SQLrows:
     # class to emulate a sequence for multiple rows using a container object
     def __init__(self, ado_results, numberOfRows, cursor):
         self.ado_results = ado_results  # raw result of SQL get
@@ -686,7 +616,7 @@ class SQLrows(object):
                 try:
                     j = self.columnNames[j.lower()]  # convert named column to numeric
                 except KeyError:
-                    raise KeyError('adodbapi: no such column name as "%s"' % repr(j))
+                    raise KeyError(f"adodbapi: no such column name as {j!r}")
             if self.recordset_format == RS_ARRAY:  # retrieve from two-dimensional array
                 v = self.ado_results[j, i]
             elif self.recordset_format == RS_REMOTE:

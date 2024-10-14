@@ -6,7 +6,7 @@
 # when things go wrong - eg, not enough permissions to hit the
 # registry etc.
 
-import importlib
+import importlib.machinery
 import os
 import sys
 import warnings
@@ -17,8 +17,7 @@ import win32con
 import win32service
 import winerror
 
-_d = "_d" if "_d.pyd" in importlib.machinery.EXTENSION_SUFFIXES else ""
-error = RuntimeError
+error = RuntimeError  # Re-exported alias
 
 
 # Returns the full path to an executable for hosting a Python service - typically
@@ -35,9 +34,11 @@ def LocatePythonServiceExe(exe=None):
     if exe and os.path.isfile(exe):
         return win32api.GetFullPathName(exe)
 
+    suffix = "_d" if "_d.pyd" in importlib.machinery.EXTENSION_SUFFIXES else ""
+
     # We are confused if we aren't now looking for our default. But if that
     # exists as specified we assume it's good.
-    exe = f"pythonservice{_d}.exe"
+    exe = f"pythonservice{suffix}.exe"
     if os.path.isfile(exe):
         return win32api.GetFullPathName(exe)
 
@@ -49,8 +50,13 @@ def LocatePythonServiceExe(exe=None):
     # pywin32 installed it next to win32service.pyd (but we can't run it from there)
     maybe = os.path.join(os.path.dirname(win32service.__file__), exe)
     if os.path.exists(maybe):
-        print(f"copying host exe '{maybe}' -> '{correct}'")
-        win32api.CopyFile(maybe, correct)
+        print(f"moving host exe '{maybe}' -> '{correct}'")
+        # Handle case where MoveFile() fails. Particularly if destination file
+        # has a resource lock and can't be replaced by src file
+        try:
+            win32api.MoveFileEx(maybe, correct, win32con.MOVEFILE_REPLACE_EXISTING)
+        except win32api.error as exc:
+            print(f"Failed to move host exe '{exc}'")
 
     if not os.path.exists(correct):
         raise error(f"Can't find '{correct}'")
@@ -62,7 +68,7 @@ def LocatePythonServiceExe(exe=None):
     # (Unlike the .exe above, we don't unconditionally copy this, and possibly
     # copy it to a different place. Doesn't seem a good reason for that!?)
     python_dll = win32api.GetModuleFileName(sys.dllhandle)
-    pyw = f"pywintypes{sys.version_info[0]}{sys.version_info[1]}{_d}.dll"
+    pyw = f"pywintypes{sys.version_info.major}{sys.version_info.minor}{suffix}.dll"
     correct_pyw = os.path.join(os.path.dirname(python_dll), pyw)
 
     if not os.path.exists(correct_pyw):
@@ -120,7 +126,7 @@ def LocateSpecificServiceExe(serviceName):
         win32con.HKEY_LOCAL_MACHINE,
         "SYSTEM\\CurrentControlSet\\Services\\%s" % (serviceName),
         0,
-        win32con.KEY_ALL_ACCESS,
+        win32con.KEY_QUERY_VALUE,
     )
     try:
         return win32api.RegQueryValueEx(hkey, "ImagePath")[0]
@@ -217,7 +223,7 @@ def InstallService(
         startType = win32service.SERVICE_DEMAND_START
     serviceType = win32service.SERVICE_WIN32_OWN_PROCESS
     if bRunInteractive:
-        serviceType = serviceType | win32service.SERVICE_INTERACTIVE_PROCESS
+        serviceType |= win32service.SERVICE_INTERACTIVE_PROCESS
     if errorControl is None:
         errorControl = win32service.SERVICE_ERROR_NORMAL
 
@@ -303,7 +309,7 @@ def ChangeServiceConfig(
     hscm = win32service.OpenSCManager(None, None, win32service.SC_MANAGER_ALL_ACCESS)
     serviceType = win32service.SERVICE_WIN32_OWN_PROCESS
     if bRunInteractive:
-        serviceType = serviceType | win32service.SERVICE_INTERACTIVE_PROCESS
+        serviceType |= win32service.SERVICE_INTERACTIVE_PROCESS
     commandLine = _GetCommandLine(exeName, exeArgs)
     try:
         hs = SmartOpenService(hscm, serviceName, win32service.SERVICE_ALL_ACCESS)
@@ -375,7 +381,7 @@ def SetServiceCustomOption(serviceName, option, value):
         "System\\CurrentControlSet\\Services\\%s\\Parameters" % serviceName,
     )
     try:
-        if type(value) == type(0):
+        if isinstance(value, int):
             win32api.RegSetValueEx(key, option, 0, win32con.REG_DWORD, value)
         else:
             win32api.RegSetValueEx(key, option, 0, win32con.REG_SZ, value)
@@ -441,8 +447,6 @@ def ControlService(serviceName, code, machine=None):
 
 
 def __FindSvcDeps(findName):
-    if type(findName) is pywintypes.UnicodeType:
-        findName = str(findName)
     dict = {}
     k = win32api.RegOpenKey(
         win32con.HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Services"
@@ -453,7 +457,7 @@ def __FindSvcDeps(findName):
             svc = win32api.RegEnumKey(k, num)
         except win32api.error:
             break
-        num = num + 1
+        num += 1
         sk = win32api.RegOpenKey(k, svc)
         try:
             deps, typ = win32api.RegQueryValueEx(sk, "DependOnService")
@@ -592,7 +596,7 @@ def DebugService(cls, argv=[]):
 
     global g_debugService
 
-    print("Debugging service %s - press Ctrl+C to stop." % (cls._svc_name_,))
+    print(f"Debugging service {cls._svc_name_} - press Ctrl+C to stop.")
     servicemanager.Debugging(True)
     servicemanager.PrepareToHostSingle(cls)
     g_debugService = cls(argv)
@@ -747,10 +751,9 @@ def HandleCommandLine(
                 "delayed": win32service.SERVICE_AUTO_START,  ## ChangeServiceConfig2 called later
                 "disabled": win32service.SERVICE_DISABLED,
             }
-            try:
-                startup = map[val.lower()]
-            except KeyError:
-                print("'%s' is not a valid startup option" % val)
+            startup = map.get(val.lower())
+            if not startup:
+                print(f"{val!r} is not a valid startup option")
             if val.lower() == "delayed":
                 delayedstart = True
             elif val.lower() == "auto":
@@ -801,7 +804,7 @@ def HandleCommandLine(
                     sys.exit(1)
                 raise
             try:
-                os.system("%s -debug %s %s" % (exeName, serviceName, svcArgs))
+                os.system(f"{exeName} -debug {serviceName} {svcArgs}")
             # ^C is used to kill the debug service.  Sometimes Python also gets
             # interrupted - ignore it...
             except KeyboardInterrupt:
@@ -832,11 +835,11 @@ def HandleCommandLine(
             description = cls._svc_description_
         except AttributeError:
             description = None
-        print("Installing service %s" % (serviceName,))
+        print(f"Installing service {serviceName}")
         # Note that we install the service before calling the custom option
         # handler, so if the custom handler fails, we have an installed service (from NT's POV)
         # but is unlikely to work, as the Python code controlling it failed.  Therefore
-        # we remove the service if the first bit works, but the second doesnt!
+        # we remove the service if the first bit works, but the second doesn't!
         try:
             InstallService(
                 serviceClassString,
@@ -982,11 +985,11 @@ class ServiceFramework:
         # override this.
         accepted = 0
         if hasattr(self, "SvcStop"):
-            accepted = accepted | win32service.SERVICE_ACCEPT_STOP
+            accepted |= win32service.SERVICE_ACCEPT_STOP
         if hasattr(self, "SvcPause") and hasattr(self, "SvcContinue"):
-            accepted = accepted | win32service.SERVICE_ACCEPT_PAUSE_CONTINUE
+            accepted |= win32service.SERVICE_ACCEPT_PAUSE_CONTINUE
         if hasattr(self, "SvcShutdown"):
-            accepted = accepted | win32service.SERVICE_ACCEPT_SHUTDOWN
+            accepted |= win32service.SERVICE_ACCEPT_SHUTDOWN
         return accepted
 
     def ReportServiceStatus(
@@ -1005,7 +1008,7 @@ class ServiceFramework:
         ]:
             checkPoint = 0
         else:
-            self.checkPoint = self.checkPoint + 1
+            self.checkPoint += 1
             checkPoint = self.checkPoint
 
         # Now report the status to the control manager
@@ -1027,7 +1030,7 @@ class ServiceFramework:
     def SvcOther(self, control):
         try:
             print("Unknown control status - %d" % control)
-        except IOError:
+        except OSError:
             # services may not have a valid stdout!
             pass
 

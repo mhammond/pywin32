@@ -1,14 +1,12 @@
 # General utilities for MAPI and MAPI objects.
-# We used to use these old names from the 'types' module...
-TupleType = tuple
-ListType = list
-IntType = int
+from __future__ import annotations
+
 import pythoncom
 from pywintypes import TimeType
 
 from . import mapi, mapitags
 
-prTable = {}
+prTable: dict[int, str] = {}
 
 
 def GetPropTagName(pt):
@@ -61,7 +59,7 @@ def GetPropTagName(pt):
         return ret
 
 
-mapiErrorTable = {}
+mapiErrorTable: dict[int, str] = {}
 
 
 def GetScodeString(hr):
@@ -72,7 +70,7 @@ def GetScodeString(hr):
     return mapiErrorTable.get(hr, pythoncom.GetScodeString(hr))
 
 
-ptTable = {}
+ptTable: dict[int, str] = {}
 
 
 def GetMapiTypeName(propType, rawType=True):
@@ -88,7 +86,7 @@ def GetMapiTypeName(propType, rawType=True):
                 ptTable[value] = name
 
     if rawType:
-        propType = propType & ~mapitags.MV_FLAG
+        propType &= ~mapitags.MV_FLAG
     return ptTable.get(propType, str(hex(propType)))
 
 
@@ -103,13 +101,13 @@ def GetProperties(obj, propList):
     If the property fetch fails, the result is None.
     """
     bRetList = 1
-    if type(propList) not in [TupleType, ListType]:
+    if not isinstance(propList, (tuple, list)):
         bRetList = 0
         propList = (propList,)
     realPropList = []
     rc = []
     for prop in propList:
-        if type(prop) != IntType:  # Integer
+        if not isinstance(prop, int):
             props = ((mapi.PS_PUBLIC_STRINGS, prop),)
             propIds = obj.GetIDsFromNames(props, 0)
             prop = mapitags.PROP_TAG(
@@ -134,7 +132,7 @@ def GetAllProperties(obj, make_tag_names=True):
     for tag, val in data:
         if make_tag_names:
             hr, tags, array = obj.GetNamesFromIDs((tag,))
-            if type(array[0][1]) == type(""):
+            if isinstance(array[0][1], str):
                 name = array[0][1]
             else:
                 name = GetPropTagName(tag)
@@ -145,28 +143,26 @@ def GetAllProperties(obj, make_tag_names=True):
 
 
 _MapiTypeMap = {
-    type(0.0): mapitags.PT_DOUBLE,
-    type(0): mapitags.PT_I4,
-    type(b""): mapitags.PT_STRING8,  # bytes
-    type(""): mapitags.PT_UNICODE,  # str
+    float: mapitags.PT_DOUBLE,
+    int: mapitags.PT_I4,
+    bytes: mapitags.PT_STRING8,
+    str: mapitags.PT_UNICODE,
     type(None): mapitags.PT_UNSPECIFIED,
-    # In Python 2.2.2, bool isn't a distinct type (type(1==1) is type(0)).
-    # (markh thinks the above is trying to say that in 2020, we probably *do*
-    # want bool in this map? :)
+    bool: mapitags.PT_BOOLEAN,
 }
 
 
 def SetPropertyValue(obj, prop, val):
-    if type(prop) != IntType:
+    if not isinstance(prop, int):
         props = ((mapi.PS_PUBLIC_STRINGS, prop),)
         propIds = obj.GetIDsFromNames(props, mapi.MAPI_CREATE)
-        if val == (1 == 1) or val == (1 == 0):
+        if val == True or val == False:
             type_tag = mapitags.PT_BOOLEAN
         else:
             type_tag = _MapiTypeMap.get(type(val))
             if type_tag is None:
                 raise ValueError(
-                    "Don't know what to do with '%r' ('%s')" % (val, type(val))
+                    f"Don't know what to do with '{val!r}' ('{type(val)}')"
                 )
         prop = mapitags.PROP_TAG(type_tag, mapitags.PROP_ID(propIds[0]))
     if val is None:
@@ -190,7 +186,7 @@ def SetProperties(msg, propDict):
     newProps = []
     # First pass over the properties we should get IDs for.
     for key, val in propDict.items():
-        if type(key) == str:
+        if isinstance(key, str):
             newProps.append((mapi.PS_PUBLIC_STRINGS, key))
     # Query for the new IDs
     if newProps:
@@ -198,20 +194,18 @@ def SetProperties(msg, propDict):
     newIdNo = 0
     newProps = []
     for key, val in propDict.items():
-        if type(key) == str:
-            type_val = type(val)
-            if type_val == str:
+        if isinstance(key, str):
+            if isinstance(val, str):
                 tagType = mapitags.PT_UNICODE
-            elif type_val == IntType:
+            elif isinstance(val, int):
                 tagType = mapitags.PT_I4
-            elif type_val == TimeType:
+            elif isinstance(val, TimeType):
                 tagType = mapitags.PT_SYSTIME
             else:
                 raise ValueError(
-                    "The type of object %s(%s) can not be written"
-                    % (repr(val), type_val)
+                    f"The type of object {repr(val)}({type(val)}) can not be written"
                 )
             key = mapitags.PROP_TAG(tagType, mapitags.PROP_ID(newIds[newIdNo]))
-            newIdNo = newIdNo + 1
+            newIdNo += 1
         newProps.append((key, val))
     msg.SetProps(newProps)

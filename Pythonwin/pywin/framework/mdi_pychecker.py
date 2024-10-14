@@ -17,7 +17,7 @@
 ## the PATH. Example pychecker.bat:
 ##
 ##   REM pychecker.bat
-##   C:\bin\python.exe C:\PYTHON23\Lib\site-packages\pychecker\checker.py %1 %2 %3 %4 %5 %6 %7 %8 %9
+##   C:\bin\python.exe C:\PythonXX\Lib\site-packages\pychecker\checker.py %1 %2 %3 %4 %5 %6 %7 %8 %9
 ##
 ## Adding it as default module in PythonWin:
 ##
@@ -38,6 +38,7 @@ import os
 import re
 import sys
 import time
+from functools import reduce
 
 import win32api
 import win32con
@@ -53,7 +54,7 @@ def getsubdirs(d):
     for f in flist:
         if os.path.isdir(f):
             dlist.append(f)
-            dlist = dlist + getsubdirs(f)
+            dlist.extend(getsubdirs(f))
     return dlist
 
 
@@ -111,9 +112,7 @@ class dirpath:
                                     sd = sd.lower()
                                     if sd not in dirs:
                                         dirs[sd] = None
-        self.dirs = []
-        for d in dirs.keys():
-            self.dirs.append(d)
+        self.dirs = list(dirs)
 
     def __getitem__(self, key):
         return self.dirs[key]
@@ -137,16 +136,16 @@ class dirpath:
         del self.dirs[lo:hi]
 
     def __add__(self, other):
-        if type(other) == type(self) or type(other) == type([]):
+        if isinstance(other, (dirpath, list)):
             return self.dirs + other.dirs
 
     def __radd__(self, other):
-        if type(other) == type(self) or type(other) == type([]):
+        if isinstance(other, (dirpath, list)):
             return other.dirs + self.dirs
 
 
 # Group(1) is the filename, group(2) is the lineno.
-# regexGrepResult=regex.compile("^\\([a-zA-Z]:.*\\)(\\([0-9]+\\))")
+# regexGrepResult=regex.compile(r"^\([a-zA-Z]:.*\)(\([0-9]+\))")
 # regexGrep=re.compile(r"^([a-zA-Z]:[^(]*)\((\d+)\)")
 regexGrep = re.compile(r"^(..[^\(:]+)?[\(:](\d+)[\):]:?\s*(.*)")
 
@@ -233,9 +232,9 @@ class TheDocument(docview.RichEditDoc):
             paramstr = win32ui.GetProfileVal("Pychecker", "Params", "\t\t\t1\t0\t0")
         params = paramstr.split("\t")
         if len(params) < 3:
-            params = params + [""] * (3 - len(params))
+            params.extend([""] * (3 - len(params)))
         if len(params) < 6:
-            params = params + [0] * (6 - len(params))
+            params.extend([0] * (6 - len(params)))
         self.dirpattern = params[0]
         self.filpattern = params[1]
         self.greppattern = params[2] or "-#1000 --only"
@@ -284,7 +283,7 @@ class TheDocument(docview.RichEditDoc):
     def doSearch(self):
         self.dp = dirpath(self.dirpattern, self.recurse)
         self.SetTitle(
-            "Pychecker Run '%s' (options: %s)" % (self.filpattern, self.greppattern)
+            f"Pychecker Run '{self.filpattern}' (options: {self.greppattern})"
         )
         # self.text = []
         self.GetFirstView().Append(
@@ -319,7 +318,7 @@ class TheDocument(docview.RichEditDoc):
         import time
 
         time.sleep(0.001)
-        if self.result != None:
+        if self.result is not None:
             win32ui.GetApp().DeleteIdleHandler(self.idleHandler)
             return 0
         return 1  # more
@@ -367,7 +366,7 @@ class TheDocument(docview.RichEditDoc):
                     "(or run 'setup.py install' if you have the source version)\n"
                 )
             else:
-                cmd = '%s "%s" %s %s 2>&1' % (py, pychecker, options, files)
+                cmd = f'{py} "{pychecker}" {options} {files} 2>&1'
                 ##fin,fout,ferr=os.popen3(cmd)
                 ##result=ferr.read()+fout.read()
                 result = os.popen(cmd).read()
@@ -380,7 +379,7 @@ class TheDocument(docview.RichEditDoc):
             self.SetModifiedFlag(0)
 
     def _inactive_idleHandler(self, handler, count):
-        self.fndx = self.fndx + 1
+        self.fndx += 1
         if self.fndx < len(self.flist):
             f = self.flist[self.fndx]
             if self.verbose:
@@ -389,18 +388,18 @@ class TheDocument(docview.RichEditDoc):
             lines = open(f, "r").readlines()
             for i in range(len(lines)):
                 line = lines[i]
-                if self.pat.search(line) != None:
+                if self.pat.search(line) is not None:
                     self.GetFirstView().Append(f + "(" + repr(i + 1) + ") " + line)
         else:
             self.fndx = -1
-            self.fpndx = self.fpndx + 1
+            self.fpndx += 1
             if self.fpndx < len(self.fplist):
                 self.flist = glob.glob(
                     self.dp[self.dpndx] + "\\" + self.fplist[self.fpndx]
                 )
             else:
                 self.fpndx = 0
-                self.dpndx = self.dpndx + 1
+                self.dpndx += 1
                 if self.dpndx < len(self.dp):
                     self.flist = glob.glob(
                         self.dp[self.dpndx] + "\\" + self.fplist[self.fpndx]
@@ -431,10 +430,10 @@ class TheDocument(docview.RichEditDoc):
         )
 
     def OnSaveDocument(self, filename):
-        #       print 'OnSaveDocument() filename=',filename
+        # print("OnSaveDocument() filename=",filename)
         savefile = open(filename, "wb")
         txt = self.GetParams() + "\n"
-        #       print 'writing',txt
+        # print("writing",txt)
         savefile.write(txt)
         savefile.close()
         self.SetModifiedFlag(0)
@@ -478,7 +477,7 @@ class TheView(docview.RichEditView):
             fname = regexGrepResult.group(1)
             line = int(regexGrepResult.group(2))
             scriptutils.JumpToDocument(fname, line)
-            return 0  # dont pass on
+            return 0  # don't pass on
         return 1  # pass it on by default.
 
     def OnRClick(self, params):
@@ -544,7 +543,7 @@ class TheView(docview.RichEditView):
                 errtext = m.group(3)
                 if start != end and line_start == line_end:
                     errtext = self.GetSelText()
-                errtext = repr(re.escape(errtext).replace("\ ", " "))
+                errtext = repr(re.escape(errtext).replace(r"\ ", " "))
                 view.ReplaceSel(addspecific and cmnt % locals() or cmnt)
         return 0
 
@@ -711,10 +710,10 @@ class TheDialog(dialog.Dialog):
             i = 0
             newitems = dlg.getNew()
             if newitems:
-                items = items + newitems
+                items.extend(newitems)
                 for item in items:
                     win32api.WriteProfileVal(section, repr(i), item, ini)
-                    i = i + 1
+                    i += 1
             self.UpdateData(0)
 
     def OnOK(self):
@@ -842,7 +841,7 @@ class TheParamsDialog(dialog.Dialog):
 
 
 try:
-    win32ui.GetApp().RemoveDocTemplate(greptemplate)
+    win32ui.GetApp().RemoveDocTemplate(greptemplate)  # type: ignore[has-type, used-before-def]
 except NameError:
     pass
 

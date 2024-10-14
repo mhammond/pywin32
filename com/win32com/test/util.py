@@ -1,4 +1,3 @@
-import gc
 import logging
 import os
 import sys
@@ -13,16 +12,11 @@ import win32api
 import win32com
 import winerror
 from pythoncom import _GetGatewayCount, _GetInterfaceCount
-from pywin32_testutil import LeakTestCase, TestLoader, TestResult, TestRunner
 
 
 def CheckClean():
     # Ensure no lingering exceptions - Python should have zero outstanding
     # COM objects
-    try:
-        sys.exc_clear()
-    except AttributeError:
-        pass  # py3k
     c = _GetInterfaceCount()
     if c:
         print("Warning - %d com interface objects still alive" % c)
@@ -49,23 +43,26 @@ def RegisterPythonServer(filename, progids=None, verbose=0):
                 HKCR = winreg.HKEY_CLASSES_ROOT
                 hk = winreg.OpenKey(HKCR, "CLSID\\%s" % clsid)
                 dll = winreg.QueryValue(hk, "InprocServer32")
-            except WindowsError:
+            except OSError:
                 # no CLSID or InProcServer32 - not registered
                 break
             ok_files = [
                 os.path.basename(pythoncom.__file__),
-                "pythoncomloader%d%d.dll" % (sys.version_info[0], sys.version_info[1]),
+                "pythoncomloader%d%d.dll"
+                % (sys.version_info.major, sys.version_info.minor),
             ]
             if os.path.basename(dll) not in ok_files:
-                why_not = "%r is registered against a different Python version (%s)" % (
-                    progid,
-                    dll,
+                why_not = (
+                    "{!r} is registered against a different Python version ({})".format(
+                        progid,
+                        dll,
+                    )
                 )
                 break
         else:
-            # print "Skipping registration of '%s' - already registered" % filename
+            # print(f"Skipping registration of '{filename}' - already registered")
             return
-    # needs registration - see if its likely!
+    # needs registration - see if it's likely!
     try:
         from win32com.shell.shell import IsUserAnAdmin
     except ImportError:
@@ -88,10 +85,10 @@ def RegisterPythonServer(filename, progids=None, verbose=0):
         # them the same way as "real" errors.
         raise pythoncom.com_error(winerror.CO_E_CLASSSTRING, msg, None, -1)
     # so theoretically we are able to register it.
-    cmd = '%s "%s" --unattended > nul 2>&1' % (win32api.GetModuleFileName(0), filename)
+    cmd = f'{win32api.GetModuleFileName(0)} "{filename}" --unattended > nul 2>&1'
     if verbose:
         print("Registering engine", filename)
-    #       print cmd
+        # print(cmd)
     rc = os.system(cmd)
     if rc:
         print("Registration command was:")
@@ -106,7 +103,7 @@ def ExecuteShellCommand(
     tracebacks_ok=0,  # OK if the output contains a t/b?
 ):
     output_name = tempfile.mktemp("win32com_test")
-    cmd = cmd + ' > "%s" 2>&1' % output_name
+    cmd += ' > "%s" 2>&1' % output_name
     rc = os.system(cmd)
     output = open(output_name, "r").read().strip()
     os.remove(output_name)
@@ -118,7 +115,7 @@ def ExecuteShellCommand(
         if rc:
             raise Failed("exit code was " + str(rc))
         if expected_output is not None and output != expected_output:
-            raise Failed("Expected output %r (got %r)" % (expected_output, output))
+            raise Failed(f"Expected output {expected_output!r} (got {output!r})")
         if not tracebacks_ok and output.find("Traceback (most recent call last)") >= 0:
             raise Failed("traceback in program output")
         return output
@@ -128,7 +125,7 @@ def ExecuteShellCommand(
         print("** start of program output **")
         print(output)
         print("** end of program output **")
-        testcase.fail("Executing '%s' failed as %s" % (cmd, why))
+        testcase.fail(f"Executing '{cmd}' failed as {why}")
 
 
 def assertRaisesCOM_HRESULT(testcase, hresult, func, *args, **kw):
@@ -214,7 +211,7 @@ TestCase = unittest.TestCase
 
 def CapturingFunctionTestCase(*args, **kw):
     real_test = _CapturingFunctionTestCase(*args, **kw)
-    return LeakTestCase(real_test)
+    return pywin32_testutil.LeakTestCase(real_test)
 
 
 class _CapturingFunctionTestCase(unittest.FunctionTestCase):  # , TestCaseMixin):

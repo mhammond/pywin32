@@ -2,34 +2,25 @@
 # even tighter into Pythonwin.
 
 import pywin.scintilla.keycodes
+import pywin.scintilla.view
 import win32api
 import win32con
 import win32ui
-from pywin.framework.editor import (
-    GetEditorFontOption,
-    GetEditorOption,
-    SetEditorFontOption,
-    SetEditorOption,
-    defaultCharacterFormat,
-)
-from pywin.scintilla import bindings
+from pywin.debugger import dbgcon
+from pywin.framework.editor import GetEditorOption
+from pywin.framework.editor.document import EditorDocumentBase
+from pywin.framework.editor.frame import EditorFrame
+from pywin.framework.editor.template import EditorTemplateBase
+from pywin.scintilla import bindings, scintillacon
+from pywin.scintilla.view import CScintillaView as SyntEditViewParent
 
-# from pywin.framework.editor import EditorPropertyPage
-
-MSG_CHECK_EXTERNAL_FILE = (
-    win32con.WM_USER + 1999
-)  ## WARNING: Duplicated in document.py and editor.py
+# WARNING: Duplicated in document.py and editor.py
+MSG_CHECK_EXTERNAL_FILE = win32con.WM_USER + 1999
 
 # Define a few common markers
 MARKER_BOOKMARK = 0
 MARKER_BREAKPOINT = 1
 MARKER_CURRENT = 2
-
-import pywin.scintilla.view
-from pywin.debugger import dbgcon
-from pywin.framework.editor.document import EditorDocumentBase
-from pywin.scintilla import scintillacon  # For the marker definitions
-from pywin.scintilla.document import CScintillaDocument
 
 
 class SyntEditDocument(EditorDocumentBase):
@@ -46,9 +37,6 @@ class SyntEditDocument(EditorDocumentBase):
         EditorDocumentBase.FinalizeViewCreation(self, view)
         if view == self.GetFirstView():
             self.GetDocTemplate().CheckIDLEMenus(view.idle)
-
-
-SyntEditViewParent = pywin.scintilla.view.CScintillaView
 
 
 class SyntEditView(SyntEditViewParent):
@@ -270,14 +258,14 @@ class SyntEditView(SyntEditViewParent):
             # Tab size can never be guessed - set at user preference.
             ext.config(usetabs=usetabs, indentwidth=indentwidth, tabwidth=tabSize)
         else:
-            # Dont want smart-tabs - just set the options!
+            # Don't want smart-tabs - just set the options!
             ext.config(usetabs=bUseTabs, tabwidth=tabSize, indentwidth=indentSize)
         self.SCISetIndent(indentSize)
         self.SCISetTabWidth(tabSize)
 
     def OnDebuggerStateChange(self, state):
         if state == dbgcon.DBGSTATE_NOT_DEBUGGING:
-            # Indicate breakpoints arent really usable.
+            # Indicate breakpoints aren't really usable.
             # Not quite white - useful when no marker margin, so set as background color.
             self.SCIMarkerSetBack(MARKER_BREAKPOINT, win32api.RGB(0xEF, 0xEF, 0xEF))
         else:
@@ -299,7 +287,7 @@ class SyntEditView(SyntEditViewParent):
         scrollOff = info[1] - self.GetFirstVisibleLine()
         if scrollOff:
             self.LineScroll(scrollOff)
-        # Make sure we dont reset the cursor beyond the buffer.
+        # Make sure we don't reset the cursor beyond the buffer.
         max = self.GetTextLength()
         newPos = min(info[0][0], max), min(info[0][1], max)
         self.SetSel(newPos)
@@ -474,7 +462,7 @@ class SyntEditView(SyntEditViewParent):
                     - scintillacon.SC_FOLDLEVELBASE
                 )
                 is_header = level & scintillacon.SC_FOLDLEVELHEADERFLAG
-                # 			print lineSeek, level_no, is_header
+                # print(lineSeek, level_no, is_header)
                 if level_no == 0 and is_header:
                     if (expanding and not self.SCIGetFoldExpanded(lineSeek)) or (
                         not expanding and self.SCIGetFoldExpanded(lineSeek)
@@ -583,9 +571,6 @@ class SyntEditView(SyntEditViewParent):
         win32ui.DoWaitCursor(-1)
 
 
-from pywin.framework.editor.frame import EditorFrame
-
-
 class SplitterFrame(EditorFrame):
     def OnCreate(self, cs):
         self.HookCommand(self.OnWindowSplit, win32ui.ID_WINDOW_SPLIT)
@@ -594,9 +579,6 @@ class SplitterFrame(EditorFrame):
     def OnWindowSplit(self, id, code):
         self.GetDlgItem(win32ui.AFX_IDW_PANE_FIRST).DoKeyboardSplit()
         return 1
-
-
-from pywin.framework.editor.template import EditorTemplateBase
 
 
 class SyntEditTemplate(EditorTemplateBase):
@@ -627,7 +609,7 @@ class SyntEditTemplate(EditorTemplateBase):
                     event, ["editor"]
                 )
                 if keyname is not None:
-                    text = text + "\t" + keyname
+                    text += "\t" + keyname
                 submenu.AppendMenu(flags, id, text)
 
         mainMenu = self.GetSharedMenu()
@@ -656,7 +638,7 @@ class SyntEditTemplate(EditorTemplateBase):
 
 # For debugging purposes, when this module may be reloaded many times.
 try:
-    win32ui.GetApp().RemoveDocTemplate(editorTemplate)
+    win32ui.GetApp().RemoveDocTemplate(editorTemplate)  # type: ignore[has-type, used-before-def]
 except NameError:
     pass
 

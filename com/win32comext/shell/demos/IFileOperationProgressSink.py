@@ -5,9 +5,7 @@ import pythoncom
 from win32com.server.policy import DesignatedWrapPolicy
 from win32com.shell import shell, shellcon
 
-tsf_flags = list(
-    (k, v) for k, v in list(shellcon.__dict__.items()) if k.startswith("TSF_")
-)
+tsf_flags = [(k, v) for k, v in shellcon.__dict__.items() if k.startswith("TSF_")]
 
 
 def decode_flags(flags):
@@ -17,7 +15,7 @@ def decode_flags(flags):
     for k, v in tsf_flags:
         if flags & v:
             if flag_txt:
-                flag_txt = flag_txt + "|" + k
+                flag_txt += "|" + k
             else:
                 flag_txt = k
     return flag_txt
@@ -136,7 +134,7 @@ class FileOperationProgressSink(DesignatedWrapPolicy):
         )
         if NewlyCreated:
             print(
-                "	Moved to recycle bin - "
+                "    Moved to recycle bin - "
                 + NewlyCreated.GetDisplayName(shellcon.SHGDN_FORPARSING)
             )
 

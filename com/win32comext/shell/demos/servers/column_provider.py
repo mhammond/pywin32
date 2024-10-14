@@ -15,7 +15,6 @@ import stat
 import commctrl
 import pythoncom
 from pywintypes import IID
-from win32com.server.util import wrap
 from win32com.shell import shell, shellcon
 
 IPersist_Methods = ["GetClassID"]
@@ -108,7 +107,7 @@ def DllUnregisterServer():
             winreg.HKEY_CLASSES_ROOT,
             "Folder\\ShellEx\\ColumnHandlers\\" + str(ColumnProvider._reg_clsid_),
         )
-    except WindowsError as details:
+    except OSError as details:
         import errno
 
         if details.errno != errno.ENOENT:

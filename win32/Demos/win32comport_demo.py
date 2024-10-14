@@ -11,15 +11,45 @@
 
 # This demo uses userlapped IO, so that none of the read or write operations actually block (however,
 # in this sample, the very next thing we do _is_ block - so it shows off the concepts even though it
-# doesnt exploit them.
+# doesn't exploit them.
 
 import msvcrt  # For the getch() function.
 import sys
 import threading
 
 import win32con  # constants.
-from win32event import *  # We use events and the WaitFor[Multiple]Objects functions.
-from win32file import *  # The base COM port and file IO functions.
+from win32event import (  # We use events and the WaitFor[Multiple]Objects functions.
+    INFINITE,
+    WAIT_OBJECT_0,
+    CreateEvent,
+    SetEvent,
+    WaitForMultipleObjects,
+    WaitForSingleObject,
+)
+from win32file import (  # The base COM port and file IO functions.
+    CBR_115200,
+    EV_RXCHAR,
+    NOPARITY,
+    ONESTOPBIT,
+    OVERLAPPED,
+    PURGE_RXABORT,
+    PURGE_RXCLEAR,
+    PURGE_TXABORT,
+    PURGE_TXCLEAR,
+    ClearCommError,
+    CreateFile,
+    GetCommModemStatus,
+    GetCommState,
+    PurgeComm,
+    ReadFile,
+    SetCommMask,
+    SetCommState,
+    SetCommTimeouts,
+    SetupComm,
+    WaitCommEvent,
+    WriteFile,
+    error,
+)
 
 
 def FindModem():
@@ -49,7 +79,7 @@ def FindModem():
 # A basic synchronous COM port file-like object
 class SerialTTY:
     def __init__(self, port):
-        if type(port) == type(0):
+        if isinstance(port, int):
             port = "COM%d" % (port,)
         self.handle = CreateFile(
             port,
@@ -78,7 +108,7 @@ class SerialTTY:
         dcb.Parity = NOPARITY
         dcb.StopBits = ONESTOPBIT
         SetCommState(self.handle, dcb)
-        print("Connected to %s at %s baud" % (port, dcb.BaudRate))
+        print(f"Connected to {port} at {dcb.BaudRate} baud")
 
     def _UserInputReaderThread(self):
         overlapped = OVERLAPPED()

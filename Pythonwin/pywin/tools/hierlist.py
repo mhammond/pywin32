@@ -12,24 +12,23 @@
 # If you need to use the Tree Control, you may still find this API a reasonable
 # choice.  However, you should investigate using the tree control directly
 # to provide maximum flexibility (but with extra work).
-
-import sys
+from __future__ import annotations
 
 import commctrl
 import win32api
 import win32con
 import win32ui
-from pywin.mfc import dialog, docview, object, window
+from pywin.mfc import dialog, object
 from win32api import RGB
 
 
 # helper to get the text of an arbitary item
 def GetItemText(item):
-    if type(item) == type(()) or type(item) == type([]):
+    if isinstance(item, (tuple, list)):
         use = item[0]
     else:
         use = item
-    if type(use) == type(""):
+    if isinstance(use, str):
         return use
     else:
         return repr(item)
@@ -98,22 +97,17 @@ class HierList(object.Object):
         else:
             self.listControl = listControl
             lbid = listControl.GetDlgCtrlID()
-            assert self.listBoxId is None or self.listBoxId == lbid, (
-                "An invalid listbox control ID has been specified (specified as %s, but exists as %s)"
-                % (self.listBoxId, lbid)
+            assert (
+                self.listBoxId is None or self.listBoxId == lbid
+            ), "An invalid listbox control ID has been specified (specified as {}, but exists as {})".format(
+                self.listBoxId, lbid
             )
             self.listBoxId = lbid
         self.listControl.SetImageList(self.imageList, commctrl.LVSIL_NORMAL)
         # 		self.list.AttachObject(self)
 
-        ## ??? Need a better way to do this - either some way to detect if it's compiled with UNICODE
-        ##  defined, and/or a way to switch the constants based on UNICODE ???
-        if sys.version_info[0] < 3:
-            parent.HookNotify(self.OnTreeItemExpanding, commctrl.TVN_ITEMEXPANDINGA)
-            parent.HookNotify(self.OnTreeItemSelChanged, commctrl.TVN_SELCHANGEDA)
-        else:
-            parent.HookNotify(self.OnTreeItemExpanding, commctrl.TVN_ITEMEXPANDINGW)
-            parent.HookNotify(self.OnTreeItemSelChanged, commctrl.TVN_SELCHANGEDW)
+        parent.HookNotify(self.OnTreeItemExpanding, commctrl.TVN_ITEMEXPANDINGW)
+        parent.HookNotify(self.OnTreeItemSelChanged, commctrl.TVN_SELCHANGEDW)
         parent.HookNotify(self.OnTreeItemDoubleClick, commctrl.NM_DBLCLK)
         self.notify_parent = parent
 
@@ -127,14 +121,10 @@ class HierList(object.Object):
         self.filledItemHandlesMap = {}
 
     def HierTerm(self):
-        # Dont want notifies as we kill the list.
+        # Don't want notifies as we kill the list.
         parent = self.notify_parent  # GetParentFrame()
-        if sys.version_info[0] < 3:
-            parent.HookNotify(None, commctrl.TVN_ITEMEXPANDINGA)
-            parent.HookNotify(None, commctrl.TVN_SELCHANGEDA)
-        else:
-            parent.HookNotify(None, commctrl.TVN_ITEMEXPANDINGW)
-            parent.HookNotify(None, commctrl.TVN_SELCHANGEDW)
+        parent.HookNotify(None, commctrl.TVN_ITEMEXPANDINGW)
+        parent.HookNotify(None, commctrl.TVN_SELCHANGEDW)
         parent.HookNotify(None, commctrl.NM_DBLCLK)
 
         self.DeleteAllItems()
@@ -185,8 +175,6 @@ class HierList(object.Object):
         bitmapSel = self.GetSelectedBitmapColumn(item)
         if bitmapSel is None:
             bitmapSel = bitmapCol
-        ## if type(text) is str:
-        ##	text = text.encode("mbcs")
         hitem = self.listControl.InsertItem(
             parentHandle,
             hInsertAfter,
@@ -229,12 +217,12 @@ class HierList(object.Object):
                 if old_items[iold] == new_items[inewlook]:
                     matched = 1
                     break
-                inewlook = inewlook + 1
+                inewlook += 1
             if matched:
                 # Insert the new items.
-                # 				print "Inserting after", old_items[iold], old_handles[iold]
+                # print("Inserting after", old_items[iold], old_handles[iold])
                 for i in range(inew, inewlook):
-                    # 					print "Inserting index %d (%s)" % (i, new_items[i])
+                    # print(f"Inserting index {i} ({new_items[i]})")
                     hAfter = self.AddItem(hparent, new_items[i], hAfter)
 
                 inew = inewlook + 1
@@ -244,7 +232,7 @@ class HierList(object.Object):
                     self.Refresh(hold)
             else:
                 # Remove the deleted items.
-                # 				print "Deleting %d (%s)" % (iold, old_items[iold])
+                # print(f"Deleting {iold} ({old_items[iold]})")
                 hdelete = old_handles[iold]
                 # First recurse and remove the children from the map.
                 for hchild in self._GetChildHandles(hdelete):
@@ -255,7 +243,7 @@ class HierList(object.Object):
             hAfter = old_handles[iold]
         # Fill any remaining new items:
         for newItem in new_items[inew:]:
-            # 			print "Inserting new item", newItem
+            # print("Inserting new item", newItem)
             self.AddItem(hparent, newItem)
 
     def AcceptRoot(self, root):
@@ -271,7 +259,7 @@ class HierList(object.Object):
         else:
             return 4
 
-    def GetSelectedBitmapColumn(self, item):
+    def GetSelectedBitmapColumn(self, item) -> int | None:
         return 0
 
     def CheckChangedChildren(self):
@@ -357,11 +345,9 @@ class HierListItem:
     def GetSelectedBitmapColumn(self):
         return None  # same as other
 
-    # for py3k/rich-comp sorting compatibility.
     def __lt__(self, other):
         # we want unrelated items to be sortable...
         return id(self) < id(other)
 
-    # for py3k/rich-comp equality compatibility.
     def __eq__(self, other):
         return False

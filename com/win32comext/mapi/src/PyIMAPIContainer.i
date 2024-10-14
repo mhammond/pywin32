@@ -27,8 +27,8 @@ PyIMAPIContainer::~PyIMAPIContainer()
 	return (IMAPIContainer *)PyIUnknown::GetI(self);
 }
 
-// @pyswig <o PyIInterface>|OpenEntry|Opens an object and returns an interface object for further access. 
-PyObject *PyIMAPIContainer::OpenEntry(PyObject *self, PyObject *args) 
+// @pyswig <o PyIInterface>|OpenEntry|Opens an object and returns an interface object for further access.
+PyObject *PyIMAPIContainer::OpenEntry(PyObject *self, PyObject *args)
 {
     HRESULT  _result;
     char * entryString;
@@ -46,7 +46,7 @@ PyObject *PyIMAPIContainer::OpenEntry(PyObject *self, PyObject *args)
     // @pyparm string|entryId||The EntryID to open.
     // @pyparm <o PyIID>|iid||The IID of the returned interface, or None for the default interface.
     // @pyparm int|flags||Flags for the call.  May include MAPI_BEST_ACCESS, MAPI_DEFERRED_ERRORS, MAPI_MODIFY and possibly others (see the MAPI documentation)
-    if(!PyArg_ParseTuple(args,"OOl:OpenEntry",&obEntry, &objIID,&flags)) 
+    if(!PyArg_ParseTuple(args,"OOl:OpenEntry",&obEntry, &objIID,&flags))
         return NULL;
 	if (obEntry==Py_None) {
 		entryString = NULL;
@@ -86,4 +86,3 @@ HRESULT GetContentsTable( unsigned long ulFlags, IMAPITable **OUTPUT);
 HRESULT GetHierarchyTable( unsigned long ulFlags, IMAPITable **OUTPUT);
 
 %native(OpenEntry) OpenEntry;
-

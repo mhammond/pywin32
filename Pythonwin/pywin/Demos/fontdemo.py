@@ -43,7 +43,7 @@ class FontView(docview.ScrollView):
         # Change font on the fly
         self.font = win32ui.CreateFont(new_font)
         # redraw the entire client window
-        selfInvalidateRect(None)
+        self.InvalidateRect(None)
 
     def OnSize(self, params):
         lParam = params[3]
@@ -72,12 +72,11 @@ def FontDemo():
     template = docview.DocTemplate(win32ui.IDR_PYTHONTYPE, None, None, FontView)
     doc = template.OpenDocumentFile(None)
     doc.SetTitle("Font Demo")
-    # 	print "template is ", template, "obj is", template._obj_
+    # print("template is ", template, "obj is", template._obj_)
     template.close()
+    # print("closed")
+    # del template
 
-
-# 	print "closed"
-# 	del template
 
 if __name__ == "__main__":
     import demoutils

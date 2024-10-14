@@ -124,15 +124,15 @@ class WrappedPythonCOMServerTestCase(_BaseTestCase):
 
 
 def suite():
-    # We dont want our base class run
+    # We don't want our base class run
     suite = unittest.TestSuite()
-    for item in list(globals().values()):
+    for item in globals().values():
         if (
-            type(item) == type(unittest.TestCase)
+            isinstance(item, type)
             and issubclass(item, unittest.TestCase)
             and item != _BaseTestCase
         ):
-            suite.addTest(unittest.makeSuite(item))
+            suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(item))
     return suite
 
 

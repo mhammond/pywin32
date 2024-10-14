@@ -5,7 +5,6 @@
 
 # This sample was contributed by Roger Burnham.
 
-import win32api
 import win32con
 import win32ui
 from pywin.framework import app
@@ -46,9 +45,7 @@ class PrintDemoView(docview.ScrollView):
         oldPen = None
         x, y = self.size
         delta = 2
-        colors = list(self.colors.keys())
-        colors.sort()
-        colors = colors * 2
+        colors = sorted(self.colors) * 2
         for color in colors:
             if oldPen is None:
                 oldPen = dc.SelectObject(self.pens[color])
@@ -59,7 +56,7 @@ class PrintDemoView(docview.ScrollView):
             dc.LineTo((x - delta, y - delta))
             dc.LineTo((delta, y - delta))
             dc.LineTo((delta, delta))
-            delta = delta + 4
+            delta += 4
             if x - delta <= 0 or y - delta <= 0:
                 break
         dc.SelectObject(oldPen)
@@ -109,10 +106,10 @@ class PrintDemoView(docview.ScrollView):
         cyChar = metrics["tmHeight"]
         left, top, right, bottom = pInfo.GetDraw()
         dc.TextOut(0, 2 * cyChar, doc.GetTitle())
-        top = top + (7 * cyChar) / 2
+        top += 7 * cyChar / 2
         dc.MoveTo(left, top)
         dc.LineTo(right, top)
-        top = top + cyChar
+        top += cyChar
         # this seems to have not effect...
         # get what I want with the dc.SetWindowOrg calls
         pInfo.SetDraw((left, top, right, bottom))
@@ -132,7 +129,7 @@ class PrintDemoView(docview.ScrollView):
         y = (3 * cyChar) / 2
 
         dc.TextOut(x, y, doc.GetTitle())
-        y = y + cyChar
+        y += cyChar
 
 
 class PrintDemoApp(app.CApp):

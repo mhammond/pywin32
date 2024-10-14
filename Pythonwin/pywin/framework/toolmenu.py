@@ -6,8 +6,6 @@ import win32api
 import win32con
 import win32ui
 
-from . import app
-
 tools = {}
 idPos = 100
 
@@ -41,7 +39,7 @@ def LoadToolMenuItems():
             break
         cmd = win32ui.GetProfileVal("Tools Menu\\%s" % lookNo, "Command", "")
         items.append((menu, cmd))
-        lookNo = lookNo + 1
+        lookNo += 1
 
     if len(items) == 0:
         items = defaultToolMenuItems
@@ -64,14 +62,14 @@ def WriteToolMenuItems(items):
                 break
             win32api.RegDeleteKey(toolKey, subkey)
     # Keys are now removed - write the new ones.
-    # But first check if we have the defaults - and if so, dont write anything!
+    # But first check if we have the defaults - and if so, don't write anything!
     if items == defaultToolMenuItems:
         return
     itemNo = 1
     for menu, cmd in items:
         win32ui.WriteProfileVal("Tools Menu\\%s" % itemNo, "", menu)
         win32ui.WriteProfileVal("Tools Menu\\%s" % itemNo, "Command", cmd)
-        itemNo = itemNo + 1
+        itemNo += 1
 
 
 def SetToolsMenu(menu, menuPos=None):
@@ -90,7 +88,7 @@ def SetToolsMenu(menu, menuPos=None):
             win32con.MF_ENABLED | win32con.MF_STRING, idPos, menuString
         )
         win32ui.GetMainFrame().HookCommand(HandleToolCommand, idPos)
-        idPos = idPos + 1
+        idPos += 1
 
     # Find the correct spot to insert the new tools menu.
     if menuPos is None:
@@ -116,7 +114,7 @@ def HandleToolCommand(cmd, code):
     global tools
     (menuString, pyCmd, desc) = tools[cmd]
     win32ui.SetStatusText("Executing tool %s" % desc, 1)
-    pyCmd = re.sub("\\\\n", "\n", pyCmd)
+    pyCmd = re.sub(r"\\n", "\n", pyCmd)
     win32ui.DoWaitCursor(1)
     oldFlag = None
     try:
@@ -149,10 +147,7 @@ def HandleToolCommand(cmd, code):
 import commctrl
 from pywin.mfc import dialog
 
-if win32ui.UNICODE:
-    LVN_ENDLABELEDIT = commctrl.LVN_ENDLABELEDITW
-else:
-    LVN_ENDLABELEDIT = commctrl.LVN_ENDLABELEDITA
+LVN_ENDLABELEDIT = commctrl.LVN_ENDLABELEDITW
 
 
 class ToolMenuPropPage(dialog.PropertyPage):
@@ -194,7 +189,7 @@ class ToolMenuPropPage(dialog.PropertyPage):
         for desc, cmd in LoadToolMenuItems():
             lc.InsertItem(itemNo, desc)
             lc.SetItemText(itemNo, 1, cmd)
-            itemNo = itemNo + 1
+            itemNo += 1
 
         self.listControl = lc
         return dialog.PropertyPage.OnInitDialog(self)
@@ -212,12 +207,12 @@ class ToolMenuPropPage(dialog.PropertyPage):
             except win32ui.error:
                 # no more items!
                 break
-            itemLook = itemLook + 1
+            itemLook += 1
         WriteToolMenuItems(items)
         return self._obj_.OnOK()
 
     def OnCommandEditControls(self, id, cmd):
-        # 		print "OnEditControls", id, cmd
+        # print("OnEditControls", id, cmd)
         if cmd == win32con.EN_CHANGE and not self.bImChangingEditControls:
             itemNo = self.listControl.GetNextItem(-1, commctrl.LVNI_SELECTED)
             newText = self.editMenuCommand.GetWindowText()
@@ -231,7 +226,7 @@ class ToolMenuPropPage(dialog.PropertyPage):
         self.listControl.SetItemText(itemNo, 0, newText)
 
     def OnNotifyListControl(self, id, cmd):
-        # 		print id, cmd
+        # print(id, cmd)
         try:
             itemNo = self.listControl.GetNextItem(-1, commctrl.LVNI_SELECTED)
         except win32ui.error:  # No selection!

@@ -1,8 +1,8 @@
 """Testing pasing object between multiple COM threads
 
-Uses standard COM marshalling to pass objects between threads.  Even 
+Uses standard COM marshalling to pass objects between threads.  Even
 though Python generally seems to work when you just pass COM objects
-between threads, it shouldnt.
+between threads, it shouldn't.
 
 This shows the "correct" way to do it.
 
@@ -10,15 +10,14 @@ It shows that although we create new threads to use the Python.Interpreter,
 COM marshalls back all calls to that object to the main Python thread,
 which must be running a message loop (as this sample does).
 
-When this test is run in "free threaded" mode (at this stage, you must 
-manually mark the COM objects as "ThreadingModel=Free", or run from a 
+When this test is run in "free threaded" mode (at this stage, you must
+manually mark the COM objects as "ThreadingModel=Free", or run from a
 service which has marked itself as free-threaded), then no marshalling
 is done, and the Python.Interpreter object start doing the "expected" thing
 - ie, it reports being on the same thread as its caller!
 
 Python.exe needs a good way to mark itself as FreeThreaded - at the moment
 this is a pain in the but!
-
 """
 
 import _thread
@@ -31,18 +30,16 @@ import win32event
 
 
 def TestInterp(interp):
-    if interp.Eval("1+1") != 2:
-        raise ValueError("The interpreter returned the wrong result.")
+    assert interp.Eval("1+1") == 2, "The interpreter returned the wrong result."
     try:
         interp.Eval(1 + 1)
-        raise ValueError("The interpreter did not raise an exception")
+        raise AssertionError("The interpreter did not raise an exception")
     except pythoncom.com_error as details:
         import winerror
 
-        if details[0] != winerror.DISP_E_TYPEMISMATCH:
-            raise ValueError(
-                "The interpreter exception was not winerror.DISP_E_TYPEMISMATCH."
-            )
+        assert (
+            details[0] == winerror.DISP_E_TYPEMISMATCH
+        ), "The interpreter exception was not winerror.DISP_E_TYPEMISMATCH."
 
 
 def TestInterpInThread(stopEvent, cookie):
@@ -113,7 +110,7 @@ def test(fn):
             if rc >= win32event.WAIT_OBJECT_0 and rc < win32event.WAIT_OBJECT_0 + len(
                 events
             ):
-                numFinished = numFinished + 1
+                numFinished += 1
                 if numFinished >= len(events):
                     break
             elif rc == win32event.WAIT_OBJECT_0 + len(events):  # a message
@@ -134,7 +131,7 @@ def test(fn):
 if __name__ == "__main__":
     test(BeginThreadsSimpleMarshal)
     win32api.Sleep(500)
-    # Doing CoUninit here stop Pythoncom.dll hanging when DLLMain shuts-down the process
+    # Doing CoUninit here stop pythoncom.dll hanging when DLLMain shuts-down the process
     pythoncom.CoUninitialize()
     if pythoncom._GetInterfaceCount() != 0 or pythoncom._GetGatewayCount() != 0:
         print(

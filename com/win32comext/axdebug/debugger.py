@@ -1,20 +1,9 @@
 import os
-import string
 import sys
 
 import pythoncom
-import win32api
-from win32com.axdebug import (
-    adb,
-    axdebug,
-    codecontainer,
-    contexts,
-    documents,
-    expressions,
-    gateways,
-)
-from win32com.axdebug.util import _wrap, _wrap_remove, trace
-from win32com.axscript import axscript
+from win32com.axdebug import adb, axdebug, codecontainer, documents, expressions
+from win32com.axdebug.util import _wrap
 
 currentDebugger = None
 
@@ -30,7 +19,7 @@ class ModuleTreeNode:
         self.cont = codecontainer.SourceModuleContainer(module)
 
     def __repr__(self):
-        return "<ModuleTreeNode wrapping %s>" % (self.module)
+        return f"<ModuleTreeNode wrapping {self.module}>"
 
     def Attach(self, parentRealNode):
         self.realNode.Attach(parentRealNode)
@@ -46,23 +35,23 @@ def BuildModule(module, built_nodes, rootNode, create_node_fn, create_node_args)
         keep = module.__name__
         keep = keep and (built_nodes.get(module) is None)
         if keep and hasattr(module, "__file__"):
-            keep = string.lower(os.path.splitext(module.__file__)[1]) not in [
+            keep = os.path.splitext(module.__file__)[1].lower() not in [
                 ".pyd",
                 ".dll",
             ]
-    #               keep = keep and module.__name__=='__main__'
+    # keep = keep and module.__name__=='__main__'
     if module and keep:
-        #        print "keeping", module.__name__
+        # print("keeping", module.__name__)
         node = ModuleTreeNode(module)
         built_nodes[module] = node
         realNode = create_node_fn(*(node,) + create_node_args)
         node.realNode = realNode
 
         # Split into parent nodes.
-        parts = string.split(module.__name__, ".")
+        parts = module.__name__.split(".")
         if parts[-1][:8] == "__init__":
             parts = parts[:-1]
-        parent = string.join(parts[:-1], ".")
+        parent = ".".join(parts[:-1])
         parentNode = rootNode
         if parent:
             parentModule = sys.modules[parent]
@@ -75,7 +64,7 @@ def BuildModule(module, built_nodes, rootNode, create_node_fn, create_node_args)
 
 
 def RefreshAllModules(builtItems, rootNode, create_node, create_node_args):
-    for module in list(sys.modules.values()):
+    for module in sys.modules.values():
         BuildModule(module, builtItems, rootNode, create_node, create_node_args)
 
 
@@ -92,18 +81,18 @@ class CodeContainerProvider(documents.CodeContainerProvider):
         self.axdebugger.RefreshAllModules(self.nodes, self)
 
     def FromFileName(self, fname):
-        ### It appears we cant add modules during a debug session!
-        #               if self.currentNumModules != len(sys.modules):
-        #                       self.axdebugger.RefreshAllModules(self.nodes, self)
-        #                       self.currentNumModules = len(sys.modules)
-        #               for key in self.ccsAndNodes.keys():
-        #                       print "File:", key
+        # It appears we can't add modules during a debug session!
+        # if self.currentNumModules != len(sys.modules):
+        #     self.axdebugger.RefreshAllModules(self.nodes, self)
+        #     self.currentNumModules = len(sys.modules)
+        # for key in self.ccsAndNodes:
+        #     print("File:", key)
         return documents.CodeContainerProvider.FromFileName(self, fname)
 
     def Close(self):
         documents.CodeContainerProvider.Close(self)
         self.axdebugger = None
-        print("Closing %d nodes" % (len(self.nodes)))
+        print(f"Closing {len(self.nodes)} nodes")
         for node in self.nodes.values():
             node.Close()
         self.nodes = {}
@@ -170,7 +159,7 @@ class AXDebugger:
 
         # Get/create the debugger, and tell it to break.
         self.app.StartDebugSession()
-        #               self.app.CauseBreak()
+        # self.app.CauseBreak()
 
         self.pydebugger.SetupAXDebugging(None, frame)
         self.pydebugger.set_trace()
@@ -245,6 +234,5 @@ if __name__ == "__main__":
     print("About to test the debugging interfaces!")
     test()
     print(
-        " %d/%d com objects still alive"
-        % (pythoncom._GetInterfaceCount(), pythoncom._GetGatewayCount())
+        f" {pythoncom._GetInterfaceCount()}/{pythoncom._GetGatewayCount()} com objects still alive"
     )

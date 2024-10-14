@@ -15,7 +15,7 @@ def FileExists(fname):
     try:
         os.stat(fname)
         return 1
-    except os.error as details:
+    except OSError as details:
         return 0
 
 
@@ -120,7 +120,7 @@ def FindAppPath(appName, knownFileName, searchPaths):
             # Found it
             return os.path.abspath(pathLook)
     raise error(
-        "The file %s can not be located for application %s" % (knownFileName, appName)
+        f"The file {knownFileName} can not be located for application {appName}"
     )
 
 
@@ -192,7 +192,7 @@ def LocateFileName(fileNamesString, searchPaths):
                 retPath = os.path.join(path, fileName)
                 os.stat(retPath)
                 break
-            except os.error:
+            except OSError:
                 retPath = None
         if retPath:
             break
@@ -209,7 +209,7 @@ def LocateFileName(fileNamesString, searchPaths):
         # Display a common dialog to locate the file.
         flags = win32con.OFN_FILEMUSTEXIST
         ext = os.path.splitext(fileName)[1]
-        filter = "Files of requested type (*%s)|*%s||" % (ext, ext)
+        filter = f"Files of requested type (*{ext})|*{ext}||"
         dlg = win32ui.CreateFileDialog(1, None, fileName, flags, filter, None)
         dlg.SetOFNTitle("Locate " + fileName)
         if dlg.DoModal() != win32con.IDOK:
@@ -307,9 +307,7 @@ def FindRegisterPackage(packageName, knownFile, searchPaths, registryAppName=Non
             regutil.RegisterNamedPath(registryAppName, pathAdd)
         return pathLook
     except error as details:
-        print(
-            "*** The %s package could not be registered - %s" % (packageName, details)
-        )
+        print(f"*** The {packageName} package could not be registered - {details}")
         print(
             "*** Please ensure you have passed the correct paths on the command line."
         )
@@ -328,7 +326,7 @@ def FindRegisterApp(appName, knownFiles, searchPaths):
 
     import regutil
 
-    if type(knownFiles) == type(""):
+    if isinstance(knownFiles, str):
         knownFiles = [knownFiles]
     paths = []
     try:
@@ -365,7 +363,7 @@ def FindRegisterHelpFile(helpFile, searchPaths, helpDesc=None):
     except error as details:
         print("*** ", details)
         return
-    #       print "%s found at %s" % (helpFile, pathLook)
+    # print(f"{helpFile} found at {pathLook}")
     regutil.RegisterHelpFile(helpFile, pathLook, helpDesc)
 
 
@@ -499,23 +497,24 @@ See also the "regcheck.py" utility which will check and dump the contents
 of the registry.
 """
 
-examples = """\
+# Using raw string so that all paths meant to be copied read correctly inline and when printed
+examples = r"""
 Examples:
-"regsetup c:\\wierd\\spot\\1 c:\\wierd\\spot\\2"
+"regsetup c:\wierd\spot\1 c:\wierd\spot\2"
 Attempts to setup the core Python.  Looks in some standard places,
 as well as the 2 wierd spots to locate the core Python files (eg, Python.exe,
-python14.dll, the standard library and Win32 Extensions.
+pythonXX.dll, the standard library and Win32 Extensions).
 
 "regsetup -a myappname . .\subdir"
-Registers a new Pythonpath entry named myappname, with "C:\\I\\AM\\HERE" and
-"C:\\I\\AM\\HERE\subdir" added to the path (ie, all args are converted to
+Registers a new Pythonpath entry named myappname, with "C:\I\AM\HERE" and
+"C:\I\AM\HERE\subdir" added to the path (ie, all args are converted to
 absolute paths)
 
-"regsetup -c c:\\my\\python\\files"
-Unconditionally add "c:\\my\\python\\files" to the 'core' Python path.
+"regsetup -c c:\my\python\files"
+Unconditionally add "c:\my\python\files" to the 'core' Python path.
 
-"regsetup -m some.pyd \\windows\\system"
-Register the module some.pyd in \\windows\\system as a registered
+"regsetup -m some.pyd \windows\system"
+Register the module some.pyd in \windows\system as a registered
 module.  This will allow some.pyd to be imported, even though the
 windows system directory is not (usually!) on the Python Path.
 

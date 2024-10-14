@@ -37,8 +37,8 @@ generates Windows .hlp files.
 
 class PyCRectType : public ui_type {
    public:
-    PyCRectType(const char *name, ui_type *pBaseType, Py_ssize_t typeSize, ptrdiff_t pyobjOffset, struct PyMethodDef *methodList,
-                ui_base_class *(*thector)());
+    PyCRectType(const char *name, ui_type *pBaseType, Py_ssize_t typeSize, ptrdiff_t pyobjOffset,
+                struct PyMethodDef *methodList, ui_base_class *(*thector)());
 };
 // @object PyCRect|A Python interface the the MFC CRect class.
 class PyCRect : public ui_base_class {
@@ -178,7 +178,7 @@ PyCRectType PyCRect::type("PyCRect", &ui_base_class::type, sizeof(PyCRect), PYOB
                           NULL);
 
 // The CREATESTRUCT just has pointers (no buffers) for the name
-// and classname.  Therefore, I dont treat them as strings, just
+// and classname.  Therefore, I don't treat them as strings, just
 // pointers (via long casts)
 // @object CREATESTRUCT|A representation of a Windows CREATESTRUCT structure.
 PyObject *PyObjectFromCreateStruct(LPCREATESTRUCT lpcs)
@@ -260,7 +260,7 @@ BOOL DictToLogFont(PyObject *font_props, LOGFONT *pLF)
         szFontClipPrecision, szFontQuality,   szFontPitch,      szFontName,        NULL};
 
     // font default values
-    pLF->lfCharSet = DEFAULT_CHARSET;  // dont use ANSI_CHARSET to support Japanese charset.
+    pLF->lfCharSet = DEFAULT_CHARSET;  // don't use ANSI_CHARSET to support Japanese charset.
     pLF->lfQuality = PROOF_QUALITY;    // don't scale raster fonts and force anti aliasing
     if (!PyDict_Check(font_props)) {
         PyErr_Format(PyExc_TypeError, "LOGFONT must be a dict, not %s", font_props->ob_type->tp_name);
@@ -933,7 +933,7 @@ BOOL ParseCharFormatTuple(PyObject *args, CHARFORMAT *pFmt)
     // @tupleitem 6|int|bPitchAndFamily|The charset.  See the LOGFONT structure for details.
     // @tupleitem 7|string|faceName|The font name.
 
-    // @comm  Executing d=win32ui.CreateFontDialog(); d.DoModal(); print d.GetCharFormat()
+    // @comm  Executing d=win32ui.CreateFontDialog(); d.DoModal(); print(d.GetCharFormat())
     // will print a valid CHARFORMAT tuple.
 }
 
@@ -1137,11 +1137,12 @@ CString GetReprText(PyObject *objectUse)
     PyObject *s;
     CString csRet;
     s = PyObject_Str(objectUse);
-    if (s) if (TmpWCHAR ts=s) {
-        csRet = CString(ts);
-        Py_DECREF(s);
-        return csRet;
-    }
+    if (s)
+        if (TmpWCHAR ts = s) {
+            csRet = CString(ts);
+            Py_DECREF(s);
+            return csRet;
+        }
     PyErr_Clear();
     s = PyObject_Repr(objectUse);
     if (s == NULL) {
@@ -1152,7 +1153,7 @@ CString GetReprText(PyObject *objectUse)
 
     // repr() should always return a unicode string, but for hysterical raisens we check if it is bytes.
     if (PyUnicode_Check(s))
-        if (TmpWCHAR ts=s)
+        if (TmpWCHAR ts = s)
             csRet = ts;
         else {
             PyErr_Clear();

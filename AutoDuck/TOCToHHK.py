@@ -1,4 +1,3 @@
-import os.path
 import sys
 
 """
@@ -37,13 +36,12 @@ def main():
         if " " in context:
             context = context.replace(" ", "_")
         out.write(
-            """    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="%s">
-        <param name="Name" value="%s">
-        <param name="Local" value="%s.html">
+            f"""    <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="{keyword}">
+        <param name="Name" value="{fields[1]}">
+        <param name="Local" value="{context}.html">
         </OBJECT>
 """
-            % (keyword, fields[1], context)
         )
         line = input.readline()
     out.write(

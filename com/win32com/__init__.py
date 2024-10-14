@@ -1,6 +1,7 @@
 #
 # Initialization for the win32com package
 #
+from __future__ import annotations
 
 import os
 import sys
@@ -9,7 +10,7 @@ import pythoncom
 import win32api
 
 # flag if we are in a "frozen" build.
-_frozen = getattr(sys, "frozen", 1 == 0)
+_frozen = getattr(sys, "frozen", False)
 # pythoncom dumbly defaults this to zero - we believe sys.frozen over it.
 if _frozen and not getattr(pythoncom, "frozen", 0):
     pythoncom.frozen = sys.frozen
@@ -25,6 +26,9 @@ __gen_path__ = ""
 __build_path__ = None
 ### TODO - Load _all_ \\Extensions subkeys - for now, we only read the default
 ### Modules will work if loaded into "win32comext" path.
+
+# Ensure we're working on __path__ as list, not Iterable
+__path__: list[str] = list(__path__)  # type: ignore[no-redef]
 
 
 def SetupEnvironment():
@@ -96,9 +100,7 @@ if not __gen_path__:
     try:
         import win32com.gen_py
 
-        # hrmph - 3.3 throws: TypeError: '_NamespacePath' object does not support indexing
-        # attempting to get __path__[0] - but I can't quickly repro this stand-alone.
-        # Work around it by using an iterator.
+        # __path__ is only ensured to be an Iterable, not a list.
         __gen_path__ = next(iter(sys.modules["win32com.gen_py"].__path__))
     except ImportError:
         # If a win32com\gen_py directory already exists, then we use it
@@ -113,7 +115,7 @@ if not __gen_path__:
             __gen_path__ = os.path.join(
                 win32api.GetTempPath(),
                 "gen_py",
-                "%d.%d" % (sys.version_info[0], sys.version_info[1]),
+                "%d.%d" % (sys.version_info.major, sys.version_info.minor),
             )
 
 # we must have a __gen_path__, but may not have a gen_py module -

@@ -1,12 +1,14 @@
-# App.py
 # Application stuff.
 # The application is responsible for managing the main frame window.
 #
 # We also grab the FileOpen command, to invoke our Python editor
 " The PythonWin application code. Manages most aspects of MDI, etc "
+from __future__ import annotations
+
 import os
 import sys
 import traceback
+from typing import TYPE_CHECKING
 
 import regutil
 import win32api
@@ -17,28 +19,8 @@ from pywin.mfc.thread import WinApp
 
 from . import scriptutils
 
-## NOTE: App and AppBuild should NOT be used - instead, you should contruct your
-## APP class manually whenever you like (just ensure you leave these 2 params None!)
-## Whoever wants the generic "Application" should get it via win32iu.GetApp()
-
-# These are "legacy"
-AppBuilder = None
-App = None  # default - if used, must end up a CApp derived class.
-
-
-# Helpers that should one day be removed!
-def AddIdleHandler(handler):
-    print(
-        "app.AddIdleHandler is deprecated - please use win32ui.GetApp().AddIdleHandler() instead."
-    )
-    return win32ui.GetApp().AddIdleHandler(handler)
-
-
-def DeleteIdleHandler(handler):
-    print(
-        "app.DeleteIdleHandler is deprecated - please use win32ui.GetApp().DeleteIdleHandler() instead."
-    )
-    return win32ui.GetApp().DeleteIdleHandler(handler)
+if TYPE_CHECKING:
+    from typing_extensions import Literal
 
 
 # Helper for writing a Window position by name, and later loading it.
@@ -49,7 +31,7 @@ def SaveWindowSize(section, rect, state=""):
                  (same format as CREATESTRUCT position tuples)."""
     left, top, right, bottom = rect
     if state:
-        state = state + " "
+        state += " "
     win32ui.WriteProfileVal(section, state + "left", left)
     win32ui.WriteProfileVal(section, state + "top", top)
     win32ui.WriteProfileVal(section, state + "right", right)
@@ -59,7 +41,7 @@ def SaveWindowSize(section, rect, state=""):
 def LoadWindowSize(section, state=""):
     """Loads a section from an INI file, and returns a rect in a tuple (see SaveWindowSize)"""
     if state:
-        state = state + " "
+        state += " "
     left = win32ui.GetProfileVal(section, state + "left", 0)
     top = win32ui.GetProfileVal(section, state + "top", 0)
     right = win32ui.GetProfileVal(section, state + "right", 0)
@@ -85,7 +67,7 @@ class MainFrame(window.MDIFrameWnd):
         win32ui.ID_INDICATOR_COLNUM,
     )
 
-    def OnCreate(self, cs):
+    def OnCreate(self, cs) -> Literal[-1, 0, 1]:
         self._CreateStatusBar()
         return 0
 
@@ -169,10 +151,6 @@ class CApp(WinApp):
         if self._obj_:
             self._obj_.AttachObject(None)
         self._obj_ = None
-        global App
-        global AppBuilder
-        App = None
-        AppBuilder = None
         return 0
 
     def HaveIdleHandler(self, handler):
@@ -234,14 +212,12 @@ class CApp(WinApp):
                 help.OpenHelpFile(helpFile, helpCmd)
         except:
             t, v, tb = sys.exc_info()
-            win32ui.MessageBox(
-                "Internal error in help file processing\r\n%s: %s" % (t, v)
-            )
+            win32ui.MessageBox(f"Internal error in help file processing\r\n{t}: {v}")
             tb = None  # Prevent a cycle
 
     def DoLoadModules(self, modules):
         # XXX - this should go, but the debugger uses it :-(
-        # dont do much checking!
+        # don't do much checking!
         for module in modules:
             __import__(module)
 
@@ -300,7 +276,7 @@ class CApp(WinApp):
     # No longer used by Pythonwin, as the C++ code has this same basic functionality
     # but handles errors slightly better.
     # It all still works, tho, so if you need similar functionality, you can use it.
-    # Therefore I havent deleted this code completely!
+    # Therefore I haven't deleted this code completely!
     # 	def CallbackManager( self, ob, args = () ):
     # 		"""Manage win32 callbacks.  Trap exceptions, report on them, then return 'All OK'
     # 		to the frame-work. """
@@ -364,9 +340,8 @@ class AboutBox(dialog.Dialog):
         dialog.Dialog.__init__(self, idd)
 
     def OnInitDialog(self):
-        text = (
-            "Pythonwin - Python IDE and GUI Framework for Windows.\n\n%s\n\nPython is %s\n\n%s\n\n%s\n\n%s"
-            % (win32ui.copyright, sys.copyright, scintilla, idle, contributors)
+        text = "Pythonwin - Python IDE and GUI Framework for Windows.\n\n{}\n\nPython is {}\n\n{}\n\n{}\n\n{}".format(
+            win32ui.copyright, sys.copyright, scintilla, idle, contributors
         )
         self.SetDlgItemText(win32ui.IDC_EDIT1, text)
         # Get the build number - written by installers.
@@ -379,7 +354,7 @@ class AboutBox(dialog.Dialog):
                 open(os.path.join(site_packages, "pywin32.version.txt")).read().strip()
             )
             ver = "pywin32 build %s" % build_no
-        except EnvironmentError:
+        except OSError:
             ver = None
         if ver is None:
             # See if we are Part of Active Python
@@ -387,7 +362,7 @@ class AboutBox(dialog.Dialog):
                 "SOFTWARE\\ActiveState\\ActivePython", "CurrentVersion"
             )
             if ver is not None:
-                ver = "ActivePython build %s" % (ver,)
+                ver = f"ActivePython build {ver}"
         if ver is None:
             ver = ""
         self.SetDlgItemText(win32ui.IDC_ABOUT_VERSION, ver)
@@ -400,8 +375,8 @@ class AboutBox(dialog.Dialog):
             )
 
 
-def Win32RawInput(prompt=None):
-    "Provide raw_input() for gui apps"
+def Win32Input(prompt=None):
+    "Provide input() for gui apps"
     # flush stderr/out first.
     try:
         sys.stdout.flush()
@@ -411,27 +386,15 @@ def Win32RawInput(prompt=None):
     if prompt is None:
         prompt = ""
     ret = dialog.GetSimpleInput(prompt)
-    if ret == None:
+    if ret is None:
         raise KeyboardInterrupt("operation cancelled")
     return ret
 
 
-def Win32Input(prompt=None):
-    "Provide input() for gui apps"
-    return eval(input(prompt))
-
-
 def HookInput():
-    try:
-        raw_input
-        # must be py2x...
-        sys.modules["__builtin__"].raw_input = Win32RawInput
-        sys.modules["__builtin__"].input = Win32Input
-    except NameError:
-        # must be py3k
-        import code
+    import code
 
-        sys.modules["builtins"].input = Win32RawInput
+    sys.modules["builtins"].input = Win32Input
 
 
 def HaveGoodGUI():

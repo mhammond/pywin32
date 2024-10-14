@@ -7,14 +7,25 @@ import unittest
 import pywintypes
 import win32con
 import win32gui
-from win32clipboard import *
+from win32clipboard import (
+    CloseClipboard,
+    EmptyClipboard,
+    GetClipboardData,
+    GetClipboardDataHandle,
+    GetClipboardFormatName,
+    GetGlobalMemory,
+    OpenClipboard,
+    RegisterClipboardFormat,
+    SetClipboardData,
+    SetClipboardText,
+)
 
 custom_format_name = "PythonClipboardTestFormat"
 
 
 class CrashingTestCase(unittest.TestCase):
     def test_722082(self):
-        class crasher(object):
+        class crasher:
             pass
 
         obj = crasher()
@@ -67,15 +78,15 @@ class TestStrings(unittest.TestCase):
         CloseClipboard()
 
     def test_unicode(self):
-        val = "test-\a9har"
+        val = "test-\xa9har"
         SetClipboardData(win32con.CF_UNICODETEXT, val)
         self.assertEqual(GetClipboardData(win32con.CF_UNICODETEXT), val)
 
     def test_unicode_text(self):
         val = "test-val"
         SetClipboardText(val)
-        # GetClipboardData doesn't to auto string conversions - so on py3k,
-        # CF_TEXT returns bytes.
+        # GetClipboardData doesn't do auto string conversions -
+        # so CF_TEXT returns bytes.
         expected = val.encode("latin1")
         self.assertEqual(GetClipboardData(win32con.CF_TEXT), expected)
         SetClipboardText(val, win32con.CF_UNICODETEXT)

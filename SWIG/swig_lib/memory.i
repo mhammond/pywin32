@@ -35,5 +35,3 @@ void *memchr(const void *cs, char c, int n);
 
 void *memset(void *s, char c, int n);
 /* Place character c into first n characters of s, return s */
-
-

@@ -5,7 +5,7 @@ import win32com.server.connect
 import winerror
 from win32com.axdebug import axdebug
 from win32com.axdebug.util import RaiseNotImpl, _wrap
-from win32com.server.exception import Exception
+from win32com.server.exception import COMException
 from win32com.server.util import ListEnumeratorGateway
 
 
@@ -233,7 +233,7 @@ class DebugDocumentTextExternalAuthor:
         - if fIsOriginalPath is TRUE if the path refers to the original file for the document.
         - if fIsOriginalPath is FALSE if the path refers to a newly created temporary file.
 
-        raise Exception(winerror.E_FAIL) if no source file can be created/determined.
+        raise COMException(winerror.E_FAIL) if no source file can be created/determined.
         """
         RaiseNotImpl("GetPathName")
 
@@ -398,7 +398,7 @@ class DebugDocumentHost:
         # Result must be (string, int) where the int is a BOOL
         # - TRUE if the path refers to the original file for the document.
         # - FALSE if the path refers to a newly created temporary file.
-        # - raise Exception(scode=E_FAIL) if no source file can be created/determined.
+        # - raise COMException(scode=E_FAIL) if no source file can be created/determined.
         RaiseNotImpl("GetPathName")
 
     def GetFileName(self):
@@ -440,7 +440,7 @@ class DebugDocumentTextConnectServer:
         # Creates a connection to the client.  Simply allocate a new cookie,
         # find the clients interface, and store it in a dictionary.
         interface = pUnk.QueryInterface(axdebug.IID_IDebugDocumentTextEvents, 1)
-        self.cookieNo = self.cookieNo + 1
+        self.cookieNo += 1
         self.connections[self.cookieNo] = interface
         return self.cookieNo
 
@@ -449,7 +449,7 @@ class DebugDocumentTextConnectServer:
         try:
             del self.connections[cookie]
         except KeyError:
-            return Exception(scode=winerror.E_UNEXPECTED)
+            return COMException(scode=winerror.E_UNEXPECTED)
 
     # IConnectionPointContainer interfaces
     def EnumConnectionPoints(self):
@@ -459,7 +459,7 @@ class DebugDocumentTextConnectServer:
         # Find a connection we support.  Only support the single event interface.
         if iid == axdebug.IID_IDebugDocumentTextEvents:
             return _wrap(self)
-        raise Exception(scode=winerror.E_NOINTERFACE)  # ??
+        raise COMException(scode=winerror.E_NOINTERFACE)  # ??
 
 
 class RemoteDebugApplicationEvents:

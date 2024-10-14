@@ -113,7 +113,7 @@ class RegistryTreeView(docview.TreeView):
     def OnDeleteKey(self, command, code):
         hitem = self.hierList.GetSelectedItem()
         item = self.hierList.ItemFromHandle(hitem)
-        msg = "Are you sure you wish to delete the key '%s'?" % (item.keyName,)
+        msg = f"Are you sure you wish to delete the key '{item.keyName}'?"
         id = win32ui.MessageBox(msg, None, win32con.MB_YESNO)
         if id != win32con.IDYES:
             return
@@ -128,8 +128,6 @@ class RegistryTreeView(docview.TreeView):
             self.hierList.Refresh(hparent)
 
     def OnAddKey(self, command, code):
-        from pywin.mfc import dialog
-
         val = dialog.GetSimpleInput("New key name", "", "Add new key")
         if val is None:
             return  # cancelled.
@@ -139,8 +137,6 @@ class RegistryTreeView(docview.TreeView):
             self.hierList.Refresh(hitem)
 
     def OnAddValue(self, command, code):
-        from pywin.mfc import dialog
-
         val = dialog.GetSimpleInput("New value", "", "Add new value")
         if val is None:
             return  # cancelled.
@@ -163,9 +159,9 @@ class RegistryTreeView(docview.TreeView):
     def SearchSelectedItem(self):
         handle = self.hierList.GetChildItem(0)
         while 1:
-            # 			print "State is", self.hierList.GetItemState(handle, -1)
+            # print("State is", self.hierList.GetItemState(handle, -1))
             if self.hierList.GetItemState(handle, commctrl.TVIS_SELECTED):
-                # 				print "Item is ", self.hierList.ItemFromHandle(handle)
+                # print("Item is ", self.hierList.ItemFromHandle(handle))
                 return self.hierList.ItemFromHandle(handle)
             handle = self.hierList.GetNextSiblingItem(handle)
 
@@ -201,7 +197,7 @@ class RegistryValueView(docview.ListView):
                     name = "(Default)"
                 self.InsertItem(valNum, name)
                 self.SetItemText(valNum, 1, str(res[1]))
-                valNum = valNum + 1
+                valNum += 1
         finally:
             win32api.RegCloseKey(hkey)
 
@@ -220,7 +216,7 @@ class RegistryValueView(docview.ListView):
                 style = win32api.GetWindowLong(
                     self.edit.GetSafeHwnd(), win32con.GWL_STYLE
                 )
-                style = style & (~win32con.ES_WANTRETURN)
+                style &= ~win32con.ES_WANTRETURN
                 win32api.SetWindowLong(
                     self.edit.GetSafeHwnd(), win32con.GWL_STYLE, style
                 )
@@ -336,7 +332,7 @@ class HLIRegistryKey(hierlist.HierListItem):
         )
 
     def __repr__(self):
-        return "<%s with root=%s, key=%s>" % (
+        return "<{} with root={}, key={}>".format(
             self.__class__.__name__,
             self.keyRoot,
             self.keyName,
@@ -368,7 +364,7 @@ class HLIRegistryKey(hierlist.HierListItem):
                 except win32api.error:
                     break
                 ret.append(HLIRegistryKey(self.keyRoot, self.keyName + "\\" + key, key))
-                keyNum = keyNum + 1
+                keyNum += 1
         finally:
             win32api.RegCloseKey(hkey)
             win32ui.DoWaitCursor(0)

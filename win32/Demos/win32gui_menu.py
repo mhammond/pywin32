@@ -8,21 +8,70 @@
 # * No support for GetMenuItemInfo.
 
 # Based on Andy McKay's demo code.
-from win32api import *
 
-# Try and use XP features, so we get alpha-blending etc.
-try:
-    from winxpgui import *
-except ImportError:
-    from win32gui import *
-
-import array
 import os
 import struct
 import sys
 
 import win32con
-from win32gui_struct import *
+from win32api import GetSystemDirectory, GetSystemMetrics
+from win32gui import (
+    LOWORD,
+    NIF_ICON,
+    NIF_MESSAGE,
+    NIF_TIP,
+    NIM_ADD,
+    NIM_DELETE,
+    WNDCLASS,
+    CheckMenuItem,
+    CheckMenuRadioItem,
+    CreateCompatibleBitmap,
+    CreateCompatibleDC,
+    CreateFontIndirect,
+    CreatePopupMenu,
+    CreateWindow,
+    DeleteDC,
+    DestroyIcon,
+    DestroyWindow,
+    DrawIconEx,
+    ExtTextOut,
+    FillRect,
+    GetCursorPos,
+    GetDC,
+    GetMenuDefaultItem,
+    GetMenuState,
+    GetModuleHandle,
+    GetSysColor,
+    GetSysColorBrush,
+    GetTextExtentPoint32,
+    InsertMenu,
+    InsertMenuItem,
+    LoadIcon,
+    LoadImage,
+    PostMessage,
+    PostQuitMessage,
+    PumpMessages,
+    PyGetMemory,
+    PyMakeBuffer,
+    PySetMemory,
+    RegisterClass,
+    ReleaseDC,
+    SelectObject,
+    SetBkColor,
+    SetBkMode,
+    SetForegroundWindow,
+    SetMenuDefaultItem,
+    SetTextColor,
+    Shell_NotifyIcon,
+    SystemParametersInfo,
+    TrackPopupMenu,
+    UpdateWindow,
+)
+from win32gui_struct import (
+    EmptyMENUITEMINFO,
+    PackMENUITEMINFO,
+    UnpackMENUITEMINFO,
+)
 
 this_dir = os.path.split(sys.argv[0])[0]
 
@@ -60,11 +109,6 @@ class MainWindow:
         )
         UpdateWindow(self.hwnd)
         iconPathName = os.path.abspath(os.path.join(sys.prefix, "pyc.ico"))
-        # py2.5 includes the .ico files in the DLLs dir for some reason.
-        if not os.path.isfile(iconPathName):
-            iconPathName = os.path.abspath(
-                os.path.join(os.path.split(sys.executable)[0], "DLLs", "pyc.ico")
-            )
         if not os.path.isfile(iconPathName):
             # Look in the source tree.
             iconPathName = os.path.abspath(

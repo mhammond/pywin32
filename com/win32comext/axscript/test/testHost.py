@@ -6,10 +6,8 @@ import win32com.server.policy
 import win32com.test.util
 from win32com.axscript import axscript
 from win32com.axscript.server import axsite
-from win32com.axscript.server.error import Exception
 from win32com.client.dynamic import Dispatch
 from win32com.server import connect, util
-from win32com.server.exception import COMException
 
 verbose = "-v" in sys.argv
 
@@ -71,7 +69,7 @@ class Test:
 #    self._connect_server_.Broadcast(last)
 
 
-#### Connections currently wont work, as there is no way for the engine to
+#### Connections currently won't work, as there is no way for the engine to
 #### know what events we support.  We need typeinfo support.
 
 IID_ITestEvents = pythoncom.MakeIID("{8EB72F90-0D44-11d1-9C4B-00AA00125A98}")
@@ -99,7 +97,7 @@ prop = "Property Value"
 sub hello(arg1)
    test.echo arg1
 end sub
-  
+
 sub testcollection
    if test.collection.Item(0) <> 1 then
      test.fail("Index 0 was wrong")
@@ -124,7 +122,7 @@ PyScript = """\
 prop = "Property Value"
 def hello(arg1):
    test.echo(arg1)
-   
+
 def testcollection():
 #   test.collection[1] = "New one"
    got = []
@@ -133,14 +131,6 @@ def testcollection():
    if got != [1, "Two", 3]:
      test.fail("Didn't get the collection")
    pass
-"""
-
-# XXX - needs py3k work!  Throwing a bytes string with an extended char
-# doesn't make much sense, but py2x allows it.  What it gets upset with
-# is a real unicode arg - which is the only thing py3k allows!
-PyScript_Exc = """\
-def hello(arg1):
-  raise RuntimeError("exc with extended \xa9har")
 """
 
 ErrScript = """\
@@ -163,8 +153,7 @@ def _CheckEngineState(engine, name, state):
         got_name = state_map.get(got, str(got))
         state_name = state_map.get(state, str(state))
         raise RuntimeError(
-            "Warning - engine %s has state %s, but expected %s"
-            % (name, got_name, state_name)
+            f"Warning - engine {name} has state {got_name}, but expected {state_name}"
         )
 
 
@@ -188,18 +177,16 @@ class EngineTester(win32com.test.util.TestCase):
                 ob.hello("Goober")
                 self.assertTrue(
                     expected_exc is None,
-                    "Expected %r, but no exception seen" % (expected_exc,),
+                    f"Expected {expected_exc!r}, but no exception seen",
                 )
             except pythoncom.com_error:
                 if expected_exc is None:
                     self.fail(
-                        "Unexpected failure from script code: %s"
-                        % (site.exception_seen,)
+                        f"Unexpected failure from script code: {site.exception_seen}"
                     )
                 if expected_exc not in site.exception_seen[2]:
                     self.fail(
-                        "Could not find %r in %r"
-                        % (expected_exc, site.exception_seen[2])
+                        f"Could not find {expected_exc!r} in {site.exception_seen[2]!r}"
                     )
                 return
             self.assertEqual(echoer.last, "Goober")
@@ -247,10 +234,6 @@ class EngineTester(win32com.test.util.TestCase):
 
     def testVBExceptions(self):
         self.assertRaises(pythoncom.com_error, self._TestEngine, "VBScript", ErrScript)
-
-    def testPythonExceptions(self):
-        expected = "RuntimeError: exc with extended \xa9har"
-        self._TestEngine("Python", PyScript_Exc, expected)
 
 
 if __name__ == "__main__":

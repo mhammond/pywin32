@@ -1,11 +1,5 @@
 import sys
 
-
-# Some cruft to deal with the Pythonwin GUI booting up from a non GUI app.
-def _MakeDebuggerGUI():
-    app.InitInstance()
-
-
 isInprocApp = -1
 
 
@@ -91,7 +85,7 @@ def set_trace():
         return  # App closing
 
     if d.stopframe != d.botframe:
-        # If im not "running"
+        # If I'm not "running"
         return
 
     sys.settrace(None)  # May be hooked
@@ -123,7 +117,7 @@ def post_mortem(t=None):
     # No idea why I need to settrace to None - it should have been reset by now?
     sys.settrace(None)
     p.reset()
-    while t.tb_next != None:
+    while t.tb_next is not None:
         t = t.tb_next
     p.bAtPostMortem = 1
     p.prep_run(None)

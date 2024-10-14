@@ -27,10 +27,9 @@ The object responds to the _NewEnum method by returning an enumerator over
 the dictionary's keys. This allows for the following type of VB code:
 
     for each name in ob
-        debug.print name, ob(name)
+        debug.print(name, ob(name))
     next
 """
-
 
 import pythoncom
 import pywintypes
@@ -75,7 +74,7 @@ class DictionaryPolicy(policy.BasicWrapPolicy):
                 )
 
             key = args[0]
-            if type(key) not in [str, str]:
+            if not isinstance(key, str):
                 ### the nArgErr thing should be 0-based, not reversed... sigh
                 raise COMException(
                     desc="Key must be a string", scode=winerror.DISP_E_TYPEMISMATCH
@@ -86,10 +85,7 @@ class DictionaryPolicy(policy.BasicWrapPolicy):
             if wFlags & (DISPATCH_METHOD | DISPATCH_PROPERTYGET):
                 if l > 1:
                     raise COMException(scode=winerror.DISP_E_BADPARAMCOUNT)
-                try:
-                    return self._obj_[key]
-                except KeyError:
-                    return None  # unknown keys return None (VT_NULL)
+                return self._obj_.get(key)  # unknown keys return None (VT_NULL)
 
             if l != 2:
                 raise COMException(scode=winerror.DISP_E_BADPARAMCOUNT)
@@ -111,7 +107,7 @@ class DictionaryPolicy(policy.BasicWrapPolicy):
             return len(self._obj_)
 
         if dispid == pythoncom.DISPID_NEWENUM:
-            return util.NewEnum(list(self._obj_.keys()))
+            return util.NewEnum(list(self._obj_))
 
         raise COMException(scode=winerror.DISP_E_MEMBERNOTFOUND)
 

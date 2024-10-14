@@ -27,34 +27,33 @@ HRESULT PyCom_MakeRegisteredGatewayObject(REFIID iid, PyObject *instance, PyGate
 
 // A version of the above which support classes being derived from
 // other than IUnknown
-#define PYGATEWAY_MAKE_SUPPORT2(classname, IInterface, theIID, gatewaybaseclass)                                 \
-   public:                                                                                                       \
-    static HRESULT PyGatewayConstruct(PyObject *pPyInstance, PyGatewayBase *unkBase, void **ppResult,            \
-                                                 REFIID iid)                                                     \
-    {                                                                                                            \
-        if (ppResult == NULL)                                                                                    \
-            return E_INVALIDARG;                                                                                 \
-        classname *newob = new classname(pPyInstance);                                                           \
-        newob->m_pBaseObject = unkBase;                                                                          \
-        if (unkBase)                                                                                             \
-            unkBase->AddRef();                                                                                   \
-        *ppResult = newob->ThisAsIID(iid);                                                                       \
-        return *ppResult ? S_OK : E_OUTOFMEMORY;                                                                 \
-    }                                                                                                            \
-                                                                                                                 \
-   protected:                                                                                                    \
-    virtual IID GetIID(void) { return theIID; }                                                                  \
-    virtual void *ThisAsIID(IID iid)                                                                             \
-    {                                                                                                            \
-        if (this == NULL)                                                                                        \
-            return NULL;                                                                                         \
-        if (iid == theIID)                                                                                       \
-            return (IInterface *)this;                                                                           \
-        else                                                                                                     \
-            return gatewaybaseclass::ThisAsIID(iid);                                                             \
-    }                                                                                                            \
-    STDMETHOD_(ULONG, AddRef)(void) { return gatewaybaseclass::AddRef(); }                                       \
-    STDMETHOD_(ULONG, Release)(void) { return gatewaybaseclass::Release(); }                                     \
+#define PYGATEWAY_MAKE_SUPPORT2(classname, IInterface, theIID, gatewaybaseclass)                                  \
+   public:                                                                                                        \
+    static HRESULT PyGatewayConstruct(PyObject *pPyInstance, PyGatewayBase *unkBase, void **ppResult, REFIID iid) \
+    {                                                                                                             \
+        if (ppResult == NULL)                                                                                     \
+            return E_INVALIDARG;                                                                                  \
+        classname *newob = new classname(pPyInstance);                                                            \
+        newob->m_pBaseObject = unkBase;                                                                           \
+        if (unkBase)                                                                                              \
+            unkBase->AddRef();                                                                                    \
+        *ppResult = newob->ThisAsIID(iid);                                                                        \
+        return *ppResult ? S_OK : E_OUTOFMEMORY;                                                                  \
+    }                                                                                                             \
+                                                                                                                  \
+   protected:                                                                                                     \
+    virtual IID GetIID(void) { return theIID; }                                                                   \
+    virtual void *ThisAsIID(IID iid)                                                                              \
+    {                                                                                                             \
+        if (this == NULL)                                                                                         \
+            return NULL;                                                                                          \
+        if (iid == theIID)                                                                                        \
+            return (IInterface *)this;                                                                            \
+        else                                                                                                      \
+            return gatewaybaseclass::ThisAsIID(iid);                                                              \
+    }                                                                                                             \
+    STDMETHOD_(ULONG, AddRef)(void) { return gatewaybaseclass::AddRef(); }                                        \
+    STDMETHOD_(ULONG, Release)(void) { return gatewaybaseclass::Release(); }                                      \
     STDMETHOD(QueryInterface)(REFIID iid, void **obj) { return gatewaybaseclass::QueryInterface(iid, obj); };
 
 // This is the "old" version to use, or use it if you derive
@@ -85,14 +84,9 @@ interface IInternalUnwrapPythonObject : public IUnknown
 //
 // Base class for all gateways.
 //
-class PYCOM_EXPORT PyGatewayBase :
-#ifndef NO_PYCOM_IDISPATCHEX
-    public IDispatchEx,  // IDispatch comes along for the ride!
-#else
-    public IDispatch,  // No IDispatchEx - must explicitely use IDispatch
-#endif
-    public ISupportErrorInfo,
-    public IInternalUnwrapPythonObject {
+class PYCOM_EXPORT PyGatewayBase : public IDispatchEx,  // IDispatch comes along for the ride!
+                                   public ISupportErrorInfo,
+                                   public IInternalUnwrapPythonObject {
    protected:
     PyGatewayBase(PyObject *instance);
     virtual ~PyGatewayBase();
@@ -115,7 +109,6 @@ class PYCOM_EXPORT PyGatewayBase :
      EXCEPINFO FAR *pexcepinfo, UINT FAR *puArgErr);
 
     // IDispatchEx
-#ifndef NO_PYCOM_IDISPATCHEX
     STDMETHOD(GetDispID)(BSTR bstrName, DWORD grfdex, DISPID *pid);
     STDMETHOD(InvokeEx)
     (DISPID id, LCID lcid, WORD wFlags, DISPPARAMS *pdp, VARIANT *pvarRes, EXCEPINFO *pei, IServiceProvider *pspCaller);
@@ -125,7 +118,6 @@ class PYCOM_EXPORT PyGatewayBase :
     STDMETHOD(GetMemberName)(DISPID id, BSTR *pbstrName);
     STDMETHOD(GetNextDispID)(DWORD grfdex, DISPID id, DISPID *pid);
     STDMETHOD(GetNameSpaceParent)(IUnknown **ppunk);
-#endif  // NO_PYCOM_IDISPATCHEX
     // ISupportErrorInfo
     STDMETHOD(InterfaceSupportsErrorInfo)(REFIID riid);
 
@@ -133,9 +125,8 @@ class PYCOM_EXPORT PyGatewayBase :
     STDMETHOD(Unwrap)(PyObject **ppPyObject);
 
     // Basically just PYGATEWAY_MAKE_SUPPORT(PyGatewayBase, IDispatch, IID_IDispatch);
-    // but with special handling as its the base class.
-    static HRESULT PyGatewayConstruct(PyObject *pPyInstance, PyGatewayBase *gatewayBase, void **ppResult,
-                                                     REFIID iid)
+    // but with special handling as it's the base class.
+    static HRESULT PyGatewayConstruct(PyObject *pPyInstance, PyGatewayBase *gatewayBase, void **ppResult, REFIID iid)
     {
         if (ppResult == NULL)
             return E_INVALIDARG;
@@ -148,7 +139,7 @@ class PYCOM_EXPORT PyGatewayBase :
     }
     // Currently this is used only for ISupportErrorInfo,
     // so hopefully this will never be called in this base class.
-    // (however, this is not a rule, so we wont assert or anything!)
+    // (however, this is not a rule, so we won't assert or anything!)
     virtual IID GetIID(void) { return IID_IUnknown; }
     virtual void *ThisAsIID(IID iid);
     // End of PYGATEWAY_MAKE_SUPPORT

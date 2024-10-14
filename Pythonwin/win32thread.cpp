@@ -83,7 +83,8 @@ class CPythonWinThread : public CWinThread {
         if (!helper.HaveHandler()) {
             helper.release_full();  // important
             ret = CWinThread::Run();
-        } else {
+        }
+        else {
             helper.call();
             helper.retval(ret);
         }
@@ -96,8 +97,7 @@ class CPythonWinThread : public CWinThread {
 void CProtectedWinThread::PumpIdle()
 {
     long lIdleCount = 0;
-    while (OnIdle(lIdleCount++))
-        ;
+    while (OnIdle(lIdleCount++));
     return;
 }
 
@@ -164,7 +164,7 @@ unsigned int ThreadWorkerEntryPoint(LPVOID lpvoid)
 {
     CPythonWinThread *pThis = (CPythonWinThread *)lpvoid;
     CEnterLeavePython _celp;
-    PyObject *result = PyEval_CallObject(pThis->obFunc, pThis->obArgs);
+    PyObject *result = PyObject_CallObject(pThis->obFunc, pThis->obArgs);
     if (result == NULL) {
         if (PyErr_Occurred() == PyExc_SystemExit)
             PyErr_Clear();
@@ -245,7 +245,7 @@ static PyObject *ui_thread_set_main_frame(PyObject *self, PyObject *args)
 
     if (wndObject == Py_None) {
         // @comm You can pass None to this function to reset the main frame.
-        pThread->m_pMainWnd = NULL;  // Should I free this?  I dont think so!
+        pThread->m_pMainWnd = NULL;  // Should I free this?  I don't think so!
     }
     else {
         CWnd *pMainWnd = GetWndPtr(wndObject);
@@ -294,9 +294,6 @@ static PyObject *ui_thread_create_thread(PyObject *self, PyObject *args)
     CWinThread *pThread = GetCWinThreadPtr(self);
     if (!pThread)
         return NULL;
-#if PY_VERSION_HEX < 0x03070000
-    PyEval_InitThreads();
-#endif
     GUI_BGN_SAVE;
     BOOL ok = pThread->CreateThread(createFlags, stackSize);
     GUI_END_SAVE;

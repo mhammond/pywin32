@@ -37,10 +37,7 @@ class ThreadWriter:
 
     def getwriter(self):
         "Return the current thread's writer, default sys.stdout"
-        try:
-            return self.writers[_thread.get_ident()]
-        except KeyError:
-            return self.origStdOut
+        self.writers.get(_thread.get_ident(), self.origStdOut)
 
     def write(self, str):
         "Write to the current thread's writer, default sys.stdout"
@@ -52,7 +49,7 @@ def Test():
     while num < 1000:
         print("Hello there no " + str(num))
         win32api.Sleep(50)
-        num = num + 1
+        num += 1
 
 
 class flags:
@@ -106,10 +103,10 @@ def ServerThread(myout, cmd, title, bCloseOnEnd):
 
 # assist for reloading (when debugging) - use only 1 tracer object,
 # else a large chain of tracer objects will exist.
-# try:
-# 	writer
-# except NameError:
-# 	writer=ThreadWriter()
+try:
+    writer
+except NameError:
+    writer = ThreadWriter()
 if __name__ == "__main__":
     import demoutils
 

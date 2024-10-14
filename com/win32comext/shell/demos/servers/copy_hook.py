@@ -9,7 +9,7 @@
 import pythoncom
 import win32con
 import win32gui
-from win32com.shell import shell, shellcon
+from win32com.shell import shell
 
 
 # Our shell extension.
@@ -55,7 +55,7 @@ def DllUnregisterServer():
             winreg.HKEY_CLASSES_ROOT,
             "directory\\shellex\\CopyHookHandlers\\" + ShellExtension._reg_desc_,
         )
-    except WindowsError as details:
+    except OSError as details:
         import errno
 
         if details.errno != errno.ENOENT:
@@ -65,7 +65,7 @@ def DllUnregisterServer():
             winreg.HKEY_CLASSES_ROOT,
             "*\\shellex\\CopyHookHandlers\\" + ShellExtension._reg_desc_,
         )
-    except WindowsError as details:
+    except OSError as details:
         import errno
 
         if details.errno != errno.ENOENT:

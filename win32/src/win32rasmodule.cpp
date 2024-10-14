@@ -480,7 +480,7 @@ VOID CALLBACK PyRasDialFunc1(HRASCONN hrasconn,      // handle to RAS connection
     PyObject *args = Py_BuildValue("Niiii", PyWinLong_FromHANDLE(hrasconn), unMsg, rascs, dwError, dwExtendedError);
     if (args == NULL)
         return;
-    PyObject *res = PyEval_CallObject(handler, args);
+    PyObject *res = PyObject_CallObject(handler, args);
     Py_DECREF(args);
     if (res == NULL) {
         PyErr_Print();
@@ -560,11 +560,6 @@ static PyObject *PyRasDial(PyObject *self, PyObject *args)
     else
         return ReturnError("The callback object must be an integer handle, None, or a callable object",
                            "<Dial param parsing>");
-    // If we have any sort of callback, we must ensure threads are init'd.
-#if PY_VERSION_HEX < 0x03070000
-    if (pNotification)
-        PyEval_InitThreads();
-#endif
     // If we have a callback, store it in our map with None as the key.
     // The callback routine will patch this once it knows the true key.
     // Before we do, we must check None is not already there

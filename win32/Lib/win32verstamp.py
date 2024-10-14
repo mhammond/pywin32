@@ -1,13 +1,15 @@
-""" Stamp a Win32 binary with version information.
-"""
+"""Stamp a Win32 binary with version information."""
 
 import glob
 import optparse
 import os
 import struct
-import sys
 
-from win32api import BeginUpdateResource, EndUpdateResource, UpdateResource
+from _win32verstamp_pywin32ctypes import (
+    BeginUpdateResource,
+    EndUpdateResource,
+    UpdateResource,
+)
 
 VS_FFI_SIGNATURE = -17890115  # 0xFEEF04BD
 VS_FFI_STRUCVERSION = 0x00010000
@@ -53,10 +55,7 @@ def VS_FIXEDFILEINFO(maj, min, sub, build, debug=0, is_dll=1):
 
 def nullterm(s):
     # get raw bytes for a NULL terminated unicode string.
-    if sys.version_info[:2] < (3, 7):
-        return (str(s) + "\0").encode("unicode-internal")
-    else:
-        return (str(s) + "\0").encode("utf-16le")
+    return (str(s) + "\0").encode("utf-16le")
 
 
 def pad32(s, extra=2):
@@ -75,7 +74,7 @@ def String(key, value):
     key = nullterm(key)
     value = nullterm(value)
     result = struct.pack("hh", len(value) // 2, 1)  # wValueLength, wType
-    result = result + key
+    result += key
     result = pad32(result) + value
     return addlen(result)
 
@@ -83,16 +82,16 @@ def String(key, value):
 def StringTable(key, data):
     key = nullterm(key)
     result = struct.pack("hh", 0, 1)  # wValueLength, wType
-    result = result + key
+    result += key
     for k, v in data.items():
-        result = result + String(k, v)
+        result += String(k, v)
         result = pad32(result)
     return addlen(result)
 
 
 def StringFileInfo(data):
     result = struct.pack("hh", 0, 1)  # wValueLength, wType
-    result = result + nullterm("StringFileInfo")
+    result += nullterm("StringFileInfo")
     #  result = pad32(result) + StringTable('040904b0', data)
     result = pad32(result) + StringTable("040904E4", data)
     return addlen(result)
@@ -100,24 +99,24 @@ def StringFileInfo(data):
 
 def Var(key, value):
     result = struct.pack("hh", len(value), 0)  # wValueLength, wType
-    result = result + nullterm(key)
+    result += nullterm(key)
     result = pad32(result) + value
     return addlen(result)
 
 
 def VarFileInfo(data):
     result = struct.pack("hh", 0, 1)  # wValueLength, wType
-    result = result + nullterm("VarFileInfo")
+    result += nullterm("VarFileInfo")
     result = pad32(result)
     for k, v in data.items():
-        result = result + Var(k, v)
+        result += Var(k, v)
     return addlen(result)
 
 
 def VS_VERSION_INFO(maj, min, sub, build, sdata, vdata, debug=0, is_dll=1):
     ffi = VS_FIXEDFILEINFO(maj, min, sub, build, debug, is_dll)
     result = struct.pack("hh", len(ffi), 0)  # wValueLength, wType
-    result = result + nullterm("VS_VERSION_INFO")
+    result += nullterm("VS_VERSION_INFO")
     result = pad32(result) + ffi
     result = pad32(result) + StringFileInfo(sdata) + VarFileInfo(vdata)
     return addlen(result)
@@ -125,13 +124,13 @@ def VS_VERSION_INFO(maj, min, sub, build, sdata, vdata, debug=0, is_dll=1):
 
 def stamp(pathname, options):
     # For some reason, the API functions report success if the file is open
-    # but doesnt work!  Try and open the file for writing, just to see if it is
+    # but doesn't work!  Try and open the file for writing, just to see if it is
     # likely the stamp will work!
     try:
         f = open(pathname, "a+b")
         f.close()
-    except IOError as why:
-        print("WARNING: File %s could not be opened - %s" % (pathname, why))
+    except OSError as why:
+        print(f"WARNING: File {pathname} could not be opened - {why}")
 
     ver = options.version
     try:
@@ -169,7 +168,7 @@ def stamp(pathname, options):
     if is_debug is None:
         is_debug = os.path.splitext(pathname)[0].lower().endswith("_d")
     # convert None to blank strings
-    for k, v in list(sdata.items()):
+    for k, v in sdata.items():
         if v is None:
             sdata[k] = ""
     vs = VS_VERSION_INFO(vmaj, vmin, vsub, vbuild, sdata, vdata, is_debug, is_dll)
