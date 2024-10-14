@@ -66,8 +66,6 @@ Error Handling
  problem, rather than a COM error.
 """
 
-__author__ = "Greg Stein and Mark Hammond"
-
 import sys
 import types
 
@@ -91,6 +89,8 @@ from pythoncom import (
 )
 
 from .exception import COMException
+
+__author__ = "Greg Stein and Mark Hammond"
 
 S_OK = 0
 
