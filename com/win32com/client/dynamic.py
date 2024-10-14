@@ -16,6 +16,8 @@ Example
 
 """
 
+from __future__ import annotations
+
 import traceback
 from itertools import chain
 from types import MethodType
@@ -185,6 +187,8 @@ def DumbDispatch(
 
 
 class CDispatch:
+    Properties_: CDispatch
+
     def __init__(self, IDispatch, olerepr, userName=None, lazydata=None):
         if userName is None:
             userName = "<unknown>"
