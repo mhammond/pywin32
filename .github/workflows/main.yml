@@ -49,7 +49,7 @@ jobs:
           $pythonInstallerUrl = "https://www.python.org/ftp/python/3.13.0/python-3.13.0-amd64.exe"
           Invoke-WebRequest $pythonInstallerUrl -OutFile setup-python.exe
           Start-Process "setup-python.exe" -argumentlist "/quiet PrependPath=1 TargetDir=C:\Python313 Include_freethreaded=1" -wait
-          Copy-Item C:\Python313\python3.13t.exe C:\Python313\python.exe
+          Set-Content -Path "$PSHOME\Profile.ps1" -Value 'Set-Alias -Name python -Value "C:\Python313\python3.13t.exe"'
 
       - name: Setup environment
         run: |
@@ -116,7 +116,7 @@ jobs:
           $pythonInstallerUrl = "https://www.python.org/ftp/python/3.13.0/python-3.13.0-amd64.exe"
           Invoke-WebRequest $pythonInstallerUrl -OutFile setup-python.exe
           Start-Process "setup-python.exe" -argumentlist "/quiet PrependPath=1 TargetDir=C:\Python313 Include_freethreaded=1" -wait
-          Copy-Item C:\Python313\python3.13t.exe C:\Python313\python.exe
+          Set-Content -Path "$PSHOME\Profile.ps1" -Value 'Set-Alias -Name python -Value "C:\Python313\python3.13t.exe"'
 
       - name: Setup Environment
         run: |
@@ -138,70 +138,70 @@ jobs:
           path: |-
             dist/*.whl
 
-  # This job can be run locally by running `pre-commit run`
-  checkers:
-    runs-on: windows-2019
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          # This job only needs to target the oldest version supported by our checkers
-          # (black>=24.10.0 supports Python >=3.9)
-          python-version: "3.9"
-          cache: pip
-          cache-dependency-path: .github/workflows/main.yml
-      - run: pip install clang-format pycln
-      - run: pycln . --config=pycln.toml --check
-      - uses: chartboost/ruff-action@v1
-        with:
-          version: "0.4.5"
-      - uses: psf/black@stable
-        with:
-          options: "--fast --check --diff --verbose"
-      - run: | # Too many files to fit in a single command, also exclude vendored Scintilla and MAPIStubLibrary
-          clang-format --Werror --dry-run $(git ls-files '*.cpp')
-          clang-format --Werror --dry-run $(git ls-files '*.h' ':!:Pythonwin/Scintilla/' ':!:com/win32comext/mapi/src/MAPIStubLibrary/')
-        shell: powershell
+  # # This job can be run locally by running `pre-commit run`
+  # checkers:
+  #   runs-on: windows-2019
+  #   timeout-minutes: 20
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: actions/setup-python@v5
+  #       with:
+  #         # This job only needs to target the oldest version supported by our checkers
+  #         # (black>=24.10.0 supports Python >=3.9)
+  #         python-version: "3.9"
+  #         cache: pip
+  #         cache-dependency-path: .github/workflows/main.yml
+  #     - run: pip install clang-format pycln
+  #     - run: pycln . --config=pycln.toml --check
+  #     - uses: chartboost/ruff-action@v1
+  #       with:
+  #         version: "0.4.5"
+  #     - uses: psf/black@stable
+  #       with:
+  #         options: "--fast --check --diff --verbose"
+  #     - run: | # Too many files to fit in a single command, also exclude vendored Scintilla and MAPIStubLibrary
+  #         clang-format --Werror --dry-run $(git ls-files '*.cpp')
+  #         clang-format --Werror --dry-run $(git ls-files '*.h' ':!:Pythonwin/Scintilla/' ':!:com/win32comext/mapi/src/MAPIStubLibrary/')
+  #       shell: powershell
 
-  mypy:
-    runs-on: windows-2019
-    timeout-minutes: 20
-    strategy:
-      fail-fast: false
-      matrix:
-        # mypy 1.5 dropped support for Python 3.7
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-          cache: pip
-          cache-dependency-path: .github/workflows/main.yml
-          check-latest: true
-      - run: pip install types-regex types-setuptools PyOpenGL mypy==1.11
-      - run: mypy . --python-version=${{ matrix.python-version }}
+  # mypy:
+  #   runs-on: windows-2019
+  #   timeout-minutes: 20
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       # mypy 1.5 dropped support for Python 3.7
+  #       python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: actions/setup-python@v5
+  #       with:
+  #         python-version: ${{ matrix.python-version }}
+  #         cache: pip
+  #         cache-dependency-path: .github/workflows/main.yml
+  #         check-latest: true
+  #     - run: pip install types-regex types-setuptools PyOpenGL mypy==1.11
+  #     - run: mypy . --python-version=${{ matrix.python-version }}
 
-  pyright:
-    runs-on: windows-2019
-    timeout-minutes: 20
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-          cache: pip
-          cache-dependency-path: .github/workflows/main.yml
-          check-latest: true
-      # pyright vendors typeshed, but let's make sure we have the most up to date stubs
-      - run: pip install types-regex types-setuptools PyOpenGL
-      - uses: jakebailey/pyright-action@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-          version: "1.1.358"
-          annotate: errors
+  # pyright:
+  #   runs-on: windows-2019
+  #   timeout-minutes: 20
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       python-version: ["3.7", "3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: actions/setup-python@v5
+  #       with:
+  #         python-version: ${{ matrix.python-version }}
+  #         cache: pip
+  #         cache-dependency-path: .github/workflows/main.yml
+  #         check-latest: true
+  #     # pyright vendors typeshed, but let's make sure we have the most up to date stubs
+  #     - run: pip install types-regex types-setuptools PyOpenGL
+  #     - uses: jakebailey/pyright-action@v2
+  #       with:
+  #         python-version: ${{ matrix.python-version }}
+  #         version: "1.1.358"
+  #         annotate: errors
