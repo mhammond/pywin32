@@ -43,6 +43,12 @@ jobs:
         run: |
           python setup.py install --user
 
+      # This needs to happen *after* installing pywin32 since
+      # AutoDuck/py2d.py currently relies on runtime imports for introspection
+      # This also works as a sanity check for the docs.yaml workflow
+      - name: Generate PyWin32.chm help file
+        run: python AutoDuck/make.py
+
       - name: Run tests
         # Run the tests directly from the source dir so support files (eg, .wav files etc)
         # can be found - they aren't installed into the Python tree.
