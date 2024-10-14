@@ -1,7 +1,7 @@
 import win32api
 import win32security
 import winerror
-from ntsecuritycon import *
+from ntsecuritycon import TOKEN_QUERY, TokenUser
 
 
 # This is a Python implementation of win32api.GetDomainName()
