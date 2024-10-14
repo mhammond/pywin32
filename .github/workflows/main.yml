@@ -50,7 +50,6 @@ jobs:
           Invoke-WebRequest $pythonInstallerUrl -OutFile setup-python.exe
           Start-Process "setup-python.exe" -argumentlist "/quiet PrependPath=1 TargetDir=C:\Python313 Include_freethreaded=1" -wait
           Copy-Item C:\Python313\python3.13t.exe C:\Python313\python.exe
-          python -c "import sys; print(sys._is_gil_enabled())"
 
       - name: Setup environment
         run: |
@@ -118,7 +117,6 @@ jobs:
           Invoke-WebRequest $pythonInstallerUrl -OutFile setup-python.exe
           Start-Process "setup-python.exe" -argumentlist "/quiet PrependPath=1 TargetDir=C:\Python313 Include_freethreaded=1" -wait
           Copy-Item C:\Python313\python3.13t.exe C:\Python313\python.exe
-          python -c "import sys; print(sys._is_gil_enabled())"
 
       - name: Setup Environment
         run: |
