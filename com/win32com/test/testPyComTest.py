@@ -14,15 +14,15 @@ import pywintypes
 import win32api
 import win32com
 import win32com.client.connect
+import win32com.test.util
 import win32timezone
 import winerror
 from win32com.client import VARIANT, CastTo, DispatchBaseClass, constants
-from win32com.test.util import RegisterPythonServer
 
 importMsg = "**** PyCOMTest is not installed ***\n  PyCOMTest is a Python test specific COM client and server.\n  It is likely this server is not installed on this machine\n  To install the server, you must get the win32com sources\n  and build it using MS Visual C++"
 
 # This test uses a Python implemented COM server - ensure correctly registered.
-RegisterPythonServer(
+win32com.test.util.RegisterPythonServer(
     os.path.join(os.path.dirname(__file__), "..", "servers", "test_pycomtest.py"),
     "Python.Test.PyCOMTest",
 )
@@ -250,9 +250,9 @@ def TestCommon(o, is_generated):
     ), f"Property value wrong - got {o.ULongProp} (expected {check})"
     TestApplyResult(o.Test, ("Unused", 99), 1)  # A bool function
     TestApplyResult(o.Test, ("Unused", -1), 1)  # A bool function
-    TestApplyResult(o.Test, ("Unused", 1 == 1), 1)  # A bool function
+    TestApplyResult(o.Test, ("Unused", True), 1)  # A bool function
     TestApplyResult(o.Test, ("Unused", 0), 0)
-    TestApplyResult(o.Test, ("Unused", 1 == 0), 0)
+    TestApplyResult(o.Test, ("Unused", False), 0)
 
     assert o.DoubleString("foo") == "foofoo"
 
