@@ -1,4 +1,4 @@
-""" a clumsy attempt at a macro language to let the programmer execute code on the server (ex: determine 64bit)"""
+"""a clumsy attempt at a macro language to let the programmer execute code on the server (ex: determine 64bit)"""
 
 from . import is64bit
 
