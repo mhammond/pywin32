@@ -39,7 +39,6 @@ jobs:
           cache-dependency-path: .github/workflows/main.yml
           check-latest: true
 
-      # From https://py-free-threading.github.io/ci/#windows-ci-setup-via-custom-powershell
       # Until either the following are available:
       # https://github.com/actions/setup-python/issues/771
       # https://github.com/astral-sh/uv/issues/7193
@@ -49,7 +48,9 @@ jobs:
           $pythonInstallerUrl = "https://www.python.org/ftp/python/3.13.0/python-3.13.0-amd64.exe"
           Invoke-WebRequest $pythonInstallerUrl -OutFile setup-python.exe
           Start-Process "setup-python.exe" -argumentlist "/quiet PrependPath=1 TargetDir=C:\Python313 Include_freethreaded=1" -wait
+          C:\Python313\python3.13t.exe -m ensurepip
           Set-Content -Path "$PSHOME\Profile.ps1" -Value 'Set-Alias -Name python -Value "C:\Python313\python3.13t.exe"'
+          Add-Content -Path "$PSHOME\Profile.ps1" -Value 'Set-Alias -Name pip -Value "C:\Python313\python3.13t.exe"'
 
       - name: Setup environment
         run: |
@@ -106,7 +107,6 @@ jobs:
           cache-dependency-path: .github/workflows/main.yml
           check-latest: true
 
-      # From https://py-free-threading.github.io/ci/#windows-ci-setup-via-custom-powershell
       # Until either the following are available:
       # https://github.com/actions/setup-python/issues/771
       # https://github.com/astral-sh/uv/issues/7193
@@ -116,7 +116,9 @@ jobs:
           $pythonInstallerUrl = "https://www.python.org/ftp/python/3.13.0/python-3.13.0-amd64.exe"
           Invoke-WebRequest $pythonInstallerUrl -OutFile setup-python.exe
           Start-Process "setup-python.exe" -argumentlist "/quiet PrependPath=1 TargetDir=C:\Python313 Include_freethreaded=1" -wait
+          C:\Python313\python3.13t.exe -m ensurepip
           Set-Content -Path "$PSHOME\Profile.ps1" -Value 'Set-Alias -Name python -Value "C:\Python313\python3.13t.exe"'
+          Add-Content -Path "$PSHOME\Profile.ps1" -Value 'Set-Alias -Name pip -Value "C:\Python313\python3.13t.exe"'
 
       - name: Setup Environment
         run: |
