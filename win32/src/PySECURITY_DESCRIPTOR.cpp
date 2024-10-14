@@ -283,15 +283,13 @@ BOOL PySECURITY_DESCRIPTOR::SetSD(PSECURITY_DESCRIPTOR psd)
     // replace security descriptor in object, always in relative format
     if (this->m_psd)
         free(this->m_psd);
-    DWORD sdsize = GetSecurityDescriptorLength(psd);
-    else if (_IsSelfRelative(psd))
-    {
+    if (_IsSelfRelative(psd)) {
+        DWORD sdsize = GetSecurityDescriptorLength(psd);
         this->m_psd = malloc(sdsize);
         memcpy(this->m_psd, psd, sdsize);
         return TRUE;
     }
-    else
-    {
+    else {
         // should be last-ditch fallback, everything should pass SD already in self-relative form
         if (!_MakeSelfRelativeSD(psd, &(this->m_psd)))
             return FALSE;
