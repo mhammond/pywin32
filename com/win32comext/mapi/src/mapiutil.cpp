@@ -125,18 +125,18 @@ BOOL PyMAPIObject_AsSPropValue(PyObject *Valob, SPropValue *pv, void *pAllocMore
     switch (PROP_TYPE(pv->ulPropTag)) {
         // @flag PT_I2|An integer
         case PT_I2:  //		case PT_SHORT:
-            pv->Value.i = (int)PyInt_AsLong(ob);
+            pv->Value.i = (int)PyLong_AsLong(ob);
             break;
         // @flag PT_MV_I2|A sequence of integers
         case PT_MV_I2:
-            MAKE_MV(short int, pAllocMoreLinkBlock, pv->Value.MVi.lpi, pv->Value.MVi.cValues, PyInt_AsLong)
+            MAKE_MV(short int, pAllocMoreLinkBlock, pv->Value.MVi.lpi, pv->Value.MVi.cValues, PyLong_AsLong)
         // @flag PT_I4|An integer
         case PT_I4:  //		case PT_LONG:
-            pv->Value.l = PyInt_AsLong(ob);
+            pv->Value.l = PyLong_AsLong(ob);
             break;
         // @flag PT_MV_I4|A sequence of integers
         case PT_MV_I4:
-            MAKE_MV(long, pAllocMoreLinkBlock, pv->Value.MVl.lpl, pv->Value.MVl.cValues, PyInt_AsLong)
+            MAKE_MV(long, pAllocMoreLinkBlock, pv->Value.MVl.lpl, pv->Value.MVl.cValues, PyLong_AsLong)
         // @flag PT_R4|A float
         case PT_R4:  //		case PT_FLOAT:
             pv->Value.flt = (float)PyFloat_AsDouble(ob);
@@ -153,7 +153,7 @@ BOOL PyMAPIObject_AsSPropValue(PyObject *Valob, SPropValue *pv, void *pAllocMore
             MAKE_MV(double, pAllocMoreLinkBlock, pv->Value.MVdbl.lpdbl, pv->Value.MVdbl.cValues, PyFloat_AsDouble)
         // @flag PT_BOOLEAN|A boolean value (or an int)
         case PT_BOOLEAN:
-            pv->Value.b = PyInt_AsLong(ob) ? VARIANT_TRUE : VARIANT_FALSE;
+            pv->Value.b = PyLong_AsLong(ob) ? VARIANT_TRUE : VARIANT_FALSE;
             break;
 
             /*
@@ -184,7 +184,7 @@ BOOL PyMAPIObject_AsSPropValue(PyObject *Valob, SPropValue *pv, void *pAllocMore
         case PT_STRING8: {  // Copy into new MAPI memory block
             DWORD bufLen;
             char *str;
-            ok = PyWinObject_AsString(ob, &str, FALSE, &bufLen);
+            ok = PyWinObject_AsChars(ob, &str, FALSE, &bufLen);
             if (ok) {
                 bufLen++;
                 HRESULT hr = MAPIAllocateMore(bufLen, pAllocMoreLinkBlock, (void **)&pv->Value.lpszA);
@@ -198,7 +198,7 @@ BOOL PyMAPIObject_AsSPropValue(PyObject *Valob, SPropValue *pv, void *pAllocMore
                     memcpy(((char *)pv->Value.lpszA) + (bufLen - sizeof(char)), "\0", sizeof(char));
                 }
             }
-            PyWinObject_FreeString(str);
+            PyWinObject_FreeChars(str);
             break;
         }
 
@@ -215,7 +215,7 @@ BOOL PyMAPIObject_AsSPropValue(PyObject *Valob, SPropValue *pv, void *pAllocMore
 
                 DWORD bufLen;
                 char *str;
-                ok = PyWinObject_AsString(obmv, &str, FALSE, &bufLen);
+                ok = PyWinObject_AsChars(obmv, &str, FALSE, &bufLen);
                 if (ok) {
                     bufLen++;
                     HRESULT hr = MAPIAllocateMore(bufLen, pAllocMoreLinkBlock, (void **)&pv->Value.MVszA.lppszA[i]);
@@ -229,7 +229,7 @@ BOOL PyMAPIObject_AsSPropValue(PyObject *Valob, SPropValue *pv, void *pAllocMore
                         memcpy(((char *)pv->Value.MVszA.lppszA[i]) + (bufLen - sizeof(char)), "\0", sizeof(char));
                     }
                 }
-                PyWinObject_FreeString(str);
+                PyWinObject_FreeChars(str);
                 Py_DECREF(obmv);
             }
             break;
@@ -288,8 +288,8 @@ BOOL PyMAPIObject_AsSPropValue(PyObject *Valob, SPropValue *pv, void *pAllocMore
 
         // @flag PT_BINARY|A string containing binary data
         case PT_BINARY:
-            pv->Value.bin.lpb = (unsigned char *)PyString_AsString(ob);
-            pv->Value.bin.cb = PyString_Size(ob);
+            pv->Value.bin.lpb = (unsigned char *)PyBytes_AsString(ob);
+            pv->Value.bin.cb = PyBytes_Size(ob);
             break;
 
         // @flag PT_MV_BINARY|A sequence of strings containing binary data
@@ -300,13 +300,13 @@ BOOL PyMAPIObject_AsSPropValue(PyObject *Valob, SPropValue *pv, void *pAllocMore
                 PyObject *obmv = PySequence_GetItem(ob, i);
                 if (obmv == NULL)
                     break;
-                if (!PyString_Check(obmv)) {
+                if (!PyBytes_Check(obmv)) {
                     Py_DECREF(obmv);
                     PyErr_SetString(PyExc_TypeError, "PT_MV_BINARY elements must be strings");
                     break;
                 }
-                pv->Value.MVbin.lpbin[i].lpb = (unsigned char *)PyString_AsString(obmv);
-                pv->Value.MVbin.lpbin[i].cb = PyString_Size(obmv);
+                pv->Value.MVbin.lpbin[i].lpb = (unsigned char *)PyBytes_AsString(obmv);
+                pv->Value.MVbin.lpbin[i].cb = PyBytes_Size(obmv);
                 Py_DECREF(obmv);
             }
             break;
@@ -340,7 +340,7 @@ BOOL PyMAPIObject_AsSPropValue(PyObject *Valob, SPropValue *pv, void *pAllocMore
 
         // @flag PT_ERROR|An integer error code.
         case PT_ERROR:
-            pv->Value.err = (SCODE)PyInt_AsLong(ob);
+            pv->Value.err = (SCODE)PyLong_AsLong(ob);
             break;
 
         // @flag PT_NULL|Anything!
@@ -365,10 +365,10 @@ PyObject *PyMAPIObject_FromSPropValue(SPropValue *pv)
     ULONG i;
     switch (PROP_TYPE(pv->ulPropTag)) {
         case PT_I2:  //		case PT_SHORT:
-            val = PyInt_FromLong(pv->Value.i);
+            val = PyLong_FromLong(pv->Value.i);
             break;
         case PT_I4:  //		case PT_LONG:
-            val = PyInt_FromLong(pv->Value.l);
+            val = PyLong_FromLong(pv->Value.l);
             break;
         case PT_R4:  //		case PT_FLOAT:
             val = PyFloat_FromDouble(pv->Value.flt);
@@ -392,13 +392,13 @@ PyObject *PyMAPIObject_FromSPropValue(SPropValue *pv)
             val = PyWinObject_FromFILETIME(pv->Value.ft);
             break;
         case PT_STRING8:
-            val = PyString_FromString(pv->Value.lpszA);
+            val = PyBytes_FromString(pv->Value.lpszA);
             break;
         case PT_UNICODE:
             val = PyWinObject_FromWCHAR(pv->Value.lpszW);
             break;
         case PT_BINARY:
-            val = PyString_FromStringAndSize((char *)pv->Value.bin.lpb, pv->Value.bin.cb);
+            val = PyBytes_FromStringAndSize((char *)pv->Value.bin.lpb, pv->Value.bin.cb);
             break;
 
         case PT_CLSID:
@@ -409,7 +409,7 @@ PyObject *PyMAPIObject_FromSPropValue(SPropValue *pv)
             val = PyWinObject_FromLARGE_INTEGER(pv->Value.li);
             break;
         case PT_ERROR:
-            val = PyInt_FromLong(pv->Value.err);
+            val = PyLong_FromLong(pv->Value.err);
             break;
 
         case PT_NULL:
@@ -421,14 +421,14 @@ PyObject *PyMAPIObject_FromSPropValue(SPropValue *pv)
             val = PyTuple_New(pv->Value.MVi.cValues);
             if (val) {
                 for (i = 0; i < pv->Value.MVi.cValues; i++)
-                    PyTuple_SET_ITEM(val, i, PyInt_FromLong(pv->Value.MVi.lpi[i]));
+                    PyTuple_SET_ITEM(val, i, PyLong_FromLong(pv->Value.MVi.lpi[i]));
             }
             break;
         case PT_MV_LONG:
             val = PyTuple_New(pv->Value.MVi.cValues);
             if (val) {
                 for (i = 0; i < pv->Value.MVl.cValues; i++)
-                    PyTuple_SET_ITEM(val, i, PyInt_FromLong(pv->Value.MVl.lpl[i]));
+                    PyTuple_SET_ITEM(val, i, PyLong_FromLong(pv->Value.MVl.lpl[i]));
             }
             break;
         case PT_MV_R4:
@@ -472,14 +472,14 @@ PyObject *PyMAPIObject_FromSPropValue(SPropValue *pv)
                 for (i = 0; i < pv->Value.MVbin.cValues; i++)
                     PyTuple_SET_ITEM(
                         val, i,
-                        PyString_FromStringAndSize((char *)pv->Value.MVbin.lpbin[i].lpb, pv->Value.MVbin.lpbin[i].cb));
+                        PyBytes_FromStringAndSize((char *)pv->Value.MVbin.lpbin[i].lpb, pv->Value.MVbin.lpbin[i].cb));
             }
             break;
         case PT_MV_STRING8:
             val = PyTuple_New(pv->Value.MVszA.cValues);
             if (val) {
                 for (i = 0; i < pv->Value.MVszA.cValues; i++)
-                    PyTuple_SET_ITEM(val, i, PyString_FromString(pv->Value.MVszA.lppszA[i]));
+                    PyTuple_SET_ITEM(val, i, PyBytes_FromString(pv->Value.MVszA.lppszA[i]));
             }
             break;
         case PT_MV_UNICODE:
@@ -507,12 +507,12 @@ PyObject *PyMAPIObject_FromSPropValue(SPropValue *pv)
             break;
 
         case PT_OBJECT:
-            val = PyInt_FromLong(pv->Value.x);
+            val = PyLong_FromLong(pv->Value.x);
             break;
 
         default:
             printf("File %s: Unsupported MAPI property type 0x%X", __FILE__, PROP_TYPE(pv->ulPropTag));
-            /* Dont set exception, as this prevents otherwise valid props from
+            /* Don't set exception, as this prevents otherwise valid props from
                being returned
             */
             val = Py_None;
@@ -712,7 +712,7 @@ BOOL PyMAPIObject_AsSPropTagArray(PyObject *obta, SPropTagArray **ppta)
     if (PySequence_Check(obta)) {
         seqLen = PySequence_Length(obta);
     }
-    else if (PyInt_Check(obta)) {
+    else if (PyLong_Check(obta)) {
         seqLen = 1;
         bSeq = FALSE;
     }
@@ -777,7 +777,7 @@ BOOL PyMAPIObject_AsSBinaryArray(PyObject *ob, SBinaryArray *pba)
 {
     BOOL bSeq = TRUE;
     int seqLen;
-    if (PyString_Check(ob)) {
+    if (PyBytes_Check(ob)) {
         seqLen = 1;
         bSeq = FALSE;
     }
@@ -804,26 +804,26 @@ BOOL PyMAPIObject_AsSBinaryArray(PyObject *ob, SBinaryArray *pba)
                 MAPIFreeBuffer(pba);
                 return FALSE;
             }
-            if (!PyString_Check(obItem)) {
+            if (!PyBytes_Check(obItem)) {
                 PyErr_SetString(PyExc_TypeError, "SBinary must be a string");
                 Py_DECREF(obItem);
                 MAPIFreeBuffer(pba);
                 return FALSE;
             }
-            pBin[i].cb = PyString_Size(obItem);
-            pBin[i].lpb = (LPBYTE)PyString_AsString(obItem);
+            pBin[i].cb = PyBytes_Size(obItem);
+            pBin[i].lpb = (LPBYTE)PyBytes_AsString(obItem);
             Py_DECREF(obItem);
         }
     }
     else {
-        if (!PyString_Check(ob)) {
+        if (!PyBytes_Check(ob)) {
             PyErr_SetString(PyExc_TypeError, "SBinary must be a string");
             MAPIFreeBuffer(pba);
             return FALSE;
         }
         // Simple string
-        pBin[0].cb = PyString_Size(ob);
-        pBin[0].lpb = (LPBYTE)PyString_AsString(ob);
+        pBin[0].cb = PyBytes_Size(ob);
+        pBin[0].lpb = (LPBYTE)PyBytes_AsString(ob);
     }
     return TRUE;
 }
@@ -880,7 +880,7 @@ BOOL PyMAPIObject_AsMAPINAMEIDArray(PyObject *ob, MAPINAMEID ***pppNameId, ULONG
         BSTR bstrVal;
         if (!PyWinObject_AsIID(obIID, pIIDs + i))
             goto loop_error;
-        if (PyInt_Check(obPropId)) {
+        if (PyLong_Check(obPropId)) {
             pNew->ulKind = MNID_ID;
             pNew->Kind.lID = PyLong_AsUnsignedLong(obPropId);
         }
@@ -931,7 +931,7 @@ PyObject *PyMAPIObject_FromMAPINAMEIDArray(MAPINAMEID **pp, ULONG numEntries)
         }
         else {
             value = pLook->ulKind == MNID_STRING ? PyWinObject_FromOLECHAR(pLook->Kind.lpwstrName)
-                                                 : PyInt_FromLong(pLook->Kind.lID);
+                                                 : PyLong_FromLong(pLook->Kind.lID);
             guid = PyWinObject_FromIID(*pLook->lpguid);
         }
         PyObject *newItem = PyTuple_New(2);
@@ -1081,14 +1081,14 @@ BOOL PyMAPIObject_AsSingleSRestriction(PyObject *ob, SRestriction *pRest, void *
     PyObject *obResType = PySequence_GetItem(ob, 0);
     if (obResType == NULL)
         return FALSE;
-    if (!PyInt_Check(obResType)) {
+    if (!PyLong_Check(obResType)) {
         PyErr_SetString(PyExc_TypeError, "SRestriction must be a sequence of (integer, object)");
         Py_DECREF(obResType);
         return FALSE;
     }
     // @pyparm int|restrictionType||An integer describing the contents of the second parameter.
     // @pyparm object|restriction||An object in one of the formats describe below.
-    pRest->rt = PyInt_AsLong(obResType);
+    pRest->rt = PyLong_AsLong(obResType);
     Py_DECREF(obResType);
     PyObject *subOb = PySequence_GetItem(ob, 1);
     if (subOb == NULL)
@@ -1262,26 +1262,23 @@ PyObject *PyWinObject_FromMAPIStr(LPTSTR str, BOOL isUnicode)
         return PyUnicode_FromWideChar((LPCWSTR)str, wcslen((LPCWSTR)str));
     }
     else {
-#if PY_MAJOR_VERSION >= 3
         return (PyObject *)PyUnicode_DecodeMBCS((LPSTR)str, strlen((LPSTR)str), NULL);
-#else
-        return PyString_FromString((LPSTR)str);
-#endif
     }
 }
 
 BOOL PyWinObject_AsMAPIStr(PyObject *stringObject, LPTSTR *pResult, BOOL asUnicode, BOOL bNoneOK /*= FALSE*/,
                            DWORD *pResultLen /* = NULL */)
 {
-#if PY_MAJOR_VERSION >= 3
     if (asUnicode)
         return PyWinObject_AsWCHAR(stringObject, (LPWSTR *)pResult, bNoneOK, pResultLen);
     else
-        return PyWinObject_AsString(stringObject, (LPSTR *)pResult, bNoneOK, pResultLen);
-#else
-    if (asUnicode && PyUnicode_Check(stringObject))
-        return PyWinObject_AsWCHAR(stringObject, (LPWSTR *)pResult, bNoneOK, pResultLen);
-    // allows already encoded string pass-through workaround (backwards compat)
-    return PyWinObject_AsString(stringObject, (LPSTR *)pResult, bNoneOK, pResultLen);
-#endif
+        return PyWinObject_AsChars(stringObject, (LPSTR *)pResult, bNoneOK, pResultLen);
+}
+
+void PyWinObject_FreeMAPIStr(LPTSTR pString, BOOL wasUnicode)
+{
+    if (wasUnicode)
+        return PyWinObject_FreeWCHAR((WCHAR *)pString);
+    else
+        return PyWinObject_FreeChars((char *)pString);
 }

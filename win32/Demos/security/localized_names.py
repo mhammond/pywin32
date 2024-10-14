@@ -3,10 +3,17 @@
 # http://support.microsoft.com/default.aspx?kbid=157234
 
 import sys
+
+import pywintypes
+from ntsecuritycon import (
+    DOMAIN_ALIAS_RID_ADMINS,
+    DOMAIN_USER_RID_ADMIN,
+    SECURITY_BUILTIN_DOMAIN_RID,
+    SECURITY_NT_AUTHORITY,
+)
 from win32net import NetUserModalsGet
 from win32security import LookupAccountSid
-import pywintypes
-from ntsecuritycon import *
+
 
 def LookupAliasFromRid(TargetComputer, Rid):
     # Sid is the same regardless of machine, since the well-known
@@ -20,19 +27,19 @@ def LookupAliasFromRid(TargetComputer, Rid):
     name, domain, typ = LookupAccountSid(TargetComputer, sid)
     return name
 
+
 def LookupUserGroupFromRid(TargetComputer, Rid):
     # get the account domain Sid on the target machine
     # note: if you were looking up multiple sids based on the same
     # account domain, only need to call this once.
     umi2 = NetUserModalsGet(TargetComputer, 2)
-    domain_sid = umi2['domain_id']
-    
+    domain_sid = umi2["domain_id"]
+
     SubAuthorityCount = domain_sid.GetSubAuthorityCount()
-    
+
     # create and init new sid with acct domain Sid + acct Rid
     sid = pywintypes.SID()
-    sid.Initialize(domain_sid.GetSidIdentifierAuthority(),
-                   SubAuthorityCount+1)
+    sid.Initialize(domain_sid.GetSidIdentifierAuthority(), SubAuthorityCount + 1)
 
     # copy existing subauthorities from account domain Sid into
     # new Sid
@@ -45,6 +52,7 @@ def LookupUserGroupFromRid(TargetComputer, Rid):
     name, domain, typ = LookupAccountSid(TargetComputer, sid)
     return name
 
+
 def main():
     if len(sys.argv) == 2:
         targetComputer = sys.argv[1]
@@ -52,10 +60,11 @@ def main():
         targetComputer = None
 
     name = LookupUserGroupFromRid(targetComputer, DOMAIN_USER_RID_ADMIN)
-    print "'Administrator' user name = %s" % (name,)
+    print(f"'Administrator' user name = {name}")
 
     name = LookupAliasFromRid(targetComputer, DOMAIN_ALIAS_RID_ADMINS)
-    print "'Administrators' local group/alias name = %s" % (name,)
+    print(f"'Administrators' local group/alias name = {name}")
 
-if __name__=='__main__':
+
+if __name__ == "__main__":
     main()

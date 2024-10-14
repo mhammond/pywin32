@@ -277,7 +277,7 @@ STDMETHODIMP PyGSecurityInformation::MapGeneric(const GUID *pguidObjectType, UCH
     else {
         hr = InvokeViaPolicy("MapGeneric", &result, "OBk", obObjectType, *pAceFlags, *pMask);
         if (!FAILED(hr)) {
-            *pMask = PyInt_AsUnsignedLongMask(result);
+            *pMask = PyLong_AsUnsignedLongMask(result);
             if ((*pMask == -1) && PyErr_Occurred())
                 hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("MapGeneric");
             else

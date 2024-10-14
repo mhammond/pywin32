@@ -414,7 +414,7 @@ PyObject *PyCTreeCtrl_GetItemState(PyObject *self, PyObject *args)
     GUI_BGN_SAVE;
     long state = pList->GetItemState(item, stateMask);
     GUI_END_SAVE;
-    return PyInt_FromLong(state);
+    return PyLong_FromLong(state);
 }
 
 // @pymethod <o PyCImageList>|PyCTreeCtrl|GetImageList|Retrieves the current image list.

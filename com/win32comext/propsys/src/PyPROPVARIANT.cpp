@@ -392,7 +392,7 @@ BOOL PyWin_NewPROPVARIANT(PyObject *ob, VARTYPE vt, PROPVARIANT *ppv)
             ret = SeqToVector(ob, &ppv->cauh.pElems, &ppv->cauh.cElems, PyWinObject_AsULARGE_INTEGER);
             break;
         case VT_LPWSTR:
-            ret = PyWinObject_AsTaskAllocatedWCHAR(ob, &ppv->pwszVal, FALSE, NULL);
+            ret = PyWinObject_AsTaskAllocatedWCHAR(ob, &ppv->pwszVal, FALSE);
             break;
         case VT_LPWSTR | VT_VECTOR: {
             TmpPyObject seq = PyWinSequence_Tuple(ob, &ppv->calpwstr.cElems);
@@ -407,7 +407,7 @@ BOOL PyWin_NewPROPVARIANT(PyObject *ob, VARTYPE vt, PROPVARIANT *ppv)
             ret = TRUE;
             for (ULONG i = 0; i < ppv->calpwstr.cElems; i++) {
                 PyObject *obstr = PyTuple_GET_ITEM((PyObject *)seq, i);
-                ret = PyWinObject_AsTaskAllocatedWCHAR(obstr, &ppv->calpwstr.pElems[i], FALSE, NULL);
+                ret = PyWinObject_AsTaskAllocatedWCHAR(obstr, &ppv->calpwstr.pElems[i], FALSE);
                 if (!ret)
                     break;
             }
@@ -493,18 +493,17 @@ BOOL PyWin_NewPROPVARIANT(PyObject *ob, VARTYPE vt, PROPVARIANT *ppv)
             break;
         case VT_BLOB:
         case VT_BLOB_OBJECT: {
-            void *buf;
-            DWORD buflen;
-            ret = PyWinObject_AsReadBuffer(ob, &buf, &buflen, FALSE);
+            PyWinBufferView pybuf(ob);
+            ret = pybuf.ok();
             if (ret) {
-                ppv->blob.cbSize = buflen;
-                ppv->blob.pBlobData = (BYTE *)CoTaskMemAlloc(buflen);
+                ppv->blob.cbSize = pybuf.len();
+                ppv->blob.pBlobData = (BYTE *)CoTaskMemAlloc(pybuf.len());
                 if (ppv->blob.pBlobData == NULL) {
                     PyErr_NoMemory();
                     ret = FALSE;
                 }
                 else
-                    memcpy(ppv->blob.pBlobData, buf, buflen);
+                    memcpy(ppv->blob.pBlobData, pybuf.ptr(), pybuf.len());
             }
             break;
         }

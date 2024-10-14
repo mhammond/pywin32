@@ -17,7 +17,7 @@
 // Format lists
 //
 
-static WORD SysFormatList[] = {CF_TEXT, NULL};
+static WORD SysFormatList[] = {CF_UNICODETEXT, CF_TEXT, NULL};
 
 //
 // Structure used to hold a clipboard id and its text name
@@ -187,7 +187,7 @@ IMPLEMENT_DYNCREATE(CDDEStringItem, CDDEItem);
 
 WORD *CDDEStringItem::GetFormatList()
 {
-    return SysFormatList;  // CF_TEXT
+    return SysFormatList;  // CF_TEXT or CF_UNICODETEXT
 }
 
 BOOL CDDEStringItem::Request(UINT wFmt, CDDEAllocator &allocr)
@@ -454,17 +454,16 @@ BOOL CDDEConv::AdviseData(UINT wFmt, const TCHAR *pszTopic, const TCHAR *pszItem
 
 BOOL CDDEConv::Request(const TCHAR *pszItem, CString &ret)
 {
+    return Request(CF_UNICODETEXT, pszItem, ret) || Request(CF_TEXT, pszItem, ret);
+}
+
+BOOL CDDEConv::Request(UINT wFmt, const TCHAR *pszItem, CString &ret)
+{
     ASSERT(m_pServer);
     ASSERT(pszItem);
 
     CHSZ hszItem(m_pServer, pszItem);
-    HDDEDATA hData = ::DdeClientTransaction(NULL, 0, m_hConv, hszItem,
-#if defined(UNICODE)
-                                            CF_UNICODETEXT,
-#else
-                                            CF_TEXT,
-#endif
-                                            XTYP_REQUEST, DDE_TIMEOUT, NULL);
+    HDDEDATA hData = ::DdeClientTransaction(NULL, 0, m_hConv, hszItem, wFmt, XTYP_REQUEST, DDE_TIMEOUT, NULL);
 
     if (!hData) {
         return FALSE;
@@ -476,7 +475,14 @@ BOOL CDDEConv::Request(const TCHAR *pszItem, CString &ret)
     DWORD dwSize;
     BYTE *pData = ::DdeAccessData(hData, &dwSize);
     DWORD nChars = (dwSize / sizeof(TCHAR)) - 1;
-    ret = CString((TCHAR *)pData, nChars);
+
+    if (wFmt == CF_TEXT) {
+        nChars = (dwSize / sizeof(CHAR)) - 1;
+        ret = CString((CHAR *)pData, nChars);
+    }
+    else {
+        ret = CString((TCHAR *)pData, nChars);
+    }
     ::DdeUnaccessData(hData);
     // MSDN sez 'When an application has finished using the data handle
     // returned by DdeClientTransaction, the application should free the
@@ -1425,7 +1431,7 @@ BOOL CDDEServer::DoCallback(WORD wType, WORD wFmt, HCONV hConv, HSZ hszTopic, HS
             if (!b) {
                 //
                 // Nobody took the data.
-                // Maybe its not a supported item or format
+                // Maybe it's not a supported item or format
                 //
 
                 Status(_T("Poke %s|%s failed"), (const TCHAR *)strTopic, (const TCHAR *)strItem);
@@ -1467,7 +1473,7 @@ BOOL CDDEServer::DoCallback(WORD wType, WORD wFmt, HCONV hConv, HSZ hszTopic, HS
             if (!b) {
                 //
                 // Nobody took the data.
-                // Maybe its not of interrest
+                // Maybe it's not of interrest
                 //
 
                 Status(_T("AdviseData %s|%s failed"), (const TCHAR *)strTopic, (const TCHAR *)strItem);

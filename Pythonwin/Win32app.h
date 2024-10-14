@@ -23,8 +23,6 @@ class PyCWinApp : public PyCWinThread {
     ~PyCWinApp();
 
    public:
-    static PyObject *pExistingAppObject;
-
     static ui_type_CObject type;
     MAKE_PY_CTOR(PyCWinApp)
     virtual void cleanup();

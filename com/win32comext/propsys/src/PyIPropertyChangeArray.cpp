@@ -182,7 +182,7 @@ PyObject *PyIPropertyChangeArray::IsKeyInArray(PyObject *self, PyObject *args)
 }
 
 // @object PyIPropertyChangeArray|Container for a sequence of <o PyIPropertyChange> interfaces, as used with <o
-// PyIFileOperation>. <nl>Create using pythoncom.CoCreateInstance(propsys.CLSID_PropertyChangeArray, ...)
+// PyIFileOperation>. <nl>Create using propsys.PSCreatePropertyChangeArray(...)
 static struct PyMethodDef PyIPropertyChangeArray_methods[] = {
     {"GetCount", PyIPropertyChangeArray::GetCount,
      METH_NOARGS},                                      // @pymeth GetCount|Returns the number of changes in the array

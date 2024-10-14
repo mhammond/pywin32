@@ -37,11 +37,11 @@ BOOL PyObject_AsVARDESC(PyObject *ob, VARDESC *v, void *pMore)
         return FALSE;
 
     if (v->varkind == VAR_PERINSTANCE) {
-        if (!PyInt_Check(pyv->value)) {
+        if (!PyLong_Check(pyv->value)) {
             PyErr_SetString(PyExc_TypeError, "If varkind==VAR_PERINSTANCE, value attribute must be an integer");
             return FALSE;
         }
-        v->oInst = PyInt_AsLong(pyv->value);
+        v->oInst = PyLong_AsLong(pyv->value);
     }
     else if (v->varkind == VAR_CONST) {
         VARIANT *pVar = (VARIANT *)AllocMore(pMore, sizeof(VARIANT), TRUE);
@@ -57,7 +57,7 @@ BOOL PyObject_AsVARDESC(PyObject *ob, VARDESC *v, void *pMore)
         ;
     }
     else {
-        PyCom_LoggerWarning(NULL, "PyObject_AsVARDESC has unknown varkind (%d) - None will be used", v->varkind);
+        PyCom_LoggerWarning(NULL, L"PyObject_AsVARDESC has unknown varkind (%d) - None will be used", v->varkind);
     }
     // else ignore value.
     return TRUE;
@@ -72,6 +72,13 @@ BOOL PyObject_AsVARDESC(PyObject *ob, VARDESC **pp)
     if (!rc)
         FreeMoreBuffer(*pp);
     return rc;
+}
+
+static PyObject *PyVARDESC_Repr(PyObject *self)
+{
+    PyVARDESC *v = (PyVARDESC *)self;
+    return PyUnicode_FromFormat("PyVARDESC(memid=%d, value=%R, elemdescVar=%R, wVarFlags=%d, varkind=%d)", v->memid,
+                                v->value, v->elemdescVar, v->wVarFlags, v->varkind);
 }
 
 void PyObject_FreeVARDESC(VARDESC *p) { FreeMoreBuffer(p); }
@@ -96,7 +103,7 @@ PyTypeObject PyVARDESC::Type = {
     0,                       /* tp_getattr */
     0,                       /* tp_setattr */
     0,                       /* tp_compare */
-    0,                       /* tp_repr */
+    PyVARDESC_Repr,          /* tp_repr */
     0,                       /* tp_as_number */
     &PyVARDESC_Sequence,     /* tp_as_sequence */
     0,                       /* tp_as_mapping */
@@ -133,9 +140,10 @@ PyTypeObject PyVARDESC::Type = {
     {"memid", T_INT, OFF(memid)},     // @prop int|memid|The dispid of the member
     {"value", T_OBJECT, OFF(value)},  // @prop int/object|value|A value for the variant.  If PERINSTANCE then an offset
                                       // into the instance, otherwise a variant converted to a Python object.
-    {"elemdescVar", T_OBJECT, OFF(elemdescVar)},  // @prop <o ELEMDESC>|elemdescVar|Object describing the member.
-    {"wVarFlags", T_INT, OFF(wVarFlags)},         // @prop int|varFlags|Variable flags
-    {"varkind", T_INT, OFF(varkind)},             // @prop int|varkind|Kind flags.
+    {"elemdescVar", T_OBJECT, OFF(elemdescVar)},   // @prop <o ELEMDESC>|elemdescVar|Object describing the member.
+    {"wVarFlags", T_INT, OFF(wVarFlags)},          // @prop int|varFlags|Variable flags
+    {"varkind", T_INT, OFF(varkind)},              // @prop int|varkind|Kind flags.
+    {"desckind", T_INT, OFF(desckind), READONLY},  // @prop int|desckind|Always DESCKIND_VARDESC
     {NULL}};
 
 PyVARDESC::PyVARDESC()
@@ -148,6 +156,7 @@ PyVARDESC::PyVARDESC()
     elemdescVar = NULL;
     wVarFlags = 0;
     varkind = 0;
+    desckind = DESCKIND_VARDESC;
 }
 
 PyVARDESC::PyVARDESC(const VARDESC *pVD)
@@ -158,9 +167,10 @@ PyVARDESC::PyVARDESC(const VARDESC *pVD)
     memid = pVD->memid;
     wVarFlags = pVD->wVarFlags;
     varkind = pVD->varkind;
+    desckind = DESCKIND_VARDESC;
 
     if (varkind == VAR_PERINSTANCE)
-        value = PyInt_FromLong(pVD->oInst);
+        value = PyLong_FromLong(pVD->oInst);
     else if (varkind == VAR_CONST) {
         VARIANT varValue;
 
@@ -197,7 +207,7 @@ PyVARDESC::PyVARDESC(const VARDESC *pVD)
         Py_INCREF(Py_None);
     }
     else {
-        PyCom_LoggerWarning(NULL, "PyVARDESC ctor has unknown varkind (%d) - returning None", varkind);
+        PyCom_LoggerWarning(NULL, L"PyVARDESC ctor has unknown varkind (%d) - returning None", varkind);
         value = Py_None;
         Py_INCREF(Py_None);
     }
@@ -226,7 +236,7 @@ PyVARDESC::~PyVARDESC()
     PyObject *rc;
     switch (index) {
         case 0:  // @tupleitem 0|int|memid|The id of the member
-            return PyInt_FromLong(p->memid);
+            return PyLong_FromLong(p->memid);
         case 1:  // @tupleitem 1|int/object|value|A value for the variant.  If PERINSTANCE then an offset into the
                  // instance, otherwise a variant converted to a Python object.
             rc = p->value ? p->value : Py_None;
@@ -236,10 +246,10 @@ PyVARDESC::~PyVARDESC()
             rc = p->elemdescVar ? p->elemdescVar : Py_None;
             Py_INCREF(rc);
             return rc;
-        case 3:  // @tupleitem 3|int|varFlags|Variable flags
-            return PyInt_FromLong(p->wVarFlags);
-        case 4:  // @tupleitem 4|int|varKind|Kind flags.
-            return PyInt_FromLong(p->varkind);
+        case 3:  // @tupleitem 3|int|wVarFlags|Variable flags
+            return PyLong_FromLong(p->wVarFlags);
+        case 4:  // @tupleitem 4|int|varkind|Kind flags.
+            return PyLong_FromLong(p->varkind);
     }
     PyErr_SetString(PyExc_IndexError, "index out of range");
     return NULL;

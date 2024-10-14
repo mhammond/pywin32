@@ -18,15 +18,14 @@ STDMETHODIMP PyGStream::Read(
         return hr;
 
     hr = E_FAIL;
-    VOID *buf = NULL;
-    DWORD resultlen;
-    if (PyWinObject_AsReadBuffer(result, &buf, &resultlen, FALSE)) {
-        if (resultlen > cb)
+    PyWinBufferView pybuf(result);
+    if (pybuf.ok()) {
+        if (pybuf.len() > cb)
             PyErr_SetString(PyExc_ValueError, "PyGStream::Read: returned data longer than requested");
         else {
-            memcpy(pv, buf, resultlen);
+            memcpy(pv, pybuf.ptr(), pybuf.len());
             if (pcbRead)
-                *pcbRead = resultlen;
+                *pcbRead = pybuf.len();
             hr = S_OK;
         }
     }
@@ -45,13 +44,13 @@ STDMETHODIMP PyGStream::Write(
 
     PY_GATEWAY_METHOD;
     PyObject *result;
-    PyObject *obbuf = PyString_FromStringAndSize((char *)pv, cb);
+    PyObject *obbuf = PyBytes_FromStringAndSize((char *)pv, cb);
     HRESULT hr = InvokeViaPolicy("Write", &result, "O", obbuf);
     Py_XDECREF(obbuf);
     if (FAILED(hr))
         return hr;
 
-    int cbWritten = PyInt_AsLong(result);
+    int cbWritten = PyLong_AsLong(result);
     Py_DECREF(result);
     if (cbWritten == -1)
         return PyCom_SetCOMErrorFromPyException(GetIID());

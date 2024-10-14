@@ -129,7 +129,7 @@ void PyPERF_OBJECT_TYPE::Term()
     m_obPerfMonManager = NULL;
 }
 
-// Get the counter objects that Im gunna use.
+// Get the counter objects that I'm gunna use.
 BOOL PyPERF_OBJECT_TYPE::InitPythonObjects(PyObject *obCounters)
 {
     m_obCounters = obCounters;
@@ -138,8 +138,8 @@ BOOL PyPERF_OBJECT_TYPE::InitPythonObjects(PyObject *obCounters)
 }
 
 // Init the memory layout of the win32 perfmon structures from the mapping manager.
-// Doesnt keep a reference to the mapping manager, but assumes it will stay alive
-// until Im term'd!
+// Doesn't keep a reference to the mapping manager, but assumes it will stay alive
+// until I'm term'd!
 // Also _removes_ the reference to the counters' and _adds_ a reference to
 // the PyPerMonManager object
 BOOL PyPERF_OBJECT_TYPE::InitMemoryLayout(MappingManager *pmm, PyPerfMonManager *obPerfMonManager)

@@ -12,6 +12,7 @@ generates Windows .hlp files.
 @doc
 ***/
 
+#define PY_SSIZE_T_CLEAN
 #include "internet_pch.h"
 #include "MsHtmHst.h"
 #include "stddef.h"             // for offsetof
@@ -81,7 +82,7 @@ BOOL PyObject_AsPROTOCOLDATA(PyObject *ob, PROTOCOLDATA *pPD)
 
 PyObject *PyObject_FromPROTOCOLDATA(PROTOCOLDATA *pPD)
 {
-    return Py_BuildValue("iiz#", pPD->grfFlags, pPD->dwState, pPD->pData, pPD->cbData);
+    return Py_BuildValue("iiz#", pPD->grfFlags, pPD->dwState, pPD->pData, (Py_ssize_t)pPD->cbData);
 }
 //////////////////////////////////////////////////////////////
 //
@@ -102,13 +103,13 @@ BOOL PyObject_AsBINDINFO(PyObject *ob, BINDINFO *pPD)
                           &pPD->dwOptions, &pPD->dwOptionsFlags, &pPD->dwCodePage, &obSA, &obIID, &obUnk,
                           &pPD->dwReserved))
         goto done;
-    if (!PyWinObject_AsTaskAllocatedWCHAR(obExtra, &pPD->szExtraInfo, /*bNoneOK=*/TRUE, NULL))
+    if (!PyWinObject_AsTaskAllocatedWCHAR(obExtra, &pPD->szExtraInfo, /*bNoneOK=*/TRUE))
         goto done;
     if (obSTGM != Py_None) {
-        PyErr_SetString(PyExc_TypeError, "Sorry - dont support STGMEDIUM yet - must be None");
+        PyErr_SetString(PyExc_TypeError, "Sorry - don't support STGMEDIUM yet - must be None");
         goto done;
     }
-    if (!PyWinObject_AsTaskAllocatedWCHAR(obCustomVerb, &pPD->szCustomVerb, /*bNoneOK=*/TRUE, NULL))
+    if (!PyWinObject_AsTaskAllocatedWCHAR(obCustomVerb, &pPD->szCustomVerb, /*bNoneOK=*/TRUE))
         goto done;
     SECURITY_ATTRIBUTES *pSA;
     if (!PyWinObject_AsSECURITY_ATTRIBUTES(obSA, &pSA, TRUE))
@@ -133,17 +134,17 @@ PyObject *PyObject_FromBINDINFO(BINDINFO *pPD)
     PyTuple_SET_ITEM(obRet, 0, PyWinObject_FromWCHAR(pPD->szExtraInfo));
     Py_INCREF(Py_None);
     PyTuple_SET_ITEM(obRet, 1, Py_None);  // STGMEDUIM not yet supported.
-    PyTuple_SET_ITEM(obRet, 2, PyInt_FromLong(pPD->grfBindInfoF));
-    PyTuple_SET_ITEM(obRet, 3, PyInt_FromLong(pPD->dwBindVerb));
+    PyTuple_SET_ITEM(obRet, 2, PyLong_FromLong(pPD->grfBindInfoF));
+    PyTuple_SET_ITEM(obRet, 3, PyLong_FromLong(pPD->dwBindVerb));
     PyTuple_SET_ITEM(obRet, 4, PyWinObject_FromWCHAR(pPD->szCustomVerb));
     if (bNewFormat) {
-        PyTuple_SET_ITEM(obRet, 5, PyInt_FromLong(pPD->dwOptions));
-        PyTuple_SET_ITEM(obRet, 6, PyInt_FromLong(pPD->dwOptionsFlags));
-        PyTuple_SET_ITEM(obRet, 7, PyInt_FromLong(pPD->dwCodePage));
+        PyTuple_SET_ITEM(obRet, 5, PyLong_FromLong(pPD->dwOptions));
+        PyTuple_SET_ITEM(obRet, 6, PyLong_FromLong(pPD->dwOptionsFlags));
+        PyTuple_SET_ITEM(obRet, 7, PyLong_FromLong(pPD->dwCodePage));
         PyTuple_SET_ITEM(obRet, 8, PyWinObject_FromSECURITY_ATTRIBUTES(pPD->securityAttributes));
         PyTuple_SET_ITEM(obRet, 9, PyWinObject_FromIID(pPD->iid));
         PyTuple_SET_ITEM(obRet, 10, PyCom_PyObjectFromIUnknown(pPD->pUnk, pPD->iid, /*bAddRef = */ TRUE));
-        PyTuple_SET_ITEM(obRet, 11, PyInt_FromLong(pPD->dwReserved));
+        PyTuple_SET_ITEM(obRet, 11, PyLong_FromLong(pPD->dwReserved));
     }
     return obRet;
 }
@@ -184,7 +185,7 @@ static PyObject *PyCoInternetSetFeatureEnabled(PyObject *self, PyObject *args)
     HRESULT hr = (*pfnCoInternetSetFeatureEnabled)((INTERNETFEATURELIST)featureEntry, flags, enable);
     if (FAILED(hr))
         return PyCom_BuildPyException(hr);
-    return PyInt_FromLong(hr);
+    return PyLong_FromLong(hr);
 }
 
 // @pymethod <o PyIInternetSecurityManager>|internet|CoInternetCreateSecurityManager|
@@ -214,15 +215,16 @@ static PyObject *PyCoInternetCreateSecurityManager(PyObject *self, PyObject *arg
 /* List of module functions */
 // @module internet|A module, encapsulating the ActiveX Internet interfaces
 static struct PyMethodDef internet_functions[] = {
-    {"CoInternetCreateSecurityManager", PyCoInternetCreateSecurityManager},  // @pymeth CoInternetCreateSecurityManager|
-    {"CoInternetIsFeatureEnabled", PyCoInternetIsFeatureEnabled},            // @pymeth CoInternetIsFeatureEnabled|
-    {"CoInternetSetFeatureEnabled", PyCoInternetSetFeatureEnabled},          // @pymeth CoInternetSetFeatureEnabled|
+    {"CoInternetCreateSecurityManager", PyCoInternetCreateSecurityManager,
+     1},                                                                // @pymeth CoInternetCreateSecurityManager|
+    {"CoInternetIsFeatureEnabled", PyCoInternetIsFeatureEnabled, 1},    // @pymeth CoInternetIsFeatureEnabled|
+    {"CoInternetSetFeatureEnabled", PyCoInternetSetFeatureEnabled, 1},  // @pymeth CoInternetSetFeatureEnabled|
     {NULL, NULL},
 };
 
 static int AddConstant(PyObject *dict, const char *key, long value)
 {
-    PyObject *oval = PyInt_FromLong(value);
+    PyObject *oval = PyLong_FromLong(value);
     if (!oval) {
         return 1;
     }

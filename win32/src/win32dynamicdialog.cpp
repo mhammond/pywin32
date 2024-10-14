@@ -37,9 +37,6 @@
 #include "commctrl.h"
 #include "windowsx.h"  // For edit control hacks.
 
-#ifdef MS_WINCE
-#include "winbase.h"
-#endif
 #include "pywintypes.h"
 #include "pywinobjects.h"
 #include "tchar.h"
@@ -242,7 +239,7 @@ static PyObject *MakeResName(WCHAR **val)
     PyObject *obj = NULL;
     if (*ptr == (WORD)-1) {
         ptr++;
-        obj = PyInt_FromLong((WORD)*ptr++);
+        obj = PyLong_FromLong((WORD)*ptr++);
     }
     else if (*ptr != (WORD)0) {
         obj = PyWinObject_FromWCHAR(ptr);
@@ -359,7 +356,7 @@ static PyObject *MakeListFromDlgItem(LPVOID *tplin)
     WCHAR *ptr = (WCHAR *)((char *)tpl + sizeof(DLGITEMTEMPLATE));
     if (*ptr == (WCHAR)-1) {
         ptr++;
-        obitem = PyInt_FromLong((WORD)*ptr++);
+        obitem = PyLong_FromLong((WORD)*ptr++);
     }
     else {
         LPWSTR wc = LPWSTR(ptr);
@@ -383,7 +380,7 @@ static PyObject *MakeListFromDlgItem(LPVOID *tplin)
     PyList_SET_ITEM(ret, 1, obitem);
 
     // Parameter 2 - ID
-    obitem = PyInt_FromLong(tpl->id);
+    obitem = PyLong_FromLong(tpl->id);
     if (obitem == NULL) {
         Py_DECREF(ret);
         return NULL;
@@ -417,7 +414,7 @@ static PyObject *MakeListFromDlgItem(LPVOID *tplin)
     // Parameter 6 - Extra data
     WORD datalen = *ptr++;
     if (datalen > 0) {
-        obitem = PyString_FromStringAndSize((char *)ptr, datalen);
+        obitem = PyBytes_FromStringAndSize((char *)ptr, datalen);
         ptr = (WCHAR *)(((char *)ptr) + datalen);
     }
     else {
@@ -507,9 +504,9 @@ static CPythonDialogTemplate *ParseDlgHdrList(PyObject *tmpl)
 
     if (!PyWinObject_AsWCHAR(obcaption, &caption, FALSE))
         goto cleanup;
-    if (!PyWinObject_AsResourceIdW(obmenu, &menu, TRUE))
+    if (!PyWinObject_AsResourceId(obmenu, &menu, TRUE))
         goto cleanup;
-    if (!PyWinObject_AsResourceIdW(obwclass, &wclass, TRUE))
+    if (!PyWinObject_AsResourceId(obwclass, &wclass, TRUE))
         goto cleanup;
     if (obexstyle != Py_None) {
         tpl.dwExtendedStyle = PyLong_AsUnsignedLong(obexstyle);
@@ -584,6 +581,7 @@ static BOOL ParseDlgItemList(CPythonDialogTemplate *dlg, PyObject *tmpl)
     DLGITEMTEMPLATE tpl = {0, 0, 0, 0, 0, 0, 0};
     BYTE *data = NULL;
     DWORD datalen = 0;
+    PyWinBufferView pybuf;
 
     PyObject *obitem = PySequence_Tuple(tmpl);
     if (obitem == NULL)
@@ -591,17 +589,17 @@ static BOOL ParseDlgItemList(CPythonDialogTemplate *dlg, PyObject *tmpl)
     if (!PyArg_ParseTuple(obitem, "OOH|(hhhh)kkO:DLGITEMTEMPLATE", &obwclass, &obcaption, &tpl.id, &tpl.x, &tpl.y,
                           &tpl.cx, &tpl.cy, &tpl.style, &tpl.dwExtendedStyle, &obdata))
         goto cleanup;
-    if (!PyWinObject_AsResourceIdW(obwclass, &wclass, FALSE))
+    if (!PyWinObject_AsResourceId(obwclass, &wclass, FALSE))
         goto cleanup;
     if (!PyWinObject_AsWCHAR(obcaption, &caption, TRUE))
         goto cleanup;
-    if (!PyWinObject_AsReadBuffer(obdata, (void **)&data, &datalen, TRUE))
+    if (!pybuf.init(obdata, FALSE, TRUE))
         goto cleanup;
 
     if (IS_INTRESOURCE(wclass))
         ret = dlg->Add((WORD)wclass, &tpl, caption);
     else
-        ret = dlg->Add(wclass, &tpl, caption, datalen, data);
+        ret = dlg->Add(wclass, &tpl, caption, pybuf.len(), (BYTE *)pybuf.ptr());
 
 cleanup:
     PyWinObject_FreeResourceId(wclass);

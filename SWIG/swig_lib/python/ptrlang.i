@@ -1,6 +1,6 @@
 //
 // SWIG pointer conversion and utility library
-// 
+//
 // Dave Beazley
 // April 19, 1997
 //
@@ -20,7 +20,7 @@
 
   ptrcast(0,"Vector *")
                or
-  ptrcast(0,"Vector_p")   
+  ptrcast(0,"Vector_p")
   ------------------------------------------------------------------ */
 
 static PyObject *ptrcast(PyObject *_PTRVALUE, char *type) {
@@ -33,9 +33,9 @@ static PyObject *ptrcast(PyObject *_PTRVALUE, char *type) {
   /* Produce a "mangled" version of the type string.  */
 
   typestr = (char *) malloc(strlen(type)+2);
-  
+
   /* Go through and munge the typestring */
-  
+
   r = typestr;
   *(r++) = '_';
   c = type;
@@ -53,9 +53,9 @@ static PyObject *ptrcast(PyObject *_PTRVALUE, char *type) {
   *(r++) = 0;
 
   /* Check to see what kind of object _PTRVALUE is */
-  
-  if (PyInt_Check(_PTRVALUE)) {
-    ptr = (void *) PyInt_AsLong(_PTRVALUE);
+
+  if (PyLong_Check(_PTRVALUE)) {
+    ptr = (void *) PyLong_AsLong(_PTRVALUE);
     /* Received a numerical value. Make a pointer out of it */
     r = (char *) malloc(strlen(typestr)+22);
     if (ptr) {
@@ -63,14 +63,14 @@ static PyObject *ptrcast(PyObject *_PTRVALUE, char *type) {
     } else {
       sprintf(r,"_0%s",typestr);
     }
-    obj = PyString_FromString(r);
+    obj = PyBytes_FromString(r);
     free(r);
-  } else if (PyString_Check(_PTRVALUE)) {
+  } else if (PyBytes_Check(_PTRVALUE)) {
     /* Have a real pointer value now.  Try to strip out the pointer
        value */
-    s = PyString_AsString(_PTRVALUE);
+    s = PyBytes_AsString(_PTRVALUE);
     r = (char *) malloc(strlen(type)+22);
-    
+
     /* Now extract the pointer value */
     if (!SWIG_GetPtr(s,&ptr,0)) {
       if (ptr) {
@@ -78,7 +78,7 @@ static PyObject *ptrcast(PyObject *_PTRVALUE, char *type) {
       } else {
 	sprintf(r,"_0%s",typestr);
       }
-      obj = PyString_FromString(r);
+      obj = PyBytes_FromString(r);
     } else {
       obj = NULL;
     }
@@ -87,7 +87,7 @@ static PyObject *ptrcast(PyObject *_PTRVALUE, char *type) {
     obj = NULL;
   }
   free(typestr);
-  if (!obj) 
+  if (!obj)
     PyErr_SetString(PyExc_TypeError,"Type error in ptrcast. Argument is not a valid pointer value.");
   return obj;
 }
@@ -95,10 +95,10 @@ static PyObject *ptrcast(PyObject *_PTRVALUE, char *type) {
 /*------------------------------------------------------------------
   ptrvalue(ptr,type = 0)
 
-  Attempts to dereference a pointer value.  If type is given, it 
+  Attempts to dereference a pointer value.  If type is given, it
   will try to use that type.  Otherwise, this function will attempt
-  to "guess" the proper datatype by checking against all of the 
-  builtin C datatypes. 
+  to "guess" the proper datatype by checking against all of the
+  builtin C datatypes.
   ------------------------------------------------------------------ */
 
 static PyObject *ptrvalue(PyObject *_PTRVALUE, int index, char *type) {
@@ -106,11 +106,11 @@ static PyObject *ptrvalue(PyObject *_PTRVALUE, int index, char *type) {
   char     *s;
   PyObject *obj;
 
-  if (!PyString_Check(_PTRVALUE)) {
+  if (!PyBytes_Check(_PTRVALUE)) {
     PyErr_SetString(PyExc_TypeError,"Type error in ptrvalue. Argument is not a valid pointer value.");
     return NULL;
   }
-  s = PyString_AsString(_PTRVALUE);
+  s = PyBytes_AsString(_PTRVALUE);
   if (SWIG_GetPtr(s,&ptr,0)) {
     PyErr_SetString(PyExc_TypeError,"Type error in ptrvalue. Argument is not a valid pointer value.");
     return NULL;
@@ -148,21 +148,21 @@ static PyObject *ptrvalue(PyObject *_PTRVALUE, int index, char *type) {
 
   /* Now we have a datatype.  Try to figure out what to do about it */
   if (strcmp(type,"int") == 0) {
-    obj = PyInt_FromLong((long) *(((int *) ptr) + index));
+    obj = PyLong_FromLong((long) *(((int *) ptr) + index));
   } else if (strcmp(type,"double") == 0) {
     obj = PyFloat_FromDouble((double) *(((double *) ptr)+index));
   } else if (strcmp(type,"short") == 0) {
-    obj = PyInt_FromLong((long) *(((short *) ptr)+index));
+    obj = PyLong_FromLong((long) *(((short *) ptr)+index));
   } else if (strcmp(type,"long") == 0) {
-    obj = PyInt_FromLong((long) *(((long *) ptr)+index));
+    obj = PyLong_FromLong((long) *(((long *) ptr)+index));
   } else if (strcmp(type,"float") == 0) {
     obj = PyFloat_FromDouble((double) *(((float *) ptr)+index));
   } else if (strcmp(type,"char") == 0) {
-    obj = PyString_FromString(((char *) ptr)+index);
+    obj = PyBytes_FromString(((char *) ptr)+index);
   } else if (strcmp(type,"char *") == 0) {
     char *c = *(((char **) ptr)+index);
-    if (c) obj = PyString_FromString(c);
-    else obj = PyString_FromString("NULL");
+    if (c) obj = PyBytes_FromString(c);
+    else obj = PyBytes_FromString("NULL");
   } else {
     PyErr_SetString(PyExc_TypeError,"Unable to dereference unsupported datatype.");
     return NULL;
@@ -208,15 +208,15 @@ static PyObject *ptrcreate(char *type, PyObject *_PYVALUE, int numelements) {
     sz = sizeof(char *)*(numelements+1);
     cast = "_char_pp";
   } else {
-    PyErr_SetString(PyExc_TypeError,"Unable to create unknown datatype."); 
+    PyErr_SetString(PyExc_TypeError,"Unable to create unknown datatype.");
     return NULL;
   }
-   
+
   /* Create the new object */
-  
+
   ptr = (void *) malloc(sz);
   if (!ptr) {
-    PyErr_SetString(PyExc_MemoryError,"Out of memory in swig_create."); 
+    PyErr_SetString(PyExc_MemoryError,"Out of memory in swig_create.");
     return NULL;
   }
 
@@ -225,21 +225,21 @@ static PyObject *ptrcreate(char *type, PyObject *_PYVALUE, int numelements) {
   if (_PYVALUE) {
     if (strcmp(type,"int") == 0) {
       int *ip,i,ivalue;
-      ivalue = (int) PyInt_AsLong(_PYVALUE);
+      ivalue = (int) PyLong_AsLong(_PYVALUE);
       ip = (int *) ptr;
       for (i = 0; i < numelements; i++)
 	ip[i] = ivalue;
     } else if (strcmp(type,"short") == 0) {
       short *ip,ivalue;
       int i;
-      ivalue = (short) PyInt_AsLong(_PYVALUE);
+      ivalue = (short) PyLong_AsLong(_PYVALUE);
       ip = (short *) ptr;
       for (i = 0; i < numelements; i++)
 	ip[i] = ivalue;
     } else if (strcmp(type,"long") == 0) {
       long *ip,ivalue;
       int i;
-      ivalue = (long) PyInt_AsLong(_PYVALUE);
+      ivalue = (long) PyLong_AsLong(_PYVALUE);
       ip = (long *) ptr;
       for (i = 0; i < numelements; i++)
 	ip[i] = ivalue;
@@ -259,13 +259,13 @@ static PyObject *ptrcreate(char *type, PyObject *_PYVALUE, int numelements) {
 	ip[i] = ivalue;
     } else if (strcmp(type,"char") == 0) {
       char *ip,*ivalue;
-      ivalue = (char *) PyString_AsString(_PYVALUE);
+      ivalue = (char *) PyBytes_AsString(_PYVALUE);
       ip = (char *) ptr;
       strncpy(ip,ivalue,numelements-1);
     } else if (strcmp(type,"char *") == 0) {
       char **ip, *ivalue;
       int  i;
-      ivalue = (char *) PyString_AsString(_PYVALUE);
+      ivalue = (char *) PyBytes_AsString(_PYVALUE);
       ip = (char **) ptr;
       for (i = 0; i < numelements; i++) {
 	if (ivalue) {
@@ -277,11 +277,11 @@ static PyObject *ptrcreate(char *type, PyObject *_PYVALUE, int numelements) {
       }
       ip[numelements] = 0;
     }
-  } 
+  }
   /* Create the pointer value */
-  
+
   SWIG_MakePtr(temp,ptr,cast);
-  obj = PyString_FromString(temp);
+  obj = PyBytes_FromString(temp);
   return obj;
 }
 
@@ -298,11 +298,11 @@ static PyObject *ptrset(PyObject *_PTRVALUE, PyObject *_PYVALUE, int index, char
   char     *s;
   PyObject *obj;
 
-  if (!PyString_Check(_PTRVALUE)) {
+  if (!PyBytes_Check(_PTRVALUE)) {
     PyErr_SetString(PyExc_TypeError,"Type error in ptrset. Argument is not a valid pointer value.");
     return NULL;
   }
-  s = PyString_AsString(_PTRVALUE);
+  s = PyBytes_AsString(_PTRVALUE);
   if (SWIG_GetPtr(s,&ptr,0)) {
     PyErr_SetString(PyExc_TypeError,"Type error in ptrset. Argument is not a valid pointer value.");
     return NULL;
@@ -337,23 +337,23 @@ static PyObject *ptrset(PyObject *_PTRVALUE, PyObject *_PYVALUE, int index, char
     PyErr_SetString(PyExc_TypeError,"Unable to set NULL pointer.");
     return NULL;
   }
-  
+
   /* Now we have a datatype.  Try to figure out what to do about it */
   if (strcmp(type,"int") == 0) {
-    *(((int *) ptr)+index) = (int) PyInt_AsLong(_PYVALUE);
+    *(((int *) ptr)+index) = (int) PyLong_AsLong(_PYVALUE);
   } else if (strcmp(type,"double") == 0) {
     *(((double *) ptr)+index) = (double) PyFloat_AsDouble(_PYVALUE);
   } else if (strcmp(type,"short") == 0) {
-    *(((short *) ptr)+index) = (short) PyInt_AsLong(_PYVALUE);
+    *(((short *) ptr)+index) = (short) PyLong_AsLong(_PYVALUE);
   } else if (strcmp(type,"long") == 0) {
-    *(((long *) ptr)+index) = (long) PyInt_AsLong(_PYVALUE);
+    *(((long *) ptr)+index) = (long) PyLong_AsLong(_PYVALUE);
   } else if (strcmp(type,"float") == 0) {
     *(((float *) ptr)+index) = (float) PyFloat_AsDouble(_PYVALUE);
   } else if (strcmp(type,"char") == 0) {
-    char *c = PyString_AsString(_PYVALUE);
+    char *c = PyBytes_AsString(_PYVALUE);
     strcpy(((char *) ptr)+index, c);
   } else if (strcmp(type,"char *") == 0) {
-    char *c = PyString_AsString(_PYVALUE);
+    char *c = PyBytes_AsString(_PYVALUE);
     char **ca = (char **) ptr;
     if (ca[index]) free(ca[index]);
     if (strcmp(c,"NULL") == 0) {
@@ -386,10 +386,10 @@ static PyObject *ptradd(PyObject *_PTRVALUE, int offset) {
   char *type;
 
   /* Check to see what kind of object _PTRVALUE is */
-  
-  if (PyString_Check(_PTRVALUE)) {
+
+  if (PyBytes_Check(_PTRVALUE)) {
     /* Have a potential pointer value now.  Try to strip out the value */
-    s = PyString_AsString(_PTRVALUE);
+    s = PyBytes_AsString(_PTRVALUE);
 
     /* Try to handle a few common datatypes first */
 
@@ -418,7 +418,7 @@ static PyObject *ptradd(PyObject *_PTRVALUE, int offset) {
     } else {
       sprintf(r,"_0%s",type);
     }
-    obj = PyString_FromString(r);
+    obj = PyBytes_FromString(r);
     free(r);
   }
   return obj;
@@ -437,9 +437,9 @@ static void ptrmap(char *type1, char *type2) {
   /* Produce a "mangled" version of the type string.  */
 
   typestr1 = (char *) malloc(strlen(type1)+2);
-  
+
   /* Go through and munge the typestring */
-  
+
   r = typestr1;
   *(r++) = '_';
   c = type1;
@@ -455,11 +455,11 @@ static void ptrmap(char *type1, char *type2) {
     c++;
   }
   *(r++) = 0;
-  
+
   typestr2 = (char *) malloc(strlen(type2)+2);
 
   /* Go through and munge the typestring */
-  
+
   r = typestr2;
   *(r++) = '_';
   c = type2;
@@ -489,11 +489,11 @@ PyObject *ptrfree(PyObject *_PTRVALUE) {
   void *ptr, *junk;
   char *s;
 
-  if (!PyString_Check(_PTRVALUE)) {
+  if (!PyBytes_Check(_PTRVALUE)) {
     PyErr_SetString(PyExc_TypeError,"Type error in ptrfree. Argument is not a valid pointer value.");
     return NULL;
   }
-  s = PyString_AsString(_PTRVALUE);
+  s = PyBytes_AsString(_PTRVALUE);
   if (SWIG_GetPtr(s,&ptr,0)) {
     PyErr_SetString(PyExc_TypeError,"Type error in ptrfree. Argument is not a valid pointer value.");
     return NULL;
@@ -509,7 +509,7 @@ PyObject *ptrfree(PyObject *_PTRVALUE) {
 	i++;
       }
     }
-  } 
+  }
   if (ptr)
     free((char *) ptr);
 
@@ -527,7 +527,7 @@ PyObject *ptrfree(PyObject *_PTRVALUE) {
                      PyObject *ptrcreate,
                      PyObject *ptrset,
                      PyObject *ptradd,
-                     PyObject *ptrfree  
+                     PyObject *ptrfree
 {
   $target = $source;
 }
@@ -536,11 +536,11 @@ PyObject *ptrfree(PyObject *_PTRVALUE) {
   if ($source == -1) return NULL;
 }
 
-PyObject *ptrcast(PyObject *ptr, char *type); 
+PyObject *ptrcast(PyObject *ptr, char *type);
 // Casts a pointer ptr to a new datatype given by the string type.
 // type may be either the SWIG generated representation of a datatype
 // or the C representation.  For example :
-// 
+//
 //    ptrcast(ptr,"double_p");   # Python representation
 //    ptrcast(ptr,"double *");    # C representation
 //
@@ -576,13 +576,13 @@ PyObject *ptrset(PyObject *ptr, PyObject *value, int index = 0, char *type = 0);
 // integers, floats, doubles, etc...  The index and type fields are
 // optional.  When an index is given, it provides array access.  When
 // type is specified, it overrides the given pointer type.  Examples :
-// 
+//
 //   ptrset(a,3)            # Sets the value *a = 3
 //   ptrset(a,3,10)         # Sets a[10] = 3
 //   ptrset(a,3,10,"int")   # Sets a[10] = 3 assuming a is a int *
 
 PyObject *ptrcreate(char *type, PyObject *value = 0, int nitems = 1);
-// Creates a new object and returns a pointer to it.  This function 
+// Creates a new object and returns a pointer to it.  This function
 // can be used to create various kinds of objects for use in C functions.
 // type specifies the basic C datatype to create and value is an
 // optional parameter that can be used to set the initial value of the
@@ -625,10 +625,10 @@ PyObject *ptradd(PyObject *ptr, int offset);
 //      b = ptradd(b,1);              # b++ (go to next double)
 //
 // In this case, adding one to b goes to the next double.
-// 
+//
 // For all other datatypes (including all complex datatypes), the
 // offset corresponds to bytes.  This function does not perform any
-// bounds checking and negative offsets are perfectly legal.  
+// bounds checking and negative offsets are perfectly legal.
 
 void      ptrmap(char *type1, char *type2);
 // This is a rarely used function that performs essentially the same
@@ -646,7 +646,3 @@ void      ptrmap(char *type1, char *type2);
 // Normally this function is not needed, but it can be used to
 // circumvent SWIG's normal type-checking behavior or to work around
 // weird type-handling problems.
-
-    
-    
-

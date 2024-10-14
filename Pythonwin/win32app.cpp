@@ -18,11 +18,6 @@ generates Windows .hlp files.
 #include "win32doc.h"
 #include "win32template.h"
 
-extern CWnd *GetWndPtr(PyObject *self);
-
-PyObject *PyCWinApp::pExistingAppObject = NULL;
-char *errmsgAlreadyInit = "The application has already been initialised";
-
 /////////////////////////////////////////////////////////////////////
 //
 // CProtectedWinApp Application helpers.
@@ -108,13 +103,9 @@ extern BOOL bDebuggerPumpStopRequested;
 // Application object
 //
 //////////////////////////////////////////////////////////////////////
-PyCWinApp::PyCWinApp() { ASSERT(pExistingAppObject == NULL); }
+PyCWinApp::PyCWinApp() {}
 
-PyCWinApp::~PyCWinApp()
-{
-    XDODECREF(pExistingAppObject);
-    pExistingAppObject = NULL;
-}
+PyCWinApp::~PyCWinApp() {}
 
 // @pymethod |PyCWinApp|AddDocTemplate|Adds a template to the application list.
 static PyObject *ui_app_add_doc_template(PyObject *self, PyObject *args)
@@ -273,7 +264,7 @@ static PyObject *ui_load_cursor(PyObject *self, PyObject *args)
     if (!PyWinObject_AsResourceId(obid, &csid, TRUE))
         return NULL;
     if (IS_INTRESOURCE(csid))
-        hc = GetApp()->LoadCursor((UINT)csid);
+        hc = GetApp()->LoadCursor(MAKEINTRESOURCE(csid));
     else
         hc = GetApp()->LoadCursor(csid);
     PyWinObject_FreeResourceId(csid);
@@ -355,7 +346,7 @@ static PyObject *ui_app_run(PyObject *self, PyObject *args)
     long rc = AfxGetApp()->CWinApp::Run();
     GUI_END_SAVE;
 
-    return PyInt_FromLong(rc);
+    return PyLong_FromLong(rc);
 }
 
 // @pymethod int|PyCWinApp|IsInproc|Returns a flag to indicate if the created CWinApp was in the DLL, or an external
@@ -364,7 +355,7 @@ static PyObject *ui_app_isinproc(PyObject *self, PyObject *args)
 {
     extern BOOL PyWin_bHaveMFCHost;
     CHECK_NO_ARGS2(args, IsInproc);
-    return PyInt_FromLong(!PyWin_bHaveMFCHost);
+    return PyLong_FromLong(!PyWin_bHaveMFCHost);
 }
 
 // @pymethod [<o PyCDocTemplate>,...]|PyCWinApp|GetDocTemplateList|Returns a list of all document templates.
@@ -406,9 +397,4 @@ static struct PyMethodDef PyCWinApp_methods[] = {
 ui_type_CObject PyCWinApp::type("PyCWinApp", &PyCWinThread::type, RUNTIME_CLASS(CWinApp), sizeof(PyCWinApp),
                                 PYOBJ_OFFSET(PyCWinApp), PyCWinApp_methods, GET_PY_CTOR(PyCWinApp));
 
-void PyCWinApp::cleanup()
-{
-    PyCWinThread::cleanup();
-    // total hack!
-    while (pExistingAppObject) DODECREF(pExistingAppObject);  // this may delete it.
-}
+void PyCWinApp::cleanup() { PyCWinThread::cleanup(); }

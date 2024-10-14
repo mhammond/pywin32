@@ -37,7 +37,7 @@ PyObject *OleSetADSIError(HRESULT hr, IUnknown *pUnk, REFIID iid)
             info.bstrSource = SysAllocString(szNameBuf);
             info.bstrDescription = SysAllocString(szErrorBuf);
             // Technically, we probably should return DISP_E_EXCEPTION so we
-            // appear to follow COM's rules - however, we really dont
+            // appear to follow COM's rules - however, we really don't
             // _need_ to (as only Python sees this result), and having the native
             // HRESULT is preferable.
             return PyCom_BuildPyExceptionFromEXCEPINFO(dwErrCode, &info);
@@ -61,7 +61,7 @@ PyObject *OleSetADSIError(HRESULT hr, IUnknown *pUnk, REFIID iid)
             info.bstrSource = SysAllocString(szNameBuf);
             info.bstrDescription = SysAllocString(szErrorBuf);
             // Technically, we probably should return DISP_E_EXCEPTION so we
-            // appear to follow COM's rules - however, we really dont
+            // appear to follow COM's rules - however, we really don't
             // _need_ to (as only Python sees this result), and having the native
             // HRESULT is preferable.
             return PyCom_BuildPyExceptionFromEXCEPINFO(dwErrCode, &info);
@@ -98,18 +98,18 @@ PyObject *PyADSIObject_FromADSVALUE(ADSVALUE &v)
             Py_INCREF(ob);
             break;
         case ADSTYPE_INTEGER:
-            ob = PyInt_FromLong(v.Integer);
+            ob = PyLong_FromLong(v.Integer);
             break;
         case ADSTYPE_OCTET_STRING: {
-            void *buf;
             DWORD bufSize = v.OctetString.dwLength;
             if (!(ob = PyBuffer_New(bufSize)))
                 return NULL;
-            if (!PyWinObject_AsWriteBuffer(ob, &buf, &bufSize)) {
+            PyWinBufferView pybuf(ob, true);
+            if (!pybuf.ok()) {
                 Py_DECREF(ob);
                 return NULL;
             }
-            memcpy(buf, v.OctetString.lpValue, bufSize);
+            memcpy(pybuf.ptr(), v.OctetString.lpValue, bufSize);
         } break;
         case ADSTYPE_UTC_TIME:
             ob = PyWinObject_FromSYSTEMTIME(v.UTCTime);
@@ -121,15 +121,15 @@ PyObject *PyADSIObject_FromADSVALUE(ADSVALUE &v)
             ob = PyWinObject_FromWCHAR(v.ClassName);
             break;
         case ADSTYPE_PROV_SPECIFIC: {
-            void *buf;
             DWORD bufSize = v.ProviderSpecific.dwLength;
             if (!(ob = PyBuffer_New(bufSize)))
                 return NULL;
-            if (!PyWinObject_AsWriteBuffer(ob, &buf, &bufSize)) {
+            PyWinBufferView pybuf(ob, true);
+            if (!pybuf.ok()) {
                 Py_DECREF(ob);
                 return NULL;
             }
-            memcpy(buf, v.ProviderSpecific.lpValue, bufSize);
+            memcpy(pybuf.ptr(), v.ProviderSpecific.lpValue, bufSize);
             break;
         }
         case ADSTYPE_NT_SECURITY_DESCRIPTOR: {
@@ -162,7 +162,7 @@ BOOL PyADSIObject_AsTypedValue(PyObject *val, ADSVALUE &v)
 {
     BOOL ok = TRUE;
     switch (v.dwType) {
-        // OK - get lazy - we know its a union!
+        // OK - get lazy - we know it's a union!
         case ADSTYPE_DN_STRING:
         case ADSTYPE_CASE_EXACT_STRING:
         case ADSTYPE_CASE_IGNORE_STRING:
@@ -172,10 +172,10 @@ BOOL PyADSIObject_AsTypedValue(PyObject *val, ADSVALUE &v)
             ok = PyWinObject_AsWCHAR(val, &v.DNString, FALSE);
             break;
         case ADSTYPE_BOOLEAN:
-            v.Boolean = PyInt_AsLong(val);
+            v.Boolean = PyLong_AsLong(val);
             break;
         case ADSTYPE_INTEGER:
-            v.Integer = PyInt_AsLong(val);
+            v.Integer = PyLong_AsLong(val);
             break;
         case ADSTYPE_UTC_TIME:
             ok = PyWinObject_AsSYSTEMTIME(val, &v.UTCTime);
@@ -184,7 +184,7 @@ BOOL PyADSIObject_AsTypedValue(PyObject *val, ADSVALUE &v)
             ok = PyWinObject_AsLARGE_INTEGER(val, &v.LargeInteger);
             break;
         default:
-            PyErr_SetString(PyExc_TypeError, "Cant convert to this type");
+            PyErr_SetString(PyExc_TypeError, "Can't convert to this type");
             return FALSE;
     }
     return ok;
@@ -203,11 +203,11 @@ BOOL PyADSIObject_AsADSVALUE(PyObject *ob, ADSVALUE &v)
     if (PyTuple_Size(ob) > 1)
         obtype = PyTuple_GET_ITEM(ob, 1);
     if (obtype == NULL || obtype == Py_None) {
-        if (PyString_Check(val) || PyUnicode_Check(val))
+        if (PyBytes_Check(val) || PyUnicode_Check(val))
             dwType = ADSTYPE_PRINTABLE_STRING;
         else if (val == Py_True || val == Py_False)
             dwType = ADSTYPE_BOOLEAN;
-        else if (PyInt_Check(val))
+        else if (PyLong_Check(val))
             dwType = ADSTYPE_INTEGER;
         else if (PyWinTime_Check(val))
             dwType = ADSTYPE_UTC_TIME;
@@ -216,8 +216,8 @@ BOOL PyADSIObject_AsADSVALUE(PyObject *ob, ADSVALUE &v)
             return FALSE;
         }
     }
-    else if (PyInt_Check(obtype))
-        dwType = PyInt_AsLong(obtype);
+    else if (PyLong_Check(obtype))
+        dwType = PyLong_AsLong(obtype);
     else {
         PyErr_SetString(PyExc_TypeError, "The type specified must be None or a string");
         return FALSE;
@@ -315,7 +315,7 @@ class PyADS_OBJECT_INFO : public PyObject {
     static void deallocFunc(PyObject *ob) { delete (PyADS_OBJECT_INFO *)ob; }
 
     static struct PyMemberDef memberlist[];
-    static PyTypeObject PyADS_OBJECT_INFO::Type;
+    static PyTypeObject Type;
 
    protected:
     PyObject *obRDN, *obObjectDN, *obParentDN, *obClassName;
@@ -455,10 +455,10 @@ class PyADS_ATTR_INFO : public PyObject {
         if (strcmp(name, "__members__") == 0) {
             PyObject *ret = PyList_New(4);
             if (ret) {
-                PyList_SET_ITEM(ret, 0, PyString_FromString("AttrName"));
-                PyList_SET_ITEM(ret, 1, PyString_FromString("ControlCode"));
-                PyList_SET_ITEM(ret, 2, PyString_FromString("ADsType"));
-                PyList_SET_ITEM(ret, 3, PyString_FromString("Values"));
+                PyList_SET_ITEM(ret, 0, PyBytes_FromString("AttrName"));
+                PyList_SET_ITEM(ret, 1, PyBytes_FromString("ControlCode"));
+                PyList_SET_ITEM(ret, 2, PyBytes_FromString("ADsType"));
+                PyList_SET_ITEM(ret, 3, PyBytes_FromString("Values"));
             }
             return ret;
         }
@@ -470,10 +470,10 @@ class PyADS_ATTR_INFO : public PyObject {
         return PyObject_GenericGetAttr(self, obname);
     }
 
-    //#pragma warning( disable : 4251 )
+    // #pragma warning( disable : 4251 )
     static struct PyMemberDef memberlist[];
-    //#pragma warning( default : 4251 )
-    static PyTypeObject PyADS_ATTR_INFO::Type;
+    // #pragma warning( default : 4251 )
+    static PyTypeObject Type;
 
    protected:
     DWORD dwControlCode;
@@ -675,7 +675,7 @@ done:
 // ADSERR.h is built from a message file.
 // Therefore, there _must_ be a DLL around we can call
 // FormatMessage with.
-// However, its not obvious, and this code was cut directly from MSDN.
+// However, it's not obvious, and this code was cut directly from MSDN.
 #include "adserr.h"
 typedef struct tagADSERRMSG {
     HRESULT hr;

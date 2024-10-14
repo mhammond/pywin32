@@ -84,8 +84,8 @@ STDMETHODIMP PyGDropSource::QueryContinueDrag(
     HRESULT hr = InvokeViaPolicy("QueryContinueDrag", &result, "il", fEscapePressed, grfKeyState);
     if (FAILED(hr))
         return hr;
-    if (PyInt_Check(result))
-        hr = PyInt_AsLong(result);
+    if (PyLong_Check(result))
+        hr = PyLong_AsLong(result);
     Py_DECREF(result);
     return hr;
 }
@@ -98,8 +98,8 @@ STDMETHODIMP PyGDropSource::GiveFeedback(
     HRESULT hr = InvokeViaPolicy("GiveFeedback", &result, "l", dwEffect);
     if (FAILED(hr))
         return hr;
-    if (PyInt_Check(result))
-        hr = PyInt_AsLong(result);
+    if (PyLong_Check(result))
+        hr = PyLong_AsLong(result);
     Py_DECREF(result);
     return hr;
 }

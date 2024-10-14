@@ -1,4 +1,5 @@
 // @doc
+#define PY_SSIZE_T_CLEAN
 #include "win32crypt.h"
 
 // @object PyCRYPTPROV|Handle to a cryptographic provider, created using <om cryptoapi.CryptAcquireContext>
@@ -286,7 +287,7 @@ PyObject *PyCRYPTPROV::PyCryptGetProvParam(PyObject *self, PyObject *args, PyObj
                 case PP_KEYEXCHANGE_PIN:
                 case PP_SIGNATURE_PIN:
                 case PP_ADMIN_PIN:
-                    ret = PyString_FromString((char *)pbData);
+                    ret = PyBytes_FromString((char *)pbData);
                     break;
                 case PP_VERSION:  // return as string or tuple of 2 numbers ???????
                 default: {
@@ -325,7 +326,8 @@ PyObject *PyCRYPTPROV::PyCryptGenRandom(PyObject *self, PyObject *args, PyObject
 {
     static char *keywords[] = {"Len", "SeedData", NULL};
     PyObject *ret = NULL;
-    DWORD dwLen = 0, seedlen = 0;
+    unsigned long dwLen = 0;
+    Py_ssize_t seedlen = 0;
     BYTE *pbBuffer = NULL;
     HCRYPTPROV hcryptprov = ((PyCRYPTPROV *)self)->GetHCRYPTPROV();
     char *seeddata = NULL;
@@ -336,14 +338,14 @@ PyObject *PyCRYPTPROV::PyCryptGenRandom(PyObject *self, PyObject *args, PyObject
         return NULL;
     pbBuffer = (BYTE *)malloc(dwLen + 1);
     if (pbBuffer == NULL)
-        return PyErr_Format(PyExc_MemoryError, "CryptGenRandom: Unable to allocate %d bytes", dwLen + 1);
+        return PyErr_Format(PyExc_MemoryError, "CryptGenRandom: Unable to allocate %zd bytes", dwLen + 1);
 
     // initialize buffer with char string if passed if
     ZeroMemory(pbBuffer, dwLen + 1);
     if (seeddata != NULL)
         memcpy(pbBuffer, seeddata, min(dwLen, seedlen));
     if (CryptGenRandom(hcryptprov, dwLen, pbBuffer))
-        ret = PyString_FromStringAndSize((char *)pbBuffer, dwLen);
+        ret = PyBytes_FromStringAndSize((char *)pbBuffer, dwLen);
     else
         PyWin_SetAPIError("PyCRYPTPROV::CryptGenRandom");
     if (pbBuffer != NULL)
@@ -381,8 +383,7 @@ PyObject *PyCRYPTPROV::PyCryptCreateHash(PyObject *self, PyObject *args, PyObjec
 PyObject *PyCRYPTPROV::PyCryptImportKey(PyObject *self, PyObject *args, PyObject *kwargs)
 {
     static char *keywords[] = {"Data", "PubKey", "Flags", NULL};
-    PBYTE buf;
-    DWORD buflen, flags = 0;
+    DWORD flags = 0;
     HCRYPTKEY retkey = NULL, pubkey = NULL;
     PyObject *obpubkey = Py_None, *obbuf;
     HCRYPTPROV hcryptprov = ((PyCRYPTPROV *)self)->GetHCRYPTPROV();
@@ -396,9 +397,11 @@ PyObject *PyCRYPTPROV::PyCryptImportKey(PyObject *self, PyObject *args, PyObject
         return NULL;
     if (!PyWinObject_AsHCRYPTKEY(obpubkey, &pubkey, TRUE))
         return NULL;
-    if (!PyWinObject_AsReadBuffer(obbuf, (void **)&buf, &buflen, FALSE))
+    PyWinBufferView pybuf(obbuf);
+    if (!pybuf.ok())
         return NULL;
-    if (!CryptImportKey(hcryptprov, buf, buflen, pubkey, flags, &retkey))
+
+    if (!CryptImportKey(hcryptprov, (BYTE *)pybuf.ptr(), pybuf.len(), pubkey, flags, &retkey))
         return PyWin_SetAPIError("PyCRYPTPROV::CryptImportKey");
     return new PyCRYPTKEY(retkey, self);
 }

@@ -6,7 +6,6 @@
 #include "PySecurityObjects.h"
 #include "structmember.h"
 
-#ifndef NO_PYWINTYPES_SECURITY
 BOOL(WINAPI *setsecuritydescriptorcontrol)
 (PSECURITY_DESCRIPTOR, SECURITY_DESCRIPTOR_CONTROL, SECURITY_DESCRIPTOR_CONTROL) = NULL;
 
@@ -97,13 +96,15 @@ PyObject *PyWinMethod_NewSECURITY_DESCRIPTOR(PyObject *self, PyObject *args)
 
     PyErr_Clear();
     PyObject *obsd = NULL;
-    PSECURITY_DESCRIPTOR psd;
-    Py_ssize_t buf_len;
     // @pyparmalt1 buffer|data||A buffer (eg, a string) with the raw bytes for the security descriptor.
     if (!PyArg_ParseTuple(args, "O:SECURITY_DESCRIPTOR", &obsd))
         return NULL;
-    if (PyObject_AsReadBuffer(obsd, (const void **)&psd, &buf_len) == -1)
+
+    PyWinBufferView pybuf(obsd);
+    if (!pybuf.ok())
         return NULL;
+    PSECURITY_DESCRIPTOR psd = (PSECURITY_DESCRIPTOR)pybuf.ptr();
+
     if (!IsValidSecurityDescriptor(psd)) {
         PyErr_SetString(PyExc_ValueError, "Data is not a valid security descriptor");
         return NULL;
@@ -665,7 +666,7 @@ PyObject *PySECURITY_DESCRIPTOR::IsValid(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, ":IsValid"))
         return NULL;
     PySECURITY_DESCRIPTOR *This = (PySECURITY_DESCRIPTOR *)self;
-    return PyInt_FromLong(IsValidSecurityDescriptor(This->m_psd));
+    return PyLong_FromLong(IsValidSecurityDescriptor(This->m_psd));
 }
 
 // @pymethod |PySECURITY_DESCRIPTOR|GetLength|return length of security descriptor (GetSecurityDescriptorLenght).
@@ -674,7 +675,7 @@ PyObject *PySECURITY_DESCRIPTOR::GetLength(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, ":GetLength"))
         return NULL;
     PySECURITY_DESCRIPTOR *This = (PySECURITY_DESCRIPTOR *)self;
-    return PyInt_FromLong(GetSecurityDescriptorLength(This->m_psd));
+    return PyLong_FromLong(GetSecurityDescriptorLength(This->m_psd));
 }
 
 // @object PySECURITY_DESCRIPTOR|A Python object, representing a SECURITY_DESCRIPTOR structure
@@ -711,33 +712,6 @@ struct PyMethodDef PySECURITY_DESCRIPTOR::methods[] = {
     {NULL}};
 
 // Buffer interface in Python 3.0 has changed
-#if (PY_VERSION_HEX < 0x03000000)
-/*static*/ Py_ssize_t PySECURITY_DESCRIPTOR::getreadbuf(PyObject *self, Py_ssize_t index, void **ptr)
-{
-    if (index != 0) {
-        PyErr_SetString(PyExc_SystemError, "accessing non-existent SID segment");
-        return -1;
-    }
-    PySECURITY_DESCRIPTOR *pysd = (PySECURITY_DESCRIPTOR *)self;
-    *ptr = pysd->m_psd;
-    return GetSecurityDescriptorLength(pysd->m_psd);
-}
-
-/*static*/ Py_ssize_t PySECURITY_DESCRIPTOR::getsegcount(PyObject *self, Py_ssize_t *lenp)
-{
-    if (lenp)
-        *lenp = GetSecurityDescriptorLength(((PySECURITY_DESCRIPTOR *)self)->m_psd);
-    return 1;
-}
-
-static PyBufferProcs PySECURITY_DESCRIPTOR_as_buffer = {
-    PySECURITY_DESCRIPTOR::getreadbuf,
-    0,
-    PySECURITY_DESCRIPTOR::getsegcount,
-    0,
-};
-
-#else   // New buffer interface for Python 3.0
 /*static*/ int PySECURITY_DESCRIPTOR::getbufferinfo(PyObject *self, Py_buffer *view, int flags)
 {
     PySECURITY_DESCRIPTOR *pysd = (PySECURITY_DESCRIPTOR *)self;
@@ -748,7 +722,6 @@ static PyBufferProcs PySECURITY_DESCRIPTOR_as_buffer = {
     PySECURITY_DESCRIPTOR::getbufferinfo,
     NULL  // Don't need to release any memory from Py_buffer struct
 };
-#endif  // PY_VERSION_HEX < 0x03000000
 
 PYWINTYPES_EXPORT PyTypeObject PySECURITY_DESCRIPTORType = {
     PYWIN_OBJECT_HEAD "PySECURITY_DESCRIPTOR", sizeof(PySECURITY_DESCRIPTOR), 0,
@@ -817,37 +790,3 @@ PySECURITY_DESCRIPTOR::~PySECURITY_DESCRIPTOR(void)
 }
 
 /*static*/ void PySECURITY_DESCRIPTOR::deallocFunc(PyObject *ob) { delete (PySECURITY_DESCRIPTOR *)ob; }
-#else /* NO_PYWINTYPES_SECURITY */
-
-BOOL PyWinObject_AsSECURITY_DESCRIPTOR(PyObject *ob, PSECURITY_DESCRIPTOR *ppSECURITY_DESCRIPTOR,
-                                       BOOL bNoneOK /*= TRUE*/)
-{
-    if (bNoneOK && ob == Py_None) {
-        *ppSECURITY_DESCRIPTOR = NULL;
-    }
-    else {
-        if (bNoneOK)
-            PyErr_SetString(PyExc_TypeError,
-                            "This build of pywintypes only supports None as "
-                            "a SECURITY_DESCRIPTOR");
-        else
-            PyErr_SetString(PyExc_TypeError,
-                            "This function can not work in this build, as "
-                            "only None may be used as a SECURITY_DESCRIPTOR");
-        return FALSE;
-    }
-    return TRUE;
-}
-PyObject *PyWinObject_FromSECURITY_DESCRIPTOR(PSECURITY_DESCRIPTOR psd)
-{
-    if (psd == NULL) {
-        Py_INCREF(Py_None);
-        return Py_None;
-    }
-    PyErr_SetString(PyExc_RuntimeError,
-                    "A non-NULL SECURITY_DESCRIPTOR was passed, but security "
-                    "descriptors are disabled from this build");
-    return NULL;
-}
-
-#endif /* NO_PYWINTYPES_SECURITY */

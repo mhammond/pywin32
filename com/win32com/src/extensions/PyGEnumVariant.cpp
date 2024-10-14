@@ -10,24 +10,23 @@ STDMETHODIMP PyGEnumVARIANT::Next(
 {
     PY_GATEWAY_METHOD;
     PyObject *result;
+    Py_ssize_t len;
     HRESULT hr = InvokeViaPolicy("Next", &result, "i", celt);
     if (FAILED(hr))
         return hr;
 
     if (!PySequence_Check(result))
         goto error;
-    int len;
     len = PyObject_Length(result);
-    if (len == -1)
+    if (len == -1 || !PyWin_is_ssize_dword(len))
         goto error;
-    if (len > (int)celt)
+    if (len > celt)
         len = celt;
 
     if (pCeltFetched)
-        *pCeltFetched = len;
+        *pCeltFetched = (ULONG)len;
 
-    int i;
-    for (i = 0; i < len; ++i) {
+    for (ULONG i = 0; i < len; ++i) {
         PyObject *ob = PySequence_GetItem(result, i);
         if (ob == NULL)
             goto error;
@@ -42,13 +41,12 @@ STDMETHODIMP PyGEnumVARIANT::Next(
 
     Py_DECREF(result);
 
-    return len < (int)celt ? S_FALSE : S_OK;
+    return len < celt ? S_FALSE : S_OK;
 
 error:
     PyErr_Clear();  // just in case
-    PyCom_LogF("PyGEnumVariant::Next got a bad return value");
     Py_DECREF(result);
-    return PyCom_SetCOMErrorFromSimple(E_FAIL, IID_IEnumVARIANT, "Next() did not return a sequence of objects");
+    return PyCom_HandleIEnumNoSequence(IID_IEnumVARIANT);
 }
 
 STDMETHODIMP PyGEnumVARIANT::Skip(

@@ -1,9 +1,3 @@
-#define Py_USE_NEW_NAMES
-
-// CRYPT_DECRYPT_MESSAGE_PARA.dwflags is in an ifdef for some unknown reason
-#define CRYPT_DECRYPT_MESSAGE_PARA_HAS_EXTRA_FIELDS
-
-#define DllExport _declspec(dllexport)
 #include "windows.h"
 #include "Python.h"
 #include "structmember.h"

@@ -240,7 +240,7 @@ static PyObject *pyBindIFilterFromStream(PyObject *self, PyObject *args)
 
 static int AddConstant(PyObject *dict, const char *key, long value)
 {
-    PyObject *oval = PyInt_FromLong(value);
+    PyObject *oval = PyLong_FromLong(value);
     if (!oval) {
         return 1;
     }

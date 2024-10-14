@@ -6,8 +6,6 @@
 #include "PyWinObjects.h"
 #include "PySecurityObjects.h"
 
-#ifndef NO_PYWINTYPES_SECURITY
-
 #include "accctrl.h"
 #include "aclapi.h"
 
@@ -69,7 +67,7 @@ PyObject *PyACL::IsValid(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, ":IsValid"))
         return NULL;
     PyACL *This = (PyACL *)self;
-    return PyInt_FromLong(IsValidAcl(This->GetACL()));
+    return PyLong_FromLong(IsValidAcl(This->GetACL()));
 }
 
 BOOL _ReorderACL(PACL pacl)
@@ -400,14 +398,17 @@ PyObject *addaceorig(addacefunc addfunc, CHAR *funcname, PyACL *This, DWORD revi
         if (err != ERROR_ALLOTTED_SPACE_EXCEEDED)
             return PyWin_SetAPIError(funcname, err);
         // resize if dacl too small
-        unsigned short required_size = pdacl->AclSize + sizeof(ACCESS_ALLOWED_ACE) + (unsigned short)GetLengthSid(psid);
+        unsigned int required_size = pdacl->AclSize + sizeof(ACCESS_ALLOWED_ACE) + GetLengthSid(psid);
+        // max ACL size is USHRT_MAX
+        if (required_size > USHRT_MAX)
+            return PyErr_Format(PyExc_OverflowError, "%s: adding ACE would put ACL over size limit", funcname);
         pdacl_padded = (ACL *)malloc(required_size);
         if (pdacl_padded == NULL)
             return PyErr_Format(PyExc_MemoryError, "%s: unable to allocated %d bytes", funcname, required_size);
 
         ZeroMemory(pdacl_padded, required_size);
         memcpy(pdacl_padded, pdacl, pdacl->AclSize);
-        pdacl_padded->AclSize = required_size;
+        pdacl_padded->AclSize = (unsigned short)required_size;
         bsuccess = (*addfunc)(pdacl_padded, revision, access, psid);
         if (bsuccess) {
             bsuccess = _ReorderACL(pdacl_padded);
@@ -510,14 +511,17 @@ PyObject *addaceex(addaceexfunc addfunc, CHAR *funcname, PyACL *This, DWORD revi
         if (err != ERROR_ALLOTTED_SPACE_EXCEEDED)
             return PyWin_SetAPIError(funcname, err);
         // resize if dacl too small
-        unsigned short required_size = pacl->AclSize + sizeof(ACCESS_ALLOWED_ACE) + (unsigned short)GetLengthSid(psid);
+        unsigned int required_size = pacl->AclSize + sizeof(ACCESS_ALLOWED_ACE) + GetLengthSid(psid);
+        // max ACL size is USHRT_MAX
+        if (required_size > USHRT_MAX)
+            return PyErr_Format(PyExc_OverflowError, "%s: adding ACE would put ACL over size limit", funcname);
         pacl_padded = (ACL *)malloc(required_size);
         if (pacl_padded == NULL)
             return PyErr_Format(PyExc_MemoryError, "%s: unable to allocated %d bytes", funcname, required_size);
 
         ZeroMemory(pacl_padded, required_size);
         memcpy(pacl_padded, pacl, pacl->AclSize);
-        pacl_padded->AclSize = required_size;
+        pacl_padded->AclSize = (unsigned short)required_size;
         bsuccess = (*addfunc)(pacl_padded, revision, aceflags, access, psid);
         if (bsuccess) {
             bsuccess = _ReorderACL(pacl_padded);
@@ -618,15 +622,17 @@ PyObject *addobjectace(addobjectacefunc addfunc, CHAR *funcname, PyACL *This, DW
         if (err != ERROR_ALLOTTED_SPACE_EXCEEDED)
             return PyWin_SetAPIError(funcname, err);
         // resize if dacl too small
-        unsigned short required_size =
-            pdacl->AclSize + sizeof(ACCESS_ALLOWED_OBJECT_ACE) + (unsigned short)GetLengthSid(psid);
+        unsigned int required_size = pdacl->AclSize + sizeof(ACCESS_ALLOWED_OBJECT_ACE) + GetLengthSid(psid);
+        // max ACL size is USHRT_MAX
+        if (required_size > USHRT_MAX)
+            return PyErr_Format(PyExc_OverflowError, "%s: adding ACE would put ACL over size limit", funcname);
         pdacl_padded = (ACL *)malloc(required_size);
         if (pdacl_padded == NULL)
             return PyErr_Format(PyExc_MemoryError, "%s: unable to allocated %d bytes", funcname, required_size);
 
         ZeroMemory(pdacl_padded, required_size);
         memcpy(pdacl_padded, pdacl, pdacl->AclSize);
-        pdacl_padded->AclSize = required_size;
+        pdacl_padded->AclSize = (unsigned short)required_size;
         bsuccess =
             (*addfunc)(pdacl_padded, revision, aceflags, access, pObjectTypeGuid, pInheritedObjectTypeGuid, psid);
         if (bsuccess) {
@@ -718,14 +724,17 @@ PyObject *PyACL::AddAuditAccessAce(PyObject *self, PyObject *args)
         if (err != ERROR_ALLOTTED_SPACE_EXCEEDED)
             return PyWin_SetAPIError("AddAuditAccessAce", err);
         // resize if acl too small
-        unsigned short required_size = psacl->AclSize + sizeof(SYSTEM_AUDIT_ACE) + (unsigned short)GetLengthSid(psid);
+        unsigned int required_size = psacl->AclSize + sizeof(SYSTEM_AUDIT_ACE) + GetLengthSid(psid);
+        // max ACL size is USHRT_MAX
+        if (required_size > USHRT_MAX)
+            return PyErr_Format(PyExc_OverflowError, "%s: adding ACE would put ACL over size limit", __FUNCTION__);
         psacl_padded = (ACL *)malloc(required_size);
         if (psacl_padded == NULL)
             return PyErr_Format(PyExc_MemoryError, "AddAuditAccessAce: unable to allocated %d bytes", required_size);
 
         ZeroMemory(psacl_padded, required_size);
         memcpy(psacl_padded, psacl, psacl->AclSize);
-        psacl_padded->AclSize = required_size;
+        psacl_padded->AclSize = (unsigned short)required_size;
         bsuccess = ::AddAuditAccessAce(psacl_padded, acerevision, accessmask, psid, bAuditSuccess, bAuditFailure);
         if (bsuccess)
             bsuccess = This->SetACL(psacl_padded);
@@ -777,14 +786,17 @@ PyObject *PyACL::AddAuditAccessAceEx(PyObject *self, PyObject *args)
         if (err != ERROR_ALLOTTED_SPACE_EXCEEDED)
             return PyWin_SetAPIError("AddAuditAccessAceEx", err);
         // resize if acl too small
-        unsigned short required_size = psacl->AclSize + sizeof(SYSTEM_AUDIT_ACE) + (unsigned short)GetLengthSid(psid);
+        unsigned int required_size = psacl->AclSize + sizeof(SYSTEM_AUDIT_ACE) + GetLengthSid(psid);
+        // max ACL size is USHRT_MAX
+        if (required_size > USHRT_MAX)
+            return PyErr_Format(PyExc_OverflowError, "%s: adding ACE would put ACL over size limit", __FUNCTION__);
         psacl_padded = (ACL *)malloc(required_size);
         if (psacl_padded == NULL)
             return PyErr_Format(PyExc_MemoryError, "AddAuditAccessAceEx: unable to allocated %d bytes", required_size);
 
         ZeroMemory(psacl_padded, required_size);
         memcpy(psacl_padded, psacl, psacl->AclSize);
-        psacl_padded->AclSize = required_size;
+        psacl_padded->AclSize = (unsigned short)required_size;
         bsuccess =
             (*addauditaccessaceex)(psacl_padded, acerevision, aceflags, accessmask, psid, bAuditSuccess, bAuditFailure);
         if (bsuccess)
@@ -855,8 +867,10 @@ PyObject *PyACL::AddAuditAccessObjectAce(PyObject *self, PyObject *args)
         if (err != ERROR_ALLOTTED_SPACE_EXCEEDED)
             return PyWin_SetAPIError("AddAuditAccessObjectAce", err);
         // resize if acl too small
-        unsigned short required_size =
-            psacl->AclSize + sizeof(SYSTEM_AUDIT_OBJECT_ACE) + (unsigned short)GetLengthSid(psid);
+        unsigned int required_size = psacl->AclSize + sizeof(SYSTEM_AUDIT_OBJECT_ACE) + GetLengthSid(psid);
+        // max ACL size is USHRT_MAX
+        if (required_size > USHRT_MAX)
+            return PyErr_Format(PyExc_OverflowError, "%s: adding ACE would put ACL over size limit", __FUNCTION__);
         psacl_padded = (ACL *)malloc(required_size);
         if (psacl_padded == NULL)
             return PyErr_Format(PyExc_MemoryError, "AddAuditAccessObjectAce: unable to allocated %d bytes",
@@ -864,7 +878,7 @@ PyObject *PyACL::AddAuditAccessObjectAce(PyObject *self, PyObject *args)
 
         ZeroMemory(psacl_padded, required_size);
         memcpy(psacl_padded, psacl, psacl->AclSize);
-        psacl_padded->AclSize = required_size;
+        psacl_padded->AclSize = (unsigned short)required_size;
         bsuccess = (*addauditaccessobjectace)(psacl_padded, acerevision, aceflags, accessmask, pObjectTypeGuid,
                                               pInheritedObjectTypeGuid, psid, bAuditSuccess, bAuditFailure);
         if (bsuccess)
@@ -1218,5 +1232,3 @@ PyACL::PyACL(PACL pacl)
 PyACL::~PyACL() { free(buf); }
 
 /*static*/ void PyACL::deallocFunc(PyObject *ob) { delete (PyACL *)ob; }
-
-#endif /* NO_PYWINTYPES_SECURITY */

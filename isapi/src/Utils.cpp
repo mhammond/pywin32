@@ -36,22 +36,20 @@ static WCHAR *source_name = L"ISAPI Filter or Extension";
 const char *PyISAPIString_AsBytes(PyObject *ob, DWORD *psize /* = NULL */)
 {
     PyObject *obNew = NULL;
-#if (PY_VERSION_HEX >= 0x03000000)
     // py3k - check for unicode object and use utf-8 encoding.
     if (PyUnicode_Check(ob)) {
         obNew = ob = PyUnicode_AsUTF8String(ob);
         if (ob == NULL)
             return NULL;
     }
-#endif
     // These 'PyString_' calls are all mapped to the bytes API in py3k...
-    if (!PyString_Check(ob)) {
+    if (!PyBytes_Check(ob)) {
         PyErr_Format(PyExc_ValueError, "Expected a string object (got %s)", ob->ob_type->tp_name);
         return NULL;
     }
     if (psize)
-        *psize = PyString_Size(ob);
-    const char *result = PyString_AsString(ob);
+        *psize = PyBytes_Size(ob);
+    const char *result = PyBytes_AsString(ob);
     Py_XDECREF(obNew);
     return result;
 }

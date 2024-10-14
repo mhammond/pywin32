@@ -61,7 +61,7 @@ PyObject *MakeTimeOrNone(const FILETIME &t)
 PyObject *PyObject_FromBG_JOB_TIMES(BG_JOB_TIMES *jt)
 {
     // @object BG_JOB_TIMES|A tuple of 3 elements, where each element may be
-    // None or a <o PyTime> object.  The elements are the CreationTime,
+    // None or a <o PyDateTime> object.  The elements are the CreationTime,
     // ModificationTime and TransferCompletionTime, respectively.
     return Py_BuildValue("NNN", MakeTimeOrNone(jt->CreationTime), MakeTimeOrNone(jt->ModificationTime),
                          MakeTimeOrNone(jt->TransferCompletionTime));

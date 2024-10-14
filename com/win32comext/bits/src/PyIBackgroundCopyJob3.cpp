@@ -48,7 +48,7 @@ PyObject *PyIBackgroundCopyJob3::ReplaceRemotePrefix(PyObject *self, PyObject *a
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIBCJ3, IID_IBackgroundCopyJob3);
-    return PyInt_FromLong(hr);
+    return PyLong_FromLong(hr);
 }
 
 // @pymethod |PyIBackgroundCopyJob3|AddFileWithRanges|Description of AddFileWithRanges.
@@ -87,7 +87,7 @@ PyObject *PyIBackgroundCopyJob3::AddFileWithRanges(PyObject *self, PyObject *arg
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIBCJ3, IID_IBackgroundCopyJob3);
-    return PyInt_FromLong(hr);
+    return PyLong_FromLong(hr);
 }
 
 // @pymethod |PyIBackgroundCopyJob3|SetFileACLFlags|Description of SetFileACLFlags.
@@ -106,7 +106,7 @@ PyObject *PyIBackgroundCopyJob3::SetFileACLFlags(PyObject *self, PyObject *args)
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIBCJ3, IID_IBackgroundCopyJob3);
-    return PyInt_FromLong(hr);
+    return PyLong_FromLong(hr);
 }
 
 // @pymethod |PyIBackgroundCopyJob3|GetFileACLFlags|Description of GetFileACLFlags.

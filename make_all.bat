@@ -5,54 +5,17 @@ if exist build\. goto couldnt_rm
 :quick
 call build_all.bat
 @if errorlevel 1 goto failed
-cd autoduck
-call make.bat
+py autoduck\make.py
 @if errorlevel 1 goto failed
-cd ..
 :already_built
 rem Now the binaries.
 
-rem Yuck - 2to3 hackery - must nuke bdist dirs as it may hold py3x syntax.
-if exist build/bdist.win32/. rd /s/q build\bdist.win32
-if exist build/bdist.win-amd64/. rd /s/q build\bdist.win-amd64
-py -2.7-32 setup.py -q bdist_wininst --target-version=2.7 --skip-build
-py -2.7-32 setup.py -q bdist_wheel --skip-build
-py -2.7 setup.py -q bdist_wininst --target-version=2.7 --skip-build
-py -2.7 setup.py -q bdist_wheel --skip-build
+rem Check /build_env.md#build-environment to make sure you have all the required components installed
 
-rem Just incase - re-nuke bdist dirs so 2to3 always runs.
-if exist build/bdist.win32/. rd /s/q build\bdist.win32
-if exist build/bdist.win-amd64/. rd /s/q build\bdist.win-amd64
-
-rem *sob* - for some reason 3.5 and later are failing to remove the bdist temp dir
-rem due to the mfc DLLs - but the dir can be removed manually.
-rem I've excluded the possibility of anti-virus or the indexer.
-rem So manually nuke them before builds.
-rem @if exist build\bdist.win32 rd /s/q build\bdist.win32 & @if exist build\bdist.amd64 rd /s/q build\bdist.amd64
-py -3.5-32 setup.py -q bdist_wininst --skip-build --target-version=3.5
-rem @if exist build\bdist.win32 rd /s/q build\bdist.win32 & @if exist build\bdist.amd64 rd /s/q build\bdist.amd64
-py -3.5-32 setup.py -q bdist_wheel --skip-build
-rem @if exist build\bdist.win32 rd /s/q build\bdist.win32 & @if exist build\bdist.amd64 rd /s/q build\bdist.amd64
-py -3.5 setup.py -q bdist_wininst --skip-build --target-version=3.5
-rem @if exist build\bdist.win32 rd /s/q build\bdist.win32 & @if exist build\bdist.amd64 rd /s/q build\bdist.amd64
-py -3.5 setup.py -q bdist_wheel --skip-build
-
-rem @if exist build\bdist.win32 rd /s/q build\bdist.win32 & @if exist build\bdist.amd64 rd /s/q build\bdist.amd64
-py -3.6-32 setup.py -q bdist_wininst --skip-build --target-version=3.6
-rem @if exist build\bdist.win32 rd /s/q build\bdist.win32 & @if exist build\bdist.amd64 rd /s/q build\bdist.amd64
-py -3.6-32 setup.py -q bdist_wheel --skip-build
-rem @if exist build\bdist.win32 rd /s/q build\bdist.win32 & @if exist build\bdist.amd64 rd /s/q build\bdist.amd64
-py -3.6 setup.py -q bdist_wininst --skip-build --target-version=3.6
-rem @if exist build\bdist.win32 rd /s/q build\bdist.win32 & @if exist build\bdist.amd64 rd /s/q build\bdist.amd64
-py -3.6 setup.py -q bdist_wheel --skip-build
-
-rem @if exist build\bdist.win32 rd /s/q build\bdist.win32 & @if exist build\bdist.amd64 rd /s/q build\bdist.amd64
+rem (bdist_wininst needs --target-version to name the installers correctly!)
 py -3.7-32 setup.py -q bdist_wininst --skip-build --target-version=3.7
-rem @if exist build\bdist.win32 rd /s/q build\bdist.win32 & @if exist build\bdist.amd64 rd /s/q build\bdist.amd64
 py -3.7-32 setup.py -q bdist_wheel --skip-build
-rem @if exist build\bdist.win32 rd /s/q build\bdist.win32 & @if exist build\bdist.amd64 rd /s/q build\bdist.amd64
 py -3.7 setup.py -q bdist_wininst --skip-build --target-version=3.7
-rem @if exist build\bdist.win32 rd /s/q build\bdist.win32 & @if exist build\bdist.amd64 rd /s/q build\bdist.amd64
 py -3.7 setup.py -q bdist_wheel --skip-build
 
 py -3.8-32 setup.py -q bdist_wininst --skip-build --target-version=3.8
@@ -65,9 +28,29 @@ py -3.9-32 setup.py -q bdist_wheel --skip-build
 py -3.9 setup.py -q bdist_wininst --skip-build --target-version=3.9
 py -3.9 setup.py -q bdist_wheel --skip-build
 
-rem And nuke the dirs one more time :)
-if exist build/bdist.win32/. rd /s/q build\bdist.win32
-if exist build/bdist.win-amd64/. rd /s/q build\bdist.win-amd64
+rem 3.10 stopped supporting bdist_wininst, but we can still build them with 3.9
+rem (but 32bit builds seem broken doing this :( #1805)
+py -3.9 setup.py -q bdist_wininst --skip-build --target-version=3.10
+py -3.10-32 setup.py -q bdist_wheel --skip-build
+py -3.10 setup.py -q bdist_wheel --skip-build
+
+py -3.9 setup.py -q bdist_wininst --skip-build --target-version=3.11
+py -3.11-32 setup.py -q bdist_wheel --skip-build
+py -3.11 setup.py -q bdist_wheel --skip-build
+
+py -3.9 setup.py -q bdist_wininst --skip-build --target-version=3.12
+py -3.12-32 setup.py -q bdist_wheel --skip-build
+py -3.12 setup.py -q bdist_wheel --skip-build
+
+py -3.9 setup.py -q bdist_wininst --skip-build --target-version=3.13
+py -3.13-32 setup.py -q bdist_wheel --skip-build
+py -3.13 setup.py -q bdist_wheel --skip-build
+
+rem Check /build_env.md#build-environment to make sure you have all the required ARM64 components installed
+py -3.10 setup.py -q build_ext --plat-name win-arm64 build --plat-name win-arm64 bdist_wheel --plat-name win-arm64
+py -3.11 setup.py -q build_ext --plat-name win-arm64 build --plat-name win-arm64 bdist_wheel --plat-name win-arm64
+py -3.12 setup.py -q build_ext --plat-name win-arm64 build --plat-name win-arm64 bdist_wheel --plat-name win-arm64
+py -3.13 setup.py -q build_ext --plat-name win-arm64 build --plat-name win-arm64 bdist_wheel --plat-name win-arm64
 
 @goto xit
 :couldnt_rm
@@ -75,5 +58,5 @@ if exist build/bdist.win-amd64/. rd /s/q build\bdist.win-amd64
 goto xit
 :failed
 @echo Oops - failed!
-goto xit
+@exit /b 1
 :xit

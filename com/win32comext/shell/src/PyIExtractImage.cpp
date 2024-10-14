@@ -51,14 +51,14 @@ PyObject *PyIExtractImage::GetLocation(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "lOll:GetLocation", &dwPriority, &obrgSize, &dwRecClrDepth, &dwFlags))
         return NULL;
     BOOL bPythonIsHappy = TRUE;
-    // if (bPythonIsHappy && !PyInt_Check(obdwPriority)) bPythonIsHappy = FALSE;
+    // if (bPythonIsHappy && !PyLong_Check(obdwPriority)) bPythonIsHappy = FALSE;
     if (bPythonIsHappy && !PyWinObject_AsSIZE(obrgSize, &rgSize))
         bPythonIsHappy = FALSE;
-    // if (bPythonIsHappy && !PyInt_Check(obdwFlags)) bPythonIsHappy = FALSE;
+    // if (bPythonIsHappy && !PyLong_Check(obdwFlags)) bPythonIsHappy = FALSE;
     if (!bPythonIsHappy)
         return NULL;
-    // dwPriority = PyInt_AsLong(obdwPriority);
-    // dwFlags = PyInt_AsLong(obdwFlags);
+    // dwPriority = PyLong_AsLong(obdwPriority);
+    // dwFlags = PyLong_AsLong(obdwFlags);
     HRESULT hr;
     PY_INTERFACE_PRECALL;
     hr = pIEI->GetLocation(pszPathBuffer, elementsof(pszPathBuffer), &dwPriority, &rgSize, dwRecClrDepth, &dwFlags);
@@ -95,7 +95,7 @@ PyObject *PyIExtractImage::Extract(PyObject *self, PyObject *args)
     return PyWinObject_FromHANDLE((HANDLE)hBmpThumbnail);
     // return Py_BuildValue("i", hBmpThumbnail);
     // return PyLong_FromVoidPtr((void*)hBmpThumbnail);
-    // return PyString_FromString((char*)hBmpThumbnail);
+    // return PyBytes_FromString((char*)hBmpThumbnail);
 }
 
 // @object PyIExtractImage|Description of the interface

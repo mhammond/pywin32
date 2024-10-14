@@ -45,17 +45,17 @@ PyObject *PyICopyHookA::CopyCallback(PyObject *self, PyObject *args)
     if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
         return NULL;
     BOOL bPythonIsHappy = TRUE;
-    if (bPythonIsHappy && !PyWinObject_AsString(obsrcFile, &srcFile))
+    if (bPythonIsHappy && !PyWinObject_AsChars(obsrcFile, &srcFile))
         bPythonIsHappy = FALSE;
-    if (bPythonIsHappy && !PyWinObject_AsString(obdestFile, &destFile))
+    if (bPythonIsHappy && !PyWinObject_AsChars(obdestFile, &destFile))
         bPythonIsHappy = FALSE;
     if (!bPythonIsHappy)
         return NULL;
     HRESULT hr;
     PY_INTERFACE_PRECALL;
     hr = pICH->CopyCallback(hwnd, wFunc, wFlags, srcFile, srcAttribs, destFile, destAttribs);
-    PyWinObject_FreeString(srcFile);
-    PyWinObject_FreeString(destFile);
+    PyWinObject_FreeChars(srcFile);
+    PyWinObject_FreeChars(destFile);
 
     PY_INTERFACE_POSTCALL;
 
@@ -91,7 +91,7 @@ PyGCopyHookA::CopyCallback(
                                  srcAttribs, destFile, destAttribs);
     if (FAILED(hr))
         return hr;
-    hr = PyInt_AsLong(result);
+    hr = PyLong_AsLong(result);
     if ((hr == -1) && PyErr_Occurred())
         hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("CopyCallBack");
     Py_DECREF(result);
@@ -181,7 +181,7 @@ PyGCopyHookW::CopyCallback(
                         PyWinObject_FromWCHAR(srcFile), srcAttribs, PyWinObject_FromWCHAR(destFile), destAttribs);
     if (FAILED(hr))
         return hr;
-    hr = PyInt_AsLong(result);
+    hr = PyLong_AsLong(result);
     if ((hr == -1) && PyErr_Occurred())
         hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("CopyCallBack");
     Py_DECREF(result);

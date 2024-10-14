@@ -140,7 +140,7 @@ extern PyObject *PyDsGetSpn(PyObject *self, PyObject *args)
             tuple_item = PyTuple_GET_ITEM(obInstancePorts_tuple, tuple_index);
             // convert a python int to a USHORT
             // ??? any API function to do this other than H format of PyArg_ParseTuple ???
-            port_nbr = PyInt_AsLong(tuple_item);
+            port_nbr = PyLong_AsLong(tuple_item);
             if ((port_nbr == (unsigned long)-1 && PyErr_Occurred()) || (port_nbr < 0)) {
                 PyErr_Clear();
                 PyErr_Format(PyExc_TypeError, "InstancePorts must be a sequence of ints in the range 0-%d", USHRT_MAX);

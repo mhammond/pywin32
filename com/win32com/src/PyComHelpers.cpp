@@ -53,11 +53,7 @@ PyObject *get_Decimal_class(void)
 
 PyObject *PyObject_FromCurrency(CURRENCY &cy)
 {
-#if (PY_VERSION_HEX < 0x03000000)
-    static char *divname = "__div__";
-#else
     static char *divname = "__truediv__";
-#endif
     if (Decimal_class == NULL) {
         Decimal_class = get_Decimal_class();
         if (Decimal_class == NULL)
@@ -146,7 +142,7 @@ PyObject *PyCom_PyObjectFromIUnknown(IUnknown *punk, REFIID riid, BOOL bAddRef /
 
     PyIUnknown *ret = (*myCreateType->ctor)(punk);
 #ifdef _DEBUG_LIFETIMES
-    PyCom_LogF("Object %s created at 0x%0xld, IUnknown at 0x%0xld", myCreateType->tp_name, ret, ret->m_obj);
+    PyCom_LogF(L"Object %s created at 0x%0xld, IUnknown at 0x%0xld", myCreateType->tp_name, ret, ret->m_obj);
 #endif
     if (ret && bAddRef)
         punk->AddRef();
@@ -274,12 +270,12 @@ PyObject *PyCom_PyObjectFromSTATSTG(STATSTG *pStat)
         pStat->type,  // @tupleitem 1|int|type|Indicates the type of storage object. This is one of the values from the
                       // storagecon.STGTY_* values.
         obSize,       // @tupleitem 2|<o ULARGE_INTEGER>|size|Specifies the size in bytes of the stream or byte array.
-        obmtime,      // @tupleitem 3|<o PyTime>|modificationTime|Indicates the last modification time for this storage,
-                      // stream, or byte array.
-        obctime,  // @tupleitem 4|<o PyTime>|creationTime|Indicates the creation time for this storage, stream, or byte
-                  // array.
-        obatime,  // @tupleitem 5|<o PyTime>|accessTime|Indicates the last access time for this storage, stream or byte
-                  // array.
+        obmtime,  // @tupleitem 3|<o PyDateTime>|modificationTime|Indicates the last modification time for this storage,
+                  // stream, or byte array.
+        obctime,  // @tupleitem 4|<o PyDateTime>|creationTime|Indicates the creation time for this storage, stream, or
+                  // byte array.
+        obatime,  // @tupleitem 5|<o PyDateTime>|accessTime|Indicates the last access time for this storage, stream or
+                  // byte array.
         pStat->grfMode,  // @tupleitem 6|int|mode|Indicates the access mode specified when the object was opened. This
                          // member is only valid in calls to Stat methods.
         pStat->grfLocksSupported,  // @tupleitem 7|int|locksSupported|Indicates the types of region locking supported by
@@ -316,7 +312,7 @@ BOOL PyCom_PyObjectAsSTATSTG(PyObject *ob, STATSTG *pStat, DWORD flags /* = 0 */
     if (!PyWinObject_AsULARGE_INTEGER(obSize, &pStat->cbSize))
         return FALSE;
     if (!PyWinTime_Check(obmtime) || !PyWinTime_Check(obctime) || !PyWinTime_Check(obatime)) {
-        PyErr_SetString(PyExc_TypeError, "The time entries in a STATSTG tuple must be PyTime objects");
+        PyErr_SetString(PyExc_TypeError, "The time entries in a STATSTG tuple must be PyDateTime objects");
         return FALSE;
     }
     if (!PyWinObject_AsFILETIME(obmtime, &pStat->mtime))
@@ -331,7 +327,7 @@ BOOL PyCom_PyObjectAsSTATSTG(PyObject *ob, STATSTG *pStat, DWORD flags /* = 0 */
 }
 
 #ifndef NO_PYCOM_STGOPTIONS
-BOOL PyCom_PyObjectAsSTGOPTIONS(PyObject *obstgoptions, STGOPTIONS **ppstgoptions)
+BOOL PyCom_PyObjectAsSTGOPTIONS(PyObject *obstgoptions, STGOPTIONS **ppstgoptions, TmpWCHAR *ptw)
 {
     static char *stgmembers[] = {"Version", "reserved", "SectorSize", "TemplateFile", 0};
     char *explain_format =
@@ -359,9 +355,9 @@ BOOL PyCom_PyObjectAsSTGOPTIONS(PyObject *obstgoptions, STGOPTIONS **ppstgoption
     (*ppstgoptions)->ulSectorSize = 512;
     (*ppstgoptions)->pwcsTemplateFile = NULL;
     dummy_tuple = PyTuple_New(0);
-    ret = PyArg_ParseTupleAndKeywords(dummy_tuple, obstgoptions, "|lllu", stgmembers, &(*ppstgoptions)->usVersion,
-                                      &(*ppstgoptions)->reserved, &(*ppstgoptions)->ulSectorSize,
-                                      &(*ppstgoptions)->pwcsTemplateFile);
+    ret = PyArg_ParseTupleAndKeywords(dummy_tuple, obstgoptions, "|lllU", stgmembers, &(*ppstgoptions)->usVersion,
+                                      &(*ppstgoptions)->reserved, &(*ppstgoptions)->ulSectorSize, &ptw->u) &&
+          ((*ppstgoptions)->pwcsTemplateFile = ptw->u2w());
     Py_DECREF(dummy_tuple);
     if (!ret) {
         PyErr_Clear();

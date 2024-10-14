@@ -37,9 +37,9 @@
 .define=cbe,</B>
 .define=ci,<I>
 .define=cie,</I>
-.define=cul, 
+.define=cul,
 .define=cule,
-.define=culd,{\uldb 
+.define=culd,{\uldb
 .define=culde,}
 .define=par,<P>
 .define=line,<BR>
@@ -73,7 +73,7 @@
 .define=deflist,<DL>
 .define=deflist_e,</DL>
 .define=rule,<HR>
-.define=indexlink, 
+.define=indexlink,
 .define=node_b0,<Object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e"><param name="New HTML file" value="
 .define=node_b1,"><param name="New HTML title" value="
 .define=node_e,"></OBJECT>
@@ -502,7 +502,7 @@ $(def1)$3$(par)
 
 .tag=prop, html, 3, 1
 .pre=$(rmh)Properties$(rmhe)$(par)
-.format=$(term1)<A HREF="#1.html">$1</A>$(cb)$2$(cbe)$(par) 
+.format=$(term1)<A HREF="#1.html">$1</A>$(cb)$2$(cbe)$(par)
 $(def1)$3$(par)
 .if=exists($1)
 
@@ -623,7 +623,7 @@ $(exe)
 .if=tagexists(method),fieldempty(1),$2=$method.3
 .if=$1=$method.2,$2=$method.3
 
-; @abstract or @object tag, empty field, link 
+; @abstract or @object tag, empty field, link
 ; example: <om .Bar> appearing in @abstract Foo or @object Foo
 
 .tag=om, html, 2
@@ -671,7 +671,7 @@ $(exe)
 .if=$1=$method.2$property.2$interface.1$event.1
 .if=fieldempty(1)
 
-; default: html fields, 
+; default: html fields,
 ; example: <om IFoo.Bar> output with "IFoo.Bar" in bold
 .tag=om, html, 2
 .format=$(cb)$1::$2$(cbe)
@@ -716,19 +716,19 @@ $(exe)
 
 
 .tag=cp, html, 0
-.format=\'a9 
+.format=\'a9
 .tag=tm, html, 0
-.format=\'99 
+.format=\'99
 .tag=rtm, html, 0
-.format=\'ae 
+.format=\'ae
 .tag=en-, html, 0
-.format=\'97 
+.format=\'97
 .tag=em-, html, 0
-.format=\'96 
+.format=\'96
 .tag=lq, html, 0
-.format=\'91 
+.format=\'91
 .tag=rq, html, 0
-.format=\'92 
+.format=\'92
 .tag=gt, html, 0
 .format=>
 .tag=lt, html, 0
@@ -848,4 +848,3 @@ $(exe)
 [index]
 .output=html
 .format=<LI><A HREF="$!c.html">$!n</A>
-

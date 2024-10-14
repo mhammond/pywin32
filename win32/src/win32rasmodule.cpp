@@ -37,7 +37,8 @@ PyObject *ReturnError(char *msg, char *fnName = NULL, DWORD code = 0)
     SetError(msg, fnName, code);
     return NULL;
 }
-extern "C" __declspec(dllexport) PyObject *ReturnRasError(char *fnName, long err = 0)
+
+PyObject *ReturnRasError(char *fnName, long err = 0)
 {
     const int bufSize = 512;
     TCHAR buf[bufSize];
@@ -65,37 +66,114 @@ extern "C" __declspec(dllexport) PyObject *ReturnRasError(char *fnName, long err
     return NULL;
 }
 
-#if (WINVER >= 0x500)
+class PyRASEAPUSERIDENTITY : public PyObject {
+   public:
+    PyRASEAPUSERIDENTITY(RASEAPUSERIDENTITY *);
+    ~PyRASEAPUSERIDENTITY();
 
-// Helpers external so I can avoid LoadLibraries of
-// the win2k only functions.
-typedef BOOL (*PFNPyWinObject_AsRASEAPUSERIDENTITY)(PyObject *ob, RASEAPUSERIDENTITY **pp);
+    /* Python support */
+    static void deallocFunc(PyObject *ob);
 
-BOOL myPyWinObject_AsRASEAPUSERIDENTITY(PyObject *ob, RASEAPUSERIDENTITY **pp)
+    static PyObject *getattro(PyObject *self, PyObject *name);
+    static PyTypeObject type;
+    RASEAPUSERIDENTITY *m_identity;
+};
+
+#define PyRASEAPUSERIDENTITY_Check(ob) ((ob)->ob_type == &PyRASEAPUSERIDENTITY::type)
+
+BOOL PyWinObject_AsRASEAPUSERIDENTITY(PyObject *ob, RASEAPUSERIDENTITY **ppRASEAPUSERIDENTITY, BOOL bNoneOK = TRUE)
 {
-    static PFNPyWinObject_AsRASEAPUSERIDENTITY pfnPyWinObject_AsRASEAPUSERIDENTITY = NULL;
-    if (pfnPyWinObject_AsRASEAPUSERIDENTITY == NULL) {
-#ifdef _DEBUG
-        HMODULE hmod = GetModuleHandle(_T("win2kras_d.pyd"));
-#else
-        HMODULE hmod = GetModuleHandle(_T("win2kras.pyd"));
-#endif
-        if (hmod == NULL) {
-            // _should_ have been imported to get the RASEAPUSERIDENTITY in the first place!
-            PyErr_SetString(PyExc_RuntimeError, "Can not locate the 'win2kras' module - has it been imported?");
-            return FALSE;
-        }
-        pfnPyWinObject_AsRASEAPUSERIDENTITY =
-            (PFNPyWinObject_AsRASEAPUSERIDENTITY)GetProcAddress(hmod, "PyWinObject_AsRASEAPUSERIDENTITY");
+    if (bNoneOK && ob == Py_None) {
+        *ppRASEAPUSERIDENTITY = NULL;
     }
-    if (pfnPyWinObject_AsRASEAPUSERIDENTITY == NULL) {
-        PyErr_SetString(PyExc_RuntimeError,
-                        "Can not locate the 'PyWinObject_AsRASEAPUSERIDENTITY' function in the 'win2kras' module");
+    else if (!PyRASEAPUSERIDENTITY_Check(ob)) {
+        PyErr_SetString(PyExc_TypeError, "The object is not a PyRASEAPUSERIDENTITY object");
         return FALSE;
     }
-    return (*pfnPyWinObject_AsRASEAPUSERIDENTITY)(ob, pp);
+    else {
+        *ppRASEAPUSERIDENTITY = ((PyRASEAPUSERIDENTITY *)ob)->m_identity;
+    }
+    return TRUE;
 }
-#endif  // WINVER
+
+PyObject *PyWinObject_FromRASEAPUSERIDENTITY(RASEAPUSERIDENTITY *pRASEAPUSERIDENTITY)
+{
+    if (pRASEAPUSERIDENTITY == NULL) {
+        Py_INCREF(Py_None);
+        return Py_None;
+    }
+    return new PyRASEAPUSERIDENTITY(pRASEAPUSERIDENTITY);
+}
+
+PyTypeObject PyRASEAPUSERIDENTITY::type = {
+    PYWIN_OBJECT_HEAD "PyRASEAPUSERIDENTITY",
+    sizeof(PyRASEAPUSERIDENTITY),
+    0,
+    PyRASEAPUSERIDENTITY::deallocFunc,                               /* tp_dealloc */
+    0,                                                               /* tp_print */
+    0,                                                               /* tp_getattr */
+    0,                                                               /* tp_setattr */
+    0,                                                               /* tp_compare */
+    0,                                                               /* tp_repr */
+    0,                                                               /* tp_as_number */
+    0,                                                               /* tp_as_sequence */
+    0,                                                               /* tp_as_mapping */
+    0,                                                               /* tp_hash */
+    0,                                                               /* tp_call */
+    0,                                                               /* tp_str */
+    PyRASEAPUSERIDENTITY::getattro,                                  /*tp_getattro*/
+    0,                                                               /*tp_setattro*/
+    0,                                                               /*tp_as_buffer*/
+    Py_TPFLAGS_DEFAULT,                                              // tp_flags;
+    "An object that describes a Win32 RASDIALEXTENSIONS structure",  // tp_doc
+    0,                                                               // tp_traverse;
+    0,                                                               // tp_clear
+    0,                                                               // tp_richcompare;
+    0,                                                               // tp_weaklistoffset;
+    0,                                                               // tp_iter
+    0,                                                               // iternextfunc tp_iternext
+    0,                                                               // tp_methods
+    0,                                                               // tp_members
+    0,                                                               // tp_getset;
+    0,                                                               // tp_base;
+    0,                                                               // tp_dict;
+    0,                                                               // tp_descr_get;
+    0,                                                               // tp_descr_set;
+    0,                                                               // tp_dictoffset;
+    0,                                                               // tp_init;
+    0,                                                               // tp_alloc;
+    0,                                                               // newfunc tp_new;
+};
+
+PyRASEAPUSERIDENTITY::PyRASEAPUSERIDENTITY(RASEAPUSERIDENTITY *identity)
+{
+    ob_type = &type;
+    _Py_NewReference(this);
+    m_identity = identity;
+}
+
+PyRASEAPUSERIDENTITY::~PyRASEAPUSERIDENTITY()
+{
+    if (m_identity) {
+        // kinda-like an assert ;-)
+        RasFreeEapUserIdentity(m_identity);
+    }
+}
+
+PyObject *PyRASEAPUSERIDENTITY::getattro(PyObject *self, PyObject *obname)
+{
+    char *name = PYWIN_ATTR_CONVERT(obname);
+    if (name == NULL)
+        return NULL;
+    PyRASEAPUSERIDENTITY *py = (PyRASEAPUSERIDENTITY *)self;
+    if (strcmp(name, "szUserName") == 0 || strcmp(name, "userName") == 0)
+        return PyWinObject_FromTCHAR(py->m_identity->szUserName);
+    if (strcmp(name, "pbEapInfo") == 0 || strcmp(name, "eapInfo") == 0)
+        return PyBuffer_FromMemory(py->m_identity->pbEapInfo, py->m_identity->dwSizeofEapInfo);
+    return PyObject_GenericGetAttr(self, obname);
+}
+
+/*static*/ void PyRASEAPUSERIDENTITY::deallocFunc(PyObject *ob) { delete (PyRASEAPUSERIDENTITY *)ob; }
 
 ////////////////////////////////////////////////////////////
 //
@@ -200,7 +278,7 @@ PyObject *PyRASDIALEXTENSIONS::getattro(PyObject *self, PyObject *obname)
     PyRASDIALEXTENSIONS *py = (PyRASDIALEXTENSIONS *)self;
     // @prop integer|dwfOptions|(fOptions may also be used)
     if (strcmp(name, "dwfOptions") == 0 || strcmp(name, "fOptions") == 0)
-        return PyInt_FromLong(py->m_ext.dwfOptions);
+        return PyLong_FromLong(py->m_ext.dwfOptions);
     // @prop integer|hwndParent|
     if (strcmp(name, "hwndParent") == 0)
         return PyLong_FromVoidPtr(py->m_ext.hwndParent);
@@ -231,7 +309,7 @@ int PyRASDIALEXTENSIONS::setattro(PyObject *self, PyObject *obname, PyObject *va
         return -1;
     PyRASDIALEXTENSIONS *py = (PyRASDIALEXTENSIONS *)self;
     if (strcmp(name, "dwfOptions") == 0 || strcmp(name, "fOptions") == 0) {
-        int i = PyInt_AsLong(val);
+        int i = PyLong_AsLong(val);
         if (i == -1 && PyErr_Occurred())
             return -1;
         py->m_ext.dwfOptions = i;
@@ -245,7 +323,7 @@ int PyRASDIALEXTENSIONS::setattro(PyObject *self, PyObject *obname, PyObject *va
         return 0;
     }
     if (strcmp(name, "reserved") == 0) {
-        long v = PyInt_AsLong(val);
+        long v = PyLong_AsLong(val);
         if (v == -1 && PyErr_Occurred())
             return -1;
         py->m_ext.reserved = v;
@@ -261,7 +339,7 @@ int PyRASDIALEXTENSIONS::setattro(PyObject *self, PyObject *obname, PyObject *va
     }
     if (strcmp(name, "RasEapInfo") == 0) {
         RASEAPUSERIDENTITY *temp;
-        if (!myPyWinObject_AsRASEAPUSERIDENTITY(val, &temp))
+        if (!PyWinObject_AsRASEAPUSERIDENTITY(val, &temp))
             return -1;
         py->m_ext.RasEapInfo.dwSizeofEapInfo = temp->dwSizeofEapInfo;
         py->m_ext.RasEapInfo.pbEapInfo = temp->pbEapInfo;
@@ -402,7 +480,7 @@ VOID CALLBACK PyRasDialFunc1(HRASCONN hrasconn,      // handle to RAS connection
     PyObject *args = Py_BuildValue("Niiii", PyWinLong_FromHANDLE(hrasconn), unMsg, rascs, dwError, dwExtendedError);
     if (args == NULL)
         return;
-    PyObject *res = PyEval_CallObject(handler, args);
+    PyObject *res = PyObject_CallObject(handler, args);
     Py_DECREF(args);
     if (res == NULL) {
         PyErr_Print();
@@ -474,7 +552,7 @@ static PyObject *PyRasDial(PyObject *self, PyObject *args)
         pNotification = PyRasDialFunc1;
         notType = 1;
     }
-    else if (PyInt_Check(obCallback)) {
+    else if (PyLong_Check(obCallback)) {
         if (!PyWinLong_AsVoidPtr(obCallback, &pNotification))
             return NULL;
         notType = 0xFFFFFFFF;
@@ -482,9 +560,6 @@ static PyObject *PyRasDial(PyObject *self, PyObject *args)
     else
         return ReturnError("The callback object must be an integer handle, None, or a callable object",
                            "<Dial param parsing>");
-    // If we have any sort of callback, we must ensure threads are init'd.
-    if (pNotification)
-        PyEval_InitThreads();
     // If we have a callback, store it in our map with None as the key.
     // The callback routine will patch this once it knows the true key.
     // Before we do, we must check None is not already there
@@ -775,6 +850,45 @@ static PyObject *PyRasSetEntryDialParams(PyObject *self, PyObject *args)
     return Py_None;
 }
 
+// @pymethod |win32ras|PyRasGetEapUserIdentity|Sets the dial parameters for the specified entry.
+static PyObject *PyRasGetEapUserIdentity(PyObject *self, PyObject *args)
+{
+    TCHAR *phoneBook = NULL, *entry = NULL;
+    PyObject *obphoneBook, *obentry;
+    int flags;
+    HWND hwnd = NULL;
+    PyObject *ret = NULL;
+    if (!PyArg_ParseTuple(
+            args, "OOi|O&:GetEapUserIdentity",
+            &obphoneBook,  // @pyparm string|phoneBook||string containing the full path of the phone-book (PBK) file. If
+                           // this parameter is None, the function will use the system phone book.
+            &obentry,      // @pyparm string|entry||string containing an existing entry name.
+            &flags,  // @pyparm int|flags||Specifies zero or more of the following flags that qualify the authentication
+                     // process.
+                     // @flagh Flag|Description
+                     // @flag RASEAPF_NonInteractive|Specifies that the authentication protocol should not bring up a
+                     // graphical user-interface. If this flag is not present, it is okay for the protocol to display a
+                     // user interface.
+                     // @flag RASEAPF_Logon|Specifies that the user data is obtained from Winlogon.
+                     // @flag RASEAPF_Preview|Specifies that the user should be prompted for identity information before
+                     // dialing.
+            PyWinObject_AsHANDLE,
+            &hwnd))  // @pyparm <o PyHANDLE>|hwnd|None|Handle to the parent window for the UI dialog.
+        return NULL;
+
+    if (PyWinObject_AsTCHAR(obphoneBook, &phoneBook, TRUE) && PyWinObject_AsTCHAR(obentry, &entry, FALSE)) {
+        // @pyseeapi RasGetEapUserIdentity
+        DWORD rc;
+        RASEAPUSERIDENTITY *identity;
+        Py_BEGIN_ALLOW_THREADS rc = RasGetEapUserIdentity(phoneBook, entry, flags, hwnd, &identity);
+        Py_END_ALLOW_THREADS if (rc != 0) ReturnRasError("RasGetEapUserIdentity", rc);
+        else ret = PyWinObject_FromRASEAPUSERIDENTITY(identity);
+    }
+    PyWinObject_FreeTCHAR(phoneBook);
+    PyWinObject_FreeTCHAR(entry);
+    return ret;
+}
+
 /* List of functions exported by this module */
 // @module win32ras|A module encapsulating the Windows Remote Access Service (RAS) API.
 static struct PyMethodDef win32ras_functions[] = {
@@ -791,6 +905,10 @@ static struct PyMethodDef win32ras_functions[] = {
      METH_VARARGS},  // @pymeth EnumEntries|Returns a list of tuples, one for each phonebook entry.
     {"GetConnectStatus", PyRasGetConnectStatus,
      METH_VARARGS},  // @pymeth GetConnectStatus|Returns a tuple with connection information.
+    {"GetEapUserIdentity", PyRasGetEapUserIdentity,
+     METH_VARARGS},  // @pymeth RasGetEapUserIdentity|Retrieves identity information for the current user. Use this
+                     // information to call RasDial with a phone-book entry that requires Extensible Authentication
+                     // Protocol (EAP).
     {"GetEntryDialParams", PyRasGetEntryDialParams,
      METH_VARARGS},  // @pymeth GetEntryDialParams|Returns a tuple with the most recently set dial parameters for the
                      // specified entry.
@@ -846,6 +964,15 @@ static int AddConstants(PyObject *module)
     ADD_CONSTANT(RASCS_PasswordExpired);      // @const win32ras|RASCS_PasswordExpired|Constant for RAS state.
     ADD_CONSTANT(RASCS_Connected);            // @const win32ras|RASCS_Connected|Constant for RAS state.
     ADD_CONSTANT(RASCS_Disconnected);         // @const win32ras|RASCS_Disconnected|Constant for RAS state.
+
+    ADD_CONSTANT(RASEAPF_NonInteractive);  // @const win32ras|RASEAPF_NonInteractive|Specifies that the authentication
+                                           // protocol should not bring up a graphical user-interface. If this flag is
+                                           // not present, it is okay for the protocol to display a user interface.
+    ADD_CONSTANT(
+        RASEAPF_Logon);  // @const win32ras|RASEAPF_Logon|Specifies that the user data is obtained from Winlogon.
+    ADD_CONSTANT(RASEAPF_Preview);  // @const win32ras|RASEAPF_Preview|Specifies that the user should be prompted for
+                                    // identity information before dialing.
+
     return 0;
 }
 
@@ -858,6 +985,8 @@ PYWIN_MODULE_INIT_FUNC(win32ras)
     Py_INCREF(module_error);
     PyDict_SetItemString(dict, "error", module_error);
     if (PyType_Ready(&PyRASDIALEXTENSIONS::type) == -1)
+        PYWIN_MODULE_INIT_RETURN_ERROR;
+    if (PyType_Ready(&PyRASEAPUSERIDENTITY::type) == -1)
         PYWIN_MODULE_INIT_RETURN_ERROR;
     if (AddConstants(module) != 0)
         PYWIN_MODULE_INIT_RETURN_ERROR;

@@ -71,7 +71,7 @@ PyObject *PyObject_FromSAFEARRAYRecordInfo(SAFEARRAY *psa)
     hr = SafeArrayGetLBound(psa, 1, &lbound);
     if (FAILED(hr))
         goto exit;
-    nelems = ubound - lbound;
+    nelems = ubound - lbound + 1;
     hr = info->GetSize(&cb_elem);
     if (FAILED(hr))
         goto exit;
@@ -147,10 +147,8 @@ PyObject *PyObject_FromRecordInfo(IRecordInfo *ri, void *data, ULONG cbData)
 // @pymethod <o PyRecord>|pythoncom|GetRecordFromGuids|Creates a new record object from the given GUIDs
 PyObject *pythoncom_GetRecordFromGuids(PyObject *self, PyObject *args)
 {
-    void *data = NULL;
     PyObject *obGuid, *obInfoGuid, *obdata = Py_None;
     int major, minor, lcid;
-    int cb = 0;
     if (!PyArg_ParseTuple(args, "OiiiO|O:GetRecordFromGuids",
                           &obGuid,      // @pyparm <o PyIID>|iid||The GUID of the type library
                           &major,       // @pyparm int|verMajor||The major version number of the type lib.
@@ -159,7 +157,8 @@ PyObject *pythoncom_GetRecordFromGuids(PyObject *self, PyObject *args)
                           &obInfoGuid,  // @pyparm <o PyIID>|infoIID||The GUID of the record info in the library
                           &obdata))  // @pyparm string or buffer|data|None|The raw data to initialize the record with.
         return NULL;
-    if (!PyWinObject_AsReadBuffer(obdata, &data, &cb, TRUE))
+    PyWinBufferView pybuf(obdata, false, true);  // None ok
+    if (!pybuf.ok())
         return NULL;
     GUID guid, infoGuid;
     if (!PyWinObject_AsIID(obGuid, &guid))
@@ -170,7 +169,7 @@ PyObject *pythoncom_GetRecordFromGuids(PyObject *self, PyObject *args)
     HRESULT hr = GetRecordInfoFromGuids(guid, major, minor, lcid, infoGuid, &i);
     if (FAILED(hr))
         return PyCom_BuildPyException(hr);
-    PyObject *ret = PyObject_FromRecordInfo(i, data, cb);
+    PyObject *ret = PyObject_FromRecordInfo(i, pybuf.ptr(), pybuf.len());
     i->Release();
     return ret;
 }
@@ -302,7 +301,7 @@ static PyObject *PyRecord_reduce(PyObject *self, PyObject *args)
     }
     ret =
         Py_BuildValue("O(NHHiNN)", obFunc, PyWinObject_FromIID(pta->guid), pta->wMajorVerNum, pta->wMinorVerNum,
-                      pta->lcid, PyWinObject_FromIID(structguid), PyString_FromStringAndSize((char *)pyrec->pdata, cb));
+                      pta->lcid, PyWinObject_FromIID(structguid), PyBytes_FromStringAndSize((char *)pyrec->pdata, cb));
 
 done:
     if (pta && pti)
@@ -349,12 +348,6 @@ static void _FreeFieldNames(BSTR *strings, ULONG num_names)
     delete[] strings;
 }
 
-#if (PY_VERSION_HEX < 0x03000000)
-#define PyWinCoreString_ConcatAndDel PyString_ConcatAndDel
-#define PyWinCoreString_Concat PyString_Concat
-#else
-// Unicode versions of '_Concat' etc have different sigs.  Make them the
-// same here...
 void PyWinCoreString_Concat(register PyObject **pv, register PyObject *w)
 {
     if (!w) {  // hrm - string version doesn't do this, but I saw PyObject_Repr() return NULL...
@@ -372,8 +365,6 @@ void PyWinCoreString_ConcatAndDel(register PyObject **pv, register PyObject *w)
     PyWinCoreString_Concat(pv, w);
     Py_XDECREF(w);
 }
-
-#endif
 
 PyObject *PyRecord::tp_repr(PyObject *self)
 {
@@ -502,7 +493,7 @@ PyObject *PyRecord::getattro(PyObject *self, PyObject *obname)
         return PyCom_BuildPyException(hr, pyrec->pri, IID_IRecordInfo);
     }
 
-    // Short-circuit sub-structs and arrays here, so we dont allocate a new chunk
+    // Short-circuit sub-structs and arrays here, so we don't allocate a new chunk
     // of memory and copy it - we need sub-structs to persist.
     if (V_VT(&vret) == (VT_BYREF | VT_RECORD))
         return new PyRecord(V_RECORDINFO(&vret), V_RECORD(&vret), pyrec->owner);
@@ -531,7 +522,7 @@ PyObject *PyRecord::getattro(PyObject *self, PyObject *obname)
         hr = sub->GetSize(&element_size);
         if (FAILED(hr))
             goto array_end;
-        nelems = ubound - lbound;
+        nelems = ubound - lbound + 1;
         ret_tuple = PyTuple_New(nelems);
         if (ret_tuple == NULL)
             goto array_end;

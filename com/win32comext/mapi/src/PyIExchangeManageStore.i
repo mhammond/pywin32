@@ -2,6 +2,9 @@
 
 %module IExchangeManageStore
 
+%{
+#define PY_SSIZE_T_CLEAN
+%}
 %include "typemaps.i"
 %include "pywin32.i"
 %include "pythoncom.i"
@@ -35,7 +38,7 @@
 %typemap(python,in) IExchangeManageStore *INPUT_NULLOK {
 	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IExchangeManageStore, (void **)&$target, 1))
 		return NULL;
-}		
+}
 
 %{
 
@@ -64,7 +67,7 @@ PyObject *PyIExchangeManageStore::CreateStoreEntryID(PyObject *self, PyObject *a
 	char *serverDN = NULL;
 	char *userDN = NULL;
 	unsigned long flags = 0;
-	SBinary sbEID = {0, NULL};	
+	SBinary sbEID = {0, NULL};
 	PyObject *result = NULL;
 
 	IExchangeManageStore *_swig_self;
@@ -76,11 +79,11 @@ PyObject *PyIExchangeManageStore::CreateStoreEntryID(PyObject *self, PyObject *a
 		&flags))
 		return NULL;
 
-	if (!PyWinObject_AsString(obServerDN, &serverDN, FALSE))
+	if (!PyWinObject_AsChars(obServerDN, &serverDN, FALSE))
 		goto done;
-	if (!PyWinObject_AsString(obUserDN, &userDN, TRUE))
+	if (!PyWinObject_AsChars(obUserDN, &userDN, TRUE))
 		goto done;
-	
+
 	Py_BEGIN_ALLOW_THREADS
 	hRes = _swig_self->CreateStoreEntryID(serverDN, userDN, flags, &sbEID.cb, (LPENTRYID *) &sbEID.lpb);
 	Py_END_ALLOW_THREADS
@@ -88,19 +91,13 @@ PyObject *PyIExchangeManageStore::CreateStoreEntryID(PyObject *self, PyObject *a
 	if (FAILED(hRes))
 		result = OleSetOleError(hRes);
 	else
-		result = Py_BuildValue(
-#if PY_MAJOR_VERSION >= 3
-								"y#",
-#else
-								"s#",
-#endif
-								sbEID.lpb, sbEID.cb);
+		result = Py_BuildValue("y#", sbEID.lpb, (Py_ssize_t)sbEID.cb);
 
 done:
 	MAPIFreeBuffer((LPENTRYID)sbEID.lpb);
-	PyWinObject_FreeString(serverDN);
-	PyWinObject_FreeString(userDN);
-	
+	PyWinObject_FreeChars(serverDN);
+	PyWinObject_FreeChars(userDN);
+
 	return result;
 }
 

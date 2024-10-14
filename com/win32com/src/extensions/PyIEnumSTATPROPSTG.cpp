@@ -161,25 +161,24 @@ STDMETHODIMP PyGEnumSTATPROPSTG::Next(
 {
     PY_GATEWAY_METHOD;
     PyObject *result;
+    PyObject *obname;
+    Py_ssize_t len;
     HRESULT hr = InvokeViaPolicy("Next", &result, "i", celt);
     if (FAILED(hr))
         return hr;
 
     if (!PySequence_Check(result))
         goto error;
-    int len;
     len = PyObject_Length(result);
-    if (len == -1)
+    if (len == -1 || !PyWin_is_ssize_dword(len))
         goto error;
-    if (len > (int)celt)
+    if (len > celt)
         len = celt;
 
     if (pCeltFetched)
-        *pCeltFetched = len;
+        *pCeltFetched = (ULONG)len;
 
-    int i;
-    PyObject *obname;
-    for (i = 0; i < len; ++i) {
+    for (int i = 0; i < len; ++i) {
         TmpPyObject ob = PySequence_GetItem(result, i);
         if (ob == NULL)
             goto error;
@@ -199,7 +198,7 @@ STDMETHODIMP PyGEnumSTATPROPSTG::Next(
 error:
     PyErr_Clear();  // just in case
     Py_DECREF(result);
-    return PyCom_SetCOMErrorFromSimple(E_FAIL, IID_IEnumSTATPROPSTG, "Next() did not return a sequence of objects");
+    return PyCom_HandleIEnumNoSequence(IID_IEnumSTATPROPSTG);
 }
 
 STDMETHODIMP PyGEnumSTATPROPSTG::Skip(
@@ -254,8 +253,7 @@ STDMETHODIMP PyGEnumSTATPROPSTG::Clone(
     /* done with the result; this DECREF is also for <punk> */
     Py_DECREF(result);
 
-    return PyCom_SetCOMErrorFromSimple(
-        hr, IID_IEnumSTATPROPSTG, "Python could not convert the result from Next() into the required COM interface");
+    return PyCom_CheckIEnumNextResult(hr, IID_IEnumSTATPROPSTG);
 }
 
 #endif  // NO_PYCOM_ENUMSTATPROPSTG

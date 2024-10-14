@@ -73,7 +73,7 @@ BOOL PyWinObject_AsUSHORTArray(PyObject *obushorts, USHORT **pushorts, DWORD *it
     else
         for (tuple_index = 0; tuple_index < *item_cnt; tuple_index++) {
             tuple_item = PyTuple_GET_ITEM(ushorts_tuple, tuple_index);
-            short_candidate = PyInt_AsLong(tuple_item);
+            short_candidate = PyLong_AsLong(tuple_item);
             if (short_candidate == -1 && PyErr_Occurred()) {
                 ret = FALSE;
                 break;
@@ -106,15 +106,11 @@ BOOL PyWinObject_AsUSHORTArray(PyObject *obushorts, USHORT **pushorts, DWORD *it
 // structmember framework provided a format code for this
 BOOL PyWinObject_AsSingleWCHAR(PyObject *obchar, WCHAR *onechar)
 {
-    if (!PyUnicode_Check(obchar) || (PyUnicode_GET_SIZE(obchar) != 1)) {
+    if (!PyUnicode_Check(obchar) || (PyUnicode_GetLength(obchar) != 1)) {
         PyErr_SetString(PyExc_ValueError, "Object must be a single unicode character");
         return FALSE;
     }
-#if (PY_VERSION_HEX < 0x03020000)
-#define PUAWC_TYPE PyUnicodeObject *
-#else
 #define PUAWC_TYPE PyObject *
-#endif
     if (PyUnicode_AsWideChar((PUAWC_TYPE)obchar, onechar, 1) == -1)
         return FALSE;
     return TRUE;
@@ -541,7 +537,7 @@ int PyINPUT_RECORD::tp_setattro(PyObject *self, PyObject *obname, PyObject *obva
             return -1;
         }
 
-        *dest_ptr = PyInt_AsUnsignedLongMask(obvalue);
+        *dest_ptr = PyLong_AsUnsignedLongMask(obvalue);
         if ((*dest_ptr == (DWORD)-1) && PyErr_Occurred())
             return -1;
         return 0;
@@ -993,7 +989,7 @@ PyObject *PyConsoleScreenBuffer::PyWriteConsole(PyObject *self, PyObject *args, 
     if (!WriteConsole(((PyConsoleScreenBuffer *)self)->m_handle, (LPVOID)buf, nbrtowrite, &nbrwritten, reserved))
         PyWin_SetAPIError("WriteConsole");
     else
-        ret = PyInt_FromLong(nbrwritten);
+        ret = PyLong_FromLong(nbrwritten);
     PyWinObject_FreeWCHAR(buf);
     return ret;
 }
@@ -1149,7 +1145,7 @@ PyObject *PyConsoleScreenBuffer::PyFillConsoleOutputCharacter(PyObject *self, Py
         return NULL;
     if (!FillConsoleOutputCharacter(((PyConsoleScreenBuffer *)self)->m_handle, fillchar, len, *pcoord, &nbrwritten))
         return PyWin_SetAPIError("FillConsoleOutputCharacter");
-    return PyInt_FromLong(nbrwritten);
+    return PyLong_FromLong(nbrwritten);
 }
 
 // @pymethod <o PyUnicode>|PyConsoleScreenBuffer|ReadConsoleOutputCharacter|Reads consecutive characters from a starting
@@ -1205,7 +1201,7 @@ PyObject *PyConsoleScreenBuffer::PyReadConsoleOutputAttribute(PyObject *self, Py
         ret = PyTuple_New(nbrread);
         if (ret != NULL)
             for (tuple_ind = 0; tuple_ind < nbrread; tuple_ind++) {
-                ret_item = PyInt_FromLong(buf[tuple_ind]);
+                ret_item = PyLong_FromLong(buf[tuple_ind]);
                 if (ret_item == NULL) {
                     Py_DECREF(ret);
                     ret = NULL;
@@ -1295,14 +1291,16 @@ PyObject *PyConsoleScreenBuffer::PyScrollConsoleScreenBuffer(PyObject *self, PyO
     if (PyWinObject_AsSMALL_RECT(obscrollrect, &pscrollrect, FALSE) &&
         PyWinObject_AsSMALL_RECT(obcliprect, &pcliprect, TRUE) &&
         PyWinObject_AsCOORD(obdestcoord, &pdestcoord, FALSE) &&
-        PyWinObject_AsSingleWCHAR(obfillchar, &char_info.Char.UnicodeChar))
+        PyWinObject_AsSingleWCHAR(obfillchar, &char_info.Char.UnicodeChar)) {
         if (!ScrollConsoleScreenBuffer(((PyConsoleScreenBuffer *)self)->m_handle, pscrollrect, pcliprect, *pdestcoord,
-                                       &char_info))
+                                       &char_info)) {
             PyWin_SetAPIError("ScrollConsoleScreenBuffer");
+        }
         else {
             Py_INCREF(Py_None);
             return Py_None;
         }
+    }
     return NULL;
 }
 
@@ -1813,13 +1811,15 @@ static PyObject *PyAddConsoleAlias(PyObject *self, PyObject *args, PyObject *kwa
         return NULL;
     CHECK_PFN(AddConsoleAlias);
     if (PyWinObject_AsWCHAR(obsource, &source, FALSE) && PyWinObject_AsWCHAR(obtarget, &target, TRUE) &&
-        PyWinObject_AsWCHAR(obexename, &exename, FALSE))
-        if (!(*pfnAddConsoleAlias)(source, target, exename))
+        PyWinObject_AsWCHAR(obexename, &exename, FALSE)) {
+        if (!(*pfnAddConsoleAlias)(source, target, exename)) {
             PyWin_SetAPIError("AddConsoleAlias");
+        }
         else {
             Py_INCREF(Py_None);
             ret = Py_None;
         }
+    }
     PyWinObject_FreeWCHAR(source);
     PyWinObject_FreeWCHAR(target);
     PyWinObject_FreeWCHAR(exename);

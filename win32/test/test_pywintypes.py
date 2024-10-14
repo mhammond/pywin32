@@ -1,10 +1,10 @@
-import sys
-import unittest
-import pywintypes
-import time
-from pywin32_testutil import str2bytes, ob2memory
 import datetime
 import operator
+import time
+import unittest
+
+import pywintypes
+
 
 class TestCase(unittest.TestCase):
     def testPyTimeFormat(self):
@@ -17,12 +17,12 @@ class TestCase(unittest.TestCase):
         for fmt in format_strings.split():
             v1 = pytime_current.Format(fmt)
             v2 = time.strftime(fmt, struct_current)
-            self.assertEquals(v1, v2, "format %s failed - %r != %r" % (fmt, v1, v2))
+            self.assertEqual(v1, v2, f"format {fmt} failed - {v1!r} != {v2!r}")
 
     def testPyTimePrint(self):
         # This used to crash with an invalid, or too early time.
         # We don't really want to check that it does cause a ValueError
-        # (as hopefully this wont be true forever).  So either working, or 
+        # (as hopefully this won't be true forever).  So either working, or
         # ValueError is OK.
         try:
             t = pywintypes.Time(-2)
@@ -32,82 +32,80 @@ class TestCase(unittest.TestCase):
 
     def testTimeInDict(self):
         d = {}
-        d['t1'] = pywintypes.Time(1)
-        self.failUnlessEqual(d['t1'], pywintypes.Time(1))
+        d["t1"] = pywintypes.Time(1)
+        self.assertEqual(d["t1"], pywintypes.Time(1))
 
     def testPyTimeCompare(self):
         t1 = pywintypes.Time(100)
         t1_2 = pywintypes.Time(100)
         t2 = pywintypes.Time(101)
 
-        self.failUnlessEqual(t1, t1_2)
-        self.failUnless(t1 <= t1_2)
-        self.failUnless(t1_2 >= t1)
+        self.assertEqual(t1, t1_2)
+        self.assertTrue(t1 <= t1_2)
+        self.assertTrue(t1_2 >= t1)
 
-        self.failIfEqual(t1, t2)
-        self.failUnless(t1 < t2)
-        self.failUnless(t2 > t1 )
+        self.assertNotEqual(t1, t2)
+        self.assertTrue(t1 < t2)
+        self.assertTrue(t2 > t1)
 
     def testPyTimeCompareOther(self):
         t1 = pywintypes.Time(100)
         t2 = None
-        self.failIfEqual(t1, t2)
+        self.assertNotEqual(t1, t2)
 
     def testTimeTuple(self):
-        now = datetime.datetime.now() # has usec...
+        now = datetime.datetime.now()  # has usec...
         # timetuple() lost usec - pt must be <=...
         pt = pywintypes.Time(now.timetuple())
         # *sob* - only if we have a datetime object can we compare like this.
         if isinstance(pt, datetime.datetime):
-            self.failUnless(pt <= now)
+            self.assertTrue(pt <= now)
 
     def testTimeTuplems(self):
-        now = datetime.datetime.now() # has usec...
+        now = datetime.datetime.now()  # has usec...
         tt = now.timetuple() + (now.microsecond // 1000,)
         pt = pywintypes.Time(tt)
         # we can't compare if using the old type, as it loses all sub-second res.
         if isinstance(pt, datetime.datetime):
-            self.failUnlessEqual(now, pt)
+            # but even with datetime, we lose sub-millisecond.
+            expectedDelta = datetime.timedelta(milliseconds=1)
+            self.assertTrue(-expectedDelta < (now - pt) < expectedDelta)
 
     def testPyTimeFromTime(self):
         t1 = pywintypes.Time(time.time())
-        self.failUnless(pywintypes.Time(t1) is t1)
+        self.assertTrue(pywintypes.Time(t1) is t1)
 
     def testPyTimeTooLarge(self):
-        # We only do this special thing for python 3.x
-        if not issubclass(pywintypes.TimeType, datetime.datetime):
-            return
-        MAX_TIMESTAMP = 0x7FFFFFFFFFFFFFFF # used by some API function to mean "never"
+        MAX_TIMESTAMP = 0x7FFFFFFFFFFFFFFF  # used by some API function to mean "never"
         ts = pywintypes.TimeStamp(MAX_TIMESTAMP)
-        self.failUnlessEqual(ts, datetime.datetime.max)
+        self.assertEqual(ts, datetime.datetime.max)
 
     def testGUID(self):
         s = "{00020400-0000-0000-C000-000000000046}"
         iid = pywintypes.IID(s)
-        iid2 = pywintypes.IID(ob2memory(iid), True)
-        self.assertEquals(iid, iid2)
-        self.assertRaises(ValueError, pywintypes.IID, str2bytes('00'), True) # too short
-        self.assertRaises(TypeError, pywintypes.IID, 0, True) # no buffer
+        iid2 = pywintypes.IID(memoryview(iid), True)
+        self.assertEqual(iid, iid2)
+        self.assertRaises(ValueError, pywintypes.IID, b"00", True)  # too short
+        self.assertRaises(TypeError, pywintypes.IID, 0, True)  # no buffer
 
     def testGUIDRichCmp(self):
         s = "{00020400-0000-0000-C000-000000000046}"
         iid = pywintypes.IID(s)
-        self.failIf(s==None)
-        self.failIf(None==s)
-        self.failUnless(s!=None)
-        self.failUnless(None!=s)
-        if sys.version_info > (3,0):
-            self.assertRaises(TypeError, operator.gt, None, s)
-            self.assertRaises(TypeError, operator.gt, s, None)
-            self.assertRaises(TypeError, operator.lt, None, s)
-            self.assertRaises(TypeError, operator.lt, s, None)
+        self.assertFalse(s is None)
+        self.assertFalse(None == s)
+        self.assertTrue(s is not None)
+        self.assertTrue(None != s)
+        self.assertRaises(TypeError, operator.gt, None, s)
+        self.assertRaises(TypeError, operator.gt, s, None)
+        self.assertRaises(TypeError, operator.lt, None, s)
+        self.assertRaises(TypeError, operator.lt, s, None)
 
     def testGUIDInDict(self):
         s = "{00020400-0000-0000-C000-000000000046}"
         iid = pywintypes.IID(s)
-        d = dict(item=iid)
-        self.failUnlessEqual(d['item'], iid)
+        d = {"item": iid}
+        self.assertEqual(d["item"], iid)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()
-

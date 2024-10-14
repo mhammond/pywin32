@@ -27,7 +27,7 @@ PyIAddrBook::~PyIAddrBook()
 
 %}
 
-// @pyswig |ResolveName|Performs name resolution, assigning entry identifiers to recipients in a recipient list. 
+// @pyswig |ResolveName|Performs name resolution, assigning entry identifiers to recipients in a recipient list.
 HRESULT ResolveName(
 	unsigned long ulUIParam, // @pyparm int|uiParm||hwnd of a dialogs parent.
 	ULONG ulFlags, // @pyparm int|flags||Bitmask of flags that controls whether a dialog box can be displayed.
@@ -37,7 +37,7 @@ HRESULT ResolveName(
 
 %{
 // @pyswig <o PyIInterface>|OpenEntry|Opens a folder or message and returns an interface object for further access.
-PyObject *PyIAddrBook::OpenEntry(PyObject *self, PyObject *args) 
+PyObject *PyIAddrBook::OpenEntry(PyObject *self, PyObject *args)
 {
     HRESULT  _result;
     char * entryString;
@@ -55,14 +55,14 @@ PyObject *PyIAddrBook::OpenEntry(PyObject *self, PyObject *args)
 	// @pyparm string|entryId||The entryID of the object
 	// @pyparm <o PyIID>|iid||The IID of the object to return, or None for the default IID
 	// @pyparm int|flags||Bitmask of flags that controls how the object is opened.
-    if(!PyArg_ParseTuple(args,"OOl:OpenEntry",&obEntry, &objIID,&flags)) 
+    if(!PyArg_ParseTuple(args,"OOl:OpenEntry",&obEntry, &objIID,&flags))
         return NULL;
 	if (obEntry==Py_None) {
 		entryString = NULL;
 		entryStrLen = 0;
-	} else if PyString_Check(obEntry) {
-		entryString = PyString_AsString(obEntry);
-		entryStrLen = PyString_Size(obEntry);
+	} else if (PyBytes_Check(obEntry)) {
+		entryString = PyBytes_AsString(obEntry);
+		entryStrLen = PyBytes_Size(obEntry);
 	} else {
 		PyErr_SetString(PyExc_TypeError, "EntryID must be a string or None");
 		return NULL;
@@ -87,7 +87,7 @@ PyObject *PyIAddrBook::OpenEntry(PyObject *self, PyObject *args)
 %native(OpenEntry) OpenEntry; // OpenEntry manually done :-(
 
 // @pyswig int|CompareEntryIDs|Compares two entry identifiers belonging to a particular address book provider to determine if they refer to the same address book object
-// @rdesc The result is set to TRUE if the two entry identifiers refer to the same object, and FALSE otherwise. 
+// @rdesc The result is set to TRUE if the two entry identifiers refer to the same object, and FALSE otherwise.
 %native(CompareEntryIDs) CompareEntryIDs;
 %{
 PyObject *PyIAddrBook::CompareEntryIDs(PyObject *self, PyObject *args)
@@ -101,16 +101,16 @@ PyObject *PyIAddrBook::CompareEntryIDs(PyObject *self, PyObject *args)
 	IAddrBook *_swig_self;
 	PyObject *obE1, *obE2;
 	if ((_swig_self=GetI(self))==NULL) return NULL;
-    if(!PyArg_ParseTuple(args,"OO|i:CompareEntryIDs", 
+    if(!PyArg_ParseTuple(args,"OO|i:CompareEntryIDs",
 		&obE1, // @pyparm string|entryId||The first entry ID to be compared
 		&obE2, // @pyparm string|entryId||The second entry ID to be compared
 		&flags)) // @pyparm int|flags|0|Reserved - must be zero.
         goto done;
 
-	if (!PyWinObject_AsString(obE1, (char **)&peid1, FALSE, &cb1))
+	if (!PyWinObject_AsChars(obE1, (char **)&peid1, FALSE, &cb1))
         goto done;
 
-	if (!PyWinObject_AsString(obE2, (char **)&peid2, FALSE, &cb2))
+	if (!PyWinObject_AsChars(obE2, (char **)&peid2, FALSE, &cb2))
         goto done;
 
 	Py_BEGIN_ALLOW_THREADS
@@ -119,10 +119,10 @@ PyObject *PyIAddrBook::CompareEntryIDs(PyObject *self, PyObject *args)
 	if (FAILED(hr))
 		rc =  OleSetOleError(hr);
 	else
-		rc = PyInt_FromLong(ulResult);
+		rc = PyLong_FromLong(ulResult);
 done:
-	PyWinObject_FreeString((char *)peid1);
-	PyWinObject_FreeString((char *)peid2);
+	PyWinObject_FreeChars((char *)peid1);
+	PyWinObject_FreeChars((char *)peid2);
 	return rc;
 }
 %}

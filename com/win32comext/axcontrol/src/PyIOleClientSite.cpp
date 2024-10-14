@@ -159,7 +159,7 @@ STDMETHODIMP PyGOleClientSite::SaveObject(void)
     HRESULT hr = InvokeViaPolicy("SaveObject", &result);
     if (FAILED(hr))
         return hr;
-    hr = PyInt_AsLong(result);
+    hr = PyLong_AsLong(result);
     return hr;
 }
 

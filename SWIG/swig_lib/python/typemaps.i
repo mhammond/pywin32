@@ -52,7 +52,7 @@ you would use a real value instead.
          unsigned char  *INPUT
          float          *INPUT
          double         *INPUT
-         
+
 To use these, suppose you had a C function like this :
 
         double fadd(double *a, double *b) {
@@ -60,7 +60,7 @@ To use these, suppose you had a C function like this :
         }
 
 You could wrap it with SWIG as follows :
-        
+
         %include typemaps.i
         double fadd(double *INPUT, double *INPUT);
 
@@ -87,42 +87,42 @@ or you can use the %apply directive :
 
 %typemap(python,in) int            *INPUT(int temp)
 {
-  temp = (int) PyInt_AsLong($source);
+  temp = (int) PyLong_AsLong($source);
   $target = &temp;
 }
 
 %typemap(python,in) short          *INPUT(short temp)
 {
-  temp = (short) PyInt_AsLong($source);
+  temp = (short) PyLong_AsLong($source);
   $target = &temp;
 }
 
 %typemap(python,in) long           *INPUT(long temp)
 {
-  temp = (long) PyInt_AsLong($source);
+  temp = (long) PyLong_AsLong($source);
   $target = &temp;
 }
 %typemap(python,in) unsigned int   *INPUT(unsigned int temp)
 {
-  temp = (unsigned int) PyInt_AsLong($source);
+  temp = (unsigned int) PyLong_AsLong($source);
   $target = &temp;
 }
 %typemap(python,in) unsigned short *INPUT(unsigned short temp)
 {
-  temp = (unsigned short) PyInt_AsLong($source);
+  temp = (unsigned short) PyLong_AsLong($source);
   $target = &temp;
 }
 %typemap(python,in) unsigned long  *INPUT(unsigned long temp)
 {
-  temp = (unsigned long) PyInt_AsLong($source);
+  temp = (unsigned long) PyLong_AsLong($source);
   $target = &temp;
 }
 %typemap(python,in) unsigned char  *INPUT(unsigned char temp)
 {
-  temp = (unsigned char) PyInt_AsLong($source);
+  temp = (unsigned char) PyLong_AsLong($source);
   $target = &temp;
 }
-                 
+
 // OUTPUT typemaps.   These typemaps are used for parameters that
 // are output only.   The output value is appended to the result as
 // a list element.
@@ -145,7 +145,7 @@ multiple output values, they are returned in the form of a Python list.
          unsigned char  *OUTPUT
          float          *OUTPUT
          double         *OUTPUT
-         
+
 A Python Tuple can also be replaced by using T_OUTPUT instead of OUTPUT.
 
 For example, suppose you were trying to wrap the modf() function in the
@@ -166,7 +166,7 @@ or you can use the %apply directive :
         double modf(double x, double *ip);
 
 The Python output of the function would be a list containing both
-output values. 
+output values.
 %}
 #endif
 
@@ -194,7 +194,7 @@ output values.
                         unsigned char  *OUTPUT
 {
     PyObject *o;
-    o = PyInt_FromLong((long) (*$source));
+    o = PyLong_FromLong((long) (*$source));
     if (!$target) {
       $target = o;
     } else if ($target == Py_None) {
@@ -248,23 +248,23 @@ static PyObject* t_output_helper(PyObject* target, PyObject* o) {
     PyObject*   o2;
     PyObject*   o3;
 
-    if (!target) {                   
+    if (!target) {
         target = o;
-    } else if (target == Py_None) {  
+    } else if (target == Py_None) {
         Py_DECREF(Py_None);
         target = o;
-    } else {                            
-        if (!PyTuple_Check(target)) {   
+    } else {
+        if (!PyTuple_Check(target)) {
             o2 = target;
             target = PyTuple_New(1);
             PyTuple_SetItem(target, 0, o2);
         }
-        o3 = PyTuple_New(1);            
-        PyTuple_SetItem(o3, 0, o);      
+        o3 = PyTuple_New(1);
+        PyTuple_SetItem(o3, 0, o);
 
         o2 = target;
-        target = PySequence_Concat(o2, o3); 
-        Py_DECREF(o2);                      
+        target = PySequence_Concat(o2, o3);
+        Py_DECREF(o2);
         Py_DECREF(o3);
     }
     return target;
@@ -294,7 +294,7 @@ static PyObject* t_output_helper(PyObject* target, PyObject* o) {
                         unsigned char  *T_OUTPUT
 {
     PyObject *o;
-    o = PyInt_FromLong((long) (*$source));
+    o = PyLong_FromLong((long) (*$source));
     $target = t_output_helper($target, o);
 }
 
@@ -330,7 +330,7 @@ using T_BOTH instead.
          unsigned char  *BOTH
          float          *BOTH
          double         *BOTH
-         
+
 For example, suppose you were trying to wrap the following function :
 
         void neg(double *x) {
@@ -438,4 +438,3 @@ PyObject *
 %typemap(python,out) PyObject * {
   $target = $source;
 }
-

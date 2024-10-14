@@ -112,7 +112,7 @@ static PyObject *PyLZCopy(PyObject *self, PyObject *args)
     long ret = LZCopy(hSrc, hDest);
     if (ret < 0)
         return ReturnLZError("LZCopy", ret);
-    return PyInt_FromLong(ret);
+    return PyLong_FromLong(ret);
 }
 
 // @pymethod |win32lz|Init|Allocates memory for the internal data structures required to decompress files, and then
@@ -127,7 +127,7 @@ static PyObject *PyLZInit(PyObject *self, PyObject *args)
     INT ret = LZInit(h);
     if (ret < 0)
         return ReturnLZError("LZInit", ret);
-    return PyInt_FromLong(ret);
+    return PyLong_FromLong(ret);
 }
 
 // @pymethod int,(tuple)|win32lz|OpenFile|Creates, opens, reopens, or deletes the specified file.

@@ -43,7 +43,7 @@ BOOL OLEUIINSERTOBJECTHelper::ParseDict(PyObject *obDict)
     PyObject *ob;
     ob = PyObject_GetAttrString(obDict, "Flags");
     if (ob) {
-        pConv->dwFlags = PyInt_AsLong(ob);
+        pConv->dwFlags = PyLong_AsLong(ob);
         if (pConv->dwFlags == (DWORD)-1 && PyErr_Occurred())
             return FALSE;
     }
@@ -127,7 +127,7 @@ BOOL OLEUIINSERTOBJECTHelper::ParseDict(PyObject *obDict)
 
     ob = PyObject_GetAttrString(obDict, "oleRender");
     if (ob) {
-        pConv->oleRender = PyInt_AsLong(ob);
+        pConv->oleRender = PyLong_AsLong(ob);
         if (pConv->oleRender == -1 && PyErr_Occurred())
             return FALSE;
     }
@@ -143,7 +143,7 @@ BOOL OLEUIINSERTOBJECTHelper::ParseDict(PyObject *obDict)
 
 BOOL OLEUIINSERTOBJECTHelper::BuildDict(PyObject *obDict)
 {
-    if (PyObject_SetAttrString(obDict, "Flags", PyInt_FromLong(pConv->dwFlags)))
+    if (PyObject_SetAttrString(obDict, "Flags", PyLong_FromLong(pConv->dwFlags)))
         return FALSE;
     return TRUE;
 }
@@ -188,7 +188,7 @@ PyObject *PyCOleInsertDialog_GetSelectionType(PyObject *self, PyObject *args)
     GUI_BGN_SAVE;
     long rc = pDlg->GetSelectionType();
     GUI_END_SAVE;
-    return PyInt_FromLong(rc);
+    return PyLong_FromLong(rc);
 }
 
 // @pymethod CLSID|PyCOleInsertDialog|GetPathName|Returns the full path to the file selected in the dialog box

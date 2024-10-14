@@ -4,8 +4,6 @@
 #include "stdafx.h"
 #include "PythonCOM.h"
 
-#ifndef NO_PYCOM_ICATINFORMATION
-
 #include <comcat.h>
 #include "PyICatInformation.h"
 
@@ -61,14 +59,14 @@ PyObject *PyICatInformation::EnumClassesOfCategories(PyObject *self, PyObject *a
             PyErr_SetString(PyExc_TypeError, "Only None or lists are supported for the params.");
             return NULL;
         }
-        cImplemented = PySequence_Length(listImplemented);
+        cImplemented = (ULONG)PySequence_Length(listImplemented);
         pIDs = new GUID[cImplemented];
         for (ULONG i = 0; i < cImplemented; i++) {
             PyObject *ob = PySequence_GetItem(listImplemented, i);
             if (ob == NULL || PyWinObject_AsIID(ob, pIDs + i) == FALSE) {
                 Py_XDECREF(ob);
                 PyErr_SetString(PyExc_TypeError, "One of the GUID's in the list is invalid");
-                delete pIDs;
+                delete[] pIDs;
                 return NULL;
             }
             Py_DECREF(ob);
@@ -81,18 +79,18 @@ PyObject *PyICatInformation::EnumClassesOfCategories(PyObject *self, PyObject *a
     if (listRequired != Py_None) {
         if (!PySequence_Check(listRequired)) {
             PyErr_SetString(PyExc_TypeError, "Only None or lists are supported for the params.");
-            delete pIDs;
+            delete[] pIDs;
             return NULL;
         }
-        cRequired = PySequence_Length(listRequired);
+        cRequired = (ULONG)PySequence_Length(listRequired);
         pIDsReqd = new GUID[cRequired];
         for (ULONG i = 0; i < cRequired; i++) {
             PyObject *ob = PySequence_GetItem(listRequired, i);
             if (ob == NULL || PyWinObject_AsIID(ob, pIDsReqd + i) == FALSE) {
                 PyErr_SetString(PyExc_TypeError, "One of the GUID's in the required list is invalid");
                 Py_XDECREF(ob);
-                delete pIDs;
-                delete pIDsReqd;
+                delete[] pIDs;
+                delete[] pIDsReqd;
                 return NULL;
             }
             Py_DECREF(ob);
@@ -103,7 +101,7 @@ PyObject *PyICatInformation::EnumClassesOfCategories(PyObject *self, PyObject *a
     PY_INTERFACE_PRECALL;
     HRESULT hr = pMy->EnumClassesOfCategories(cImplemented, pIDs, cRequired, pIDsReqd, &pEnum);
     PY_INTERFACE_POSTCALL;
-    delete pIDs;
+    delete[] pIDs;
     if (S_OK != hr)  // S_OK only acceptable
         return PyCom_BuildPyException(hr, pMy, IID_ICatInformation);
     return PyCom_PyObjectFromIUnknown(pEnum, IID_IEnumGUID, FALSE);
@@ -154,5 +152,3 @@ PyComTypeObject PyICatInformation::type("PyICatInformation",
                                         &PyIUnknown::type,  // @base PyICatInformation|PyIUnknown
                                         sizeof(PyICatInformation), PyICatInformation_methods,
                                         GET_PYCOM_CTOR(PyICatInformation));
-
-#endif  // NO_PYCOM_ICATINFORMATION

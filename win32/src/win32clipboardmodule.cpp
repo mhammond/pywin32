@@ -1,6 +1,4 @@
 /******************************************************************************
-  $Revision$
-
   A simple interface to win32 clipboard API
 
   Author: Roger Burnham, rburnham@cri-inc.com
@@ -274,7 +272,7 @@ static PyObject *py_get_clipboard_data_handle(PyObject *self, PyObject *args)
 
 //*****************************************************************************
 //
-// @pymethod string/unicode|win32clipboard|GetClipboardData|The GetClipboardData function
+// @pymethod string|win32clipboard|GetClipboardData|The GetClipboardData function
 // retrieves data from the clipboard in a specified format. The clipboard
 // must have been opened previously.  Note that not all data formats are supported,
 // and that the underlying handle can be retrieved with
@@ -284,14 +282,9 @@ static PyObject *py_get_clipboard_data(PyObject *self, PyObject *args)
 {
     PyObject *ret;
 
-    // @pyparm int|format|CF_TEXT|Specifies a clipboard format. For a description of
+    // @pyparm int|format|CF_UNICODETEXT|Specifies a clipboard format. For a description of
     // the standard clipboard formats, see Standard Clipboard Formats.
-    // In Unicode builds (ie, python 3k), the default is CF_UNICODETEXT.
-#ifdef UNICODE
     int format = CF_UNICODETEXT;
-#else
-    int format = CF_TEXT;
-#endif
     if (!PyArg_ParseTuple(args, "|i:GetClipboardData:", &format)) {
         return NULL;
     }
@@ -393,14 +386,15 @@ static PyObject *py_get_clipboard_data(PyObject *self, PyObject *args)
             }
             GlobalUnlock(handle);
             break;
+        // The text formats are documented as terminating with \0, which may be less
+        // than the size, so can't pass a length (#1804)
         case CF_UNICODETEXT:
-            ret = PyUnicode_FromWideChar((wchar_t *)cData, (size / sizeof(wchar_t)) - 1);
+            ret = PyUnicode_FromWideChar((wchar_t *)cData, -1);
             GlobalUnlock(handle);
             break;
-        // For the text formats, strip the null!
         case CF_TEXT:
         case CF_OEMTEXT:
-            ret = PyString_FromStringAndSize((char *)cData, size - 1);
+            ret = PyBytes_FromString((char *)cData);
             GlobalUnlock(handle);
             break;
         default:
@@ -410,7 +404,7 @@ static PyObject *py_get_clipboard_data(PyObject *self, PyObject *args)
                 Py_INCREF(ret);
             }
             else
-                ret = PyString_FromStringAndSize((char *)cData, size);
+                ret = PyBytes_FromStringAndSize((char *)cData, size);
             GlobalUnlock(handle);
             break;
     }
@@ -438,9 +432,9 @@ static PyObject *py_get_clipboard_data(PyObject *self, PyObject *args)
     // described in the following table:
     // @flagh Format|Result type
     // @flag CF_HDROP|A tuple of Unicode filenames.
-    // @flag CF_UNICODETEXT|A unicode object.
-    // @flag CF_OEMTEXT|A string object.
-    // @flag CF_TEXT|A string object.
+    // @flag CF_UNICODETEXT|A string object.
+    // @flag CF_OEMTEXT|A bytes object.
+    // @flag CF_TEXT|A bytes object.
     // @flag CF_ENHMETAFILE|A string with binary data obtained from GetEnhMetaFileBits
     // @flag CF_METAFILEPICT|A string with binary data obtained from GetMetaFileBitsEx (currently broken)
     // @flag CF_BITMAP|An integer handle to the bitmap.
@@ -467,7 +461,7 @@ static PyObject *py_get_global_memory(PyObject *self, PyObject *args)
     void *p = GlobalLock(hglobal);
     if (!p)
         return ReturnAPIError("GlobalAlloc");
-    PyObject *ret = PyString_FromStringAndSize((char *)p, size);
+    PyObject *ret = PyBytes_FromStringAndSize((char *)p, size);
     GlobalUnlock(hglobal);
     return ret;
 }
@@ -535,7 +529,19 @@ static PyObject *py_get_clipboard_owner(PyObject *self, PyObject *args)
     // @rdesc If the function succeeds, the return value is the handle of the
     // window that owns the clipboard.
     // If the function fails, win32api.error is raised with the GetLastError
-    // info.
+    // info.<nl>
+    // If there is no current owner, the function will fail with a `win32api.error`
+    // with `winerror` set to 0 - in other words, the function will never return
+    // None. This behaviour was not intentional but is being retained for backwards
+    // compatibility.
+    // @ex This example shows how to handle the fact an owner may be null while
+    // still handing real exceptions:|
+    // try:
+    //     owner = win32clipboard.GetClipboardOwner()
+    // except win32api.error as e:
+    //     if e.winerror != 0:
+    //        raise
+    //     owner = None
 }
 
 //*****************************************************************************
@@ -670,7 +676,7 @@ static PyObject *py_getPriority_clipboard_format(PyObject *self, PyObject *args)
     Py_END_ALLOW_THREADS;
 
     free(format_list);
-    return PyInt_FromLong(rc);
+    return PyLong_FromLong(rc);
     // @pyseeapi GetPriorityClipboardFormat
     // @pyseeapi Standard Clipboard Formats
 
@@ -781,7 +787,7 @@ static PyObject *py_register_clipboard_format(PyObject *self, PyObject *args)
     PyWinObject_FreeTCHAR(name);
     if (!rc)
         return ReturnAPIError("RegisterClipboardFormat");
-    return PyInt_FromLong(rc);
+    return PyLong_FromLong(rc);
 
     // @comm If a registered format with the specified name already exists, a
     // new format is not registered and the return value identifies the existing
@@ -797,6 +803,11 @@ static PyObject *py_register_clipboard_format(PyObject *self, PyObject *args)
     // registered clipboard format.
     // If the function fails, win32api.error is raised with the GetLastError
     // info.
+}
+
+static bool isTextFormat(int format)
+{
+    return ((format == CF_TEXT) || (format == CF_UNICODETEXT) || (format == CF_OEMTEXT));
 }
 
 //*****************************************************************************
@@ -834,17 +845,25 @@ static PyObject *py_set_clipboard_data(PyObject *self, PyObject *args)
         PyErr_Clear();
 
         const void *buf = NULL;
+        TmpWCHAR tmpw;
         Py_ssize_t bufSize = 0;
+        PyWinBufferView pybuf;
         // In py3k, unicode no longer supports buffer interface
         if (PyUnicode_Check(obhandle)) {
-            bufSize = PyUnicode_GET_DATA_SIZE(obhandle) + sizeof(Py_UNICODE);
-            buf = (void *)PyUnicode_AS_UNICODE(obhandle);
+            buf = tmpw = obhandle;
+            if (!tmpw)
+                return NULL;
+            bufSize = tmpw.length * sizeof(WCHAR);
+            if (isTextFormat(format))
+                bufSize += sizeof(WCHAR);
         }
         else {
-            if (PyObject_AsReadBuffer(obhandle, &buf, &bufSize) == -1)
+            if (!pybuf.init(obhandle))
                 return NULL;
-            if (PyString_Check(obhandle))
-                bufSize++;  // size doesnt include nulls!
+            buf = pybuf.ptr();
+            bufSize = pybuf.len();
+            if ((PyBytes_Check(obhandle)) && (isTextFormat(format)))
+                bufSize++;  // size doesn't include nulls!
                             // else assume buffer needs no terminator...
         }
         handle = GlobalAlloc(GHND, bufSize);
@@ -887,7 +906,7 @@ static PyObject *py_set_clipboard_data(PyObject *self, PyObject *args)
 //
 // @pymethod int|win32clipboard|SetClipboardText|Convienience function to
 // call SetClipboardData with text.
-// @comm You may pass a Unicode or string/bytes object to this function,
+// @comm You may pass a string or bytes object to this function,
 // but depending on the value of the 'format' param, it may be converted
 // to the appropriate type for that param.
 // @comm Many applications will want to call this function twice, with the
@@ -906,7 +925,7 @@ static PyObject *py_set_clipboard_text(PyObject *self, PyObject *args)
     DWORD cb = 0;  // number of bytes *excluding* NULL
     size_t size_null = 0;
     if (format == CF_TEXT) {
-        if (!PyWinObject_AsString(obtext, (char **)&src, FALSE, &cb))
+        if (!PyWinObject_AsChars(obtext, (char **)&src, FALSE, &cb))
             return NULL;
         size_null = sizeof(char);
     }
@@ -944,7 +963,7 @@ static PyObject *py_set_clipboard_text(PyObject *self, PyObject *args)
             ret = PyWinLong_FromHANDLE(data);
     }
     if (format == CF_TEXT)
-        PyWinObject_FreeString((char *)src);
+        PyWinObject_FreeChars((char *)src);
     else
         PyWinObject_FreeWCHAR((WCHAR *)src);
     return ret;
@@ -1129,13 +1148,7 @@ PYWIN_MODULE_INIT_FUNC(win32clipboard)
         PYWIN_MODULE_INIT_RETURN_ERROR;
     if (PyDict_SetItemString(dict, "error", PyWinExc_ApiError) == -1)
         PYWIN_MODULE_INIT_RETURN_ERROR;
-    if (PyDict_SetItemString(dict, "UNICODE",
-#ifdef UNICODE
-                             Py_True
-#else
-                             Py_False
-#endif
-                             ) == -1)
+    if (PyDict_SetItemString(dict, "UNICODE", Py_True) == -1)
         PYWIN_MODULE_INIT_RETURN_ERROR;
     PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }

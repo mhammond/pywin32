@@ -1,6 +1,6 @@
-/* File : exchdapi.i */
+/* File : exchange.i */
 
-/* 
+/*
    This is designed to be an interface to the Exchange specific
    MAPI API
 
@@ -38,30 +38,6 @@
 
 %}
 
-/*
-   Only include Ex2KSdk.lib functions for 32-bit builds.
-*/
-#ifdef SWIG_PY32BIT
-%{
-#include "EDKMAPI.H"
-#include "EDKCFG.H"
-#include "EDKUTILS.H"
-
-// What is the correct story here??  The Exchange SDK story sucks - it seems
-// certain functions in the stand-alone version are simply commented out.
-#if defined(EXCHANGE_RE)
-#	define DONT_HAVE_MBLOGON
-#	define DONT_HAVE_ADDRLKUP
-#endif
-
-#if !defined(DONT_HAVE_ADDRLKUP)
-#	include "ADDRLKUP.H"
-#endif
-#if !defined(DONT_HAVE_MBLOGON)
-#	include "MBLOGON.H"
-#endif
-%}
-#endif
 
 %{
 static int AddIID(PyObject *dict, const char *key, REFGUID guid)
@@ -98,9 +74,15 @@ static int AddIID(PyObject *dict, const char *key, REFGUID guid)
    Only include Ex2KSdk.lib functions for 32-bit builds.
 */
 #ifdef SWIG_PY32BIT
+%{
+#include "EDKMAPI.H"
+#include "EDKCFG.H"
+#include "EDKUTILS.H"
+%}
+
 // @pyswig int, int|HrGetExchangeStatus|Obtains the current state of the server on a computer.
 // @rdesc The result is a tuple of serviceState, serverState
-HRESULT HrGetExchangeStatus( 
+HRESULT HrGetExchangeStatus(
 	char *server, // @pyparm string/<o PyUnicode>|server||The name of the server to query.
 	unsigned long *OUTPUT,
 	unsigned long *OUTPUT
@@ -121,7 +103,7 @@ HRESULT HrGetServerDN(
 %native(HrMAPIFindDefaultMsgStore) PyHrMAPIFindDefaultMsgStore;
 %{
 // @pyswig string|HrMAPIFindDefaultMsgStore|Retrieves the entry identifier of the default information store.
-static PyObject *PyHrMAPIFindDefaultMsgStore(PyObject *self, PyObject *args) 
+static PyObject *PyHrMAPIFindDefaultMsgStore(PyObject *self, PyObject *args)
 {
     HRESULT  _result;
 	ULONG entryStrLen;
@@ -130,7 +112,7 @@ static PyObject *PyHrMAPIFindDefaultMsgStore(PyObject *self, PyObject *args)
 	PyObject *obSession;
 
 	// @pyparm <o PyIMAPISession>|session||
-    if(!PyArg_ParseTuple(args,"O:HrMAPIFindDefaultMsgStore",&obSession)) 
+    if(!PyArg_ParseTuple(args,"O:HrMAPIFindDefaultMsgStore",&obSession))
         return NULL;
 
 	if (!PyCom_InterfaceFromPyInstanceOrObject(obSession, IID_IMAPISession, (void **)&pS, 0))
@@ -140,7 +122,7 @@ static PyObject *PyHrMAPIFindDefaultMsgStore(PyObject *self, PyObject *args)
      if (FAILED(_result)) {
            return OleSetOleError(_result);
      }
-	 PyObject *rc = PyString_FromStringAndSize((char *)pID, entryStrLen);
+	 PyObject *rc = PyBytes_FromStringAndSize((char *)pID, entryStrLen);
 	 MAPIFreeBuffer(pID);
 	 return rc;
 }
@@ -149,7 +131,7 @@ static PyObject *PyHrMAPIFindDefaultMsgStore(PyObject *self, PyObject *args)
 %native(HrMAPIFindIPMSubtree) PyHrMAPIFindIPMSubtree;
 %{
 // @pyswig string|HrMAPIFindIPMSubtree|Retrieves the entry ID of the IPM (interpersonal message) subtree folder
-static PyObject *PyHrMAPIFindIPMSubtree(PyObject *self, PyObject *args) 
+static PyObject *PyHrMAPIFindIPMSubtree(PyObject *self, PyObject *args)
 {
     HRESULT  _result;
 	ULONG entryStrLen;
@@ -158,7 +140,7 @@ static PyObject *PyHrMAPIFindIPMSubtree(PyObject *self, PyObject *args)
 	PyObject *obStore;
 
 	// @pyparm <o PyIMsgStore>|msgStore||
-    if(!PyArg_ParseTuple(args,"O:HrMAPIFindIPMSubtree",&obStore)) 
+    if(!PyArg_ParseTuple(args,"O:HrMAPIFindIPMSubtree",&obStore))
         return NULL;
 
 	if (!PyCom_InterfaceFromPyInstanceOrObject(obStore, IID_IMsgStore, (void **)&pS, 0))
@@ -168,7 +150,7 @@ static PyObject *PyHrMAPIFindIPMSubtree(PyObject *self, PyObject *args)
      if (FAILED(_result)) {
            return OleSetOleError(_result);
      }
-	 PyObject *rc = PyString_FromStringAndSize((char *)pID, entryStrLen);
+	 PyObject *rc = PyBytes_FromStringAndSize((char *)pID, entryStrLen);
 	 MAPIFreeBuffer(pID);
 	 return rc;
 }
@@ -178,7 +160,7 @@ static PyObject *PyHrMAPIFindIPMSubtree(PyObject *self, PyObject *args)
 %native (HrMAPIFindInbox) PyHrMAPIFindInbox;
 %{
 // @pyswig string|HrMAPIFindInbox|Retrieves the Entry ID of the IPM inbox folder
-static PyObject *PyHrMAPIFindInbox(PyObject *self, PyObject *args) 
+static PyObject *PyHrMAPIFindInbox(PyObject *self, PyObject *args)
 {
     HRESULT  _result;
 	ULONG entryStrLen;
@@ -187,7 +169,7 @@ static PyObject *PyHrMAPIFindInbox(PyObject *self, PyObject *args)
 	PyObject *obStore;
 
 	// @pyparm <o PyIMsgStore>|msgStore||
-    if(!PyArg_ParseTuple(args,"O:HrMAPIFindInbox",&obStore)) 
+    if(!PyArg_ParseTuple(args,"O:HrMAPIFindInbox",&obStore))
         return NULL;
 
 	if (!PyCom_InterfaceFromPyInstanceOrObject(obStore, IID_IMsgStore, (void **)&pS, 0))
@@ -197,7 +179,7 @@ static PyObject *PyHrMAPIFindInbox(PyObject *self, PyObject *args)
      if (FAILED(_result)) {
            return OleSetOleError(_result);
      }
-	 PyObject *rc = PyString_FromStringAndSize((char *)pID, entryStrLen);
+	 PyObject *rc = PyBytes_FromStringAndSize((char *)pID, entryStrLen);
 	 MAPIFreeBuffer(pID);
 	 return rc;
 }
@@ -209,14 +191,14 @@ static PyObject *PyHrMAPIFindInbox(PyObject *self, PyObject *args)
 PyObject *MyHrMAPIFindSubfolderEx(
 	IMAPIFolder *lpRootFolder,
 	TCHAR chSep,
-	TCHAR *lpszName) 
+	TCHAR *lpszName)
 {
 	DWORD idSize;
 	ENTRYID *id;
 	HRESULT hr = HrMAPIFindSubfolderEx(lpRootFolder,chSep,lpszName,&idSize, &id);
 	if (FAILED(hr))
 		return OleSetOleError(hr);
-	PyObject *rc = PyString_FromStringAndSize((char *)id, idSize);
+	PyObject *rc = PyBytes_FromStringAndSize((char *)id, idSize);
 	MAPIFreeBuffer(id);
 	return rc;
 }
@@ -260,7 +242,7 @@ PyObject *PyHrMAPIFindFolder(PyObject *self, PyObject *args)
 		OleSetOleError(hr);
 		goto done;
 	}
-	rc = PyString_FromStringAndSize((char *)eid, cbEID);
+	rc = PyBytes_FromStringAndSize((char *)eid, cbEID);
 done:
 	if (pFolder) pFolder->Release();
 	if (szName) PyWinObject_FreeTCHAR(szName);
@@ -301,7 +283,7 @@ PyObject *PyHrMAPIFindFolderEx(PyObject *self, PyObject *args)
 		OleSetOleError(hr);
 		goto done;
 	}
-	rc = PyString_FromStringAndSize((char *)eid, cbEID);
+	rc = PyBytes_FromStringAndSize((char *)eid, cbEID);
 done:
 	if (pMDB) pMDB->Release();
 	if (szSep) PyWinObject_FreeTCHAR(szSep);
@@ -310,7 +292,7 @@ done:
 }
 %}
 
-// @pyswig <o PyIMsgStore>|HrMAPIFindStore|Retrieves a pointer to the entry identifier of an information store from the display name of the store. 
+// @pyswig <o PyIMsgStore>|HrMAPIFindStore|Retrieves a pointer to the entry identifier of an information store from the display name of the store.
 %native(HrMAPIFindStore) PyHrMAPIFindStore;
 %{
 PyObject *PyHrMAPIFindStore(PyObject *self, PyObject *args)
@@ -340,7 +322,7 @@ PyObject *PyHrMAPIFindStore(PyObject *self, PyObject *args)
 		OleSetOleError(hr);
 		goto done;
 	}
-	rc = PyString_FromStringAndSize((char *)eid, cbEID);
+	rc = PyBytes_FromStringAndSize((char *)eid, cbEID);
 done:
 	if (pSession) pSession->Release();
 	if (szName) PyWinObject_FreeTCHAR(szName);
@@ -351,7 +333,7 @@ done:
 %native (HrCreateProfileName) PyHrCreateProfileName;
 %{
 // @pyswig string|HrCreateProfileName|Creates a profile with the specified name
-static PyObject *PyHrCreateProfileName(PyObject *self, PyObject *args) 
+static PyObject *PyHrCreateProfileName(PyObject *self, PyObject *args)
 {
     HRESULT  _result;
 	PyObject *obPrefix;
@@ -359,12 +341,12 @@ static PyObject *PyHrCreateProfileName(PyObject *self, PyObject *args)
 	// @pyparm string/<o PyUnicode>|profPrefix||A prefix for the new profile.
 	if (!PyArg_ParseTuple(args, "O:HrCreateProfileName", &obPrefix))
 		return NULL;
-	if (!PyWinObject_AsString(obPrefix, &prefix))
+	if (!PyWinObject_AsChars(obPrefix, &prefix))
 		return NULL;
 	const int bufSize = MAX_PATH + 1;
 	char buf[bufSize];
 	_result = HrCreateProfileName(prefix, bufSize, buf);
-	PyWinObject_FreeString(prefix);
+	PyWinObject_FreeChars(prefix);
 	if (FAILED(_result))
 		return OleSetOleError(_result);
 	return PyWinCoreString_FromString(buf);
@@ -383,12 +365,12 @@ PyObject *PyHrCreateDirEntryIdEx(PyObject *self, PyObject *args)
 	LPENTRYID entryId;
 	HRESULT hr;
 	ULONG cbEntryId;
-	if (!PyArg_ParseTuple(args, "OO:HrCreateDirEntryIdEx", 
+	if (!PyArg_ParseTuple(args, "OO:HrCreateDirEntryIdEx",
 		&obAddrBook, // @pyparm <o PyIAddrBook>|addrBook||The address book interface
 		&obDN))		 // @pyparm string|distinguishedName||The dn of the object to obtain the entry ID for.
 		return NULL;
 
-	if (!PyWinObject_AsString(obDN, &szdn, FALSE))
+	if (!PyWinObject_AsChars(obDN, &szdn, FALSE))
         goto done;
 
 	if (!PyCom_InterfaceFromPyInstanceOrObject(obAddrBook, IID_IAddrBook, (void **)&pAddrBook, /*BOOL bNoneOK=*/FALSE))
@@ -398,63 +380,14 @@ PyObject *PyHrCreateDirEntryIdEx(PyObject *self, PyObject *args)
 	if (FAILED(hr))
 		return OleSetOleError(hr);
 
-	ret = PyString_FromStringAndSize((char *)entryId, cbEntryId);
+	ret = PyBytes_FromStringAndSize((char *)entryId, cbEntryId);
 done:
-	PyWinObject_FreeString(szdn);
+	PyWinObject_FreeChars(szdn);
 	if (pAddrBook) pAddrBook->Release();
 	return ret;
 }
 %}
 
-
-%native (HrFindExchangeGlobalAddressList) PyHrFindExchangeGlobalAddressList;
-%{
-// @pyswig string|HrFindExchangeGlobalAddressList|Retrieves the entry identifier of the global address list (GAL) container in the address book.
-static PyObject *PyHrFindExchangeGlobalAddressList(PyObject *self, PyObject *args) 
-{
-#ifdef DONT_HAVE_ADDRLKUP
-	return PyErr_Format(PyExc_NotImplementedError, "Not available with this version of the Exchange SDK");
-#else
-	PyObject *obAddrBook;
-	// @pyparm <o PyIAddrBook>|addrBook||The interface containing the address book
-	if (!PyArg_ParseTuple(args, "O:HrFindExchangeGlobalAddressList", &obAddrBook))
-		return NULL;
-
-	IAddrBook *pAB;
-	ULONG cb;
-	LPENTRYID peid;
-	if (!PyCom_InterfaceFromPyInstanceOrObject(obAddrBook, IID_IAddrBook, (void **)&pAB, 0))
-		return NULL;
-	HRESULT _result = HrFindExchangeGlobalAddressList(pAB, &cb, &peid);
-    if (FAILED(_result)) {
-           return OleSetOleError(_result);
-     }
-
-	PyObject *rc = PyString_FromStringAndSize((char *)peid, cb);
-	MAPIFreeBuffer(peid);
-	return rc;
-#endif
-}
-%}
-
-%{
-HRESULT MyHrMailboxLogon(
-    IN  LPMAPISESSION   lplhSession,                // ptr to MAPI session handle
-    IN  LPMDB           lpMDB,                      // ptr to message store
-    IN  LPSTR           lpszMsgStoreDN,             // ptr to message store DN
-    IN  LPSTR           lpszMailboxDN,              // ptr to mailbox DN
-    OUT LPMDB           *lppMailboxMDB)            // ptr to mailbox message store ptr
-{
-#if defined(DONT_HAVE_MBLOGON)
-	PyGILState_STATE gstate = PyGILState_Ensure();
-	PyErr_Warn(PyExc_RuntimeWarning, "Not available with this version of the Exchange SDK");
-	PyGILState_Release(gstate);
-	return E_NOTIMPL;
-#else
-	return HrMailboxLogon(lplhSession, lpMDB, lpszMsgStoreDN, lpszMailboxDN, lppMailboxMDB);
-#endif
-}
-%}
 
 // @pyswig <o PyIMsgStore>|HrMailboxLogon|Logs on a server and mailbox.
 %name(HrMailboxLogon) HRESULT MyHrMailboxLogon(
@@ -465,20 +398,6 @@ HRESULT MyHrMailboxLogon(
 	IMsgStore **OUTPUT
 );
 
-%{
-HRESULT MyHrMailboxLogoff(IMsgStore **pp)
-{
-#if defined(DONT_HAVE_MBLOGON)
-	PyGILState_STATE gstate = PyGILState_Ensure();
-	PyErr_Warn(PyExc_RuntimeWarning, "Not available with this version of the Exchange SDK");
-	PyGILState_Release(gstate);
-	return E_NOTIMPL;
-#else
-	return HrMailboxLogoff(pp);
-#endif
-}
-%}
-
 // @pyswig |HrMailboxLogoff|Logs off a server and mailbox.
 %name(HrMailboxLogoff) HRESULT MyHrMailboxLogoff(
 	IMsgStore **INPUT // @pyparm <o PyIMsgStore>|inbox||The open inbox.
@@ -486,11 +405,11 @@ HRESULT MyHrMailboxLogoff(IMsgStore **pp)
 
 
 // @pyswig <o PyIMAPIFolder>|HrMAPIOpenFolderEx|Opens a folder in the information store from the hierarchical path name of the folder.
-%name(HrMAPIOpenFolderEx) HRESULT HrMAPIOpenFolderExW( 
+%name(HrMAPIOpenFolderEx) HRESULT HrMAPIOpenFolderExW(
 	IMsgStore *INPUT_NULLOK, // @pyparm <o PyIMsgStore>|msgStore||
 	WCHAR INPUT, // @pyparm string/<o PyUnicode>|sep||The folder seperator character.
 	WCHAR *INPUT, // @pyparm string/<o PyUnicode>|name||The folder name
-	IMAPIFolder **OUTPUT 
+	IMAPIFolder **OUTPUT
 );
 
 // @pyswig |HrMAPISetPropBoolean|Sets a boolean property.
@@ -514,30 +433,30 @@ HRESULT HrOpenExchangePublicStore(
 );
 
 // @pyswig <o PyIMsgStore>|HrOpenExchangePrivateStore|Locates the primary user information store provider.
-HRESULT HrOpenExchangePrivateStore( 
+HRESULT HrOpenExchangePrivateStore(
 	IMAPISession *INPUT,  // @pyparm <o PyIMAPISession>|session||The MAPI session object
 	IMsgStore **OUTPUT
 );
 
 // @pyswig <o PyIMAPIFolder>|HrOpenExchangePublicFolders|Opens the root of the public folder hierarchy in the public information store.
-HRESULT HrOpenExchangePublicFolders( 
+HRESULT HrOpenExchangePublicFolders(
 	IMsgStore *INPUT,  // @pyparm <o PyIMsgStore>|store||
 	IMAPIFolder **OUTPUT
 );
 
 // @pyswig <o PyIMAPIProp>|HrOpenSessionObject|Retrieves a MAPI <o PyIMAPIProp> object for the current session object.
-HRESULT HrOpenSessionObject( 
+HRESULT HrOpenSessionObject(
 	IMAPISession *INPUT,  // @pyparm <o PyIMAPISession>|session||The MAPI session object
 	IMAPIProp **OUTPUT );
 
 // @pyswig <o PyIMAPIProp>|HrOpenSiteContainer|Retrieves a MAPI <o PyIMAPIProp> object for a site object.
-HRESULT HrOpenSiteContainer( 
+HRESULT HrOpenSiteContainer(
 	IMAPISession *INPUT,  // @pyparm <o PyIMAPISession>|session||The MAPI session object
 	IMAPIProp **OUTPUT );
 
 // @pyswig <o PyIMAPIProp>|HrOpenSiteContainerAddressing|Retrieves a MAPI <o PyIMAPIProp> object for a site-addressing object.
-HRESULT HrOpenSiteContainerAddressing( 
+HRESULT HrOpenSiteContainerAddressing(
 	IMAPISession *INPUT, // @pyparm <o PyIMAPISession>|session||The MAPI session object
-	IMAPIProp **OUTPUT 
+	IMAPIProp **OUTPUT
 );
 #endif /* SWIG_PY32BIT */

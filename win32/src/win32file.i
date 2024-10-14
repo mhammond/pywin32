@@ -22,11 +22,13 @@
 //		<nl>RemoveDirectory / RemoveDirectoryTransacted
 
 %{
-#ifndef MS_WINCE
 //#define FAR
 #ifndef _WIN32_WINNT
 #define _WIN32_WINNT 0x0600
 #endif
+
+// We use the deprecated API
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
 
 // bug #752
 // Include windows.h before winsock2 because with older SDKs the latter may
@@ -61,7 +63,6 @@
 #define _WSPIAPI_COUNTOF(_Array) (sizeof(_Array) / sizeof(_Array[0]))
 #endif
 #include "Wspiapi.h" // for WspiapiGetAddrInfo/WspiapiFreeAddrInfo
-#endif
 
 #define NEED_PYWINOBJECTS_H
 #include "win32file_comm.h"
@@ -72,142 +73,116 @@
 
 %{
 
-#ifdef PYWIN_HAVE_DATETIME_CAPI
 #include "datetime.h" // python's datetime header.
-#endif
 
-// older python version's don't get the PyCObject structure definition
-// exposed, and we need it to cleanly zap our handles (see
-// CloseEncryptedFileRaw below).
-// Fortunately, the PyCObject structure has been identical from versions
-// 2.3->2.6 - and 2.6 is where it is first made public.
-#if (PY_VERSION_HEX < 0x02060000)
-typedef struct {
-    PyObject_HEAD
-    void *cobject;
-    void *desc;
-    void (*destructor)(void *);
-} PyCObject;
-
-#endif
 %}
 
 #define FILE_GENERIC_READ FILE_GENERIC_READ
 #define FILE_GENERIC_WRITE FILE_GENERIC_WRITE
 #define FILE_ALL_ACCESS FILE_ALL_ACCESS
 
-#define GENERIC_READ GENERIC_READ 
-// Specifies read access to the object. Data can be read from the file and the file pointer can be moved. Combine with GENERIC_WRITE for read-write access. 
-#define GENERIC_WRITE GENERIC_WRITE 
-// Specifies write access to the object. Data can be written to the file and the file pointer can be moved. Combine with GENERIC_READ for read-write access. 
-#define GENERIC_EXECUTE GENERIC_EXECUTE 
+#define GENERIC_READ GENERIC_READ
+// Specifies read access to the object. Data can be read from the file and the file pointer can be moved. Combine with GENERIC_WRITE for read-write access.
+#define GENERIC_WRITE GENERIC_WRITE
+// Specifies write access to the object. Data can be written to the file and the file pointer can be moved. Combine with GENERIC_READ for read-write access.
+#define GENERIC_EXECUTE GENERIC_EXECUTE
 // Specifies execute access.
-	
-#ifndef MS_WINCE
-#define FILE_SHARE_DELETE  FILE_SHARE_DELETE 
-// Windows NT only: Subsequent open operations on the object will succeed only if delete access is requested. 
-#endif
-#define FILE_SHARE_READ FILE_SHARE_READ 
-// Subsequent open operations on the object will succeed only if read access is requested. 
-#define FILE_SHARE_WRITE FILE_SHARE_WRITE 
-// Subsequent open operations on the object will succeed only if write access is requested. 
- 
-#define CREATE_NEW CREATE_NEW 
+
+#define FILE_SHARE_DELETE  FILE_SHARE_DELETE
+// Windows NT only: Subsequent open operations on the object will succeed only if delete access is requested.
+#define FILE_SHARE_READ FILE_SHARE_READ
+// Subsequent open operations on the object will succeed only if read access is requested.
+#define FILE_SHARE_WRITE FILE_SHARE_WRITE
+// Subsequent open operations on the object will succeed only if write access is requested.
+
+#define CREATE_NEW CREATE_NEW
 // Creates a new file. The function fails if the specified file already exists.
-#define CREATE_ALWAYS CREATE_ALWAYS 
+#define CREATE_ALWAYS CREATE_ALWAYS
 // Creates a new file. The function overwrites the file if it exists.
-#define OPEN_EXISTING OPEN_EXISTING 
+#define OPEN_EXISTING OPEN_EXISTING
 // Opens the file. The function fails if the file does not exist.
-#define OPEN_ALWAYS OPEN_ALWAYS 
+#define OPEN_ALWAYS OPEN_ALWAYS
 // Opens the file, if it exists. If the file does not exist, the function creates the file as if dwCreationDistribution were CREATE_NEW.
-#define TRUNCATE_EXISTING TRUNCATE_EXISTING 
+#define TRUNCATE_EXISTING TRUNCATE_EXISTING
 // Opens the file. Once opened, the file is truncated so that its size is zero bytes. The calling process must open the file with at least GENERIC_WRITE access. The function fails if the file does not exist.
- 
-#define FILE_ATTRIBUTE_ARCHIVE FILE_ATTRIBUTE_ARCHIVE 
+
+#define FILE_ATTRIBUTE_ARCHIVE FILE_ATTRIBUTE_ARCHIVE
 // The file should be archived. Applications use this attribute to mark files for backup or removal.
 #define FILE_ATTRIBUTE_DIRECTORY FILE_ATTRIBUTE_DIRECTORY
 // The file is a directory
-#define FILE_ATTRIBUTE_COMPRESSED FILE_ATTRIBUTE_COMPRESSED 
+#define FILE_ATTRIBUTE_COMPRESSED FILE_ATTRIBUTE_COMPRESSED
 // The file or directory is compressed. For a file, this means that all of the data in the file is compressed. For a directory, this means that compression is the default for newly created files and subdirectories.
-#define FILE_ATTRIBUTE_HIDDEN FILE_ATTRIBUTE_HIDDEN 
+#define FILE_ATTRIBUTE_HIDDEN FILE_ATTRIBUTE_HIDDEN
 // The file is hidden. It is not to be included in an ordinary directory listing.
-#define FILE_ATTRIBUTE_NORMAL FILE_ATTRIBUTE_NORMAL 
+#define FILE_ATTRIBUTE_NORMAL FILE_ATTRIBUTE_NORMAL
 // The file has no other attributes set. This attribute is valid only if used alone.
-#ifndef MS_WINCE
-#define FILE_ATTRIBUTE_OFFLINE FILE_ATTRIBUTE_OFFLINE 
+#define FILE_ATTRIBUTE_OFFLINE FILE_ATTRIBUTE_OFFLINE
 // The data of the file is not immediately available. Indicates that the file data has been physically moved to offline storage.
-#endif // MS_WINCE
-#define FILE_ATTRIBUTE_READONLY FILE_ATTRIBUTE_READONLY 
+#define FILE_ATTRIBUTE_READONLY FILE_ATTRIBUTE_READONLY
 // The file is read only. Applications can read the file but cannot write to it or delete it.
-#define FILE_ATTRIBUTE_SYSTEM FILE_ATTRIBUTE_SYSTEM 
+#define FILE_ATTRIBUTE_SYSTEM FILE_ATTRIBUTE_SYSTEM
 // The file is part of or is used exclusively by the operating system.
-#define FILE_ATTRIBUTE_TEMPORARY FILE_ATTRIBUTE_TEMPORARY 
+#define FILE_ATTRIBUTE_TEMPORARY FILE_ATTRIBUTE_TEMPORARY
 // The file is being used for temporary storage. File systems attempt to keep all of the data in memory for quicker access rather than flushing the data back to mass storage. A temporary file should be deleted by the application as soon as it is no longer needed.
- 
-#define FILE_FLAG_WRITE_THROUGH FILE_FLAG_WRITE_THROUGH 
+
+#define FILE_FLAG_WRITE_THROUGH FILE_FLAG_WRITE_THROUGH
 // Instructs the system to write through any intermediate cache and go directly to disk. Windows can still cache write operations, but cannot lazily flush them.
-#define FILE_FLAG_OVERLAPPED FILE_FLAG_OVERLAPPED 
+#define FILE_FLAG_OVERLAPPED FILE_FLAG_OVERLAPPED
 // Instructs the system to initialize the object, so that operations that take a significant amount of time to process return ERROR_IO_PENDING. When the operation is finished, the specified event is set to the signaled state.
 	// When you specify FILE_FLAG_OVERLAPPED, the ReadFile and WriteFile functions must specify an OVERLAPPED structure. That is, when FILE_FLAG_OVERLAPPED is specified, an application must perform overlapped reading and writing.
 	// When FILE_FLAG_OVERLAPPED is specified, the system does not maintain the file pointer. The file position must be passed as part of the lpOverlapped parameter (pointing to an OVERLAPPED structure) to the ReadFile and WriteFile functions.
 	// This flag also enables more than one operation to be performed simultaneously with the handle (a simultaneous read and write operation, for example).
-#define FILE_FLAG_NO_BUFFERING FILE_FLAG_NO_BUFFERING 
-// Instructs the system to open the file with no intermediate buffering or caching. 
-	// When combined with FILE_FLAG_OVERLAPPED, the flag gives maximum asynchronous performance, 
-	// because the I/O does not rely on the synchronous operations of the memory 
-	// manager. However, some I/O operations will take longer, because data is 
-	// not being held in the cache. An application must meet certain requirements 
+#define FILE_FLAG_NO_BUFFERING FILE_FLAG_NO_BUFFERING
+// Instructs the system to open the file with no intermediate buffering or caching.
+	// When combined with FILE_FLAG_OVERLAPPED, the flag gives maximum asynchronous performance,
+	// because the I/O does not rely on the synchronous operations of the memory
+	// manager. However, some I/O operations will take longer, because data is
+	// not being held in the cache. An application must meet certain requirements
 	// when working with files opened with FILE_FLAG_NO_BUFFERING:
 	// <nl>-	File access must begin at byte offsets within the file that are integer multiples of the volume's sector size.
-	// <nl>-	File access must be for numbers of bytes that are integer multiples of the volume's sector size. 
+	// <nl>-	File access must be for numbers of bytes that are integer multiples of the volume's sector size.
 	// For example, if the sector size is 512 bytes, an application can request reads and writes of 512, 1024, or 2048 bytes, but not of 335, 981, or 7171 bytes.
-	// <nl>-	Buffer addresses for read and write operations must be aligned on addresses in memory that are integer multiples of the volume's sector size. 
-	// One way to align buffers on integer multiples of the volume sector size is to use VirtualAlloc to allocate the 
-	// buffers. It allocates memory that is aligned on addresses that are integer multiples of the operating system's memory page size. Because both memory page 
-	// and volume sector sizes are powers of 2, this memory is also aligned on addresses that are integer multiples of a volume's sector size. An application can 
-	// determine a volume's sector size by calling the GetDiskFreeSpace function. 
-#define FILE_FLAG_RANDOM_ACCESS FILE_FLAG_RANDOM_ACCESS 
+	// <nl>-	Buffer addresses for read and write operations must be aligned on addresses in memory that are integer multiples of the volume's sector size.
+	// One way to align buffers on integer multiples of the volume sector size is to use VirtualAlloc to allocate the
+	// buffers. It allocates memory that is aligned on addresses that are integer multiples of the operating system's memory page size. Because both memory page
+	// and volume sector sizes are powers of 2, this memory is also aligned on addresses that are integer multiples of a volume's sector size. An application can
+	// determine a volume's sector size by calling the GetDiskFreeSpace function.
+#define FILE_FLAG_RANDOM_ACCESS FILE_FLAG_RANDOM_ACCESS
 // Indicates that the file is accessed randomly. The system can use this as a hint to optimize file caching.
-#define FILE_FLAG_SEQUENTIAL_SCAN FILE_FLAG_SEQUENTIAL_SCAN 
-// Indicates that the file is to be accessed sequentially from beginning to end. The system can use this as a hint to optimize file caching. 
+#define FILE_FLAG_SEQUENTIAL_SCAN FILE_FLAG_SEQUENTIAL_SCAN
+// Indicates that the file is to be accessed sequentially from beginning to end. The system can use this as a hint to optimize file caching.
 	// If an application moves the file pointer for random access, optimum caching may not occur; however, correct operation is still guaranteed.
-	// Specifying this flag can increase performance for applications that read large files using sequential access. 
+	// Specifying this flag can increase performance for applications that read large files using sequential access.
 	// Performance gains can be even more noticeable for applications that read large files mostly sequentially, but occasionally skip over small ranges of bytes.
-#define FILE_FLAG_DELETE_ON_CLOSE FILE_FLAG_DELETE_ON_CLOSE 
-// Indicates that the operating system is to delete the file immediately after all of its handles have been closed, 
-	// not just the handle for which you specified FILE_FLAG_DELETE_ON_CLOSE. Subsequent open requests for the file will fail, unless FILE_SHARE_DELETE is used. 
-#define FILE_FLAG_BACKUP_SEMANTICS FILE_FLAG_BACKUP_SEMANTICS 
-// Windows NT only: Indicates that the file is being opened or created for a backup or restore operation. 
+#define FILE_FLAG_DELETE_ON_CLOSE FILE_FLAG_DELETE_ON_CLOSE
+// Indicates that the operating system is to delete the file immediately after all of its handles have been closed,
+	// not just the handle for which you specified FILE_FLAG_DELETE_ON_CLOSE. Subsequent open requests for the file will fail, unless FILE_SHARE_DELETE is used.
+#define FILE_FLAG_BACKUP_SEMANTICS FILE_FLAG_BACKUP_SEMANTICS
+// Windows NT only: Indicates that the file is being opened or created for a backup or restore operation.
 	// The operating system ensures that the calling process overrides file security checks, provided it has the necessary permission to do so. The relevant permissions are SE_BACKUP_NAME and SE_RESTORE_NAME.
 	// You can also set this flag to obtain a handle to a directory. A directory handle can be passed to some Win32 functions in place of a file handle.
-#define FILE_FLAG_POSIX_SEMANTICS FILE_FLAG_POSIX_SEMANTICS 
-// Indicates that the file is to be accessed according to POSIX rules. 
-	// This includes allowing multiple files with names, differing only in case, for file systems that support such naming. 
+#define FILE_FLAG_POSIX_SEMANTICS FILE_FLAG_POSIX_SEMANTICS
+// Indicates that the file is to be accessed according to POSIX rules.
+	// This includes allowing multiple files with names, differing only in case, for file systems that support such naming.
 	// Use care when using this option because files created with this flag may not be accessible by applications written for MS-DOS or Windows.
 #define FILE_FLAG_OPEN_REPARSE_POINT FILE_FLAG_OPEN_REPARSE_POINT
 // used to open a handle for use with DeviceIoControl and FSCTL_GET_REPARSE_POINT/FSCTL_SET_REPARSE_POINT)
 
-#ifndef MS_WINCE
-#define SECURITY_ANONYMOUS SECURITY_ANONYMOUS 
+#define SECURITY_ANONYMOUS SECURITY_ANONYMOUS
 // Specifies to impersonate the client at the Anonymous impersonation level.
-#define SECURITY_IDENTIFICATION SECURITY_IDENTIFICATION 
+#define SECURITY_IDENTIFICATION SECURITY_IDENTIFICATION
 // Specifies to impersonate the client at the Identification impersonation level.
-#define SECURITY_IMPERSONATION SECURITY_IMPERSONATION 
+#define SECURITY_IMPERSONATION SECURITY_IMPERSONATION
 // Specifies to impersonate the client at the Impersonation impersonation level.
-#define SECURITY_DELEGATION SECURITY_DELEGATION 
+#define SECURITY_DELEGATION SECURITY_DELEGATION
 // Specifies to impersonate the client at the Delegation impersonation level.
-#define SECURITY_CONTEXT_TRACKING SECURITY_CONTEXT_TRACKING 
+#define SECURITY_CONTEXT_TRACKING SECURITY_CONTEXT_TRACKING
 // Specifies that the security tracking mode is dynamic. If this flag is not specified, Security Tracking Mode is static.
-#define SECURITY_EFFECTIVE_ONLY SECURITY_EFFECTIVE_ONLY 
-// Specifies that only the enabled aspects 	
-#endif // MS_WINCE
-
-#ifndef MS_WINCE /* Not on CE */
+#define SECURITY_EFFECTIVE_ONLY SECURITY_EFFECTIVE_ONLY
+// Specifies that only the enabled aspects
 
 // @pyswig int|AreFileApisANSI|Determines whether a set of Win32 file functions is using the ANSI or OEM character set code page. This function is useful for 8-bit console input and output operations.
 BOOL AreFileApisANSI(void);
-
-#endif // MS_WINCE
 
 // @pyswig |CancelIo|Cancels pending IO requests for the object.
 // @pyparm <o PyHANDLE>|handle||The handle being cancelled.
@@ -215,65 +190,61 @@ BOOLAPI CancelIo(PyHANDLE handle);
 
 // @pyswig |CopyFile|Copies a file
 BOOLAPI CopyFile(
-    TCHAR *from, // @pyparm <o PyUnicode>|from||The name of the file to copy from
-    TCHAR *to, // @pyparm <o PyUnicode>|to||The name of the file to copy to
+    TCHAR *from, // @pyparm string|from||The name of the file to copy from
+    TCHAR *to, // @pyparm string|to||The name of the file to copy to
     BOOL bFailIfExists); // @pyparm int|bFailIfExists||Indicates if the operation should fail if the file exists.
 
-// @pyswig |CopyFileW|Copies a file (NT/2000 Unicode specific version)
+// @pyswig |CopyFileW|Copies a file
 BOOLAPI CopyFileW(
-    WCHAR *from, // @pyparm <o PyUnicode>|from||The name of the file to copy from
-    WCHAR *to, // @pyparm <o PyUnicode>|to||The name of the file to copy to
+    WCHAR *from, // @pyparm string|from||The name of the file to copy from
+    WCHAR *to, // @pyparm string|to||The name of the file to copy to
     BOOL bFailIfExists); // @pyparm int|bFailIfExists||Indicates if the operation should fail if the file exists.
 
 // @pyswig |CreateDirectory|Creates a directory
 BOOLAPI CreateDirectory(
-    TCHAR *name, // @pyparm <o PyUnicode>|name||The name of the directory to create
+    TCHAR *name, // @pyparm string|name||The name of the directory to create
     SECURITY_ATTRIBUTES *pSA); // @pyparm <o PySECURITY_ATTRIBUTES>|sa||The security attributes, or None
 
-// @pyswig |CreateDirectoryW|Creates a directory (NT/2000 Unicode specific version)
+// @pyswig |CreateDirectoryW|Creates a directory
 BOOLAPI CreateDirectoryW(
-    WCHAR *name, // @pyparm <o PyUnicode>|name||The name of the directory to create
+    WCHAR *name, // @pyparm string|name||The name of the directory to create
     SECURITY_ATTRIBUTES *pSA); // @pyparm <o PySECURITY_ATTRIBUTES>|sa||The security attributes, or None
 
-#ifndef MS_WINCE
 // @pyswig |CreateDirectoryEx|Creates a directory
 BOOLAPI CreateDirectoryEx(
-    TCHAR *templateName, // @pyparm <o PyUnicode>|templateName||Specifies the path of the directory to use as a template when creating the new directory. 
-    TCHAR *newDirectory, // @pyparm <o PyUnicode>|newDirectory||Specifies the name of the new directory
+    TCHAR *templateName, // @pyparm string|templateName||Specifies the path of the directory to use as a template when creating the new directory.
+    TCHAR *newDirectory, // @pyparm string|newDirectory||Specifies the name of the new directory
     SECURITY_ATTRIBUTES *pSA); // @pyparm <o PySECURITY_ATTRIBUTES>|sa||The security attributes, or None
-
-#endif // MS_WINCE
 
 // @pyswig <o PyHANDLE>|CreateFile|Creates or opens the a file or other object and returns a handle that can be used to access the object.
 // @comm The following objects can be opened:<nl>files<nl>pipes<nl>mailslots<nl>communications resources<nl>disk devices (Windows NT only)<nl>consoles<nl>directories (open only)
 PyHANDLE CreateFile(
-    TCHAR *lpFileName,	// @pyparm <o PyUnicode>|fileName||The name of the file
+    TCHAR *lpFileName,	// @pyparm string|fileName||The name of the file
     DWORD dwDesiredAccess,	// @pyparm int|desiredAccess||access (read-write) mode
-			// Specifies the type of access to the object. An application can obtain read access, write access, read-write access, or device query access. This parameter can be any combination of the following values. 
-			// @flagh Value|Meaning 
+			// Specifies the type of access to the object. An application can obtain read access, write access, read-write access, or device query access. This parameter can be any combination of the following values.
+			// @flagh Value|Meaning
 			// @flag 0|Specifies device query access to the object. An application can query device attributes without accessing the device.
-			// @flag GENERIC_READ|Specifies read access to the object. Data can be read from the file and the file pointer can be moved. Combine with GENERIC_WRITE for read-write access.  
+			// @flag GENERIC_READ|Specifies read access to the object. Data can be read from the file and the file pointer can be moved. Combine with GENERIC_WRITE for read-write access.
 			// @flag GENERIC_WRITE|Specifies write access to the object. Data can be written to the file and the file pointer can be moved. Combine with GENERIC_READ for read-write access.
-    DWORD dwShareMode,	// @pyparm int|shareMode||Set of bit flags that specifies how the object can be shared. If dwShareMode is 0, the object cannot be shared. Subsequent open operations on the object will fail, until the handle is closed. 
+    DWORD dwShareMode,	// @pyparm int|shareMode||Set of bit flags that specifies how the object can be shared. If dwShareMode is 0, the object cannot be shared. Subsequent open operations on the object will fail, until the handle is closed.
 			// To share the object, use a combination of one or more of the following values:
-			// @flagh Value|Meaning 
-			// @flag FILE_SHARE_DELETE|Windows NT: Subsequent open operations on the object will succeed only if delete access is requested.  
+			// @flagh Value|Meaning
+			// @flag FILE_SHARE_DELETE|Windows NT: Subsequent open operations on the object will succeed only if delete access is requested.
 			// @flag FILE_SHARE_READ|Subsequent open operations on the object will succeed only if read access is requested.
 			// @flag FILE_SHARE_WRITE|Subsequent open operations on the object will succeed only if write access is requested.
     SECURITY_ATTRIBUTES *lpSecurityAttributes,	// @pyparm <o PySECURITY_ATTRIBUTES>|attributes||The security attributes, or None
     DWORD dwCreationDisposition,	// @pyparm int|CreationDisposition||Specifies which action to take on files that exist, and which action to take when files do not exist. For more information about this parameter, see the Remarks section. This parameter must be one of the following values:
 			// @flagh Value|Meaning
-			// @flag CREATE_NEW|Creates a new file. The function fails if the specified file already exists. 
-			// @flag CREATE_ALWAYS|Creates a new file. If the file exists, the function overwrites the file and clears the existing attributes. 
-			// @flag OPEN_EXISTING|Opens the file. The function fails if the file does not exist. 
-			//       See the Remarks section for a discussion of why you should use the OPEN_EXISTING flag if you are using the CreateFile function for devices, including the console. 
-			// @flag OPEN_ALWAYS|Opens the file, if it exists. If the file does not exist, the function creates the file as if dwCreationDisposition were CREATE_NEW. 
-			// @flag TRUNCATE_EXISTING|Opens the file. Once opened, the file is truncated so that its size is zero bytes. The calling process must open the file with at least GENERIC_WRITE access. The function fails if the file does not exist. 
+			// @flag CREATE_NEW|Creates a new file. The function fails if the specified file already exists.
+			// @flag CREATE_ALWAYS|Creates a new file. If the file exists, the function overwrites the file and clears the existing attributes.
+			// @flag OPEN_EXISTING|Opens the file. The function fails if the file does not exist.
+			//       See the Remarks section for a discussion of why you should use the OPEN_EXISTING flag if you are using the CreateFile function for devices, including the console.
+			// @flag OPEN_ALWAYS|Opens the file, if it exists. If the file does not exist, the function creates the file as if dwCreationDisposition were CREATE_NEW.
+			// @flag TRUNCATE_EXISTING|Opens the file. Once opened, the file is truncated so that its size is zero bytes. The calling process must open the file with at least GENERIC_WRITE access. The function fails if the file does not exist.
     DWORD dwFlagsAndAttributes,	// @pyparm int|flagsAndAttributes||file attributes
     PyHANDLE INPUT_NULLOK // @pyparm <o PyHANDLE>|hTemplateFile||Specifies a handle with GENERIC_READ access to a template file. The template file supplies file attributes and extended attributes for the file being created.   Under Win95, this must be 0, else an exception will be raised.
 );
 
-#ifndef MS_WINCE
 // CreateIoCompletionPort gets special treatment due to its special result
 // code handling.
 
@@ -349,26 +320,24 @@ BOOLAPI SetMailslotInfo(
 	HANDLE Mailslot,	// @pyparm <o PyHANDLE>|Mailslot||Handle to a mailslot
 	DWORD ReadTimeout);	// @pyparm int|ReadTimeout||Timeout in milliseconds, use -1 for no timeout
 
-// @pyswig |DefineDosDevice|Lets an application define, redefine, or delete MS-DOS device names. 
+// @pyswig |DefineDosDevice|Lets an application define, redefine, or delete MS-DOS device names.
 BOOLAPI DefineDosDevice(
-    DWORD dwFlags,	// @pyparm int|flags||flags specifying aspects of device definition  
-    TCHAR *lpDeviceName,	// @pyparm <o PyUnicode>|deviceName||MS-DOS device name string  
-    TCHAR *lpTargetPath	// @pyparm <o PyUnicode>|targetPath||MS-DOS or path string for 32-bit Windows.
+    DWORD dwFlags,	// @pyparm int|flags||flags specifying aspects of device definition
+    TCHAR *lpDeviceName,	// @pyparm string|deviceName||MS-DOS device name string
+    TCHAR *lpTargetPath	// @pyparm string|targetPath||MS-DOS or path string for 32-bit Windows.
 );
-// @pyswig |DefineDosDeviceW|Lets an application define, redefine, or delete MS-DOS device names. (NT/2000 Unicode specific version)
+// @pyswig |DefineDosDeviceW|Lets an application define, redefine, or delete MS-DOS device names.
 BOOLAPI DefineDosDeviceW(
-    DWORD dwFlags,	// @pyparm int|flags||flags specifying aspects of device definition  
-    WCHAR *lpDeviceName,	// @pyparm <o PyUnicode>|deviceName||MS-DOS device name string  
-    WCHAR *lpTargetPath	// @pyparm <o PyUnicode>|targetPath||MS-DOS or path string for 32-bit Windows.
+    DWORD dwFlags,	// @pyparm int|flags||flags specifying aspects of device definition
+    WCHAR *lpDeviceName,	// @pyparm string|deviceName||MS-DOS device name string
+    WCHAR *lpTargetPath	// @pyparm string|targetPath||MS-DOS or path string for 32-bit Windows.
 );
-#endif // MS_WINCE
 
 // @pyswig |DeleteFile|Deletes a file.
 BOOLAPI DeleteFile(TCHAR *fileName);
-// @pyparm <o PyUnicode>|fileName||The filename to delete
+// @pyparm string|fileName||The filename to delete
 
 %{
-#if (PY_VERSION_HEX >= 0x03000000)
 // theoretically this could be in pywintypes, but this is the only place
 // it is called...
 
@@ -384,8 +353,6 @@ static PyObject *PyBuffer_FromReadWriteMemory(void *buf, Py_ssize_t size){
 		return NULL;
 	return PyMemoryView_FromBuffer(&info);
 }
-#endif
-
 
 
 // @pyswig str/buffer|DeviceIoControl|Sends a control code to a device or file system driver
@@ -404,10 +371,10 @@ PyObject *py_DeviceIoControl(PyObject *self, PyObject *args, PyObject *kwargs)
 	PyObject *obOverlapped = Py_None;
 
 	DWORD dwIoControlCode;
-	void *InBuffer=NULL, *OutBuffer=NULL;
-	DWORD InBufferSize=0, OutBufferSize=0;
+	void *OutBuffer=NULL;
+	DWORD OutBufferSize=0;
 	BOOL bBuffer=FALSE;
-	
+
 	static char *keywords[]={"Device","IoControlCode","InBuffer","OutBuffer","Overlapped", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OkOO|O:DeviceIoControl", keywords,
 		&obhFile,			// @pyparm <o PyHANDLE>|Device||Handle to a file, device, or volume
@@ -421,43 +388,48 @@ PyObject *py_DeviceIoControl(PyObject *self, PyObject *args, PyObject *kwargs)
 
 	if (!PyWinObject_AsHANDLE(obhFile, &hDevice))
 		return NULL;
-	if (!PyWinObject_AsReadBuffer(obInBuffer, &InBuffer, &InBufferSize, TRUE))
+	PyWinBufferView out_buf, in_buf(obInBuffer, false, true); // None Ok
+	if (!in_buf.ok())
 		return NULL;
 	if (!PyWinObject_AsOVERLAPPED(obOverlapped, &pOverlapped, TRUE))
 		return NULL;
 
 	OutBufferSize=PyLong_AsLong(obOutBuffer);
-	if (OutBufferSize!=(DWORD)-1 || !PyErr_Occurred()){
+	if (OutBufferSize!=(DWORD)-1 || !PyErr_Occurred()) {
 		// Return a writable buffer in asynch mode, otherwise a plain string
 		//	for backward compatibility
-		if (pOverlapped != NULL){
-			ret=PyBuffer_New(OutBufferSize);
-			if (ret==NULL)
+		if (pOverlapped != NULL) {
+			ret = PyBuffer_New(OutBufferSize);
+			if (ret == NULL)
 				return NULL;
-			if (!PyWinObject_AsWriteBuffer(ret, &OutBuffer, &OutBufferSize)){
+			if (!out_buf.init(ret, true)) {
 				Py_DECREF(ret);
 				return NULL;
 				}
+			OutBuffer = out_buf.ptr();
+			OutBufferSize = out_buf.len();
 			}
-		else{
-			ret = PyString_FromStringAndSize(NULL, OutBufferSize);
+		else {
+			ret = PyBytes_FromStringAndSize(NULL, OutBufferSize);
 			if (ret==NULL)
 				return NULL;
-			OutBuffer=PyString_AS_STRING(ret);
+			OutBuffer=PyBytes_AS_STRING(ret);
 			}
 		}
-	else{
+	else {
 		PyErr_Clear();
-		if (PyWinObject_AsWriteBuffer(obOutBuffer, &OutBuffer, &OutBufferSize, TRUE)){
+		if (out_buf.init(obOutBuffer, true, true)) {
+			OutBuffer = out_buf.ptr();
+			OutBufferSize = out_buf.len();
 			Py_INCREF(obOutBuffer);
 			ret=obOutBuffer;
 			bBuffer=TRUE;
 			}
-		else{
+		else {
 			PyErr_Clear();
 			return PyErr_Format(PyExc_TypeError,
 				"OutBuffer must be either a buffer size or writeable buffer object, not %s",
-				obOutBuffer->ob_type->tp_name); 
+				obOutBuffer->ob_type->tp_name);
 			}
 		}
 
@@ -467,9 +439,9 @@ PyObject *py_DeviceIoControl(PyObject *self, PyObject *args, PyObject *kwargs)
 
 	ok = DeviceIoControl(hDevice,
                          dwIoControlCode,
-                         InBuffer,
-                         InBufferSize,
-                         OutBuffer, 
+                         in_buf.ptr(),
+                         in_buf.len(),
+                         OutBuffer,
                          OutBufferSize,
                          &numRead,
                          pOverlapped);
@@ -489,16 +461,12 @@ PyObject *py_DeviceIoControl(PyObject *self, PyObject *args, PyObject *kwargs)
 		if (bBuffer){
 			// Create a view of existing buffer with actual output size
 			// Memoryview object in py3k supports slicing
-			#if (PY_VERSION_HEX >= 0x03000000)
-				PyObject *resized=PySequence_GetSlice(ret, 0, numRead);
-			#else
-				PyObject *resized=PyBuffer_FromReadWriteObject(ret, 0, numRead);
-			#endif
+			PyObject *resized=PySequence_GetSlice(ret, 0, numRead);
 			Py_DECREF(ret);
 			ret=resized;
 			}
 		else
-			_PyString_Resize(&ret, numRead);
+			_PyBytes_Resize(&ret, numRead);
 		}
 	return ret;
 }
@@ -511,30 +479,27 @@ PyCFunction pfnpy_DeviceIoControl=(PyCFunction)py_DeviceIoControl;
 
 
 
-//FileIOCompletionRoutine	
+//FileIOCompletionRoutine
 
 // @pyswig |FindClose|Closes a find handle.
 BOOLAPI FindClose(HANDLE hFindFile);	// @pyparm int|hFindFile||file search handle
 
-#ifndef MS_WINCE 
 // @pyswig |FindCloseChangeNotification|Closes a handle.
 BOOLAPI FindCloseChangeNotification(
     HANDLE hChangeHandle 	// @pyparm int|hChangeHandle||handle to change notification to close
 );
 
-// @pyswig int|FindFirstChangeNotification|Creates a change notification handle and sets up initial change notification filter conditions. A wait on a notification handle succeeds when a change matching the filter conditions occurs in the specified directory or subtree. 
+// @pyswig int|FindFirstChangeNotification|Creates a change notification handle and sets up initial change notification filter conditions. A wait on a notification handle succeeds when a change matching the filter conditions occurs in the specified directory or subtree.
 HANDLE FindFirstChangeNotification(
-    TCHAR *lpPathName,	// @pyparm <o PyUnicode>|pathName||Name of directory to watch  
-    BOOL bWatchSubtree,	// @pyparm int|bWatchSubtree||flag for monitoring directory or directory tree  
+    TCHAR *lpPathName,	// @pyparm string|pathName||Name of directory to watch
+    BOOL bWatchSubtree,	// @pyparm int|bWatchSubtree||flag for monitoring directory or directory tree
     DWORD dwNotifyFilter 	// @pyparm int|notifyFilter||filter conditions to watch for.  See <om win32api.FindFirstChangeNotification> for details.
 );
 
 // @pyswig int|FindNextChangeNotification|Requests that the operating system signal a change notification handle the next time it detects an appropriate change,
 BOOLAPI FindNextChangeNotification(
-    HANDLE hChangeHandle 	//  @pyparm int|hChangeHandle||handle to change notification to signal  
+    HANDLE hChangeHandle 	//  @pyparm int|hChangeHandle||handle to change notification to signal
 );
-
-#endif // MS_WINCE
 
 
 %{
@@ -622,15 +587,14 @@ PyTypeObject FindFileIterator_Type = {
 };
 %}
 
-// @pyswig |FlushFileBuffers|Clears the buffers for the specified file and causes all buffered data to be written to the file. 
+// @pyswig |FlushFileBuffers|Clears the buffers for the specified file and causes all buffered data to be written to the file.
 BOOLAPI FlushFileBuffers(
-   PyHANDLE hFile 	// @pyparm <o PyHANDLE>|hFile||open handle to file whose buffers are to be flushed 
+   PyHANDLE hFile 	// @pyparm <o PyHANDLE>|hFile||open handle to file whose buffers are to be flushed
 );
 
-#ifndef MS_WINCE
 // @pyswig int|GetBinaryType|Determines whether a file is executable, and if so, what type of executable file it is. That last property determines which subsystem an executable file runs under.
 BOOLAPI GetBinaryType(
-    TCHAR *lpApplicationName,	// @pyparm <o PyUnicode>|appName||Fully qualified path of file to test
+    TCHAR *lpApplicationName,	// @pyparm string|appName||Fully qualified path of file to test
     unsigned long *OUTPUT	// DWORD
    );
 #define SCS_32BIT_BINARY SCS_32BIT_BINARY // A Win32-based application
@@ -639,14 +603,12 @@ BOOLAPI GetBinaryType(
 #define SCS_PIF_BINARY SCS_PIF_BINARY // A PIF file that executes an MS-DOS - based application
 #define SCS_POSIX_BINARY SCS_POSIX_BINARY // A POSIX - based application
 #define SCS_WOW_BINARY SCS_WOW_BINARY // A 16-bit Windows-based application
-#endif // MS_WINCE
 
 //GetCurrentDirectory
 
-#ifndef MS_WINCE
 // @pyswig (int, int, int, int)|GetDiskFreeSpace|Determines the free space on a device.
 BOOLAPI GetDiskFreeSpace(
-    TCHAR *lpRootPathName,	// @pyparm <o PyUnicode>|rootPathName||address of root path
+    TCHAR *lpRootPathName,	// @pyparm string|rootPathName||address of root path
     unsigned long *OUTPUT,
     unsigned long *OUTPUT,
     unsigned long *OUTPUT,
@@ -654,26 +616,26 @@ BOOLAPI GetDiskFreeSpace(
 // @rdesc The result is a tuple of integers representing (sectors per cluster, bytes per sector, number of free clusters, total number of clusters)
 );
 
-// GetDiskFreeSpaceEx	
+// GetDiskFreeSpaceEx
 // @pyswig long, long, long|GetDiskFreeSpaceEx|Determines the free space on a device.
 BOOLAPI GetDiskFreeSpaceEx(
-    TCHAR *lpRootPathName,	// @pyparm <o PyUnicode>|rootPathName||address of root path
-    ULARGE_INTEGER *OUTPUT, 
+    TCHAR *lpRootPathName,	// @pyparm string|rootPathName||address of root path
     ULARGE_INTEGER *OUTPUT,
-    ULARGE_INTEGER *OUTPUT 
+    ULARGE_INTEGER *OUTPUT,
+    ULARGE_INTEGER *OUTPUT
 // @rdesc The result is a tuple of long integers:
 // @tupleitem 0|long integer|freeBytes|The total number of free bytes on the disk that are available to the user associated with the calling thread.
 // @tupleitem 1|long integer|totalBytes|The total number of bytes on the disk that are available to the user associated with the calling thread.
-// Windows 2000: If per-user quotas are in use, this value may be less than the total number of bytes on the disk. 
-// @tupleitem 2|long integer|totalFreeBytes|The total number of free bytes on the disk. 
+// If per-user quotas are in use, this value may be less than the total number of bytes on the disk.
+// @tupleitem 2|long integer|totalFreeBytes|The total number of free bytes on the disk.
 );
 
-// @pyswig int|GetDriveType|Determines whether a disk drive is a removable, fixed, CD-ROM, RAM disk, or network drive. 
+// @pyswig int|GetDriveType|Determines whether a disk drive is a removable, fixed, CD-ROM, RAM disk, or network drive.
 long GetDriveType(
     TCHAR *rootPathName // @pyparm string|rootPathName||
 // @rdesc The result is one of the DRIVE_* constants.
 );
-// @pyswig int|GetDriveTypeW|Determines whether a disk drive is a removable, fixed, CD-ROM, RAM disk, or network drive. (NT/2000 Unicode specific version).
+// @pyswig int|GetDriveTypeW|Determines whether a disk drive is a removable, fixed, CD-ROM, RAM disk, or network drive.
 long GetDriveTypeW(
     WCHAR *rootPathName // @pyparm string|rootPathName||
 // @rdesc The result is one of the DRIVE_* constants.
@@ -687,33 +649,21 @@ long GetDriveTypeW(
 #define DRIVE_CDROM DRIVE_CDROM // The drive is a CD-ROM drive.
 #define DRIVE_RAMDISK DRIVE_RAMDISK // The drive is a RAM disk.
 
-#endif // MS_WINCE
-
-
 // @pyswig int|GetFileAttributes|Determines a files attributes.
-// @comm The win32file module exposes <om win32file.GetFileAttributes> and
-// <om win32file.GetFileAttributesW> separately - both functions will accept
-// either strings or Unicode objects but will always call the named function.
-// This is different than <om win32api.GetFileAttributes>, which only exposes
-// one Python function and automatically calls the appropriate win32 function
-// based on the type of the filename param.
 DWORD GetFileAttributes(
-    TCHAR *fileName); // @pyparm <o PyUnicode>|fileName||Name of the file to retrieve attributes for.
+    TCHAR *fileName); // @pyparm string|fileName||Name of the file to retrieve attributes for.
 
-// @pyswig int|GetFileAttributesW|Determines a files attributes (NT/2000 Unicode specific version).
-// @comm Note that <om win32api.GetFileAttributes> will automatically call
-// GetFileAttributesW when passed a unicode filename param.  See <om win32file.GetFileAttributes>
-// and <om win32api.GetFileAttributes> for more.
+// @pyswig int|GetFileAttributesW|Determines a files attributes
 DWORD GetFileAttributesW(
-    WCHAR *fileName); // @pyparm <o PyUnicode>|fileName||Name of the file to retrieve attributes for.
+    WCHAR *fileName); // @pyparm string|fileName||Name of the file to retrieve attributes for.
 
-// @pyswig (<o PyTime>, <o PyTime>, <o PyTime>)|GetFileTime|Returns a file's creation, last access, and modification times.
+// @pyswig (<o PyDateTime>, <o PyDateTime>, <o PyDateTime>)|GetFileTime|Returns a file's creation, last access, and modification times.
 // @comm Times are returned in UTC time.
 BOOLAPI GetFileTime(
     HANDLE handle, // @pyparm <o PyHANDLE>|handle||Handle to the file.
-	FILETIME *OUTPUT, // @pyparm <o PyTime>|creationTime||
-	FILETIME *OUTPUT, // @pyparm <o PyTime>|accessTime||
-	FILETIME *OUTPUT // @pyparm <o PyTime>|writeTime||
+	FILETIME *OUTPUT, // @pyparm <o PyDateTime>|creationTime||
+	FILETIME *OUTPUT, // @pyparm <o PyDateTime>|accessTime||
+	FILETIME *OUTPUT // @pyparm <o PyDateTime>|writeTime||
 );
 
 
@@ -721,23 +671,19 @@ BOOLAPI GetFileTime(
 // Helper for SetFileTime - see comments below.
 static BOOL PyWinTime_DateTimeCheck(PyObject *ob)
 {
-	return FALSE
-#ifdef PYWIN_HAVE_DATETIME_CAPI
-		|| (PyDateTimeAPI && PyDateTime_Check(ob))
-#endif
-		;
+	return PyDateTimeAPI && PyDateTime_Check(ob);
 }
 
 // @pyswig |SetFileTime|Sets the date and time that a file was created, last accessed, or last modified.
 static PyObject *PySetFileTime (PyObject *self, PyObject *args, PyObject *kwargs)
 {
 	PyObject *obHandle;       // @pyparm <o PyHANDLE>|File||Previously opened handle (opened with FILE_WRITE_ATTRIBUTES access).
-	PyObject *obCreationTime = Py_None;  // @pyparm <o PyTime>|CreationTime|None|File created time. None for no change.
-	PyObject *obLastAccessTime = Py_None; // @pyparm <o PyTime>|LastAccessTime|None|File access time. None for no change.
-	PyObject *obLastWriteTime = Py_None;  // @pyparm <o PyTime>|LastWriteTime|None|File written time. None for no change.
-	BOOL UTCTimes = FALSE;    // @pyparm boolean|UTCTimes|False|If True, input times are treated as UTC and no conversion is done, 
+	PyObject *obCreationTime = Py_None;  // @pyparm <o PyDateTime>|CreationTime|None|File created time. None for no change.
+	PyObject *obLastAccessTime = Py_None; // @pyparm <o PyDateTime>|LastAccessTime|None|File access time. None for no change.
+	PyObject *obLastWriteTime = Py_None;  // @pyparm <o PyDateTime>|LastWriteTime|None|File written time. None for no change.
+	BOOL UTCTimes = FALSE;    // @pyparm boolean|UTCTimes|False|If True, input times are treated as UTC and no conversion is done,
 							  // otherwise they are treated as local times.  Defaults to False for backward compatibility.
-							  // This parameter is ignored in Python 3.x, where you should always pass datetime objects
+							  // This parameter is ignored in Python 3, where you should always pass datetime objects
 							  // with timezone information.
 
 	static char *keywords[] = {"File", "CreationTime", "LastAccessTime", "LastWriteTime", "UTCTimes", NULL};
@@ -791,7 +737,7 @@ PyCFunction pfnPySetFileTime = (PyCFunction)PySetFileTime;
 %native(SetFileTime) pfnPySetFileTime;
 
 %{
-// @pyswig tuple|GetFileInformationByHandle|Retrieves file information for a specified file. 
+// @pyswig tuple|GetFileInformationByHandle|Retrieves file information for a specified file.
 static PyObject *PyGetFileInformationByHandle(PyObject *self, PyObject *args)
 {
 	PyObject *obHandle;
@@ -812,25 +758,24 @@ static PyObject *PyGetFileInformationByHandle(PyObject *self, PyObject *args)
 	// @rdesc The result is a tuple of:
 	return Py_BuildValue("kNNNkkkkkk",
 		fi.dwFileAttributes, // @tupleitem 0|int|dwFileAttributes|
-		PyWinObject_FromFILETIME(fi.ftCreationTime), // @tupleitem 1|<o PyTime>|ftCreationTime|
-		PyWinObject_FromFILETIME(fi.ftLastAccessTime),// @tupleitem 2|<o PyTime>|ftLastAccessTime|
-		PyWinObject_FromFILETIME(fi.ftLastWriteTime),// @tupleitem 3|<o PyTime>|ftLastWriteTime|
+		PyWinObject_FromFILETIME(fi.ftCreationTime), // @tupleitem 1|<o PyDateTime>|ftCreationTime|
+		PyWinObject_FromFILETIME(fi.ftLastAccessTime),// @tupleitem 2|<o PyDateTime>|ftLastAccessTime|
+		PyWinObject_FromFILETIME(fi.ftLastWriteTime),// @tupleitem 3|<o PyDateTime>|ftLastWriteTime|
 		fi.dwVolumeSerialNumber,// @tupleitem 4|int|dwVolumeSerialNumber|
 		fi.nFileSizeHigh,// @tupleitem 5|int|nFileSizeHigh|
 		fi.nFileSizeLow,// @tupleitem 6|int|nFileSizeLow|
 		fi.nNumberOfLinks,// @tupleitem 7|int|nNumberOfLinks|
 		fi.nFileIndexHigh,// @tupleitem 8|int|nFileIndexHigh|
 		fi.nFileIndexLow);// @tupleitem 9|int|nFileIndexLow|
-	// @comm Depending on the underlying network components of the operating system and the type of server 
-	// connected to, the GetFileInformationByHandle function may fail, return partial information, 
-	// or full information for the given file. In general, you should not use GetFileInformationByHandle 
+	// @comm Depending on the underlying network components of the operating system and the type of server
+	// connected to, the GetFileInformationByHandle function may fail, return partial information,
+	// or full information for the given file. In general, you should not use GetFileInformationByHandle
 	// unless your application is intended to be run on a limited set of operating system configurations.
 }
 
 %}
 %native(GetFileInformationByHandle) PyGetFileInformationByHandle;
 
-#ifndef MS_WINCE
 %{
 PyObject *MyGetCompressedFileSize(PyObject *self, PyObject *args)
 {
@@ -844,10 +789,10 @@ PyObject *MyGetCompressedFileSize(PyObject *self, PyObject *args)
     Py_BEGIN_ALLOW_THREADS
 	ulsize.LowPart = GetCompressedFileSize(fname, &ulsize.HighPart);
     Py_END_ALLOW_THREADS
-    
+
     PyWinObject_FreeTCHAR(fname);
-	// If we failed ... 
-	if (ulsize.LowPart == 0xFFFFFFFF && 
+	// If we failed ...
+	if (ulsize.LowPart == 0xFFFFFFFF &&
 	    GetLastError() != NO_ERROR )
 		return PyWin_SetAPIError("GetCompressedFileSize");
 	return PyWinObject_FromULARGE_INTEGER(ulsize);
@@ -856,7 +801,6 @@ PyObject *MyGetCompressedFileSize(PyObject *self, PyObject *args)
 // @pyswig long|GetCompressedFileSize|Determines the compressed size of a file.
 %native(GetCompressedFileSize) MyGetCompressedFileSize;
 
-#endif
 %{
 PyObject *MyGetFileSize(PyObject *self, PyObject *args)
 {
@@ -870,8 +814,8 @@ PyObject *MyGetFileSize(PyObject *self, PyObject *args)
     Py_BEGIN_ALLOW_THREADS
 	ulsize.LowPart = GetFileSize (hFile, &ulsize.HighPart);
     Py_END_ALLOW_THREADS
-	// If we failed ... 
-	if (ulsize.LowPart == 0xFFFFFFFF && 
+	// If we failed ...
+	if (ulsize.LowPart == 0xFFFFFFFF &&
 	    GetLastError() != NO_ERROR )
 		return PyWin_SetAPIError("GetFileSize");
 	return PyWinObject_FromULARGE_INTEGER(ulsize);
@@ -886,7 +830,6 @@ PyObject *MyGetFileSize(PyObject *self, PyObject *args)
 // holding a read buffer.  This has been replaced with the standard Python buffer object.
 // <nl>Python does not provide a method for creating a read-write buffer
 // of arbitary size, so currently this can only be created by <om win32file.AllocateReadBuffer>.
-#ifndef MS_WINCE
 %{
 // @pyswig <o PyOVERLAPPEDReadBuffer>|AllocateReadBuffer|Allocates a buffer which can be used with an overlapped Read operation using <om win32file.ReadFile>
 PyObject *MyAllocateReadBuffer(PyObject *self, PyObject *args)
@@ -900,11 +843,10 @@ PyObject *MyAllocateReadBuffer(PyObject *self, PyObject *args)
 %}
 
 %native(AllocateReadBuffer) MyAllocateReadBuffer;
-#endif
 
 %{
 // @pyswig (int, string)|ReadFile|Reads a string from a file
-// @rdesc The result is a tuple of (hr, string/<o PyOVERLAPPEDReadBuffer>), where hr may be 
+// @rdesc The result is a tuple of (hr, string/<o PyOVERLAPPEDReadBuffer>), where hr may be
 // 0, ERROR_MORE_DATA or ERROR_IO_PENDING.
 // If the overlapped param is not None, then the result is a <o PyOVERLAPPEDReadBuffer>.  Once the overlapped IO operation
 // has completed, you can convert this to a string (str(object)) [py2k] or (bytes(object)) [py3k] to obtain the data.
@@ -921,13 +863,13 @@ PyObject *MyReadFile(PyObject *self, PyObject *args)
 	BOOL bBufMallocd = FALSE;
 	PyObject *obBuf, *obRet=NULL;
 
-	if (!PyArg_ParseTuple(args, "OO|O:ReadFile", 
+	if (!PyArg_ParseTuple(args, "OO|O:ReadFile",
 		&obhFile, // @pyparm <o PyHANDLE>/int|hFile||Handle to the file
 		// @pyparm <o PyOVERLAPPEDReadBuffer>/int|buffer/bufSize||Size of the buffer to create for the result,
 		// or a buffer to fill with the result. If a buffer object and overlapped is passed, the result is
 		// the buffer itself.  If a buffer but no overlapped is passed, the result is a new string object,
 		// built from the buffer, but with a length that reflects the data actually read.
-		&obBuf, 
+		&obBuf,
 		&obOverlapped))	// @pyparm <o PyOVERLAPPED>|overlapped|None|An overlapped structure
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhFile, &hFile))
@@ -935,43 +877,43 @@ PyObject *MyReadFile(PyObject *self, PyObject *args)
 
 	// @comm in a multi-threaded overlapped environment, it is likely to be necessary to pre-allocate the read buffer using the <om win32file.AllocateReadBuffer> method, otherwise the I/O operation may complete before you can assign to the resulting buffer.
 	if (obOverlapped!=Py_None){
-#ifdef MS_WINCE
-		PyErr_SetString(PyExc_NotImplementedError,"Overlapped operation is not supported on this platform");
-		return NULL;
-#else
 		if (!PyWinObject_AsOVERLAPPED(obOverlapped, &pOverlapped))
 			return NULL;
-#endif
 		}
 
 	void *buf = NULL;
+	PyWinBufferView pybuf;
 
-	bufSize = PyInt_AsLong(obBuf);
+	bufSize = PyLong_AsLong(obBuf);
 	if ((bufSize!=(DWORD)-1) || !PyErr_Occurred()){
-		if (pOverlapped){	// guaranteed to be NULL on CE
+		if (pOverlapped){
 			obRet = PyBuffer_New(bufSize);
 			if (obRet==NULL)
 				return NULL;
 			// This should never fail
-			if (!PyWinObject_AsWriteBuffer(obRet, &buf, &bufSize)){
+			if (!pybuf.init(obRet, true)) {
 				Py_DECREF(obRet);
 				return NULL;
 				}
+			buf = pybuf.ptr();
+			bufSize = pybuf.len();
 			}
 		else{
-			obRet=PyString_FromStringAndSize(NULL, bufSize);
+			obRet=PyBytes_FromStringAndSize(NULL, bufSize);
 			if (obRet==NULL)
 				return NULL;
-			buf=PyString_AS_STRING(obRet);
+			buf=PyBytes_AS_STRING(obRet);
 			bBufMallocd=TRUE;
 			}
 		}
 	else{
 		PyErr_Clear();
-		if (!PyWinObject_AsWriteBuffer(obBuf, &buf, &bufSize,FALSE)){
+		if (!pybuf.init(obBuf, true)) {
 			PyErr_SetString(PyExc_TypeError, "Second param must be an integer or writeable buffer object");
 			return NULL;
 			}
+		buf = pybuf.ptr();
+		bufSize = pybuf.len();
 		// If they didn't pass an overlapped, then we can't return the
 		// original buffer as they have no way to know how many bytes
 		// were read - so leave obRet NULL and the ret will be a new
@@ -996,9 +938,9 @@ PyObject *MyReadFile(PyObject *self, PyObject *args)
 		}
 	}
 	if (obRet==NULL)
-		obRet=PyString_FromStringAndSize((char *)buf, numRead);
+		obRet=PyBytes_FromStringAndSize((char *)buf, numRead);
 	else if (bBufMallocd && (numRead < bufSize))
-		_PyString_Resize(&obRet, numRead);
+		_PyBytes_Resize(&obRet, numRead);
 	if (obRet==NULL)
 		return NULL;
 	return Py_BuildValue("iN", err, obRet);
@@ -1017,17 +959,16 @@ PyObject *MyWriteFile(PyObject *self, PyObject *args)
 	OVERLAPPED *pOverlapped;
 	PyObject *obhFile;
 	HANDLE hFile;
-	void *writeData;
-	DWORD writeSize;
 	PyObject *obWriteData;
 	PyObject *obOverlapped = NULL;
 
-	if (!PyArg_ParseTuple(args, "OO|O:WriteFile", 
+	if (!PyArg_ParseTuple(args, "OO|O:WriteFile",
 		&obhFile, // @pyparm <o PyHANDLE>/int|hFile||Handle to the file
 		&obWriteData, // @pyparm string/<o PyOVERLAPPEDReadBuffer>|data||The data to write.
 		&obOverlapped))	// @pyparm <o PyOVERLAPPED>|ol|None|An overlapped structure
 		return NULL;
-	if (!PyWinObject_AsReadBuffer(obWriteData, &writeData, &writeSize, FALSE))
+	PyWinBufferView pybuf(obWriteData);
+	if (!pybuf.ok())
 		return NULL;
 
 	if (obOverlapped==NULL)
@@ -1042,7 +983,7 @@ PyObject *MyWriteFile(PyObject *self, PyObject *args)
 	BOOL ok;
 	DWORD err = 0;
     Py_BEGIN_ALLOW_THREADS
-	ok = WriteFile(hFile, writeData, writeSize, &numWritten, pOverlapped);
+	ok = WriteFile(hFile, pybuf.ptr(), pybuf.len(), &numWritten, pOverlapped);
     Py_END_ALLOW_THREADS
 	if (!ok) {
 		err = GetLastError();
@@ -1065,7 +1006,6 @@ static PyObject *MyCloseHandle(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
-#ifndef MS_WINCE
 // @pyswig |LockFileEx|Locks a file. Wrapper for LockFileEx win32 API.
 static PyObject *
 MyLockFileEx(PyObject *self, PyObject *args)
@@ -1076,7 +1016,7 @@ MyLockFileEx(PyObject *self, PyObject *args)
 	PyObject *obOverlapped = NULL;
     DWORD dwFlags, nbytesLow, nbytesHigh;
 
-	if (!PyArg_ParseTuple(args, "OkkkO:LockFileEx", 
+	if (!PyArg_ParseTuple(args, "OkkkO:LockFileEx",
 		&obhFile, // @pyparm <o PyHANDLE>/int|hFile||Handle to the file
         &dwFlags, // @pyparm dwFlags|int||Flags that specify exclusive/shared and blocking/non-blocking mode
         &nbytesLow, // @pyparm nbytesLow|int||low-order part of number of bytes to lock
@@ -1117,7 +1057,7 @@ MyUnlockFileEx(PyObject *self, PyObject *args)
     PyObject *obOverlapped = NULL;
     DWORD nbytesLow, nbytesHigh;
 
-    if (!PyArg_ParseTuple(args, "OkkO:UnlockFileEx", 
+    if (!PyArg_ParseTuple(args, "OkkO:UnlockFileEx",
         &obhFile, // @pyparm <o PyHANDLE>/int|hFile||Handle to the file
         &nbytesLow, // @pyparm nbytesLow|int||low-order part of number of
                     // bytes to lock
@@ -1149,10 +1089,8 @@ MyUnlockFileEx(PyObject *self, PyObject *args)
     return Py_None;
 }
 
-#endif // MS_WINCE
 %}
 
-#ifndef MS_WINCE
 %{
 
 // See Q192800 for an interesting discussion on overlapped and IOCP.
@@ -1199,7 +1137,7 @@ BOOL PyWinObject_AsQueuedOVERLAPPED(PyObject *ob, OVERLAPPED **ppOverlapped, BOO
 	assert(po);
 	if (!po)
 		return FALSE;
-	
+
 	PyOVERLAPPED *pO = (PyOVERLAPPED *)po;
 	// Add a fake reference so the object lives while in the queue, and add the flag
 	Py_INCREF(ob);
@@ -1276,13 +1214,11 @@ PyObject *myPostQueuedCompletionStatus(PyObject *self, PyObject *args)
 
 %native (GetQueuedCompletionStatus) myGetQueuedCompletionStatus;
 %native (PostQueuedCompletionStatus) myPostQueuedCompletionStatus;
-#endif // MS_WINCE
 
 %native(ReadFile) MyReadFile;
 %native(WriteFile) MyWriteFile;
 %native(CloseHandle) MyCloseHandle;
 
-#ifndef MS_WINCE
 // @pyswig int|GetFileType|Determines the type of a file.
 unsigned long GetFileType( // DWORD
     PyHANDLE hFile // @pyparm <o PyHANDLE>|hFile||The handle to the file.
@@ -1296,16 +1232,14 @@ unsigned long GetFileType( // DWORD
 unsigned long GetLogicalDrives( // DWORD
 );
 
-#endif // MS_WINCE
 /**
-GetLogicalDriveStrings	
-GetShortPathName	
-GetTempFileName	
-GetTempPath	
-GetVolumeInformation	
+GetLogicalDriveStrings
+GetShortPathName
+GetTempFileName
+GetTempPath
+GetVolumeInformation
 */
 
-#ifndef MS_WINCE
 // @pyswig int|GetOverlappedResult|Determines the result of the most recent call with an OVERLAPPED object.
 // @comm The result is the number of bytes transferred.  The overlapped object's attributes will be changed during this call.
 BOOLAPI GetOverlappedResult(
@@ -1315,55 +1249,46 @@ BOOLAPI GetOverlappedResult(
 	BOOL bWait	// @pyparm int|bWait||Indicates if the function should wait for data to become available.
 );
 
-#endif // MS_WINCE
-
-#ifndef MS_WINCE
 // @pyswig |LockFile|Locks a specified file for exclusive access by the calling process.
 BOOLAPI LockFile(
-    PyHANDLE hFile,	// @pyparm <o PyHANDLE>|hFile||handle of file to lock 
-    DWORD dwFileOffsetLow,	// @pyparm int|offsetLow||low-order word of lock region offset 
-    DWORD dwFileOffsetHigh,	// @pyparm int|offsetHigh||high-order word of lock region offset  
-    DWORD nNumberOfBytesToLockLow,	// @pyparm int|nNumberOfBytesToLockLow||low-order word of length to lock 
-    DWORD nNumberOfBytesToLockHigh 	// @pyparm int|nNumberOfBytesToLockHigh||high-order word of length to lock 
+    PyHANDLE hFile,	// @pyparm <o PyHANDLE>|hFile||handle of file to lock
+    DWORD dwFileOffsetLow,	// @pyparm int|offsetLow||low-order word of lock region offset
+    DWORD dwFileOffsetHigh,	// @pyparm int|offsetHigh||high-order word of lock region offset
+    DWORD nNumberOfBytesToLockLow,	// @pyparm int|nNumberOfBytesToLockLow||low-order word of length to lock
+    DWORD nNumberOfBytesToLockHigh 	// @pyparm int|nNumberOfBytesToLockHigh||high-order word of length to lock
    );
 
 %native(LockFileEx) MyLockFileEx;
 
-#endif // MS_WINCE
-
-
-// @pyswig |MoveFile|Renames an existing file or a directory (including all its children). 
+// @pyswig |MoveFile|Renames an existing file or a directory (including all its children).
 BOOLAPI MoveFile(
-    TCHAR *lpExistingFileName,	// @pyparm <o PyUnicode>|existingFileName||Name of the existing file  
-    TCHAR *lpNewFileName 	// @pyparm <o PyUnicode>|newFileName||New name for the file 
+    TCHAR *lpExistingFileName,	// @pyparm string|existingFileName||Name of the existing file
+    TCHAR *lpNewFileName 	// @pyparm string|newFileName||New name for the file
 );
-// @pyswig |MoveFileW|Renames an existing file or a directory (including all its children). (NT/2000 Unicode specific version).
+// @pyswig |MoveFileW|Renames an existing file or a directory (including all its children).
 BOOLAPI MoveFileW(
-    WCHAR *lpExistingFileName,	// @pyparm <o PyUnicode>|existingFileName||Name of the existing file  
-    WCHAR *lpNewFileName 	// @pyparm <o PyUnicode>|newFileName||New name for the file 
+    WCHAR *lpExistingFileName,	// @pyparm string|existingFileName||Name of the existing file
+    WCHAR *lpNewFileName 	// @pyparm string|newFileName||New name for the file
 );
 
-#ifndef MS_WINCE
-// @pyswig |MoveFileEx|Renames an existing file or a directory (including all its children). 
+// @pyswig |MoveFileEx|Renames an existing file or a directory (including all its children).
 BOOLAPI MoveFileEx(
-    TCHAR *lpExistingFileName,	// @pyparm <o PyUnicode>|existingFileName||Name of the existing file  
-    TCHAR *INPUT_NULLOK, 	// @pyparm <o PyUnicode>|newFileName||New name for the file, can be None for delayed delete operation
+    TCHAR *lpExistingFileName,	// @pyparm string|existingFileName||Name of the existing file
+    TCHAR *INPUT_NULLOK, 	// @pyparm string|newFileName||New name for the file, can be None for delayed delete operation
     DWORD dwFlags 	        // @pyparm int|flags||flag to determine how to move file (win32file.MOVEFILE_*)
 );
-// @pyswig |MoveFileExW|Renames an existing file or a directory (including all its children). (NT/2000 Unicode specific version).
+// @pyswig |MoveFileExW|Renames an existing file or a directory (including all its children).
 BOOLAPI MoveFileExW(
-    WCHAR *lpExistingFileName,	// @pyparm <o PyUnicode>|existingFileName||Name of the existing file  
-    WCHAR *INPUT_NULLOK, 	// @pyparm <o PyUnicode>|newFileName||New name for the file, can be None for delayed delete operation
+    WCHAR *lpExistingFileName,	// @pyparm string|existingFileName||Name of the existing file
+    WCHAR *INPUT_NULLOK, 	// @pyparm string|newFileName||New name for the file, can be None for delayed delete operation
     DWORD dwFlags 	        // @pyparm int|flags||flag to determine how to move file (win32file.MOVEFILE_*)
 );
 #define MOVEFILE_COPY_ALLOWED MOVEFILE_COPY_ALLOWED // If the file is to be moved to a different volume, the function simulates the move by using the CopyFile and DeleteFile functions. Cannot be combined with the MOVEFILE_DELAY_UNTIL_REBOOT flag.
 #define MOVEFILE_DELAY_UNTIL_REBOOT MOVEFILE_DELAY_UNTIL_REBOOT // Windows NT only: The function does not move the file until the operating system is restarted. The system moves the file immediately after AUTOCHK is executed, but before creating any paging files. Consequently, this parameter enables the function to delete paging files from previous startups.
 #define MOVEFILE_REPLACE_EXISTING MOVEFILE_REPLACE_EXISTING // If a file of the name specified by lpNewFileName already exists, the function replaces its contents with those specified by lpExistingFileName.
-#define MOVEFILE_WRITE_THROUGH MOVEFILE_WRITE_THROUGH // Windows NT only: The function does not return until the file has actually been moved on the disk. Setting this flag guarantees that a move perfomed as a copy and delete operation is flushed to disk before the function returns. The flush occurs at the end of the copy operation.<nl>This flag has no effect if the MOVEFILE_DELAY_UNTIL_REBOOT flag is set. 
+#define MOVEFILE_WRITE_THROUGH MOVEFILE_WRITE_THROUGH // Windows NT only: The function does not return until the file has actually been moved on the disk. Setting this flag guarantees that a move perfomed as a copy and delete operation is flushed to disk before the function returns. The flush occurs at the end of the copy operation.<nl>This flag has no effect if the MOVEFILE_DELAY_UNTIL_REBOOT flag is set.
 #define MOVEFILE_CREATE_HARDLINK MOVEFILE_CREATE_HARDLINK
 #define MOVEFILE_FAIL_IF_NOT_TRACKABLE MOVEFILE_FAIL_IF_NOT_TRACKABLE
-
-#endif // MS_WINCE
 
 // @pyswig string|QueryDosDevice|Returns the mapping for a device name, or all device names
 %native (QueryDosDevice) MyQueryDosDevice;
@@ -1379,9 +1304,9 @@ static PyObject *MyQueryDosDevice(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinObject_AsTCHAR(obdevicename, &devicename, TRUE))
 		return NULL;
-		
+
 	if (devicename==NULL)	// this returns a huge string
-		buflen=8192;	
+		buflen=8192;
 	else
 		buflen=256;
 	// function returns ERROR_INSUFFICIENT_BUFFER with no indication of how much memory is actually needed
@@ -1486,6 +1411,7 @@ static PyObject *PyReadDirectoryChangesW(PyObject *self, PyObject *args)
 	if (obOverlappedRoutine != Py_None)
 		return PyErr_Format(PyExc_ValueError, "overlappedRoutine must be None");
 
+	PyWinBufferView pybuf;
 	void *buf = NULL;
 	DWORD bufSize = 0;
 	BOOL bBufMallocd = FALSE;
@@ -1500,10 +1426,12 @@ static PyObject *PyReadDirectoryChangesW(PyObject *self, PyObject *args)
 	}
 	else{
 		PyErr_Clear();
-		if (!PyWinObject_AsWriteBuffer(obBuffer, &buf, &bufSize, FALSE)){
+		if (!pybuf.init(obBuffer, true)) {
 			PyErr_SetString(PyExc_TypeError, "buffer param must be an integer or a buffer object");
 			goto done;
 			}
+		buf = pybuf.ptr();
+		bufSize = pybuf.len();
 		}
 
 	// OK, have a buffer and a size.
@@ -1544,18 +1472,18 @@ PyObject *PyFILE_NOTIFY_INFORMATION(PyObject *self, PyObject *args)
 	// @pyparm int|size||The number of bytes to refer to.  Generally this
 	// will be smaller than the size of the buffer (and certainly never greater!)
 	// @comm See <om win32file.ReadDirectoryChangesW> for more information.
-	DWORD bufSize, size;
-	void *buf;
+	DWORD size;
 	PyObject *obbuf;
 	if (!PyArg_ParseTuple(args, "Oi", &obbuf, &size))
 		return NULL;
-	if (!PyWinObject_AsReadBuffer(obbuf, &buf, &bufSize, FALSE))
+	PyWinBufferView pybuf(obbuf);
+	if (!pybuf.ok())
 		return NULL;
-	if (size > bufSize)
+	if (size > pybuf.len())
 		return PyErr_Format(PyExc_ValueError, "buffer is only %d bytes long, but %d bytes were requested",
-		                    bufSize, size);
+		                    pybuf.len(), size);
 
-	return PyObject_FromFILE_NOTIFY_INFORMATION((void *)buf, size);
+	return PyObject_FromFILE_NOTIFY_INFORMATION(pybuf.ptr(), size);
 }
 
 %}
@@ -1563,50 +1491,46 @@ PyObject *PyFILE_NOTIFY_INFORMATION(PyObject *self, PyObject *args)
 %native(FILE_NOTIFY_INFORMATION) PyFILE_NOTIFY_INFORMATION;
 
 // ReadFileEx
-// SearchPath	
+// SearchPath
 
-#ifndef MS_WINCE
 // @pyswig |SetCurrentDirectory|Sets the current directory.
 %name(SetCurrentDirectory) BOOLAPI SetCurrentDirectoryW(
-    WCHAR *lpPathName	// @pyparm str/<o PyUnicode>|lpPathName||Name of the path to set current.
+    WCHAR *lpPathName	// @pyparm str/string|lpPathName||Name of the path to set current.
 );
-#endif // MS_WINCE
 
-// @pyswig |SetEndOfFile|Moves the end-of-file (EOF) position for the specified file to the current position of the file pointer. 
+// @pyswig |SetEndOfFile|Moves the end-of-file (EOF) position for the specified file to the current position of the file pointer.
 BOOL SetEndOfFile(
-    PyHANDLE hFile	// @pyparm <o PyHANDLE>|hFile||handle of file whose EOF is to be set 
+    PyHANDLE hFile	// @pyparm <o PyHANDLE>|hFile||handle of file whose EOF is to be set
 );
 
-#ifndef MS_WINCE
 // @pyswig |SetFileApisToANSI|Causes a set of Win32 file functions to use the ANSI character set code page. This function is useful for 8-bit console input and output operations.
 void SetFileApisToANSI(void);
 
 // @pyswig |SetFileApisToOEM|Causes a set of Win32 file functions to use the OEM character set code page. This function is useful for 8-bit console input and output operations.
 void SetFileApisToOEM(void);
-#endif
 
 // @pyswig |SetFileAttributes|Changes a file's attributes.
 BOOLAPI SetFileAttributes(
-    TCHAR *lpFileName,	// @pyparm <o PyUnicode>|filename||filename 
-    DWORD dwFileAttributes 	// @pyparm int|newAttributes||attributes to set 
-);	
+    TCHAR *lpFileName,	// @pyparm string|filename||filename
+    DWORD dwFileAttributes 	// @pyparm int|newAttributes||attributes to set
+);
 
 
 %{
-// @pyswig |SetFilePointer|Moves the file pointer of an open file. 
+// @pyswig |SetFilePointer|Moves the file pointer of an open file.
 PyObject *MySetFilePointer(PyObject *self, PyObject *args)
 {
 	PyObject *obHandle, *obOffset;
 	DWORD iMethod;
 	HANDLE handle;
-	if (!PyArg_ParseTuple(args, "OOl:SetFilePointer", 
+	if (!PyArg_ParseTuple(args, "OOl:SetFilePointer",
 			&obHandle,  // @pyparm <o PyHANDLE>|handle||The file to perform the operation on.
 			&obOffset, // @pyparm <o Py_LARGEINTEGER>|offset||Offset to move the file pointer.
 			&iMethod)) // @pyparm int|moveMethod||Starting point for the file pointer move. This parameter can be one of the following values.
-			              // @flagh Value|Meaning 
-			              // @flag FILE_BEGIN|The starting point is zero or the beginning of the file. 
-			              // @flag FILE_CURRENT|The starting point is the current value of the file pointer. 
-			              // @flag FILE_END|The starting point is the current end-of-file position. 
+			              // @flagh Value|Meaning
+			              // @flag FILE_BEGIN|The starting point is zero or the beginning of the file.
+			              // @flag FILE_CURRENT|The starting point is the current value of the file pointer.
+			              // @flag FILE_END|The starting point is the current end-of-file position.
 
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obHandle, &handle))
@@ -1615,12 +1539,12 @@ PyObject *MySetFilePointer(PyObject *self, PyObject *args)
 	LARGE_INTEGER offset;
 	if (!PyWinObject_AsLARGE_INTEGER(obOffset, &offset))
 		return NULL;
-		
+
     Py_BEGIN_ALLOW_THREADS
 	offset.LowPart = SetFilePointer(handle, offset.LowPart, &offset.HighPart, iMethod);
     Py_END_ALLOW_THREADS
-	// If we failed ... 
-	if (offset.LowPart == 0xFFFFFFFF && 
+	// If we failed ...
+	if (offset.LowPart == 0xFFFFFFFF &&
 	    GetLastError() != NO_ERROR )
 		return PyWin_SetAPIError("SetFilePointer");
 	return PyWinObject_FromLARGE_INTEGER(offset);
@@ -1632,27 +1556,24 @@ PyObject *MySetFilePointer(PyObject *self, PyObject *args)
 #define FILE_END FILE_END
 #define FILE_CURRENT FILE_CURRENT
 
-#ifndef MS_WINCE
 // @pyswig |SetVolumeLabel|Sets a volume label for a disk drive.
 BOOLAPI SetVolumeLabel(
-    TCHAR *lpRootPathName,	// @pyparm <o PyUnicode>|rootPathName||address of name of root directory for volume 
-    TCHAR *lpVolumeName 	// @pyparm <o PyUnicode>|volumeName||name for the volume 
+    TCHAR *lpRootPathName,	// @pyparm string|rootPathName||address of name of root directory for volume
+    TCHAR *lpVolumeName 	// @pyparm string|volumeName||name for the volume
    );
 
 // @pyswig |UnlockFile|Unlocks a region of a file locked by <om win32file.LockFile> or <om win32file.LockFileEx>
 BOOLAPI UnlockFile(
-    PyHANDLE hFile,	// @pyparm <o PyHANDLE>|hFile||handle of file to unlock 
-    DWORD dwFileOffsetLow,	// @pyparm int|offsetLow||low-order word of lock region offset 
-    DWORD dwFileOffsetHigh,	// @pyparm int|offsetHigh||high-order word of lock region offset  
-    DWORD nNumberOfBytesToUnlockLow,	// @pyparm int|nNumberOfBytesToUnlockLow||low-order word of length to unlock 
-    DWORD nNumberOfBytesToUnlockHigh 	// @pyparm int|nNumberOfBytesToUnlockHigh||high-order word of length to unlock 
+    PyHANDLE hFile,	// @pyparm <o PyHANDLE>|hFile||handle of file to unlock
+    DWORD dwFileOffsetLow,	// @pyparm int|offsetLow||low-order word of lock region offset
+    DWORD dwFileOffsetHigh,	// @pyparm int|offsetHigh||high-order word of lock region offset
+    DWORD nNumberOfBytesToUnlockLow,	// @pyparm int|nNumberOfBytesToUnlockLow||low-order word of length to unlock
+    DWORD nNumberOfBytesToUnlockHigh 	// @pyparm int|nNumberOfBytesToUnlockHigh||high-order word of length to unlock
    );
 
 %native(UnlockFileEx) MyUnlockFileEx;
-#endif // MS_WINCE
 
 // File Handle / File Descriptor APIs.
-#ifndef MS_WINCE
 // @pyswig long|_get_osfhandle|Gets operating-system file handle associated with existing stream
 // @pyparm int|fd||File descriptor as returned by file.fileno()
 %name(_get_osfhandle)
@@ -1681,27 +1602,19 @@ PyObject *myopen_osfhandle (PyHANDLE osfhandle, int flags)
   if (result == -1)
     return PyErr_SetFromErrno(PyExc_IOError);
 
-  return PyInt_FromLong(result);
+  return PyLong_FromLong(result);
 }
 
 %}
 
-// @pyswig int|_setmaxstdio|Set the maximum allowed number of open stdio handles 
+// @pyswig int|_setmaxstdio|Set the maximum allowed number of open stdio handles
 // @rdesc Returns the number that was set, or -1 on failure.
 int _setmaxstdio(
-   int newmax	// @pyparm int|newmax||Maximum number of open stdio streams, 2048 max 
+   int newmax	// @pyparm int|newmax||Maximum number of open stdio streams, 2048 max
 );
 
 // @pyswig int| _getmaxstdio|Returns the maximum number of CRT io streams.
 int _getmaxstdio( void );
-
-
-// Overlapped Socket stuff
-%{
-#pragma comment(lib,"mswsock.lib") // too lazy to change the project file :-)
-#pragma comment(lib,"ws2_32.lib")
-%}
-
 
 %{
 // @pyswig |TransmitFile|Transmits a file over a socket
@@ -1752,10 +1665,16 @@ static PyObject *py_TransmitFile( PyObject *self, PyObject *args, PyObject *kwar
 	}
 	TRANSMIT_FILE_BUFFERS tf_buffers;
 	TRANSMIT_FILE_BUFFERS *ptf_buffers;
-	if (!PyWinObject_AsReadBuffer(obHead, &tf_buffers.Head, &tf_buffers.HeadLength, TRUE))
+	PyWinBufferView head(obHead, false, true);
+	if (!head.ok())
 		return NULL;
-	if (!PyWinObject_AsReadBuffer(obTail, &tf_buffers.Tail, &tf_buffers.TailLength, TRUE))
+	tf_buffers.Head = head.ptr();
+	tf_buffers.HeadLength = head.len();
+	PyWinBufferView tail(obTail, false, true);
+	if (!tail.ok())
 		return NULL;
+	tf_buffers.Tail = tail.ptr();
+	tf_buffers.TailLength = tail.len();
 
 	if (tf_buffers.Head || tf_buffers.Tail)
 		ptf_buffers = &tf_buffers;
@@ -1769,14 +1688,14 @@ static PyObject *py_TransmitFile( PyObject *self, PyObject *args, PyObject *kwar
 	Py_END_ALLOW_THREADS;
 
 	if (rc == 0 || rc == ERROR_IO_PENDING || rc == WSA_IO_PENDING)
-		return PyInt_FromLong(rc);
+		return PyLong_FromLong(rc);
 	return PyWin_SetAPIError("TransmitFile", rc);
 }
 PyCFunction pfnpy_TransmitFile=(PyCFunction)py_TransmitFile;
 %}
 %native(TransmitFile) pfnpy_TransmitFile;
 
-////////////////////////////////////////////////////////////////////////////////    
+////////////////////////////////////////////////////////////////////////////////
 %{
 // @pyswig (int, int)|ConnectEx|Version of connect that uses Overlapped I/O
 // ConnectEx(sock, (addr, port), buf, overlap)
@@ -1792,8 +1711,6 @@ static PyObject *py_ConnectEx( PyObject *self, PyObject *args, PyObject *kwargs 
 	PyObject *obConnecting = NULL;
 	PyObject *obBuf = Py_None;
 	PyObject *addro;
-	void *buffer=NULL;
-	DWORD buffer_len=0; 
 	int rc, error;
 	DWORD sent=0;
 	static char *keywords[]={"s","name","Overlapped","SendBuffer", NULL};
@@ -1803,11 +1720,12 @@ static PyObject *py_ConnectEx( PyObject *self, PyObject *args, PyObject *kwargs 
 		&obOverlapped, // @pyparm <o PyOVERLAPPED>|Overlapped||An overlapped structure
 		&obBuf)) // @pyparm buffer|SendBuffer|None|Buffer to send on the socket after connect
 		return NULL;
-		
+
 	if (!PySocket_AsSOCKET(obConnecting, &sConnecting)) {
 		return NULL;
 	}
-	if (!PyWinObject_AsReadBuffer(obBuf, &buffer, &buffer_len, TRUE))
+	PyWinBufferView pybuf(obBuf, false, true); // None Ok
+	if (!pybuf.ok())
 		return NULL;
 
 	GUID guid = WSAID_CONNECTEX;
@@ -1839,26 +1757,26 @@ static PyObject *py_ConnectEx( PyObject *self, PyObject *args, PyObject *kwargs 
 		host_idna = PyObject_CallMethod(hobj, "encode", "s", "idna");
 		if (!host_idna)
 			return NULL;
-		hptr = PyString_AsString(host_idna);
-	} else if (PyString_Check(hobj)) {
-		hptr = PyString_AsString(hobj);
+		hptr = PyBytes_AsString(host_idna);
+	} else if (PyBytes_Check(hobj)) {
+		hptr = PyBytes_AsString(hobj);
 	} else {
 		PyErr_SetString(PyExc_TypeError,
 				"getaddrinfo() argument 1 must be string or None");
 		return NULL;
 	}
-	
+
 	if (pobj == Py_None) {
 		pptr = NULL;
 	} else if (PyUnicode_Check(pobj)) {
 		port_idna = PyObject_CallMethod(pobj, "encode", "s", "idna");
 		if (!port_idna)
 			return NULL;
-		pptr = PyString_AsString(port_idna);
-	} else if (PyString_Check(pobj)) {
-		pptr = PyString_AsString(pobj);
-	} else if (PyInt_Check(pobj)) {
-		PyOS_snprintf(pbuf, sizeof(pbuf), "%ld", PyInt_AsLong(pobj));
+		pptr = PyBytes_AsString(port_idna);
+	} else if (PyBytes_Check(pobj)) {
+		pptr = PyBytes_AsString(pobj);
+	} else if (PyLong_Check(pobj)) {
+		PyOS_snprintf(pbuf, sizeof(pbuf), "%ld", PyLong_AsLong(pobj));
 		pptr = pbuf;
 	} else {
 		PyErr_SetString(PyExc_TypeError, "Port must be int, string, or None");
@@ -1867,14 +1785,14 @@ static PyObject *py_ConnectEx( PyObject *self, PyObject *args, PyObject *kwargs 
 
 	WSAPROTOCOL_INFO prot_info;
 	int prot_info_len = sizeof(WSAPROTOCOL_INFO);
-	error = getsockopt(sConnecting, SOL_SOCKET, SO_PROTOCOL_INFO, 
+	error = getsockopt(sConnecting, SOL_SOCKET, SO_PROTOCOL_INFO,
 						(char*)&prot_info, &prot_info_len);
 	if (error)
 	{
 		PyWin_SetAPIError("getsockopt", WSAGetLastError());
 		return NULL;
 	}
-	
+
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = prot_info.iAddressFamily;
 	hints.ai_socktype = prot_info.iSocketType;
@@ -1895,7 +1813,7 @@ static PyObject *py_ConnectEx( PyObject *self, PyObject *args, PyObject *kwargs 
 
 	rc=0;
 	Py_BEGIN_ALLOW_THREADS;
-	if (!lpfnConnectEx(sConnecting, res->ai_addr, res->ai_addrlen, buffer, buffer_len, &sent, pOverlapped))
+	if (!lpfnConnectEx(sConnecting, res->ai_addr, (int)res->ai_addrlen, pybuf.ptr(), pybuf.len(), &sent, pOverlapped))
 		rc=WSAGetLastError();
 	Py_END_ALLOW_THREADS;
 	WspiapiFreeAddrInfo(res);
@@ -1907,7 +1825,7 @@ PyCFunction pfnpy_ConnectEx=(PyCFunction)py_ConnectEx;
 %}
 %native(ConnectEx) pfnpy_ConnectEx;
 
-////////////////////////////////////////////////////////////////////////////////    
+////////////////////////////////////////////////////////////////////////////////
 %native(AcceptEx) MyAcceptEx;
 
 %native(GetAcceptExSockaddrs) MyGetAcceptExSockaddrs;
@@ -1927,11 +1845,9 @@ static PyObject *MyAcceptEx
 	SOCKET sListening;
 	SOCKET sAccepting;
 	PyObject *obOverlapped = NULL;
-	DWORD dwBufSize = 0;
 	PyObject *obListening = NULL;
 	PyObject *obAccepting = NULL;
 	PyObject *obBuf = NULL;
-	void *buf = NULL;
 	DWORD cBytesRecvd = 0;
 	BOOL ok;
 	int rc = 0;
@@ -1990,10 +1906,10 @@ static PyObject *MyAcceptEx
 		return NULL;
 	}
 
-	if (!PyWinObject_AsWriteBuffer(obBuf, &buf, &dwBufSize))
+	PyWinBufferView pybuf(obBuf, true);
+	if (!pybuf.ok())
 		return NULL;
-	if (dwBufSize < (DWORD)iMinBufferSize )
-		{
+	if (pybuf.len() < (DWORD)iMinBufferSize ) {
 		PyErr_Format(
 			PyExc_ValueError,
 			"Second param must be at least %ld bytes long",
@@ -2006,8 +1922,8 @@ static PyObject *MyAcceptEx
 	ok = AcceptEx(
 		sListening,
 		sAccepting,
-		buf,
-		dwBufSize - iMinBufferSize,
+		pybuf.ptr(),
+		pybuf.len() - iMinBufferSize,
 		wsProtInfo.iMaxSockAddr + 16,
 		wsProtInfo.iMaxSockAddr + 16,
 		&cBytesRecvd,
@@ -2019,7 +1935,7 @@ static PyObject *MyAcceptEx
 		if (rc != ERROR_IO_PENDING)
 			return PyWin_SetAPIError("AcceptEx", WSAGetLastError());
 	}
-	return PyInt_FromLong(rc);
+	return PyLong_FromLong(rc);
 }
 
 static PyObject *
@@ -2030,7 +1946,7 @@ MyMakeIPAddr(SOCKADDR_IN *addr)
 	sprintf(buf, "%d.%d.%d.%d",
 		(int) (x>>24) & 0xff, (int) (x>>16) & 0xff,
 		(int) (x>> 8) & 0xff, (int) (x>> 0) & 0xff);
-	return PyString_FromString(buf);
+	return PyBytes_FromString(buf);
 }
 
 static PyObject *
@@ -2063,7 +1979,7 @@ MyMakeSockaddr(SOCKADDR *addr, INT cbAddr)
 		   exception -- return it as a tuple. */
 		return Py_BuildValue("iN",
 			addr->sa_family,
-			PyString_FromStringAndSize(addr->sa_data,sizeof(addr->sa_data)));
+			PyBytes_FromStringAndSize(addr->sa_data,sizeof(addr->sa_data)));
 
 	}
 }
@@ -2099,7 +2015,7 @@ PyObject *MyCalculateSocketEndPointSize(PyObject *self, PyObject *args)
 		PyWin_SetAPIError("getsockopt", WSAGetLastError());
 		return NULL;
 	}
-	return PyInt_FromLong((wsProtInfo.iMaxSockAddr + 16) * 2);
+	return PyLong_FromLong((wsProtInfo.iMaxSockAddr + 16) * 2);
 }
 %}
 
@@ -2122,20 +2038,18 @@ PyObject *MyGetAcceptExSockaddrs
 	UINT cbSize = sizeof(wsProtInfo);
 	SOCKADDR *psaddrLocal = NULL;
 	SOCKADDR *psaddrRemote = NULL;
-	void *buf = NULL;
 	PyObject *pORB = NULL;
 	INT cbLocal = 0;
 	INT cbRemote = 0;
 	SOCKADDR_IN *psaddrIN = NULL;
 	PyObject *obTemp = NULL;
 	int rc;
-	DWORD dwBufSize;
 
 	if (!PyArg_ParseTuple(
 		args,
 		"OO:GetAcceptExSockaddrs",
 		&obAccepting, // @pyparm <o PySocket>/int|sAccepting||Socket that was passed into the sAccepting parameter of AcceptEx
-		&obBuf)) // @pyparm <o PyOVERLAPPEDReadBuffer>|buffer||Buffer you passed into AcceptEx 
+		&obBuf)) // @pyparm <o PyOVERLAPPEDReadBuffer>|buffer||Buffer you passed into AcceptEx
 	{
 		return NULL;
 	}
@@ -2161,10 +2075,11 @@ PyObject *MyGetAcceptExSockaddrs
 			return NULL;
 	}
 	iMinBufferSize = (wsProtInfo.iMaxSockAddr + 16) * 2;
-	if (!PyWinObject_AsReadBuffer(obBuf, &buf, &dwBufSize))
+	PyWinBufferView pybuf(obBuf);
+	if (!pybuf.ok())
 		return NULL;
 
-	if (dwBufSize < (DWORD)iMinBufferSize )
+	if (pybuf.len() < (DWORD)iMinBufferSize )
 	{
 		PyErr_Format(
 			PyExc_ValueError,
@@ -2176,8 +2091,8 @@ PyObject *MyGetAcceptExSockaddrs
 	cbRemote = cbLocal = wsProtInfo.iMaxSockAddr + 16;
 	Py_BEGIN_ALLOW_THREADS
 	GetAcceptExSockaddrs(
-		buf,
-		dwBufSize - iMinBufferSize,
+		pybuf.ptr(),
+		pybuf.len() - iMinBufferSize,
 		cbLocal,
 		cbRemote,
 		&psaddrLocal,
@@ -2198,7 +2113,7 @@ PyObject *MyGetAcceptExSockaddrs
 	//@comm and they should be unpacked with the struct module.
 
 	// Stick in sa_family.
-	obTemp = PyInt_FromLong((LONG)psaddrLocal->sa_family);
+	obTemp = PyLong_FromLong((LONG)psaddrLocal->sa_family);
 	if (obTemp == NULL)
 	{
 		goto Error;
@@ -2223,7 +2138,7 @@ PyObject *MyGetAcceptExSockaddrs
 	}
 	PyTuple_SET_ITEM(rv, 2, obTemp);
 	obTemp = NULL;
-	
+
 Cleanup:
 	return rv;
 Error:
@@ -2238,7 +2153,7 @@ Error:
 %{
 PyObject* MyWSAEventSelect
 (
-	SOCKET *s, 
+	SOCKET *s,
 	PyHANDLE hEvent,
 	LONG lNetworkEvents
 )
@@ -2278,12 +2193,12 @@ MyCopyEvent(PyObject *dict, WSANETWORKEVENTS *events, long event, int eventbit)
 	{
 		PyObject *key, *value;
 
-		key = PyInt_FromLong(event);
+		key = PyLong_FromLong(event);
 		if (key == NULL)
 		{
 			return -1;
 		}
-		value = PyInt_FromLong(events->iErrorCode[eventbit]);
+		value = PyLong_FromLong(events->iErrorCode[eventbit]);
 		if (value == NULL)
 		{
 			Py_DECREF(key);
@@ -2309,7 +2224,7 @@ MyWSAEnumNetworkEvents(PyObject *self, PyObject *args)
 	WSANETWORKEVENTS wsaevents;
 	int rc;
 	PyObject *events;
- 
+
 	if (!PyArg_ParseTuple(args, "O|O:WSAEnumNetworkEvents", &socket, &event))
 	{
 		return NULL;
@@ -2359,7 +2274,7 @@ MyWSAEnumNetworkEvents(PyObject *self, PyObject *args)
 
 PyObject* MyWSAAsyncSelect
 (
-	SOCKET *s, 
+	SOCKET *s,
 	HWND hwnd,
 	LONG wMsg,
 	LONG lNetworkEvents
@@ -2433,8 +2348,11 @@ PyObject *MyWSASend
 		return NULL;
 	}
 
-	if (!PyWinObject_AsReadBuffer(obBuf, (void **)&wsBuf.buf, &wsBuf.len, FALSE))
+	PyWinBufferView pybuf(obBuf);
+	if (!pybuf.ok())
 		return NULL;
+	wsBuf.buf = (CHAR *)pybuf.ptr();
+	wsBuf.len = pybuf.len();
 
 	Py_BEGIN_ALLOW_THREADS;
 	rc = WSASend(
@@ -2463,7 +2381,7 @@ PyObject *MyWSASend
 		goto Error;
 	}
 
-	obTemp = PyInt_FromLong(rc);
+	obTemp = PyLong_FromLong(rc);
 	if (obTemp == NULL)
 	{
 		goto Error;
@@ -2471,7 +2389,7 @@ PyObject *MyWSASend
 	PyTuple_SET_ITEM(rv, 0, obTemp);
 	obTemp = NULL;
 
-	obTemp = PyInt_FromLong(cbSent);
+	obTemp = PyLong_FromLong(cbSent);
 	if (obTemp == NULL)
 	{
 		goto Error;
@@ -2528,8 +2446,11 @@ PyObject *MyWSARecv
 		return NULL;
 	}
 
-	if (!PyWinObject_AsWriteBuffer(obBuf, (void **)&wsBuf.buf, &wsBuf.len, FALSE))
+	PyWinBufferView pybuf(obBuf, true);
+	if (!pybuf.ok())
 		return NULL;
+	wsBuf.buf = (CHAR *)pybuf.ptr();
+	wsBuf.len = pybuf.len();
 
 	Py_BEGIN_ALLOW_THREADS;
 	rc = WSARecv(
@@ -2558,7 +2479,7 @@ PyObject *MyWSARecv
 		goto Error;
 	}
 
-	obTemp = PyInt_FromLong(rc);
+	obTemp = PyLong_FromLong(rc);
 	if (obTemp == NULL)
 	{
 		goto Error;
@@ -2566,7 +2487,7 @@ PyObject *MyWSARecv
 	PyTuple_SET_ITEM(rv, 0, obTemp);
 	obTemp = NULL;
 
-	obTemp = PyInt_FromLong(cbRecvd);
+	obTemp = PyLong_FromLong(cbRecvd);
 	if (obTemp == NULL)
 	{
 		goto Error;
@@ -2619,7 +2540,6 @@ Error:
 #define FD_ROUTING_INTERFACE_CHANGE FD_ROUTING_INTERFACE_CHANGE
 #define FD_ADDRESS_LIST_CHANGE FD_ADDRESS_LIST_CHANGE
 
-#endif // MS_WINCE
 
 %native (DCB) PyWinMethod_NewDCB;
 
@@ -2749,19 +2669,19 @@ static PyObject *PyClearCommError(PyObject *self, PyObject *args)
 %}
 %native (ClearCommError) PyClearCommError;
 
-// @pyswig |EscapeCommFunction|directs a specified communications device to perform an extended function. 
+// @pyswig |EscapeCommFunction|directs a specified communications device to perform an extended function.
 BOOLAPI EscapeCommFunction(
 	PyHANDLE handle, // @pyparm <o PyHANDLE>|handle||The handle to the communications device.
-	int func // int|func||Specifies the code of the extended function to perform. This parameter can be one of the following values. 
-	// @flagh Value|Meaning 
-	// @flag CLRDTR|Clears the DTR (data-terminal-ready) signal. 
-	// @flag CLRRTS|Clears the RTS (request-to-send) signal. 
-	// @flag SETDTR|Sends the DTR (data-terminal-ready) signal. 
-	// @flag SETRTS|Sends the RTS (request-to-send) signal. 
-	// @flag SETXOFF|Causes transmission to act as if an XOFF character has been received. 
-	// @flag SETXON|Causes transmission to act as if an XON character has been received. 
-	// @flag SETBREAK|Suspends character transmission and places the transmission line in a break state until the ClearCommBreak function is called (or EscapeCommFunction is called with the CLRBREAK extended function code). The SETBREAK extended function code is identical to the SetCommBreak function. Note that this extended function does not flush data that has not been transmitted. 
-	// @flag CLRBREAK|Restores character transmission and places the transmission line in a nonbreak state. The CLRBREAK extended function code is identical to the ClearCommBreak function. 
+	int func // int|func||Specifies the code of the extended function to perform. This parameter can be one of the following values.
+	// @flagh Value|Meaning
+	// @flag CLRDTR|Clears the DTR (data-terminal-ready) signal.
+	// @flag CLRRTS|Clears the RTS (request-to-send) signal.
+	// @flag SETDTR|Sends the DTR (data-terminal-ready) signal.
+	// @flag SETRTS|Sends the RTS (request-to-send) signal.
+	// @flag SETXOFF|Causes transmission to act as if an XOFF character has been received.
+	// @flag SETXON|Causes transmission to act as if an XON character has been received.
+	// @flag SETBREAK|Suspends character transmission and places the transmission line in a break state until the ClearCommBreak function is called (or EscapeCommFunction is called with the CLRBREAK extended function code). The SETBREAK extended function code is identical to the SetCommBreak function. Note that this extended function does not flush data that has not been transmitted.
+	// @flag CLRBREAK|Restores character transmission and places the transmission line in a nonbreak state. The CLRBREAK extended function code is identical to the ClearCommBreak function.
 );
 
 // @pyswig <o PyDCB>|GetCommState|Returns a device-control block (a DCB structure) with the current control settings for a specified communications device.
@@ -2793,41 +2713,41 @@ BOOLAPI SetCommMask(
 	unsigned long val // @pyparm int|val||The new mask value.
 );
 
-// @pyswig int|GetCommModemStatus|Retrieves modem control-register values. 
+// @pyswig int|GetCommModemStatus|Retrieves modem control-register values.
 BOOLAPI GetCommModemStatus(
 	PyHANDLE handle, // @pyparm <o PyHANDLE>|handle||The handle to the communications device.
 	unsigned long *OUTPUT
 );
 
-// @pyswig <o PyCOMMTIMEOUTS>|GetCommTimeouts|Retrieves the time-out parameters for all read and write operations on a specified communications device. 
+// @pyswig <o PyCOMMTIMEOUTS>|GetCommTimeouts|Retrieves the time-out parameters for all read and write operations on a specified communications device.
 BOOLAPI GetCommTimeouts(
 	PyHANDLE handle, // @pyparm <o PyHANDLE>|handle||The handle to the communications device.
 	COMMTIMEOUTS *OUTPUT
 );
 
-// @pyswig int|SetCommTimeouts|Sets the time-out parameters for all read and write operations on a specified communications device. 
+// @pyswig int|SetCommTimeouts|Sets the time-out parameters for all read and write operations on a specified communications device.
 BOOLAPI SetCommTimeouts(
 	PyHANDLE handle, // @pyparm <o PyHANDLE>|handle||The handle to the communications device.
 	COMMTIMEOUTS *timeouts // @pyparm <o PyCOMMTIMEOUTS>|val||The new time-out parameters.
 );
 
-// @pyswig |PurgeComm|Discards all characters from the output or input buffer of a specified communications resource. It can also terminate pending read or write operations on the resource. 
+// @pyswig |PurgeComm|Discards all characters from the output or input buffer of a specified communications resource. It can also terminate pending read or write operations on the resource.
 BOOLAPI PurgeComm(
 	PyHANDLE handle, // @pyparm <o PyHANDLE>|handle||The handle to the communications device.
 	unsigned long val // @pyparm int|action||The action to perform.  This parameter can be one or more of the following values.
-	// @flagh Value|Meaning 
-	// @flag PURGE_TXABORT|Terminates all outstanding overlapped write operations and returns immediately, even if the write operations have not been completed. 
-	// @flag PURGE_RXABORT|Terminates all outstanding overlapped read operations and returns immediately, even if the read operations have not been completed. 
-	// @flag PURGE_TXCLEAR|Clears the output buffer (if the device driver has one). 
-	// @flag PURGE_RXCLEAR|Clears the input buffer (if the device driver has one). 
+	// @flagh Value|Meaning
+	// @flag PURGE_TXABORT|Terminates all outstanding overlapped write operations and returns immediately, even if the write operations have not been completed.
+	// @flag PURGE_RXABORT|Terminates all outstanding overlapped read operations and returns immediately, even if the read operations have not been completed.
+	// @flag PURGE_TXCLEAR|Clears the output buffer (if the device driver has one).
+	// @flag PURGE_RXCLEAR|Clears the input buffer (if the device driver has one).
 );
 
-// @pyswig |SetCommBreak|Suspends character transmission for a specified communications device and places the transmission line in a break state until the <om win32file.ClearCommBreak> function is called. 
+// @pyswig |SetCommBreak|Suspends character transmission for a specified communications device and places the transmission line in a break state until the <om win32file.ClearCommBreak> function is called.
 BOOLAPI SetCommBreak(
 	PyHANDLE handle // @pyparm <o PyHANDLE>|handle||The handle to the communications device.
 );
 
-// @pyswig |SetupComm|Initializes the communications parameters for a specified communications device. 
+// @pyswig |SetupComm|Initializes the communications parameters for a specified communications device.
 BOOLAPI SetupComm(
 	PyHANDLE handle, // @pyparm <o PyHANDLE>|handle||The handle to the communications device.
 	unsigned long dwInQueue, // @pyparm int|dwInQueue||Specifies the recommended size, in bytes, of the device's internal input buffer.
@@ -2838,7 +2758,7 @@ BOOLAPI SetupComm(
 BOOLAPI TransmitCommChar(
 	PyHANDLE handle, // @pyparm <o PyHANDLE>|handle||The handle to the communications device.
 	char ch // @pyparm char|cChar||The character to transmit.
-// @comm The TransmitCommChar function is useful for sending an interrupt character (such as a CTRL+C) to a host system. 
+// @comm The TransmitCommChar function is useful for sending an interrupt character (such as a CTRL+C) to a host system.
 // <nl>If the device is not transmitting, TransmitCommChar cannot be called repeatedly. Once TransmitCommChar places a character in the output buffer, the character must be transmitted before the function can be called again. If the previous character has not yet been sent, TransmitCommChar returns an error.
 );
 
@@ -2847,12 +2767,12 @@ BOOLAPI TransmitCommChar(
 static PyObject *MyWaitCommEvent(PyObject *self, PyObject *args)
 {
 	PyObject *obHandle, *obOverlapped = Py_None;
-	if (!PyArg_ParseTuple(args, "O|O", 
+	if (!PyArg_ParseTuple(args, "O|O",
 			&obHandle, // @pyparm <o PyHANDLE>|handle||The handle to the communications device.
-			&obOverlapped))// @pyparm <o PyOVERLAPPED>|overlapped||This structure is required if hFile was opened with FILE_FLAG_OVERLAPPED. 
-			// <nl>If hFile was opened with FILE_FLAG_OVERLAPPED, the lpOverlapped parameter must not be NULL. It must point to a valid OVERLAPPED structure. If hFile was opened with FILE_FLAG_OVERLAPPED and lpOverlapped is NULL, the function can incorrectly report that the operation is complete. 
-			// <nl>If hFile was opened with FILE_FLAG_OVERLAPPED and lpOverlapped is not NULL, WaitCommEvent is performed as an overlapped operation. In this case, the OVERLAPPED structure must contain a handle to a manual-reset event object (created by using the CreateEvent function). 
-			// <nl>If hFile was not opened with FILE_FLAG_OVERLAPPED, WaitCommEvent does not return until one of the specified events or an error occurs. 
+			&obOverlapped))// @pyparm <o PyOVERLAPPED>|overlapped||This structure is required if hFile was opened with FILE_FLAG_OVERLAPPED.
+			// <nl>If hFile was opened with FILE_FLAG_OVERLAPPED, the lpOverlapped parameter must not be NULL. It must point to a valid OVERLAPPED structure. If hFile was opened with FILE_FLAG_OVERLAPPED and lpOverlapped is NULL, the function can incorrectly report that the operation is complete.
+			// <nl>If hFile was opened with FILE_FLAG_OVERLAPPED and lpOverlapped is not NULL, WaitCommEvent is performed as an overlapped operation. In this case, the OVERLAPPED structure must contain a handle to a manual-reset event object (created by using the CreateEvent function).
+			// <nl>If hFile was not opened with FILE_FLAG_OVERLAPPED, WaitCommEvent does not return until one of the specified events or an error occurs.
 		return NULL;
 	HANDLE handle;
 	if (!PyWinObject_AsHANDLE(obHandle, &handle))
@@ -2868,7 +2788,7 @@ static PyObject *MyWaitCommEvent(PyObject *self, PyObject *args)
 
 	BOOL ok;
 	Py_BEGIN_ALLOW_THREADS
-	ok = WaitCommEvent(handle, pmask, 
+	ok = WaitCommEvent(handle, pmask,
 	                   pyoverlapped ? pyoverlapped->GetOverlapped() : NULL);
 	Py_END_ALLOW_THREADS
 	DWORD rc = ok ? 0 : GetLastError();
@@ -2879,7 +2799,7 @@ static PyObject *MyWaitCommEvent(PyObject *self, PyObject *args)
 	// the result of calling GetLastError() otherwise.  The mask_val is the new mask value
 	// once the function has returned, but if an Overlapped object is passed, this value
 	// will generally be meaningless.  See the comments for more details.
-	// @comm If an overlapped structure is passed, then the <om PyOVERLAPPED.dword> 
+	// @comm If an overlapped structure is passed, then the <om PyOVERLAPPED.dword>
 	// address is passed to the Win32 API as the mask.  This means that once the
 	// overlapped operation has completed, this dword attribute can be used to
 	// determine the type of event that occurred.
@@ -3033,7 +2953,7 @@ typedef BOOL (WINAPI *SfcIsFileProtectedfunc)(HANDLE,LPCWSTR);
 static SfcIsFileProtectedfunc pfnSfcIsFileProtected = NULL;
 
 
-// @pyswig <o PyUnicode>|SetVolumeMountPoint|Mounts the specified volume at the specified volume mount point.
+// @pyswig string|SetVolumeMountPoint|Mounts the specified volume at the specified volume mount point.
 // @comm Accepts keyword args.
 static PyObject*
 py_SetVolumeMountPoint(PyObject	*self, PyObject	*args, PyObject *kwargs)
@@ -3051,8 +2971,8 @@ py_SetVolumeMountPoint(PyObject	*self, PyObject	*args, PyObject *kwargs)
 	WCHAR volume_name[50];
 	static char *keywords[]={"VolumeMountPoint", "VolumeName", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args,kwargs,"OO:SetVolumeMountPoint",keywords,
-		&mount_point_obj,	// @pyparm <o PyUnicode>|VolumeMountPoint||The mount point - must be an existing empty directory on an NTFS volume
-		&volume_obj))		// @pyparm <o PyUnicode>|VolumeName||The volume to	mount there	
+		&mount_point_obj,	// @pyparm string|VolumeMountPoint||The mount point - must be an existing empty directory on an NTFS volume
+		&volume_obj))		// @pyparm string|VolumeName||The volume to	mount there
 		return NULL;
 
 	if (PyWinObject_AsWCHAR(mount_point_obj, &mount_point, false)
@@ -3085,7 +3005,7 @@ py_DeleteVolumeMountPoint(PyObject *self, PyObject *args, PyObject *kwargs)
 	WCHAR *mount_point = NULL;
 	static char *keywords[]={"VolumeMountPoint", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O:DeleteVolumeMountPoint", keywords,
-		&mount_point_obj))	// @pyparm <o PyUnicode>|VolumeMountPoint||The mount point to delete - must have a trailing backslash.
+		&mount_point_obj))	// @pyparm string|VolumeMountPoint||The mount point to delete - must have a trailing backslash.
 		return NULL;
 	if (!PyWinObject_AsWCHAR(mount_point_obj, &mount_point,	FALSE))
 		return NULL;
@@ -3101,7 +3021,7 @@ py_DeleteVolumeMountPoint(PyObject *self, PyObject *args, PyObject *kwargs)
 }
 PyCFunction pfnpy_DeleteVolumeMountPoint=(PyCFunction)py_DeleteVolumeMountPoint;
 
-// @pyswig <o PyUnicode>|GetVolumeNameForVolumeMountPoint|Returns unique volume name.
+// @pyswig string|GetVolumeNameForVolumeMountPoint|Returns unique volume name.
 // @comm Requires Win2K or later.
 // @comm Accepts keyword args.
 static PyObject *py_GetVolumeNameForVolumeMountPoint(PyObject *self, PyObject *args, PyObject *kwargs)
@@ -3115,7 +3035,7 @@ static PyObject *py_GetVolumeNameForVolumeMountPoint(PyObject *self, PyObject *a
 	static char *keywords[]={"VolumeMountPoint", NULL};
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O:GetVolumeNameForVolumeMountPoint", keywords,
-		&obmount_point))	// @pyparm <o PyUnicode>|VolumeMountPoint||Volume mount point or root drive - trailing backslash required
+		&obmount_point))	// @pyparm string|VolumeMountPoint||Volume mount point or root drive - trailing backslash required
 		return NULL;
 	if (!PyWinObject_AsWCHAR(obmount_point, &mount_point, false))
 		return NULL;
@@ -3128,7 +3048,7 @@ static PyObject *py_GetVolumeNameForVolumeMountPoint(PyObject *self, PyObject *a
 }
 PyCFunction pfnpy_GetVolumeNameForVolumeMountPoint=(PyCFunction)py_GetVolumeNameForVolumeMountPoint;
 
-// @pyswig <o PyUnicode>|GetVolumePathName|Returns volume mount point for a path
+// @pyswig string|GetVolumePathName|Returns volume mount point for a path
 // @comm Api gives no indication of how much memory is needed, so function assumes returned path
 //       will not be longer that length of input path + 1.
 //       Use GetFullPathName first for relative paths, or GetLongPathName for 8.3 paths.
@@ -3143,7 +3063,7 @@ static PyObject *py_GetVolumePathName(PyObject *self, PyObject *args, PyObject *
 	CHECK_PFN(GetVolumePathName);
 	static char *keywords[]={"FileName","BufferLength", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|l:GetVolumePathName", keywords,
-		&obpath,	// @pyparm <o PyUnicode>|FileName||File/dir for which to return volume mount point
+		&obpath,	// @pyparm string|FileName||File/dir for which to return volume mount point
 		&bufsize))	// @pyparm int|BufferLength|0|Optional parm to allocate extra space for returned string
 		return NULL;
 	if (!PyWinObject_AsWCHAR(obpath, &path, FALSE, &pathlen))
@@ -3170,7 +3090,7 @@ static PyObject *py_GetVolumePathName(PyObject *self, PyObject *args, PyObject *
 }
 PyCFunction pfnpy_GetVolumePathName=(PyCFunction)py_GetVolumePathName;
 
-// @pyswig [<o PyUnicode>,...]|GetVolumePathNamesForVolumeName|Returns mounted paths for a volume
+// @pyswig [string,...]|GetVolumePathNamesForVolumeName|Returns mounted paths for a volume
 // @comm Requires WinXP or later
 // @comm Accepts keyword args
 static PyObject *py_GetVolumePathNamesForVolumeName(PyObject *self, PyObject *args, PyObject *kwargs)
@@ -3181,8 +3101,8 @@ static PyObject *py_GetVolumePathNamesForVolumeName(PyObject *self, PyObject *ar
 	DWORD buf_len=5, reqd_len=0, err;
 	static char *keywords[]={"VolumeName", NULL};
 	CHECK_PFN(GetVolumePathNamesForVolumeName);
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O:GetVolumePathNamesForVolumeName", keywords, 
-		&obvolume))		// @pyparm <o PyUnicode>|VolumeName||Name of a volume as returned by <om win32file.GetVolumeNameForVolumeMountPoint>
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O:GetVolumePathNamesForVolumeName", keywords,
+		&obvolume))		// @pyparm string|VolumeName||Name of a volume as returned by <om win32file.GetVolumeNameForVolumeMountPoint>
 		return NULL;
 	if (!PyWinObject_AsWCHAR(obvolume, &volume, FALSE))
 		return NULL;
@@ -3220,7 +3140,7 @@ py_CreateHardLink(PyObject *self, PyObject *args, PyObject *kwargs)
     // @comm  An NTFS hard link is similar to a POSIX hard link.
     // <nl>This function creates a second directory entry for an existing file, can be different name in
     // same directory or any name in a different directory.
-    // Both file paths must be on the same NTFS volume.<nl>To remove the link, simply delete 
+    // Both file paths must be on the same NTFS volume.<nl>To remove the link, simply delete
     // it and the original file will still remain.
     // @ex Usage|CreateHardLink('h:\dir\newfilename.txt','h:\otherdir\existingfile.txt')
 	// @comm This method exists on Windows 2000 and later.  Otherwise NotImplementedError will be raised.
@@ -3237,8 +3157,8 @@ py_CreateHardLink(PyObject *self, PyObject *args, PyObject *kwargs)
 	static char *keywords[]={"FileName","ExistingFileName","SecurityAttributes","Transaction", NULL};
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|OO:CreateHardLink", keywords,
-		&new_file_obj,		// @pyparm <o PyUnicode>|FileName||The name of the new directory entry to be created.
-		&existing_file_obj,	// @pyparm <o PyUnicode>|ExistingFileName||The name of the existing file to which the new link will point.
+		&new_file_obj,		// @pyparm string|FileName||The name of the new directory entry to be created.
+		&existing_file_obj,	// @pyparm string|ExistingFileName||The name of the existing file to which the new link will point.
 		&sa_obj,			// @pyparm <o PySECURITY_ATTRIBUTES>|SecurityAttributes|None|Optional SECURITY_ATTRIBUTES object. MSDN describes this parameter as reserved, so use only None
 		&trans_obj))		// @pyparm <o PyHANDLE>|Transaction|None|Handle to a transaction, as returned by <om win32transaction.CreateTransaction>
 		return NULL;
@@ -3286,8 +3206,8 @@ static PyObject *py_CreateSymbolicLink(PyObject *self, PyObject *args, PyObject 
 	static char *keywords[]={"SymlinkFileName","TargetFileName","Flags","Transaction", NULL};
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|kO:CreateSymbolicLink", keywords,
-		&oblinkname,	// @pyparm <o PyUnicode>|SymlinkFileName||Path of the symbolic link to be created
-		&obtargetname,	// @pyparm <o PyUnicode>|TargetFileName||The name of file to which link will point
+		&oblinkname,	// @pyparm string|SymlinkFileName||Path of the symbolic link to be created
+		&obtargetname,	// @pyparm string|TargetFileName||The name of file to which link will point
 		&flags,			// @pyparm int|Flags|0|SYMBOLIC_LINK_FLAG_DIRECTORY and SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE are the only defined flags
 		&obtrans))		// @pyparm <o PyHANDLE>|Transaction|None|Handle to a transaction, as returned by <om win32transaction.CreateTransaction>
 		return NULL;
@@ -3324,7 +3244,7 @@ static PyObject*
 py_EncryptFile(PyObject *self, PyObject *args)
 {
 	CHECK_PFN(EncryptFile);
-	// @pyparm string/unicode|filename||File to encrypt
+	// @pyparm string|filename||File to encrypt
 	PyObject *ret=NULL, *obfname=NULL;
 	WCHAR *fname = NULL;
 
@@ -3346,7 +3266,7 @@ static PyObject*
 py_DecryptFile(PyObject *self, PyObject *args)
 {
 	CHECK_PFN(DecryptFile);
-	// @pyparm string/unicode|filename||File to decrypt
+	// @pyparm string|filename||File to decrypt
 	PyObject *ret=NULL, *obfname=NULL;
 	WCHAR *fname = NULL;
 	DWORD reserved=0;
@@ -3369,7 +3289,7 @@ static PyObject*
 py_EncryptionDisable(PyObject *self, PyObject *args)
 {
 	CHECK_PFN(EncryptionDisable);
-	// @pyparm string/unicode|DirName||Directory to enable or disable
+	// @pyparm string|DirName||Directory to enable or disable
 	// @pyparm boolean|Disable||Set to False to enable encryption
 	PyObject *ret=NULL, *obfname=NULL;
 	WCHAR *fname = NULL;
@@ -3392,13 +3312,13 @@ py_EncryptionDisable(PyObject *self, PyObject *args)
 // @rdesc The result is documented as being one of FILE_ENCRYPTABLE,
 // FILE_IS_ENCRYPTED, FILE_SYSTEM_ATTR, FILE_ROOT_DIR, FILE_SYSTEM_DIR,
 // FILE_UNKNOWN, FILE_SYSTEM_NOT_SUPPORT, FILE_USER_DISALLOWED,
-// or FILE_READ_ONLY 
+// or FILE_READ_ONLY
 // @comm Requires Windows 2000 or higher.
 static PyObject*
 py_FileEncryptionStatus(PyObject *self, PyObject *args)
 {
 	CHECK_PFN(FileEncryptionStatus);
-	// @pyparm string/unicode|FileName||file to query
+	// @pyparm string|FileName||file to query
 	PyObject *ret=NULL, *obfname=NULL;
 	WCHAR *fname = NULL;
 	DWORD Status=0;
@@ -3430,7 +3350,7 @@ void PyWinObject_FreePENCRYPTION_CERTIFICATE_LIST(PENCRYPTION_CERTIFICATE_LIST p
 				free (*ppec);
 				}
 			ppec++;
-			}	
+			}
 		free(pecl->pUsers);
 		}
 }
@@ -3452,7 +3372,7 @@ void PyWinObject_FreePENCRYPTION_CERTIFICATE_HASH_LIST(PENCRYPTION_CERTIFICATE_H
 				free (*ppech);
 				}
 			ppech++;
-			}	
+			}
 		free(pechl->pUsers);
 		}
 }
@@ -3467,9 +3387,9 @@ PyObject *PyWinObject_FromPENCRYPTION_CERTIFICATE_LIST(PENCRYPTION_CERTIFICATE_L
 		return NULL;
 	user_item=pecl->pUsers;
 	for (user_cnt=0; user_cnt < pecl->nUsers; user_cnt++){
-		ret_item=Py_BuildValue("NN", 
-			PyWinObject_FromSID((*user_item)->pUserSid), 
-			PyString_FromStringAndSize((char *)(*user_item)->pCertBlob->pbData, (*user_item)->pCertBlob->cbData));
+		ret_item=Py_BuildValue("NN",
+			PyWinObject_FromSID((*user_item)->pUserSid),
+			PyBytes_FromStringAndSize((char *)(*user_item)->pCertBlob->pbData, (*user_item)->pCertBlob->cbData));
 		// ??? This doesn't return EFS_CERTIFICATE_BLOB.dwCertEncodingType ???
 		if (!ret_item){
 			Py_DECREF(ret);
@@ -3493,7 +3413,7 @@ PyObject *PyWinObject_FromPENCRYPTION_CERTIFICATE_HASH_LIST(PENCRYPTION_CERTIFIC
 	for (user_cnt=0; user_cnt < pechl->nCert_Hash; user_cnt++){
 		ret_item=Py_BuildValue("NNu",
 			PyWinObject_FromSID((*user_item)->pUserSid),
-			PyString_FromStringAndSize((char *)(*user_item)->pHash->pbData, (*user_item)->pHash->cbData),
+			PyBytes_FromStringAndSize((char *)(*user_item)->pHash->pbData, (*user_item)->pHash->cbData),
 			(*user_item)->lpDisplayInformation);
 		if (!ret_item){
 			Py_DECREF(ret);
@@ -3506,10 +3426,10 @@ PyObject *PyWinObject_FromPENCRYPTION_CERTIFICATE_HASH_LIST(PENCRYPTION_CERTIFIC
 }
 
 BOOL PyWinObject_AsPENCRYPTION_CERTIFICATE_LIST(PyObject *obcert_list, PENCRYPTION_CERTIFICATE_LIST pecl)
-{	
+{
 	char *format_msg="ENCRYPTION_CERTIFICATE_LIST must be represented as a sequence of sequences of (PySID, str, int dwCertEncodingType )";
 	BOOL bSuccess=TRUE;
-	DWORD cert_cnt=0, cert_ind=0;
+	DWORD cert_ind=0;
 	PENCRYPTION_CERTIFICATE *ppec=NULL;
 	PyObject *obcert=NULL;
 	PyObject *obsid=NULL, *obcert_member=NULL;
@@ -3518,7 +3438,9 @@ BOOL PyWinObject_AsPENCRYPTION_CERTIFICATE_LIST(PyObject *obcert_list, PENCRYPTI
 		PyErr_SetString(PyExc_TypeError,format_msg);
 		return FALSE;
 		}
-	cert_cnt=PySequence_Length(obcert_list);
+	Py_ssize_t ssize_cert_cnt=PySequence_Length(obcert_list);
+	PYWIN_CHECK_SSIZE_DWORD(ssize_cert_cnt, FALSE);
+	DWORD cert_cnt=(DWORD)ssize_cert_cnt;
 	pecl->nUsers=cert_cnt;
 	ppec=(PENCRYPTION_CERTIFICATE *)malloc(cert_cnt*sizeof(PENCRYPTION_CERTIFICATE));
 	if (ppec==NULL){
@@ -3564,20 +3486,20 @@ BOOL PyWinObject_AsPENCRYPTION_CERTIFICATE_LIST(PyObject *obcert_list, PENCRYPTI
 		if (bSuccess){
 			ZeroMemory((*ppec)->pCertBlob,sizeof(EFS_CERTIFICATE_BLOB));
 			obcert_member=PySequence_GetItem(obcert,1);
-			if (!PyInt_Check(obcert_member)){
+			if (!PyLong_Check(obcert_member)){
 				PyErr_SetString(PyExc_TypeError,"Second item (dwCertEncodingType) of ENCRYPTION_CERTIFICATE must be an integer");
 				bSuccess=FALSE;
 				}
 			else
-				(*ppec)->pCertBlob->dwCertEncodingType=PyInt_AsLong(obcert_member);
+				(*ppec)->pCertBlob->dwCertEncodingType=PyLong_AsLong(obcert_member);
 			Py_DECREF(obcert_member);
 			}
 
 		if (bSuccess){
 			obcert_member=PySequence_GetItem(obcert,2);
 			Py_ssize_t cbData;
-			if (PyString_AsStringAndSize(obcert_member, 
-					(char **)&((*ppec)->pCertBlob->pbData), 
+			if (PyBytes_AsStringAndSize(obcert_member,
+					(char **)&((*ppec)->pCertBlob->pbData),
 					&cbData)==-1){
 				PyErr_SetString(PyExc_TypeError,"Third item of ENCRYPTION_CERTIFICATE must be a string containing encoded certificate data");
 				bSuccess=FALSE;
@@ -3596,9 +3518,9 @@ BOOL PyWinObject_AsPENCRYPTION_CERTIFICATE_LIST(PyObject *obcert_list, PENCRYPTI
 
 BOOL PyWinObject_AsPENCRYPTION_CERTIFICATE_HASH_LIST(PyObject *obhash_list, PENCRYPTION_CERTIFICATE_HASH_LIST pechl)
 {
-	char *err_msg="ENCRYPTION_CERTIFICATE_HASH_LIST must be represented as a sequence of sequences of (PySID, string, unicode)";
+	char *err_msg="ENCRYPTION_CERTIFICATE_HASH_LIST must be represented as a sequence of sequences of (PySID, bytes, string)";
 	BOOL bSuccess=TRUE;
-	DWORD hash_cnt=0, hash_ind=0;
+	DWORD hash_ind=0;
 	PENCRYPTION_CERTIFICATE_HASH *ppech=NULL;
 	PyObject *obsid=NULL, *obDisplayInformation=NULL, *obhash=NULL;
 	PyObject *obhash_item=NULL;
@@ -3607,7 +3529,10 @@ BOOL PyWinObject_AsPENCRYPTION_CERTIFICATE_HASH_LIST(PyObject *obhash_list, PENC
 		PyErr_SetString(PyExc_TypeError,err_msg);
 		return FALSE;
 		}
-	hash_cnt=PySequence_Length(obhash_list);
+	Py_ssize_t ssize_hash_cnt=PySequence_Length(obhash_list);
+	PYWIN_CHECK_SSIZE_DWORD(ssize_hash_cnt, FALSE);
+	DWORD hash_cnt=(DWORD)ssize_hash_cnt;
+
 	pechl->nCert_Hash=hash_cnt;
 	ppech=(PENCRYPTION_CERTIFICATE_HASH *)malloc(hash_cnt*sizeof(PENCRYPTION_CERTIFICATE_HASH));
 	if (ppech==NULL){
@@ -3655,8 +3580,8 @@ BOOL PyWinObject_AsPENCRYPTION_CERTIFICATE_HASH_LIST(PyObject *obhash_list, PENC
 			ZeroMemory((*ppech)->pHash,sizeof(EFS_HASH_BLOB));
 			obhash_item=PySequence_GetItem(obhash,1);
 			Py_ssize_t cbData;
-			if (PyString_AsStringAndSize(obhash_item, 
-				(char **)&((*ppech)->pHash->pbData), 
+			if (PyBytes_AsStringAndSize(obhash_item,
+				(char **)&((*ppech)->pHash->pbData),
 				&cbData)==-1){
 				PyErr_SetString(PyExc_TypeError,"Second item of ENCRYPTION_CERTIFICATE_HASH tuple must be a string containing encoded certificate data");
 				bSuccess=FALSE;
@@ -3680,12 +3605,12 @@ BOOL PyWinObject_AsPENCRYPTION_CERTIFICATE_HASH_LIST(PyObject *obhash_list, PENC
 }
 
 
-// @pyswig (<o PySID>,string,unicode)|QueryUsersOnEncryptedFile|Returns list of users for an encrypted file as tuples of (SID, certificate hash blob, display info)
+// @pyswig (<o PySID>,bytes,string)|QueryUsersOnEncryptedFile|Returns list of users for an encrypted file as tuples of (SID, certificate hash blob, display info)
 static PyObject*
 py_QueryUsersOnEncryptedFile(PyObject *self, PyObject *args)
 {
 	CHECK_PFN(QueryUsersOnEncryptedFile);
-	// @pyparm string/unicode|FileName||file to query
+	// @pyparm string|FileName||file to query
 	PyObject *ret=NULL, *obfname=NULL, *ret_item=NULL;
 	WCHAR *fname=NULL;
 	DWORD err=0;
@@ -3710,13 +3635,13 @@ py_QueryUsersOnEncryptedFile(PyObject *self, PyObject *args)
 	return ret;
 }
 
-// @pyswig (<o PySID>,string,unicode)|QueryRecoveryAgentsOnEncryptedFile|Lists recovery agents for file as a tuple of tuples.
+// @pyswig (<o PySID>,bytes,string)|QueryRecoveryAgentsOnEncryptedFile|Lists recovery agents for file as a tuple of tuples.
 // @rdesc The result is a tuple of tuples - ((SID, certificate hash blob, display info),....)
 static PyObject*
 py_QueryRecoveryAgentsOnEncryptedFile(PyObject *self, PyObject *args)
 {
 	CHECK_PFN(QueryRecoveryAgentsOnEncryptedFile);
-	// @pyparm string/unicode|FileName||file to query
+	// @pyparm string|FileName||file to query
 	PyObject *ret=NULL, *obfname=NULL, *ret_item=NULL;
 	WCHAR *fname=NULL;
 	DWORD user_cnt=0, err=0;
@@ -3746,8 +3671,8 @@ static PyObject*
 py_RemoveUsersFromEncryptedFile(PyObject *self, PyObject *args)
 {
 	CHECK_PFN(RemoveUsersFromEncryptedFile);
-	// @pyparm string/unicode|FileName||File from which to remove users
-	// @pyparm ((<o PySID>,string,unicode),...)|pHashes||Sequence representing an ENCRYPTION_CERTIFICATE_HASH_LIST structure, as returned by QueryUsersOnEncryptedFile
+	// @pyparm string|FileName||File from which to remove users
+	// @pyparm ((<o PySID>,bytes,string),...)|pHashes||Sequence representing an ENCRYPTION_CERTIFICATE_HASH_LIST structure, as returned by QueryUsersOnEncryptedFile
 	PyObject *ret=NULL, *obfname=NULL, *obechl=NULL;
 	WCHAR *fname=NULL;
 	DWORD err=0;
@@ -3778,7 +3703,7 @@ static PyObject*
 py_AddUsersToEncryptedFile(PyObject *self, PyObject *args)
 {
 	CHECK_PFN(AddUsersToEncryptedFile);
-	// @pyparm string/unicode|FileName||File that additional users will be allowed to decrypt
+	// @pyparm string|FileName||File that additional users will be allowed to decrypt
 	// @pyparm ((<o PySID>,string,int),...)|pUsers||Sequence representing
 	// ENCRYPTION_CERTIFICATE_LIST - elements are sequences consisting of
 	// users' Sid, encoded EFS certficate (user must export a .cer to obtain
@@ -3821,8 +3746,8 @@ static PyObject *py_DuplicateEncryptionInfoFile(PyObject *self, PyObject *args, 
 	static char *keywords[]={"SrcFileName","DstFileName","CreationDisposition","Attributes","SecurityAttributes", NULL};
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOkk|O:DuplicateEncryptionInfoFile", keywords,
-		&obsrc,		// @pyparm <o PyUnicode>|SrcFileName||Encrypted file to read EFS metadata from
-		&obdst,		// @pyparm <o PyUnicode>|DstFileName||File to be encrypted using EFS data from source file
+		&obsrc,		// @pyparm string|SrcFileName||Encrypted file to read EFS metadata from
+		&obdst,		// @pyparm string|DstFileName||File to be encrypted using EFS data from source file
 		&disp,		// @pyparm int|CreationDisposition||Specifies whether an existing file should be overwritten (CREATE_NEW or CREATE_ALWAYS)
 		&attr,		// @pyparm int|Attributes||File attributes
 		&obsa))		// @pyparm <o PySECURITY_ATTRIBUTES>|SecurityAttributes|None|Specifies security for destination file
@@ -3861,8 +3786,7 @@ py_BackupRead(PyObject *self, PyObject *args)
 	// @pyparm int|bProcessSecurity||Indicates whether file's ACL stream should be read
 	// @pyparm int|lpContext||Pass 0 on first call, then pass back value returned from last call thereafter
 	HANDLE h;
-	BYTE *buf;
-	DWORD buflen, bytes_requested, bytes_read;
+	DWORD bytes_requested, bytes_read;
 	BOOL bAbort,bProcessSecurity;
 	LPVOID ctxt;
 	PyObject *obbuf=NULL, *obbufout=NULL, *obh, *obctxt;
@@ -3873,24 +3797,25 @@ py_BackupRead(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinLong_AsVoidPtr(obctxt, &ctxt))
 		return NULL;
+	PyWinBufferView pybuf;
 	if (obbuf==Py_None){
 		obbufout=PyBuffer_New(bytes_requested);
 		if (obbufout==NULL)
 			return NULL;
-		if (!PyWinObject_AsWriteBuffer(obbufout, (void **)&buf, &buflen)){
+		if (!pybuf.init(obbufout, true)) {
 			Py_DECREF(obbufout);
 			return NULL;
 			}
 		}
 	else{
 		obbufout=obbuf;
-		if (!PyWinObject_AsWriteBuffer(obbufout, (void **)&buf, &buflen))
+		if (!pybuf.init(obbufout, true))
 			return NULL;
-		if (buflen < bytes_requested)
-			return PyErr_Format(PyExc_ValueError,"Buffer size (%d) less than requested read size (%d)", buflen, bytes_requested);
+		if (pybuf.len() < bytes_requested)
+			return PyErr_Format(PyExc_ValueError,"Buffer size (%d) less than requested read size (%d)", pybuf.len(), bytes_requested);
 		Py_INCREF(obbufout);
 		}
-	if (!(*pfnBackupRead)(h, buf, bytes_requested, &bytes_read, bAbort, bProcessSecurity, &ctxt)){
+	if (!(*pfnBackupRead)(h, (PBYTE)pybuf.ptr(), bytes_requested, &bytes_read, bAbort, bProcessSecurity, &ctxt)){
 		PyWin_SetAPIError("BackupRead");
 		Py_DECREF(obbufout);
 		return NULL;
@@ -3923,7 +3848,7 @@ py_BackupSeek(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsULARGE_INTEGER(obbytes_to_seek, &bytes_to_seek))
 		return NULL;
 	bytes_moved.QuadPart=0;
-	if (!(*pfnBackupSeek)(h, bytes_to_seek.LowPart, bytes_to_seek.HighPart, 
+	if (!(*pfnBackupSeek)(h, bytes_to_seek.LowPart, bytes_to_seek.HighPart,
 	                   &bytes_moved.LowPart, &bytes_moved.HighPart,
 	                   &ctxt)){
 	    // function returns false if you attempt to seek past end of current stream, but file pointer
@@ -3949,8 +3874,6 @@ py_BackupWrite(PyObject *self, PyObject *args)
 	// @pyparm int|bProcessSecurity||Indicates whether ACL's should be restored
 	// @pyparm int|lpContext||Pass 0 on first call, then pass back value returned from last call thereafter
 	HANDLE h;
-	BYTE *buf;
-	Py_ssize_t buflen;
 	DWORD bytes_to_write, bytes_written;
 	BOOL bAbort, bProcessSecurity;
 	LPVOID ctxt;
@@ -3962,12 +3885,13 @@ py_BackupWrite(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinLong_AsVoidPtr(obctxt, &ctxt))
 		return NULL;
-	if (PyObject_AsReadBuffer(obbuf, (const void **)&buf, &buflen)==-1)
+	PyWinBufferView pybuf(obbuf);
+	if (!pybuf.ok())
 		return NULL;
-	if ((DWORD)buflen < bytes_to_write)
-		return PyErr_Format(PyExc_ValueError,"Buffer size (%d) less than requested write size (%d)", buflen, bytes_to_write);
+	if (pybuf.len() < bytes_to_write)
+		return PyErr_Format(PyExc_ValueError,"Buffer size (%d) less than requested write size (%d)", pybuf.len(), bytes_to_write);
 
-	if (!(*pfnBackupWrite)(h, buf, bytes_to_write, &bytes_written, bAbort, bProcessSecurity, &ctxt)){
+	if (!(*pfnBackupWrite)(h, (BYTE*)pybuf.ptr(), bytes_to_write, &bytes_written, bAbort, bProcessSecurity, &ctxt)){
 		PyWin_SetAPIError("BackupWrite");
 		return NULL;
 		}
@@ -3987,7 +3911,7 @@ py_SetFileShortName(PyObject *self, PyObject *args)
 	BOOL bsuccess;
 	if (!PyArg_ParseTuple(args, "OO:SetFileShortName",
 		&obh,			// @pyparm <o PyHANDLE>|hFile||Handle to a file or directory
-		&obshortname))	// @pyparm <o PyUNICODE>|ShortName||The 8.3 name to be applied to the file
+		&obshortname))	// @pyparm string|ShortName||The 8.3 name to be applied to the file
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obh, &h))
 		return NULL;
@@ -4043,7 +3967,7 @@ DWORD CALLBACK CopyFileEx_ProgressRoutine(
 		if (ret==NULL)
 			retcode=PROGRESS_CANCEL;
 		else{
-			retcode=PyInt_AsLong(ret);
+			retcode=PyLong_AsLong(ret);
 			if ((retcode==(DWORD)-1) && PyErr_Occurred())
 				retcode=PROGRESS_CANCEL;
 			}
@@ -4075,8 +3999,8 @@ py_CopyFileEx(PyObject *self, PyObject *args, PyObject *kwargs)
 		"Cancel","CopyFlags","Transaction", NULL};
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|OOikO:CopyFileEx", keywords,
-		&obsrc,		// @pyparm <o PyUNICODE>|ExistingFileName||File to be copied
-		&obdst,		// @pyparm <o PyUNICODE>|NewFileName||Place to which it will be copied
+		&obsrc,		// @pyparm string|ExistingFileName||File to be copied
+		&obdst,		// @pyparm string|NewFileName||Place to which it will be copied
 		&obcallback,	// @pyparm <o CopyProgressRoutine>|ProgressRoutine|None|A python function that receives progress updates, can be None
 		&obdata,		// @pyparm object|Data|None|An arbitrary object to be passed to the callback function
 		&bcancel,		// @pyparm boolean|Cancel|False|Pass True to cancel a restartable copy that was previously interrupted
@@ -4146,8 +4070,8 @@ py_MoveFileWithProgress(PyObject *self, PyObject *args, PyObject *kwargs)
 	static char *keywords[]={"ExistingFileName","NewFileName","ProgressRoutine","Data","Flags","Transaction", NULL};
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|OOkO:MoveFileWithProgress", keywords,
-		&obsrc,		// @pyparm <o PyUNICODE>|ExistingFileName||File or directory to be moved
-		&obdst,		// @pyparm <o PyUNICODE>|NewFileName||Destination, can be None if flags contain MOVEFILE_DELAY_UNTIL_REBOOT
+		&obsrc,		// @pyparm string|ExistingFileName||File or directory to be moved
+		&obdst,		// @pyparm string|NewFileName||Destination, can be None if flags contain MOVEFILE_DELAY_UNTIL_REBOOT
 		&obcallback,	// @pyparm <o CopyProgressRoutine>|ProgressRoutine|None|A python function that receives progress updates, can be None
 		&obdata,	// @pyparm object|Data|None|An arbitrary object to be passed to the callback function
 		&flags,		// @pyparm int|Flags|0|Combination of MOVEFILE_* flags
@@ -4209,9 +4133,9 @@ py_ReplaceFile(PyObject *self, PyObject *args)
 	BOOL bsuccess;
 	DWORD flags=0;
 	if (!PyArg_ParseTuple(args, "OO|OkOO:ReplaceFile",
-		&obdst,		// @pyparm <o PyUNICODE>|ReplacedFileName||File to be replaced
-		&obsrc,		// @pyparm <o PyUNICODE>|ReplacementFileName||File that will replace it
-		&obbackup,	// @pyparm <o PyUNICODE>|BackupFileName|None|Place at which to create a backup of the replaced file, can be None
+		&obdst,		// @pyparm string|ReplacedFileName||File to be replaced
+		&obsrc,		// @pyparm string|ReplacementFileName||File that will replace it
+		&obbackup,	// @pyparm string|BackupFileName|None|Place at which to create a backup of the replaced file, can be None
 		&flags,		// @pyparm int|ReplaceFlags|0|Combination of REPLACEFILE_* flags
 		&obExclude,	// @pyparm None|Exclude|None|Reserved, use None if passed in
 		&obReserved))	// @pyparm None|Reserved|None|Reserved, use None if passed in
@@ -4221,7 +4145,7 @@ py_ReplaceFile(PyObject *self, PyObject *args)
 		PyErr_SetString(PyExc_ValueError,"Exclude and Reserved must be None");
 		return NULL;
 		}
-	if (PyWinObject_AsWCHAR(obsrc, &dst, FALSE) 
+	if (PyWinObject_AsWCHAR(obsrc, &dst, FALSE)
 		&&PyWinObject_AsWCHAR(obdst, &src, FALSE)
 		&&PyWinObject_AsWCHAR(obbackup, &backup, TRUE)){
 		Py_BEGIN_ALLOW_THREADS
@@ -4240,7 +4164,6 @@ py_ReplaceFile(PyObject *self, PyObject *args)
 	return ret;
 }
 
-#if PY_VERSION_HEX > 0x03010000
 // Capsule API replaced PyCObject in 3.2.
 void encryptedfilecontextdestructor(PyObject *obctxt){
 	if (!PyCapsule_IsValid(obctxt, NULL))
@@ -4253,16 +4176,10 @@ void encryptedfilecontextdestructor(PyObject *obctxt){
 	if (pfnCloseEncryptedFileRaw)
 		(*pfnCloseEncryptedFileRaw)(ctxt);
 }
-#else
-void encryptedfilecontextdestructor(void *ctxt){
-	if (pfnCloseEncryptedFileRaw && ctxt)
-		(*pfnCloseEncryptedFileRaw)(ctxt);
-}
-#endif
 
 
 // @pyswig PyCObject|OpenEncryptedFileRaw|Initiates a backup or restore operation on an encrypted file
-// @rdesc Returns a PyCObject containing an operation context that can be passed to 
+// @rdesc Returns a PyCObject containing an operation context that can be passed to
 // <om win32file.ReadEncryptedFileRaw> or <om win32file.WriteEncryptedFileRaw>.  Context must be
 // destroyed using <om win32file.CloseEncryptedFileRaw>.
 // @comm Only available on Windows 2000 or later
@@ -4276,7 +4193,7 @@ py_OpenEncryptedFileRaw(PyObject *self, PyObject *args)
 	WCHAR *fname=NULL;
 	void *ctxt;
 	if (!PyArg_ParseTuple(args, "Ok:OpenEncryptedFileRaw",
-		&obfname,	// @pyparm <o PyUNICODE>|FileName||Name of file on which to operate
+		&obfname,	// @pyparm string|FileName||Name of file on which to operate
 		&flags))	// @pyparm int|Flags||CREATE_FOR_IMPORT, CREATE_FOR_DIR, OVERWRITE_HIDDEN, or 0 for export
 		return NULL;
 	if (!PyWinObject_AsWCHAR(obfname, &fname, FALSE))
@@ -4287,11 +4204,7 @@ py_OpenEncryptedFileRaw(PyObject *self, PyObject *args)
 	if (err!=ERROR_SUCCESS)
 		PyWin_SetAPIError("OpenEncryptedFileRaw", err);
 	else{
-#if PY_VERSION_HEX > 0x03010000
 		ret=PyCapsule_New(ctxt, NULL, encryptedfilecontextdestructor);
-#else
-		ret=PyCObject_FromVoidPtr(ctxt, encryptedfilecontextdestructor); 
-#endif
 		if (ret==NULL)
 			(*pfnCloseEncryptedFileRaw)(ctxt);
 		}
@@ -4347,11 +4260,7 @@ py_ReadEncryptedFileRaw(PyObject *self, PyObject *args)
 		&obcallback_data,	// @pyparm object|CallbackContext||Arbitrary Python object to be passed to callback function
 		&obctxt))			// @pyparm PyCObject|Context||Context object returned from <om win32file.OpenEncryptedFileRaw>
 		return NULL;
-#if PY_VERSION_HEX > 0x03010000
 	ctxt=PyCapsule_GetPointer(obctxt, NULL);
-#else
-	ctxt=PyCObject_AsVoidPtr(obctxt);
-#endif
 	if (ctxt==NULL)
 		return NULL;
 	if (!PyCallable_Check(obcallback)){
@@ -4428,11 +4337,7 @@ py_WriteEncryptedFileRaw(PyObject *self, PyObject *args)
 		&obcallback_data,	// @pyparm object|CallbackContext||Arbitrary Python object to be passed to callback function
 		&obctxt))			// @pyparm PyCObject|Context||Context object returned from <om win32file.OpenEncryptedFileRaw>
 		return NULL;
-#if PY_VERSION_HEX > 0x03010000
 	ctxt=PyCapsule_GetPointer(obctxt, NULL);
-#else
-	ctxt=PyCObject_AsVoidPtr(obctxt);
-#endif
 	if (ctxt==NULL)
 		return NULL;
 	if (!PyCallable_Check(obcallback)){
@@ -4469,7 +4374,6 @@ py_CloseEncryptedFileRaw(PyObject *self, PyObject *args)
 	// object destructs and we attempt to close it a second time, Vista x64
 	// crashes.
 	// So must bypass the CObject API for this.
-#if PY_VERSION_HEX > 0x03010000
 	if (!PyCapsule_IsValid(obctxt, NULL))
 		return PyErr_Format(PyExc_TypeError, "param must be handle to an encrypted file (got type %s)", obctxt->ob_type->tp_name);
 	if (PyCapsule_GetDestructor(obctxt) != encryptedfilecontextdestructor)
@@ -4483,19 +4387,6 @@ py_CloseEncryptedFileRaw(PyObject *self, PyObject *args)
 	void *ctxt = PyCapsule_GetPointer(obctxt, NULL);
 	(*pfnCloseEncryptedFileRaw)(ctxt);
 	PyCapsule_SetContext(obctxt, INVALID_HANDLE_VALUE);
-#else
-	if (!PyCObject_Check(obctxt))
-		return PyErr_Format(PyExc_TypeError, "param must be handle to an encrypted file (got type %s)", obctxt->ob_type->tp_name);
-	PyCObject *pcobj = (PyCObject *)obctxt;
-	if (pcobj->destructor != encryptedfilecontextdestructor)
-		return PyErr_Format(PyExc_TypeError, "param must be handle to an encrypted file (got a CObject with invalid destructor)");
-	if (!pcobj->cobject)
-		return PyErr_Format(PyExc_ValueError, "This handle has already been closed");
-	// ok - close it, then nuke it.
-	// function has no return value, make sure to check for memory leaks!
-	(*pfnCloseEncryptedFileRaw)(pcobj->cobject);
-	pcobj->cobject = 0;
-#endif
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -4519,11 +4410,11 @@ static PyObject *py_CreateFileW(PyObject *self, PyObject *args, PyObject *kwargs
 	static char *keywords[]={"FileName","DesiredAccess","ShareMode","SecurityAttributes","CreationDisposition",
 		"FlagsAndAttributes","TemplateFile","Transaction","MiniVersion","ExtendedParameter", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OkkOkk|OOOO:CreateFileW", keywords,
-		&obfilename,			// @pyparm <o PyUnicode>|FileName||Name of file
+		&obfilename,			// @pyparm string|FileName||Name of file
 		&desiredaccess,			// @pyparm int|DesiredAccess||Combination of access mode flags.  See MSDN docs.
 		&sharemode,				// @pyparm int|ShareMode||Combination of FILE_SHARE_READ, FILE_SHARE_WRITE, FILE_SHARE_DELETE
 		&obsa,					// @pyparm <o PySECURITY_ATTRIBUTES>|SecurityAttributes||Specifies security descriptor and handle inheritance, can be None
-		&creationdisposition,	// @pyparm int|CreationDisposition||One of CREATE_ALWAYS,CREATE_NEW,OPEN_ALWAYS,OPEN_EXISTING or TRUNCATE_EXISTING 
+		&creationdisposition,	// @pyparm int|CreationDisposition||One of CREATE_ALWAYS,CREATE_NEW,OPEN_ALWAYS,OPEN_EXISTING or TRUNCATE_EXISTING
 		&flags,					// @pyparm int|FlagsAndAttributes||Combination of FILE_ATTRIBUTE_* and FILE_FLAG_* flags
 		&obhtemplate,			// @pyparm <o PyHANDLE>|TemplateFile|None|Handle to file to be used as template, can be None
 		&obhtransaction,		// @pyparm <o PyHANDLE>|Transaction|None|Handle to the transaction as returned by <om win32transaction.CreateTransaction>
@@ -4549,7 +4440,7 @@ static PyObject *py_CreateFileW(PyObject *self, PyObject *args, PyObject *kwargs
 			PyErr_SetString(PyExc_ValueError, "MiniVersion can only be used with a transacted operation");
 			return NULL;
 			}
-		long longversion=PyInt_AsLong(obminiversion);
+		long longversion=PyLong_AsLong(obminiversion);
 		if (longversion==-1 && PyErr_Occurred())
 			return NULL;
 		if ((longversion > USHRT_MAX) || (longversion < 0))
@@ -4576,7 +4467,7 @@ static PyObject *py_CreateFileW(PyObject *self, PyObject *args, PyObject *kwargs
 }
 PyCFunction pfnpy_CreateFileW=(PyCFunction)py_CreateFileW;
 
-// @pyswig |DeleteFileW|Deletes a file (Unicode version)
+// @pyswig |DeleteFileW|Deletes a file
 // @pyseeapi DeleteFile
 // @pyseeapi DeleteFileTransacted
 // @comm If a transaction handle is passed in, DeleteFileTransacted will be called (requires Windows Vista).
@@ -4589,7 +4480,7 @@ static PyObject *py_DeleteFileW(PyObject *self, PyObject *args, PyObject *kwargs
 	static char *keywords[]={"FileName","Transaction", NULL};
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|O:DeleteFileW", keywords,
-		&obfilename,		// @pyparm <o PyUnicode>|FileName||Name of file to be deleted
+		&obfilename,		// @pyparm string|FileName||Name of file to be deleted
 		&obhtransaction))	// @pyparm <o PyHANDLE>|Transaction|None|Transaction handle as returned by <om win32transaction.CreateTransaction>
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhtransaction, &htransaction))
@@ -4632,7 +4523,7 @@ static PyObject *PyObject_FromFILEX_INFO(GET_FILEEX_INFO_LEVELS level, void *p)
 			             PyWinObject_FromULARGE_INTEGER(fsize));
 			break;
 		}
-			
+
 		default:
 			PyErr_Format(PyExc_RuntimeError, "invalid level for FILEEX_INFO");
 			return NULL;
@@ -4644,32 +4535,31 @@ static PyObject *PyObject_FromFILEX_INFO(GET_FILEEX_INFO_LEVELS level, void *p)
 // @pyswig tuple|GetFileAttributesEx|Retrieves attributes for a specified file or directory.
 // @pyseeapi GetFileAttributesEx
 // @pyseeapi GetFileAttributesTransacted
-// @pyparm <o PyUnicode>|FileName||File or directory for which to retrieve information
-//  In the ANSI version of this function, the name is limited to 
-//	MAX_PATH characters. To extend this limit to nearly 32,000 wide characters, 
-//	call the Unicode version of the function (<om win32file.GetFileAttributesExW>) and prepend 
-//	r"\\?\" to the path.
+// @pyparm string/bytes|FileName||File or directory for which to retrieve information
+//  In the usual case, the name is limited to MAX_PATH characters. To extend this
+// limit to nearly 32,000 wide characters, call this and prepend r"\\?\" to the path.
 // @pyparm int|InfoLevelId|GetFileExInfoStandard|An integer that gives the set of attribute information to obtain.
 //  See the Win32 SDK documentation for more information.
 // @pyparm <o PyHANDLE>|Transaction|None|Handle to a transaction (optional).  See <om win32transaction.CreateTransaction>.
 //  If this parameter is specified, GetFileAttributesTransacted will be called (requires Vista or later).
 // @rdesc The result is a tuple of:
 //	@tupleitem 0|int|attributes|File Attributes.  A combination of the win32com.FILE_ATTRIBUTE_* flags.
-//	@tupleitem 1|<o PyTime>|creationTime|Specifies when the file or directory was created. 
-//	@tupleitem 2|<o PyTime>|lastAccessTime|For a file, specifies when the file was last read from 
-//		or written to. For a directory, the structure specifies when the directory was created. For 
-//		both files and directories, the specified date will be correct, but the time of day will 
+//	@tupleitem 1|<o PyDateTime>|creationTime|Specifies when the file or directory was created.
+//	@tupleitem 2|<o PyDateTime>|lastAccessTime|For a file, specifies when the file was last read from
+//		or written to. For a directory, the structure specifies when the directory was created. For
+//		both files and directories, the specified date will be correct, but the time of day will
 //		always be set to midnight.
-//	@tupleitem 3|<o PyTime>|lastWriteTime|For a file, the structure specifies when the file was last 
+//	@tupleitem 3|<o PyDateTime>|lastWriteTime|For a file, the structure specifies when the file was last
 //		written to. For a directory, the structure specifies when the directory was created.
-//	@tupleitem 4|int/long|fileSize|The size of the file. This member has no meaning for directories. 
-// @comm Not all file systems can record creation and last access time and not all file systems record 
-//	them in the same manner. For example, on Windows NT FAT, create time has a resolution of 
-//	10 milliseconds, write time has a resolution of 2 seconds, and access time has a resolution 
-//	of 1 day (really, the access date). On NTFS, access time has a resolution of 1 hour. 
-//	Furthermore, FAT records times on disk in local time, while NTFS records times on disk in UTC, 
+//	@tupleitem 4|int/long|fileSize|The size of the file. This member has no meaning for directories.
+// @comm Not all file systems can record creation and last access time and not all file systems record
+//	them in the same manner. For example, on Windows NT FAT, create time has a resolution of
+//	10 milliseconds, write time has a resolution of 2 seconds, and access time has a resolution
+//	of 1 day (really, the access date). On NTFS, access time has a resolution of 1 hour.
+//	Furthermore, FAT records times on disk in local time, while NTFS records times on disk in UTC,
 //	so it is not affected by changes in time zone or daylight saving time.
 // @comm Accepts keyword arguments.
+// @comm If bytes are passed for the filename, the ANSI Windows functions are called.
 static PyObject *py_GetFileAttributesEx(PyObject *self, PyObject *args, PyObject *kwargs, BOOL bUnicode)
 {
 	BOOL ok;
@@ -4686,7 +4576,7 @@ static PyObject *py_GetFileAttributesEx(PyObject *self, PyObject *args, PyObject
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|kO:GetFileAttributesEx", keywords,
 		&obfname,
 		&lvl,
-		&obtrans))	
+		&obtrans))
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obtrans, &htrans))
 		return NULL;
@@ -4702,7 +4592,7 @@ static PyObject *py_GetFileAttributesEx(PyObject *self, PyObject *args, PyObject
 	if (bUnicode)
 		ok = PyWinObject_AsWCHAR(obfname, &wname, FALSE);
 	else
-		ok = PyWinObject_AsString(obfname, &cname, FALSE);
+		ok = PyWinObject_AsChars(obfname, &cname, FALSE);
 	if (!ok)
 		goto done;
 
@@ -4747,7 +4637,7 @@ static PyObject *py_GetFileAttributesEx(PyObject *self, PyObject *args, PyObject
 	if (buf)
 		free(buf);
 	PyWinObject_FreeWCHAR(wname);
-	PyWinObject_FreeString(cname);
+	PyWinObject_FreeChars(cname);
 	return ret;
 }
 
@@ -4761,11 +4651,7 @@ static PyObject *py_GetFileAttributesExA(PyObject *self, PyObject *args, PyObjec
 	return py_GetFileAttributesEx(self, args, kwargs, FALSE);
 }
 PyCFunction pfnpy_GetFileAttributesExW=(PyCFunction)py_GetFileAttributesExW;
-#ifdef UNICODE
 PyCFunction pfnpy_GetFileAttributesEx=(PyCFunction)py_GetFileAttributesExW;
-#else
-PyCFunction pfnpy_GetFileAttributesEx=(PyCFunction)py_GetFileAttributesExA;
-#endif
 
 // @pyswig |SetFileAttributesW|Sets a file's attributes
 // @pyseeapi SetFileAttributes
@@ -4781,7 +4667,7 @@ static PyObject *py_SetFileAttributesW(PyObject *self, PyObject *args, PyObject 
 	static char *keywords[]={"FileName","FileAttributes","Transaction", NULL};
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "Ok|O:SetFileAttributesW", keywords,
-		&obfname,	// @pyparm <o PyUNICODE>|FileName||File or directory whose attributes are to be changed
+		&obfname,	// @pyparm string|FileName||File or directory whose attributes are to be changed
 		&attrs,		// @pyparm int|FileAttributes||Combination of FILE_ATTRIBUTE_* flags
 		&obtrans))	// @pyparm <o PyHANDLE>|Transaction|None|Handle to the transaction.  See <om win32transaction.CreateTransaction>.
 		return NULL;
@@ -4806,7 +4692,7 @@ static PyObject *py_SetFileAttributesW(PyObject *self, PyObject *args, PyObject 
 }
 PyCFunction pfnpy_SetFileAttributesW=(PyCFunction)py_SetFileAttributesW;
 
-// @pyswig |CreateDirectoryExW|Creates a directory (Unicode version)
+// @pyswig |CreateDirectoryExW|Creates a directory
 // @pyseeapi CreateDirectoryEx
 // @pyseeapi CreateDirectoryTransacted
 // @comm If a transaction handle is passed, CreateDirectoryTransacted will be called (requires Vista or later).
@@ -4820,8 +4706,8 @@ static PyObject *py_CreateDirectoryExW(PyObject *self, PyObject *args, PyObject 
 	static char *keywords[]={"TemplateDirectory","NewDirectory","SecurityAttributes","Transaction", NULL};
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|OO:CreateDirectoryExW", keywords,
-		&obtemplatedir,	// @pyparm <o PyUnicode>|TemplateDirectory||Directory to use as a template, can be None
-		&obdirname,		// @pyparm <o PyUnicode>|NewDirectory||Name of directory to be created
+		&obtemplatedir,	// @pyparm string|TemplateDirectory||Directory to use as a template, can be None
+		&obdirname,		// @pyparm string|NewDirectory||Name of directory to be created
 		&obsa,			// @pyparm <o PySECURITY_ATTRIBUTES>|SecurityAttributes|None|Security for new directory (optional)
 		&obtrans))		// @pyparm <o PyHANDLE>|Transaction|None|Handle to a transaction (optional).  See <om win32transaction.CreateTransaction>.
 		return NULL;
@@ -4833,7 +4719,7 @@ static PyObject *py_CreateDirectoryExW(PyObject *self, PyObject *args, PyObject 
 		return NULL;
 
 	BOOL bsuccess;
-	if (PyWinObject_AsWCHAR(obdirname, &dirname, FALSE) 
+	if (PyWinObject_AsWCHAR(obdirname, &dirname, FALSE)
 		&& PyWinObject_AsWCHAR(obtemplatedir, &templatedir, TRUE)){
 		if (htrans)
 			bsuccess=(*pfnCreateDirectoryTransacted)(templatedir, dirname, psa, htrans);
@@ -4856,7 +4742,7 @@ PyCFunction pfnpy_CreateDirectoryExW=(PyCFunction)py_CreateDirectoryExW;
 // @pyseeapi RemoveDirectory
 // @pyseeapi RemoveDirectoryTransacted
 // @comm If a transaction handle is passed in, RemoveDirectoryTransacted will be called (requires Vista or later)
-// @comm Accepts keyword arguments.  Implemented only as Unicode.
+// @comm Accepts keyword arguments.
 static PyObject *py_RemoveDirectory(PyObject *self, PyObject *args, PyObject *kwargs)
 {
 	WCHAR *dirname=NULL;
@@ -4865,7 +4751,7 @@ static PyObject *py_RemoveDirectory(PyObject *self, PyObject *args, PyObject *kw
 	static char *keywords[]={"PathName","Transaction", NULL};
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|O:RemoveDirectory", keywords,
-		&obdirname,		// @pyparm <o PyUnicode>|PathName||Name of directory to be removed
+		&obdirname,		// @pyparm string|PathName||Name of directory to be removed
 		&obtrans))		// @pyparm <o PyHANDLE>|Transaction|None|Handle to a transaction (optional). See <om win32transaction.CreateTransaction>.
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obtrans, &htrans))
@@ -4898,9 +4784,9 @@ static PyObject *py_FindFilesW(PyObject *self, PyObject *args, PyObject *kwargs)
 {
 	WCHAR *fileSpec;
 	HANDLE htrans;
-	PyObject *obfileSpec, *obtrans=Py_None; 	
+	PyObject *obfileSpec, *obtrans=Py_None;
 	static char *keywords[]={"FileName","Transaction", NULL};
-	
+
 	if (!PyArg_ParseTupleAndKeywords (args, kwargs, "O|O:FindFilesW", keywords,
 		&obfileSpec,	// @pyparm string|FileName||A string that specifies a valid directory or path and filename, which can contain wildcard characters (* and ?).
 		&obtrans))		// @pyparm <o PyHANDLE>|Transaction|None|Transaction handle as returned by <om win32transaction.CreateTransaction>.  Can be None.
@@ -4972,7 +4858,7 @@ static PyObject *py_FindFilesIterator(PyObject *self, PyObject *args, PyObject *
 	HANDLE htrans;
 	PyObject *obfileSpec, *obtrans=Py_None;
 	static char *keywords[]={"FileName","Transaction", NULL};
-	
+
 	if (!PyArg_ParseTupleAndKeywords (args, kwargs, "O|O:FindFilesIterator", keywords,
 		&obfileSpec,	// @pyparm string|FileName||A string that specifies a valid directory or path and filename, which can contain wildcard characters (* and ?).
 		&obtrans))		// @pyparm <o PyHANDLE>|Transaction|None|Handle to a transaction, can be None.
@@ -5017,16 +4903,15 @@ static PyObject *py_FindFilesIterator(PyObject *self, PyObject *args, PyObject *
 }
 PyCFunction pfnpy_FindFilesIterator=(PyCFunction)py_FindFilesIterator;
 
-// @pyswig [(long, <o PyUnicode>),...]|FindStreams|List the data streams for a file
+// @pyswig [(long, string),...]|FindStreams|List the data streams for a file
 // @rdesc Returns a list of tuples containing each stream's size and name
 // @comm This uses the API functions FindFirstStreamW, FindNextStreamW and FindClose
-// @comm Available on Windows Server 2003 and Vista
 // @comm If the Transaction arg is not None, FindFirstStreamTransacted will be called in place of FindFirstStreamW
 static PyObject *py_FindStreams(PyObject *self, PyObject *args, PyObject *kwargs)
 {
 	CHECK_PFN(FindFirstStream);
 	CHECK_PFN(FindNextStream);
-	
+
 	PyObject *obfname, *obtrans=Py_None, *ret=NULL, *ret_item;
 	WCHAR *fname=NULL;
 	HANDLE hfind, htrans;
@@ -5036,7 +4921,7 @@ static PyObject *py_FindStreams(PyObject *self, PyObject *args, PyObject *kwargs
 	static char *keywords[]={"FileName","Transaction", NULL};
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|O:FindStreams", keywords,
-		&obfname,	// @pyparm <o PyUnicode>|FileName||Name of file (or directory) to operate on
+		&obfname,	// @pyparm string|FileName||Name of file (or directory) to operate on
 		&obtrans))	// @pyparm <o PyHANDLE>|Transaction|None|Handle to a transaction, can be None
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obtrans, &htrans))
@@ -5080,7 +4965,7 @@ static PyObject *py_FindStreams(PyObject *self, PyObject *args, PyObject *kwargs
 }
 PyCFunction pfnpy_FindStreams=(PyCFunction)py_FindStreams;
 
-// @pyswig [<o PyUnicode>,...]|FindFileNames|Enumerates hard links that point to specified file
+// @pyswig [string,...]|FindFileNames|Enumerates hard links that point to specified file
 // @comm This uses the API functions FindFirstFileNameW, FindNextFileNameW and FindClose
 // @comm Available on Vista and later
 // @comm If Transaction is specified, a transacted search is performed using FindFirstFileNameTransacted
@@ -5088,7 +4973,7 @@ static PyObject *py_FindFileNames(PyObject *self, PyObject *args, PyObject *kwar
 {
 	CHECK_PFN(FindFirstFileName);
 	CHECK_PFN(FindNextFileName);
-	
+
 	PyObject *obfname, *obtrans=Py_None, *ret=NULL, *ret_item;
 	WCHAR *fname=NULL, *linkname=NULL;
 	HANDLE hfind=INVALID_HANDLE_VALUE, htrans=NULL;
@@ -5101,7 +4986,7 @@ static PyObject *py_FindFileNames(PyObject *self, PyObject *args, PyObject *kwar
 	static char *keywords[]={"FileName","Transaction", NULL};
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|O:FindFileNames", keywords,
-		&obfname,	// @pyparm <o PyUnicode>|FileName||Name of file for which to find links
+		&obfname,	// @pyparm string|FileName||Name of file for which to find links
 		&obtrans))	// @pyparm <o PyHANDLE>|Transaction|None|Handle to a transaction, can be None
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obtrans, &htrans))
@@ -5139,7 +5024,13 @@ static PyObject *py_FindFileNames(PyObject *self, PyObject *args, PyObject *kwar
 		else
 			bsuccess=(*pfnFindNextFileName)(hfind, &ret_size, linkname);
 		if (bsuccess){
-			ret_item=PyWinObject_FromWCHAR(linkname, ret_size);
+			// There seems to be some confusion around ret_size - the MS docs
+			// don't say whether this includes the trailing \0 or not. #1511
+			// reports there's a trailing \0 on filenames, but that was opened
+			// many many years after this code was added - so has it changed?
+			// Regardless, we just ignore the size when creating the result
+			// string so it stops at the first \0.
+			ret_item=PyWinObject_FromWCHAR(linkname);
 			if ((ret_item==NULL) || (PyList_Append(ret, ret_item)==-1)){
 				Py_XDECREF(ret_item);
 				bsuccess=FALSE;
@@ -5184,9 +5075,8 @@ static PyObject *py_FindFileNames(PyObject *self, PyObject *args, PyObject *kwar
 }
 PyCFunction pfnpy_FindFileNames=(PyCFunction)py_FindFileNames;
 
-// @pyswig <o PyUnicode>|GetFinalPathNameByHandle|Returns the file name for an open file handle
+// @pyswig string|GetFinalPathNameByHandle|Returns the file name for an open file handle
 // @pyseeapi GetFinalPathNameByHandle
-// @comm Exists on Windows Vista or later.
 // @comm Accepts keyword arguments.
 static PyObject *py_GetFinalPathNameByHandle(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -5223,12 +5113,12 @@ static PyObject *py_GetFinalPathNameByHandle(PyObject *self, PyObject *args, PyO
 }
 PyCFunction pfnpy_GetFinalPathNameByHandle=(PyCFunction)py_GetFinalPathNameByHandle;
 
-// @pyswig [<o PyUnicode>,...]|SfcGetNextProtectedFile|Returns list of protected operating system files
+// @pyswig [string,...]|SfcGetNextProtectedFile|Returns list of protected operating system files
 // @pyseeapi SfcGetNextProtectedFile
 static PyObject *py_SfcGetNextProtectedFile(PyObject *self, PyObject *args)
 {
 	CHECK_PFN(SfcGetNextProtectedFile);
-	PROTECTED_FILE_DATA pfd;	
+	PROTECTED_FILE_DATA pfd;
 	DWORD err=0;
 	HANDLE rpchandle=NULL; // reserved
 	PyObject *ret, *ret_item;
@@ -5261,12 +5151,12 @@ static PyObject *py_SfcIsFileProtected(PyObject *self, PyObject *args)
 {
 	CHECK_PFN(SfcIsFileProtected);
 	PyObject *obfname;
-	WCHAR *fname;	
+	WCHAR *fname;
 	HANDLE rpchandle=NULL; // reserved
 	BOOL ret;
 
 	if (!PyArg_ParseTuple(args, "O:SfcIsFileProtected",
-		&obfname))	// @pyparm <o PyUnicode>|ProtFileName||Name of file to be checked
+		&obfname))	// @pyparm string|ProtFileName||Name of file to be checked
 		return NULL;
 	if (!PyWinObject_AsWCHAR(obfname, &fname, FALSE))
 		return NULL;
@@ -5281,7 +5171,7 @@ static PyObject *py_SfcIsFileProtected(PyObject *self, PyObject *args)
 	return PyBool_FromLong(ret);
 }
 
-// @pyswig <o PyUnicode>|GetLongPathName|Retrieves the long path for a short path (8.3 filename)
+// @pyswig string|GetLongPathName|Retrieves the long path for a short path (8.3 filename)
 // @comm Accepts keyword args
 static PyObject *py_GetLongPathName(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -5296,7 +5186,7 @@ static PyObject *py_GetLongPathName(PyObject *self, PyObject *args, PyObject *kw
 #endif
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|O:GetLongPathName", keywords,
-		&obfname,	// @pyparm <o PyUnicode>|ShortPath||8.3 path to be expanded
+		&obfname,	// @pyparm string|ShortPath||8.3 path to be expanded
 		&obtrans))	// @pyparm <o PyHANDLE>|Transaction|None|Handle to a transaction.  If specified, GetLongPathNameTransacted will be called.
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obtrans, &htrans))
@@ -5347,10 +5237,10 @@ static PyObject *py_GetLongPathName(PyObject *self, PyObject *args, PyObject *kw
 }
 PyCFunction pfnpy_GetLongPathName=(PyCFunction)py_GetLongPathName;
 
-// @pyswig str/unicode|GetFullPathName|Returns full path for path passed in
-// @comm This function takes either a plain string or a unicode string, and returns the same type
+// @pyswig string|GetFullPathName|Returns full path for path passed in
+// @comm This function takes either a bytes a unicode string, and returns the same type
 //       If unicode is passed in, GetFullPathNameW is called, which supports filenames longer than MAX_PATH
-// @comm If Transaction parameter is specified, GetFullPathNameTransacted is called (requires Vista or later)
+// @comm If Transaction parameter is specified, GetFullPathNameTransacted is called
 static PyObject *py_GetFullPathName(PyObject *self, PyObject *args, PyObject *kwargs)
 {
 	HANDLE htrans;
@@ -5362,14 +5252,13 @@ static PyObject *py_GetFullPathName(PyObject *self, PyObject *args, PyObject *kw
 #endif
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|O:GetFullPathName", keywords,
-		&obpathin,	// @pyparm str/unicode|FileName||Path on which to operate
+		&obpathin,	// @pyparm bytes/unicode|FileName||Path on which to operate
 		&obtrans))	// @pyparm <o PyHANDLE>|Transaction|None|Handle to a transaction as returned by <om win32transaction.CreateTransaction>
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obtrans, &htrans))
 		return NULL;
 
-	WCHAR *wpathin;
-	if (wpathin=PyUnicode_AsUnicode(obpathin)){
+	if (TmpWCHAR wpathin=obpathin) {
 		if (htrans)
 			CHECK_PFN(GetFullPathNameTransactedW);
 		WCHAR *wpathret=NULL, *wfilepart, *wpathsave=NULL;
@@ -5408,7 +5297,7 @@ static PyObject *py_GetFullPathName(PyObject *self, PyObject *args, PyObject *kw
 
 	PyErr_Clear();
 	char *cpathin;
-	if (cpathin=PyString_AsString(obpathin)){
+	if (cpathin=PyBytes_AsString(obpathin)){
 		if (htrans)
 			CHECK_PFN(GetFullPathNameTransactedA);
 		char *cpathret=NULL, *cfilepart, *cpathsave=NULL;
@@ -5436,7 +5325,7 @@ static PyObject *py_GetFullPathName(PyObject *self, PyObject *args, PyObject *kw
 				break;
 				}
 			if (retlen<=pathlen){
-				ret=PyString_FromStringAndSize(cpathret,retlen);
+				ret=PyBytes_FromStringAndSize(cpathret,retlen);
 				break;
 				}
 			pathlen=retlen;
@@ -5455,7 +5344,7 @@ static PyObject *py_Wow64DisableWow64FsRedirection(PyObject *self, PyObject *arg
 	VOID *state;
 	CHECK_PFN(Wow64DisableWow64FsRedirection);
 	if (!PyArg_ParseTuple(args, ":Wow64DisableWow64FsRedirection"))
-		return NULL;	
+		return NULL;
 	if (!(*pfnWow64DisableWow64FsRedirection)(&state))
 		return PyWin_SetAPIError("Wow64DisableWow64FsRedirection");
 	return PyWinLong_FromVoidPtr(state);
@@ -5495,8 +5384,6 @@ static PyObject *py_GetFileInformationByHandleEx(PyObject *self, PyObject *args,
 {
 	// According to MSDN, this function is in kernel32.lib in Vista or later, but I can't get it to link
 	//	with either Vista or Windows 7 sdks.
-	// On XP, you can use it with the downloadable fileextd.lib add-on, but it's a static library
-	//	and would never call the function exported from kernel32.dll.
 	CHECK_PFN(GetFileInformationByHandleEx);
 	static char *keywords[] = {"File", "FileInformationClass", NULL};
 	HANDLE handle;
@@ -5506,7 +5393,7 @@ static PyObject *py_GetFileInformationByHandleEx(PyObject *self, PyObject *args,
 	BOOL rc;
 	DWORD err = 0;
 	PyObject *ret;
-	
+
 	// @pyparm <o PyHANDLE>|File||Handle to a file or directory.  Do not pass a pipe handle.
 	// @pyparm int|FileInformationClass||Type of data to return, one of win32file.File*Info values
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&i:GetFileInformationByHandleEx", keywords,
@@ -5516,7 +5403,7 @@ static PyObject *py_GetFileInformationByHandleEx(PyObject *self, PyObject *args,
 
 	switch (info_class){
 		case FileBasicInfo:
-			buflen = sizeof(FILE_BASIC_INFO); 
+			buflen = sizeof(FILE_BASIC_INFO);
 			break;
 		case FileStandardInfo:
 			buflen = sizeof(FILE_STANDARD_INFO);
@@ -5571,7 +5458,7 @@ static PyObject *py_GetFileInformationByHandleEx(PyObject *self, PyObject *args,
 		//	(should only be for directories).
 		// Treat either of these as success, and return empty tuple instead of raising an exception
 		if ((err == ERROR_NO_MORE_FILES &&
-				(info_class == FileIdBothDirectoryInfo || info_class == FileIdBothDirectoryRestartInfo))  
+				(info_class == FileIdBothDirectoryInfo || info_class == FileIdBothDirectoryRestartInfo))
 			|| (err == ERROR_HANDLE_EOF && info_class == FileStreamInfo))
 			rc = true;
 		break;
@@ -5719,7 +5606,7 @@ static PyObject *py_SetFileInformationByHandle(PyObject *self, PyObject *args, P
 	DWORD buflen = 0;
 	BOOL rc = FALSE;
 	PyObject *info;
-			
+
 	// @pyparm <o PyHANDLE>|File||Handle to a file or directory.  Do not pass a pipe handle.
 	// @pyparm int|FileInformationClass||Type of data, one of win32file.File*Info values
 	// @pyparm object|Information||Type is dependent on the class to be changed
@@ -5731,8 +5618,8 @@ static PyObject *py_SetFileInformationByHandle(PyObject *self, PyObject *args, P
 	// @flagh Class|Type of input
 	switch (info_class){
 		// @flag FileBasicInfo|Dict representing a FILE_BASIC_INFO struct, containing
-		// {"CreationTime":<o PyTime>, "LastAccessTime":<o PyTime>,  "LastWriteTime":<o PyTime>,
-		//		"ChangeTime":<o PyTime>, "FileAttributes":int}
+		// {"CreationTime":<o PyDateTime>, "LastAccessTime":<o PyDateTime>,  "LastWriteTime":<o PyDateTime>,
+		//		"ChangeTime":<o PyDateTime>, "FileAttributes":int}
 		case FileBasicInfo:{
 			TmpPyObject dummy_tuple = PyTuple_New(0);
 			if (dummy_tuple == NULL)
@@ -5769,7 +5656,7 @@ static PyObject *py_SetFileInformationByHandle(PyObject *self, PyObject *args, P
 			BOOL ReplaceIfExists;
 			HANDLE RootDirectory;
 
-			static char *keywords[] = {"ReplaceIfExists", "RootDirectory", "FileName", NULL};			
+			static char *keywords[] = {"ReplaceIfExists", "RootDirectory", "FileName", NULL};
 			rc = PyArg_ParseTupleAndKeywords(dummy_tuple, info, "iO&O", keywords,
 				&ReplaceIfExists,
 				PyWinObject_AsHANDLE, &RootDirectory,
@@ -5827,7 +5714,7 @@ static PyObject *py_SetFileInformationByHandle(PyObject *self, PyObject *args, P
 			if (piohi == NULL)
 				break;
 			buf = piohi;
-			piohi->PriorityHint = (PRIORITY_HINT)PyInt_AsLong(info);
+			piohi->PriorityHint = (PRIORITY_HINT)PyLong_AsLong(info);
 			rc = piohi->PriorityHint != -1 || !PyErr_Occurred();
 			break;
 			}
@@ -5867,7 +5754,7 @@ static PyObject *py_ReOpenFile(PyObject *self, PyObject *args, PyObject *kwargs)
 	CHECK_PFN(ReOpenFile);
 	static char *keywords[] = {"OriginalFile", "DesiredAccess", "ShareMode", "Flags", NULL};
 	HANDLE horig, hret;
-	DWORD DesiredAccess, ShareMode, Flags;			
+	DWORD DesiredAccess, ShareMode, Flags;
 	// @pyparm <o PyHANDLE>|OriginalFile||An open file handle
 	// @pyparm int|DesiredAccess||Access mode, cannot conflict with original access mode
 	// @pyparm int|ShareMode||Sharing mode (FILE_SHARE_*), cannot conflict with original share mode
@@ -5914,7 +5801,7 @@ static PyObject *py_OpenFileById(PyObject *self, PyObject *args, PyObject *kwarg
 		return NULL;
 	if (!PyWinObject_AsSECURITY_ATTRIBUTES(obsa, &sa, TRUE))
 		return NULL;
-		
+
 	fileid.Type = FileIdType;
 	if (!PyWinObject_AsLARGE_INTEGER(obfileid, &fileid.FileId)){
 		PyErr_Clear();
@@ -6007,9 +5894,7 @@ PyCFunction pfnpy_OpenFileById=(PyCFunction)py_OpenFileById;
 	if (PyDict_SetItemString(d, "INVALID_HANDLE_VALUE", PyWinLong_FromHANDLE(INVALID_HANDLE_VALUE)) == -1)
 		PYWIN_MODULE_INIT_RETURN_ERROR;
 
-#ifdef PYWIN_HAVE_DATETIME_CAPI
 	PyDateTime_IMPORT;
-#endif
 
 	for (PyMethodDef *pmd = win32fileMethods;pmd->ml_name;pmd++)
 		if   ((strcmp(pmd->ml_name, "CreateFileW")==0)
@@ -6129,20 +6014,20 @@ PyCFunction pfnpy_OpenFileById=(PyCFunction)py_OpenFileById;
 
 %}
 
-#define EV_BREAK EV_BREAK // A break was detected on input. 
-#define EV_CTS EV_CTS // The CTS (clear-to-send) signal changed state. 
-#define EV_DSR EV_DSR // The DSR (data-set-ready) signal changed state. 
-#define EV_ERR EV_ERR // A line-status error occurred. Line-status errors are CE_FRAME, CE_OVERRUN, and CE_RXPARITY. 
-#define EV_RING EV_RING // A ring indicator was detected. 
-#define EV_RLSD EV_RLSD // The RLSD (receive-line-signal-detect) signal changed state. 
-#define EV_RXCHAR EV_RXCHAR // A character was received and placed in the input buffer. 
-#define EV_RXFLAG EV_RXFLAG // The event character was received and placed in the input buffer. The event character is specified in the device's DCB structure, which is applied to a serial port by using the SetCommState function. 
+#define EV_BREAK EV_BREAK // A break was detected on input.
+#define EV_CTS EV_CTS // The CTS (clear-to-send) signal changed state.
+#define EV_DSR EV_DSR // The DSR (data-set-ready) signal changed state.
+#define EV_ERR EV_ERR // A line-status error occurred. Line-status errors are CE_FRAME, CE_OVERRUN, and CE_RXPARITY.
+#define EV_RING EV_RING // A ring indicator was detected.
+#define EV_RLSD EV_RLSD // The RLSD (receive-line-signal-detect) signal changed state.
+#define EV_RXCHAR EV_RXCHAR // A character was received and placed in the input buffer.
+#define EV_RXFLAG EV_RXFLAG // The event character was received and placed in the input buffer. The event character is specified in the device's DCB structure, which is applied to a serial port by using the SetCommState function.
 #define EV_TXEMPTY EV_TXEMPTY // The last character in the output buffer was sent.
-#define CBR_110 CBR_110 
+#define CBR_110 CBR_110
 #define CBR_19200 CBR_19200
-#define CBR_300 CBR_300 
+#define CBR_300 CBR_300
 #define CBR_38400 CBR_38400
-#define CBR_600 CBR_600 
+#define CBR_600 CBR_600
 #define CBR_56000 CBR_56000
 #define CBR_1200 CBR_1200
 #define CBR_57600 CBR_57600
@@ -6152,14 +6037,14 @@ PyCFunction pfnpy_OpenFileById=(PyCFunction)py_OpenFileById;
 #define CBR_128000 CBR_128000
 #define CBR_9600 CBR_9600
 #define CBR_256000 CBR_256000
-#define CBR_14400 CBR_14400 
-#define DTR_CONTROL_DISABLE DTR_CONTROL_DISABLE // Disables the DTR line when the device is opened and leaves it disabled. 
-#define DTR_CONTROL_ENABLE DTR_CONTROL_ENABLE // Enables the DTR line when the device is opened and leaves it on. 
-#define DTR_CONTROL_HANDSHAKE DTR_CONTROL_HANDSHAKE // Enables DTR handshaking. If handshaking is enabled, it is an error for the application to adjust the line by using the EscapeCommFunction function. 
-#define RTS_CONTROL_DISABLE RTS_CONTROL_DISABLE // Disables the RTS line when the device is opened and leaves it disabled. 
-#define RTS_CONTROL_ENABLE RTS_CONTROL_ENABLE // Enables the RTS line when the device is opened and leaves it on. 
-#define RTS_CONTROL_HANDSHAKE RTS_CONTROL_HANDSHAKE // Enables RTS handshaking. The driver raises the RTS line when the "type-ahead" (input) buffer is less than one-half full and lowers the RTS line when the buffer is more than three-quarters full. If handshaking is enabled, it is an error for the application to adjust the line by using the EscapeCommFunction function. 
-#define RTS_CONTROL_TOGGLE RTS_CONTROL_TOGGLE // Specifies that the RTS line will be high if bytes are available for transmission. After all buffered bytes have been sent, the RTS line will be low. 
+#define CBR_14400 CBR_14400
+#define DTR_CONTROL_DISABLE DTR_CONTROL_DISABLE // Disables the DTR line when the device is opened and leaves it disabled.
+#define DTR_CONTROL_ENABLE DTR_CONTROL_ENABLE // Enables the DTR line when the device is opened and leaves it on.
+#define DTR_CONTROL_HANDSHAKE DTR_CONTROL_HANDSHAKE // Enables DTR handshaking. If handshaking is enabled, it is an error for the application to adjust the line by using the EscapeCommFunction function.
+#define RTS_CONTROL_DISABLE RTS_CONTROL_DISABLE // Disables the RTS line when the device is opened and leaves it disabled.
+#define RTS_CONTROL_ENABLE RTS_CONTROL_ENABLE // Enables the RTS line when the device is opened and leaves it on.
+#define RTS_CONTROL_HANDSHAKE RTS_CONTROL_HANDSHAKE // Enables RTS handshaking. The driver raises the RTS line when the "type-ahead" (input) buffer is less than one-half full and lowers the RTS line when the buffer is more than three-quarters full. If handshaking is enabled, it is an error for the application to adjust the line by using the EscapeCommFunction function.
+#define RTS_CONTROL_TOGGLE RTS_CONTROL_TOGGLE // Specifies that the RTS line will be high if bytes are available for transmission. After all buffered bytes have been sent, the RTS line will be low.
 #define EVENPARITY EVENPARITY
 #define MARKPARITY MARKPARITY
 #define NOPARITY NOPARITY
@@ -6167,19 +6052,19 @@ PyCFunction pfnpy_OpenFileById=(PyCFunction)py_OpenFileById;
 #define SPACEPARITY SPACEPARITY
 #define ONESTOPBIT ONESTOPBIT
 #define ONE5STOPBITS ONE5STOPBITS
-#define TWOSTOPBITS TWOSTOPBITS 
-#define CLRDTR CLRDTR // Clears the DTR (data-terminal-ready) signal. 
-#define CLRRTS CLRRTS // Clears the RTS (request-to-send) signal. 
-#define SETDTR SETDTR // Sends the DTR (data-terminal-ready) signal. 
-#define SETRTS SETRTS // Sends the RTS (request-to-send) signal. 
-#define SETXOFF SETXOFF // Causes transmission to act as if an XOFF character has been received. 
-#define SETXON SETXON // Causes transmission to act as if an XON character has been received. 
+#define TWOSTOPBITS TWOSTOPBITS
+#define CLRDTR CLRDTR // Clears the DTR (data-terminal-ready) signal.
+#define CLRRTS CLRRTS // Clears the RTS (request-to-send) signal.
+#define SETDTR SETDTR // Sends the DTR (data-terminal-ready) signal.
+#define SETRTS SETRTS // Sends the RTS (request-to-send) signal.
+#define SETXOFF SETXOFF // Causes transmission to act as if an XOFF character has been received.
+#define SETXON SETXON // Causes transmission to act as if an XON character has been received.
 #define SETBREAK SETBREAK // Suspends character transmission and places the transmission line in a break state until the ClearCommBreak function is called (or EscapeCommFunction is called with the CLRBREAK extended function code). The SETBREAK extended function code is identical to the SetCommBreak function. Note that this extended function does not flush data that has not been transmitted.
-#define CLRBREAK CLRBREAK // Restores character transmission and places the transmission line in a nonbreak state. The CLRBREAK extended function code is identical to the ClearCommBreak function. 
-#define PURGE_TXABORT PURGE_TXABORT // Terminates all outstanding overlapped write operations and returns immediately, even if the write operations have not been completed. 
-#define PURGE_RXABORT PURGE_RXABORT // Terminates all outstanding overlapped read operations and returns immediately, even if the read operations have not been completed. 
-#define PURGE_TXCLEAR PURGE_TXCLEAR // Clears the output buffer (if the device driver has one). 
-#define PURGE_RXCLEAR PURGE_RXCLEAR // Clears the input buffer (if the device driver has one). 
+#define CLRBREAK CLRBREAK // Restores character transmission and places the transmission line in a nonbreak state. The CLRBREAK extended function code is identical to the ClearCommBreak function.
+#define PURGE_TXABORT PURGE_TXABORT // Terminates all outstanding overlapped write operations and returns immediately, even if the write operations have not been completed.
+#define PURGE_RXABORT PURGE_RXABORT // Terminates all outstanding overlapped read operations and returns immediately, even if the read operations have not been completed.
+#define PURGE_TXCLEAR PURGE_TXCLEAR // Clears the output buffer (if the device driver has one).
+#define PURGE_RXCLEAR PURGE_RXCLEAR // Clears the input buffer (if the device driver has one).
 
 #define FILE_ENCRYPTABLE FILE_ENCRYPTABLE
 #define FILE_IS_ENCRYPTED FILE_IS_ENCRYPTED

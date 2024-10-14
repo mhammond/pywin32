@@ -1,19 +1,18 @@
 //
 // @doc
 
+#define PY_SSIZE_T_CLEAN
 #include "PyWinTypes.h"
 #include "PyWinObjects.h"
 #include "PySecurityObjects.h"
-
-#ifndef NO_PYWINTYPES_SECURITY
 
 // @pymethod <o PySID>|pywintypes|SID|Creates a new SID object
 PyObject *PyWinMethod_NewSID(PyObject *self, PyObject *args)
 {
     void *buf = NULL;
-    int bufSize = 32;  // xxxxxx64 - should be Py_ssize_t - but passed as 'i'
+    Py_ssize_t bufSize = 32;
     // @pyparm int|bufSize|32|Size for the SID buffer
-    if (!PyArg_ParseTuple(args, "|i:SID", &bufSize)) {
+    if (!PyArg_ParseTuple(args, "|n:SID", &bufSize)) {
         PyErr_Clear();
         // @pyparmalt1 string|buffer||A raw data buffer, assumed to hold the SID data.
         if (!PyArg_ParseTuple(args, "s#:SID", &buf, &bufSize)) {
@@ -53,6 +52,10 @@ PyObject *PyWinMethod_NewSID(PyObject *self, PyObject *args)
                 return PyWin_SetAPIError("AllocateAndInitializeSid");
             return new PySID(pNew);
         }
+    }
+    if (bufSize > INT_MAX) {
+        PyErr_SetString(PyExc_ValueError, "SID buffer size beyond INT_MAX");
+        return NULL;
     }
     return new PySID(bufSize, buf);
 }
@@ -121,7 +124,7 @@ PyObject *PySID::GetSubAuthority(PyObject *self, PyObject *args)
         PyErr_SetString(PyExc_ValueError, "The index is out of range");
         return NULL;
     }
-    return PyInt_FromLong(*GetSidSubAuthority(psid, subauthInd));
+    return PyLong_FromLong(*GetSidSubAuthority(psid, subauthInd));
 }
 
 // @pymethod int|PySID|GetLength|return length of SID (GetLengthSid).
@@ -130,7 +133,7 @@ PyObject *PySID::GetLength(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, ":GetLength"))
         return NULL;
     PySID *This = (PySID *)self;
-    return PyInt_FromLong(GetLengthSid(This->GetSID()));
+    return PyLong_FromLong(GetLengthSid(This->GetSID()));
 }
 
 // @pymethod int|PySID|GetSubAuthorityCount|return nbr of subauthorities from SID
@@ -139,7 +142,7 @@ PyObject *PySID::GetSubAuthorityCount(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, ":GetSubAuthorityCount"))
         return NULL;
     PySID *This = (PySID *)self;
-    return PyInt_FromLong(*::GetSidSubAuthorityCount(This->GetSID()));
+    return PyLong_FromLong(*::GetSidSubAuthorityCount(This->GetSID()));
 }
 
 // @pymethod |PySID|SetSubAuthority|Sets a SID SubAuthority
@@ -192,34 +195,6 @@ struct PyMethodDef PySID::methods[] = {
           // SID_IDENTIFIER_AUTHORITY constants)
     {NULL}};
 
-#if (PY_VERSION_HEX < 0x03000000)
-/*static*/ Py_ssize_t PySID::getreadbuf(PyObject *self, Py_ssize_t index, void **ptr)
-{
-    if (index != 0) {
-        PyErr_SetString(PyExc_SystemError, "accessing non-existent SID segment");
-        return -1;
-    }
-    PySID *pysid = (PySID *)self;
-    *ptr = pysid->m_psid;
-    return GetLengthSid(pysid->m_psid);
-}
-
-/*static*/ Py_ssize_t PySID::getsegcount(PyObject *self, Py_ssize_t *lenp)
-{
-    if (lenp)
-        *lenp = GetLengthSid(((PySID *)self)->m_psid);
-    return 1;
-}
-
-static PyBufferProcs PySID_as_buffer = {
-    PySID::getreadbuf,
-    0,
-    PySID::getsegcount,
-    0,
-};
-
-#else  // New buffer interface in Py3k
-
 /*static*/ int PySID::getbufferinfo(PyObject *self, Py_buffer *view, int flags)
 {
     PySID *pysid = (PySID *)self;
@@ -230,8 +205,6 @@ static PyBufferProcs PySID_as_buffer = {
     PySID::getbufferinfo,
     NULL,  // Does not have any allocated mem in Py_buffer struct
 };
-
-#endif  // PY_VERSION_HEX < 0x03000000
 
 PYWINTYPES_EXPORT PyTypeObject PySIDType = {
     PYWIN_OBJECT_HEAD "PySID", sizeof(PySID), 0, PySID::deallocFunc, /* tp_dealloc */
@@ -270,7 +243,7 @@ PYWINTYPES_EXPORT PyTypeObject PySIDType = {
     0,                                        /* tp_new */
 };
 
-PySID::PySID(int bufSize, void *buf /* = NULL */)
+PySID::PySID(Py_ssize_t bufSize, void *buf /* = NULL */)
 {
     ob_type = &PySIDType;
     _Py_NewReference(this);
@@ -400,7 +373,7 @@ BOOL GetTextualSid(
     DWORD bufSize = 0;
     GetTextualSid(psid, NULL, &bufSize);  // max size, NOT actual size!
     if (GetLastError() != ERROR_INSUFFICIENT_BUFFER) {
-        return PyString_FromString("PySID: Invalid SID");
+        return PyBytes_FromString("PySID: Invalid SID");
     }
     // Space for the "PySID:" prefix.
     TCHAR *prefix = _T("PySID:");
@@ -413,36 +386,3 @@ BOOL GetTextualSid(
     free(buf);
     return ret;
 }
-#else /* NO_PYWINTYPES_SECURITY */
-
-BOOL PyWinObject_AsSID(PyObject *ob, PSID *ppSID, BOOL bNoneOK /*= TRUE*/)
-{
-    if (bNoneOK && ob == Py_None) {
-        *ppSID = NULL;
-    }
-    else {
-        if (bNoneOK)
-            PyErr_SetString(PyExc_TypeError,
-                            "This build of pywintypes only supports None as "
-                            "a SID");
-        else
-            PyErr_SetString(PyExc_TypeError,
-                            "This function can not work in this build, as "
-                            "only None may be used as a SID");
-        return FALSE;
-    }
-    return TRUE;
-}
-PyObject *PyWinObject_FromSID(PSID psid)
-{
-    if (psid == NULL) {
-        Py_INCREF(Py_None);
-        return Py_None;
-    }
-    PyErr_SetString(PyExc_RuntimeError,
-                    "A non-NULL SID was passed, but security "
-                    "descriptors are disabled from this build");
-    return NULL;
-}
-
-#endif /* NO_PYWINTYPES_SECURITY */

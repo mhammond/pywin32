@@ -198,8 +198,7 @@ STDMETHODIMP PyGEnumRemoteDebugApplications::Next(
 error:
     PyErr_Clear();  // just in case
     Py_DECREF(result);
-    return PyCom_SetCOMErrorFromSimple(E_FAIL, IID_IEnumRemoteDebugApplications,
-                                       "Next() did not return a sequence of objects");
+    return PyCom_HandleIEnumNoSequence(IID_IEnumRemoteDebugApplications);
 }
 
 STDMETHODIMP PyGEnumRemoteDebugApplications::Skip(

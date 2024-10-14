@@ -1,4 +1,5 @@
 // Rich Edit Control
+#define PY_SSIZE_T_CLEAN
 #include "stdafx.h"
 
 #include "win32win.h"
@@ -95,7 +96,7 @@ DWORD CALLBACK PyCRichEditCallbackIn(DWORD_PTR dwCookie, LPBYTE pbBuff, LONG cb,
         *pcb = 0;
     }
     else {
-        char *s = PyString_AsString(result);
+        char *s = PyBytes_AsString(result);
         if (s == NULL) {
             //			gui_print_error();
         }
@@ -121,7 +122,7 @@ DWORD CALLBACK PyCRichEditCallbackOut(DWORD_PTR dwCookie, LPBYTE pbBuff, LONG cb
         //		gui_print_error();
     }
     else {
-        retval = PyInt_AsLong(result);
+        retval = PyLong_AsLong(result);
         if (PyErr_Occurred()) {
             gui_print_error();
             //			retval = 0;
@@ -435,7 +436,7 @@ static PyObject *PyCRichEditCtrl_get_line(PyObject *self, PyObject *args)
         TRACE0("Doubling buffer for GetLine value\n");
     }
     if (bytesCopied == size)  // hit max.
-        --bytesCopied;        // so NULL doesnt overshoot.
+        --bytesCopied;        // so NULL doesn't overshoot.
                               //	if (buf[bytesCopied-1]=='\r' || buf[bytesCopied-1]=='\n')	// kill newlines.
                               //		--bytesCopied;
     buf[bytesCopied] = '\0';
@@ -620,8 +621,8 @@ static PyObject *PyCRichEditCtrl_set_sel_and_char_format(PyObject *self, PyObjec
 
     //	PyErr_Clear();
     // Note - no reference added.
-    long start = PyInt_AsLong(PyTuple_GET_ITEM(args, 0));
-    long end = PyInt_AsLong(PyTuple_GET_ITEM(args, 1));
+    long start = PyLong_AsLong(PyTuple_GET_ITEM(args, 0));
+    long end = PyLong_AsLong(PyTuple_GET_ITEM(args, 1));
     PyObject *fmtTuple = PyTuple_GET_ITEM(args, 2);
 
     if (PyErr_Occurred())
@@ -717,7 +718,7 @@ static PyObject *PyCRichEditCtrl_stream_in(PyObject *self, PyObject *args)
         return NULL;
     if (!PyCallable_Check(method))
         RETURN_ERR("The method parameter is not callable");
-    DOINCREF(method);
+    Py_INCREF(method);
     EDITSTREAM es;
     es.dwCookie = (DWORD_PTR)method;
     es.dwError = 0;
@@ -726,7 +727,7 @@ static PyObject *PyCRichEditCtrl_stream_in(PyObject *self, PyObject *args)
     GUI_BGN_SAVE;
     long rc = pEdit->StreamIn(format, es);  // @pyseemfc CRichEditCtrl|StreamIn
     GUI_END_SAVE;
-    DODECREF(method);
+    Py_DECREF(method);
     return PyErr_Occurred() ? NULL : Py_BuildValue("li", rc, es.dwError);
     // @rdesc The return value is a tuple of (no bytes written, error code)
 }
@@ -748,7 +749,7 @@ static PyObject *PyCRichEditCtrl_stream_out(PyObject *self, PyObject *args)
     if (!PyCallable_Check(method))
         RETURN_ERR("The method parameter is not callable");
     EDITSTREAM es;
-    DOINCREF(method);
+    Py_INCREF(method);
     es.dwCookie = (DWORD_PTR)method;
     es.dwError = 0;
     es.pfnCallback = PyCRichEditCallbackOut;
@@ -756,7 +757,7 @@ static PyObject *PyCRichEditCtrl_stream_out(PyObject *self, PyObject *args)
     GUI_BGN_SAVE;
     long rc = pEdit->StreamOut(format, es);  // @pyseemfc CRichEditCtrl|StreamOut
     GUI_END_SAVE;
-    DODECREF(method);
+    Py_DECREF(method);
     return PyErr_Occurred() ? NULL : Py_BuildValue("li", rc, es.dwError);
     // @rdesc The return value is a tuple of (no bytes written, error code)
 }
@@ -771,7 +772,7 @@ static PyObject *PyCRichEditCtrl_get_text_length(PyObject *self, PyObject *args)
     GUI_BGN_SAVE;
     long rc = pEdit->GetTextLength();  // @pyseemfc CRichEditCtrl|GetTextLength
     GUI_END_SAVE;
-    return PyInt_FromLong(rc);
+    return PyLong_FromLong(rc);
 }
 
 // @pymethod int|PyCRichEditCtrl|GetModify|Nonzero if the text in this control has been modified; otherwise 0.
@@ -784,7 +785,7 @@ static PyObject *PyCRichEditCtrl_get_modify(PyObject *self, PyObject *args)
     GUI_BGN_SAVE;
     BOOL rc = pEdit->GetModify();  // @pyseemfc CRichEditCtrl|GetModify
     GUI_END_SAVE;
-    return PyInt_FromLong(rc);
+    return PyLong_FromLong(rc);
 }
 
 // @pymethod |PyCRichEditCtrl|SetModify|Sets the modified flag for this control

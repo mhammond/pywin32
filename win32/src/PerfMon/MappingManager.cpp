@@ -45,14 +45,9 @@ BOOL MappingManager::Init(const TCHAR *szServiceName, const TCHAR *szMappingName
     if (szEventSourceName == NULL)
         szEventSourceName = szServiceName;
 
-    // Use a TerminalServices friendly "Global\\" prefix if supported.
-    OSVERSIONINFO info;
-    info.dwOSVersionInfoSize = sizeof(info);
-    GetVersionEx(&info);
-    if (info.dwMajorVersion > 4)
-        // 2000 or later - "Global\\" prefix OK.
-        _tcscpy(szGlobalMapping, _T("Global\\"));
-
+    // Use a TerminalServices friendly "Global\\" prefix if supported (and it
+    // was first supported in win 2000, so it seems reasonable to assume it is!)
+    _tcscpy(szGlobalMapping, _T("Global\\"));
     _tcscat(szGlobalMapping, szMappingName);
 
     m_hMappedObject = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, 4096, szGlobalMapping);

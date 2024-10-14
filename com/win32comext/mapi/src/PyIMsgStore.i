@@ -31,7 +31,7 @@ PyIMsgStore::~PyIMsgStore()
 %native(OpenEntry) OpenEntry;
 %{
 // @pyswig <o PyIInterface>|OpenEntry|Opens a folder or message and returns an interface object for further access.
-PyObject *PyIMsgStore::OpenEntry(PyObject *self, PyObject *args) 
+PyObject *PyIMsgStore::OpenEntry(PyObject *self, PyObject *args)
 {
     HRESULT  _result;
     char * entryString;
@@ -49,14 +49,14 @@ PyObject *PyIMsgStore::OpenEntry(PyObject *self, PyObject *args)
 	// @pyparm string|entryId||The entryID of the object
 	// @pyparm <o PyIID>|iid||The IID of the object to return, or None for the default IID
 	// @pyparm int|flags||Bitmask of flags that controls how the object is opened.
-    if(!PyArg_ParseTuple(args,"OOl:OpenEntry",&obEntry, &objIID,&flags)) 
+    if(!PyArg_ParseTuple(args,"OOl:OpenEntry",&obEntry, &objIID,&flags))
         return NULL;
 	if (obEntry==Py_None) {
 		entryString = NULL;
 		entryStrLen = 0;
-	} else if PyString_Check(obEntry) {
-		entryString = PyString_AsString(obEntry);
-		entryStrLen = PyString_Size(obEntry);
+	} else if (PyBytes_Check(obEntry)) {
+		entryString = PyBytes_AsString(obEntry);
+		entryStrLen = PyBytes_Size(obEntry);
 	} else {
 		PyErr_SetString(PyExc_TypeError, "EntryID must be a string or None");
 		return NULL;
@@ -79,10 +79,36 @@ PyObject *PyIMsgStore::OpenEntry(PyObject *self, PyObject *args)
 
 %}
 
+%native(StoreLogoff) StoreLogoff;
+%{
+// @pyswig <o PyIInterface>|StoreLogoff|Enables the orderly logoff of the message store.
+PyObject *PyIMsgStore::StoreLogoff(PyObject *self, PyObject *args)
+{
+	HRESULT  _result;
+	unsigned long  flags;
+
+	IMsgStore *_swig_self;
+	if ((_swig_self=GetI(self))==NULL) return NULL;
+	// @pyparm int|flags||Bitmask of flags that controls how the message store is closed.
+	if(!PyArg_ParseTuple(args,"k:StoreLogoff", &flags))
+		return NULL;
+
+	Py_BEGIN_ALLOW_THREADS
+	_result = (HRESULT )_swig_self->StoreLogoff(&flags);
+	Py_END_ALLOW_THREADS
+	if (FAILED(_result)) {
+		return OleSetOleError(_result);
+	}
+
+	return PyLong_FromLong(flags);
+}
+
+%}
+
 %native(GetReceiveFolder) GetReceiveFolder;
 %{
 // @pyswig <o PyIID>, string|GetReceiveFolder|Obtains the folder that was established as the destination for incoming messages of a specified message class or the default receive folder for the message store.
-PyObject *PyIMsgStore::GetReceiveFolder(PyObject *self, PyObject *args) 
+PyObject *PyIMsgStore::GetReceiveFolder(PyObject *self, PyObject *args)
 {
 	HRESULT  _result;
 	unsigned long  flags = 0;
@@ -95,7 +121,7 @@ PyObject *PyIMsgStore::GetReceiveFolder(PyObject *self, PyObject *args)
 
 	IMsgStore *_swig_self;
 	if ((_swig_self=GetI(self))==NULL) return NULL;
-	// @pyparm string|messageClass|None|Message class that is associated with a receive folder. If this parameter is set to None or an empty string, GetReceiveFolder returns the default receive folder for the message store. 
+	// @pyparm string|messageClass|None|Message class that is associated with a receive folder. If this parameter is set to None or an empty string, GetReceiveFolder returns the default receive folder for the message store.
 	// @pyparm int|flags|0|
 	if(!PyArg_ParseTuple(args,"|Ol:GetReceiveFolder",&obClass, &flags))
 		goto done;
@@ -111,7 +137,7 @@ PyObject *PyIMsgStore::GetReceiveFolder(PyObject *self, PyObject *args)
 		goto done;
 	}
 
-	rc = Py_BuildValue("NN", PyString_FromStringAndSize((char *)eid_out, eid_cb),
+	rc = Py_BuildValue("NN", PyBytes_FromStringAndSize((char *)eid_out, eid_cb),
 	                         PyWinObject_FromMAPIStr(sz_explicit_class, flags & MAPI_UNICODE));
 	MAPIFreeBuffer(eid_out);
 	MAPIFreeBuffer(sz_explicit_class);
@@ -125,12 +151,12 @@ done:
 // @pyswig <o PyIMAPITable>|GetReceiveFolderTable|provides access to the receive folder table, a table that includes information about all of the receive folders for the message store.
 HRESULT GetReceiveFolderTable(
     unsigned long ulFlags, // @pyparm int|flags||Bitmask of flags that controls table access
-    IMAPITable **OUTPUT 
+    IMAPITable **OUTPUT
 );
 
 
 // @pyswig int|CompareEntryIDs|Compares two entry identifiers belonging to a particular address book provider to determine if they refer to the same address book object
-// @rdesc The result is set to TRUE if the two entry identifiers refer to the same object, and FALSE otherwise. 
+// @rdesc The result is set to TRUE if the two entry identifiers refer to the same object, and FALSE otherwise.
 %native(CompareEntryIDs) CompareEntryIDs;
 %{
 PyObject *PyIMsgStore::CompareEntryIDs(PyObject *self, PyObject *args)
@@ -144,16 +170,16 @@ PyObject *PyIMsgStore::CompareEntryIDs(PyObject *self, PyObject *args)
 	IMsgStore *_swig_self;
 	PyObject *obE1, *obE2;
 	if ((_swig_self=GetI(self))==NULL) return NULL;
-    if(!PyArg_ParseTuple(args,"OO|i:CompareEntryIDs", 
+    if(!PyArg_ParseTuple(args,"OO|i:CompareEntryIDs",
 		&obE1, // @pyparm string|entryId||The first entry ID to be compared
 		&obE2, // @pyparm string|entryId||The second entry ID to be compared
 		&flags)) // @pyparm int|flags|0|Reserved - must be zero.
         goto done;
 
-	if (!PyWinObject_AsString(obE1, (char **)&peid1, FALSE, &cb1))
+	if (!PyWinObject_AsChars(obE1, (char **)&peid1, FALSE, &cb1))
         goto done;
 
-	if (!PyWinObject_AsString(obE2, (char **)&peid2, FALSE, &cb2))
+	if (!PyWinObject_AsChars(obE2, (char **)&peid2, FALSE, &cb2))
         goto done;
 
 	Py_BEGIN_ALLOW_THREADS
@@ -162,10 +188,10 @@ PyObject *PyIMsgStore::CompareEntryIDs(PyObject *self, PyObject *args)
 	if (FAILED(hr))
 		rc =  OleSetOleError(hr);
 	else
-		rc = PyInt_FromLong(ulResult);
+		rc = PyLong_FromLong(ulResult);
 done:
-	PyWinObject_FreeString((char *)peid1);
-	PyWinObject_FreeString((char *)peid2);
+	PyWinObject_FreeChars((char *)peid1);
+	PyWinObject_FreeChars((char *)peid2);
 	return rc;
 }
 %}
@@ -178,22 +204,22 @@ PyObject *PyIMsgStore::GetLastError(PyObject *self, PyObject *args)
 	HRESULT hr, hRes;
 	ULONG flags = 0;
 	MAPIERROR *me = NULL;
-	
+
 	IMsgStore *_swig_self;
 	if ((_swig_self=GetI(self))==NULL) return NULL;
-	
+
     if(!PyArg_ParseTuple(args,"l|l:GetLastError",
 		&hr, // @pyparm int|hr||Contains the error code generated in the previous method call.
 		&flags)) // @pyparm int|flags||Indicates for format for the output.
         return NULL;
-		
+
 	Py_BEGIN_ALLOW_THREADS
 	hRes = _swig_self->GetLastError(hr, flags, &me);
 	Py_END_ALLOW_THREADS
 
 	if (FAILED(hRes))
 		return OleSetOleError(hRes);
-	
+
 	if (me == NULL)
 	{
 		Py_INCREF(Py_None);
@@ -216,12 +242,12 @@ PyObject *PyIMsgStore::AbortSubmit(PyObject *self, PyObject *args)
 	IMsgStore *_swig_self;
 	PyObject *obE;
 	if ((_swig_self=GetI(self))==NULL) return NULL;
-	if(!PyArg_ParseTuple(args,"O|i:AbortSubmit", 
+	if(!PyArg_ParseTuple(args,"O|i:AbortSubmit",
 		&obE, // @pyparm string|entryId||The entry ID of the item to be aborted.
 		&flags)) // @pyparm int|flags|0|Reserved - must be zero.
 		goto done;
 
-	if (!PyWinObject_AsString(obE, (char **)&peid, FALSE, &cb))
+	if (!PyWinObject_AsChars(obE, (char **)&peid, FALSE, &cb))
 		goto done;
 
 	Py_BEGIN_ALLOW_THREADS
@@ -234,7 +260,7 @@ PyObject *PyIMsgStore::AbortSubmit(PyObject *self, PyObject *args)
 		Py_INCREF(Py_None);
 	}
 done:
-	PyWinObject_FreeString((char *)peid);
+	PyWinObject_FreeChars((char *)peid);
 	return rc;
 }
 %}
@@ -264,9 +290,9 @@ PyObject *PyIMsgStore::Advise(PyObject *self, PyObject *args)
 	{
 		eid = NULL;
 		cbEID = 0;
-	} else if PyString_Check(obEntryId) {
-		eid = (LPENTRYID)PyString_AsString(obEntryId);
-		cbEID = PyString_Size(obEntryId);
+	} else if (PyBytes_Check(obEntryId)) {
+		eid = (LPENTRYID)PyBytes_AsString(obEntryId);
+		cbEID = PyBytes_Size(obEntryId);
 	} else {
 		PyErr_SetString(PyExc_TypeError, "EntryID must be a string");
 		return NULL;

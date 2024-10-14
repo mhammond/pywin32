@@ -105,8 +105,6 @@ BOOL WINAPI DebugControlHandler(DWORD dwCtrlType);
 DWORD WINAPI service_ctrl_ex(DWORD, DWORD, LPVOID, LPVOID);
 VOID WINAPI service_ctrl(DWORD);
 
-BOOL RegisterPythonServiceExe(void);
-
 static PY_SERVICE_TABLE_ENTRY *FindPythonServiceEntry(LPCTSTR svcName);
 
 static PyObject *LoadPythonServiceClass(TCHAR *svcInitString);
@@ -145,6 +143,17 @@ SERVICE_STATUS stoppedStatus = {SERVICE_WIN32_OWN_PROCESS,
                                 0,  // dwServiceSpecificExitCode;
                                 0,  // dwCheckPoint;
                                 0};
+
+SERVICE_STATUS stoppedErrorStatus = {SERVICE_WIN32_OWN_PROCESS,
+                                     SERVICE_STOPPED,
+                                     0,                             // dwControlsAccepted
+                                     ERROR_SERVICE_SPECIFIC_ERROR,  // dwWin32ExitCode
+                                     0x20000001,                    // dwServiceSpecificExitCode
+                                     0,                             // dwCheckPoint
+                                     0};
+// The Service Control Manager/Event Log seems to interpret dwServiceSpecificExitCode as a Win32 Error code
+// (https://docs.microsoft.com/en-us/windows/win32/debug/system-error-codes)
+// So stoppedErrorStatus has dwServiceSpecificExitCode with bit 29 set to indicate an application-defined error code.
 
 ///////////////////////////////////////////////////////////////////////
 //
@@ -234,7 +243,7 @@ cleanup:
 static PyObject *PyLogInfoMsg(PyObject *self, PyObject *args)
 {
     PyObject *obMsg;
-    // @pyparm <o PyUnicode>|msg||The message to write.
+    // @pyparm string|msg||The message to write.
     if (!PyArg_ParseTuple(args, "O:LogInfoMsg", &obMsg))
         return NULL;
     return DoLogMessage(EVENTLOG_INFORMATION_TYPE, obMsg);
@@ -244,7 +253,7 @@ static PyObject *PyLogInfoMsg(PyObject *self, PyObject *args)
 static PyObject *PyLogWarningMsg(PyObject *self, PyObject *args)
 {
     PyObject *obMsg;
-    // @pyparm <o PyUnicode>|msg||The message to write.
+    // @pyparm string|msg||The message to write.
     if (!PyArg_ParseTuple(args, "O:LogWarningMsg", &obMsg))
         return NULL;
     return DoLogMessage(EVENTLOG_WARNING_TYPE, obMsg);
@@ -253,7 +262,7 @@ static PyObject *PyLogWarningMsg(PyObject *self, PyObject *args)
 // @pymethod |servicemanager|LogErrorMsg|Logs a generic error message to the event log
 static PyObject *PyLogErrorMsg(PyObject *self, PyObject *args)
 {
-    // @pyparm <o PyUnicode>|msg||The message to write.
+    // @pyparm string|msg||The message to write.
     PyObject *obMsg;
     if (!PyArg_ParseTuple(args, "O:LogErrorMsg", &obMsg))
         return NULL;
@@ -295,7 +304,7 @@ static PyObject *PyRegisterServiceCtrlHandler(PyObject *self, PyObject *args)
 {
     PyObject *nameOb, *obCallback;
     BOOL bUseEx = FALSE;
-    // @pyparm <o PyUnicode>|serviceName||The name of the service.  This is provided in args[0] of the service class
+    // @pyparm string|serviceName||The name of the service.  This is provided in args[0] of the service class
     // __init__ method.
     // @pyparm object|callback||The Python function that performs as the control function.  This will be called with an
     // integer status argument.
@@ -353,7 +362,7 @@ static PyObject *PyCoInitializeEx(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "l:CoInitializeEx", &flags))
         return NULL;
     HRESULT hr = CoInitializeEx(NULL, flags);
-    return PyInt_FromLong(hr);
+    return PyLong_FromLong(hr);
 }
 
 // @pymethod |servicemanager|CoUninitialize|Unitialize OLE
@@ -411,7 +420,7 @@ static PyObject *PyPumpWaitingMessages(PyObject *self, PyObject *args)
         // Otherwise, dispatch the message.
         DispatchMessage(&msg);
     }  // End of PeekMessage while loop
-    Py_END_ALLOW_THREADS return PyInt_FromLong(result);
+    Py_END_ALLOW_THREADS return PyLong_FromLong(result);
 }
 
 static PyObject *PyStartServiceCtrlDispatcher(PyObject *self)
@@ -428,8 +437,8 @@ static PyObject *PyStartServiceCtrlDispatcher(PyObject *self)
 static PyObject *PyServiceInitialize(PyObject *self, PyObject *args)
 {
     PyObject *nameOb = Py_None, *fileOb = Py_None;
-    // @pyparm <o PyUnicode>|eventSourceName|None|The event source name
-    // @pyparm <o PyUnicode>|eventSourceFile|None|The name of the file
+    // @pyparm string|eventSourceName|None|The event source name
+    // @pyparm string|eventSourceFile|None|The name of the file
     // (generally a DLL) with the event source messages.
     if (!PyArg_ParseTuple(args, "|OO", &nameOb, &fileOb))
         return NULL;
@@ -476,7 +485,7 @@ static PyObject *PyPrepareToHostSingle(PyObject *self, PyObject *args)
 static PyObject *PyPrepareToHostMultiple(PyObject *self, PyObject *args)
 {
     PyObject *klass, *obSvcName;
-    // @pyparm string/unicode|service_name||The name of the service hosted by the class
+    // @pyparm string|service_name||The name of the service hosted by the class
     // @pyparm object|klass||The Python class to host.
     if (!PyArg_ParseTuple(args, "OO", &obSvcName, &klass))
         return NULL;
@@ -590,23 +599,10 @@ static void PyService_InitPython()
     have_init = TRUE;
     // Often for a service, __argv[0] will be just "ExeName", rather
     // than "c:\path\to\ExeName.exe"
-    // This, however, shouldnt be a problem, as Python itself
+    // This, however, shouldn't be a problem, as Python itself
     // knows how to get the .EXE name when it needs.
     int pyargc;
-#if (PY_VERSION_HEX < 0x03000000)
-    pyargc = 0;
-    char **pyargv = (char **)malloc(sizeof(char *) * __argc);
-    if (pyargv) {
-        for (; pyargc < __argc; pyargc++) {
-            pyargv[pyargc] = NarrowString(__wargv[pyargc]);
-            if (!pyargv[pyargc]) {
-                break;
-            }
-        }
-    }
-#else
     WCHAR **pyargv = CommandLineToArgvW(GetCommandLineW(), &pyargc);
-#endif
     if (pyargv)
         Py_SetProgramName(pyargv[0]);
 
@@ -617,8 +613,6 @@ static void PyService_InitPython()
 #ifdef BUILD_FREEZE
     PyWinFreeze_ExeInit();
 #endif
-    // Ensure we are set for threading.
-    PyEval_InitThreads();
     // Notes about argv: When debugging a service, the argv is currently
     // the *full* args, including the "-debug servicename" args.  This
     // isn't ideal, but has been this way for a few builds, and a good
@@ -626,15 +620,8 @@ static void PyService_InitPython()
     // though it never is when running as a real service?
     if (pyargv)
         PySys_SetArgv(pyargc, pyargv);
-#if (PY_VERSION_HEX < 0x03000000)
-    initservicemanager();
-    // free the argv we created above
-    for (int i = 0; i < pyargc; i++) free(pyargv[i]);
-    free(pyargv);
-#else
     PyInit_servicemanager();
     LocalFree(pyargv);
-#endif
 }
 
 /*************************************************************************
@@ -818,6 +805,10 @@ void WINAPI service_main(DWORD dwArgc, LPTSTR *lpszArgv)
     PyObject *instance = NULL;
     PyObject *start = NULL;
 
+    // set this to true if the final SERVICE_STOPPED status reported
+    // should be with a non-zero error code.
+    bool stopWithError = false;
+
     bServiceRunning = TRUE;
     if (bServiceDebug)
         SetConsoleCtrlHandler(DebugControlHandler, TRUE);
@@ -853,7 +844,7 @@ void WINAPI service_main(DWORD dwArgc, LPTSTR *lpszArgv)
         instance = LoadPythonServiceInstance(pe->klass, dwArgc, lpszArgv);
     // If Python has not yet registered the service control handler, then
     // we are in serious trouble - it is likely the service will enter a
-    // zombie state, where it wont do anything, but you can not start
+    // zombie state, where it won't do anything, but you can not start
     // another.  Therefore, we still create register the handler, thereby
     // getting a handle, so we can immediately tell Windows the service
     // is rooted (that is a technical term!)
@@ -865,7 +856,7 @@ void WINAPI service_main(DWORD dwArgc, LPTSTR *lpszArgv)
         if (instance)
             ReportPythonError(E_PYS_NOT_CONTROL_HANDLER);
         // else no instance - an error has already been reported.
-        if (!bServiceDebug)
+        if (!bServiceDebug) {
             if (g_RegisterServiceCtrlHandlerEx) {
                 // Use 2K/XP extended registration if available
                 pe->sshStatusHandle = g_RegisterServiceCtrlHandlerEx(lpszArgv[0], service_ctrl_ex, pe);
@@ -874,6 +865,7 @@ void WINAPI service_main(DWORD dwArgc, LPTSTR *lpszArgv)
                 // Otherwise fall back to NT
                 pe->sshStatusHandle = RegisterServiceCtrlHandler(lpszArgv[0], service_ctrl);
             }
+        }
     }
     // No instance - we can't start.
     if (!instance) {
@@ -893,18 +885,22 @@ void WINAPI service_main(DWORD dwArgc, LPTSTR *lpszArgv)
         // Call the Python service entry point - when this returns, the
         // service has stopped!
         PyObject *result = PyObject_CallObject(start, NULL);
-        if (result == NULL)
+        if (result == NULL) {
+            // SvcRun() raised an Exception so we stop with an error code.
+            stopWithError = true;
             ReportPythonError(E_PYS_START_FAILED);
-        else
+        }
+        else {
             Py_DECREF(result);
+        }
     }
     // We are all done.
 cleanup:
     // try to report the stopped status to the service control manager.
     Py_XDECREF(start);
     Py_XDECREF(instance);
-    if (pe && pe->sshStatusHandle) {  // Wont be true if debugging.
-        if (!SetServiceStatus(pe->sshStatusHandle, &stoppedStatus))
+    if (pe && pe->sshStatusHandle) {  // Won't be true if debugging.
+        if (!SetServiceStatus(pe->sshStatusHandle, (stopWithError ? &stoppedErrorStatus : &stoppedStatus)))
             ReportAPIError(PYS_E_API_CANT_SET_STOPPED);
     }
     return;
@@ -936,7 +932,7 @@ DWORD WINAPI dispatchServiceCtrl(DWORD dwCtrlCode, DWORD dwEventType, LPVOID eve
                 if (dwEventType == PBT_POWERSETTINGCHANGE) {
                     POWERBROADCAST_SETTING *pbs = (POWERBROADCAST_SETTING *)eventData;
                     sub = Py_BuildValue("NN", PyWinObject_FromIID(pbs->PowerSetting),
-                                        PyString_FromStringAndSize((char *)pbs->Data, pbs->DataLength));
+                                        PyBytes_FromStringAndSize((char *)pbs->Data, pbs->DataLength));
                 }
                 else {
                     sub = Py_None;
@@ -968,7 +964,7 @@ DWORD WINAPI dispatchServiceCtrl(DWORD dwCtrlCode, DWORD dwEventType, LPVOID eve
     else if (result == Py_None)
         dwResult = NOERROR;
     else {
-        dwResult = PyInt_AsUnsignedLongMask(result);
+        dwResult = PyLong_AsUnsignedLongMask(result);
         if (dwResult == -1 && PyErr_Occurred()) {
             ReportPythonError(PYS_E_SERVICE_CONTROL_FAILED);
             dwResult = ERROR_SERVICE_SPECIFIC_ERROR;
@@ -1064,11 +1060,7 @@ int PythonService_main(int argc, TCHAR **argv)
     int temp;
     LPTSTR *targv;
 
-#ifdef UNICODE
     targv = CommandLineToArgvW(GetCommandLineW(), &temp);
-#else
-    targv = argv;
-#endif
     // Before we start, change directory to our executable's dir.  This
     // is to prevent our cwd being SYSTEM32, which can have undesired
     // side effects (ie, it ends up on sys.path and, eg, 'import zlib' may
@@ -1082,12 +1074,6 @@ int PythonService_main(int argc, TCHAR **argv)
     }
     // Process the args
     if ((argc > 1) && ((*argv[1] == '-') || (*argv[1] == '/'))) {
-#ifndef BUILD_FREEZE
-        if (_tcsicmp(_T("register"), argv[1] + 1) == 0 || _tcsicmp(_T("install"), argv[1] + 1) == 0) {
-            // Get out of here.
-            return RegisterPythonServiceExe() ? 0 : 1;
-        }
-#endif
         if (_tcsicmp(_T("debug"), argv[1] + 1) == 0) {
             /* Debugging the service.  If this EXE has a service name
                embedded in it, use it, otherwise insist one is passed on the
@@ -1125,11 +1111,8 @@ int PythonService_main(int argc, TCHAR **argv)
         DWORD errCode = GetLastError();
         if (errCode == ERROR_FAILED_SERVICE_CONTROLLER_CONNECT) {
             // We are not being run by the SCM - print a debug message.
-            printf("%s - Python Service Manager\n", argv[0]);
+            _tprintf(_T("%s - Python Service Manager\n"), argv[0]);
             printf("Options:\n");
-#ifndef BUILD_FREEZE
-            printf(" -register - register the EXE - this should generally not be necessary.\n");
-#endif
             printf(" -debug servicename [parms] - debug the Python service.\n");
             printf("\nNOTE: You do not start the service using this program - start the\n");
             printf("service using Control Panel, or 'net start service_name'\n");
@@ -1138,10 +1121,6 @@ int PythonService_main(int argc, TCHAR **argv)
             // Some other nasty error - log it.
             ReportAPIError(PYS_E_API_CANT_START_SERVICE, errCode);
             printf("Could not start the service - error %d\n", errCode);
-            // Just incase the error was caused by this EXE not being registered
-#ifndef BUILD_FREEZE
-            RegisterPythonServiceExe();
-#endif
         }
         return 2;
     }
@@ -1290,41 +1269,6 @@ BOOL LocatePythonServiceClassString(TCHAR *svcName, TCHAR *buf, int cchBuf)
     return ok;
 }
 
-// Register the EXE.
-// This writes an entry to the Python registry and also
-// to the EventLog so I can stick in messages.
-static BOOL RegisterPythonServiceExe(void)
-{
-    printf("Registering the Python Service Manager...\n");
-    const int fnameBufSize = MAX_PATH + 1;
-    TCHAR fnameBuf[fnameBufSize];
-    if (GetModuleFileName(NULL, fnameBuf, fnameBufSize) == 0) {
-        printf("Registration failed due to GetModuleFileName() failing (error %d)\n", GetLastError());
-        return FALSE;
-    }
-    assert(Py_IsInitialized());
-    CEnterLeavePython _celp;
-    // Register this specific EXE against this specific DLL version
-    PyObject *obVerString = PySys_GetObject("winver");
-    if (obVerString == NULL || !PyString_Check(obVerString)) {
-        Py_XDECREF(obVerString);
-        printf("Registration failed as sys.winver is not available or not a string\n");
-        return FALSE;
-    }
-    char *szVerString = PyString_AsString(obVerString);
-    Py_DECREF(obVerString);
-    // note wsprintf allows %hs to be "char *" even when UNICODE!
-    TCHAR keyBuf[256];
-    wsprintf(keyBuf, _T("Software\\Python\\PythonService\\%hs"), szVerString);
-    DWORD rc;
-    if ((rc = RegSetValue(HKEY_LOCAL_MACHINE, keyBuf, REG_SZ, fnameBuf, _tcslen(fnameBuf))) != ERROR_SUCCESS) {
-        printf("Registration failed due to RegSetValue() of service EXE - error %d\n", rc);
-        return FALSE;
-    }
-    // don't bother registering in the event log - do it when we write a log entry.
-    return TRUE;
-}
-
 #endif  // PYSERVICE_BUILD_DLL
 
 // Code that exists in both EXE and DLL - mainly error handling code.
@@ -1364,22 +1308,9 @@ static void ReportPythonError(DWORD code)
         LPTSTR inserts[4] = {NULL, NULL, NULL, NULL};
         PyObject *type, *value, *traceback;
         PyErr_Fetch(&type, &value, &traceback);
-        TCHAR *szTracebackUse = L"<No memory!>";  // default.
-        TCHAR *szTraceback = NULL;                // to be freed.
-        char *szmbTraceback = GetPythonTraceback(type, value, traceback);
-        if (szmbTraceback) {
-            int tb_len = strlen(szmbTraceback) + 1;
-            szTraceback = (TCHAR *)malloc(sizeof(WCHAR) * tb_len);
-            if (szTraceback) {
-                szTracebackUse = szTraceback;
-                MultiByteToWideChar(CP_ACP, 0, szmbTraceback, tb_len, szTraceback, tb_len);
-                // trim crud from the end.
-                if (tb_len > 2)
-                    szTracebackUse[tb_len - 2] = L'\0';
-            }
-            free(szmbTraceback);
-        }
-        inserts[0] = szTracebackUse;
+        WCHAR *szTracebackDefault = L"<No memory!>";  // default.
+        WCHAR *szTraceback = GetPythonTraceback(type, value, traceback);
+        inserts[0] = szTraceback ? szTraceback : szTracebackDefault;
         ReportError(code, (LPCTSTR *)inserts);
         if (szTraceback)
             free(szTraceback);
@@ -1512,8 +1443,13 @@ int _tmain(int argc, TCHAR **argv)
     PyThreadState *threadState;
     HMODULE hmod;
     FARPROC proc;
+    int dummy;
+    wchar_t **program = CommandLineToArgvW(GetCommandLineW(), &dummy);
+    if (program != NULL) {
+        Py_SetProgramName(program[0]);
+        // do not free `program` since Py_SetProgramName does not copy it.
+    }
     Py_Initialize();
-    PyEval_InitThreads();
     module = PyImport_ImportModule("servicemanager");
     if (!module)
         goto failed;
@@ -1523,10 +1459,11 @@ int _tmain(int argc, TCHAR **argv)
         goto failed;
 
     // now get the handle to the DLL, and call the main function.
-    if (PyString_Check(f))
-        hmod = GetModuleHandleA(PyString_AsString(f));
-    else if (PyUnicode_Check(f))
-        hmod = GetModuleHandleW(PyUnicode_AsUnicode(f));
+    if (PyBytes_Check(f))
+        hmod = GetModuleHandleA(PyBytes_AsString(f));
+    else if (TmpWCHAR tw = f) {
+        hmod = GetModuleHandleW(tw);
+    }
     else {
         PyErr_SetString(PyExc_TypeError, "servicemanager.__file__ is not a string or unicode !");
         goto failed;

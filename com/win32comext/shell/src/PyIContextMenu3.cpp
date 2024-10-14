@@ -42,7 +42,7 @@ STDMETHODIMP PyGContextMenu3::HandleMenuMsg2(UINT uMsg, WPARAM wParam, LPARAM lP
         if (ret == Py_None)
             *lpResult = FALSE;
         else {
-            PyWinObject_AsPARAM(ret, (WPARAM *)lpResult);
+            PyWinObject_AsSimplePARAM(ret, (WPARAM *)lpResult);
             hr = PyCom_SetAndLogCOMErrorFromPyException("HandleMenuMsg2", IID_IContextMenu3);
         }
     }

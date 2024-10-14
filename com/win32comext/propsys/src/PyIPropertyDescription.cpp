@@ -74,7 +74,7 @@ PyObject *PyIPropertyDescription::GetPropertyType(PyObject *self, PyObject *args
 
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIPD, IID_IPropertyDescription);
-    return PyInt_FromLong(t);
+    return PyLong_FromLong(t);
 }
 
 // @pymethod str|PyIPropertyDescription|GetDisplayName|Returns the property name as shown in the UI
@@ -137,7 +137,7 @@ PyObject *PyIPropertyDescription::GetTypeFlags(PyObject *self, PyObject *args)
 
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIPD, IID_IPropertyDescription);
-    return PyInt_FromLong(flags);
+    return PyLong_FromLong(flags);
 }
 
 // @pymethod int|PyIPropertyDescription|GetViewFlags|Returns the view flags that control how the property is displayed
@@ -156,7 +156,7 @@ PyObject *PyIPropertyDescription::GetViewFlags(PyObject *self, PyObject *args)
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIPD, IID_IPropertyDescription);
-    return PyInt_FromLong(flags);
+    return PyLong_FromLong(flags);
 }
 
 // @pymethod int|PyIPropertyDescription|GetDefaultColumnWidth|Returns the default width in characters
@@ -191,7 +191,7 @@ PyObject *PyIPropertyDescription::GetDisplayType(PyObject *self, PyObject *args)
     hr = pIPD->GetDisplayType(&t);
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIPD, IID_IPropertyDescription);
-    return PyInt_FromLong(t);
+    return PyLong_FromLong(t);
 }
 
 // @pymethod int|PyIPropertyDescription|GetColumnState|Returns flags that control how property is displayed in column
@@ -210,7 +210,7 @@ PyObject *PyIPropertyDescription::GetColumnState(PyObject *self, PyObject *args)
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIPD, IID_IPropertyDescription);
-    return PyInt_FromLong(s);
+    return PyLong_FromLong(s);
 }
 
 // @pymethod int|PyIPropertyDescription|GetGroupingRange|Returns property's grouping attributes (PDGR_*)
@@ -229,7 +229,7 @@ PyObject *PyIPropertyDescription::GetGroupingRange(PyObject *self, PyObject *arg
 
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIPD, IID_IPropertyDescription);
-    return PyInt_FromLong(g);
+    return PyLong_FromLong(g);
 }
 
 // @pymethod int|PyIPropertyDescription|GetRelativeDescriptionType|Returns the relative description type (PDRDT_*)
@@ -248,7 +248,7 @@ PyObject *PyIPropertyDescription::GetRelativeDescriptionType(PyObject *self, PyO
 
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIPD, IID_IPropertyDescription);
-    return PyInt_FromLong(d);
+    return PyLong_FromLong(d);
 }
 
 // @pymethod (str, str)|PyIPropertyDescription|GetRelativeDescription|Compares two values
@@ -297,7 +297,7 @@ PyObject *PyIPropertyDescription::GetSortDescription(PyObject *self, PyObject *a
 
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIPD, IID_IPropertyDescription);
-    return PyInt_FromLong(d);
+    return PyLong_FromLong(d);
 }
 
 // @pymethod str|PyIPropertyDescription|GetSortDescriptionLabel|Returns description of current sort order
@@ -340,7 +340,7 @@ PyObject *PyIPropertyDescription::GetAggregationType(PyObject *self, PyObject *a
 
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIPD, IID_IPropertyDescription);
-    return PyInt_FromLong(a);
+    return PyLong_FromLong(a);
 }
 
 // @pymethod (int, int)|PyIPropertyDescription|GetConditionType|Returns options that determine how the property is used

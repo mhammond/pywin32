@@ -31,19 +31,19 @@ PyObject *PyILockBytes::ReadAt(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "Kk:ReadAt", &ulOffset.QuadPart, &cb))
         return NULL;
 
-    PyObject *pyretval = PyString_FromStringAndSize(NULL, cb);
+    PyObject *pyretval = PyBytes_FromStringAndSize(NULL, cb);
     if (pyretval == NULL)
         return NULL;
     ULONG cbRead;
     PY_INTERFACE_PRECALL;
-    HRESULT hr = pILB->ReadAt(ulOffset, PyString_AS_STRING(pyretval), cb, &cbRead);
+    HRESULT hr = pILB->ReadAt(ulOffset, PyBytes_AS_STRING(pyretval), cb, &cbRead);
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr)) {
         Py_DECREF(pyretval);
         return PyCom_BuildPyException(hr, pILB, IID_ILockBytes);
     }
     // @comm The result is a binary buffer returned in a string.
-    _PyString_Resize(&pyretval, cbRead);
+    _PyBytes_Resize(&pyretval, cbRead);
     return pyretval;
 }
 
@@ -57,18 +57,17 @@ PyObject *PyILockBytes::WriteAt(PyObject *self, PyObject *args)
     // @pyparm <o ULARGE_INTEGER>|ulOffset||Offset to write at.
     // @pyparm string|data||Data to write
     PyObject *obulOffset, *obpv;
-    void *pv;
-    ULONG cb;
     if (!PyArg_ParseTuple(args, "OO:WriteAt", &obulOffset, &obpv))
         return NULL;
     ULARGE_INTEGER ulOffset;
     if (!PyWinObject_AsULARGE_INTEGER(obulOffset, &ulOffset))
         return NULL;
-    if (!PyWinObject_AsReadBuffer(obpv, &pv, &cb, FALSE))
+    PyWinBufferView pybuf(obpv);
+    if (!pybuf.ok())
         return NULL;
     ULONG pcbWritten;
     PY_INTERFACE_PRECALL;
-    HRESULT hr = pILB->WriteAt(ulOffset, pv, cb, &pcbWritten);
+    HRESULT hr = pILB->WriteAt(ulOffset, pybuf.ptr(), pybuf.len(), &pcbWritten);
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pILB, IID_ILockBytes);
@@ -257,15 +256,14 @@ STDMETHODIMP PyGLockBytes::ReadAt(
 
     // Process the Python results, and convert back to the real params
     // Length of returned object must fit in buffer !
-    DWORD resultlen;
-    VOID *buf;
-    if (PyWinObject_AsReadBuffer(result, &buf, &resultlen, FALSE)) {
-        if (resultlen > cb)
+    PyWinBufferView pybuf(result);
+    if (pybuf.ok()) {
+        if (pybuf.len() > cb)
             PyErr_SetString(PyExc_ValueError, "PyGLockBytes::ReadAt: returned data longer than requested");
         else {
-            memcpy(pv, buf, resultlen);
+            memcpy(pv, pybuf.ptr(), pybuf.len());
             if (pcbRead)
-                *pcbRead = resultlen;
+                *pcbRead = pybuf.len();
             hr = S_OK;
         }
     }
@@ -286,7 +284,7 @@ STDMETHODIMP PyGLockBytes::WriteAt(
 
     PY_GATEWAY_METHOD;
     PyObject *obulOffset = PyWinObject_FromULARGE_INTEGER(ulOffset);
-    PyObject *obbuf = PyString_FromStringAndSize((char *)pv, cb);
+    PyObject *obbuf = PyBytes_FromStringAndSize((char *)pv, cb);
     PyObject *result;
     HRESULT hr = InvokeViaPolicy("WriteAt", &result, "OO", obulOffset, obbuf);
     Py_XDECREF(obulOffset);
@@ -294,7 +292,7 @@ STDMETHODIMP PyGLockBytes::WriteAt(
     if (FAILED(hr))
         return hr;
     // Process the Python results, and convert back to the real params
-    int cbWritten = PyInt_AsLong(result);
+    int cbWritten = PyLong_AsLong(result);
     Py_DECREF(result);
     if (cbWritten == -1) {
         PyErr_Clear();

@@ -1,8 +1,5 @@
-import string
-
 class History:
-
-    def __init__(self, text, output_sep = "\n"):
+    def __init__(self, text, output_sep="\n"):
         self.text = text
         self.history = []
         self.history_prefix = None
@@ -34,8 +31,10 @@ class History:
         pointer = self.history_pointer
         prefix = self.history_prefix
         if pointer is not None and prefix is not None:
-            if self.text.compare("insert", "!=", "end-1c") or \
-               self._get_source("iomark", "end-1c") != self.history[pointer]:
+            if (
+                self.text.compare("insert", "!=", "end-1c")
+                or self._get_source("iomark", "end-1c") != self.history[pointer]
+            ):
                 pointer = prefix = None
         if pointer is None or prefix is None:
             prefix = self._get_source("iomark", "end-1c")
@@ -46,9 +45,9 @@ class History:
         nprefix = len(prefix)
         while 1:
             if reverse:
-                pointer = pointer - 1
+                pointer -= 1
             else:
-                pointer = pointer + 1
+                pointer += 1
             if pointer < 0 or pointer >= nhist:
                 self.text.bell()
                 if self._get_source("iomark", "end-1c") != prefix:
@@ -86,4 +85,3 @@ class History:
         self.text.mark_set("insert", "end-1c")
         self.text.insert("insert", s)
         self.text.see("insert")
-

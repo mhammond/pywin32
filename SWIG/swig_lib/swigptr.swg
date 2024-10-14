@@ -13,9 +13,9 @@
  *      original datatype and newtype is an equivalent type.  cast is optional
  *      pointer to a function to cast pointer values between types (this
  *      is typically used to cast pointers from derived classes to base classes in C++)
- *      
+ *
  * SWIG_MakePtr(char *buffer, void *ptr, char *typestring);
- *     
+ *
  *      Makes a pointer string from a pointer and typestring.  The result is returned
  *      in buffer which is assumed to hold enough space for the result.
  *
@@ -81,7 +81,7 @@ static SwigPtrType *SwigPtrTable = 0;  /* Table containing pointer equivalences 
 
 #define SWIG_CACHESIZE  8
 #define SWIG_CACHEMASK  0x7
-static SwigCacheType SwigCache[SWIG_CACHESIZE];  
+static SwigCacheType SwigCache[SWIG_CACHESIZE];
 static int SwigCacheIndex = 0;
 static int SwigLastCache = 0;
 
@@ -101,7 +101,7 @@ static int swigcmp(const void *key, const void *data) {
 
 /* Register a new datatype with the type-checker */
 
-SWIGSTATIC 
+SWIGSTATIC
 void SWIG_RegisterMapping(char *origtype, char *newtype, void *(*cast)(void *)) {
 
   int i;
@@ -109,7 +109,7 @@ void SWIG_RegisterMapping(char *origtype, char *newtype, void *(*cast)(void *)) 
 
   /* Allocate the pointer table if necessary */
 
-  if (!SwigPtrTable) {     
+  if (!SwigPtrTable) {
     SwigPtrTable = (SwigPtrType *) malloc(SwigPtrMax*sizeof(SwigPtrType));
     SwigPtrN = 0;
   }
@@ -141,21 +141,21 @@ void SWIG_RegisterMapping(char *origtype, char *newtype, void *(*cast)(void *)) 
     }
     t = t->next;
   }
-  
+
   /* Now place entry (in sorted order) */
 
   t1 = (SwigPtrType *) malloc(sizeof(SwigPtrType));
   t1->name = newtype;
   t1->len = strlen(t1->name);
   t1->cast = cast;
-  t1->next = 0;            
-  t->next = t1;           
+  t1->next = 0;
+  t->next = t1;
   SwigPtrSort = 0;
 }
 
 /* Make a pointer value string */
 
-SWIGSTATIC 
+SWIGSTATIC
 void SWIG_MakePtr(char *_c, const void *_ptr, char *type) {
   static char _hex[16] =
   {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
@@ -182,11 +182,11 @@ void SWIG_MakePtr(char *_c, const void *_ptr, char *type) {
 
 /* Define for backwards compatibility */
 
-#define _swig_make_hex   SWIG_MakePtr 
+#define _swig_make_hex   SWIG_MakePtr
 
 /* Function for getting a pointer value */
 
-SWIGSTATIC 
+SWIGSTATIC
 char *SWIG_GetPtr(char *_c, void **ptr, char *_t)
 {
   unsigned long _p;
@@ -213,9 +213,9 @@ char *SWIG_GetPtr(char *_c, void **ptr, char *_t)
       }
 
       if (_t) {
-	if (strcmp(_t,_c)) { 
+	if (strcmp(_t,_c)) {
 	  if (!SwigPtrSort) {
-	    qsort((void *) SwigPtrTable, SwigPtrN, sizeof(SwigPtrType), swigsort); 
+	    qsort((void *) SwigPtrTable, SwigPtrN, sizeof(SwigPtrType), swigsort);
 	    for (i = 0; i < 256; i++) {
 	      SwigStart[i] = SwigPtrN;
 	    }
@@ -227,10 +227,10 @@ char *SWIG_GetPtr(char *_c, void **ptr, char *_t)
 		SwigStart[i-1] = SwigStart[i];
 	    }
 	    SwigPtrSort = 1;
-	    for (i = 0; i < SWIG_CACHESIZE; i++)  
+	    for (i = 0; i < SWIG_CACHESIZE; i++)
 	      SwigCache[i].stat = 0;
 	  }
-	  
+
 	  /* First check cache for matches.  Uses last cache value as starting point */
 	  cache = &SwigCache[SwigLastCache];
 	  for (i = 0; i < SWIG_CACHESIZE; i++) {
@@ -274,13 +274,13 @@ char *SWIG_GetPtr(char *_c, void **ptr, char *_t)
 		strncpy(temp_type,tp->name,255);
 		strncat(temp_type,_t+len,255-tp->len);
 		if (strcmp(_c,temp_type) == 0) {
-		  
+
 		  strcpy(SwigCache[SwigCacheIndex].mapped,_c);
 		  strcpy(SwigCache[SwigCacheIndex].name,_t);
 		  SwigCache[SwigCacheIndex].stat = 1;
 		  SwigCache[SwigCacheIndex].tp = tp;
 		  SwigCacheIndex = SwigCacheIndex & SWIG_CACHEMASK;
-		  
+
 		  /* Get pointer value */
 		  *ptr = (void *) _p;
 		  if (tp->cast) *ptr = (*(tp->cast))(*ptr);
@@ -292,7 +292,7 @@ char *SWIG_GetPtr(char *_c, void **ptr, char *_t)
 	      /* Hmmm. Didn't find it this time */
 	    }
 	  }
-	  /* Didn't find any sort of match for this data.  
+	  /* Didn't find any sort of match for this data.
 	     Get the pointer value and return the received type */
 	  *ptr = (void *) _p;
 	  return _c;
@@ -311,7 +311,7 @@ char *SWIG_GetPtr(char *_c, void **ptr, char *_t)
 	*ptr = (void *) 0;
 	return (char *) 0;
     }
-    *ptr = (void *) 0;	
+    *ptr = (void *) 0;
     return _c;
   }
 }

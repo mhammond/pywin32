@@ -31,7 +31,7 @@ PyObject *PyIPersistStream::IsDirty(PyObject *self, PyObject *args)
         return PyCom_BuildPyException(hr, pMy, IID_IPersistStream);
 
     // anything but S_FALSE means dirty.
-    return PyInt_FromLong(hr != S_FALSE);
+    return PyLong_FromLong(hr != S_FALSE);
     // @rvalue S_OK (ie, 0)|The object has changed since it was last saved.
     // @rvalue S_FALSE (ie, 1)|The object has not changed since the last save.
 }

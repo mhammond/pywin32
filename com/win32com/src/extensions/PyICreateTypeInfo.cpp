@@ -167,7 +167,7 @@ PyObject *PyICreateTypeInfo::AddRefTypeInfo(PyObject *self, PyObject *args)
 
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pICTI, IID_ICreateTypeInfo);
-    return PyInt_FromLong(hRefType);
+    return PyLong_FromLong(hRefType);
 }
 
 // @pymethod |PyICreateTypeInfo|AddFuncDesc|Description of AddFuncDesc.
@@ -350,10 +350,12 @@ PyObject *PyICreateTypeInfo::SetFuncAndParamNames(PyObject *self, PyObject *args
         PyErr_SetString(PyExc_TypeError, "The names param must be a sequence of strings/unicodes");
         return NULL;
     }
-    UINT cNames = PySequence_Length(obrgszNames);
+    Py_ssize_t cNames = PySequence_Length(obrgszNames);
+    PYWIN_CHECK_SSIZE_DWORD(cNames, NULL);
+
     OLECHAR **pNames = new OLECHAR *[cNames];
-    memset(pNames, sizeof(OLECHAR *) * cNames, 0);
-    UINT i;
+    memset(pNames, 0, sizeof(OLECHAR *) * cNames);
+    Py_ssize_t i;
     for (i = 0; bPythonIsHappy && i < cNames; i++) {
         PyObject *item = PySequence_GetItem(obrgszNames, i);
         if (item == NULL)
@@ -364,16 +366,16 @@ PyObject *PyICreateTypeInfo::SetFuncAndParamNames(PyObject *self, PyObject *args
     }
     if (!bPythonIsHappy) {
         for (i = 0; i < cNames; i++) PyWinObject_FreeBstr(pNames[i]);
-        delete pNames;
+        delete[] pNames;
         return NULL;
     }
     HRESULT hr;
     PY_INTERFACE_PRECALL;
-    hr = pICTI->SetFuncAndParamNames(index, pNames, cNames);
+    hr = pICTI->SetFuncAndParamNames(index, pNames, (UINT)cNames);
     PY_INTERFACE_POSTCALL;
 
     for (i = 0; i < cNames; i++) PyWinObject_FreeBstr(pNames[i]);
-    delete pNames;
+    delete[] pNames;
 
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pICTI, IID_ICreateTypeInfo);

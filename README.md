@@ -1,14 +1,22 @@
 # pywin32
 
+[![CI](https://github.com/mhammond/pywin32/workflows/CI/badge.svg)](https://github.com/mhammond/pywin32/actions?query=workflow%3ACI)
+[![PyPI - Version](https://img.shields.io/pypi/v/pywin32.svg)](https://pypi.org/project/pywin32)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/pywin32.svg)](https://pypi.org/project/pywin32)
+[![PyPI - Downloads](https://img.shields.io/pypi/dm/pywin32.svg)](https://pypi.org/project/pywin32)
+[![License - PSF-2.0](https://img.shields.io/badge/license-PSF--2.0-9400d3.svg)](https://spdx.org/licenses/PSF-2.0.html)
+
+-----
+
 This is the readme for the Python for Win32 (pywin32) extensions, which provides access to many of the Windows APIs from Python.
 
 See [CHANGES.txt](https://github.com/mhammond/pywin32/blob/master/CHANGES.txt) for recent notable changes.
 
-Note that as of build 222, pywin32 has a new home at [github](https://github.com/mhammond/pywin32).
-You can find build 221 and later on github and older versions can be found on
-the old project home at [sourceforge](https://sourceforge.net/projects/pywin32/)
+## Docs
 
-A special shout-out to @xoviat who provided enormous help with the github move!
+The docs are a long and sad story, but [there's now an online version](https://mhammond.github.io/pywin32/)
+of the helpfile that ships with the installers (thanks [@ofek](https://github.com/mhammond/pywin32/pull/1774)!).
+Lots of that is very old, but some is auto-generated and current. Would love help untangling the docs!
 
 ## Support
 
@@ -23,58 +31,158 @@ closed. For such issues, please email the
 note that you must be subscribed to the list before posting.
 
 ## Binaries
-By far the easiest way to use pywin32 is to grab binaries from the [most recent release](https://github.com/mhammond/pywin32/releases)
+
+[Binary releases are no longer supported.](https://mhammond.github.io/pywin32_installers.html)
+
+Build 306 was the last with .exe installers. You really shouldn't use them, but if you really need them,
+[find them here](https://github.com/mhammond/pywin32/releases/tag/b306)
 
 ## Installing via PIP
 
-Note that PIP support is experimental.
+You should install pywin32 via pip - eg,
 
-You can install pywin32 via pip:
-> pip install pywin32
+```shell
+python -m pip install --upgrade pywin32
+```
 
-Note that if you want to use pywin32 for "system wide" features, such as
-registering COM objects or implementing Windows Services, then you must run
-the following command from an elevated command prompt:
+There is a post-install script (see below) which should *not* be run inside virtual environments;
+it should only be run in "global" installs.
 
-> python Scripts/pywin32_postinstall.py -install
+For unreleased changes, you can download builds made by [github actions](https://github.com/mhammond/pywin32/actions/) -
+choose any "workflow" from the `main` branch and download its "artifacts")
+
+### Installing globally
+
+Outside of a virtual environment you might want to install COM objects, services, etc. You can do
+this by executing:
+
+```shell
+python Scripts/pywin32_postinstall.py -install
+```
+
+From the root of your Python installation.
+
+If you do this with normal permissions it will be global for your user (a few files will be
+copied to the root of your Python install and some changes made to HKCU). If you execute this from
+an elevated process, it will be global for the machine (files will be copied to System32, HKLM
+will be changed, etc)
+
+### Running as a Windows Service
+
+To run as a service, you probably want to install pywin32 globally from an elevated
+command prompt - see above.
+
+You also need to ensure Python is installed in a location where the user running
+the service has access to the installation and is able to load `pywintypesXX.dll` and `pythonXX.dll`. In particular, the `LocalSystem` account typically will not have access
+to your local `%USER%` directory structure.
+
+## Troubleshooting
+
+If you encounter any problems when upgrading like the following:
+
+```text
+The specified procedure could not be found
+Entry-point not found
+```
+
+It usually means one of 2 things:
+
+* You've upgraded an install where the post-install script has previously run.
+So you should run it again:
+
+    ```shell
+    python Scripts/pywin32_postinstall.py -install
+    ```
+
+    This will make some small attempts to cleanup older conflicting installs.
+
+* There are other pywin32 DLLs installed in your system,
+but in a different location than the new ones. This sometimes happens in environments that
+come with pywin32 pre-shipped (eg, anaconda?).
+
+  The possible solutions here are:
+
+  * Run the "post_install" script documented above.
+  * Otherwise, find and remove all other copies of `pywintypesXX.dll` and `pythoncomXX.dll`
+  (where `XX` is the Python version - eg, "39")
 
 ## Building from source
-Building from source is extremely complicated due to the fact we support building
-old versions of Python using old versions of Windows SDKs. If you just want to
-build the most recent version, you can probably get away with installing th
-same MSVC version used to build that version of Python, grabbing a recent
-Windows SDK and running `setup.py`
 
-`setup.py` is a standard distutils build script.  You probably want:
+Install Visual Studio 2019 (later probably works, but options might be different),
+follow the instructions in [Build environment](/build_env.md#build-environment)
+for the version you install.
 
-> python setup.py install
+(the free compilers probably work too, but haven't been tested - let me know your experiences!)
+
+`setup.py` is a standard distutils build script, so you probably want:
+
+```shell
+python setup.py install
+```
 
 or
 
-> python setup.py --help
+```shell
+python setup.py --help
+```
 
-You can run `setup.py` without any arguments to see
-specific information about dependencies.  A vanilla MSVC installation should
-be able to build most extensions and list any extensions that could not be
-built due to missing libraries - if the build actually fails with your
+Some modules need obscure SDKs to build - `setup.py` should succeed, gracefully
+telling you why it failed to build them - if the build actually fails with your
 configuration, please [open an issue](https://github.com/mhammond/pywin32/issues).
 
 ## Release process
 
 The following steps are performed when making a new release - this is mainly
-to form a checklist so mhammond doesn't forget what to do :)
+to form a checklist so @mhammond doesn't forget what to do :)
 
-* Ensure CHANGES.txt has everything worth noting, commit it.
+Since build 307 the release process is based on the artifacts created by Github actions.
 
-* Update setup.py with the new build number.
+* Ensure CHANGES.txt has everything worth noting. Update the header to reflect
+  the about-to-be released build and date, commit it.
 
-* Execute build.bat, wait forever, test the artifacts.
+* Update setup.py with the new build number. Update CHANGES.txt to have a new heading
+  section for the next unreleased version. (ie, a new, empty "Coming in build XXX, as yet unreleased"
+  section)
 
-* Commit setup.py (so the new build number is in the repo), create a new git tag
+* Push these changes to github, wait for the actions to complete, then
+  download the artifacts from that run.
 
-* Upload the .exe installers to github, the .whl files to pypi.
+* Upload .whl artifacts to pypi - we do this before pushing the tag because they might be
+  rejected for an invalid `README.md`. Done via `py -3.? -m twine upload dist/*XXX*.whl`.
+
+* Create a new git tag for the release.
 
 * Update setup.py with the new build number + ".1" (eg, 123.1), to ensure
   future test builds aren't mistaken for the real release.
+
+* Make sure everything is pushed to github, including the tag (ie,
+  `git push --tags`)
+
+* Send mail to python-win32
+
+### Older Manual Release Process
+
+This is the old process used when a local dev environment was used to create
+the builds. Build 306 was the last released with this process.
+
+* Ensure CHANGES.txt has everything worth noting. Update the header to reflect
+  the about-to-be released build and date, commit it.
+
+* Update setup.py with the new build number.
+
+* Execute `make_all.bat`, wait forever, test the artifacts.
+
+* Upload .whl artifacts to pypi - we do this before pushing the tag because they might be
+  rejected for an invalid `README.md`. Done via `py -3.? -m twine upload dist/*XXX*.whl`.
+
+* Commit setup.py (so the new build number is in the repo), create a new git tag
+
+* Upload the .exe installers to github.
+
+* Update setup.py with the new build number + ".1" (eg, 123.1), to ensure
+  future test builds aren't mistaken for the real release.
+
+* Make sure everything is pushed to github, including the tag (ie,
+  `git push --tags`)
 
 * Send mail to python-win32

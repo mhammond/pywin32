@@ -37,17 +37,10 @@ static GetNamedPipeClientProcessIdfunc pfnGetNamedPipeServerSessionId = NULL;
 %}
 
 %{
-#if (PY_VERSION_HEX < 0x03000000)
-extern PyObject *PyPopen(PyObject *self, PyObject  *args);
-extern PyObject *PyPopen2(PyObject *self, PyObject  *args);
-extern PyObject *PyPopen3(PyObject *self, PyObject  *args);
-extern PyObject *PyPopen4(PyObject *self, PyObject  *args);
-#else
 PyObject *PyPopen(PyObject *self, PyObject  *args) {PyErr_SetString(PyExc_NotImplementedError, "not available in py3k"); return NULL;};
 PyObject *PyPopen2(PyObject *self, PyObject  *args) {PyErr_SetString(PyExc_NotImplementedError, "not available in py3k"); return NULL;};
 PyObject *PyPopen3(PyObject *self, PyObject  *args) {PyErr_SetString(PyExc_NotImplementedError, "not available in py3k"); return NULL;};
 PyObject *PyPopen4(PyObject *self, PyObject  *args) {PyErr_SetString(PyExc_NotImplementedError, "not available in py3k"); return NULL;};
-#endif // PY_VERSION_HEX
 
 %}
 // @pymeth popen|Version of popen that works in a GUI
@@ -94,6 +87,9 @@ PyObject *FdCreatePipe(SECURITY_ATTRIBUTES *INPUT, DWORD nSize, int mode);
 #define NMPWAIT_WAIT_FOREVER NMPWAIT_WAIT_FOREVER
 #define NMPWAIT_USE_DEFAULT_WAIT NMPWAIT_USE_DEFAULT_WAIT
 #define PIPE_UNLIMITED_INSTANCES PIPE_UNLIMITED_INSTANCES
+#define PIPE_ACCEPT_REMOTE_CLIENTS PIPE_ACCEPT_REMOTE_CLIENTS
+#define PIPE_REJECT_REMOTE_CLIENTS PIPE_REJECT_REMOTE_CLIENTS
+#define FILE_FLAG_FIRST_PIPE_INSTANCE FILE_FLAG_FIRST_PIPE_INSTANCE
 
 %{
 // @pyswig (int, int, int/None, int/None, <o PyUnicode>|GetNamedPipeHandleState|Determines the state of the named pipe.
@@ -111,26 +107,33 @@ PyObject *MyGetNamedPipeHandleState(PyObject *self, PyObject *args)
 	PyObject *obCollectDataTimeout;
 
 	BOOL getCollectData = FALSE;
+	BOOL getUserName = FALSE;
 	// @pyparm <o PyHANDLE>|hPipe||The handle to the pipe.
-	// @pyparm int|bGetCollectionData|0|Determines of the collection data should be returned.  If not, None is returned in their place.
+	// @pyparm int|bGetCollectionData|0|Determines if the collection data should be retrieved.  If not, None is returned in their place.
+	// @pyparm int|bGetUserName|0|Determines if the username should be retrieved. Works only for a server handle and if the client opened the pipe with SECURITY_IMPERSONATION access.
 
-	if (!PyArg_ParseTuple(args, "O|i:GetNamedPipeHandleState", &obhNamedPipe, &getCollectData))
+	if (!PyArg_ParseTuple(args, "O|ii:GetNamedPipeHandleState", &obhNamedPipe, &getCollectData, &getUserName))
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhNamedPipe, &hNamedPipe))
 		return NULL;
-	TCHAR buf[512];
+	TCHAR buf[512] = L"";
 	if (getCollectData) {
 		pMaxCollectionCount = &MaxCollectionCount;
 		pCollectDataTimeout = &CollectDataTimeout;
 	} else
 		pMaxCollectionCount = pCollectDataTimeout = NULL;
 
-	if (!GetNamedPipeHandleState(hNamedPipe, &State, &CurInstances, pMaxCollectionCount, pCollectDataTimeout, buf, 512))
+	BOOL ok;
+	Py_BEGIN_ALLOW_THREADS
+	ok = GetNamedPipeHandleState(hNamedPipe, &State, &CurInstances, pMaxCollectionCount, pCollectDataTimeout,
+								  getUserName ? buf : NULL, 512);
+	Py_END_ALLOW_THREADS
+	if (!ok)
 		return PyWin_SetAPIError("GetNamedPipeHandleState");
 	PyObject *obName = PyWinObject_FromTCHAR(buf);
 	if (getCollectData) {
-		obMaxCollectionCount = PyInt_FromLong(MaxCollectionCount);
-		obCollectDataTimeout = PyInt_FromLong(CollectDataTimeout);
+		obMaxCollectionCount = PyLong_FromLong(MaxCollectionCount);
+		obCollectDataTimeout = PyLong_FromLong(CollectDataTimeout);
 	} else {
 		obMaxCollectionCount = Py_None; Py_INCREF(Py_None);
 		obCollectDataTimeout = Py_None; Py_INCREF(Py_None);
@@ -160,33 +163,33 @@ PyObject *MySetNamedPipeHandleState(PyObject *self, PyObject *args)
 	// @pyparm int/None|MaxCollectionCount||Maximum bytes collected before transmission to the server.
 	// @pyparm int/None|CollectDataTimeout||Maximum time to wait, in milliseconds, before transmission to server.
 
-	if (!PyArg_ParseTuple(args, "OOOO:SetNamedPipeHandleState", 
-			      &obhNamedPipe, &obMode, 
+	if (!PyArg_ParseTuple(args, "OOOO:SetNamedPipeHandleState",
+			      &obhNamedPipe, &obMode,
 			      &obMaxCollectionCount, &obCollectDataTimeout))
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhNamedPipe, &hNamedPipe))
 		return NULL;
     if (obMode!=Py_None) {
-        if (!PyInt_Check(obMode))
+        if (!PyLong_Check(obMode))
             return PyErr_Format(PyExc_TypeError, "mode param must be None or an integer (got %s)", obMode->ob_type->tp_name);
-        Mode = PyInt_AsLong(obMode);
+        Mode = PyLong_AsLong(obMode);
         pMode = &Mode;
     }
     if (obMaxCollectionCount!=Py_None) {
-        if (!PyInt_Check(obMaxCollectionCount))
+        if (!PyLong_Check(obMaxCollectionCount))
             return PyErr_Format(PyExc_TypeError, "maxCollectionCount param must be None or an integer (got %s)", obMaxCollectionCount->ob_type->tp_name);
-        MaxCollectionCount = PyInt_AsLong(obMaxCollectionCount);
+        MaxCollectionCount = PyLong_AsLong(obMaxCollectionCount);
         pMaxCollectionCount = &MaxCollectionCount;
     }
     if (obCollectDataTimeout!=Py_None) {
-        if (!PyInt_Check(obCollectDataTimeout))
+        if (!PyLong_Check(obCollectDataTimeout))
             return PyErr_Format(PyExc_TypeError, "collectDataTimeout param must be None or an integer (got %s)", obCollectDataTimeout->ob_type->tp_name);
-        CollectDataTimeout = PyInt_AsLong(obCollectDataTimeout);
+        CollectDataTimeout = PyLong_AsLong(obCollectDataTimeout);
         pCollectDataTimeout = &CollectDataTimeout;
     }
 
 	if (!SetNamedPipeHandleState(hNamedPipe, pMode, pMaxCollectionCount,
-				     pCollectDataTimeout)) 
+				     pCollectDataTimeout))
 		return PyWin_SetAPIError("SetNamedPipeHandleState");
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -225,7 +228,7 @@ PyObject *MyConnectNamedPipe(PyObject *self, PyObject *args)
 	// the function has still worked.
 	if (!ok && rc != ERROR_IO_PENDING && rc != ERROR_PIPE_CONNECTED)
 		return PyWin_SetAPIError("ConnectNamedPipe");
-	return PyInt_FromLong(rc);
+	return PyLong_FromLong(rc);
 }
 
 // @pyswig string/buffer|TransactNamedPipe|Combines the functions that write a
@@ -237,13 +240,11 @@ PyObject *MyConnectNamedPipe(PyObject *self, PyObject *args)
 PyObject *MyTransactNamedPipe(PyObject *self, PyObject *args)
 {
 	PyObject *obHandle, *obWriteData, *obReadData, *obOverlapped = Py_None;
-	void *writeData;
-	DWORD cbWriteData;
 	void *readData;
 	DWORD cbReadData;
 	HANDLE handle;
 	OVERLAPPED *pOverlapped = NULL;
-	if (!PyArg_ParseTuple(args, "OOO|O:TransactNamedPipe", 
+	if (!PyArg_ParseTuple(args, "OOO|O:TransactNamedPipe",
 		&obHandle,	// @pyparm <o PyUNICODE>|pipeName||The name of the pipe.
 		&obWriteData,   // @pyparm string/buffer|writeData||The data to write to the pipe.
 		// @pyparm <o PyOVERLAPPEDReadBuffer>/int|buffer/bufSize||Size of the buffer to create for the result,
@@ -257,7 +258,8 @@ PyObject *MyTransactNamedPipe(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsHANDLE(obHandle, &handle))
 		return NULL;
 
-	if (!PyWinObject_AsReadBuffer(obWriteData, &writeData, &cbWriteData, FALSE))
+	PyWinBufferView read_buf, write_buf(obWriteData);
+	if (!write_buf.ok())
 		return NULL;
 
 	if (obOverlapped!=Py_None && !PyWinObject_AsOVERLAPPED(obOverlapped, &pOverlapped))
@@ -266,29 +268,32 @@ PyObject *MyTransactNamedPipe(PyObject *self, PyObject *args)
 	BOOL bIsNewString=FALSE;
 	PyObject *obRet = NULL;
 	// process the tricky read buffer.
-	cbReadData = PyInt_AsLong(obReadData);
+	cbReadData = PyLong_AsLong(obReadData);
 	if ((cbReadData!=(DWORD)-1) || !PyErr_Occurred()){
-		if (pOverlapped){	// guaranteed to be NULL on CE
+		if (pOverlapped){
 			obRet = PyBuffer_New(cbReadData);
 			if (obRet==NULL)
 				return NULL;
 			// This shouldn't fail for buffer just created, but new buffer interface is screwy ...
-			DWORD newbufsize;		// maybe also check new buffer size matched requested size ?
-			if (!PyWinObject_AsReadBuffer(obRet, &readData, &newbufsize))
-				return NULL;
+			// maybe also check new buffer size matched requested size ?
+			if (!read_buf.init(obRet, true)) {
+			    Py_DECREF(obRet);
+			    return NULL;
+			    }
+			readData = read_buf.ptr();
 		} else {
-			obRet=PyString_FromStringAndSize(NULL, cbReadData);
+			obRet=PyBytes_FromStringAndSize(NULL, cbReadData);
 			if (obRet==NULL)
 				return NULL;
-			readData=PyString_AS_STRING(obRet);
+			readData=PyBytes_AS_STRING(obRet);
 			bIsNewString=TRUE;
 		}
 	} else {
 		PyErr_Clear();
-		if (!PyWinObject_AsWriteBuffer(obReadData, &readData, &cbReadData,FALSE)){
-			PyErr_SetString(PyExc_TypeError, "Third param must be an integer or writeable buffer object");
-			return NULL;
-			}
+		if (!read_buf.init(obReadData, true))
+		    return NULL;
+		readData = read_buf.ptr();
+		cbReadData = read_buf.len();
 		// If they didn't pass an overlapped, then we can't return the
 		// original buffer as they have no way to know how many bytes
 		// were read - so leave obRet NULL and the ret will be a new
@@ -301,7 +306,7 @@ PyObject *MyTransactNamedPipe(PyObject *self, PyObject *args)
 	BOOL ok;
 	DWORD numRead = 0;
 	Py_BEGIN_ALLOW_THREADS
-	ok = TransactNamedPipe(handle, writeData, cbWriteData, readData, cbReadData, &numRead, pOverlapped);
+	ok = TransactNamedPipe(handle, write_buf.ptr(), write_buf.len(), readData, cbReadData, &numRead, pOverlapped);
 	Py_END_ALLOW_THREADS
 	DWORD err = 0;
 	if (!ok) {
@@ -312,9 +317,9 @@ PyObject *MyTransactNamedPipe(PyObject *self, PyObject *args)
 		}
 	}
 	if (obRet==NULL)
-		obRet=PyString_FromStringAndSize((char *)readData, numRead);
+		obRet=PyBytes_FromStringAndSize((char *)readData, numRead);
 	else if (bIsNewString && (numRead < cbReadData))
-		_PyString_Resize(&obRet, numRead);
+		_PyBytes_Resize(&obRet, numRead);
 	if (obRet==NULL)
 		return NULL;
 	return Py_BuildValue("iN", err, obRet);
@@ -324,22 +329,21 @@ PyObject *MyTransactNamedPipe(PyObject *self, PyObject *args)
 PyObject *MyCallNamedPipe(PyObject *self, PyObject *args)
 {
 	PyObject *obPipeName, *obdata;
-	void *data;
-	DWORD dataSize;
 	DWORD timeOut;
 	DWORD readBufSize;
 	TCHAR *szPipeName;
-	if (!PyArg_ParseTuple(args, "OOil:CallNamedPipe", 
+	if (!PyArg_ParseTuple(args, "OOil:CallNamedPipe",
 		&obPipeName,	// @pyparm <o PyUNICODE>|pipeName||The name of the pipe.
 		&obdata,		// @pyparm string|data||The data to write.
 		&readBufSize,	// @pyparm int|bufSize||The size of the result buffer to allocate for the read.
 		&timeOut))		// @pyparm int|timeOut||Specifies the number of milliseconds to wait for the named pipe to be available. In addition to numeric values, the following special values can be specified.
-		// @flagh Value|Meaning 
-		// @flag win32pipe.NMPWAIT_NOWAIT|Does not wait for the named pipe. If the named pipe is not available, the function returns an error. 
-		// @flag win32pipe.NMPWAIT_WAIT_FOREVER|Waits indefinitely. 
-		// @flag win32pipe.NMPWAIT_USE_DEFAULT_WAIT|Uses the default time-out specified in a call to the CreateNamedPipe function. 
+		// @flagh Value|Meaning
+		// @flag win32pipe.NMPWAIT_NOWAIT|Does not wait for the named pipe. If the named pipe is not available, the function returns an error.
+		// @flag win32pipe.NMPWAIT_WAIT_FOREVER|Waits indefinitely.
+		// @flag win32pipe.NMPWAIT_USE_DEFAULT_WAIT|Uses the default time-out specified in a call to the CreateNamedPipe function.
 		return NULL;
-	if (!PyWinObject_AsReadBuffer(obdata, &data, &dataSize, FALSE))
+	PyWinBufferView pybuf(obdata);
+	if (!pybuf.ok())
 		return NULL;
 	if (!PyWinObject_AsTCHAR(obPipeName, &szPipeName))
 		return NULL;
@@ -351,14 +355,14 @@ PyObject *MyCallNamedPipe(PyObject *self, PyObject *args)
 	DWORD numRead = 0;
 	BOOL ok;
 	Py_BEGIN_ALLOW_THREADS
-	ok = CallNamedPipe(szPipeName, data, dataSize, readBuf, readBufSize, &numRead, timeOut);
+	ok = CallNamedPipe(szPipeName, pybuf.ptr(), pybuf.len(), readBuf, readBufSize, &numRead, timeOut);
 	Py_END_ALLOW_THREADS
 	if (!ok) {
 		PyWinObject_FreeTCHAR(szPipeName);
 		free(readBuf);
 		return PyWin_SetAPIError("CallNamedPipe");
 	}
-	PyObject *rc = PyString_FromStringAndSize( (char *)readBuf, numRead);
+	PyObject *rc = PyBytes_FromStringAndSize( (char *)readBuf, numRead);
 	PyWinObject_FreeTCHAR(szPipeName);
 	free(readBuf);
 	return rc;
@@ -370,8 +374,8 @@ PyObject *MyCreatePipe(
 		       DWORD nSize // @pyparm int|nSize||
 		       )
 {
-  HANDLE hReadPipe;		// variable for read handle 
-  HANDLE hWritePipe;		// variable for write handle 
+  HANDLE hReadPipe;		// variable for read handle
+  HANDLE hWritePipe;		// variable for write handle
   BOOL   ok;			// did CreatePipe work?
 
   ok = CreatePipe(&hReadPipe, &hWritePipe, INPUT, nSize);
@@ -392,8 +396,8 @@ PyObject *FdCreatePipe(
 	DWORD nSize,				// @pyparm int|nSize||Buffer size for pipe.  Use 0 for default size.
 	int mode)					// @pyparm int|mode||O_TEXT or O_BINARY
 {
-  HANDLE hReadPipe;		// variable for read handle 
-  HANDLE hWritePipe;		// variable for write handle 
+  HANDLE hReadPipe;		// variable for read handle
+  HANDLE hWritePipe;		// variable for write handle
   BOOL   ok;			// did CreatePipe work?
   if (mode != _O_TEXT && mode != _O_BINARY)
     {
@@ -414,7 +418,7 @@ PyObject *FdCreatePipe(
 %}
 
 // @pyswig <o PyHANDLE>|CreateNamedPipe|Creates an instance of a named pipe and returns a handle for subsequent pipe operations
-PyHANDLE CreateNamedPipe( 
+PyHANDLE CreateNamedPipe(
 	TCHAR *lpName,	// @pyparm <o PyUnicode>|pipeName||The name of the pipe
 	unsigned long dwOpenMode, // @pyparm int|openMode||OpenMode of the pipe
 	unsigned long dwPipeMode, // @pyparm int|pipeMode||
@@ -424,7 +428,7 @@ PyHANDLE CreateNamedPipe(
 	unsigned long nDefaultTimeOut, // @pyparm int|nDefaultTimeOut||
 	SECURITY_ATTRIBUTES *INPUT // @pyparm <o PySECURITY_ATTRIBUTES>|sa||
 );
-// @pyswig |DisconnectNamedPipe|Disconnects the server end of a named pipe instance from a client process. 
+// @pyswig |DisconnectNamedPipe|Disconnects the server end of a named pipe instance from a client process.
 BOOLAPI DisconnectNamedPipe(
 	PyHANDLE hFile // @pyparm <o PyHANDLE>|hFile||The handle to the pipe to disconnect.
 );
@@ -438,14 +442,14 @@ BOOLAPI GetOverlappedResult(
 	BOOL bWait	// @pyparm int|bWait||Indicates if the function should wait for data to become available.
 );
 
-// @pyswig |WaitNamedPipe|Waits until either a time-out interval elapses or an instance of the specified named pipe is available to be connected to (that is, the pipe's server process has a pending <om win32pipe.ConnectNamedPipe> operation on the pipe). 
-BOOLAPI WaitNamedPipe( 
+// @pyswig |WaitNamedPipe|Waits until either a time-out interval elapses or an instance of the specified named pipe is available to be connected to (that is, the pipe's server process has a pending <om win32pipe.ConnectNamedPipe> operation on the pipe).
+BOOLAPI WaitNamedPipe(
 	TCHAR *pipeName, // @pyparm <o PyUnicode>|pipeName||The name of the pipe
 	unsigned long timeout); // @pyparm int|timeout||The number of milliseconds the function will wait.
 	// instead of a literal value, you can specify one of the following values for the timeout:
-	// @flagh Value|Meaning 
-	// @flag NMPWAIT_USE_DEFAULT_WAIT|The time-out interval is the default value specified by the server process in the CreateNamedPipe function. 
-	// @flag NMPWAIT_WAIT_FOREVER|The function does not return until an instance of the named pipe is available 
+	// @flagh Value|Meaning
+	// @flag NMPWAIT_USE_DEFAULT_WAIT|The time-out interval is the default value specified by the server process in the CreateNamedPipe function.
+	// @flag NMPWAIT_WAIT_FOREVER|The function does not return until an instance of the named pipe is available
 
 // @pyswig (int, int, int, int)|GetNamedPipeInfo|Returns pipe's flags, buffer sizes, and max instances
 BOOLAPI GetNamedPipeInfo(
@@ -479,8 +483,8 @@ PyObject *MyPeekNamedPipe(PyObject *self, PyObject *args)
 	}
 	PyObject *rc = NULL;
 	if (PeekNamedPipe(hNamedPipe, buf, size, &bytesRead, &totalAvail, &bytesLeft)) {
-		rc = Py_BuildValue("Nii", 
-			PyString_FromStringAndSize((char *)buf, bytesRead),
+		rc = Py_BuildValue("Nii",
+			PyBytes_FromStringAndSize((char *)buf, bytesRead),
 			totalAvail, bytesLeft);
 	} else
 		PyWin_SetAPIError("PeekNamedPipe");

@@ -4,7 +4,7 @@
 // Window Objects
 //
 class PYW_EXPORT PyCWnd : public PyCCmdTarget {
-   public:  // probably shouldnt be, but...
+   public:  // probably shouldn't be, but...
     MAKE_PY_CTOR(PyCWnd)
     CMapWordToPtr *pMessageHookList;
     CMapWordToPtr *pKeyHookList;
@@ -121,8 +121,8 @@ PyObject *__DoBaseOnCommand(ui_type_CObject *type, PyObject *self, PyObject *arg
     PyObject *obwparam, *oblparam;
     if (!PyArg_ParseTuple(args, "OO", &obwparam, &oblparam))
         return NULL;
-    WPARAM wparam;
-    LPARAM lparam;
+    PyWin_PARAMHolder wparam;
+    PyWin_PARAMHolder lparam;
     if (!PyWinObject_AsPARAM(obwparam, &wparam))
         return NULL;
     if (!PyWinObject_AsPARAM(oblparam, &lparam))
@@ -131,7 +131,7 @@ PyObject *__DoBaseOnCommand(ui_type_CObject *type, PyObject *self, PyObject *arg
     ClassFramework *pcf = (ClassFramework *)ob;
     BOOL rc = pcf->_BaseOnCommand(wparam, lparam);
     GUI_END_SAVE;
-    return PyInt_FromLong(rc);
+    return PyLong_FromLong(rc);
 }
 #define DoBaseOnCommand(Class, type, self, args) __DoBaseOnCommand<Class>(type, self, args)
 

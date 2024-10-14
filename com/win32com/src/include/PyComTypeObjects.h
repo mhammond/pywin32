@@ -45,6 +45,7 @@ class PyFUNCDESC : public PyObject {
     int oVft;
     PyObject *rettype;
     int wFuncFlags;
+    DESCKIND desckind;
 };
 
 class PyTYPEATTR : public PyObject {
@@ -100,6 +101,7 @@ class PyVARDESC : public PyObject {
     PyObject *elemdescVar;
     int wVarFlags;
     int varkind;
+    DESCKIND desckind;
 };
 
 class PYCOM_EXPORT PySTGMEDIUM : public PyObject {

@@ -104,7 +104,7 @@ PyObject *ui_doc_get_first_view(PyObject *self, PyObject *args)
     GUI_END_SAVE;
 
     // @comm For more info, see <om PyCDocument.GetAllViews>
-    ASSERT(pWnd);  // shouldnt be possible.
+    ASSERT(pWnd);  // shouldn't be possible.
     return ui_assoc_object::make(UITypeFromCObject(pWnd), pWnd)->GetGoodRet();
 }
 
@@ -123,7 +123,7 @@ PyObject *ui_doc_get_all_views(PyObject *self, PyObject *args)
         GUI_BGN_SAVE;
         CView *pWnd = pDoc->GetNextView(pos);  // @pyseemfc CDocument|GetNextView
         GUI_END_SAVE;
-        ASSERT(pWnd);  // shouldnt be possible.
+        ASSERT(pWnd);  // shouldn't be possible.
         if (pWnd == NULL) {
             Py_DECREF(retList);
             RETURN_ERR("No view was available!");
@@ -284,7 +284,7 @@ static PyObject *ui_doc_save_modified(PyObject *self, PyObject *args)
     BOOL rc = pDoc->CDocument::SaveModified();  // @pyseemfc CDocument|SaveModified
     GUI_END_SAVE;
     // @rdesc Nonzero if it is safe to continue and close the document; 0 if the document should not be closed.
-    return PyInt_FromLong(rc);
+    return PyLong_FromLong(rc);
 }
 
 // @pymethod |PyCDocument|SetModifiedFlag|Set the "dirty" flag for the document.

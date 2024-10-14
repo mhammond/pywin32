@@ -13,9 +13,12 @@
 #   tools are installed, but you should always see the reason written
 #   to the Windows event log - see the IIS documentation for more.
 
+import os
+import stat
+import sys
+
 from isapi import isapicon
 from isapi.simple import SimpleExtension
-import sys, os, stat
 
 if hasattr(sys, "isapidllhandle"):
     import win32traceutil
@@ -29,9 +32,9 @@ if hasattr(sys, "isapidllhandle"):
 # return code from the terminate function is ignored.
 #
 # This is all the framework does to help you.  It is up to your code
-# when you raise this exception.  This sample uses a Win32 "find 
-# notification".  Whenever windows tells us one of the files in the 
-# directory has changed, we check if the time of our source-file has 
+# when you raise this exception.  This sample uses a Win32 "find
+# notification".  Whenever windows tells us one of the files in the
+# directory has changed, we check if the time of our source-file has
 # changed, and set a flag.  Next imcoming request, we check the flag and
 # raise the special exception if set.
 #
@@ -54,13 +57,20 @@ if hasattr(sys, "isapidllhandle"):
 # your module, the existing module will avoid the NameError, and allow
 # you to reload that module.
 
+import threading
+
+import win32con
+import win32event
+import win32file
+import winerror
+
 from isapi import InternalReloadException
-import win32event, win32file, winerror, win32con, threading
 
 try:
-    reload_counter += 1
+    reload_counter += 1  # type: ignore[used-before-def]
 except NameError:
     reload_counter = 0
+
 
 # A watcher thread that checks for __file__ changing.
 # When it detects it, it simply sets "change_detected" to true.
@@ -71,36 +81,38 @@ class ReloadWatcherThread(threading.Thread):
         if self.filename.endswith("c") or self.filename.endswith("o"):
             self.filename = self.filename[:-1]
         self.handle = win32file.FindFirstChangeNotification(
-                        os.path.dirname(self.filename),
-                        False, # watch tree?
-                        win32con.FILE_NOTIFY_CHANGE_LAST_WRITE)
+            os.path.dirname(self.filename),
+            False,  # watch tree?
+            win32con.FILE_NOTIFY_CHANGE_LAST_WRITE,
+        )
         threading.Thread.__init__(self)
 
     def run(self):
         last_time = os.stat(self.filename)[stat.ST_MTIME]
         while 1:
             try:
-                rc = win32event.WaitForSingleObject(self.handle, 
-                                                    win32event.INFINITE)
+                rc = win32event.WaitForSingleObject(self.handle, win32event.INFINITE)
                 win32file.FindNextChangeNotification(self.handle)
-            except win32event.error, details:
+            except win32event.error as details:
                 # handle closed - thread should terminate.
                 if details.winerror != winerror.ERROR_INVALID_HANDLE:
                     raise
                 break
             this_time = os.stat(self.filename)[stat.ST_MTIME]
             if this_time != last_time:
-                print "Detected file change - flagging for reload."
+                print("Detected file change - flagging for reload.")
                 self.change_detected = True
                 last_time = this_time
-    
+
     def stop(self):
         win32file.FindCloseChangeNotification(self.handle)
-        
+
+
 # The ISAPI extension - handles requests in our virtual dir, and sends the
 # response to the client.
 class Extension(SimpleExtension):
     "Python advanced sample Extension"
+
     def __init__(self):
         self.reload_watcher = ReloadWatcherThread()
         self.reload_watcher.start()
@@ -111,7 +123,7 @@ class Extension(SimpleExtension):
         # The "Dispatch" method will just cause the exception to be
         # rendered to the browser.
         if self.reload_watcher.change_detected:
-            print "Doing reload"
+            print("Doing reload")
             raise InternalReloadException
 
         url = ecb.GetServerVariable("UNICODE_URL")
@@ -119,29 +131,31 @@ class Extension(SimpleExtension):
             ecb.ReportUnhealthy("I'm a little sick")
 
         ecb.SendResponseHeaders("200 OK", "Content-Type: text/html\r\n\r\n", 0)
-        print >> ecb, "<HTML><BODY>"
+        print("<HTML><BODY>", file=ecb)
 
         qs = ecb.GetServerVariable("QUERY_STRING")
         if qs:
             queries = qs.split("&")
-            print >> ecb, "<PRE>"
+            print("<PRE>", file=ecb)
             for q in queries:
-                val = ecb.GetServerVariable(q, '&lt;no such variable&gt;')
-                print >> ecb, "%s=%r" % (q, val)
-            print >> ecb, "</PRE><P/>"
+                val = ecb.GetServerVariable(q, "&lt;no such variable&gt;")
+                print(f"{q}={val!r}", file=ecb)
+            print("</PRE><P/>", file=ecb)
 
-        print >> ecb, "This module has been imported"
-        print >> ecb, "%d times" % (reload_counter,)
-        print >> ecb, "</BODY></HTML>"
+        print("This module has been imported", file=ecb)
+        print("%d times" % (reload_counter,), file=ecb)
+        print("</BODY></HTML>", file=ecb)
         ecb.close()
         return isapicon.HSE_STATUS_SUCCESS
-    
+
     def TerminateExtension(self, status):
         self.reload_watcher.stop()
+
 
 # The entry points for the ISAPI extension.
 def __ExtensionFactory__():
     return Extension()
+
 
 # Our special command line customization.
 # Pre-install hook for our virtual directory.
@@ -151,46 +165,54 @@ def PreInstallDirectory(params, options):
     if options.description:
         params.Description = options.description
 
+
 # Post install hook for our entire script
 def PostInstall(params, options):
-    print
-    print "The sample has been installed."
-    print "Point your browser to /AdvancedPythonSample"
-    print "If you modify the source file and reload the page,"
-    print "you should see the reload counter increment"
+    print()
+    print("The sample has been installed.")
+    print("Point your browser to /AdvancedPythonSample")
+    print("If you modify the source file and reload the page,")
+    print("you should see the reload counter increment")
+
 
 # Handler for our custom 'status' argument.
 def status_handler(options, log, arg):
     "Query the status of something"
-    print "Everything seems to be fine!"
+    print("Everything seems to be fine!")
+
 
 custom_arg_handlers = {"status": status_handler}
 
-if __name__=='__main__':
+if __name__ == "__main__":
     # If run from the command-line, install ourselves.
     from isapi.install import *
-    params = ISAPIParameters(PostInstall = PostInstall)
+
+    params = ISAPIParameters(PostInstall=PostInstall)
     # Setup the virtual directories - this is a list of directories our
     # extension uses - in this case only 1.
     # Each extension has a "script map" - this is the mapping of ISAPI
     # extensions.
-    sm = [
-        ScriptMapParams(Extension="*", Flags=0)
-    ]
-    vd = VirtualDirParameters(Name="AdvancedPythonSample",
-                              Description = Extension.__doc__,
-                              ScriptMaps = sm,
-                              ScriptMapUpdate = "replace",
-                              # specify the pre-install hook.
-                              PreInstall = PreInstallDirectory
-                              )
+    sm = [ScriptMapParams(Extension="*", Flags=0)]
+    vd = VirtualDirParameters(
+        Name="AdvancedPythonSample",
+        Description=Extension.__doc__,
+        ScriptMaps=sm,
+        ScriptMapUpdate="replace",
+        # specify the pre-install hook.
+        PreInstall=PreInstallDirectory,
+    )
     params.VirtualDirs = [vd]
     # Setup our custom option parser.
     from optparse import OptionParser
-    parser = OptionParser('') # blank usage, so isapi sets it.
-    parser.add_option("", "--description",
-                      action="store",
-                      help="custom description to use for the virtual directory")
-    
-    HandleCommandLine(params, opt_parser=parser, 
-                              custom_arg_handlers = custom_arg_handlers)
+
+    parser = OptionParser("")  # blank usage, so isapi sets it.
+    parser.add_option(
+        "",
+        "--description",
+        action="store",
+        help="custom description to use for the virtual directory",
+    )
+
+    HandleCommandLine(
+        params, opt_parser=parser, custom_arg_handlers=custom_arg_handlers
+    )

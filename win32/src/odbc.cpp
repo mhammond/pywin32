@@ -503,9 +503,9 @@ static BOOL bindOutputVar(cursorObject *cur, CopyFcn fcn, short vtype, SQLLEN vs
 
 static PyObject *wcharCopy(const void *v, SQLLEN sz) { return PyWinObject_FromWCHAR((WCHAR *)v, sz / sizeof(WCHAR)); }
 
-static PyObject *stringCopy(const void *v, SQLLEN sz) { return PyString_FromStringAndSize((char *)v, sz); }
+static PyObject *stringCopy(const void *v, SQLLEN sz) { return PyBytes_FromStringAndSize((char *)v, sz); }
 
-static PyObject *longCopy(const void *v, SQLLEN sz) { return PyInt_FromLong(*(unsigned long *)v); }
+static PyObject *longCopy(const void *v, SQLLEN sz) { return PyLong_FromLong(*(unsigned long *)v); }
 
 static PyObject *doubleCopy(const void *v, SQLLEN sz)
 {
@@ -528,14 +528,13 @@ static PyObject *rawCopy(const void *v, SQLLEN sz)
     PyObject *ret = PyBuffer_New(sz);
     if (!ret)
         return NULL;
-    void *buf;
-    DWORD buflen;
     // Should not fail, but check anyway
-    if (!PyWinObject_AsWriteBuffer(ret, &buf, &buflen)) {
+    PyWinBufferView pybuf(ret, true);
+    if (!pybuf.ok()) {
         Py_DECREF(ret);
         return NULL;
     }
-    memcpy(buf, v, sz);
+    memcpy(pybuf.ptr(), v, sz);
     return ret;
 }
 
@@ -612,7 +611,7 @@ static InputBinding *initInputBinding(cursorObject *cur, Py_ssize_t len)
 static int ibindInt(cursorObject *cur, int column, PyObject *item)
 {
     int len = sizeof(long);
-    long val = PyInt_AsLong(item);
+    long val = PyLong_AsLong(item);
 
     InputBinding *ib = initInputBinding(cur, len);
     if (!ib)
@@ -707,49 +706,30 @@ static int ibindDate(cursorObject *cur, int column, PyObject *item)
         return 0;
     TIMESTAMP_STRUCT *dt = (TIMESTAMP_STRUCT *)ib->bind_area;
     ZeroMemory(dt, len);
-    // Accept either a PyTime or datetime object
-#ifndef NO_PYWINTYPES_TIME
-    if (PyWinTime_CHECK(item)) {
-        SYSTEMTIME st;
-        if (!((PyTime *)item)->GetTime(&st))
-            return 0;
-        dt->year = st.wYear;
-        dt->month = st.wMonth;
-        dt->day = st.wDay;
-        dt->hour = st.wHour;
-        dt->minute = st.wMinute;
-        dt->second = st.wSecond;
-        // Fraction is in nanoseconds
-        dt->fraction = st.wMilliseconds * 1000000;
+    // Accept a datetime object
+    TmpPyObject timeseq = PyObject_CallMethod(item, "timetuple", NULL);
+    if (timeseq == NULL)
+        return 0;
+    timeseq = PySequence_Tuple(timeseq);
+    if (timeseq == NULL)
+        return 0;
+    // Last 3 items are ignored.
+    PyObject *obwday, *obyday, *obdst;
+    if (!PyArg_ParseTuple(timeseq, "hhh|hhhOOO:TIMESTAMP_STRUCT", &dt->year, &dt->month, &dt->day, &dt->hour,
+                          &dt->minute, &dt->second, &obwday, &obyday, &obdst))
+        return 0;
+
+    TmpPyObject usec = PyObject_GetAttrString(item, "microsecond");
+    if (usec == NULL) {
+        PyErr_Clear();
     }
     else {
-#endif  // NO_PYWINTYPES_TIME
-        // Python 2.3 doesn't have C Api for datetime
-        TmpPyObject timeseq = PyObject_CallMethod(item, "timetuple", NULL);
-        if (timeseq == NULL)
+        dt->fraction = PyLong_AsUnsignedLong(usec);
+        if (dt->fraction == -1 && PyErr_Occurred())
             return 0;
-        timeseq = PySequence_Tuple(timeseq);
-        if (timeseq == NULL)
-            return 0;
-        // Last 3 items are ignored.
-        PyObject *obwday, *obyday, *obdst;
-        if (!PyArg_ParseTuple(timeseq, "hhh|hhhOOO:TIMESTAMP_STRUCT", &dt->year, &dt->month, &dt->day, &dt->hour,
-                              &dt->minute, &dt->second, &obwday, &obyday, &obdst))
-            return 0;
-
-        TmpPyObject usec = PyObject_GetAttrString(item, "microsecond");
-        if (usec == NULL)
-            PyErr_Clear();
-        else {
-            dt->fraction = PyLong_AsUnsignedLong(usec);
-            if (dt->fraction == -1 && PyErr_Occurred())
-                return 0;
-            // Convert to nanoseconds
-            dt->fraction *= 1000;
-        }
-#ifndef NO_PYWINTYPES_TIME
+        // Convert to nanoseconds
+        dt->fraction *= 1000;
     }
-#endif  // NO_PYWINTYPES_TIME
 
     if (unsuccessful(SQLBindParameter(cur->hstmt, column, SQL_PARAM_INPUT, SQL_C_TIMESTAMP, SQL_TIMESTAMP, len,
                                       3,  // Decimal digits of precision, appears to be ignored for datetime
@@ -763,21 +743,20 @@ static int ibindDate(cursorObject *cur, int column, PyObject *item)
 
 static int ibindRaw(cursorObject *cur, int column, PyObject *item)
 {
-    void *val;
-    DWORD len;
-    if (!PyWinObject_AsReadBuffer(item, &val, &len))
+    PyWinBufferView pybuf(item);
+    if (!pybuf.ok())
         return 0;
-    InputBinding *ib = initInputBinding(cur, len);
+    InputBinding *ib = initInputBinding(cur, pybuf.len());
     if (!ib)
         return 0;
     ib->bPutData = true;
 
-    memcpy(ib->bind_area, val, len);
+    memcpy(ib->bind_area, pybuf.ptr(), pybuf.len());
 
     RETCODE rc = SQL_SUCCESS;
     ib->sqlBytesAvailable = SQL_LEN_DATA_AT_EXEC(ib->len);
-    rc = SQLBindParameter(cur->hstmt, column, SQL_PARAM_INPUT, SQL_C_BINARY, SQL_LONGVARBINARY, len, 0, ib->bind_area,
-                          len, &ib->len);
+    rc = SQLBindParameter(cur->hstmt, column, SQL_PARAM_INPUT, SQL_C_BINARY, SQL_LONGVARBINARY, pybuf.len(), 0,
+                          ib->bind_area, pybuf.len(), &ib->len);
     if (unsuccessful(rc)) {
         cursorError(cur, _T("input-binding"));
         return 0;
@@ -807,7 +786,7 @@ static int ibindFloat(cursorObject *cur, int column, PyObject *item)
 
 static int ibindString(cursorObject *cur, int column, PyObject *item)
 {
-    const char *val = PyString_AsString(item);
+    const char *val = PyBytes_AsString(item);
     size_t len = strlen(val);
 
     InputBinding *ib = initInputBinding(cur, len);
@@ -839,8 +818,10 @@ static int ibindString(cursorObject *cur, int column, PyObject *item)
 
 static int ibindUnicode(cursorObject *cur, int column, PyObject *item)
 {
-    const WCHAR *wval = (WCHAR *)PyUnicode_AsUnicode(item);
-    Py_ssize_t nchars = PyUnicode_GetSize(item) + 1;
+    TmpWCHAR wval = item;
+    if (!wval)
+        return 0;
+    Py_ssize_t nchars = wval.length + 1;
     Py_ssize_t nbytes = nchars * sizeof(WCHAR);
 
     InputBinding *ib = initInputBinding(cur, nbytes);
@@ -875,8 +856,7 @@ static int rewriteQuery(TCHAR *out, const TCHAR *in)
     parseContext ctx;
 
     initParseContext(&ctx, in);
-    while (*out++ = doParse(&ctx))
-        ;
+    while (*out++ = doParse(&ctx));
     return ctx.parmCount;
 }
 
@@ -897,10 +877,10 @@ static int bindInput(cursorObject *cur, PyObject *vars, int columns)
         if (PyLong_Check(item)) {
             rv = ibindLong(cur, iCol, item);
         }
-        else if (PyInt_Check(item)) {
+        else if (PyLong_Check(item)) {
             rv = ibindInt(cur, iCol, item);
         }
-        else if (PyString_Check(item)) {
+        else if (PyBytes_Check(item)) {
             rv = ibindString(cur, iCol, item);
         }
         else if (PyUnicode_Check(item)) {
@@ -915,12 +895,7 @@ static int bindInput(cursorObject *cur, PyObject *vars, int columns)
         else if (PyWinTime_Check(item)) {
             rv = ibindDate(cur, iCol, item);
         }
-#if (PY_VERSION_HEX < 0x03000000)
-        else if (PyBuffer_Check(item))
-#else
-        else if (PyObject_CheckBuffer(item))
-#endif
-        {
+        else if (PyObject_CheckBuffer(item)) {
             rv = ibindRaw(cur, iCol, item);
         }
         else {
@@ -930,10 +905,10 @@ static int bindInput(cursorObject *cur, PyObject *vars, int columns)
             PyObject *sitem = PyObject_Str(item);
             if (sitem == NULL)
                 rv = 0;
-            else if (PyString_Check(sitem))
+            else if (PyBytes_Check(sitem))
                 rv = ibindString(cur, iCol, sitem);
-            else if
-                PyUnicode_Check(sitem) rv = ibindUnicode(cur, iCol, sitem);
+            else if (PyUnicode_Check(sitem))
+                rv = ibindUnicode(cur, iCol, sitem);
             else {  // Just in case some object doesn't follow the rules
                 PyErr_Format(PyExc_SystemError, "??? Repr for type '%s' returned type '%s' ???", item->ob_type,
                              sitem->ob_type);
@@ -1036,13 +1011,14 @@ static BOOL bindOutput(cursorObject *cur)
                 break;
             case SQL_BINARY:
             case SQL_VARBINARY:
-                if (!bindOutputVar(cur, rawCopy, SQL_C_BINARY, cur->max_width, pos, false))
+                if (!bindOutputVar(cur, rawCopy, SQL_C_BINARY, (vsize == 0) ? cur->max_width : vsize, pos, false))
                     return FALSE;
                 typeOf = DbiRaw;
                 break;
             case SQL_VARCHAR:
             case SQL_WVARCHAR:
-                if (!bindOutputVar(cur, wcharCopy, SQL_C_WCHAR, (vsize + 1) * sizeof(WCHAR), pos, false))
+                if (!bindOutputVar(cur, wcharCopy, SQL_C_WCHAR,
+                                   (((vsize == 0) ? cur->max_width : vsize) + 1) * sizeof(WCHAR), pos, false))
                     return FALSE;
                 typeOf = DbiString;
                 break;
@@ -1147,14 +1123,14 @@ static PyObject *odbcCurExec(PyObject *self, PyObject *args)
     }
 
     if (inputvars) {
-        if (PyString_Check(inputvars) || PyUnicode_Check(inputvars) || !PySequence_Check(inputvars))
+        if (PyBytes_Check(inputvars) || PyUnicode_Check(inputvars) || !PySequence_Check(inputvars))
             return PyErr_Format(odbcError, "Values must be a sequence, not %s", inputvars->ob_type->tp_name);
         if (PySequence_Length(inputvars) > 0) {
             PyObject *temp = PySequence_GetItem(inputvars, 0);
             if (temp == NULL)
                 return NULL;
             /* Strings don't count as a list in this case. */
-            if (PySequence_Check(temp) && !PyString_Check(temp) && !PyUnicode_Check(temp)) {
+            if (PySequence_Check(temp) && !PyBytes_Check(temp) && !PyUnicode_Check(temp)) {
                 rows = inputvars;
                 inputvars = NULL;
             }
@@ -1632,7 +1608,7 @@ PYWIN_MODULE_INIT_FUNC(odbc)
     }
 
     /* Names of various sql datatypes.
-        's' format of Py_BuildValue creates unicode on py3k, and char string on 2.x
+        's' format of Py_BuildValue creates unicode on py3k, and char string on Python 2
     */
     char *szDbiString = "STRING";
     char *szDbiRaw = "RAW";

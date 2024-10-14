@@ -56,7 +56,7 @@ PyObject *PyIKnownFolderManager::FolderIdToCsidl(PyObject *self, PyObject *args)
 
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIKFM, IID_IKnownFolderManager);
-    return PyInt_FromLong(csidl);
+    return PyLong_FromLong(csidl);
 }
 
 // @pymethod (<o PyIID>,...)|PyIKnownFolderManager|GetFolderIds|Retrieves all known folder ids.

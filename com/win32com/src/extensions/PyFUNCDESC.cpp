@@ -13,7 +13,7 @@ extern void FreeMoreBuffer(void *);
 static PyObject *MakeSCODEArray(SCODE *sa, int len)
 {
     PyObject *ret = PyTuple_New(len);
-    for (int i = 0; i < len; i++) PyTuple_SetItem(ret, i, PyInt_FromLong(sa[i]));
+    for (int i = 0; i < len; i++) PyTuple_SetItem(ret, i, PyLong_FromLong(sa[i]));
     return ret;
 }
 
@@ -70,9 +70,9 @@ BOOL PyObject_AsFUNCDESC(PyObject *ob, FUNCDESC **ppfd)
             PyObject *sub = PySequence_GetItem(ob, i);
             if (sub == NULL)
                 goto done;
-            BOOL ok = PyInt_Check(sub);
+            BOOL ok = PyLong_Check(sub);
             if (ok)
-                fd->lprgscode[i] = PyInt_AsLong(sub);
+                fd->lprgscode[i] = PyLong_AsLong(sub);
             else
                 PyErr_SetString(PyExc_TypeError, "SCODE array must be a sequence of integers!");
             Py_DECREF(sub);
@@ -107,6 +107,16 @@ static PySequenceMethods PyFUNCDESC_Sequence = {
     NULL,                   // sq_ass_slice;
 };
 
+static PyObject *PyFUNCDESC_Repr(PyObject *self)
+{
+    PyFUNCDESC *f = (PyFUNCDESC *)self;
+    return PyUnicode_FromFormat(
+        "PyFUNCDESC(memid=%d, scodeArray=%R, args=%R, funckind=%d, invkind=%d, callconv=%d, cParamsOpt=%d, oVft=%d, "
+        "rettype=%R, wFuncFlags=%d)",
+        f->memid, f->scodeArray, f->args, f->funckind, f->invkind, f->callconv, f->cParamsOpt, f->oVft, f->rettype,
+        f->wFuncFlags);
+}
+
 PyTypeObject PyFUNCDESC::Type = {
     PYWIN_OBJECT_HEAD "PyFUNCDESC",
     sizeof(PyFUNCDESC),
@@ -116,7 +126,7 @@ PyTypeObject PyFUNCDESC::Type = {
     0,                       /* tp_getattr */
     0,                       /* tp_setattr */
     0,                       /* tp_compare */
-    0,                       /* tp_repr */
+    PyFUNCDESC_Repr,         /* tp_repr */
     0,                       /* tp_as_number */
     &PyFUNCDESC_Sequence,    /* tp_as_sequence */
     0,                       /* tp_as_mapping */
@@ -150,16 +160,17 @@ PyTypeObject PyFUNCDESC::Type = {
 #define OFF(e) offsetof(PyFUNCDESC, e)
 
 /*static*/ struct PyMemberDef PyFUNCDESC::members[] = {
-    {"memid", T_INT, OFF(memid)},               // @prop integer|memid|
-    {"scodeArray", T_OBJECT, OFF(scodeArray)},  // @prop (int, ...)|scodeArray|
-    {"args", T_OBJECT, OFF(args)},              // @prop (<o ELEMDESC>, ...)|args|
-    {"funckind", T_INT, OFF(funckind)},         // @prop int|funckind|
-    {"invkind", T_INT, OFF(invkind)},           // @prop int|invkind|
-    {"callconv", T_INT, OFF(callconv)},         // @prop int|callconv|
-    {"cParamsOpt", T_INT, OFF(cParamsOpt)},     // @prop int|cParamsOpt|
-    {"oVft", T_INT, OFF(oVft)},                 // @prop int|oVft|
-    {"rettype", T_OBJECT, OFF(rettype)},        // @prop <o ELEMDESC>|rettype|
-    {"wFuncFlags", T_INT, OFF(wFuncFlags)},     // @prop int|wFuncFlags|
+    {"memid", T_INT, OFF(memid)},                  // @prop integer|memid|
+    {"scodeArray", T_OBJECT, OFF(scodeArray)},     // @prop (int, ...)|scodeArray|
+    {"args", T_OBJECT, OFF(args)},                 // @prop (<o ELEMDESC>, ...)|args|
+    {"funckind", T_INT, OFF(funckind)},            // @prop int|funckind|
+    {"invkind", T_INT, OFF(invkind)},              // @prop int|invkind|
+    {"callconv", T_INT, OFF(callconv)},            // @prop int|callconv|
+    {"cParamsOpt", T_INT, OFF(cParamsOpt)},        // @prop int|cParamsOpt|
+    {"oVft", T_INT, OFF(oVft)},                    // @prop int|oVft|
+    {"rettype", T_OBJECT, OFF(rettype)},           // @prop <o ELEMDESC>|rettype|
+    {"wFuncFlags", T_INT, OFF(wFuncFlags)},        // @prop int|wFuncFlags|
+    {"desckind", T_INT, OFF(desckind), READONLY},  // @prop int|desckind|Always DESCKIND_FUNCDESC
     {NULL}};
 
 PyFUNCDESC::PyFUNCDESC()
@@ -173,6 +184,7 @@ PyFUNCDESC::PyFUNCDESC()
     funckind = invkind = callconv = cParamsOpt = oVft = 0;
     rettype = NULL;
     wFuncFlags = 0;
+    desckind = DESCKIND_FUNCDESC;
 }
 
 PyFUNCDESC::PyFUNCDESC(const FUNCDESC *desc)
@@ -190,6 +202,7 @@ PyFUNCDESC::PyFUNCDESC(const FUNCDESC *desc)
     cParamsOpt = desc->cParamsOpt;
     oVft = desc->oVft;
     wFuncFlags = desc->wFuncFlags;
+    desckind = DESCKIND_FUNCDESC;
 }
 
 PyFUNCDESC::~PyFUNCDESC()
@@ -215,7 +228,7 @@ PyFUNCDESC::~PyFUNCDESC()
     PyObject *rc;
     switch (index) {
         case 0:  // @tupleitem 0|int|memid|
-            return PyInt_FromLong(p->memid);
+            return PyLong_FromLong(p->memid);
         case 1:  // @tupleitem 1|(int, ...)|scodeArray|
             rc = p->scodeArray ? p->scodeArray : Py_None;
             Py_INCREF(rc);
@@ -225,21 +238,21 @@ PyFUNCDESC::~PyFUNCDESC()
             Py_INCREF(rc);
             return rc;
         case 3:  // @tupleitem 3|int|funckind|
-            return PyInt_FromLong(p->funckind);
+            return PyLong_FromLong(p->funckind);
         case 4:  // @tupleitem 4|int|invkind|
-            return PyInt_FromLong(p->invkind);
+            return PyLong_FromLong(p->invkind);
         case 5:  // @tupleitem 5|int|callconv|
-            return PyInt_FromLong(p->callconv);
+            return PyLong_FromLong(p->callconv);
         case 6:  // @tupleitem 6|int|cParamsOpt|
-            return PyInt_FromLong(p->cParamsOpt);
+            return PyLong_FromLong(p->cParamsOpt);
         case 7:  // @tupleitem 7|int|oVft|
-            return PyInt_FromLong(p->oVft);
+            return PyLong_FromLong(p->oVft);
         case 8:  // @tupleitem 8|<o ELEMDESC>|rettype|
             rc = p->rettype ? p->rettype : Py_None;
             Py_INCREF(rc);
             return rc;
         case 9:  // @tupleitem 9|int|wFuncFlags|
-            return PyInt_FromLong(p->wFuncFlags);
+            return PyLong_FromLong(p->wFuncFlags);
     }
     PyErr_SetString(PyExc_IndexError, "index out of range");
     return NULL;

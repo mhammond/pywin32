@@ -19,11 +19,7 @@ static PyObject *PyVariant_Type;
 #define BYREF_ARRAY_USE_EXISTING_ARRAY
 
 // Need to put this in pywintypes.h with rest of compatibility macros
-#if (PY_VERSION_HEX < 0x03000000)
-#define PYWIN_BUFFER_CHECK PyBuffer_Check
-#else
-#define PYWIN_BUFFER_CHECK(obj) (PyBytes_Check(obj) || PyByteArray_Check(obj))
-#endif
+#define PYWIN_BUFFER_CHECK(obj) (PyBytes_Check(obj) || PyByteArray_Check(obj) || PyMemoryView_Check(obj))
 
 // A little helper just for this file
 static PyObject *OleSetTypeError(TCHAR *msg)
@@ -59,7 +55,7 @@ BOOL MaybeExtractPyVariant(PyObject *obj, VARTYPE *vt, PyObject **pObjValue, BOO
     PyObject *obvt = PyObject_GetAttrString(obj, "varianttype");
     if (!obvt)
         return FALSE;
-    *vt = (VARTYPE)PyInt_AsUnsignedLongMask(obvt);
+    *vt = (VARTYPE)PyLong_AsUnsignedLongMask(obvt);
     if (*vt == (VARTYPE)-1 && PyErr_Occurred()) {
         Py_DECREF(obvt);
         return FALSE;
@@ -123,10 +119,7 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
     BOOL bGoodEmpty = FALSE;  // Set if VT_EMPTY should really be used.
     V_VT(var) = VT_EMPTY;
     if (
-// In py3k we don't convert PyString_Check objects (ie, bytes) to BSTR...
-#if (PY_VERSION_HEX < 0x03000000)
-        PyString_Check(obj) ||
-#endif
+        // In py3k we don't convert PyBytes_Check objects (ie, bytes) to BSTR...
         PyUnicode_Check(obj)) {
         if (!PyWinObject_AsBstr(obj, &V_BSTR(var))) {
             PyErr_SetString(PyExc_MemoryError, "Making BSTR for variant");
@@ -134,7 +127,7 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
         }
         V_VT(var) = VT_BSTR;
     }
-    // For 3.x, bool checks need to be above PyLong_Check, which now succeeds for booleans.
+    // For Python 3, bool checks need to be above PyLong_Check, which now succeeds for booleans.
     else if (obj == Py_True) {
         V_VT(var) = VT_BOOL;
         V_BOOL(var) = VARIANT_TRUE;
@@ -152,6 +145,8 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
             // too big for 64 bits!  Use a double.
             V_VT(var) = VT_R8;
             V_R8(var) = PyLong_AsDouble(obj);
+            if (V_R8(var) == -1.0 && PyErr_Occurred())
+                return FALSE;
         }
         else if (32 < nbits) {
             // between 32 and 64 use longlong
@@ -159,18 +154,22 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
             if (sign > 0 && 64 == nbits) {
                 V_VT(var) = VT_UI8;
                 V_UI8(var) = PyLong_AsUnsignedLongLong(obj);
+                if (V_UI8(var) == (unsigned long long)-1 && PyErr_Occurred())
+                    return FALSE;
             }
             else {
                 // Negative so use signed
                 V_VT(var) = VT_I8;
                 V_I8(var) = PyLong_AsLongLong(obj);
                 // Problem if value is between LLONG_MIN and -ULLONG_MAX
-                if (PyErr_Occurred()) {
+                if (V_I8(var) == -1 && PyErr_Occurred()) {
                     if (PyErr_ExceptionMatches(PyExc_OverflowError)) {
                         // Take now double
                         PyErr_Clear();
                         V_VT(var) = VT_R8;
                         V_R8(var) = PyLong_AsDouble(obj);
+                        if (V_R8(var) == -1.0 && PyErr_Occurred())
+                            return FALSE;
                     }
                     else {
                         return FALSE;
@@ -184,18 +183,22 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
             if (sign > 0 && 32 == nbits) {
                 V_VT(var) = VT_UI4;
                 V_UI4(var) = PyLong_AsUnsignedLong(obj);
+                if (V_UI4(var) == (unsigned long)-1 && PyErr_Occurred())
+                    return FALSE;
             }
             else {
                 // Negative so use signed
                 V_VT(var) = VT_I4;
                 V_I4(var) = PyLong_AsLong(obj);
                 // Problem if value is between LONG_MIN and -ULONG_MAX
-                if (PyErr_Occurred()) {
+                if (V_I4(var) == -1 && PyErr_Occurred()) {
                     if (PyErr_ExceptionMatches(PyExc_OverflowError)) {
                         // Take now double
                         PyErr_Clear();
                         V_VT(var) = VT_I8;
                         V_I8(var) = PyLong_AsLongLong(obj);
+                        if (V_I8(var) == -1 && PyErr_Occurred())
+                            return FALSE;
                     }
                     else {
                         return FALSE;
@@ -207,17 +210,12 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
     else if (PyFloat_Check(obj)) {
         V_VT(var) = VT_R8;
         V_R8(var) = PyFloat_AsDouble(obj);
+        if (V_R8(var) == -1.0 && PyErr_Occurred())
+            return FALSE;
     }
     else if (obj == Py_None) {
         V_VT(var) = VT_NULL;
     }
-#if (PY_VERSION_HEX < 0x03000000)
-    // This is redundant in 3.x, since PyInt_Check is #defined to PyLong_Check
-    else if (PyInt_Check(obj)) {
-        V_VT(var) = VT_I4;
-        V_I4(var) = PyInt_AsLong(obj);
-    }
-#endif
     else if (PyObject_HasAttrString(obj, "_oleobj_")) {
         if (PyCom_InterfaceFromPyInstanceOrObject(obj, IID_IDispatch, (void **)&V_DISPATCH(var), FALSE))
             V_VT(var) = VT_DISPATCH;
@@ -298,6 +296,8 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
     else if (obj->ob_type->tp_as_number) {
         V_VT(var) = VT_R8;
         V_R8(var) = PyFloat_AsDouble(obj);
+        if (V_R8(var) == -1.0 && PyErr_Occurred())
+            return FALSE;
     }
 
     if (V_VT(var) == VT_EMPTY && !bGoodEmpty) {
@@ -327,13 +327,13 @@ PyObject *PyCom_PyObjectFromVariant(const VARIANT *var)
         return Py_None;
     }
     /* skip past any variant references to a "real" variant
-      (Why do we do this?  Why is it only a VARIANT?  whats the story, morning glory?
+      (Why do we do this?  Why is it only a VARIANT?  what's the story, morning glory?
     */
     while (V_VT(var) == (VT_BYREF | VT_VARIANT)) var = V_VARIANTREF(var);
 
     /* ### note: we shouldn't see this, it is illegal in a VARIANT */
     if (V_ISVECTOR(var)) {
-        return OleSetTypeError(_T("Cant convert vectors!"));
+        return OleSetTypeError(_T("Can't convert vectors!"));
     }
 
     if (V_ISARRAY(var)) {
@@ -375,7 +375,7 @@ PyObject *PyCom_PyObjectFromVariant(const VARIANT *var)
             // The result may be too large for a simple "long".  If so,
             // we must return a long.
             if (V_UI4(&varValue) <= INT_MAX)
-                result = PyInt_FromLong(V_UI4(&varValue));
+                result = PyLong_FromLong(V_UI4(&varValue));
             else
                 result = PyLong_FromUnsignedLong(V_UI4(&varValue));
             break;
@@ -391,28 +391,28 @@ PyObject *PyCom_PyObjectFromVariant(const VARIANT *var)
                 OleSetTypeError(buf);
                 break;
             }
-            result = PyInt_FromLong(V_I4(&varValue));
+            result = PyLong_FromLong(V_I4(&varValue));
             break;
 
         case VT_UI8:
             // The result may be too large for a simple "long". If so,
             // we must return a long.
             if (V_UI8(&varValue) <= LONG_MAX)
-                result = PyInt_FromLong((long)V_UI8(&varValue));
+                result = PyLong_FromLong((long)V_UI8(&varValue));
             else
                 result = PyLong_FromUnsignedLongLong(V_UI8(&varValue));
             break;
 
         case VT_I8:
             if ((LONG_MIN <= V_I8(&varValue)) && (V_I8(&varValue) <= LONG_MAX))
-                result = PyInt_FromLong((long)V_I8(&varValue));
+                result = PyLong_FromLong((long)V_I8(&varValue));
             else
                 result = PyLong_FromLongLong(V_I8(&varValue));
             break;
 
         case VT_HRESULT:
         case VT_ERROR:
-            result = PyInt_FromLong(V_ERROR(&varValue));
+            result = PyLong_FromLong(V_ERROR(&varValue));
             break;
 
         case VT_R4:
@@ -508,12 +508,12 @@ static BOOL PyCom_SAFEARRAYFromPyObjectBuildDimension(PyObject *obj, SAFEARRAY *
     // so, we can copy the entire dimension in one hit
     // (only support single segment buffers for now)
     if (dimNo == nDims && vt == VT_UI1 && obj->ob_type->tp_as_buffer) {
-        DWORD bufSize;
-        void *ob_buf, *sa_buf;
-        if (!PyWinObject_AsReadBuffer(obj, &ob_buf, &bufSize))
+        void *sa_buf;
+        PyWinBufferView pybuf(obj);
+        if (!pybuf.ok())
             return FALSE;
 
-        if (bufSize != numElements) {
+        if (pybuf.len() != numElements) {
             OleSetTypeError(_T("Internal error - the buffer length is not the sequence length!"));
             return FALSE;
         }
@@ -523,7 +523,7 @@ static BOOL PyCom_SAFEARRAYFromPyObjectBuildDimension(PyObject *obj, SAFEARRAY *
             PyCom_BuildPyException(hr);
             return FALSE;
         }
-        memcpy(sa_buf, ob_buf, bufSize);
+        memcpy(sa_buf, pybuf.ptr(), pybuf.len());
         SafeArrayUnaccessData(pSA);
         // All done without a single loop :-)
         return TRUE;
@@ -593,13 +593,13 @@ static BOOL PyCom_SAFEARRAYFromPyObjectBuildDimension(PyObject *obj, SAFEARRAY *
 static long PyCom_CalculatePyObjectDimension(PyObject *obItemCheck, long lDimension, PyObject *ppyobDimensionDictionary)
 {
     // Buffers are a special case - they define 1 new dimension.
-    // Buffers supported sequence semantics in 2.x, but for some reason memoryview objects
+    // Buffers supported sequence semantics in Python 2, but for some reason memoryview objects
     //	in py3k do not, so check separately
     if (PYWIN_BUFFER_CHECK(obItemCheck))
         return lDimension + 1;
 
     // Allow arbitrary sequences, but not strings or Unicode objects.
-    if (PyString_Check(obItemCheck) || PyUnicode_Check(obItemCheck) || !PySequence_Check(obItemCheck))
+    if (PyBytes_Check(obItemCheck) || PyUnicode_Check(obItemCheck) || !PySequence_Check(obItemCheck))
         return lDimension;
 
     long lReturnDimension = lDimension;
@@ -620,10 +620,10 @@ static long PyCom_CalculatePyObjectDimension(PyObject *obItemCheck, long lDimens
         PyErr_Clear();
     }
     if (lObjectSize != -1) {  // A real sequence of size zero should be OK though.
-        ppyobSize = PyInt_FromSsize_t(lObjectSize);
+        ppyobSize = PyLong_FromSsize_t(lObjectSize);
 
         // Retrieve the stored size in this dimension
-        ppyobDimension = PyInt_FromLong(lDimension);
+        ppyobDimension = PyLong_FromLong(lDimension);
         // Note: No ref added by PyDict_GetItem
         ppyobDimensionSize = PyDict_GetItem(ppyobDimensionDictionary, ppyobDimension);
         if (NULL == ppyobDimensionSize) {
@@ -633,7 +633,7 @@ static long PyCom_CalculatePyObjectDimension(PyObject *obItemCheck, long lDimens
         }
         else {
             // Check if stored size in this dimension equals the size of the element to check
-            Py_ssize_t lStoredSize = PyInt_AsSsize_t(ppyobDimensionSize);
+            Py_ssize_t lStoredSize = PyLong_AsSsize_t(ppyobDimensionSize);
             if (lStoredSize != lObjectSize) {
                 // if not the same size => no new dimension
                 Py_XDECREF(ppyobSize);
@@ -692,7 +692,7 @@ static BOOL PyCom_SAFEARRAYFromPyObjectEx(PyObject *obj, SAFEARRAY **ppSA, bool 
     // Seek down searching for total dimension count.
     // Item zero of each element will do for now
     // (as all must be same)
-    // First we _will_ allow None here (just dont use it if it crashes :-)
+    // First we _will_ allow None here (just don't use it if it crashes :-)
     if (obj == Py_None) {
         if (bAllocNewArray)
             *ppSA = NULL;
@@ -728,7 +728,7 @@ static BOOL PyCom_SAFEARRAYFromPyObjectEx(PyObject *obj, SAFEARRAY **ppSA, bool 
     for (LONG dimLook = 1; dimLook <= cDims; dimLook++) {
         pBounds[dimLook - 1].lLbound = 0;  // always!
         // Don't use PySequence_Length due to memoryview not supporting sequence protocol
-        pBounds[dimLook - 1].cElements = PyObject_Length(obItemCheck);
+        pBounds[dimLook - 1].cElements = (ULONG)PyObject_Length(obItemCheck);
         if (!bAllocNewArray) {
             LONG exist_lbound, exist_ubound;
             SafeArrayGetLBound(*ppSA, dimLook, &exist_lbound);
@@ -761,7 +761,7 @@ static BOOL PyCom_SAFEARRAYFromPyObjectEx(PyObject *obj, SAFEARRAY **ppSA, bool 
         // OK - Finally can create the array...
         *ppSA = SafeArrayCreate(vt, cDims, pBounds);
         if (*ppSA == NULL) {
-            delete pBounds;
+            delete[] pBounds;
             PyErr_SetString(PyExc_MemoryError, "CreatingSafeArray");
             return FALSE;
         }
@@ -803,7 +803,7 @@ static PyObject *PyCom_PyObjectFromSAFEARRAYDimensionItem(SAFEARRAY *psa, VARENU
             hres = SafeArrayGetElement(psa, arrayIndices, &sh);
             if (FAILED(hres))
                 break;
-            subitem = PyInt_FromLong(sh);
+            subitem = PyLong_FromLong(sh);
             break;
         }
         case VT_I4:
@@ -812,7 +812,7 @@ static PyObject *PyCom_PyObjectFromSAFEARRAYDimensionItem(SAFEARRAY *psa, VARENU
             hres = SafeArrayGetElement(psa, arrayIndices, &ln);
             if (FAILED(hres))
                 break;
-            subitem = PyInt_FromLong(ln);
+            subitem = PyLong_FromLong(ln);
             break;
         }
         case VT_I8: {
@@ -907,7 +907,7 @@ static PyObject *PyCom_PyObjectFromSAFEARRAYDimensionItem(SAFEARRAY *psa, VARENU
             hres = SafeArrayGetElement(psa, arrayIndices, &i1);
             if (FAILED(hres))
                 break;
-            subitem = PyInt_FromLong(i1);
+            subitem = PyLong_FromLong(i1);
             break;
         }
         case VT_UI2: {
@@ -981,7 +981,7 @@ PyObject *PyCom_PyObjectFromSAFEARRAYBuildDimension(SAFEARRAY *psa, VARENUM vt, 
         return PyCom_BuildPyException(hres);
     // First we take a shortcut for VT_UI1 (ie, binary) buffers.
     if (vt == VT_UI1) {
-        void *ob_buf, *sa_buf;
+        void *sa_buf;
         HRESULT hres = SafeArrayAccessData(psa, &sa_buf);
         if (FAILED(hres))
             return PyCom_BuildPyException(hres);
@@ -990,19 +990,19 @@ PyObject *PyCom_PyObjectFromSAFEARRAYBuildDimension(SAFEARRAY *psa, VARENUM vt, 
         PyObject *ret = PyBuffer_New(dataSize);
         if (ret != NULL) {
             // Access the buffer object using the buffer interfaces.
-            DWORD count;
-            if (!PyWinObject_AsWriteBuffer(ret, &ob_buf, &count)) {
+            PyWinBufferView pybuf(ret, true);
+            if (!pybuf.ok()) {
                 SafeArrayUnaccessData(psa);
                 Py_DECREF(ret);
                 return NULL;
             }
-            if (count != cElems) {
+            if (pybuf.len() != cElems) {
                 PyErr_SetString(PyExc_RuntimeError, "buffer size is not what we created!");
                 SafeArrayUnaccessData(psa);
                 Py_DECREF(ret);
                 return NULL;
             }
-            memcpy(ob_buf, sa_buf, dataSize);
+            memcpy(pybuf.ptr(), sa_buf, dataSize);
         }
         SafeArrayUnaccessData(psa);
         return ret;
@@ -1075,7 +1075,7 @@ PythonOleArgHelper::~PythonOleArgHelper()
     // First check we actually have ownership of any buffers.
     if (m_convertDirection == POAH_CONVERT_UNKNOWN || m_convertDirection == POAH_CONVERT_FROM_VARIANT)
         return;
-    // OK - its is possible we own the buffers - check for sure based on the type...
+    // OK - it is possible we own the buffers - check for sure based on the type...
     if (m_reqdType & VT_ARRAY) {
         // Array datatype - cleanup (but how?)
         if (m_reqdType & VT_BYREF) {
@@ -1089,8 +1089,8 @@ PythonOleArgHelper::~PythonOleArgHelper()
                 }
 #endif
             }  // have array pointer
-#endif         // BYREF_ARRAY_USE_EXISTING_ARRAY
-        }      // BYREF array.
+#endif  // BYREF_ARRAY_USE_EXISTING_ARRAY
+        }  // BYREF array.
     }
     else {
         switch (m_reqdType) {
@@ -1125,13 +1125,13 @@ BOOL PythonOleArgHelper::ParseTypeInformation(PyObject *reqdObjectTuple)
     PyObject *typeDesc = PyTuple_GetItem(reqdObjectTuple, 0);
     if (typeDesc == NULL)
         return FALSE;
-    m_reqdType = (VARTYPE)PyInt_AsLong(typeDesc);
+    m_reqdType = (VARTYPE)PyLong_AsLong(typeDesc);
     if (PyErr_Occurred())
         return FALSE;
     PyObject *paramFlags = PyTuple_GetItem(reqdObjectTuple, 1);
     if (paramFlags == NULL)
         return FALSE;
-    DWORD pf = (DWORD)PyInt_AsLong(paramFlags);
+    DWORD pf = (DWORD)PyLong_AsLong(paramFlags);
     if (PyErr_Occurred())
         return FALSE;
     // If we have _no_ param flags, use the BYREF-ness of the param
@@ -1154,7 +1154,7 @@ BOOL PythonOleArgHelper::ParseTypeInformation(PyObject *reqdObjectTuple)
 
 BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject *reqdObjectTuple)
 {
-    // Check my logic still holds up - basically we cant call this twice on the same object.
+    // Check my logic still holds up - basically we can't call this twice on the same object.
     assert(m_convertDirection == POAH_CONVERT_UNKNOWN || m_convertDirection == POAH_CONVERT_FROM_VARIANT);
     // If this is the "driving" conversion, then we allocate buffers.
     // Otherwise, we are simply filling in the buffers as provided by the caller.
@@ -1225,7 +1225,7 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
         return TRUE;  // All done with array!
     }
     if (m_reqdType & VT_VECTOR) {  // we have been asked for an array.
-        OleSetTypeError(_T("Sorry - cant support VT_VECTOR arguments"));
+        OleSetTypeError(_T("Sorry - can't support VT_VECTOR arguments"));
         return FALSE;
     }
     BOOL rc = TRUE;
@@ -1256,7 +1256,7 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
             break;
 
         case VT_BSTR:
-            if (PyString_Check(obj) || PyUnicode_Check(obj)) {
+            if (PyBytes_Check(obj) || PyUnicode_Check(obj)) {
                 if (!PyWinObject_AsBstr(obj, &V_BSTR(var)))
                     BREAK_FALSE
             }
@@ -1277,7 +1277,7 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
             *V_BSTRREF(var) = NULL;
 
             if (!VALID_BYREF_MISSING(obj)) {
-                if (PyString_Check(obj) || PyUnicode_Check(obj)) {
+                if (PyBytes_Check(obj) || PyUnicode_Check(obj)) {
                     if (!PyWinObject_AsBstr(obj, V_BSTRREF(var)))
                         BREAK_FALSE
                 }
@@ -1321,9 +1321,9 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
                 *V_UI8REF(var) = 0;
             break;
         case VT_I4:
-            if ((obUse = PyNumber_Int(obj)) == NULL)
+            if ((obUse = PyNumber_Long(obj)) == NULL)
                 BREAK_FALSE
-            V_I4(var) = PyInt_AsLong(obUse);
+            V_I4(var) = PyLong_AsLong(obUse);
             if (V_I4(var) == -1 && PyErr_Occurred())
                 BREAK_FALSE;
             break;
@@ -1332,9 +1332,9 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
                 V_I4REF(var) = &m_lBuf;
 
             if (!VALID_BYREF_MISSING(obj)) {
-                if ((obUse = PyNumber_Int(obj)) == NULL)
+                if ((obUse = PyNumber_Long(obj)) == NULL)
                     BREAK_FALSE
-                *V_I4REF(var) = PyInt_AsLong(obUse);
+                *V_I4REF(var) = PyLong_AsLong(obUse);
                 if (*V_I4REF(var) == -1 && PyErr_Occurred())
                     BREAK_FALSE;
             }
@@ -1342,7 +1342,7 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
                 *V_I4REF(var) = 0;
             break;
         case VT_UI4:
-            if ((obUse = PyNumber_Int(obj)) == NULL)
+            if ((obUse = PyNumber_Long(obj)) == NULL)
                 BREAK_FALSE
             V_UI4(var) = PyLong_AsUnsignedLongMask(obUse);
             if (V_UI4(var) == (unsigned long)-1 && PyErr_Occurred())
@@ -1353,7 +1353,7 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
                 V_UI4REF(var) = (unsigned long *)&m_lBuf;
 
             if (!VALID_BYREF_MISSING(obj)) {
-                if ((obUse = PyNumber_Int(obj)) == NULL)
+                if ((obUse = PyNumber_Long(obj)) == NULL)
                     BREAK_FALSE
                 *V_UI4REF(var) = PyLong_AsUnsignedLongMask(obUse);
                 if (*V_UI4REF(var) == (unsigned long)-1 && PyErr_Occurred())
@@ -1363,24 +1363,24 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
                 *V_UI4REF(var) = 0;
             break;
         case VT_I2:
-            if ((obUse = PyNumber_Int(obj)) == NULL)
+            if ((obUse = PyNumber_Long(obj)) == NULL)
                 BREAK_FALSE
-            V_I2(var) = (short)PyInt_AsLong(obUse);
+            V_I2(var) = (short)PyLong_AsLong(obUse);
             break;
         case VT_I2 | VT_BYREF:
             if (bCreateBuffers)
                 V_I2REF(var) = &m_sBuf;
 
             if (!VALID_BYREF_MISSING(obj)) {
-                if ((obUse = PyNumber_Int(obj)) == NULL)
+                if ((obUse = PyNumber_Long(obj)) == NULL)
                     BREAK_FALSE
-                *V_I2REF(var) = (short)PyInt_AsLong(obUse);
+                *V_I2REF(var) = (short)PyLong_AsLong(obUse);
             }
             else
                 *V_I2REF(var) = 0;
             break;
         case VT_UI2:
-            if ((obUse = PyNumber_Int(obj)) == NULL)
+            if ((obUse = PyNumber_Long(obj)) == NULL)
                 BREAK_FALSE
             V_UI2(var) = (short)PyLong_AsUnsignedLongMask(obUse);
             break;
@@ -1389,7 +1389,7 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
                 V_UI2REF(var) = (unsigned short *)&m_sBuf;
 
             if (!VALID_BYREF_MISSING(obj)) {
-                if ((obUse = PyNumber_Int(obj)) == NULL)
+                if ((obUse = PyNumber_Long(obj)) == NULL)
                     BREAK_FALSE
                 *V_UI2REF(var) = (unsigned short)PyLong_AsUnsignedLongMask(obUse);
             }
@@ -1397,43 +1397,43 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
                 *V_UI2REF(var) = 0;
             break;
         case VT_I1:
-            if ((obUse = PyNumber_Int(obj)) == NULL)
+            if ((obUse = PyNumber_Long(obj)) == NULL)
                 BREAK_FALSE
-            V_I1(var) = (CHAR)PyInt_AsLong(obUse);
+            V_I1(var) = (CHAR)PyLong_AsLong(obUse);
             break;
         case VT_I1 | VT_BYREF:
             if (bCreateBuffers)
                 V_I1REF(var) = (char *)&m_sBuf;
 
             if (!VALID_BYREF_MISSING(obj)) {
-                if ((obUse = PyNumber_Int(obj)) == NULL)
+                if ((obUse = PyNumber_Long(obj)) == NULL)
                     BREAK_FALSE
-                *V_I1REF(var) = (CHAR)PyInt_AsLong(obUse);
+                *V_I1REF(var) = (CHAR)PyLong_AsLong(obUse);
             }
             else
                 *V_I1REF(var) = 0;
             break;
         case VT_UI1:
-            if ((obUse = PyNumber_Int(obj)) == NULL)
+            if ((obUse = PyNumber_Long(obj)) == NULL)
                 BREAK_FALSE
-            V_UI1(var) = (BYTE)PyInt_AsLong(obUse);
+            V_UI1(var) = (BYTE)PyLong_AsLong(obUse);
             break;
         case VT_UI1 | VT_BYREF:
             if (bCreateBuffers)
                 V_UI1REF(var) = (BYTE *)&m_sBuf;
 
             if (!VALID_BYREF_MISSING(obj)) {
-                if ((obUse = PyNumber_Int(obj)) == NULL)
+                if ((obUse = PyNumber_Long(obj)) == NULL)
                     BREAK_FALSE
-                *V_UI1REF(var) = (BYTE)PyInt_AsLong(obUse);
+                *V_UI1REF(var) = (BYTE)PyLong_AsLong(obUse);
             }
             else
                 *V_UI1REF(var) = 0;
             break;
         case VT_BOOL:
-            if ((obUse = PyNumber_Int(obj)) == NULL)
+            if ((obUse = PyNumber_Long(obj)) == NULL)
                 BREAK_FALSE
-            V_BOOL(var) = PyInt_AsLong(obUse) ? VARIANT_TRUE : VARIANT_FALSE;
+            V_BOOL(var) = PyLong_AsLong(obUse) ? VARIANT_TRUE : VARIANT_FALSE;
             break;
         case VT_BOOL | VT_BYREF:
             if (bCreateBuffers)
@@ -1448,9 +1448,9 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
 #endif
 
             if (!VALID_BYREF_MISSING(obj)) {
-                if ((obUse = PyNumber_Int(obj)) == NULL)
+                if ((obUse = PyNumber_Long(obj)) == NULL)
                     BREAK_FALSE
-                *MYBOOLREF = PyInt_AsLong(obj) ? VARIANT_TRUE : VARIANT_FALSE;
+                *MYBOOLREF = PyLong_AsLong(obj) ? VARIANT_TRUE : VARIANT_FALSE;
             }
             else
                 *MYBOOLREF = 0;
@@ -1557,9 +1557,9 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
                 V_ERRORREF(var) = &m_lBuf;
 
             if (!VALID_BYREF_MISSING(obj)) {
-                if ((obUse = PyNumber_Int(obj)) == NULL)
+                if ((obUse = PyNumber_Long(obj)) == NULL)
                     BREAK_FALSE
-                *V_ERRORREF(var) = PyInt_AsLong(obUse);
+                *V_ERRORREF(var) = PyLong_AsLong(obUse);
             }
             else
                 *V_ERRORREF(var) = 0;
@@ -1610,7 +1610,7 @@ PyObject *PythonOleArgHelper::MakeVariantToObj(VARIANT *var)
     // performed first, then Python called, then the ObjToVariant conversion will
     // happen later.  In this case, remember the buffer for the Variant
 
-    // Check my logic still holds up - basically we cant call this twice on the same object.
+    // Check my logic still holds up - basically we can't call this twice on the same object.
     assert(m_convertDirection == POAH_CONVERT_UNKNOWN || m_convertDirection == POAH_CONVERT_FROM_PYOBJECT);
     // If this is the "driving" conversion, then the callers owns the buffers - we just use-em
     if (m_convertDirection == POAH_CONVERT_UNKNOWN) {
@@ -1671,7 +1671,7 @@ BOOL PyCom_MakeOlePythonCall(PyObject *handler, DISPPARAMS FAR *params, VARIANT 
         argList = Py_BuildValue("OO", varArgs, addnlArgs);
         Py_DECREF(varArgs);
     }
-    PyObject *result = PyEval_CallObject(handler, argList);
+    PyObject *result = PyObject_CallObject(handler, argList);
     Py_XDECREF(argList);
     Py_XDECREF(namedArgList);
     // handlers reference cleaned up by virtual manager.
@@ -1683,8 +1683,8 @@ BOOL PyCom_MakeOlePythonCall(PyObject *handler, DISPPARAMS FAR *params, VARIANT 
         PyObject *simpleRet;
         if (PyTuple_Check(result) && PyTuple_Size(result)) {
             simpleRet = PyTuple_GetItem(result, 0);
-            int retNumber = 1;
-            int retTotal = PyTuple_Size(result);
+            UINT retNumber = 1;
+            UINT retTotal = (UINT)PyTuple_Size(result);
 
             // Params are reverse order - loop from the back.
             for (unsigned int param = params->cArgs; param != 0 && retNumber < retTotal; param--) {

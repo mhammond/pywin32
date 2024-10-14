@@ -12,7 +12,7 @@ STDMETHODIMP PyGActiveScriptSite::GetLCID(
     if (FAILED(hr))
         return hr;
 
-    *plcid = PyInt_AsLong(result);
+    *plcid = PyLong_AsLong(result);
     Py_DECREF(result);
     return PyCom_HandlePythonFailureToCOM();
 }
@@ -160,7 +160,7 @@ STDMETHODIMP PyGActiveScriptSite::OnScriptError(
     if (result == Py_None)
         hr = S_OK;
     else {
-        hr = PyInt_AsLong(result);
+        hr = PyLong_AsLong(result);
         if (hr == -1 && PyErr_Occurred())
             hr = PyCom_HandlePythonFailureToCOM();
     }

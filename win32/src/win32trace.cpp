@@ -30,6 +30,7 @@ See - I told you the implementation was simple :-)
 
 */
 
+#define PY_SSIZE_T_CLEAN
 #include "PyWinTypes.h"
 #include "PyWinObjects.h"
 
@@ -114,11 +115,16 @@ static void PyTraceObject_dealloc(PyObject *self) { PyObject_Del(self); }
 // a latin-1 decoded unicode object.
 static PyObject *PyTraceObject_write(PyObject *self, PyObject *args)
 {
-    int len;
+    Py_ssize_t len;
     char *data = NULL;
     if (!PyArg_ParseTuple(args, "et#:write", "latin-1", &data, &len))
         return NULL;
-    BOOL ok = static_cast<PyTraceObject *>(self)->WriteData(data, len);
+    if (len > UINT_MAX) {
+        PyMem_Free(data);
+        PyErr_SetString(PyExc_ValueError, "data too long");
+        return NULL;
+    }
+    BOOL ok = static_cast<PyTraceObject *>(self)->WriteData(data, (unsigned)len);
     PyMem_Free(data);
     if (!ok)
         return NULL;
@@ -134,11 +140,7 @@ static PyObject *PyTraceObject_read(PyObject *self, PyObject *args)
     BOOL ok = static_cast<PyTraceObject *>(self)->ReadData(&data, &len, 0);
     if (!ok)
         return NULL;
-#if (PY_VERSION_HEX < 0x03000000)
-    PyObject *result = PyString_FromStringAndSize(data, len);
-#else
     PyObject *result = PyUnicode_DecodeLatin1(data, len, "replace");
-#endif
     free(data);
     return result;
 }
@@ -153,11 +155,7 @@ static PyObject *PyTraceObject_blockingread(PyObject *self, PyObject *args)
     BOOL ok = static_cast<PyTraceObject *>(self)->ReadData(&data, &len, milliSeconds);
     if (!ok)
         return NULL;
-#if (PY_VERSION_HEX < 0x03000000)
-    PyObject *result = PyString_FromStringAndSize(data, len);
-#else
     PyObject *result = PyUnicode_DecodeLatin1(data, len, "replace");
-#endif
     free(data);
     return result;
 }
@@ -593,29 +591,24 @@ PYWIN_MODULE_INIT_FUNC(win32trace)
     // CreateFileMapping - so we temporarily use that just to work out what
     // namespace to use for our objects.
 
-    // is the "Global\" namespace even possible?
-    OSVERSIONINFO info;
-    info.dwOSVersionInfoSize = sizeof(info);
-    GetVersionEx(&info);
-    BOOL global_ok = info.dwMajorVersion > 4;
-    if (global_ok) {
-        // see comments at top of file - if it exists locally, stick with
-        // local - use_global_namespace is still FALSE now, so that is the
-        // name we get.
-        HANDLE h = CreateFileMapping((HANDLE)-1, &sa, PAGE_READWRITE, 0, BUFFER_SIZE, FixupObjectName(MAP_OBJECT_NAME));
-        if (GetLastError() != ERROR_ALREADY_EXISTS) {
-            // no local one exists - see if we can create it globally - if
-            // we can, we go global, else we stick with local.
-            use_global_namespace = TRUE;
-            HANDLE h2 =
-                CreateFileMapping((HANDLE)-1, &sa, PAGE_READWRITE, 0, BUFFER_SIZE, FixupObjectName(MAP_OBJECT_NAME));
-            use_global_namespace = h2 != NULL;
-            if (h2)
-                CloseHandle(h2);
-        }
-        if (h)
-            CloseHandle(h);
+    // is the "Global\" namespace even possible? It was first made possible in
+    // win2k, so yes, it is!
+    // see comments at top of file - if it exists locally, stick with
+    // local - use_global_namespace is still FALSE now, so that is the
+    // name we get.
+    HANDLE h = CreateFileMapping((HANDLE)-1, &sa, PAGE_READWRITE, 0, BUFFER_SIZE, FixupObjectName(MAP_OBJECT_NAME));
+    if (GetLastError() != ERROR_ALREADY_EXISTS) {
+        // no local one exists - see if we can create it globally - if
+        // we can, we go global, else we stick with local.
+        use_global_namespace = TRUE;
+        HANDLE h2 =
+            CreateFileMapping((HANDLE)-1, &sa, PAGE_READWRITE, 0, BUFFER_SIZE, FixupObjectName(MAP_OBJECT_NAME));
+        use_global_namespace = h2 != NULL;
+        if (h2)
+            CloseHandle(h2);
     }
+    if (h)
+        CloseHandle(h);
     // use_global_namespace is now set and will not change - all objects
     // we use are in the same namespace.
 

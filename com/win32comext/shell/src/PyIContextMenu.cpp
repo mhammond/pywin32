@@ -44,7 +44,7 @@ PyObject *PyIContextMenu::QueryContextMenu(PyObject *self, PyObject *args)
 
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pICM, IID_IContextMenu);
-    return PyInt_FromLong(hr);
+    return PyLong_FromLong(hr);
 }
 
 // @pymethod |PyIContextMenu|InvokeCommand|Executes a context menu option
@@ -113,7 +113,7 @@ PyObject *PyIContextMenu::GetCommandString(PyObject *self, PyObject *args)
     if (uType & GCS_UNICODE)
         ret = PyWinObject_FromWCHAR((WCHAR *)buf);
     else
-        ret = PyString_FromString(buf);
+        ret = PyBytes_FromString(buf);
     free(buf);
     return ret;
 }
@@ -145,8 +145,8 @@ STDMETHODIMP PyGContextMenu::QueryContextMenu(
                                  idCmdLast, uFlags);
     if (FAILED(hr))
         return hr;
-    if (PyInt_Check(ret))
-        hr = MAKE_HRESULT(SEVERITY_SUCCESS, 0, PyInt_AsLong(ret));
+    if (PyLong_Check(ret))
+        hr = MAKE_HRESULT(SEVERITY_SUCCESS, 0, PyLong_AsLong(ret));
     Py_DECREF(ret);
     return hr;
 }
@@ -175,7 +175,7 @@ STDMETHODIMP PyGContextMenu::GetCommandString(
     HRESULT hr = InvokeViaPolicy("GetCommandString", &result, "NI", PyWinObject_FromULONG_PTR(idCmd), uFlags);
     if (FAILED(hr))
         return hr;
-    if (result && (PyString_Check(result) || PyUnicode_Check(result))) {
+    if (result && (PyBytes_Check(result) || PyUnicode_Check(result))) {
         if (uFlags == GCS_HELPTEXTW || uFlags == GCS_VERBW) {
             WCHAR *szResult;
             if (PyWinObject_AsWCHAR(result, &szResult, FALSE, NULL)) {
@@ -185,15 +185,15 @@ STDMETHODIMP PyGContextMenu::GetCommandString(
         }
         else {
             char *szResult;
-            if (PyWinObject_AsString(result, &szResult, FALSE, NULL)) {
+            if (PyWinObject_AsChars(result, &szResult, FALSE, NULL)) {
                 strncpy(pszName, szResult, cchMax);
-                PyWinObject_FreeString(szResult);
+                PyWinObject_FreeChars(szResult);
             }
         }
         hr = S_OK;
     }
-    else if (result && PyInt_Check(result)) {
-        hr = PyInt_AsLong(result) ? S_OK : S_FALSE;
+    else if (result && PyLong_Check(result)) {
+        hr = PyLong_AsLong(result) ? S_OK : S_FALSE;
     }
     Py_DECREF(result);
     return hr;

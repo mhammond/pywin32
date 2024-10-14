@@ -15,8 +15,10 @@ class PythonOleClientItem : public COleClientItem {
             // @pyparm int|wNotification||
             // @pyparm int|dwParam||
             helper.call(wNotification, dwParam);
-        else
+        else {
+            helper.release_full();
             COleClientItem::OnChange(wNotification, dwParam);
+        }
     }
     virtual void OnActivate()
     {
@@ -24,8 +26,10 @@ class PythonOleClientItem : public COleClientItem {
         CVirtualHelper helper("OnActivate", this);
         if (helper.HaveHandler())
             helper.call();
-        else
+        else {
+            helper.release_full();
             COleClientItem::OnActivate();
+        }
     }
     virtual void OnGetItemPosition(CRect &rPosition)
     {
@@ -34,7 +38,6 @@ class PythonOleClientItem : public COleClientItem {
         if (helper.call()) {
             PyObject *ret;
             helper.retval(ret);
-            CEnterLeavePython _celp;
             PyArg_ParseTuple(ret, "iiii", &rPosition.left, &rPosition.top, &rPosition.right, &rPosition.bottom);
         }
     }
@@ -45,8 +48,10 @@ class PythonOleClientItem : public COleClientItem {
         CVirtualHelper helper("OnDeactivateUI", this);
         if (helper.HaveHandler())
             helper.call(bUndoable);
-        else
+        else {
+            helper.release_full();
             COleClientItem::OnDeactivateUI(bUndoable);
+        }
     }
     virtual BOOL OnChangeItemPosition(const CRect &rectPos)
     {
@@ -54,13 +59,13 @@ class PythonOleClientItem : public COleClientItem {
         // @pyparm (int, int, int, int)|(left, top, right, bottom)||The new position
         CVirtualHelper helper("OnChangeItemPosition", this);
         BOOL bRet;
-        PyObject *args = Py_BuildValue("(iiii)", rectPos.left, rectPos.top, rectPos.right, rectPos.bottom);
-        if (helper.HaveHandler() && helper.call_args(args)) {
-            // Note = args decref'd by caller
+        if (helper.call_args("(iiii)", rectPos.left, rectPos.top, rectPos.right, rectPos.bottom)) {
             helper.retval(bRet);
         }
-        else
+        else {
+            helper.release_full();
             bRet = COleClientItem::OnChangeItemPosition(rectPos);
+        }
         return bRet;
     }
     BOOL BaseOnChangeItemPosition(const CRect &rectPos) { return COleClientItem::OnChangeItemPosition(rectPos); }
@@ -220,7 +225,7 @@ static PyObject *PyCOleClientItem_GetItemState(PyObject *self, PyObject *args)
     GUI_BGN_SAVE;
     int rc = pCI->GetItemState();
     GUI_END_SAVE;
-    return PyInt_FromLong(rc);
+    return PyLong_FromLong(rc);
 }
 
 // @pymethod <o PyIUnknown>|PyCOleClientItem|GetObject|Returns the COM object to the item.  This is the m_lpObject
@@ -289,7 +294,7 @@ static PyObject *PyCOleClientItem_OnChangeItemPosition(PyObject *self, PyObject 
     BOOL bRet = ((PythonOleClientItem *)pCI)->BaseOnChangeItemPosition(rect);
     GUI_END_SAVE;
     // @rdesc The result is a BOOL indicating if the function succeeded.  No exception is thrown.
-    return PyInt_FromLong(bRet);
+    return PyLong_FromLong(bRet);
 }
 
 // @pymethod int|PyCOleClientItem|OnDeactivateUI|Calls the underlying MFC method.

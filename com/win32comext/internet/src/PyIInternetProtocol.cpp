@@ -41,7 +41,7 @@ PyObject *PyIInternetProtocol::Read(PyObject *self, PyObject *args)
         return OleSetOleError(hr);
     }
 
-    PyObject *pyretval = PyString_FromStringAndSize((char *)pv, pcbRead);
+    PyObject *pyretval = PyBytes_FromStringAndSize((char *)pv, pcbRead);
     free(pv);
     return pyretval;
 }
@@ -172,13 +172,13 @@ STDMETHODIMP PyGInternetProtocol::Read(
     if (FAILED(hr))
         return hr;
     // Process the Python results, and convert back to the real params
-    if (!PyString_Check(result)) {
+    if (!PyBytes_Check(result)) {
         PyErr_SetString(PyExc_TypeError, "IInternetProtocol::Read must return a string object");
         hr = PyCom_HandlePythonFailureToCOM();
     }
     else {
-        char *buf = PyString_AsString(result);
-        *pcbRead = min(cb, (ULONG)PyString_Size(result));
+        char *buf = PyBytes_AsString(result);
+        *pcbRead = min(cb, (ULONG)PyBytes_Size(result));
         memcpy(pv, buf, *pcbRead);
     }
     return hr;

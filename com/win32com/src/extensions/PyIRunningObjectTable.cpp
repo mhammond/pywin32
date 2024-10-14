@@ -39,7 +39,7 @@ PyObject *PyIRunningObjectTable::IsRunning(PyObject *self, PyObject *args)
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pMy, IID_IRunningObjectTable);
-    return PyInt_FromLong(hr);
+    return PyLong_FromLong(hr);
     // @rvalue S_OK (ie, 0)|The object identified by objectName is running.
     // @rvalue S_FALSE (ie, 1)|There is no entry for objectName in the ROT, or that the object it identifies is no
     // longer running (in which case, the entry is revoked).
@@ -121,7 +121,7 @@ PyObject *PyIRunningObjectTable::Register(PyObject *self, PyObject *args)
     PY_INTERFACE_POSTCALL;
     if (S_OK != hr)  // S_OK only acceptable
         return PyCom_BuildPyException(hr, pMy, IID_IRunningObjectTable);
-    return PyInt_FromLong(tok);
+    return PyLong_FromLong(tok);
 }
 
 // @pymethod int|PyIRunningObjectTable|Revoke|Removes from the Running Object Table

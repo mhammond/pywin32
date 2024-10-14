@@ -111,19 +111,16 @@ struct PyMethodDef PyHANDLE::methods[] = {
     {NULL}};
 
 static PyNumberMethods PyHANDLE_NumberMethods = {
-    PyHANDLE::binaryFailureFunc, /* nb_add */
-    PyHANDLE::binaryFailureFunc, /* nb_subtract */
-    PyHANDLE::binaryFailureFunc, /* nb_multiply */
-#if (PY_VERSION_HEX < 0x03000000)
-    PyHANDLE::binaryFailureFunc, /* nb_divide - removed in Py3k */
-#endif
+    PyHANDLE::binaryFailureFunc,  /* nb_add */
+    PyHANDLE::binaryFailureFunc,  /* nb_subtract */
+    PyHANDLE::binaryFailureFunc,  /* nb_multiply */
     PyHANDLE::binaryFailureFunc,  /* nb_remainder */
     PyHANDLE::binaryFailureFunc,  /* nb_divmod */
     PyHANDLE::ternaryFailureFunc, /* nb_power */
     PyHANDLE::unaryFailureFunc,   /* nb_negative */
     PyHANDLE::unaryFailureFunc,   /* nb_positive */
     PyHANDLE::unaryFailureFunc,   /* nb_absolute */
-    // @pymeth  __nonzero__|Used for detecting true/false.
+    // @pymeth  __bool__|Used for detecting true/false.
     PyHANDLE::nonzeroFunc,       /* is nb_bool in Python 3.0 */
     PyHANDLE::unaryFailureFunc,  /* nb_invert */
     PyHANDLE::binaryFailureFunc, /* nb_lshift */
@@ -131,36 +128,22 @@ static PyNumberMethods PyHANDLE_NumberMethods = {
     PyHANDLE::binaryFailureFunc, /* nb_and */
     PyHANDLE::binaryFailureFunc, /* nb_xor */
     PyHANDLE::binaryFailureFunc, /* nb_or */
-#if (PY_VERSION_HEX < 0x03000000)
-    0, /* nb_coerce (allowed to be zero) - removed in 3.0 */
-#endif
-    PyHANDLE::intFunc,          /* nb_int */
-    PyHANDLE::longFunc,         /* nb_long */
-    PyHANDLE::unaryFailureFunc, /* nb_float */
-                                // These removed in 3.0
-#if (PY_VERSION_HEX < 0x03000000)
-    PyHANDLE::unaryFailureFunc, /* nb_oct */
-    PyHANDLE::unaryFailureFunc, /* nb_hex */
-#endif
+    PyHANDLE::intFunc,           /* nb_int */
+    PyHANDLE::longFunc,          /* nb_long */
+    PyHANDLE::unaryFailureFunc,  /* nb_float */
+                                 // These removed in 3.0
 };
 // @pymeth __int__|Used when an integer representation of the handle object is required.
 
 PYWINTYPES_EXPORT PyTypeObject PyHANDLEType = {
     PYWIN_OBJECT_HEAD "PyHANDLE", sizeof(PyHANDLE), 0, PyHANDLE::deallocFunc, /* tp_dealloc */
-#if (PY_VERSION_HEX < 0x03000000)
-    // tp_print is 2.x only.
-    // @pymeth __print__|Used when the object is printed.
-    PyHANDLE::printFunc,     /* tp_print */
-#else
-    0,
-#endif
-    0,                       /* tp_getattr */
-    0,                       /* tp_setattr */
-    0,                       /* tp_compare */
-    PyHANDLE::strFunc,       /* tp_repr */
-    &PyHANDLE_NumberMethods, /* tp_as_number */
-    0,                       /* tp_as_sequence */
-    0,                       /* tp_as_mapping */
+    0, 0,                                                                     /* tp_getattr */
+    0,                                                                        /* tp_setattr */
+    0,                                                                        /* tp_compare */
+    PyHANDLE::strFunc,                                                        /* tp_repr */
+    &PyHANDLE_NumberMethods,                                                  /* tp_as_number */
+    0,                                                                        /* tp_as_sequence */
+    0,                                                                        /* tp_as_mapping */
     // @pymeth __hash__|Used when the hash value of an object is required
     PyHANDLE::hashFunc, /* tp_hash */
     0,                  /* tp_call */
@@ -250,7 +233,7 @@ BOOL PyHANDLE::Close(void)
     return rc;
 }
 
-// @pymethod |PyHANDLE|__nonzero__|Used for detecting true/false.
+// @pymethod |PyHANDLE|__bool__|Used for detecting true/false.
 // @rdesc The result is 1 if the attached handle is non zero, else 0.
 /*static*/ int PyHANDLE::nonzeroFunc(PyObject *ob) { return ((PyHANDLE *)ob)->m_handle != 0; }
 
@@ -260,7 +243,7 @@ PyObject *PyHANDLE::richcompare(PyObject *other, int op)
     if (PyHANDLE_Check(other)) {
         hother = ((PyHANDLE *)other)->m_handle;
     }
-    else if (PyInt_Check(other) || PyLong_Check(other)) {
+    else if (PyLong_Check(other) || PyLong_Check(other)) {
         if (!PyWinLong_AsVoidPtr(other, &hother))
             return NULL;
     }
@@ -317,7 +300,7 @@ int PyHANDLE::print(FILE *fp, int flags)
     // ### runtime library)  Hack it by getting Python to do the print!
     //
     // ### - Double Ack - Always use the hack!
-    //#ifdef _DEBUG
+    // #ifdef _DEBUG
     PyObject *ob = PyWinCoreString_FromString(resBuf);
     PyObject_Print(ob, fp, flags | Py_PRINT_RAW);
     Py_DECREF(ob);
@@ -332,7 +315,7 @@ int PyHANDLE::print(FILE *fp, int flags)
 PyObject *PyHANDLE::asStr(void)
 {
     WCHAR resBuf[160];
-    _snwprintf(resBuf, 160, L"<%hs:%Id>", GetTypeName(), m_handle);
+    _snwprintf(resBuf, 160, L"<%hs:%Id>", GetTypeName(), (size_t)m_handle);
     return PyWinCoreString_FromString(resBuf);
 }
 

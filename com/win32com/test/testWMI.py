@@ -1,7 +1,8 @@
-from win32com.client import GetObject
-import win32com.test.util
-
 import unittest
+
+import win32com.test.util
+from win32com.client import GetObject
+
 
 class Simple(win32com.test.util.TestCase):
     def testit(self):
@@ -10,8 +11,8 @@ class Simple(win32com.test.util.TestCase):
         for cs in cses:
             val = cs.Properties_("Caption").Value
             vals.append(val)
-        self.failIf(len(vals)<5, "We only found %d processes!" % len(vals))
+        self.assertFalse(len(vals) < 5, "We only found %d processes!" % len(vals))
 
-if __name__=='__main__':
+
+if __name__ == "__main__":
     unittest.main()
-

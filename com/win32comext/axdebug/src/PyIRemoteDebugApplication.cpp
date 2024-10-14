@@ -189,7 +189,7 @@ PyObject *PyIRemoteDebugApplication::QueryAlive(PyObject *self, PyObject *args)
     PY_INTERFACE_PRECALL;
     HRESULT hr = pIRDA->QueryAlive();
     PY_INTERFACE_POSTCALL;
-    return PyInt_FromLong(hr == S_OK);
+    return PyLong_FromLong(hr == S_OK);
 }
 
 // @pymethod <o PyIEnumRemoteDebugApplicationThreads>|PyIRemoteDebugApplication|EnumThreads|Enumerates all threads known

@@ -34,7 +34,7 @@ typedef long FLAGS;
 %typedef long HRESULT_KEEP_INFO;
 
 %typemap(python,out) HRESULT_KEEP_INFO {
-	$target = PyInt_FromLong($source);
+	$target = PyLong_FromLong($source);
 }
 
 %typemap(python,except) HRESULT_KEEP_INFO {

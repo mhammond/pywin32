@@ -44,6 +44,7 @@ void CPythonViewImpl::OnPrepareDC(CDC *pDC, CPrintInfo *pInfo)
 
     CVirtualHelper helper("OnPrepareDC", this);
     helper.call(pDC, pInfo);
+    helper.release_full();
     CScrollView::OnPrepareDC(pDC, pInfo);
     // @pyparm <o PyCDC>|dc||The DC object.
 }
@@ -95,19 +96,9 @@ void CPythonListViewImpl::DrawItem(LPDRAWITEMSTRUCT lpDIS)
         obDC = Py_None;
     }
 
-    PyObject *args = Py_BuildValue("iiiiiiO(iiii)O", lpDIS->CtlType, lpDIS->CtlID, lpDIS->itemID, lpDIS->itemAction,
-                                   lpDIS->itemState, lpDIS->hwndItem, obDC, lpDIS->rcItem.left, lpDIS->rcItem.top,
-                                   lpDIS->rcItem.right, lpDIS->rcItem.bottom, obData);
-    ASSERT(args);
-    if (!args) {
-        gui_print_error();
-        PyErr_SetString(ui_module_error, "DrawItem could not convert args - handler not called.");
-        return;  // not too much we can do
-    }
-    // make the call.
-    helper.call_args(args);
-    // Cleanup.
-    Py_DECREF(args);
+    helper.call_args("iiiiiiO(iiii)O", lpDIS->CtlType, lpDIS->CtlID, lpDIS->itemID, lpDIS->itemAction, lpDIS->itemState,
+                     lpDIS->hwndItem, obDC, lpDIS->rcItem.left, lpDIS->rcItem.top, lpDIS->rcItem.right,
+                     lpDIS->rcItem.bottom, obData);
     // The DC is no longer valid.
     Python_delete_assoc(pDC);
 }
@@ -141,19 +132,9 @@ void CPythonTreeViewImpl::DrawItem(LPDRAWITEMSTRUCT lpDIS)
         obDC = Py_None;
     }
 
-    PyObject *args = Py_BuildValue("iiiiiiO(iiii)O", lpDIS->CtlType, lpDIS->CtlID, lpDIS->itemID, lpDIS->itemAction,
-                                   lpDIS->itemState, lpDIS->hwndItem, obDC, lpDIS->rcItem.left, lpDIS->rcItem.top,
-                                   lpDIS->rcItem.right, lpDIS->rcItem.bottom, obData);
-    ASSERT(args);
-    if (!args) {
-        gui_print_error();
-        PyErr_SetString(ui_module_error, "DrawItem could not convert args - handler not called.");
-        return;  // not too much we can do
-    }
-    // make the call.
-    helper.call_args(args);
-    // Cleanup.
-    Py_DECREF(args);
+    helper.call_args("iiiiiiO(iiii)O", lpDIS->CtlType, lpDIS->CtlID, lpDIS->itemID, lpDIS->itemAction, lpDIS->itemState,
+                     lpDIS->hwndItem, obDC, lpDIS->rcItem.left, lpDIS->rcItem.top, lpDIS->rcItem.right,
+                     lpDIS->rcItem.bottom, obData);
     // The DC is no longer valid.
     Python_delete_assoc(pDC);
 }

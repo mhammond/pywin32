@@ -63,25 +63,26 @@ class WndHack : public CWnd {
 
 BOOL Python_check_message(const MSG *msg)  // TRUE if fully processed.
 {
-    BOOL ret;
+    // Our Python convention is TRUE means "pass it on", which we only want to do if the message if valid, and the
+    // callback returns TRUE
+    BOOL ret = FALSE;
     ui_assoc_object *pObj = NULL;
     PyObject *method;
     CWnd *pWnd = bInFatalShutdown ? NULL : CWnd::FromHandlePermanent(msg->hwnd);
-    // is_uiobjects calls python methods, must already hold lock
-    CEnterLeavePython _celp;
-    if (pWnd && (pObj = ui_assoc_object::GetAssocObject(pWnd)) && pObj->is_uiobject(&PyCWnd::type) &&
-        ((PyCWnd *)pObj)->pMessageHookList &&
-        ((PyCWnd *)pObj)->pMessageHookList->Lookup(msg->message, (void *&)method)) {
+    if (pWnd) {
+        // is_uiobjects calls python methods, must already hold lock
+        CEnterLeavePython _celp;
+        if ((pObj = ui_assoc_object::GetAssocObject(pWnd)) && pObj->is_uiobject(&PyCWnd::type) &&
+            ((PyCWnd *)pObj)->pMessageHookList &&
+            ((PyCWnd *)pObj)->pMessageHookList->Lookup(msg->message, (void *&)method)) {
 #ifdef TRACE_CALLBACKS
-        TRACE("Message callback: message %04X, object %s (hwnd %p) (%p)\n", msg->message,
-              (const char *)GetReprText(pObj), pWnd, pWnd->GetSafeHwnd());
+            TRACE("Message callback: message %04X, object %s (hwnd %p) (%p)\n", msg->message,
+                  (const char *)GetReprText(pObj), pWnd, pWnd->GetSafeHwnd());
 #endif
-        // Our Python convention is TRUE means "pass it on"
-        // CEnterLeavePython _celp;
-        ret = Python_callback(method, msg) == 0;
+            ret = Python_callback(method, msg) == 0;
+        }
     }
-    else
-        ret = FALSE;  // dont want it.
+
     Py_XDECREF(pObj);
     return ret;
 }
@@ -101,7 +102,7 @@ BOOL Python_check_key_message(const MSG *msg)
 // WARNING - the return ptr may be temporary.
 CWnd *GetWndPtrFromParam(PyObject *ob, ui_type_CObject &type)
 {
-    if (PyInt_Check(ob) || PyLong_Check(ob)) {
+    if (PyLong_Check(ob) || PyLong_Check(ob)) {
         HWND hwnd = 0;
         if (!PyWinObject_AsHANDLE(ob, (HANDLE *)&hwnd) || !IsWindow(hwnd))
             RETURN_ERR(szErrMsgBadHandle);
@@ -171,7 +172,7 @@ BOOL ParseSCROLLINFOTuple(PyObject *args, SCROLLINFO *pInfo)
     // 0 - mask.
     if ((ob = PyTuple_GetItem(args, 0)) == NULL)
         return FALSE;
-    pInfo->fMask = (UINT)PyInt_AsLong(ob);
+    pInfo->fMask = (UINT)PyLong_AsLong(ob);
     // 1/2 - nMin/nMax
     if (len == 2) {
         PyErr_SetString(PyExc_TypeError, "SCROLLINFO - Both min and max, or neither, must be provided.");
@@ -183,10 +184,10 @@ BOOL ParseSCROLLINFOTuple(PyObject *args, SCROLLINFO *pInfo)
         return FALSE;
     if (ob != Py_None) {
         pInfo->fMask |= SIF_RANGE;
-        pInfo->nMin = PyInt_AsLong(ob);
+        pInfo->nMin = PyLong_AsLong(ob);
         if ((ob = PyTuple_GetItem(args, 2)) == NULL)
             return FALSE;
-        pInfo->nMax = PyInt_AsLong(ob);
+        pInfo->nMax = PyLong_AsLong(ob);
     }
     // 3 == nPage.
     if (len < 4)
@@ -195,7 +196,7 @@ BOOL ParseSCROLLINFOTuple(PyObject *args, SCROLLINFO *pInfo)
         return FALSE;
     if (ob != Py_None) {
         pInfo->fMask |= SIF_PAGE;
-        pInfo->nPage = PyInt_AsLong(ob);
+        pInfo->nPage = PyLong_AsLong(ob);
     }
     // 4 == nPos
     if (len < 5)
@@ -204,7 +205,7 @@ BOOL ParseSCROLLINFOTuple(PyObject *args, SCROLLINFO *pInfo)
         return FALSE;
     if (ob != Py_None) {
         pInfo->fMask |= SIF_POS;
-        pInfo->nPos = PyInt_AsLong(ob);
+        pInfo->nPos = PyLong_AsLong(ob);
     }
     // 5 == trackpos
     if (len < 6)
@@ -212,7 +213,7 @@ BOOL ParseSCROLLINFOTuple(PyObject *args, SCROLLINFO *pInfo)
     if ((ob = PyTuple_GetItem(args, 5)) == NULL)
         return FALSE;
     if (ob != Py_None) {
-        pInfo->nTrackPos = PyInt_AsLong(ob);
+        pInfo->nTrackPos = PyLong_AsLong(ob);
     }
     return TRUE;
 }
@@ -222,10 +223,10 @@ PyObject *MakeSCROLLINFOTuple(SCROLLINFO *pInfo)
     PyObject *ret = PyTuple_New(6);
     if (ret == NULL)
         return NULL;
-    PyTuple_SET_ITEM(ret, 0, PyInt_FromLong(0));
+    PyTuple_SET_ITEM(ret, 0, PyLong_FromLong(0));
     if (pInfo->fMask & SIF_RANGE) {
-        PyTuple_SET_ITEM(ret, 1, PyInt_FromLong(pInfo->nMin));
-        PyTuple_SET_ITEM(ret, 2, PyInt_FromLong(pInfo->nMax));
+        PyTuple_SET_ITEM(ret, 1, PyLong_FromLong(pInfo->nMin));
+        PyTuple_SET_ITEM(ret, 2, PyLong_FromLong(pInfo->nMax));
     }
     else {
         Py_INCREF(Py_None);
@@ -234,20 +235,20 @@ PyObject *MakeSCROLLINFOTuple(SCROLLINFO *pInfo)
         PyTuple_SET_ITEM(ret, 2, Py_None);
     }
     if (pInfo->fMask & SIF_PAGE) {
-        PyTuple_SET_ITEM(ret, 3, PyInt_FromLong(pInfo->nPage));
+        PyTuple_SET_ITEM(ret, 3, PyLong_FromLong(pInfo->nPage));
     }
     else {
         Py_INCREF(Py_None);
         PyTuple_SET_ITEM(ret, 3, Py_None);
     }
     if (pInfo->fMask & SIF_POS) {
-        PyTuple_SET_ITEM(ret, 4, PyInt_FromLong(pInfo->nPos));
+        PyTuple_SET_ITEM(ret, 4, PyLong_FromLong(pInfo->nPos));
     }
     else {
         Py_INCREF(Py_None);
         PyTuple_SET_ITEM(ret, 4, Py_None);
     }
-    PyTuple_SET_ITEM(ret, 5, PyInt_FromLong(pInfo->nTrackPos));
+    PyTuple_SET_ITEM(ret, 5, PyLong_FromLong(pInfo->nTrackPos));
     return ret;
 }
 
@@ -621,7 +622,7 @@ BOOL PyCWnd::check_key_stroke(WPARAM ch)
 
 CWnd *PyCWnd::GetPythonGenericWnd(PyObject *self, ui_type_CObject *pType)
 {
-    // Damn it - only pass PyCWnd::type so the RTTI check wont fail
+    // Damn it - only pass PyCWnd::type so the RTTI check won't fail
     // for builtin controls.
     return (CWnd *)GetGoodCppObject(self, &type);
 }
@@ -646,7 +647,7 @@ CWnd *PyCWnd::GetPythonGenericWnd(PyObject *self, ui_type_CObject *pType)
                 #include "D:\Program Files\DevStudio\VC\mfc\src\WINHAND_.H"
                 extern AFX_MODULE_THREAD_STATE * PyWin_MainModuleThreadState;
 
-                // Lets see if it is in the main thread state
+                // Let's see if it is in the main thread state
                 if (PyWin_MainModuleThreadState->m_pmapHWND &&
                     (AfxGetModuleThreadState() != PyWin_MainModuleThreadState)) {
                     // Gross hack - look it up in the internal map structure.
@@ -666,7 +667,7 @@ CWnd *PyCWnd::GetPythonGenericWnd(PyObject *self, ui_type_CObject *pType)
         if (makeType.pCObjectClass && makeType.pCObjectClass->m_pfnCreateObject) {
             pWnd = (CWnd *)makeType.pCObjectClass->CreateObject();
             if (pWnd == NULL) {
-                PyErr_SetString(PyExc_MemoryError, "Cant create the window object");
+                PyErr_SetString(PyExc_MemoryError, "Can't create the window object");
                 return NULL;
             }
             ASSERT(pWnd->IsKindOf(RUNTIME_CLASS(CWnd)));  // Must be a window object we just created!
@@ -804,8 +805,8 @@ static PyObject *ui_window_def_window_proc(PyObject *self, PyObject *args)
                           &obwparam,   // @pyparm int|idLast||The lParam for the message.
                           &oblparam))  // @pyparm int|idCheck||The wParam for the message.
         return NULL;
-    WPARAM wparam;
-    LPARAM lparam;
+    PyWin_PARAMHolder wparam;
+    PyWin_PARAMHolder lparam;
     if (!PyWinObject_AsPARAM(obwparam, &wparam) || !PyWinObject_AsPARAM(oblparam, &lparam))
         return NULL;
     GUI_BGN_SAVE;
@@ -1118,7 +1119,7 @@ static PyObject *ui_window_get_dlg_item_int(PyObject *self, PyObject *args)
     if (!bWorked)
         RETURN_VALUE_ERR("The dialog item could not be converted to an integer");
     // @rdesc If the value can not be converted, a ValueError is raised.
-    return PyInt_FromLong(res);
+    return PyLong_FromLong(res);
     // @pyseemfc CWnd|GetDlgItemInt
 }
 
@@ -1332,7 +1333,7 @@ static PyObject *ui_window_get_scroll_pos(PyObject *self, PyObject *args)
     GUI_BGN_SAVE;
     long pos = pWnd->GetScrollPos(nBar);
     GUI_END_SAVE;
-    return PyInt_FromLong(pos);
+    return PyLong_FromLong(pos);
 }
 
 // @pymethod int|PyCWnd|GetStyle|Retrieves the window style
@@ -1346,7 +1347,7 @@ static PyObject *ui_window_get_style(PyObject *self, PyObject *args)
     GUI_BGN_SAVE;
     DWORD ret = pWnd->GetStyle();
     GUI_END_SAVE;
-    return PyInt_FromLong(ret);
+    return PyLong_FromLong(ret);
 }
 
 // @pymethod int|PyCWnd|GetExStyle|Retrieves the window's extended style
@@ -1360,7 +1361,7 @@ static PyObject *ui_window_get_ex_style(PyObject *self, PyObject *args)
     GUI_BGN_SAVE;
     DWORD ret = pWnd->GetExStyle();
     GUI_END_SAVE;
-    return PyInt_FromLong(ret);
+    return PyLong_FromLong(ret);
 }
 
 // @pymethod <o PyCMenu>|PyCWnd|GetSystemMenu|Returns the menu object for the window's system menu.
@@ -1585,7 +1586,7 @@ static PyObject *ui_window_is_iconic(PyObject *self, PyObject *args)
     GUI_BGN_SAVE;
     int rc = pWnd->IsIconic();
     GUI_END_SAVE;
-    return PyInt_FromLong(rc);
+    return PyLong_FromLong(rc);
 }
 // @pymethod int|PyCWnd|IsZoomed|Determines if the window is currently maximised.
 static PyObject *ui_window_is_zoomed(PyObject *self, PyObject *args)
@@ -1597,7 +1598,7 @@ static PyObject *ui_window_is_zoomed(PyObject *self, PyObject *args)
     GUI_BGN_SAVE;
     int rc = pWnd->IsZoomed();
     GUI_END_SAVE;
-    return PyInt_FromLong(rc);
+    return PyLong_FromLong(rc);
 }
 
 // @pymethod int|PyCWnd|IsWindowVisible|Determines if the window is currently visible.
@@ -1610,7 +1611,7 @@ static PyObject *ui_window_is_window_visible(PyObject *self, PyObject *args)
     GUI_BGN_SAVE;
     long rc = pWnd->IsWindowVisible();
     GUI_END_SAVE;
-    return PyInt_FromLong(rc);
+    return PyLong_FromLong(rc);
 }
 
 // @pymethod int|PyCWnd|IsWindowEnabled|Determines if the window is currently enabled.
@@ -1623,7 +1624,7 @@ static PyObject *ui_window_is_window_enabled(PyObject *self, PyObject *args)
     GUI_BGN_SAVE;
     int rc = pWnd->IsWindowEnabled();
     GUI_END_SAVE;
-    return PyInt_FromLong(rc);
+    return PyLong_FromLong(rc);
 }
 
 // @pymethod |PyCWnd|MessageBox|Display a message box.
@@ -1684,7 +1685,7 @@ static PyObject *ui_window_modify_style(PyObject *self, PyObject *args)
     rc = pWnd->ModifyStyle(remove, add, flags);
     // @pyseemfc CWnd|ModifyStyle
     GUI_END_SAVE;
-    return PyInt_FromLong(rc);
+    return PyLong_FromLong(rc);
     // @comm If nFlags is nonzero, ModifyStyle calls the Windows API function ::SetWindowPos and redraws the window by
     // combining nFlags with the following four preset flags: <nl>* SWP_NOSIZE	Retains the current size. <nl>*
     // SWP_NOMOVE	Retains the current position. <nl>* SWP_NOZORDER	Retains the current Z order. <nl>*
@@ -1715,7 +1716,7 @@ static PyObject *ui_window_modify_style_ex(PyObject *self, PyObject *args)
     rc = pWnd->ModifyStyleEx(remove, add, flags);
     // @pyseemfc CWnd|ModifyStyleEx
     GUI_END_SAVE;
-    return PyInt_FromLong(rc);
+    return PyLong_FromLong(rc);
     // @comm If nFlags is nonzero, ModifyStyleEx calls the Windows API function ::SetWindowPos and redraws the window by
     // combining nFlags with the following four preset flags: <nl>* SWP_NOSIZE	Retains the current size. <nl>*
     // SWP_NOMOVE	Retains the current position. <nl>* SWP_NOZORDER	Retains the current Z order. <nl>*
@@ -1849,8 +1850,8 @@ static PyObject *ui_window_on_wnd_msg(PyObject *self, PyObject *args)
 {
     LRESULT res;
     int msg;
-    WPARAM wParam;
-    LPARAM lParam;
+    PyWin_PARAMHolder wParam;
+    PyWin_PARAMHolder lParam;
     PyObject *obwParam, *oblParam;
     CRect rect;
     BOOL bRepaint = TRUE;
@@ -1875,7 +1876,6 @@ static PyObject *ui_window_on_wnd_msg(PyObject *self, PyObject *args)
     // return value from the MFC function call, and the value of the
     // lResult param.  Please see the MFC documentation for more details.
     return Py_BuildValue("iN", rc, PyWinObject_FromPARAM(res));
-    RETURN_NONE;
 }
 
 // @pymethod |PyCWnd|PostMessage|Post a message to the window.
@@ -1891,8 +1891,8 @@ PyObject *ui_window_post_message(PyObject *self, PyObject *args)
                           &obwParam,   // @pyparm int|wParam|0|The wParam for the message
                           &oblParam))  // @pyparm int|lParam|0|The lParam for the message
         return NULL;
-    WPARAM wParam = 0;
-    LPARAM lParam = 0;
+    PyWin_PARAMHolder wParam;
+    PyWin_PARAMHolder lParam;
     if (obwParam != Py_None && !PyWinObject_AsPARAM(obwParam, &wParam))
         return NULL;
     if (oblParam != Py_None && !PyWinObject_AsPARAM(oblParam, &lParam))
@@ -2096,7 +2096,7 @@ static PyObject *ui_window_set_scroll_pos(PyObject *self, PyObject *args)
     GUI_BGN_SAVE;
     long rc = pWnd->SetScrollPos(nBar, nPos, bRedraw);
     GUI_END_SAVE;
-    return PyInt_FromLong(rc);
+    return PyLong_FromLong(rc);
 }
 
 // @pymethod |PyCWnd|SetWindowPlacement|Sets the windows placement
@@ -2185,36 +2185,9 @@ PyObject *ui_window_send_message(PyObject *self, PyObject *args)
         return NULL;
     assert(!PyErr_Occurred());  // lingering exception?
     int message;
-    WPARAM wp = 0;
-    LPARAM lp = 0;
-    BOOL ok = FALSE;
-    // Old code assumes the following behaviour:
-    // (msg, buffer_ob) -> lparam==&buffer, wparam=len(buffer)
-    // (msg, [int_arg, int_arg]) - lparam and wparam cast from ints
-    // However, PyWinObject_AsPARAM() has special casing for buffer objects -
-    // their address is used, but size is discarded.  This means we must check
-    // for our special case before letting PyWinObject_AsPARAM at them.
-    // Shortcut - our special case requires exactly 2 args be passed.
-    if (args && PyTuple_Size(args) == 2) {
-        void *p;
-        PyObject *obParam;
-        ok = PyArg_ParseTuple(args, "iO",
-                              &message,   // @pyparmalt1 int|idMessage||The ID of the message to send.
-                              &obParam);  // @pyparmalt1 buffer|ob||A buffer whose size is passed in wParam, and address
-                                          // is passed in lParam
-        if (ok) {
-            int wParam;
-            ok = PyWinObject_AsReadBuffer(obParam, &p, &wParam);
-            if (ok) {
-                lp = (LPARAM)p;
-                wp = (WPARAM)wParam;
-            }
-        }
-        // save unconditionally clearing it in the block below...
-        if (!ok)
-            PyErr_Clear();
-    }
-    if (!ok) {
+    PyWin_PARAMHolder wp;
+    PyWin_PARAMHolder lp;
+    {
         // more general purpose args.
         PyObject *obwParam = Py_None, *oblParam = Py_None;
         if (!PyArg_ParseTuple(args, "i|OO:SendMessage",
@@ -2224,8 +2197,16 @@ PyObject *ui_window_send_message(PyObject *self, PyObject *args)
             return NULL;
         if (obwParam != Py_None && !PyWinObject_AsPARAM(obwParam, &wp))
             return NULL;
-        if (oblParam != Py_None && !PyWinObject_AsPARAM(oblParam, &lp))
-            return NULL;
+        if (oblParam != Py_None) {
+            if (!PyWinObject_AsPARAM(oblParam, &lp))
+                return NULL;
+        }
+        else if (wp.bufferView.ok() && PyTuple_Size(args) == 2) {
+            // old code compatibily: (msg, buffer_ob) -> lparam==&buffer, wparam=len(buffer)
+            lp = (WPARAM)wp.bufferView.ptr();
+            wp = (WPARAM)wp.bufferView.len();  // doesn't release the held bufferView so far
+            assert(wp.bufferView.ok());
+        }
     }
     LRESULT rc;
     GUI_BGN_SAVE;
@@ -2250,8 +2231,8 @@ PyObject *ui_window_send_message_to_desc(PyObject *self, PyObject *args)
             &oblParam,  // @pyparm int|lParam|0|The lParam for the message
             &bDeep))    // @pyparm int|bDeep|1|Indicates if the message should be recursively sent to all children
         return NULL;
-    WPARAM wParam = 0;
-    LPARAM lParam = 0;
+    PyWin_PARAMHolder wParam;
+    PyWin_PARAMHolder lParam;
     if (obwParam != Py_None && !PyWinObject_AsPARAM(obwParam, &wParam))
         return NULL;
     if (oblParam != Py_None && !PyWinObject_AsPARAM(oblParam, &lParam))
@@ -2615,7 +2596,7 @@ PyObject *ui_window_begin_paint(PyObject *self, PyObject *args)
     PyObject *obDC = ui_assoc_object::make(ui_dc_object::type, pTemp)->GetGoodRet();
     PyObject *obRet = Py_BuildValue("O(Ni(iiii)iiN)", obDC, PyWinLong_FromHANDLE(ps.hdc), ps.fErase, ps.rcPaint.left,
                                     ps.rcPaint.top, ps.rcPaint.right, ps.rcPaint.bottom, ps.fRestore, ps.fIncUpdate,
-                                    PyString_FromStringAndSize((char *)ps.rgbReserved, sizeof(ps.rgbReserved)));
+                                    PyBytes_FromStringAndSize((char *)ps.rgbReserved, sizeof(ps.rgbReserved)));
     Py_XDECREF(obDC);
     return obRet;
 }
@@ -2631,9 +2612,9 @@ PyObject *ui_window_end_paint(PyObject *self, PyObject *args)
                           &ps.rcPaint.right, &ps.rcPaint.bottom, &ps.fRestore, &ps.fIncUpdate, &obString))
         return NULL;
 
-    if (!PyString_Check(obString) || PyString_Size(obString) != sizeof(ps.rgbReserved))
+    if (!PyBytes_Check(obString) || PyBytes_Size(obString) != sizeof(ps.rgbReserved))
         RETURN_TYPE_ERR("Last tuple must be a string of a specific size!");
-    memcpy(ps.rgbReserved, PyString_AsString(obString), sizeof(ps.rgbReserved));
+    memcpy(ps.rgbReserved, PyBytes_AsString(obString), sizeof(ps.rgbReserved));
 
     if (!PyWinObject_AsHANDLE(obhdc, (HANDLE *)&ps.hdc))
         return NULL;
@@ -2828,14 +2809,14 @@ static PyObject *ui_window_map_window_points(PyObject *self, PyObject *args)
             PyObject *px, *py;
             px = PyTuple_GetItem(point_tuple, 0);
             py = PyTuple_GetItem(point_tuple, 1);
-            if ((!PyInt_Check(px)) || (!PyInt_Check(py))) {
+            if ((!PyLong_Check(px)) || (!PyLong_Check(py))) {
                 PyErr_SetString(PyExc_ValueError, "point list must be a list of (x,y) tuples");
                 delete[] point_array;
                 return NULL;
             }
             else {
-                x = PyInt_AsLong(px);
-                y = PyInt_AsLong(py);
+                x = PyLong_AsLong(px);
+                y = PyLong_AsLong(py);
                 point_array[i].x = x;
                 point_array[i].y = y;
             }
@@ -3003,7 +2984,7 @@ static PyObject *ui_window_on_set_cursor(PyObject *self, PyObject *args)
     GUI_BGN_SAVE;
     UINT rc = ((WndHack *)pWnd)->OnSetCursor(pWndArg, ht, msg);
     GUI_END_SAVE;
-    return PyInt_FromLong(rc);
+    return PyLong_FromLong(rc);
 }
 
 // @pymethod int|PyCWnd|OnMouseActivate|Calls the base MFC OnMouseActivate function.
@@ -3026,7 +3007,7 @@ static PyObject *ui_window_on_mouse_activate(PyObject *self, PyObject *args)
     GUI_BGN_SAVE;
     UINT rc = ((WndHack *)pWnd)->OnMouseActivate(pWndArg, ht, msg);
     GUI_END_SAVE;
-    return PyInt_FromLong(rc);
+    return PyLong_FromLong(rc);
 }
 
 // @pymethod tuple|PyCWnd|PreCreateWindow|Calls the underlying MFC PreCreateWindow method.
@@ -3534,7 +3515,7 @@ static PyObject *PyCFrameWnd_DockControlBar(PyObject *self, PyObject *args)
         Py_INCREF(Py_None);
     }
     __except (EXCEPTION_EXECUTE_HANDLER) {
-        rc = NULL;  // Cant set Python error till we have the lock back.
+        rc = NULL;  // Can't set Python error till we have the lock back.
     }
     GUI_END_SAVE;
     if (rc == NULL)
@@ -3810,7 +3791,7 @@ static PyObject *PyCFrameWnd_OnBarCheck(PyObject *self, PyObject *args)
     GUI_BGN_SAVE;
     long rc = pFrame->OnBarCheck(id);
     GUI_END_SAVE;
-    return PyInt_FromLong(rc);
+    return PyLong_FromLong(rc);
 }
 
 // @pymethod int|PyCFrameWnd|OnUpdateControlBarMenu|Checks the state of a menu item

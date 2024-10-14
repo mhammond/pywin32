@@ -200,7 +200,7 @@ static PyObject *do_exchange_edit(int id, int index, char *type, PyObject *oldVa
         case 'i': {
             int intVal = 0;
             if (oldVal)
-                intVal = (int)PyInt_AsLong(oldVal);
+                intVal = (int)PyLong_AsLong(oldVal);
             PyThreadState *_save = PyEval_SaveThread();
             TRY
             {
@@ -214,8 +214,8 @@ static PyObject *do_exchange_edit(int id, int index, char *type, PyObject *oldVa
             }
             END_CATCH_ALL
             if (o1 && o2) {
-                if (PyInt_Check(o1) && PyInt_Check(o2))
-                    DDV_MinMaxInt(pDX, intVal, PyInt_AsLong(o1), PyInt_AsLong(o2));
+                if (PyLong_Check(o1) && PyLong_Check(o2))
+                    DDV_MinMaxInt(pDX, intVal, PyLong_AsLong(o1), PyLong_AsLong(o2));
                 else
                     return set_exchange_error("Edit - must be tuple of control_id, key, 'i', intMin, intMax", index);
             }
@@ -246,8 +246,8 @@ static PyObject *do_exchange_edit(int id, int index, char *type, PyObject *oldVa
             }
             END_CATCH_ALL
             if (o1 && o2) {
-                if (PyInt_Check(o1) && o2 == NULL)
-                    DDV_MaxChars(pDX, csVal, PyInt_AsLong(o1));
+                if (PyLong_Check(o1) && o2 == NULL)
+                    DDV_MaxChars(pDX, csVal, PyLong_AsLong(o1));
                 else
                     return set_exchange_error("Edit - must be tuple of control_id, key, 's', maxLength", index);
             }
@@ -274,9 +274,9 @@ static PyObject *do_exchange_list_combo(int id, int index, char *type, PyObject 
         case 'i': {
             int intVal = 0;
             if (oldVal && oldVal != Py_None) {
-                if (!PyInt_Check(oldVal))
+                if (!PyLong_Check(oldVal))
                     return set_exchange_error("'i' format requires integers", index);
-                intVal = (int)PyInt_AsLong(oldVal);
+                intVal = (int)PyLong_AsLong(oldVal);
             }
             GUI_BGN_SAVE;
             if (bList)
@@ -384,9 +384,9 @@ static PyObject *do_exchange_button(CDialog *pDlg, int id, int index, char *type
     }
     int intVal = 0;
     if (oldVal) {
-        if (!PyInt_Check(oldVal))
+        if (!PyLong_Check(oldVal))
             return set_exchange_error("the previous value was not a number!", index);
-        intVal = (int)PyInt_AsLong(oldVal);
+        intVal = (int)PyLong_AsLong(oldVal);
     }
     GUI_BGN_SAVE;
     if (bRadio)
@@ -403,7 +403,7 @@ void Python_do_exchange(CDialog *pDlg, CDataExchange *pDX)
     PyCDialog *dob = (PyCDialog *)ui_assoc_object::GetAssocObject(pDlg);
     if (!dob) {
         TRACE("do_exchange called on dialog with no Python object!\n");
-        return;  // dont print an exception
+        return;  // don't print an exception
     }
     for (int i = 0; i < PyList_Size(dob->ddlist); i++) {
         PyObject *ob = PyList_GetItem(dob->ddlist, i);
@@ -569,13 +569,13 @@ static PyObject *ui_dialog_do_modal(PyObject *self, PyObject *args)
         RETURN_ERR("InitModalIndirect failed");
     }
 
-    Py_INCREF(self);  // make sure Python doesnt kill the object while in a modal call.
+    Py_INCREF(self);  // make sure Python doesn't kill the object while in a modal call.
                       // really only for the common dialog, and other non CPythonDlg's
     INT_PTR ret;
     GUI_BGN_SAVE;
     ret = pDlg->DoModal();  // @pyseemfc CDialog|DoModal
     GUI_END_SAVE;
-    DODECREF(self);
+    Py_DECREF(self);
     return PyWinObject_FromDWORD_PTR(ret);
     // @rdesc The return value from the dialog.  This is the value passed to <om PyCDialog.EndDialog>.
 }
@@ -737,7 +737,7 @@ ui_type_CObject PyCDialog::type("PyCDialog",
 static struct PyMethodDef ui_common_dialog_methods[] = {{NULL, NULL}};
 
 ui_type_CObject PyCCommonDialog::type("PyCCommonDialog", &PyCDialog::type,
-                                      NULL,  // CCommonDialog doesnt have RTTI???
+                                      NULL,  // CCommonDialog doesn't have RTTI???
                                       sizeof(PyCCommonDialog), PYOBJ_OFFSET(PyCCommonDialog), ui_common_dialog_methods,
                                       NULL);
 
@@ -1058,7 +1058,7 @@ PyObject *PyCFontDialog::ui_font_dialog_create(PyObject * /*self*/, PyObject *ar
         GUI_BGN_SAVE;                                       \
         int ret = pDlg->mfcName();                          \
         GUI_END_SAVE;                                       \
-        return PyInt_FromLong(ret);                         \
+        return PyLong_FromLong(ret);                        \
     }
 
 #define MAKE_INT_PTR_METH(fnname, mfcName)                  \
@@ -1249,7 +1249,7 @@ static PyObject *ui_color_dialog_get_saved_custom_colors(PyObject *self, PyObjec
     GUI_BGN_SAVE;
     COLORREF *prc = pDlg->GetSavedCustomColors();
     GUI_END_SAVE;
-    return PyInt_FromLong((long)*prc);
+    return PyLong_FromLong((long)*prc);
 }
 
 // @pymethod |PyCColorDialog|SetCurrentColor|Sets the currently selected color.
@@ -1278,7 +1278,7 @@ static PyObject *ui_color_dialog_get_custom_colors(PyObject *self, PyObject *arg
     if (!pDlg)
         return NULL;
     PyObject *ret = PyTuple_New(16);
-    for (int i = 0; i < 16; i++) PyTuple_SET_ITEM(ret, i, PyInt_FromLong(pDlg->m_cc.lpCustColors[i]));
+    for (int i = 0; i < 16; i++) PyTuple_SET_ITEM(ret, i, PyLong_FromLong(pDlg->m_cc.lpCustColors[i]));
     return ret;
 }
 
@@ -1301,13 +1301,13 @@ static PyObject *ui_color_dialog_set_custom_colors(PyObject *self, PyObject *arg
         PyObject *obInt = NULL;
         PyObject *ob = PySequence_GetItem(obCols, i);
         if (ob != NULL)
-            obInt = PyNumber_Int(ob);
+            obInt = PyNumber_Long(ob);
         if (obInt == NULL) {
             Py_XDECREF(ob);
             PyErr_SetString(PyExc_TypeError, "The argument must be a sequence of integers of length 1-16");
             return NULL;
         }
-        pDlg->m_cc.lpCustColors[i] = PyInt_AsLong(obInt);
+        pDlg->m_cc.lpCustColors[i] = PyLong_AsLong(obInt);
         Py_DECREF(ob);
         Py_DECREF(obInt);
     }

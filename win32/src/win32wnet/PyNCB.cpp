@@ -16,18 +16,6 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  ******************************************************************/
 // @doc
-#if !defined(_WIN32_WCE)  // so far, none of this is supported by Windows CE
-#if defined(_WIN32_WCE_)  // defined by Windows CE compiler environment
-
-#ifndef UNICODE
-#define UNICODE
-#endif
-
-#ifndef _UNICODE
-#define _UNICODE
-#endif
-
-#endif
 
 #include "Pywintypes.h"
 #include <windows.h>
@@ -252,7 +240,7 @@ int PyNCB::setattro(PyObject *self, PyObject *obname, PyObject *v)
         char *value;
         DWORD valuelen;
 
-        if (!PyWinObject_AsString(v, &value, FALSE, &valuelen))
+        if (!PyWinObject_AsChars(v, &value, FALSE, &valuelen))
             return -1;
         if (valuelen > NCBNAMSZ)  // cap string length at NCBNAMSZ(16)
             valuelen = NCBNAMSZ;
@@ -261,14 +249,14 @@ int PyNCB::setattro(PyObject *self, PyObject *obname, PyObject *v)
         strncpy((char *)This->m_ncb.ncb_callname, value, valuelen);
         if (valuelen == 0)  // source was null string
             This->m_ncb.ncb_callname[0] = '\0';
-        PyWinObject_FreeString(value);
+        PyWinObject_FreeChars(value);
         return 0;
     }
 
     if (strcmp(name, "Name") == 0) {
         char *value;
         DWORD valuelen;
-        if (!PyWinObject_AsString(v, &value, FALSE, &valuelen))
+        if (!PyWinObject_AsChars(v, &value, FALSE, &valuelen))
             return -1;
         if (valuelen > NCBNAMSZ)  // cap string length at NCBNAMSZ(16)
             valuelen = NCBNAMSZ;
@@ -277,7 +265,7 @@ int PyNCB::setattro(PyObject *self, PyObject *obname, PyObject *v)
         strncpy((char *)This->m_ncb.ncb_name, value, valuelen);
         if (valuelen == 0)  // source was null string
             This->m_ncb.ncb_callname[0] = '\0';
-        PyWinObject_FreeString(value);
+        PyWinObject_FreeChars(value);
         return 0;
     }
 
@@ -290,13 +278,13 @@ int PyNCB::setattro(PyObject *self, PyObject *obname, PyObject *v)
             Py_INCREF(ob_buf);
         }
 
-        void *buf;
-        DWORD buflen;
-        if (!PyWinObject_AsWriteBuffer(ob_buf, &buf, &buflen)) {
+        PyWinBufferView pybuf(ob_buf, true);
+        if (!pybuf.ok()) {
             Py_DECREF(ob_buf);
             return -1;
         }
-        if (buflen > USHRT_MAX) {
+
+        if (pybuf.len() > USHRT_MAX) {
             Py_DECREF(ob_buf);
             PyErr_Format(PyExc_ValueError, "Buffer can be at most %d bytes", USHRT_MAX);
             return -1;
@@ -306,11 +294,11 @@ int PyNCB::setattro(PyObject *self, PyObject *obname, PyObject *v)
         Py_XDECREF(This->m_obuserbuffer);
         Py_INCREF(v);
         This->m_obuserbuffer = v;
-        This->m_ncb.ncb_length = (WORD)buflen;
-        This->m_ncb.ncb_buffer = (PUCHAR)buf;
+        // note: this might be unsafe, as we give away the buffer pointer to a
+        // client outside of the scope where our RAII object 'pybuf' resides.
+        This->m_ncb.ncb_length = (WORD)pybuf.len();
+        This->m_ncb.ncb_buffer = (PUCHAR)pybuf.ptr();
         return 0;
     }
     return PyObject_GenericSetAttr(self, obname, v);
 }
-
-#endif

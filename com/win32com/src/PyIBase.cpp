@@ -1,7 +1,17 @@
 #include "stdafx.h"
 #include "PythonCOM.h"
 
-PyIBase::PyIBase() { _Py_NewReference(this); }
+static PyComTypeObject type("PyIBase", NULL, sizeof(PyIBase), NULL, NULL);
+
+PyIBase::PyIBase()
+{
+    // ob_type will be overridden to the real type once the subclasses
+    // constructor body runs, however, _Py_NewReference() sometimes wants
+    // ob_type to be valid (particularly when tracemalloc is enabled!)
+    ob_type = &type;
+    _Py_NewReference(this);
+}
+
 PyIBase::~PyIBase() {}
 
 /*static*/ BOOL PyIBase::is_object(PyObject *ob, PyComTypeObject *which)

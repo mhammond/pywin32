@@ -1,58 +1,64 @@
-<HTML>
-<HEAD>
-<TITLE>Active Directory</TITLE>
-</HEAD>
-	<BODY BGCOLOR="FFFFFF">
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Active Directory</title>
+	<style>
+		h1 {
+			text-align:center
+		}
+	</style>
+</head>
+	<body bgcolor="FFFFFF">
 	<!-- beginning of leaf header-->
 
-	<TABLE border=0  cellpadding=0 cellspacing=0 width=100%>
-	<TR>
-		<TD valign=middle width="100%"
+	<table border=0  cellpadding=0 cellspacing=0 width=100%>
+	<tr>
+		<td valign=middle width="100%"
 		bgcolor="#99ccff"> <font face="sans-serif" size="+1"
 		color="#111111">&nbsp;&nbsp;&nbsp;Active Directory</font>
-		</TD>
-	</TR>
-	</TABLE>
+		</td>
+	</tr>
+	</table>
 	<p>&nbsp</p>
 	<!-- end of leaf content-->
 <!-- INDEX BEGIN -->
 
-<UL>
+<ul>
 
-	<LI><A HREF="#SUMMARY">SUMMARY</A></LI>
-	<UL>
-		<LI><A HREF="#Introduction">Introduction</A></LI>
-                <LI><A HREF="#getobj">Getting Active Directory Objects</A>
+	<li><a href="#Summary">Summary</a></li>
+	<ul>
+		<li><a href="#Introduction">Introduction</a></li>
+                <li><A href="#getobj">Getting Active Directory Objects</a></li>
 		<ul>
-                <LI><A HREF="#discovery">Discovery</A>
-                <LI><A HREF="#opends">Making the object</A>
-                <LI><A HREF="#what">What properties does the object have?</A>
-                <LI><A HREF="#time">The time property</A>
+                <li><A href="#discovery">Discovery</A></li>
+                <li><A href="#opends">Making the object</A></li>
+                <li><A href="#what">What properties does the object have?</A></li>
+                <li><A href="#time">The time property</A></li>
 		</ul>
-                <LI><A HREF="#users">Managing Users(to be added)</A>
+                <li>a href="#users">Managing Users(to be added)</a></li>
 		<ul>
-                <LI><A HREF="#basic">User Basics</A>
-                <LI><A HREF="#exchange">Adding Exchange access</A>
+                <li><a href="#basic">User Basics</a>
+                <li><a href="#exchange">Adding Exchange access</a></li>
 		</ul>
-		 
-                <LI><A HREF="#Conclusion">In Conclusion</A>
-	</UL>
 
-	<LI><A HREF="#Further Info">Further Info</A></LI>
-	<LI><A HREF="#Author">Author</A></LI>
-</UL>
+                <li><a href="#Conclusion">In Conclusion</A></li>
+	</ul>
+
+	<li><a href="#Further Info">Further Info</a></li>
+	<li><a href="#Author">Author</a></li>
+</ul>
 <!-- INDEX END -->
 
-<HR>
-<H1><A NAME="SUMMARY">SUMMARY</A></H1>
+<hr>
+<h1><a name="Summary">Summary</a></h1>
 <p>
-Active Directory combines all sorts of domain-wide information into one spot. 
+Active Directory combines all sorts of domain-wide information into one spot.
 Using Microsoft's COM LDAP provider, python has good access to Active Directory.
 
 </p>
 
-<HR>
-<H2><A NAME="Introduction">Introduction</A></H2>
+<hr>
+<h2><a name="Introduction">Introduction</a></h2>
 <p>
 
 To access active directory, it is easiest to put some boilerplate code
@@ -64,23 +70,23 @@ functionality with ldap which no longer exists. Now, COM is needed.
 <br>
 Here is a list of the functions
 <ul>
-<li>Discover your active directory environment. 
-<li>Basic authenticated connections to objects for you.
-<li>Collect all the objects attributes into a dictionary
-<li>Convert Active Directory time to python time
+	<li>Discover your active directory environment.</li>
+	<li>Basic authenticated connections to objects for you.</li>
+	<li>Collect all the objects attributes into a dictionary</li>
+	<li>Convert Active Directory time to python time</li>
 </ul>
 Later we'll add information about managing users and computers.
 
 
-<HR>
-<H2><A NAME="getobj">Getting Active Directory Objects</A></H2>
+<hr>
+<h2><a name="getobj">Getting Active Directory Objects</a></h2>
 
-<H3><A NAME="discovery">Discovery</A></H3> 
-<pre>
+<h3><a name="discovery">Discovery</a></h3>
+<p>
 A tool that can be of a great help is ADSIedit which is in the Windows
 2000 support tools on the Windows 2000 server cdrom. It gives you the
-raw ldap view of active directory.
-
+	raw ldap view of active directory.</p>
+<code>
 def discover():
     Here is a function that helps you determine the active directory ldap strings that you can actually use.
     #get base LDAP string
@@ -100,26 +106,26 @@ def discover():
     #get an exchange server
     ex_admin_grps='CN=Administrative Groups,cn='+ex_site+','+ex_loc+','+ldap_loc
     admin_grp=win32com.client.GetObject('LDAP://'+ex_admin_grps)[0].cn
-    
+
     ex_servers='LDAP://CN=Servers,'+'cn='+admin_grp+','+ex_admin_grps
     servers=win32com.client.GetObject(ex_servers)
 
     ex_servers=[]
-  
+
     for i in servers:
         ex_servers.append(i.cn)
-    print '\texchange servers',string.join(ex_servers)
-    
+    print("\texchange servers"," ".join(ex_servers))
+
     ex_first_store='CN=First Storage Group,CN=InformationStore,CN=%s,CN=Servers,CN=%s,%s'%(ex_servers[-1],admin_grp,ex_admin_grps)
 
     ex_stores=[]
 
     for i in win32com.client.GetObject('LDAP://'+ex_first_store):
         ex_stores.append('cn='+i.cn+','+ex_first_store)
-    print '\tExchange stores:',string.join(ex_stores,"',")
-</pre>
+    print("\tExchange stores:","',".join(ex_stores))
+</code>
 
-<H3><A NAME="opends">Making the object</A></H3>
+<h3><a name="opends">Making the object</a></h3>
 
 One such useful function is opends. Ultimately, you need some sort of
 "LDAP://" string. The opends function builds it for you, by going to a
@@ -131,17 +137,17 @@ LDAP://cn=fred,OU=people,DC=ad,DC=company,DC=state,DC=oh,DC=us'
 <p>
 This then allows things like:
 <br>
-print 'The last name: ',opends('fred').sn #sn =surname
+print("The last name: ",opends("fred").sn) #sn =surname
 <br>
 or to get the groups fred is a member of
 <br>
-print "groups=',opends('fred').memberOf
+print("groups=",opends("fred").memberOf)
 
-<pre>
+<code>
 def opends(loc,server=''):
     '''automatically buoild ldap string and authenticate
     ldap=win32com.client.Dispatch('ADsNameSpaces').getobject("","LDAP:")
-    ldap_main_loc='OU=people,DC=ad,DC=company,DC=state,DC=oh,DC=us' 
+    ldap_main_loc='OU=people,DC=ad,DC=company,DC=state,DC=oh,DC=us'
     ldap_auth='CN=admin_account,'+ldap_main_loc
 
     #if there is no ","  then they are not providing a full url
@@ -151,11 +157,11 @@ def opends(loc,server=''):
         if loc.find('=')==-1: loc='cn='+loc+','+Ad.ldap_main_loc
         else: loc=loc+','+Ad.ldap_main_loc
     if loc.find('LDAP://')==-1: loc='LDAP://'+loc
- 
-    return ldap.OpenDSObject(loc,Ad.ldap_auth,Ad.pw,1)
-</pre>
 
-<H3><A NAME="what">What does the object have?</A></H3>
+    return ldap.OpenDSObject(loc,Ad.ldap_auth,Ad.pw,1)
+</code>
+
+<h3><a name="what">What does the object have?</a></h3>
 
 Now that you can connection to objects, how do you determine what
 properties you can get from the object. The following function, ad_dict,
@@ -170,33 +176,36 @@ library.
 <p>
 You would use ad_dict like a normal python dictionary.
 <br>
-for i in ad_dict('fred').items(): print i
+<code>
+for i in ad_dict('fred').items():
+	print(i)
+</code>
 <br>
 A lot of things convert to automatic python data types. For others, you'll get stuff like
-COMObject. You need to do specific processing, like the one done for 
+COMObject. You need to do specific processing, like the one done for
 pwdLastSet below, to extract data from them.
 
-<pre>
+<code>
 def ad_dict(ldapobj,attr_dict={},recurse=0,auth=1,filter=()):
     if ldapobj.find(',')==-1: ldapobj='cn='+ldapobj+','+Ad.ldap_main_loc
     if auth: #setup authenticated connections
-        if debug: print 'auth'
+        if debug: print("auth")
         adobj=opends(ldapobj)
-        #if debug: print 'authenticated to',ldapobj    
+        # if debug: print("authenticated to",ldapobj)
     else:
         adobj=win32com.client.GetObject('LDAP://'+ldapobj)
-        if debug: print 'connected to',ldapobj    
+        if debug: print("connected to",ldapobj)
 
     if not(filter):
         #check for children
         for i in adobj:
-            if debug: print '****at',i.cn,str(adobj.cn)
+            if debug: print("****at",i.cn,str(adobj.cn))
             if recurse:
                 pass
                 #get children's attributes too
                 #attr_dict[i.distinguishedName]={}
                 #get_all(i.distinguishedName,attr_dict[i.distinguishedName],recurse,auth)
-        if debug: print 'getting schema'
+        if debug: print("getting schema")
         schema_obj=win32com.client.GetObject(adobj.schema)
         for i in schema_obj.MandatoryProperties:
             if i =='nTSecurityDescriptor':continue #takes a long time, skip it
@@ -207,9 +216,9 @@ def ad_dict(ldapobj,attr_dict={},recurse=0,auth=1,filter=()):
             value=getattr(adobj,i)
             if i == 'pwdLastSet':
                 #convert com object to sec since 1970
-                attr_dict[i]=conv_time(adobj.pwdLastSet.lowpart,adobj.pwdLastSet.highpart)       
+                attr_dict[i]=conv_time(adobj.pwdLastSet.lowpart,adobj.pwdLastSet.highpart)
             elif value: attr_dict[i]=value
-        
+
     else:
         attr_dict={}
         #only get data that is available
@@ -217,15 +226,15 @@ def ad_dict(ldapobj,attr_dict={},recurse=0,auth=1,filter=()):
             try:
                 if item == 'pwdLastSet':
                     #convert com object to sec since 1970
-                    attr_dict[item]=conv_time(adobj.pwdLastSet.lowpart,adobj.pwdLastSet.highpart)       
+                    attr_dict[item]=conv_time(adobj.pwdLastSet.lowpart,adobj.pwdLastSet.highpart)
                 else: attr_dict[item]=getattr(adobj,item)
             except:
                 pass
     return attr_dict
-</pre>
+</code>
 
 
-<H3><A NAME="time">The time property</A></H3> 
+<h3><a NAME="time">The time property</a></h3>
 
 Time in active directory is stored in a 64 bit integer that keeps
 track of the number of 100-nanosecond intervals which have passed
@@ -237,11 +246,11 @@ Here's an example where you'd use it:
 
 user=opends('fred')
 
-print 'time in seconds',conv_time(user.pwdLastSet.lowpart,user.pwdLastSet.highpart)       
+print("time in seconds",conv_time(user.pwdLastSet.lowpart,user.pwdLastSet.highpart))
 
 user.pwdLastSet returns a com object, not a python data type.
 
-<pre>
+<code>
 def conv_time(l,h):
     #converts 64-bit integer specifying the number of 100-nanosecond
     #intervals which have passed since January 1, 1601.
@@ -249,54 +258,40 @@ def conv_time(l,h):
     #two 32 bits  stored in the structure.
     d=116444736000000000L #diference between 1601 and 1970
     #we divide by 10million to convert to seconds
-    return (((long(h)<< 32) + long(l))-d)/10000000    
-</pre>
+    return (((long(h)<< 32) + long(l))-d)/10000000
+</code>
 
-<HR>
-<H2><A NAME="users">Managing Users</A></H2>
-<H3><A NAME="basic">User Basics</A></H3> 
-<H3><A NAME="exchange">Adding Exchange Access</A></H3> 
-<HR>
-<H2><A NAME="Conclusion">In Conclusion</A></H2>
+<hr>
+<h2><A name="users">Managing Users</a></h2>
+<h3><A name="basic">User Basics</a></h3>
+<h3><A name="exchange">Adding Exchange Access</a></h3>
+<hr>
+<h2><a name="Conclusion">In Conclusion</a></h2>
 So far we've only covered the basics of using Active Directory. Stay tuned for more.
 
 </p>
 <p>
 
 <hr>
-<H1><A NAME="Further Info">Further Info</A></H1>
+<h1><a name="Further Info">Further Info</a></h1>
 <p>
 <ul>
-<li><a href="http://msdn.microsoft.com">Microsoft MSDN references</a>
+<li><a href="https://msdn.microsoft.com">Microsoft MSDN references</a>
 </ul>
 </p>
-<HR><H1><A NAME="Author">Author</A></H1>
-John Nielsen, <A HREF="mailto:jn@who.net,">jn@who.net</A> 
-<br>-- Have a great time with programming with python! 
+<hr><h1><a name="Author">Author</a></h1>
+John Nielsen, <a href="mailto:jn@who.net,">jn@who.net</a>
+<br>-- Have a great time with programming with python!
 		<!-- beginning of leaf footer-->
 		<p>&nbsp;</p>
-		<TABLE border=0  cellpadding=0 cellspacing=0 width=100%>
-		<TR>
-			<TD valign=middle
+		<table border=0  cellpadding=0 cellspacing=0 width=100%>
+		<tr>
+			<td valign=middle
 			bgcolor="#99ccff"> <font face="sans-serif" size="+1"
 			color="#111111">&nbsp;&nbsp;&nbsp;ADSI, Exchange, and Python</font>
-			</TD>
-		</TR>
-		</TABLE>
+			</td>
+		</tr>
+		</table>
 		<!-- end of leaf footer-->
-</BODY>
-</HTML>
-
-
-
-
- 
-
-
-
-
-
-
-
-
-
+</body>
+</html>

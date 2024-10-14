@@ -38,7 +38,7 @@ PyObject *PyIBrowserFrameOptions::GetFrameOptions(PyObject *self, PyObject *args
     PY_INTERFACE_PRECALL;
     hr = pIBFO->GetFrameOptions((BROWSERFRAMEOPTIONS)dwMask, &dwOptions);
     PY_INTERFACE_POSTCALL;
-    return PyInt_FromLong(dwOptions);
+    return PyLong_FromLong(dwOptions);
 }
 
 // @object PyIBrowserFrameOptions|Description of the interface
@@ -62,8 +62,8 @@ STDMETHODIMP PyGBrowserFrameOptions::GetFrameOptions(
     HRESULT hr = InvokeViaPolicy("GetFrameOptions", &result, "i", dwMask);
     if (FAILED(hr))
         return hr;
-    if (PyInt_Check(result))
-        *pdwOptions = PyInt_AsLong(result);
+    if (PyLong_Check(result))
+        *pdwOptions = PyLong_AsLong(result);
     Py_DECREF(result);
     return hr;
 }

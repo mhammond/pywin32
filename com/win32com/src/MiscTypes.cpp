@@ -32,8 +32,8 @@ static PyTypeObject PyInterfaceType_Type = {
     "Define the behavior of a PythonCOM Interface type.", /* tp_doc */
 };
 
-PyComTypeObject::PyComTypeObject(const char *name, PyComTypeObject *pBase, int typeSize, struct PyMethodDef *methodList,
-                                 PyIUnknown *(*thector)(IUnknown *))
+PyComTypeObject::PyComTypeObject(const char *name, PyComTypeObject *pBase, Py_ssize_t typeSize,
+                                 struct PyMethodDef *methodList, PyIUnknown *(*thector)(IUnknown *))
 {
     // originally, this copied the typeobject of the parent, but as it is impossible
     // to guarantee order of static object construction, I went this way.  This is
@@ -75,7 +75,7 @@ PyComTypeObject::PyComTypeObject(const char *name, PyComTypeObject *pBase, int t
     *((PyTypeObject *)this) = type_template;
     ctor = thector;
 
-    // cast away const, as Python doesnt use it.
+    // cast away const, as Python doesn't use it.
     tp_name = (char *)name;
     tp_basicsize = typeSize;
     ((PyObject *)this)->ob_type = &PyType_Type;
@@ -96,16 +96,13 @@ PyComTypeObject::~PyComTypeObject() {}
 }
 
 // Our type for IEnum* interfaces
-PyComEnumTypeObject::PyComEnumTypeObject(const char *name, PyComTypeObject *pBase, int typeSize,
+PyComEnumTypeObject::PyComEnumTypeObject(const char *name, PyComTypeObject *pBase, Py_ssize_t typeSize,
                                          struct PyMethodDef *methodList, PyIUnknown *(*thector)(IUnknown *))
     : PyComTypeObject(name, pBase, typeSize, methodList, thector)
 {
     tp_iter = iter;
     tp_iternext = iternext;
     // Py3k does not have this flag, and depends just on presence of tp_iter
-#if (PY_VERSION_HEX < 0x03000000)
-    tp_flags |= Py_TPFLAGS_HAVE_ITER;
-#endif
 }
 
 // PyIEnum iter methods - generic for any "standard" COM IEnum interface, but
@@ -145,7 +142,7 @@ PyObject *PyComEnumTypeObject::iternext(PyObject *self)
 }
 
 // Our type for IEnum provider interfaces
-PyComEnumProviderTypeObject::PyComEnumProviderTypeObject(const char *name, PyComTypeObject *pBase, int typeSize,
+PyComEnumProviderTypeObject::PyComEnumProviderTypeObject(const char *name, PyComTypeObject *pBase, Py_ssize_t typeSize,
                                                          struct PyMethodDef *methodList,
                                                          PyIUnknown *(*thector)(IUnknown *),
                                                          const char *penum_method_name)
@@ -153,9 +150,6 @@ PyComEnumProviderTypeObject::PyComEnumProviderTypeObject(const char *name, PyCom
 {
     tp_iter = iter;
     // tp_iternext remains NULL
-#if (PY_VERSION_HEX < 0x03000000)
-    tp_flags |= Py_TPFLAGS_HAVE_ITER;
-#endif
 }
 
 // PyIEnumProvider iter methods - generic for COM object that can provide an IEnum*
@@ -201,7 +195,7 @@ static void nothing_dealloc(PyOleNothing *o) { delete o; }
 
 PyTypeObject PyOleNothingType = {
     PYWIN_OBJECT_HEAD "PyOleNothing",
-    sizeof(PyOleNothingType),
+    sizeof(PyOleNothing),
     0,
     (destructor)nothing_dealloc, /*tp_dealloc*/
     0,                           /*tp_print*/

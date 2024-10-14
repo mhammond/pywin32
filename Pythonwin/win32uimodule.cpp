@@ -121,8 +121,8 @@ BOOL HookWindowsMessages()
 // ui_type object
 //
 //////////////////////////////////////////////////////////////////////
-ui_type::ui_type(const char *name, ui_type *pBase, int typeSize,
-                 int pyobjOffset,  // number of bytes difference between a (PyObject *) and a (ui_base_class *)
+ui_type::ui_type(const char *name, ui_type *pBase, Py_ssize_t typeSize,
+                 ptrdiff_t pyobjOffset,  // number of bytes difference between a (PyObject *) and a (ui_base_class *)
                  struct PyMethodDef *methodList, ui_base_class *(*thector)())
 {
     // originally, this copied the typeobject of the parent, but as it is impossible
@@ -171,14 +171,10 @@ ui_type::ui_type(const char *name, ui_type *pBase, int typeSize,
     *((PyTypeObject *)this) = type_template;
     ((PyObject *)this)->ob_type = &PyType_Type;
     tp_methods = methodList;
-    //#define funky_offsetof_weakreflist ((size_t) &((PyObject *)(ui_base_class *)0)->weakreflist)
-
-#if (PY_VERSION_HEX < 0x03000000)
-    tp_flags |= Py_TPFLAGS_HAVE_WEAKREFS;  // flag doesn't exist in py3k
-#endif
+    // #define funky_offsetof_weakreflist ((size_t) &((PyObject *)(ui_base_class *)0)->weakreflist)
 
     tp_weaklistoffset -= pyobjOffset;
-    // cast away const, as Python doesnt use it.
+    // cast away const, as Python doesn't use it.
     tp_name = (char *)name;
     tp_basicsize = typeSize;
     tp_base = pBase;
@@ -192,8 +188,8 @@ ui_type::~ui_type() {}
 // ui_type_CObject
 ui_type_CObject::CRuntimeClassTypeMap *ui_type_CObject::typemap = NULL;
 
-ui_type_CObject::ui_type_CObject(const char *name, ui_type *pBaseType, CRuntimeClass *pRT, int typeSize,
-                                 int pyobjOffset, struct PyMethodDef *methodList, ui_base_class *(*thector)())
+ui_type_CObject::ui_type_CObject(const char *name, ui_type *pBaseType, CRuntimeClass *pRT, Py_ssize_t typeSize,
+                                 ptrdiff_t pyobjOffset, struct PyMethodDef *methodList, ui_base_class *(*thector)())
     : ui_type(name, pBaseType, typeSize, pyobjOffset, methodList, thector)
 {
     pCObjectClass = pRT;
@@ -248,7 +244,7 @@ ui_base_class *ui_base_class::make(ui_type &makeTypeRef)
     _Py_NewReference(pNew);
 #ifdef _DEBUG  // this is really only for internal errors, and they should be ironed out!
     if (!pNew->is_uiobject(makeType))
-        RETURN_ERR("Internal error - created type isnt what was requested!");
+        RETURN_ERR("Internal error - created type isn't what was requested!");
 #endif
 #ifdef TRACE_LIFETIMES
     TRACE("Constructing a '%s' at %p\n", pNew->ob_type->tp_name, pNew);
@@ -350,12 +346,7 @@ int ui_base_class::setattro(PyObject *obname, PyObject *v)
 CString ui_base_class::repr()
 {
     CString csRet;
-#if (PY_VERSION_HEX < 0x03000000)
-    USES_CONVERSION;
-    csRet.Format(_T("object '%s'"), A2T((LPSTR)ob_type->tp_name));
-#else
     csRet.Format(_T("object '%S'"), ob_type->tp_name);
-#endif
     return csRet;
 }
 void ui_base_class::cleanup()
@@ -503,19 +494,19 @@ BOOL DisplayPythonTraceback(PyObject *exc_type, PyObject *exc_val, PyObject *exc
             SetWindowText(title);
             GetDlgItem(IDCANCEL)->ShowWindow(SW_HIDE);
             GetDlgItem(IDOK)->SetWindowText(_T("Close"));
-            char *msg = GetPythonTraceback(m_exc_type, m_exc_value, m_exc_tb);
-            char *msg_free = msg;
+            WCHAR *msg = GetPythonTraceback(m_exc_type, m_exc_value, m_exc_tb);
+            WCHAR *msg_free = msg;
             // Translate '\n' to '\r\n' - do it the easy way!
             CString useMsg;
             for (; *msg; msg++)
-                if (*msg == '\n')
-                    useMsg += "\r\n";
+                if (*msg == L'\n')
+                    useMsg += L"\r\n";
                 else
                     useMsg += *msg;
             free(msg_free);
 #ifdef _DEBUG
             {
-                // doesnt seem to like long strings.
+                // doesn't seem to like long strings.
                 CString cs(useMsg);
                 int i = 0;
                 while (i < cs.GetLength()) {
@@ -564,19 +555,19 @@ int Python_run_command_with_log(const char *command)
     if (m == NULL)
         return -1;
     d = PyModule_GetDict(m);
-    v = PyRun_String(command, file_input, d, d);
+    v = PyRun_String(command, Py_file_input, d, d);
     if (v == NULL) {
         ExceptionHandler(EHA_DISPLAY_DIALOG);
         return 1;  // indicate failure, with traceback correctly shown.
     }
-    DODECREF(v);
+    Py_DECREF(v);
     return 0;
 }
 
 void Python_set_error(const char *msg) {}
 // In DEBUG builds, access voilations will normally trip my debugger, and
-// hence I dont want them trapped.  Stack Overflows normally mean runaway Python
-// code, and I dont really want these trapped.
+// hence I don't want them trapped.  Stack Overflows normally mean runaway Python
+// code, and I don't really want these trapped.
 #ifdef _DEBUG
 static int bTrapAccessViolations = FALSE;
 #endif
@@ -609,7 +600,7 @@ static DWORD FilterFunc(DWORD dwExceptionCode)
     return (dwRet);
 }
 
-PyObject *gui_call_object(PyObject *themeth, PyObject *thearglst) { return PyEval_CallObject(themeth, thearglst); }
+PyObject *gui_call_object(PyObject *themeth, PyObject *thearglst) { return PyObject_CallObject(themeth, thearglst); }
 
 void gui_print_error(void)
 {
@@ -644,9 +635,9 @@ void DefaultExceptionHandler(int action, const TCHAR *context, const TCHAR *extr
         PyErr_NormalizeException(&type, &value, &traceback);
 #ifdef DEBUG
         // dump it to the debugger in debug builds.
-        char *msg = GetPythonTraceback(type, value, traceback);
+        WCHAR *msg = GetPythonTraceback(type, value, traceback);
         if (msg) {
-            OutputDebugStringA(msg);
+            OutputDebugString(msg);
             free(msg);
         }
 #endif
@@ -659,7 +650,7 @@ void DefaultExceptionHandler(int action, const TCHAR *context, const TCHAR *extr
         }
         else
             PyErr_Restore(type, value, traceback);
-        fprintf(stderr, "%s\n", context);
+        fwprintf(stderr, L"%s\n", context);
         // Now print it.
         PyErr_Print();
     }
@@ -696,7 +687,7 @@ PyObject *Python_do_callback(PyObject *themeth, PyObject *thearglst)
     if (pCallbackCaller) {
         PyObject *newarglst = Py_BuildValue("(OO)", themeth, thearglst);
         result = gui_call_object(pCallbackCaller, newarglst);
-        DODECREF(newarglst);
+        Py_DECREF(newarglst);
     }
     else {
         // Only ref to 'themeth' may be map - and if the message hook
@@ -706,7 +697,7 @@ PyObject *Python_do_callback(PyObject *themeth, PyObject *thearglst)
         result = gui_call_object(themeth, thearglst);
         Py_XDECREF(themeth);
     }
-    DODECREF(thearglst);
+    Py_DECREF(thearglst);
     if (result == NULL) {
         TRACE("Python_do_callback: callback failed with exception\n");
         gui_print_error();
@@ -715,10 +706,6 @@ PyObject *Python_do_callback(PyObject *themeth, PyObject *thearglst)
 }
 
 // Copied from PyRecord.cpp, should move into pywintypes.h
-#if (PY_VERSION_HEX < 0x03000000)
-#define PyWinCoreString_ConcatAndDel PyString_ConcatAndDel
-#define PyWinCoreString_Concat PyString_Concat
-#else
 // Unicode versions of '_Concat' etc have different sigs.  Make them the
 // same here...
 void PyWinCoreString_Concat(register PyObject **pv, register PyObject *w)
@@ -733,14 +720,6 @@ void PyWinCoreString_Concat(register PyObject **pv, register PyObject *w)
     *pv = tmp;
 }
 
-void PyWinCoreString_ConcatAndDel(register PyObject **pv, register PyObject *w)
-{
-    PyWinCoreString_Concat(pv, w);
-    Py_XDECREF(w);
-}
-
-#endif
-
 int Python_do_int_callback(PyObject *themeth, PyObject *thearglst)
 {
     int retVal = INT_MAX;  // an identifiable, but unlikely genuine value
@@ -751,7 +730,7 @@ int Python_do_int_callback(PyObject *themeth, PyObject *thearglst)
     if (result == Py_None)  // allow for None==0
         retVal = 0;
     else {
-        retVal = PyInt_AsLong(result);
+        retVal = PyLong_AsLong(result);
         if (retVal == -1 && PyErr_Occurred()) {
             gui_print_error();
             TRACE("Python_do_int_callback: callback had bad return type\n");
@@ -777,7 +756,7 @@ int Python_do_int_callback(PyObject *themeth, PyObject *thearglst)
     if (_heapchk() != _HEAPOK)
         TRACE("**** Warning-heap corrupt after application callback ****\n");
 #endif
-    DODECREF(result);
+    Py_DECREF(result);
     return retVal;
 }
 int Python_callback(PyObject *method, WPARAM val)
@@ -878,7 +857,7 @@ static PyObject *ui_output_debug(PyObject *self, PyObject *args)
 
     while (*msg) {
         // not sure what's going on here.  NT seems to add a \n each call..
-        // Im sure msvc16 doesnt...(well, I _think_ Im sure..:)
+        // I'm sure msvc16 doesn't...(well, I _think_ I'm sure..:)
         while (*msg && *msg != '\n') *uiod++ = *msg++;
         *uiod = '\0';  // replace with NULL;
         if (*msg) {    // must be \n
@@ -1018,7 +997,7 @@ static PyObject *ui_write_profile_val(PyObject *self, PyObject *args)
         bHaveInt = FALSE;
     else {
         PyErr_Clear();
-        intVal = PyInt_AsLong(obVal);
+        intVal = PyLong_AsLong(obVal);
         if (intVal == -1 && PyErr_Occurred())
             RETURN_TYPE_ERR("Value must be string or int");
     }
@@ -1032,7 +1011,7 @@ static PyObject *ui_write_profile_val(PyObject *self, PyObject *args)
             rc = pApp->WriteProfileString(sect, entry, strVal);
         GUI_END_SAVE;
         if (rc)
-            ret = PyInt_FromLong(rc);
+            ret = PyLong_FromLong(rc);
         else
             PyErr_SetString(ui_module_error, "WriteProfileInt/String failed");
     }
@@ -1063,7 +1042,7 @@ static PyObject *ui_get_profile_val(PyObject *self, PyObject *args)
         bHaveInt = FALSE;
     else {
         PyErr_Clear();
-        intDef = PyInt_AsLong(obDef);
+        intDef = PyLong_AsLong(obDef);
         if (intDef == -1 && PyErr_Occurred())
             RETURN_TYPE_ERR("Default value must be string or int");
     }
@@ -1073,7 +1052,7 @@ static PyObject *ui_get_profile_val(PyObject *self, PyObject *args)
             GUI_BGN_SAVE;
             rc = pApp->GetProfileInt(sect, entry, intDef);
             GUI_END_SAVE;
-            ret = PyInt_FromLong(rc);
+            ret = PyLong_FromLong(rc);
         }
         else {
             CString rc;
@@ -1301,7 +1280,7 @@ static PyObject *ui_pump_waiting_messages(PyObject *self, PyObject *args)
     GUI_BGN_SAVE;
     bool rc = pThread->PumpWaitingMessages(firstMsg, lastMsg);
     GUI_END_SAVE;
-    return PyInt_FromLong((int)rc == true);
+    return PyLong_FromLong((int)rc == true);
     // @comm This allows an application which is performing a long operation to dispatch paint messages during the
     // operation.
     // @rdesc The result is 1 if a WM_QUIT message was processed, otherwise 0.
@@ -1349,7 +1328,7 @@ static PyObject *ui_message_box(PyObject *self, PyObject *args)
         GUI_BGN_SAVE;
         rc = ::MessageBox(pApp->m_pMainWnd->GetSafeHwnd(), message, title ? title : pApp->m_pszAppName, style);
         GUI_END_SAVE;
-        ret = PyInt_FromLong(rc);
+        ret = PyLong_FromLong(rc);
     }
     PyWinObject_FreeTCHAR(message);
     PyWinObject_FreeTCHAR(title);
@@ -1385,7 +1364,7 @@ static PyObject *ui_compare_path(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "OO:ComparePath", &obpath1, &obpath2))
         return NULL;
     if (PyWinObject_AsTCHAR(obpath1, &path1, FALSE) && PyWinObject_AsTCHAR(obpath2, &path2, FALSE))
-        ret = PyInt_FromLong(AfxComparePath(path1, path2));
+        ret = PyLong_FromLong(AfxComparePath(path1, path2));
     PyWinObject_FreeTCHAR(path1);
     PyWinObject_FreeTCHAR(path2);
     return ret;
@@ -1454,12 +1433,13 @@ static PyObject *ui_install_callback_caller(PyObject *self, PyObject *args)
     // @rdesc The previous callback caller.
 }
 
-// @pymethod int|win32ui|IsWin32s|Determines if the application is running under Win32s.
+// @pymethod int|win32ui|IsWin32s|Returns False.
 static PyObject *ui_is_win32s(PyObject *self, PyObject *args)
 {
     CHECK_NO_ARGS2(args, IsWin32s);
-    return Py_BuildValue("i", IsWin32s());
+    return Py_BuildValue("O", Py_False);
 }
+
 // @pymethod int|win32ui|IsObject|Determines if the passed object is a win32ui object.
 static PyObject *ui_is_object(PyObject *self, PyObject *args)
 {
@@ -1479,7 +1459,7 @@ static PyObject *ui_get_resource(PyObject *self, PyObject *args)
     return ret;
 }
 
-// @pymethod <o PyUnicode>|win32ui|LoadString|Loads a string from a resource file.
+// @pymethod string|win32ui|LoadString|Loads a string from a resource file.
 static PyObject *ui_load_string(PyObject *self, PyObject *args)
 {
     UINT stringId;
@@ -1623,8 +1603,8 @@ static PyObject *ui_set_dialog_bk_color(PyObject *self, PyObject *args)
     int clrCtlBk = RGB(192, 192, 192);
     int clrCtlText = RGB(0, 0, 0);
 
-    // @pyparm int|clrCtlBk|win32ui.RGB(192, 192, 192)|The color for the controls background.
-    // @pyparm int|clrCtlText|win32ui.RGB(0, 0, 0)|The color for the controls text.
+    // @pyparm int|clrCtlBk|win32api.RGB(192, 192, 192)|The color for the controls background.
+    // @pyparm int|clrCtlText|win32api.RGB(0, 0, 0)|The color for the controls text.
     if (!PyArg_ParseTuple(args, "|ii:SetDialogBkColor", &clrCtlBk, &clrCtlText))
         return NULL;
     CProtectedWinApp *pApp = GetProtectedApp();
@@ -1686,9 +1666,9 @@ static PyObject *ui_is_debug(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, ":IsDebug"))
         return NULL;
 #ifdef _DEBUG
-    return PyInt_FromLong(1);
+    return PyLong_FromLong(1);
 #else
-    return PyInt_FromLong(0);
+    return PyLong_FromLong(0);
 #endif
     // @comm This should not normally be of relevance to the Python
     // programmer.  However, under certain circumstances Python code may
@@ -1788,7 +1768,7 @@ static PyObject *ui_get_bytes(PyObject *self, PyObject *args)
         return NULL;
     if (!PyWinLong_AsVoidPtr(obaddress, &address))
         return NULL;
-    return PyString_FromStringAndSize((char *)address, size);
+    return PyBytes_FromStringAndSize((char *)address, size);
 }
 // @pymethod string|win32ui|InitRichEdit|Initializes the rich edit framework.
 static PyObject *ui_init_rich_edit(PyObject *self, PyObject *args)
@@ -1814,7 +1794,7 @@ static PyObject *ui_get_device_caps(PyObject *, PyObject *args)
     HDC hdc;
     if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc))
         return NULL;
-    return PyInt_FromLong(::GetDeviceCaps(hdc, index));
+    return PyLong_FromLong(::GetDeviceCaps(hdc, index));
 }
 
 // @pymethod int|win32ui|TranslateMessage|Calls the API version of TranslateMessage.
@@ -1828,7 +1808,7 @@ static PyObject *ui_translate_message(PyObject *, PyObject *args)
     GUI_BGN_SAVE;
     BOOL rc = ::TranslateMessage(msg);
     GUI_END_SAVE;
-    return PyInt_FromLong(rc);
+    return PyLong_FromLong(rc);
 }
 
 // @pymethod string/None|win32ui|TranslateVirtualKey|
@@ -1849,31 +1829,8 @@ static PyObject *ui_translate_vk(PyObject *, PyObject *args)
         Py_INCREF(Py_None);
         return Py_None;
     }
-    return PyString_FromStringAndSize(result, nc);
+    return PyBytes_FromStringAndSize(result, nc);
 }
-
-/** Seems to have problems on 9x for some people (not me, though?)
-// @pymethod <o PyUnicode>/None|win32ui|TranslateVirtualKeyW|
-static PyObject *ui_translate_vkW(PyObject *, PyObject *args)
-{
-    int vk;
-    // @pyparm int|vk||The key to translate
-    if (!PyArg_ParseTuple(args, "i", &vk))
-        return NULL;
-    static HKL layout=GetKeyboardLayout(0);
-    static BYTE State[256];
-    if (GetKeyboardState(State)==FALSE)
-        RETURN_ERR("Can't get keyboard state");
-    WCHAR result[2];
-    UINT sc=MapVirtualKeyEx(vk,0,layout);
-    int nc = ToUnicodeEx(vk,sc,State,result,2, 0,layout);
-    if (nc==-1) { // a dead char.
-        Py_INCREF(Py_None);
-        return Py_None;
-    }
-    return PyWinObject_FromWCHAR(result, nc);
-}
-**/
 
 extern PyObject *ui_get_dialog_resource(PyObject *, PyObject *args);
 extern PyObject *ui_create_app(PyObject *, PyObject *args);
@@ -2086,13 +2043,7 @@ int AddConstants(PyObject *module)
     int debug = 0;
 #endif
     ADD_CONSTANT(debug);  // @const win32ui|debug|1 if we are current using a _DEBUG build of win32ui, else 0.
-    if (PyModule_AddIntConstant(module, "UNICODE",
-#ifdef UNICODE
-                                1
-#else
-                                0
-#endif
-                                ) == -1)
+    if (PyModule_AddIntConstant(module, "UNICODE", 1) == -1)
         return -1;
     ADD_CONSTANT(AFX_IDW_PANE_FIRST);   // @const win32ui|AFX_IDW_PANE_FIRST|Id of the first splitter pane
     ADD_CONSTANT(AFX_IDW_PANE_LAST);    // @const win32ui|AFX_IDW_PANE_LAST|Id of the last splitter pane
@@ -2445,11 +2396,7 @@ PYWIN_MODULE_INIT_FUNC(win32ui)
         PYWIN_MODULE_INIT_RETURN_ERROR;
     }
     if (existing_module)
-#if (PY_VERSION_HEX < 0x03000000)
-        return;
-#else
         return existing_module;
-#endif
 
     PYWIN_MODULE_INIT_PREPARE(win32ui, ui_functions, "A module, encapsulating the Microsoft Foundation Classes.");
 
@@ -2469,7 +2416,7 @@ PYWIN_MODULE_INIT_FUNC(win32ui)
     Py_XDECREF(dllhandle);
     // Ensure we have a __file__ attribute (Python itself normally
     // adds one, but if this is called not as part of the standard
-    // import process, we dont have one!
+    // import process, we don't have one!
     TCHAR pathName[MAX_PATH];
     GetModuleFileName(hWin32uiDll, pathName, sizeof(pathName) / sizeof(pathName[0]));
     PyObject *obPathName = PyWinObject_FromTCHAR(pathName);
@@ -2523,8 +2470,10 @@ int Win32uiRun(void)
     // An error here is too late for anything to usefully print it,
     // so we use a dialog.
     CVirtualHelper helper("Run", GetApp(), VEH_DISPLAY_DIALOG);
-    if (!helper.HaveHandler())
+    if (!helper.HaveHandler()) {
+        helper.release_full();  // important
         ret = GetApp()->CWinApp::Run();
+    }
     else {
         helper.call();
         helper.retval(ret);
@@ -2594,7 +2543,8 @@ BOOL Win32uiOnIdle(LONG lCount)
     return ret;
 }
 
-extern "C" PYW_EXPORT BOOL Win32uiApplicationInit(Win32uiHostGlue *pGlue, TCHAR *cmd, const TCHAR *additionalPaths)
+extern "C" PYW_EXPORT BOOL Win32uiApplicationInit(Win32uiHostGlue *pGlue, const TCHAR *cmd,
+                                                  const TCHAR *additionalPaths)
 {
 #ifdef _DEBUG
     afxDump.SetDepth(1);  // deep dump of objects at exit.
@@ -2607,14 +2557,17 @@ extern "C" PYW_EXPORT BOOL Win32uiApplicationInit(Win32uiHostGlue *pGlue, TCHAR 
     // a risk that when Python does "import win32ui", it
     // will locate a different one, causing obvious grief!
     PyObject *argv = PySys_GetObject("argv");
-#if (PY_VERSION_HEX < 0x03000000)
-    initwin32ui();
-    // Set sys.argv if not already done!
-    if (argv == NULL && __targv != NULL && __argc > 0)
-        PySys_SetArgv(__argc - 1, __targv + 1);
-#else
     PyInit_win32ui();
-    if (argv == NULL) {
+    // Decide if we render sys.argv from command line.
+    // PY3.6- Py_Initialize sets sys.argv=NULL .
+    // PY3.7 Py_Initialize or intentional script triggers set sys.argv=[] .
+    // PY3.8+ Py_Initialize sets sys.argv=[''] - cannot be distinguished
+    //   from a pre-existing command line setup anymore. So we need to check
+    //   another flag regarding the intended type of invokation, e.g. `cmd`
+    //   (or untangle all that crossover startup + module + app init here)
+    // `cmd` is non-NULL upon Pythonwin.exe / C++ embedded glue startup and
+    //   always NULL during "import win32ui" from normal Python.
+    if (argv == NULL || !PyList_Check(argv) || !PyList_Size(argv) || cmd) {
         int myargc;
         LPWSTR *myargv = CommandLineToArgvW(GetCommandLineW(), &myargc);
         if (myargv) {
@@ -2622,7 +2575,6 @@ extern "C" PYW_EXPORT BOOL Win32uiApplicationInit(Win32uiHostGlue *pGlue, TCHAR 
             LocalFree(myargv);
         }
     }
-#endif
     // If the versions of the .h file are not in synch, then we are in trouble!
     if (pGlue->versionNo != WIN32UIHOSTGLUE_VERSION) {
         MessageBox(0,

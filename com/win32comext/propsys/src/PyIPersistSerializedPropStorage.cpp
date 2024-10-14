@@ -49,16 +49,15 @@ PyObject *PyIPersistSerializedPropStorage::SetPropertyStorage(PyObject *self, Py
     if (pIPSPS == NULL)
         return NULL;
     PyObject *obbuf;
-    void *buf;
-    DWORD bufsize;
     // @pyparm buffer|ps||Bytes or buffer object containing a serialized property store
     if (!PyArg_ParseTuple(args, "O:SetPropertyStorage", &obbuf))
         return NULL;
-    if (!PyWinObject_AsReadBuffer(obbuf, &buf, &bufsize))
+    PyWinBufferView pybuf(obbuf);
+    if (!pybuf.ok())
         return NULL;
     HRESULT hr;
     PY_INTERFACE_PRECALL;
-    hr = pIPSPS->SetPropertyStorage((PUSERIALIZEDPROPSTORAGE)buf, bufsize);
+    hr = pIPSPS->SetPropertyStorage((PUSERIALIZEDPROPSTORAGE)pybuf.ptr(), pybuf.len());
     PY_INTERFACE_POSTCALL;
 
     if (FAILED(hr))
@@ -82,7 +81,7 @@ PyObject *PyIPersistSerializedPropStorage::GetPropertyStorage(PyObject *self, Py
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIPSPS, IID_IPersistSerializedPropStorage);
-    PyObject *ret = PyString_FromStringAndSize((char *)buf, bufsize);
+    PyObject *ret = PyBytes_FromStringAndSize((char *)buf, bufsize);
     CoTaskMemFree(buf);
     return ret;
 }

@@ -21,7 +21,7 @@ generates Windows .hlp files.
 
 #if _MSC_VER == 1500
 // This uses htmlhelp.lib, which causes an unresolved external for
-// __report_rangecheckfailure with vs2008 (which is what we used for python 2.x)
+// __report_rangecheckfailure with vs2008 (which is what we used for Python 2)
 // No idea why, but we define it here and cause it to kill the process if it is ever hit.
 extern "C" __declspec(noreturn, dllexport) void __cdecl __report_rangecheckfailure(void) { ::ExitProcess(1); }
 #endif
@@ -50,24 +50,24 @@ static PyObject *PyWinHelp(PyObject *self, PyObject *args)
     UINT cmd;
     PyObject *obData = Py_None;
     ULONG_PTR data;
+    PyWinBufferView pybuf;
 
     if (!PyArg_ParseTuple(args, "O&Oi|O:WinHelp", PyWinObject_AsHANDLE, &hwnd, &obhlpFile, &cmd, &obData))
         return NULL;
 
-    DWORD data_len;
-    if (!PyWinObject_AsReadBuffer(obData, (void **)&data, &data_len, TRUE)) {
+    if (!pybuf.init(obData, false, true)) {
         PyErr_Clear();
         if (!PyWinLong_AsULONG_PTR(obData, &data)) {
             PyErr_SetString(PyExc_TypeError, "Data must be a buffer, None, or pointer-sized number");
             return NULL;
         }
     }
+    else
+        data = (ULONG_PTR)pybuf.ptr();
     if (!PyWinObject_AsTCHAR(obhlpFile, &hlpFile, FALSE))
         return NULL;
-    PyW32_BEGIN_ALLOW_THREADS
-    BOOL ok = ::WinHelp(hwnd, hlpFile, cmd, data);
-    PyW32_END_ALLOW_THREADS
-    PyWinObject_FreeTCHAR(hlpFile);
+    PyW32_BEGIN_ALLOW_THREADS BOOL ok = ::WinHelp(hwnd, hlpFile, cmd, data);
+    PyW32_END_ALLOW_THREADS PyWinObject_FreeTCHAR(hlpFile);
     if (!ok)
         return ReturnAPIError("WinHelp");
     Py_INCREF(Py_None);
@@ -757,14 +757,14 @@ PyHH_POPUP::PyHH_POPUP(const HH_POPUP *pPOPUP)
     m_pszFont = pPOPUP->pszFont ? PyWinObject_FromTCHAR((TCHAR *)pPOPUP->pszFont) : NULL;
 
     m_pt = PyTuple_New(2);
-    PyTuple_SetItem(m_pt, 0, PyInt_FromLong(pPOPUP->pt.x));
-    PyTuple_SetItem(m_pt, 1, PyInt_FromLong(pPOPUP->pt.y));
+    PyTuple_SetItem(m_pt, 0, PyLong_FromLong(pPOPUP->pt.x));
+    PyTuple_SetItem(m_pt, 1, PyLong_FromLong(pPOPUP->pt.y));
 
     m_rcMargins = PyTuple_New(4);
-    PyTuple_SetItem(m_rcMargins, 0, PyInt_FromLong(pPOPUP->rcMargins.left));
-    PyTuple_SetItem(m_rcMargins, 1, PyInt_FromLong(pPOPUP->rcMargins.right));
-    PyTuple_SetItem(m_rcMargins, 2, PyInt_FromLong(pPOPUP->rcMargins.top));
-    PyTuple_SetItem(m_rcMargins, 3, PyInt_FromLong(pPOPUP->rcMargins.bottom));
+    PyTuple_SetItem(m_rcMargins, 0, PyLong_FromLong(pPOPUP->rcMargins.left));
+    PyTuple_SetItem(m_rcMargins, 1, PyLong_FromLong(pPOPUP->rcMargins.right));
+    PyTuple_SetItem(m_rcMargins, 2, PyLong_FromLong(pPOPUP->rcMargins.top));
+    PyTuple_SetItem(m_rcMargins, 3, PyLong_FromLong(pPOPUP->rcMargins.bottom));
 }
 
 PyHH_POPUP::~PyHH_POPUP(void)
@@ -1525,7 +1525,7 @@ PyNMHDR::PyNMHDR(const NMHDR *pNMHDR)
     memcpy(&m_NMHDR, pNMHDR, sizeof(m_NMHDR));
 }
 
-PyNMHDR::~PyNMHDR(void){};
+PyNMHDR::~PyNMHDR(void) {};
 
 /*static*/ void PyNMHDR::deallocFunc(PyObject *ob) { delete (PyNMHDR *)ob; }
 
@@ -2375,7 +2375,8 @@ file must be a string");
             }
             if (dataOb == Py_None) {
                 data = 0;
-            } else {
+            }
+            else {
                 if (!PyWinObject_AsTCHAR(dataOb, &dataObAsTCHAR, FALSE, NULL))
                     return NULL;
                 data = (DWORD_PTR)dataObAsTCHAR;
@@ -2402,11 +2403,11 @@ in the Html Help engine yet.");
                 PyErr_SetString(PyExc_TypeError, "HH_HELP_CONTEXT file must be a string");
                 return NULL;
             }
-            if (!PyInt_Check(dataOb)) {
+            if (!PyLong_Check(dataOb)) {
                 PyErr_SetString(PyExc_TypeError, "HH_HELP_CONTEXT data must be an integer");
                 return NULL;
             }
-            data = (DWORD_PTR)PyInt_AsLong(dataOb);
+            data = (DWORD_PTR)PyLong_AsLong(dataOb);
             break;
 
         case HH_INITIALIZE:
@@ -2455,10 +2456,10 @@ in the Html Help engine yet.");
             ctlIDs = new DWORD[len + 1];
             for (i = 0; i < len; i++) {
                 item = PyTuple_GetItem(dataOb, i);
-                if (!PyInt_Check(item))
+                if (!PyLong_Check(item))
                     error = TRUE;
                 else
-                    ctlIDs[i] = PyInt_AsLong(item);
+                    ctlIDs[i] = PyLong_AsLong(item);
             }
             if (error) {
                 delete[] ctlIDs;
@@ -2472,11 +2473,11 @@ data tuple items must be integers");
 
         case HH_UNINITIALIZE:
             file = NULL;
-            if (!PyInt_Check(dataOb)) {
+            if (!PyLong_Check(dataOb)) {
                 PyErr_SetString(PyExc_TypeError, "HH_UNINITIALIZE data must be an integer");
                 return NULL;
             }
-            data = (DWORD_PTR)PyInt_AsLong(dataOb);
+            data = (DWORD_PTR)PyLong_AsLong(dataOb);
             break;
 
         default:
@@ -2486,11 +2487,10 @@ data tuple items must be integers");
     }
 
     HWND helpWnd;
-    PyW32_BEGIN_ALLOW_THREADS
-    helpWnd = ::HtmlHelp(hwnd, file, cmd, data);
+    PyW32_BEGIN_ALLOW_THREADS helpWnd = ::HtmlHelp(hwnd, file, cmd, data);
     PyW32_END_ALLOW_THREADS
 
-    PyWinObject_FreeTCHAR(dataObAsTCHAR);
+        PyWinObject_FreeTCHAR(dataObAsTCHAR);
     PyWinObject_FreeTCHAR(file);
 
     PyObject *ret;

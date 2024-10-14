@@ -2,6 +2,7 @@
 // Data conversion
 //
 
+#define PY_SSIZE_T_CLEAN
 #include "stdafx.h"
 #include "PythonCOM.h"
 #include "PythonCOMServer.h"
@@ -10,7 +11,7 @@
 PyObject *dataconv_L64(PyObject *self, PyObject *args)
 {
     void *pSrc;
-    int size;
+    Py_ssize_t size;
 
     if (!PyArg_ParseTuple(args, "s#:L64", &pSrc, &size))
         return NULL;
@@ -25,7 +26,7 @@ PyObject *dataconv_L64(PyObject *self, PyObject *args)
 PyObject *dataconv_UL64(PyObject *self, PyObject *args)
 {
     void *pSrc;
-    int size;
+    Py_ssize_t size;
 
     if (!PyArg_ParseTuple(args, "s#:UL64", &pSrc, &size))
         return NULL;
@@ -44,7 +45,7 @@ PyObject *dataconv_strL64(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "L:strL64", &val))
         return NULL;
 
-    return PyString_FromStringAndSize((char *)&val, sizeof(val));
+    return PyBytes_FromStringAndSize((char *)&val, sizeof(val));
 }
 
 PyObject *dataconv_strUL64(PyObject *self, PyObject *args)
@@ -56,7 +57,7 @@ PyObject *dataconv_strUL64(PyObject *self, PyObject *args)
 
     unsigned __int64 val = PyLong_AsUnsignedLongLong(ob);
 
-    return PyString_FromStringAndSize((char *)&val, sizeof(val));
+    return PyBytes_FromStringAndSize((char *)&val, sizeof(val));
 }
 
 PyObject *dataconv_interface(PyObject *self, PyObject *args)
@@ -151,7 +152,7 @@ static inline bool SizeOfVT(VARTYPE vt, int *pitem_size, int *pstack_size)
     }
 #ifdef _M_IX86
     int stack_size = (item_size < 4) ? 4 : item_size;
-#elif _M_X64
+#elif defined(_M_X64) || defined(_M_ARM64)
     // params > 64bits passed by address, and only VT_VARIANT is > 64bits.
     assert((item_size <= 8) || ((vt & VT_TYPEMASK) == VT_VARIANT));
     if (item_size > 8)
@@ -228,7 +229,7 @@ PyObject *dataconv_WriteFromOutTuple(PyObject *self, PyObject *args)
 
     for (i = 0; i < cArgs; i++) {
         obArgType = PyTuple_GET_ITEM(PyTuple_GET_ITEM(obArgTypes, i), 0);
-        vtArgType = (VARTYPE)PyInt_AS_LONG(obArgType);
+        vtArgType = (VARTYPE)PyLong_AS_LONG(obArgType);
 
         // The following types aren't supported:
         // SAFEARRAY *: This requires support for SAFEARRAYs as a
@@ -242,7 +243,7 @@ PyObject *dataconv_WriteFromOutTuple(PyObject *self, PyObject *args)
         //              memory allocation policy.
 
         // Find the start of the argument.
-        pbArg = pbArgs + PyInt_AS_LONG(PyTuple_GET_ITEM(PyTuple_GET_ITEM(obArgTypes, i), 1));
+        pbArg = pbArgs + PyLong_AS_LONG(PyTuple_GET_ITEM(PyTuple_GET_ITEM(obArgTypes, i), 1));
         obOutValue = PyTuple_GET_ITEM(obRetValues, i);
 
         if (vtArgType & VT_ARRAY) {
@@ -300,7 +301,7 @@ PyObject *dataconv_WriteFromOutTuple(PyObject *self, PyObject *args)
                 BSTR bstr = *(BSTR *)pbArg;
                 BSTR bstrT;
                 UINT cch = SysStringLen(bstr);
-                if (PyString_Check(obOutValue) || PyUnicode_Check(obOutValue)) {
+                if (PyBytes_Check(obOutValue) || PyUnicode_Check(obOutValue)) {
                     if (!PyWinObject_AsBstr(obOutValue, &bstrT)) {
                         goto Error;
                     }
@@ -339,7 +340,7 @@ PyObject *dataconv_WriteFromOutTuple(PyObject *self, PyObject *args)
 
                 *pbstr = NULL;
 
-                if (PyString_Check(obOutValue) || PyUnicode_Check(obOutValue)) {
+                if (PyBytes_Check(obOutValue) || PyUnicode_Check(obOutValue)) {
                     if (!PyWinObject_AsBstr(obOutValue, &bstrT)) {
                         goto Error;
                     }
@@ -361,11 +362,11 @@ PyObject *dataconv_WriteFromOutTuple(PyObject *self, PyObject *args)
             case VT_HRESULT | VT_BYREF:
             case VT_I4 | VT_BYREF: {
                 INT *pi = *(INT **)pbArg;
-                obUse = PyNumber_Int(obOutValue);
+                obUse = PyNumber_Long(obOutValue);
                 if (obUse == NULL) {
                     goto Error;
                 }
-                *pi = PyInt_AsLong(obUse);
+                *pi = PyLong_AsLong(obUse);
                 if (*pi == (UINT)-1 && PyErr_Occurred())
                     goto Error;
                 break;
@@ -374,18 +375,18 @@ PyObject *dataconv_WriteFromOutTuple(PyObject *self, PyObject *args)
                 UINT *pui = *(UINT **)pbArg;
                 // special care here as we could be > sys.maxint,
                 // in which case we must work with longs.
-                // Avoiding PyInt_AsUnsignedLongMask as it doesn't
+                // Avoiding PyLong_AsUnsignedLongMask as it doesn't
                 // exist in 2.2.
                 if (PyLong_Check(obOutValue)) {
                     *pui = PyLong_AsUnsignedLong(obOutValue);
                 }
                 else {
                     // just do the generic "number" thing.
-                    obUse = PyNumber_Int(obOutValue);
+                    obUse = PyNumber_Long(obOutValue);
                     if (obUse == NULL) {
                         goto Error;
                     }
-                    *pui = (UINT)PyInt_AsLong(obUse);
+                    *pui = (UINT)PyLong_AsLong(obUse);
                 }
                 if (*pui == (UINT)-1 && PyErr_Occurred())
                     goto Error;
@@ -393,33 +394,33 @@ PyObject *dataconv_WriteFromOutTuple(PyObject *self, PyObject *args)
             }
             case VT_I2 | VT_BYREF: {
                 short *ps = *(short **)pbArg;
-                obUse = PyNumber_Int(obOutValue);
+                obUse = PyNumber_Long(obOutValue);
                 if (obUse == NULL) {
                     goto Error;
                 }
-                *ps = (short)PyInt_AsLong(obUse);
+                *ps = (short)PyLong_AsLong(obUse);
                 if (*ps == (UINT)-1 && PyErr_Occurred())
                     goto Error;
                 break;
             }
             case VT_UI2 | VT_BYREF: {
                 unsigned short *pus = *(unsigned short **)pbArg;
-                obUse = PyNumber_Int(obOutValue);
+                obUse = PyNumber_Long(obOutValue);
                 if (obUse == NULL) {
                     goto Error;
                 }
-                *pus = (unsigned short)PyInt_AsLong(obUse);
+                *pus = (unsigned short)PyLong_AsLong(obUse);
                 if (*pus == (UINT)-1 && PyErr_Occurred())
                     goto Error;
                 break;
             }
             case VT_I1 | VT_BYREF: {
                 signed char *pb = *(signed char **)pbArg;
-                obUse = PyNumber_Int(obOutValue);
+                obUse = PyNumber_Long(obOutValue);
                 if (obUse == NULL) {
                     goto Error;
                 }
-                *pb = (signed char)PyInt_AsLong(obUse);
+                *pb = (signed char)PyLong_AsLong(obUse);
                 if (*pb == (UINT)-1 && PyErr_Occurred())
                     goto Error;
                 break;
@@ -427,24 +428,24 @@ PyObject *dataconv_WriteFromOutTuple(PyObject *self, PyObject *args)
             case VT_UI1 | VT_BYREF: {
                 BYTE *pb = *(BYTE **)pbArg;
                 BYTE *pbOutBuffer = NULL;
-                if (PyString_Check(obOutValue)) {
-                    pbOutBuffer = (BYTE *)PyString_AS_STRING(obOutValue);
-                    Py_ssize_t cb = PyString_GET_SIZE(obOutValue);
+                if (PyBytes_Check(obOutValue)) {
+                    pbOutBuffer = (BYTE *)PyBytes_AS_STRING(obOutValue);
+                    Py_ssize_t cb = PyBytes_GET_SIZE(obOutValue);
                     memcpy(pb, pbOutBuffer, cb);
                 }
                 // keep this after string check since string can act as buffers
                 else if (obOutValue->ob_type->tp_as_buffer) {
-                    DWORD cb;
-                    if (!PyWinObject_AsReadBuffer(obOutValue, (void **)&pbOutBuffer, &cb))
+                    PyWinBufferView pybuf(obOutValue);
+                    if (!pybuf.ok())
                         goto Error;
-                    memcpy(pb, pbOutBuffer, cb);
+                    memcpy(pb, pybuf.ptr(), pybuf.len());
                 }
                 else {
-                    obUse = PyNumber_Int(obOutValue);
+                    obUse = PyNumber_Long(obOutValue);
                     if (obUse == NULL) {
                         goto Error;
                     }
-                    *pb = (BYTE)PyInt_AsLong(obUse);
+                    *pb = (BYTE)PyLong_AsLong(obUse);
                     if (*pb == (UINT)-1 && PyErr_Occurred())
                         goto Error;
                 }
@@ -452,11 +453,11 @@ PyObject *dataconv_WriteFromOutTuple(PyObject *self, PyObject *args)
             }
             case VT_BOOL | VT_BYREF: {
                 VARIANT_BOOL *pbool = *(VARIANT_BOOL **)pbArg;
-                obUse = PyNumber_Int(obOutValue);
+                obUse = PyNumber_Long(obOutValue);
                 if (obUse == NULL) {
                     goto Error;
                 }
-                *pbool = PyInt_AsLong(obUse) ? VARIANT_TRUE : VARIANT_FALSE;
+                *pbool = PyLong_AsLong(obUse) ? VARIANT_TRUE : VARIANT_FALSE;
                 if (*pbool == (UINT)-1 && PyErr_Occurred())
                     goto Error;
                 break;
@@ -591,11 +592,11 @@ PyObject *dataconv_ReadFromInTuple(PyObject *self, PyObject *args)
         obArgType = PyTuple_GET_ITEM(PyTuple_GET_ITEM(obArgTypes, i), 0);
 
         // Position pb to point to the current argument.
-        pb = pbArg + PyInt_AS_LONG(PyTuple_GET_ITEM(PyTuple_GET_ITEM(obArgTypes, i), 1));
-        vtArgType = (VARTYPE)PyInt_AS_LONG(obArgType);
+        pb = pbArg + PyLong_AS_LONG(PyTuple_GET_ITEM(PyTuple_GET_ITEM(obArgTypes, i), 1));
+        vtArgType = (VARTYPE)PyLong_AS_LONG(obArgType);
 #ifdef _M_IX86
         bIsByRef = vtArgType & VT_BYREF;
-#elif _M_X64
+#elif defined(_M_X64) || defined(_M_ARM64)
         // params > 64bits always passed by address - and the only
         // arg we support > 64 bits is a VARIANT structure.
         bIsByRef = (vtArgType == VT_VARIANT) || (vtArgType & VT_BYREF);
@@ -666,7 +667,7 @@ PyObject *dataconv_ReadFromInTuple(PyObject *self, PyObject *args)
                         obArg = PyCom_PyObjectFromVariant((VARIANT *)pb);
                     break;
                 case VT_LPSTR:
-                    obArg = PyString_FromString(*(CHAR **)pb);
+                    obArg = PyBytes_FromString(*(CHAR **)pb);
                     break;
                 case VT_LPWSTR:
                     obArg = PyWinObject_FromOLECHAR(*(OLECHAR **)pb);
@@ -704,7 +705,7 @@ PyObject *dataconv_ReadFromInTuple(PyObject *self, PyObject *args)
                     // barf here, we don't wtf they were thinking...
                     break;
             }  // switch
-        }      // if ARRAY
+        }  // if ARRAY
 
         if (obArg == NULL) {
             goto Error;

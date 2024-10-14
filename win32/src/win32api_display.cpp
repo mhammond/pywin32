@@ -4,10 +4,6 @@
 #include "PyWinObjects.h"
 #include "win32api_display.h"
 
-#ifdef MS_WINCE
-#define DM_SPECVERSION 0
-#endif
-
 // from user32.dll, loaded in win32api's init function
 ChangeDisplaySettingsExfunc pfnChangeDisplaySettingsEx = NULL;
 EnumDisplayDevicesfunc pfnEnumDisplayDevices = NULL;
@@ -133,29 +129,33 @@ PyObject *PyDISPLAY_DEVICE::getattro(PyObject *self, PyObject *obname)
     if (name == NULL)
         return NULL;
 
-    if (strcmp(name, "DeviceName") == 0)
+    if (strcmp(name, "DeviceName") == 0) {
         if (pdisplay_device->DeviceName[31] == 0)  // in case DeviceName fills space and has no trailing NULL
             return PyWinObject_FromTCHAR(pdisplay_device->DeviceName);
         else
             return PyWinObject_FromTCHAR(pdisplay_device->DeviceName, 32);
+    }
 
-    if (strcmp(name, "DeviceString") == 0)
+    if (strcmp(name, "DeviceString") == 0) {
         if (pdisplay_device->DeviceString[127] == 0)  // in case DeviceString fills space and has no trailing NULL
             return PyWinObject_FromTCHAR(pdisplay_device->DeviceString);
         else
             return PyWinObject_FromTCHAR(pdisplay_device->DeviceString, 128);
+    }
 
-    if (strcmp(name, "DeviceID") == 0)
+    if (strcmp(name, "DeviceID") == 0) {
         if (pdisplay_device->DeviceID[127] == 0)  // in case DeviceID fills space and has no trailing NULL
             return PyWinObject_FromTCHAR(pdisplay_device->DeviceID);
         else
             return PyWinObject_FromTCHAR(pdisplay_device->DeviceID, 128);
+    }
 
-    if (strcmp(name, "DeviceKey") == 0)
+    if (strcmp(name, "DeviceKey") == 0) {
         if (pdisplay_device->DeviceKey[127] == 0)  // in case DeviceKey fills space and has no trailing NULL
             return PyWinObject_FromTCHAR(pdisplay_device->DeviceKey);
         else
             return PyWinObject_FromTCHAR(pdisplay_device->DeviceKey, 128);
+    }
 
     return PyObject_GenericGetAttr(self, obname);
 }
@@ -242,7 +242,7 @@ PyObject *PyDISPLAY_DEVICE::tp_new(PyTypeObject *typ, PyObject *args, PyObject *
 
 BOOL PyWinObject_AsDISPLAY_DEVICE(PyObject *ob, PDISPLAY_DEVICE *ppDISPLAY_DEVICE, BOOL bNoneOk)
 {
-    if (ob == Py_None)
+    if (ob == Py_None) {
         if (bNoneOk) {
             *ppDISPLAY_DEVICE = NULL;
             return TRUE;
@@ -251,6 +251,7 @@ BOOL PyWinObject_AsDISPLAY_DEVICE(PyObject *ob, PDISPLAY_DEVICE *ppDISPLAY_DEVIC
             PyErr_SetString(PyExc_ValueError, "PyDISPLAY_DEVICE cannot be None in this context");
             return FALSE;
         }
+    }
     if (!PyDISPLAY_DEVICE_Check(ob))
         return FALSE;
     *ppDISPLAY_DEVICE = ((PyDISPLAY_DEVICE *)ob)->GetDISPLAY_DEVICE();

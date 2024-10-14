@@ -20,7 +20,7 @@ PyObject *PyWinObject_FromCREDENTIAL_ATTRIBUTEArray(PCREDENTIAL_ATTRIBUTE attrs,
     for (DWORD attr_ind = 0; attr_ind < attr_cnt; attr_ind++) {
         ret_item =
             Py_BuildValue("{s:u,s:k,s:N}", "Keyword", attrs[attr_ind].Keyword, "Flags", attrs[attr_ind].Flags, "Value",
-                          PyString_FromStringAndSize((char *)attrs[attr_ind].Value, attrs[attr_ind].ValueSize));
+                          PyBytes_FromStringAndSize((char *)attrs[attr_ind].Value, attrs[attr_ind].ValueSize));
         if (ret_item == NULL) {
             Py_DECREF(ret);
             ret = NULL;
@@ -43,9 +43,7 @@ BOOL PyWinObject_AsCREDENTIAL_ATTRIBUTE(PyObject *obattr, PCREDENTIAL_ATTRIBUTE 
 {
     static char *keywords[] = {"Keyword", "Flags", "Value", NULL};
     PyObject *obKeyword, *obValue, *args;
-    void *value;
-    DWORD valuelen;
-    BOOL ret;
+    BOOL ret = FALSE;
     ZeroMemory(attr, sizeof(CREDENTIAL_ATTRIBUTE));
     if (!PyDict_Check(obattr)) {
         PyErr_SetString(PyExc_TypeError, "CREDENTIAL_ATTRIBUTE must be a dict");
@@ -55,16 +53,52 @@ BOOL PyWinObject_AsCREDENTIAL_ATTRIBUTE(PyObject *obattr, PCREDENTIAL_ATTRIBUTE 
     if (args == NULL)
         return FALSE;
 
-    ret = PyArg_ParseTupleAndKeywords(args, obattr, "OkO:CREDENTIAL_ATTRIBUTE", keywords, &obKeyword, &attr->Flags,
-                                      &obValue) &&
-          PyWinObject_AsWCHAR(obKeyword, &attr->Keyword, FALSE) &&
-          PyWinObject_AsReadBuffer(obValue, &value, &valuelen) && ((attr->Value = (LPBYTE)malloc(valuelen)) != NULL);
-    if (ret) {
-        memcpy(attr->Value, value, valuelen);
-        attr->ValueSize = valuelen;
+    PyWinBufferView pybuf;
+    if (!PyArg_ParseTupleAndKeywords(args, obattr, "OkO:CREDENTIAL_ATTRIBUTE", keywords, &obKeyword, &attr->Flags,
+                                     &obValue)) {
+        return FALSE;
     }
-    else
+    // from here we need to free on failure.
+    if (!PyWinObject_AsWCHAR(obKeyword, &attr->Keyword, FALSE)) {
+        goto done;
+    }
+    // Handle `Value`: the docs
+    // https://docs.microsoft.com/en-us/windows/win32/api/wincred/ns-wincred-credential_attributew say it's an LPBYTE
+    // Value (meaning it's just bytes) but then the description says "Data associated with the attribute. By convention,
+    // if Value is a text string, then Value should not include the trailing zero character and should be in UNICODE."
+    if (PyUnicode_Check(obValue)) {
+        Py_ssize_t nchars = PyUnicode_GetLength(obValue);
+        Py_ssize_t nbytes = nchars * sizeof(wchar_t);
+        attr->ValueSize = nbytes;
+        if (attr->ValueSize == -1) {
+            goto done;
+        }
+        if ((attr->Value = (LPBYTE)malloc(nbytes)) == NULL) {
+            goto done;
+        }
+        // PyUnicode_AsWideChar copies exactly as many chars as requested and
+        // says it's up to the caller to ensure it's null terminated if necessary
+        // (which according to the msdn docs quotes above, it's not here)
+        if (PyUnicode_AsWideChar(obValue, (wchar_t *)attr->Value, nchars) == -1) {
+            goto done;
+        }
+    }
+    else {
+        // Use the buffer API to get bytes if possible.
+        if (!pybuf.init(obValue)) {
+            goto done;
+        }
+        if ((attr->Value = (LPBYTE)malloc(pybuf.len())) == NULL) {
+            goto done;
+        }
+        memcpy(attr->Value, pybuf.ptr(), pybuf.len());
+        attr->ValueSize = pybuf.len();
+    }
+    ret = TRUE;
+done:
+    if (!ret) {
         PyWinObject_FreeCREDENTIAL_ATTRIBUTE(attr);
+    }
     Py_DECREF(args);
     return ret;
 }
@@ -119,7 +153,7 @@ BOOL PyWinObject_AsCREDENTIAL_ATTRIBUTEArray(PyObject *obattrs, PCREDENTIAL_ATTR
 // @prop int|Type|Type of credential, one of CRED_TYPE_* values
 // @prop <o PyUnicode>|TargetName|Target of credential, can end with * for wildcard matching
 // @prop <o PyUnicode>|Comment|Descriptive text
-// @prop <o PyTime>|LastWritten|Modification time, ignored on input
+// @prop <o PyDateTime>|LastWritten|Modification time, ignored on input
 // @prop <o PyUnicode>|CredentialBlob|Contains password for username credential, or PIN for certificate credential. This
 // member is write-only.
 // @prop int|Persist|Specifies scope of persistence, one of CRED_PERSIST_* values
@@ -133,7 +167,7 @@ PyObject *PyWinObject_FromCREDENTIAL(PCREDENTIAL credential)
     return Py_BuildValue("{s:k,s:k,s:u,s:u,s:N,s:N,s:k,s:N,s:u,s:u}", "Flags", credential->Flags, "Type",
                          credential->Type, "TargetName", credential->TargetName, "Comment", credential->Comment,
                          "LastWritten", PyWinObject_FromFILETIME(credential->LastWritten), "CredentialBlob",
-                         PyString_FromStringAndSize((char *)credential->CredentialBlob, credential->CredentialBlobSize),
+                         PyBytes_FromStringAndSize((char *)credential->CredentialBlob, credential->CredentialBlobSize),
                          "Persist", credential->Persist, "Attributes",
                          PyWinObject_FromCREDENTIAL_ATTRIBUTEArray(credential->Attributes, credential->AttributeCount),
                          "TargetAlias", credential->TargetAlias, "UserName", credential->UserName);
@@ -374,7 +408,7 @@ PyObject *PyCredMarshalCredential(PyObject *self, PyObject *args, PyObject *kwar
         case CertCredential: {
             Py_ssize_t hashlen;
             char *hash;
-            if (PyString_AsStringAndSize(obcredential, &hash, &hashlen) == -1)
+            if (PyBytes_AsStringAndSize(obcredential, &hash, &hashlen) == -1)
                 goto done;
             if (hashlen > CERT_HASH_LENGTH) {
                 PyErr_Format(PyExc_ValueError, "Certificate hash cannot be longer than %d characters",
@@ -438,8 +472,8 @@ PyObject *PyCredUnmarshalCredential(PyObject *self, PyObject *args, PyObject *kw
         // @flag CertCredential|Character string containing SHA1 hash of a certificate
         case CertCredential:
             ret = Py_BuildValue("kN", credtype,
-                                PyString_FromStringAndSize((char *)&((PCERT_CREDENTIAL_INFO)credential)->rgbHashOfCert,
-                                                           CERT_HASH_LENGTH));
+                                PyBytes_FromStringAndSize((char *)&((PCERT_CREDENTIAL_INFO)credential)->rgbHashOfCert,
+                                                          CERT_HASH_LENGTH));
             break;
         // @flag UsernameTargetCredential|Unicode string containing username
         case UsernameTargetCredential:
@@ -496,6 +530,31 @@ PyObject *PyCredEnumerate(PyObject *self, PyObject *args, PyObject *kwargs)
     PyWinObject_FreeWCHAR(filter);
     if (credentials)
         CredFree(credentials);
+    return ret;
+}
+
+// @pymethod dict|win32cred|CredGetSessionTypes|Returns maximum persistence supported by the current logon session
+// @rdesc Returns an integer list
+PyObject *PyCredGetSessionTypes(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+    static char *keywords[] = {"MaximumPersistCount", NULL};
+    DWORD mpc = CRED_TYPE_MAXIMUM;
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|k:CredGetSessionTypes", keywords,
+                                     &mpc))  // @pyparm int|MaximumPersistCount|CRED_TYPE_MAXIMUM|Maximum array entries
+        return NULL;
+    if ((mpc == 0) || (mpc > CRED_TYPE_MAXIMUM)) {
+        PyErr_SetString(PyExc_ValueError, "Argument must be between 1 and CRED_TYPE_MAXIMUM");
+        return NULL;
+    }
+    BOOL res = TRUE;
+    DWORD arr[CRED_TYPE_MAXIMUM];
+    Py_BEGIN_ALLOW_THREADS;
+    res = CredGetSessionTypes(mpc, arr);
+    Py_END_ALLOW_THREADS;
+    if (!res)
+        return PyWin_SetAPIError("CredGetSessionTypes");
+    PyObject *ret = PyList_New(mpc);
+    for (DWORD i = 0; i < mpc; ++i) PyList_SET_ITEM(ret, i, PyLong_FromUnsignedLong(arr[i]));
     return ret;
 }
 
@@ -589,16 +648,53 @@ PyObject *PyCredReadDomainCredentials(PyObject *self, PyObject *args, PyObject *
 PyObject *PyCredDelete(PyObject *self, PyObject *args, PyObject *kwargs)
 {
     static char *keywords[] = {"TargetName", "Type", "Flags", NULL};
-    PyObject *obtargetname, *ret = NULL;
+    PyObject *obtargetname, *ret = NULL, *obtarget;
     WCHAR *targetname;
     DWORD cred_type, flags = 0;
-
     if (!PyArg_ParseTupleAndKeywords(
             args, kwargs, "Ok|k:CredDelete", keywords,
             &obtargetname,  // @pyparm <o PyUnicode>|TargetName||Target of credential to be deleted
             &cred_type,     // @pyparm int|Type||One of the CRED_TYPE_* values
             &flags))        // @pyparm int|Flags|0|Reserved, use only 0
-        return NULL;
+    {
+        char *kwds[] = {"Target", NULL};
+        if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O:CredDelete", kwds,
+                                         &obtarget  // @pyparm <o dict>|Target||Credential to be deleted
+                                         ))
+            return NULL;
+        PyErr_Clear();
+        if (!PyDict_Check(obtarget)) {
+            PyErr_SetString(PyExc_TypeError,
+                            "First argument must be either a dictionary (no other arguments allowed) or a string "
+                            "(other arguments required)");
+            return NULL;
+        }
+        obtargetname = PyDict_GetItemString(obtarget, keywords[0]);
+        if (!obtargetname) {
+            PyErr_SetString(PyExc_KeyError, keywords[0]);
+            return NULL;
+        }
+        PyObject *val = PyDict_GetItemString(obtarget, keywords[1]);
+        if (!val) {
+            PyErr_SetString(PyExc_KeyError, keywords[1]);
+            return NULL;
+        }
+        if (!PyLong_Check(val)) {
+            PyErr_SetString(PyExc_TypeError, "Argument should be int");
+            return NULL;
+        }
+        cred_type = PyLong_AsUnsignedLong(val);
+        val = PyDict_GetItemString(obtarget, keywords[2]);
+        if (!val) {
+            PyErr_SetString(PyExc_KeyError, keywords[2]);
+            return NULL;
+        }
+        if (!PyLong_Check(val)) {
+            PyErr_SetString(PyExc_TypeError, "Argument should be int");
+            return NULL;
+        }
+        flags = PyLong_AsUnsignedLong(val);
+    }
     if (!PyWinObject_AsWCHAR(obtargetname, &targetname, FALSE))
         return NULL;
     if (!CredDelete(targetname, cred_type, flags))
@@ -1027,6 +1123,8 @@ static struct PyMethodDef win32cred_functions[] = {
     // @pymeth CredEnumerate|Lists stored credentials for current logon session
     {"CredEnumerate", (PyCFunction)PyCredEnumerate, METH_VARARGS | METH_KEYWORDS,
      "Lists stored credentials for current logon session"},
+    {"CredGetSessionTypes", (PyCFunction)PyCredGetSessionTypes, METH_VARARGS | METH_KEYWORDS,
+     "Returns maximum persistence supported by the current logon session"},
     // @pymeth CredGetTargetInfo|Determines type and location of credential target
     {"CredGetTargetInfo", (PyCFunction)PyCredGetTargetInfo, METH_VARARGS | METH_KEYWORDS,
      "Determines type and location of credential target"},
@@ -1077,6 +1175,10 @@ PYWIN_MODULE_INIT_FUNC(win32cred)
     PyModule_AddIntConstant(module, "CRED_TYPE_DOMAIN_PASSWORD", CRED_TYPE_DOMAIN_PASSWORD);
     PyModule_AddIntConstant(module, "CRED_TYPE_DOMAIN_CERTIFICATE", CRED_TYPE_DOMAIN_CERTIFICATE);
     PyModule_AddIntConstant(module, "CRED_TYPE_DOMAIN_VISIBLE_PASSWORD", CRED_TYPE_DOMAIN_VISIBLE_PASSWORD);
+    PyModule_AddIntConstant(module, "CRED_TYPE_GENERIC_CERTIFICATE", CRED_TYPE_GENERIC_CERTIFICATE);
+    PyModule_AddIntConstant(module, "CRED_TYPE_DOMAIN_EXTENDED", CRED_TYPE_DOMAIN_EXTENDED);
+    PyModule_AddIntConstant(module, "CRED_TYPE_MAXIMUM", CRED_TYPE_MAXIMUM);
+    PyModule_AddIntConstant(module, "CRED_TYPE_MAXIMUM_EX", CRED_TYPE_MAXIMUM + 1000);
     // credential flags
     PyModule_AddIntConstant(module, "CRED_FLAGS_PROMPT_NOW", CRED_FLAGS_PROMPT_NOW);
     PyModule_AddIntConstant(module, "CRED_FLAGS_USERNAME_TARGET", CRED_FLAGS_USERNAME_TARGET);
@@ -1135,6 +1237,8 @@ PYWIN_MODULE_INIT_FUNC(win32cred)
     PyModule_AddIntConstant(module, "CREDUI_MAX_DOMAIN_TARGET_LENGTH", CREDUI_MAX_DOMAIN_TARGET_LENGTH);
     PyModule_AddIntConstant(module, "CREDUI_MAX_USERNAME_LENGTH", CREDUI_MAX_USERNAME_LENGTH);
     PyModule_AddIntConstant(module, "CREDUI_MAX_PASSWORD_LENGTH", CREDUI_MAX_PASSWORD_LENGTH);
+
+    PyModule_AddIntConstant(module, "CRED_ENUMERATE_ALL_CREDENTIALS", CRED_ENUMERATE_ALL_CREDENTIALS);
 
     PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }

@@ -1,4 +1,4 @@
-/* File : pywin32.i 
+/* File : pywin32.i
 
 The start of an interface file for SWIG and the Win32 Python extensions.
 
@@ -35,6 +35,8 @@ typedef unsigned long ULONG;
 
 
 %{
+#define PyInt_FromLong PyLong_FromLong // py3k pain.
+
 #include "PyWinTypes.h"
 #ifdef NEED_PYWINOBJECTS_H
 #include "PyWinObjects.h"
@@ -96,12 +98,12 @@ typedef unsigned long ULONG;
       }
 }
 
-// String and UniCode support
+// String support
 %typemap(python,in) char *inNullString {
 	if ($source==Py_None) {
 		$target = NULL;
-	} else if (PyString_Check($source)) {
-		$target = PyString_AsString($source);
+	} else if (PyBytes_Check($source)) {
+		$target = PyBytes_AsString($source);
 	} else {
 		PyErr_SetString(PyExc_TypeError, "Argument must be None or a string");
 		return NULL;
@@ -401,6 +403,10 @@ typedef float HWND;
 	$target=PyWinLong_FromHANDLE($source);
 }
 
+%typemap(python, out) HDESK {
+    $target = PyWinLong_FromHANDLE($source);
+}
+
 //---------------------------------------------------------------------------
 //
 // LARGE_INTEGER support
@@ -586,16 +592,9 @@ typedef float HWND;
 #ifndef SWIG_PYTHONCOM
 /* This code only valid if non COM SWIG builds */
 #ifndef PYCOM_EXPORT
-	 PyDict_SetItemString(d,"UNICODE", PyInt_FromLong(
-#ifdef UNICODE
-	1
-#else
-	0
-#endif
-	));
+	 PyDict_SetItemString(d,"UNICODE", PyLong_FromLong(1));
 #endif
   PyWinGlobals_Ensure();
   PyDict_SetItemString(d, "error", PyWinExc_ApiError);
 #endif SWIG_PYTHONCOM
 %}
-

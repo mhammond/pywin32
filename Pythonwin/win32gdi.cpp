@@ -15,6 +15,8 @@ generates Windows .hlp files.
 #include "stdafx.h"
 #include "win32gdi.h"
 
+inline BOOL IsGdiHandleValid(HANDLE hobject) { return hobject == NULL || ::GetObjectType(hobject) != 0; }
+
 bool PyCGdiObject::CheckCppObject(ui_type *ui_type_check) const
 {
     //	if (!ui_assoc_CObject::CheckCppObject(ui_type_check))
@@ -31,7 +33,7 @@ bool PyCGdiObject::CheckCppObject(ui_type *ui_type_check) const
 CGdiObject *PyCGdiObject::GetGdiObject(PyObject *self, DWORD gtype)
 {
     CGdiObject *pGdi = (CGdiObject *)GetGoodCppObject(self, &type);
-    if (gtype && !IsWin32s() && pGdi->m_hObject && ::GetObjectType(pGdi->m_hObject) != gtype)
+    if (gtype && pGdi->m_hObject && ::GetObjectType(pGdi->m_hObject) != gtype)
         RETURN_ERR("The associated GDI object is not of the required type");
     return pGdi;
 }

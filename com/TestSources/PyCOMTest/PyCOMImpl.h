@@ -55,6 +55,7 @@ class CPyCOMTest : public IDispatchImpl<IPyCOMTest, &IID_IPyCOMTest, &LIBID_PyCO
     STDMETHOD(Test4)(TestAttributes2, TestAttributes2 *);
     STDMETHOD(Test5)(TestAttributes1 *);
     STDMETHOD(Test6)(QsAttributeWide, QsAttributeWide *);
+    STDMETHOD(TestInOut)(float *, QsBoolean *, long *);
     STDMETHOD(GetSetInterface)(IPyCOMTest *ininterface, IPyCOMTest **outinterface);
     STDMETHOD(GetSetInterfaceArray)(SAFEARRAY *pin, SAFEARRAY **pout);
 
@@ -101,6 +102,7 @@ class CPyCOMTest : public IDispatchImpl<IPyCOMTest, &IID_IPyCOMTest, &LIBID_PyCO
     STDMETHOD(DoubleInOutString)(BSTR *str);
     STDMETHOD(TestMyInterface)(IUnknown *t);
     STDMETHOD(EarliestDate)(DATE first, DATE second, DATE *pResult);
+    STDMETHOD(MakeDate)(double val, DATE *pResult);
     STDMETHOD(TestQueryInterface)();
     STDMETHOD(NotScriptable)(int *val);
     STDMETHOD(get_LongProp)(long *ret);

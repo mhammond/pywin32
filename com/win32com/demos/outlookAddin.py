@@ -25,45 +25,54 @@
 # the addin to not automatically load next time Outlook starts.  To
 # correct this, simply re-register the addin (see above)
 
-from win32com import universal
-from win32com.server.exception import COMException
-from win32com.client import gencache, DispatchWithEvents
-import winerror
-import pythoncom
-from win32com.client import constants
 import sys
 
+import pythoncom
+from win32com import universal
+from win32com.client import DispatchWithEvents, constants, gencache
+
 # Support for COM objects we use.
-gencache.EnsureModule('{00062FFF-0000-0000-C000-000000000046}', 0, 9, 0, bForDemand=True) # Outlook 9
-gencache.EnsureModule('{2DF8D04C-5BFA-101B-BDE5-00AA0044DE52}', 0, 2, 1, bForDemand=True) # Office 9
+gencache.EnsureModule(
+    "{00062FFF-0000-0000-C000-000000000046}", 0, 9, 0, bForDemand=True
+)  # Outlook 9
+gencache.EnsureModule(
+    "{2DF8D04C-5BFA-101B-BDE5-00AA0044DE52}", 0, 2, 1, bForDemand=True
+)  # Office 9
 
 # The TLB defining the interfaces we implement
-universal.RegisterInterfaces('{AC0714F2-3D04-11D1-AE7D-00A0C90F26F4}', 0, 1, 0, ["_IDTExtensibility2"])
+universal.RegisterInterfaces(
+    "{AC0714F2-3D04-11D1-AE7D-00A0C90F26F4}", 0, 1, 0, ["_IDTExtensibility2"]
+)
+
 
 class ButtonEvent:
     def OnClick(self, button, cancel):
-        import win32ui # Possible, but not necessary, to use a Pythonwin GUI
+        import win32ui  # Possible, but not necessary, to use a Pythonwin GUI
+
         win32ui.MessageBox("Hello from Python")
         return cancel
+
 
 class FolderEvent:
     def OnItemAdd(self, item):
         try:
-            print "An item was added to the inbox with subject:", item.Subject
+            print("An item was added to the inbox with subject:", item.Subject)
         except AttributeError:
-            print "An item was added to the inbox, but it has no subject! - ", repr(item)
-
+            print(
+                "An item was added to the inbox, but it has no subject! - ", repr(item)
+            )
 
 
 class OutlookAddin:
-    _com_interfaces_ = ['_IDTExtensibility2']
+    _com_interfaces_ = ["_IDTExtensibility2"]
     _public_methods_ = []
     _reg_clsctx_ = pythoncom.CLSCTX_INPROC_SERVER
     _reg_clsid_ = "{0F47D9F3-598B-4d24-B7E3-92AC15ED27E2}"
     _reg_progid_ = "Python.Test.OutlookAddin"
     _reg_policy_spec_ = "win32com.server.policy.EventHandlerPolicy"
+
     def OnConnection(self, application, connectMode, addin, custom):
-        print "OnConnection", application, connectMode, addin, custom
+        print("OnConnection", application, connectMode, addin, custom)
         # ActiveExplorer may be none when started without a UI (eg, WinCE synchronisation)
         activeExplorer = application.ActiveExplorer()
         if activeExplorer is not None:
@@ -72,7 +81,7 @@ class OutlookAddin:
             item = toolbar.Controls.Add(Type=constants.msoControlButton, Temporary=True)
             # Hook events for the item
             item = self.toolbarButton = DispatchWithEvents(item, ButtonEvent)
-            item.Caption="Python"
+            item.Caption = "Python"
             item.TooltipText = "Click for Python"
             item.Enabled = True
 
@@ -81,32 +90,46 @@ class OutlookAddin:
         self.inboxItems = DispatchWithEvents(inbox.Items, FolderEvent)
 
     def OnDisconnection(self, mode, custom):
-        print "OnDisconnection"
+        print("OnDisconnection")
+
     def OnAddInsUpdate(self, custom):
-        print "OnAddInsUpdate", custom
+        print("OnAddInsUpdate", custom)
+
     def OnStartupComplete(self, custom):
-        print "OnStartupComplete", custom
+        print("OnStartupComplete", custom)
+
     def OnBeginShutdown(self, custom):
-        print "OnBeginShutdown", custom
+        print("OnBeginShutdown", custom)
+
 
 def RegisterAddin(klass):
-    import _winreg
-    key = _winreg.CreateKey(_winreg.HKEY_CURRENT_USER, "Software\\Microsoft\\Office\\Outlook\\Addins")
-    subkey = _winreg.CreateKey(key, klass._reg_progid_)
-    _winreg.SetValueEx(subkey, "CommandLineSafe", 0, _winreg.REG_DWORD, 0)
-    _winreg.SetValueEx(subkey, "LoadBehavior", 0, _winreg.REG_DWORD, 3)
-    _winreg.SetValueEx(subkey, "Description", 0, _winreg.REG_SZ, klass._reg_progid_)
-    _winreg.SetValueEx(subkey, "FriendlyName", 0, _winreg.REG_SZ, klass._reg_progid_)
+    import winreg
+
+    key = winreg.CreateKey(
+        winreg.HKEY_CURRENT_USER, "Software\\Microsoft\\Office\\Outlook\\Addins"
+    )
+    subkey = winreg.CreateKey(key, klass._reg_progid_)
+    winreg.SetValueEx(subkey, "CommandLineSafe", 0, winreg.REG_DWORD, 0)
+    winreg.SetValueEx(subkey, "LoadBehavior", 0, winreg.REG_DWORD, 3)
+    winreg.SetValueEx(subkey, "Description", 0, winreg.REG_SZ, klass._reg_progid_)
+    winreg.SetValueEx(subkey, "FriendlyName", 0, winreg.REG_SZ, klass._reg_progid_)
+
 
 def UnregisterAddin(klass):
-    import _winreg
+    import winreg
+
     try:
-        _winreg.DeleteKey(_winreg.HKEY_CURRENT_USER, "Software\\Microsoft\\Office\\Outlook\\Addins\\" + klass._reg_progid_)
-    except WindowsError:
+        winreg.DeleteKey(
+            winreg.HKEY_CURRENT_USER,
+            "Software\\Microsoft\\Office\\Outlook\\Addins\\" + klass._reg_progid_,
+        )
+    except OSError:
         pass
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     import win32com.server.register
+
     win32com.server.register.UseCommandLine(OutlookAddin)
     if "--unregister" in sys.argv:
         UnregisterAddin(OutlookAddin)

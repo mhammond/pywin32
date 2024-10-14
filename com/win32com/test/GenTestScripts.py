@@ -1,39 +1,50 @@
 #
 # Generate scripts needed for serious testing!
 #
-import win32com, win32com.client.makepy
-import win32com.test
+import os
+import sys
+
 import pythoncom
-import sys, os
+import win32com
+import win32com.client.makepy
+import win32com.test
 
 genList = [
-("msword8", "{00020905-0000-0000-C000-000000000046}",1033,8,0),
+    ("msword8", "{00020905-0000-0000-C000-000000000046}", 1033, 8, 0),
 ]
 
 genDir = "Generated4Test"
+
+
 def GetGenPath():
     import win32api
-    return os.path.join(win32api.GetFullPathName(win32com.test.__path__[0]), genDir)
+
+    return os.path.join(
+        win32api.GetFullPathName(next(iter(win32com.test.__path__))), genDir
+    )
+
 
 def GenerateFromRegistered(fname, *loadArgs):
-#       tlb = apply(pythoncom.LoadRegTypeLib, loadArgs)
+    #       tlb = apply(pythoncom.LoadRegTypeLib, loadArgs)
     genPath = GetGenPath()
     try:
         os.stat(genPath)
-    except os.error:
+    except OSError:
         os.mkdir(genPath)
     # Ensure an __init__ exists.
     open(os.path.join(genPath, "__init__.py"), "w").close()
-    print fname, ": generating -",
+    print(fname, ": generating -", end=" ")
     f = open(os.path.join(genPath, fname + ".py"), "w")
-    win32com.client.makepy.GenerateFromTypeLibSpec(loadArgs, f, bQuiet = 1, bGUIProgress = 1)
+    win32com.client.makepy.GenerateFromTypeLibSpec(
+        loadArgs, f, bQuiet=1, bGUIProgress=1
+    )
     f.close()
-    print "compiling -",
-    fullModName = "win32com.test.%s.%s" % (genDir, fname)
-    exec "import " + fullModName
+    print("compiling -", end=" ")
+    fullModName = f"win32com.test.{genDir}.{fname}"
+    exec("import " + fullModName)
     # Inject the generated module as a top level module.
     sys.modules[fname] = sys.modules[fullModName]
-    print "done"
+    print("done")
 
 
 def GenerateAll():
@@ -41,31 +52,32 @@ def GenerateAll():
         try:
             GenerateFromRegistered(*args)
         except KeyboardInterrupt:
-            print "** Interrupted ***"
+            print("** Interrupted ***")
             break
         except pythoncom.com_error:
-            print "** Could not generate test code for ", args[0]
+            print("** Could not generate test code for ", args[0])
+
 
 def CleanAll():
-    print "Cleaning generated test scripts..."
-    try: # Clear exceptions!
-        1/0
+    print("Cleaning generated test scripts...")
+    try:  # Clear exceptions!
+        1 / 0
     except:
         pass
     genPath = GetGenPath()
     for args in genList:
         try:
-            name = args[0]+".py"
+            name = args[0] + ".py"
             os.unlink(os.path.join(genPath, name))
-        except os.error, details:
-            if type(details)==type(()) and details[0]!=2:
-                print "Could not deleted generated", name, details
+        except OSError as details:
+            if isinstance(details, tuple) and details[0] != 2:
+                print("Could not deleted generated", name, details)
         try:
-            name = args[0]+".pyc"
+            name = args[0] + ".pyc"
             os.unlink(os.path.join(genPath, name))
-        except os.error, details:
-            if type(details)==type(()) and details[0]!=2:
-                print "Could not deleted generated", name, details
+        except OSError as details:
+            if isinstance(details, tuple) and details[0] != 2:
+                print("Could not deleted generated", name, details)
         try:
             os.unlink(os.path.join(genPath, "__init__.py"))
         except:
@@ -76,9 +88,10 @@ def CleanAll():
             pass
     try:
         os.rmdir(genPath)
-    except os.error, details:
-        print "Could not delete test directory -", details
+    except OSError as details:
+        print("Could not delete test directory -", details)
 
-if __name__=='__main__':
+
+if __name__ == "__main__":
     GenerateAll()
     CleanAll()

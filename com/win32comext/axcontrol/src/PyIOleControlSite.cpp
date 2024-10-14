@@ -121,7 +121,7 @@ PyObject *PyIOleControlSite::TranslateAccelerator(PyObject *self, PyObject *args
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIOCS, IID_IOleControlSite);
-    return PyInt_FromLong(hr);
+    return PyLong_FromLong(hr);
 }
 
 // @pymethod |PyIOleControlSite|OnFocus|Description of OnFocus.

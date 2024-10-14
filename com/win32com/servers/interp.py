@@ -11,14 +11,15 @@
   and call its methods!
 """
 
-from win32com.server.exception import Exception
 import winerror
+from win32com.server.exception import COMException
+
 
 # Expose the Python interpreter.
 class Interpreter:
-    """The interpreter object exposed via COM
-    """
-    _public_methods_ = [ 'Exec', 'Eval' ]
+    """The interpreter object exposed via COM"""
+
+    _public_methods_ = ["Exec", "Eval"]
     # All registration stuff to support fully automatic register/unregister
     _reg_verprogid_ = "Python.Interpreter.2"
     _reg_progid_ = "Python.Interpreter"
@@ -30,23 +31,29 @@ class Interpreter:
         self.dict = {}
 
     def Eval(self, exp):
-        """Evaluate an expression.
-        """
-        if type(exp) not in [str, unicode]:
-            raise Exception(desc="Must be a string",scode=winerror.DISP_E_TYPEMISMATCH)
+        """Evaluate an expression."""
+        if not isinstance(exp, str):
+            raise COMException(
+                desc="Must be a string", scode=winerror.DISP_E_TYPEMISMATCH
+            )
 
         return eval(str(exp), self.dict)
+
     def Exec(self, exp):
-        """Execute a statement.
-        """
-        if type(exp) not in [str, unicode]:
-            raise Exception(desc="Must be a string",scode=winerror.DISP_E_TYPEMISMATCH)
-        exec str(exp) in self.dict
+        """Execute a statement."""
+        if not isinstance(exp, str):
+            raise COMException(
+                desc="Must be a string", scode=winerror.DISP_E_TYPEMISMATCH
+            )
+        exec(str(exp), self.dict)
+
 
 def Register():
     import win32com.server.register
+
     return win32com.server.register.UseCommandLine(Interpreter)
 
-if __name__=='__main__':
-    print "Registering COM server..."
+
+if __name__ == "__main__":
+    print("Registering COM server...")
     Register()

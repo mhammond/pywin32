@@ -176,13 +176,13 @@ STDMETHODIMP PyGAsyncOperation::GetAsyncMode(
     HRESULT hr = InvokeViaPolicy("GetAsyncMode", &result);
     if (FAILED(hr))
         return hr;
-    if (!PyInt_Check(result)) {
+    if (!PyLong_Check(result)) {
         PyErr_Format(PyExc_TypeError, "Result for GetAsyncMode must be a bool (got '%s')", result->ob_type->tp_name);
         hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetAsyncMode");
     }
     else
         // NOTE: MSDN says "VARIANT_TRUE/VARIANT_FALSE, but fails to work!
-        *pfIsOpAsync = PyInt_AsLong(result) ? TRUE : FALSE;
+        *pfIsOpAsync = PyLong_AsLong(result) ? TRUE : FALSE;
     Py_DECREF(result);
     return hr;
 }
@@ -208,13 +208,13 @@ STDMETHODIMP PyGAsyncOperation::InOperation(
     HRESULT hr = InvokeViaPolicy("InOperation", &result);
     if (FAILED(hr))
         return hr;
-    if (!PyInt_Check(result)) {
+    if (!PyLong_Check(result)) {
         PyErr_Format(PyExc_TypeError, "Result for InOperation must be a bool (got '%s')", result->ob_type->tp_name);
         hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("InOperation");
     }
     else
         // NOTE: MSDN says "VARIANT_TRUE/VARIANT_FALSE, but fails to work!
-        *pfInAsyncOp = PyInt_AsLong(result) ? TRUE : FALSE;
+        *pfInAsyncOp = PyLong_AsLong(result) ? TRUE : FALSE;
     Py_DECREF(result);
     return hr;
 }

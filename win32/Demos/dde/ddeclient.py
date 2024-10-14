@@ -1,7 +1,7 @@
 # 'Request' example added jjk  11/20/98
 
-import win32ui
 import dde
+import win32ui
 
 server = dde.CreateServer()
 server.Create("TestClient")
@@ -13,7 +13,6 @@ conversation.Exec("DoSomething")
 conversation.Exec("DoSomethingElse")
 
 conversation.ConnectTo("RunAny", "ComputeStringLength")
-s = 'abcdefghi'
+s = "abcdefghi"
 sl = conversation.Request(s)
-print 'length of "%s" is %s'%(s,sl)
-
+print(f'length of "{s}" is {sl}')

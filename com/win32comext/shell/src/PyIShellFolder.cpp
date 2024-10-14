@@ -199,7 +199,7 @@ PyObject *PyIShellFolder::CompareIDs(PyObject *self, PyObject *args)
     PyObject *obpidl2;
     PyObject *ret = NULL;
     PyObject *oblparam;
-    LPARAM lparam;
+    PyWin_PARAMHolder lparam;
     ITEMIDLIST *pidl1 = NULL;
     ITEMIDLIST *pidl2 = NULL;
     if (!PyArg_ParseTuple(args, "OOO:CompareIDs", &oblparam, &obpidl1, &obpidl2))
@@ -217,14 +217,14 @@ PyObject *PyIShellFolder::CompareIDs(PyObject *self, PyObject *args)
             PyCom_BuildPyException(hr, pISF, IID_IShellFolder);
         else  // special handling of hresult
             if ((short)HRESULT_CODE(hr) < 0)
-            /* pidl1 comes first */
-            ret = PyInt_FromLong(-1);
-        else if ((short)HRESULT_CODE(hr) > 0)
-            /* pidl2 comes first */
-            ret = PyInt_FromLong(1);
-        else
-            /* the two pidls are equal */
-            ret = PyInt_FromLong(0);
+                /* pidl1 comes first */
+                ret = PyLong_FromLong(-1);
+            else if ((short)HRESULT_CODE(hr) > 0)
+                /* pidl2 comes first */
+                ret = PyLong_FromLong(1);
+            else
+                /* the two pidls are equal */
+                ret = PyLong_FromLong(0);
     }
     PyObject_FreePIDL(pidl1);
     PyObject_FreePIDL(pidl2);
@@ -289,7 +289,7 @@ PyObject *PyIShellFolder::GetAttributesOf(PyObject *self, PyObject *args)
 
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pISF, IID_IShellFolder);
-    return PyInt_FromLong(rgfInOut);
+    return PyLong_FromLong(rgfInOut);
 }
 
 // @pymethod int, <o PyIUnknown>|PyIShellFolder|GetUIObjectOf|Creates an interface to one or more items in a shell
@@ -578,8 +578,8 @@ STDMETHODIMP PyGShellFolder::CompareIDs(
     HRESULT hr = InvokeViaPolicy("CompareIDs", &result, "NNN", obparam, obpidl1, obpidl2);
     if (FAILED(hr))
         return hr;
-    if (PyInt_Check(result))
-        hr = MAKE_HRESULT(SEVERITY_SUCCESS, 0, PyInt_AsLong(result));
+    if (PyLong_Check(result))
+        hr = MAKE_HRESULT(SEVERITY_SUCCESS, 0, PyLong_AsLong(result));
     Py_DECREF(result);
     return hr;
 }
@@ -619,8 +619,8 @@ STDMETHODIMP PyGShellFolder::GetAttributesOf(
     if (FAILED(hr))
         return hr;
     // Process the Python results, and convert back to the real params
-    if (rgfInOut && PyInt_Check(result))
-        *rgfInOut = PyInt_AsLong(result);
+    if (rgfInOut && PyLong_Check(result))
+        *rgfInOut = PyLong_AsLong(result);
     hr = PyCom_SetAndLogCOMErrorFromPyException("GetAttributesOf", IID_IShellFolder);
     Py_DECREF(result);
     return hr;

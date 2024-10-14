@@ -123,7 +123,6 @@ PyObject *PyCRYPTHASH::PyCryptHashData(PyObject *self, PyObject *args, PyObject 
     static char *keywords[] = {"Data", "Flags", NULL};
     DWORD dwFlags = 0;  // CRYPT_USERDATA or 0
     DWORD dwDataLen = 0;
-    BYTE *pbData = NULL;
     HCRYPTHASH hcrypthash = ((PyCRYPTHASH *)self)->GetHCRYPTHASH();
     PyObject *obdata;
     // @comm If Flags is CRYPT_USERDATA, provider is expected to prompt user to
@@ -132,11 +131,13 @@ PyObject *PyCRYPTHASH::PyCryptHashData(PyObject *self, PyObject *args, PyObject 
                                      &obdata,    // @pyparm string|Data||Data to be hashed
                                      &dwFlags))  // @pyparm int|Flags|0|CRYPT_USERDATA or 0
         return NULL;
-    if (!PyWinObject_AsReadBuffer(obdata, (void **)&pbData, &dwDataLen, FALSE))
+    PyWinBufferView pybuf(obdata);
+    if (!pybuf.ok())
         return NULL;
+    dwDataLen = pybuf.len();
     if (dwFlags & CRYPT_USERDATA)
         dwDataLen = 0;
-    if (CryptHashData(hcrypthash, pbData, dwDataLen, dwFlags)) {
+    if (CryptHashData(hcrypthash, (BYTE *)pybuf.ptr(), dwDataLen, dwFlags)) {
         Py_INCREF(Py_None);
         return Py_None;
     }
@@ -191,7 +192,7 @@ PyObject *PyCRYPTHASH::PyCryptSignHash(PyObject *self, PyObject *args, PyObject 
     if (!CryptSignHash(hcrypthash, dwKeySpec, sDescription, dwFlags, pbSignature, &dwSigLen))
         PyWin_SetAPIError("PyCRYPTHASH::CryptSignHash", GetLastError());
     else
-        ret = PyString_FromStringAndSize((char *)pbSignature, dwSigLen);
+        ret = PyBytes_FromStringAndSize((char *)pbSignature, dwSigLen);
 
     if (pbSignature != NULL)
         free(pbSignature);
@@ -206,8 +207,6 @@ PyObject *PyCRYPTHASH::PyCryptVerifySignature(PyObject *self, PyObject *args, Py
     HCRYPTKEY hcryptkey;
     LPCTSTR sDescription = NULL;  // no longer used
     DWORD dwFlags = 0;            // CRYPT_X931_FORMAT or CRYPT_NOHASHOID
-    DWORD dwSigLen = 0;
-    BYTE *pbSignature = NULL;
     HCRYPTHASH hcrypthash = ((PyCRYPTHASH *)self)->GetHCRYPTHASH();
 
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OO|k:CryptVerifySignature", keywords,
@@ -217,9 +216,10 @@ PyObject *PyCRYPTHASH::PyCryptVerifySignature(PyObject *self, PyObject *args, Py
         return NULL;
     if (!PyWinObject_AsHCRYPTKEY(obhcryptkey, &hcryptkey, FALSE))
         return NULL;
-    if (!PyWinObject_AsReadBuffer(obsig, (void **)&pbSignature, &dwSigLen, FALSE))
+    PyWinBufferView pybuf(obsig);
+    if (!pybuf.ok())
         return NULL;
-    if (CryptVerifySignature(hcrypthash, pbSignature, dwSigLen, hcryptkey, sDescription, dwFlags)) {
+    if (CryptVerifySignature(hcrypthash, (BYTE *)pybuf.ptr(), pybuf.len(), hcryptkey, sDescription, dwFlags)) {
         Py_INCREF(Py_None);
         return Py_None;
     }
@@ -256,7 +256,7 @@ PyObject *PyCRYPTHASH::PyCryptGetHashParam(PyObject *self, PyObject *args, PyObj
                 ret = PyLong_FromUnsignedLong(*((unsigned long *)buf));
                 break;
             case HP_HASHVAL:
-                ret = PyString_FromStringAndSize((char *)buf, buflen);
+                ret = PyBytes_FromStringAndSize((char *)buf, buflen);
                 break;
             default:
                 PyErr_Format(PyExc_NotImplementedError, "Hash parameter %d is not yet supported", param);

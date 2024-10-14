@@ -162,8 +162,11 @@ PyDCB::PyDCB(const DCB &other)
 
 PyDCB::~PyDCB(void) {}
 
-#define GET_BITFIELD_ENTRY(bitfield_name) \
-    else if (strcmp(name, #bitfield_name) == 0) { return PyInt_FromLong(pydcb->m_DCB.##bitfield_name); }
+#define GET_BITFIELD_ENTRY(bitfield_name)                     \
+    else if (strcmp(name, #bitfield_name) == 0)               \
+    {                                                         \
+        return PyLong_FromLong(pydcb->m_DCB.##bitfield_name); \
+    }
 
 PyObject *PyDCB::getattro(PyObject *self, PyObject *obname)
 {
@@ -194,11 +197,11 @@ PyObject *PyDCB::getattro(PyObject *self, PyObject *obname)
 #define SET_BITFIELD_ENTRY(bitfield_name)                                 \
     else if (strcmp(name, #bitfield_name) == 0)                           \
     {                                                                     \
-        if (!PyInt_Check(v)) {                                            \
+        if (!PyLong_Check(v)) {                                           \
             PyErr_Format(PyExc_TypeError, szNeedIntAttr, #bitfield_name); \
             return -1;                                                    \
         }                                                                 \
-        pydcb->m_DCB.##bitfield_name = PyInt_AsLong(v);                   \
+        pydcb->m_DCB.##bitfield_name = PyLong_AsLong(v);                  \
         return 0;                                                         \
     }
 
@@ -361,8 +364,11 @@ PyCOMSTAT::PyCOMSTAT(const COMSTAT &other)
 PyCOMSTAT::~PyCOMSTAT(void) {}
 
 #undef GET_BITFIELD_ENTRY
-#define GET_BITFIELD_ENTRY(bitfield_name) \
-    else if (strcmp(name, #bitfield_name) == 0) { return PyInt_FromLong(pyCOMSTAT->m_COMSTAT.##bitfield_name); }
+#define GET_BITFIELD_ENTRY(bitfield_name)                             \
+    else if (strcmp(name, #bitfield_name) == 0)                       \
+    {                                                                 \
+        return PyLong_FromLong(pyCOMSTAT->m_COMSTAT.##bitfield_name); \
+    }
 
 PyObject *PyCOMSTAT::getattro(PyObject *self, PyObject *obname)
 {
@@ -387,11 +393,11 @@ PyObject *PyCOMSTAT::getattro(PyObject *self, PyObject *obname)
 #define SET_BITFIELD_ENTRY(bitfield_name)                                 \
     else if (strcmp(name, #bitfield_name) == 0)                           \
     {                                                                     \
-        if (!PyInt_Check(v)) {                                            \
+        if (!PyLong_Check(v)) {                                           \
             PyErr_Format(PyExc_TypeError, szNeedIntAttr, #bitfield_name); \
             return -1;                                                    \
         }                                                                 \
-        pyCOMSTAT->m_COMSTAT.##bitfield_name = PyInt_AsLong(v);           \
+        pyCOMSTAT->m_COMSTAT.##bitfield_name = PyLong_AsLong(v);          \
         return 0;                                                         \
     }
 

@@ -1,7 +1,9 @@
-import pythoncom
 import unittest
+
+import pythoncom
 import win32com.test.util
 import winerror
+
 
 class TestROT(win32com.test.util.TestCase):
     def testit(self):
@@ -15,12 +17,13 @@ class TestROT(win32com.test.util.TestCase):
             try:
                 for sub in mk:
                     num += 1
-            except pythoncom.com_error, exc:
+            except pythoncom.com_error as exc:
                 if exc.hresult != winerror.E_NOTIMPL:
                     raise
 
-        #if num < 2:
-        #    print "Only", num, "objects in the ROT - this is unusual"
+        # if num < 2:
+        #     print("Only", num, "objects in the ROT - this is unusual")
 
-if __name__=='__main__':
+
+if __name__ == "__main__":
     unittest.main()

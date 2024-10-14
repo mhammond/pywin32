@@ -354,12 +354,12 @@ PyObject *PyIStorage::SetElementTimes(PyObject *self, PyObject *args)
         return NULL;
     // @pyparm str|name||The name of the storage object element whose times are to be modified. If NULL, the time is set
     // on the root storage rather than one of its elements.
-    // @pyparm <o PyTime>|ctime||Either the new creation time for the element or None if the creation time is not to be
+    // @pyparm <o PyDateTime>|ctime||Either the new creation time for the element or None if the creation time is not to
+    // be modified.
+    // @pyparm <o PyDateTime>|atime||Either the new access time for the element or None if the access time is not to be
     // modified.
-    // @pyparm <o PyTime>|atime||Either the new access time for the element or None if the access time is not to be
-    // modified.
-    // @pyparm <o PyTime>|mtime||Either the new modification time for the element or None if the modification time is
-    // not to be modified.
+    // @pyparm <o PyDateTime>|mtime||Either the new modification time for the element or None if the modification time
+    // is not to be modified.
     PyObject *obName;
     PyObject *obpctime;
     PyObject *obpatime;

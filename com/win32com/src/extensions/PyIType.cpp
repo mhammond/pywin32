@@ -37,7 +37,7 @@ PyObject *PyITypeInfo::GetContainingTypeLib()
 
     PyObject *ret = PyTuple_New(2);
     PyTuple_SetItem(ret, 0, PyCom_PyObjectFromIUnknown(ptlib, IID_ITypeLib));
-    PyTuple_SetItem(ret, 1, PyInt_FromLong(index));
+    PyTuple_SetItem(ret, 1, PyLong_FromLong(index));
     return ret;
 }
 
@@ -93,27 +93,6 @@ PyObject *PyITypeInfo::GetDocumentation(MEMBERID id)
 static PyObject *BuildFUNCDESC(ITypeInfo *pI, FUNCDESC *desc)
 {
     PyObject *ret = PyObject_FromFUNCDESC(desc);
-
-    /***
-        PyObject *sca = MakeSCODEArray(desc->lprgscode, desc->cScodes);
-        PyObject *args = MakeElemDescArray(desc->lprgelemdescParam, desc->cParams);
-        PyObject *rettype = MakeElemDesc(&desc->elemdescFunc);
-        PyObject *ret = Py_BuildValue("(iOOiiiiiOi)",
-            desc->memid,        // @tupleitem 0|int|memberId|
-            sca,				// @tupleitem 1|(int, ...)|scodeArray|
-            args,				// @tupleitem 2|(<o ELEMDESC>, ...)|args|
-            desc->funckind,		// @tupleitem 3|int|funckind|
-            desc->invkind,		// @tupleitem 4|int|invkind|
-            desc->callconv,		// @tupleitem 5|int|callconv|
-            desc->cParamsOpt,	// @tupleitem 6|int|cParamsOpt|
-            desc->oVft,			// @tupleitem 7|int|oVft|
-            rettype,			// @tupleitem 8|<o ELEMDESC>|returnType|
-            desc->wFuncFlags);	// @tupleitem 9|int|wFuncFlags|
-
-        Py_DECREF(sca);
-        Py_DECREF(args);
-        Py_DECREF(rettype);
-    ***/
     {
         PY_INTERFACE_PRECALL;
         pI->ReleaseFuncDesc(desc);
@@ -136,28 +115,7 @@ PyObject *PyITypeInfo::GetFuncDesc(int index)
         return PyCom_BuildPyException(sc, pMyTypeInfo, IID_ITypeInfo);
     return BuildFUNCDESC(pMyTypeInfo, desc);
 }
-/**********88
-PyObject *PyITypeInfo::GetIDsOfNames(OLECHAR FAR* FAR* names, int count)
-{
-    ITypeInfo *pMyTypeInfo = GetI(this);
-    if (pMyTypeInfo==NULL) return NULL;
 
-    MEMBERID *ids = new MEMBERID[count];
-    SCODE sc = pMyTypeInfo->GetIDsOfNames(names, count, ids);
-    if (FAILED(sc))
-    {
-        delete [] ids;
-        return PyCom_BuildPyException(sc, pMyTypeInfo, IID_ITypeInfo);
-    }
-
-    PyObject *ret = PyTuple_New(count);
-    for (int i = 0; i < count; i++)
-        PyTuple_SetItem(ret, i, PyInt_FromLong(ids[i]));
-
-    delete [] ids;
-    return ret;
-}
-**********/
 PyObject *PyITypeInfo::GetNames(MEMBERID id)
 {
     BSTR names[256];
@@ -194,42 +152,6 @@ PyObject *PyITypeInfo::GetTypeAttr()
     if (FAILED(sc))
         return PyCom_BuildPyException(sc, pMyTypeInfo, IID_ITypeInfo);
 
-    /*
-        PyObject *obIID = PyWinObject_FromIID(attr->guid);
-        PyObject *obDescAlias;
-        // Some (only a few 16 bit MSOffice only one so far, and even then only occasionally!)
-        // servers seem to send invalid tdescAlias when its not actually an alias.
-        if (attr->typekind == TKIND_ALIAS)
-            obDescAlias = MakeTypeDesc(&attr->tdescAlias);
-        else {
-            Py_INCREF(Py_None);
-            obDescAlias=Py_None;
-        }
-
-        PyObject *obIDLDesc = MakeIDLDesc(&attr->idldescType);
-        PyObject *ret = Py_BuildValue("(OiiiiiiiiiiiiiOO)",
-            obIID,                   // @tupleitem 0|<o PyIID>|IID|The IID
-            attr->lcid,				 // @tupleitem 1|int|lcid|The lcid
-            attr->memidConstructor,	 // @tupleitem 2|int|memidConstructor|ID of constructor
-            attr->memidDestructor,	 // @tupleitem 3|int|memidDestructor|ID of destructor,
-            attr->cbSizeInstance,	 // @tupleitem 4|int|cbSizeInstance|The size of an instance of this type
-            attr->typekind,			 // @tupleitem 5|int|typekind|The kind of type this information describes.  One of
-    the win32con.TKIND_* constants. attr->cFuncs,			 // @tupleitem 6|int|cFuncs|Number of functions.
-            attr->cVars,			 // @tupleitem 7|int|cVars|Number of variables/data members.
-            attr->cImplTypes,		 // @tupleitem 8|int|cImplTypes|Number of implemented interfaces.
-            attr->cbSizeVft,		 // @tupleitem 9|int|cbSizeVft|The size of this type's VTBL
-            attr->cbAlignment,		 // @tupleitem 10|int|cbAlignment|Byte alignment for an instance of this type.
-            attr->wTypeFlags,		 // @tupleitem 11|int|wTypeFlags|One of the pythoncom TYPEFLAG_
-            attr->wMajorVerNum,		 // @tupleitem 12|int|wMajorVerNum|Major version number.
-            attr->wMinorVerNum,		 // @tupleitem 13|int|wMinorVerNum|Minor version number.
-            obDescAlias,			 // @tupleitem 14|<o TYPEDESC>|obDescAlias|If TypeKind == pythoncom.TKIND_ALIAS,
-    specifies the type for which this type is an alias. obIDLDesc				 // @tupleitem 15|<o
-    IDLDESC>|obIDLDesc|IDL attributes of the described type.
-        );
-        Py_XDECREF(obDescAlias);
-        Py_XDECREF(obIDLDesc);
-        Py_XDECREF(obIID);
-    ***/
     PyObject *ret = PyObject_FromTYPEATTR(attr);
 
     {
@@ -410,7 +332,9 @@ static PyObject *typeinfo_getidsofnames(PyObject *self, PyObject *args)
     if (pti == NULL)
         return NULL;
     UINT i;
-    int argc = PyTuple_GET_SIZE(args);
+    Py_ssize_t argc = PyTuple_GET_SIZE(args);
+    PYWIN_CHECK_SSIZE_DWORD(argc, NULL);
+
     if (argc < 1) {
         PyErr_SetString(PyExc_TypeError, "At least one argument must be supplied");
         return NULL;
@@ -428,7 +352,7 @@ static PyObject *typeinfo_getidsofnames(PyObject *self, PyObject *args)
             offset = 1;
     }
 
-    UINT cNames = argc - offset;
+    UINT cNames = (UINT)argc - offset;
     OLECHAR FAR *FAR *rgszNames = new LPOLESTR[cNames];
 
     for (i = 0; i < cNames; ++i) {
@@ -456,13 +380,13 @@ static PyObject *typeinfo_getidsofnames(PyObject *self, PyObject *args)
 
     /* if we have just one name, then return a single DISPID (int) */
     if (cNames == 1) {
-        result = PyInt_FromLong(rgdispid[0]);
+        result = PyLong_FromLong(rgdispid[0]);
     }
     else {
         result = PyTuple_New(cNames);
         if (result) {
             for (i = 0; i < cNames; ++i) {
-                PyObject *ob = PyInt_FromLong(rgdispid[i]);
+                PyObject *ob = PyLong_FromLong(rgdispid[i]);
                 if (!ob) {
                     delete[] rgdispid;
                     return NULL;
@@ -612,7 +536,7 @@ PyObject *PyITypeLib::GetTypeInfoCount()
     PY_INTERFACE_PRECALL;
     long rc = pMyTypeLib->GetTypeInfoCount();
     PY_INTERFACE_POSTCALL;
-    return PyInt_FromLong(rc);
+    return PyLong_FromLong(rc);
 }
 
 PyObject *PyITypeLib::GetTypeInfoOfGuid(REFGUID guid)
@@ -641,7 +565,7 @@ PyObject *PyITypeLib::GetTypeInfoType(int pos)
     if (FAILED(sc))
         return PyCom_BuildPyException(sc, pMyTypeLib, IID_ITypeLib);
 
-    return PyInt_FromLong(tkind);
+    return PyLong_FromLong(tkind);
 }
 
 PyObject *PyITypeLib::GetTypeComp()
@@ -891,7 +815,6 @@ PyObject *pythoncom_unregistertypelib(PyObject *self, PyObject *args)
     // In-process objects typically call this API from DllUnregisterServer.
 }
 
-#ifndef MS_WINCE
 // @pymethod <o PyUnicode>|pythoncom|QueryPathOfRegTypeLib|Retrieves the path of a registered type library.
 PyObject *pythoncom_querypathofregtypelib(PyObject *self, PyObject *args)
 {
@@ -917,7 +840,6 @@ PyObject *pythoncom_querypathofregtypelib(PyObject *self, PyObject *args)
         return PyCom_BuildPyException(hr);
     return PyWinObject_FromBstr(result, TRUE);
 }
-#endif
 /////////////////////////////////////////////////////////////////////////////
 // class PyITypeComp
 
@@ -976,10 +898,7 @@ static PyObject *ITypeCompBind(ITypeComp *pTC, OLECHAR *S, unsigned short w)
     PyObject *ret;
     unsigned long hashval = 0;
     PY_INTERFACE_PRECALL;
-#ifndef MS_WINCE
-    // appears in the headers for CE, but wont link!?
     hashval = LHashValOfNameSys(SYS_WIN32, LOCALE_USER_DEFAULT, S);
-#endif
     SCODE sc = pTC->Bind(S, hashval, w, &pI, &DK, &BP);
     PY_INTERFACE_POSTCALL;
     if (FAILED(sc))
@@ -1023,7 +942,7 @@ static PyObject *ITypeCompBind(ITypeComp *pTC, OLECHAR *S, unsigned short w)
     if (real_ret == NULL)
         return NULL;
     // NOTE: SET_ITEM consumes the refcounts.
-    PyTuple_SET_ITEM(real_ret, 0, PyInt_FromLong(DK));
+    PyTuple_SET_ITEM(real_ret, 0, PyLong_FromLong(DK));
     PyTuple_SET_ITEM(real_ret, 1, ret);
     return real_ret;
 }
@@ -1038,10 +957,7 @@ PyObject *PyITypeComp::BindType(OLECHAR *s)
     unsigned long hashval = 0;
     ITypeComp *pTC = GetI(this);
     PY_INTERFACE_PRECALL;
-#ifndef MS_WINCE
-    // appears in the headers for CE, but wont link!?
     hashval = LHashValOfNameSys(SYS_WIN32, LOCALE_USER_DEFAULT, s);
-#endif
     SCODE sc = pTC->BindType(s, hashval, &pI, &pC);
     PY_INTERFACE_POSTCALL;
     if (FAILED(sc))

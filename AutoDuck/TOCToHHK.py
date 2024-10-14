@@ -1,5 +1,3 @@
-import os
-import os.path
 import sys
 
 """
@@ -8,13 +6,15 @@ TOCToHHK.py
 Converts an AutoDuck .IDX file into a HTML Help index file.
 """
 
+
 def main():
     file = sys.argv[1]
     output = sys.argv[2]
     input = open(file, "r")
     out = open(output, "w")
     line = input.readline()
-    out.write("""
+    out.write(
+        """
 <!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
 <HTML>
 <HEAD>
@@ -22,7 +22,8 @@ def main():
 <!-- Sitemap 1.0 -->
 </HEAD><BODY>
 <UL>
-""")
+"""
+    )
     while line != "":
         # chop line
         line = line[:-1]
@@ -34,17 +35,22 @@ def main():
         context = fields[0]
         if " " in context:
             context = context.replace(" ", "_")
-        out.write("""    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="%s">
-        <param name="Name" value="%s">
-        <param name="Local" value="%s.html">
+        out.write(
+            f"""    <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="{keyword}">
+        <param name="Name" value="{fields[1]}">
+        <param name="Local" value="{context}.html">
         </OBJECT>
-""" % (keyword, fields[1], context))
+"""
+        )
         line = input.readline()
-    out.write("""
+    out.write(
+        """
 </UL>
 </BODY></HTML>
-""")
-    
+"""
+    )
+
+
 if __name__ == "__main__":
     main()

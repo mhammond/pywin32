@@ -34,7 +34,7 @@ PyObject *PyNotifyMakeExtraTuple(NMHDR *ptr, char *fmt)
             ++fmt;
         switch (*fmt) {
             case 'i':
-                ob = bIgnore ? NULL : PyInt_FromLong(*((int *)pUse));
+                ob = bIgnore ? NULL : PyLong_FromLong(*((int *)pUse));
                 pUse += (sizeof(int));
                 break;
             case 'P': {  // point
@@ -49,8 +49,8 @@ PyObject *PyNotifyMakeExtraTuple(NMHDR *ptr, char *fmt)
             case 's':  // string buffer - same for this parse
             {
                 char *use = (*fmt == 'z') ? *(char **)pUse : pUse;
-                ob = bIgnore ? NULL : PyString_FromString("");  // HACK HACK - FIX ME FIX ME
-                if (*fmt == 's') {                              // followed by buffer size;
+                ob = bIgnore ? NULL : PyBytes_FromString("");  // HACK HACK - FIX ME FIX ME
+                if (*fmt == 's') {                             // followed by buffer size;
                     int val = 0;
                     while (fmt[1] && isdigit(fmt[1])) {
                         val = val * 10 + (fmt[1] - '0');
@@ -67,8 +67,8 @@ PyObject *PyNotifyMakeExtraTuple(NMHDR *ptr, char *fmt)
             case 'S':  // Unicode buffer - same for this parse
             {
                 char *use = (*fmt == 'Z') ? *(char **)pUse : pUse;
-                ob = bIgnore ? NULL : PyString_FromString("");  // HACK HACK - FIX ME FIX ME
-                if (*fmt == 'S') {                              // followed by buffer size;
+                ob = bIgnore ? NULL : PyBytes_FromString("");  // HACK HACK - FIX ME FIX ME
+                if (*fmt == 'S') {                             // followed by buffer size;
                     int val = 0;
                     while (fmt[1] && isdigit(fmt[1])) {
                         val = val * 10 + (fmt[1] - '0');
@@ -157,9 +157,9 @@ void PyNotifyParseExtraTuple(NMHDR *ptr, PyObject *args, char *fmt)
         switch (*fmt) {
             case 'i':
                 if (!bIgnore) {
-                    if (!PyInt_Check(ob))
+                    if (!PyLong_Check(ob))
                         MY_RET_ERR("Expected integer object")
-                    *((int *)pUse) = PyInt_AsLong(ob);
+                    *((int *)pUse) = PyLong_AsLong(ob);
                 }
                 pUse += (sizeof(int));
                 break;
@@ -200,9 +200,9 @@ void PyNotifyParseExtraTuple(NMHDR *ptr, PyObject *args, char *fmt)
                 }
                 ASSERT(bufSize);
                 if (!bIgnore) {
-                    if (!PyString_Check(ob))
+                    if (!PyBytes_Check(ob))
                         MY_RET_ERR("Expected string object")
-                    char *val = PyString_AsString(ob);
+                    char *val = PyBytes_AsString(ob);
                     SSIZE_T slen = strlen(val);
                     SSIZE_T copylen = max(bufSize - 1, slen);
                     strncpy(pUse, val, copylen);
@@ -372,24 +372,22 @@ BOOL Python_OnNotify(CWnd *pFrom, WPARAM, LPARAM lParam, LRESULT *pResult)
     PyObject *result = Python_do_callback(method, args);
     if (result == NULL)
         PyErr_Warn(PyExc_Warning, "Exception in OnNotify() handler");
-    else if (result == Py_None)  // allow for None "dont pass on", else result to windows
+    else if (result == Py_None)  // allow for None "don't pass on", else result to windows
         bPassOn = TRUE;
-    else if
-        PyTuple_Check(result)
-        {
-            // Result should be a tuple of the LRESULT and a tuple to fill the appropriate
-            //	struct for this particular message
-            if (PyArg_ParseTuple(result, "O&O", PyWinLong_AsVoidPtr, &rc, &obOther))
-                PyNotifyParseExtraTuple(pHdr, obOther, fmt);
-            if (PyErr_Occurred()) {
-                gui_print_error();
-                PyErr_Format(ui_module_error, "Error parsing OnNotify() extra return info for code %d, fmt='%s'", code,
-                             fmt);
-                gui_print_error();
-            }
+    else if (PyTuple_Check(result)) {
+        // Result should be a tuple of the LRESULT and a tuple to fill the appropriate
+        //	struct for this particular message
+        if (PyArg_ParseTuple(result, "O&O", PyWinLong_AsVoidPtr, &rc, &obOther))
+            PyNotifyParseExtraTuple(pHdr, obOther, fmt);
+        if (PyErr_Occurred()) {
+            gui_print_error();
+            PyErr_Format(ui_module_error, "Error parsing OnNotify() extra return info for code %d, fmt='%s'", code,
+                         fmt);
+            gui_print_error();
         }
-    // Otherwise result is just the LRESULT, which can be anything that fits in pointer size
-    else if (!PyWinObject_AsPARAM(result, (LPARAM *)&rc)) {
+        // Otherwise result is just the LRESULT, which can be anything that fits in pointer size
+    }
+    else if (!PyWinObject_AsSimplePARAM(result, (LPARAM *)&rc)) {
         gui_print_error();
         PyErr_SetString(ui_module_error,
                         "OnNotify did not return an LRESULT, or a tuple of (LRESULT, notify info tuple)");

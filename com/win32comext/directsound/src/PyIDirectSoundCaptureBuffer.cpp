@@ -129,7 +129,7 @@ PyObject *PyIDirectSoundCaptureBuffer::GetStatus(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    return PyInt_FromLong(dwStatus);
+    return PyLong_FromLong(dwStatus);
 }
 
 // @pymethod |PyIDirectSoundCaptureBuffer|Initialize|Not normally used. Used IDirectSoundCapture.CreateCaptureBuffer
@@ -194,8 +194,8 @@ PyObject *PyIDirectSoundCaptureBuffer::GetCurrentPosition(PyObject *self, PyObje
     if (!result)
         return NULL;
 
-    PyTuple_SetItem(result, 0, PyInt_FromLong(dwCapture));
-    PyTuple_SetItem(result, 1, PyInt_FromLong(dwRead));
+    PyTuple_SetItem(result, 0, PyLong_FromLong(dwCapture));
+    PyTuple_SetItem(result, 1, PyLong_FromLong(dwRead));
 
     return result;
 }
@@ -291,15 +291,15 @@ PyObject *PyIDirectSoundCaptureBuffer::Update(PyObject *self, PyObject *args)
     // The capture buffer is circular, so we may get two pointers and have to
     // do the wrap-around ourselves.
 
-    PyObject *obData = PyString_FromStringAndSize((char *)lpAudioPtr1, dwAudioBytes1);
+    PyObject *obData = PyBytes_FromStringAndSize((char *)lpAudioPtr1, dwAudioBytes1);
     if (!obData) {
         PyErr_SetString(PyExc_MemoryError, "Update: could not allocate result string");
         goto error;
     }
     if (lpAudioPtr2) {
-        PyObject *obData2 = PyString_FromStringAndSize((char *)lpAudioPtr2, dwAudioBytes2);
+        PyObject *obData2 = PyBytes_FromStringAndSize((char *)lpAudioPtr2, dwAudioBytes2);
 
-        PyString_Concat(&obData, obData2);
+        PyBytes_Concat(&obData, obData2);
 
         if (!obData) {
             PyErr_SetString(PyExc_MemoryError, "Update: could not append to result string");
@@ -322,7 +322,7 @@ PyObject *PyIDirectSoundCaptureBuffer::Update(PyObject *self, PyObject *args)
 
     return obData;
 
-error : {
+error: {
     // need extra block for local variables from PY_INTERFACE_UPCALL macro
     PY_INTERFACE_PRECALL;
     hr = pIDSCB->Unlock(lpAudioPtr1, dwAudioBytes1, lpAudioPtr2, dwAudioBytes2);

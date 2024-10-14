@@ -15,9 +15,7 @@
 %include "pywintypes.i"
 
 %{
-#define _WIN32_IE 0x0501 // to enable balloon notifications in Shell_NotifyIcon
 #define _WIN32_WINNT 0x0501
-//#define ISOLATION_AWARE_ENABLED 1
 
 #undef PyHANDLE
 #include "pywinobjects.h"
@@ -149,38 +147,38 @@ typedef long FLAGS;
       }
 }
 
-//  @pyswig <o PyHTHEME>|OpenThemeData|Open the theme data for the specified HWND and 
-//                        semi-colon separated list of class names. 
-//                        <nl>OpenThemeData() will try each class name, one at 
+//  @pyswig <o PyHTHEME>|OpenThemeData|Open the theme data for the specified HWND and
+//                        semi-colon separated list of class names.
+//                        <nl>OpenThemeData() will try each class name, one at
 //                        a time, and use the first matching theme info
 //                        found.  If a match is found, a theme handle
 //                        to the data is returned.  If no match is found,
-//                        a "NULL" handle is returned. 
+//                        a "NULL" handle is returned.
 //                        <nl>When the window is destroyed or a WM_THEMECHANGED
-//                        msg is received, <om _winxptheme.CloseThemeData> should be 
+//                        msg is received, <om _winxptheme.CloseThemeData> should be
 //                        called to close the theme handle.
 //  @pyparm int|hwnd||Window handle of the control/window to be themed
 //
 //  @pyparm string|pszClassList||Class name (or list of names) to match to theme data
-//                        section.  if the list contains more than one name, 
-//                        the names are tested one at a time for a match.  
-//                        If a match is found, OpenThemeData() returns a 
-//                        theme handle associated with the matching class. 
-//                        This param is a list (instead of just a single 
-//                        class name) to provide the class an opportunity 
-//                        to get the "best" match between the class and 
+//                        section.  if the list contains more than one name,
+//                        the names are tested one at a time for a match.
+//                        If a match is found, OpenThemeData() returns a
+//                        theme handle associated with the matching class.
+//                        This param is a list (instead of just a single
+//                        class name) to provide the class an opportunity
+//                        to get the "best" match between the class and
 //                        the current theme.  For example, a button might
-//                        pass L"OkButton, Button" if its ID=ID_OK.  If 
-//                        the current theme has an entry for OkButton, 
-//                        that will be used.  Otherwise, we fall back on 
+//                        pass L"OkButton, Button" if it's ID=ID_OK.  If
+//                        the current theme has an entry for OkButton,
+//                        that will be used.  Otherwise, we fall back on
 //                        the normal Button entry.
 
 HTHEME OpenThemeData(HWND hwnd, WCHAR *pszClassList);
 
-//  @pyswig |CloseThemeData|Closes the theme data handle.  This should be done 
+//  @pyswig |CloseThemeData|Closes the theme data handle.  This should be done
 //                        when the window being themed is destroyed or
-//                        whenever a WM_THEMECHANGED msg is received 
-//                        (followed by an attempt to create a new Theme data 
+//                        whenever a WM_THEMECHANGED msg is received
+//                        (followed by an attempt to create a new Theme data
 //                        handle).
 //
 //  @pyparm <o PyHTHEME>|hTheme||Open theme data handle (returned from prior call
@@ -205,10 +203,10 @@ static PyObject *MyCloseThemeData(PyObject *self, PyObject *args)
 %}
 %native (CloseThemeData) MyCloseThemeData;
 
-//  @pyswig |DrawThemeBackground|Draws the theme-specified border and fill for 
-//                        the "iPartId" and "iStateId".  This could be 
-//                        based on a bitmap file, a border and fill, or 
-//                        other image description.  
+//  @pyswig |DrawThemeBackground|Draws the theme-specified border and fill for
+//                        the "iPartId" and "iStateId".  This could be
+//                        based on a bitmap file, a border and fill, or
+//                        other image description.
 //
 //  @pyparm <o PyHTHEME>|hTheme||theme data handle
 //  @pyparm int|hdc||HDC to draw into
@@ -217,11 +215,11 @@ static PyObject *MyCloseThemeData(PyObject *self, PyObject *args)
 //  @pyparm rect|pRect||defines the size/location of the part
 //  @pyparm rect|pClipRect||optional clipping rect (don't draw outside it)
 
-HRESULT DrawThemeBackground(HTHEME hTheme, HDC hdc, 
+HRESULT DrawThemeBackground(HTHEME hTheme, HDC hdc,
     int iPartId, int iStateId, RECT *INPUT, RECT *INPUT_NULLOK);
 
-//  @pyswig |DrawThemeText|Draws the text using the theme-specified 
-//  color and font for the "iPartId" and "iStateId".  
+//  @pyswig |DrawThemeText|Draws the text using the theme-specified
+//  color and font for the "iPartId" and "iStateId".
 //  @pyparm <o PyHTHEME>|hTheme||theme data handle
 //  @pyparm int|hdc||HDC to draw into
 //  @pyparm int|iPartId||part number to draw
@@ -229,23 +227,23 @@ HRESULT DrawThemeBackground(HTHEME hTheme, HDC hdc,
 //  @pyparm string|pszText||actual text to draw
 //  @pyparm int|dwCharCount||number of chars to draw (-1 for all)
 //  @pyparm int|dwTextFlags||same as DrawText() "uFormat" param
-//  @pyparm int|dwTextFlags2||additional drawing options 
+//  @pyparm int|dwTextFlags2||additional drawing options
 //  @pyparm rect|pRect||defines the size/location of the part
 
-HRESULT DrawThemeText(HTHEME hTheme, HDC hdc, int iPartId, 
-    int iStateId, WCHAR *pszText, int iCharCount, DWORD dwTextFlags, 
+HRESULT DrawThemeText(HTHEME hTheme, HDC hdc, int iPartId,
+    int iStateId, WCHAR *pszText, int iCharCount, DWORD dwTextFlags,
     DWORD dwTextFlags2, RECT *INPUT);
 
-//  @pyswig rect|GetThemeBackgroundContentRect|Gets the size of the content for the theme-defined 
-//  background.  This is usually the area inside the borders or Margins.  
+//  @pyswig rect|GetThemeBackgroundContentRect|Gets the size of the content for the theme-defined
+//  background.  This is usually the area inside the borders or Margins.
 //      @pyparm <o PyHTHEME>|hTheme||theme data handle
 //      @pyparm int|hdc||(optional) device content to be used for drawing
 //      @pyparm int|iPartId||part number to draw
 //      @pyparm int|iStateId||state number (of the part) to draw
 //      @pyparm rect|pBoundingRect||the outer RECT of the part being drawn
 //      @rdesc The result is a rect with the content area
-HRESULT GetThemeBackgroundContentRect(HTHEME hTheme, HDC hdc, 
-    int iPartId, int iStateId,  RECT *INPUT, 
+HRESULT GetThemeBackgroundContentRect(HTHEME hTheme, HDC hdc,
+    int iPartId, int iStateId,  RECT *INPUT,
     RECT *OUTPUT);
 
 // @pyswig rect|GetThemeBackgroundExtent|Calculates the size/location of the theme-
@@ -257,11 +255,11 @@ HRESULT GetThemeBackgroundContentRect(HTHEME hTheme, HDC hdc,
 // @pyparm rect|pContentRect||RECT that defines the content area
 // @rdesc Result is a rect with the overall size/location of part
 HRESULT GetThemeBackgroundExtent(HTHEME hTheme, HDC hdc,
-    int iPartId, int iStateId, RECT *INPUT, 
+    int iPartId, int iStateId, RECT *INPUT,
     RECT *OUTPUT);
 
 //  @pyswig bool|IsThemeActive|Can be used to test if a system theme is active
-//  for the current user session.  
+//  for the current user session.
 //  <nl>use the API <om _winxptheme.IsAppThemed> to test if a theme is
 //  active for the calling process.
 BOOL IsThemeActive();
@@ -276,15 +274,15 @@ BOOL IsAppThemed();
 HTHEME GetWindowTheme(HWND hwnd);
 
 //  @pyswig |EnableThemeDialogTexture|Enables/disables dialog background theme.
-//    This method can be used to 
-//    tailor dialog compatibility with child windows and controls that 
-//    may or may not coordinate the rendering of their client area backgrounds 
-//    with that of their parent dialog in a manner that supports seamless 
+//    This method can be used to
+//    tailor dialog compatibility with child windows and controls that
+//    may or may not coordinate the rendering of their client area backgrounds
+//    with that of their parent dialog in a manner that supports seamless
 //    background texturing.
 // @pyparm int|hdlg||The window handle of the target dialog
 // @pyparm int|dwFlags||ETDT_ENABLE to enable the theme-defined dialog background texturing,
 //                     <nl>ETDT_DISABLE to disable background texturing,
-//                     <nl>ETDT_ENABLETAB to enable the theme-defined background 
+//                     <nl>ETDT_ENABLETAB to enable the theme-defined background
 //                          texturing using the Tab texture
 #define ETDT_DISABLE        ETDT_DISABLE
 #define ETDT_ENABLE         ETDT_ENABLE
@@ -307,12 +305,12 @@ DWORD GetThemeAppProperties();
 //                        had a theme active, make it active now.
 HRESULT EnableTheming(BOOL fEnable);
 
-//  @pyswig |SetWindowTheme|Rredirects an existing Window to use a different 
+//  @pyswig |SetWindowTheme|Rredirects an existing Window to use a different
 //  section of the current theme information than its class normally asks for.
 //  @pyparm int|hwnd||The handle of the window (cannot be 0)
 //  @pyparm string/None|pszSubAppName||App (group) name to use in place of the calling
 //  app's name.  If NULL, the actual calling app name will be used.
-//  @pyparm string/None|pszSubIdList||A semicolon separated list of class Id names to 
+//  @pyparm string/None|pszSubIdList||A semicolon separated list of class Id names to
 //  use in place of actual list passed by the window's class.  if NULL, the id
 //  list from the calling class is used.
 HRESULT SetWindowTheme(HWND hwnd, WCHAR *INPUT_NULLOK, WCHAR *INPUT_NULLOK);

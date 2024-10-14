@@ -15,21 +15,6 @@
 static char BASED_CODE THIS_FILE[] = __FILE__;
 #endif
 
-#if _MFC_VER < 0x0600
-// MSVC V 5.1 and certain version of the IE4 SDK cant agree on object sizes!
-
-// God damn - inlines and DLL dont agree on object sizes!!!
-#if defined(PROPSHEETHEADERA_V1_SIZE)
-#if !defined(_WIN32_IE)
-#error "Please update the IE4 SDK to a newer version"
-#endif
-#if _WIN32_IE > 0x0300
-#error "Please recompile with _WIN32_IE set to 0x0300"
-#endif
-#endif  // PROPSHEETHEADERA_V1_SIZE
-
-#endif  // _MFC_VER
-
 #define WM_RESIZEPAGE WM_APP + 1
 
 // helper function which sets the font for a window and all its children
@@ -175,8 +160,10 @@ LRESULT CPythonPropertySheet::WindowProc(UINT message, WPARAM wParam, LPARAM lPa
     // @pyvirtual int|PyCPropertySheet|WindowProc|Default message handler.
     LRESULT res;
     CVirtualHelper helper("WindowProc", this);
-    if (!helper.HaveHandler() || !helper.call(message, wParam, lParam) || !helper.retval(res))
+    if (!helper.HaveHandler() || !helper.call(message, wParam, lParam) || !helper.retval(res)) {
+        helper.release_full();
         return CPropertySheet::WindowProc(message, wParam, lParam);
+    }
     return res;
 }
 #endif PYWIN_WITH_WINDOWPROC
@@ -204,8 +191,8 @@ void CPythonPropertySheet::BuildPropPageArray()
         PyErr_Fetch(&t, &v, &tb);
         PyObject *attr = PyObject_GetAttrString(py_bob->virtualInst, "customizeFont");
         if (attr) {
-            if (PyInt_Check(attr)) {
-                m_customizeFont = (BOOL)PyInt_AsLong(PyNumber_Int(attr));
+            if (PyLong_Check(attr)) {
+                m_customizeFont = (BOOL)PyLong_AsLong(PyNumber_Long(attr));
             }
         }
         PyErr_Restore(t, v, tb);
@@ -254,6 +241,7 @@ BOOL CPythonPropertySheet::OnInitDialog()
     BOOL result = FALSE;
     CVirtualHelper helper("OnInitDialog", this);
     if (!helper.HaveHandler()) {
+        helper.release_full();
         result = CPropertySheet::OnInitDialog();
     }
     else {
@@ -340,8 +328,10 @@ void CPythonPropertySheet::OnClose()
     int ret = 1;
     if (helper.call())
         helper.retval(ret);
-    if (ret)
+    if (ret) {
+        helper.release_full();
         CPropertySheet::OnClose();
+    }
 }
 
 int CPythonPropertySheet::OnCreate(LPCREATESTRUCT lpCreateStruct)

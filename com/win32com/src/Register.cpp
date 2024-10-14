@@ -68,7 +68,7 @@ PyObject *g_obPyCom_MapServerIIDToGateway = NULL;  // map of IID's to gateways.
 // Register a Python on both the UID and Name maps.
 int PyCom_RegisterClientType(PyTypeObject *typeOb, const GUID *guid)
 {
-    if (guid == NULL)
+    if (guid == NULL || g_obPyCom_MapIIDToType == NULL)
         return 0;
 
     PyObject *obiid = PyWinObject_FromIID(*guid);
@@ -106,7 +106,7 @@ HRESULT PyCom_RegisterGatewayObject(REFIID iid, pfnPyGatewayConstructor ctor, co
     Py_DECREF(valueObject);
     // Now in the other server map.
     if (g_obPyCom_MapGatewayIIDToName) {
-        valueObject = PyString_FromString((char *)interfaceName);
+        valueObject = PyBytes_FromString((char *)interfaceName);
         if (!valueObject) {
             Py_DECREF(keyObject);
             return E_FAIL;
@@ -225,11 +225,11 @@ PyObject *pythoncom_IsGatewayRegistered(PyObject *self, PyObject *args)
     v = PyDict_GetItem(g_obPyCom_MapServerIIDToGateway, obIID);
     if (!v) {
         PyErr_Clear();
-        v = PyInt_FromLong(0);
+        v = PyLong_FromLong(0);
     }
     else {
         Py_DECREF(v);
-        v = PyInt_FromLong(1);
+        v = PyLong_FromLong(1);
     }
     return v;
 }
@@ -239,18 +239,12 @@ PyObject *pythoncom_IsGatewayRegistered(PyObject *self, PyObject *args)
 // Registration of the core PythonCOM module
 //
 static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] = {
-#ifndef NO_PYCOM_ICATINFORMATION
     PYCOM_INTERFACE_CLSID_ONLY(StdComponentCategoriesMgr),
-#endif  // NO_PYCOM_ICATINFORMATION
     PYCOM_INTERFACE_CLSID_ONLY(StdGlobalInterfaceTable),
     // Sort alphabetically just for us poor humans!
     PYCOM_INTERFACE_CLIENT_ONLY(BindCtx),
-#ifndef NO_PYCOM_ICATINFORMATION
     PYCOM_INTERFACE_CLIENT_ONLY(CatInformation),
-#endif  // NO_PYCOM_ICATINFORMATION
-#ifndef NO_PYCOM_ICATREGISTER
     PYCOM_INTERFACE_CLIENT_ONLY(CatRegister),
-#endif  // NO_PYCOM_ICATREGISTER
     PYCOM_INTERFACE_CLIENT_ONLY(ClassFactory),
     PYCOM_INTERFACE_FULL(ConnectionPoint),
     PYCOM_INTERFACE_FULL(ConnectionPointContainer),
@@ -260,15 +254,11 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] = {
     PYCOM_INTERFACE_FULL(DataObject),
     PYCOM_INTERFACE_FULL(DropSource),
     PYCOM_INTERFACE_FULL(DropTarget),
-#ifndef NO_PYCOM_IENUMCATEGORYINFO
     PYCOM_INTERFACE_CLIENT_ONLY(EnumCATEGORYINFO),
-#endif  // NO_PYCOM_IENUMCATEGORYINFO
     PYCOM_INTERFACE_FULL(EnumConnectionPoints),
     PYCOM_INTERFACE_FULL(EnumConnections),
     PYCOM_INTERFACE_FULL(EnumFORMATETC),
-#ifndef NO_PYCOM_IENUMGUID
     PYCOM_INTERFACE_FULL(EnumGUID),
-#endif  // NO_PYCOM_IENUMGUID
     PYCOM_INTERFACE_CLIENT_ONLY(EnumMoniker),
 #ifndef NO_PYCOM_ENUMSTATPROPSTG
     PYCOM_INTERFACE_FULL(EnumSTATPROPSTG),
@@ -291,25 +281,17 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] = {
     PYCOM_INTERFACE_FULL(PersistStream),
     PYCOM_INTERFACE_FULL(PersistStreamInit),
     PYCOM_INTERFACE_FULL(PropertyBag),
-#ifndef NO_PYCOM_IPROPERTYSETSTORAGE
     PYCOM_INTERFACE_FULL(PropertySetStorage),
-#endif  // NO_PYCOM_IPROPERTYSETSTORAGE
-#ifndef NO_PYCOM_IPROPERTYSTORAGE
     PYCOM_INTERFACE_FULL(PropertyStorage),
-#endif  // NO_PYCOM_IPROPERTYSTORAGE
 
-#ifndef NO_PYCOM_IPROVIDECLASSINFO
     PYCOM_INTERFACE_CLIENT_ONLY(ProvideClassInfo),
     PYCOM_INTERFACE_CLIENT_ONLY(ProvideClassInfo2),
-#endif  // NO_PYCOM_IPROVIDECLASSINFO
 
     PYCOM_INTERFACE_CLIENT_ONLY(RunningObjectTable),
     PYCOM_INTERFACE_CLIENT_ONLY(TypeComp),
     PYCOM_INTERFACE_CLIENT_ONLY(TypeInfo),
     PYCOM_INTERFACE_CLIENT_ONLY(TypeLib),
-#ifndef NO_PYCOM_ISERVICEPROVIDER
     PYCOM_INTERFACE_FULL(ServiceProvider),
-#endif  // NO_PYCOM_ISERVICEPROVIDER
     PYCOM_INTERFACE_IID_ONLY(StdMarshalInfo),
     PYCOM_INTERFACE_FULL(Storage),
     PYCOM_INTERFACE_FULL(Stream),
@@ -326,9 +308,7 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] = {
     {&IID_NULL, "Null", "IID_NULL", NULL, NULL},
     {&IID_IUnknown, "IUnknown", "IID_IUnknown", &PyIUnknown::type, GET_PYGATEWAY_CTOR(PyGatewayBase)},
     {&IID_IDispatch, "IDispatch", "IID_IDispatch", &PyIDispatch::type, GET_PYGATEWAY_CTOR(PyGatewayBase)},
-#ifndef NO_PYCOM_IDISPATCHEX
     {&IID_IDispatchEx, "IDispatchEx", "IID_IDispatchEx", &PyIDispatchEx::type, GET_PYGATEWAY_CTOR(PyGatewayBase)},
-#endif  // NO_PYCOM_IDISPATCHEX
     {&IID_StdOle, "IID_StdOle", "IID_StdOle", NULL, NULL},
 };
 
@@ -361,11 +341,11 @@ int PyCom_RegisterCoreIIDs(PyObject *dict)
 
 int PyCom_UnregisterCoreSupport(void)
 {
-    Py_DECREF(g_obPyCom_MapIIDToType);
+    Py_XDECREF(g_obPyCom_MapIIDToType);
     g_obPyCom_MapIIDToType = NULL;
-    Py_DECREF(g_obPyCom_MapGatewayIIDToName);
+    Py_XDECREF(g_obPyCom_MapGatewayIIDToName);
     g_obPyCom_MapGatewayIIDToName = NULL;
-    Py_DECREF(g_obPyCom_MapInterfaceNameToIID);
+    Py_XDECREF(g_obPyCom_MapInterfaceNameToIID);
     g_obPyCom_MapInterfaceNameToIID = NULL;
     return 0;
 }

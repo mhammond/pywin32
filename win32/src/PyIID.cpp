@@ -20,16 +20,13 @@ PyObject *PyWinMethod_NewIID(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "O|i", &obIID, &isBytes))
         return NULL;
     if (isBytes) {
-        const void *buf;
-        Py_ssize_t cb;
-        if (!PyObject_CheckReadBuffer(obIID))
-            return PyErr_Format(PyExc_TypeError, "object must be a read-buffer to read the CLSID bytes");
-        if (PyObject_AsReadBuffer(obIID, &buf, &cb))
+        PyWinBufferView pybuf(obIID);
+        if (!pybuf.ok())
             return NULL;
-        if (cb < sizeof(IID))
+        if (pybuf.len() < sizeof(IID))
             return PyErr_Format(PyExc_ValueError, "string too small - must be at least %d bytes (got %d)", sizeof(IID),
-                                cb);
-        iid = *((IID *)buf);
+                                pybuf.len());
+        iid = *((IID *)pybuf.ptr());
         return PyWinObject_FromIID(iid);
     }
     // Already an IID? Return self.
@@ -42,16 +39,12 @@ PyObject *PyWinMethod_NewIID(PyObject *self, PyObject *args)
 
     HRESULT hr = CLSIDFromString(bstrIID, &iid);
     if (FAILED(hr)) {
-#ifndef MS_WINCE
         hr = CLSIDFromProgID(bstrIID, &iid);
         if (FAILED(hr)) {
-#endif
             PyWinObject_FreeWCHAR(bstrIID);
             PyWin_SetBasicCOMError(hr);
             return NULL;
-#ifndef MS_WINCE
         }
-#endif
     }
     PyWinObject_FreeWCHAR(bstrIID);
     /* iid -> PyObject */
@@ -61,13 +54,9 @@ PyObject *PyWinMethod_NewIID(PyObject *self, PyObject *args)
 static HRESULT myCLSIDFromString(OLECHAR *str, CLSID *clsid)
 {
     HRESULT hr = CLSIDFromString(str, clsid);
-#ifdef MS_WINCE
-    return hr;
-#else
     if (SUCCEEDED(hr))
         return hr;
     return CLSIDFromProgID(str, clsid);
-#endif
 }
 
 BOOL PyWinObject_AsIID(PyObject *obCLSID, CLSID *clsid)
@@ -112,33 +101,6 @@ PyObject *PyWinCoreString_FromIID(const IID &riid)
     return PyWinCoreString_FromString(oleRes);
 }
 
-#if (PY_VERSION_HEX < 0x03000000)
-static Py_ssize_t getreadbuf(PyObject *self, Py_ssize_t index, void **ptr)
-{
-    if (index != 0) {
-        PyErr_SetString(PyExc_SystemError, "accessing non-existent IID segment");
-        return -1;
-    }
-    PyIID *pyiid = (PyIID *)self;
-    *ptr = &pyiid->m_iid;
-    return sizeof(IID);
-}
-
-static Py_ssize_t getsegcount(PyObject *self, Py_ssize_t *lenp)
-{
-    if (lenp)
-        *lenp = sizeof(IID);
-    return 1;
-}
-
-static PyBufferProcs PyIID_as_buffer = {
-    getreadbuf,
-    0,
-    getsegcount,
-    0,
-};
-
-#else  // Revised buffer interface for Py3k
 static int getbufferinfo(PyObject *self, Py_buffer *view, int flags)
 {
     PyIID *pyiid = (PyIID *)self;
@@ -149,7 +111,6 @@ static PyBufferProcs PyIID_as_buffer = {
     getbufferinfo,
     NULL  // Don't need to release any memory from Py_buffer struct
 };
-#endif
 
 // @object PyIID|A Python object, representing an IID/CLSID.
 // <nl>All pythoncom functions that return a CLSID/IID will return one of these

@@ -2,28 +2,34 @@
 
 # this code adapted from "Tomcat JK2 ISAPI redirector", part of Apache
 # Created July 2004, Mark Hammond.
-import sys, os, imp, shutil, stat
-import operator
-from win32com.client import GetObject, Dispatch
-from win32com.client.gencache import EnsureModule, EnsureDispatch
-import win32api
-import pythoncom
-import winerror
-import traceback
+from __future__ import annotations
 
-_APP_INPROC  = 0
+import importlib.machinery
+import os
+import shutil
+import stat
+import sys
+import traceback
+from collections.abc import Mapping
+
+import pythoncom
+import win32api
+import winerror
+from win32com.client import GetObject
+
+_APP_INPROC = 0
 _APP_OUTPROC = 1
-_APP_POOLED  = 2
-_IIS_OBJECT  = "IIS://LocalHost/W3SVC"
-_IIS_SERVER  = "IIsWebServer"
-_IIS_WEBDIR  = "IIsWebDirectory"
-_IIS_WEBVIRTUALDIR  = "IIsWebVirtualDir"
+_APP_POOLED = 2
+_IIS_OBJECT = "IIS://LocalHost/W3SVC"
+_IIS_SERVER = "IIsWebServer"
+_IIS_WEBDIR = "IIsWebDirectory"
+_IIS_WEBVIRTUALDIR = "IIsWebVirtualDir"
 _IIS_FILTERS = "IIsFilters"
-_IIS_FILTER  = "IIsFilter"
+_IIS_FILTER = "IIsFilter"
 
 _DEFAULT_SERVER_NAME = "Default Web Site"
-_DEFAULT_HEADERS     = "X-Powered-By: Python"
-_DEFAULT_PROTECTION  = _APP_POOLED
+_DEFAULT_HEADERS = "X-Powered-By: Python"
+_DEFAULT_PROTECTION = _APP_POOLED
 
 # Default is for 'execute' only access - ie, only the extension
 # can be used.  This can be overridden via your install script.
@@ -35,10 +41,8 @@ _DEFAULT_CONTENT_INDEXED = False
 _DEFAULT_ENABLE_DIR_BROWSING = False
 _DEFAULT_ENABLE_DEFAULT_DOC = False
 
-_extensions = [ext for ext, _, _ in imp.get_suffixes()]
-is_debug_build = '_d.pyd' in _extensions
-
 this_dir = os.path.abspath(os.path.dirname(__file__))
+
 
 class FilterParameters:
     Name = None
@@ -48,42 +52,44 @@ class FilterParameters:
     # Params that control if/how AddExtensionFile is called.
     AddExtensionFile = True
     AddExtensionFile_Enabled = True
-    AddExtensionFile_GroupID = None # defaults to Name
+    AddExtensionFile_GroupID = None  # defaults to Name
     AddExtensionFile_CanDelete = True
-    AddExtensionFile_Description = None # defaults to Description.
+    AddExtensionFile_Description = None  # defaults to Description.
 
     def __init__(self, **kw):
         self.__dict__.update(kw)
 
+
 class VirtualDirParameters:
-    Name = None # Must be provided.
-    Description = None # defaults to Name
+    Name = None  # Must be provided.
+    Description = None  # defaults to Name
     AppProtection = _DEFAULT_PROTECTION
-    Headers       = _DEFAULT_HEADERS
-    Path          = None # defaults to WWW root.
-    Type          = _IIS_WEBVIRTUALDIR
-    AccessExecute  = _DEFAULT_ACCESS_EXECUTE
-    AccessRead     = _DEFAULT_ACCESS_READ
-    AccessWrite    = _DEFAULT_ACCESS_WRITE
-    AccessScript   = _DEFAULT_ACCESS_SCRIPT
+    Headers = _DEFAULT_HEADERS
+    Path = None  # defaults to WWW root.
+    Type = _IIS_WEBVIRTUALDIR
+    AccessExecute = _DEFAULT_ACCESS_EXECUTE
+    AccessRead = _DEFAULT_ACCESS_READ
+    AccessWrite = _DEFAULT_ACCESS_WRITE
+    AccessScript = _DEFAULT_ACCESS_SCRIPT
     ContentIndexed = _DEFAULT_CONTENT_INDEXED
     EnableDirBrowsing = _DEFAULT_ENABLE_DIR_BROWSING
-    EnableDefaultDoc  = _DEFAULT_ENABLE_DEFAULT_DOC
-    DefaultDoc = None # Only set in IIS if not None
-    ScriptMaps = []
-    ScriptMapUpdate = "end" # can be 'start', 'end', 'replace'
+    EnableDefaultDoc = _DEFAULT_ENABLE_DEFAULT_DOC
+    DefaultDoc = None  # Only set in IIS if not None
+    ScriptMaps: list[ScriptMapParams] = []
+    ScriptMapUpdate = "end"  # can be 'start', 'end', 'replace'
     Server = None
 
     def __init__(self, **kw):
         self.__dict__.update(kw)
-    
+
     def is_root(self):
         "This virtual directory is a root directory if parent and name are blank"
         parent, name = self.split_path()
         return not parent and not name
-    
+
     def split_path(self):
         return split_path(self.Name)
+
 
 class ScriptMapParams:
     Extension = None
@@ -93,9 +99,10 @@ class ScriptMapParams:
     # Params that control if/how AddExtensionFile is called.
     AddExtensionFile = True
     AddExtensionFile_Enabled = True
-    AddExtensionFile_GroupID = None # defaults to Name
+    AddExtensionFile_GroupID = None  # defaults to Name
     AddExtensionFile_CanDelete = True
-    AddExtensionFile_Description = None # defaults to Description.
+    AddExtensionFile_Description = None  # defaults to Description.
+
     def __init__(self, **kw):
         self.__dict__.update(kw)
 
@@ -106,20 +113,26 @@ class ScriptMapParams:
         if self.Verbs:
             items.append(self.Verbs)
         items = [str(item) for item in items]
-        return ','.join(items)
+        return ",".join(items)
+
 
 class ISAPIParameters:
-    ServerName     = _DEFAULT_SERVER_NAME
+    ServerName = _DEFAULT_SERVER_NAME
     # Description = None
-    Filters = []
-    VirtualDirs = []
+    Filters: list[FilterParameters] = []
+    VirtualDirs: list[VirtualDirParameters] = []
+
     def __init__(self, **kw):
         self.__dict__.update(kw)
 
-verbose = 1 # The level - 0 is quiet.
+
+verbose = 1  # The level - 0 is quiet.
+
+
 def log(level, what):
     if verbose >= level:
-        print what
+        print(what)
+
 
 # Convert an ADSI COM exception to the Win32 error code embedded in it.
 def _GetWin32ErrorCode(com_exc):
@@ -131,27 +144,37 @@ def _GetWin32ErrorCode(com_exc):
         raise
     return winerror.SCODE_CODE(hr)
 
-class InstallationError(Exception): pass
-class ItemNotFound(InstallationError): pass
-class ConfigurationError(InstallationError): pass
+
+class InstallationError(Exception):
+    pass
+
+
+class ItemNotFound(InstallationError):
+    pass
+
+
+class ConfigurationError(InstallationError):
+    pass
+
 
 def FindPath(options, server, name):
     if name.lower().startswith("iis://"):
         return name
     else:
         if name and name[0] != "/":
-            name = "/"+name
-        return FindWebServer(options, server)+"/ROOT"+name
+            name = "/" + name
+        return FindWebServer(options, server) + "/ROOT" + name
+
 
 def LocateWebServerPath(description):
     """
     Find an IIS web server whose name or comment matches the provided
     description (case-insensitive).
-    
+
     >>> LocateWebServerPath('Default Web Site') # doctest: +SKIP
-    
+
     or
-    
+
     >>> LocateWebServerPath('1') #doctest: +SKIP
     """
     assert len(description) >= 1, "Server name or comment is required"
@@ -159,14 +182,17 @@ def LocateWebServerPath(description):
     description = description.lower().strip()
     for site in iis:
         # Name is generally a number, but no need to assume that.
-        site_attributes = [getattr(site, attr, "").lower().strip()
-            for attr in ("Name", "ServerComment")]
+        site_attributes = [
+            getattr(site, attr, "").lower().strip()
+            for attr in ("Name", "ServerComment")
+        ]
         if description in site_attributes:
             return site.AdsPath
     msg = "No web sites match the description '%s'" % description
     raise ItemNotFound(msg)
-    
-def GetWebServer(description = None):
+
+
+def GetWebServer(description=None):
     """
     Load the web server instance (COM object) for a given instance
     or description.
@@ -178,16 +204,18 @@ def GetWebServer(description = None):
     server = LoadWebServer(path)
     return server
 
+
 def LoadWebServer(path):
     try:
         server = GetObject(path)
-    except pythoncom.com_error, details:
-        msg = details.strerror
+    except pythoncom.com_error as exc:
+        msg = exc.strerror
         if exc.excepinfo and exc.excepinfo[2]:
             msg = exc.excepinfo[2]
-        msg = "WebServer %s: %s" % (path, msg)
+        msg = f"WebServer {path}: {msg}"
         raise ItemNotFound(msg)
     return server
+
 
 def FindWebServer(options, server_desc):
     """
@@ -198,38 +226,41 @@ def FindWebServer(options, server_desc):
     server_desc = options.server or server_desc
     # make sure server_desc is unicode (could be mbcs if passed in
     #  sys.argv).
-    if server_desc and not isinstance(server_desc, unicode):
-        server_desc = server_desc.decode('mbcs')
-    
+    if server_desc and not isinstance(server_desc, str):
+        server_desc = server_desc.decode("mbcs")
+
     # get the server (if server_desc is None, the default site is acquired)
     server = GetWebServer(server_desc)
     return server.adsPath
 
+
 def split_path(path):
     """
     Get the parent path and basename.
-    
+
     >>> split_path('/')
     ['', '']
-    
+
     >>> split_path('')
     ['', '']
-    
+
     >>> split_path('foo')
     ['', 'foo']
-    
+
     >>> split_path('/foo')
     ['', 'foo']
-    
+
     >>> split_path('/foo/bar')
     ['/foo', 'bar']
-    
+
     >>> split_path('foo/bar')
     ['/foo', 'bar']
     """
-    
-    if not path.startswith('/'): path = '/' + path
-    return path.rsplit('/', 1)
+
+    if not path.startswith("/"):
+        path = "/" + path
+    return path.rsplit("/", 1)
+
 
 def _CreateDirectory(iis_dir, name, params):
     # We used to go to lengths to keep an existing virtual directory
@@ -241,14 +272,14 @@ def _CreateDirectory(iis_dir, name, params):
         # Also seen the Class change to a generic IISObject - so nuke
         # *any* existing object, regardless of Class
         assert name.strip("/"), "mustn't delete the root!"
-        iis_dir.Delete('', name)
-        log(2, "Deleted old directory '%s'" % (name,))
+        iis_dir.Delete("", name)
+        log(2, f"Deleted old directory '{name}'")
     except pythoncom.com_error:
         pass
 
     newDir = iis_dir.Create(params.Type, name)
-    log(2, "Creating new directory '%s' in %s..." % (name,iis_dir.Name))
-    
+    log(2, f"Creating new directory '{name}' in {iis_dir.Name}...")
+
     friendly = params.Description or params.Name
     newDir.AppFriendlyName = friendly
 
@@ -268,13 +299,13 @@ def _CreateDirectory(iis_dir, name, params):
         newDir.HttpCustomHeaders = params.Headers
 
     log(2, "Setting directory options...")
-    newDir.AccessExecute  = params.AccessExecute
-    newDir.AccessRead     = params.AccessRead
-    newDir.AccessWrite    = params.AccessWrite
-    newDir.AccessScript   = params.AccessScript
+    newDir.AccessExecute = params.AccessExecute
+    newDir.AccessRead = params.AccessRead
+    newDir.AccessWrite = params.AccessWrite
+    newDir.AccessScript = params.AccessScript
     newDir.ContentIndexed = params.ContentIndexed
     newDir.EnableDirBrowsing = params.EnableDirBrowsing
-    newDir.EnableDefaultDoc  = params.EnableDefaultDoc
+    newDir.EnableDefaultDoc = params.EnableDefaultDoc
     if params.DefaultDoc is not None:
         newDir.DefaultDoc = params.DefaultDoc
     newDir.SetInfo()
@@ -292,12 +323,13 @@ def CreateDirectory(params, options):
         target_dir = _CreateDirectory(target_dir, name, params)
 
     AssignScriptMaps(params.ScriptMaps, target_dir, params.ScriptMapUpdate)
-    
+
     _CallHook(params, "PostInstall", options, target_dir)
-    log(1, "Configured Virtual Directory: %s" % (params.Name,))
+    log(1, f"Configured Virtual Directory: {params.Name}")
     return target_dir
 
-def AssignScriptMaps(script_maps, target, update='replace'):
+
+def AssignScriptMaps(script_maps, target, update="replace"):
     """Updates IIS with the supplied script map information.
 
     script_maps is a list of ScriptMapParameter objects
@@ -308,7 +340,7 @@ def AssignScriptMaps(script_maps, target, update='replace'):
     'end', or 'replace')
     """
     # determine which function to use to assign script maps
-    script_map_func = '_AssignScriptMaps' + update.capitalize()
+    script_map_func = "_AssignScriptMaps" + update.capitalize()
     try:
         script_map_func = eval(script_map_func)
     except NameError:
@@ -320,31 +352,38 @@ def AssignScriptMaps(script_maps, target, update='replace'):
     script_map_func(target, script_maps)
     target.SetInfo()
 
+
 def get_unique_items(sequence, reference):
     "Return items in sequence that can't be found in reference."
     return tuple([item for item in sequence if item not in reference])
 
+
 def _AssignScriptMapsReplace(target, script_maps):
     target.ScriptMaps = script_maps
-    
+
+
 def _AssignScriptMapsEnd(target, script_maps):
     unique_new_maps = get_unique_items(script_maps, target.ScriptMaps)
-    target.ScriptMaps = target.ScriptMaps + unique_new_maps
+    target.ScriptMaps += unique_new_maps
+
 
 def _AssignScriptMapsStart(target, script_maps):
     unique_new_maps = get_unique_items(script_maps, target.ScriptMaps)
     target.ScriptMaps = unique_new_maps + target.ScriptMaps
 
+
 def CreateISAPIFilter(filterParams, options):
     server = FindWebServer(options, filterParams.Server)
     _CallHook(filterParams, "PreInstall", options)
     try:
-        filters = GetObject(server+"/Filters")
-    except pythoncom.com_error, exc:
+        filters = GetObject(server + "/Filters")
+    except pythoncom.com_error as exc:
         # Brand new sites don't have the '/Filters' collection - create it.
         # Any errors other than 'not found' we shouldn't ignore.
-        if winerror.HRESULT_FACILITY(exc.hresult) != winerror.FACILITY_WIN32 or \
-           winerror.HRESULT_CODE(exc.hresult) != winerror.ERROR_PATH_NOT_FOUND:
+        if (
+            winerror.HRESULT_FACILITY(exc.hresult) != winerror.FACILITY_WIN32
+            or winerror.HRESULT_CODE(exc.hresult) != winerror.ERROR_PATH_NOT_FOUND
+        ):
             raise
         server_ob = GetObject(server)
         filters = server_ob.Create(_IIS_FILTERS, "Filters")
@@ -355,13 +394,13 @@ def CreateISAPIFilter(filterParams, options):
     assert filterParams.Name.strip("/"), "mustn't delete the root!"
     try:
         filters.Delete(_IIS_FILTER, filterParams.Name)
-        log(2, "Deleted old filter '%s'" % (filterParams.Name,))
+        log(2, f"Deleted old filter '{filterParams.Name}'")
     except pythoncom.com_error:
         pass
     newFilter = filters.Create(_IIS_FILTER, filterParams.Name)
     log(2, "Created new ISAPI filter...")
     assert os.path.isfile(filterParams.Path)
-    newFilter.FilterPath  = filterParams.Path
+    newFilter.FilterPath = filterParams.Path
     newFilter.FilterDescription = filterParams.Description
     newFilter.SetInfo()
     load_order = [b.strip() for b in filters.FilterLoadOrder.split(",") if b]
@@ -370,29 +409,30 @@ def CreateISAPIFilter(filterParams, options):
         filters.FilterLoadOrder = ",".join(load_order)
         filters.SetInfo()
     _CallHook(filterParams, "PostInstall", options, newFilter)
-    log (1, "Configured Filter: %s" % (filterParams.Name,))
+    log(1, f"Configured Filter: {filterParams.Name}")
     return newFilter
+
 
 def DeleteISAPIFilter(filterParams, options):
     _CallHook(filterParams, "PreRemove", options)
     server = FindWebServer(options, filterParams.Server)
-    ob_path = server+"/Filters"
+    ob_path = server + "/Filters"
     try:
         filters = GetObject(ob_path)
-    except pythoncom.com_error, details:
+    except pythoncom.com_error as details:
         # failure to open the filters just means a totally clean IIS install
         # (IIS5 at least has no 'Filters' key when freshly installed).
-        log(2, "ISAPI filter path '%s' did not exist." % (ob_path,))
+        log(2, f"ISAPI filter path '{ob_path}' did not exist.")
         return
     try:
         assert filterParams.Name.strip("/"), "mustn't delete the root!"
         filters.Delete(_IIS_FILTER, filterParams.Name)
-        log(2, "Deleted ISAPI filter '%s'" % (filterParams.Name,))
-    except pythoncom.com_error, details:
+        log(2, f"Deleted ISAPI filter '{filterParams.Name}'")
+    except pythoncom.com_error as details:
         rc = _GetWin32ErrorCode(details)
         if rc != winerror.ERROR_PATH_NOT_FOUND:
             raise
-        log(2, "ISAPI filter '%s' did not exist." % (filterParams.Name,))
+        log(2, f"ISAPI filter '{filterParams.Name}' did not exist.")
     # Remove from the load order
     load_order = [b.strip() for b in filters.FilterLoadOrder.split(",") if b]
     if filterParams.Name in load_order:
@@ -400,23 +440,27 @@ def DeleteISAPIFilter(filterParams, options):
         filters.FilterLoadOrder = ",".join(load_order)
         filters.SetInfo()
     _CallHook(filterParams, "PostRemove", options)
-    log (1, "Deleted Filter: %s" % (filterParams.Name,))
+    log(1, f"Deleted Filter: {filterParams.Name}")
+
 
 def _AddExtensionFile(module, def_groupid, def_desc, params, options):
     group_id = params.AddExtensionFile_GroupID or def_groupid
     desc = params.AddExtensionFile_Description or def_desc
     try:
         ob = GetObject(_IIS_OBJECT)
-        ob.AddExtensionFile(module,
-                            params.AddExtensionFile_Enabled,
-                            group_id,
-                            params.AddExtensionFile_CanDelete,
-                            desc)
-        log(2, "Added extension file '%s' (%s)" % (module, desc))
-    except (pythoncom.com_error, AttributeError), details:
+        ob.AddExtensionFile(
+            module,
+            params.AddExtensionFile_Enabled,
+            group_id,
+            params.AddExtensionFile_CanDelete,
+            desc,
+        )
+        log(2, f"Added extension file '{module}' ({desc})")
+    except (pythoncom.com_error, AttributeError) as details:
         # IIS5 always fails.  Probably should upgrade this to
         # complain more loudly if IIS6 fails.
-        log(2, "Failed to add extension file '%s': %s" % (module, details))
+        log(2, f"Failed to add extension file '{module}': {details}")
+
 
 def AddExtensionFiles(params, options):
     """Register the modules used by the filters/extensions as a trusted
@@ -426,8 +470,7 @@ def AddExtensionFiles(params, options):
     for vd in params.VirtualDirs:
         for smp in vd.ScriptMaps:
             if smp.Module not in added and smp.AddExtensionFile:
-                _AddExtensionFile(smp.Module, vd.Name, vd.Description, smp,
-                                  options)
+                _AddExtensionFile(smp.Module, vd.Name, vd.Description, smp, options)
                 added[smp.Module] = True
 
     for fd in params.Filters:
@@ -435,16 +478,18 @@ def AddExtensionFiles(params, options):
             _AddExtensionFile(fd.Path, fd.Name, fd.Description, fd, options)
             added[fd.Path] = True
 
+
 def _DeleteExtensionFileRecord(module, options):
     try:
         ob = GetObject(_IIS_OBJECT)
         ob.DeleteExtensionFileRecord(module)
         log(2, "Deleted extension file record for '%s'" % module)
-    except (pythoncom.com_error, AttributeError), details:
-        log(2, "Failed to remove extension file '%s': %s" % (module, details))
+    except (pythoncom.com_error, AttributeError) as details:
+        log(2, f"Failed to remove extension file '{module}': {details}")
+
 
 def DeleteExtensionFileRecords(params, options):
-    deleted = {} # only remove each .dll once.
+    deleted = {}  # only remove each .dll once.
     for vd in params.VirtualDirs:
         for smp in vd.ScriptMaps:
             if smp.Module not in deleted and smp.AddExtensionFile:
@@ -456,43 +501,45 @@ def DeleteExtensionFileRecords(params, options):
             _DeleteExtensionFileRecord(filter_def.Path, options)
             deleted[filter_def.Path] = True
 
+
 def CheckLoaderModule(dll_name):
-    suffix = ""
-    if is_debug_build: suffix = "_d"
-    template = os.path.join(this_dir,
-                            "PyISAPI_loader" + suffix + ".dll")
+    suffix = "_d" if "_d.pyd" in importlib.machinery.EXTENSION_SUFFIXES else ""
+    template = os.path.join(this_dir, "PyISAPI_loader" + suffix + ".dll")
     if not os.path.isfile(template):
-        raise ConfigurationError(
-              "Template loader '%s' does not exist" % (template,))
+        raise ConfigurationError(f"Template loader '{template}' does not exist")
     # We can't do a simple "is newer" check, as the DLL is specific to the
     # Python version.  So we check the date-time and size are identical,
     # and skip the copy in that case.
     src_stat = os.stat(template)
     try:
         dest_stat = os.stat(dll_name)
-    except os.error:
+    except OSError:
         same = 0
     else:
-        same = src_stat[stat.ST_SIZE]==dest_stat[stat.ST_SIZE] and \
-               src_stat[stat.ST_MTIME]==dest_stat[stat.ST_MTIME]
+        same = (
+            src_stat[stat.ST_SIZE] == dest_stat[stat.ST_SIZE]
+            and src_stat[stat.ST_MTIME] == dest_stat[stat.ST_MTIME]
+        )
     if not same:
-        log(2, "Updating %s->%s" % (template, dll_name))
+        log(2, f"Updating {template}->{dll_name}")
         shutil.copyfile(template, dll_name)
         shutil.copystat(template, dll_name)
     else:
-        log(2, "%s is up to date." % (dll_name,))
+        log(2, f"{dll_name} is up to date.")
+
 
 def _CallHook(ob, hook_name, options, *extra_args):
     func = getattr(ob, hook_name, None)
     if func is not None:
-        args = (ob,options) + extra_args
+        args = (ob, options) + extra_args
         func(*args)
+
 
 def Install(params, options):
     _CallHook(params, "PreInstall", options)
     for vd in params.VirtualDirs:
         CreateDirectory(vd, options)
-        
+
     for filter_def in params.Filters:
         CreateISAPIFilter(filter_def, options)
 
@@ -500,12 +547,13 @@ def Install(params, options):
 
     _CallHook(params, "PostInstall", options)
 
+
 def RemoveDirectory(params, options):
     if params.is_root():
         return
     try:
         directory = GetObject(FindPath(options, params.Server, params.Name))
-    except pythoncom.com_error, details:
+    except pythoncom.com_error as details:
         rc = _GetWin32ErrorCode(details)
         if rc != winerror.ERROR_PATH_NOT_FOUND:
             raise
@@ -517,15 +565,16 @@ def RemoveDirectory(params, options):
             directory.AppUnLoad()
         except:
             exc_val = sys.exc_info()[1]
-            log(2, "AppUnLoad() for %s failed: %s" % (params.Name, exc_val))
+            log(2, f"AppUnLoad() for {params.Name} failed: {exc_val}")
         # Continue trying to delete it.
         try:
             parent = GetObject(directory.Parent)
             parent.Delete(directory.Class, directory.Name)
-            log (1, "Deleted Virtual Directory: %s" % (params.Name,))
+            log(1, f"Deleted Virtual Directory: {params.Name}")
         except:
             exc_val = sys.exc_info()[1]
-            log(1, "Failed to remove directory %s: %s" % (params.Name, exc_val))
+            log(1, f"Failed to remove directory {params.Name}: {exc_val}")
+
 
 def RemoveScriptMaps(vd_params, options):
     "Remove script maps from the already installed virtual directory"
@@ -538,14 +587,15 @@ def RemoveScriptMaps(vd_params, options):
     target_dir.ScriptMaps = installed_maps
     target_dir.SetInfo()
 
+
 def Uninstall(params, options):
     _CallHook(params, "PreRemove", options)
-    
+
     DeleteExtensionFileRecords(params, options)
-    
+
     for vd in params.VirtualDirs:
         _CallHook(vd, "PreRemove", options)
-        
+
         RemoveDirectory(vd, options)
         if vd.is_root():
             # if this is installed to the root virtual directory, we can't delete it
@@ -558,21 +608,25 @@ def Uninstall(params, options):
         DeleteISAPIFilter(filter_def, options)
     _CallHook(params, "PostRemove", options)
 
+
 # Patch up any missing module names in the params, replacing them with
 # the DLL name that hosts this extension/filter.
-def _PatchParamsModule(params, dll_name, file_must_exist = True):
+def _PatchParamsModule(params, dll_name, file_must_exist=True):
     if file_must_exist:
         if not os.path.isfile(dll_name):
-            raise ConfigurationError("%s does not exist" % (dll_name,))
+            raise ConfigurationError(f"{dll_name} does not exist")
 
     # Patch up all references to the DLL.
     for f in params.Filters:
-        if f.Path is None: f.Path = dll_name
+        if f.Path is None:
+            f.Path = dll_name
     for d in params.VirtualDirs:
         for sm in d.ScriptMaps:
-            if sm.Module is None: sm.Module = dll_name
+            if sm.Module is None:
+                sm.Module = dll_name
 
-def GetLoaderModuleName(mod_name, check_module = None):
+
+def GetLoaderModuleName(mod_name, check_module=None):
     # find the name of the DLL hosting us.
     # By default, this is "_{module_base_name}.dll"
     if hasattr(sys, "frozen"):
@@ -581,7 +635,7 @@ def GetLoaderModuleName(mod_name, check_module = None):
         base, ext = os.path.splitext(mod_name)
         path, base = os.path.split(base)
         # handle the common case of 'foo.exe'/'foow.exe'
-        if base.endswith('w'):
+        if base.endswith("w"):
             base = base[:-1]
         # For py2exe, we have '_foo.dll' as the standard pyisapi loader - but
         # 'foo.dll' is what we use (it just delegates).
@@ -592,10 +646,12 @@ def GetLoaderModuleName(mod_name, check_module = None):
         path, base = os.path.split(base)
         dll_name = os.path.abspath(os.path.join(path, "_" + base + ".dll"))
     # Check we actually have it.
-    if check_module is None: check_module = not hasattr(sys, "frozen")
+    if check_module is None:
+        check_module = not hasattr(sys, "frozen")
     if check_module:
         CheckLoaderModule(dll_name)
     return dll_name
+
 
 # Note the 'log' params to these 'builtin' args - old versions of pywin32
 # didn't log at all in this function (by intent; anyone calling this was
@@ -603,39 +659,41 @@ def GetLoaderModuleName(mod_name, check_module = None):
 # signature (ie, without a 'log' param) still gets the same behaviour as
 # before...
 
-def InstallModule(conf_module_name, params, options, log=lambda *args:None):
+
+def InstallModule(conf_module_name, params, options, log=lambda *args: None):
     "Install the extension"
     if not hasattr(sys, "frozen"):
         conf_module_name = os.path.abspath(conf_module_name)
         if not os.path.isfile(conf_module_name):
-            raise ConfigurationError("%s does not exist" % (conf_module_name,))
+            raise ConfigurationError(f"{conf_module_name} does not exist")
 
     loader_dll = GetLoaderModuleName(conf_module_name)
     _PatchParamsModule(params, loader_dll)
     Install(params, options)
     log(1, "Installation complete.")
 
-def UninstallModule(conf_module_name, params, options, log=lambda *args:None):
+
+def UninstallModule(conf_module_name, params, options, log=lambda *args: None):
     "Remove the extension"
     loader_dll = GetLoaderModuleName(conf_module_name, False)
     _PatchParamsModule(params, loader_dll, False)
     Uninstall(params, options)
     log(1, "Uninstallation complete.")
 
+
 standard_arguments = {
-    "install" : InstallModule,
-    "remove"  : UninstallModule,
+    "install": InstallModule,
+    "remove": UninstallModule,
 }
 
-def build_usage(handler_map):
-    docstrings = [handler.__doc__ for handler in handler_map.itervalues()]
-    all_args = dict(zip(handler_map.iterkeys(), docstrings))
-    arg_names = "|".join(all_args.iterkeys())
-    usage_string = "%prog [options] [" + arg_names + "]\n"
-    usage_string += "commands:\n"
-    for arg, desc in all_args.iteritems():
-        usage_string += " %-10s: %s" % (arg, desc) + "\n"
-    return usage_string[:-1]
+
+def build_usage(handler_map: Mapping[str, object]) -> str:
+    arg_names = "|".join(handler_map)
+    lines = [
+        " %-10s: %s" % (arg, handler.__doc__) for arg, handler in handler_map.items()
+    ]
+    return f"%prog [options] [{arg_names}]\ncommands:\n" + "\n".join(lines)
+
 
 def MergeStandardOptions(options, params):
     """
@@ -656,15 +714,20 @@ def MergeStandardOptions(options, params):
 #   with your own custom arg handlers.  It is a map of 'arg'->function.
 #   The function is called with (options, log_fn, arg).  The function's
 #   docstring is used in the usage output.
-def HandleCommandLine(params, argv=None, conf_module_name = None,
-                      default_arg = "install",
-                      opt_parser = None, custom_arg_handlers = {}):
+def HandleCommandLine(
+    params,
+    argv=None,
+    conf_module_name=None,
+    default_arg="install",
+    opt_parser=None,
+    custom_arg_handlers={},
+):
     """Perform installation or removal of an ISAPI filter or extension.
-    
+
     This module handles standard command-line options and configuration
     information, and installs, removes or updates the configuration of an
     ISAPI filter or extension.
-    
+
     You must pass your configuration information in params - all other
     arguments are optional, and allow you to configure the installation
     process.
@@ -681,13 +744,15 @@ def HandleCommandLine(params, argv=None, conf_module_name = None,
         # started)
         try:
             conf_module_name = win32api.GetLongPathName(conf_module_name)
-        except win32api.error, exc:
-            log(2, "Couldn't determine the long name for %r: %s" %
-                (conf_module_name, exc))
+        except win32api.error as exc:
+            log(
+                2,
+                f"Couldn't determine the long name for {conf_module_name!r}: {exc}",
+            )
 
     if opt_parser is None:
         # Build our own parser.
-        parser = OptionParser(usage='')
+        parser = OptionParser(usage="")
     else:
         # The caller is providing their own filter, presumably with their
         # own options all setup.
@@ -698,20 +763,34 @@ def HandleCommandLine(params, argv=None, conf_module_name = None,
         all_handlers = standard_arguments.copy()
         all_handlers.update(custom_arg_handlers)
         parser.set_usage(build_usage(all_handlers))
-    
+
     # allow the user to use uninstall as a synonym for remove if it wasn't
     #  defined by the custom arg handlers.
-    all_handlers.setdefault('uninstall', all_handlers['remove'])
+    all_handlers.setdefault("uninstall", all_handlers["remove"])
 
-    parser.add_option("-q", "--quiet",
-                      action="store_false", dest="verbose", default=True,
-                      help="don't print status messages to stdout")
-    parser.add_option("-v", "--verbosity", action="count",
-                      dest="verbose", default=1,
-                      help="increase the verbosity of status messages")
-    parser.add_option("", "--server", action="store",
-                      help="Specifies the IIS server to install/uninstall on." \
-                           " Default is '%s/1'" % (_IIS_OBJECT,))
+    parser.add_option(
+        "-q",
+        "--quiet",
+        action="store_false",
+        dest="verbose",
+        default=True,
+        help="don't print status messages to stdout",
+    )
+    parser.add_option(
+        "-v",
+        "--verbosity",
+        action="count",
+        dest="verbose",
+        default=1,
+        help="increase the verbosity of status messages",
+    )
+    parser.add_option(
+        "",
+        "--server",
+        action="store",
+        help="Specifies the IIS server to install/uninstall on."
+        f" Default is '{_IIS_OBJECT}/1'",
+    )
 
     (options, args) = parser.parse_args(argv[1:])
     MergeStandardOptions(options, params)
@@ -722,9 +801,9 @@ def HandleCommandLine(params, argv=None, conf_module_name = None,
         for arg in args:
             handler = all_handlers[arg]
             handler(conf_module_name, params, options, log)
-    except (ItemNotFound, InstallationError), details:
+    except (ItemNotFound, InstallationError) as details:
         if options.verbose > 1:
             traceback.print_exc()
-        print "%s: %s" % (details.__class__.__name__, details)
+        print(f"{details.__class__.__name__}: {details}")
     except KeyError:
         parser.error("Invalid arg '%s'" % arg)

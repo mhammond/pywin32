@@ -67,7 +67,7 @@ CPrintInfo *ui_prinfo_object::GetPrintInfo(PyObject *self)
 
 void ui_prinfo_object::SetAssocInvalid()
 {
-    return;  // do nothing.  Dont call base as dont want my handle wiped.
+    return;  // do nothing.  Don't call base as don't want my handle wiped.
 }
 
 ui_prinfo_object::~ui_prinfo_object()
@@ -76,11 +76,11 @@ ui_prinfo_object::~ui_prinfo_object()
         CPrintInfo *pPrInfo = GetPrintInfo(this);
         if (pPrInfo) {
             if (pPrInfo->m_lpUserData) {
-                XDODECREF((PyObject *)pPrInfo->m_lpUserData);
+                Py_XDECREF((PyObject *)pPrInfo->m_lpUserData);
                 pPrInfo->m_lpUserData = NULL;
             }
             if (pPrInfo->m_pPD->m_pd.lCustData) {
-                XDODECREF((PyObject *)pPrInfo->m_pPD->m_pd.lCustData);
+                Py_XDECREF((PyObject *)pPrInfo->m_pPD->m_pd.lCustData);
                 pPrInfo->m_pPD->m_pd.lCustData = NULL;
             }
         };
@@ -337,9 +337,9 @@ static PyObject *ui_set_user_data(PyObject *self, PyObject *args)
     if (!pInfo)
         return NULL;
     if (pInfo->m_lpUserData)
-        XDODECREF((PyObject *)pInfo->m_lpUserData);
+        Py_XDECREF((PyObject *)pInfo->m_lpUserData);
     pInfo->m_lpUserData = var;
-    DOINCREF(var);
+    Py_INCREF(var);
     RETURN_NONE;
 }
 

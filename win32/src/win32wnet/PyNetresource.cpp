@@ -17,18 +17,6 @@
  ******************************************************************/
 // @doc
 
-#if defined(_WIN32_WCE_)  // defined by the Windows CE compiler environment
-
-#ifndef UNICODE
-#define UNICODE
-#endif
-
-#ifndef _UNICODE
-#define _UNICODE
-#endif
-
-#endif
-
 #include "PyWinTypes.h"
 #include "netres.h"  // C++ header file for NETRESOURCE object
 
@@ -77,40 +65,36 @@ __declspec(dllexport) PyTypeObject PyNETRESOURCEType = {
     0,                          /* tp_print */
     0,                          /* tp_getattr */
     0,                          /* tp_setattr */
-#if (PY_VERSION_HEX >= 0x03000000)
-    0, /* tp_as_async */
-#else
-    PyNETRESOURCE::compareFunc, /* tp_compare */
-#endif
-    0,                       /* tp_repr */
-    0,                       /* tp_as_number */
-    0,                       /* tp_as_sequence */
-    0,                       /* tp_as_mapping */
-    0,                       /* hash? */
-    0,                       /* tp_call */
-    0,                       /* tp_str */
-    PyNETRESOURCE::getattro, /* tp_getattro */
-    PyNETRESOURCE::setattro, /* tp_setattro */
-    0,                       /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT,      /* tp_flags */
-    0,                       /* tp_doc */
-    0,                       /* tp_traverse */
-    0,                       /* tp_clear */
-    0,                       /* tp_richcompare */
-    0,                       /* tp_weaklistoffset */
-    0,                       /* tp_iter */
-    0,                       /* tp_iternext */
-    0,                       /* tp_methods */
-    PyNETRESOURCE::members,  /* tp_members */
-    0,                       /* tp_getset */
-    0,                       /* tp_base */
-    0,                       /* tp_dict */
-    0,                       /* tp_descr_get */
-    0,                       /* tp_descr_set */
-    0,                       /* tp_dictoffset */
-    0,                       /* tp_init */
-    0,                       /* tp_alloc */
-    NETRESOURCE_new,         /* tp_new */
+    0,                          /* tp_as_async */
+    0,                          /* tp_repr */
+    0,                          /* tp_as_number */
+    0,                          /* tp_as_sequence */
+    0,                          /* tp_as_mapping */
+    0,                          /* hash? */
+    0,                          /* tp_call */
+    0,                          /* tp_str */
+    PyNETRESOURCE::getattro,    /* tp_getattro */
+    PyNETRESOURCE::setattro,    /* tp_setattro */
+    0,                          /* tp_as_buffer */
+    Py_TPFLAGS_DEFAULT,         /* tp_flags */
+    0,                          /* tp_doc */
+    0,                          /* tp_traverse */
+    0,                          /* tp_clear */
+    0,                          /* tp_richcompare */
+    0,                          /* tp_weaklistoffset */
+    0,                          /* tp_iter */
+    0,                          /* tp_iternext */
+    0,                          /* tp_methods */
+    PyNETRESOURCE::members,     /* tp_members */
+    0,                          /* tp_getset */
+    0,                          /* tp_base */
+    0,                          /* tp_dict */
+    0,                          /* tp_descr_get */
+    0,                          /* tp_descr_set */
+    0,                          /* tp_dictoffset */
+    0,                          /* tp_init */
+    0,                          /* tp_alloc */
+    NETRESOURCE_new,            /* tp_new */
 };
 
 #define OFF(e) offsetof(PyNETRESOURCE, e)

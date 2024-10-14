@@ -1,11 +1,6 @@
 // Security objects
 // Much of the security support written by Roger Upole <rwupole@msn.com>
 
-#ifdef MS_WINCE
-#define NO_PYWINTYPES_SECURITY /* This source is not included for WinCE */
-#endif
-
-#ifndef NO_PYWINTYPES_SECURITY
 typedef BOOL(WINAPI *addacefunc)(PACL, DWORD, DWORD, PSID);
 typedef BOOL(WINAPI *addaceexfunc)(PACL, DWORD, DWORD, DWORD, PSID);
 typedef BOOL(WINAPI *addobjectacefunc)(PACL, DWORD, DWORD, DWORD, GUID *, GUID *, PSID);
@@ -61,12 +56,7 @@ class PYWINTYPES_EXPORT PySECURITY_DESCRIPTOR : public PyObject {
     int compare(PyObject *ob);
     static void deallocFunc(PyObject *ob);
 
-#if (PY_VERSION_HEX < 0x03000000)
-    static Py_ssize_t getreadbuf(PyObject *self, Py_ssize_t index, void **ptr);
-    static Py_ssize_t getsegcount(PyObject *self, Py_ssize_t *lenp);
-#else
     static int getbufferinfo(PyObject *self, Py_buffer *view, int flags);
-#endif
 
     static PyObject *Initialize(PyObject *self, PyObject *args);
     static PyObject *GetSecurityDescriptorOwner(PyObject *self, PyObject *args);
@@ -92,7 +82,7 @@ class PYWINTYPES_EXPORT PySID : public PyObject {
    public:
     PSID GetSID() { return m_psid; }
 
-    PySID(int bufSize, void *initBuf = NULL);
+    PySID(Py_ssize_t bufSize, void *initBuf = NULL);
     PySID(PSID other);
     ~PySID();
 
@@ -104,12 +94,7 @@ class PYWINTYPES_EXPORT PySID : public PyObject {
     static PyObject *strFunc(PyObject *ob);
 
     // Buffer interface changed in 3.0
-#if (PY_VERSION_HEX < 0x03000000)
-    static Py_ssize_t getreadbuf(PyObject *self, Py_ssize_t index, void **ptr);
-    static Py_ssize_t getsegcount(PyObject *self, Py_ssize_t *lenp);
-#else
     static int getbufferinfo(PyObject *self, Py_buffer *view, int flags);
-#endif
 
     static PyObject *Initialize(PyObject *self, PyObject *args);
     static PyObject *IsValid(PyObject *self, PyObject *args);
@@ -118,7 +103,7 @@ class PYWINTYPES_EXPORT PySID : public PyObject {
     static PyObject *GetSubAuthorityCount(PyObject *self, PyObject *args);
     static PyObject *GetSubAuthority(PyObject *self, PyObject *args);
     static PyObject *GetSidIdentifierAuthority(PyObject *self, PyObject *args);
-    static struct PyMethodDef PySID::methods[];
+    static struct PyMethodDef methods[];
 
    protected:
     PSID m_psid;
@@ -155,7 +140,7 @@ class PYWINTYPES_EXPORT PyACL : public PyObject {
     /* Python support */
     int compare(PyObject *ob);
     static void deallocFunc(PyObject *ob);
-    static struct PyMethodDef PyACL::methods[];
+    static struct PyMethodDef methods[];
 
     static PyObject *Initialize(PyObject *self, PyObject *args);
     static PyObject *IsValid(PyObject *self, PyObject *args);
@@ -182,5 +167,3 @@ class PYWINTYPES_EXPORT PyACL : public PyObject {
    protected:
     void *buf;
 };
-
-#endif  // NO_PYWINTYPES_SECURITY

@@ -67,7 +67,7 @@ PySequenceMethods PySecBufferDesc_sequencemethods = {
     NULL,                         // objobjproc sq_contains;
     NULL,                         // binaryfunc sq_inplace_concat;
     NULL                          // intargfunc sq_inplace_repeat;
-};                                // ??? why isnt append included ???
+};  // ??? why isn't append included ???
 
 // @object PySecBufferDesc|Sequence-like object that contains a group of buffers to be used with SSPI functions.
 // @comm This object is created using win32security.PySecBufferDescType(Version), where Version is an int that
@@ -89,7 +89,7 @@ PyTypeObject PySecBufferDescType = {
     0,                                         // tp_getattr
     0,                                         // tp_setattr
     0,                                         // tp_compare
-    0,                                         // tp_repr
+    PySecBufferDesc::tp_repr,                  // tp_repr
     0,                                         // PyNumberMethods *tp_as_number
     &PySecBufferDesc_sequencemethods,          // PySequenceMethods *tp_as_sequence
     0,                                         // PyMappingMethods *tp_as_mapping
@@ -190,6 +190,13 @@ PyObject *PySecBufferDesc::tp_new(PyTypeObject *typ, PyObject *args, PyObject *k
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|l:PySecBufferDescType", keywords, &ulVersion))
         return NULL;
     return new PySecBufferDesc(ulVersion);
+}
+
+PyObject *PySecBufferDesc::tp_repr(PyObject *obj)
+{
+    PSecBufferDesc psecbufferdesc = ((PySecBufferDesc *)obj)->GetSecBufferDesc();
+    return PyUnicode_FromFormat("PySecBufferDesc(ulVersion: %i | cBuffers: %i | pBuffers: %p)",
+                                psecbufferdesc->ulVersion, psecbufferdesc->cBuffers, psecbufferdesc->pBuffers);
 }
 
 BOOL PyWinObject_AsSecBufferDesc(PyObject *ob, PSecBufferDesc *ppSecBufferDesc, BOOL bNoneOk)
@@ -304,7 +311,7 @@ PyTypeObject PySecBufferType = {
     0,                                         // tp_getattr
     0,                                         // tp_setattr
     0,                                         // tp_compare
-    0,                                         // tp_repr
+    PySecBuffer::tp_repr,                      // tp_repr
     0,                                         // PyNumberMethods *tp_as_number
     0,                                         // PySequenceMethods *tp_as_sequence
     0,                                         // PyMappingMethods *tp_as_mapping
@@ -356,19 +363,32 @@ PySecBuffer::PySecBuffer(ULONG cbBuffer, ULONG BufferType)
     ob_type = &PySecBufferType;
     secbuffer.cbBuffer = cbBuffer;
     secbuffer.BufferType = BufferType;
-    secbuffer.pvBuffer = malloc(cbBuffer);
-    // Any code that creates instances should check that buffer is not NULL !
-    if (secbuffer.pvBuffer == NULL)
-        PyErr_Format(PyExc_MemoryError, "PySecBuffer::PySecBuffer - cannot allocate buffer of %d bytes", cbBuffer);
-    else
-        ZeroMemory(secbuffer.pvBuffer, cbBuffer);
+
+    allocBuffer = NULL;
+    if (cbBuffer > 0) {
+        // Stores our allocated memory in a class property so we don't try and free memory that wasn't allocated by us.
+        // Windows could change where pvBuffer points to after a function call and we should only be concerned about
+        // freeing memory that we have allocated ourselves.
+        allocBuffer = malloc(cbBuffer);
+
+        // Any code that creates instances should check that buffer is not NULL !
+        if (allocBuffer == NULL)
+            PyErr_Format(PyExc_MemoryError, "PySecBuffer::PySecBuffer - cannot allocate buffer of %d bytes", cbBuffer);
+        else
+            ZeroMemory(allocBuffer, cbBuffer);
+    }
+
+    secbuffer.pvBuffer = allocBuffer;
+
     _Py_NewReference(this);
 }
 
 PySecBuffer::~PySecBuffer()
 {
-    if (secbuffer.pvBuffer != NULL)
-        free(secbuffer.pvBuffer);
+    // We don't check secbuffer.pvBuffer as that could be a pointer set by Windows and not our originally allocated
+    // block of memory.
+    if (allocBuffer != NULL)
+        free(allocBuffer);
 }
 
 BOOL PySecBuffer_Check(PyObject *ob)
@@ -391,7 +411,7 @@ PyObject *PySecBuffer::getattro(PyObject *self, PyObject *obname)
     if (name == NULL)
         return NULL;
     if (strcmp(name, "Buffer") == 0)
-        return PyString_FromStringAndSize((char *)psecbuffer->pvBuffer, psecbuffer->cbBuffer);
+        return PyBytes_FromStringAndSize((char *)psecbuffer->pvBuffer, psecbuffer->cbBuffer);
     return PyObject_GenericGetAttr(self, obname);
 }
 
@@ -399,24 +419,23 @@ int PySecBuffer::setattro(PyObject *self, PyObject *obname, PyObject *obvalue)
 {
     PySecBuffer *This = (PySecBuffer *)self;
     char *name;
-    void *value;
-    DWORD valuelen;
     name = PYWIN_ATTR_CONVERT(obname);
     if (name == NULL)
         return -1;
     if (strcmp(name, "Buffer") == 0) {
-        if (!PyWinObject_AsReadBuffer(obvalue, &value, &valuelen))
+        PyWinBufferView pybuf(obvalue);
+        if (!pybuf.ok())
             return -1;
         PSecBuffer psecbuffer = This->GetSecBuffer();
-        if (valuelen > This->maxbufsize) {
-            PyErr_Format(PyExc_ValueError, "Data size (%d) greater than allocated buffer size (%d)", valuelen,
+        if (pybuf.len() > This->maxbufsize) {
+            PyErr_Format(PyExc_ValueError, "Data size (%d) greater than allocated buffer size (%d)", pybuf.len(),
                          This->maxbufsize);
             return -1;
         }
         ZeroMemory(psecbuffer->pvBuffer, This->maxbufsize);
-        memcpy(psecbuffer->pvBuffer, value, valuelen);
+        memcpy(psecbuffer->pvBuffer, pybuf.ptr(), pybuf.len());
         // buffer length should be size of actual data, allocated size is kept in our own maxbufsize
-        psecbuffer->cbBuffer = valuelen;
+        psecbuffer->cbBuffer = pybuf.len();
         return 0;
     }
 
@@ -430,6 +449,13 @@ PyObject *PySecBuffer::tp_new(PyTypeObject *typ, PyObject *args, PyObject *kwarg
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "ll", keywords, &cbBuffer, &BufferType))
         return NULL;
     return new PySecBuffer(cbBuffer, BufferType);
+}
+
+PyObject *PySecBuffer::tp_repr(PyObject *obj)
+{
+    PSecBuffer psecbuffer = ((PySecBuffer *)obj)->GetSecBuffer();
+    return PyUnicode_FromFormat("PySecBuffer(cbBuffer: %i | BufferType: %i | pvBuffer: %p)", psecbuffer->cbBuffer,
+                                psecbuffer->BufferType, psecbuffer->pvBuffer);
 }
 
 // @pymethod |PySecBuffer|Clear|Resets the buffer to all NULL's, and set the current size to maximum
@@ -821,7 +847,7 @@ PyObject *PyCtxtHandle::QueryContextAttributes(PyObject *self, PyObject *args)
         case SECPKG_ATTR_SESSION_KEY:
             PSecPkgContext_SessionKey sk;
             sk = (PSecPkgContext_SessionKey)&buf;
-            ret = PyString_FromStringAndSize((const char *)sk->SessionKey, sk->SessionKeyLength);
+            ret = PyBytes_FromStringAndSize((const char *)sk->SessionKey, sk->SessionKeyLength);
             (*psecurityfunctiontable->FreeContextBuffer)(sk->SessionKey);
             break;
         // @flag SECPKG_ATTR_ISSUER_LIST_EX|(int, string) - Returns names of trusted certificate issuers
@@ -829,7 +855,7 @@ PyObject *PyCtxtHandle::QueryContextAttributes(PyObject *self, PyObject *args)
             PSecPkgContext_IssuerListInfoEx li;
             li = (PSecPkgContext_IssuerListInfoEx)&buf;
             ret = Py_BuildValue("lN", li->cIssuers,
-                                PyString_FromStringAndSize((char *)li->aIssuers->pbData, li->aIssuers->cbData));
+                                PyBytes_FromStringAndSize((char *)li->aIssuers->pbData, li->aIssuers->cbData));
             (*psecurityfunctiontable->FreeContextBuffer)(li->aIssuers);
             break;
         // @flag SECPKG_ATTR_FLAGS|int - returns flags negotiated when context was established
@@ -863,13 +889,14 @@ PyObject *PyCtxtHandle::QueryContextAttributes(PyObject *self, PyObject *args)
             ret = Py_BuildValue("{s:l,s:l,s:l,s:l}", "MaxToken", sz->cbMaxToken, "MaxSignature", sz->cbMaxSignature,
                                 "BlockSize", sz->cbBlockSize, "SecurityTrailer", sz->cbSecurityTrailer);
             break;
-        // @flag SECPKG_ATTR_PASSWORD_EXPIRY|<o PyTime> - returns time password expires
+        // @flag SECPKG_ATTR_PASSWORD_EXPIRY|<o PyDateTime> - returns time password expires
         case SECPKG_ATTR_PASSWORD_EXPIRY:
             PSecPkgContext_PasswordExpiry pe;
             pe = (PSecPkgContext_PasswordExpiry)&buf;
             ret = PyWinObject_FromTimeStamp(pe->tsPasswordExpires);
             break;
-        // @flag SECPKG_ATTR_LIFESPAN|(<o PyTime>,<o PyTime>) - returns time period during which context is valid
+        // @flag SECPKG_ATTR_LIFESPAN|(<o PyDateTime>,<o PyDateTime>) - returns time period during which context is
+        // valid
         case SECPKG_ATTR_LIFESPAN:
             PSecPkgContext_Lifespan ls;
             ls = (PSecPkgContext_Lifespan)&buf;
@@ -887,7 +914,7 @@ PyObject *PyCtxtHandle::QueryContextAttributes(PyObject *self, PyObject *args)
         case SECPKG_ATTR_TARGET_INFORMATION:
             PSecPkgContext_TargetInformation ti;
             ti = (PSecPkgContext_TargetInformation)&buf;
-            ret = PyString_FromStringAndSize((const char *)ti->MarshalledTargetInfo, ti->MarshalledTargetInfoLength);
+            ret = PyBytes_FromStringAndSize((const char *)ti->MarshalledTargetInfo, ti->MarshalledTargetInfoLength);
             (*psecurityfunctiontable->FreeContextBuffer)(ti->MarshalledTargetInfo);
             break;
         // @flag SECPKG_ATTR_STREAM_SIZES|dict (see SecPkgContext_StreamSizes) containing message buffer sizes

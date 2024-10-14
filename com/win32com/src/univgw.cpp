@@ -3,6 +3,7 @@
 ** Written by Bill Tutt and Greg Stein.
 */
 
+#define PY_SSIZE_T_CLEAN
 #include "stdafx.h"
 #include "stddef.h"
 #include "PythonCOM.h"
@@ -76,7 +77,7 @@ static HRESULT univgw_dispatch(DWORD index, gw_object *_this, va_list argPtr)
 
     // prep the rest of the arguments
     PyObject *obArgs = PyTuple_New(3);
-    PyObject *obIndex = PyInt_FromLong(index);
+    PyObject *obIndex = PyLong_FromLong(index);
 
     if (obArgPtr == NULL || obArgs == NULL || obIndex == NULL) {
         set_error(vtbl->iid, L"could not create argument tuple");
@@ -97,13 +98,13 @@ static HRESULT univgw_dispatch(DWORD index, gw_object *_this, va_list argPtr)
     PyTuple_SET_ITEM(obArgs, 2, obArgPtr);
 
     // call the provided method
-    PyObject *result = PyEval_CallObjectWithKeywords(vtbl->dispatcher, obArgs, NULL);
+    PyObject *result = PyObject_CallObject(vtbl->dispatcher, obArgs);
 
     // done with the arguments and the contained objects
     Py_DECREF(obArgs);
 
     if (result == NULL) {
-        PyCom_LoggerException(NULL, "Failed to call the universal dispatcher");
+        PyCom_LoggerException(NULL, L"Failed to call the universal dispatcher");
         return PyCom_SetCOMErrorFromPyException(vtbl->iid);
     }
 
@@ -112,21 +113,21 @@ static HRESULT univgw_dispatch(DWORD index, gw_object *_this, va_list argPtr)
         hr = S_OK;
     }
     else {
-        if (!PyInt_Check(result)) {
+        if (!PyLong_Check(result)) {
             Py_DECREF(result);
             set_error(vtbl->iid, L"expected integer return value");
             return E_UNEXPECTED;  // ### select a different value?
         }
 
-        hr = PyInt_AS_LONG(result);
+        hr = PyLong_AS_LONG(result);
     }
 
     Py_DECREF(result);
 
     // ### Greg> what to do for non-HRESULT return values?
-    // ### Bill> If its not a float/double then
+    // ### Bill> If it's not a float/double then
     // ###       then they'll see a 32bit sign-extended value.
-    // ###       If its a float/double they're currently out of luck.
+    // ###       If it's a float/double they're currently out of luck.
     // ###       The smart ones only declare int, HRESULT, or void
     // ###       functions in any event...
     // ### on X86s __stdcall return values go into:
@@ -145,7 +146,7 @@ static HRESULT univgw_dispatch(DWORD index, gw_object *_this, va_list argPtr)
     return hr;
 }
 
-//#define COMPILE_MOCKUP
+// #define COMPILE_MOCKUP
 #ifdef COMPILE_MOCKUP
 
 STDMETHODIMP mockup(gw_object *_this)
@@ -262,7 +263,9 @@ static pfnGWMethod make_method(DWORD index, UINT argsize, UINT argc)
     }
 #else  // other arches
     /* The MAINWIN toolkit allows us to build this on Linux!!! */
-#pragma message("XXXXXXXXX - win32com.universal wont work on this platform - need make_method")
+#pragma message("XXXXXXXXX - win32com.universal won't work on this platform - need make_method")
+    PyErr_SetString(PyExc_NotImplementedError, "not implemented on this platform");
+    code = NULL;
 #endif
 
     return (pfnGWMethod)code;
@@ -346,7 +349,6 @@ static void free_vtbl(gw_vtbl *vtbl)
     VirtualFree(vtbl, 0, MEM_RELEASE);
 }
 
-#if PY_VERSION_HEX > 0x03010000
 // Use the new capsule API
 const char *capsule_name = "win32com universal gateway";
 
@@ -356,20 +358,6 @@ static PyObject *PyVTable_Create(void *vtbl) { return PyCapsule_New(vtbl, capsul
 static gw_vtbl *PyVTable_Get(PyObject *ob) { return (gw_vtbl *)PyCapsule_GetPointer(ob, capsule_name); }
 
 static bool PyVTable_Check(PyObject *ob) { return PyCapsule_IsValid(ob, capsule_name) != 0; }
-#else
-// Use the old CObject API.
-static void __cdecl do_free_vtbl(void *cobject)
-{
-    gw_vtbl *vtbl = (gw_vtbl *)cobject;
-    free_vtbl(vtbl);
-}
-
-static PyObject *PyVTable_Create(void *vtbl) { return PyCObject_FromVoidPtr(vtbl, do_free_vtbl); }
-
-static gw_vtbl *PyVTable_Get(PyObject *ob) { return (gw_vtbl *)PyCObject_AsVoidPtr(ob); }
-
-static bool PyVTable_Check(PyObject *ob) { return PyCObject_Check(ob) != 0; }
-#endif
 
 static PyObject *univgw_CreateVTable(PyObject *self, PyObject *args)
 {
@@ -405,11 +393,12 @@ static PyObject *univgw_CreateVTable(PyObject *self, PyObject *args)
     if (methods == NULL)
         return NULL;
 
-    int count = PyObject_Length(methods);
+    Py_ssize_t count = PyObject_Length(methods);
     if (count == -1) {
         Py_DECREF(methods);
         return NULL;
     }
+    PYWIN_CHECK_SSIZE_DWORD(count, NULL);
     PyObject *methodsArgc = PyObject_CallMethod(obDef, "vtbl_argcounts", NULL);
     if (methodsArgc == NULL)
         return NULL;
@@ -436,7 +425,7 @@ static PyObject *univgw_CreateVTable(PyObject *self, PyObject *args)
 
     vtbl->magic = GW_VTBL_MAGIC;
     vtbl->iid = iid;
-    vtbl->cMethod = count;
+    vtbl->cMethod = (UINT)count;
     vtbl->cReservedMethods = numReservedVtables;
 
     vtbl->dispatcher = PyObject_GetAttrString(obDef, "dispatch");
@@ -465,12 +454,12 @@ static PyObject *univgw_CreateVTable(PyObject *self, PyObject *args)
         if (obArgCount == NULL)
             goto error;
 
-        int argSize = PyInt_AsLong(obArgSize);
+        int argSize = PyLong_AsLong(obArgSize);
         Py_DECREF(obArgSize);
         if (argSize == -1 && PyErr_Occurred())
             goto error;
 
-        int argCount = PyInt_AsLong(obArgCount);
+        int argCount = PyLong_AsLong(obArgCount);
         Py_DECREF(obArgCount);
         if (argCount == -1 && PyErr_Occurred())
             goto error;
@@ -679,14 +668,14 @@ static PyObject *univgw_ReadMemory(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    return PyString_FromStringAndSize((char *)p, size);
+    return PyBytes_FromStringAndSize((char *)p, size);
 }
 
 static PyObject *univgw_WriteMemory(PyObject *self, PyObject *args)
 {
     PyObject *obPtr;
     void *pSrc;
-    int size;
+    Py_ssize_t size;
     if (!PyArg_ParseTuple(args, "Os#:WriteMemory", &obPtr, &pSrc, &size))
         return NULL;
 
@@ -728,13 +717,9 @@ BOOL initunivgw(PyObject *parentDict)
 
     PyObject *module;
 
-#if (PY_VERSION_HEX < 0x03000000)
-    module = Py_InitModule("pythoncom.__univgw", univgw_functions);
-#else
     static PyModuleDef univgw_def = {PyModuleDef_HEAD_INIT, "pythoncom.__univgw", "Univeral gateway", -1,
                                      univgw_functions};
     module = PyModule_Create(&univgw_def);
-#endif
     if (!module) /* Eeek - some serious error! */
         return FALSE;
 

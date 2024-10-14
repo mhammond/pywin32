@@ -1,5 +1,5 @@
 /* File : PyIMsgServiceAdmin.i */
- 
+
 %module IMsgServiceAdmin // An COM interface to MAPI's IMsgServiceAdmin interface.
 
 %include "typemaps.i"
@@ -37,22 +37,22 @@ PyObject *PyIMsgServiceAdmin::GetLastError(PyObject *self, PyObject *args)
 	HRESULT hr, hRes;
 	ULONG flags = 0;
 	MAPIERROR *me = NULL;
-	
+
 	IMsgServiceAdmin *_swig_self;
 	if ((_swig_self=GetI(self))==NULL) return NULL;
-	
+
     if(!PyArg_ParseTuple(args,"l|l:GetLastError",
 		&hr, // @pyparm int|hr||Contains the error code generated in the previous method call.
 		&flags)) // @pyparm int|flags||Indicates for format for the output.
         return NULL;
-		
+
 	Py_BEGIN_ALLOW_THREADS
 	hRes = _swig_self->GetLastError(hr, flags, &me);
 	Py_END_ALLOW_THREADS
 
 	if (FAILED(hRes))
 		return OleSetOleError(hRes);
-	
+
 	if (me == NULL)
 	{
 		Py_INCREF(Py_None);
@@ -75,12 +75,12 @@ PyObject *PyIMsgServiceAdmin::CreateMsgService(PyObject *self, PyObject *args)
 	LPTSTR lpszDisplayName = NULL;
 	ULONG ulUIParam = 0;
 	ULONG ulFlags = 0;
-	
+
 	IMsgServiceAdmin *_swig_self;
 	if ((_swig_self=GetI(self))==NULL) return NULL;
-	
+
 	if (!PyArg_ParseTuple(args, "OO|ll",
-		&obService, // @pyparm string|serviceName||The name of the service. 
+		&obService, // @pyparm string|serviceName||The name of the service.
 		&obDisplayName, // @pyparm string|displayName||Display name of the service, or None
 		&ulUIParam, // @pyparm int|uiParam|0|A handle of the parent window for any dialog boxes or windows that this method displays.
 		&ulFlags)) // @pyparm int|flags||A bitmask of flags that controls how the message service is installed.
@@ -90,26 +90,26 @@ PyObject *PyIMsgServiceAdmin::CreateMsgService(PyObject *self, PyObject *args)
 		goto done;
 	if (!PyWinObject_AsMAPIStr(obDisplayName, &lpszDisplayName, ulFlags & MAPI_UNICODE, TRUE))
 		goto done;
-	
+
 	Py_BEGIN_ALLOW_THREADS
 	hRes = _swig_self->CreateMsgService(lpszService, lpszDisplayName, ulUIParam, ulFlags);
 	Py_END_ALLOW_THREADS
-	
+
 	if (FAILED(hRes))
 		result = OleSetOleError(hRes);
 	else
 		result = Py_BuildValue("");
 
 done:
-	PyWinObject_FreeString(lpszService);
-	PyWinObject_FreeString(lpszDisplayName);
-	
+	PyWinObject_FreeMAPIStr(lpszService, ulFlags & MAPI_UNICODE);
+	PyWinObject_FreeMAPIStr(lpszDisplayName, ulFlags & MAPI_UNICODE);
+
 	return result;
 }
 %}
 
 %{
-// @pyswig |ConfigureMsgService|Reconfigures a message service. 
+// @pyswig |ConfigureMsgService|Reconfigures a message service.
 PyObject *PyIMsgServiceAdmin::ConfigureMsgService(PyObject *self, PyObject *args)
 {
 	unsigned long ulUIParam;
@@ -119,7 +119,7 @@ PyObject *PyIMsgServiceAdmin::ConfigureMsgService(PyObject *self, PyObject *args
 	PyObject *obIID;
 	IMsgServiceAdmin *_swig_self;
 	if ((_swig_self=GetI(self))==NULL) return NULL;
-	if (!PyArg_ParseTuple(args, "OiiO:ConfigureMsgService", 
+	if (!PyArg_ParseTuple(args, "OiiO:ConfigureMsgService",
 	                     &obIID, // @pyparm <o PyIID>|iid||The unique identifier for the message service to configure.
 						 &ulUIParam, // @pyparm int|ulUIParam||Handle of the parent window for the configuration property sheet.
 						 &ulFlags, // @pyparm int|ulFlags||Bitmask of flags that controls the display of the property sheet.
@@ -174,7 +174,7 @@ HRESULT RenameMsgService(
 	unsigned long flags, // @pyparm int|flags||
 	TCHAR *newName // @pyparm string|newName||The new name for the service.
 );
- 
+
 // @pyswig <o PyIProfSect>|OpenProfileSection|Opens a profile section
 HRESULT OpenProfileSection(
 	MAPIUID *INPUT, // @pyparm <o PyIID>|uuid||The ID of the service

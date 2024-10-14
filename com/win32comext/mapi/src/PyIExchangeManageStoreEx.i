@@ -2,6 +2,9 @@
 
 %module IExchangeManageStoreEx
 
+%{
+#define PY_SSIZE_T_CLEAN
+%}
 %include "typemaps.i"
 %include "pywin32.i"
 %include "pythoncom.i"
@@ -27,7 +30,7 @@
 %typemap(python,in) IExchangeManageStoreEx *INPUT_NULLOK {
 	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IExchangeManageStoreEx, (void **)&$target, 1))
 		return NULL;
-}		
+}
 
 %{
 #include <initguid.h>
@@ -69,7 +72,7 @@ PyObject *PyIExchangeManageStoreEx::CreateStoreEntryID2(PyObject *self, PyObject
 
 	if (!PyArg_ParseTuple(args, "O|l:CreateStoreEntryID2", &obs, &flags))
 		return NULL;
-	
+
 	if (!PySequence_Check(obs))
 	{
 		PyErr_SetString(PyExc_TypeError, "Properties must be a sequence of tuples");
@@ -82,21 +85,15 @@ PyObject *PyIExchangeManageStoreEx::CreateStoreEntryID2(PyObject *self, PyObject
 	Py_BEGIN_ALLOW_THREADS
 	hRes = _swig_self->CreateStoreEntryID2(seqLen, pPV, flags, &sbEID.cb, (LPENTRYID *) &sbEID.lpb);
 	Py_END_ALLOW_THREADS
-	
+
 	if (FAILED(hRes))
 		result = OleSetOleError(hRes);
 	else
-		result = Py_BuildValue(
-#if PY_MAJOR_VERSION >= 3
-								"y#",
-#else
-								"s#",
-#endif
-								sbEID.lpb, sbEID.cb);
-								
+		result = Py_BuildValue("y#", sbEID.lpb, (Py_ssize_t)sbEID.cb);
+
 	MAPIFreeBuffer((LPENTRYID)sbEID.lpb);
 	MAPIFreeBuffer(pPV);
-	
+
 	return result;
 }
 %}

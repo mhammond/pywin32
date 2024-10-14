@@ -38,7 +38,7 @@ STDMETHODIMP_(ULONG) CPyFactory::Release(void)
 {
     LONG cRef = InterlockedDecrement(&m_cRef);
     if (cRef == 0)
-        delete this;
+        operator delete(this);
     return cRef;
 }
 
@@ -67,17 +67,17 @@ STDMETHODIMP CPyFactory::CreateInstance(IUnknown *punkOuter, REFIID riid, void *
         PyObject *pNewInstance = NULL;
         hr = CreateNewPythonInstance(m_guidClassID, riid, &pNewInstance);
         if (FAILED(hr)) {
-            PyCom_LoggerException(NULL, "CPyFactory::CreateInstance failed to create instance. (%lx)", hr);
+            PyCom_LoggerException(NULL, L"CPyFactory::CreateInstance failed to create instance. (%lx)", hr);
         }
         else {
             // CreateInstance now returns an object already all wrapped
             // up (giving more flexibility to the Python programmer.
             if (!PyCom_InterfaceFromPyObject(pNewInstance, riid, ppv, FALSE)) {
-                PyCom_LoggerException(NULL, "CPyFactory::CreateInstance failed to get gateway to returned object");
+                PyCom_LoggerException(NULL, L"CPyFactory::CreateInstance failed to get gateway to returned object");
                 hr = E_FAIL;
             }
         }
-        Py_XDECREF(pNewInstance);  // Dont need it any more.
+        Py_XDECREF(pNewInstance);  // Don't need it any more.
     }
     PyCom_DLLReleaseRef();
     return hr;
@@ -123,7 +123,7 @@ STDMETHODIMP CPyFactory::CreateNewPythonInstance(REFCLSID rclsid, REFCLSID rReqi
     // Check the error state before DECREFs, otherwise they may
     // change the error state.
     if (!*ppNewInstance)
-        PyCom_LoggerException(NULL, "ERROR: server.policy could not create an instance.");
+        PyCom_LoggerException(NULL, L"ERROR: server.policy could not create an instance.");
     HRESULT hr = PyCom_SetCOMErrorFromPyException(IID_IClassFactory);
     Py_DECREF(obiid);
     Py_DECREF(obReqiid);
@@ -142,7 +142,7 @@ BOOL LoadGatewayModule(PyObject **ppModule)
     PyObject *pPyModule = NULL;
     pPyModule = PyImport_ImportModule("win32com.server.policy");
     if (!pPyModule) {
-        PyCom_LoggerException(NULL, "PythonCOM Server - The 'win32com.server.policy' module could not be loaded.");
+        PyCom_LoggerException(NULL, L"PythonCOM Server - The 'win32com.server.policy' module could not be loaded.");
         /* ### propagate the exception? */
         PyErr_Clear();
         return FALSE;

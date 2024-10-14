@@ -39,7 +39,7 @@ static BOOL hasInitialized = FALSE;
 
 void PyCom_DLLAddRef(void)
 {
-    // Must be thread-safe, although cant have the Python lock!
+    // Must be thread-safe, although can't have the Python lock!
     CEnterLeaveFramework _celf;
     LONG cnt = InterlockedIncrement(&g_cLockCount);
     if (cnt == 1) {  // First call
@@ -71,10 +71,6 @@ void PyCom_DLLAddRef(void)
                 Py_XDECREF(str);
             }
 
-            // Must force Python to start using thread locks, as
-            // we are free-threaded (maybe, I think, sometimes :-)
-            PyEval_InitThreads();
-            //			PyWinThreadState_Ensure();
             // Release Python lock, as first thing we do is re-get it.
             ptsGlobal = PyEval_SaveThread();
             bDidInitPython = TRUE;
@@ -87,7 +83,7 @@ void PyCom_DLLReleaseRef(void)
     /*** NOTE: We no longer finalize Python EVER in the COM world
          see pycom-dev mailing list archives from April 2000 for why
     ***/
-    // Must be thread-safe, although cant have the Python lock!
+    // Must be thread-safe, although can't have the Python lock!
     // only needed when we finalize.
     //	CEnterLeaveFramework _celf;
     LONG cnt = InterlockedDecrement(&g_cLockCount);
@@ -117,11 +113,7 @@ void PyCom_DLLReleaseRef(void)
 static DWORD g_dwCoInitThread = 0;
 static BOOL g_bCoInitThreadHasInit = FALSE;
 
-#ifndef MS_WINCE
 extern "C" __declspec(dllexport) BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
-#else
-BOOL WINAPI DllMain(HANDLE hInstance, DWORD dwReason, LPVOID lpReserved)
-#endif
 {
     if (dwReason == DLL_PROCESS_ATTACH) {
         //		LogEvent("Loaded pythoncom.dll");
@@ -138,9 +130,7 @@ BOOL WINAPI DllMain(HANDLE hInstance, DWORD dwReason, LPVOID lpReserved)
         /*
         ** we don't need to be notified about threads
         */
-#ifndef MS_WINCE /* but CE doesnt seem to support it ?! */
         DisableThreadLibraryCalls(hInstance);
-#endif
     }
     else if (dwReason == DLL_PROCESS_DETACH) {
         //		LogEvent("Terminated pythoncom.dll");
@@ -171,11 +161,10 @@ typedef HRESULT(WINAPI *PFNCoInitializeEx)(LPVOID pvReserved, DWORD dwCoInit);
 // XXX - Needs more thought about threading implications.
 HRESULT PyCom_CoInitializeEx(LPVOID reserved, DWORD dwInit)
 {
-    // Must be thread-safe, although doesnt need the Python lock.
+    // Must be thread-safe, although doesn't need the Python lock.
     CEnterLeaveFramework _celf;
     if (g_bCoInitThreadHasInit && g_dwCoInitThread == GetCurrentThreadId())
         return S_OK;
-#ifndef MS_WINCE
     // Do a LoadLibrary, as the Ex version may not always exist
     // on Win95.
     HMODULE hMod = GetModuleHandle(_T("ole32.dll"));
@@ -189,15 +178,12 @@ HRESULT PyCom_CoInitializeEx(LPVOID reserved, DWORD dwInit)
     mypfn = (PFNCoInitializeEx)fp;
 
     HRESULT hr = (*mypfn)(reserved, dwInit);
-#else   // Windows CE _only_ has the Ex version!
-    HRESULT hr = CoInitializeEx(reserved, dwInit);
-#endif  // MS_WINCE
 
     // Unlike PyCom_CoInitialize, we return _all_ errors including
     // RPC_E_CHANGED_MODE
     if (FAILED(hr)) {
         if (hr != RPC_E_CHANGED_MODE)
-            PyCom_LoggerException(NULL, "CoInitializeEx failed (0x%08lx)", hr);
+            PyCom_LoggerException(NULL, L"CoInitializeEx failed (0x%08lx)", hr);
         return hr;
     }
     // If we have never been initialized before, then consider this
@@ -211,20 +197,16 @@ HRESULT PyCom_CoInitializeEx(LPVOID reserved, DWORD dwInit)
 
 HRESULT PyCom_CoInitialize(LPVOID reserved)
 {
-    // Must be thread-safe, although doesnt need the Python lock.
+    // Must be thread-safe, although doesn't need the Python lock.
     CEnterLeaveFramework _celf;
     // If our "main" thread has ever called this before, just
     // ignore it.  If it is another thread, then that thread
     // must manage itself.
     if (g_bCoInitThreadHasInit && g_dwCoInitThread == GetCurrentThreadId())
         return S_OK;
-#ifndef MS_WINCE
     HRESULT hr = CoInitialize(reserved);
-#else   // Windows CE _only_ has the Ex version, and only multi-threaded!
-    HRESULT hr = CoInitializeEx(reserved, COINIT_MULTITHREADED);
-#endif  // MS_WINCE
     if ((hr != RPC_E_CHANGED_MODE) && FAILED(hr)) {
-        PyCom_LoggerException(NULL, "OLE initialization failed! (0x%08lx)", hr);
+        PyCom_LoggerException(NULL, L"OLE initialization failed! (0x%08lx)", hr);
         return hr;
     }
     // If we have never been initialized before, then consider this
@@ -238,7 +220,7 @@ HRESULT PyCom_CoInitialize(LPVOID reserved)
 
 void PyCom_CoUninitialize()
 {
-    // Must be thread-safe, although doesnt need the Python lock.
+    // Must be thread-safe, although doesn't need the Python lock.
     CEnterLeaveFramework _celf;
     if (g_dwCoInitThread == GetCurrentThreadId()) {
         // being asked to terminate on our "main" thread
@@ -259,7 +241,7 @@ void PyCom_CoUninitialize()
 
 STDAPI DllCanUnloadNow(void)
 {
-    // If we dont finalize Python, we should never unload!
+    // If we don't finalize Python, we should never unload!
     return S_FALSE;
     //	return g_cLockCount ? S_FALSE : S_OK;
 }
@@ -292,11 +274,7 @@ STDAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, LPVOID *ppv)
 //   argc and argv are what Python should see as sys.argv
 HRESULT DoRegisterUnregister(LPCSTR fileName, int argc, char **argv)
 {
-#ifdef MS_WINCE
-    FILE *fp = Py_fopen(fileName, "r");
-#else
     FILE *fp = fopen(fileName, "r");
-#endif
     if (fp == NULL)
         return HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND);
 
@@ -305,22 +283,14 @@ HRESULT DoRegisterUnregister(LPCSTR fileName, int argc, char **argv)
     PyCom_DLLAddRef();
     {  // A scope for _celp
         CEnterLeavePython _celp;
-#if (PY_VERSION_HEX < 0x03000000)
-        PySys_SetArgv(argc, argv);
-#else
         PySys_SetArgv(argc, __wargv);
-#endif;
 
         if (PyRun_SimpleFile(fp, (char *)fileName) != 0) {
             // Convert the Python error to a HRESULT.
             hr = PyCom_SetCOMErrorFromPyException();
         }
     }  // End scope.
-#ifdef MS_WINCE
-    Py_fclose(fp);
-#else
     fclose(fp);
-#endif
     PyCom_DLLReleaseRef();
 
     return hr;

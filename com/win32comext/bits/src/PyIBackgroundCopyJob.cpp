@@ -108,7 +108,7 @@ PyObject *PyIBackgroundCopyJob::Suspend(PyObject *self, PyObject *args)
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIBCJ, IID_IBackgroundCopyJob);
-    return PyInt_FromLong(hr);
+    return PyLong_FromLong(hr);
 }
 
 // @pymethod |PyIBackgroundCopyJob|Resume|Description of Resume.
@@ -125,7 +125,7 @@ PyObject *PyIBackgroundCopyJob::Resume(PyObject *self, PyObject *args)
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIBCJ, IID_IBackgroundCopyJob);
-    return PyInt_FromLong(hr);
+    return PyLong_FromLong(hr);
 }
 
 // @pymethod |PyIBackgroundCopyJob|Cancel|Description of Cancel.
@@ -142,7 +142,7 @@ PyObject *PyIBackgroundCopyJob::Cancel(PyObject *self, PyObject *args)
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIBCJ, IID_IBackgroundCopyJob);
-    return PyInt_FromLong(hr);
+    return PyLong_FromLong(hr);
 }
 
 // @pymethod |PyIBackgroundCopyJob|Complete|Description of Complete.
@@ -161,7 +161,7 @@ PyObject *PyIBackgroundCopyJob::Complete(PyObject *self, PyObject *args)
 
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIBCJ, IID_IBackgroundCopyJob);
-    return PyInt_FromLong(hr);
+    return PyLong_FromLong(hr);
 }
 
 // @pymethod |PyIBackgroundCopyJob|GetId|Description of GetId.
@@ -195,7 +195,7 @@ PyObject *PyIBackgroundCopyJob::GetType(PyObject *self, PyObject *args)
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIBCJ, IID_IBackgroundCopyJob);
-    return PyInt_FromLong(val);
+    return PyLong_FromLong(val);
 }
 
 // @pymethod |PyIBackgroundCopyJob|GetProgress|Description of GetProgress.
@@ -415,7 +415,7 @@ PyObject *PyIBackgroundCopyJob::GetPriority(PyObject *self, PyObject *args)
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIBCJ, IID_IBackgroundCopyJob);
-    return PyInt_FromLong(val);
+    return PyLong_FromLong(val);
 }
 
 // @pymethod |PyIBackgroundCopyJob|SetNotifyFlags|Description of SetNotifyFlags.
@@ -667,7 +667,7 @@ PyObject *PyIBackgroundCopyJob::TakeOwnership(PyObject *self, PyObject *args)
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIBCJ, IID_IBackgroundCopyJob);
-    return PyInt_FromLong(hr);
+    return PyLong_FromLong(hr);
 }
 
 // @object PyIBackgroundCopyJob|Description of the interface

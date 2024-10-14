@@ -12,6 +12,7 @@
 # Usage:
 #  wpython.exe LocalServer.py clsid [, clsid]
 import sys
+
 sys.coinit_flags = 2
 import pythoncom
 import win32api
@@ -27,23 +28,26 @@ It is typically run automatically by COM, passing as arguments
 The ProgID or CLSID of the Python Server(s) to be hosted
 """
 
+
 def serve(clsids):
-	infos = factory.RegisterClassFactories(clsids)
+    infos = factory.RegisterClassFactories(clsids)
 
-	pythoncom.EnableQuitMessage(win32api.GetCurrentThreadId())	
-	pythoncom.CoResumeClassObjects()
+    pythoncom.EnableQuitMessage(win32api.GetCurrentThreadId())
+    pythoncom.CoResumeClassObjects()
 
-	pythoncom.PumpMessages()
-	
-	factory.RevokeClassFactories( infos )
-	
-	pythoncom.CoUninitialize()
-	
+    pythoncom.PumpMessages()
+
+    factory.RevokeClassFactories(infos)
+
+    pythoncom.CoUninitialize()
+
+
 def main():
-	if len(sys.argv)==1:
-		win32api.MessageBox(0, usage, "Python COM Server")
-		sys.exit(1)
-	serve(sys.argv[1:])
+    if len(sys.argv) == 1:
+        win32api.MessageBox(0, usage, "Python COM Server")
+        sys.exit(1)
+    serve(sys.argv[1:])
 
-if __name__=='__main__':
-	main()
+
+if __name__ == "__main__":
+    main()

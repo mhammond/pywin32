@@ -95,10 +95,10 @@ static PyObject *PyWTSQueryUserConfig(PyObject *self, PyObject *args, PyObject *
             &obUserName,       // @pyparm <o PyUnicode>|UserName||Name of user
             &WTSConfigClass))  // @pyparm int|ConfigClass||Type of information to be returned, win32ts.WTSUserConfig*
         return NULL;
-    if (PyWinObject_AsWCHAR(obServerName, &ServerName, TRUE) && PyWinObject_AsWCHAR(obUserName, &UserName, FALSE))
+    if (PyWinObject_AsWCHAR(obServerName, &ServerName, TRUE) && PyWinObject_AsWCHAR(obUserName, &UserName, FALSE)) {
         if (!WTSQueryUserConfig(ServerName, UserName, WTSConfigClass, &buf, &bufsize))
             PyWin_SetAPIError("WTSQueryUserConfig");
-        else
+        else {
             switch (WTSConfigClass) {
                 // @flagh ConfigClass|Returned value
                 case WTSUserConfigInitialProgram:    // @flag WTSUserConfigInitialProgram|Unicode string, program to be
@@ -137,6 +137,8 @@ static PyObject *PyWTSQueryUserConfig(PyObject *self, PyObject *args, PyObject *
                 default:
                     PyErr_SetString(PyExc_NotImplementedError, "Config class not supported yet");
             }
+        }
+    }
 
     PyWinObject_FreeWCHAR(ServerName);
     PyWinObject_FreeWCHAR(UserName);
@@ -396,7 +398,7 @@ static PyObject *PyWTSQuerySessionInformation(PyObject *self, PyObject *args, Py
         case WTSClientProtocolType:  // @flag WTSClientProtocolType|Int, one of
                                      // WTS_PROTOCOL_TYPE_CONSOLE,WTS_PROTOCOL_TYPE_ICA,WTS_PROTOCOL_TYPE_RDP
         case WTSClientProductId:     // @flag WTSClientProductId|Int
-            ret = PyInt_FromLong(*(USHORT *)buf);
+            ret = PyLong_FromLong(*(USHORT *)buf);
             break;
         // ULONGs
         case WTSClientBuildNumber:  // @flag WTSClientBuildNumber|Int
@@ -405,7 +407,7 @@ static PyObject *PyWTSQuerySessionInformation(PyObject *self, PyObject *args, Py
             ret = PyLong_FromUnsignedLong(*(ULONG *)buf);
             break;
         case WTSConnectState:  // @flag WTSConnectState|Int, from WTS_CONNECTSTATE_CLASS
-            ret = PyInt_FromLong(*(INT *)buf);
+            ret = PyLong_FromLong(*(INT *)buf);
             break;
         case WTSClientDisplay: {  // @flag WTSClientDisplay|Dict containing client's display settings
             WTS_CLIENT_DISPLAY *wcd = (WTS_CLIENT_DISPLAY *)buf;
@@ -430,7 +432,7 @@ static PyObject *PyWTSQuerySessionInformation(PyObject *self, PyObject *args, Py
             obaddress = PyTuple_New(address_cnt);
             if (obaddress != NULL)
                 for (address_ind = 0; address_ind < address_cnt; address_ind++) {
-                    PyObject *obaddress_element = PyInt_FromLong(wca->Address[address_ind]);
+                    PyObject *obaddress_element = PyLong_FromLong(wca->Address[address_ind]);
                     if (obaddress_element == NULL) {
                         Py_DECREF(obaddress);
                         obaddress = NULL;

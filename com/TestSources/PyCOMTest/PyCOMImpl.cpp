@@ -149,6 +149,14 @@ STDMETHODIMP CPyCOMTest::Test6(QsAttributeWide in, QsAttributeWide *out)
     return S_OK;
 }
 
+STDMETHODIMP CPyCOMTest::TestInOut(float *fval, QsBoolean *bval, long *lval)
+{
+    *fval *= 2;
+    *lval *= 2;
+    *bval = !*bval;
+    return S_OK;
+}
+
 STDMETHODIMP CPyCOMTest::GetSetInterface(IPyCOMTest *ininterface, IPyCOMTest **outinterface)
 {
     if (outinterface == NULL)
@@ -700,6 +708,18 @@ HRESULT CPyCOMTest::TestMyInterface(IUnknown *unktester)
     CHECK_HR(tester->Test5(&tattr));
     CHECK_TRUE(tattr == TestAttr1);
 
+    float fval = 2.0;
+    long lval = 4;
+    i = VARIANT_TRUE;
+    CHECK_HR(tester->TestInOut(&fval, &i, &lval));
+    CHECK_TRUE(fval == 4.0);
+    CHECK_TRUE(lval == 8);
+    CHECK_TRUE(i == VARIANT_FALSE);
+    CHECK_HR(tester->TestInOut(&fval, &i, &lval));
+    CHECK_TRUE(fval == 8.0);
+    CHECK_TRUE(lval == 16);
+    CHECK_TRUE(i == VARIANT_TRUE);
+
     // STRINGS
     CComBSTR instr("Foo");
     CComBSTR outstr;
@@ -785,6 +805,14 @@ HRESULT CPyCOMTest::EarliestDate(DATE first, DATE second, DATE *pResult)
     if (!pResult)
         return E_POINTER;
     *pResult = first <= second ? first : second;
+    return S_OK;
+}
+
+HRESULT CPyCOMTest::MakeDate(double val, DATE *pResult)
+{
+    if (!pResult)
+        return E_POINTER;
+    *pResult = (DATE)val;
     return S_OK;
 }
 

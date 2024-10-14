@@ -262,12 +262,11 @@ PyObject *PyIShellBrowser::SendControlMsg(PyObject *self, PyObject *args)
     PyObject *obwparam, *oblparam;
     if (!PyArg_ParseTuple(args, "IIOO:SendControlMsg", &id, &uMsg, &obwparam, &oblparam))
         return NULL;
-    WPARAM wParam;
-    LPARAM lParam;
+    PyWin_PARAMHolder wParam;
+    PyWin_PARAMHolder lParam;
     if (!PyWinObject_AsPARAM(obwparam, &wParam))
         return NULL;
-    // WPARAM and LPARAM are defined as UINT_PTR and LONG_PTR, so they can't be used interchangeably without a cast
-    if (!PyWinObject_AsPARAM(oblparam, (WPARAM *)&lParam))
+    if (!PyWinObject_AsPARAM(oblparam, &lParam))
         return NULL;
 
     HRESULT hr;
@@ -528,7 +527,7 @@ STDMETHODIMP PyGShellBrowser::SendControlMsg(
     PyObject *result;
     HRESULT hr = InvokeViaPolicy("SendControlMsg", &result, "iiNN", id, uMsg, PyWinObject_FromPARAM(wParam),
                                  PyWinObject_FromPARAM(lParam));
-    if (PyInt_Check(result) || PyLong_Check(result))
+    if (PyLong_Check(result) || PyLong_Check(result))
         PyWinLong_AsULONG_PTR(result, (ULONG_PTR *)pret);
     Py_DECREF(result);
     return hr;

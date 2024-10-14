@@ -244,7 +244,6 @@ PyObject *pythoncom_StgOpenStorageOnILockBytes(PyObject *self, PyObject *args)
     return PyCom_PyObjectFromIUnknown(pResult, IID_IStorage, FALSE);
 }
 
-#ifndef MS_WINCE
 // @pymethod int|pythoncom|StgIsStorageFile|Indicates whether a particular disk file contains a storage object.
 PyObject *pythoncom_StgIsStorageFile(PyObject *self, PyObject *args)
 {
@@ -263,9 +262,8 @@ PyObject *pythoncom_StgIsStorageFile(PyObject *self, PyObject *args)
     // @rdesc The return value is 1 if a storage file, else 0.  This
     // method will also raise com_error if the StgIsStorageFile function
     // returns a failure HRESULT.
-    return PyInt_FromLong(hr == 0);
+    return PyLong_FromLong(hr == 0);
 }
-#endif  // MS_WINCE
 
 // @pymethod <o PyIStorage>|pythoncom|StgOpenStorage|Opens an existing root storage object in the file system.
 PyObject *pythoncom_StgOpenStorage(PyObject *self, PyObject *args)
@@ -346,7 +344,8 @@ PyObject *pythoncom_StgOpenStorageEx(PyObject *self, PyObject *args, PyObject *k
         return NULL;
     if (!PyWinObject_AsWCHAR(obfname, &fname))
         return NULL;
-    if (!PyCom_PyObjectAsSTGOPTIONS(obstgoptions, &pstgoptions))
+    TmpWCHAR tmpw_shelve[1];
+    if (!PyCom_PyObjectAsSTGOPTIONS(obstgoptions, &pstgoptions, tmpw_shelve))
         return NULL;
 
     PY_INTERFACE_PRECALL;
@@ -411,7 +410,8 @@ PyObject *pythoncom_StgCreateStorageEx(PyObject *self, PyObject *args, PyObject 
         return NULL;
     if (!PyWinObject_AsWCHAR(obfname, &fname, TRUE))
         return NULL;
-    if (!PyCom_PyObjectAsSTGOPTIONS(obstgoptions, &pstgoptions))
+    TmpWCHAR tmpw_shelve[1];
+    if (!PyCom_PyObjectAsSTGOPTIONS(obstgoptions, &pstgoptions, tmpw_shelve))
         return NULL;
 
     PY_INTERFACE_PRECALL;

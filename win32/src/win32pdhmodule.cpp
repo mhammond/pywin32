@@ -184,14 +184,6 @@ class TmpTCHAR {
 
 static PyObject *win32pdh_counter_error;
 
-// Select whether to load ansi or unicode API functions
-// Module is now always built as unicode, this can go away.
-#ifdef UNICODE
-#define A_OR_W "W"
-#else
-#define A_OR_W "A"
-#endif
-
 BOOL LoadPointers()
 {
     HMODULE handle = LoadLibrary(_T("pdh.dll"));
@@ -199,29 +191,29 @@ BOOL LoadPointers()
         //		PyErr_SetString(PyExc_RuntimeError, "The PDH DLL could not be located");
         return FALSE;
     }
-    pPdhEnumObjects = (FuncPdhEnumObjects)GetProcAddress(handle, "PdhEnumObjects" A_OR_W);
-    pPdhEnumObjectItems = (FuncPdhEnumObjectItems)GetProcAddress(handle, "PdhEnumObjectItems" A_OR_W);
+    pPdhEnumObjects = (FuncPdhEnumObjects)GetProcAddress(handle, "PdhEnumObjectsW");
+    pPdhEnumObjectItems = (FuncPdhEnumObjectItems)GetProcAddress(handle, "PdhEnumObjectItemsW");
     pPdhCloseQuery = (FuncPdhCloseQuery)GetProcAddress(handle, "PdhCloseQuery");
     pPdhRemoveCounter = (FuncPdhRemoveCounter)GetProcAddress(handle, "PdhRemoveCounter");
-    pPdhOpenQuery = (FuncPdhOpenQuery)GetProcAddress(handle, "PdhOpenQuery" A_OR_W);
-    pPdhAddCounter = (FuncPdhAddCounter)GetProcAddress(handle, "PdhAddCounter" A_OR_W);
-    pPdhAddEnglishCounter = (FuncPdhAddCounter)GetProcAddress(handle, "PdhAddEnglishCounter" A_OR_W);
-    pPdhMakeCounterPath = (FuncPdhMakeCounterPath)GetProcAddress(handle, "PdhMakeCounterPath" A_OR_W);
-    pPdhGetCounterInfo = (FuncPdhGetCounterInfo)GetProcAddress(handle, "PdhGetCounterInfo" A_OR_W);
+    pPdhOpenQuery = (FuncPdhOpenQuery)GetProcAddress(handle, "PdhOpenQueryW");
+    pPdhAddCounter = (FuncPdhAddCounter)GetProcAddress(handle, "PdhAddCounterW");
+    pPdhAddEnglishCounter = (FuncPdhAddCounter)GetProcAddress(handle, "PdhAddEnglishCounterW");
+    pPdhMakeCounterPath = (FuncPdhMakeCounterPath)GetProcAddress(handle, "PdhMakeCounterPathW");
+    pPdhGetCounterInfo = (FuncPdhGetCounterInfo)GetProcAddress(handle, "PdhGetCounterInfoW");
     pPdhGetFormattedCounterValue =
         (FuncPdhGetFormattedCounterValue)GetProcAddress(handle, "PdhGetFormattedCounterValue");
     pPdhGetFormattedCounterArray =
-        (FuncPdhGetFormattedCounterArray)GetProcAddress(handle, "PdhGetFormattedCounterArray" A_OR_W);
+        (FuncPdhGetFormattedCounterArray)GetProcAddress(handle, "PdhGetFormattedCounterArrayW");
     pPdhCollectQueryData = (FuncPdhCollectQueryData)GetProcAddress(handle, "PdhCollectQueryData");
-    pPdhValidatePath = (FuncPdhValidatePath)GetProcAddress(handle, "PdhValidatePath" A_OR_W);
-    pPdhExpandCounterPath = (FuncPdhExpandCounterPath)GetProcAddress(handle, "PdhExpandCounterPath" A_OR_W);
-    pPdhParseCounterPath = (FuncPdhParseCounterPath)GetProcAddress(handle, "PdhParseCounterPath" A_OR_W);
+    pPdhValidatePath = (FuncPdhValidatePath)GetProcAddress(handle, "PdhValidatePathW");
+    pPdhExpandCounterPath = (FuncPdhExpandCounterPath)GetProcAddress(handle, "PdhExpandCounterPathW");
+    pPdhParseCounterPath = (FuncPdhParseCounterPath)GetProcAddress(handle, "PdhParseCounterPathW");
     pPdhSetCounterScaleFactor = (FuncPdhSetCounterScaleFactor)GetProcAddress(handle, "PdhSetCounterScaleFactor");
-    pPdhParseInstanceName = (FuncPdhParseInstanceName)GetProcAddress(handle, "PdhParseInstanceName" A_OR_W);
-    pPdhBrowseCounters = (FuncPdhBrowseCounters)GetProcAddress(handle, "PdhBrowseCounters" A_OR_W);
-    pPdhConnectMachine = (FuncPdhConnectMachine)GetProcAddress(handle, "PdhConnectMachine" A_OR_W);
-    pPdhLookupPerfNameByIndex = (FuncPdhLookupPerfNameByIndex)GetProcAddress(handle, "PdhLookupPerfNameByIndex" A_OR_W);
-    pPdhLookupPerfIndexByName = (FuncPdhLookupPerfIndexByName)GetProcAddress(handle, "PdhLookupPerfIndexByName" A_OR_W);
+    pPdhParseInstanceName = (FuncPdhParseInstanceName)GetProcAddress(handle, "PdhParseInstanceNameW");
+    pPdhBrowseCounters = (FuncPdhBrowseCounters)GetProcAddress(handle, "PdhBrowseCountersW");
+    pPdhConnectMachine = (FuncPdhConnectMachine)GetProcAddress(handle, "PdhConnectMachineW");
+    pPdhLookupPerfNameByIndex = (FuncPdhLookupPerfNameByIndex)GetProcAddress(handle, "PdhLookupPerfNameByIndexW");
+    pPdhLookupPerfIndexByName = (FuncPdhLookupPerfIndexByName)GetProcAddress(handle, "PdhLookupPerfIndexByNameW");
 
     // Pdh error codes are in 2 different ranges
     PyWin_RegisterErrorMessageModule(PDH_CSTATUS_NO_MACHINE, PDH_CANNOT_SET_DEFAULT_REALTIME_DATASOURCE, handle);
@@ -233,7 +225,7 @@ BOOL CheckCounterStatusOK(DWORD status)
 {
     if (status == 0)
         return TRUE;
-    PyObject *v = PyInt_FromLong(status);
+    PyObject *v = PyLong_FromLong(status);
     PyErr_SetObject(win32pdh_counter_error, v);
     Py_DECREF(v);
     return FALSE;
@@ -669,11 +661,11 @@ static PyObject *PyGetFormattedCounterValue(PyObject *self, PyObject *args)
     if (format & PDH_FMT_DOUBLE)
         rc = PyFloat_FromDouble(result.doubleValue);
     else if (format & PDH_FMT_LONG)
-        rc = PyInt_FromLong(result.longValue);
+        rc = PyLong_FromLong(result.longValue);
     else if (format & PDH_FMT_LARGE)
         rc = PyLong_FromLongLong(result.largeValue);
     else {
-        PyErr_SetString(PyExc_ValueError, "Dont know how to convert the result");
+        PyErr_SetString(PyExc_ValueError, "Don't know how to convert the result");
         rc = NULL;
     }
     PyObject *realrc = Py_BuildValue("iO", type, rc);
@@ -695,26 +687,28 @@ static PyObject *PyPdhGetFormattedCounterArray(PyObject *self, PyObject *args)
         return NULL;
     if (!PyWinObject_AsHANDLE(obhandle, &handle))
         return NULL;
-    DWORD type;
-    PDH_FMT_COUNTERVALUE result;
     CHECK_PDH_PTR(pPdhGetFormattedCounterArray);
     PDH_STATUS pdhStatus;
     DWORD size = 0;
     DWORD count;
     PDH_FMT_COUNTERVALUE_ITEM *pItems = NULL;
 
-    Py_BEGIN_ALLOW_THREADS pdhStatus = (*pPdhGetFormattedCounterArray)(handle, format, &size, &count, pItems);
-    Py_END_ALLOW_THREADS if (pdhStatus != PDH_MORE_DATA) return PyWin_SetAPIError("PdhGetFormattedCounterArray",
-                                                                                  pdhStatus);
+    Py_BEGIN_ALLOW_THREADS;
+    pdhStatus = (*pPdhGetFormattedCounterArray)(handle, format, &size, &count, pItems);
+    Py_END_ALLOW_THREADS;
+    if (pdhStatus != PDH_MORE_DATA) {
+        return PyWin_SetAPIError("PdhGetFormattedCounterArray", pdhStatus);
+    }
     pItems = (PDH_FMT_COUNTERVALUE_ITEM *)malloc(size);
     if (pItems == NULL) {
         PyErr_NoMemory();
         return NULL;
     }
 
-    Py_BEGIN_ALLOW_THREADS pdhStatus = (*pPdhGetFormattedCounterArray)(handle, format, &size, &count, pItems);
-    Py_END_ALLOW_THREADS if (pdhStatus != ERROR_SUCCESS)
-    {
+    Py_BEGIN_ALLOW_THREADS;
+    pdhStatus = (*pPdhGetFormattedCounterArray)(handle, format, &size, &count, pItems);
+    Py_END_ALLOW_THREADS;
+    if (pdhStatus != ERROR_SUCCESS) {
         free(pItems);
         return PyWin_SetAPIError("PdhGetFormattedCounterArray", pdhStatus);
     }
@@ -733,16 +727,19 @@ static PyObject *PyPdhGetFormattedCounterArray(PyObject *self, PyObject *args)
         if (format & PDH_FMT_DOUBLE)
             value = PyFloat_FromDouble(pItems[i].FmtValue.doubleValue);
         else if (format & PDH_FMT_LONG)
-            value = PyInt_FromLong(pItems[i].FmtValue.longValue);
+            value = PyLong_FromLong(pItems[i].FmtValue.longValue);
         else if (format & PDH_FMT_LARGE)
             value = PyLong_FromLongLong(pItems[i].FmtValue.largeValue);
         else {
-            PyErr_SetString(PyExc_ValueError, "Dont know how to convert the result");
+            PyErr_SetString(PyExc_ValueError, "Don't know how to convert the result");
             Py_XDECREF(rc);
+            Py_XDECREF(key);
             rc = NULL;
             break;
         }
         PyDict_SetItem(rc, key, value);
+        Py_XDECREF(key);
+        Py_XDECREF(value);
     }
     free(pItems);
     return rc;
@@ -788,7 +785,7 @@ static PyObject *PyValidatePath(PyObject *self, PyObject *args)
 
     PyWinObject_FreeTCHAR(path);
 
-    return PyInt_FromLong(pdhStatus);
+    return PyLong_FromLong(pdhStatus);
     // @comm This method returns an integer result code.  No exception is
     // ever thrown.  Zero result indicates success.
 }
@@ -980,7 +977,7 @@ PDH_STATUS __stdcall PyCounterPathCallback(DWORD_PTR dwArg)
         rc = ERROR_OUTOFMEMORY;
     }
     else {
-        result = PyEval_CallObject(pMy->func, args);
+        result = PyObject_CallObject(pMy->func, args);
         if (result == NULL) {
             PyErr_Print();  // *Don't* leave exception hanging
             rc = PDH_INVALID_DATA;
@@ -989,7 +986,7 @@ PDH_STATUS __stdcall PyCounterPathCallback(DWORD_PTR dwArg)
         else if (result == Py_None)
             rc = ERROR_SUCCESS;
         else {
-            rc = PyInt_AsLong(result);
+            rc = PyLong_AsLong(result);
             if (rc == -1 && PyErr_Occurred()) {
                 PyErr_Print();  // *Don't* leave exception hanging
                 rc = PDH_INVALID_DATA;
@@ -1162,7 +1159,7 @@ static PyObject *PyLookupPerfIndexByName(PyObject *self, PyObject *args)
     Py_END_ALLOW_THREADS
 
         if (pdhStatus != 0) return PyWin_SetAPIError("LookupPerfIndexByName", pdhStatus);
-    return PyInt_FromLong(dwIndex);
+    return PyLong_FromLong(dwIndex);
 }
 
 // @pymethod string|win32pdh|LookupPerfNameByIndex|Returns the performance object name corresponding to the specified
@@ -1284,6 +1281,7 @@ PYWIN_MODULE_INIT_FUNC(win32pdh)
     ADD_CONSTANT(PDH_FMT_DOUBLE);
     ADD_CONSTANT(PDH_FMT_LARGE);
     ADD_CONSTANT(PDH_FMT_NOSCALE);
+    ADD_CONSTANT(PDH_FMT_NOCAP100);
     ADD_CONSTANT(PDH_FMT_1000);
     ADD_CONSTANT(PDH_FMT_NODATA);
 

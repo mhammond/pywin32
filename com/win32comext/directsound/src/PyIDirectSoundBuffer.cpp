@@ -126,7 +126,7 @@ PyObject *PyIDirectSoundBuffer::GetStatus(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    return PyInt_FromLong(dwStatus);
+    return PyLong_FromLong(dwStatus);
 }
 
 // @pymethod |PyIDirectSoundBuffer|SetFormat|Sets the format of the primary sound buffer for the application. Whenever
@@ -243,8 +243,8 @@ PyObject *PyIDirectSoundBuffer::GetCurrentPosition(PyObject *self, PyObject *arg
     if (!result)
         return NULL;
 
-    PyTuple_SetItem(result, 0, PyInt_FromLong(dwPlay));
-    PyTuple_SetItem(result, 1, PyInt_FromLong(dwWrite));
+    PyTuple_SetItem(result, 0, PyLong_FromLong(dwPlay));
+    PyTuple_SetItem(result, 1, PyLong_FromLong(dwWrite));
 
     return result;
 }
@@ -339,7 +339,7 @@ PyObject *PyIDirectSoundBuffer::Update(PyObject *self, PyObject *args)
     DWORD dwAudioBytes2 = 0;
 
     PY_INTERFACE_PRECALL;
-    hr = pIDSB->Lock(dwWriteCursor, PyString_Size(obData), &lpAudioPtr1, &dwAudioBytes1, &lpAudioPtr2, &dwAudioBytes2,
+    hr = pIDSB->Lock(dwWriteCursor, PyBytes_Size(obData), &lpAudioPtr1, &dwAudioBytes1, &lpAudioPtr2, &dwAudioBytes2,
                      dwFlags);
     PY_INTERFACE_POSTCALL;
 
@@ -353,7 +353,7 @@ PyObject *PyIDirectSoundBuffer::Update(PyObject *self, PyObject *args)
 
     // Raise error if assumption isn't met
 
-    if (dwAudioBytes1 + dwAudioBytes2 != (DWORD)PyString_Size(obData)) {
+    if (dwAudioBytes1 + dwAudioBytes2 != (DWORD)PyBytes_Size(obData)) {
         PY_INTERFACE_PRECALL;
         hr = pIDSB->Unlock(lpAudioPtr1, dwAudioBytes1, lpAudioPtr2, dwAudioBytes2);
         PY_INTERFACE_POSTCALL;
@@ -363,9 +363,9 @@ PyObject *PyIDirectSoundBuffer::Update(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    memcpy(lpAudioPtr1, PyString_AsString(obData), dwAudioBytes1);
+    memcpy(lpAudioPtr1, PyBytes_AsString(obData), dwAudioBytes1);
     if (dwAudioBytes2) {
-        memcpy(lpAudioPtr2, PyString_AsString(obData) + dwAudioBytes1, dwAudioBytes2);
+        memcpy(lpAudioPtr2, PyBytes_AsString(obData) + dwAudioBytes1, dwAudioBytes2);
     }
 
     {
@@ -404,7 +404,7 @@ PyObject *PyIDirectSoundBuffer::GetFrequency(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    return PyInt_FromLong(dwFrequency);
+    return PyLong_FromLong(dwFrequency);
 }
 
 // @pymethod |PyIDirectSoundBuffer|GetPan|Description of GetPan.
@@ -427,7 +427,7 @@ PyObject *PyIDirectSoundBuffer::GetPan(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    return PyInt_FromLong(pan);
+    return PyLong_FromLong(pan);
 }
 
 // @pymethod |PyIDirectSoundBuffer|GetVolume|Description of GetVolume.
@@ -450,7 +450,7 @@ PyObject *PyIDirectSoundBuffer::GetVolume(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    return PyInt_FromLong(pan);
+    return PyLong_FromLong(pan);
 }
 
 // @pymethod |PyIDirectSoundBuffer|SetFrequency|Description of SetFrequency.

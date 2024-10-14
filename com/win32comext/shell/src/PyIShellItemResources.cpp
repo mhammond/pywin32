@@ -84,9 +84,9 @@ PyObject *PyIShellItemResources::SetTimes(PyObject *self, PyObject *args)
     IShellItemResources *pISIR = GetI(self);
     if (pISIR == NULL)
         return NULL;
-    // @pyparm <o PyTime>|pftCreation||Description for pftCreation
-    // @pyparm <o PyTime>|pftWrite||Description for pftWrite
-    // @pyparm <o PyTime>|pftAccess||Description for pftAccess
+    // @pyparm <o PyDateTime>|pftCreation||Description for pftCreation
+    // @pyparm <o PyDateTime>|pftWrite||Description for pftWrite
+    // @pyparm <o PyDateTime>|pftAccess||Description for pftAccess
     FILETIME ftCreation;
     FILETIME ftWrite;
     FILETIME ftAccess;

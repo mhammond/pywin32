@@ -31,14 +31,14 @@ PyObject *PyIExtractIcon::Extract(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "Oii:Extract", &obpszFile, &nIconIndex, &nIconSize))
         return NULL;
     BOOL bPythonIsHappy = TRUE;
-    if (!PyWinObject_AsString(obpszFile, &pszFile))
+    if (!PyWinObject_AsChars(obpszFile, &pszFile))
         bPythonIsHappy = FALSE;
     if (!bPythonIsHappy)
         return NULL;
     HRESULT hr;
     PY_INTERFACE_PRECALL;
     hr = pIEI->Extract(pszFile, nIconIndex, &hiconLarge, &hiconSmall, nIconSize);
-    PyWinObject_FreeString(pszFile);
+    PyWinObject_FreeChars(pszFile);
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIEI, IID_IExtractIcon);
@@ -75,7 +75,7 @@ PyObject *PyIExtractIcon::GetIconLocation(PyObject *self, PyObject *args)
         free(buf);
         return PyCom_BuildPyException(hr, pIEI, IID_IExtractIcon);
     }
-    PyObject *retStr = PyString_FromString(buf);
+    PyObject *retStr = PyBytes_FromString(buf);
     free(buf);
     return Py_BuildValue("iNii", hr, retStr, iIndex, flags);
 }
@@ -100,14 +100,14 @@ STDMETHODIMP PyGExtractIcon::Extract(
 {
     PY_GATEWAY_METHOD;
     PyObject *obpszFile;
-    obpszFile = PyString_FromString(pszFile);
+    obpszFile = PyBytes_FromString(pszFile);
     PyObject *result;
     HRESULT hr = InvokeViaPolicy("Extract", &result, "Oii", obpszFile, nIconIndex, nIconSize);
     Py_XDECREF(obpszFile);
     if (FAILED(hr))
         return hr;
-    if (PyInt_Check(result) || PyLong_Check(result))
-        hr = PyInt_AsLong(result);
+    if (PyLong_Check(result) || PyLong_Check(result))
+        hr = PyLong_AsLong(result);
     else {
         PyObject *oblarge, *obsmall;
         if (PyArg_ParseTuple(result, "OO", &oblarge, &obsmall) &&
@@ -140,14 +140,14 @@ STDMETHODIMP PyGExtractIcon::GetIconLocation(
         return hr;
     PyObject *obFileName;
     // Process the Python results, and convert back to the real params
-    if (PyInt_Check(result) || PyLong_Check(result))
-        hr = PyInt_AsLong(result);
+    if (PyLong_Check(result) || PyLong_Check(result))
+        hr = PyLong_AsLong(result);
     else {
         if (PyArg_ParseTuple(result, "Oii", &obFileName, piIndex, pflags)) {
             char *filename;
-            if (PyWinObject_AsString(obFileName, &filename)) {
+            if (PyWinObject_AsChars(obFileName, &filename)) {
                 strncpy(szIconFile, filename, cchMax);
-                PyWinObject_FreeString(filename);
+                PyWinObject_FreeChars(filename);
             }
         }
         hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetIconLocation");

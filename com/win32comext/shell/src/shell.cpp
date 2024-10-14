@@ -74,6 +74,7 @@ generates Windows .hlp files.
 #include "PyITransferAdviseSink.h"
 #include "PyIShellItemResources.h"
 #include "PyIEnumResources.h"
+#include "PyIFolderView.h"
 
 #include "PyIRelatedItem.h"  // Next 4 all derived from IRelatedItem
 #include "PyIDisplayItem.h"
@@ -240,7 +241,7 @@ PyObject *PyObject_FromPIDL(LPCITEMIDLIST pidl, BOOL bFreeSystemPIDL)
             }
             // The length may be too large to read (and causing an
             // exception deep inside Python doesn't always leave
-            // things in a good state!  Its also inconvenient to
+            // things in a good state!  It's also inconvenient to
             // always pass the size of the object - so explicitly
             // check we can read the memory.
             UINT cbdata = pidl->mkid.cb - sizeof(pidl->mkid.cb);
@@ -250,7 +251,7 @@ PyObject *PyObject_FromPIDL(LPCITEMIDLIST pidl, BOOL bFreeSystemPIDL)
                 PyErr_SetString(PyExc_ValueError, "This string has an invalid sub-item (too long)");
                 break;
             }
-            PyObject *sub = PyString_FromStringAndSize((char *)pidl->mkid.abID, cbdata);
+            PyObject *sub = PyBytes_FromStringAndSize((char *)pidl->mkid.abID, cbdata);
             if (sub) {
                 PyList_Append(ret, sub);
                 Py_DECREF(sub);
@@ -286,7 +287,7 @@ BOOL PyObject_AsPIDL(PyObject *ob, LPITEMIDLIST *ppidl, BOOL bNoneOK /*= FALSE*/
             *pcb = 0;
         return TRUE;
     }
-    if (!PySequence_Check(ob) || PyString_Check(ob)) {
+    if (!PySequence_Check(ob) || PyBytes_Check(ob)) {
         PyErr_Format(PyExc_TypeError, "Only sequences (but not strings) are valid ITEMIDLIST objects (got %s).",
                      ob->ob_type->tp_name);
         return FALSE;
@@ -302,17 +303,17 @@ BOOL PyObject_AsPIDL(PyObject *ob, LPITEMIDLIST *ppidl, BOOL bNoneOK /*= FALSE*/
         PyObject *sub = PySequence_GetItem(ob, i);
         if (!sub)
             return FALSE;
-        if (!PyString_Check(sub)) {
+        if (!PyBytes_Check(sub)) {
             PyErr_Format(PyExc_TypeError, "ITEMIDLIST sub-items must be strings (got %s)", sub->ob_type->tp_name);
             Py_DECREF(sub);
             return FALSE;
         }
-        if (PyString_GET_SIZE(sub) > cbMax) {
+        if (PyBytes_GET_SIZE(sub) > cbMax) {
             PyErr_Format(PyExc_ValueError, "Python string exceeds maximum size for a PIDL item");
             Py_DECREF(sub);
             return FALSE;
         }
-        cbTotal += sizeof((*ppidl)->mkid.cb) + PyString_GET_SIZE(sub);
+        cbTotal += sizeof((*ppidl)->mkid.cb) + PyBytes_GET_SIZE(sub);
         Py_DECREF(sub);
     }
     // Now again, filling our buffer.
@@ -327,14 +328,14 @@ BOOL PyObject_AsPIDL(PyObject *ob, LPITEMIDLIST *ppidl, BOOL bNoneOK /*= FALSE*/
         if (!sub)
             return FALSE;
         /* Don't need to check this again, called holding GIL so nothing can modify the sequence
-        if (!PyString_Check(sub)) {
+        if (!PyBytes_Check(sub)) {
             PyErr_Format(PyExc_TypeError, "ITEMIDLIST sub-items must be strings (got %s)", sub->ob_type->tp_name);
             Py_DECREF(sub);
             return FALSE;
         }
         */
-        pidl->mkid.cb = (USHORT)PyString_GET_SIZE(sub) + sizeof(pidl->mkid.cb);
-        memcpy(pidl->mkid.abID, PyString_AS_STRING(sub), PyString_GET_SIZE(sub));
+        pidl->mkid.cb = (USHORT)PyBytes_GET_SIZE(sub) + sizeof(pidl->mkid.cb);
+        memcpy(pidl->mkid.abID, PyBytes_AS_STRING(sub), PyBytes_GET_SIZE(sub));
         Py_DECREF(sub);
         pidl = _ILNext(pidl);
     }
@@ -353,7 +354,7 @@ BOOL PyObject_AsPIDLArray(PyObject *obSeq, UINT *pcidl, LPCITEMIDLIST **ret)
     // string is a seq - handle that
     *pcidl = 0;
     *ret = NULL;
-    if (PyString_Check(obSeq) || !PySequence_Check(obSeq)) {
+    if (PyBytes_Check(obSeq) || !PySequence_Check(obSeq)) {
         PyErr_SetString(PyExc_TypeError, "Must be an array of IDLs");
         return FALSE;
     }
@@ -491,8 +492,8 @@ PyObject *PyObject_AsCIDA(PyObject *ob)
         nbytes += cbParent;
         // and each kid.
         for (i = 0; i < nKids; i++) nbytes += pKids[i].pidl_size;
-        ret = PyString_FromStringAndSize(NULL, nbytes);
-        pcida = (CIDA *)PyString_AS_STRING(ret);
+        ret = PyBytes_FromStringAndSize(NULL, nbytes);
+        pcida = (CIDA *)PyBytes_AS_STRING(ret);
         pcida->cidl = nKids;  // not counting parent.
         pidl_buf = ((LPBYTE)pcida) + pidl_offset;
         pcida->aoffset[0] = pidl_offset;
@@ -566,8 +567,8 @@ BOOL PyObject_AsTBBUTTONs(PyObject *ob, TBBUTTON **ppButtons, UINT *pnButtons)
 PyObject *PyWinObject_FromRESOURCESTRING(LPCSTR str)
 {
     if (HIWORD(str) == 0)
-        return PyInt_FromLong(LOWORD(str));
-    return PyString_FromString(str);
+        return PyLong_FromLong(LOWORD(str));
+    return PyBytes_FromString(str);
 }
 
 // @object PyCMINVOKECOMMANDINFO|A tuple of parameters to be converted to a CMINVOKECOMMANDINFO struct
@@ -595,7 +596,7 @@ BOOL PyObject_AsCMINVOKECOMMANDINFO(PyObject *ob, CMINVOKECOMMANDINFO *pci)
         return FALSE;
     return TRUE;
 }
-void PyObject_FreeCMINVOKECOMMANDINFO(CMINVOKECOMMANDINFO *pci) { PyWinObject_FreeResourceId((char *)pci->lpVerb); }
+void PyObject_FreeCMINVOKECOMMANDINFO(CMINVOKECOMMANDINFO *pci) { PyWinObject_FreeResourceIdA((char *)pci->lpVerb); }
 
 static PyObject *PyString_FromMaybeNullString(const char *sz)
 {
@@ -646,10 +647,10 @@ PyObject *PyObject_FromSTRRET(STRRET *ps, ITEMIDLIST *pidl, BOOL bFree)
     PyObject *ret;
     switch (ps->uType) {
         case STRRET_CSTR:
-            ret = PyString_FromString(ps->cStr);
+            ret = PyBytes_FromString(ps->cStr);
             break;
         case STRRET_OFFSET:
-            ret = PyString_FromString(((char *)pidl) + ps->uOffset);
+            ret = PyBytes_FromString(((char *)pidl) + ps->uOffset);
             break;
         case STRRET_WSTR:
             ret = PyWinObject_FromWCHAR(ps->pOleStr);
@@ -945,12 +946,12 @@ BOOL PyObject_AsSHFILEOPSTRUCT(PyObject *ob, SHFILEOPSTRUCT *p)
     memset(p, 0, sizeof(*p));
     if (!PyArg_ParseTuple(
             ob, "OiOO|iOO",
-            &obhwnd,    // @tupleitem 0|int|hwnd|Handle of window in which to display status messages
-            &p->wFunc,  // @tupleitem 1|int|wFunc|One of the shellcon.FO_* values
-            &obFrom,    // @tupleitem 2|str/unicode|From|String containing source file name(s) separated by nulls
-            &obTo,  // @tupleitem 3|str/unicode|To|String containing destination file name(s) separated by nulls, can be
-                    // None
-            &p->fFlags,         // @tupleitem 4|int|flags|Combination of shellcon.FOF_* flags. Default=0
+            &obhwnd,     // @tupleitem 0|int|hwnd|Handle of window in which to display status messages
+            &p->wFunc,   // @tupleitem 1|int|wFunc|One of the shellcon.FO_* values
+            &obFrom,     // @tupleitem 2|string|From|String containing source file name(s) separated by nulls
+            &obTo,       // @tupleitem 3|string|To|String containing destination file name(s) separated by nulls, can be
+                         // None
+            &p->fFlags,  // @tupleitem 4|int|flags|Combination of shellcon.FOF_* flags. Default=0
             &obNameMappings,    // @tupleitem 5|None|NameMappings|Maps input file names to their new names.  This is
                                 // actually output, and must be None if passed as input. Default=None
             &obProgressTitle))  // @tupleitem 6|string|ProgressTitle|Title for progress dialog (flags must contain
@@ -1060,13 +1061,17 @@ static int CALLBACK PyBrowseCallbackProc(HWND hwnd, UINT uMsg, LPARAM lParam, LP
         goto done;
     }
     assert(!PyErr_Occurred());
+#ifdef _WIN64
+    args = Py_BuildValue("NiLO", PyWinLong_FromHANDLE(hwnd), uMsg, lParam, pc->data);
+#else
     args = Py_BuildValue("NilO", PyWinLong_FromHANDLE(hwnd), uMsg, lParam, pc->data);
+#endif
     if (!args)
         goto done;
-    result = PyEval_CallObject(pc->fn, args);
+    result = PyObject_CallObject(pc->fn, args);
     // API says must return 0, but there might be a good reason.
-    if (result && PyInt_Check(result))
-        rc = PyInt_AsLong(result);
+    if (result && PyLong_Check(result))
+        rc = PyLong_AsLong(result);
 done:
     if (PyErr_Occurred()) {
         PySys_WriteStderr("SHBrowseForFolder callback failed!\n");
@@ -1130,7 +1135,7 @@ static PyObject *PySHBrowseForFolder(PyObject *self, PyObject *args)
             &obhwndOwner,  // @pyparm <o PyHANDLE>|hwndOwner|None|Parent window for the dialog box, can be None
             &obPIDL,   // @pyparm <o PyIDL>|pidlRoot|None|PIDL identifying the place to start browsing. Desktop is used
                        // if not specified
-            &obTitle,  // @pyparm <o Unicode>/string|title|None|Title to be displayed with the directory tree
+            &obTitle,  // @pyparm string|title|None|Title to be displayed with the directory tree
             &bi.ulFlags,  // @pyparm int|flags|0|Combination of shellcon.BIF_* flags
             &obcb,        // @pyparm object|callback|None|A callable object to be used as the callback, or None
             &obcbparam))  // @pyparm object|callback_data|None|An object passed to the callback function
@@ -1207,12 +1212,12 @@ static PyObject *PySHGetPathFromIDList(PyObject *self, PyObject *args)
         rc = NULL;
     }
     else
-        rc = PyString_FromString(buffer);
+        rc = PyBytes_FromString(buffer);
     PyObject_FreePIDL(pidl);
     return rc;
 }
 
-// @pymethod <o PyUnicode>|shell|SHGetPathFromIDListW|Converts an IDLIST to a path.
+// @pymethod string|shell|SHGetPathFromIDListW|Converts an IDLIST to a path.
 static PyObject *PySHGetPathFromIDListW(PyObject *self, PyObject *args)
 {
     WCHAR buffer[MAX_PATH];
@@ -1239,7 +1244,7 @@ static PyObject *PySHGetPathFromIDListW(PyObject *self, PyObject *args)
     return rc;
 }
 
-// @pymethod <o PyUnicode>|shell|SHGetSpecialFolderPath|Retrieves the path of a special folder.
+// @pymethod string|shell|SHGetSpecialFolderPath|Retrieves the path of a special folder.
 static PyObject *PySHGetSpecialFolderPath(PyObject *self, PyObject *args)
 {
     HWND hwndOwner;
@@ -1267,6 +1272,36 @@ static PyObject *PySHGetSpecialFolderPath(PyObject *self, PyObject *args)
     if (!ok)
         return OleSetOleError(E_FAIL);
     return PyWinObject_FromWCHAR(buf);
+}
+
+// @pymethod string|shell|SHGetKnownFolderPath|Retrieves the full path of a known folder identified by the folder's
+// KNOWNFOLDERID.
+static PyObject *PySHGetKnownFolderPath(PyObject *self, PyObject *args)
+{
+    PyObject *obfid;
+    PyObject *obHandle = Py_None;
+    long flags = 0;
+    if (!PyArg_ParseTuple(args, "O|lO:SHGetKnownFolderPath",
+                          &obfid,  // @pyparm <o IID>|fid||One of the  KNOWNFOLDERID constants.
+                          &flags,  // @pyparm int|flags|0|Flags that specify special retrieval options. This value can
+                                   // be 0; otherwise, one or more of the KNOWN_FOLDER_FLAG values.
+                          &obHandle))  // @pyparm <o PyHANDLE>|token|None|An access token that represents a particular
+                                       // user. If this parameter is NULL, which is the most common usage, the function
+                                       // requests the known folder for the current user.
+        return NULL;
+    KNOWNFOLDERID fid;
+    if (!PyWinObject_AsIID(obfid, &fid))
+        return NULL;
+    HANDLE handle;
+    if (!PyWinObject_AsHANDLE(obHandle, &handle))
+        return NULL;
+    PWSTR buf = NULL;
+    PY_INTERFACE_PRECALL;
+    HRESULT hr = SHGetKnownFolderPath(fid, flags, handle, &buf);
+    PY_INTERFACE_POSTCALL;
+    PyObject *result = SUCCEEDED(hr) ? PyWinObject_FromWCHAR(buf) : OleSetOleError(hr);
+    CoTaskMemFree(buf);
+    return result;
 }
 
 // @pymethod <o PyIDL>|shell|SHGetSpecialFolderLocation|Retrieves the PIDL of a special folder.
@@ -1348,7 +1383,7 @@ static PyObject *PySHGetFileInfo(PyObject *self, PyObject *args)
     return ret;
 }
 
-// @pymethod string/<o PyUnicode>|shell|SHGetFolderPath|Retrieves the path of a folder.
+// @pymethod string|shell|SHGetFolderPath|Retrieves the path of a folder.
 static PyObject *PySHGetFolderPath(PyObject *self, PyObject *args)
 {
     HWND hwndOwner;
@@ -1400,7 +1435,7 @@ static PyObject *PySHSetFolderPath(PyObject *self, PyObject *args)
         return OleSetOleError(E_NOTIMPL);
     if (!PyArg_ParseTuple(args, "lO|O:SHSetFolderPath",
                           &csidl,     // @pyparm int|csidl||One of the shellcon.CSIDL_* values
-                          &obPath,    // @pyparm str/unicode|Path||The full path to be set
+                          &obPath,    // @pyparm string|Path||The full path to be set
                           &obToken))  // @pyparm <o PyHANDLE>|hToken|None|Handle to an access token, can be None
         return NULL;
     if (!PyWinObject_AsHANDLE(obToken, &hToken))
@@ -1481,12 +1516,12 @@ static PyObject *PySHAddToRecentDocs(PyObject *self, PyObject *args)
         case SHARD_PATHA: {
             // @flag SHARD_PATHA|String containing a file path
             char *buf;
-            if (!PyWinObject_AsString(ob, &buf, FALSE))
+            if (!PyWinObject_AsChars(ob, &buf, FALSE))
                 return NULL;
             PY_INTERFACE_PRECALL;
             SHAddToRecentDocs(flags, buf);
             PY_INTERFACE_POSTCALL;
-            PyWinObject_FreeString(buf);
+            PyWinObject_FreeChars(buf);
             break;
         }
         case SHARD_PATHW: {
@@ -1504,14 +1539,15 @@ static PyObject *PySHAddToRecentDocs(PyObject *self, PyObject *args)
             // @flag SHARD_PIDL|<o PyIDL>, or a buffer containing a PIDL (see <om shell.PIDLAsString>)
             LPITEMIDLIST buf;
             bool freepidl = FALSE;
+            PyWinBufferView pybuf;
             if (PyObject_AsPIDL(ob, &buf, FALSE))
                 freepidl = TRUE;
             else {
                 // Also accept a string containing a contiguous PIDL for backward compatibility
                 PyErr_Clear();
-                DWORD buflen;
-                if (!PyWinObject_AsReadBuffer(ob, (void **)&buf, &buflen, FALSE))
+                if (!pybuf.init(ob))
                     return NULL;
+                buf = (LPITEMIDLIST)pybuf.ptr();
             }
             PY_INTERFACE_PRECALL;
             SHAddToRecentDocs(flags, buf);
@@ -1652,7 +1688,7 @@ static PyObject *PySHQueryRecycleBin(PyObject *self, PyObject *args)
     WCHAR *RootPath = NULL;
     SHQUERYRBINFO info;
     if (!PyArg_ParseTuple(args, "|O:SHQueryRecycleBin",
-                          &obRootPath))  // @pyparm <o PyUnicode>|RootPath|None|A path containing the drive whose
+                          &obRootPath))  // @pyparm string|RootPath|None|A path containing the drive whose
                                          // recycle bin will be queried, or None for all drives
         return NULL;
     if (!PyWinObject_AsWCHAR(obRootPath, &RootPath, TRUE))
@@ -1677,7 +1713,7 @@ static PyObject *PyWinObject_FromSHNAMEMAPPINGS(LPVOID hNameMappings)
     // according to the SDK, SHFILEOPSTRUCT.hNameMappings should be interpreted thusly:
     struct SHNAMEMAPPINGS {
         UINT nbr_of_mappings;
-        LPSHNAMEMAPPINGW pmappings;  // on WinNT and up, the unicode version will always be returned
+        LPSHNAMEMAPPINGW pmappings;
     };
     SHNAMEMAPPINGS *mappings = (SHNAMEMAPPINGS *)hNameMappings;
     ret = PyTuple_New(mappings->nbr_of_mappings);
@@ -1800,11 +1836,11 @@ static PyObject *PySHChangeNotify(PyObject *self, PyObject *args)
             break;
         case SHCNF_PATHA:
         case SHCNF_PRINTERA:
-            p1 = (void *)PyString_AsString(ob1);
+            p1 = (void *)PyBytes_AsString(ob1);
             if (p1 == NULL)
                 bsuccess = FALSE;
             else if (ob2 != Py_None) {
-                p2 = (void *)PyString_AsString(ob2);
+                p2 = (void *)PyBytes_AsString(ob2);
                 if (p2 == NULL)
                     bsuccess = FALSE;
             }
@@ -1885,7 +1921,7 @@ static PyObject *PySHChangeNotifyRegister(PyObject *self, PyObject *args)
     rc = (*pfnSHChangeNotifyRegister)(hwnd, sources, events, msg, 1, &entry);
     PY_INTERFACE_POSTCALL;
     PyObject_FreePIDL(entry.pidl);
-    return PyInt_FromLong(rc);
+    return PyLong_FromLong(rc);
 }
 
 // @pymethod |shell|SHChangeNotifyDeregister|Unregisters the client's window process from receiving notification events
@@ -1930,7 +1966,7 @@ static PyObject *PyDragQueryFile(PyObject *self, PyObject *args)
     if (!PyWinObject_AsHANDLE(obhglobal, (HANDLE *)&hglobal))
         return NULL;
     if (index == 0xFFFFFFFF) {
-        return PyInt_FromLong(DragQueryFile(hglobal, index, NULL, 0));
+        return PyLong_FromLong(DragQueryFile(hglobal, index, NULL, 0));
     }
     // get the buffer size
     UINT nchars = DragQueryFile(hglobal, index, NULL, 0) + 2;
@@ -1943,7 +1979,7 @@ static PyObject *PyDragQueryFile(PyObject *self, PyObject *args)
     return ret;
 }
 
-// @pymethod int/<o PyUnicode>|shell|DragQueryFileW|Retrieves the names (or count) of dropped files
+// @pymethod int/string|shell|DragQueryFileW|Retrieves the names (or count) of dropped files
 static PyObject *PyDragQueryFileW(PyObject *self, PyObject *args)
 {
     HDROP hglobal;
@@ -1958,7 +1994,7 @@ static PyObject *PyDragQueryFileW(PyObject *self, PyObject *args)
     if (!PyWinObject_AsHANDLE(obhglobal, (HANDLE *)&hglobal))
         return NULL;
     if (index == 0xFFFFFFFF) {
-        return PyInt_FromLong(DragQueryFileW(hglobal, index, NULL, 0));
+        return PyLong_FromLong(DragQueryFileW(hglobal, index, NULL, 0));
     }
     // get the buffer size
     UINT nchars = DragQueryFileW(hglobal, index, NULL, 0) + 2;
@@ -2024,7 +2060,7 @@ static PyObject *PyPIDLAsString(PyObject *self, PyObject *args)
     ITEMIDLIST *ppidls;
     if (!PyObject_AsPIDL(obPIDL, &ppidls, FALSE, &cb))
         return NULL;
-    PyObject *ret = PyString_FromStringAndSize((char *)ppidls, cb);
+    PyObject *ret = PyBytes_FromStringAndSize((char *)ppidls, cb);
     CoTaskMemFree(ppidls);
     return ret;
 }
@@ -2118,7 +2154,7 @@ static PyObject *PySHGetSettings(PyObject *self, PyObject *args)
     CHECK_SET_VAL(SSF_WIN95CLASSIC, mask, fWin95Classic);
     // If requesting any of the top 3 bits, return them as well
     if (mask & 0xE000) {
-        PyObject *val = PyInt_FromLong(state.fRestFlags);
+        PyObject *val = PyLong_FromLong(state.fRestFlags);
         if (val) {
             PyDict_SetItemString(ret, "fRestFlags", val);
             Py_DECREF(val);
@@ -2147,12 +2183,8 @@ static PyObject *PyFILEGROUPDESCRIPTORAsString(PyObject *self, PyObject *args)
     // you only need specify attributes you care about.
     // <nl>In general, you can omit dwFlags - it will be set correctly based
     // on what other attributes exist.
-    // @pyparm bool|make_unicode|False on py2k, True on py3k|If true, a FILEDESCRIPTORW object is created
-#ifdef UNICODE
+    // @pyparm bool|make_unicode|True|If true, a FILEDESCRIPTORW object is created
     int make_unicode = TRUE;
-#else
-    int make_unicode = FALSE;
-#endif
     if (!PyArg_ParseTuple(args, "O|i", &ob, &make_unicode))
         return NULL;
     if (!PySequence_Check(ob))
@@ -2165,11 +2197,11 @@ static PyObject *PyFILEGROUPDESCRIPTORAsString(PyObject *self, PyObject *args)
         cb = sizeof(FILEGROUPDESCRIPTORW) + sizeof(FILEDESCRIPTORW) * (num - 1);
     else
         cb = sizeof(FILEGROUPDESCRIPTORA) + sizeof(FILEDESCRIPTORA) * (num - 1);
-    PyObject *ret_string = PyString_FromStringAndSize(NULL, cb);
+    PyObject *ret_string = PyBytes_FromStringAndSize(NULL, cb);
     if (!ret_string)
         goto done;
-    fgd = (FILEGROUPDESCRIPTORA *)PyString_AS_STRING(ret_string);
-    fgdw = (FILEGROUPDESCRIPTORW *)PyString_AS_STRING(ret_string);
+    fgd = (FILEGROUPDESCRIPTORA *)PyBytes_AS_STRING(ret_string);
+    fgdw = (FILEGROUPDESCRIPTORW *)PyBytes_AS_STRING(ret_string);
     memset(fgd, 0, cb);
     fgd->cItems = num;
     for (i = 0; i < num; i++) {
@@ -2201,7 +2233,7 @@ static PyObject *PyFILEGROUPDESCRIPTORAsString(PyObject *self, PyObject *args)
         if (attr == NULL)
             PyErr_Clear();
         if (attr && attr != Py_None) {
-            fd->dwFlags = PyInt_AsLong(attr);
+            fd->dwFlags = PyLong_AsLong(attr);
             ok = !PyErr_Occurred();
         }
         Py_XDECREF(attr);
@@ -2246,7 +2278,7 @@ static PyObject *PyFILEGROUPDESCRIPTORAsString(PyObject *self, PyObject *args)
             PyErr_Clear();
         if (attr && attr != Py_None) {
             fd->dwFlags |= FD_ATTRIBUTES;
-            fd->dwFileAttributes = PyInt_AsLong(attr);
+            fd->dwFileAttributes = PyLong_AsLong(attr);
             ok = !PyErr_Occurred();
         }
         Py_XDECREF(attr);
@@ -2317,10 +2349,10 @@ static PyObject *PyFILEGROUPDESCRIPTORAsString(PyObject *self, PyObject *args)
             }
             else {
                 char *t;
-                ok = PyWinObject_AsString(attr, &t);
+                ok = PyWinObject_AsChars(attr, &t);
                 if (ok) {
                     strncpy(fd->cFileName, t, sizeof(fd->cFileName) / sizeof(char));
-                    PyWinObject_FreeString(t);
+                    PyWinObject_FreeChars(t);
                 }
             }
         }
@@ -2410,7 +2442,7 @@ static PyObject *PyStringAsFILEGROUPDESCRIPTOR(PyObject *self, PyObject *args)
         PyObject *val;
         // These structures are the same until the very end, where the
         // unicode/ascii buffer is - so we can use either pointer
-        val = PyInt_FromLong(fd->dwFlags);
+        val = PyLong_FromLong(fd->dwFlags);
         if (val)
             PyDict_SetItemString(sub, "dwFlags", val);
         Py_XDECREF(val);
@@ -2434,7 +2466,7 @@ static PyObject *PyStringAsFILEGROUPDESCRIPTOR(PyObject *self, PyObject *args)
         }
 
         if (fd->dwFlags & FD_ATTRIBUTES) {
-            val = PyInt_FromLong(fd->dwFileAttributes);
+            val = PyLong_FromLong(fd->dwFileAttributes);
             if (val)
                 PyDict_SetItemString(sub, "dwFileAttributes", val);
             Py_XDECREF(val);
@@ -2474,7 +2506,7 @@ static PyObject *PyStringAsFILEGROUPDESCRIPTOR(PyObject *self, PyObject *args)
         if (make_unicode)
             val = PyWinObject_FromWCHAR(fdw->cFileName);
         else
-            val = PyString_FromString(fd->cFileName);
+            val = PyBytes_FromString(fd->cFileName);
         if (val)
             PyDict_SetItemString(sub, "cFileName", val);
         Py_XDECREF(val);
@@ -2549,7 +2581,7 @@ static PyObject *PyShellExecuteEx(PyObject *self, PyObject *args, PyObject *kw)
     }
     if (obHotKey) {
         info.fMask |= SEE_MASK_HOTKEY;
-        info.dwHotKey = PyInt_AsLong(obHotKey);
+        info.dwHotKey = PyLong_AsLong(obHotKey);
         if (PyErr_Occurred())
             goto done;
     }
@@ -2583,11 +2615,11 @@ static PyObject *PyShellExecuteEx(PyObject *self, PyObject *args, PyObject *kw)
         PyWin_SetAPIError("ShellExecuteEx");
 
 done:
-    PyWinObject_FreeString((char *)info.lpVerb);
-    PyWinObject_FreeString((char *)info.lpFile);
-    PyWinObject_FreeString((char *)info.lpParameters);
-    PyWinObject_FreeString((char *)info.lpDirectory);
-    PyWinObject_FreeString((char *)info.lpClass);
+    PyWinObject_FreeChars((char *)info.lpVerb);
+    PyWinObject_FreeChars((char *)info.lpFile);
+    PyWinObject_FreeChars((char *)info.lpParameters);
+    PyWinObject_FreeChars((char *)info.lpDirectory);
+    PyWinObject_FreeChars((char *)info.lpClass);
     PyObject_FreePIDL((ITEMIDLIST *)info.lpIDList);
     return ret;
 }
@@ -2665,7 +2697,7 @@ static PyObject *PySHGetViewStatePropertyBag(PyObject *self, PyObject *args)
         return OleSetOleError(E_NOTIMPL);
     if (!PyArg_ParseTuple(args, "OOkO",
                           &obpidl,     // @pyparm <o PyIDL>|pidl||An item id list that identifies the folder
-                          &obbagname,  // @pyparm <o PyUnicode>|BagName||Name of the property bag to retrieve
+                          &obbagname,  // @pyparm string|BagName||Name of the property bag to retrieve
                           &flags,      // @pyparm int|Flags||Combination of SHGVSPB_* flags
                           &obriid))    // @pyparm <o PyIID>|riid||The interface to return, usually IID_IPropertyBag
         return NULL;
@@ -2701,7 +2733,7 @@ static PyObject *PySHILCreateFromPath(PyObject *self, PyObject *args)
         return OleSetOleError(E_NOTIMPL);
     if (!PyArg_ParseTuple(
             args, "Ok:SHILCreateFromPath",
-            &obpath,  // @pyparm <o PyUnicode>|Path||The path whose PIDL will be returned
+            &obpath,  // @pyparm string|Path||The path whose PIDL will be returned
             &flags))  // @pyparm int|Flags||A combination of SFGAO_* constants as used with GetAttributesOf
         return NULL;
     if (!PyWinObject_AsWCHAR(obpath, &path, FALSE))
@@ -2770,7 +2802,7 @@ static PyObject *PySHCreateShellFolderView(PyObject *self, PyObject *args)
     else
         ret = PyCom_PyObjectFromIUnknown(view, IID_IShellView, FALSE);
     // ref on view consumed by ret object.
-done : {
+done: {
     PY_INTERFACE_PRECALL;
     if (create.pshf)
         create.pshf->Release();
@@ -3622,6 +3654,8 @@ static struct PyMethodDef shell_methods[] = {
      1},  // @pymeth SHGetSpecialFolderPath|Retrieves the path of a special folder.
     {"SHGetSpecialFolderLocation", PySHGetSpecialFolderLocation,
      1},  // @pymeth SHGetSpecialFolderLocation|Retrieves the <o PyIDL> of a special folder.
+    {"SHGetKnownFolderPath", PySHGetKnownFolderPath, 1},  // @pymeth SHGetKnownFolderPath|Retrieves the full path of a
+                                                          // known folder identified by the folder's KNOWNFOLDERID.
     {"SHAddToRecentDocs", PySHAddToRecentDocs,
      1},  // @pymeth SHAddToRecentDocs|Adds a document to the shell's list of recently used documents or clears all
           // documents from the list. The user gains access to the list through the Start menu of the Windows taskbar.
@@ -3659,7 +3693,7 @@ static struct PyMethodDef shell_methods[] = {
      1},  // @pymeth SHGetIDListFromObject|Retrieves the PIDL of an object.
     {"SHGetInstanceExplorer", PySHGetInstanceExplorer,
      1},  // @pymeth SHGetInstanceExplorer|Allows components that run in a Web browser (Iexplore.exe) or a nondefault
-          // Windows® Explorer (Explorer.exe) process to hold a reference to the process. The components can use the
+          // Windows Explorer (Explorer.exe) process to hold a reference to the process. The components can use the
           // reference to prevent the process from closing prematurely.
     {"SHFileOperation", PySHFileOperation,
      1},  // @pymeth SHFileOperation|Copies, moves, renames, or deletes a file system object.
@@ -3777,6 +3811,7 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] = {
     PYCOM_INTERFACE_FULL(TransferAdviseSink),
     PYCOM_INTERFACE_FULL(ShellItemResources),
     PYCOM_INTERFACE_FULL(EnumResources),
+    PYCOM_INTERFACE_CLIENT_ONLY(FolderView),
     PYCOM_INTERFACE_FULL(RelatedItem),
     PYCOM_INTERFACE_FULL(TransferMediumItem),  // based on IRelatedItem with no extra methods
     PYCOM_INTERFACE_FULL(CurrentItem),         // based on IRelatedItem with no extra methods
@@ -3803,7 +3838,7 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] = {
 
 static int AddConstant(PyObject *dict, const char *key, long value)
 {
-    PyObject *oval = PyInt_FromLong(value);
+    PyObject *oval = PyLong_FromLong(value);
     if (!oval) {
         return 1;
     }
@@ -3942,9 +3977,6 @@ PYWIN_MODULE_INIT_FUNC(shell)
     ADD_IID(CLSID_InternetShortcut);
     ADD_IID(CLSID_ActiveDesktop);
 
-#if (_WIN32_IE >= 0x0400)
-    ADD_IID(CGID_ShellServiceObject);
-    ADD_IID(CGID_ExplorerBarDoc);
     ADD_IID(CGID_ShellServiceObject);
     ADD_IID(CGID_ExplorerBarDoc);
     ADD_IID(SID_SShellDesktop);
@@ -3978,11 +4010,7 @@ PYWIN_MODULE_INIT_FUNC(shell)
     ADD_IID(VID_Tile);
     ADD_IID(VID_Thumbnails);
     ADD_IID(VID_ThumbStrip);
-#else
-#pragma message("Please update your SDK headers - IE5 features missing!")
-#endif
 
-#if (_WIN32_IE >= 0x0500)
     ADD_IID(FMTID_ShellDetails);
     ADD_IID(FMTID_Storage);
     ADD_IID(FMTID_ImageProperties);
@@ -4006,9 +4034,6 @@ PYWIN_MODULE_INIT_FUNC(shell)
     ADD_IID(EP_PreviewPane);
     ADD_IID(EP_QueryPane);
     ADD_IID(EP_AdvQueryPane);
-#else
-#pragma message("Please update your SDK headers - IE5 features missing!")
-#endif
 
     ADD_IID(BHID_SFObject);
     ADD_IID(BHID_SFUIObject);

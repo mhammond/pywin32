@@ -86,7 +86,7 @@ PyObject *PyCMenu::load_menu(PyObject *self, PyObject *args)
 //////////////////////////////////////////////////////////////////////
 void PyCMenu::SetAssocInvalid()
 {
-    return;  // do nothing.  Dont call base as dont want my handle wiped.
+    return;  // do nothing.  Don't call base as don't want my handle wiped.
 }
 // Menu Methods
 // @pymethod |PyCMenu|AppendMenu|Appends a new item to the end of a menu. Python can specify the state of the menu item
@@ -242,7 +242,7 @@ PyObject *PyCMenu::InsertMenu(PyObject *self, PyObject *args)
         return NULL;
 
     if (obsubMenu) {
-        id = PyInt_AsLong(obsubMenu);
+        id = PyLong_AsLong(obsubMenu);
         if (id == -1 && PyErr_Occurred()) {
             PyErr_Clear();
             bHaveInt = FALSE;

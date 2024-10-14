@@ -5,10 +5,6 @@
 #include "oaidl.h"
 #include "olectl.h"  // For connection point constants.
 
-#ifdef MS_WINCE
-extern "C" void WINAPIV NKDbgPrintfW(LPWSTR lpszFmt, ...);
-#endif
-
 static const WCHAR *szBadStringObject = L"<Bad String Object>";
 extern PyObject *PyCom_InternalError;
 
@@ -19,39 +15,7 @@ LPCTSTR GetFacilityString(SCODE sc);
 
 static PyObject *PyCom_PyObjectFromIErrorInfo(IErrorInfo *, HRESULT errorhr);
 
-static const char *traceback_prefix = "Traceback (most recent call last):\n";
-
-// todo: nuke me!
-PYCOM_EXPORT void PyCom_StreamMessage(const char *msg);
-
-// Private helper to convert a "char *" to a BSTR for use in the error
-// structures.
-BSTR PyWin_String_AsBstr(const char *value)
-{
-    if (value == NULL || *value == '\0')
-        return SysAllocStringLen(L"", 0);
-    /* use MultiByteToWideChar() as a "good" strlen() */
-    /* NOTE: this will include the null-term in the length */
-    int cchWideChar = MultiByteToWideChar(CP_ACP, 0, value, -1, NULL, 0);
-
-    /* alloc a temporary conversion buffer, but dont use alloca, as super
-       large strings will blow our stack */
-    LPWSTR wstr = (LPWSTR)malloc(cchWideChar * sizeof(WCHAR));
-    if (wstr == NULL) {
-        PyErr_SetString(PyExc_MemoryError, "Not enough memory to allocate wide string buffer.");
-        return NULL;
-    }
-
-    /* convert the input into the temporary buffer */
-    MultiByteToWideChar(CP_ACP, 0, value, -1, wstr, cchWideChar);
-
-    /* don't place the null-term into the BSTR */
-    BSTR ret = SysAllocStringLen(wstr, cchWideChar - 1);
-    if (ret == NULL)
-        PyErr_SetString(PyExc_MemoryError, "allocating BSTR");
-    free(wstr);
-    return ret;
-}
+static const WCHAR *traceback_prefix = L"Traceback (most recent call last):\n";
 
 ////////////////////////////////////////////////////////////////////////
 //
@@ -79,13 +43,13 @@ void PyCom_ExcepInfoFromPyException(EXCEPINFO *pExcepInfo)
         // not the one we are interested in!
         PyErr_Clear();
         // Not a special exception object - do the best we can.
-        char *szBaseMessage = "Unexpected Python Error: ";
-        char *szException = GetPythonTraceback(exception, v, tb);
-        size_t len = strlen(szBaseMessage) + strlen(szException) + 1;
-        char *tempBuf = new char[len];
+        WCHAR *szBaseMessage = L"Unexpected Python Error: ";
+        WCHAR *szException = GetPythonTraceback(exception, v, tb);
+        size_t len = wcslen(szBaseMessage) + wcslen(szException) + 1;
+        WCHAR *tempBuf = new WCHAR[len];
         if (tempBuf) {
-            snprintf(tempBuf, len, "%s%s", szBaseMessage, szException);
-            pExcepInfo->bstrDescription = PyWin_String_AsBstr(tempBuf);
+            _snwprintf(tempBuf, len, L"%s%s", szBaseMessage, szException);
+            pExcepInfo->bstrDescription = SysAllocString(tempBuf);
             delete[] tempBuf;
         }
         else
@@ -152,9 +116,9 @@ static BOOL PyCom_ExcepInfoFromServerExceptionInstance(PyObject *v, EXCEPINFO *p
 
     ob = PyObject_GetAttrString(v, "code");
     if (ob && ob != Py_None) {
-        PyObject *temp = PyNumber_Int(ob);
+        PyObject *temp = PyNumber_Long(ob);
         if (temp) {
-            pExcepInfo->wCode = (unsigned short)PyInt_AsLong(temp);
+            pExcepInfo->wCode = (unsigned short)PyLong_AsLong(temp);
             Py_DECREF(temp);
         }  // XXX - else - what to do here, apart from call the user a moron :-)
     }
@@ -164,9 +128,9 @@ static BOOL PyCom_ExcepInfoFromServerExceptionInstance(PyObject *v, EXCEPINFO *p
 
     ob = PyObject_GetAttrString(v, "scode");
     if (ob && ob != Py_None) {
-        PyObject *temp = PyNumber_Int(ob);
+        PyObject *temp = PyNumber_Long(ob);
         if (temp) {
-            pExcepInfo->scode = PyInt_AsLong(temp);
+            pExcepInfo->scode = PyLong_AsLong(temp);
             Py_DECREF(temp);
         }
         else
@@ -179,9 +143,9 @@ static BOOL PyCom_ExcepInfoFromServerExceptionInstance(PyObject *v, EXCEPINFO *p
 
     ob = PyObject_GetAttrString(v, "helpcontext");
     if (ob && ob != Py_None) {
-        PyObject *temp = PyNumber_Int(ob);
+        PyObject *temp = PyNumber_Long(ob);
         if (temp) {
-            pExcepInfo->dwHelpContext = (unsigned short)PyInt_AsLong(temp);
+            pExcepInfo->dwHelpContext = (unsigned short)PyLong_AsLong(temp);
             Py_DECREF(temp);
         }
     }
@@ -189,6 +153,16 @@ static BOOL PyCom_ExcepInfoFromServerExceptionInstance(PyObject *v, EXCEPINFO *p
         PyErr_Clear();
     Py_XDECREF(ob);
     return TRUE;
+}
+
+BSTR BstrFromOb(PyObject *value)
+{
+    BSTR result = NULL;
+    if (!PyWinObject_AsBstr(value, &result, TRUE, NULL)) {
+        PyCom_LoggerNonServerException(NULL, L"Failed to convert exception element to a string");
+        PyErr_Clear();
+    }
+    return result;
 }
 
 // Fill an exception info from a specific COM error raised by the
@@ -221,29 +195,29 @@ BOOL PyCom_ExcepInfoFromPyObject(PyObject *v, EXCEPINFO *pExcepInfo, HRESULT *ph
         memset(pExcepInfo, 0, sizeof(EXCEPINFO));
         PyObject *ob;
         if (phresult) {
-            ob = PySequence_GetItem(v, 0);
+            ob = PyObject_GetAttrString(v, "hresult");
             if (ob) {
-                *phresult = PyInt_AsLong(ob);
+                *phresult = PyLong_AsLong(ob);
                 Py_DECREF(ob);
             }
         }
-        // item[1] is the scode description, which we dont need.
-        ob = PySequence_GetItem(v, 2);
+        // we ignore `strerror` (item[1] of the args tuple)
+        ob = PyObject_GetAttrString(v, "excepinfo");
         if (ob) {
             int code, helpContext, scode;
-            const char *source, *description, *helpFile;
-            if (!PyArg_ParseTuple(ob, "izzzii:ExceptionInfo", &code, &source, &description, &helpFile, &helpContext,
+            PyObject *source, *description, *helpFile;
+            if (!PyArg_ParseTuple(ob, "iOOOii:ExceptionInfo", &code, &source, &description, &helpFile, &helpContext,
                                   &scode)) {
                 Py_DECREF(ob);
                 PyErr_Clear();
-                PyErr_SetString(PyExc_TypeError, "The inner exception tuple must be of format 'izzzii'");
+                PyErr_SetString(PyExc_TypeError, "The inner excepinfo tuple must be of format 'izzzii'");
                 return FALSE;
             }
             pExcepInfo->wCode = code;
             pExcepInfo->wReserved = 0;
-            pExcepInfo->bstrSource = PyWin_String_AsBstr(source);
-            pExcepInfo->bstrDescription = PyWin_String_AsBstr(description);
-            pExcepInfo->bstrHelpFile = PyWin_String_AsBstr(helpFile);
+            pExcepInfo->bstrSource = BstrFromOb(source);
+            pExcepInfo->bstrDescription = BstrFromOb(description);
+            pExcepInfo->bstrHelpFile = BstrFromOb(helpFile);
             pExcepInfo->dwHelpContext = helpContext;
             pExcepInfo->pvReserved = 0;
             pExcepInfo->pfnDeferredFillIn = NULL;
@@ -305,7 +279,18 @@ void PyCom_CleanupExcepInfo(EXCEPINFO *pexcepinfo)
     }
 }
 
-HRESULT PyCom_SetCOMErrorFromSimple(HRESULT hr, REFIID riid /* = IID_NULL */, const char *description /* = NULL*/)
+HRESULT PyCom_CheckIEnumNextResult(HRESULT hr, REFIID riid)
+{
+    return PyCom_SetCOMErrorFromSimple(
+        hr, riid, L"Could not convert the result from Next()/Clone() into the required COM interface");
+}
+
+HRESULT PyCom_HandleIEnumNoSequence(REFIID riid)
+{
+    return PyCom_SetCOMErrorFromSimple(E_FAIL, riid, L"Next() did not return a sequence of objects");
+}
+
+HRESULT PyCom_SetCOMErrorFromSimple(HRESULT hr, REFIID riid /* = IID_NULL */, const WCHAR *description /* = NULL*/)
 {
     // fast path...
     if (hr == S_OK)
@@ -313,11 +298,7 @@ HRESULT PyCom_SetCOMErrorFromSimple(HRESULT hr, REFIID riid /* = IID_NULL */, co
 
     // If you specify a description you should also specify the IID
     assert(riid != IID_NULL || description == NULL);
-    // Reset the error info for this thread.  "Inside OLE2" says we
-    // can call IErrorInfo with NULL, but the COM documentation doesnt mention it.
-    BSTR bstrDesc = NULL;
-    if (description)
-        bstrDesc = PyWin_String_AsBstr(description);
+    BSTR bstrDesc = description ? SysAllocString(description) : NULL;
 
     EXCEPINFO einfo = {
         0,         // wCode
@@ -341,11 +322,6 @@ PYCOM_EXPORT HRESULT PyCom_SetCOMErrorFromPyException(REFIID riid /* = IID_NULL 
         // No error occurred
         return S_OK;
 
-    // These errors are generally 'unexpected' (ie, errors converting args on
-    // the way into a gateway method.  If not explicitly raised by the user,
-    // log it.
-    PyCom_LoggerNonServerException(NULL, "Unexpected gateway error");
-
     EXCEPINFO einfo;
     PyCom_ExcepInfoFromPyException(&einfo);
 
@@ -364,7 +340,7 @@ PYCOM_EXPORT HRESULT PyCom_SetAndLogCOMErrorFromPyException(const char *methodNa
     if (!PyErr_Occurred())
         // No error occurred
         return S_OK;
-    PyCom_LoggerNonServerException(NULL, "Unexpected exception in gateway method '%s'", methodName);
+    PyCom_LoggerNonServerException(NULL, L"Unexpected exception in gateway method '%hs'", methodName);
     return PyCom_SetCOMErrorFromPyException(riid);
 }
 
@@ -374,56 +350,52 @@ PYCOM_EXPORT HRESULT PyCom_SetAndLogCOMErrorFromPyExceptionEx(PyObject *provider
     if (!PyErr_Occurred())
         // No error occurred
         return S_OK;
-    PyCom_LoggerNonServerException(provider, "Unexpected exception in gateway method '%s'", methodName);
+    PyCom_LoggerNonServerException(NULL, L"Unexpected exception in gateway method '%hs'", methodName);
     return PyCom_SetCOMErrorFromPyException(riid);
 }
 
-void PyCom_StreamMessage(const char *pszMessageText)
+void PyCom_StreamMessage(const WCHAR *pszMessageText)
 {
-#ifndef MS_WINCE
-    OutputDebugStringA(pszMessageText);
-#else
-    NKDbgPrintfW(pszMessageText);
-#endif
+    OutputDebugString(pszMessageText);
     // PySys_WriteStderr has an internal 1024 limit due to varargs.
-    // weve already resolved them, so we gotta do it the hard way
+    // we've already resolved them, so we gotta do it the hard way
     // We can't afford to screw with the Python exception state
     PyObject *typ, *val, *tb;
     PyErr_Fetch(&typ, &val, &tb);
     PyObject *pyfile = PySys_GetObject("stderr");
-    if (pyfile)
-        if (PyFile_WriteString((char *)pszMessageText, pyfile) != 0)
-            // eeek - Python error writing this error - write it to stdout.
-            fprintf(stdout, "%s", pszMessageText);
+    if (pyfile) {
+        PyObject *obUnicode = PyWinObject_FromWCHAR(pszMessageText);
+        if (obUnicode) {
+            if (PyFile_WriteObject(obUnicode, pyfile, Py_PRINT_RAW) != 0) {
+                // eeek - Python error writing this error - write it to stdout.
+                fwprintf(stdout, L"%s", pszMessageText);
+            }
+            Py_DECREF(obUnicode);
+        }
+    }
     PyErr_Restore(typ, val, tb);
 }
 
-BOOL VLogF_Logger(PyObject *logger, const char *log_method, const char *prefix, const char *fmt, va_list argptr)
+BOOL VLogF_Logger(PyObject *logger, const char *log_method, const WCHAR *prefix, const WCHAR *fmt, va_list argptr)
 {
     // Protected by Python lock
-    static char buff[8196];
+    static WCHAR buff[8196];
     size_t buf_len = sizeof(buff) / sizeof(buff[0]);
-    size_t prefix_len = strlen(prefix);
-    strncpy(buff, prefix, buf_len);
-    vsnprintf(buff + prefix_len, buf_len - prefix_len, fmt, argptr);
+    size_t prefix_len = wcslen(prefix);
+    wcsncpy(buff, prefix, buf_len);
+    _vsnwprintf(buff + prefix_len, buf_len - prefix_len, fmt, argptr);
 
     PyObject *exc_typ = NULL, *exc_val = NULL, *exc_tb = NULL;
     PyErr_Fetch(&exc_typ, &exc_val, &exc_tb);
 
-    // Python 2.3 has an issue in that attempting to make the call with
-    // an exception set causes the call itself to fail - but
-    // 2.3's logger provides no way of passing the exception!
-    // We make no attempt to worm around this - if you really want this feature
-    // in Python 2.3, simply use the Python 2.4 logging package (or at least
-    // a logger from that package)
     PyObject *kw = PyDict_New();
     if (kw && exc_typ) {
         PyObject *exc_info = Py_BuildValue("OOO", exc_typ, exc_val ? exc_val : Py_None, exc_tb ? exc_tb : Py_None);
         PyDict_SetItemString(kw, "exc_info", exc_info);
         Py_XDECREF(exc_info);
     }
-    PyObject *args = Py_BuildValue("(s)", buff);
-    PyObject *method = PyObject_GetAttrString(logger, (char *)log_method);
+    PyObject *args = Py_BuildValue("(u)", buff);
+    PyObject *method = PyObject_GetAttrString(logger, log_method);
     PyObject *result = NULL;
     if (method && kw && args)
         result = PyObject_Call(method, args, kw);
@@ -438,27 +410,25 @@ BOOL VLogF_Logger(PyObject *logger, const char *log_method, const char *prefix, 
     return rc;
 }
 
-void VLogF(const char *fmt, va_list argptr)
+void VLogF(const WCHAR *fmt, va_list argptr)
 {
-    static char buff[8196];  // protected by Python lock
-
-    vsnprintf(buff, 8196, fmt, argptr);
-
+    static WCHAR buff[8196];  // protected by Python lock
+    _vsnwprintf(buff, 8196, fmt, argptr);
     PyCom_StreamMessage(buff);
 }
 
-void PyCom_LogF(const char *fmt, ...)
+void PyCom_LogF(const WCHAR *fmt, ...)
 {
     va_list marker;
 
     va_start(marker, fmt);
     VLogF(fmt, marker);
-    PyCom_StreamMessage("\n");
+    PyCom_StreamMessage(L"\n");
 }
 
 void _LogException(PyObject *exc_typ, PyObject *exc_val, PyObject *exc_tb)
 {
-    char *szTraceback = GetPythonTraceback(exc_typ, exc_val, exc_tb);
+    WCHAR *szTraceback = GetPythonTraceback(exc_typ, exc_val, exc_tb);
     PyCom_StreamMessage(szTraceback);
     free(szTraceback);
 }
@@ -466,35 +436,37 @@ void _LogException(PyObject *exc_typ, PyObject *exc_val, PyObject *exc_tb)
 // XXX - _DoLogError() was a really bad name in retrospect, given
 // the "logger" module and my dumb choice of _DoLogger() for logger errors :)
 // Thankfully both are private.
-static void _DoLogError(const char *prefix, const char *fmt, va_list argptr)
+static void _DoLogError(const WCHAR *prefix, const WCHAR *fmt, va_list argptr)
 {
     PyCom_StreamMessage(prefix);
     VLogF(fmt, argptr);
-    PyCom_StreamMessage("\n");
+    PyCom_StreamMessage(L"\n");
     // If we have a Python exception, also log that:
     PyObject *exc_typ = NULL, *exc_val = NULL, *exc_tb = NULL;
     PyErr_Fetch(&exc_typ, &exc_val, &exc_tb);
     if (exc_typ) {
         PyErr_NormalizeException(&exc_typ, &exc_val, &exc_tb);
-        PyCom_StreamMessage("\n");
+        PyCom_StreamMessage(L"\n");
         _LogException(exc_typ, exc_val, exc_tb);
     }
     PyErr_Restore(exc_typ, exc_val, exc_tb);
 }
 
-static void _DoLogger(PyObject *logProvider, char *log_method, const char *fmt, va_list argptr)
+static void _DoLogger(PyObject *logProvider, char *log_method, const WCHAR *fmt, va_list argptr)
 {
     CEnterLeavePython _celp;
     PyObject *exc_typ = NULL, *exc_val = NULL, *exc_tb = NULL;
     PyErr_Fetch(&exc_typ, &exc_val, &exc_tb);
     PyObject *logger = NULL;
-    char prefix[128];
-    strcpy(prefix, "pythoncom ");
-    strncat(prefix, log_method, 100);
-    strncat(prefix, ": ", 2);
+    WCHAR prefix[128];
+    _snwprintf(prefix, 128, L"pythoncom %hs: ", log_method);
 
-    if (logProvider)
+    if (logProvider) {
         logger = PyObject_CallMethod(logProvider, "_GetLogger_", NULL);
+        if (!logger) {
+            PyErr_Clear();
+        }
+    }
     if (logger == NULL) {
         PyObject *mod = PyImport_ImportModule("win32com");
         if (mod) {
@@ -534,14 +506,14 @@ BOOL IsServerErrorCurrent()
     return rc;
 }
 
-PYCOM_EXPORT void PyCom_LoggerException(PyObject *logProvider, const char *fmt, ...)
+PYCOM_EXPORT void PyCom_LoggerException(PyObject *logProvider, const WCHAR *fmt, ...)
 {
     va_list marker;
     va_start(marker, fmt);
     _DoLogger(logProvider, "error", fmt, marker);
 }
 
-PYCOM_EXPORT void PyCom_LoggerWarning(PyObject *logProvider, const char *fmt, ...)
+PYCOM_EXPORT void PyCom_LoggerWarning(PyObject *logProvider, const WCHAR *fmt, ...)
 {
     va_list marker;
     va_start(marker, fmt);
@@ -549,7 +521,7 @@ PYCOM_EXPORT void PyCom_LoggerWarning(PyObject *logProvider, const char *fmt, ..
 }
 
 PYCOM_EXPORT
-void PyCom_LoggerNonServerException(PyObject *logProvider, const char *fmt, ...)
+void PyCom_LoggerNonServerException(PyObject *logProvider, const WCHAR *fmt, ...)
 {
     if (IsServerErrorCurrent())
         return;
@@ -569,7 +541,6 @@ PyObject *PyCom_BuildPyException(HRESULT errorhr, IUnknown *pUnk /* = NULL */, R
     TCHAR scodeStringBuf[512];
     GetScodeString(errorhr, scodeStringBuf, sizeof(scodeStringBuf) / sizeof(scodeStringBuf[0]));
 
-#ifndef MS_WINCE  // WINCE doesnt appear to have GetErrorInfo() - compiled, but doesnt link!
     if (pUnk != NULL) {
         assert(iid != IID_NULL);  // If you pass an IUnknown, you should pass the specific IID.
         // See if it supports error info.
@@ -591,7 +562,6 @@ PyObject *PyCom_BuildPyException(HRESULT errorhr, IUnknown *pUnk /* = NULL */, R
             }
         }
     }
-#endif  // MS_WINCE
     if (obEI == NULL) {
         obEI = Py_None;
         Py_INCREF(Py_None);
@@ -616,7 +586,7 @@ PyObject *PyCom_BuildPyExceptionFromEXCEPINFO(HRESULT hr, EXCEPINFO *pexcepInfo 
     PyObject *obArg;
 
     if (nArgErr != -1) {
-        obArg = PyInt_FromLong(nArgErr);
+        obArg = PyLong_FromLong(nArgErr);
     }
     else {
         obArg = Py_None;
@@ -1003,13 +973,10 @@ void GetScodeString(HRESULT hr, LPTSTR buf, int bufSize)
         MAKE_HRESULT_ENTRY(CONNECT_E_CANNOTCONNECT),
         MAKE_HRESULT_ENTRY(CONNECT_E_OVERRIDDEN),
 
-#ifndef NO_PYCOM_IPROVIDECLASSINFO
         MAKE_HRESULT_ENTRY(CLASS_E_NOTLICENSED),
         MAKE_HRESULT_ENTRY(CLASS_E_NOAGGREGATION),
         MAKE_HRESULT_ENTRY(CLASS_E_CLASSNOTAVAILABLE),
-#endif  // NO_PYCOM_IPROVIDECLASSINFO
 
-#ifndef MS_WINCE  // ??
         MAKE_HRESULT_ENTRY(CTL_E_ILLEGALFUNCTIONCALL),
         MAKE_HRESULT_ENTRY(CTL_E_OVERFLOW),
         MAKE_HRESULT_ENTRY(CTL_E_OUTOFMEMORY),
@@ -1050,7 +1017,6 @@ void GetScodeString(HRESULT hr, LPTSTR buf, int bufSize)
         MAKE_HRESULT_ENTRY(CTL_E_CANTSAVEFILETOTEMP),
         MAKE_HRESULT_ENTRY(CTL_E_SEARCHTEXTNOTFOUND),
         MAKE_HRESULT_ENTRY(CTL_E_REPLACEMENTSTOOLONG),
-#endif  // MS_WINCE
     };
 #undef MAKE_HRESULT_ENTRY
 

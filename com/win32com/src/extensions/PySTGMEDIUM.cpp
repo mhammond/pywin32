@@ -50,23 +50,29 @@ PyObject *PySet(PyObject *self, PyObject *args)
         }
         case TYMED_HGLOBAL: {
             const void *buf = NULL;
+            TmpWCHAR tmpw;
             Py_ssize_t cb = 0;
+            PyWinBufferView pybuf;
             // In py3k, unicode objects don't support the buffer
             // protocol, so explicitly check string types first.
             // We need to include the NULL for strings and unicode, as the
             // Windows clipboard functions will assume it is there for
             // text related formats (eg, CF_TEXT).
-            if (PyString_Check(ob)) {
-                cb = PyString_GET_SIZE(ob) + 1;  // for the NULL
-                buf = (void *)PyString_AS_STRING(ob);
+            if (PyBytes_Check(ob)) {
+                cb = PyBytes_GET_SIZE(ob) + 1;  // for the NULL
+                buf = (void *)PyBytes_AS_STRING(ob);
             }
             else if (PyUnicode_Check(ob)) {
-                cb = PyUnicode_GET_DATA_SIZE(ob) + sizeof(Py_UNICODE);
-                buf = (void *)PyUnicode_AS_UNICODE(ob);
+                buf = tmpw = ob;
+                if (!tmpw)
+                    return NULL;
+                cb = (tmpw.length + 1) * sizeof(WCHAR);
             }
             else {
-                if (PyObject_AsReadBuffer(ob, &buf, &cb) == -1)
+                if (!pybuf.init(ob))
                     return PyErr_Format(PyExc_TypeError, "tymed value of %d requires a string/unicode/buffer", tymed);
+                buf = pybuf.ptr();
+                cb = pybuf.len();
                 // no extra nulls etc needed here.
             }
             ps->medium.hGlobal = GlobalAlloc(GMEM_FIXED, cb);
@@ -76,7 +82,7 @@ PyObject *PySet(PyObject *self, PyObject *args)
             break;
         }
         case TYMED_FILE:
-            if (!PyWinObject_AsTaskAllocatedWCHAR(ob, &ps->medium.lpszFileName, FALSE, NULL))
+            if (!PyWinObject_AsTaskAllocatedWCHAR(ob, &ps->medium.lpszFileName, FALSE))
                 return FALSE;
             break;
         case TYMED_ISTREAM:
@@ -231,7 +237,7 @@ PyObject *PySTGMEDIUM::getattro(PyObject *self, PyObject *obname)
     PySTGMEDIUM *ps = (PySTGMEDIUM *)self;
     // @prop int|tymed|An integer indicating the type of data in the stgmedium
     if (strcmp(name, "tymed") == 0)
-        return PyInt_FromLong(ps->medium.tymed);
+        return PyLong_FromLong(ps->medium.tymed);
     // @prop object|data|The data in the stgmedium.
     // The result depends on the value of the 'tymed' property of the <o PySTGMEDIUM> object.
     // @flagh tymed|Result Type
@@ -251,7 +257,7 @@ PyObject *PySTGMEDIUM::getattro(PyObject *self, PyObject *obname)
                 PyObject *ret;
                 void *p = GlobalLock(ps->medium.hGlobal);
                 if (p) {
-                    ret = PyString_FromStringAndSize((char *)p, GlobalSize(ps->medium.hGlobal));
+                    ret = PyBytes_FromStringAndSize((char *)p, GlobalSize(ps->medium.hGlobal));
                     GlobalUnlock(ps->medium.hGlobal);
                 }
                 else {

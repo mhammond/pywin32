@@ -1,4 +1,5 @@
 // @doc
+#define PY_SSIZE_T_CLEAN
 #include "stdafxdde.h"
 #include "ddemodule.h"
 
@@ -46,7 +47,7 @@ PyObject *PyDDEConv_Connected(PyObject *self, PyObject *args)
     GUI_BGN_SAVE;
     BOOL rc = pConv->Connected();
     GUI_END_SAVE;
-    return PyInt_FromLong(rc);
+    return PyLong_FromLong(rc);
 }
 
 // @pymethod |PyDDEConv|Exec|Executes a command.
@@ -103,13 +104,13 @@ PyObject *PyDDEConv_Poke(PyObject *self, PyObject *args)
     TCHAR *szCmd;
     PyObject *obCmd;
     void *pData = NULL;  // may be empty, as for Netscape's use of Poke
-    DWORD dwSize = 0;
-    if (!PyArg_ParseTuple(args, "O|z#:Poke", &obCmd, &pData, &dwSize))
+    Py_ssize_t size = 0;
+    if (!PyArg_ParseTuple(args, "O|z#:Poke", &obCmd, &pData, &size))
         return NULL;
     if (!PyWinObject_AsTCHAR(obCmd, &szCmd, FALSE))
         return NULL;
     GUI_BGN_SAVE;
-    BOOL ok = pConv->Poke(szCmd, pData, dwSize);
+    BOOL ok = pConv->Poke(szCmd, pData, size);
     GUI_END_SAVE;
     PyWinObject_FreeTCHAR(szCmd);
     if (!ok)

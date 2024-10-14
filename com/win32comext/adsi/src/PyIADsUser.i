@@ -28,7 +28,7 @@ IADsUser *PyIADsUser::GetI(PyObject *self)
 
 PyObject* PyIADsUser_getattro(PyObject *ob, PyObject *obname)
 {
-	char *name = PyString_AsString(obname);
+	char *name = PyBytes_AsString(obname);
 	if (!name) return NULL;
 
 	IADsUser *p = PyIADsUser::GetI(ob);
@@ -48,7 +48,7 @@ HRESULT put_AccountDisabled(short val);
 // @pyswig int|get_AccountExpirationDate|
 HRESULT get_AccountExpirationDate(DATE *OUTPUT);
 // @pyswig |put_AccountExpirationDate|
-// @pyparm <o PyTime>|val||
+// @pyparm <o PyDateTime>|val||
 HRESULT put_AccountExpirationDate(DATE val);
 **/
 // @pyswig unicode|get_BadLoginAddress|

@@ -53,12 +53,18 @@ class CDDEAllocator {
     }
     BOOL Alloc(CString &cs)
     {
-        // XXX - should we check wFmt is CF_TEXT vs CF_UNICODETEXT??
-        return Alloc((LPBYTE)(const TCHAR *)cs, (cs.GetLength() + 1) * sizeof(TCHAR));
+        LPBYTE p = (LPBYTE)(const TCHAR *)cs;
+        DWORD cb = (cs.GetLength() + 1) * sizeof(TCHAR);
+
+        if (m_wFmt == CF_TEXT) {
+            p = (LPBYTE)(const char *)CT2CA(cs);
+            cb = (cs.GetLength() + 1) * sizeof(const char);
+        }
+
+        return Alloc(p, cb);
     }
     BOOL Alloc(LPBYTE p, DWORD cb)
     {
-        // XXX - should we check wFmt is CF_TEXT vs CF_UNICODETEXT??
         *m_hret = ::DdeCreateDataHandle(m_instance, p, cb, 0, m_hszItem, m_wFmt, 0);
         return TRUE;
     }
@@ -242,6 +248,7 @@ class CDDEConv : public CDDECountedObject {
     virtual BOOL Terminate();
     virtual BOOL AdviseData(UINT wFmt, const TCHAR *pszTopic, const TCHAR *pszItem, void *pData, DWORD dwSize);
     virtual BOOL Request(const TCHAR *pszItem, CString &ret);
+    virtual BOOL Request(UINT wFmt, const TCHAR *pszItem, CString &ret);
     virtual BOOL Advise(const TCHAR *pszItem);
     virtual BOOL Exec(const TCHAR *pszCmd);
     virtual BOOL Poke(UINT wFmt, const TCHAR *pszItem, void *pData, DWORD dwSize);
@@ -388,10 +395,6 @@ class CDDEServer : public CObject {
     CDDESystemItem_FormatList m_SystemItemFormats;
 };
 
-#ifdef UNICODE
 #define DDE_STRING_CODEPAGE CP_WINUNICODE
-#else
-#define DDE_STRING_CODEPAGE CP_WINANSI
-#endif
 
 #endif  // _STDDDE_

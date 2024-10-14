@@ -58,8 +58,10 @@ class CPythonWinThread : public CWinThread {
             // The main app InitInstance assumes a zero return.
             return (ret == 0);
         }
-        else
+        else {
+            helper.release_full();
             return CWinThread::InitInstance();
+        }
     }
     virtual int ExitInstance()
     {
@@ -69,15 +71,19 @@ class CPythonWinThread : public CWinThread {
             helper.retval(ret);
             return ret;
         }
-        else
+        else {
+            helper.release_full();
             return CWinThread::ExitInstance();
+        }
     }
     virtual int Run()
     {
         int ret;
         CVirtualHelper helper("Run", this);
-        if (!helper.HaveHandler())
+        if (!helper.HaveHandler()) {
+            helper.release_full();  // important
             ret = CWinThread::Run();
+        }
         else {
             helper.call();
             helper.retval(ret);
@@ -91,8 +97,7 @@ class CPythonWinThread : public CWinThread {
 void CProtectedWinThread::PumpIdle()
 {
     long lIdleCount = 0;
-    while (OnIdle(lIdleCount++))
-        ;
+    while (OnIdle(lIdleCount++));
     return;
 }
 
@@ -159,7 +164,7 @@ unsigned int ThreadWorkerEntryPoint(LPVOID lpvoid)
 {
     CPythonWinThread *pThis = (CPythonWinThread *)lpvoid;
     CEnterLeavePython _celp;
-    PyObject *result = PyEval_CallObject(pThis->obFunc, pThis->obArgs);
+    PyObject *result = PyObject_CallObject(pThis->obFunc, pThis->obArgs);
     if (result == NULL) {
         if (PyErr_Occurred() == PyExc_SystemExit)
             PyErr_Clear();
@@ -240,7 +245,7 @@ static PyObject *ui_thread_set_main_frame(PyObject *self, PyObject *args)
 
     if (wndObject == Py_None) {
         // @comm You can pass None to this function to reset the main frame.
-        pThread->m_pMainWnd = NULL;  // Should I free this?  I dont think so!
+        pThread->m_pMainWnd = NULL;  // Should I free this?  I don't think so!
     }
     else {
         CWnd *pMainWnd = GetWndPtr(wndObject);
@@ -263,7 +268,7 @@ static PyObject *ui_thread_set_thread_priority(PyObject *self, PyObject *args)
         return NULL;
 
     long rc = pThread->SetThreadPriority(priority);
-    return PyInt_FromLong(rc);
+    return PyLong_FromLong(rc);
 }
 
 // @pymethod int|PyCWinThread|Run|Starts the message pump.  Advanced users only
@@ -276,7 +281,7 @@ static PyObject *ui_thread_run(PyObject *self, PyObject *args)
     GUI_BGN_SAVE;
     long rc = pThread->CWinThread::Run();
     GUI_END_SAVE;
-    return PyInt_FromLong(rc);
+    return PyLong_FromLong(rc);
 }
 
 // @pymethod |PyCWinThread|CreateThread|Creates the actual thread behind the thread object.
@@ -289,7 +294,6 @@ static PyObject *ui_thread_create_thread(PyObject *self, PyObject *args)
     CWinThread *pThread = GetCWinThreadPtr(self);
     if (!pThread)
         return NULL;
-    PyEval_InitThreads();
     GUI_BGN_SAVE;
     BOOL ok = pThread->CreateThread(createFlags, stackSize);
     GUI_END_SAVE;

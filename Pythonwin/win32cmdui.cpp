@@ -19,15 +19,27 @@ generates Windows .hlp files.
 inline void *GetPythonOleProcAddress(const char *procName)
 {
     HMODULE hMod = NULL;
-    for (int i = 15; hMod == NULL && i < 40; i++) {
-        TCHAR buf[20];
+    TCHAR buf[32];
 #ifdef _DEBUG
-        wsprintf(buf, _T("PythonCOM%d_d.dll"), i);
+    wsprintf(buf, _T("PythonCOM%d%d_d.dll"), PY_MAJOR_VERSION, PY_MINOR_VERSION);
 #else
-        wsprintf(buf, _T("PythonCOM%d.dll"), i);
+    wsprintf(buf, _T("PythonCOM%d%d.dll"), PY_MAJOR_VERSION, PY_MINOR_VERSION);
 #endif
-        hMod = GetModuleHandle(buf);
-    }
+    hMod = GetModuleHandle(buf);
+
+    // XXX It is unclear why the code previously tried to identify a loaded PythonCOM DLL of
+    // any Python version 1.5 .. 3.9. If some InprocServer would load the DLL of a different
+    // Python version that would likely cause a crash. Thus deactivated.
+    //
+    //     for (int i = 0; hMod == NULL && i < 40; i++) {
+    // #ifdef _DEBUG
+    //         wsprintf(buf, _T("PythonCOM3%d_d.dll"), i);
+    // #else
+    //         wsprintf(buf, _T("PythonCOM3%d.dll"), i);
+    // #endif
+    //         hMod = GetModuleHandle(buf);
+    //     }
+
     if (hMod) {
         void *rc = GetProcAddress(hMod, procName);
         if (rc == NULL)
@@ -122,7 +134,7 @@ BOOL Python_OnCmdMsg(CCmdTarget *obj, UINT nID, int nCode, void *pExtra, AFX_CMD
                     GUI_BGN_SAVE;
                     Python_delete_assoc(ob);
                     GUI_END_SAVE;
-                    DODECREF(ob);
+                    Py_DECREF(ob);
                 }
                 rc = TRUE;
             }
@@ -131,7 +143,7 @@ BOOL Python_OnCmdMsg(CCmdTarget *obj, UINT nID, int nCode, void *pExtra, AFX_CMD
                 // user interface element.  Enable the element.
                 pUI->Enable();
                 rc = TRUE;  // did handle it.
-            }               // else RC remains FALSE.
+            }  // else RC remains FALSE.
         }
         else {  // is the command itself.
             // allow either a general or specific handler to be called
@@ -275,13 +287,13 @@ PyObject *PyCCmdUI::getattro(PyObject *obname)
         CCmdUI *pCU = PyCCmdUI::GetCCmdUIPtr(this);
         if (!pCU)
             return NULL;
-        return PyInt_FromLong(pCU->m_nIndex);
+        return PyLong_FromLong(pCU->m_nIndex);
     }
     else if (strcmp(name, "m_nID") == 0) {  // @prop int|m_nID|
         CCmdUI *pCU = PyCCmdUI::GetCCmdUIPtr(this);
         if (!pCU)
             return NULL;
-        return PyInt_FromLong(pCU->m_nID);
+        return PyLong_FromLong(pCU->m_nID);
     }
     else if (strcmp(name, "m_pMenu") == 0) {  // @prop <o PyCMenu>|m_pMenu|
         CCmdUI *pCU = PyCCmdUI::GetCCmdUIPtr(this);

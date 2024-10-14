@@ -279,7 +279,7 @@ PyObject *PyIShellLink::GetHotkey(PyObject *self, PyObject *args)
 
     if (FAILED(hr))
         return OleSetOleError(hr);
-    return PyInt_FromLong(hotkey);
+    return PyLong_FromLong(hotkey);
     // @comm Note: My tests do not seem to be working. at least, the values returned
     // seem not to match what the documentation says should be returned.
     // I would expect with a Hotkey of CTRL-ALT-T, to get an integer where
@@ -323,7 +323,7 @@ PyObject *PyIShellLink::GetShowCmd(PyObject *self, PyObject *args)
 
     if (FAILED(hr))
         return OleSetOleError(hr);
-    return PyInt_FromLong(iShowCmd);
+    return PyLong_FromLong(iShowCmd);
 }
 
 // @pymethod |PyIShellLink|SetShowCmd|Sets the show (SW_) command for a shell link object.

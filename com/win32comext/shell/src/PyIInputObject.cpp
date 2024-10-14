@@ -38,7 +38,7 @@ PyObject *PyIInputObject::TranslateAcceleratorIO(PyObject *self, PyObject *args)
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pISV, IID_IInputObject);
-    return PyInt_FromLong(hr);
+    return PyLong_FromLong(hr);
 }
 
 // @pymethod |PyIInputObject|UIActivate|Description of UIActivate.
@@ -115,8 +115,8 @@ STDMETHODIMP PyGInputObject::TranslateAcceleratorIO(
     if (FAILED(hr))
         return hr;
     // Process the Python results, and convert back to the real params
-    if (PyInt_Check(result) || PyLong_Check(result))
-        hr = PyInt_AsLong(result);
+    if (PyLong_Check(result) || PyLong_Check(result))
+        hr = PyLong_AsLong(result);
     Py_DECREF(result);
     return hr;
 }

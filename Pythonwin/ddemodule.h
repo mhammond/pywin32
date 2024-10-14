@@ -1,3 +1,5 @@
+// #define PY_SSIZE_T_CLEAN  // defined in win32virt.cpp which runs the z# format here
+
 extern PyObject *BASED_CODE dde_module_error;
 
 // #define RETURN_NONE				do {Py_INCREF(Py_None);return Py_None;} while (0)
@@ -30,19 +32,17 @@ class PythonDDETopicFramework : public T {
     ~PythonDDETopicFramework() { Python_delete_assoc(this); }
     virtual BOOL Exec(void *pData, DWORD dwSize)
     {
-        PyObject *args = Py_BuildValue("(N)", PyWinObject_FromTCHAR((TCHAR *)pData));
-        BOOL rc = TRUE;
         CVirtualHelper helper("Exec", this);
-        if (helper.call_args(args))
+        BOOL rc = TRUE;
+        if (helper.call_args("(N)", PyWinObject_FromTCHAR((TCHAR *)pData)))
             helper.retval(rc);
         return !rc;
     }
     virtual BOOL NSRequest(const TCHAR *szItem, CDDEAllocator &allocr)
     {
-        PyObject *args = Py_BuildValue("(N)", PyWinObject_FromTCHAR(szItem));
-        BOOL rc = TRUE;
         CVirtualHelper helper("Request", this);
-        if (helper.call_args(args)) {
+        BOOL rc = TRUE;
+        if (helper.call_args("(N)", PyWinObject_FromTCHAR(szItem))) {
             CString strret;
             if (helper.retval(strret)) {
                 // seems strange we can't use DdeCreateStringHandle, but that is
@@ -55,10 +55,9 @@ class PythonDDETopicFramework : public T {
 
     virtual BOOL NSPoke(const TCHAR *szItem, void *pData, DWORD dwSize)
     {
-        PyObject *args = Py_BuildValue("(Nz#)", PyWinObject_FromTCHAR(szItem), pData, dwSize);
-        BOOL rc = TRUE;
         CVirtualHelper helper("Poke", this);
-        if (helper.call_args(args)) {
+        BOOL rc = TRUE;
+        if (helper.call_args("(Nz#)", PyWinObject_FromTCHAR(szItem), pData, (Py_ssize_t)dwSize)) {
             return TRUE;
         }
         return !rc;

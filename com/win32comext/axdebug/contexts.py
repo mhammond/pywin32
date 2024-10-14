@@ -1,21 +1,25 @@
 """ A module for managing the AXDebug I*Contexts
 
 """
-import gateways, axdebug
-import pythoncom, win32com.server.util
+
+from . import adb, axdebug, gateways
 
 # Utility function for wrapping object created by this module.
-from util import _wrap, _wrap_remove, trace
-import adb
+from .util import _wrap
+
 
 class DebugCodeContext(gateways.DebugCodeContext, gateways.DebugDocumentContext):
     # NOTE: We also implement the IDebugDocumentContext interface for Simple Hosts.
     # Thus, debugDocument may be NULL when we have smart hosts - but in that case, we
-    # wont be called upon to provide it.
-    _public_methods_ = gateways.DebugCodeContext._public_methods_ + \
-                       gateways.DebugDocumentContext._public_methods_
-    _com_interfaces_ = gateways.DebugCodeContext._com_interfaces_ + \
-                       gateways.DebugDocumentContext._com_interfaces_
+    # won't be called upon to provide it.
+    _public_methods_ = (
+        gateways.DebugCodeContext._public_methods_
+        + gateways.DebugDocumentContext._public_methods_
+    )
+    _com_interfaces_ = (
+        gateways.DebugCodeContext._com_interfaces_
+        + gateways.DebugDocumentContext._com_interfaces_
+    )
 
     def __init__(self, lineNo, charPos, len, codeContainer, debugSite):
         self.debugSite = debugSite
@@ -33,11 +37,10 @@ class DebugCodeContext(gateways.DebugCodeContext, gateways.DebugDocumentContext)
         if self.debugSite is not None:
             # We have a smart host - let him give it to us.
             return self.debugSite.GetDocumentContextFromPosition(
-                    self.codeContainer.sourceContext,
-                    self.offset,
-                    self.length)
+                self.codeContainer.sourceContext, self.offset, self.length
+            )
         else:
-            # Simple host - Fine - Ill do it myself!
+            # Simple host - Fine - I'll do it myself!
             return _wrap(self, axdebug.IID_IDebugDocumentContext)
 
     def SetBreakPoint(self, bps):
@@ -50,6 +53,7 @@ class DebugCodeContext(gateways.DebugCodeContext, gateways.DebugDocumentContext)
 
     def EnumCodeContexts(self):
         return _wrap(EnumDebugCodeContexts([self]), axdebug.IID_IEnumDebugCodeContexts)
+
 
 class EnumDebugCodeContexts(gateways.EnumDebugCodeContexts):
     def _wrap(self, obj):

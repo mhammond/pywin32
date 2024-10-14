@@ -263,7 +263,7 @@ PyObject *PyIDataObject::DAdvise(PyObject *self, PyObject *args)
         pAdvSink->Release();
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIDO, IID_IDataObject);
-    return PyInt_FromLong(dwConnection);
+    return PyLong_FromLong(dwConnection);
 }
 
 // @pymethod |PyIDataObject|DUnadvise|Disconnects a notification sink.
@@ -484,7 +484,7 @@ STDMETHODIMP PyGDataObject::DAdvise(
     Py_XDECREF(obpAdvSink);
     if (FAILED(hr))
         return hr;
-    *pdwConnection = PyInt_AsLong(result);
+    *pdwConnection = PyLong_AsLong(result);
     Py_DECREF(result);
     return hr;
 }

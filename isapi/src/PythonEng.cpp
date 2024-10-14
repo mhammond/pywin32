@@ -58,13 +58,14 @@ bool CPythonEngine::InitMainInterp(void)
     CSLock l(m_initLock);
     if (!m_haveInit) {
         PyGILState_STATE old_state;
-        if (Py_IsInitialized())
+        bool has_old_state = false;
+        if (Py_IsInitialized()) {
             old_state = PyGILState_Ensure();
+            has_old_state = true;
+        }
         else {
             Py_Initialize();
-            old_state = PyGILState_UNLOCKED;
         }
-        PyEval_InitThreads();
 
         if (!g_IsFrozen) {
             TCHAR *dll_path = GetModulePath();
@@ -88,7 +89,10 @@ bool CPythonEngine::InitMainInterp(void)
         InitExtensionTypes();
         InitFilterTypes();
 
-        PyGILState_Release(old_state);
+        if (has_old_state)
+            PyGILState_Release(old_state);
+        else
+            PyEval_SaveThread();
         FindModuleName();
         m_haveInit = true;
     }
@@ -134,11 +138,7 @@ bool CPythonEngine::AddToPythonPath(LPCTSTR pPathName)
         pPathName += 4;
         len -= 4;
     }
-#if (PY_VERSION_HEX < 0x03000000)
-    PyObject *obNew = PyString_FromStringAndSize(pPathName, len);
-#else
     PyObject *obNew = PyUnicode_FromWideChar(pPathName, len);
-#endif
     if (obNew == NULL) {
         return false;
     }
@@ -281,10 +281,7 @@ PyObject *CPythonHandler::Callback(HANDLER_TYPE typ, const char *format /* = NUL
         a = PyTuple_New(1);
         if (a == NULL)
             goto done;
-        if (PyTuple_SET_ITEM(a, 0, args) < 0) {
-            Py_DECREF(a);
-            goto done;
-        }
+        PyTuple_SET_ITEM(a, 0, args);
         // 'args' ref consumed by _SET_ITEM.
         args = a;
     }

@@ -150,7 +150,7 @@ PyObject *PyIEnumDebugPropertyInfo::GetCount(PyObject *self, PyObject *args)
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIEDebugPropertyInfo, IID_IEnumDebugPropertyInfo);
 
-    return PyInt_FromLong(ret);
+    return PyLong_FromLong(ret);
 }
 
 // @object PyIEnumDebugPropertyInfo|A Python interface to IEnumDebugPropertyInfo
@@ -214,8 +214,7 @@ STDMETHODIMP PyGEnumDebugPropertyInfo::Next(
 error:
     PyErr_Clear();  // just in case
     Py_DECREF(result);
-    return PyCom_SetCOMErrorFromSimple(E_FAIL, IID_IEnumDebugPropertyInfo,
-                                       "Next() did not return a sequence of objects");
+    return PyCom_HandleIEnumNoSequence(IID_IEnumDebugPropertyInfo);
 }
 
 STDMETHODIMP PyGEnumDebugPropertyInfo::Skip(
@@ -271,9 +270,7 @@ STDMETHODIMP PyGEnumDebugPropertyInfo::Clone(
         /* done with the result; this DECREF is also for <punk> */
         Py_DECREF(result);
 
-    return PyCom_SetCOMErrorFromSimple(
-        hr, IID_IEnumDebugPropertyInfo,
-        "Python could not convert the result from Next() into the required COM interface");
+    return PyCom_CheckIEnumNextResult(hr, IID_IEnumDebugPropertyInfo);
 }
 
 STDMETHODIMP PyGEnumDebugPropertyInfo::GetCount(
@@ -286,7 +283,7 @@ STDMETHODIMP PyGEnumDebugPropertyInfo::GetCount(
     HRESULT hr = InvokeViaPolicy("GetCount", &result);
     if (FAILED(hr))
         return hr;
-    *pcelt = PyInt_AsLong(result);
+    *pcelt = PyLong_AsLong(result);
     Py_DECREF(result);
     return PyCom_SetCOMErrorFromPyException(IID_IEnumDebugPropertyInfo);
 }

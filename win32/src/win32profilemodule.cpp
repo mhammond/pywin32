@@ -50,11 +50,13 @@ PyObject *PyWinObject_FromEnvironmentBlock(WCHAR *multistring)
         return NULL;
     totallen = wcslen(multistring);
     while (totallen) {
-        /* Use *last* equal sign as separator, since per-drive working dirs are stored in the environment in the form
-            "=C:=C:\\somedir","=D:=D:\\someotherdir".  These are retrievable by win32api.GetEnvironmentVariable('=C:'),
-            but don't appear in os.environ and are apparently undocumented
+        /* Official docs say that the name of an environment variable cannot include an equal sign.
+            Actually, there are names started with an equal sign, e.g. per-drive working dirs are stored in the form
+            "=C:=C:\\somedir", "=D:=D:\\someotherdir". These are retrievable by win32api.GetEnvironmentVariable('=C:'),
+            but don't appear in os.environ. Environment variable's value may contain an equal sign.
+            So we use the first equal sign from which the string is not started as a separator
         */
-        eq = wcsrchr(multistring, '=');
+        eq = wcschr(multistring + 1, '=');
         if (eq == NULL) {
             // Use blank string for value if no equal sign present. ???? Maybe throw an error instead ????
             vallen = 0;

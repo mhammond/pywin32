@@ -37,8 +37,8 @@ PyObject *PyIStream::Read(PyObject *self, PyObject *args)
     if (FAILED(hr))
         result = PyCom_BuildPyException(hr, pMy, IID_IStream);
     else
-        result = PyString_FromStringAndSize(buffer, read);
-    delete buffer;
+        result = PyBytes_FromStringAndSize(buffer, read);
+    delete[] buffer;
     // @rdesc The result is a string containing binary data.
     return result;
 }
@@ -46,21 +46,20 @@ PyObject *PyIStream::Read(PyObject *self, PyObject *args)
 // @pymethod |PyIStream|Write|Write data to a stream
 PyObject *PyIStream::Write(PyObject *self, PyObject *args)
 {
-    void *strValue;
     PyObject *obstrValue;
-    DWORD strSize;
     ULONG cbWritten;
     // @pyparm string|data||The binary data to write.
     if (!PyArg_ParseTuple(args, "O:Write", &obstrValue))
         return NULL;
-    if (!PyWinObject_AsReadBuffer(obstrValue, &strValue, &strSize, FALSE))
+    PyWinBufferView pybuf(obstrValue);
+    if (!pybuf.ok())
         return NULL;
     IStream *pMy = GetI(self);
     if (pMy == NULL)
         return NULL;
 
     PY_INTERFACE_PRECALL;
-    HRESULT hr = pMy->Write(strValue, strSize, &cbWritten);
+    HRESULT hr = pMy->Write(pybuf.ptr(), pybuf.len(), &cbWritten);
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pMy, IID_IStream);

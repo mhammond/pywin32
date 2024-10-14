@@ -45,12 +45,6 @@
 // avoid anyone accidently using the wrong WRITE_RESTRICTED...
 #undef WRITE_RESTRICTED
 
-// See PEP-353 - this is the "official" test...
-#if PY_VERSION_HEX < 0x02050000 && !defined(PY_SSIZE_T_MIN)
-// 2.3 and before have no Py_ssize_t
-typedef int Py_ssize_t;
-#endif
-
 // ***** py3k support *****
 // Note that when built for py3k, 'UNICODE' is defined, which conveniently
 // means TCHAR is the same size as the native unicode object in all versions.
@@ -58,31 +52,9 @@ typedef int Py_ssize_t;
 // defined, most strings passed and received from ISAPI itself remain 'char *'
 // in all versions.
 
-// most of these taken from pywintypes...
-#if (PY_VERSION_HEX < 0x03000000)
-
-// Macros to handle PyObject layout changes in Py3k
-#define PYISAPI_OBJECT_HEAD PyObject_HEAD_INIT(&PyType_Type) 0,
-#define PYISAPI_ATTR_CONVERT PyString_AsString
-
-#else  // Py3k definitions
-
 // Macros to handle PyObject layout changes in Py3k
 #define PYISAPI_OBJECT_HEAD PyVarObject_HEAD_INIT(NULL, 0)
-#define PYISAPI_ATTR_CONVERT PyUnicode_AsUnicode
-
-// And some old py2k functions we can map to their new names...
-#define PyString_Check PyBytes_Check
-#define PyString_Size PyBytes_Size
-#define PyString_AsString PyBytes_AsString
-#define PyString_FromString PyBytes_FromString
-#define PyString_FromStringAndSize PyBytes_FromStringAndSize
-#define PyString_AS_STRING PyBytes_AS_STRING
-#define PyInt_AsLong PyLong_AsLong
-#define PyInt_FromLong PyLong_FromLong
-#define PyInt_Check PyLong_Check
-
-#endif
+////#define PYISAPI_ATTR_CONVERT PyUnicode_AsUnicode  // removed in Py3.12+
 
 // A helper that on py3k takes a str or unicode as input and returns a
 // string - exactly how the 's#' PyArg_ParseTuple format string does...

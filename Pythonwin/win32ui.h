@@ -26,24 +26,7 @@
 #include <afxtempl.h>  // Bit of an unusual MFC header.
 #include <afxext.h>    // Also unusual - needed for CCreateContext.
 
-// For MFC8 (VS2005), we need to nominate the MFC assembly - may as well do
-// it here so its done once for all projects!
-// BUT - this isn't needed any more for MFC9/VS2008
-#if _MFC_VER >= 0x0800 && _MFC_VER < 0x0900
-#pragma comment( \
-    linker,      \
-    "/manifestdependency:\"type='win32' name='Microsoft.VC80.MFC' version='8.0.50727.762' processorArchitecture='*'  publicKeyToken='fc8b3b9a1e18e3b' language='*'\"")
-#endif
-
-#define DOINCREF(o) Py_INCREF(o)
-#define DODECREF(o) Py_DECREF(o)
-#define XDODECREF(o) Py_XDECREF(o)
-
 inline PyObject *PyWinObject_FromTCHAR(CString *str) { return PyWinObject_FromTCHAR((const TCHAR *)str); }
-
-// we cant use these memory operators - must use make and python handles delete
-#undef NEWOBJ
-#undef DEL
 
 // implement a few byte overhead for type checking.
 static char SIG[] = "py4w";
@@ -53,10 +36,6 @@ static char SIG[] = "py4w";
 #define GUI_BGN_SAVE PyThreadState *_save = PyEval_SaveThread()
 #define GUI_END_SAVE PyEval_RestoreThread(_save)
 #define GUI_BLOCK_THREADS Py_BLOCK_THREADS
-
-inline BOOL IsWin32s() { return FALSE; }
-
-inline BOOL IsGdiHandleValid(HANDLE hobject) { return hobject == NULL || IsWin32s() || ::GetObjectType(hobject) != 0; }
 
 CString GetAPIErrorString(const char *fnName);
 CString GetAPIErrorString(DWORD dwCode);
@@ -106,21 +85,14 @@ extern PyObject *ReturnAPIError(const char *fn);
 
 extern PYW_EXPORT PyObject *ui_module_error;
 
-// Note: design rules to be aware of when looking/coding/etc
-// (Im making these up after most is coded already, and just about to implement!)
-//
-// All object creation must now be via ui_base_class::make
-//
-// For any object derived from ui_cmd_target, it is important there
-// is exactly one c++ object per python object.  to support this,
-// ui_cmd_target has a make that has an ASSOC object passed.  This will
-// return a reference to an existing object if one already exists.
 /*
- The general class hierarchy is:
+Notes about ui_base_class and the PyObject related hierarchy.
+
+The general class hierarchy is:
         ui_base_class	Mainly Python helpers.
             |
-            + ui_assoc	All objects that maintain a mapping between
-                |		an external C++ object and a Python object.
+            + ui_assoc_object	All objects that maintain a mapping between
+                |		an external C++ MFC object and a Python object.
                 |		(ie, all non trivial!)  Inherits all ui_base classes.
                 |
                 + ui_assoc_CObject - base of all CObject partnered classes
@@ -140,12 +112,20 @@ extern PYW_EXPORT PyObject *ui_module_error;
                     |
                     + ui_document	Assoc is CDocument pointer.
 
+All object creation must via ui_base_class::make, but is generally handled
+automatically.
+
+For any object derived from ui_cmd_target, it is important there
+is exactly one c++ object per python object.  to support this,
+ui_cmd_target has a make that has an ASSOC object passed.  This will
+return a reference to an existing object if one already exists.
 
 */
+
 //
 // object types
 //
-// to make life convenient, I derive from PyObject, rather than "include"
+// to make life convenient (hah!), I derive from PyObject, rather than "include"
 // the structure at the start.  As PyObject has no virtual members, casts
 // will offset the pointer.
 // It is important that the functions which handle python methods
@@ -158,8 +138,8 @@ class ui_base_class;
 // helper typeobject class.
 class PYW_EXPORT ui_type : public PyTypeObject {
    public:
-    ui_type(const char *name, ui_type *pBaseType, int typeSize, int pyobjOffset, struct PyMethodDef *methodList,
-            ui_base_class *(*thector)());
+    ui_type(const char *name, ui_type *pBaseType, Py_ssize_t typeSize, ptrdiff_t pyobjOffset,
+            struct PyMethodDef *methodList, ui_base_class *(*thector)());
     ~ui_type();
 
    public:
@@ -174,8 +154,8 @@ class PYW_EXPORT ui_type : public PyTypeObject {
 // helper typeCObject class.
 class PYW_EXPORT ui_type_CObject : public ui_type {
    public:
-    ui_type_CObject(const char *name, ui_type *pBaseType, CRuntimeClass *pRT, int typeSize, int pyobjOffset,
-                    struct PyMethodDef *methodList, ui_base_class *(*thector)());
+    ui_type_CObject(const char *name, ui_type *pBaseType, CRuntimeClass *pRT, Py_ssize_t typeSize,
+                    ptrdiff_t pyobjOffset, struct PyMethodDef *methodList, ui_base_class *(*thector)());
     ~ui_type_CObject();
 
    public:
@@ -265,9 +245,9 @@ PYW_EXPORT PyObject *gui_call_object(PyObject *themeth, PyObject *thearglist);
 PYW_EXPORT void gui_print_error(void);
 void gui_decref(PyObject *o);
 
-//#endif // Py_ALLOBJECTS_H
+// #endif // Py_ALLOBJECTS_H
 //
-// CreateContext used when creating frames etc.
+//  CreateContext used when creating frames etc.
 //
 class PYW_EXPORT PythonCreateContext : public CCreateContext {
    public:
@@ -294,11 +274,12 @@ PYW_EXPORT ExceptionHandlerFunc SetExceptionHandler(ExceptionHandlerFunc handler
 // The type of error handling we want...
 enum EnumVirtualErrorHandling { VEH_PRINT_ERROR, VEH_DISPLAY_DIALOG };
 
-class PYW_EXPORT CVirtualHelper {
+class PYW_EXPORT CVirtualHelper : public CEnterLeavePython {
    public:
     CVirtualHelper(const char *iname, void *iassoc, EnumVirtualErrorHandling veh = VEH_PRINT_ERROR);
     ~CVirtualHelper();
 
+    void release_full();
     BOOL HaveHandler() { return handler != NULL; }
     // All the "call" functions return FALSE if the call failed, or no handler exists.
     BOOL call();
@@ -331,7 +312,8 @@ class PYW_EXPORT CVirtualHelper {
     BOOL call(const MSG *);
     BOOL call(WPARAM, LPARAM);
     BOOL call(UINT nID, int nCode, void *pExtra, AFX_CMDHANDLERINFO *pHandlerInfo);
-    BOOL call_args(PyObject *arglst);
+    PyObject *build_args(const char *format, ...);
+    BOOL call_args(const char *format, ...);
     // All the retval functions will ASSERT if the call failed!
     BOOL retval(int &ret);
     BOOL retval(long &ret);

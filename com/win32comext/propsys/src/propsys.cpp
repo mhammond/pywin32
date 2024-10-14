@@ -291,7 +291,7 @@ static PyObject *PyStgSerializePropVariant(PyObject *self, PyObject *args)
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return PyCom_BuildPyException(hr);
-    PyObject *ret = PyString_FromStringAndSize((char *)pspv, bufsize);
+    PyObject *ret = PyBytes_FromStringAndSize((char *)pspv, bufsize);
     CoTaskMemFree(pspv);
     return ret;
 };
@@ -300,17 +300,16 @@ static PyObject *PyStgSerializePropVariant(PyObject *self, PyObject *args)
 static PyObject *PyStgDeserializePropVariant(PyObject *self, PyObject *args)
 {
     PROPVARIANT pv;
-    SERIALIZEDPROPERTYVALUE *pspv;
-    ULONG bufsize;
     PyObject *ob;
     HRESULT hr;
     if (!PyArg_ParseTuple(args, "O:StgDeserializePropVariant", &ob))
         return NULL;
     // @pyparm bytes|prop||Buffer or bytes object (or str in Python 2) containing a serialized value
-    if (!PyWinObject_AsReadBuffer(ob, (void **)&pspv, &bufsize))
+    PyWinBufferView pybuf(ob);
+    if (!pybuf.ok())
         return NULL;
     PY_INTERFACE_PRECALL;
-    hr = StgDeserializePropVariant(pspv, bufsize, &pv);
+    hr = StgDeserializePropVariant((SERIALIZEDPROPERTYVALUE *)pybuf.ptr(), pybuf.len(), &pv);
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return PyCom_BuildPyException(hr);
@@ -420,21 +419,20 @@ static PyObject *PySHGetPropertyStoreForWindow(PyObject *self, PyObject *args)
 static PyObject *PyPSGetPropertyFromPropertyStorage(PyObject *self, PyObject *args)
 {
     PROPERTYKEY key;
-    void *buf;
-    DWORD bufsize;
     PROPVARIANT val;
     PyObject *obbuf;
-    // @pyparm buffer|ps||Bytes or buffer (or str in python 2) containing a serialized property set (see <om
+    // @pyparm buffer|ps||Bytes or buffer (or str in Python 2) containing a serialized property set (see <om
     // PyIPersistSerializedPropStorage.GetPropertyStorage>)
     // @pyparm <o PyPROPERTYKEY>|key||Property to return
     if (!PyArg_ParseTuple(args, "OO&:PSGetPropertyFromPropertyStorage", &obbuf, PyWinObject_AsPROPERTYKEY, &key))
         return NULL;
-    if (!PyWinObject_AsReadBuffer(obbuf, &buf, &bufsize, FALSE))
+    PyWinBufferView pybuf(obbuf);
+    if (!pybuf.ok())
         return NULL;
 
     HRESULT hr;
     PY_INTERFACE_PRECALL;
-    hr = PSGetPropertyFromPropertyStorage((PCUSERIALIZEDPROPSTORAGE)buf, bufsize, key, &val);
+    hr = PSGetPropertyFromPropertyStorage((PCUSERIALIZEDPROPSTORAGE)pybuf.ptr(), pybuf.len(), key, &val);
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return PyCom_BuildPyException(hr);
@@ -446,23 +444,22 @@ static PyObject *PyPSGetPropertyFromPropertyStorage(PyObject *self, PyObject *ar
 static PyObject *PyPSGetNamedPropertyFromPropertyStorage(PyObject *self, PyObject *args)
 {
     TmpWCHAR name;
-    void *buf;
-    DWORD bufsize;
     PROPVARIANT val;
     PyObject *obname, *obbuf;
-    // @pyparm buffer|ps||Bytes or buffer (or str in python 2) containing a serialized property set (see <om
+    // @pyparm buffer|ps||Bytes or buffer (or str in Python 2) containing a serialized property set (see <om
     // PyIPersistSerializedPropStorage.GetPropertyStorage>)
     // @pyparm str|name||Property to return
     if (!PyArg_ParseTuple(args, "OO:PSGetNamedPropertyFromPropertyStorage", &obbuf, &obname))
         return NULL;
-    if (!PyWinObject_AsReadBuffer(obbuf, &buf, &bufsize, FALSE))
+    PyWinBufferView pybuf(obbuf);
+    if (!pybuf.ok())
         return NULL;
     if (!PyWinObject_AsWCHAR(obname, &name, FALSE))
         return NULL;
 
     HRESULT hr;
     PY_INTERFACE_PRECALL;
-    hr = PSGetNamedPropertyFromPropertyStorage((PCUSERIALIZEDPROPSTORAGE)buf, bufsize, name, &val);
+    hr = PSGetNamedPropertyFromPropertyStorage((PCUSERIALIZEDPROPSTORAGE)pybuf.ptr(), pybuf.len(), name, &val);
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return PyCom_BuildPyException(hr);
@@ -598,13 +595,6 @@ static struct PyMethodDef propsys_methods[] = {
     {NULL, NULL},
 };
 
-// MSDN says CLSID_PropertyChangeArray can be used to create IPropertyChangeArray, but
-// I get "Class not registered".  Plus, it doesn't appear in any headers, although
-// it's contained in uuid.lib.
-#ifndef CLSID_PropertyChangeArray
-EXTERN_C const CLSID CLSID_PropertyChangeArray;
-#endif
-
 static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] = {
     PYCOM_INTERFACE_FULL(InitializeWithFile),
     PYCOM_INTERFACE_FULL(InitializeWithStream),
@@ -623,7 +613,6 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] = {
     PYCOM_INTERFACE_CLIENT_ONLY(ObjectWithPropertyKey),
     PYCOM_INTERFACE_CLIENT_ONLY(PropertyChange),
     PYCOM_INTERFACE_CLIENT_ONLY(PropertyChangeArray),
-    PYCOM_INTERFACE_CLSID_ONLY(PropertyChangeArray),
 };
 
 /* Module initialisation */
