@@ -9,7 +9,10 @@ For all bugs, please provide the following information:
 ## Expected behavior and actual behavior
 
 ## Steps to reproduce the problem
-<!-- Prefer using code snippets rather than a screenshot. Please include a full minimal reproduction if possible. -->
+<!--
+Prefer using code snippets rather than a screenshot. Please include a full minimal reproduction if possible.
+See https://stackoverflow.com/help/minimal-reproducible-example
+-->
 
 1. ...
 2. ...
