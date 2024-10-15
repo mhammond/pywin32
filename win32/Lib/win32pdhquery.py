@@ -124,10 +124,12 @@ if you use it, you accept the risk of using it, etceteras.
 """
 
 # Feb 12, 98 - MH added "rawaddcounter" so caller can get exception details.
+from __future__ import annotations
 
 import _thread
 import copy
 import time
+from itertools import chain
 
 import win32api
 import win32pdh
@@ -446,14 +448,11 @@ class Query(BaseQuery):
                 cur += 1
         except IndexError:  # if we went over the end
             pass
-        paths = []
-        for ind in range(len(temp)):
-            # can this raise an error?
-            paths.append(
-                win32pdh.MakeCounterPath(
-                    (machine, "Process", object, None, ind, counter)
-                )
-            )
+        paths = [
+            win32pdh.MakeCounterPath((machine, "Process", object, None, ind, counter))
+            for ind in range(len(temp))
+        ]
+
         return paths  # should also return the number of elements for naming purposes
 
     def open(self, *args, **namedargs):
@@ -468,9 +467,11 @@ class Query(BaseQuery):
         # do all the normal opening stuff, self._base is now the query object
         BaseQuery.open(*(self,) + args, **namedargs)
         # should rewrite getinstpaths to take a single tuple
-        paths = []
-        for tup in self.volatilecounters:
-            paths[len(paths) :] = self.getinstpaths(*tup)
+        paths = list(
+            chain.from_iterable(
+                self.getinstpaths(*tup) for tup in self.volatilecounters
+            )
+        )
         for path in paths:
             try:
                 self.counters.append(win32pdh.AddCounter(self._base, path))
