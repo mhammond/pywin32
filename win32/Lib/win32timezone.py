@@ -266,16 +266,12 @@ if TYPE_CHECKING:
     from _typeshed import SupportsKeysAndGetItem
     from typing_extensions import Self
 
-    _RangeMapKT = TypeVar("_RangeMapKT", bound=_SupportsComparison)
-else:
-    # _SupportsComparison doesn't exist at runtime,
-    # but _RangeMapKT is used in RangeMap's superclass' type parameters
-    _RangeMapKT = TypeVar("_RangeMapKT")
+__author__ = "Jason R. Coombs <jaraco@jaraco.com>"
+
+_RangeMapKT = TypeVar("_RangeMapKT", bound="_SupportsComparison")
 
 _T = TypeVar("_T")
 _VT = TypeVar("_VT")
-
-__author__ = "Jason R. Coombs <jaraco@jaraco.com>"
 
 log = logging.getLogger(__file__)
 
@@ -676,14 +672,25 @@ class TimeZoneInfo(datetime.tzinfo):
     def __str__(self) -> str:
         return self.displayName
 
-    def tzname(self, dt: datetime.datetime) -> str:
+    @overload
+    def tzname(self, dt: datetime.datetime) -> str: ...
+    @overload
+    def tzname(self, dt: None) -> None: ...
+    def tzname(self, dt: datetime.datetime | None) -> str | None:
         """
         >>> MST = TimeZoneInfo('Mountain Standard Time')
         >>> MST.tzname(datetime.datetime(2003, 8, 2))
         'Mountain Daylight Time'
         >>> MST.tzname(datetime.datetime(2003, 11, 25))
         'Mountain Standard Time'
+        >>> MST.tzname(None)
+        None
         """
+        # https://docs.python.org/3/library/datetime.html#datetime.tzinfo.tzname
+        # > [...] returning `None` is appropriate if the class wishes to say
+        # > that `time` objects don’t participate in the `tzinfo` protocols.
+        if dt is None:
+            return None
 
         winInfo = self.getWinInfo(dt.year)
         if self.dst(dt) == -winInfo.daylight_bias:
