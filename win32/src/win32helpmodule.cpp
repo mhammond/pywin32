@@ -66,8 +66,10 @@ static PyObject *PyWinHelp(PyObject *self, PyObject *args)
         data = (ULONG_PTR)pybuf.ptr();
     if (!PyWinObject_AsTCHAR(obhlpFile, &hlpFile, FALSE))
         return NULL;
-    PyW32_BEGIN_ALLOW_THREADS BOOL ok = ::WinHelp(hwnd, hlpFile, cmd, data);
-    PyW32_END_ALLOW_THREADS PyWinObject_FreeTCHAR(hlpFile);
+    PyW32_BEGIN_ALLOW_THREADS
+    BOOL ok = ::WinHelp(hwnd, hlpFile, cmd, data);
+    PyW32_END_ALLOW_THREADS
+    PyWinObject_FreeTCHAR(hlpFile);
     if (!ok)
         return ReturnAPIError("WinHelp");
     Py_INCREF(Py_None);
@@ -2487,10 +2489,11 @@ data tuple items must be integers");
     }
 
     HWND helpWnd;
-    PyW32_BEGIN_ALLOW_THREADS helpWnd = ::HtmlHelp(hwnd, file, cmd, data);
+    PyW32_BEGIN_ALLOW_THREADS
+    helpWnd = ::HtmlHelp(hwnd, file, cmd, data);
     PyW32_END_ALLOW_THREADS
 
-        PyWinObject_FreeTCHAR(dataObAsTCHAR);
+    PyWinObject_FreeTCHAR(dataObAsTCHAR);
     PyWinObject_FreeTCHAR(file);
 
     PyObject *ret;
