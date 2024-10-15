@@ -676,7 +676,7 @@ class TimeZoneInfo(datetime.tzinfo):
     def __str__(self) -> str:
         return self.displayName
 
-    def tzname(self, dt: datetime.datetime | None) -> str:
+    def tzname(self, dt: datetime.datetime) -> str:
         """
         >>> MST = TimeZoneInfo('Mountain Standard Time')
         >>> MST.tzname(datetime.datetime(2003, 8, 2))
