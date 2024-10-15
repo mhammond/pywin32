@@ -692,20 +692,20 @@ class TimeZoneInfo(datetime.tzinfo):
         if dt is None:
             return None
 
+        dst = self.dst(dt)
         winInfo = self.getWinInfo(dt.year)
-        if self.dst(dt) == -winInfo.daylight_bias:
-            result = self.daylightName
-        elif self.dst(dt) == -winInfo.standard_bias:
-            result = self.standardName
-        else:
-            raise ValueError(
-                "Unexpected daylight bias",
-                dt,
-                self.dst(dt),
-                winInfo.daylight_bias,
-                winInfo.standard_bias,
-            )
-        return result
+        if dst == -winInfo.daylight_bias:
+            return self.daylightName
+        elif dst == -winInfo.standard_bias:
+            return self.standardName
+
+        raise ValueError(
+            "Unexpected daylight bias",
+            dt,
+            dst,
+            winInfo.daylight_bias,
+            winInfo.standard_bias,
+        )
 
     def getWinInfo(self, targetYear: int) -> TimeZoneDefinition:
         """
