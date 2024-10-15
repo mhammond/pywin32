@@ -45,9 +45,7 @@ class PrintDemoView(docview.ScrollView):
         oldPen = None
         x, y = self.size
         delta = 2
-        colors = list(self.colors.keys())
-        colors.sort()
-        colors *= 2
+        colors = sorted(self.colors) * 2
         for color in colors:
             if oldPen is None:
                 oldPen = dc.SelectObject(self.pens[color])

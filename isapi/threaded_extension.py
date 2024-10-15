@@ -156,7 +156,7 @@ class ThreadPoolExtension(isapi.simple.SimpleExtension):
         limit = None
         try:
             try:
-                import cgi
+                import html
 
                 ecb.SendResponseHeaders(
                     "200 OK", "Content-type: text/html\r\n\r\n", False
@@ -169,8 +169,8 @@ class ThreadPoolExtension(isapi.simple.SimpleExtension):
                 bold = list.pop()
                 print(
                     "<PRE>{}<B>{}</B></PRE>".format(
-                        cgi.escape("".join(list)),
-                        cgi.escape(bold),
+                        html.escape("".join(list)),
+                        html.escape(bold),
                     ),
                     file=ecb,
                 )

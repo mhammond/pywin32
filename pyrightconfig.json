@@ -16,8 +16,6 @@
     "**/test/",
     "**/Demos/",
     "**/demo/",
-    // TODO: adodbapi should be updated and fixed separately
-    "adodbapi/",
   ],
   // Packages that will be accessible globally.
   // Setting this makes pyright use the repo's code for those modules instead of typeshed or pywin32 in site-packages
@@ -39,9 +37,10 @@
   "reportOptionalIterable": "warning",
   "reportOptionalMemberAccess": "warning",
   "reportOptionalSubscript": "warning",
-  // TODO: Leave Unbound/Undefined to their own PR(s)
+  // Needs fixes in types-pywin32 and requires Python 3.8 to annotate ambiguous global variables
+  "reportUnnecessaryComparison": "warning",
+  // TODO: Leave Unbound its own PR(s)
   "reportUnboundVariable": "warning",
-  "reportUndefinedVariable": "warning",
   // Too many dynamically generated modules. This will require type stubs to properly fix.
   "reportMissingImports": "warning",
   // IDEM, but happens when pywin32 is not in site-packages but module is found from typeshed.
@@ -51,8 +50,6 @@
   "reportMissingModuleSource": "none",
   // External type stubs may not be completable, and this will require type stubs for dynamic modules.
   "reportMissingTypeStubs": "information",
-  // Sometimes used for extra runtime safety
-  "reportUnnecessaryComparison": "warning",
   // Use Flake8/Pycln/Ruff instead
   "reportUnusedImport": "none",
 }

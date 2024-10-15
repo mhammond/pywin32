@@ -12,6 +12,8 @@
  interface
 """
 
+from __future__ import annotations
+
 import re
 import traceback
 
@@ -701,7 +703,9 @@ class ArgFormatterSimple(ArgFormatter):
         return ConvertSimpleTypes[self.arg.type][1]
 
 
-AllConverters = {
+AllConverters: dict[
+    str, tuple[type[ArgFormatter], int, int] | tuple[type[ArgFormatter], int]
+] = {
     "const OLECHAR": (ArgFormatterOLECHAR, 0, 1),
     "WCHAR": (ArgFormatterOLECHAR, 0, 1),
     "OLECHAR": (ArgFormatterOLECHAR, 0, 1),
@@ -767,11 +771,9 @@ AllConverters = {
     "const PUITEMID_CHILD": (ArgFormatterIDLIST, 0),
     "PCUITEMID_CHILD_ARRAY": (ArgFormatterIDLIST, 2),
     "const PCUITEMID_CHILD_ARRAY": (ArgFormatterIDLIST, 2),
+    # Auto-add all the simple types
+    **{key: (ArgFormatterSimple, 0) for key in ConvertSimpleTypes},
 }
-
-# Auto-add all the simple types
-for key in ConvertSimpleTypes.keys():
-    AllConverters[key] = ArgFormatterSimple, 0
 
 
 def make_arg_converter(arg):
