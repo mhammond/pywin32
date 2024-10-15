@@ -57,7 +57,7 @@ Outside of a virtual environment you might want to install COM objects, services
 this by executing:
 
 ```shell
-python Scripts/pywin32_postinstall.py -install
+pywin32_postinstall -install
 ```
 
 From the root of your Python installation.
@@ -91,7 +91,7 @@ It usually means one of 2 things:
 So you should run it again:
 
     ```shell
-    python Scripts/pywin32_postinstall.py -install
+    pywin32_postinstall -install
     ```
 
     This will make some small attempts to cleanup older conflicting installs.
