@@ -35,14 +35,12 @@ select = [
   # Helps prevent circular imports and other unneeded imports
   "TCH", # flake8-type-checking
 ]
-extend-ignore = [
-  # No such concerns for stdlib
-  "TCH003", # typing-only-standard-library-import
-]
 
 extend-ignore = [
   # TODO: Consider passing exception around to ensure methods are only ever used within exception handlers
   "PLE0704",
+  # No such concerns for stdlib
+  "TCH003", # typing-only-standard-library-import
 ]
 
 [lint.per-file-ignores]
