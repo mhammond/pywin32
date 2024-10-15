@@ -23,27 +23,17 @@ Copyright (C) 2002 Henrik Ekelund, versions 2.1 and later by Vernon Cole
 
 DB-API 2.0 specification: http://www.python.org/dev/peps/pep-0249/
 
-This module source should run correctly in CPython versions 2.7 and later,
-or CPython 3.4 or later.
+This module source should run correctly in CPython 3.4 or later.
 """
-
-__version__ = "2.6.2.0"
-version = "adodbapi v" + __version__
 
 import copy
 import decimal
 import os
 import sys
 import weakref
+from collections.abc import Mapping
 
 from . import ado_consts as adc, apibase as api, process_connect_string
-
-try:
-    verbose = int(os.environ["ADODBAPI_VERBOSE"])
-except:
-    verbose = False
-if verbose:
-    print(version)
 
 try:
     import pythoncom
@@ -54,12 +44,15 @@ except ImportError:
 
     warnings.warn("pywin32 package required for adodbapi.", ImportWarning)
 
+__version__ = "3.7.0.0"
+version = "adodbapi v" + __version__
 
-def getIndexedValue(obj, index):
-    return obj(index)
-
-
-from collections.abc import Mapping
+try:
+    verbose = int(os.environ["ADODBAPI_VERBOSE"])
+except:
+    verbose = False
+if verbose:
+    print(version)
 
 
 # -----------------  The .connect method -----------------
@@ -271,15 +264,13 @@ class Connection:
             )
 
         try:  # Stefan Fuchs; support WINCCOLEDBProvider
-            if getIndexedValue(self.connector.Properties, "Transaction DDL").Value != 0:
+            if self.connector.Properties("Transaction DDL").Value != 0:
                 self.supportsTransactions = True
         except pywintypes.com_error:
             pass  # Stefan Fuchs
-        self.dbms_name = getIndexedValue(self.connector.Properties, "DBMS Name").Value
+        self.dbms_name = self.connector.Properties("DBMS Name").Value
         try:  # Stefan Fuchs
-            self.dbms_version = getIndexedValue(
-                self.connector.Properties, "DBMS Version"
-            ).Value
+            self.dbms_version = self.connector.Properties("DBMS Version").Value
         except pywintypes.com_error:
             pass  # Stefan Fuchs
         self.connector.CursorLocation = defaultCursorLocation  # v2.1 Rose
@@ -509,7 +500,7 @@ class Connection:
 
         tables = []
         while not schema.EOF:
-            name = getIndexedValue(schema.Fields, "TABLE_NAME").Value
+            name = schema.Fields("TABLE_NAME").Value
             tables.append(name)
             schema.MoveNext()
         del schema
@@ -612,7 +603,7 @@ class Cursor:
         except AttributeError:
             varCon = api.variantConversions
         for i in range(self.numberOfColumns):
-            f = getIndexedValue(self.rs.Fields, i)
+            f = self.rs.Fields(i)
             try:
                 self.converters.append(
                     varCon[f.Type]
@@ -630,7 +621,7 @@ class Cursor:
             return
         desc = []
         for i in range(self.numberOfColumns):
-            f = getIndexedValue(self.rs.Fields, i)
+            f = self.rs.Fields(i)
             if self.rs.EOF or self.rs.BOF:
                 display_size = None
             else:
@@ -870,7 +861,7 @@ class Cursor:
             if parameters_known:  # use ado parameter list
                 if self._parameter_names:  # named parameters
                     for i, pm_name in enumerate(self._parameter_names):
-                        p = getIndexedValue(self.cmd.Parameters, i)
+                        p = self.cmd.Parameters(i)
                         try:
                             _configure_parameter(
                                 p, parameters[pm_name], p.Type, parameters_known
@@ -887,12 +878,12 @@ class Cursor:
                             )
                 else:  # regular sequence of parameters
                     for value in parameters:
-                        p = getIndexedValue(self.cmd.Parameters, i)
+                        p = self.cmd.Parameters(i)
                         if (
                             p.Direction == adc.adParamReturnValue
                         ):  # this is an extra parameter added by ADO
                             i += 1  # skip the extra
-                            p = getIndexedValue(self.cmd.Parameters, i)
+                            p = self.cmd.Parameters(i)
                         try:
                             _configure_parameter(p, value, p.Type, parameters_known)
                         except Exception as e:
