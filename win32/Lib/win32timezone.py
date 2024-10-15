@@ -30,7 +30,7 @@ True
 (note that the result of utcoffset call will be different based on when now was
 generated, unless standard time is always used)
 
->>> now = datetime.datetime.now(TimeZoneInfo('Mountain Standard Time', True))
+>>> now = datetime.datetime.now(win32timezone.TimeZoneInfo('Mountain Standard Time', True))
 >>> now.utcoffset()
 datetime.timedelta(days=-1, seconds=61200)
 
@@ -74,8 +74,13 @@ True
 
 It's possible to construct a TimeZoneInfo from a TimeZoneDescription
 including the currently-defined zone.
->>> tz = win32timezone.TimeZoneInfo(TimeZoneDefinition.current())
+>>> code, info = win32timezone.TimeZoneDefinition.current()
+>>> tz = win32timezone.TimeZoneInfo(info, not code)
 >>> tz == pickle.loads(pickle.dumps(tz))
+True
+
+Although it's easier to use TimeZoneInfo.local() to get the local info
+>>> tz == TimeZoneInfo.local()
 True
 
 >>> aest = win32timezone.TimeZoneInfo('AUS Eastern Standard Time')
@@ -360,10 +365,25 @@ class TimeZoneDefinition(DYNAMIC_TIME_ZONE_INFORMATION):
 
     def __init__(self, *args, **kwargs) -> None:
         """
+        >>> test_args = [1] * 44
+
         Try to construct a TimeZoneDefinition from:
+
         a) [DYNAMIC_]TIME_ZONE_INFORMATION args
-        b) another TimeZoneDefinition
+        >>> TimeZoneDefinition(*test_args).bias
+        datetime.timedelta(seconds=60)
+
+        b) another TimeZoneDefinition or [DYNAMIC_]TIME_ZONE_INFORMATION
+        >>> TimeZoneDefinition(TimeZoneDefinition(*test_args)).bias
+        datetime.timedelta(seconds=60)
+        >>> TimeZoneDefinition(DYNAMIC_TIME_ZONE_INFORMATION(*test_args)).bias
+        datetime.timedelta(seconds=60)
+        >>> TimeZoneDefinition(TIME_ZONE_INFORMATION(*test_args)).bias
+        datetime.timedelta(seconds=60)
+
         c) a byte structure (using _from_bytes)
+        >>> TimeZoneDefinition(bytes(test_args)).bias
+        datetime.timedelta(days=11696, seconds=46140)
         """
         try:
             super().__init__(*args, **kwargs)
@@ -383,7 +403,7 @@ class TimeZoneDefinition(DYNAMIC_TIME_ZONE_INFORMATION):
         except TypeError:
             pass
 
-        raise TypeError("Invalid arguments for %s" % self.__class__)
+        raise TypeError(f"Invalid arguments for {self.__class__}")
 
     def __init_from_bytes(
         self,
@@ -525,6 +545,20 @@ class TimeZoneInfo(datetime.tzinfo):
     >>> offsets = set(tzi.utcoffset(year) for year in subsequent_years)
     >>> len(offsets)
     1
+
+    Cannot create a `TimeZoneInfo` with an invalid name.
+    >>> TimeZoneInfo('Does not exist')
+    Traceback (most recent call last):
+    ...
+    ValueError: Timezone Name 'Does not exist' not found
+    >>> TimeZoneInfo(None)
+    Traceback (most recent call last):
+    ...
+    ValueError: subkey name cannot be empty
+    >>> TimeZoneInfo("")
+    Traceback (most recent call last):
+    ...
+    ValueError: subkey name cannot be empty
     """
 
     # this key works for WinNT+, but not for the Win95 line.
@@ -534,13 +568,17 @@ class TimeZoneInfo(datetime.tzinfo):
         self,
         param: str | TimeZoneDefinition,
         fix_standard_time: bool = False,
-    ):
+    ) -> None:
         if isinstance(param, TimeZoneDefinition):
             self._LoadFromTZI(param)
-        if isinstance(param, str):
+        else:
             self.timeZoneName = param
             self._LoadInfoFromKey()
         self.fixedStandardTime = fix_standard_time
+
+    # For tzinfo pickle support
+    def __getinitargs__(self) -> tuple[TimeZoneDefinition, bool]:
+        return (self.staticInfo, self.fixedStandardTime)
 
     def _FindTimeZoneKey(self) -> _RegKeyDict:
         """Find the registry key for the time zone name (self.timeZoneName)."""
@@ -553,8 +591,9 @@ class TimeZoneInfo(datetime.tzinfo):
         key = _RegKeyDict.open(winreg.HKEY_LOCAL_MACHINE, self.tzRegKey)
         try:
             result = key.subkey(timeZoneName)
-        except Exception:
-            raise ValueError("Timezone Name %s not found." % timeZoneName)
+        except FileNotFoundError:
+            # Don't catch ValueError, keep the original error message
+            raise ValueError(f"Timezone Name {timeZoneName!r} not found")
         return result
 
     def _LoadInfoFromKey(self) -> None:
@@ -615,12 +654,14 @@ class TimeZoneInfo(datetime.tzinfo):
             return
         del info["FirstEntry"]
         del info["LastEntry"]
-        years = map(int, list(info.keys()))
-        values = map(TimeZoneDefinition, list(info.values()))
+
+        infos = [
+            (int(year), TimeZoneDefinition(values)) for year, values in info.items()
+        ]
         # create a range mapping that searches by descending year and matches
         # if the target year is greater or equal.
         self.dynamicInfo = RangeMap(
-            zip(years, values),
+            infos,
             sort_params={"reverse": True},
             key_match_comparator=operator.ge,
         )
@@ -636,13 +677,27 @@ class TimeZoneInfo(datetime.tzinfo):
         return self.displayName
 
     def tzname(self, dt: datetime.datetime | None) -> str:
-        # FIXME/TODO: Real issue !
-        # Are we meant to return the last item if passing a datetime to getWinInfo?
-        winInfo = self.getWinInfo(dt)  # type: ignore[arg-type]
-        if self.dst(dt) == winInfo.daylight_bias:
+        """
+        >>> MST = TimeZoneInfo('Mountain Standard Time')
+        >>> MST.tzname(datetime.datetime(2003, 8, 2))
+        'Mountain Daylight Time'
+        >>> MST.tzname(datetime.datetime(2003, 11, 25))
+        'Mountain Standard Time'
+        """
+
+        winInfo = self.getWinInfo(dt.year)
+        if self.dst(dt) == -winInfo.daylight_bias:
             result = self.daylightName
-        elif self.dst(dt) == winInfo.standard_bias:
+        elif self.dst(dt) == -winInfo.standard_bias:
             result = self.standardName
+        else:
+            raise ValueError(
+                "Unexpected daylight bias",
+                dt,
+                self.dst(dt),
+                winInfo.daylight_bias,
+                winInfo.standard_bias,
+            )
         return result
 
     def getWinInfo(self, targetYear: int) -> TimeZoneDefinition:
@@ -855,6 +910,8 @@ class _RegKeyDict(Dict[str, str]):
         return _RegKeyDict(winreg.OpenKeyEx(key, sub_key, reserved, access))
 
     def subkey(self, name: str) -> _RegKeyDict:
+        if not name:
+            raise ValueError("subkey name cannot be empty")
         return _RegKeyDict(winreg.OpenKeyEx(self.key, name))
 
     def __load_values(self):
@@ -1071,7 +1128,7 @@ class RangeMap(Dict[_RangeMapKT, _VT]):
         )
 
     def __getitem__(self, item: _RangeMapKT) -> _VT:
-        sorted_keys = sorted(self.keys(), **self.sort_params)
+        sorted_keys = sorted(self, **self.sort_params)
         if isinstance(item, RangeMap.Item):
             result = self.__getitem__(sorted_keys[item])
         else:
@@ -1091,6 +1148,7 @@ class RangeMap(Dict[_RangeMapKT, _VT]):
         If default is not given, it defaults to None, so that this method
         never raises a KeyError.
         """
+        # Necessary to use our own __getitem__ and not dict's
         try:
             return self[key]
         except KeyError:
@@ -1107,7 +1165,7 @@ class RangeMap(Dict[_RangeMapKT, _VT]):
             raise KeyError(item) from None
 
     def bounds(self) -> tuple[_RangeMapKT, _RangeMapKT]:
-        sorted_keys = sorted(self.keys(), **self.sort_params)
+        sorted_keys = sorted(self, **self.sort_params)
         return (sorted_keys[RangeMap.first_item], sorted_keys[RangeMap.last_item])
 
     # some special values for the RangeMap
