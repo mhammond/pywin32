@@ -1,5 +1,4 @@
-""" Management of documents for AXDebugging.
-"""
+"""Management of documents for AXDebugging."""
 
 import pythoncom
 import win32api
