@@ -14,6 +14,9 @@ https://mhammond.github.io/pywin32_installers.html.
 Coming in build 309, as yet unreleased
 --------------------------------------
 
+* Implement record pointers as [in, out] method parameters of a Dispatch Interface (#2310)
+* Fix memory leak converting to PyObject from some SAFEARRAY elements (#2316)
+* Fix bug where makepy support was unnecessarily generated (#2354, #2353, @geppi)
 * Fail sooner on invalid `win32timezone.TimeZoneInfo` creation (#2338, @Avasam)
 * Removed temporary `win32com.server.policy` reexports hack (#2344, @Avasam)
   Import `DispatcherWin32trace` and `DispatcherTrace` from `win32com.server.dispatcher` instead.
