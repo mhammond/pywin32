@@ -150,7 +150,7 @@ class ShellFolderBase:
         elif typ == "object":
             klass = ShellFolderObject
         else:
-            raise RuntimeError("What is " + repr(typ))
+            raise RuntimeError(f"What is {typ!r}")
         ret = wrap(klass(extra), iid, useDispatcher=(debug > 0))
         return ret
 
@@ -369,7 +369,7 @@ class ShellFolderRoot(ShellFolderFileSystem):
         # This is the PIDL of us, as created by the shell.  This is our
         # top-level ID.  All other items under us have PIDLs defined
         # by us - see the notes at the top of the file.
-        # print("Initialize called with pidl", repr(pidl))
+        # print("Initialize called with pidl={pidl!r}")
         self.pidl = pidl
 
     def CreateViewObject(self, hwnd, iid):
