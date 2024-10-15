@@ -10,8 +10,7 @@ For all bugs, please provide the following information:
 
 ## Steps to reproduce the problem
 <!--
-Prefer using code snippets rather than a screenshot. Please include a full minimal reproduction if possible.
-See https://stackoverflow.com/help/minimal-reproducible-example
+Prefer using code snippets rather than a screenshot. Please include a (full minimal reproduction)[https://stackoverflow.com/help/minimal-reproducible-example] if possible.
 -->
 
 1. ...
