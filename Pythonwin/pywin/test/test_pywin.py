@@ -20,8 +20,8 @@ import win32ui
 from pywin.framework import scriptutils
 
 user_interaction = getattr(__main__, "user_interaction", False)  # from all.py maybe
-file_abs = os.path.abspath(__file__)
-src_dir = os.path.dirname(file_abs)
+__file__ = os.path.abspath(__file__)  # __file__ can be relative before Python 3.9
+src_dir = os.path.dirname(__file__)
 pywin_path = next(iter(pywin.__path__))
 pythonwinpy_path = os.path.dirname(pywin_path) + "\\start_pythonwin.py"
 Object = argparse.Namespace
@@ -72,7 +72,7 @@ class T(unittest.TestCase):
 
         # open a source file
         some_fn = src_dir + "\\_dbgscript.py"
-        self.assertNotEqual(some_fn, file_abs)
+        self.assertNotEqual(some_fn, __file__)
         scriptutils.JumpToDocument(some_fn)
         a = scriptutils.GetActiveFileName()
         self.assertEqual(some_fn, a)
@@ -87,7 +87,7 @@ class T(unittest.TestCase):
                 f"Hello from test_pydocs() args={sys.argv} {os.getcwd()}"
             )
         v = scriptutils.GetActiveEditControl()
-        self.assertEqual(file_abs, v.GetDocument().GetPathName())
+        self.assertEqual(__file__, v.GetDocument().GetPathName())
         t = v.GetTextRange()
         testpat = "self.app = thisApp"
         self.assertIn(testpat, t)

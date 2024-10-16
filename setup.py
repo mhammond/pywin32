@@ -62,16 +62,11 @@ pywin32_version = "%d.%d.%s" % (
 )
 print("Building pywin32", pywin32_version)
 
-try:
-    this_file = __file__
-except NameError:
-    this_file = sys.argv[0]
-
-this_file = os.path.abspath(this_file)
+__file__ = os.path.abspath(__file__)  # __file__ can be relative before Python 3.9
+project_root = Path(__file__).parent
 # We get upset if the cwd is not our source dir, but it is a PITA to
 # insist people manually CD there first!
-if os.path.dirname(this_file):
-    os.chdir(os.path.dirname(this_file))
+os.chdir(project_root)
 
 # Start address we assign base addresses from.  See comment re
 # dll_base_address later in this file...
@@ -971,7 +966,7 @@ class my_compiler(MSVCCompiler):
         args = [
             sys.executable,
             # NOTE: On Python 3.7, all args must be str
-            str(Path(__file__).parent / "win32" / "Lib" / "win32verstamp.py"),
+            str(project_root / "win32" / "Lib" / "win32verstamp.py"),
             f"--version={pywin32_version}",
             "--comments=https://github.com/mhammond/pywin32",
             f"--original-filename={os.path.basename(output_filename)}",
@@ -2196,11 +2191,8 @@ if "bdist_wininst" in sys.argv:
     )
     long_description_content_type = "text/plain"
 else:
-    # For wheels, the readme makes more sense as pypi does something sane
-    # with it.
-    my_dir = os.path.abspath(os.path.dirname(__file__))
-    with open(os.path.join(my_dir, "README.md")) as f:
-        long_description = f.read()
+    # For wheels, the readme makes more sense as pypi does something sane with it.
+    long_description = (project_root / "README.md").read_text()
     long_description_content_type = "text/markdown"
 
 dist = setup(

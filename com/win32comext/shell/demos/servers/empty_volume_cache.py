@@ -76,7 +76,8 @@ class EmptyVolumeCache:
         )
 
     def _GetDirectories(self):
-        root_dir = os.path.abspath(os.path.dirname(os.path.dirname(win32gui.__file__)))
+        # __file__ can be relative before Python 3.9
+        root_dir = os.path.dirname(os.path.dirname(os.path.abspath(win32gui.__file__)))
         if self.volume is not None and not root_dir.lower().startswith(
             self.volume.lower()
         ):

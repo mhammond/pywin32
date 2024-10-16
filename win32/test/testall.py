@@ -6,6 +6,8 @@ import unittest
 
 import pywin32_testutil
 
+__file__ = os.path.abspath(__file__)  # __file__ can be relative before Python 3.9
+
 # A list of demos that depend on user-interface of *any* kind.  Tests listed
 # here are not suitable for unattended testing.
 ui_demos = """GetSaveFileName print_desktop win32cred_demo win32gui_demo
@@ -160,17 +162,12 @@ def import_all():
 
 def suite():
     # Loop over all .py files here, except me :)
-    try:
-        me = __file__
-    except NameError:
-        me = sys.argv[0]
-    me = os.path.abspath(me)
-    files = os.listdir(os.path.dirname(me))
+    files = os.listdir(os.path.dirname(__file__))
     suite = unittest.TestSuite()
     suite.addTest(unittest.FunctionTestCase(import_all))
     for file in files:
         base, ext = os.path.splitext(file)
-        if ext == ".py" and os.path.basename(me) != file:
+        if ext == ".py" and os.path.basename(__file__) != file:
             try:
                 mod = __import__(base)
             except:

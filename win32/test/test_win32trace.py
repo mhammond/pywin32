@@ -7,11 +7,6 @@ import unittest
 import win32trace
 from pywin32_testutil import TestSkipped
 
-if __name__ == "__main__":
-    this_file = sys.argv[0]
-else:
-    this_file = __file__
-
 
 def SkipIfCI():
     # This test often fails in CI, probably when it is being run multiple times
@@ -258,9 +253,7 @@ class TraceWriteProcess:
     def start(self):
         procHandle, threadHandle, procId, threadId = win32process.CreateProcess(
             None,  # appName
-            'python.exe "{}" /run_test_process {} {}'.format(
-                this_file, self.BucketCount, self.threadCount
-            ),
+            f'python.exe "{__file__}" /run_test_process {self.BucketCount} {self.threadCount}',
             None,  # process security
             None,  # thread security
             0,  # inherit handles

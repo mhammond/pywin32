@@ -10,8 +10,8 @@ import unittest
 user_interaction = False
 
 _indebugger = "pywin.debugger" in sys.modules
-file_abs = os.path.abspath(__file__)
-src_dir = os.path.dirname(file_abs)
+__file__ = os.path.abspath(__file__)  # __file__ can be relative before Python 3.9
+src_dir = os.path.dirname(__file__)
 
 
 if __name__ == "__main__":

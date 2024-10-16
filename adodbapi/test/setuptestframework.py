@@ -1,6 +1,7 @@
 #!/usr/bin/python2
 # Configure this in order to run the testcases.
 "setuptestframework.py v 2.6.0.8"
+
 import os
 import shutil
 import tempfile
@@ -87,7 +88,7 @@ def makemdb(testfolder, mdb_name):
             newdb.Close()
         else:
             print("    ...copying test ACCESS db to " + _accessdatasource)
-            mdbName = os.path.abspath(
+            mdbName = os.path.abspath(  # __file__ can be relative before Python 3.9
                 os.path.join(os.path.dirname(__file__), "..", "examples", "test.mdb")
             )
             import shutil

@@ -8,10 +8,10 @@ import win32con
 import win32gui
 import win32rcparser
 
-this_dir = os.path.abspath(os.path.dirname(__file__))
-g_rcname = os.path.abspath(
-    os.path.join(this_dir, "..", "test", "win32rcparser", "test.rc")
-)
+# __file__ can be relative before Python 3.9
+this_dir = os.path.dirname(os.path.abspath(__file__))
+g_rcname = os.path.join(os.path.dirname(this_dir), "test", "win32rcparser", "test.rc")
+
 
 if not os.path.isfile(g_rcname):
     raise RuntimeError(f"Can't locate test.rc (should be at '{g_rcname}')")

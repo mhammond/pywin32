@@ -5,20 +5,19 @@ import sys
 import traceback
 import unittest
 
-try:
-    this_file = __file__
-except NameError:
-    this_file = sys.argv[0]
-
-win32com_src_dir = os.path.abspath(os.path.join(this_file, "../.."))
-
 import win32com
 
 # We'd prefer the win32com namespace to be the parent of __file__ - ie, our source-tree,
 # rather than the version installed - otherwise every .py change needs a full install to
 # test!
+# TODO: That sounds like a use-case for editable installs !
 # We can't patch win32comext as most of them have a .pyd in their root :(
-# This clearly ins't ideal or perfect :)
+# This clearly isn't ideal or perfect :)
+win32com_src_dir = os.path.dirname(
+    os.path.dirname(
+        os.path.abspath(__file__)  # __file__ can be relative before Python 3.9
+    )
+)
 win32com.__path__[0] = win32com_src_dir
 
 import pythoncom
@@ -99,7 +98,7 @@ class PyCOMTest(TestCase):
 
         # Execute testPyComTest in its own process so it can play
         # with the Python thread state
-        fname = os.path.join(os.path.dirname(this_file), "testPyComTest.py")
+        fname = os.path.join(os.path.dirname(__file__), "testPyComTest.py")
         cmd = f'{sys.executable} "{fname}" -q 2>&1'
         data = ExecuteSilentlyIfOK(cmd, self)
 
@@ -112,7 +111,7 @@ class PippoTest(TestCase):
         RegisterPythonServer(pippo_server.__file__, "Python.Test.Pippo")
 
         python = sys.executable
-        fname = os.path.join(os.path.dirname(this_file), "testPippo.py")
+        fname = os.path.join(os.path.dirname(__file__), "testPippo.py")
         cmd = f'{python} "{fname}" 2>&1'
         ExecuteSilentlyIfOK(cmd, self)
 
