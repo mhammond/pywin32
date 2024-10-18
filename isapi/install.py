@@ -626,7 +626,7 @@ def _PatchParamsModule(params, dll_name, file_must_exist=True):
                 sm.Module = dll_name
 
 
-def GetLoaderModuleName(mod_name, check_module=None):
+def GetLoaderModuleName(mod_name: str, check_module=None):
     # find the name of the DLL hosting us.
     # By default, this is "_{module_base_name}.dll"
     if hasattr(sys, "frozen"):
@@ -635,8 +635,7 @@ def GetLoaderModuleName(mod_name, check_module=None):
         base, ext = os.path.splitext(mod_name)
         path, base = os.path.split(base)
         # handle the common case of 'foo.exe'/'foow.exe'
-        if base.endswith("w"):
-            base = base[:-1]
+        base.removesuffix("w")
         # For py2exe, we have '_foo.dll' as the standard pyisapi loader - but
         # 'foo.dll' is what we use (it just delegates).
         # So no leading '_' on the installed name.
