@@ -661,6 +661,7 @@ def main():
     but if it fails you can run it again.
 
     Given EXE installers are no longer provided,
+    and wheel installs can't run postinstall scripts,
     you almost certainly need to run this to
     setup the environment correctly.
 

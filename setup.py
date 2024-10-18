@@ -861,7 +861,9 @@ class my_build_ext(build_ext):
 
 class my_install(install):
     def run(self):
-        """Custom script we run at the end of installing"""
+        """Custom script we run at the end of installing
+        This is only run for local installs. Wheel-based installs won't run this code.
+        """
         install.run(self)
         # If self.root has a value, it means we are being "installed" into some other
         # directory than Python itself - in which case we must *not* run our installer.
@@ -869,40 +871,30 @@ class my_install(install):
         # Is this still a concern ?
         if self.root:
             print(
-                f"Not executing post install script when not installing in Python itself (self.root={self.root})"
+                "Not executing post install script when "
+                + f"not installing in Python itself (self.root={self.root})"
             )
-        if not self.dry_run:
-            # We must run the script we just installed into Scripts, as it
-            # may have had 2to3 run over it.
-            filename = os.path.join(self.install_scripts, "pywin32_postinstall.py")
-            if not os.path.isfile(filename):
-                raise RuntimeError(f"Can't find '{filename}'")
-            if not self.install_lib:
-                raise RuntimeError(f"Missing destination (install_lib is empty)")
-            print("Executing post install script...")
-            # As of setuptools>=74.0.0, we no longer need to
-            # be concerned about distutils calling win32api
-            subprocess.Popen(
-                [
-                    sys.executable,
-                    filename,
-                    "-install",
-                    "-destination",
-                    self.install_lib,
-                    "-quiet",
-                    "-wait",
-                    str(os.getpid()),
-                ]
-            )
+            return
+        self.execute(self._postinstall, (), msg="Executing post install script...")
 
-
-class my_install_lib(install_lib):
-    def install(self):
-        # We want a failure to find .py files be an error rather than a warning.
-        outfiles = super().install()
-        if not outfiles:
-            raise RuntimeError("No Python files were found to install")
-        return outfiles
+    def _postinstall(self):
+        filename = os.path.join(self.install_scripts, "pywin32_postinstall.py")
+        if not os.path.isfile(filename):
+            raise RuntimeError(f"Can't find '{filename}'")
+        # As of setuptools>=74.0.0, we no longer need to
+        # be concerned about distutils calling win32api
+        subprocess.Popen(
+            [
+                sys.executable,
+                filename,
+                "-install",
+                "-destination",
+                self.install_lib,
+                "-quiet",
+                "-wait",
+                str(os.getpid()),
+            ]
+        )
 
 
 def my_new_compiler(**kw):
@@ -2096,7 +2088,6 @@ cmdclass = {
     "build": my_build,
     "build_ext": my_build_ext,
     "install_data": my_install_data,
-    "install_lib": my_install_lib,
 }
 
 classifiers = [

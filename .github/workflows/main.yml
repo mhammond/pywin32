@@ -51,7 +51,7 @@ jobs:
         run: pip wheel .
 
       - uses: actions/upload-artifact@v3
-        # Upload artefacts even if tests fail
+        # Upload artifacts even if tests fail
         if: ${{ always() }}
         with:
           name: artifacts
