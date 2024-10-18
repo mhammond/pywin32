@@ -298,9 +298,9 @@ library PyCOMTestLib
 		// reserved words etc
 		HRESULT None();
 		HRESULT def();
-
+        // Test struct byref as [ in, out ] parameter.
+        HRESULT ModifyStruct([ in, out ] TestStruct1 * prec);
         HRESULT VerifyArrayOfStructs([in] TestStruct2 * prec, [ out, retval ] VARIANT_BOOL * is_ok);
-
 	};
 
 	// Define a new class to test how Python handles derived interfaces!

@@ -885,7 +885,7 @@ static PyObject *PyCom_PyObjectFromSAFEARRAYDimensionItem(SAFEARRAY *psa, VARENU
             hres = SafeArrayGetElement(psa, arrayIndices, &str);
             if (FAILED(hres))
                 break;
-            subitem = PyWinObject_FromBstr(str);
+            subitem = PyWinObject_FromBstr(str, TRUE);
             break;
         }
         case VT_DISPATCH: {
@@ -893,7 +893,7 @@ static PyObject *PyCom_PyObjectFromSAFEARRAYDimensionItem(SAFEARRAY *psa, VARENU
             hres = SafeArrayGetElement(psa, arrayIndices, &pDisp);
             if (FAILED(hres))
                 break;
-            subitem = PyCom_PyObjectFromIUnknown(pDisp, IID_IDispatch, TRUE);
+            subitem = PyCom_PyObjectFromIUnknown(pDisp, IID_IDispatch, FALSE);
             break;
         }
         // case VT_ERROR - handled above with I4
@@ -920,7 +920,7 @@ static PyObject *PyCom_PyObjectFromSAFEARRAYDimensionItem(SAFEARRAY *psa, VARENU
             hres = SafeArrayGetElement(psa, arrayIndices, &pUnk);
             if (FAILED(hres))
                 break;
-            subitem = PyCom_PyObjectFromIUnknown(pUnk, IID_IUnknown, TRUE);
+            subitem = PyCom_PyObjectFromIUnknown(pUnk, IID_IUnknown, FALSE);
             break;
         }
             // case VT_DECIMAL
@@ -1597,6 +1597,7 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
             // Nothing else to do - the code below sets the VT up correctly.
             break;
         case VT_RECORD:
+		case VT_RECORD | VT_BYREF:
             rc = PyObject_AsVARIANTRecordInfo(obj, var);
             break;
         case VT_CY:

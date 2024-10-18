@@ -619,6 +619,13 @@ HRESULT CPyCOMTest::GetStruct(TestStruct1 *ret)
     return S_OK;
 }
 
+HRESULT CPyCOMTest::ModifyStruct(TestStruct1 *prec)
+{
+    prec->int_value = 100;
+    prec->str_value = SysAllocString(L"Nothing is as constant as change");
+    return S_OK;
+}
+
 HRESULT CPyCOMTest::VerifyArrayOfStructs(TestStruct2 *prec, VARIANT_BOOL *is_ok)
 {
     long i;
