@@ -39,7 +39,6 @@ from setuptools import Extension, setup
 from setuptools.command.build import build
 from setuptools.command.build_ext import build_ext
 from setuptools.command.install import install
-from setuptools.command.install_lib import install_lib
 from setuptools.modified import newer_group
 from tempfile import gettempdir
 from typing import Iterable
