@@ -7,6 +7,7 @@
 This is a parser for Windows .rc files, which are text files which define
 dialogs and other Windows UI resources.
 """
+
 from __future__ import annotations
 
 import os

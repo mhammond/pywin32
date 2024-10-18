@@ -46,9 +46,7 @@ def dumpall():
     e = Enumerator(dm.EnumApplications())
     for app in e:
         print(f"Application: {app.GetName()}")
-        node = (
-            app.GetRootNode()
-        )  # of type PyIDebugApplicationNode->PyIDebugDocumentProvider->PyIDebugDocumentInfo
+        node = app.GetRootNode()  # of type PyIDebugApplicationNode->PyIDebugDocumentProvider->PyIDebugDocumentInfo
         DumpDebugApplicationNode(node)
 
 

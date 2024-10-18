@@ -1,5 +1,5 @@
-""" Lists various types of information about current user's access token,
-    including UAC status on Vista
+"""Lists various types of information about current user's access token,
+including UAC status on Vista
 """
 
 import pywintypes
