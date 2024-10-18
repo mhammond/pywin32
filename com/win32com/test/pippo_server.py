@@ -41,10 +41,7 @@ class CPippo:
 
 
 def BuildTypelib():
-    if sys.version_info >= (3, 8):
-        from setuptools.modified import newer
-    else:
-        from distutils.dep_util import newer
+    from setuptools.modified import newer
 
     this_dir = os.path.dirname(__file__)
     idl = os.path.abspath(os.path.join(this_dir, "pippo.idl"))
