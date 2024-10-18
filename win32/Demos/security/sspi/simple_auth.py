@@ -41,6 +41,9 @@ while 1:
     if err == 0:
         break
 
+assert sspiclient.ctxt
+assert sspiserver.ctxt
+
 # The server can now impersonate the client.  In this demo the 2 users will
 # always be the same.
 sspiserver.ctxt.ImpersonateSecurityContext()
@@ -48,7 +51,7 @@ print("Impersonated user: ", win32api.GetUserNameEx(win32api.NameSamCompatible))
 sspiserver.ctxt.RevertSecurityContext()
 print("Reverted to self: ", win32api.GetUserName())
 
-pkg_size_info = sspiclient.ctxt.QueryContextAttributes(sspicon.SECPKG_ATTR_SIZES)
+pkg_size_info = sspiclient.ctxt.QueryContextAttributes(sspicon.SECPKG_ATTR_SIZES)  # type: ignore[func-returns-value] # TODO: Fix in typeshed
 # Now sign some data
 msg = "some data to be encrypted ......"
 
