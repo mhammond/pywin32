@@ -2222,7 +2222,18 @@ dist = setup(
             "user_access_control": "auto",
         },
     },
-    scripts=["pywin32_postinstall.py", "pywin32_testall.py"],
+    # This adds the scripts under Python3XX/Scripts, but doesn't actually do much
+    scripts=[
+        "win32/scripts/pywin32_postinstall.py",
+        "win32/scripts/pywin32_testall.py",
+    ],
+    # This shortcuts `python -m win32.scripts.some_script` to just `some_script`
+    entry_points={
+        "console_scripts": [
+            "pywin32_postinstall = win32.scripts.pywin32_postinstall:main",
+            "pywin32_testall = win32.scripts.pywin32_testall:main",
+        ]
+    },
     ext_modules=ext_modules,
     package_dir={
         "win32com": "com/win32com",
