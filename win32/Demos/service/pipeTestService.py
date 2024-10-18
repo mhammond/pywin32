@@ -11,23 +11,24 @@
 import _thread
 import traceback
 
-# Old versions of the service framework would not let you import this
-# module at the top-level.  Now you can, and can check 'Debugging()' and
-# 'RunningAsService()' to check your context.
 import pywintypes
+
+# Old versions of the service framework would not let you import this
+# module at the top-level.  Now you can, and can check 'servicemanager.Debugging()'
+# and 'servicemanager.RunningAsService()' to check your context.
 import servicemanager
 import win32con
 import win32service
 import win32serviceutil
 import winerror
-from ntsecuritycon import *
-from win32api import *
 
-# Use "import *" to keep this looking as much as a "normal" service
+# # Use "import *" to keep this looking as much as a "normal" service
 # as possible.  Real code shouldn't do this.
-from win32event import *
-from win32file import *
-from win32pipe import *
+from ntsecuritycon import *  # nopycln: import
+from win32api import *  # nopycln: import
+from win32event import *  # nopycln: import
+from win32file import *  # nopycln: import
+from win32pipe import *  # nopycln: import
 
 
 def ApplyIgnoreError(fn, args):
