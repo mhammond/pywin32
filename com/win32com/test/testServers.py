@@ -16,9 +16,8 @@ class InterpCase(win32com.test.util.TestCase):
     def setUp(self):
         # Ensure the correct version registered.
         from win32com.servers import interp
-        from win32com.test.util import RegisterPythonServer
 
-        RegisterPythonServer(interp.__file__, "Python.Interpreter")
+        win32com.test.util.RegisterPythonServer(interp.__file__, "Python.Interpreter")
 
     def _testInterp(self, interp):
         self.assertEqual(interp.Eval("1+1"), 2)
