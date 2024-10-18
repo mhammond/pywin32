@@ -12,10 +12,8 @@
     // Forked IDLE extensions predating Python 2.3. They now live in idlelib in https://github.com/python/cpython/tree/main/Lib/idlelib
     "Pythonwin/pywin/idle/",
     // Ignoring non-public apis for now
-    "**/Test/",
     "**/test/",
     "**/Demos/",
-    "**/demo/",
   ],
   // Packages that will be accessible globally.
   // Setting this makes pyright use the repo's code for those modules instead of typeshed or pywin32 in site-packages
