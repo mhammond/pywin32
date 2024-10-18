@@ -32,7 +32,6 @@ import unittest
 
 import adodbapitestconfig as config  # run the configuration module. # will set sys.path to find correct version of adodbapi
 import tryconnection  # in our code below, all our switches are from config.whatever
-import win32com.client
 
 import adodbapi
 import adodbapi.apibase as api
