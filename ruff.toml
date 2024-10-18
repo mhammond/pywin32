@@ -1,4 +1,4 @@
-target-version = "py37" # Target the oldest supported version
+target-version = "py38" # Target the oldest supported version in editors and default CLI
 
 [lint]
 select = [
