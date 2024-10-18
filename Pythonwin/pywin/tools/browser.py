@@ -96,7 +96,7 @@ class HLIPythonObject(hierlist.HierListItem):
     def CalculateIsExpandable(self):
         if hasattr(self.myobject, "__doc__") or hasattr(self.myobject, "__methods__"):
             return 1
-        for key in getattr(self.myobject, "__dict__", {}).keys():
+        for key in getattr(self.myobject, "__dict__", {}):
             if key not in special_names:
                 return 1
         for item in getattr(self.myobject, "__members__", ()):
@@ -256,10 +256,7 @@ class HLIDict(HLIPythonObject):
         return hasattr(self.myobject, "__doc__") or len(self.myobject) > 0
 
     def GetSubList(self):
-        ret = [
-            MakeHLI(self.myobject[key], str(key))
-            for key in sorted(self.myobject.keys())
-        ]
+        ret = [MakeHLI(self.myobject[key], str(key)) for key in sorted(self.myobject)]
         self.InsertDocString(ret)
         return ret
 
