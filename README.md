@@ -15,7 +15,7 @@ See [CHANGES.txt](https://github.com/mhammond/pywin32/blob/master/CHANGES.txt) f
 ## Docs
 
 The docs are a long and sad story, but [there's now an online version](https://mhammond.github.io/pywin32/)
-of the helpfile that ships with the installers (thanks [@ofek](https://github.com/mhammond/pywin32/pull/1774)!).
+of the `PyWin32.chm` helpfile (thanks [@ofek](https://github.com/mhammond/pywin32/pull/1774)!).
 Lots of that is very old, but some is auto-generated and current. Would love help untangling the docs!
 
 ## Support
@@ -113,22 +113,6 @@ follow the instructions in [Build environment](/build_env.md#build-environment)
 for the version you install.
 
 (the free compilers probably work too, but haven't been tested - let me know your experiences!)
-
-`setup.py` is a standard distutils build script, so you probably want:
-
-```shell
-python setup.py install
-```
-
-or
-
-```shell
-python setup.py --help
-```
-
-Some modules need obscure SDKs to build - `setup.py` should succeed, gracefully
-telling you why it failed to build them - if the build actually fails with your
-configuration, please [open an issue](https://github.com/mhammond/pywin32/issues).
 
 ## Release process
 
