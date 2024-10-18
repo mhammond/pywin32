@@ -1093,7 +1093,7 @@ class TestADOwithSQLServer(CommonDBTests):
         return self.conn
 
     def getAnotherConnection(self, addkeys=None):
-        keys = dict(config.connStrSQLServer[1])
+        keys = config.connStrSQLServer[1].copy()
         if addkeys:
             keys.update(addkeys)
         return config.dbSqlServerconnect(*config.connStrSQLServer[0], **keys)
@@ -1273,7 +1273,7 @@ class TestADOwithMySql(CommonDBTests):
         return self.conn
 
     def getAnotherConnection(self, addkeys=None):
-        keys = dict(config.connStrMySql[1])
+        keys = config.connStrMySql[1].copy()
         if addkeys:
             keys.update(addkeys)
         return config.dbMySqlconnect(*config.connStrMySql[0], **keys)
@@ -1339,7 +1339,7 @@ class TestADOwithPostgres(CommonDBTests):
         return self.conn
 
     def getAnotherConnection(self, addkeys=None):
-        keys = dict(config.connStrPostgres[1])
+        keys = config.connStrPostgres[1].copy()
         if addkeys:
             keys.update(addkeys)
         return config.dbPostgresConnect(*config.connStrPostgres[0], **keys)

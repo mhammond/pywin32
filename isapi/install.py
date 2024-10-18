@@ -760,8 +760,7 @@ def HandleCommandLine(
 
     # build a usage string if we don't have one.
     if not parser.get_usage():
-        all_handlers = standard_arguments.copy()
-        all_handlers.update(custom_arg_handlers)
+        all_handlers = standard_arguments | custom_arg_handlers
         parser.set_usage(build_usage(all_handlers))
 
     # allow the user to use uninstall as a synonym for remove if it wasn't
