@@ -49,8 +49,9 @@ class CScintillaDocument(ParentScintillaDocument):
                 f.close()
         except OSError:
             rc = win32ui.MessageBox(
-                "Could not load the file from %s\n\nDo you want to create a new file?"
-                % filename,
+                "Could not load the file from {}\n\nDo you want to create a new file?".format(
+                    filename
+                ),
                 "Pythonwin",
                 win32con.MB_YESNO | win32con.MB_ICONWARNING,
             )
@@ -64,7 +65,7 @@ class CScintillaDocument(ParentScintillaDocument):
                 finally:
                     f.close()
             except OSError as e:
-                rc = win32ui.MessageBox("Cannot create the file %s" % filename)
+                rc = win32ui.MessageBox("Cannot create the file {}".format(filename))
         return 1
 
     def SaveFile(self, fileName, encoding=None):
@@ -134,14 +135,16 @@ class CScintillaDocument(ParentScintillaDocument):
             dec = text.decode(source_encoding)
         except UnicodeError:
             print(
-                "WARNING: Failed to decode bytes from '%s' encoding - treating as latin1"
-                % source_encoding
+                "WARNING: Failed to decode bytes from '{}' encoding - treating as latin1".format(
+                    source_encoding
+                )
             )
             dec = text.decode("latin1")
         except LookupError:
             print(
-                "WARNING: Invalid encoding '%s' specified - treating as latin1"
-                % source_encoding
+                "WARNING: Invalid encoding '{}' specified - treating as latin1".format(
+                    source_encoding
+                )
             )
             dec = text.decode("latin1")
         # and put it back as utf8 - this shouldn't fail.

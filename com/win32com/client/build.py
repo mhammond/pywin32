@@ -384,7 +384,7 @@ class DispatchItem(OleItem):
 
         resclsid = entry.GetResultCLSID()
         if resclsid:
-            resclsid = "'%s'" % resclsid
+            resclsid = "'{}'".format(resclsid)
         else:
             resclsid = "None"
         # Strip the default values from the arg desc
@@ -435,7 +435,7 @@ class DispatchItem(OleItem):
                 s += "{}\t\tret = Dispatch(ret, {}, {})\n".format(
                     linePrefix, repr(name), resclsid
                 )
-                s += "%s\treturn ret" % linePrefix
+                s += "{}\treturn ret".format(linePrefix)
             elif rd == pythoncom.VT_BSTR:
                 s = f"{linePrefix}\t# Result is a Unicode object\n"
                 s += "%s\treturn self._oleobj_.InvokeTypes(%d, LCID, %s, %s, %s%s)" % (
