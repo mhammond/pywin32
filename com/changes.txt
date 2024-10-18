@@ -110,7 +110,7 @@ Dec 1, 96
   win32com.pythoncom works (and is the "official" way!).
 - Connection point support added.  makepy will now generate code suitable
   to be used as an OCX, or as a connection point sink.
-  Slightly wierd connection point demo (client and server!) is in demos\connect.py
+  Slightly weird connection point demo (client and server!) is in demos\connect.py
   Note - All old OCX code will be broken.  You must regenerate all
   .py files, AND CHANGE ALL SUPPORT CODE (sorry!).  Specifically, the
   name of the class you should sub-class from will have changed - it

@@ -504,10 +504,10 @@ class Query(BaseQuery):
     def collectdatawhile(self, period=1):
         """
         Threaded collection of performance data:
-        This method sets up a simple semaphor system for signalling
+        This method sets up a simple semaphore system for signalling
         when you would like to start and stop a threaded data collection
         method.  The collection runs every period seconds until the
-        semaphor attribute is set to a non-true value (which normally
+        semaphore attribute is set to a non-true value (which normally
         should be done by calling query.collectdatawhile_stop() .)
         e.g.:
                 query.collectdatawhile(2)

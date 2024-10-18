@@ -92,7 +92,7 @@ typedef struct {
 DWORD g_serviceProcessFlags = 0;
 
 // The global SCM dispatch table.  A trailing NULL indicates to the SCM
-// how many are used, so we allocate one extra for this sentinal
+// how many are used, so we allocate one extra for this sentinel
 static SERVICE_TABLE_ENTRY DispatchTable[MAX_SERVICES + 1] = {{NULL, NULL}};
 // A parallel array of Python information for the service.
 static PY_SERVICE_TABLE_ENTRY PythonServiceTable[MAX_SERVICES];

@@ -210,7 +210,7 @@ PyObject *ui_bitmap_load_bitmap_file(PyObject *self, PyObject *args)
             return NULL;
         }
     */
-    /*	Attempt to load wierd bitmap format.
+    /*	Attempt to load weird bitmap format.
     if (bmFileHeader.bfOffBits) {
             PyObject *args = Py_BuildValue("(i)", bmFileHeader.bfOffBits);
             result = gui_call_object(seeker, args);

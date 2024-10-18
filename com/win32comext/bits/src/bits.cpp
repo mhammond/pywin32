@@ -30,7 +30,7 @@ void PyObject_FreeBG_FILE_RANGE_LIST(DWORD num, BG_FILE_RANGE *fr) {}
 
 PyObject *PyObject_FromBG_FILE_PROGRESS(BG_FILE_PROGRESS *fp)
 {
-    // @object PyObject_FromBG_FILE_PROGRESS|A tuple of 3 elements (bytesTotal, bytesTransfered, completed), (int, int,
+    // @object PyObject_FromBG_FILE_PROGRESS|A tuple of 3 elements (bytesTotal, bytesTransferred, completed), (int, int,
     // bool)
     return Py_BuildValue("NNO", PyLong_FromLongLong(fp->BytesTotal), PyLong_FromLongLong(fp->BytesTransferred),
                          fp->Completed ? Py_True : Py_False);
@@ -38,14 +38,14 @@ PyObject *PyObject_FromBG_FILE_PROGRESS(BG_FILE_PROGRESS *fp)
 
 PyObject *PyObject_FromBG_JOB_PROGRESS(BG_JOB_PROGRESS *jp)
 {
-    // @object PyObject_FromBG_JOB_PROGRESS|A tuple of 4 elements (bytesTotal, bytesTransfered, filesTotal,
-    // filesTransfered), all ints.
+    // @object PyObject_FromBG_JOB_PROGRESS|A tuple of 4 elements (bytesTotal, bytesTransferred, filesTotal,
+    // filesTransferred), all ints.
     return Py_BuildValue("NNkk", PyLong_FromLongLong(jp->BytesTotal), PyLong_FromLongLong(jp->BytesTransferred),
                          jp->FilesTotal, jp->FilesTransferred);
 }
 PyObject *PyObject_FromBG_JOB_REPLY_PROGRESS(BG_JOB_REPLY_PROGRESS *jrs)
 {
-    // @object BG_JOB_REPLY_PROGRESS|A tuple of 2 elements (bytesTotal, bytesTransfered), both ints.
+    // @object BG_JOB_REPLY_PROGRESS|A tuple of 2 elements (bytesTotal, bytesTransferred), both ints.
     return Py_BuildValue("NN", PyLong_FromLongLong(jrs->BytesTotal), PyLong_FromLongLong(jrs->BytesTransferred));
 }
 
