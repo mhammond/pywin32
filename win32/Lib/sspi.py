@@ -26,7 +26,7 @@ class _BaseAuth:
 
     def reset(self):
         """Reset everything to an unauthorized state"""
-        self.ctxt = None
+        self.ctxt: win32security.PyCtxtHandleType | None = None
         self.authenticated = False
         self.initiator_name = None
         self.service_name = None

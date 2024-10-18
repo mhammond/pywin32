@@ -4,18 +4,16 @@
 import os
 import sys
 
+import win32event
 import win32ras
 
 # Build a little dictionary of RAS states to decent strings.
 # eg win32ras.RASCS_OpenPort -> "OpenPort"
-stateMap = {}
-for name, val in list(win32ras.__dict__.items()):
-    if name[:6] == "RASCS_":
-        stateMap[val] = name[6:]
+stateMap = {
+    val: name[6:] for name, val in win32ras.__dict__.items() if name[:6] == "RASCS_"
+}
 
 # Use a lock so the callback can tell the main thread when it is finished.
-import win32event
-
 callbackEvent = win32event.CreateEvent(None, 0, 0, None)
 
 

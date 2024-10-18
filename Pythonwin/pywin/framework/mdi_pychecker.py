@@ -114,9 +114,7 @@ class dirpath:
                                     sd = sd.lower()
                                     if sd not in dirs:
                                         dirs[sd] = None
-        self.dirs = []
-        for d in dirs.keys():
-            self.dirs.append(d)
+        self.dirs = list(dirs)
 
     def __getitem__(self, key):
         return self.dirs[key]

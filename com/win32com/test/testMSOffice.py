@@ -182,7 +182,7 @@ def TestAll():
         traceback.print_exc()
 
     try:
-        import xl5en32
+        import xl5en32  # nopycln: import # Test import. TODO: Is testing Excel 95 still relevant ?
 
         mod = gencache.EnsureModule("{00020813-0000-0000-C000-000000000046}", 9, 1, 0)
         xl = win32com.client.Dispatch("Excel.Application.5")

@@ -4,12 +4,14 @@ import pythoncom
 from win32com.server.policy import DesignatedWrapPolicy
 from win32com.shell import shell, shellcon
 
-tsf_flags = [(k, v) for k, v in list(shellcon.__dict__.items()) if k.startswith("TSF_")]
-
+tsf_flags = []
 TRANSFER_ADVISE_STATES = {}
-for k, v in list(shellcon.__dict__.items()):
+
+for k, v in shellcon.__dict__.items():
     if k.startswith("TS_"):
         TRANSFER_ADVISE_STATES[v] = k
+    elif k.startswith("TSF_"):
+        tsf_flags.append((k, v))
 
 
 def decode_flags(flags):

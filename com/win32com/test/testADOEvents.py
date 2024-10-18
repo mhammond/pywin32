@@ -2,7 +2,7 @@ import os
 import time
 
 import pythoncom
-from win32com.client import Dispatch, DispatchWithEvents, constants
+from win32com.client import DispatchWithEvents, constants
 
 finished = 0  # Flag for the wait loop from (3) to test
 

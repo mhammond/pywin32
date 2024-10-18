@@ -42,8 +42,8 @@ class Tee:
 if sys.stdout is None:  # pyright: ignore[reportUnnecessaryComparison]
     sys.stdout = sys.stderr
 
-sys.stderr = Tee(sys.stderr)  # type: ignore[assignment] # Not an actual TextIO
-sys.stdout = Tee(sys.stdout)  # type: ignore[assignment] # Not an actual TextIO
+sys.stderr = Tee(sys.stderr)
+sys.stdout = Tee(sys.stdout)
 
 com_modules = [
     # module_name,                      class_names

@@ -198,7 +198,7 @@ class ConfigManager:
                 ns = None
             if ns:
                 num = 0
-                for name, func in list(ns.items()):
+                for name, func in ns.items():
                     if isinstance(func, types.FunctionType) and name[:1] != "_":
                         bindings.bind(name, func)
                         num += 1
@@ -232,10 +232,8 @@ class ConfigManager:
         for subsection in subsections:
             map = self.key_to_events.get(subsection)
             if map is None:  # Build it
-                map = {}
                 keymap = subsection_keymap.get(subsection, {})
-                for key_info, map_event in list(keymap.items()):
-                    map[map_event] = key_info
+                map = {map_event: key_info for key_info, map_event in keymap.items()}
                 self.key_to_events[subsection] = map
 
             info = map.get(event)

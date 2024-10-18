@@ -73,9 +73,7 @@ class TestStuff(unittest.TestCase):
                     rawfield varbinary(100),
                     longtextfield memo,
                     longbinaryfield image
-            )""".format(
-                    self.tablename
-                )
+            )""".format(self.tablename)
             ),
             -1,
         )
@@ -102,9 +100,7 @@ class TestStuff(unittest.TestCase):
         self.assertEqual(
             self.cur.execute(
                 "insert into {} (userid, username) \
-            values (?,?)".format(
-                    self.tablename
-                ),
+            values (?,?)".format(self.tablename),
                 [userid, username],
             ),
             1,
@@ -112,9 +108,7 @@ class TestStuff(unittest.TestCase):
         self.assertEqual(
             self.cur.execute(
                 "select * from {} \
-            where userid = ?".format(
-                    self.tablename
-                ),
+            where userid = ?".format(self.tablename),
                 [userid.lower()],
             ),
             0,
@@ -122,9 +116,7 @@ class TestStuff(unittest.TestCase):
         self.assertEqual(
             self.cur.execute(
                 "select * from {} \
-            where username = ?".format(
-                    self.tablename
-                ),
+            where username = ?".format(self.tablename),
                 [username.lower()],
             ),
             0,
@@ -134,9 +126,7 @@ class TestStuff(unittest.TestCase):
         self.assertEqual(
             self.cur.execute(
                 "insert into {} (userid, username)\
-            values (?,?)".format(
-                    self.tablename
-                ),
+            values (?,?)".format(self.tablename),
                 [userid, username],
             ),
             1,
@@ -144,9 +134,7 @@ class TestStuff(unittest.TestCase):
         self.assertEqual(
             self.cur.execute(
                 "select * from {} \
-            where userid = ?".format(
-                    self.tablename
-                ),
+            where userid = ?".format(self.tablename),
                 [userid.lower()],
             ),
             0,
@@ -154,9 +142,7 @@ class TestStuff(unittest.TestCase):
         self.assertEqual(
             self.cur.execute(
                 "select * from {} \
-            where username = ?".format(
-                    self.tablename
-                ),
+            where username = ?".format(self.tablename),
                 [username.lower()],
             ),
             0,

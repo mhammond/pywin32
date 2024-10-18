@@ -15,10 +15,9 @@ class AXScript(win32com.test.util.TestCase):
         file = win32api.GetFullPathName(
             os.path.join(next(iter(win32com.axscript.client.__path__)), "pyscript.py")
         )
-        from win32com.test.util import RegisterPythonServer
 
         self.verbose = verbose
-        RegisterPythonServer(file, "python", verbose=self.verbose)
+        win32com.test.util.RegisterPythonServer(file, "python", verbose=self.verbose)
 
     def testHost(self):
         file = win32api.GetFullPathName(

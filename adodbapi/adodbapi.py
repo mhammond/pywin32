@@ -395,9 +395,7 @@ class Connection:
                     # If attributes has adXactAbortRetaining it performs retaining aborts that is,
                     # calling RollbackTrans automatically starts a new transaction. Not all providers support this.
                     # If not, we will have to start a new transaction by this command:
-                    if (
-                        not self.transaction_level
-                    ):  # if self.transaction_level == 0 or self.transaction_level is None:
+                    if not self.transaction_level:
                         self.transaction_level = self.connector.BeginTrans()
             except Exception as e:
                 self._raiseConnectionError(api.ProgrammingError, e)
@@ -418,9 +416,8 @@ class Connection:
                     f"paramstyle={value!r} not in:{api.accepted_paramstyles!r}",
                 )
         elif name == "variantConversions":
-            value = copy.copy(
-                value
-            )  # make a new copy -- no changes in the default, please
+            # make a new copy -- no changes in the default, please
+            value = copy.copy(value)
         object.__setattr__(self, name, value)
 
     def __getattr__(self, item):
@@ -635,9 +632,8 @@ class Cursor:
             if self.rs.EOF or self.rs.BOF:
                 display_size = None
             else:
-                display_size = (
-                    f.ActualSize
-                )  # TODO: Is this the correct defintion according to the DB API 2 Spec ?
+                # TODO: Is this the correct defintion according to the DB API 2 Spec ?
+                display_size = f.ActualSize
             null_ok = bool(f.Attributes & adc.adFldMayBeNull)  # v2.1 Cole
             desc.append(
                 (
@@ -775,9 +771,8 @@ class Cursor:
         after the last recordset has been read.  In that case, you must coll nextset() until it
         returns None, then call this method to get your returned information."""
 
-        retLst = (
-            []
-        )  # store procedures may return altered parameters, including an added "return value" item
+        # store procedures may return altered parameters, including an added "return value" item
+        retLst = []
         for p in tuple(self.cmd.Parameters):
             if verbose > 2:
                 print(
@@ -908,9 +903,8 @@ class Cursor:
                             )
                         i += 1
             else:  # -- build own parameter list
-                if (
-                    self._parameter_names
-                ):  # we expect a dictionary of parameters, this is the list of expected names
+                # we expect a dictionary of parameters, this is the list of expected names
+                if self._parameter_names:
                     for parm_name in self._parameter_names:
                         elem = parameters[parm_name]
                         adotype = api.pyTypeToADOType(elem)

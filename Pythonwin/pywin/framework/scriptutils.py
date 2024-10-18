@@ -27,9 +27,7 @@ RS_DEBUGGER_PM = (
 debugging_options = """No debugging
 Step-through in the debugger
 Run in the debugger
-Post-Mortem of unhandled exceptions""".split(
-    "\n"
-)
+Post-Mortem of unhandled exceptions""".split("\n")
 
 byte_cr = b"\r"
 byte_lf = b"\n"
@@ -440,7 +438,7 @@ def ImportFile():
     # note that some packages (*cough* email *cough*) use "lazy importers"
     # meaning sys.modules can change as a side-effect of looking at
     # module.__file__ - so we must take a copy (ie, list(items()))
-    for key, mod in list(sys.modules.items()):
+    for key, mod in sys.modules.items():
         if getattr(mod, "__file__", None):
             fname = mod.__file__
             base, ext = os.path.splitext(fname)

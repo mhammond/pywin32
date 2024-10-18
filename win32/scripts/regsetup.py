@@ -475,9 +475,7 @@ Usage:   {} [options ...] paths ...
 
 --description   -- Print a description of the usage.
 --examples      -- Print examples of usage.
-""".format(
-    sys.argv[0]
-)
+""".format(sys.argv[0])
 
 description = """\
 If no options are processed, the program attempts to validate and set

@@ -6,7 +6,9 @@ import win32api
 import win32con
 import win32ui
 
-from . import IDLEenvironment, keycodes
+from . import (  # nopycln: import # Injects fast_readline into the IDLE auto-indent extension
+    IDLEenvironment,
+)
 
 HANDLER_ARGS_GUESS = 0
 HANDLER_ARGS_NATIVE = 1
@@ -56,7 +58,7 @@ class BindingsManager:
         self.keymap = {}
 
     def complete_configure(self):
-        for id in command_to_events.keys():
+        for id in command_to_events:
             self.parent_view.HookCommand(self._OnCommand, id)
 
     def close(self):
