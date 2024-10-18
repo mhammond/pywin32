@@ -158,7 +158,7 @@ configuration, please [open an issue](https://github.com/mhammond/pywin32/issues
 - Build the extensions, passing the directory from earlier. You may optionally add the `bdist_wheel` command to generate a wheel.
 
     ```shell
-    python -m build --wheel --config-setting="--build-option=build_ext -L .\arm64libs --plat-name win-arm64 bdist_wheel --plat-name win-arm64"
+    python -m build --wheel --config-setting=--build-option=build_ext --config-setting=--build-option=-L.\arm64libs --config-setting=--build-option=--plat-name=win-arm64 --config-setting=--build-option=bdist_wheel --config-setting=--build-option=--plat-name=win-arm64
     ```
 
   - If you are not using an initialized build environment, you will need to specify the `build_ext`, `build` and `bdist_wheel` commands and pass `--plat-name win-arm64` to *each* of them separately. Otherwise you may get a mixed platform build and/or linker errors.
