@@ -15,7 +15,6 @@ import stat
 import commctrl
 import pythoncom
 from pywintypes import IID
-from win32com.server.util import wrap
 from win32com.shell import shell, shellcon
 
 IPersist_Methods = ["GetClassID"]

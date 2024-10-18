@@ -10,15 +10,18 @@ import re
 import traceback
 import warnings
 from types import TracebackType
+from typing import TYPE_CHECKING
 
 import pythoncom
 import win32com.server.util
 import winerror
 from win32com.axscript import axscript
 from win32com.server.exception import COMException
-from win32comext.axscript.client.debug import DebugManager
-from win32comext.axscript.client.framework import AXScriptCodeBlock, COMScript
-from win32comext.axscript.server.axsite import AXSite
+
+if TYPE_CHECKING:
+    from win32comext.axscript.client.debug import DebugManager
+    from win32comext.axscript.client.framework import AXScriptCodeBlock, COMScript
+    from win32comext.axscript.server.axsite import AXSite
 
 debugging = 0
 
@@ -181,8 +184,7 @@ class AXScriptException(COMException):
             tb_top = tb
 
         bits = ["Traceback (most recent call last):\n"]
-        # Fixed in https://github.com/python/typeshed/pull/11675 , to be included in next mypy release
-        bits.extend(traceback.format_list(format_items))  # type: ignore[arg-type]
+        bits.extend(traceback.format_list(format_items))
         if isinstance(value, pythoncom.com_error):
             desc = f"{value.strerror} (0x{value.hresult:x})"
             if (

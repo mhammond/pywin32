@@ -3,20 +3,6 @@
 Adodbapi can be run on CPython 3.5 and later.
 """
 
-CLASSIFIERS = """\
-Development Status :: 5 - Production/Stable
-Intended Audience :: Developers
-License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)
-Operating System :: Microsoft :: Windows
-Operating System :: POSIX :: Linux
-Programming Language :: Python
-Programming Language :: Python :: 3
-Programming Language :: SQL
-Topic :: Software Development
-Topic :: Software Development :: Libraries :: Python Modules
-Topic :: Database
-"""
-
 NAME = "adodbapi"
 MAINTAINER = "Vernon Cole"
 MAINTAINER_EMAIL = "vernondcole@gmail.com"
@@ -25,7 +11,19 @@ DESCRIPTION = (
 )
 URL = "http://sourceforge.net/projects/adodbapi"
 LICENSE = "LGPL"
-CLASSIFIERS = filter(None, CLASSIFIERS.split("\n"))
+CLASSIFIERS = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: SQL",
+    "Topic :: Software Development",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Database",
+]
 AUTHOR = "Henrik Ekelund, Vernon Cole, et.al."
 AUTHOR_EMAIL = "vernondcole@gmail.com"
 PLATFORMS = ["Windows", "Linux"]
