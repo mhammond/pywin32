@@ -10,12 +10,9 @@ py autoduck\make.py
 :already_built
 rem Now the binaries.
 
-rem (bdist_wininst needs --target-version to name the installers correctly!)
-py -3.7-32 setup.py -q bdist_wininst --skip-build --target-version=3.7
-py -3.7-32 setup.py -q bdist_wheel --skip-build
-py -3.7 setup.py -q bdist_wininst --skip-build --target-version=3.7
-py -3.7 setup.py -q bdist_wheel --skip-build
+rem Check /build_env.md#build-environment to make sure you have all the required components installed
 
+rem (bdist_wininst needs --target-version to name the installers correctly!)
 py -3.8-32 setup.py -q bdist_wininst --skip-build --target-version=3.8
 py -3.8-32 setup.py -q bdist_wheel --skip-build
 py -3.8 setup.py -q bdist_wininst --skip-build --target-version=3.8
@@ -44,10 +41,7 @@ py -3.9 setup.py -q bdist_wininst --skip-build --target-version=3.13
 py -3.13-32 setup.py -q bdist_wheel --skip-build
 py -3.13 setup.py -q bdist_wheel --skip-build
 
-rem ARM64 builds - requires you to select:
-rem * "Visual C++ compilers and libraries for ARM64"
-rem * "Visual C++ for MFC for ARM64"
-rem from "Individual Components" in VS setup.
+rem Check /build_env.md#build-environment to make sure you have all the required ARM64 components installed
 py -3.10 setup.py -q build_ext --plat-name win-arm64 build --plat-name win-arm64 bdist_wheel --plat-name win-arm64
 py -3.11 setup.py -q build_ext --plat-name win-arm64 build --plat-name win-arm64 bdist_wheel --plat-name win-arm64
 py -3.12 setup.py -q build_ext --plat-name win-arm64 build --plat-name win-arm64 bdist_wheel --plat-name win-arm64

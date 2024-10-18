@@ -4,7 +4,6 @@ import operator
 import sys
 import unittest
 
-import pywin32_testutil
 import pywintypes
 import win32api
 import win32gui

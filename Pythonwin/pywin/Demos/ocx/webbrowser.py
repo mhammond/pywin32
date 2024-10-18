@@ -1,4 +1,4 @@
-# This demo uses the IE4 Web Browser control.
+# This demo uses the Internet Explorer Web Browser control.
 
 # It catches an "OnNavigate" event, and updates the frame title.
 # (event stuff by Neil Hodgson)
@@ -16,7 +16,7 @@ WebBrowserModule = gencache.EnsureModule(
     "{EAB22AC0-30C1-11CF-A7EB-0000C05BAE0B}", 0, 1, 1
 )
 if WebBrowserModule is None:
-    raise ImportError("IE4 does not appear to be installed.")
+    raise ImportError("Internet Explorer does not appear to be installed.")
 
 
 class MyWebBrowser(activex.Control, WebBrowserModule.WebBrowser):

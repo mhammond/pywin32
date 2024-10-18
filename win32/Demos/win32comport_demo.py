@@ -18,8 +18,38 @@ import sys
 import threading
 
 import win32con  # constants.
-from win32event import *  # We use events and the WaitFor[Multiple]Objects functions.
-from win32file import *  # The base COM port and file IO functions.
+from win32event import (  # We use events and the WaitFor[Multiple]Objects functions.
+    INFINITE,
+    WAIT_OBJECT_0,
+    CreateEvent,
+    SetEvent,
+    WaitForMultipleObjects,
+    WaitForSingleObject,
+)
+from win32file import (  # The base COM port and file IO functions.
+    CBR_115200,
+    EV_RXCHAR,
+    NOPARITY,
+    ONESTOPBIT,
+    OVERLAPPED,
+    PURGE_RXABORT,
+    PURGE_RXCLEAR,
+    PURGE_TXABORT,
+    PURGE_TXCLEAR,
+    ClearCommError,
+    CreateFile,
+    GetCommModemStatus,
+    GetCommState,
+    PurgeComm,
+    ReadFile,
+    SetCommMask,
+    SetCommState,
+    SetCommTimeouts,
+    SetupComm,
+    WaitCommEvent,
+    WriteFile,
+    error,
+)
 
 
 def FindModem():

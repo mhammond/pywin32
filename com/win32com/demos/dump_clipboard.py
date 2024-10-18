@@ -11,7 +11,7 @@ for f in formats:
     val = getattr(win32con, f)
     format_name_map[val] = f
 
-tymeds = [attr for attr in pythoncom.__dict__.keys() if attr.startswith("TYMED_")]
+tymeds = [attr for attr in pythoncom.__dict__ if attr.startswith("TYMED_")]
 
 
 def DumpClipboard():

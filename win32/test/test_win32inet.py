@@ -2,8 +2,25 @@ import unittest
 
 import winerror
 from pywin32_testutil import TestSkipped, testmain
-from win32inet import *
-from win32inetcon import *
+from win32inet import (
+    FtpCommand,
+    InternetCanonicalizeUrl,
+    InternetConnect,
+    InternetGetCookie,
+    InternetGetLastResponseInfo,
+    InternetOpen,
+    InternetOpenUrl,
+    InternetReadFile,
+    InternetSetCookie,
+    error,
+)
+from win32inetcon import (
+    FTP_TRANSFER_TYPE_ASCII,
+    INTERNET_FLAG_EXISTING_CONNECT,
+    INTERNET_INVALID_PORT_NUMBER,
+    INTERNET_OPEN_TYPE_DIRECT,
+    INTERNET_SERVICE_FTP,
+)
 
 
 class CookieTests(unittest.TestCase):
