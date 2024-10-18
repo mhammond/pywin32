@@ -14,6 +14,7 @@ https://mhammond.github.io/pywin32_installers.html.
 Coming in build 309, as yet unreleased
 --------------------------------------
 
+* Dropped support for Python 3.7 (#2207, @Avasam)
 * Implement record pointers as [in, out] method parameters of a Dispatch Interface (#2310)
 * Fix memory leak converting to PyObject from some SAFEARRAY elements (#2316)
 * Fix bug where makepy support was unnecessarily generated (#2354, #2353, @geppi)
