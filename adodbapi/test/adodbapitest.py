@@ -1,4 +1,4 @@
-""" Unit tests version 2.6.1.0 for adodbapi"""
+"""Unit tests version 2.6.1.0 for adodbapi"""
 
 """
     adodbapi - A python DB API 2.0 interface to Microsoft ADO
@@ -471,7 +471,7 @@ class CommonDBTests(unittest.TestCase):
             )
 
     def testDataTypeBinary(self):
-        binfld = b"\x07\x00\xE2\x40*"
+        binfld = b"\x07\x00\xe2\x40*"
         arv = [binfld, adodbapi.Binary(binfld), bytes(binfld)]
         if self.getEngine() == "PostgreSQL":
             self.helpTestDataType(
