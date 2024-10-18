@@ -18,3 +18,10 @@ SpaceBeforeParens: ControlStatements
 SpacesInParentheses: false
 TabWidth: 4
 UseTab: Never
+StatementMacros:
+  - PYWIN_MODULE_INIT_RETURN_ERROR
+  - PYWIN_MODULE_INIT_RETURN_SUCCESS
+  - PY_INTERFACE_POSTCALL
+  - PY_INTERFACE_PRECALL
+  - PyW32_BEGIN_ALLOW_THREADS
+  - PyW32_END_ALLOW_THREADS
