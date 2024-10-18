@@ -8,7 +8,7 @@ import win32api
 import win32con
 import win32ui
 from pywin.mfc import afxres
-from pywin.tools import browser, hierlist
+from pywin.tools import hierlist
 
 
 class HierListCLBRModule(hierlist.HierListItem):

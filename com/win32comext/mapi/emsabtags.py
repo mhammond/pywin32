@@ -1,3 +1,4 @@
+# nopycln: file # Re-exporting many constants
 # Converted "manually" from EMSABTAG.H
 from .mapitags import (
     PROP_TAG,
