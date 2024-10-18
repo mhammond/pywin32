@@ -6,7 +6,6 @@ Please see policy.py for a discussion on dispatchers and policies
 from __future__ import annotations
 
 import traceback
-from sys import exc_info
 
 import pythoncom
 import win32api
@@ -232,66 +231,8 @@ class DispatcherOutputDebugString(DispatcherTrace):
         win32api.OutputDebugString(str(args[-1]) + "\n")
 
 
-DispatcherWin32dbg_deprecation_message = """\
-The DispatcherWin32dbg dispatcher is deprecated!
-Please open an issue at https://github.com/mhammond/pywin32 is this is a problem.
-Comment the relevant DeprecationWarning in dispatcher.py to re-enable.\
-"""
-
-
-class DispatcherWin32dbg(DispatcherBase):
-    """A source-level debugger dispatcher
-
-    A dispatcher which invokes the debugger as an object is instantiated, or
-    when an unexpected exception occurs.
-
-    Requires Pythonwin.
-    """
-
-    def __init__(self, policyClass, ob):
-        raise DeprecationWarning(DispatcherWin32dbg_deprecation_message)
-        # No one uses this, and it just causes py2exe to drag all of pythonwin in.
-        import pywin.debugger
-
-        pywin.debugger.brk()
-        # DEBUGGER Note - You can either:
-        # * Hit Run and wait for a (non Exception class) exception to occur!
-        # * Set a breakpoint and hit run.
-        # * Step into the object creation (a few steps away!)
-        DispatcherBase.__init__(self, policyClass, ob)
-
-    def _HandleException_(self):
-        """Invoke the debugger post mortem capability"""
-        raise DeprecationWarning(DispatcherWin32dbg_deprecation_message)
-        # Save details away.
-        typ, val, tb = exc_info()
-        import pywin.debugger
-        import pywin.debugger.dbgcon
-
-        debug = 0
-        try:
-            raise typ(val)
-        except Exception:  # AARG - What is this Exception???
-            # Use some inside knowledge to borrow a Debugger option which dictates if we
-            # stop at "expected" exceptions.
-            debug = pywin.debugger.GetDebugger().get_option(
-                pywin.debugger.dbgcon.OPT_STOP_EXCEPTIONS
-            )
-        except:
-            debug = 1
-        if debug:
-            try:
-                pywin.debugger.post_mortem(tb, typ, val)  # The original exception
-            except:
-                traceback.print_exc()
-
-        # But still raise it.
-        del tb
-        raise
-
-
 try:
-    import win32trace
+    import win32trace  # nopycln: import # Check for win32traceutil w/o importing it
 
     DefaultDebugDispatcher: type[DispatcherTrace] = DispatcherWin32trace
 except ImportError:  # no win32trace module - just use a print based one.

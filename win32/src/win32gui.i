@@ -5998,26 +5998,49 @@ PyGetScrollInfo (PyObject *self, PyObject *args)
 %native (GetScrollInfo) PyGetScrollInfo;
 
 %{
+#define MAX_CHARS 0x100
+
 // @pyswig string|GetClassName|Retrieves the name of the class to which the specified window belongs.
 static PyObject *
 PyGetClassName(PyObject *self, PyObject *args)
 {
-	HWND hwnd;
-	PyObject *obhwnd;
-	TCHAR buf[256];
-	// @pyparm <o PyHANDLE>|hwnd||The handle to the window
-	if (!PyArg_ParseTuple(args, "O:GetClassName", &obhwnd))
-		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
-		return NULL;
-	// don't bother with lock - no callback possible.
-	int nchars = GetClassName(hwnd, buf, sizeof buf/sizeof buf[0]);
-	if (nchars==0)
-		return PyWin_SetAPIError("GetClassName");
-	return PyWinObject_FromTCHAR(buf, nchars);
+    HWND hwnd;
+    PyObject *obhwnd;
+    TCHAR buf[MAX_CHARS];
+    // @pyparm <o PyHANDLE>|hwnd||The handle to the window
+    if (!PyArg_ParseTuple(args, "O:GetClassName", &obhwnd))
+        return NULL;
+    if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE*)&hwnd))
+        return NULL;
+    // don't bother with lock - no callback possible.
+    int nchars = GetClassName(hwnd, buf, MAX_CHARS);
+    if (nchars == 0)
+        return PyWin_SetAPIErrorOrReturnNone("GetClassName");
+    return PyWinObject_FromTCHAR(buf, nchars);
 }
+
+// @pyswig string|RealGetWindowClass|Retrieves the name of the class to which the specified window belongs.
+static PyObject *
+PyRealGetWindowClass(PyObject *self, PyObject *args)
+{
+    HWND hwnd;
+    PyObject *obhwnd;
+    TCHAR buf[MAX_CHARS];
+    // @pyparm <o PyHANDLE>|hwnd||The handle to the window
+    if (!PyArg_ParseTuple(args, "O:RealGetWindowClass", &obhwnd))
+        return NULL;
+    if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE*)&hwnd))
+        return NULL;
+    // don't bother with lock - no callback possible.
+    UINT nchars = RealGetWindowClass(hwnd, buf, MAX_CHARS);
+    if (nchars == 0)
+        return PyWin_SetAPIErrorOrReturnNone("RealGetWindowClass");
+    return PyWinObject_FromTCHAR(buf, nchars);
+}
+
 %}
 %native (GetClassName) PyGetClassName;
+%native (RealGetWindowClass) PyRealGetWindowClass;
 
 // @pyswig int|WindowFromPoint|Retrieves a handle to the window that contains the specified point.
 // @pyparm (int, int)|point||The point.
@@ -6065,7 +6088,7 @@ static int CALLBACK PySortFunc(
 	assert(!PyErr_Occurred());
 	args = Py_BuildValue("llO", lParam1, lParam2, pc->data);
 	if (!args) goto done;
-	result = PyEval_CallObject(pc->fn, args);
+	result = PyObject_CallObject(pc->fn, args);
 	// API says must return 0, but there might be a good reason.
 	if (!result) goto done;
 	if (!PyLong_Check(result)) {

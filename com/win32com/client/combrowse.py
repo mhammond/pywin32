@@ -93,8 +93,6 @@ class HLI_Enum(HLI_Interface):
             rc = 0
         return rc
 
-    pass
-
 
 class HLI_IEnumMoniker(HLI_Enum):
     def GetSubList(self):
@@ -265,10 +263,7 @@ class HLITypeLibEntry(HLICOM):
     def GetText(self):
         tlb, index = self.myobject
         name, doc, ctx, helpFile = tlb.GetDocumentation(index)
-        try:
-            typedesc = HLITypeKinds[tlb.GetTypeInfoType(index)][1]
-        except KeyError:
-            typedesc = "Unknown!"
+        typedesc = HLITypeKinds.get(tlb.GetTypeInfoType(index), (None, "Unknown!"))[1]
         return name + " - " + typedesc
 
     def GetSubList(self):
@@ -448,10 +443,7 @@ class HLITypeLibFunction(HLICOM):
 
     def MakeReturnTypeName(self, typ):
         justtyp = typ & pythoncom.VT_TYPEMASK
-        try:
-            typname = self.vartypes[justtyp]
-        except KeyError:
-            typname = "?Bad type?"
+        typname = self.vartypes.get(justtyp, "?Bad type?")
         for flag, desc in self.type_flags:
             if flag & typ:
                 typname = f"{desc}({typname})"
@@ -493,15 +485,9 @@ class HLITypeLibFunction(HLICOM):
                 val += f" (Default={default})"
             ret.append(browser.MakeHLI(val, "Argument"))
 
-        try:
-            fkind = self.funckinds[fd[3]]
-        except KeyError:
-            fkind = "Unknown"
+        fkind = self.funckinds.get(fd[3], "Unknown")
         ret.append(browser.MakeHLI(fkind, "Function Kind"))
-        try:
-            ikind = self.invokekinds[fd[4]]
-        except KeyError:
-            ikind = "Unknown"
+        ikind = self.invokekinds.get([fd[4]], "Unknown")
         ret.append(browser.MakeHLI(ikind, "Invoke Kind"))
         # 5 = call conv
         # 5 = offset vtbl
@@ -595,7 +581,6 @@ class HLIHeadingRegisterdTypeLibs(HLICOM):
 
 
 def main(modal=True, mdi=False):
-    from pywin.tools import hierlist
 
     root = HLIRoot("COM Browser")
     if mdi and "pywin.framework.app" in sys.modules:

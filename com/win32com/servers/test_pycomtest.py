@@ -6,7 +6,6 @@ import pythoncom
 import winerror
 
 # Ensure the vtables in the tlb are known.
-from win32com import universal
 from win32com.client import constants, gencache
 from win32com.server.exception import COMException
 from win32com.server.util import wrap

@@ -8,7 +8,6 @@ import win32api
 import win32con
 import win32ui
 from pywin.framework.editor import GetEditorOption
-from pywin.mfc import docview, object
 
 BAK_NONE = 0
 BAK_DOT_BAK = 1

@@ -418,7 +418,7 @@ def ForgetAboutTypelibInterface(typelib_ob):
             f"ForgetAboutTypelibInterface:: Warning - type library with info {info} is not being remembered!"
         )
     # and drop any version redirects to it
-    for key, val in list(versionRedirectMap.items()):
+    for key, val in versionRedirectMap.items():
         if val == info:
             del versionRedirectMap[key]
 
@@ -618,7 +618,7 @@ def EnsureDispatch(
 ):  # New fn, so we default the new demand feature to on!
     """Given a COM prog_id, return an object that is using makepy support, building if necessary"""
     disp = win32com.client.Dispatch(prog_id)
-    if not disp.__dict__.get("CLSID"):  # Eeek - no makepy support - try and build it.
+    if not hasattr(disp, "CLSID"):  # Eeek - no makepy support - try and build it.
         try:
             ti = disp._oleobj_.GetTypeInfo()
             disp_clsid = ti.GetTypeAttr()[0]
@@ -652,7 +652,7 @@ def AddModuleToCache(
 
     def SetTypelibForAllClsids(dict):
         nonlocal dict_modified
-        for clsid, cls in dict.items():
+        for clsid in dict:
             if clsidToTypelib.get(clsid) != info:
                 clsidToTypelib[clsid] = info
                 dict_modified = True
@@ -677,7 +677,7 @@ def GetGeneratedInfos():
         zip_file = win32com.__gen_path__[: zip_pos + 4]
         zip_path = win32com.__gen_path__[zip_pos + 5 :].replace("\\", "/")
         zf = zipfile.ZipFile(zip_file)
-        infos = {}
+        infos = set()
         for n in zf.namelist():
             if not n.startswith(zip_path):
                 continue
@@ -693,9 +693,9 @@ def GetGeneratedInfos():
             except pywintypes.com_error:
                 # invalid IID
                 continue
-            infos[(iid, lcid, major, minor)] = 1
+            infos.add((iid, lcid, major, minor))
         zf.close()
-        return list(infos.keys())
+        return list(infos)
     else:
         # on the file system
         files = glob.glob(win32com.__gen_path__ + "\\*")
@@ -750,10 +750,8 @@ def Rebuild(verbose=1):
 def _Dump():
     print("Cache is in directory", win32com.__gen_path__)
     # Build a unique dir
-    d = {}
-    for clsid, (typelibCLSID, lcid, major, minor) in clsidToTypelib.items():
-        d[typelibCLSID, lcid, major, minor] = None
-    for typelibCLSID, lcid, major, minor in d.keys():
+    d = set(clsidToTypelib.values())
+    for typelibCLSID, lcid, major, minor in d:
         mod = GetModuleForTypelib(typelibCLSID, lcid, major, minor)
         print(f"{mod.__doc__} - {typelibCLSID}")
 
