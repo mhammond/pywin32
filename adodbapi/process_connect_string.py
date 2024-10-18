@@ -1,4 +1,9 @@
-""" a clumsy attempt at a macro language to let the programmer execute code on the server (ex: determine 64bit)"""
+"""a clumsy attempt at a macro language to let the programmer execute code on the server (ex: determine 64bit)"""
+
+from __future__ import annotations
+
+from collections.abc import MutableMapping
+from typing import Any
 
 from . import is64bit
 
@@ -74,7 +79,7 @@ def macro_call(macro_name, args, kwargs):
 
 
 def process(
-    args, kwargs, expand_macros=False
+    args, kwargs: MutableMapping[str, Any], expand_macros=False
 ):  # --> connection string with keyword arguments processed.
     """attempts to inject arguments into a connection string using Python "%" operator for strings
 
@@ -90,9 +95,7 @@ def process(
         dsn, dict
     ):  # as a convenience the first argument may be django settings
         kwargs.update(dsn)
-    elif (
-        dsn
-    ):  # the connection string is passed to the connection as part of the keyword dictionary
+    elif dsn:  # the connection string is passed to the connection as part of the keyword dictionary
         kwargs["connection_string"] = dsn
     try:
         a1 = args[1]
@@ -124,7 +127,8 @@ def process(
             except KeyError:
                 raise TypeError("Must define 'connection_string' for ado connections")
     if expand_macros:
-        for kwarg in kwargs:
+        # copy the list to avoid size changing during iteration
+        for kwarg in list(kwargs):
             if kwarg.startswith("macro_"):  # If a key defines a macro
                 macro_name = kwarg[6:]  # name without the "macro_"
                 macro_code = kwargs.pop(
