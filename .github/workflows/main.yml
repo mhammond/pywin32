@@ -48,7 +48,7 @@ jobs:
         run: python pywin32_testall.py -v -skip-adodbapi
 
       - name: Build wheels
-        run: pip wheel .
+        run: pip wheel . -v --wheel-dir=dist
 
       - uses: actions/upload-artifact@v3
         # Upload artifacts even if tests fail
@@ -56,6 +56,7 @@ jobs:
         with:
           name: artifacts
           path: dist/*.whl
+          if-no-files-found: error
 
   # We cannot build and test on ARM64, so we cross-compile.
   # Later, when available, we can add tests using this wheel on ARM64 VMs
@@ -95,6 +96,7 @@ jobs:
         with:
           name: artifacts
           path: dist/*.whl
+          if-no-files-found: error
 
   # This job can be run locally by running `pre-commit run`
   checkers:
