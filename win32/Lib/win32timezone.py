@@ -642,11 +642,27 @@ class TimeZoneInfo(datetime.tzinfo):
         return self.displayName
 
     def tzname(self, dt):
-        winInfo = self.getWinInfo(dt)
-        if self.dst(dt) == winInfo.daylight_bias:
+        """
+        >>> MST = TimeZoneInfo('Mountain Standard Time')
+        >>> MST.tzname(datetime.datetime(2003, 8, 2))
+        'Mountain Daylight Time'
+        >>> MST.tzname(datetime.datetime(2003, 11, 25))
+        'Mountain Standard Time'
+        """
+
+        winInfo = self.getWinInfo(dt.year)
+        if self.dst(dt) == -winInfo.daylight_bias:
             result = self.daylightName
-        elif self.dst(dt) == winInfo.standard_bias:
+        elif self.dst(dt) == -winInfo.standard_bias:
             result = self.standardName
+        else:
+            raise ValueError(
+                "Unexpected daylight bias",
+                dt,
+                self.dst(dt),
+                winInfo.daylight_bias,
+                winInfo.standard_bias,
+            )
         return result
 
     def getWinInfo(self, targetYear):

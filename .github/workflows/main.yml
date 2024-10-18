@@ -18,7 +18,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # python-version: ["3.7", "3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
+        # python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
         # architecture: ["x64", "x86"]
         # free-threaded: [false]
         include:
@@ -56,7 +56,7 @@ jobs:
         run: |
           python --version
           pip --version
-          pip install --upgrade setuptools wheel
+          pip install --upgrade setuptools>=74 wheel
 
       - name: Build and install
         run: |
@@ -124,7 +124,7 @@ jobs:
         run: |
           python --version
           pip --version
-          pip install --upgrade setuptools wheel
+          pip install --upgrade setuptools>=74 wheel
 
       - name: Obtain ARM64 library files
         run: |
@@ -172,7 +172,6 @@ jobs:
   #   strategy:
   #     fail-fast: false
   #     matrix:
-  #       # mypy 1.5 dropped support for Python 3.7
   #       python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
   #   steps:
   #     - uses: actions/checkout@v4
@@ -191,7 +190,7 @@ jobs:
   #   strategy:
   #     fail-fast: false
   #     matrix:
-  #       python-version: ["3.7", "3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
+  #       python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
   #   steps:
   #     - uses: actions/checkout@v4
   #     - uses: actions/setup-python@v5
