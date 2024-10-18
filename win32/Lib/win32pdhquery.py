@@ -331,9 +331,8 @@ class BaseQuery:
                 if not ok:
                     temp.append(-1)  # a better way to signal failure???
             return temp
-        except (
-            win32api.error
-        ):  # will happen if, for instance, no counters are part of the query and we attempt to collect data for it.
+        # will happen if, for instance, no counters are part of the query and we attempt to collect data for it.
+        except win32api.error:
             return [-1] * len(self.counters)
 
     # pickle functions
