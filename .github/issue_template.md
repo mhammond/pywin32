@@ -26,8 +26,6 @@ Python version and distribution:
 
 pywin32 version:
 
-Installed from PyPI or exe installer:
-
 Windows Version:
 <!-- You can find this under "System Information", ie: Version	10.0.19045 Build 19045 -->
 
