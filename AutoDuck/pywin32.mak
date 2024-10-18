@@ -82,7 +82,6 @@ WIN32COM_SOURCE = \
 	  $(GENDIR)\PyIProfAdmin.d \
 	  $(GENDIR)\PyIProfSect.d \
 	  $(GENDIR)\exchange.d \
-	  $(GENDIR)\exchdapi.d \
 	  $(ADSI_DIR)\src\*.cpp \
 	  $(GENDIR)\adsi.d \
 	  $(GENDIR)\PyIADsContainer.d \
@@ -229,10 +228,6 @@ $(GENDIR)\PyIProfSect.d: $(MAPI_DIR)/src/$(*B).i
 
 # Exchange stuff.
 $(GENDIR)\exchange.d: $(MAPI_DIR)/src/$(*B).i
-	$(PYTHON) makedfromi.py -o$*.d $(MAPI_DIR)/src/$(*B).i
-
-# Exchange stuff.
-$(GENDIR)\exchdapi.d: $(MAPI_DIR)/src/$(*B).i
 	$(PYTHON) makedfromi.py -o$*.d $(MAPI_DIR)/src/$(*B).i
 
 # ADSI
