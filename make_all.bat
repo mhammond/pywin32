@@ -7,9 +7,6 @@ py autoduck\make.py
 
 rem Check /build_env.md#build-environment to make sure you have all the required components installed
 
-py -3.7-32 -m build --wheel
-py -3.7 -m build --wheel
-
 py -3.8-32 -m build --wheel
 py -3.8 -m build --wheel
 
