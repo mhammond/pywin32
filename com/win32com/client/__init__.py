@@ -374,7 +374,11 @@ def WithEvents(disp, user_event_class):
     circular reference problems that the simple proxy doesn't deal with
     """
     disp, disp_class, events_class = __get_disp_and_event_classes(disp)
-    result_class = type("COMEventClass", (events_class, user_event_class), {})
+    result_class = type(
+        "COMEventClass",
+        (events_class, user_event_class),
+        {},
+    )
     # This only calls the first base class __init__.
     instance = result_class(disp)
     if hasattr(user_event_class, "__init__"):
