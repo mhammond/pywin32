@@ -149,7 +149,6 @@ from the pywin32 directory.
 - Update `setuptools` and set the following environment variables to ensure it is used:
 
     ```shell
-    set SETUPTOOLS_USE_DISTUTILS=1
     set DISTUTILS_USE_SDK=1
     ```
 

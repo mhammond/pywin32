@@ -10,12 +10,12 @@ import shutil
 import stat
 import sys
 import traceback
+from collections.abc import Mapping
 
 import pythoncom
 import win32api
 import winerror
-from win32com.client import Dispatch, GetObject
-from win32com.client.gencache import EnsureDispatch, EnsureModule
+from win32com.client import GetObject
 
 _APP_INPROC = 0
 _APP_OUTPROC = 1
@@ -687,15 +687,12 @@ standard_arguments = {
 }
 
 
-def build_usage(handler_map):
-    docstrings = [handler.__doc__ for handler in handler_map.values()]
-    all_args = dict(zip(iter(handler_map.keys()), docstrings))
-    arg_names = "|".join(iter(all_args.keys()))
-    usage_string = "%prog [options] [" + arg_names + "]\n"
-    usage_string += "commands:\n"
-    for arg, desc in all_args.items():
-        usage_string += " %-10s: %s" % (arg, desc) + "\n"
-    return usage_string[:-1]
+def build_usage(handler_map: Mapping[str, object]) -> str:
+    arg_names = "|".join(handler_map)
+    lines = [
+        " %-10s: %s" % (arg, handler.__doc__) for arg, handler in handler_map.items()
+    ]
+    return f"%prog [options] [{arg_names}]\ncommands:\n" + "\n".join(lines)
 
 
 def MergeStandardOptions(options, params):

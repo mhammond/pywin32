@@ -9,7 +9,7 @@
 import pythoncom
 import win32con
 import win32gui
-from win32com.shell import shell, shellcon
+from win32com.shell import shell
 
 
 # Our shell extension.

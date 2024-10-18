@@ -5,7 +5,12 @@
 import sys
 
 import pywintypes
-from ntsecuritycon import *
+from ntsecuritycon import (
+    DOMAIN_ALIAS_RID_ADMINS,
+    DOMAIN_USER_RID_ADMIN,
+    SECURITY_BUILTIN_DOMAIN_RID,
+    SECURITY_NT_AUTHORITY,
+)
 from win32net import NetUserModalsGet
 from win32security import LookupAccountSid
 

@@ -389,7 +389,7 @@ class DebuggerBreakpointsWindow(DebuggerListViewWindow):
             item_id = self.GetItem(num)[6]
             from bdb import Breakpoint
 
-            for bplist in list(Breakpoint.bplist.values()):
+            for bplist in Breakpoint.bplist.values():
                 for bp in bplist:
                     if id(bp) == item_id:
                         self.debugger.clear_break(bp.file, bp.line)
@@ -869,15 +869,14 @@ class Debugger(debugger_parent):
         elif state == DBGSTATE_RUNNING:  # Code is running under the debugger.
             title = " - running"
         elif state == DBGSTATE_BREAK:  # We are at a breakpoint or stepping or whatever.
-            if self.bAtException:
-                if self.bAtPostMortem:
-                    title = " - post mortem exception"
-                else:
-                    title = " - exception"
-            else:
+            if not self.bAtException:
                 title = " - break"
+            elif self.bAtPostMortem:
+                title = " - post mortem exception"
+            else:
+                title = " - exception"
         else:
-            raise error("Invalid debugger state passed!")
+            raise ValueError("Invalid debugger state passed!")
         win32ui.GetMainFrame().SetWindowText(
             win32ui.LoadString(win32ui.IDR_MAINFRAME) + title
         )

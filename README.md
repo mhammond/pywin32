@@ -32,8 +32,10 @@ note that you must be subscribed to the list before posting.
 
 ## Binaries
 
-[Binary releases are deprecated.](https://mhammond.github.io/pywin32_installers.html)
-While they are still provided, [find them here](https://github.com/mhammond/pywin32/releases)
+[Binary releases are no longer supported.](https://mhammond.github.io/pywin32_installers.html)
+
+Build 306 was the last with .exe installers. You really shouldn't use them, but if you really need them,
+[find them here](https://github.com/mhammond/pywin32/releases/tag/b306)
 
 ## Installing via PIP
 
@@ -133,12 +135,42 @@ configuration, please [open an issue](https://github.com/mhammond/pywin32/issues
 The following steps are performed when making a new release - this is mainly
 to form a checklist so @mhammond doesn't forget what to do :)
 
+Since build 307 the release process is based on the artifacts created by Github actions.
+
+* Ensure CHANGES.txt has everything worth noting. Update the header to reflect
+  the about-to-be released build and date, commit it.
+
+* Update setup.py with the new build number. Update CHANGES.txt to have a new heading
+  section for the next unreleased version. (ie, a new, empty "Coming in build XXX, as yet unreleased"
+  section)
+
+* Push these changes to github, wait for the actions to complete, then
+  download the artifacts from that run.
+
+* Upload .whl artifacts to pypi - we do this before pushing the tag because they might be
+  rejected for an invalid `README.md`. Done via `py -3.? -m twine upload dist/*XXX*.whl`.
+
+* Create a new git tag for the release.
+
+* Update setup.py with the new build number + ".1" (eg, 123.1), to ensure
+  future test builds aren't mistaken for the real release.
+
+* Make sure everything is pushed to github, including the tag (ie,
+  `git push --tags`)
+
+* Send mail to python-win32
+
+### Older Manual Release Process
+
+This is the old process used when a local dev environment was used to create
+the builds. Build 306 was the last released with this process.
+
 * Ensure CHANGES.txt has everything worth noting. Update the header to reflect
   the about-to-be released build and date, commit it.
 
 * Update setup.py with the new build number.
 
-* Execute `make.bat`, wait forever, test the artifacts.
+* Execute `make_all.bat`, wait forever, test the artifacts.
 
 * Upload .whl artifacts to pypi - we do this before pushing the tag because they might be
   rejected for an invalid `README.md`. Done via `py -3.? -m twine upload dist/*XXX*.whl`.

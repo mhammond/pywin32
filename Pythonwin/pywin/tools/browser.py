@@ -110,7 +110,7 @@ class HLIPythonObject(hierlist.HierListItem):
         if hasattr(self.myobject, "__doc__"):
             return 1
         try:
-            for key in self.myobject.__dict__.keys():
+            for key in self.myobject.__dict__:
                 if key not in special_names:
                     return 1
         except (AttributeError, TypeError):
@@ -288,12 +288,7 @@ class HLIDict(HLIPythonObject):
             return len(self.myobject) > 0
 
     def GetSubList(self):
-        ret = []
-        keys = list(self.myobject.keys())
-        keys.sort()
-        for key in keys:
-            ob = self.myobject[key]
-            ret.append(MakeHLI(ob, str(key)))
+        ret = [MakeHLI(self.myobject[key], str(key)) for key in sorted(self.myobject)]
         self.InsertDocString(ret)
         return ret
 

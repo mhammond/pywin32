@@ -231,9 +231,7 @@ def _urlescape(name):
 
 
 def _genCategoryHTMLFromDict(dict, output):
-    keys = list(dict.keys())
-    keys.sort()
-    for key in keys:
+    for key in sorted(dict):
         topic = dict[key]
         output.write(f'<LI><A HREF="{topic.context}">{topic.name}</A>\n')
 
@@ -285,9 +283,7 @@ def genCategoryHTML(output_dir, cats):
 
 def _genItemsFromDict(dict, cat, output, target, do_children=1):
     CHM = "mk:@MSITStore:%s.chm::/" % target
-    keys = list(dict.keys())
-    keys.sort()
-    for k in keys:
+    for k in sorted(dict):
         context = dict[k].context
         name = dict[k].name
         output.write(

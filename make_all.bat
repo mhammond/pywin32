@@ -13,11 +13,6 @@ rem Now the binaries.
 rem Check /build_env.md#build-environment to make sure you have all the required components installed
 
 rem (bdist_wininst needs --target-version to name the installers correctly!)
-py -3.7-32 setup.py -q bdist_wininst --skip-build --target-version=3.7
-py -3.7-32 setup.py -q bdist_wheel --skip-build
-py -3.7 setup.py -q bdist_wininst --skip-build --target-version=3.7
-py -3.7 setup.py -q bdist_wheel --skip-build
-
 py -3.8-32 setup.py -q bdist_wininst --skip-build --target-version=3.8
 py -3.8-32 setup.py -q bdist_wheel --skip-build
 py -3.8 setup.py -q bdist_wininst --skip-build --target-version=3.8

@@ -210,10 +210,7 @@ class NCBStruct:
     def _pack(self):
         vals = []
         for format, name in self._items:
-            try:
-                vals.append(self.__dict__[name])
-            except KeyError:
-                vals.append(None)
+            vals.append(self.__dict__.get(name))
 
         self._buffer_[:] = struct.pack(*(self._format,) + tuple(vals))
 

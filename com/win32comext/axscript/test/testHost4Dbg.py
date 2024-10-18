@@ -4,7 +4,6 @@ import traceback
 
 import pythoncom
 import win32ui
-from win32com.axscript import axscript
 from win32com.axscript.server import axsite
 from win32com.server import util
 
@@ -76,8 +75,6 @@ def TestEngine():
 
 
 if __name__ == "__main__":
-    import win32com.axdebug.util
-
     try:
         TestEngine()
     except:

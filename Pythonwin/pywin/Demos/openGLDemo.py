@@ -2,11 +2,55 @@
 
 import sys
 
-from pywin.mfc import docview
-
 try:
-    from OpenGL.GL import *  # nopycln: import
-    from OpenGL.GLU import *  # nopycln: import
+    from OpenGL.GL import (
+        GL_COLOR_BUFFER_BIT,
+        GL_DEPTH_BUFFER_BIT,
+        GL_DEPTH_TEST,
+        GL_MODELVIEW,
+        GL_PROJECTION,
+        GL_QUAD_STRIP,
+        GL_QUADS,
+        GL_TRIANGLE_FAN,
+        glBegin,
+        glClear,
+        glClearColor,
+        glClearDepth,
+        glColor3f,
+        glEnable,
+        glEnd,
+        glFinish,
+        glLoadIdentity,
+        glMatrixMode,
+        glPopMatrix,
+        glPushMatrix,
+        glRotatef,
+        glTranslatef,
+        glVertex3f,
+        glViewport,
+    )
+    from OpenGL.GLU import (
+        GLU_FILL,
+        GLU_SMOOTH,
+        gluCylinder,
+        gluNewQuadric,
+        gluPerspective,
+        gluQuadricDrawStyle,
+        gluQuadricNormals,
+    )
+    from OpenGL.WGL import (
+        PIXELFORMATDESCRIPTOR,
+        ChoosePixelFormat,
+        DescribePixelFormat,
+        GetPixelFormat,
+        SetPixelFormat,
+        SwapBuffers,
+        wglCreateContext,
+        wglDeleteContext,
+        wglGetCurrentContext,
+        wglGetCurrentDC,
+        wglMakeCurrent,
+    )
 except ImportError:
     print("The OpenGL extensions do not appear to be installed.")
     print("This Pythonwin demo can not run")
@@ -16,6 +60,7 @@ import timer
 import win32api
 import win32con
 import win32ui
+from pywin.mfc import docview
 
 PFD_TYPE_RGBA = 0
 PFD_TYPE_COLORINDEX = 1
@@ -117,7 +162,7 @@ class OpenGLView(OpenGLViewParent):
     # The OpenGL helpers
     def _SetupPixelFormat(self):
         dc = self.dc.GetSafeHdc()
-        pfd = CreatePIXELFORMATDESCRIPTOR()
+        pfd = PIXELFORMATDESCRIPTOR()
         pfd.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER
         pfd.iPixelType = PFD_TYPE_RGBA
         pfd.cColorBits = 24
@@ -125,16 +170,16 @@ class OpenGLView(OpenGLViewParent):
         pfd.iLayerType = PFD_MAIN_PLANE
         pixelformat = ChoosePixelFormat(dc, pfd)
         SetPixelFormat(dc, pixelformat, pfd)
-        self._CreateRGBPalette()
+        self._CreateRGBPalette(pfd)
 
-    def _CreateRGBPalette(self):
-        dc = self.dc.GetSafeHdc()
-        n = GetPixelFormat(dc)
-        pfd = DescribePixelFormat(dc, n)
+    def _CreateRGBPalette(self, pfd):
+        hdc = self.dc.GetSafeHdc()
+        iPixelFormat = GetPixelFormat(hdc)
+        DescribePixelFormat(hdc, iPixelFormat, pfd.nSize, pfd)
         if pfd.dwFlags & PFD_NEED_PALETTE:
-            n = 1 << pfd.cColorBits
+            iPixelFormat = 1 << pfd.cColorBits
             pal = []
-            for i in range(n):
+            for i in range(iPixelFormat):
                 this = (
                     ComponentFromIndex(i, pfd.cRedBits, pfd.cRedShift),
                     ComponentFromIndex(i, pfd.cGreenBits, pfd.cGreenShift),
