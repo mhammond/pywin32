@@ -119,6 +119,8 @@ class CPyCOMTest : public IDispatchImpl<IPyCOMTest, &IID_IPyCOMTest, &LIBID_PyCO
     STDMETHOD(None)();
     STDMETHOD(def)();
 
+    STDMETHOD(VerifyArrayOfStructs)(TestStruct2 *prec, VARIANT_BOOL *is_ok);
+
     // info associated to each session
     struct PyCOMTestSessionData {
         IStream *pStream;  // Stream for marshalling the data to the new thread.
