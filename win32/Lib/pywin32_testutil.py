@@ -254,7 +254,7 @@ class TestResult(unittest.TextTestResult):
             self.skips.setdefault(reason, 0)
             self.skips[reason] += 1
             if self.showAll:
-                self.stream.writeln(f"SKIP ({reason})")
+                self.stream.write(f"SKIP ({reason})")
             elif self.dots:
                 self.stream.write("S")
                 self.stream.flush()
@@ -264,7 +264,7 @@ class TestResult(unittest.TextTestResult):
     def printErrors(self):
         super().printErrors()
         for reason, num_skipped in self.skips.items():
-            self.stream.writeln("SKIPPED: %d tests - %s" % (num_skipped, reason))
+            self.stream.write(f"SKIPPED: {num_skipped} tests - {reason}")
 
 
 # TestRunner subclass necessary just to get our TestResult hooked up.
