@@ -672,7 +672,7 @@ class TimeZoneInfo(datetime.tzinfo):
     def __str__(self) -> str:
         return self.displayName
 
-    @overload
+    @overload  # type: ignore[override] # Split definition into overrides
     def tzname(self, dt: datetime.datetime) -> str: ...
     @overload
     def tzname(self, dt: None) -> None: ...
