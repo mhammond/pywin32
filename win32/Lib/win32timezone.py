@@ -246,7 +246,6 @@ import re
 import struct
 import winreg
 from itertools import count
-from typing import Dict
 
 import win32api
 
@@ -855,7 +854,7 @@ class TimeZoneInfo(datetime.tzinfo):
         return zones
 
 
-class _RegKeyDict(Dict[str, int]):
+class _RegKeyDict(dict[str, int]):
     def __init__(self, key: winreg.HKEYType):
         dict.__init__(self)
         self.key = key
