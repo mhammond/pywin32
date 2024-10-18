@@ -19,6 +19,7 @@ Example
 from __future__ import annotations
 
 import traceback
+from itertools import chain
 from types import MethodType
 
 import pythoncom  # Needed as code we eval() references it.
@@ -237,19 +238,19 @@ class CDispatch:
             return self.__repr__()
 
     def __dir__(self):
-        lst = list(self.__dict__.keys()) + dir(self.__class__) + self._dir_ole_()
+        attributes = chain(self.__dict__, dir(self.__class__), self._dir_ole_())
         try:
-            lst += [p.Name for p in self.Properties_]
+            attributes = chain(attributes, [p.Name for p in self.Properties_])
         except AttributeError:
             pass
-        return list(set(lst))
+        return list(set(attributes))
 
     def _dir_ole_(self):
         items_dict = {}
         for iTI in range(0, self._oleobj_.GetTypeInfoCount()):
             typeInfo = self._oleobj_.GetTypeInfo(iTI)
             self._UpdateWithITypeInfo_(items_dict, typeInfo)
-        return list(items_dict.keys())
+        return list(items_dict)
 
     def _UpdateWithITypeInfo_(self, items_dict, typeInfo):
         typeInfos = [typeInfo]
@@ -459,7 +460,7 @@ class CDispatch:
         print("AxDispatch container", self._username_)
         try:
             print("Methods:")
-            for method in self._olerepr_.mapFuncs.keys():
+            for method in self._olerepr_.mapFuncs:
                 print("\t", method)
             print("Props:")
             for prop, entry in self._olerepr_.propMap.items():
