@@ -170,7 +170,7 @@ class CApp(WinApp):
                 try:
                     thisRet = handler(handler, count)
                 except:
-                    print("Idle handler %s failed" % (repr(handler)))
+                    print(f"Idle handler {handler!r} failed")
                     traceback.print_exc()
                     print("Idle handler removed from list")
                     try:
