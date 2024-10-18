@@ -11,7 +11,6 @@ import re
 import types
 
 import pythoncom
-import win32api
 import win32com
 import win32com.client.dynamic
 import win32com.server.register
