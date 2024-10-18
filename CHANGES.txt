@@ -14,6 +14,7 @@ https://mhammond.github.io/pywin32_installers.html.
 Coming in build 309, as yet unreleased
 --------------------------------------
 
+## pywin32
 * Dropped support for Python 3.7 (#2207, @Avasam)
 * Implement the creation of SAFEARRAY(VT_RECORD) from a sequence of COM Records (#2317, @geppi)
 * Implement record pointers as [in, out] method parameters of a Dispatch Interface (#2304, #2310, @geppi)
@@ -27,6 +28,9 @@ Coming in build 309, as yet unreleased
 * Improved handling of dict iterations and fallbacks (removes Python 2 support code, small general speed improvement) (#2332, #2330, @Avasam)
 * Fixed "Open GL Demo" (`Pythonwin/pywin/Demos/openGLDemo.py`) and restore "Font" demo in `Pythonwin/pywin/Demos/guidemo.py` (#2345, @Avasam)
 * Fixed accidentally trying to raise an undefined name instead of an `Exception` in `Pythonwin/pywin/debugger/debugger.py` (#2326, @Avasam)
+
+## adodbapi
+* When `errorhandler` is called, the `errorvalue` argument is now always an `Exception` and the `errortype` is the `type` of that specific `errorvalue` (#2351, @Avasam)
 
 Build 308, released 2024-10-12
 ------------------------------
@@ -193,7 +197,6 @@ as the .chm file, certain MAPI libraries etc, and .exe installers.
 * General speed and size improvements due to all the removed code. (#2046, #1986, #2050, #1950, #2085, #2087, #2051, #1990, #2106, #2127, #2124, #2126, #2177, #2218, #2202, #2205, #2217)
 
 ### adodbapi
-* When `errorhandler` is called, the `errorvalue` argument is now always an `Exception` and the `errortype` is the `type` of that specific `errorvalue` (#2351, @Avasam)
 * Remove references to outdated IronPython (#2049, @Avasam)
   This removes the following public names:
   * `adodbapi.adodbapi.onWin32`
