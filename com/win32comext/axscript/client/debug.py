@@ -3,14 +3,11 @@ import sys
 
 import pythoncom
 import win32api
-import win32com.server.util
 import winerror
 from win32com.axdebug import adb, axdebug, documents, gateways
 from win32com.axdebug.codecontainer import SourceCodeContainer
 from win32com.axdebug.util import _wrap
-from win32com.client.util import Enumerator
 from win32com.server.exception import COMException
-from win32com.util import IIDToInterfaceName
 
 debuggingTrace = "DEBUG_AXDEBUG" in os.environ  # Should we print "trace" output?
 
