@@ -90,9 +90,7 @@ def process(
         dsn, dict
     ):  # as a convenience the first argument may be django settings
         kwargs.update(dsn)
-    elif (
-        dsn
-    ):  # the connection string is passed to the connection as part of the keyword dictionary
+    elif dsn:  # the connection string is passed to the connection as part of the keyword dictionary
         kwargs["connection_string"] = dsn
     try:
         a1 = args[1]

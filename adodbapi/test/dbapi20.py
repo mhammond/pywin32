@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 """Python DB API 2.0 driver compliance unit test suite.
 
-    This software is Public Domain and may be used without restrictions.
+   This software is Public Domain and may be used without restrictions.
 
- "Now we have booze and barflies entering the discussion, plus rumours of
-  DBAs on drugs... and I won't tell you what flashes through my mind each
-  time I read the subject line with 'Anal Compliance' in it.  All around
-  this is turning out to be a thoroughly unwholesome unit test."
+"Now we have booze and barflies entering the discussion, plus rumours of
+ DBAs on drugs... and I won't tell you what flashes through my mind each
+ time I read the subject line with 'Anal Compliance' in it.  All around
+ this is turning out to be a thoroughly unwholesome unit test."
 
-    -- Ian Bicking
+   -- Ian Bicking
 """
 
 __version__ = "$Revision: 1.15.0 $"[11:-2]
