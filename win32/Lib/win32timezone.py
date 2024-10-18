@@ -684,7 +684,7 @@ class TimeZoneInfo(datetime.tzinfo):
         >>> MST.tzname(datetime.datetime(2003, 11, 25))
         'Mountain Standard Time'
         >>> MST.tzname(None)
-        None
+
         """
         # https://docs.python.org/3/library/datetime.html#datetime.tzinfo.tzname
         # > [...] returning `None` is appropriate if the class wishes to say
