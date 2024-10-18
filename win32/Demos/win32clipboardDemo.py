@@ -2,17 +2,29 @@
 #
 # Demo/test of the win32clipboard module.
 import win32con
-from win32clipboard import *
+from win32clipboard import (
+    CloseClipboard,
+    EmptyClipboard,
+    EnumClipboardFormats,
+    GetClipboardData,
+    GetClipboardFormatName,
+    IsClipboardFormatAvailable,
+    OpenClipboard,
+    RegisterClipboardFormat,
+    SetClipboardData,
+    SetClipboardText,
+)
 
 if not __debug__:
     print("WARNING: The test code in this module uses assert")
     print("This instance of Python has asserts disabled, so many tests will be skipped")
 
-cf_names = {}
 # Build map of CF_* constants to names.
-for name, val in list(win32con.__dict__.items()):
-    if name[:3] == "CF_" and name != "CF_SCREENFONTS":  # CF_SCREEN_FONTS==CF_TEXT!?!?
-        cf_names[val] = name
+cf_names = {
+    val: name
+    for name, val in win32con.__dict__.items()
+    if name[:3] == "CF_" and name != "CF_SCREENFONTS"  # CF_SCREEN_FONTS==CF_TEXT!?!?
+}
 
 
 def TestEmptyClipboard():

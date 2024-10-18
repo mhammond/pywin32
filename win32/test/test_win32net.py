@@ -1,7 +1,6 @@
 import unittest
 
 import win32net
-import win32netcon
 
 
 class TestCase(unittest.TestCase):

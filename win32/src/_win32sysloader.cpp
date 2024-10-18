@@ -52,13 +52,7 @@ static PyObject *PyLoadModule(PyObject *self, PyObject *args)
     if (!modName)
         return NULL;
 
-        // Python 3.7 vs 3.8 use different flags for LoadLibraryEx and we match them.
-        // See github issue 1787.
-#if (PY_VERSION_HEX < 0x03080000)
-    HINSTANCE hinst = LoadLibraryEx(modName, NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
-#else
     HINSTANCE hinst = LoadLibraryEx(modName, NULL, LOAD_LIBRARY_SEARCH_DEFAULT_DIRS | LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR);
-#endif
     PyMem_Free(modName);
     if (hinst == NULL) {
         Py_INCREF(Py_None);

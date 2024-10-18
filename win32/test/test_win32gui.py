@@ -4,7 +4,6 @@ import operator
 import sys
 import unittest
 
-import pywin32_testutil
 import pywintypes
 import win32api
 import win32gui
@@ -207,6 +206,21 @@ class TestEnumWindowsFamily(unittest.TestCase):
                     self.assertRaises(
                         TypeError, win32gui.EnumDesktopWindows, 0, func, 2.718282
                     )
+
+
+class TestWindowProperties(unittest.TestCase):
+    def setUp(self):
+        self.class_functions = (
+            win32gui.GetClassName,
+            win32gui.RealGetWindowClass,
+        )
+
+    def test_classname(self):
+        for func in self.class_functions:
+            self.assertRaises(pywintypes.error, func, 0)
+        wnd = win32gui.GetDesktopWindow()
+        for func in self.class_functions:
+            self.assertTrue(func(wnd))
 
 
 if __name__ == "__main__":

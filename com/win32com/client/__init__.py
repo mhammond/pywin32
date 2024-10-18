@@ -7,6 +7,7 @@
 # with dynamic.Dispatch behaviour, where dynamic objects are always used.
 
 import sys
+from itertools import chain
 
 import pythoncom
 import pywintypes
@@ -510,17 +511,18 @@ class DispatchBaseClass:
         self.__dict__["_oleobj_"] = oobj  # so we don't call __setattr__
 
     def __dir__(self):
-        lst = (
-            list(self.__dict__.keys())
-            + dir(self.__class__)
-            + list(self._prop_map_get_.keys())
-            + list(self._prop_map_put_.keys())
+        attributes = chain(
+            self.__dict__,
+            dir(self.__class__),
+            self._prop_map_get_,
+            self._prop_map_put_,
         )
+
         try:
-            lst += [p.Name for p in self.Properties_]
+            attributes = chain(attributes, [p.Name for p in self.Properties_])
         except AttributeError:
             pass
-        return list(set(lst))
+        return list(set(attributes))
 
     # Provide a prettier name than the CLSID
     def __repr__(self):

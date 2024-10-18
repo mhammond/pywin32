@@ -1,7 +1,7 @@
 #pragma once
 
 // https://blogs.msdn.microsoft.com/stephen_griffin/2011/10/13/the-elusive-0x81002746-error/
-// https://github.com/stephenegriffin/mfcmapi
+// https://github.com/microsoft/mfcmapi/blob/main/core/interpret/errorArray.h
 #define MAIL_E_NAMENOTFOUND MAKE_SCODE(SEVERITY_ERROR, 0x0100, 10054)
 #define MAPI_E_STORE_FULL MAKE_MAPI_E(0x60C)
 #define MAPI_E_LOCKID_LIMIT MAKE_MAPI_E(0x60D)

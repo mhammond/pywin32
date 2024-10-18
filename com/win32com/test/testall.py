@@ -23,14 +23,13 @@ win32com.__path__[0] = win32com_src_dir
 
 import pythoncom
 import win32com.client
+from pywin32_testutil import TestLoader, TestRunner
 from win32com.test.util import (
     CapturingFunctionTestCase,
     CheckClean,
     RegisterPythonServer,
     ShellTestCase,
     TestCase,
-    TestLoader,
-    TestRunner,
 )
 
 verbosity = 1  # default unittest verbosity.

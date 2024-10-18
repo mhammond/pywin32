@@ -227,16 +227,25 @@ class TestSimpleOps(unittest.TestCase):
         )
         try:
             ct, at, wt = win32file.GetFileTime(f)
-            self.assertTrue(
-                ct >= now,
+            # NOTE (Avasam): I've seen the time be off from -0.003 to +1.11 seconds,
+            # so the above comment about microseconds might be wrong.
+            # Let's standardize ms and avoid random CI failures
+            # https://github.com/mhammond/pywin32/issues/2203
+            ct = ct.replace(microsecond=0)
+            at = at.replace(microsecond=0)
+            wt = wt.replace(microsecond=0)
+            self.assertGreaterEqual(
+                ct,
+                now,
                 f"File was created in the past - now={now}, created={ct}",
             )
-            self.assertTrue(now <= ct <= nowish, (now, ct))
-            self.assertTrue(
-                wt >= now,
+            self.assertTrue(now <= ct <= nowish, (now, ct, nowish))
+            self.assertGreaterEqual(
+                wt,
+                now,
                 f"File was written-to in the past now={now}, written={wt}",
             )
-            self.assertTrue(now <= wt <= nowish, (now, wt))
+            self.assertTrue(now <= wt <= nowish, (now, wt, nowish))
 
             # Now set the times.
             win32file.SetFileTime(f, later, later, later, UTCTimes=True)

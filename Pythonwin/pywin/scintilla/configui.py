@@ -88,8 +88,7 @@ class ScintillaFormatPropertyPage(dialog.PropertyPage):
             self.butIsDefaultBackground = self.GetDlgItem(win32ui.IDC_CHECK2)
             self.listbox = self.GetDlgItem(win32ui.IDC_LIST1)
             self.HookCommand(self.OnListCommand, win32ui.IDC_LIST1)
-            names = list(self.styles.keys())
-            names.sort()
+            names = sorted(self.styles)
             for name in names:
                 if self.styles[name].aliased is None:
                     self.listbox.AddString(name)
