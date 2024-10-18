@@ -13,3 +13,6 @@
 
 # 2024-05-28 formatted c++ source with clang-format
 637448f8252ab142eedd539ddf9b08259b73eecc
+
+# 2024-10-14 formatted Python source with Ruff format
+018e5cfab0d9ec4a62d01bce31d376382db9ecc6

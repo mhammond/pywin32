@@ -447,8 +447,7 @@ def RegisterShellInfo(searchPaths):
 
 #       FindRegisterApp("win32", ["win32con.pyc", "win32api%s.pyd" % suffix], searchPaths)
 
-usage = (
-    """\
+usage = """\
 regsetup.py - Setup/maintain the registry for Python apps.
 
 Run without options, (but possibly search paths) to repair a totally broken
@@ -475,9 +474,7 @@ Usage:   %s [options ...] paths ...
 
 --description   -- Print a description of the usage.
 --examples      -- Print examples of usage.
-"""
-    % sys.argv[0]
-)
+""" % sys.argv[0]
 
 description = """\
 If no options are processed, the program attempts to validate and set

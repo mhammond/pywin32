@@ -969,9 +969,7 @@ class Generator:
         return oleItem, vtableItem
 
     def BuildOleItemsFromType(self):
-        assert (
-            self.bBuildHidden
-        ), "This code doesn't look at the hidden flag - I thought everyone set it true!?!?!"
+        assert self.bBuildHidden, "This code doesn't look at the hidden flag - I thought everyone set it true!?!?!"
         oleItems = {}
         enumItems = {}
         recordItems = {}

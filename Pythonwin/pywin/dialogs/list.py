@@ -44,14 +44,17 @@ class ListDialog(dialog.Dialog):
         return 1
 
     def OnListItemChange(self, std, extra):
-        (hwndFrom, idFrom, code), (
-            itemNotify,
-            sub,
-            newState,
-            oldState,
-            change,
-            point,
-            lparam,
+        (
+            (hwndFrom, idFrom, code),
+            (
+                itemNotify,
+                sub,
+                newState,
+                oldState,
+                change,
+                point,
+                lparam,
+            ),
         ) = (std, extra)
         oldSel = (oldState & commctrl.LVIS_SELECTED) != 0
         newSel = (newState & commctrl.LVIS_SELECTED) != 0

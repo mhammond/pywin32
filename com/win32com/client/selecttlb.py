@@ -1,5 +1,4 @@
-"""Utilities for selecting and enumerating the Type Libraries installed on the system
-"""
+"""Utilities for selecting and enumerating the Type Libraries installed on the system"""
 
 import pythoncom
 import win32api

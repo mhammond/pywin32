@@ -1,25 +1,25 @@
 """A utility for browsing COM objects.
 
- Usage:
+Usage:
 
-  Command Prompt
+ Command Prompt
 
-    Use the command *"python.exe combrowse.py"*.  This will display
-    display a fairly small, modal dialog.
+   Use the command *"python.exe combrowse.py"*.  This will display
+   display a fairly small, modal dialog.
 
-  Pythonwin
+ Pythonwin
 
-    Use the "Run Script" menu item, and this will create the browser in an
-    MDI window.  This window can be fully resized.
+   Use the "Run Script" menu item, and this will create the browser in an
+   MDI window.  This window can be fully resized.
 
- Details
+Details
 
-   This module allows browsing of registered Type Libraries, COM categories,
-   and running COM objects.  The display is similar to the Pythonwin object
-   browser, and displays the objects in a hierarchical window.
+  This module allows browsing of registered Type Libraries, COM categories,
+  and running COM objects.  The display is similar to the Pythonwin object
+  browser, and displays the objects in a hierarchical window.
 
-   Note that this module requires the win32ui (ie, Pythonwin) distribution to
-   work.
+  Note that this module requires the win32ui (ie, Pythonwin) distribution to
+  work.
 
 """
 
@@ -581,7 +581,6 @@ class HLIHeadingRegisterdTypeLibs(HLICOM):
 
 
 def main(modal=True, mdi=False):
-
     root = HLIRoot("COM Browser")
     if mdi and "pywin.framework.app" in sys.modules:
         # do it in a MDI window

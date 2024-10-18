@@ -1,4 +1,4 @@
-""" a clumsy attempt at a macro language to let the programmer execute code on the server (ex: determine 64bit)"""
+"""a clumsy attempt at a macro language to let the programmer execute code on the server (ex: determine 64bit)"""
 
 from . import is64bit
 
@@ -86,13 +86,11 @@ def process(
         dsn = args[0]
     except IndexError:
         dsn = None
-    if isinstance(
-        dsn, dict
-    ):  # as a convenience the first argument may be django settings
+    # as a convenience the first argument may be django settings
+    if isinstance(dsn, dict):
         kwargs.update(dsn)
-    elif (
-        dsn
-    ):  # the connection string is passed to the connection as part of the keyword dictionary
+    # the connection string is passed to the connection as part of the keyword dictionary
+    elif dsn:
         kwargs["connection_string"] = dsn
     try:
         a1 = args[1]
