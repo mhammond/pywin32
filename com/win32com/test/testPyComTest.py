@@ -11,7 +11,6 @@ import time
 
 import pythoncom
 import pywintypes
-import win32api
 import win32com
 import win32com.client.connect
 import win32com.test.util
