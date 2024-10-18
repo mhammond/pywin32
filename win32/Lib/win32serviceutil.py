@@ -751,10 +751,9 @@ def HandleCommandLine(
                 "delayed": win32service.SERVICE_AUTO_START,  ## ChangeServiceConfig2 called later
                 "disabled": win32service.SERVICE_DISABLED,
             }
-            try:
-                startup = map[val.lower()]
-            except KeyError:
-                print("'%s' is not a valid startup option" % val)
+            startup = map.get(val.lower())
+            if not startup:
+                print(f"{val!r} is not a valid startup option")
             if val.lower() == "delayed":
                 delayedstart = True
             elif val.lower() == "auto":

@@ -20,7 +20,7 @@ fname, customfilter, flags = win32gui.GetSaveFileNameW(
 print("save file names:", repr(fname))
 print("filter used:", repr(customfilter))
 print("Flags:", flags)
-for k, v in list(win32con.__dict__.items()):
+for k, v in win32con.__dict__.items():
     if k.startswith("OFN_") and flags & v:
         print("\t" + k)
 
@@ -38,6 +38,6 @@ fname, customfilter, flags = win32gui.GetOpenFileNameW(
 print("open file names:", repr(fname))
 print("filter used:", repr(customfilter))
 print("Flags:", flags)
-for k, v in list(win32con.__dict__.items()):
+for k, v in win32con.__dict__.items():
     if k.startswith("OFN_") and flags & v:
         print("\t" + k)
