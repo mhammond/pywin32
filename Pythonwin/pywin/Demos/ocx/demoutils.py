@@ -60,6 +60,4 @@ def NeedApp():
 
 
 if __name__ == "__main__":
-    from . import demoutils
-
-    demoutils.NotAScript()
+    NotAScript()
