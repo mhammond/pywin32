@@ -930,13 +930,6 @@ ccompiler.new_compiler = my_new_compiler  # type: ignore[assignment] # Assuming 
 
 
 class my_compiler(MSVCCompiler):
-    # Just one GUIDS.CPP and it gives trouble on mainwin too. Maybe I
-    # should just rename the file, but a case-only rename is likely to be
-    # worse!  This can probably go away once we kill the VS project files
-    # though, as we can just specify the lowercase name in the module def.
-    _cpp_extensions = MSVCCompiler._cpp_extensions + [".CPP"]
-    src_extensions = MSVCCompiler.src_extensions + [".CPP"]
-
     def link(
         self,
         target_desc,
@@ -1439,7 +1432,7 @@ com_extensions = [
         sources=(
             """
                         {axscript}/AXScript.cpp
-                        {axscript}/GUIDS.CPP                   {axscript}/PyGActiveScript.cpp
+                        {axscript}/GUIDS.cpp                   {axscript}/PyGActiveScript.cpp
                         {axscript}/PyGActiveScriptError.cpp    {axscript}/PyGActiveScriptParse.cpp
                         {axscript}/PyGActiveScriptSite.cpp     {axscript}/PyGObjectSafety.cpp
                         {axscript}/PyIActiveScript.cpp         {axscript}/PyIActiveScriptError.cpp
