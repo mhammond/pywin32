@@ -6,7 +6,7 @@ import time
 import types
 
 import pythoncom
-from win32com.client import Dispatch, DispatchWithEvents
+from win32com.client import DispatchWithEvents
 
 stopEvent = threading.Event()
 
