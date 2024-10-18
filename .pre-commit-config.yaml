@@ -35,7 +35,7 @@ repos:
       - id: black
         verbose: true
   - repo: https://github.com/pre-commit/mirrors-clang-format
-    rev: v18.1.5
+    rev: v18.1.8
     hooks:
       - id: clang-format
         # Supports a lot more filetypes, but only tagging those we use
