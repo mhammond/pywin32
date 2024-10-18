@@ -23,7 +23,7 @@
  ======================================================================
  */
 
-// PYISAPI.CPP - Implementation file for your Internet Server
+// pyISAPI.cpp - Implementation file for your Internet Server
 //    Python ISAPI Extension
 
 #include "stdafx.h"
