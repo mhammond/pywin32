@@ -5,6 +5,7 @@ import os
 import sys
 
 import win32api
+import win32com.server.dispatcher
 import win32com.server.policy
 import win32com.server.util
 import winerror
@@ -54,9 +55,9 @@ def RaiseNotImpl(who=None):
     raise COMException(scode=winerror.E_NOTIMPL)
 
 
-class Dispatcher(win32com.server.policy.DispatcherWin32trace):
+class Dispatcher(win32com.server.dispatcher.DispatcherWin32trace):
     def __init__(self, policyClass, object):
-        win32com.server.policy.DispatcherTrace.__init__(self, policyClass, object)
+        win32com.server.dispatcher.DispatcherTrace.__init__(self, policyClass, object)
         import win32traceutil  # Sets up everything.
 
     # print(f"Object with win32trace dispatcher created ({object})")

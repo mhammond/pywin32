@@ -1,4 +1,6 @@
-target-version = "py37" # Target the oldest supported version
+target-version = "py38" # Target the oldest supported version in editors and default CLI
+# This file is not UTF-8
+extend-exclude = ["Pythonwin/pywin/test/_dbgscript.py"]
 
 [lint]
 select = [
@@ -15,7 +17,6 @@ select = [
   "FLY", # static-join-to-f-string
   "G", # flake8-logging-format
   # Note, we still want to allow multiline ISC
-  "ISC001", # single-line-implicit-string-concatenation
   "UP025", # Remove unicode literals from strings
   "UP030", # Use implicit references for positional format fields
   # TODO: Still lots of manual fixes needed
