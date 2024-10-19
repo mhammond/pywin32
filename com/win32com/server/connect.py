@@ -1,6 +1,6 @@
 """Utilities for Server Side connections.
 
-  A collection of helpers for server side connection points.
+A collection of helpers for server side connection points.
 """
 
 import pythoncom
