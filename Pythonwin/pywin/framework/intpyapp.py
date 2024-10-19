@@ -325,7 +325,7 @@ class InteractivePythonApp(app.CApp):
                     )
                     continue
                 if dde:
-                    dde.Exec("win32ui.GetApp().OpenDocumentFile(%s)" % (repr(fname)))
+                    dde.Exec(f"win32ui.GetApp().OpenDocumentFile({fname!r})")
                 else:
                     win32ui.GetApp().OpenDocumentFile(par)
             elif argType == "/rundlg":

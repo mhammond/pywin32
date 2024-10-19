@@ -26,7 +26,7 @@ pairs = win32api.GetFileVersionInfo(fname, "\\VarFileInfo\\Translation")
 ## \VarFileInfo\Translation returns list of available (language, codepage) pairs that can be used to retreive string info
 ## any other must be of the form \StringfileInfo\%04X%04X\parm_name, middle two are language/codepage pair returned from above
 for lang, codepage in pairs:
-    print("lang: ", lang, "codepage:", codepage)
+    print("lang:", lang, "codepage:", codepage)
     for ver_string in ver_strings:
         str_info = f"\\StringFileInfo\\{lang:04X}{codepage:04X}\\{ver_string}"
         # print(str_inf)
