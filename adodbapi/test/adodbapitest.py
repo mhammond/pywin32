@@ -36,14 +36,6 @@ import tryconnection  # in our code below, all our switches are from config.what
 import adodbapi
 import adodbapi.apibase as api
 
-try:
-    import adodbapi.ado_consts as ado_consts
-except ImportError:  # we are doing a shortcut import as a module -- so
-    try:
-        import ado_consts
-    except ImportError:
-        from adodbapi import ado_consts
-
 
 def randomstring(length):
     return "".join([random.choice(string.ascii_letters) for n in range(32)])
