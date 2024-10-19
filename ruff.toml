@@ -2,6 +2,9 @@ target-version = "py38" # Target the oldest supported version in editors and def
 # This file is not UTF-8
 extend-exclude = ["Pythonwin/pywin/test/_dbgscript.py"]
 
+[format]
+line-ending = "cr-lf"
+
 [lint]
 select = [
   "C4", # flake8-comprehensions
