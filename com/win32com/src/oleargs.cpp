@@ -288,7 +288,7 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
         // them as VARIANT elements but put them directly into the SAFEARRAY.
         if (is_record_item) {
             if (!PyCom_SAFEARRAYFromPyObject(obj, &V_ARRAY(var), VT_RECORD))
-                    return FALSE;
+                return FALSE;
             V_VT(var) = VT_ARRAY | VT_RECORD;
         }
         else {
