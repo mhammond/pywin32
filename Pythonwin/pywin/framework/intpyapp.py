@@ -3,7 +3,7 @@
 import os
 import sys
 import traceback
-from collections.abc import Iterable, Sequence
+from collections.abc import Sequence
 
 import __main__
 import commctrl

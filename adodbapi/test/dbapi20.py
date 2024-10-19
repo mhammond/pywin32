@@ -14,7 +14,6 @@
 __version__ = "$Revision: 1.15.0 $"[11:-2]
 __author__ = "Stuart Bishop <stuart@stuartbishop.net>"
 
-import sys
 import time
 import unittest
 
