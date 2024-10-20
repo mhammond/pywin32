@@ -34,6 +34,7 @@ import shutil
 import subprocess
 import sys
 import winreg
+from collections.abc import Iterable, MutableSequence
 from pathlib import Path
 from setuptools import Extension, setup
 from setuptools.command.build import build
@@ -42,7 +43,6 @@ from setuptools.command.install import install
 from setuptools.command.install_lib import install_lib
 from setuptools.modified import newer_group
 from tempfile import gettempdir
-from typing import Iterable
 
 from distutils import ccompiler
 from distutils._msvccompiler import MSVCCompiler
@@ -381,7 +381,7 @@ class my_build_ext(build_ext):
         # axdebug fails to build on 3.11 due to Python "frame" objects changing.
         # This could be fixed, but is almost certainly not in use any more, so
         # just skip it.
-        if ext.name == "axdebug" and sys.version_info > (3, 10):
+        if ext.name == "axdebug" and sys.version_info >= (3, 11):
             return "AXDebug no longer builds on 3.11 and up"
 
         include_dirs = self.compiler.include_dirs + os.environ.get("INCLUDE", "").split(
@@ -896,8 +896,8 @@ class my_install_lib(install_lib):
         # This is crazy - in setuptools 61.1.0 (and probably some earlier versions), the
         # install_lib and build comments don't agree on where the .py files to install can
         # be found, so we end up with a warning logged:
-        # `warning: my_install_lib: 'build\lib.win-amd64-3.8' does not exist -- no Python modules to install`
-        # (because they are actually in `build\lib.win-amd64-cpython-38`!)
+        # `warning: my_install_lib: 'build\lib.win-amd64-3.XX' does not exist -- no Python modules to install`
+        # (because they are actually in `build\lib.win-amd64-cpython-3XX`!)
         # It's not an error though, so we end up with .exe installers lacking our lib files!
         builder = self.get_finalized_command("build")
         if os.path.isdir(builder.build_platlib) and not os.path.isdir(self.build_dir):
@@ -941,7 +941,7 @@ class my_compiler(MSVCCompiler):
         debug=0,
         *args,
         **kw,
-    ):
+    ) -> None:
         super().link(
             target_desc,
             objects,
@@ -959,18 +959,18 @@ class my_compiler(MSVCCompiler):
         # target.  Do this externally to avoid suddenly dragging in the
         # modules needed by this process, and which we will soon try and
         # update.
-        args = [
-            sys.executable,
-            # NOTE: On Python 3.7, all args must be str
-            str(Path(__file__).parent / "win32" / "Lib" / "win32verstamp.py"),
-            f"--version={pywin32_version}",
-            "--comments=https://github.com/mhammond/pywin32",
-            f"--original-filename={os.path.basename(output_filename)}",
-            "--product=PyWin32",
-            "--quiet" if "-v" not in sys.argv else "",
-            output_filename,
-        ]
-        self.spawn(args)
+        self.spawn(
+            [
+                sys.executable,
+                str(Path(__file__).parent / "win32" / "Lib" / "win32verstamp.py"),
+                f"--version={pywin32_version}",
+                "--comments=https://github.com/mhammond/pywin32",
+                f"--original-filename={os.path.basename(output_filename)}",
+                "--product=PyWin32",
+                "--quiet" if "-v" not in sys.argv else "",
+                output_filename,
+            ]
+        )
 
     # Work around bpo-36302/bpo-42009 - it sorts sources but this breaks
     # support for building .mc files etc :(
@@ -984,7 +984,7 @@ class my_compiler(MSVCCompiler):
         sources = sorted(sources, key=key_reverse_mc)
         return MSVCCompiler.compile(self, sources, **kwargs)
 
-    def spawn(self, cmd):
+    def spawn(self, cmd: MutableSequence[str]):
         is_link = cmd[0].endswith("link.exe") or cmd[0].endswith('"link.exe"')
         is_mt = cmd[0].endswith("mt.exe") or cmd[0].endswith('"mt.exe"')
         if is_mt:
@@ -2024,9 +2024,7 @@ def convert_data_files(files: Iterable[str]):
                 raise RuntimeError("No file '%s'" % file)
             files_use = (file,)
         for fname in files_use:
-            path_use = os.path.dirname(fname)
-            if path_use.startswith("com\\"):
-                path_use = path_use[4:]
+            path_use = os.path.dirname(fname).removeprefix("com\\")
             ret.append((path_use, (fname,)))
     return ret
 
@@ -2108,7 +2106,6 @@ classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: Python Software Foundation License",
     "Operating System :: Microsoft :: Windows",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
