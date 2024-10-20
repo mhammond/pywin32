@@ -14,6 +14,7 @@ https://mhammond.github.io/pywin32_installers.html.
 Coming in build 309, as yet unreleased
 --------------------------------------
 
+* Restored axdebug builds on Python 3.10 (#, @Avasam)
 * Dropped support for Python 3.7 (#2207, @Avasam)
 * Implement the creation of SAFEARRAY(VT_RECORD) from a sequence of COM Records (#2317, @geppi)
 * Implement record pointers as [in, out] method parameters of a Dispatch Interface (#2304, #2310, @geppi)
