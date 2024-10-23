@@ -981,10 +981,8 @@ extern "C" __declspec(dllexport) BOOL WINAPI DllMain(HANDLE hInstance, DWORD dwR
 {
     FARPROC fp;
     // dll usually will already be loaded
-    HMODULE hmodule = GetModuleHandle(_T("AdvAPI32.dll"));
-    if (hmodule == NULL)
-        hmodule = LoadLibrary(_T("AdvAPI32.dll"));
-    if (hmodule) {
+    HMODULE hmodule = PyWin_GetOrLoadLibraryHandle("advapi32.dll");
+    if (hmodule != NULL) {
         fp = GetProcAddress(hmodule, "AddAccessAllowedAce");
         if (fp)
             addaccessallowedace = (addacefunc)(fp);

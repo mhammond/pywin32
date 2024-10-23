@@ -4772,13 +4772,14 @@ static PyObject *PySetSystemTime(PyObject *self, PyObject *args)
                           ))
         return NULL;
     PyW32_BEGIN_ALLOW_THREADS result = ::SetSystemTime(&t);
-    PyW32_END_ALLOW_THREADS
+    PyW32_END_ALLOW_THREADS;
 
-        if (!result)
-    {
+    if (!result) {
         return ReturnAPIError("SetSystemTime");
     }
-    else { return Py_BuildValue("i", result); }
+    else {
+        return Py_BuildValue("i", result);
+    }
 }
 
 // @pymethod |win32api|SetThreadLocale|Sets the current thread's locale.
