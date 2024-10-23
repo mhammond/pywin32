@@ -26,8 +26,8 @@ generates Windows .hlp files.
 extern "C" __declspec(noreturn, dllexport) void __cdecl __report_rangecheckfailure(void) { ::ExitProcess(1); }
 #endif
 
-#define PyW32_BEGIN_ALLOW_THREADS PyThreadState *_save = PyEval_SaveThread();
-#define PyW32_END_ALLOW_THREADS PyEval_RestoreThread(_save);
+#define PyW32_BEGIN_ALLOW_THREADS PyThreadState *_save = PyEval_SaveThread()
+#define PyW32_END_ALLOW_THREADS PyEval_RestoreThread(_save)
 
 PyObject *ReturnAPIError(char *fnName, long err = 0) { return PyWin_SetAPIError(fnName, err); }
 
@@ -66,9 +66,9 @@ static PyObject *PyWinHelp(PyObject *self, PyObject *args)
         data = (ULONG_PTR)pybuf.ptr();
     if (!PyWinObject_AsTCHAR(obhlpFile, &hlpFile, FALSE))
         return NULL;
-    PyW32_BEGIN_ALLOW_THREADS
+    PyW32_BEGIN_ALLOW_THREADS;
     BOOL ok = ::WinHelp(hwnd, hlpFile, cmd, data);
-    PyW32_END_ALLOW_THREADS
+    PyW32_END_ALLOW_THREADS;
     PyWinObject_FreeTCHAR(hlpFile);
     if (!ok)
         return ReturnAPIError("WinHelp");
@@ -2489,9 +2489,9 @@ data tuple items must be integers");
     }
 
     HWND helpWnd;
-    PyW32_BEGIN_ALLOW_THREADS
+    PyW32_BEGIN_ALLOW_THREADS;
     helpWnd = ::HtmlHelp(hwnd, file, cmd, data);
-    PyW32_END_ALLOW_THREADS
+    PyW32_END_ALLOW_THREADS;
 
     PyWinObject_FreeTCHAR(dataObAsTCHAR);
     PyWinObject_FreeTCHAR(file);
