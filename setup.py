@@ -920,7 +920,7 @@ orig_new_compiler = ccompiler.new_compiler
 ccompiler.new_compiler = my_new_compiler  # type: ignore[assignment] # Assuming the caller will always use only kwargs
 
 
-class my_compiler(MSVCCompiler):
+class my_compiler(MSVCCompiler):  # type: ignore[misc] # Upcomming fix in https://github.com/python/typeshed/pull/12887
     # Just one GUIDS.CPP and it gives trouble on mainwin too. Maybe I
     # should just rename the file, but a case-only rename is likely to be
     # worse!  This can probably go away once we kill the VS project files
