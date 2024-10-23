@@ -266,7 +266,8 @@ for (PyMethodDef *pmd = win32guiMethods; pmd->ml_name; pmd++)
 		)
 		pmd->ml_flags = METH_VARARGS | METH_KEYWORDS;
 
-PYWIN_BEGIN_LOAD_LIBRARY("user32.dll")
+HMODULE hmodule = PyWin_LibraryModule("user32.dll");
+if (hmodule != NULL) {
     pfnSetLayeredWindowAttributes = (SetLayeredWindowAttributesfunc)GetProcAddress(hmodule,"SetLayeredWindowAttributes");
     pfnGetLayeredWindowAttributes = (GetLayeredWindowAttributesfunc)GetProcAddress(hmodule,"GetLayeredWindowAttributes");
     pfnUpdateLayeredWindow = (UpdateLayeredWindowfunc)GetProcAddress(hmodule,"UpdateLayeredWindow");
@@ -274,9 +275,10 @@ PYWIN_BEGIN_LOAD_LIBRARY("user32.dll")
     pfnGetMenuInfo = (GetMenuInfofunc)GetProcAddress(hmodule,"GetMenuInfo");
     pfnSetMenuInfo = (SetMenuInfofunc)GetProcAddress(hmodule,"SetMenuInfo");
     pfnDrawTextW = (DrawTextWfunc)GetProcAddress(hmodule, "DrawTextW");
-PYWIN_END_LOAD_LIBRARY
+}
 
-PYWIN_BEGIN_LOAD_LIBRARY("gdi32.dll")
+hmodule = PyWin_LibraryModule("gdi32.dll");
+if (hmodule != NULL) {
     pfnAngleArc = (AngleArcfunc)GetProcAddress(hmodule,"AngleArc");
     pfnPlgBlt = (PlgBltfunc)GetProcAddress(hmodule,"PlgBlt");
     pfnGetWorldTransform = (GetWorldTransformfunc)GetProcAddress(hmodule,"GetWorldTransform");
@@ -286,13 +288,14 @@ PYWIN_BEGIN_LOAD_LIBRARY("gdi32.dll")
     pfnMaskBlt = (MaskBltfunc)GetProcAddress(hmodule,"MaskBlt");
     pfnGetLayout = (GetLayoutfunc)GetProcAddress(hmodule,"GetLayout");
     pfnSetLayout = (SetLayoutfunc)GetProcAddress(hmodule,"SetLayout");
-PYWIN_END_LOAD_LIBRARY
+}
 
-PYWIN_BEGIN_LOAD_LIBRARY("msimg32.dll")
+hmodule = PyWin_LibraryModule("msimg32.dll");
+if (hmodule != NULL) {
     pfnGradientFill = (GradientFillfunc)GetProcAddress(hmodule,"GradientFill");
     pfnTransparentBlt = (TransparentBltfunc)GetProcAddress(hmodule,"TransparentBlt");
     pfnAlphaBlend = (AlphaBlendfunc)GetProcAddress(hmodule,"AlphaBlend");
-PYWIN_END_LOAD_LIBRARY
+}
 %}
 
 %{

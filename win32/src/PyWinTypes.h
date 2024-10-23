@@ -48,22 +48,6 @@
     if (!(dict = PyModule_GetDict(module)))                                                                 \
         return NULL;
 
-// clang-format off
-#define PYWIN_BEGIN_LOAD_LIBRARY(NAME) \
-{ \
-    DWORD lastErr = GetLastError(); \
-    HMODULE hmodule = GetModuleHandle(TEXT(NAME)); \
-    if (hmodule == NULL) \
-        hmodule = LoadLibrary(TEXT(NAME)); \
-    if (hmodule != NULL) { \
-        SetLastError(lastErr);
-
-
-#define PYWIN_END_LOAD_LIBRARY \
-    } \
-}
-// clang-format om
-
 // Helpers for our types.
 // Macro to handle PyObject layout changes in Py3k
 #define PYWIN_OBJECT_HEAD PyVarObject_HEAD_INIT(NULL, 0)
@@ -98,6 +82,8 @@ typedef Py_ssize_t Py_hash_t;
 #endif  // DEBUG/_DEBUG
 #endif  // _MSC_VER
 #endif  // BUILD_PYWINTYPES
+
+extern PYWINTYPES_EXPORT HMODULE PyWin_LibraryModule(char *name);
 
 // Py3k uses memoryview object in place of buffer, and we don't yet.
 extern PYWINTYPES_EXPORT PyObject *PyBuffer_New(Py_ssize_t size);

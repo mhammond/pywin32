@@ -26,6 +26,17 @@ extern PyObject *PyWinMethod_NewHKEY(PyObject *self, PyObject *args);
 extern BOOL _PyWinDateTime_Init();
 extern BOOL _PyWinDateTime_PrepareModuleDict(PyObject *dict);
 
+HMODULE PyWin_LibraryModule(char *name)
+{
+    DWORD lastErr = GetLastError();
+    HMODULE hmodule = GetModuleHandleA(name);
+    if (hmodule == NULL)
+        hmodule = LoadLibraryA(name);
+    if (hmodule != NULL)
+        SetLastError(lastErr);
+    return hmodule;
+}
+
 // XXX - Needs py3k modernization!
 // For py3k, a function that returns new memoryview object instead of buffer.
 // ??? Byte array object is mutable, maybe just use that directly as a substitute ???
