@@ -47,8 +47,7 @@ class T(unittest.TestCase):
         def _restore_oe():
             sys.stdout, sys.stderr = cls.std_oe_orig
 
-        if sys.version_info >= (3, 8):
-            cls.addClassCleanup(_restore_oe)
+        cls.addClassCleanup(_restore_oe)
         sys.argv[1:] = ["/new", src_dir + "\\_dbgscript.py"]
         if not _indebugger:
             thisApp.InitInstance()
@@ -65,7 +64,7 @@ class T(unittest.TestCase):
             win32api.PostQuitMessage()
             win32gui.PumpWaitingMessages()
             cls.app.ExitInstance()
-        sys.stdout, sys.stderr = cls.std_oe_orig  # py3.7
+        sys.stdout, sys.stderr = cls.std_oe_orig
 
     def test_1_pydocs_and_finddlg(self):
         mf = win32ui.GetMainFrame()
@@ -376,7 +375,7 @@ class T(unittest.TestCase):
     def test_docedit(self):
         import tempfile
 
-        import pywin.scintilla.IDLEenvironment
+        import pywin.scintilla.IDLEenvironment  # nopycln: import # Injects fast_readline into the IDLE auto-indent extension
 
         ##doc = pywin.framework.editor.editorTemplate.OpenDocumentFile(None)
         def t_print(*args):
