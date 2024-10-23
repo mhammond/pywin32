@@ -266,7 +266,7 @@ for (PyMethodDef *pmd = win32guiMethods; pmd->ml_name; pmd++)
 		)
 		pmd->ml_flags = METH_VARARGS | METH_KEYWORDS;
 
-HMODULE hmodule = PyWin_LibraryModule("user32.dll");
+HMODULE hmodule = PyWin_GetOrLoadLibraryHandle("user32.dll");
 if (hmodule != NULL) {
     pfnSetLayeredWindowAttributes = (SetLayeredWindowAttributesfunc)GetProcAddress(hmodule,"SetLayeredWindowAttributes");
     pfnGetLayeredWindowAttributes = (GetLayeredWindowAttributesfunc)GetProcAddress(hmodule,"GetLayeredWindowAttributes");
@@ -277,7 +277,7 @@ if (hmodule != NULL) {
     pfnDrawTextW = (DrawTextWfunc)GetProcAddress(hmodule, "DrawTextW");
 }
 
-hmodule = PyWin_LibraryModule("gdi32.dll");
+hmodule = PyWin_GetOrLoadLibraryHandle("gdi32.dll");
 if (hmodule != NULL) {
     pfnAngleArc = (AngleArcfunc)GetProcAddress(hmodule,"AngleArc");
     pfnPlgBlt = (PlgBltfunc)GetProcAddress(hmodule,"PlgBlt");
@@ -290,7 +290,7 @@ if (hmodule != NULL) {
     pfnSetLayout = (SetLayoutfunc)GetProcAddress(hmodule,"SetLayout");
 }
 
-hmodule = PyWin_LibraryModule("msimg32.dll");
+hmodule = PyWin_GetOrLoadLibraryHandle("msimg32.dll");
 if (hmodule != NULL) {
     pfnGradientFill = (GradientFillfunc)GetProcAddress(hmodule,"GradientFill");
     pfnTransparentBlt = (TransparentBltfunc)GetProcAddress(hmodule,"TransparentBlt");

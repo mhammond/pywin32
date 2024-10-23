@@ -26,7 +26,7 @@ extern PyObject *PyWinMethod_NewHKEY(PyObject *self, PyObject *args);
 extern BOOL _PyWinDateTime_Init();
 extern BOOL _PyWinDateTime_PrepareModuleDict(PyObject *dict);
 
-HMODULE PyWin_LibraryModule(char *name)
+HMODULE PyWin_GetOrLoadLibraryHandle(const char *name)
 {
     DWORD lastErr = GetLastError();
     HMODULE hmodule = GetModuleHandleA(name);

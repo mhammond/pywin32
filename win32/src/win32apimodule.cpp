@@ -6260,14 +6260,13 @@ PYWIN_MODULE_INIT_FUNC(win32api)
     PyModule_AddIntConstant(module, "VS_FF_PRIVATEBUILD", VS_FF_PRIVATEBUILD);
     PyModule_AddIntConstant(module, "VS_FF_SPECIALBUILD", VS_FF_SPECIALBUILD);
 
-    // clang-format off
-    HMODULE hmodule = PyWin_LibraryModule("secur32.dll");
+    HMODULE hmodule = PyWin_GetOrLoadLibraryHandle("secur32.dll");
     if (hmodule != NULL) {
         pfnGetUserNameEx = (GetUserNameExfunc)GetProcAddress(hmodule, "GetUserNameExW");
         pfnGetComputerObjectName = (GetUserNameExfunc)GetProcAddress(hmodule, "GetComputerObjectNameW");
     }
 
-    hmodule = PyWin_LibraryModule("kernel32.dll");
+    hmodule = PyWin_GetOrLoadLibraryHandle("kernel32.dll");
     if (hmodule != NULL) {
         pfnGetComputerNameEx = (GetComputerNameExfunc)GetProcAddress(hmodule, "GetComputerNameExW");
         pfnGetLongPathNameA = (GetLongPathNameAfunc)GetProcAddress(hmodule, "GetLongPathNameA");
@@ -6283,7 +6282,7 @@ PYWIN_MODULE_INIT_FUNC(win32api)
         pfnGetNativeSystemInfo = (GetNativeSystemInfofunc)GetProcAddress(hmodule, "GetNativeSystemInfo");
     }
 
-    hmodule = PyWin_LibraryModule("user32.dll");
+    hmodule = PyWin_GetOrLoadLibraryHandle("user32.dll");
     if (hmodule != NULL) {
         pfnEnumDisplayMonitors = (EnumDisplayMonitorsfunc)GetProcAddress(hmodule, "EnumDisplayMonitors");
         pfnEnumDisplayDevices = (EnumDisplayDevicesfunc)GetProcAddress(hmodule, "EnumDisplayDevicesW");
@@ -6296,7 +6295,7 @@ PYWIN_MODULE_INIT_FUNC(win32api)
         pfnGetLastInputInfo = (GetLastInputInfofunc)GetProcAddress(hmodule, "GetLastInputInfo");
     }
 
-    hmodule = PyWin_LibraryModule("advapi32.dll");
+    hmodule = PyWin_GetOrLoadLibraryHandle("advapi32.dll");
     if (hmodule != NULL) {
         pfnRegRestoreKey = (RegRestoreKeyfunc)GetProcAddress(hmodule, "RegRestoreKeyW");
         pfnRegSaveKeyEx = (RegSaveKeyExfunc)GetProcAddress(hmodule, "RegSaveKeyExW");
@@ -6309,7 +6308,6 @@ PYWIN_MODULE_INIT_FUNC(win32api)
         pfnRegOpenCurrentUser = (RegOpenCurrentUserfunc)GetProcAddress(hmodule, "RegOpenCurrentUser");
         pfnRegOverridePredefKey = (RegOverridePredefKeyfunc)GetProcAddress(hmodule, "RegOverridePredefKey");
     }
-    // clang-format on
 
     PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }

@@ -83,7 +83,7 @@ typedef Py_ssize_t Py_hash_t;
 #endif  // _MSC_VER
 #endif  // BUILD_PYWINTYPES
 
-extern PYWINTYPES_EXPORT HMODULE PyWin_LibraryModule(char *name);
+extern PYWINTYPES_EXPORT HMODULE PyWin_GetOrLoadLibraryHandle(const char *name);
 
 // Py3k uses memoryview object in place of buffer, and we don't yet.
 extern PYWINTYPES_EXPORT PyObject *PyBuffer_New(Py_ssize_t size);
