@@ -2,7 +2,6 @@
 
 import datetime
 import os
-import sys
 import tempfile
 import time
 import unittest
@@ -141,11 +140,8 @@ class Registry(unittest.TestCase):
 
 class FileNames(unittest.TestCase):
     def testShortLongPathNames(self):
-        try:
-            me = __file__
-        except NameError:
-            me = sys.argv[0]
-        fname = os.path.abspath(me).lower()
+        # __file__ can be relative before Python 3.9
+        fname = os.path.abspath(__file__).lower()
         short_name = win32api.GetShortPathName(fname).lower()
         long_name = win32api.GetLongPathName(short_name).lower()
         self.assertTrue(
@@ -164,13 +160,10 @@ class FileNames(unittest.TestCase):
         )
 
     def testShortUnicodeNames(self):
-        try:
-            me = __file__
-        except NameError:
-            me = sys.argv[0]
-        fname = os.path.abspath(me).lower()
+        # __file__ can be relative before Python 3.9
+        fname = os.path.abspath(__file__).lower()
         # passing unicode should cause GetShortPathNameW to be called.
-        short_name = win32api.GetShortPathName(str(fname)).lower()
+        short_name = win32api.GetShortPathName(fname).lower()
         self.assertTrue(isinstance(short_name, str))
         long_name = win32api.GetLongPathName(short_name).lower()
         self.assertTrue(
