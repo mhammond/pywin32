@@ -38,7 +38,7 @@ jobs:
       - name: Create archive
         run: python -m zipfile -c site.zip site
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: documentation
           path: site.zip
@@ -52,14 +52,14 @@ jobs:
     if: github.event_name == 'create' && github.event.ref_type == 'tag'
 
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: documentation
 
       - name: Unpack archive
         run: python -m zipfile -e site.zip .
 
-      - uses: peaceiris/actions-gh-pages@v3
+      - uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: site
