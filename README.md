@@ -15,7 +15,7 @@ See [CHANGES.txt](https://github.com/mhammond/pywin32/blob/master/CHANGES.txt) f
 ## Docs
 
 The docs are a long and sad story, but [there's now an online version](https://mhammond.github.io/pywin32/)
-of the helpfile that ships with the installers (thanks [@ofek](https://github.com/mhammond/pywin32/pull/1774)!).
+of the `PyWin32.chm` helpfile (thanks [@ofek](https://github.com/mhammond/pywin32/pull/1774)!).
 Lots of that is very old, but some is auto-generated and current. Would love help untangling the docs!
 
 ## Support
