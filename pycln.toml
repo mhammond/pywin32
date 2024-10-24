@@ -1,18 +1,6 @@
 [tool.pycln]
-# Many imports with side-effects
 all = true
 skip_imports = [
-  # TODO: Confirm whether these produce side-effects,
-  # if yes: add to the list below
-  # if not: remove from here
-  # NOTE: https://github.com/mhammond/pywin32/pull/2342#discussion_r1798419855
-  # It seems we should be able to remove these. TODO in its own PR.
-  "win32api",
-  "win32file",
-  "win32gui",
-  "win32process",
-  "win32security",
-  "win32uiole",
   # Modules with known side-effects
   "coloreditor", # Adds doc template
   "IDLEenvironment", # Injects fast_readline into the IDLE auto-indent extension

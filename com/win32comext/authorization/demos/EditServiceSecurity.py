@@ -7,7 +7,6 @@ or as a remote service of the form \\machinename\service
 import os
 
 import pythoncom
-import win32api
 import win32com.server.policy
 import win32con
 import win32security
