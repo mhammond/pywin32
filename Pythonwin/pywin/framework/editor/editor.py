@@ -9,7 +9,7 @@
 # We now support reloading of externally modified documented
 # (eg, presumably by some other process, such as source control or
 # another editor.
-# We also suport auto-loading of externally modified files.
+# We also support auto-loading of externally modified files.
 # - if the current document has not been modified in this
 # editor, but has been modified on disk, then the file
 # can be automatically reloaded.
