@@ -72,7 +72,7 @@ def StartServer(cmd, title=None, bCloseOnEnd=0, serverFlags=flags.SERVER_BEST):
 def ServerThread(myout, cmd, title, bCloseOnEnd):
     try:
         writer.register(myout)
-        print('Executing "%s"\n' % cmd)
+        print('Executing "{}"\n'.format(cmd))
         bOK = 1
         try:
             import __main__

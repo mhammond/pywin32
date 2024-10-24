@@ -366,7 +366,7 @@ class EditorView(ParentEditorView):
         flags = win32con.MF_STRING | win32con.MF_ENABLED
         if patImport.match(line) == len(line):
             menu.AppendMenu(
-                flags, ID_LOCATE_FILE, "&Locate %s.py" % patImport.group("name")
+                flags, ID_LOCATE_FILE, "&Locate {}.py".format(patImport.group("name"))
             )
             menu.AppendMenu(win32con.MF_SEPARATOR)
         menu.AppendMenu(flags, win32ui.ID_EDIT_UNDO, "&Undo")
@@ -393,7 +393,7 @@ class EditorView(ParentEditorView):
 
         fileName = pywin.framework.scriptutils.LocatePythonFile(modName)
         if fileName is None:
-            win32ui.SetStatusText("Can't locate module %s" % modName)
+            win32ui.SetStatusText("Can't locate module {}".format(modName))
         else:
             win32ui.GetApp().OpenDocumentFile(fileName)
         return 0

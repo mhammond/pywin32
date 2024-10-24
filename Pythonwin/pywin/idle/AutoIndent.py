@@ -101,7 +101,7 @@ class AutoIndent:
             elif key == "context_use_ps1":
                 self.context_use_ps1 = value
             else:
-                raise KeyError("bad option name: %s" % repr(key))
+                raise KeyError("bad option name: {}".format(repr(key)))
 
     # If ispythonsource and guess are true, guess a good value for
     # indentwidth based on file content (if possible), and if
