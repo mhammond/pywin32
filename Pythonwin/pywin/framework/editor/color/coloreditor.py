@@ -643,4 +643,4 @@ except NameError:
     pass
 
 editorTemplate = SyntEditTemplate()
-win32ui.GetApp().AddDocTemplate(editorTemplate)
+win32ui.GetApp().AddDocTemplate(editorTemplate)  # type: ignore[arg-type] # https://github.com/python/typeshed/pull/12888

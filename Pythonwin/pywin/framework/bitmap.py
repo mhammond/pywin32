@@ -135,7 +135,7 @@ bitmapTemplate = BitmapTemplate()
 bitmapTemplate.SetDocStrings(
     "\nBitmap\nBitmap\nBitmap (*.bmp)\n.bmp\nPythonBitmapFileType\nPython Bitmap File"
 )
-win32ui.GetApp().AddDocTemplate(bitmapTemplate)
+win32ui.GetApp().AddDocTemplate(bitmapTemplate)  # type: ignore[arg-type] # https://github.com/python/typeshed/pull/12888
 
 # This works, but just didn't make it through the code reorg.
 # class PPMBitmap(Bitmap):

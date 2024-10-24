@@ -508,4 +508,4 @@ if __name__ == prefModule:
         pass
 
     editorTemplate = EditorTemplate()
-    win32ui.GetApp().AddDocTemplate(editorTemplate)
+    win32ui.GetApp().AddDocTemplate(editorTemplate)  # type: ignore[arg-type] # https://github.com/python/typeshed/pull/12888
