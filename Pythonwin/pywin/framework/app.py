@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 
+import builtins
 import os
 import sys
 import traceback
@@ -393,9 +394,7 @@ def Win32Input(prompt=None):
 
 
 def HookInput():
-    import code
-
-    sys.modules["builtins"].input = Win32Input
+    builtins.input = Win32Input
 
 
 def HaveGoodGUI():
