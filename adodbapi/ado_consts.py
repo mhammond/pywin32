@@ -1,5 +1,5 @@
-# ADO enumerated constants documented on MSDN:
-# http://msdn.microsoft.com/en-us/library/ms678353(VS.85).aspx
+"""ADO enumerated constants documented on MSDN: \
+http://msdn.microsoft.com/en-us/library/ms678353(VS.85).aspx"""
 
 # IsolationLevelEnum
 adXactUnspecified = -1
