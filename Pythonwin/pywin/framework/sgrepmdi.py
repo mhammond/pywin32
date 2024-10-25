@@ -129,8 +129,6 @@ class dirpath:
 
 
 # Group(1) is the filename, group(2) is the lineno.
-# regexGrepResult=regex.compile(r"^\([a-zA-Z]:.*\)(\([0-9]+\))")
-
 regexGrep = re.compile(r"^([a-zA-Z]:[^(]*)\(([0-9]+)\)")
 
 # these are the atom numbers defined by Windows for basic dialog controls

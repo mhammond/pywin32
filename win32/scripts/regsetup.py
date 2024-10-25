@@ -498,9 +498,9 @@ of the registry.
 # Using raw string so that all paths meant to be copied read correctly inline and when printed
 examples = r"""
 Examples:
-"regsetup c:\wierd\spot\1 c:\wierd\spot\2"
+"regsetup c:\weird\spot\1 c:\weird\spot\2"
 Attempts to setup the core Python.  Looks in some standard places,
-as well as the 2 wierd spots to locate the core Python files (eg, Python.exe,
+as well as the 2 weird spots to locate the core Python files (eg, Python.exe,
 pythonXX.dll, the standard library and Win32 Extensions).
 
 "regsetup -a myappname . .\subdir"
