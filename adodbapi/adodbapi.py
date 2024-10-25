@@ -66,7 +66,7 @@ from collections.abc import Mapping
 def make_COM_connecter():
     try:
         pythoncom.CoInitialize()  # v2.1 Paj
-        c = Dispatch("ADODB.Connection")  # connect _after_ CoIninialize v2.1.1 adamvan
+        c = Dispatch("ADODB.Connection")  # connect _after_ CoInitialize v2.1.1 adamvan
     except:
         raise api.InterfaceError(
             "Windows COM Error: Dispatch('ADODB.Connection') failed."
@@ -593,7 +593,7 @@ class Cursor:
         eh(self.connection, self, errorclass, errorvalue)
 
     def build_column_info(self, recordset):
-        self.converters = []  # convertion function for each column
+        self.converters = []  # conversion function for each column
         self.columnNames = {}  # names of columns {lowercase name : number,...}
         self._description = None
 

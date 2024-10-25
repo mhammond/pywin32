@@ -144,7 +144,7 @@ jobs:
           cache: pip
           cache-dependency-path: .github/workflows/main.yml
           check-latest: true
-      - run: pip install types-regex types-setuptools PyOpenGL mypy==1.12.*
+      - run: pip install types-setuptools PyOpenGL mypy[faster-cache]==1.13.*
       - run: mypy . --python-version=${{ matrix.python-version }}
 
   pyright:
@@ -163,7 +163,7 @@ jobs:
           cache-dependency-path: .github/workflows/main.yml
           check-latest: true
       # pyright vendors typeshed, but let's make sure we have the most up to date stubs
-      - run: pip install types-regex types-setuptools PyOpenGL
+      - run: pip install types-setuptools PyOpenGL
       - uses: jakebailey/pyright-action@v2
         with:
           python-version: ${{ matrix.python-version }}
