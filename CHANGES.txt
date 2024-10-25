@@ -14,6 +14,7 @@ https://mhammond.github.io/pywin32_installers.html.
 Coming in build 309, as yet unreleased
 --------------------------------------
 
+* Fixed Pythonwin's editor failing due to invalid regex import (#2419, @Avasam)
 * Last error wrongly set by some modules (#2302, @CristiFati)
 * Dropped support for Python 3.7 (#2207, @Avasam)
 * Implement the creation of SAFEARRAY(VT_RECORD) from a sequence of COM Records (#2317, @geppi)
