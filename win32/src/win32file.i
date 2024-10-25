@@ -5932,11 +5932,8 @@ PyCFunction pfnpy_OpenFileById=(PyCFunction)py_OpenFileById;
 			)
 			pmd->ml_flags = METH_VARARGS | METH_KEYWORDS;
 
-	HMODULE hmodule;
-	hmodule=GetModuleHandle(TEXT("AdvAPI32.dll"));
-	if (hmodule==NULL)
-		hmodule=LoadLibrary(TEXT("AdvAPI32.dll"));
-	if (hmodule){
+	HMODULE hmodule = PyWin_GetOrLoadLibraryHandle("advapi32.dll");
+	if (hmodule != NULL) {
 		pfnEncryptFile=(EncryptFilefunc)GetProcAddress(hmodule, "EncryptFileW");
 		pfnDecryptFile=(DecryptFilefunc)GetProcAddress(hmodule, "DecryptFileW");
 		pfnEncryptionDisable=(EncryptionDisablefunc)GetProcAddress(hmodule, "EncryptionDisable");
@@ -5952,12 +5949,10 @@ PyCFunction pfnpy_OpenFileById=(PyCFunction)py_OpenFileById;
 		pfnReadEncryptedFileRaw=(ReadEncryptedFileRawfunc)GetProcAddress(hmodule, "ReadEncryptedFileRaw");
 		pfnWriteEncryptedFileRaw=(WriteEncryptedFileRawfunc)GetProcAddress(hmodule, "WriteEncryptedFileRaw");
 		pfnCloseEncryptedFileRaw=(CloseEncryptedFileRawfunc)GetProcAddress(hmodule, "CloseEncryptedFileRaw");
-		}
+	}
 
-	hmodule=GetModuleHandle(TEXT("kernel32.dll"));
-	if (hmodule==NULL)
-		hmodule=LoadLibrary(TEXT("kernel32.dll"));
-	if (hmodule){
+	hmodule = PyWin_GetOrLoadLibraryHandle("kernel32.dll");
+	if (hmodule != NULL) {
 		pfnSetVolumeMountPoint=(SetVolumeMountPointfunc)GetProcAddress(hmodule, "SetVolumeMountPointW");
 		pfnDeleteVolumeMountPoint=(DeleteVolumeMountPointfunc)GetProcAddress(hmodule, "DeleteVolumeMountPointW");
 		pfnGetVolumeNameForVolumeMountPoint=(GetVolumeNameForVolumeMountPointfunc)GetProcAddress(hmodule, "GetVolumeNameForVolumeMountPointW");
@@ -6002,15 +5997,13 @@ PyCFunction pfnpy_OpenFileById=(PyCFunction)py_OpenFileById;
 		pfnWow64RevertWow64FsRedirection=(Wow64RevertWow64FsRedirectionfunc)GetProcAddress(hmodule, "Wow64RevertWow64FsRedirection");
 		pfnReOpenFile=(ReOpenFilefunc)GetProcAddress(hmodule, "ReOpenFile");
 		pfnOpenFileById=(OpenFileByIdfunc)GetProcAddress(hmodule, "OpenFileById");
-		}
+	}
 
-	hmodule=GetModuleHandle(TEXT("sfc.dll"));
-	if (hmodule==NULL)
-		hmodule=LoadLibrary(TEXT("sfc.dll"));
-	if (hmodule){
+	hmodule = PyWin_GetOrLoadLibraryHandle("sfc.dll");
+	if (hmodule != NULL) {
 		pfnSfcGetNextProtectedFile=(SfcGetNextProtectedFilefunc)GetProcAddress(hmodule, "SfcGetNextProtectedFile");
 		pfnSfcIsFileProtected=(SfcIsFileProtectedfunc)GetProcAddress(hmodule, "SfcIsFileProtected");
-		}
+	}
 
 %}
 
