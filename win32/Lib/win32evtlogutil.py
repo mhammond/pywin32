@@ -1,5 +1,4 @@
-"""Event Log Utilities - helper for win32evtlog.pyd
-"""
+"""Event Log Utilities - helper for win32evtlog.pyd"""
 
 import win32api
 import win32con
