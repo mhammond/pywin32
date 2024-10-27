@@ -26,8 +26,8 @@
 #include "PythonCOMServer.h"
 #include "PythonCOMRegister.h"
 
-#include "MAPIUTIL.H"
-#include "EDKMDB.H"
+#include "MAPIUtil.h"
+#include "EdkMdb.h"
 
 #define USES_IID_IExchangeManageStore
 #include <edkguid.h>
@@ -75,9 +75,9 @@ static int AddIID(PyObject *dict, const char *key, REFGUID guid)
 */
 #ifdef SWIG_PY32BIT
 %{
-#include "EDKMAPI.H"
-#include "EDKCFG.H"
-#include "EDKUTILS.H"
+#include "EdkMAPI.h"
+#include "EdkCfg.h"
+#include "EdkUtils.h"
 %}
 
 // @pyswig int, int|HrGetExchangeStatus|Obtains the current state of the server on a computer.

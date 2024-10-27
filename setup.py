@@ -1446,7 +1446,7 @@ com_extensions = [
         depends=(
             """
                              {axscript}/AXScript.h
-                             {axscript}/guids.h                {axscript}/PyGActiveScriptError.h
+                             {axscript}/GUIDs.h                {axscript}/PyGActiveScriptError.h
                              {axscript}/PyIActiveScriptError.h {axscript}/PyIObjectSafety.h
                              {axscript}/PyIProvideMultipleClassInfo.h
                              {axscript}/stdafx.h
