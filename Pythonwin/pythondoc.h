@@ -112,7 +112,7 @@ BOOL CPythonDocTemp<P>::OnSaveDocument(const TCHAR *fileName)
     // @pyparm string|fileName||The name of the file being saved.
     // @xref <om PyCDocument.OnSaveDocument>
     // @comm If a handler is defined for this function, the base (MFC) function will not
-    // be called.  If necessary, the handler must call this function explicitely.
+    // be called.  If necessary, the handler must call this function explicitly.
     CVirtualHelper helper("OnSaveDocument", this);
     if (helper.call(fileName)) {
         int ret;
@@ -131,7 +131,7 @@ BOOL CPythonDocTemp<P>::OnOpenDocument(const TCHAR *fileName)
     // @pyvirtual int|PyCDocument|OnOpenDocument|Called by the MFC architecture.
     // @xref <om PyCDocument.OnOpenDocument>
     // @comm If a handler is defined for this function, the base (MFC) function will not
-    // be called.  If necessary, the handler must call this function explicitely.
+    // be called.  If necessary, the handler must call this function explicitly.
     CVirtualHelper helper("OnOpenDocument", this);
     if (!helper.HaveHandler()) {
         PyErr_SetString(ui_module_error, "PyCDocument::OnOpenDocument handler does not exist.");
@@ -155,7 +155,7 @@ BOOL CPythonDocTemp<P>::OnNewDocument()
     // @pyvirtual int|PyCDocument|OnNewDocument|Called by the MFC architecture.
     // @xref <om PyCDocument.OnNewDocument>
     // @comm If a handler is defined for this function, the base (MFC) function will not
-    // be called.  If necessary, the handler must call this function explicitely.
+    // be called.  If necessary, the handler must call this function explicitly.
     CVirtualHelper helper("OnNewDocument", this);
     if (!helper.HaveHandler()) {
         helper.release_full();
@@ -182,7 +182,7 @@ void CPythonDocTemp<P>::OnCloseDocument()
     // @pyvirtual |PyCDocument|OnCloseDocument|Called by the MFC architecture.
     // @xref <om PyCDocument.OnCloseDocument>
     // @comm If a handler is defined for this function, the base (MFC) function will not
-    // be called.  If necessary, the handler must call this function explicitely.
+    // be called.  If necessary, the handler must call this function explicitly.
     CVirtualHelper helper("OnCloseDocument", this);
     if (helper.HaveHandler()) {
         helper.call();
@@ -215,7 +215,7 @@ void CPythonDocTemp<P>::DeleteContents()
         P::DeleteContents();
     }
     // @comm If a handler is defined for this function, the base (MFC) function will not
-    // be called.  If necessary, the handler must call this function explicitely.
+    // be called.  If necessary, the handler must call this function explicitly.
 }
 template <class P>
 BOOL CPythonDocTemp<P>::SaveModified()
@@ -223,7 +223,7 @@ BOOL CPythonDocTemp<P>::SaveModified()
     // @pyvirtual int|PyCDocument|SaveModified|Called by the MFC architecture when a document is closed.
     // @xref <om PyCDocument.SaveModified>
     // @comm If a handler is defined for this function, the base (MFC) function will not
-    // be called.  If necessary, the handler must call this function explicitely.
+    // be called.  If necessary, the handler must call this function explicitly.
     CVirtualHelper helper("SaveModified", this);
     if (!helper.HaveHandler()) {
         helper.release_full();
@@ -244,7 +244,7 @@ void CPythonDocTemp<P>::OnChangedViewList()
     // @pyvirtual int|PyCDocument|OnChangedViewList|Called by the MFC architecture when after a view is attached.
     // @xref <om PyCDocument.OnChangedViewList>
     // @comm If a handler is defined for this function, the base (MFC) function will not
-    // be called.  If necessary, the handler must call this function explicitely.
+    // be called.  If necessary, the handler must call this function explicitly.
     CVirtualHelper helper("OnChangedViewList", this);
     if (helper.HaveHandler() && helper.call()) {
         return;

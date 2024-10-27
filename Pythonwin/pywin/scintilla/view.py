@@ -749,7 +749,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
             pageStart = self.FormatRange(dc, pageStart, textLen, rc, 0)
             maxPage += 1
             self.starts[maxPage] = pageStart
-        # And a sentinal for one page past the end
+        # And a sentinel for one page past the end
         self.starts[maxPage + 1] = textLen
         # When actually printing, maxPage doesn't have any effect at this late state.
         # but is needed to make the Print Preview work correctly.
