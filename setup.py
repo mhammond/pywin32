@@ -116,17 +116,28 @@ class WinExt(Extension):
         if export_symbol_file:
             extra_link_args.append("/DEF:" + export_symbol_file)
 
+        self.windows_h_version = 0x600  # Vista
+        if windows_h_version:
+            self.windows_h_version = max(self.windows_h_version, windows_h_version)
+
         # Some of our swigged files behave differently in distutils vs
         # MSVC based builds.  Always define DISTUTILS_BUILD so they can tell.
         define_macros = define_macros or []
-        define_macros.append(("DISTUTILS_BUILD", None))
-        define_macros.append(("_CRT_SECURE_NO_WARNINGS", None))
-        # CRYPT_DECRYPT_MESSAGE_PARA.dwflags is in an ifdef for some unknown reason
-        # See github PR #1444 for more details...
-        define_macros.append(("CRYPT_DECRYPT_MESSAGE_PARA_HAS_EXTRA_FIELDS", None))
+        define_macros.extend(
+            (
+                ("DISTUTILS_BUILD", None),
+                ("_CRT_SECURE_NO_WARNINGS", None),
+                # CRYPT_DECRYPT_MESSAGE_PARA.dwflags is in an ifdef for some unknown reason
+                # See github PR #1444 for more details...
+                ("CRYPT_DECRYPT_MESSAGE_PARA_HAS_EXTRA_FIELDS", None),
+                # Minimum Windows version supported
+                # https://learn.microsoft.com/en-us/cpp/porting/modifying-winver-and-win32-winnt
+                ("_WIN32_WINNT", hex(self.windows_h_version)),
+                ("WINVER", hex(self.windows_h_version)),
+            )
+        )
         self.pch_header = pch_header
         self.extra_swig_commands = extra_swig_commands or []
-        self.windows_h_version = windows_h_version
         self.optional_headers = optional_headers
         self.is_regular_dll = is_regular_dll
         self.base_address = base_address
@@ -926,7 +937,7 @@ class my_compiler(MSVCCompiler):
     # worse!  This can probably go away once we kill the VS project files
     # though, as we can just specify the lowercase name in the module def.
     _cpp_extensions = MSVCCompiler._cpp_extensions + [".CPP"]
-    src_extensions = MSVCCompiler.src_extensions + [".CPP"]
+    src_extensions = MSVCCompiler.src_extensions + [".CPP"]  # type: ignore[operator] # TODO: Fix in typeshed
 
     def link(
         self,

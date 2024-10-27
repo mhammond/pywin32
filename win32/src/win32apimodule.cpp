@@ -29,12 +29,6 @@ generates Windows .hlp files.
 #define PyW32_END_ALLOW_THREADS PyEval_RestoreThread(_save);
 #define PyW32_BLOCK_THREADS Py_BLOCK_THREADS
 
-#if (_WIN32_WINNT < 0x0500)
-// We don't get COMPUTER_NAME_FORMAT unless we bump this.
-// As we use it dynamically, we don't *need* to bump it.
-typedef int COMPUTER_NAME_FORMAT;
-#endif
-
 // from kernel32.dll
 typedef BOOL(WINAPI *GetComputerNameExfunc)(COMPUTER_NAME_FORMAT, LPWSTR, PULONG);
 static GetComputerNameExfunc pfnGetComputerNameEx = NULL;
