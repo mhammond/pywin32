@@ -468,7 +468,7 @@ class InteractivePythonApp(app.CApp):
         else:
             win32ui.GetApp().OpenDocumentFile(newName)
 
-    # Display all the "options" proprety pages we can find
+    # Display all the "options" property pages we can find
     def OnViewOptions(self, id, code):
         win32ui.InitRichEdit()
         sheet = dialog.PropertySheet("Pythonwin Options")
