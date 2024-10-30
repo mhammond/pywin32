@@ -133,8 +133,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # mypy won't understand "3.13-dev", keeping the CI simple by just omitting it
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -143,7 +142,7 @@ jobs:
           cache: pip
           cache-dependency-path: .github/workflows/main.yml
           check-latest: true
-      - run: pip install types-setuptools PyOpenGL mypy==1.11
+      - run: pip install types-pywin32 types-setuptools PyOpenGL mypy[faster-cache]==1.13.*
       - run: mypy . --python-version=${{ matrix.python-version }}
 
   pyright:
@@ -162,7 +161,7 @@ jobs:
           cache-dependency-path: .github/workflows/main.yml
           check-latest: true
       # pyright vendors typeshed, but let's make sure we have the most up to date stubs
-      - run: pip install types-setuptools PyOpenGL
+      - run: pip install types-pywin32 types-setuptools PyOpenGL
       - uses: jakebailey/pyright-action@v2
         with:
           python-version: ${{ matrix.python-version }}

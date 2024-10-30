@@ -6,6 +6,7 @@
   "enableTypeIgnoreComments": true,
   // Exclude from scanning when running pyright
   "exclude": [
+    ".git/",
     "build/",
     // Vendored
     "Pythonwin/Scintilla/",
@@ -37,8 +38,6 @@
   "reportOptionalIterable": "warning",
   "reportOptionalMemberAccess": "warning",
   "reportOptionalSubscript": "warning",
-  // Needs fixes in types-pywin32 and requires Python 3.8 to annotate ambiguous global variables
-  "reportUnnecessaryComparison": "warning",
   // TODO: Leave Unbound its own PR(s)
   "reportUnboundVariable": "warning",
   // Too many dynamically generated modules. This will require type stubs to properly fix.
@@ -48,8 +47,8 @@
   // Since we're a library, and not user code, we care less about forgetting to install a dependency,
   // as long as we have its stubs. So just disabling for now is fine.
   "reportMissingModuleSource": "none",
-  // External type stubs may not be completable, and this will require type stubs for dynamic modules.
+  // External type stubs may not be completable
   "reportMissingTypeStubs": "information",
-  // Use Flake8/Pycln/Ruff instead
+  // Use Pycln/Ruff instead
   "reportUnusedImport": "none",
 }
