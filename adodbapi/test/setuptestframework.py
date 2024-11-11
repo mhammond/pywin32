@@ -52,7 +52,7 @@ def makeadopackage(testfolder):
                 shutil.copy(os.path.join(adoPath, f), newpackage)
         return testfolder
     else:
-        raise OSError("Connot find source of adodbapi to test.")
+        raise OSError("Cannot find source of adodbapi to test.")
 
 
 def makemdb(testfolder, mdb_name):
