@@ -40,17 +40,13 @@ from setuptools.command.build import build
 from setuptools.command.build_ext import build_ext
 from setuptools.command.install import install
 from setuptools.command.install_lib import install_lib
+from setuptools.modified import newer_group
 from tempfile import gettempdir
 from typing import Iterable
 
 from distutils import ccompiler
 from distutils._msvccompiler import MSVCCompiler
 from distutils.command.install_data import install_data
-
-if sys.version_info >= (3, 8):
-    from setuptools.modified import newer_group
-else:
-    from distutils.dep_util import newer_group
 
 build_id_patch = build_id
 if not "." in build_id_patch:
@@ -868,12 +864,6 @@ class my_install(install):
         install.run(self)
         # Custom script we run at the end of installing - this is the same script
         # run by bdist_wininst
-        # This child process won't be able to install the system DLLs until our
-        # process has terminated (as distutils imports win32api!), so we must use
-        # some 'no wait' executor - spawn seems fine!  We pass the PID of this
-        # process so the child will wait for us.
-        # XXX - hmm - a closer look at distutils shows it only uses win32api
-        # if _winreg fails - and this never should.  Need to revisit this!
         # If self.root has a value, it means we are being "installed" into
         # some other directory than Python itself (eg, into a temp directory
         # for bdist_wininst to use) - in which case we must *not* run our
@@ -885,7 +875,8 @@ class my_install(install):
             if not os.path.isfile(filename):
                 raise RuntimeError(f"Can't find '{filename}'")
             print("Executing post install script...")
-            # What executable to use?  This one I guess.
+            # As of setuptools>=74.0.0, we no longer need to
+            # be concerned about distutils calling win32api
             subprocess.Popen(
                 [
                     sys.executable,
@@ -905,8 +896,8 @@ class my_install_lib(install_lib):
         # This is crazy - in setuptools 61.1.0 (and probably some earlier versions), the
         # install_lib and build comments don't agree on where the .py files to install can
         # be found, so we end up with a warning logged:
-        # `warning: my_install_lib: 'build\lib.win-amd64-3.7' does not exist -- no Python modules to install`
-        # (because they are actually in `build\lib.win-amd64-cpython-37`!)
+        # `warning: my_install_lib: 'build\lib.win-amd64-3.8' does not exist -- no Python modules to install`
+        # (because they are actually in `build\lib.win-amd64-cpython-38`!)
         # It's not an error though, so we end up with .exe installers lacking our lib files!
         builder = self.get_finalized_command("build")
         if os.path.isdir(builder.build_platlib) and not os.path.isdir(self.build_dir):
@@ -1350,9 +1341,7 @@ pythoncom = WinExt_system32(
                         {win32com}/extensions/PyICancelMethodCalls.cpp    {win32com}/extensions/PyIContext.cpp
                         {win32com}/extensions/PyIEnumContextProps.cpp     {win32com}/extensions/PyIClientSecurity.cpp
                         {win32com}/extensions/PyIServerSecurity.cpp
-                        """.format(
-            **dirs
-        )
+                        """.format(**dirs)
     ).split(),
     depends=(
         """
@@ -1379,9 +1368,7 @@ pythoncom = WinExt_system32(
                         {win32com}/include\\PyICancelMethodCalls.h    {win32com}/include\\PyIContext.h
                         {win32com}/include\\PyIEnumContextProps.h     {win32com}/include\\PyIClientSecurity.h
                         {win32com}/include\\PyIServerSecurity.h
-                        """.format(
-            **dirs
-        )
+                        """.format(**dirs)
     ).split(),
     libraries="oleaut32 ole32 user32 urlmon",
     export_symbol_file="com/win32com/src/PythonCOM.def",
@@ -1409,9 +1396,7 @@ com_extensions = [
                         {adsi}/adsilib.i
                         {adsi}/PyADSIUtil.cpp         {adsi}/PyDSOPObjects.cpp
                         {adsi}/PyIADs.cpp
-                        """.format(
-                **dirs
-            )
+                        """.format(**dirs)
         ).split(),
     ),
     WinExt_win32com(
@@ -1429,9 +1414,7 @@ com_extensions = [
                         {axcontrol}/PyIOleClientSite.cpp       {axcontrol}/PyIOleInPlaceSite.cpp
                         {axcontrol}/PyIOleObject.cpp           {axcontrol}/PyIViewObject2.cpp
                         {axcontrol}/PyIOleCommandTarget.cpp
-                        """.format(
-                **dirs
-            )
+                        """.format(**dirs)
         ).split(),
     ),
     WinExt_win32com(
@@ -1446,9 +1429,7 @@ com_extensions = [
                         {axscript}/PyIActiveScriptParse.cpp    {axscript}/PyIActiveScriptParseProcedure.cpp
                         {axscript}/PyIActiveScriptSite.cpp     {axscript}/PyIMultiInfos.cpp
                         {axscript}/PyIObjectSafety.cpp         {axscript}/stdafx.cpp
-                        """.format(
-                **dirs
-            )
+                        """.format(**dirs)
         ).split(),
         depends=(
             """
@@ -1457,9 +1438,7 @@ com_extensions = [
                              {axscript}/PyIActiveScriptError.h {axscript}/PyIObjectSafety.h
                              {axscript}/PyIProvideMultipleClassInfo.h
                              {axscript}/stdafx.h
-                             """.format(
-                **dirs
-            )
+                             """.format(**dirs)
         ).split(),
         extra_compile_args=["-DPY_BUILD_AXSCRIPT"],
         implib_name="axscript",
@@ -1515,9 +1494,7 @@ com_extensions = [
                     {axdebug}/PyIRemoteDebugApplicationEvents.cpp
                     {axdebug}/PyIRemoteDebugApplicationThread.cpp
                     {axdebug}/stdafx.cpp
-                     """.format(
-                **dirs
-            )
+                     """.format(**dirs)
         ).split(),
     ),
     WinExt_win32com(
@@ -1530,9 +1507,7 @@ com_extensions = [
                         {internet}/PyIInternetPriority.cpp        {internet}/PyIInternetProtocol.cpp
                         {internet}/PyIInternetProtocolInfo.cpp    {internet}/PyIInternetProtocolRoot.cpp
                         {internet}/PyIInternetProtocolSink.cpp    {internet}/PyIInternetSecurityManager.cpp
-                    """.format(
-                **dirs
-            )
+                    """.format(**dirs)
         ).split(),
         depends=["{internet}/internet_pch.h".format(**dirs)],
     ),
@@ -1568,9 +1543,7 @@ com_extensions = [
                         {mapi}/mapiguids.cpp
                         {mapi}/MAPIStubLibrary/library/mapiStubLibrary.cpp
                         {mapi}/MAPIStubLibrary/library/stubutils.cpp
-                        """.format(
-                **dirs
-            )
+                        """.format(**dirs)
         ).split(),
     ),
     WinExt_win32com_mapi(
@@ -1586,9 +1559,7 @@ com_extensions = [
                                   {mapi}/exchangeguids.cpp
                                   {mapi}/MAPIStubLibrary/library/mapiStubLibrary.cpp
                                   {mapi}/MAPIStubLibrary/library/stubutils.cpp
-                                  """.format(
-                **dirs
-            )
+                                  """.format(**dirs)
         ).split(),
     ),
     WinExt_win32com(
@@ -1670,9 +1641,7 @@ com_extensions = [
                         {shell}/PyIUniformResourceLocator.cpp
                         {shell}/shell.cpp
 
-                        """.format(
-                **dirs
-            )
+                        """.format(**dirs)
         ).split(),
     ),
     WinExt_win32com(
@@ -1700,9 +1669,7 @@ com_extensions = [
                         {propsys}/PyIObjectWithPropertyKey.cpp
                         {propsys}/PyIPropertyChange.cpp
                         {propsys}/PyIPropertyChangeArray.cpp
-                        """.format(
-                **dirs
-            )
+                        """.format(**dirs)
         ).split(),
         implib_name="pypropsys",
     ),
@@ -1718,9 +1685,7 @@ com_extensions = [
                         {taskscheduler}/PyITaskScheduler.cpp
                         {taskscheduler}/PyITaskTrigger.cpp
 
-                        """.format(
-                **dirs
-            )
+                        """.format(**dirs)
         ).split(),
     ),
     WinExt_win32com(
@@ -1741,9 +1706,7 @@ com_extensions = [
                         {bits}/PyIEnumBackgroundCopyJobs.cpp
                         {bits}/PyIEnumBackgroundCopyFiles.cpp
 
-                        """.format(
-                **dirs
-            )
+                        """.format(**dirs)
         ).split(),
     ),
     WinExt_win32com(
@@ -1764,18 +1727,14 @@ com_extensions = [
                         {directsound}/PyIDirectSoundBuffer.cpp {directsound}/PyIDirectSoundCapture.cpp
                         {directsound}/PyIDirectSoundCaptureBuffer.cpp
                         {directsound}/PyIDirectSoundNotify.cpp
-                        """.format(
-                **dirs
-            )
+                        """.format(**dirs)
         ).split(),
         depends=(
             """
                         {directsound}/directsound_pch.h   {directsound}/PyIDirectSound.h
                         {directsound}/PyIDirectSoundBuffer.h {directsound}/PyIDirectSoundCapture.h
                         {directsound}/PyIDirectSoundCaptureBuffer.h {directsound}/PyIDirectSoundNotify.h
-                        """.format(
-                **dirs
-            )
+                        """.format(**dirs)
         ).split(),
         optional_headers=["dsound.h"],
         libraries="user32 dsound dxguid",
@@ -1787,9 +1746,7 @@ com_extensions = [
             """
                         {authorization}/authorization.cpp
                         {authorization}/PyGSecurityInformation.cpp
-                        """.format(
-                **dirs
-            )
+                        """.format(**dirs)
         ).split(),
     ),
 ]
@@ -2151,7 +2108,6 @@ classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: Python Software Foundation License",
     "Operating System :: Microsoft :: Windows",
-    "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",

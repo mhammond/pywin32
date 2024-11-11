@@ -16,6 +16,7 @@ the way they were, simply use this magic incantation:
     import sys
     sys.stdin = sys.stdin.real_file
 """
+
 import sys
 
 get_input_line = input
