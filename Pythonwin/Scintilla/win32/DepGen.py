@@ -12,27 +12,34 @@ from scripts import Dependencies
 
 topComment = "# Created by DepGen.py. To recreate, run DepGen.py.\n"
 
+
 def Generate():
-	sources = ["../src/*.cxx", "../lexlib/*.cxx", "../lexers/*.cxx"]
-	includes = ["../include", "../src", "../lexlib"]
+    sources = ["../src/*.cxx", "../lexlib/*.cxx", "../lexers/*.cxx"]
+    includes = ["../include", "../src", "../lexlib"]
 
-	# Create the dependencies file for g++
-	deps = Dependencies.FindDependencies(["../win32/*.cxx"] + sources,  ["../win32"] + includes, ".o", "../win32/")
+    # Create the dependencies file for g++
+    deps = Dependencies.FindDependencies(
+        ["../win32/*.cxx"] + sources, ["../win32"] + includes, ".o", "../win32/"
+    )
 
-	# Add ScintillaBaseL as the same as ScintillaBase
-	deps = Dependencies.InsertSynonym(deps, "ScintillaBase.o", "ScintillaBaseL.o")
+    # Add ScintillaBaseL as the same as ScintillaBase
+    deps = Dependencies.InsertSynonym(deps, "ScintillaBase.o", "ScintillaBaseL.o")
 
-	# Add CatalogueL as the same as Catalogue
-	deps = Dependencies.InsertSynonym(deps, "Catalogue.o", "CatalogueL.o")
+    # Add CatalogueL as the same as Catalogue
+    deps = Dependencies.InsertSynonym(deps, "Catalogue.o", "CatalogueL.o")
 
-	Dependencies.UpdateDependencies("../win32/deps.mak", deps, topComment)
+    Dependencies.UpdateDependencies("../win32/deps.mak", deps, topComment)
 
-	# Create the dependencies file for MSVC
+    # Create the dependencies file for MSVC
 
-	# Place the objects in $(DIR_O) and change extension from ".o" to ".obj"
-	deps = [["$(DIR_O)/"+Dependencies.PathStem(obj)+".obj", headers] for obj, headers in deps]
+    # Place the objects in $(DIR_O) and change extension from ".o" to ".obj"
+    deps = [
+        ["$(DIR_O)/" + Dependencies.PathStem(obj) + ".obj", headers]
+        for obj, headers in deps
+    ]
 
-	Dependencies.UpdateDependencies("../win32/nmdeps.mak", deps, topComment)
+    Dependencies.UpdateDependencies("../win32/nmdeps.mak", deps, topComment)
+
 
 if __name__ == "__main__":
-	Generate()
+    Generate()
