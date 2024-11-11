@@ -14,7 +14,18 @@ https://mhammond.github.io/pywin32_installers.html.
 Coming in build 309, as yet unreleased
 --------------------------------------
 
-* Fix re-raising exceptions as `QueryError` in `win32pdhquery.BaseQuery.open` (#2318, @Avasam)
+* Fixed `ddeclient` and `ddeserver` demos import error (#2290, @Avasam)
+* The `EvtSubscribe_push` demo now actually demonstrates the callback action and the event context being filled. (#2281, @Avasam)
+* Fixed Pythonwin's editor failing due to invalid regex import (#2419, @Avasam)
+* Last error wrongly set by some modules (#2302, @CristiFati)
+* Dropped support for Python 3.7 (#2207, @Avasam)
+* Implement the creation of SAFEARRAY(VT_RECORD) from a sequence of COM Records (#2317, @geppi)
+* Implement record pointers as [in, out] method parameters of a Dispatch Interface (#2304, #2310, @geppi)
+* Fix memory leak converting to PyObject from some SAFEARRAY elements (#2316)
+* Fix bug where makepy support was unnecessarily generated (#2354, #2353, @geppi)
+* Fail sooner on invalid `win32timezone.TimeZoneInfo` creation (#2338, @Avasam)
+* Removed temporary `win32com.server.policy` reexports hack (#2344, @Avasam)
+  Import `DispatcherWin32trace` and `DispatcherTrace` from `win32com.server.dispatcher` instead.
 * Fixed `win32timezone.TimeZoneInfo` initialization from a `[DYNAMIC_]TIME_ZONE_INFORMATION` (#2339, @Avasam)
 * Added runtime deprecation warning of `win2kras`, use `win32ras` instead (#2356, @Avasam)
 * Improved handling of dict iterations and fallbacks (removes Python 2 support code, small general speed improvement) (#2332, #2330, @Avasam)
@@ -61,7 +72,7 @@ as the .chm file, certain MAPI libraries etc, and .exe installers.
   * `win32com.client.build.error`
   * `win32com.client.genpy.error`
 * Add EnumDesktopWindows (#2219, @CristiFati)
-* Marked `exc_type` and `exc_traceback` in `win32comext.axscript.client.error.AXScriptException.__init__` as deprecated. (#2236 , @Avasam)
+* Marked `exc_type` and `exc_traceback` in `win32comext.axscript.client.error.AXScriptException.__init__` as deprecated. (#2236, @Avasam)
   They are now unused and all information is taken from the `exc_value` parameter.
 * Fixed non-overriden `pywin.scintilla.formatter.Formatter.ColorizeString` raising `TypeError` instead of `RuntimeError` due to too many parameters (#2216, @Avasam)
 * Fixed broken since Python 3 tokenization in `win32comext.axdebug.codecontainer.pySourceCodeContainer.GetSyntaxColorAttributes` (#2216, @Avasam)
@@ -182,7 +193,7 @@ as the .chm file, certain MAPI libraries etc, and .exe installers.
   * Use byte-string (`b""`) for constant bytes values instead of superfluous `.encode` calls (#2046, @Avasam)
   * Cleaned up unused imports (#1986, #2051, #1990, #2124, #2126, @Avasam)
   * Removed duplicated declarations, constants and definitions (#2050, #1950, #1990, @Avasam)
-* Small generalized optimization by using augmented assignements (in-place operators) where possible (#2274, @Avasam)
+* Small generalized optimization by using augmented assignments (in-place operators) where possible (#2274, @Avasam)
 * General speed and size improvements due to all the removed code. (#2046, #1986, #2050, #1950, #2085, #2087, #2051, #1990, #2106, #2127, #2124, #2126, #2177, #2218, #2202, #2205, #2217)
 
 ### adodbapi
