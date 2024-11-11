@@ -25,15 +25,13 @@ static GetNamedPipeClientProcessIdfunc pfnGetNamedPipeServerSessionId = NULL;
 	// All errors raised by this module are of this type.
 	PyDict_SetItemString(d, "error", PyWinExc_ApiError);
 
-	HMODULE hmod=GetModuleHandle(_T("Kernel32.dll"));
-	if (!hmod)
-		hmod=LoadLibrary(_T("Kernel32.dll"));
-	if (hmod){
+	HMODULE hmod = PyWin_GetOrLoadLibraryHandle("kernel32.dll");
+	if (hmod != NULL) {
 		pfnGetNamedPipeClientProcessId = (GetNamedPipeClientProcessIdfunc)GetProcAddress(hmod, "GetNamedPipeClientProcessId");
 		pfnGetNamedPipeServerProcessId = (GetNamedPipeClientProcessIdfunc)GetProcAddress(hmod, "GetNamedPipeServerProcessId");
 		pfnGetNamedPipeClientSessionId = (GetNamedPipeClientProcessIdfunc)GetProcAddress(hmod, "GetNamedPipeClientSessionId");
 		pfnGetNamedPipeServerSessionId = (GetNamedPipeClientProcessIdfunc)GetProcAddress(hmod, "GetNamedPipeServerSessionId");
-		}
+	}
 %}
 
 %{

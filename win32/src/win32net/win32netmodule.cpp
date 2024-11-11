@@ -1211,10 +1211,8 @@ PYWIN_MODULE_INIT_FUNC(win32net)
     AddConstant(dict, "USE_FORCE", USE_FORCE);
     AddConstant(dict, "USE_LOTS_OF_FORCE", USE_LOTS_OF_FORCE);
 
-    HMODULE hmodule = GetModuleHandle(_T("netapi32"));
+    HMODULE hmodule = PyWin_GetOrLoadLibraryHandle("netapi32.dll");
 #if WINVER >= 0x0500
-    if (hmodule == NULL)
-        hmodule = LoadLibrary(_T("netapi32"));
     if (hmodule != NULL) {
         pfnNetValidateName = (NetValidateNamefunc)GetProcAddress(hmodule, "NetValidateName");
         pfnNetGetJoinInformation = (NetGetJoinInformationfunc)GetProcAddress(hmodule, "NetGetJoinInformation");
