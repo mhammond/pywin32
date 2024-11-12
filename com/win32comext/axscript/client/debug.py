@@ -125,12 +125,7 @@ class DebugManager:
 
     def OnEnterScript(self):
         trace("OnEnterScript")
-        try:
-            1 / 0
-        except:
-            # Bit of a hack - reach into engine.
-            baseFrame = sys.exc_info()[2].tb_frame.f_back
-        self.adb.SetupAXDebugging(baseFrame)
+        self.adb.SetupAXDebugging(sys._getframe().f_back)
 
     def OnLeaveScript(self):
         trace("OnLeaveScript")
