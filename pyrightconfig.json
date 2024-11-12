@@ -1,11 +1,12 @@
 {
   "typeCheckingMode": "basic",
   // Target the oldest supported version in editors and default CLI
-  "pythonVersion": "3.7",
+  "pythonVersion": "3.8",
   // Keep it simple for now by allowing both mypy and pyright to use `type: ignore`
   "enableTypeIgnoreComments": true,
   // Exclude from scanning when running pyright
   "exclude": [
+    ".git/",
     "build/",
     // Vendored
     "Pythonwin/Scintilla/",

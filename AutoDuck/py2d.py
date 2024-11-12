@@ -133,7 +133,7 @@ def build_module(mod_name: str) -> None:
         ob_name = mod_name + "." + ob.name
         Print(f"// @pyclass {ob.name}|{ob.short_desc}")
     for ob in functions:
-        Print(
+        print(
             f"// @pymethod |{mod_name}|{ob.name}|{format_desc(ob.desc)}",
         )
         for ai in BuildArgInfos(ob.ob):
