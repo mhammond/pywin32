@@ -34,7 +34,7 @@
 #include "python.h"
 #undef PyHANDLE
 #include <windows.h>
-#include "commctrl.h"
+#include "CommCtrl.h"
 #include "windowsx.h"  // For edit control hacks.
 
 #include "pywintypes.h"

@@ -1,10 +1,10 @@
 /*
  * FILENAME:
- *	guids.cpp
+ *	GUIDs.cpp
  *
  * DESCRIPTION:
- *	Define the guids used by the project. Both internally defined
- *	guids as well as guids from external sources.
+ *	Define the GUIDs used by the project. Both internally defined
+ *	GUIDs as well as GUIDs from external sources.
  */
 #include <objbase.h>
 #pragma data_seg(".text")
@@ -17,7 +17,7 @@
 #endif
 
 // === Project Guids ===
-#include "GUIDS.H"
+#include "GUIDs.h"
 // NOTE - The standard "activscp.h" header is not good enough -
 // need to use IE4 SDK or MSVC6 etc
 #include "activscp.h"
