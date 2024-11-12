@@ -210,7 +210,7 @@ class CommonDBTests(unittest.TestCase):
                 # now return strings
                 adodbapi.variantConversions[ado_consts.adNumeric] = adodbapi.cvtString
                 self.helpTestDataType("numeric(18,2)", "NUMBER", "3.45")
-                # now a completly weird user defined convertion
+                # now a completely weird user defined conversion
                 adodbapi.variantConversions[ado_consts.adNumeric] = (
                     lambda x: f"!!This function returns a funny unicode string {x}!!"
                 )
@@ -225,7 +225,7 @@ class CommonDBTests(unittest.TestCase):
             finally:
                 # now reset the converter to its original function
                 adodbapi.variantConversions[ado_consts.adNumeric] = (
-                    oldconverter  # Restore the original convertion function
+                    oldconverter  # Restore the original conversion function
                 )
 
     def helpTestDataType(
