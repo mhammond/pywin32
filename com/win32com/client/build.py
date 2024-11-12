@@ -16,8 +16,10 @@ dynamically, or possibly even generate .html documentation for objects.
 #
 #        OleItem, DispatchItem, MapEntry, BuildCallList() is used by makepy
 
+import builtins
 import datetime
 import string
+from itertools import chain
 from keyword import iskeyword
 
 import pythoncom
@@ -493,18 +495,20 @@ class VTableItem(DispatchItem):
         DispatchItem.Build(self, typeinfo, attr, bForUser)
         assert typeinfo is not None, "Can't build vtables without type info!"
 
-        meth_list = (
-            list(self.mapFuncs.values())
-            + list(self.propMapGet.values())
-            + list(self.propMapPut.values())
+        meth_list = sorted(
+            chain(
+                self.mapFuncs.values(),
+                self.propMapGet.values(),
+                self.propMapPut.values(),
+            ),
+            key=lambda m: m.desc[7],
         )
-        meth_list.sort(key=lambda m: m.desc[7])
 
         # Now turn this list into the run-time representation
         # (ready for immediate use or writing to gencache)
-        self.vtableFuncs = []
-        for entry in meth_list:
-            self.vtableFuncs.append((entry.names, entry.dispid, entry.desc))
+        self.vtableFuncs = [
+            (entry.names, entry.dispid, entry.desc) for entry in meth_list
+        ]
 
 
 # A Lazy dispatch item - builds an item on request using info from
@@ -545,7 +549,6 @@ def _ResolveType(typerepr, itypeinfo):
             if was_user and subrepr in [
                 pythoncom.VT_DISPATCH,
                 pythoncom.VT_UNKNOWN,
-                pythoncom.VT_RECORD,
             ]:
                 # Drop the VT_PTR indirection
                 return subrepr, sub_clsid, sub_doc
@@ -654,7 +657,7 @@ def MakePublicAttributeName(className, is_global=False):
         if ret == className:
             ret = ret.upper()
         return ret
-    elif is_global and hasattr(__builtins__, className):
+    elif is_global and hasattr(builtins, className):
         # builtins may be mixed case.  If capitalizing it doesn't change it,
         # force to all uppercase (eg, "None", "True" become "NONE", "TRUE"
         ret = className.capitalize()

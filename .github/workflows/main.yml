@@ -18,7 +18,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11", "3.12", "3.13-dev"]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13-dev"]
         architecture: ["x64", "x86"]
 
     steps:
@@ -37,13 +37,21 @@ jobs:
         run: |
           python --version
           pip --version
-          pip install --upgrade setuptools wheel
+          pip install --upgrade setuptools>=74 wheel
 
       - name: Build and install
         run: |
           python setup.py install --user
+          
+      # This needs to happen *after* installing pywin32 since
+      # AutoDuck/py2d.py currently relies on runtime imports for introspection
+      # This isn't included in the wheel (TODO: could we?)
+      # and only servces as a PR test for the docs.yaml workflow
+      - name: Generate PyWin32.chm help file
+        run: python AutoDuck/make.py
 
-      - name: Run postinstall install/remove # Smokescreen test to validate it doesn't crash
+      # Smokescreen test to validate it doesn't crash
+      - name: Run postinstall install/remove
         run: |
           cd "$(python -m site --user-site)/.."
           python Scripts/pywin32_postinstall.py -install
@@ -92,7 +100,7 @@ jobs:
         run: |
           python --version
           pip --version
-          pip install --upgrade setuptools wheel
+          pip install --upgrade setuptools>=74 wheel
 
       - name: Obtain ARM64 library files
         run: |
@@ -116,23 +124,22 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          # This job only needs to target the oldest version supported by our checkers
-          # (black>=24.10.0 supports Python >=3.9)
-          python-version: "3.9"
+          # This job only needs to target the oldest supported version
+          python-version: "3.8"
           cache: pip
           cache-dependency-path: .github/workflows/main.yml
       - run: pip install clang-format pycln
       - run: pycln . --config=pycln.toml --check
-      - uses: chartboost/ruff-action@v1
+      - uses: astral-sh/ruff-action@v1
         with:
-          version: "0.4.5"
-      - uses: psf/black@stable
+          version: "0.4.9"
+      - uses: astral-sh/ruff-action@v1
         with:
-          options: "--fast --check --diff --verbose"
-      - run: | # Too many files to fit in a single command, exclude vendored Scintilla and mapi_headers
+          version: "0.4.9"
+          args: "format --check"
+      - run: | # Too many files to fit in a single command, also exclude vendored Scintilla and MAPIStubLibrary
           clang-format --Werror --dry-run $(git ls-files '*.cpp')
-          clang-format --Werror --dry-run $(git ls-files '*.h' ':!:Pythonwin/Scintilla/' ':!:com/win32comext/mapi/src/mapi_headers/')
-        shell: powershell
+          clang-format --Werror --dry-run $(git ls-files '*.h' ':!:Pythonwin/Scintilla/' ':!:com/win32comext/mapi/src/MAPIStubLibrary/')
 
   mypy:
     runs-on: windows-2019
@@ -140,7 +147,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # mypy 1.5 dropped support for Python 3.7
         # mypy won't understand "3.13-dev", keeping the CI simple by just omitting it
         python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
     steps:
@@ -151,7 +157,7 @@ jobs:
           cache: pip
           cache-dependency-path: .github/workflows/main.yml
           check-latest: true
-      - run: pip install types-regex types-setuptools mypy==1.11
+      - run: pip install types-setuptools PyOpenGL mypy==1.11
       - run: mypy . --python-version=${{ matrix.python-version }}
 
   pyright:
@@ -160,7 +166,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11", "3.12", "3.13-dev"]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13-dev"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -170,7 +176,7 @@ jobs:
           cache-dependency-path: .github/workflows/main.yml
           check-latest: true
       # pyright vendors typeshed, but let's make sure we have the most up to date stubs
-      - run: pip install types-regex types-setuptools
+      - run: pip install types-setuptools PyOpenGL
       - uses: jakebailey/pyright-action@v2
         with:
           python-version: ${{ matrix.python-version }}

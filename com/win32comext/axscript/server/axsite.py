@@ -1,5 +1,4 @@
 import pythoncom
-import win32com.axscript.axscript
 import winerror
 from win32com.axscript import axscript
 from win32com.server import util
@@ -99,7 +98,7 @@ class AXSite:
             | axscript.SCRIPTITEM_GLOBALMEMBERS
             | axscript.SCRIPTITEM_ISPERSISTENT
         )
-        for name in self.objModel.keys():
+        for name in self.objModel:
             newEngine.AddNamedItem(name, flags)
             newEngine.SetScriptState(axscript.SCRIPTSTATE_INITIALIZED)
         return newEngine

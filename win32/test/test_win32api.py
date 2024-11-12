@@ -14,6 +14,10 @@ import winerror
 from pywin32_testutil import TestSkipped
 
 
+class TestError(Exception):
+    pass
+
+
 class CurrentUserTestCase(unittest.TestCase):
     def testGetCurrentUser(self):
         domain = win32api.GetDomainName()
@@ -63,7 +67,7 @@ class Registry(unittest.TestCase):
         # This used to leave a stale exception behind.
         def reg_operation():
             hkey = win32api.RegCreateKey(win32con.HKEY_CURRENT_USER, self.key_name)
-            x = 3 / 0  # or a statement like: raise Exception
+            raise TestError
 
         # do the test
         try:
@@ -71,10 +75,10 @@ class Registry(unittest.TestCase):
                 try:
                     reg_operation()
                 except:
-                    1 / 0  # Force exception
+                    raise TestError  # Force a TestError
             finally:
                 win32api.RegDeleteKey(win32con.HKEY_CURRENT_USER, self.key_name)
-        except ZeroDivisionError:
+        except TestError:
             pass
 
     def testValues(self):
@@ -262,7 +266,7 @@ class Misc(unittest.TestCase):
             "BatteryLifeTime",
             "BatteryFullLifeTime",
         )
-        self.assertEqual(set(test_keys), set(sps.keys()))
+        self.assertEqual(set(test_keys), set(sps))
 
 
 if __name__ == "__main__":

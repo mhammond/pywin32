@@ -1,7 +1,7 @@
 """Exception and error handling.
 
- This contains the core exceptions that the implementations should raise
- as well as the IActiveScriptError interface code.
+This contains the core exceptions that the implementations should raise
+as well as the IActiveScriptError interface code.
 """
 
 from __future__ import annotations
@@ -19,7 +19,6 @@ from win32com.axscript import axscript
 from win32com.server.exception import COMException
 
 if TYPE_CHECKING:
-    # Prevent circular imports
     from win32comext.axscript.client.debug import DebugManager
     from win32comext.axscript.client.framework import AXScriptCodeBlock, COMScript
     from win32comext.axscript.server.axsite import AXSite

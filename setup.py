@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-build_id = "307.1"  # may optionally include a ".{patchno}" suffix.
+build_id = "308.1"  # may optionally include a ".{patchno}" suffix.
 
 __doc__ = """This is a distutils setup-script for the pywin32 extensions.
 
@@ -40,17 +40,13 @@ from setuptools.command.build import build
 from setuptools.command.build_ext import build_ext
 from setuptools.command.install import install
 from setuptools.command.install_lib import install_lib
+from setuptools.modified import newer_group
 from tempfile import gettempdir
 from typing import Iterable
 
 from distutils import ccompiler
 from distutils._msvccompiler import MSVCCompiler
 from distutils.command.install_data import install_data
-
-if sys.version_info >= (3, 8):
-    from setuptools.modified import newer_group
-else:
-    from distutils.dep_util import newer_group
 
 build_id_patch = build_id
 if not "." in build_id_patch:
@@ -820,21 +816,17 @@ class my_build_ext(build_ext):
             else:
                 swig_cmd.append("-DSWIG_PY32BIT")
             target = swig_targets[source]
-            try:
-                interface_parent = swig_interface_parents[
-                    os.path.basename(os.path.splitext(source)[0])
-                ]
-            except KeyError:
-                # "normal" swig file - no special win32 issues.
-                pass
-            else:
-                # Using win32 extensions to SWIG for generating COM classes.
-                if interface_parent is not None:
-                    # generating a class, not a module.
-                    swig_cmd.append("-pythoncom")
-                    if interface_parent:
-                        # A class deriving from other than the default
-                        swig_cmd.extend(["-com_interface_parent", interface_parent])
+            interface_parent = swig_interface_parents.get(
+                os.path.basename(os.path.splitext(source)[0]),
+                None,  # "normal" swig file - no special win32 issues.
+            )
+            # Using win32 extensions to SWIG for generating COM classes.
+            if interface_parent is not None:
+                # generating a class, not a module.
+                swig_cmd.append("-pythoncom")
+                if interface_parent:
+                    # A class deriving from other than the default
+                    swig_cmd.extend(["-com_interface_parent", interface_parent])
 
             # This 'newer' check helps Python 2.2 builds, which otherwise
             # *always* regenerate the .cpp files, meaning every future
@@ -872,12 +864,6 @@ class my_install(install):
         install.run(self)
         # Custom script we run at the end of installing - this is the same script
         # run by bdist_wininst
-        # This child process won't be able to install the system DLLs until our
-        # process has terminated (as distutils imports win32api!), so we must use
-        # some 'no wait' executor - spawn seems fine!  We pass the PID of this
-        # process so the child will wait for us.
-        # XXX - hmm - a closer look at distutils shows it only uses win32api
-        # if _winreg fails - and this never should.  Need to revisit this!
         # If self.root has a value, it means we are being "installed" into
         # some other directory than Python itself (eg, into a temp directory
         # for bdist_wininst to use) - in which case we must *not* run our
@@ -889,7 +875,8 @@ class my_install(install):
             if not os.path.isfile(filename):
                 raise RuntimeError(f"Can't find '{filename}'")
             print("Executing post install script...")
-            # What executable to use?  This one I guess.
+            # As of setuptools>=74.0.0, we no longer need to
+            # be concerned about distutils calling win32api
             subprocess.Popen(
                 [
                     sys.executable,
@@ -909,8 +896,8 @@ class my_install_lib(install_lib):
         # This is crazy - in setuptools 61.1.0 (and probably some earlier versions), the
         # install_lib and build comments don't agree on where the .py files to install can
         # be found, so we end up with a warning logged:
-        # `warning: my_install_lib: 'build\lib.win-amd64-3.7' does not exist -- no Python modules to install`
-        # (because they are actually in `build\lib.win-amd64-cpython-37`!)
+        # `warning: my_install_lib: 'build\lib.win-amd64-3.8' does not exist -- no Python modules to install`
+        # (because they are actually in `build\lib.win-amd64-cpython-38`!)
         # It's not an error though, so we end up with .exe installers lacking our lib files!
         builder = self.get_finalized_command("build")
         if os.path.isdir(builder.build_platlib) and not os.path.isdir(self.build_dir):
@@ -934,13 +921,6 @@ ccompiler.new_compiler = my_new_compiler  # type: ignore[assignment] # Assuming 
 
 
 class my_compiler(MSVCCompiler):
-    # Just one GUIDS.CPP and it gives trouble on mainwin too. Maybe I
-    # should just rename the file, but a case-only rename is likely to be
-    # worse!  This can probably go away once we kill the VS project files
-    # though, as we can just specify the lowercase name in the module def.
-    _cpp_extensions = MSVCCompiler._cpp_extensions + [".CPP"]
-    src_extensions = MSVCCompiler.src_extensions + [".CPP"]
-
     def link(
         self,
         target_desc,
@@ -1354,9 +1334,7 @@ pythoncom = WinExt_system32(
                         {win32com}/extensions/PyICancelMethodCalls.cpp    {win32com}/extensions/PyIContext.cpp
                         {win32com}/extensions/PyIEnumContextProps.cpp     {win32com}/extensions/PyIClientSecurity.cpp
                         {win32com}/extensions/PyIServerSecurity.cpp
-                        """.format(
-            **dirs
-        )
+                        """.format(**dirs)
     ).split(),
     depends=(
         """
@@ -1383,9 +1361,7 @@ pythoncom = WinExt_system32(
                         {win32com}/include\\PyICancelMethodCalls.h    {win32com}/include\\PyIContext.h
                         {win32com}/include\\PyIEnumContextProps.h     {win32com}/include\\PyIClientSecurity.h
                         {win32com}/include\\PyIServerSecurity.h
-                        """.format(
-            **dirs
-        )
+                        """.format(**dirs)
     ).split(),
     libraries="oleaut32 ole32 user32 urlmon",
     export_symbol_file="com/win32com/src/PythonCOM.def",
@@ -1413,9 +1389,7 @@ com_extensions = [
                         {adsi}/adsilib.i
                         {adsi}/PyADSIUtil.cpp         {adsi}/PyDSOPObjects.cpp
                         {adsi}/PyIADs.cpp
-                        """.format(
-                **dirs
-            )
+                        """.format(**dirs)
         ).split(),
     ),
     WinExt_win32com(
@@ -1433,9 +1407,7 @@ com_extensions = [
                         {axcontrol}/PyIOleClientSite.cpp       {axcontrol}/PyIOleInPlaceSite.cpp
                         {axcontrol}/PyIOleObject.cpp           {axcontrol}/PyIViewObject2.cpp
                         {axcontrol}/PyIOleCommandTarget.cpp
-                        """.format(
-                **dirs
-            )
+                        """.format(**dirs)
         ).split(),
     ),
     WinExt_win32com(
@@ -1443,27 +1415,23 @@ com_extensions = [
         sources=(
             """
                         {axscript}/AXScript.cpp
-                        {axscript}/GUIDS.CPP                   {axscript}/PyGActiveScript.cpp
+                        {axscript}/GUIDS.cpp                   {axscript}/PyGActiveScript.cpp
                         {axscript}/PyGActiveScriptError.cpp    {axscript}/PyGActiveScriptParse.cpp
                         {axscript}/PyGActiveScriptSite.cpp     {axscript}/PyGObjectSafety.cpp
                         {axscript}/PyIActiveScript.cpp         {axscript}/PyIActiveScriptError.cpp
                         {axscript}/PyIActiveScriptParse.cpp    {axscript}/PyIActiveScriptParseProcedure.cpp
                         {axscript}/PyIActiveScriptSite.cpp     {axscript}/PyIMultiInfos.cpp
                         {axscript}/PyIObjectSafety.cpp         {axscript}/stdafx.cpp
-                        """.format(
-                **dirs
-            )
+                        """.format(**dirs)
         ).split(),
         depends=(
             """
                              {axscript}/AXScript.h
-                             {axscript}/guids.h                {axscript}/PyGActiveScriptError.h
+                             {axscript}/GUIDs.h                {axscript}/PyGActiveScriptError.h
                              {axscript}/PyIActiveScriptError.h {axscript}/PyIObjectSafety.h
                              {axscript}/PyIProvideMultipleClassInfo.h
                              {axscript}/stdafx.h
-                             """.format(
-                **dirs
-            )
+                             """.format(**dirs)
         ).split(),
         extra_compile_args=["-DPY_BUILD_AXSCRIPT"],
         implib_name="axscript",
@@ -1519,9 +1487,7 @@ com_extensions = [
                     {axdebug}/PyIRemoteDebugApplicationEvents.cpp
                     {axdebug}/PyIRemoteDebugApplicationThread.cpp
                     {axdebug}/stdafx.cpp
-                     """.format(
-                **dirs
-            )
+                     """.format(**dirs)
         ).split(),
     ),
     WinExt_win32com(
@@ -1534,9 +1500,7 @@ com_extensions = [
                         {internet}/PyIInternetPriority.cpp        {internet}/PyIInternetProtocol.cpp
                         {internet}/PyIInternetProtocolInfo.cpp    {internet}/PyIInternetProtocolRoot.cpp
                         {internet}/PyIInternetProtocolSink.cpp    {internet}/PyIInternetSecurityManager.cpp
-                    """.format(
-                **dirs
-            )
+                    """.format(**dirs)
         ).split(),
         depends=["{internet}/internet_pch.h".format(**dirs)],
     ),
@@ -1544,7 +1508,7 @@ com_extensions = [
         "mapi",
         libraries="advapi32",
         pch_header="PythonCOM.h",
-        include_dirs=["{mapi}/mapi_headers".format(**dirs)],
+        include_dirs=["{mapi}/MapiStubLibrary/include".format(**dirs)],
         sources=(
             """
                         {mapi}/mapi.i                 {mapi}/mapi.cpp
@@ -1570,17 +1534,15 @@ com_extensions = [
                         {mapi}/PyIMAPIAdviseSink.cpp
                         {mapi}/mapiutil.cpp
                         {mapi}/mapiguids.cpp
-                        {mapi}/mapi_stub_library/MapiStubLibrary.cpp
-                        {mapi}/mapi_stub_library/StubUtils.cpp
-                        """.format(
-                **dirs
-            )
+                        {mapi}/MAPIStubLibrary/library/mapiStubLibrary.cpp
+                        {mapi}/MAPIStubLibrary/library/stubutils.cpp
+                        """.format(**dirs)
         ).split(),
     ),
     WinExt_win32com_mapi(
         "exchange",
         libraries="advapi32 legacy_stdio_definitions",
-        include_dirs=["{mapi}/mapi_headers".format(**dirs)],
+        include_dirs=["{mapi}/MapiStubLibrary/include".format(**dirs)],
         sources=(
             """
                                   {mapi}/exchange.i         {mapi}/exchange.cpp
@@ -1588,11 +1550,9 @@ com_extensions = [
                                   {mapi}/PyIExchangeManageStoreEx.i {mapi}/PyIExchangeManageStoreEx.cpp
                                   {mapi}/mapiutil.cpp
                                   {mapi}/exchangeguids.cpp
-                                  {mapi}/mapi_stub_library/MapiStubLibrary.cpp
-                                  {mapi}/mapi_stub_library/StubUtils.cpp
-                                  """.format(
-                **dirs
-            )
+                                  {mapi}/MAPIStubLibrary/library/mapiStubLibrary.cpp
+                                  {mapi}/MAPIStubLibrary/library/stubutils.cpp
+                                  """.format(**dirs)
         ).split(),
     ),
     WinExt_win32com(
@@ -1674,9 +1634,7 @@ com_extensions = [
                         {shell}/PyIUniformResourceLocator.cpp
                         {shell}/shell.cpp
 
-                        """.format(
-                **dirs
-            )
+                        """.format(**dirs)
         ).split(),
     ),
     WinExt_win32com(
@@ -1704,9 +1662,7 @@ com_extensions = [
                         {propsys}/PyIObjectWithPropertyKey.cpp
                         {propsys}/PyIPropertyChange.cpp
                         {propsys}/PyIPropertyChangeArray.cpp
-                        """.format(
-                **dirs
-            )
+                        """.format(**dirs)
         ).split(),
         implib_name="pypropsys",
     ),
@@ -1722,9 +1678,7 @@ com_extensions = [
                         {taskscheduler}/PyITaskScheduler.cpp
                         {taskscheduler}/PyITaskTrigger.cpp
 
-                        """.format(
-                **dirs
-            )
+                        """.format(**dirs)
         ).split(),
     ),
     WinExt_win32com(
@@ -1745,9 +1699,7 @@ com_extensions = [
                         {bits}/PyIEnumBackgroundCopyJobs.cpp
                         {bits}/PyIEnumBackgroundCopyFiles.cpp
 
-                        """.format(
-                **dirs
-            )
+                        """.format(**dirs)
         ).split(),
     ),
     WinExt_win32com(
@@ -1768,18 +1720,14 @@ com_extensions = [
                         {directsound}/PyIDirectSoundBuffer.cpp {directsound}/PyIDirectSoundCapture.cpp
                         {directsound}/PyIDirectSoundCaptureBuffer.cpp
                         {directsound}/PyIDirectSoundNotify.cpp
-                        """.format(
-                **dirs
-            )
+                        """.format(**dirs)
         ).split(),
         depends=(
             """
                         {directsound}/directsound_pch.h   {directsound}/PyIDirectSound.h
                         {directsound}/PyIDirectSoundBuffer.h {directsound}/PyIDirectSoundCapture.h
                         {directsound}/PyIDirectSoundCaptureBuffer.h {directsound}/PyIDirectSoundNotify.h
-                        """.format(
-                **dirs
-            )
+                        """.format(**dirs)
         ).split(),
         optional_headers=["dsound.h"],
         libraries="user32 dsound dxguid",
@@ -1791,9 +1739,7 @@ com_extensions = [
             """
                         {authorization}/authorization.cpp
                         {authorization}/PyGSecurityInformation.cpp
-                        """.format(
-                **dirs
-            )
+                        """.format(**dirs)
         ).split(),
     ),
 ]
@@ -2155,7 +2101,6 @@ classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: Python Software Foundation License",
     "Operating System :: Microsoft :: Windows",
-    "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",

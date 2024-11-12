@@ -52,9 +52,8 @@
 #include "IConverterSession.h"
 #include "PyIConverterSession.h"
 
-#include "MAPISPI.H"
-#include "MAPISPI.H"
-#include "IMESSAGE.H"
+#include "MAPISPI.h"
+#include "IMessage.h"
 #include "MSPST.h"
 
 #include "extraMAPIGuids.h"
