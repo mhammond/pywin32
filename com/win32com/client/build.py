@@ -16,6 +16,7 @@ dynamically, or possibly even generate .html documentation for objects.
 #
 #        OleItem, DispatchItem, MapEntry, BuildCallList() is used by makepy
 
+import builtins
 import datetime
 import string
 from itertools import chain
@@ -656,7 +657,7 @@ def MakePublicAttributeName(className, is_global=False):
         if ret == className:
             ret = ret.upper()
         return ret
-    elif is_global and hasattr(__builtins__, className):
+    elif is_global and hasattr(builtins, className):
         # builtins may be mixed case.  If capitalizing it doesn't change it,
         # force to all uppercase (eg, "None", "True" become "NONE", "TRUE"
         ret = className.capitalize()
