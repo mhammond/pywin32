@@ -10,7 +10,7 @@
 #undef PyHANDLE
 #include "pywinobjects.h"
 #include "winuser.h"
-#include "commctrl.h"
+#include "CommCtrl.h"
 #include "windowsx.h" // For edit control hacks.
 #include "Dbt.h" // device notification
 #include "malloc.h"

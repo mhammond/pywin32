@@ -19,7 +19,7 @@
 #include "pywinobjects.h"
 #include "windows.h"
 #include "Uxtheme.h"
-#include "commctrl.h"
+#include "CommCtrl.h"
 %}
 
 // @object PyHTHEME|A <o PyHANDLE> object wrapping a HTHEME.

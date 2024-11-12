@@ -3,7 +3,7 @@
 
 /*
  * FILENAME:
- *	guids.h
+ *	GUIDs.h
  *
  * DESCRIPTION:
  *	GUID definitions for the project.
