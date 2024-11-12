@@ -463,7 +463,7 @@ def EmptyTVITEM(hitem, mask=None, text_buf_size=512):
     else:
         text_addr = text_buf_size = 0
     buf = struct.pack(
-        _tvitem_fmt, mask, hitem, 0, 0, text_addr, text_buf_size, 0, 0, 0, 0  # text
+        _tvitem_fmt, mask, hitem, 0, 0, text_addr, text_buf_size, 0, 0, 0, 0
     )
     return array.array("b", buf), extra
 
@@ -758,7 +758,7 @@ def PackLVCOLUMN(fmt=None, cx=None, text=None, subItem=None, image=None, order=N
         text_addr, _ = text_buffer.buffer_info()
         text_len = len(text)
     buf = struct.pack(
-        _lvcolumn_fmt, mask, fmt, cx, text_addr, text_len, subItem, image, order  # text
+        _lvcolumn_fmt, mask, fmt, cx, text_addr, text_len, subItem, image, order
     )
     return array.array("b", buf), extra
 
@@ -808,9 +808,7 @@ def EmptyLVCOLUMN(mask=None, text_buf_size=512):
         text_addr, _ = text_buffer.buffer_info()
     else:
         text_addr = text_buf_size = 0
-    buf = struct.pack(
-        _lvcolumn_fmt, mask, 0, 0, text_addr, text_buf_size, 0, 0, 0  # text
-    )
+    buf = struct.pack(_lvcolumn_fmt, mask, 0, 0, text_addr, text_buf_size, 0, 0, 0)
     return array.array("b", buf), extra
 
 
@@ -952,6 +950,8 @@ def UnpackDEV_BROADCAST(lparam):
         _, _, _, x["unitmask"], x["flags"] = struct.unpack(
             fmt, buf[: struct.calcsize(fmt)]
         )
+    elif devtype == win32con.DBT_DEVTYP_PORT:
+        x["name"] = win32gui.PyGetString(lparam + struct.calcsize(hdr_format))
     else:
         raise NotImplementedError("unknown device type %d" % (devtype,))
     return DEV_BROADCAST_INFO(devtype, **extra)

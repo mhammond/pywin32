@@ -1685,23 +1685,18 @@ PyObject *PyWriteProcessMemory(PyObject *self, PyObject *args)
 	if (PyType_Ready(&PySTARTUPINFOType) == -1)
 		return NULL;
 
-	FARPROC fp=NULL;
-	HMODULE hmodule=NULL;
-	hmodule=GetModuleHandle(_T("Psapi.dll"));
-	if (hmodule==NULL)
-		hmodule=LoadLibrary(_T("Psapi.dll"));
-	if (hmodule!=NULL){
+	FARPROC fp = NULL;
+	HMODULE hmodule = PyWin_GetOrLoadLibraryHandle("psapi.dll");
+	if (hmodule != NULL) {
 		pfnEnumProcesses = (EnumProcessesfunc)GetProcAddress(hmodule, "EnumProcesses");
 		pfnEnumProcessModules = (EnumProcessModulesfunc)GetProcAddress(hmodule, "EnumProcessModules");
 		pfnEnumProcessModulesEx = (EnumProcessModulesExfunc)GetProcAddress(hmodule, "EnumProcessModulesEx");
 		pfnGetModuleFileNameEx = (GetModuleFileNameExfunc)GetProcAddress(hmodule, "GetModuleFileNameExW");
 		pfnGetProcessMemoryInfo = (GetProcessMemoryInfofunc)GetProcAddress(hmodule, "GetProcessMemoryInfo");
-		}
+	}
 
-	hmodule=GetModuleHandle(_T("Kernel32.dll"));
-	if (hmodule==NULL)
-		hmodule=LoadLibrary(_T("Kernel32.dll"));
-	if (hmodule!=NULL){
+	hmodule = PyWin_GetOrLoadLibraryHandle("kernel32.dll");
+	if (hmodule != NULL) {
 		pfnGetProcessTimes=(GetProcessTimesfunc)GetProcAddress(hmodule,"GetProcessTimes");
 		pfnGetProcessIoCounters=(GetProcessIoCountersfunc)GetProcAddress(hmodule,"GetProcessIoCounters");
 		pfnGetProcessShutdownParameters=(GetProcessShutdownParametersfunc)GetProcAddress(hmodule,"GetProcessShutdownParameters");
@@ -1719,15 +1714,13 @@ PyObject *PyWriteProcessMemory(PyObject *self, PyObject *args)
 		pfnSetProcessAffinityMask=(SetProcessAffinityMaskfunc)GetProcAddress(hmodule,"SetProcessAffinityMask");
 		pfnGetProcessId=(GetProcessIdfunc)GetProcAddress(hmodule, "GetProcessId");
 		pfnIsWow64Process=(IsWow64Processfunc)GetProcAddress(hmodule, "IsWow64Process");
-		}
+	}
 
-	hmodule=GetModuleHandle(_T("User32.dll"));
-	if (hmodule==NULL)
-		hmodule=LoadLibrary(_T("User32.dll"));
-	if (hmodule!=NULL){
+	hmodule = PyWin_GetOrLoadLibraryHandle("user32.dll");
+	if (hmodule != NULL) {
 		pfnGetProcessWindowStation=(GetProcessWindowStationfunc)GetProcAddress(hmodule,"GetProcessWindowStation");
 		pfnGetGuiResources=(GetGuiResourcesfunc)GetProcAddress(hmodule,"GetGuiResources");
-		}
+	}
 
 // *sob* - these symbols don't exist in the platform sdk needed to build
 // using Python 2.3

@@ -4770,14 +4770,12 @@ static PyObject *PySetSystemTime(PyObject *self, PyObject *args)
                           ))
         return NULL;
     PyW32_BEGIN_ALLOW_THREADS result = ::SetSystemTime(&t);
-    PyW32_END_ALLOW_THREADS
+    PyW32_END_ALLOW_THREADS;
 
-        if (!result)
-    {
+    if (!result) {
         return ReturnAPIError("SetSystemTime");
     }
-    else
-    {
+    else {
         return Py_BuildValue("i", result);
     }
 }
@@ -6261,17 +6259,13 @@ PYWIN_MODULE_INIT_FUNC(win32api)
     PyModule_AddIntConstant(module, "VS_FF_PRIVATEBUILD", VS_FF_PRIVATEBUILD);
     PyModule_AddIntConstant(module, "VS_FF_SPECIALBUILD", VS_FF_SPECIALBUILD);
 
-    HMODULE hmodule = GetModuleHandle(TEXT("secur32.dll"));
-    if (hmodule == NULL)
-        hmodule = LoadLibrary(TEXT("secur32.dll"));
+    HMODULE hmodule = PyWin_GetOrLoadLibraryHandle("secur32.dll");
     if (hmodule != NULL) {
         pfnGetUserNameEx = (GetUserNameExfunc)GetProcAddress(hmodule, "GetUserNameExW");
         pfnGetComputerObjectName = (GetUserNameExfunc)GetProcAddress(hmodule, "GetComputerObjectNameW");
     }
 
-    hmodule = GetModuleHandle(TEXT("kernel32.dll"));
-    if (hmodule == NULL)
-        hmodule = LoadLibrary(TEXT("kernel32.dll"));
+    hmodule = PyWin_GetOrLoadLibraryHandle("kernel32.dll");
     if (hmodule != NULL) {
         pfnGetComputerNameEx = (GetComputerNameExfunc)GetProcAddress(hmodule, "GetComputerNameExW");
         pfnGetLongPathNameA = (GetLongPathNameAfunc)GetProcAddress(hmodule, "GetLongPathNameA");
@@ -6287,9 +6281,7 @@ PYWIN_MODULE_INIT_FUNC(win32api)
         pfnGetNativeSystemInfo = (GetNativeSystemInfofunc)GetProcAddress(hmodule, "GetNativeSystemInfo");
     }
 
-    hmodule = GetModuleHandle(TEXT("user32.dll"));
-    if (hmodule == NULL)
-        hmodule = LoadLibrary(TEXT("user32.dll"));
+    hmodule = PyWin_GetOrLoadLibraryHandle("user32.dll");
     if (hmodule != NULL) {
         pfnEnumDisplayMonitors = (EnumDisplayMonitorsfunc)GetProcAddress(hmodule, "EnumDisplayMonitors");
         pfnEnumDisplayDevices = (EnumDisplayDevicesfunc)GetProcAddress(hmodule, "EnumDisplayDevicesW");
@@ -6302,9 +6294,7 @@ PYWIN_MODULE_INIT_FUNC(win32api)
         pfnGetLastInputInfo = (GetLastInputInfofunc)GetProcAddress(hmodule, "GetLastInputInfo");
     }
 
-    hmodule = GetModuleHandle(TEXT("Advapi32.dll"));
-    if (hmodule == NULL)
-        hmodule = LoadLibrary(TEXT("Advapi32.dll"));
+    hmodule = PyWin_GetOrLoadLibraryHandle("advapi32.dll");
     if (hmodule != NULL) {
         pfnRegRestoreKey = (RegRestoreKeyfunc)GetProcAddress(hmodule, "RegRestoreKeyW");
         pfnRegSaveKeyEx = (RegSaveKeyExfunc)GetProcAddress(hmodule, "RegSaveKeyExW");
