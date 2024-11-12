@@ -2,9 +2,11 @@
 # The application is responsible for managing the main frame window.
 #
 # We also grab the FileOpen command, to invoke our Python editor
-" The PythonWin application code. Manages most aspects of MDI, etc "
+"The PythonWin application code. Manages most aspects of MDI, etc"
+
 from __future__ import annotations
 
+import builtins
 import os
 import sys
 import traceback
@@ -392,9 +394,7 @@ def Win32Input(prompt=None):
 
 
 def HookInput():
-    import code
-
-    sys.modules["builtins"].input = Win32Input
+    builtins.input = Win32Input
 
 
 def HaveGoodGUI():

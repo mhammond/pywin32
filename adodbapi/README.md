@@ -51,7 +51,7 @@ adodbapi.apibase.variantConversions[adodbapi.ado_consts.adNumeric] = adodbapi.ap
 or:
 
 ```python
-adodbapi.apibase.variantConversions[adodbapi.ado_consts.adNumeric] = write_your_own_convertion_function
+adodbapi.apibase.variantConversions[adodbapi.ado_consts.adNumeric] = write_your_own_conversion_function
 ```
 
 CHANGES
