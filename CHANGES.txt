@@ -13,7 +13,10 @@ https://mhammond.github.io/pywin32_installers.html.
 
 Coming in build 309, as yet unreleased
 --------------------------------------
-
+* Removed considerations for Windows 95/98/ME (#2400, @Avasam)
+  This removes the following constants:
+  * `win32con.FILE_ATTRIBUTE_ATOMIC_WRITE`
+  * `win32con.FILE_ATTRIBUTE_XACTION_WRITE`
 * Fixed `ddeclient` and `ddeserver` demos import error (#2290, @Avasam)
 * The `EvtSubscribe_push` demo now actually demonstrates the callback action and the event context being filled. (#2281, @Avasam)
 * Fixed Pythonwin's editor failing due to invalid regex import (#2419, @Avasam)

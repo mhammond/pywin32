@@ -106,7 +106,6 @@ static CoSetCancelObjectfunc pfnCoSetCancelObject = NULL;
 // WinXP or later
 LPFNOBJECTFROMLRESULT pfnObjectFromLresult = NULL;
 
-// May not be available on Windows 95, although I'm not sure that's even a concern anymore
 typedef HRESULT(STDAPICALLTYPE *CoCreateInstanceExfunc)(REFCLSID, IUnknown *, DWORD, COSERVERINFO *, ULONG, MULTI_QI *);
 static CoCreateInstanceExfunc pfnCoCreateInstanceEx = NULL;
 typedef HRESULT(STDAPICALLTYPE *CoInitializeSecurityfunc)(PSECURITY_DESCRIPTOR, LONG, SOLE_AUTHENTICATION_SERVICE *,
