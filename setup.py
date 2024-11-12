@@ -926,7 +926,7 @@ class my_compiler(MSVCCompiler):
     # worse!  This can probably go away once we kill the VS project files
     # though, as we can just specify the lowercase name in the module def.
     _cpp_extensions = MSVCCompiler._cpp_extensions + [".CPP"]
-    src_extensions = MSVCCompiler.src_extensions + [".CPP"]  # type: ignore[operator] # TODO: Fix in typeshed
+    src_extensions = MSVCCompiler.src_extensions + [".CPP"]
 
     def link(
         self,
