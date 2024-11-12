@@ -560,11 +560,11 @@ class Query(BaseQuery):
         self.volatilecounters = volatilecounters
 
 
-class QueryError:
-    def __init__(self, query):
+class QueryError(Exception):
+    def __init__(self, query: BaseQuery):
         self.query = query
 
     def __repr__(self):
-        return "<Query Error in %s>" % repr(self.query)
+        return f"<Query Error in {self.query!r}>"
 
     __str__ = __repr__
