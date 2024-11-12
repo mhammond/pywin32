@@ -45,7 +45,7 @@ extend-ignore = [
 # Explicit re-exports is fine in __init__.py, still a code smell elsewhere.
 "__init__.py" = ["PLC0414"]
 # TODO: Make adodbapi changes in their own PRs
-"adodbapi/*" = ["C4", "YTT301", "ISC002", "UP031", "UP032"]
+"adodbapi/*" = ["C4", "YTT301"]
 
 [lint.isort]
 combine-as-imports = true
