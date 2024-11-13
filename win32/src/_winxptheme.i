@@ -21,7 +21,7 @@
 #include "pywinobjects.h"
 #include "windows.h"
 #include "Uxtheme.h"
-#include "commctrl.h"
+#include "CommCtrl.h"
 
 
 %}

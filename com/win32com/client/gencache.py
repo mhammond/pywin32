@@ -627,7 +627,7 @@ def EnsureDispatch(
 ):  # New fn, so we default the new demand feature to on!
     """Given a COM prog_id, return an object that is using makepy support, building if necessary"""
     disp = win32com.client.Dispatch(prog_id)
-    if not disp.__dict__.get("CLSID"):  # Eeek - no makepy support - try and build it.
+    if not hasattr(disp, "CLSID"):  # Eeek - no makepy support - try and build it.
         try:
             ti = disp._oleobj_.GetTypeInfo()
             disp_clsid = ti.GetTypeAttr()[0]

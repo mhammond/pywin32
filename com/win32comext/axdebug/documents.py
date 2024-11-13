@@ -1,5 +1,4 @@
-""" Management of documents for AXDebugging.
-"""
+"""Management of documents for AXDebugging."""
 
 import pythoncom
 import win32api
@@ -106,7 +105,7 @@ class CodeContainerProvider:
     Given a Python file name (as the debugger knows it by) this will
     return a CodeContainer interface suitable for use.
 
-    This provides a simple base imlpementation that simply supports
+    This provides a simple base implementation that simply supports
     a dictionary of nodes and providers.
     """
 

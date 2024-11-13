@@ -14,9 +14,64 @@ import struct
 import sys
 
 import win32con
-from win32api import *
-from win32gui import *
-from win32gui_struct import *
+from win32api import GetSystemDirectory, GetSystemMetrics
+from win32gui import (
+    LOWORD,
+    NIF_ICON,
+    NIF_MESSAGE,
+    NIF_TIP,
+    NIM_ADD,
+    NIM_DELETE,
+    WNDCLASS,
+    CheckMenuItem,
+    CheckMenuRadioItem,
+    CreateCompatibleBitmap,
+    CreateCompatibleDC,
+    CreateFontIndirect,
+    CreatePopupMenu,
+    CreateWindow,
+    DeleteDC,
+    DestroyIcon,
+    DestroyWindow,
+    DrawIconEx,
+    ExtTextOut,
+    FillRect,
+    GetCursorPos,
+    GetDC,
+    GetMenuDefaultItem,
+    GetMenuState,
+    GetModuleHandle,
+    GetSysColor,
+    GetSysColorBrush,
+    GetTextExtentPoint32,
+    InsertMenu,
+    InsertMenuItem,
+    LoadIcon,
+    LoadImage,
+    PostMessage,
+    PostQuitMessage,
+    PumpMessages,
+    PyGetMemory,
+    PyMakeBuffer,
+    PySetMemory,
+    RegisterClass,
+    ReleaseDC,
+    SelectObject,
+    SetBkColor,
+    SetBkMode,
+    SetForegroundWindow,
+    SetMenuDefaultItem,
+    SetTextColor,
+    Shell_NotifyIcon,
+    SystemParametersInfo,
+    TrackPopupMenu,
+    UpdateWindow,
+)
+from win32gui_struct import (
+    EmptyMENUITEMINFO,
+    PackMENUITEMINFO,
+    UnpackMENUITEMINFO,
+)
 
 this_dir = os.path.split(sys.argv[0])[0]
 
