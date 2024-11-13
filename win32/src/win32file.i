@@ -2,7 +2,7 @@
 // @doc
 
 %module win32file // An interface to the win32 File API's
-// <nl>This module includes the tranactional NTFS operations introduced with
+// <nl>This module includes the transactional NTFS operations introduced with
 // Vista.  The transacted functions are not wrapped separately, but are invoked by
 // passing a transaction handle to the corresponding Unicode API function.
 // This makes it simple to convert a set of file operations into a transaction by
@@ -1179,13 +1179,13 @@ static PyObject *myGetQueuedCompletionStatus(PyObject *self, PyObject *args)
 PyObject *myPostQueuedCompletionStatus(PyObject *self, PyObject *args)
 {
 	PyObject *obHandle, *obOverlapped = NULL, *obkey=Py_None;
-	DWORD bytesTransfered = 0;
+	DWORD bytesTransferred = 0;
 	ULONG_PTR key = 0;
 	// @pyparm <o PyHANDLE>|handle||handle to an I/O completion port
-	// @pyparm int|numberOfbytes|0|value to return via GetQueuedCompletionStatus' first result
+	// @pyparm int|numberOfBytes|0|value to return via GetQueuedCompletionStatus' first result
 	// @pyparm int|completionKey|0|value to return via GetQueuedCompletionStatus' second result
 	// @pyparm <o PyOVERLAPPED>|overlapped|None|value to return via GetQueuedCompletionStatus' third result
-	if (!PyArg_ParseTuple(args, "O|iOO", &obHandle, &bytesTransfered, &obkey, &obOverlapped))
+	if (!PyArg_ParseTuple(args, "O|iOO", &obHandle, &bytesTransferred, &obkey, &obOverlapped))
 		return NULL;
 	if (obkey!=Py_None)
 		if (!PyWinLong_AsVoidPtr(obkey, (void **)&key))
@@ -1198,7 +1198,7 @@ PyObject *myPostQueuedCompletionStatus(PyObject *self, PyObject *args)
 		return NULL;
 	BOOL ok;
 	Py_BEGIN_ALLOW_THREADS
-	ok = ::PostQueuedCompletionStatus(handle, bytesTransfered, key, pOverlapped);
+	ok = ::PostQueuedCompletionStatus(handle, bytesTransferred, key, pOverlapped);
 	Py_END_ALLOW_THREADS
 	if (!ok)
 		return PyWin_SetAPIError("PostQueuedCompletionStatus");
@@ -4168,7 +4168,7 @@ py_ReplaceFile(PyObject *self, PyObject *args)
 void encryptedfilecontextdestructor(PyObject *obctxt){
 	if (!PyCapsule_IsValid(obctxt, NULL))
 		return;	// should not happen, but maybe print a warning just in case ?
-	// Check if context has already been explicitely destroyed
+	// Check if context has already been explicitly destroyed
 	// The capsule's context is set to this value in CloseEncryptedFileRaw
 	if (PyCapsule_GetContext(obctxt) == INVALID_HANDLE_VALUE)
 		return;
@@ -5932,11 +5932,8 @@ PyCFunction pfnpy_OpenFileById=(PyCFunction)py_OpenFileById;
 			)
 			pmd->ml_flags = METH_VARARGS | METH_KEYWORDS;
 
-	HMODULE hmodule;
-	hmodule=GetModuleHandle(TEXT("AdvAPI32.dll"));
-	if (hmodule==NULL)
-		hmodule=LoadLibrary(TEXT("AdvAPI32.dll"));
-	if (hmodule){
+	HMODULE hmodule = PyWin_GetOrLoadLibraryHandle("advapi32.dll");
+	if (hmodule != NULL) {
 		pfnEncryptFile=(EncryptFilefunc)GetProcAddress(hmodule, "EncryptFileW");
 		pfnDecryptFile=(DecryptFilefunc)GetProcAddress(hmodule, "DecryptFileW");
 		pfnEncryptionDisable=(EncryptionDisablefunc)GetProcAddress(hmodule, "EncryptionDisable");
@@ -5952,12 +5949,10 @@ PyCFunction pfnpy_OpenFileById=(PyCFunction)py_OpenFileById;
 		pfnReadEncryptedFileRaw=(ReadEncryptedFileRawfunc)GetProcAddress(hmodule, "ReadEncryptedFileRaw");
 		pfnWriteEncryptedFileRaw=(WriteEncryptedFileRawfunc)GetProcAddress(hmodule, "WriteEncryptedFileRaw");
 		pfnCloseEncryptedFileRaw=(CloseEncryptedFileRawfunc)GetProcAddress(hmodule, "CloseEncryptedFileRaw");
-		}
+	}
 
-	hmodule=GetModuleHandle(TEXT("kernel32.dll"));
-	if (hmodule==NULL)
-		hmodule=LoadLibrary(TEXT("kernel32.dll"));
-	if (hmodule){
+	hmodule = PyWin_GetOrLoadLibraryHandle("kernel32.dll");
+	if (hmodule != NULL) {
 		pfnSetVolumeMountPoint=(SetVolumeMountPointfunc)GetProcAddress(hmodule, "SetVolumeMountPointW");
 		pfnDeleteVolumeMountPoint=(DeleteVolumeMountPointfunc)GetProcAddress(hmodule, "DeleteVolumeMountPointW");
 		pfnGetVolumeNameForVolumeMountPoint=(GetVolumeNameForVolumeMountPointfunc)GetProcAddress(hmodule, "GetVolumeNameForVolumeMountPointW");
@@ -6002,15 +5997,13 @@ PyCFunction pfnpy_OpenFileById=(PyCFunction)py_OpenFileById;
 		pfnWow64RevertWow64FsRedirection=(Wow64RevertWow64FsRedirectionfunc)GetProcAddress(hmodule, "Wow64RevertWow64FsRedirection");
 		pfnReOpenFile=(ReOpenFilefunc)GetProcAddress(hmodule, "ReOpenFile");
 		pfnOpenFileById=(OpenFileByIdfunc)GetProcAddress(hmodule, "OpenFileById");
-		}
+	}
 
-	hmodule=GetModuleHandle(TEXT("sfc.dll"));
-	if (hmodule==NULL)
-		hmodule=LoadLibrary(TEXT("sfc.dll"));
-	if (hmodule){
+	hmodule = PyWin_GetOrLoadLibraryHandle("sfc.dll");
+	if (hmodule != NULL) {
 		pfnSfcGetNextProtectedFile=(SfcGetNextProtectedFilefunc)GetProcAddress(hmodule, "SfcGetNextProtectedFile");
 		pfnSfcIsFileProtected=(SfcIsFileProtectedfunc)GetProcAddress(hmodule, "SfcIsFileProtected");
-		}
+	}
 
 %}
 

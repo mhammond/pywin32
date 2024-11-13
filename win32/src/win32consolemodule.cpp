@@ -2079,9 +2079,7 @@ PYWIN_MODULE_INIT_FUNC(win32console)
     PyDict_SetItemString(dict, "error", PyWinExc_ApiError);
 
     // load function pointers
-    kernel32_dll = GetModuleHandle(L"kernel32.dll");
-    if (kernel32_dll == NULL)
-        kernel32_dll = LoadLibrary(L"kernel32.dll");
+    kernel32_dll = PyWin_GetOrLoadLibraryHandle("kernel32.dll");
     if (kernel32_dll != NULL) {
         pfnGetConsoleProcessList = (GetConsoleProcessListfunc)GetProcAddress(kernel32_dll, "GetConsoleProcessList");
         pfnGetConsoleDisplayMode = (GetConsoleDisplayModefunc)GetProcAddress(kernel32_dll, "GetConsoleDisplayMode");

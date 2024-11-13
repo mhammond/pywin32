@@ -84,6 +84,7 @@ class Extension(threaded_extension.ThreadPoolExtension):
 # The ISAPI filter.
 class Filter(SimpleFilter):
     "Sample Python Redirector"
+
     filter_flags = isapicon.SF_NOTIFY_PREPROC_HEADERS | isapicon.SF_NOTIFY_ORDER_DEFAULT
 
     def HttpFilterProc(self, fc):

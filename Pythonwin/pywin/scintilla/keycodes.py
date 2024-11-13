@@ -70,7 +70,7 @@ modifiers = {
 
 
 def parse_key_name(name):
-    name += "-"  # Add a sentinal
+    name += "-"  # Add a sentinel
     start = pos = 0
     max = len(name)
     toks = []

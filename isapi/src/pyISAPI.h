@@ -25,7 +25,7 @@
 #ifndef __PYISAPI_H__
 #define __PYISAPI_H__
 
-// PYISAPI.H - Header file for your Internet Server
+// pyISAPI.h - Header file for your Internet Server
 //    Python ISAPI Extension
 
 #include "PythonEng.h"

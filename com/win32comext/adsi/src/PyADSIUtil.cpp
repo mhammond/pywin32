@@ -672,11 +672,11 @@ done:
 //
 // Error string utility.
 //
-// ADSERR.h is built from a message file.
+// AdsErr.h is built from a message file.
 // Therefore, there _must_ be a DLL around we can call
 // FormatMessage with.
 // However, it's not obvious, and this code was cut directly from MSDN.
-#include "adserr.h"
+#include "AdsErr.h"
 typedef struct tagADSERRMSG {
     HRESULT hr;
     LPCWSTR pszError;

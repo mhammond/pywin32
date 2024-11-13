@@ -36,12 +36,9 @@ EnumServicesStatusExfunc fpEnumServicesStatusEx=NULL;
 	PyDict_SetItemString(d, "error", PyWinExc_ApiError);
 	PyDict_SetItemString(d, "HWINSTAType", (PyObject *)&PyHWINSTAType);
 	PyDict_SetItemString(d, "HDESKType", (PyObject *)&PyHDESKType);
-	HMODULE hmod;
 	FARPROC fp;
-	hmod=GetModuleHandle(_T("Advapi32"));
-	if (hmod==NULL)
-		hmod=LoadLibrary(_T("Advapi32"));
-	if (hmod!=NULL){
+	HMODULE hmod = PyWin_GetOrLoadLibraryHandle("advapi32.dll");
+	if (hmod != NULL) {
 		fp=GetProcAddress(hmod,"QueryServiceStatusEx");
 		if (fp!=NULL)
 			fpQueryServiceStatusEx=(QueryServiceStatusExfunc)fp;
@@ -54,7 +51,7 @@ EnumServicesStatusExfunc fpEnumServicesStatusEx=NULL;
 		fp=GetProcAddress(hmod,"EnumServicesStatusExW");
 		if (fp!=NULL)
 			fpEnumServicesStatusEx=(EnumServicesStatusExfunc)fp;
-		}
+	}
 %}
 
 %{

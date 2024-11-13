@@ -91,7 +91,6 @@ def TestUser(session):
 
 
 def test():
-
     oldcwd = os.getcwd()
     try:
         session = gencache.EnsureDispatch("MAPI.Session")

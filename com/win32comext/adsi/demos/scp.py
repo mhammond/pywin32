@@ -419,7 +419,7 @@ def main():
         "--test",
         action="store_true",
         help="Execute a mini-test suite, providing defaults for most options and args",
-    ),
+    )
 
     parser.add_option(
         "",
