@@ -1246,9 +1246,9 @@ done:
     if it fails. If the SID can be constructed successfully,
     a valid binary SID is returned.
 
-    This function requires TCHAR.H and the C runtime library.
+    This function requires tchar.h and the C runtime library.
 
-    The following are macros defined in TCHAR.H that allow this
+    The following are macros defined in tchar.h that allow this
     function to be compiled with or without UNICODE defined. To
     replace these macros with direct calls to their corresponding
     ANSI functions first make sure this module is not compiled
