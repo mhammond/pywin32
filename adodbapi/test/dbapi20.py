@@ -1,14 +1,14 @@
 #!/usr/bin/env python
-""" Python DB API 2.0 driver compliance unit test suite.
+"""Python DB API 2.0 driver compliance unit test suite.
 
-    This software is Public Domain and may be used without restrictions.
+   This software is Public Domain and may be used without restrictions.
 
- "Now we have booze and barflies entering the discussion, plus rumours of
-  DBAs on drugs... and I won't tell you what flashes through my mind each
-  time I read the subject line with 'Anal Compliance' in it.  All around
-  this is turning out to be a thoroughly unwholesome unit test."
+"Now we have booze and barflies entering the discussion, plus rumours of
+ DBAs on drugs... and I won't tell you what flashes through my mind each
+ time I read the subject line with 'Anal Compliance' in it.  All around
+ this is turning out to be a thoroughly unwholesome unit test."
 
-    -- Ian Bicking
+   -- Ian Bicking
 """
 
 __version__ = "$Revision: 1.15.0 $"[11:-2]
@@ -71,7 +71,7 @@ TEST_FOR_NON_IDEMPOTENT_CLOSE = False
 # - Now a subclass of TestCase, to avoid requiring the driver stub
 #   to use multiple inheritance
 # - Reversed the polarity of buggy test in test_description
-# - Test exception heirarchy correctly
+# - Test exception hierarchy correctly
 # - self.populate is now self._populate(), so if a driver stub
 #   overrides self.ddl1 this change propogates
 # - VARCHAR columns now have a width, which will hopefully make the
@@ -198,7 +198,7 @@ class DatabaseAPI20Test(unittest.TestCase):
 
     def test_Exceptions(self):
         # Make sure required exceptions exist, and are in the
-        # defined heirarchy.
+        # defined hierarchy.
         if sys.version[0] == "3":  # under Python 3 StardardError no longer exists
             self.assertTrue(issubclass(self.driver.Warning, Exception))
             self.assertTrue(issubclass(self.driver.Error, Exception))
