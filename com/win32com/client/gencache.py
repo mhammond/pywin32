@@ -420,7 +420,7 @@ def ForgetAboutTypelibInterface(typelib_ob):
             )
         )
     # and drop any version redirects to it
-  	# copy into a list to avoid size changing during iteration
+    # copy into a list to avoid size changing during iteration
     for key in list(versionRedirectMap.keys()):
         if key == info:
             del versionRedirectMap[key]
