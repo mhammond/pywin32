@@ -5,7 +5,7 @@ import sys
 from collections.abc import Callable, Iterable
 from functools import partial
 from types import FunctionType, MethodType
-from typing import TYPE_CHECKING, Generator, Generic, TypeVar
+from typing import TYPE_CHECKING, Generator, Generic, TypeVar, Union
 
 if TYPE_CHECKING:
     from _typeshed import SupportsWrite
@@ -30,7 +30,7 @@ class DocInfo(Generic[_T]):
         self.ob = ob
 
 
-class ArgInfo(DocInfo[FunctionType | MethodType]):
+class ArgInfo(DocInfo[Union[FunctionType, MethodType]]):
     def __init__(self, name: str, ob: FunctionType | MethodType, default: str) -> None:
         super().__init__(name, ob)
         self.desc = name
