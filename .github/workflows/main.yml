@@ -43,6 +43,13 @@ jobs:
         run: |
           python setup.py install --user
 
+      # This needs to happen *after* installing pywin32 since
+      # AutoDuck/py2d.py currently relies on runtime imports for introspection
+      # This isn't included in the wheel (TODO: could we?)
+      # and only servces as a PR test for the docs.yaml workflow
+      - name: Generate PyWin32.chm help file
+        run: python AutoDuck/make.py
+
       - name: Run tests
         # Run the tests directly from the source dir so support files (eg, .wav files etc)
         # can be found - they aren't installed into the Python tree.
@@ -110,23 +117,22 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          # This job only needs to target the oldest version supported by our checkers
-          # (black>=24.10.0 supports Python >=3.9)
-          python-version: "3.9"
+          # This job only needs to target the oldest supported version
+          python-version: "3.8"
           cache: pip
           cache-dependency-path: .github/workflows/main.yml
       - run: pip install clang-format pycln
       - run: pycln . --config=pycln.toml --check
       - uses: astral-sh/ruff-action@v1
         with:
-          version: "0.4.5"
-      - uses: psf/black@stable
+          version: "0.4.9"
+      - uses: astral-sh/ruff-action@v1
         with:
-          options: "--fast --check --diff --verbose"
+          version: "0.4.9"
+          args: "format --check"
       - run: | # Too many files to fit in a single command, also exclude vendored Scintilla and MAPIStubLibrary
           clang-format --Werror --dry-run $(git ls-files '*.cpp')
           clang-format --Werror --dry-run $(git ls-files '*.h' ':!:Pythonwin/Scintilla/' ':!:com/win32comext/mapi/src/MAPIStubLibrary/')
-        shell: powershell
 
   mypy:
     runs-on: windows-2019
@@ -144,7 +150,7 @@ jobs:
           cache: pip
           cache-dependency-path: .github/workflows/main.yml
           check-latest: true
-      - run: pip install types-regex types-setuptools PyOpenGL mypy==1.11
+      - run: pip install types-setuptools PyOpenGL mypy==1.11
       - run: mypy . --python-version=${{ matrix.python-version }}
 
   pyright:
@@ -163,7 +169,7 @@ jobs:
           cache-dependency-path: .github/workflows/main.yml
           check-latest: true
       # pyright vendors typeshed, but let's make sure we have the most up to date stubs
-      - run: pip install types-regex types-setuptools PyOpenGL
+      - run: pip install types-setuptools PyOpenGL
       - uses: jakebailey/pyright-action@v2
         with:
           python-version: ${{ matrix.python-version }}
