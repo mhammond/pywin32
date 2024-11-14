@@ -40,8 +40,6 @@
   "reportOptionalSubscript": "warning",
   // Needs fixes in types-pywin32 and requires Python 3.8 to annotate ambiguous global variables
   "reportUnnecessaryComparison": "warning",
-  // TODO: Leave Unbound its own PR(s)
-  "reportUnboundVariable": "warning",
   // IDEM, but happens when pywin32 is not in site-packages but module is found from typeshed.
   // TODO: Is intended to be fixed with an editable install
   // Since we're a library, and not user code, we care less about forgetting to install a dependency,
