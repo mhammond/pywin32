@@ -40,8 +40,6 @@
   "reportOptionalSubscript": "warning",
   // Needs fixes in types-pywin32 to annotate ambiguous global variables
   "reportUnnecessaryComparison": "warning",
-  // TODO: Leave Unbound its own PR(s)
-  "reportUnboundVariable": "warning",
   // Too many dynamically generated modules. This will require type stubs to properly fix.
   "reportMissingImports": "warning",
   // IDEM, but happens when pywin32 is not in site-packages but module is found from typeshed.

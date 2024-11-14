@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 
+import builtins
 import os
 import sys
 import traceback
@@ -327,7 +328,7 @@ def _GetRegistryValue(key, val, default=None):
             return default
 
 
-scintilla = "Scintilla is Copyright 1998-2008 Neil Hodgson (http://www.scintilla.org)"
+scintilla = "Scintilla is Copyright 1998-2020 Neil Hodgson (https://www.scintilla.org)"
 idle = "This program uses IDLE extensions by Guido van Rossum, Tim Peters and others."
 contributors = "Thanks to the following people for making significant contributions: Roger Upole, Sidnei da Silva, Sam Rushing, Curt Hagenlocher, Dave Brennan, Roger Burnham, Gordon McMillan, Neil Hodgson, Laramie Leavitt. (let me know if I have forgotten you!)"
 
@@ -390,9 +391,7 @@ def Win32Input(prompt=None):
 
 
 def HookInput():
-    import code
-
-    sys.modules["builtins"].input = Win32Input
+    builtins.input = Win32Input
 
 
 def HaveGoodGUI():
