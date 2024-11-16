@@ -43,8 +43,9 @@ class CPippo:
 def BuildTypelib():
     from setuptools.modified import newer
 
-    this_dir = os.path.dirname(__file__)
-    idl = os.path.abspath(os.path.join(this_dir, "pippo.idl"))
+    # __file__ can be relative before Python 3.9
+    this_dir = os.path.dirname(os.path.abspath(__file__))
+    idl = os.path.join(this_dir, "pippo.idl")
     tlb = os.path.splitext(idl)[0] + ".tlb"
     if newer(idl, tlb):
         print(f"Compiling {idl}")
