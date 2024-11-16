@@ -18,7 +18,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13-dev"]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
         architecture: ["x64", "x86"]
 
     steps:
@@ -76,7 +76,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10", "3.11", "3.12", "3.13-dev"]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
     steps:
       - uses: actions/checkout@v4
 
@@ -121,7 +121,7 @@ jobs:
           python-version: "3.8"
           cache: pip
           cache-dependency-path: .github/workflows/main.yml
-      - run: pip install clang-format pycln
+      - run: pip install clang-format==18.1.* pycln
       - run: pycln . --config=pycln.toml --check
       - uses: astral-sh/ruff-action@v1
         with:
@@ -131,8 +131,10 @@ jobs:
           version: "0.4.9"
           args: "format --check"
       - run: | # Too many files to fit in a single command, also exclude vendored Scintilla and MAPIStubLibrary
-          clang-format --Werror --dry-run $(git ls-files '*.cpp')
+          clang-format --Werror --dry-run $(git ls-files '*.cpp' ':!:com/win32comext/mapi/src/MAPIStubLibrary/')
+          if ($LastExitCode -ne 0) { exit $LastExitCode }
           clang-format --Werror --dry-run $(git ls-files '*.h' ':!:Pythonwin/Scintilla/' ':!:com/win32comext/mapi/src/MAPIStubLibrary/')
+          if ($LastExitCode -ne 0) { exit $LastExitCode }
 
   mypy:
     runs-on: windows-2019
@@ -140,8 +142,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # mypy won't understand "3.13-dev", keeping the CI simple by just omitting it
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -150,7 +151,7 @@ jobs:
           cache: pip
           cache-dependency-path: .github/workflows/main.yml
           check-latest: true
-      - run: pip install types-setuptools PyOpenGL mypy==1.11
+      - run: pip install types-setuptools PyOpenGL mypy[faster-cache]==1.13.*
       - run: mypy . --python-version=${{ matrix.python-version }}
 
   pyright:
@@ -159,7 +160,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13-dev"]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -173,5 +174,5 @@ jobs:
       - uses: jakebailey/pyright-action@v2
         with:
           python-version: ${{ matrix.python-version }}
-          version: "1.1.358"
+          version: "1.1.383"
           annotate: errors
