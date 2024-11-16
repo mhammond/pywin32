@@ -128,7 +128,7 @@ class SourceCodeContainer:
         erow, ecol = epos
         self.GetText()  # Prime us.
         linenum = srow - 1  # Lines zero based for us too.
-        realCharPos = self.lineOffsets[linenum] + scol
+        realCharPos: int = self.lineOffsets[linenum] + scol
         numskipped = realCharPos - self.lastPos
         if numskipped == 0:
             pass
@@ -161,7 +161,7 @@ class SourceCodeContainer:
 
     def GetSyntaxColorAttributes(self):
         self.lastPos = 0
-        self.attrs = []
+        self.attrs: list[tuple[int] | tuple[int, int]] = []
         try:
             for tokens in tokenize.tokenize(self.GetNextLine):
                 self._ProcessToken(*tokens)

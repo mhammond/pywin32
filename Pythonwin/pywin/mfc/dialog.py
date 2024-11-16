@@ -258,13 +258,11 @@ def GetSimpleInput(prompt, defValue="", title=None):
     # uses a simple dialog to return a string object.
     if title is None:
         title = win32ui.GetMainFrame().GetWindowText()
-    # 2to3 insists on converting 'Dialog.__init__' to 'tkinter.dialog...'
-    DlgBaseClass = Dialog
 
-    class DlgSimpleInput(DlgBaseClass):
+    class DlgSimpleInput(Dialog):
         def __init__(self, prompt, defValue, title):
             self.title = title
-            DlgBaseClass.__init__(self, win32ui.IDD_SIMPLE_INPUT)
+            Dialog.__init__(self, win32ui.IDD_SIMPLE_INPUT)
             self.AddDDX(win32ui.IDC_EDIT1, "result")
             self.AddDDX(win32ui.IDC_PROMPT1, "prompt")
             self._obj_.data["result"] = defValue
@@ -272,7 +270,7 @@ def GetSimpleInput(prompt, defValue="", title=None):
 
         def OnInitDialog(self):
             self.SetWindowText(self.title)
-            return DlgBaseClass.OnInitDialog(self)
+            return Dialog.OnInitDialog(self)
 
     dlg = DlgSimpleInput(prompt, defValue, title)
     if dlg.DoModal() != win32con.IDOK:
