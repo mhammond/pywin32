@@ -3,10 +3,6 @@
 
 %module win32gui // A module which provides an interface to the native win32 GUI API.
 
-%{
-#define _WIN32_WINNT 0x0501
-
-%}
 %include "typemaps.i"
 %include "pywintypes.i"
 

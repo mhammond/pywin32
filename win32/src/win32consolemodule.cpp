@@ -1,5 +1,4 @@
 // @doc
-#define _WIN32_WINNT 0x501
 #include "PyWinTypes.h"
 #include "PyWinObjects.h"
 #include "structmember.h"
@@ -941,11 +940,6 @@ PyObject *PyConsoleScreenBuffer::PySetConsoleMode(PyObject *self, PyObject *args
     return Py_None;
 }
 
-#ifndef _WIN32_WINNT_LONGHORN
-// 'reserved' ReadConsole param is defined as a PCONSOLE_READCONSOLE_CONTROL
-// in Vista's SDK.  If no such def exists, assume it's still 'void *'
-#define PCONSOLE_READCONSOLE_CONTROL void *
-#endif
 // @pymethod <o PyUNICODE>|PyConsoleScreenBuffer|ReadConsole|Reads characters from the console input buffer
 PyObject *PyConsoleScreenBuffer::PyReadConsole(PyObject *self, PyObject *args, PyObject *kwargs)
 {

@@ -1,5 +1,4 @@
 // @doc
-#define _WIN32_WINNT 0x502
 #include "win32crypt.h"
 
 // @pymethod bytes|win32crypt|CryptProtectData|Encrypts data using a session key derived from current user's logon
