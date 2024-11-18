@@ -10,7 +10,7 @@ import builtins
 import os
 import sys
 import traceback
-from typing import TYPE_CHECKING
+from typing import Literal
 
 import regutil
 import win32api
@@ -20,9 +20,6 @@ from pywin.mfc import afxres, dialog, window
 from pywin.mfc.thread import WinApp
 
 from . import scriptutils
-
-if TYPE_CHECKING:
-    from typing_extensions import Literal
 
 
 # Helper for writing a Window position by name, and later loading it.
