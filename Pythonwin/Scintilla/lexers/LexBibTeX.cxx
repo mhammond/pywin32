@@ -269,8 +269,6 @@ namespace {
 
 				if ((current_level > prev_level))
 					level |= SC_FOLDLEVELHEADERFLAG;
-				// else if (current_level < prev_level)
-				//	level |= SC_FOLDLEVELBOXFOOTERFLAG; // Deprecated
 
 				if (level != styler.LevelAt(current_line)) {
 					styler.SetLevel(current_line, level);
