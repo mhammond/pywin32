@@ -34,7 +34,7 @@ import shutil
 import subprocess
 import sys
 import winreg
-from collections.abc import Iterable, MutableSequence
+from collections.abc import Iterable
 from pathlib import Path
 from setuptools import Extension, setup
 from setuptools.command.build import build
