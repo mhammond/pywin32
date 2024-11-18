@@ -453,7 +453,7 @@ class my_build_ext(build_ext):
             assert os.path.isdir(build_temp), build_temp
         makeargs.append("SUB_DIR_O=%s" % build_temp)
         makeargs.append("SUB_DIR_BIN=%s" % build_temp)
-        makeargs.append("DIR_PYTHON=%s" % sys.prefix)
+        makeargs.append(f'PYTHON="{sys.executable}"')
 
         nmake = "nmake.exe"
         # Attempt to resolve nmake to the same one that our compiler object

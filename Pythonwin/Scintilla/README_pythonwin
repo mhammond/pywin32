@@ -9,5 +9,5 @@ and companion editor SciTE, see https://www.scintilla.org/.
 
 When updating the Scintilla source, also update the copyright year
 in Pythonwin/pywin/framework/app.py and regenerate
-Pythonwin/pywin/scintilla/scintillacon.py using h2py:
-https://github.com/python/cpython/blob/3.8/Tools/scripts/h2py.py
+Pythonwin/pywin/scintilla/scintillacon.py using h2py
+(this should be done automatically if you launch a build).

@@ -12,7 +12,8 @@ DIR_O = ..\Build\Temp\Scintilla\Release
 
 DIR_BIN = ..\Build
 
-DIR_PYTHON=\src\python-cvs
+# PYTHON is set in setup.py, defaulting to the one found on PATH
+PYTHON = python
 
 # Relative to the subdirectory for the sub-makefile
 !ifndef SUB_DIR_BIN
@@ -28,8 +29,7 @@ SCINTILLA_DLL = $(SUB_DIR_BIN)\Scintilla_d.dll
 SCINTILLA_DLL = $(SUB_DIR_BIN)\Scintilla.dll
 !ENDIF
 
-all: ..\pywin\scintilla\scintillacon.py Scintilla
-
+all: scintillacon.py Scintilla
 
 clean:
 	cd win32 && $(MAKE) /$(MAKEFLAGS) -f scintilla.mak DIR_BIN=$(SUB_DIR_BIN) DIR_O=$(SUB_DIR_O) clean && cd ..
@@ -44,10 +44,10 @@ Scintilla:
 	set INCLUDE
 	@cd win32 && $(MAKE) /$(MAKEFLAGS) /f scintilla.mak DIR_BIN=$(SUB_DIR_BIN) DIR_O=$(SUB_DIR_O) LEXCOMPONENT=$(SCINTILLA_DLL) COMPONENT=dummy $(SCINTILLA_DLL) && cd ..
 
-..\pywin\scintilla\scintillacon.py: Include\Scintilla.h Include\SciLexer.h
-	@if not exist $(DIR_PYTHON)\tools\scripts\h2py.py echo ***** Can't find h2py.py in '$(DIR_PYTHON)\tools\scripts - please pass DIR_PYTHON to this script *******
-	$(DIR_PYTHON)\tools\scripts\h2py.py Include\scintilla.h
-	$(DIR_PYTHON)\tools\scripts\h2py.py Include\scilexer.h
+scintillacon.py: Include\Scintilla.h Include\SciLexer.h
+	$(PYTHON) ..\..\Win32\scripts\h2py.py Include\scintilla.h
+	$(PYTHON) ..\..\Win32\scripts\h2py.py Include\scilexer.h
+    $(PYTHON) -V
     type scintilla.py > ..\pywin\scintilla\scintillacon.py
 	type scilexer.py >> ..\pywin\scintilla\scintillacon.py
 	del scintilla.py scilexer.py
