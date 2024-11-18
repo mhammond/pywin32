@@ -27,6 +27,7 @@ import datetime
 import decimal
 import random
 import string
+import sys
 import time
 import unittest
 
@@ -35,6 +36,14 @@ import tryconnection  # in our code below, all our switches are from config.what
 
 import adodbapi
 import adodbapi.apibase as api
+
+try:
+    import adodbapi.ado_consts as ado_consts
+except ImportError:  # we are doing a shortcut import as a module -- so
+    try:
+        import ado_consts
+    except ImportError:
+        from adodbapi import ado_consts
 
 
 def randomstring(length):
@@ -178,6 +187,49 @@ class CommonDBTests(unittest.TestCase):
             except:
                 pass
             self.helpRollbackTblTemp()
+
+    def testUserDefinedConversionForExactNumericTypes(self):
+        # variantConversions is a dictionary of conversion functions
+        # held internally in adodbapi.apibase
+        #
+        # !!! this test intentionally alters the value of what should be constant in the module
+        # !!! no new code should use this example, to is only a test to see that the
+        # !!! deprecated way of doing this still works.  (use connection.variantConversions)
+        #
+        if sys.version_info < (3, 0):  ### Py3 need different test
+            oldconverter = adodbapi.variantConversions[
+                ado_consts.adNumeric
+            ]  # keep old function to restore later
+            # By default decimal and "numbers" are returned as decimals.
+            # Instead, make numbers return as  floats
+            try:
+                adodbapi.variantConversions[ado_consts.adNumeric] = adodbapi.cvtFloat
+                self.helpTestDataType(
+                    "decimal(18,2)", "NUMBER", 3.45, compareAlmostEqual=1
+                )
+                self.helpTestDataType(
+                    "numeric(18,2)", "NUMBER", 3.45, compareAlmostEqual=1
+                )
+                # now return strings
+                adodbapi.variantConversions[ado_consts.adNumeric] = adodbapi.cvtString
+                self.helpTestDataType("numeric(18,2)", "NUMBER", "3.45")
+                # now a completely weird user defined conversion
+                adodbapi.variantConversions[ado_consts.adNumeric] = (
+                    lambda x: "!!This function returns a funny unicode string %s!!" % x
+                )
+                self.helpTestDataType(
+                    "numeric(18,2)",
+                    "NUMBER",
+                    "3.45",
+                    allowedReturnValues=[
+                        "!!This function returns a funny unicode string 3.45!!"
+                    ],
+                )
+            finally:
+                # now reset the converter to its original function
+                adodbapi.variantConversions[ado_consts.adNumeric] = (
+                    oldconverter  # Restore the original conversion function
+                )
 
     def helpTestDataType(
         self,
@@ -380,7 +432,7 @@ class CommonDBTests(unittest.TestCase):
                 "bigint",
                 "NUMBER",
                 3000000000,
-                allowedReturnValues=[3000000000, 3000000000],
+                allowedReturnValues=[3000000000, int(3000000000)],
             )
         self.helpTestDataType("int", "NUMBER", 2147483647)
 
@@ -1084,7 +1136,7 @@ class TestADOwithSQLServer(CommonDBTests):
         return self.conn
 
     def getAnotherConnection(self, addkeys=None):
-        keys = config.connStrSQLServer[1].copy()
+        keys = dict(config.connStrSQLServer[1])
         if addkeys:
             keys.update(addkeys)
         return config.dbSqlServerconnect(*config.connStrSQLServer[0], **keys)
@@ -1264,7 +1316,7 @@ class TestADOwithMySql(CommonDBTests):
         return self.conn
 
     def getAnotherConnection(self, addkeys=None):
-        keys = config.connStrMySql[1].copy()
+        keys = dict(config.connStrMySql[1])
         if addkeys:
             keys.update(addkeys)
         return config.dbMySqlconnect(*config.connStrMySql[0], **keys)
@@ -1330,7 +1382,7 @@ class TestADOwithPostgres(CommonDBTests):
         return self.conn
 
     def getAnotherConnection(self, addkeys=None):
-        keys = config.connStrPostgres[1].copy()
+        keys = dict(config.connStrPostgres[1])
         if addkeys:
             keys.update(addkeys)
         return config.dbPostgresConnect(*config.connStrPostgres[0], **keys)
