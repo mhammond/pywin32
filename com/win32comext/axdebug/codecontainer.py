@@ -229,7 +229,7 @@ class SourceModuleContainer(SourceCodeContainer):
                 try:
                     self.text = open(fname, "r").read()
                 except OSError as details:
-                    self.text = f"# COMException opening file\n# {repr(details)}"
+                    self.text = f"# COMException opening file\n# {details!r}"
             else:
                 self.text = f"# No file available for module '{self.module}'"
             self._buildlines()
