@@ -821,10 +821,7 @@ def DllRegisterServer():
     s = struct.pack("i", attr)
     winreg.SetValueEx(key, "Attributes", 0, winreg.REG_BINARY, s)
     # register the context menu handler under the FolderViewSampleType type.
-    keypath = "{}\\shellex\\ContextMenuHandlers\\{}".format(
-        ContextMenu._context_menu_type_,
-        ContextMenu._reg_desc_,
-    )
+    keypath = f"{ContextMenu._context_menu_type_}\\shellex\\ContextMenuHandlers\\{ContextMenu._reg_desc_}"
     key = winreg.CreateKey(winreg.HKEY_CLASSES_ROOT, keypath)
     winreg.SetValueEx(key, None, 0, winreg.REG_SZ, ContextMenu._reg_clsid_)
     propsys.PSRegisterPropertySchema(get_schema_fname())
@@ -837,9 +834,7 @@ def DllUnregisterServer():
     paths = [
         "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Desktop\\Namespace\\"
         + ShellFolder._reg_clsid_,
-        "{}\\shellex\\ContextMenuHandlers\\{}".format(
-            ContextMenu._context_menu_type_, ContextMenu._reg_desc_
-        ),
+        f"{ContextMenu._context_menu_type_}\\shellex\\ContextMenuHandlers\\{ContextMenu._reg_desc_}",
     ]
     for path in paths:
         try:
