@@ -532,7 +532,7 @@ class my_build_ext(build_ext):
         subprocess.run((sys.executable, "AutoDuck/make.py"), check=True)
 
         # Cleanup
-        # tmp_pywin32_build_pth.unlink()
+        tmp_pywin32_build_pth.unlink()
 
     # find the VC base path corresponding to distutils paths, and
     # potentially upgrade for extra include / lib paths (MFC)
