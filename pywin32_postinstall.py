@@ -507,7 +507,7 @@ def install(lib_dir):
     try:
         chm_file = RegisterHelpFile(True, lib_dir)
     except Exception:
-        print(f"Failed to register help file")
+        print("Failed to register help file")
         traceback.print_exc()
     else:
         if verbose:
