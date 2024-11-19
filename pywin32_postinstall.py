@@ -254,13 +254,10 @@ def RegisterHelpFile(register=True, lib_dir=None):
     if register:
         # Register the .chm help file.
         chm_file = os.path.join(lib_dir, "PyWin32.chm")
-        if os.path.isfile(chm_file):
-            # This isn't recursive, so if 'Help' doesn't exist, we croak
-            SetPyKeyVal("Help", None, None)
-            SetPyKeyVal("Help\\Pythonwin Reference", None, chm_file)
-            return chm_file
-        else:
-            print("NOTE: PyWin32.chm can not be located, so has not been registered")
+        # This isn't recursive, so if 'Help' doesn't exist, we croak
+        SetPyKeyVal("Help", None, None)
+        SetPyKeyVal("Help\\Pythonwin Reference", None, chm_file)
+        return chm_file
     else:
         UnsetPyKeyVal("Help\\Pythonwin Reference", None, delete_key=True)
     return None
@@ -510,7 +507,7 @@ def install(lib_dir):
     try:
         chm_file = RegisterHelpFile(True, lib_dir)
     except Exception:
-        print("Failed to register help file")
+        print(f"Failed to register help file")
         traceback.print_exc()
     else:
         if verbose:
