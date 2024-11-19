@@ -2112,6 +2112,10 @@ classifiers = [
 
 # 3.10 stopped supporting bdist_wininst, but we can still build them with 3.9.
 # This can be kept until Python 3.9 or exe installers support is dropped.
+
+# Keep in sync with provided wheel files
+python_requires = ">=3.7,<=3.12"
+
 if "bdist_wininst" in sys.argv:
     # fixup https://github.com/pypa/setuptools/issues/3284
     def maybe_fixup_exes():
@@ -2163,6 +2167,7 @@ dist = setup(
     url="https://github.com/mhammond/pywin32",
     license="PSF",
     classifiers=classifiers,
+    python_requires=python_requires,
     cmdclass=cmdclass,
     options={
         "bdist_wininst": {

@@ -239,6 +239,9 @@ Build 306, released 2023-03-26
 
 * Support for Python 3.6 was dropped, support for later versions was improved.
 
+* The supported Python versions are now provided in the package metadata for
+  use by installers such as pip (#1448)
+
 Build 305, released 2022-11-06
 ------------------------------
 * Installation .exe files were deprecated.
