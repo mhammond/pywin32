@@ -125,10 +125,10 @@ jobs:
       - run: pycln . --config=pycln.toml --check
       - uses: astral-sh/ruff-action@v1
         with:
-          version: "0.4.9"
+          version: "0.8.0"
       - uses: astral-sh/ruff-action@v1
         with:
-          version: "0.4.9"
+          version: "0.8.0"
           args: "format --check"
       - run: | # Too many files to fit in a single command, also exclude vendored Scintilla and MAPIStubLibrary
           clang-format --Werror --dry-run $(git ls-files '*.cpp')
