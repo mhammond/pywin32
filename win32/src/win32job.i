@@ -20,12 +20,10 @@ static IsProcessInJobfunc pfnIsProcessInJob=NULL;
 
 
 %init %{
-HMODULE hmodule=GetModuleHandle(L"kernel32.dll");
-if (hmodule==NULL)
-	hmodule=LoadLibrary(L"kernel32.dll");
-if (hmodule){
-	pfnIsProcessInJob=(IsProcessInJobfunc)GetProcAddress(hmodule,"IsProcessInJob");
-	}
+HMODULE hmodule = PyWin_GetOrLoadLibraryHandle("kernel32.dll");
+if (hmodule != NULL) {
+	pfnIsProcessInJob = (IsProcessInJobfunc)GetProcAddress(hmodule, "IsProcessInJob");
+}
 
 %}
 
