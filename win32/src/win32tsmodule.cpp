@@ -836,10 +836,8 @@ PYWIN_MODULE_INIT_FUNC(win32ts)
     PyModule_AddIntConstant(module, "NOTIFY_FOR_THIS_SESSION", NOTIFY_FOR_THIS_SESSION);
     PyModule_AddIntConstant(module, "NOTIFY_FOR_ALL_SESSIONS", NOTIFY_FOR_ALL_SESSIONS);
 
-    HMODULE h = GetModuleHandle(L"wtsapi32.dll");
-    if (h == NULL)
-        h = LoadLibrary(L"wtsapi32.dll");
-    if (h) {
+    HMODULE h = PyWin_GetOrLoadLibraryHandle("wtsapi32.dll");
+    if (h != NULL) {
         pfnWTSQueryUserToken = (WTSQueryUserTokenfunc)GetProcAddress(h, "WTSQueryUserToken");
         pfnWTSRegisterSessionNotification =
             (WTSRegisterSessionNotificationfunc)GetProcAddress(h, "WTSRegisterSessionNotification");
@@ -847,10 +845,8 @@ PYWIN_MODULE_INIT_FUNC(win32ts)
             (WTSUnRegisterSessionNotificationfunc)GetProcAddress(h, "WTSUnRegisterSessionNotification");
     }
 
-    h = GetModuleHandle(L"kernel32.dll");
-    if (h == NULL)
-        h = LoadLibrary(L"kernel32.dll");
-    if (h) {
+    h = PyWin_GetOrLoadLibraryHandle("kernel32.dll");
+    if (h != NULL) {
         pfnProcessIdToSessionId = (ProcessIdToSessionIdfunc)GetProcAddress(h, "ProcessIdToSessionId");
         pfnWTSGetActiveConsoleSessionId =
             (WTSGetActiveConsoleSessionIdfunc)GetProcAddress(h, "WTSGetActiveConsoleSessionId");
