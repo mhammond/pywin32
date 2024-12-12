@@ -12,9 +12,6 @@ rem Now the binaries.
 
 rem Check /build_env.md#build-environment to make sure you have all the required components installed
 
-py -3.8-32 setup.py -q bdist_wheel --skip-build
-py -3.8 setup.py -q bdist_wheel --skip-build
-
 py -3.9-32 setup.py -q bdist_wheel --skip-build
 py -3.9 setup.py -q bdist_wheel --skip-build
 

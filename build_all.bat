@@ -1,7 +1,3 @@
-py -3.8-32 setup.py -q build
-@if errorlevel 1 goto failed
-py -3.8 setup.py -q build
-@if errorlevel 1 goto failed
 py -3.9-32 setup.py -q build
 @if errorlevel 1 goto failed
 py -3.9 setup.py -q build
