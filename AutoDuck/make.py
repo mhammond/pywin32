@@ -26,5 +26,7 @@ if __name__ == "__main__":
     ).splitlines()[-1]
 
     subprocess.run(
-        [nmake, "-E", "-f", "pywin32.mak"], cwd=os.path.dirname(sys.argv[0]), check=True
+        [nmake, f'PYTHON="{sys.executable}"', "-E", "-f", "pywin32.mak"],
+        cwd=os.path.dirname(sys.argv[0]),
+        check=True,
     )

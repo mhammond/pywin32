@@ -448,7 +448,7 @@ def RegisterClasses(*classes, **flags):
                         win32api.FindFiles(sys.argv[0])[0][8]
                     )[0]
                 except (IndexError, win32api.error):
-                    # Can't find the script file - the user must explicitely set the _reg_... attribute.
+                    # Can't find the script file - the user must explicitly set the _reg_... attribute.
                     raise TypeError(
                         "Can't locate the script hosting the COM object - please set _reg_class_spec_ in your object"
                     )
