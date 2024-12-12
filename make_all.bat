@@ -12,32 +12,21 @@ rem Now the binaries.
 
 rem Check /build_env.md#build-environment to make sure you have all the required components installed
 
-rem (bdist_wininst needs --target-version to name the installers correctly!)
-py -3.8-32 setup.py -q bdist_wininst --skip-build --target-version=3.8
 py -3.8-32 setup.py -q bdist_wheel --skip-build
-py -3.8 setup.py -q bdist_wininst --skip-build --target-version=3.8
 py -3.8 setup.py -q bdist_wheel --skip-build
 
-py -3.9-32 setup.py -q bdist_wininst --skip-build --target-version=3.9
 py -3.9-32 setup.py -q bdist_wheel --skip-build
-py -3.9 setup.py -q bdist_wininst --skip-build --target-version=3.9
 py -3.9 setup.py -q bdist_wheel --skip-build
 
-rem 3.10 stopped supporting bdist_wininst, but we can still build them with 3.9
-rem (but 32bit builds seem broken doing this :( #1805)
-py -3.9 setup.py -q bdist_wininst --skip-build --target-version=3.10
 py -3.10-32 setup.py -q bdist_wheel --skip-build
 py -3.10 setup.py -q bdist_wheel --skip-build
 
-py -3.9 setup.py -q bdist_wininst --skip-build --target-version=3.11
 py -3.11-32 setup.py -q bdist_wheel --skip-build
 py -3.11 setup.py -q bdist_wheel --skip-build
 
-py -3.9 setup.py -q bdist_wininst --skip-build --target-version=3.12
 py -3.12-32 setup.py -q bdist_wheel --skip-build
 py -3.12 setup.py -q bdist_wheel --skip-build
 
-py -3.9 setup.py -q bdist_wininst --skip-build --target-version=3.13
 py -3.13-32 setup.py -q bdist_wheel --skip-build
 py -3.13 setup.py -q bdist_wheel --skip-build
 
