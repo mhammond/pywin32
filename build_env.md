@@ -121,7 +121,7 @@ where mc
 
 # Build
 
-One everything is setup, just execute the following from the pywin32 directory.:
+Once everything is setup, just execute the following from the pywin32 directory:
 
 ```shell
 pip install . -v

@@ -73,8 +73,8 @@ To run as a service, you probably want to install pywin32 globally from an eleva
 command prompt - see above.
 
 You also need to ensure Python is installed in a location where the user running
-the service has access to the installation and is able to load `pywintypesXX.dll` and `pythonXX.dll`. In particular, the `LocalSystem` account typically will not have access
-to your local `%USER%` directory structure.
+the service has access to the installation and is able to load `pywintypesXX.dll` and `pythonXX.dll`.
+In particular, the `LocalSystem` account typically will not have access to your local `%USER%` directory structure.
 
 ## Troubleshooting
 
@@ -112,7 +112,7 @@ Install Visual Studio 2019 (later probably works, but options might be different
 follow the instructions in [Build environment](/build_env.md#build-environment)
 for the version you install.
 
-(the free compilers probably work too, but haven't been tested - let me know your experiences!)
+Then follow the [Build](/build_env.md#build) instructions for the build itself (including ARM64 cross-compilation).
 
 ## Release process
 
@@ -131,7 +131,7 @@ Since build 307 the release process is based on the artifacts created by Github 
 * Push these changes to github, wait for the actions to complete, then
   download the artifacts from that run.
 
-* Upload .whl artifacts to pypi - we do this before pushing the tag because they might be
+* Upload `.whl` artifacts to pypi - we do this before pushing the tag because they might be
   rejected for an invalid `README.md`. Done via `py -3.? -m twine upload dist/*XXX*.whl`.
 
 * Create a new git tag for the release.
