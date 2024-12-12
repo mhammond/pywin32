@@ -637,8 +637,7 @@ HRESULT CPyCOMTest::VerifyArrayOfStructs(TestStruct2 *prec, VARIANT_BOOL *is_ok)
         return E_FAIL;
     }
     *is_ok = VARIANT_TRUE;
-    for (i = 0; i < prec->rec_count; i++)
-    {
+    for (i = 0; i < prec->rec_count; i++) {
         if (_wcsicmp(pdata[i].str_value, L"This is record number") != 0 || pdata[i].int_value != i + 1) {
             *is_ok = VARIANT_FALSE;
             break;
