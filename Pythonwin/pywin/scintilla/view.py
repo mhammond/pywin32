@@ -512,9 +512,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
                         pass
             except:
                 win32ui.SetStatusText(
-                    "Error attempting to get object attributes - {}".format(
-                        repr(sys.exc_info()[0])
-                    )
+                    f"Error attempting to get object attributes - {sys.exc_info()[0]!r}"
                 )
 
         items = [
