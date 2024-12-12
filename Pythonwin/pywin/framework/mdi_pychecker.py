@@ -361,8 +361,8 @@ class TheDocument(docview.RichEditDoc):
                 result = "Can't find python.exe!\n"
             elif not os.path.isfile(pychecker):
                 result = (
-                    "Can't find checker.py - please install pychecker "
-                    "(or run 'setup.py install' if you have the source version)\n"
+                    "Can't find checker.py - please install PyChecker "
+                    "(https://pypi.org/project/PyChecker/)\n"
                 )
             else:
                 cmd = f'{py} "{pychecker}" {options} {files} 2>&1'

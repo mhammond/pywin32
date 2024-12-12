@@ -9,14 +9,14 @@ is [the GitHub CI](https://github.com/mhammond/pywin32/tree/main/.github/workflo
 
 To build and install locally for testing etc, you need a build environment
 which is capable of building the version of Python you are targeting, then:
-  python setup.py -q install
+  pip install . -v
 
 For a debug (_d) version, you need a local debug build of Python, but must use
 the release version executable for the build. eg:
-  python setup.py -q build --debug install
+  pip install . -v --config-setting=--build-option=build --config-setting=--build-option=--debug
 
 Cross-compilation from x86 to ARM is well supported (assuming installed vs tools etc) - eg:
-  python setup.py -q build_ext --plat-name win-arm64 build --plat-name win-arm64 bdist_wheel --plat-name win-arm64
+  python -m build --wheel --config-setting=--build-option=build_ext --config-setting=--build-option=--plat-name=win-arm64 --config-setting=--build-option=build --config-setting=--build-option=--plat-name=win-arm64 --config-setting=--build-option=bdist_wheel --config-setting=--build-option=--plat-name=win-arm64
 
 Some modules require special SDKs or toolkits to build (eg, mapi/exchange),
 which often aren't available in CI. The build process treats them as optional -
