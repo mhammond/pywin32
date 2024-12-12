@@ -758,7 +758,7 @@ class TimeZoneInfo(datetime.tzinfo):
         registry.
         >>> localTZ = TimeZoneInfo.local()
         >>> now_local = datetime.datetime.now(localTZ)
-        >>> now_UTC = datetime.datetime.utcnow()
+        >>> now_UTC = datetime.datetime.now(datetime.timezone.utc)
         >>> (now_UTC - now_local) < datetime.timedelta(seconds = 5)
         Traceback (most recent call last):
         ...
@@ -895,18 +895,18 @@ class _RegKeyDict(Dict[str, int]):
             pass
 
 
-def utcnow():
+def utcnow() -> datetime.datetime:
     """
     Return the UTC time now with timezone awareness as enabled
     by this module
     >>> now = utcnow()
     """
-    now = datetime.datetime.utcnow()
-    now = now.replace(tzinfo=TimeZoneInfo.utc())
-    return now
+    return datetime.datetime.now(datetime.timezone.utc).replace(
+        tzinfo=TimeZoneInfo.utc()
+    )
 
 
-def now():
+def now() -> datetime.datetime:
     """
     Return the local time now with timezone awareness as enabled
     by this module
