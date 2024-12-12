@@ -658,7 +658,6 @@ def EditCreator(parent):
 
 
 def test():
-    global bar
     bar = DockingBar()
     creator = EditCreator
     bar.CreateWindow(win32ui.GetMainFrame(), creator, "Coolbar Demo", 0xFFFFF)
