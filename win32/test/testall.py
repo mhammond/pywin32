@@ -174,7 +174,7 @@ def suite():
             try:
                 mod = __import__(base)
             except:
-                print("FAILED to import test module %r" % base)
+                print(f"FAILED to import test module {base!r}")
                 traceback.print_exc()
                 continue
             if hasattr(mod, "suite"):
