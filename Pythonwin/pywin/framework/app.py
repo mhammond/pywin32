@@ -343,9 +343,7 @@ class AboutBox(dialog.Dialog):
         dialog.Dialog.__init__(self, idd)
 
     def OnInitDialog(self):
-        text = "Pythonwin - Python IDE and GUI Framework for Windows.\n\n{}\n\nPython is {}\n\n{}\n\n{}\n\n{}".format(
-            win32ui.copyright, sys.copyright, scintilla, idle, contributors
-        )
+        text = f"Pythonwin - Python IDE and GUI Framework for Windows.\n\n{win32ui.copyright}\n\nPython is {sys.copyright}\n\n{scintilla}\n\n{idle}\n\n{contributors}"
         self.SetDlgItemText(win32ui.IDC_EDIT1, text)
         import sysconfig
 
