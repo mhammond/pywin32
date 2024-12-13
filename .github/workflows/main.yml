@@ -51,9 +51,9 @@ jobs:
       # This needs to happen *after* installing pywin32 since
       # AutoDuck/py2d.py currently relies on runtime imports for introspection
       # This isn't included in the wheel (TODO: could we?)
-      # and only servces as a PR test for the docs.yaml workflow
-      - name: Generate PyWin32.chm help file
-        run: python AutoDuck/make.py
+      # and only serves as a PR test for the docs.yaml workflow
+      # - name: Generate PyWin32.chm help file
+      #   run: python AutoDuck/make.py
 
       - name: Run tests
         # Run the tests directly from the source dir so support files (eg, .wav files etc)
