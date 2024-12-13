@@ -448,7 +448,7 @@ def RegisterClasses(*classes, **flags):
                         win32api.FindFiles(sys.argv[0])[0][8]
                     )[0]
                 except (IndexError, win32api.error):
-                    # Can't find the script file - the user must explicitely set the _reg_... attribute.
+                    # Can't find the script file - the user must explicitly set the _reg_... attribute.
                     raise TypeError(
                         "Can't locate the script hosting the COM object - please set _reg_class_spec_ in your object"
                     )
@@ -523,11 +523,10 @@ def UnregisterClasses(*classes, **flags):
         extra()
 
 
-#
 # Unregister info is for installers or external uninstallers.
 # The WISE installer, for example firstly registers the COM server,
 # then queries for the Unregister info, appending it to its
-# install log.  Uninstalling the package will the uninstall the server
+# install log.  Uninstalling the package will uninstall the server.
 def UnregisterInfoClasses(*classes, **flags):
     ret = []
     for cls in classes:

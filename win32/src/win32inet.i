@@ -1941,7 +1941,7 @@ extern PyObject *PyWinHttpOpen(PyObject *, PyObject *);
 
 %init %{
 	PyDict_SetItemString(d,	"error", PyWinExc_ApiError);
-	HMODULE	hmod = GetModuleHandle(TEXT("wininet.dll"));
+	HMODULE	hmod = PyWin_GetOrLoadLibraryHandle("wininet.dll");
 	assert(hmod);
 	PyWin_RegisterErrorMessageModule(INTERNET_ERROR_BASE,
 									 INTERNET_ERROR_LAST,

@@ -59,7 +59,7 @@ dir_dacl.AddAccessAllowedAceEx(
     win32con.GENERIC_ALL,
     my_sid,
 )
-## keep dir from inheriting any permissions so it only has ACEs explicitely set here
+## keep dir from inheriting any permissions so it only has ACEs explicitly set here
 win32security.SetNamedSecurityInfo(
     dir_name,
     SE_FILE_OBJECT,

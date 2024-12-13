@@ -92,7 +92,7 @@ typedef struct {
 DWORD g_serviceProcessFlags = 0;
 
 // The global SCM dispatch table.  A trailing NULL indicates to the SCM
-// how many are used, so we allocate one extra for this sentinal
+// how many are used, so we allocate one extra for this sentinel
 static SERVICE_TABLE_ENTRY DispatchTable[MAX_SERVICES + 1] = {{NULL, NULL}};
 // A parallel array of Python information for the service.
 static PY_SERVICE_TABLE_ENTRY PythonServiceTable[MAX_SERVICES];
@@ -173,9 +173,11 @@ static PyObject *DoLogMessage(WORD errorType, PyObject *obMsg)
     DWORD errorCode = errorType == EVENTLOG_ERROR_TYPE ? PYS_E_GENERIC_ERROR : PYS_E_GENERIC_WARNING;
     LPCTSTR inserts[] = {msg, NULL};
     BOOL ok;
-    Py_BEGIN_ALLOW_THREADS ok = ReportError(errorCode, inserts, errorType);
-    PyWinObject_FreeWCHAR(msg);
-    Py_END_ALLOW_THREADS if (!ok) return PyWin_SetAPIError("RegisterEventSource/ReportEvent");
+    Py_BEGIN_ALLOW_THREADS
+    ok = ReportError(errorCode, inserts, errorType);
+    Py_END_ALLOW_THREADS
+    PyWinObject_FreeWCHAR(msg); // free msg before potentially raising error 
+    if (!ok) return PyWin_SetAPIError("RegisterEventSource/ReportEvent");
     Py_INCREF(Py_None);
     return Py_None;
 }

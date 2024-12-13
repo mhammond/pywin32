@@ -71,7 +71,7 @@ TEST_FOR_NON_IDEMPOTENT_CLOSE = False
 # - Now a subclass of TestCase, to avoid requiring the driver stub
 #   to use multiple inheritance
 # - Reversed the polarity of buggy test in test_description
-# - Test exception heirarchy correctly
+# - Test exception hierarchy correctly
 # - self.populate is now self._populate(), so if a driver stub
 #   overrides self.ddl1 this change propogates
 # - VARCHAR columns now have a width, which will hopefully make the
@@ -198,7 +198,7 @@ class DatabaseAPI20Test(unittest.TestCase):
 
     def test_Exceptions(self):
         # Make sure required exceptions exist, and are in the
-        # defined heirarchy.
+        # defined hierarchy.
         if sys.version[0] == "3":  # under Python 3 StardardError no longer exists
             self.assertTrue(issubclass(self.driver.Warning, Exception))
             self.assertTrue(issubclass(self.driver.Error, Exception))

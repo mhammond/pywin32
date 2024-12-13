@@ -824,7 +824,7 @@ PR_INITIAL_DETAILS_PANE = PROP_TAG(PT_LONG, 16136)
 PROP_ID_SECURE_MIN = 26608
 PROP_ID_SECURE_MAX = 26623
 
-# From EDKMDB.H
+# From EdkMdb.h
 pidExchangeXmitReservedMin = 16352
 pidExchangeNonXmitReservedMin = 26080
 pidProfileMin = 26112
