@@ -28,7 +28,7 @@ Prerequisites
 Installation
 ------------
 
-* (CPython on Windows): Install [pywin32](https://pypi.org/project/pywin32/) (`pip install pywin32`) which includes adodbapi.
+* (CPython on Windows): Install [pywin32](https://pypi.org/project/pywin32/) (`python -m pip install pywin32`) which includes adodbapi.
 * (IronPython on Windows): Refer to <http://sf.net/projects/adodbapi> instead.
 
 NOTE
