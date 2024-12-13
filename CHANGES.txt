@@ -14,7 +14,6 @@ https://mhammond.github.io/pywin32_installers.html.
 Coming in build 309, as yet unreleased
 --------------------------------------
 
-* Updated scintilla constants in `Pythonwin/pywin/scintilla/scintillacon.py` (#2429, @Avasam)
 * Pythonwin: Bumped Scintilla from 1.77 to 4.4.6. The full changelog can be found here: https://www.scintilla.org/ScintillaHistory.html
 * Fixed `ddeclient` and `ddeserver` demos import error (#2290, @Avasam)
 * The `EvtSubscribe_push` demo now actually demonstrates the callback action and the event context being filled. (#2281, @Avasam)
