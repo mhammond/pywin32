@@ -288,7 +288,7 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
         // them as VARIANT elements but put them directly into the SAFEARRAY.
         if (is_record_item) {
             if (!PyCom_SAFEARRAYFromPyObject(obj, &V_ARRAY(var), VT_RECORD))
-                    return FALSE;
+                return FALSE;
             V_VT(var) = VT_ARRAY | VT_RECORD;
         }
         else {
@@ -1597,7 +1597,7 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
             // Nothing else to do - the code below sets the VT up correctly.
             break;
         case VT_RECORD:
-		case VT_RECORD | VT_BYREF:
+        case VT_RECORD | VT_BYREF:
             rc = PyObject_AsVARIANTRecordInfo(obj, var);
             break;
         case VT_CY:

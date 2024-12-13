@@ -15,7 +15,6 @@ xl = WScript.CreateObject("Excel.Application")
 import sys
 
 xl.Visible = 1
-#xl.Workbooks().Add() # Excel versions before 98
 xl.Workbooks.Add()
 
 # Show the WScript properties.
