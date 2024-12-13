@@ -626,6 +626,26 @@ HRESULT CPyCOMTest::ModifyStruct(TestStruct1 *prec)
     return S_OK;
 }
 
+HRESULT CPyCOMTest::VerifyArrayOfStructs(TestStruct2 *prec, VARIANT_BOOL *is_ok)
+{
+    long i;
+    TestStruct1 *pdata = NULL;
+    HRESULT hr;
+
+    hr = SafeArrayAccessData(prec->array_of_records, reinterpret_cast<void **>(&pdata));
+    if (FAILED(hr)) {
+        return E_FAIL;
+    }
+    *is_ok = VARIANT_TRUE;
+    for (i = 0; i < prec->rec_count; i++) {
+        if (_wcsicmp(pdata[i].str_value, L"This is record number") != 0 || pdata[i].int_value != i + 1) {
+            *is_ok = VARIANT_FALSE;
+            break;
+        }
+    }
+    return S_OK;
+}
+
 HRESULT CPyCOMTest::DoubleString(BSTR in, BSTR *out)
 {
     *out = SysAllocStringLen(NULL, SysStringLen(in) * 2);
