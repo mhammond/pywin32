@@ -173,11 +173,12 @@ static PyObject *DoLogMessage(WORD errorType, PyObject *obMsg)
     DWORD errorCode = errorType == EVENTLOG_ERROR_TYPE ? PYS_E_GENERIC_ERROR : PYS_E_GENERIC_WARNING;
     LPCTSTR inserts[] = {msg, NULL};
     BOOL ok;
-    Py_BEGIN_ALLOW_THREADS
+    Py_BEGIN_ALLOW_THREADS;
     ok = ReportError(errorCode, inserts, errorType);
-    Py_END_ALLOW_THREADS
-    PyWinObject_FreeWCHAR(msg); // free msg before potentially raising error 
-    if (!ok) return PyWin_SetAPIError("RegisterEventSource/ReportEvent");
+    Py_END_ALLOW_THREADS;
+    PyWinObject_FreeWCHAR(msg);  // free msg before potentially raising error
+    if (!ok)
+        return PyWin_SetAPIError("RegisterEventSource/ReportEvent");
     Py_INCREF(Py_None);
     return Py_None;
 }
