@@ -1,6 +1,8 @@
 ## Demonstrates a "push" subscription with a callback function
 from __future__ import annotations
 
+from time import sleep
+
 import win32evtlog
 
 query_text = '*[System[Provider[@Name="Microsoft-Windows-Winlogon"]]]'
@@ -25,3 +27,6 @@ s = win32evtlog.EvtSubscribe(
     Callback=c,
     Context=evttext,
 )
+
+sleep(0.001)
+print("\n".join(evttext))

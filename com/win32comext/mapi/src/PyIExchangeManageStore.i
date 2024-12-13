@@ -11,7 +11,7 @@
 %include "mapilib.i"
 
 %{
-#include <edkmdb.h>
+#include <EdkMdb.h>
 #define INITGUID
 #include <initguid.h>
 #define USES_IID_IExchangeManageStore
