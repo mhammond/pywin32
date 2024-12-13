@@ -22,7 +22,6 @@ from win32com.axscript.client.framework import (
     SCRIPTTEXT_FORCEEXECUTION,
     SCRIPTTEXT_ISEXPRESSION,
     SCRIPTTEXT_ISPERSISTENT,
-    RaiseAssert,
     trace,
 )
 from win32com.server.exception import COMException
@@ -101,7 +100,7 @@ class AXScriptAttribute:
 
 
 class NamedScriptAttribute:
-    "An explicitely named object in an objects namespace"
+    "An explicitly named object in an objects namespace"
 
     # Each named object holds a reference to one of these.
     # Whenever a sub-item appears in a namespace, it is really one of these
