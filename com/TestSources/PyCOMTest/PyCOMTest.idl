@@ -89,6 +89,11 @@ library PyCOMTestLib
 		int int_value;
 		BSTR str_value;
 	} StructWithoutUUID;
+    typedef [uuid(78F0EA07-B7CF-42EA-A251-A4C6269F76AF), version(1.0)]
+    struct TestStruct2 {
+        SAFEARRAY(TestStruct1) array_of_records;
+        int rec_count;
+    } TestStruct2;
 
 	// Test enumerators.
    [
@@ -295,6 +300,7 @@ library PyCOMTestLib
 		HRESULT def();
         // Test struct byref as [ in, out ] parameter.
         HRESULT ModifyStruct([ in, out ] TestStruct1 * prec);
+        HRESULT VerifyArrayOfStructs([in] TestStruct2 * prec, [ out, retval ] VARIANT_BOOL * is_ok);
 	};
 
 	// Define a new class to test how Python handles derived interfaces!
