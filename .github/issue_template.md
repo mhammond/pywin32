@@ -9,7 +9,7 @@ For all bugs, please provide the following information:
 ## Expected behavior and actual behavior
 
 ## Steps to reproduce the problem
-<!-- Prefer using code snippets rather than a screenshot. Please include a full minimal reproduction if possible. -->
+<!-- Prefer using code snippets rather than a screenshot. Please include a [full minimal reproduction](https://stackoverflow.com/help/minimal-reproducible-example) if possible. -->
 
 1. ...
 2. ...
@@ -25,8 +25,6 @@ Python version and distribution:
 <!-- If uncertain, run: python -V -->
 
 pywin32 version:
-
-Installed from PyPI or exe installer:
 
 Windows Version:
 <!-- You can find this under "System Information", ie: Version	10.0.19045 Build 19045 -->

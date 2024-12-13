@@ -5,7 +5,7 @@ programmers, or other COM modules.
 """
 
 import pythoncom
-from win32com.client import Dispatch, _get_good_object_
+from win32com.client import _get_good_object_
 
 PyIDispatchType = pythoncom.TypeIIDs[pythoncom.IID_IDispatch]
 
