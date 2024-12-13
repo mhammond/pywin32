@@ -451,7 +451,7 @@ PyObject *PySECURITY_DESCRIPTOR::GetSecurityDescriptorOwner(PyObject *self, PyOb
 PyObject *PySECURITY_DESCRIPTOR::SetSecurityDescriptorOwner(PyObject *self, PyObject *args)
 {
     // @pyparm <o PySID>|sid||The sid to be set as owner in the security descriptor.
-    // @pyparm int|bOwnerDefaulted||Normally set to false since this explicitely set the owner.
+    // @pyparm int|bOwnerDefaulted||Normally set to false since this explicitly set the owner.
     BOOL bOwnerDefaulted;
     PySECURITY_DESCRIPTOR *This = (PySECURITY_DESCRIPTOR *)self;
     PSID NewOwnerSid = NULL;
@@ -494,7 +494,7 @@ done:
 PyObject *PySECURITY_DESCRIPTOR::SetSecurityDescriptorGroup(PyObject *self, PyObject *args)
 {
     // @pyparm <o PySID>|sid||The group sid to be set in the security descriptor.
-    // @pyparm int|bOwnerDefaulted||Normally set to false since this explicitely set the owner.
+    // @pyparm int|bOwnerDefaulted||Normally set to false since this explicitly set the owner.
     BOOL bGroupDefaulted;
     PySECURITY_DESCRIPTOR *This = (PySECURITY_DESCRIPTOR *)self;
     PSECURITY_DESCRIPTOR psd = NULL;
