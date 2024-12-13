@@ -13,6 +13,7 @@ __pycache__
 *.chw
 *.pyo
 *.pdb
+*.whl
 arm64libs/
 pywin32.egg-info/
 PyWin32.kpf
