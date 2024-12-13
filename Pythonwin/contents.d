@@ -119,7 +119,7 @@ it uses overrides the default.  Thus, regardless of your preferences, if the fir
 indent in the file is a tab, Pythonwin uses tabs for the entire file (and
 similarly, uses spaces if the first block is indented with spaces)
 <nl>
-Things can appear to get wierd when editing a file with mixed tabs and spaces.
+Things can appear to get weird when editing a file with mixed tabs and spaces.
 Although mixed tabs and spaces in the same indent is evil, there are a number
 of source files that have certain classes/functions indented with spaces, and others
 that use tabs.  The editor will not correctly adjust to the current block - whatever

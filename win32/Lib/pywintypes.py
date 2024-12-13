@@ -83,7 +83,7 @@ def __import_pywin32_system_module__(modname, globs):
 
         # There are 2 site-packages directories - one "global" and one "user".
         # We could be in either, or both (but with different versions!). Factors include
-        # virtualenvs, post-install script being run or not, `setup.py install` flags, etc.
+        # virtualenvs, post-install script being run or not, `pip install` flags, etc.
 
         # In a worst-case, it means, say 'python -c "import win32api"'
         # will not work but 'python -c "import pywintypes, win32api"' will,

@@ -18,7 +18,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13-dev"]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
         architecture: ["x64", "x86"]
 
     steps:
@@ -40,8 +40,14 @@ jobs:
           pip install --upgrade setuptools>=74 wheel
 
       - name: Build and install
-        run: |
-          python setup.py install --user
+        run: pip install . -v --user
+
+      # This needs to happen *after* installing pywin32 since
+      # AutoDuck/py2d.py currently relies on runtime imports for introspection
+      # This isn't included in the wheel (TODO: could we?)
+      # and only servces as a PR test for the docs.yaml workflow
+      - name: Generate PyWin32.chm help file
+        run: python AutoDuck/make.py
 
       - name: Run tests
         # Run the tests directly from the source dir so support files (eg, .wav files etc)
@@ -49,16 +55,15 @@ jobs:
         run: python -m win32.scripts.pywin32_testall -v -skip-adodbapi
 
       - name: Build wheels
-        run: |
-          python setup.py bdist_wheel --skip-build
+        run: pip wheel . -v --wheel-dir=dist
 
       - uses: actions/upload-artifact@v3
+        # Upload artifacts even if tests fail
         if: ${{ always() }}
         with:
           name: artifacts
-          path: |
-            dist/*.whl
-            dist/*.exe
+          path: dist/*.whl
+          if-no-files-found: error
 
   # We cannot build and test on ARM64, so we cross-compile.
   # Later, when available, we can add tests using this wheel on ARM64 VMs
@@ -69,7 +74,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10", "3.11", "3.12", "3.13-dev"]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
     steps:
       - uses: actions/checkout@v4
 
@@ -86,21 +91,19 @@ jobs:
         run: |
           python --version
           pip --version
-          pip install --upgrade setuptools>=74 wheel
+          pip install --upgrade setuptools>=74 wheel build
 
       - name: Obtain ARM64 library files
-        run: |
-          python .github\workflows\download-arm64-libs.py .\arm64libs
+        run: python .github\workflows\download-arm64-libs.py .\arm64libs
 
       - name: Build wheels
-        run: python setup.py build_ext -L .\arm64libs --plat-name win-arm64 build --plat-name win-arm64 bdist_wheel --plat-name win-arm64
+        run: python -m build --wheel --config-setting=--build-option=build_ext --config-setting=--build-option=-L.\arm64libs --config-setting=--build-option=--plat-name=win-arm64 --config-setting=--build-option=build --config-setting=--build-option=--plat-name=win-arm64 --config-setting=--build-option=bdist_wheel --config-setting=--build-option=--plat-name=win-arm64
 
       - uses: actions/upload-artifact@v3
-        if: ${{ always() }}
         with:
           name: artifacts
-          path: |-
-            dist/*.whl
+          path: dist/*.whl
+          if-no-files-found: error
 
   # This job can be run locally by running `pre-commit run`
   checkers:
@@ -110,23 +113,22 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          # This job only needs to target the oldest version supported by our checkers
-          # (black>=24.10.0 supports Python >=3.9)
-          python-version: "3.9"
+          # This job only needs to target the oldest supported version
+          python-version: "3.8"
           cache: pip
           cache-dependency-path: .github/workflows/main.yml
       - run: pip install clang-format pycln
       - run: pycln . --config=pycln.toml --check
       - uses: astral-sh/ruff-action@v1
         with:
-          version: "0.4.5"
-      - uses: psf/black@stable
+          version: "0.4.9"
+      - uses: astral-sh/ruff-action@v1
         with:
-          options: "--fast --check --diff --verbose"
+          version: "0.4.9"
+          args: "format --check"
       - run: | # Too many files to fit in a single command, also exclude vendored Scintilla and MAPIStubLibrary
           clang-format --Werror --dry-run $(git ls-files '*.cpp')
           clang-format --Werror --dry-run $(git ls-files '*.h' ':!:Pythonwin/Scintilla/' ':!:com/win32comext/mapi/src/MAPIStubLibrary/')
-        shell: powershell
 
   mypy:
     runs-on: windows-2019
@@ -134,8 +136,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # mypy won't understand "3.13-dev", keeping the CI simple by just omitting it
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -144,7 +145,7 @@ jobs:
           cache: pip
           cache-dependency-path: .github/workflows/main.yml
           check-latest: true
-      - run: pip install types-regex types-setuptools PyOpenGL mypy==1.11
+      - run: pip install types-setuptools PyOpenGL mypy==1.11
       - run: mypy . --python-version=${{ matrix.python-version }}
 
   pyright:
@@ -153,7 +154,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13-dev"]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -163,7 +164,7 @@ jobs:
           cache-dependency-path: .github/workflows/main.yml
           check-latest: true
       # pyright vendors typeshed, but let's make sure we have the most up to date stubs
-      - run: pip install types-regex types-setuptools PyOpenGL
+      - run: pip install types-setuptools PyOpenGL
       - uses: jakebailey/pyright-action@v2
         with:
           python-version: ${{ matrix.python-version }}

@@ -23,7 +23,7 @@ Prerequisites:
  and pywin32 (Mark Hammond's python for windows extensions.)
 
 Installation:
-* (C-Python on Windows): Install pywin32 ("pip install pywin32") which includes adodbapi.
+* (C-Python on Windows): Install pywin32 (`python -m pip install pywin32`) which includes adodbapi.
 * (IronPython on Windows): Download adodbapi from http://sf.net/projects/adodbapi.  Unpack the zip.
 
 NOTE: ...........
@@ -34,7 +34,7 @@ Try:
 or:
         adodbapi.apibase.variantConversions[adodbapi.ado_consts.adNumeric] = adodbapi.apibase.cvtFloat
 or:
-        adodbapi.apibase.variantConversions[adodbapi.ado_consts.adNumeric] = write_your_own_convertion_function
+        adodbapi.apibase.variantConversions[adodbapi.ado_consts.adNumeric] = write_your_own_conversion_function
 		............
 notes for 2.6.2:
     The definitive source has been moved to https://github.com/mhammond/pywin32/tree/master/adodbapi.

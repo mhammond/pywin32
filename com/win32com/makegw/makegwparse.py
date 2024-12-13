@@ -1,15 +1,15 @@
 """Utilities for makegw - Parse a header file to build an interface
 
- This module contains the core code for parsing a header file describing a
- COM interface, and building it into an "Interface" structure.
+This module contains the core code for parsing a header file describing a
+COM interface, and building it into an "Interface" structure.
 
- Each Interface has methods, and each method has arguments.
+Each Interface has methods, and each method has arguments.
 
- Each argument knows how to use Py_BuildValue or Py_ParseTuple to
- exchange itself with Python.
+Each argument knows how to use Py_BuildValue or Py_ParseTuple to
+exchange itself with Python.
 
- See the @win32com.makegw@ module for information in building a COM
- interface
+See the @win32com.makegw@ module for information in building a COM
+interface
 """
 
 from __future__ import annotations

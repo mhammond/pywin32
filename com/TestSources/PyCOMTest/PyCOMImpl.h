@@ -120,6 +120,7 @@ class CPyCOMTest : public IDispatchImpl<IPyCOMTest, &IID_IPyCOMTest, &LIBID_PyCO
     STDMETHOD(def)();
 
     STDMETHOD(ModifyStruct)(TestStruct1 *prec);
+    STDMETHOD(VerifyArrayOfStructs)(TestStruct2 *prec, VARIANT_BOOL *is_ok);
 
     // info associated to each session
     struct PyCOMTestSessionData {

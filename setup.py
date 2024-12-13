@@ -9,14 +9,14 @@ is [the GitHub CI](https://github.com/mhammond/pywin32/tree/main/.github/workflo
 
 To build and install locally for testing etc, you need a build environment
 which is capable of building the version of Python you are targeting, then:
-  python setup.py -q install
+  pip install . -v
 
 For a debug (_d) version, you need a local debug build of Python, but must use
 the release version executable for the build. eg:
-  python setup.py -q build --debug install
+  pip install . -v --config-setting=--build-option=build --config-setting=--build-option=--debug
 
 Cross-compilation from x86 to ARM is well supported (assuming installed vs tools etc) - eg:
-  python setup.py -q build_ext --plat-name win-arm64 build --plat-name win-arm64 bdist_wheel --plat-name win-arm64
+  python -m build --wheel --config-setting=--build-option=build_ext --config-setting=--build-option=--plat-name=win-arm64 --config-setting=--build-option=build --config-setting=--build-option=--plat-name=win-arm64 --config-setting=--build-option=bdist_wheel --config-setting=--build-option=--plat-name=win-arm64
 
 Some modules require special SDKs or toolkits to build (eg, mapi/exchange),
 which often aren't available in CI. The build process treats them as optional -
@@ -39,7 +39,6 @@ from setuptools import Extension, setup
 from setuptools.command.build import build
 from setuptools.command.build_ext import build_ext
 from setuptools.command.install import install
-from setuptools.command.install_lib import install_lib
 from setuptools.modified import newer_group
 from tempfile import gettempdir
 from typing import Iterable
@@ -861,52 +860,40 @@ class my_build_ext(build_ext):
 
 class my_install(install):
     def run(self):
+        """Custom script we run at the end of installing
+        This is only run for local installs. Wheel-based installs won't run this code.
+        """
         install.run(self)
-        # Custom script we run at the end of installing - this is the same script
-        # run by bdist_wininst
-        # If self.root has a value, it means we are being "installed" into
-        # some other directory than Python itself (eg, into a temp directory
-        # for bdist_wininst to use) - in which case we must *not* run our
-        # installer
-        if not self.dry_run and not self.root:
-            # We must run the script we just installed into Scripts, as it
-            # may have had 2to3 run over it.
-            filename = os.path.join(self.install_scripts, "pywin32_postinstall.py")
-            if not os.path.isfile(filename):
-                raise RuntimeError(f"Can't find '{filename}'")
-            print("Executing post install script...")
-            # As of setuptools>=74.0.0, we no longer need to
-            # be concerned about distutils calling win32api
-            subprocess.Popen(
-                [
-                    sys.executable,
-                    filename,
-                    "-install",
-                    "-destination",
-                    self.install_lib,
-                    "-quiet",
-                    "-wait",
-                    str(os.getpid()),
-                ]
+        # If self.root has a value, it means we are being "installed" into some other
+        # directory than Python itself - in which case we must *not* run our installer.
+        # bdist_wininst used to trigger this by using a temp directory.
+        # Is this still a concern ?
+        if self.root:
+            print(
+                "Not executing post install script when "
+                + f"not installing in Python itself (self.root={self.root})"
             )
+            return
+        self.execute(self._postinstall, (), msg="Executing post install script...")
 
-
-class my_install_lib(install_lib):
-    def install(self):
-        # This is crazy - in setuptools 61.1.0 (and probably some earlier versions), the
-        # install_lib and build comments don't agree on where the .py files to install can
-        # be found, so we end up with a warning logged:
-        # `warning: my_install_lib: 'build\lib.win-amd64-3.8' does not exist -- no Python modules to install`
-        # (because they are actually in `build\lib.win-amd64-cpython-38`!)
-        # It's not an error though, so we end up with .exe installers lacking our lib files!
-        builder = self.get_finalized_command("build")
-        if os.path.isdir(builder.build_platlib) and not os.path.isdir(self.build_dir):
-            self.build_dir = builder.build_platlib
-        # We want a failure to find .py files be an error rather than a warning.
-        outfiles = super().install()
-        if not outfiles:
-            raise RuntimeError("No Python files were found to install")
-        return outfiles
+    def _postinstall(self):
+        filename = os.path.join(self.install_scripts, "pywin32_postinstall.py")
+        if not os.path.isfile(filename):
+            raise RuntimeError(f"Can't find '{filename}'")
+        # As of setuptools>=74.0.0, we no longer need to
+        # be concerned about distutils calling win32api
+        subprocess.Popen(
+            [
+                sys.executable,
+                filename,
+                "-install",
+                "-destination",
+                self.install_lib,
+                "-quiet",
+                "-wait",
+                str(os.getpid()),
+            ]
+        )
 
 
 def my_new_compiler(**kw):
@@ -921,13 +908,6 @@ ccompiler.new_compiler = my_new_compiler  # type: ignore[assignment] # Assuming 
 
 
 class my_compiler(MSVCCompiler):
-    # Just one GUIDS.CPP and it gives trouble on mainwin too. Maybe I
-    # should just rename the file, but a case-only rename is likely to be
-    # worse!  This can probably go away once we kill the VS project files
-    # though, as we can just specify the lowercase name in the module def.
-    _cpp_extensions = MSVCCompiler._cpp_extensions + [".CPP"]
-    src_extensions = MSVCCompiler.src_extensions + [".CPP"]
-
     def link(
         self,
         target_desc,
@@ -1341,9 +1321,7 @@ pythoncom = WinExt_system32(
                         {win32com}/extensions/PyICancelMethodCalls.cpp    {win32com}/extensions/PyIContext.cpp
                         {win32com}/extensions/PyIEnumContextProps.cpp     {win32com}/extensions/PyIClientSecurity.cpp
                         {win32com}/extensions/PyIServerSecurity.cpp
-                        """.format(
-            **dirs
-        )
+                        """.format(**dirs)
     ).split(),
     depends=(
         """
@@ -1370,9 +1348,7 @@ pythoncom = WinExt_system32(
                         {win32com}/include\\PyICancelMethodCalls.h    {win32com}/include\\PyIContext.h
                         {win32com}/include\\PyIEnumContextProps.h     {win32com}/include\\PyIClientSecurity.h
                         {win32com}/include\\PyIServerSecurity.h
-                        """.format(
-            **dirs
-        )
+                        """.format(**dirs)
     ).split(),
     libraries="oleaut32 ole32 user32 urlmon",
     export_symbol_file="com/win32com/src/PythonCOM.def",
@@ -1400,9 +1376,7 @@ com_extensions = [
                         {adsi}/adsilib.i
                         {adsi}/PyADSIUtil.cpp         {adsi}/PyDSOPObjects.cpp
                         {adsi}/PyIADs.cpp
-                        """.format(
-                **dirs
-            )
+                        """.format(**dirs)
         ).split(),
     ),
     WinExt_win32com(
@@ -1420,9 +1394,7 @@ com_extensions = [
                         {axcontrol}/PyIOleClientSite.cpp       {axcontrol}/PyIOleInPlaceSite.cpp
                         {axcontrol}/PyIOleObject.cpp           {axcontrol}/PyIViewObject2.cpp
                         {axcontrol}/PyIOleCommandTarget.cpp
-                        """.format(
-                **dirs
-            )
+                        """.format(**dirs)
         ).split(),
     ),
     WinExt_win32com(
@@ -1430,27 +1402,23 @@ com_extensions = [
         sources=(
             """
                         {axscript}/AXScript.cpp
-                        {axscript}/GUIDS.CPP                   {axscript}/PyGActiveScript.cpp
+                        {axscript}/GUIDS.cpp                   {axscript}/PyGActiveScript.cpp
                         {axscript}/PyGActiveScriptError.cpp    {axscript}/PyGActiveScriptParse.cpp
                         {axscript}/PyGActiveScriptSite.cpp     {axscript}/PyGObjectSafety.cpp
                         {axscript}/PyIActiveScript.cpp         {axscript}/PyIActiveScriptError.cpp
                         {axscript}/PyIActiveScriptParse.cpp    {axscript}/PyIActiveScriptParseProcedure.cpp
                         {axscript}/PyIActiveScriptSite.cpp     {axscript}/PyIMultiInfos.cpp
                         {axscript}/PyIObjectSafety.cpp         {axscript}/stdafx.cpp
-                        """.format(
-                **dirs
-            )
+                        """.format(**dirs)
         ).split(),
         depends=(
             """
                              {axscript}/AXScript.h
-                             {axscript}/guids.h                {axscript}/PyGActiveScriptError.h
+                             {axscript}/GUIDs.h                {axscript}/PyGActiveScriptError.h
                              {axscript}/PyIActiveScriptError.h {axscript}/PyIObjectSafety.h
                              {axscript}/PyIProvideMultipleClassInfo.h
                              {axscript}/stdafx.h
-                             """.format(
-                **dirs
-            )
+                             """.format(**dirs)
         ).split(),
         extra_compile_args=["-DPY_BUILD_AXSCRIPT"],
         implib_name="axscript",
@@ -1506,9 +1474,7 @@ com_extensions = [
                     {axdebug}/PyIRemoteDebugApplicationEvents.cpp
                     {axdebug}/PyIRemoteDebugApplicationThread.cpp
                     {axdebug}/stdafx.cpp
-                     """.format(
-                **dirs
-            )
+                     """.format(**dirs)
         ).split(),
     ),
     WinExt_win32com(
@@ -1521,9 +1487,7 @@ com_extensions = [
                         {internet}/PyIInternetPriority.cpp        {internet}/PyIInternetProtocol.cpp
                         {internet}/PyIInternetProtocolInfo.cpp    {internet}/PyIInternetProtocolRoot.cpp
                         {internet}/PyIInternetProtocolSink.cpp    {internet}/PyIInternetSecurityManager.cpp
-                    """.format(
-                **dirs
-            )
+                    """.format(**dirs)
         ).split(),
         depends=["{internet}/internet_pch.h".format(**dirs)],
     ),
@@ -1559,9 +1523,7 @@ com_extensions = [
                         {mapi}/mapiguids.cpp
                         {mapi}/MAPIStubLibrary/library/mapiStubLibrary.cpp
                         {mapi}/MAPIStubLibrary/library/stubutils.cpp
-                        """.format(
-                **dirs
-            )
+                        """.format(**dirs)
         ).split(),
     ),
     WinExt_win32com_mapi(
@@ -1577,9 +1539,7 @@ com_extensions = [
                                   {mapi}/exchangeguids.cpp
                                   {mapi}/MAPIStubLibrary/library/mapiStubLibrary.cpp
                                   {mapi}/MAPIStubLibrary/library/stubutils.cpp
-                                  """.format(
-                **dirs
-            )
+                                  """.format(**dirs)
         ).split(),
     ),
     WinExt_win32com(
@@ -1661,9 +1621,7 @@ com_extensions = [
                         {shell}/PyIUniformResourceLocator.cpp
                         {shell}/shell.cpp
 
-                        """.format(
-                **dirs
-            )
+                        """.format(**dirs)
         ).split(),
     ),
     WinExt_win32com(
@@ -1691,9 +1649,7 @@ com_extensions = [
                         {propsys}/PyIObjectWithPropertyKey.cpp
                         {propsys}/PyIPropertyChange.cpp
                         {propsys}/PyIPropertyChangeArray.cpp
-                        """.format(
-                **dirs
-            )
+                        """.format(**dirs)
         ).split(),
         implib_name="pypropsys",
     ),
@@ -1709,9 +1665,7 @@ com_extensions = [
                         {taskscheduler}/PyITaskScheduler.cpp
                         {taskscheduler}/PyITaskTrigger.cpp
 
-                        """.format(
-                **dirs
-            )
+                        """.format(**dirs)
         ).split(),
     ),
     WinExt_win32com(
@@ -1732,9 +1686,7 @@ com_extensions = [
                         {bits}/PyIEnumBackgroundCopyJobs.cpp
                         {bits}/PyIEnumBackgroundCopyFiles.cpp
 
-                        """.format(
-                **dirs
-            )
+                        """.format(**dirs)
         ).split(),
     ),
     WinExt_win32com(
@@ -1755,18 +1707,14 @@ com_extensions = [
                         {directsound}/PyIDirectSoundBuffer.cpp {directsound}/PyIDirectSoundCapture.cpp
                         {directsound}/PyIDirectSoundCaptureBuffer.cpp
                         {directsound}/PyIDirectSoundNotify.cpp
-                        """.format(
-                **dirs
-            )
+                        """.format(**dirs)
         ).split(),
         depends=(
             """
                         {directsound}/directsound_pch.h   {directsound}/PyIDirectSound.h
                         {directsound}/PyIDirectSoundBuffer.h {directsound}/PyIDirectSoundCapture.h
                         {directsound}/PyIDirectSoundCaptureBuffer.h {directsound}/PyIDirectSoundNotify.h
-                        """.format(
-                **dirs
-            )
+                        """.format(**dirs)
         ).split(),
         optional_headers=["dsound.h"],
         libraries="user32 dsound dxguid",
@@ -1778,9 +1726,7 @@ com_extensions = [
             """
                         {authorization}/authorization.cpp
                         {authorization}/PyGSecurityInformation.cpp
-                        """.format(
-                **dirs
-            )
+                        """.format(**dirs)
         ).split(),
     ),
 ]
@@ -2134,7 +2080,6 @@ cmdclass = {
     "build": my_build,
     "build_ext": my_build_ext,
     "install_data": my_install_data,
-    "install_lib": my_install_lib,
 }
 
 classifiers = [
@@ -2151,67 +2096,18 @@ classifiers = [
     "Programming Language :: Python :: Implementation :: CPython",
 ]
 
-# 3.10 stopped supporting bdist_wininst, but we can still build them with 3.9.
-# This can be kept until Python 3.9 or exe installers support is dropped.
-if "bdist_wininst" in sys.argv:
-    # fixup https://github.com/pypa/setuptools/issues/3284
-    def maybe_fixup_exes():
-        import site
-
-        from distutils.command import bdist_wininst
-
-        # setuptools can't find .exe stubs in `site-packages/setuptools/_distutils`
-        # but they might exist in the original `lib/distutils`.
-        expected_dir = os.path.dirname(bdist_wininst.__file__)
-        if not len(glob.glob(f"{expected_dir}/*.exe")):
-            # might die, see if we can not!
-            for maybe in site.getsitepackages():
-                maybe_dir = os.path.abspath(f"{maybe}/../distutils/command")
-                if len(glob.glob(f"{maybe_dir}/*.exe")):
-                    print(f"pointing setuptools at '{maybe_dir}'")
-                    bdist_wininst.__file__ = os.path.join(maybe_dir, "bdist_wininst.py")
-                    break
-            else:
-                print("can't fixup distutils/setuptools exe stub location, good luck!")
-
-    maybe_fixup_exes()
-
-    # It doesn't really make sense to put README.md as the long description, so
-    # keep it short and sweet as it's the first thing shown by the UI.
-    long_description = (
-        "Python extensions for Microsoft Windows\n"
-        "Provides access to much of the Win32 API, the\n"
-        "ability to create and use COM objects, and the\n"
-        "Pythonwin environment."
-    )
-    long_description_content_type = "text/plain"
-else:
-    # For wheels, the readme makes more sense as pypi does something sane
-    # with it.
-    my_dir = os.path.abspath(os.path.dirname(__file__))
-    with open(os.path.join(my_dir, "README.md")) as f:
-        long_description = f.read()
-    long_description_content_type = "text/markdown"
-
 dist = setup(
     name="pywin32",
-    version=str(build_id),
+    version=build_id,
     description="Python for Window Extensions",
-    long_description=long_description,
-    long_description_content_type=long_description_content_type,
+    long_description=(Path(__file__).parent / "README.md").read_text(),
+    long_description_content_type="text/markdown",
     author="Mark Hammond (et al)",
     author_email="mhammond@skippinet.com.au",
     url="https://github.com/mhammond/pywin32",
     license="PSF",
     classifiers=classifiers,
     cmdclass=cmdclass,
-    options={
-        "bdist_wininst": {
-            "install_script": "pywin32_postinstall.py",
-            "title": f"pywin32-{build_id}",
-            "user_access_control": "auto",
-        },
-    },
     # This adds the scripts under Python3XX/Scripts, but doesn't actually do much
     scripts=[
         "win32/scripts/pywin32_postinstall.py",
