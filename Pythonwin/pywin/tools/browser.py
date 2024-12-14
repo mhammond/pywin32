@@ -49,20 +49,13 @@ class HLIPythonObject(hierlist.HierListItem):
             type = self.GetHLIType()
         except:
             type = "Generic"
-        return (
-            "HLIPythonObject("
-            + type
-            + ") - name: "
-            + self.name
-            + " object: "
-            + repr(self.myobject)
-        )
+        return f"HLIPythonObject({type}) - name: {self.name} object: {self.myobject!r}"
 
     def GetText(self):
         try:
-            return str(self.name) + " (" + self.GetHLIType() + ")"
+            return f"{self.name} ({self.GetHLIType()})"
         except AttributeError:
-            return str(self.name) + " = " + repr(self.myobject)
+            return f"{self.name} = {self.myobject!r}"
 
     def InsertDocString(self, lst):
         ob = None
@@ -110,7 +103,7 @@ class HLIPythonObject(hierlist.HierListItem):
         if hasattr(self.myobject, "__doc__"):
             return 1
         try:
-            for key in self.myobject.__dict__.keys():
+            for key in self.myobject.__dict__:
                 if key not in special_names:
                     return 1
         except (AttributeError, TypeError):
@@ -260,7 +253,7 @@ class HLISeq(HLIPythonObject):
         ret = []
         pos = 0
         for item in self.myobject:
-            ret.append(MakeHLI(item, "[" + str(pos) + "]"))
+            ret.append(MakeHLI(item, f"[{pos}]"))
             pos += 1
         self.InsertDocString(ret)
         return ret
@@ -288,12 +281,7 @@ class HLIDict(HLIPythonObject):
             return len(self.myobject) > 0
 
     def GetSubList(self):
-        ret = []
-        keys = list(self.myobject.keys())
-        keys.sort()
-        for key in keys:
-            ob = self.myobject[key]
-            ret.append(MakeHLI(ob, str(key)))
+        ret = [MakeHLI(self.myobject[key], str(key)) for key in sorted(self.myobject)]
         self.InsertDocString(ret)
         return ret
 

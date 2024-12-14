@@ -146,7 +146,7 @@ PYWIN_MODULE_INIT_FUNC(timer)
 
     timer_id_callback_map = PyDict_New();
     if (!timer_id_callback_map)
-        PYWIN_MODULE_INIT_RETURN_ERROR
+        PYWIN_MODULE_INIT_RETURN_ERROR;
 
     if (PyDict_SetItemString(dict, "error", PyWinExc_ApiError) == -1)
         PYWIN_MODULE_INIT_RETURN_ERROR;

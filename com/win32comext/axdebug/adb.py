@@ -1,5 +1,4 @@
-"""The glue between the Python debugger interface and the Active Debugger interface
-"""
+"""The glue between the Python debugger interface and the Active Debugger interface"""
 
 import _thread
 import bdb
@@ -19,12 +18,7 @@ def fnull(*args):
     pass
 
 
-try:
-    os.environ["DEBUG_AXDEBUG"]
-    debugging = 1
-except KeyError:
-    debugging = 0
-
+debugging = "DEBUG_AXDEBUG" in os.environ
 traceenter = fnull  # trace enter of functions
 tracev = fnull  # verbose trace
 

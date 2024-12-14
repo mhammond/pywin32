@@ -2,10 +2,16 @@
 # The application is responsible for managing the main frame window.
 #
 # We also grab the FileOpen command, to invoke our Python editor
-" The PythonWin application code. Manages most aspects of MDI, etc "
+"The PythonWin application code. Manages most aspects of MDI, etc"
+
+from __future__ import annotations
+
+import builtins
 import os
 import sys
 import traceback
+import warnings
+from typing import TYPE_CHECKING
 
 import regutil
 import win32api
@@ -15,6 +21,9 @@ from pywin.mfc import afxres, dialog, window
 from pywin.mfc.thread import WinApp
 
 from . import scriptutils
+
+if TYPE_CHECKING:
+    from typing_extensions import Literal
 
 
 # Helper for writing a Window position by name, and later loading it.
@@ -61,7 +70,7 @@ class MainFrame(window.MDIFrameWnd):
         win32ui.ID_INDICATOR_COLNUM,
     )
 
-    def OnCreate(self, cs):
+    def OnCreate(self, cs) -> Literal[-1, 0, 1]:
         self._CreateStatusBar()
         return 0
 
@@ -164,7 +173,7 @@ class CApp(WinApp):
                 try:
                     thisRet = handler(handler, count)
                 except:
-                    print("Idle handler %s failed" % (repr(handler)))
+                    print(f"Idle handler {handler!r} failed")
                     traceback.print_exc()
                     print("Idle handler removed from list")
                     try:
@@ -323,7 +332,7 @@ def _GetRegistryValue(key, val, default=None):
             return default
 
 
-scintilla = "Scintilla is Copyright 1998-2008 Neil Hodgson (http://www.scintilla.org)"
+scintilla = "Scintilla is Copyright 1998-2020 Neil Hodgson (https://www.scintilla.org)"
 idle = "This program uses IDLE extensions by Guido van Rossum, Tim Peters and others."
 contributors = "Thanks to the following people for making significant contributions: Roger Upole, Sidnei da Silva, Sam Rushing, Curt Hagenlocher, Dave Brennan, Roger Burnham, Gordon McMillan, Neil Hodgson, Laramie Leavitt. (let me know if I have forgotten you!)"
 
@@ -338,27 +347,17 @@ class AboutBox(dialog.Dialog):
             win32ui.copyright, sys.copyright, scintilla, idle, contributors
         )
         self.SetDlgItemText(win32ui.IDC_EDIT1, text)
-        # Get the build number - written by installers.
-        # For distutils build, read pywin32.version.txt
         import sysconfig
 
         site_packages = sysconfig.get_paths()["platlib"]
+        version_path = os.path.join(site_packages, "pywin32.version.txt")
         try:
-            build_no = (
-                open(os.path.join(site_packages, "pywin32.version.txt")).read().strip()
-            )
-            ver = "pywin32 build %s" % build_no
+            with open(version_path) as f:
+                ver = "pywin32 build %s" % f.read().strip()
         except OSError:
             ver = None
-        if ver is None:
-            # See if we are Part of Active Python
-            ver = _GetRegistryValue(
-                "SOFTWARE\\ActiveState\\ActivePython", "CurrentVersion"
-            )
-            if ver is not None:
-                ver = f"ActivePython build {ver}"
-        if ver is None:
-            ver = ""
+        if not ver:
+            warnings.warn(f"Could not read pywin32's version from '{version_path}'")
         self.SetDlgItemText(win32ui.IDC_ABOUT_VERSION, ver)
         self.HookCommand(self.OnButHomePage, win32ui.IDC_BUTTON1)
 
@@ -386,9 +385,7 @@ def Win32Input(prompt=None):
 
 
 def HookInput():
-    import code
-
-    sys.modules["builtins"].input = Win32Input
+    builtins.input = Win32Input
 
 
 def HaveGoodGUI():

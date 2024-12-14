@@ -12,7 +12,7 @@ import win32ui
 from pywin.mfc import afxres, docview
 
 from . import (
-    IDLEenvironment,  # IDLE emulation.
+    IDLEenvironment,  # nopycln: import # Injects fast_readline into the IDLE auto-indent extension
     bindings,
     control,
     scintillacon,
@@ -512,15 +512,17 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
                         pass
             except:
                 win32ui.SetStatusText(
-                    "Error attempting to get object attributes - {}".format(
-                        repr(sys.exc_info()[0])
-                    )
+                    f"Error attempting to get object attributes - {sys.exc_info()[0]!r}"
                 )
 
-        # ensure all keys are strings.
-        items = [str(k) for k in items_dict.keys()]
-        # All names that start with "_" go!
-        items = [k for k in items if not k.startswith("_")]
+        items = [
+            k
+            for k in
+            # ensure all keys are strings.
+            map(str, items_dict)
+            # All names that start with "_" go!
+            if not k.startswith("_")
+        ]
 
         if not items:
             # Heuristics a-la AutoExpand
@@ -550,9 +552,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
             if curclass and left == "self":
                 self._UpdateWithClassMethods(unique, curclass)
 
-            items = [
-                word for word in unique.keys() if word[:2] != "__" or word[-2:] != "__"
-            ]
+            items = [word for word in unique if word[:2] != "__" or word[-2:] != "__"]
             # Ignore the word currently to the right of the dot - probably a red-herring.
             try:
                 items.remove(right[1:])
@@ -747,7 +747,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
             pageStart = self.FormatRange(dc, pageStart, textLen, rc, 0)
             maxPage += 1
             self.starts[maxPage] = pageStart
-        # And a sentinal for one page past the end
+        # And a sentinel for one page past the end
         self.starts[maxPage + 1] = textLen
         # When actually printing, maxPage doesn't have any effect at this late state.
         # but is needed to make the Print Preview work correctly.

@@ -6,7 +6,7 @@
 import os
 
 import pythoncom
-from win32com.client import constants, gencache
+from win32com.client import gencache
 
 ammodule = None  # was the generated module!
 
@@ -86,16 +86,11 @@ def TestUser(session):
     print("User has %d fields" % len(fields))
     for f in range(len(fields)):
         field = fields[f + 1]
-        try:
-            id = PropTagsById[field.ID]
-        except KeyError:
-            id = field.ID
+        id = PropTagsById.get(field.ID, field.ID)
         print(f"{field.Name}/{id}={field.Value}")
 
 
 def test():
-    import win32com.client
-
     oldcwd = os.getcwd()
     try:
         session = gencache.EnsureDispatch("MAPI.Session")

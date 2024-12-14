@@ -62,7 +62,7 @@ class ScintillaFormatPropertyPage(dialog.PropertyPage):
             # Convert the rect size
             rect = self.MapDialogRect((5, 5, 120, 75))
             self.scintilla.CreateWindow(style, rect, self, 111)
-            self.HookNotify(self.OnBraceMatch, scintillacon.SCN_CHECKBRACE)
+            self.HookNotify(self.OnBraceMatch, scintillacon.SCN_UPDATEUI)
             self.scintilla.HookKeyStroke(self.OnEsc, 27)
             self.scintilla.SCISetViewWS(1)
             self.pos_bstart = self.pos_bend = self.pos_bbad = 0
@@ -88,8 +88,7 @@ class ScintillaFormatPropertyPage(dialog.PropertyPage):
             self.butIsDefaultBackground = self.GetDlgItem(win32ui.IDC_CHECK2)
             self.listbox = self.GetDlgItem(win32ui.IDC_LIST1)
             self.HookCommand(self.OnListCommand, win32ui.IDC_LIST1)
-            names = list(self.styles.keys())
-            names.sort()
+            names = sorted(self.styles)
             for name in names:
                 if self.styles[name].aliased is None:
                     self.listbox.AddString(name)

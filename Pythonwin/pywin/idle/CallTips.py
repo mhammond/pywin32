@@ -207,9 +207,7 @@ if __name__ == "__main__":
             expected = t.__doc__ + "\n" + t.__doc__
             if get_arg_text(t) != expected:
                 failed.append(t)
-                print(
-                    f"{t} - expected {repr(expected)}, but got {repr(get_arg_text(t))}"
-                )
+                print(f"{t} - expected {expected!r}, but got {get_arg_text(t)!r}")
         print("%d of %d tests failed" % (len(failed), len(tests)))
 
     tc = TC()

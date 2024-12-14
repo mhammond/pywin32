@@ -1,8 +1,8 @@
 """dynamic dispatch objects for AX Script.
 
- This is an IDispatch object that a scripting host may use to
- query and invoke methods on the main script.  Not may hosts use
- this yet, so it is not well tested!
+This is an IDispatch object that a scripting host may use to
+query and invoke methods on the main script.  Not may hosts use
+this yet, so it is not well tested!
 """
 
 from __future__ import annotations
@@ -13,7 +13,6 @@ import pythoncom
 import win32com.server.policy
 import win32com.server.util
 import winerror
-from win32com.axscript import axscript
 from win32com.client import Dispatch
 from win32com.server.exception import COMException
 

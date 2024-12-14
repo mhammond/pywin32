@@ -3,18 +3,16 @@
 
 import os
 import sys
+import traceback
 
 import win32api
+import win32com.server.dispatcher
 import win32com.server.policy
 import win32com.server.util
 import winerror
 from win32com.server.exception import COMException
 
-try:
-    os.environ["DEBUG_AXDEBUG"]
-    debugging = 1
-except KeyError:
-    debugging = 0
+debugging = "DEBUG_AXDEBUG" in os.environ
 
 
 def trace(*args):
@@ -46,21 +44,16 @@ def RaiseNotImpl(who=None):
         print(f"********* Function {who} Raising E_NOTIMPL  ************")
 
     # Print a sort-of "traceback", dumping all the frames leading to here.
-    try:
-        1 / 0
-    except:
-        frame = sys.exc_info()[2].tb_frame
-    while frame:
+    for frame, i in traceback.walk_stack(sys._getframe()):
         print(f"File: {frame.f_code.co_filename}, Line: {frame.f_lineno}")
-        frame = frame.f_back
 
     # and raise the exception for COM
     raise COMException(scode=winerror.E_NOTIMPL)
 
 
-class Dispatcher(win32com.server.policy.DispatcherWin32trace):
+class Dispatcher(win32com.server.dispatcher.DispatcherWin32trace):
     def __init__(self, policyClass, object):
-        win32com.server.policy.DispatcherTrace.__init__(self, policyClass, object)
+        win32com.server.dispatcher.DispatcherTrace.__init__(self, policyClass, object)
         import win32traceutil  # Sets up everything.
 
     # print(f"Object with win32trace dispatcher created ({object})")
@@ -92,7 +85,7 @@ class Dispatcher(win32com.server.policy.DispatcherWin32trace):
             tb = None  # A cycle
             scode = v.scode
             try:
-                desc = " (" + str(v.description) + ")"
+                desc = f" ({v.description})"
             except AttributeError:
                 desc = ""
             print(f"*** Invoke of {dispid} raised COM exception 0x{scode:x}{desc}")

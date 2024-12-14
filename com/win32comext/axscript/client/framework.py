@@ -1,10 +1,10 @@
 """AXScript Client Framework
 
-  This module provides a core framework for an ActiveX Scripting client.
-  Derived classes actually implement the AX Client itself, including the
-  scoping rules, etc.
+This module provides a core framework for an ActiveX Scripting client.
+Derived classes actually implement the AX Client itself, including the
+scoping rules, etc.
 
-  There are classes defined for the engine itself, and for ScriptItems
+There are classes defined for the engine itself, and for ScriptItems
 """
 
 from __future__ import annotations
@@ -987,7 +987,7 @@ class COMScript:
         # Due to the way we work, we re-create persistent ones.
         existing = self.subItems
         self.subItems = {}
-        for name, item in existing.items():
+        for item in existing.values():
             item.Close()
             if item.flags & axscript.SCRIPTITEM_ISPERSISTENT:
                 self.AddNamedItem(item.name, item.flags)

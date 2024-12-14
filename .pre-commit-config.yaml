@@ -29,22 +29,17 @@ repos:
     hooks:
       - id: ruff # Run the linter.
         args: [--fix]
-  - repo: https://github.com/psf/black-pre-commit-mirror
-    rev: 24.4.2
-    hooks:
-      - id: black
-        verbose: true
+      - id: ruff-format
   - repo: https://github.com/pre-commit/mirrors-clang-format
-    rev: v18.1.5
+    rev: v18.1.8
     hooks:
       - id: clang-format
         # Supports a lot more filetypes, but only tagging those we use
         # https://github.com/pre-commit/mirrors-clang-format/blob/main/.pre-commit-hooks.yaml#L6
         types: [c++]
 
-
 # Vendored
-exclude: ^(com/win32comext/mapi/src/mapi_headers/|Pythonwin/Scintilla/).*$
+exclude: ^(com/win32comext/mapi/src/MAPIStubLibrary/|Pythonwin/Scintilla/).*$
 
 ci:
   autoupdate_schedule: quarterly
