@@ -234,7 +234,9 @@ class Connection:
         self.paramstyle = api.paramstyle
         self.supportsTransactions = False
         self.connection_string = ""
-        self.cursors = weakref.WeakValueDictionary()
+        self.cursors: weakref.WeakValueDictionary[int, Cursor] = (
+            weakref.WeakValueDictionary()
+        )
         self.dbms_name = ""
         self.dbms_version = ""
         self.errorhandler = None  # use the standard error handler for this instance
@@ -326,9 +328,8 @@ class Connection:
         an Error (or subclass) exception will be raised if any operation is attempted with the connection.
         The same applies to all cursor objects trying to use the connection.
         """
-        for crsr in list(self.cursors.values())[
-            :
-        ]:  # copy the list, then close each one
+        # copy the list of cursors to avoid size changing during iteration, then close each one
+        for crsr in list(self.cursors.values()):
             crsr.close(dont_tell_me=True)  # close without back-link clearing
         self.messages = []
         try:
