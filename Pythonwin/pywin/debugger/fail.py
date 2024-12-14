@@ -28,7 +28,7 @@ def b():
     b = 1
     pywin.debugger.set_trace()
     # After importing or running this module, you are likely to be
-    # sitting at the next line.  This is because we explicitely
+    # sitting at the next line.  This is because we explicitly
     # broke into the debugger using the "set_trace() function
     # "pywin.debugger.brk()" is a shorter alias for this.
     c()
