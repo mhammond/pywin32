@@ -51,7 +51,7 @@ print("Impersonated user: ", win32api.GetUserNameEx(win32api.NameSamCompatible))
 sspiserver.ctxt.RevertSecurityContext()
 print("Reverted to self: ", win32api.GetUserName())
 
-pkg_size_info = sspiclient.ctxt.QueryContextAttributes(sspicon.SECPKG_ATTR_SIZES)  # type: ignore[func-returns-value] # TODO: Fix in typeshed
+pkg_size_info = sspiclient.ctxt.QueryContextAttributes(sspicon.SECPKG_ATTR_SIZES)
 # Now sign some data
 msg = "some data to be encrypted ......"
 
