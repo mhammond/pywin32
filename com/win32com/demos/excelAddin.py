@@ -50,7 +50,7 @@ import sys
 
 import pythoncom
 from win32com import universal
-from win32com.client import Dispatch, DispatchWithEvents, constants, gencache
+from win32com.client import DispatchWithEvents, constants, gencache
 
 # Support for COM objects we use.
 gencache.EnsureModule(
