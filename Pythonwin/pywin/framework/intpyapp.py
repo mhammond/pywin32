@@ -325,7 +325,7 @@ class InteractivePythonApp(app.CApp):
                     )
                     continue
                 if dde:
-                    dde.Exec("win32ui.GetApp().OpenDocumentFile(%s)" % (repr(fname)))
+                    dde.Exec(f"win32ui.GetApp().OpenDocumentFile({fname!r})")
                 else:
                     win32ui.GetApp().OpenDocumentFile(par)
             elif argType == "/rundlg":
@@ -373,7 +373,7 @@ class InteractivePythonApp(app.CApp):
     def LoadUserModules(self, moduleNames=None):
         # Load the users modules.
         if moduleNames is None:
-            default = "pywin.framework.sgrepmdi,pywin.framework.mdi_pychecker"
+            default = "pywin.framework.sgrepmdi"
             moduleNames = win32ui.GetProfileVal("Python", "Startup Modules", default)
         self.DoLoadModules(moduleNames)
 

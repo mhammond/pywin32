@@ -94,7 +94,6 @@ class WinExt(Extension):
         export_symbols=None,
         export_symbol_file=None,
         pch_header=None,
-        windows_h_version=None,  # min version of windows.h needed.
         extra_swig_commands=None,
         is_regular_dll=False,  # regular Windows DLL?
         # list of headers which may not be installed forcing us to
@@ -125,7 +124,6 @@ class WinExt(Extension):
         define_macros.append(("CRYPT_DECRYPT_MESSAGE_PARA_HAS_EXTRA_FIELDS", None))
         self.pch_header = pch_header
         self.extra_swig_commands = extra_swig_commands or []
-        self.windows_h_version = windows_h_version
         self.optional_headers = optional_headers
         self.is_regular_dll = is_regular_dll
         self.base_address = base_address
@@ -254,10 +252,6 @@ class WinExt_ISAPI(WinExt):
 class WinExt_win32com(WinExt):
     def __init__(self, name, **kw):
         kw["libraries"] = kw.get("libraries", "") + " oleaut32 ole32"
-
-        # COM extensions require later windows headers.
-        if not kw.get("windows_h_version"):
-            kw["windows_h_version"] = 0x500
         WinExt.__init__(self, name, **kw)
 
     def get_pywin32_dir(self):
@@ -363,8 +357,6 @@ class my_build_ext(build_ext):
             "win-arm64": "arm64",
         }.get(self.plat_name, "x86")
 
-        self.windows_h_version = None
-
         # The pywintypes library is created in the build_temp
         # directory, so we need to add this to library_dirs
         self.library_dirs.append(self.build_temp)
@@ -380,19 +372,12 @@ class my_build_ext(build_ext):
         # axdebug fails to build on 3.11 due to Python "frame" objects changing.
         # This could be fixed, but is almost certainly not in use any more, so
         # just skip it.
-        if ext.name == "axdebug" and sys.version_info > (3, 10):
+        if ext.name == "axdebug" and sys.version_info >= (3, 11):
             return "AXDebug no longer builds on 3.11 and up"
 
         include_dirs = self.compiler.include_dirs + os.environ.get("INCLUDE", "").split(
             os.pathsep
         )
-        if self.windows_h_version is None:
-            # Note that we used to try and find WINVER or _WIN32_WINNT macros
-            # here defining the version of the Windows SDK we use and check
-            # it was late enough for the extension being built. But since we
-            # moved to the Windows 8.1 SDK (or later), this isn't necessary
-            # as all modules require less than this.
-            pass
 
         look_dirs = include_dirs
         for h in ext.optional_headers:
@@ -452,7 +437,6 @@ class my_build_ext(build_ext):
             assert os.path.isdir(build_temp), build_temp
         makeargs.append("SUB_DIR_O=%s" % build_temp)
         makeargs.append("SUB_DIR_BIN=%s" % build_temp)
-        makeargs.append("DIR_PYTHON=%s" % sys.prefix)
 
         nmake = "nmake.exe"
         # Attempt to resolve nmake to the same one that our compiler object
@@ -1069,135 +1053,121 @@ win32_extensions.append(
     ),
 )
 
-for info in (
-    # (name, libraries, WINVER, sources)
-    ("mmapfile", "", None, "win32/src/mmapfilemodule.cpp"),
-    ("odbc", "odbc32 odbccp32", None, "win32/src/odbc.cpp"),
+for name, libraries, sources in (
+    ("mmapfile", "", "win32/src/mmapfilemodule.cpp"),
+    ("odbc", "odbc32 odbccp32", "win32/src/odbc.cpp"),
     (
         "perfmon",
         "",
-        None,
         """
-            win32/src/PerfMon/MappingManager.cpp
-            win32/src/PerfMon/PerfCounterDefn.cpp
-            win32/src/PerfMon/PerfObjectType.cpp
-            win32/src/PerfMon/PyPerfMon.cpp
-            """,
+        win32/src/PerfMon/MappingManager.cpp
+        win32/src/PerfMon/PerfCounterDefn.cpp
+        win32/src/PerfMon/PerfObjectType.cpp
+        win32/src/PerfMon/PyPerfMon.cpp
+        """,
     ),
-    ("timer", "user32", None, "win32/src/timermodule.cpp"),
-    ("win32cred", "AdvAPI32 credui", 0x0501, "win32/src/win32credmodule.cpp"),
+    ("timer", "user32", "win32/src/timermodule.cpp"),
+    ("win32cred", "AdvAPI32 credui", "win32/src/win32credmodule.cpp"),
     (
         "win32crypt",
         "Crypt32 Advapi32",
-        0x0500,
         """
-            win32/src/win32crypt/win32cryptmodule.cpp
-            win32/src/win32crypt/win32crypt_structs.cpp
-            win32/src/win32crypt/PyCERTSTORE.cpp
-            win32/src/win32crypt/PyCERT_CONTEXT.cpp
-            win32/src/win32crypt/PyCRYPTHASH.cpp
-            win32/src/win32crypt/PyCRYPTKEY.cpp
-            win32/src/win32crypt/PyCRYPTMSG.cpp
-            win32/src/win32crypt/PyCRYPTPROV.cpp
-            win32/src/win32crypt/PyCTL_CONTEXT.cpp
-            """,
+        win32/src/win32crypt/win32cryptmodule.cpp
+        win32/src/win32crypt/win32crypt_structs.cpp
+        win32/src/win32crypt/PyCERTSTORE.cpp
+        win32/src/win32crypt/PyCERT_CONTEXT.cpp
+        win32/src/win32crypt/PyCRYPTHASH.cpp
+        win32/src/win32crypt/PyCRYPTKEY.cpp
+        win32/src/win32crypt/PyCRYPTMSG.cpp
+        win32/src/win32crypt/PyCRYPTPROV.cpp
+        win32/src/win32crypt/PyCTL_CONTEXT.cpp
+        """,
     ),
     (
         "win32file",
         "ws2_32 mswsock",
-        0x0500,
         """
-              win32/src/win32file.i
-              win32/src/win32file_comm.cpp
-              """,
+        win32/src/win32file.i
+        win32/src/win32file_comm.cpp
+        """,
     ),
-    ("win32event", "user32", None, "win32/src/win32event.i"),
+    ("win32event", "user32", "win32/src/win32event.i"),
     (
         "win32clipboard",
         "gdi32 user32 shell32",
-        None,
         "win32/src/win32clipboardmodule.cpp",
     ),
     # win32gui handled below
-    ("win32job", "user32", 0x0500, "win32/src/win32job.i"),
-    ("win32lz", "lz32", None, "win32/src/win32lzmodule.cpp"),
+    ("win32job", "user32", "win32/src/win32job.i"),
+    ("win32lz", "lz32", "win32/src/win32lzmodule.cpp"),
     (
         "win32net",
         "netapi32 advapi32",
-        None,
         """
-              win32/src/win32net/win32netfile.cpp    win32/src/win32net/win32netgroup.cpp
-              win32/src/win32net/win32netmisc.cpp    win32/src/win32net/win32netmodule.cpp
-              win32/src/win32net/win32netsession.cpp win32/src/win32net/win32netuse.cpp
-              win32/src/win32net/win32netuser.cpp
-              """,
+        win32/src/win32net/win32netfile.cpp
+        win32/src/win32net/win32netgroup.cpp
+        win32/src/win32net/win32netmisc.cpp
+        win32/src/win32net/win32netmodule.cpp
+        win32/src/win32net/win32netsession.cpp
+        win32/src/win32net/win32netuse.cpp
+        win32/src/win32net/win32netuser.cpp
+        """,
     ),
-    ("win32pdh", "", None, "win32/src/win32pdhmodule.cpp"),
-    ("win32pipe", "", None, "win32/src/win32pipe.i"),
+    ("win32pdh", "", "win32/src/win32pdhmodule.cpp"),
+    ("win32pipe", "", "win32/src/win32pipe.i"),
     (
         "win32print",
         "winspool user32 gdi32",
-        0x0500,
         "win32/src/win32print/win32print.cpp",
     ),
-    ("win32process", "advapi32 user32", 0x0500, "win32/src/win32process.i"),
-    ("win32profile", "Userenv", None, "win32/src/win32profilemodule.cpp"),
-    ("win32ras", "rasapi32 user32", 0x0500, "win32/src/win32rasmodule.cpp"),
+    ("win32process", "advapi32 user32", "win32/src/win32process.i"),
+    ("win32profile", "Userenv", "win32/src/win32profilemodule.cpp"),
+    ("win32ras", "rasapi32 user32", "win32/src/win32rasmodule.cpp"),
     (
         "win32security",
         "advapi32 user32 netapi32",
-        0x0500,
         """
-            win32/src/win32security.i
-            win32/src/win32security_sspi.cpp win32/src/win32security_ds.cpp
-            """,
+        win32/src/win32security.i
+        win32/src/win32security_sspi.cpp
+        win32/src/win32security_ds.cpp
+        """,
     ),
     (
         "win32service",
         "advapi32 oleaut32 user32",
-        0x0501,
         """
-            win32/src/win32service_messages.mc
-            win32/src/win32service.i
-            """,
+        win32/src/win32service_messages.mc
+        win32/src/win32service.i
+        """,
     ),
-    ("win32trace", "advapi32", None, "win32/src/win32trace.cpp"),
+    ("win32trace", "advapi32", "win32/src/win32trace.cpp"),
     (
         "win32wnet",
         "netapi32 mpr",
-        None,
         """
-            win32/src/win32wnet/PyNCB.cpp
-            win32/src/win32wnet/PyNetresource.cpp
-            win32/src/win32wnet/win32wnet.cpp
-            """,
+        win32/src/win32wnet/PyNCB.cpp
+        win32/src/win32wnet/PyNetresource.cpp
+        win32/src/win32wnet/win32wnet.cpp
+        """,
     ),
     (
         "win32inet",
         "wininet",
-        0x500,
         """
-            win32/src/win32inet.i
-            win32/src/win32inet_winhttp.cpp
-            """,
+        win32/src/win32inet.i
+        win32/src/win32inet_winhttp.cpp
+        """,
     ),
-    ("win32console", "kernel32", 0x0501, "win32/src/win32consolemodule.cpp"),
-    ("win32ts", "WtsApi32", 0x0501, "win32/src/win32tsmodule.cpp"),
-    ("_win32sysloader", "", 0x0501, "win32/src/_win32sysloader.cpp"),
-    ("win32transaction", "kernel32", 0x0501, "win32/src/win32transactionmodule.cpp"),
+    ("win32console", "kernel32", "win32/src/win32consolemodule.cpp"),
+    ("win32ts", "WtsApi32", "win32/src/win32tsmodule.cpp"),
+    ("_win32sysloader", "", "win32/src/_win32sysloader.cpp"),
+    ("win32transaction", "kernel32", "win32/src/win32transactionmodule.cpp"),
 ):
-    name, lib_names = info[:2]
-    windows_h_ver = sources = None
-    if len(info) > 2:
-        windows_h_ver = info[2]
-    if len(info) > 3:
-        sources = info[3].split()
     ext = WinExt_win32(
         name,
-        libraries=lib_names,
+        libraries=libraries,
         extra_compile_args=[],
-        windows_h_version=windows_h_ver,
-        sources=sources,
+        sources=sources.split(),
     )
     win32_extensions.append(ext)
 
@@ -1210,7 +1180,6 @@ win32_extensions += [
                 """.split(),
         libraries="advapi32 oleaut32",
         delay_load_libraries="wevtapi",
-        windows_h_version=0x0600,
     ),
     WinExt_win32(
         "win32api",
@@ -1219,7 +1188,6 @@ win32_extensions += [
                 """.split(),
         libraries="user32 advapi32 shell32 version",
         delay_load_libraries="powrprof",
-        windows_h_version=0x0500,
     ),
     WinExt_win32(
         "win32gui",
@@ -1227,7 +1195,6 @@ win32_extensions += [
                 win32/src/win32dynamicdialog.cpp
                 win32/src/win32gui.i
                """.split(),
-        windows_h_version=0x0500,
         libraries="gdi32 user32 comdlg32 comctl32 shell32",
         define_macros=[("WIN32GUI", None)],
     ),
@@ -1236,7 +1203,6 @@ win32_extensions += [
         "_winxptheme",
         sources=["win32/src/_winxptheme.i"],
         libraries="gdi32 user32 comdlg32 comctl32 shell32 Uxtheme",
-        windows_h_version=0x0500,
     ),
 ]
 win32_extensions += [
@@ -1245,7 +1211,6 @@ win32_extensions += [
         sources=["win32/src/PythonServiceMessages.mc", "win32/src/PythonService.cpp"],
         extra_compile_args=["-DPYSERVICE_BUILD_DLL"],
         libraries="user32 ole32 advapi32 shell32",
-        windows_h_version=0x500,
     ),
 ]
 
@@ -1254,7 +1219,6 @@ win32_extensions += [
         "win32help",
         sources=["win32/src/win32helpmodule.cpp"],
         libraries="htmlhelp user32 advapi32",
-        windows_h_version=0x500,
     ),
 ]
 
@@ -1354,7 +1318,6 @@ pythoncom = WinExt_system32(
     export_symbol_file="com/win32com/src/PythonCOM.def",
     extra_compile_args=["-DBUILD_PYTHONCOM"],
     pch_header="stdafx.h",
-    windows_h_version=0x500,
     base_address=dll_base_address,
 )
 dll_base_address += 0x80000  # pythoncom is large!
@@ -1546,7 +1509,6 @@ com_extensions = [
         "shell",
         libraries="shell32",
         pch_header="shell_pch.h",
-        windows_h_version=0x600,
         sources=(
             """
                         {shell}/PyIActiveDesktop.cpp
@@ -1855,7 +1817,6 @@ pythonwin_extensions = [
             "Pythonwin/win32uioledoc.h",
         ],
         pch_header="stdafxole.h",
-        windows_h_version=0x500,
         optional_headers=["afxres.h"],
     ),
     WinExt_pythonwin(
