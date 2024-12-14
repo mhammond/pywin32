@@ -35,7 +35,7 @@ print("------------------------------------------------------------")
 crsr = conn.cursor()
 sql = "SELECT * from [%s]" % sheet
 crsr.execute(sql)
-for row in crsr.fetchmany(10):
+for row in crsr.fetchmany(10) or ():
     print(repr(row))
 crsr.close()
 conn.close()
