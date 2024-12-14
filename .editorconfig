@@ -9,10 +9,10 @@ indent_size = 4
 max_line_length = 120 # Same as .clang-format
 
 [*.py]
-max_line_length = 88 # Same as Black
+max_line_length = 88 # Same as Ruff's default
 
 [*.md]
 trim_trailing_whitespace = false
 
-[*.{yaml,yml,json,toml}]
+[*.{yaml,yml,json,toml,clang-format}]
 indent_size = 2

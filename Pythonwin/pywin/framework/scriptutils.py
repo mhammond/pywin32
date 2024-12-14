@@ -29,9 +29,7 @@ RS_DEBUGGER_PM = (
 debugging_options = """No debugging
 Step-through in the debugger
 Run in the debugger
-Post-Mortem of unhandled exceptions""".split(
-    "\n"
-)
+Post-Mortem of unhandled exceptions""".split("\n")
 
 byte_cr = b"\r"
 byte_lf = b"\n"
