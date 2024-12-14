@@ -8,21 +8,33 @@ import pywin32_testutil
 
 # A list of demos that depend on user-interface of *any* kind.  Tests listed
 # here are not suitable for unattended testing.
-ui_demos = """GetSaveFileName print_desktop win32cred_demo win32gui_demo
-              win32gui_dialog win32gui_menu win32gui_taskbar
-              win32rcparser_demo winprocess win32console_demo
-              win32clipboard_bitmapdemo
-              win32gui_devicenotify
-              NetValidatePasswordPolicy""".split()
+ui_demos = (
+    "GetSaveFileName",
+    "print_desktop",
+    "win32cred_demo",
+    "win32gui_demo",
+    "win32gui_dialog",
+    "win32gui_menu",
+    "win32gui_taskbar",
+    "win32rcparser_demo",
+    "winprocess",
+    "win32console_demo",
+    "win32clipboard_bitmapdemo",
+    "win32gui_devicenotify",
+    "NetValidatePasswordPolicy",
+)
 # Other demos known as 'bad' (or at least highly unlikely to work)
 # desktopmanager: hangs (well, hangs for 60secs or so...)
 # EvtSubscribe_*: must be run together:
 # SystemParametersInfo: a couple of the params cause markh to hang, and there's
 # no great reason to adjust (twice!) all those system settings!
-bad_demos = """desktopmanager win32comport_demo
-               EvtSubscribe_pull EvtSubscribe_push
-               SystemParametersInfo
-            """.split()
+bad_demos = (
+    "desktopmanager",
+    "win32comport_demo",
+    "EvtSubscribe_pull",
+    "EvtSubscribe_push",
+    "SystemParametersInfo",
+)
 
 argvs = {
     "rastest": ("-l",),

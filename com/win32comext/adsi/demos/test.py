@@ -29,14 +29,35 @@ def DumpRoot():
 #
 # Code taken from article titled:
 # Reading attributeSchema and classSchema Objects
-def _DumpClass(child):
-    attrs = "Abstract lDAPDisplayName schemaIDGUID schemaNamingContext attributeSyntax oMSyntax"
-    _DumpTheseAttributes(child, attrs.split())
+def _DumpClass(child) -> None:
+    _DumpTheseAttributes(
+        child,
+        (
+            "Abstract",
+            "lDAPDisplayName",
+            "schemaIDGUID",
+            "schemaNamingContext",
+            "attributeSyntax",
+            "oMSyntax",
+        ),
+    )
 
 
-def _DumpAttribute(child):
-    attrs = "lDAPDisplayName schemaIDGUID adminDescription adminDisplayName rDNAttID defaultHidingValue defaultObjectCategory systemOnly defaultSecurityDescriptor"
-    _DumpTheseAttributes(child, attrs.split())
+def _DumpAttribute(child) -> None:
+    _DumpTheseAttributes(
+        child,
+        (
+            "lDAPDisplayName",
+            "schemaIDGUID",
+            "adminDescription",
+            "adminDisplayName",
+            "rDNAttID",
+            "defaultHidingValue",
+            "defaultObjectCategory",
+            "systemOnly",
+            "defaultSecurityDescriptor",
+        ),
+    )
 
 
 def _DumpTheseAttributes(child, attrs):
