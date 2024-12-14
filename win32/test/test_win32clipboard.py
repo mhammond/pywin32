@@ -5,7 +5,6 @@ import win32clipboard
 
 
 class TestGetSetClipboardData(unittest.TestCase):
-
     def copyData(self, data, format_):
         win32clipboard.OpenClipboard()
         ret = None
@@ -30,13 +29,13 @@ class TestGetSetClipboardData(unittest.TestCase):
         test_data = {
             "Dummy str": win32clipboard.CF_UNICODETEXT,
             b"Dummy bytes text": win32clipboard.CF_TEXT,
-            b"Dummy\x00\xFF bytes": win32clipboard.CF_DIB,
+            b"Dummy\x00\xff bytes": win32clipboard.CF_DIB,
         }
         for data, fmt in test_data.items():
             self.assertEqual(data, self.copyData(data, fmt))
         test_data = {
             "Dummy str": (win32clipboard.CF_TEXT, win32clipboard.CF_DIB),
-            b"Dummy\x00\xFF bytes": (win32clipboard.CF_UNICODETEXT,),
+            b"Dummy\x00\xff bytes": (win32clipboard.CF_UNICODETEXT,),
         }
         for data, formats in test_data.items():
             for fmt in formats:
