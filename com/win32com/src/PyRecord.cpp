@@ -1,3 +1,4 @@
+#include <new>
 #include "stdafx.h"
 #include "PythonCOM.h"
 #include "PyRecord.h"
@@ -31,7 +32,7 @@ class PyRecordBuffer {
     long ref;
 };
 
-BOOL PyRecord_Check(PyObject *ob) { return ((ob)->ob_type == &PyRecord::Type); }
+BOOL PyRecord_Check(PyObject *ob) { return PyObject_IsInstance(ob, (PyObject *)&PyRecord::Type); }
 
 BOOL PyObject_AsVARIANTRecordInfo(PyObject *ob, VARIANT *pv)
 {
@@ -91,7 +92,7 @@ PyObject *PyObject_FromSAFEARRAYRecordInfo(SAFEARRAY *psa)
         hr = info->RecordCopy(source_data, this_dest_data);
         if (FAILED(hr))
             goto exit;
-        PyTuple_SET_ITEM(ret_tuple, i, new PyRecord(info, this_dest_data, owner));
+        PyTuple_SET_ITEM(ret_tuple, i, PyRecord::new_record(info, this_dest_data, owner));
         this_dest_data += cb_elem;
         source_data += cb_elem;
     }
@@ -141,7 +142,7 @@ PyObject *PyObject_FromRecordInfo(IRecordInfo *ri, void *data, ULONG cbData)
         delete owner;
         return PyCom_BuildPyException(hr, ri, IID_IRecordInfo);
     }
-    return new PyRecord(ri, owner->data, owner);
+    return (PyObject *)PyRecord::new_record(ri, owner->data, owner);
 }
 
 // @pymethod <o PyRecord>|pythoncom|GetRecordFromGuids|Creates a new record object from the given GUIDs
@@ -200,14 +201,65 @@ PyObject *pythoncom_GetRecordFromTypeInfo(PyObject *self, PyObject *args)
     return ret;
 }
 
-PyRecord::PyRecord(IRecordInfo *ri, PVOID data, PyRecordBuffer *owner)
+// This function creates a new 'com_record' instance with placement new.
+// If the particular Record GUID belongs to a directly derived subclass
+// of the 'com_record' base type, it instantiates this subclass.
+PyRecord *PyRecord::new_record(IRecordInfo *ri, PVOID data, PyRecordBuffer *owner)
 {
-    ob_type = &PyRecord::Type;
-    _Py_NewReference(this);
+    PyObject *list, *raw, *ref;
+    Py_ssize_t i;
+    GUID structguid;
+    OLECHAR *guidString;
+    // By default we create an instance of the base 'com_record' type.
+    PyTypeObject *type = &PyRecord::Type;
+    // Retrieve the GUID of the Record to be created.
+    HRESULT hr = ri->GetGuid(&structguid);
+    if (FAILED(hr)) {
+        PyCom_BuildPyException(hr);
+        return NULL;
+    }
+    if (S_OK != StringFromCLSID(structguid, &guidString))
+        return NULL;
+    // Obtain a copy of the subclasses list to iterate over.
+    list = PyObject_CallMethod((PyObject *)type, "__subclasses__", NULL);
+    // We now have a list of the directly derived subclasses of 'com_record'.
+    // If no subclasses have been defined the list is empty.
+    // Iterate over the list and try to find a subclass with matching GUID.
+    PyObject *recordIter = PyObject_GetIter(list);
+    PyTypeObject *recordType;
+    wchar_t *item_guid;
+    while (recordType = (PyTypeObject *)PyIter_Next(recordIter)) {
+        if (PyObject *item = PyDict_GetItemString(recordType->tp_dict, "GUID")) {
+            if (!(item_guid = PyUnicode_AsWideCharString(item, NULL)))
+                continue;
+            if (wcscmp(guidString, item_guid) == 0) {
+                type = recordType;
+                PyMem_Free(item_guid);
+                break;
+            }
+            PyMem_Free(item_guid);
+        }
+        Py_DECREF(recordType);
+    }
+    Py_DECREF(recordIter);
+    Py_DECREF(list);
+    ::CoTaskMemFree(guidString);
+    // Finally allocate the memory for the the appropriate
+    // Record type and construct the instance with placement new.
+    char *buf = (char *)PyRecord::Type.tp_alloc(type, 0);
+    if (buf == NULL) {
+        delete owner;
+        return NULL;
+    }
+    return new (buf) PyRecord(ri, owner->data, owner);
+}
+
+PyRecord::PyRecord(IRecordInfo *ri, PVOID data, PyRecordBuffer *buf_owner)
+{
     ri->AddRef();
     pri = ri;
     pdata = data;
-    this->owner = owner;
+    owner = buf_owner;
     owner->AddRef();
 };
 
@@ -217,44 +269,81 @@ PyRecord::~PyRecord()
     pri->Release();
 }
 
+PyObject *PyRecord::tp_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+{
+    PyObject *item, *obGuid, *obInfoGuid;
+    int major, minor, lcid;
+    GUID guid, infoGuid;
+    if (type == &PyRecord::Type)
+    // If the base 'com_record' type was called try to get the
+    // information required for instance creation from the call parameters.
+    {
+        if (!PyArg_ParseTuple(args, "OiiiO:__new__",
+                              &obGuid,       // @pyparm <o PyIID>|iid||The GUID of the type library
+                              &major,        // @pyparm int|verMajor||The major version number of the type lib.
+                              &minor,        // @pyparm int|verMinor||The minor version number of the type lib.
+                              &lcid,         // @pyparm int|lcid||The LCID of the type lib.
+                              &obInfoGuid))  // @pyparm <o PyIID>|infoIID||The GUID of the record info in the library
+            return NULL;
+        if (!PyWinObject_AsIID(obGuid, &guid))
+            return NULL;
+        if (!PyWinObject_AsIID(obInfoGuid, &infoGuid))
+            return NULL;
+    }
+    // Otherwise try to get the information from the class variables of the derived type.
+    else if (!(item = PyDict_GetItemString(type->tp_dict, "GUID")) || !PyWinObject_AsIID(item, &infoGuid) ||
+             !(item = PyDict_GetItemString(type->tp_dict, "TLBID")) || !PyWinObject_AsIID(item, &guid) ||
+             !(item = PyDict_GetItemString(type->tp_dict, "MJVER")) || ((major = PyLong_AsLong(item)) == -1) ||
+             !(item = PyDict_GetItemString(type->tp_dict, "MNVER")) || ((minor = PyLong_AsLong(item)) == -1) ||
+             !(item = PyDict_GetItemString(type->tp_dict, "LCID")) || ((lcid = PyLong_AsLong(item)) == -1))
+        return NULL;
+    IRecordInfo *ri = NULL;
+    HRESULT hr = GetRecordInfoFromGuids(guid, major, minor, lcid, infoGuid, &ri);
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr);
+    PyObject *ret = PyObject_FromRecordInfo(ri, NULL, 0);
+    ri->Release();
+    return ret;
+}
+
 PyTypeObject PyRecord::Type = {
     PYWIN_OBJECT_HEAD "com_record",
     sizeof(PyRecord),
     0,
-    PyRecord::tp_dealloc,     /* tp_dealloc */
-    0,                        /* tp_print */
-    0,                        /* tp_getattr */
-    0,                        /* tp_setattr */
-    0,                        /* tp_compare */
-    &PyRecord::tp_repr,       /* tp_repr */
-    0,                        /* tp_as_number */
-    0,                        /* tp_as_sequence */
-    0,                        /* tp_as_mapping */
-    0,                        /* tp_hash */
-    0,                        /* tp_call */
-    0,                        /* tp_str */
-    PyRecord::getattro,       /* tp_getattro */
-    PyRecord::setattro,       /* tp_setattro */
-    0,                        /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT,       /* tp_flags */
-    0,                        /* tp_doc */
-    0,                        /* tp_traverse */
-    0,                        /* tp_clear */
-    PyRecord::tp_richcompare, /* tp_richcompare */
-    0,                        /* tp_weaklistoffset */
-    0,                        /* tp_iter */
-    0,                        /* tp_iternext */
-    PyRecord::methods,        /* tp_methods */
-    0,                        /* tp_members */
-    0,                        /* tp_getset */
-    0,                        /* tp_base */
-    0,                        /* tp_dict */
-    0,                        /* tp_descr_get */
-    0,                        /* tp_descr_set */
-    0,                        /* tp_dictoffset */
-    0,                        /* tp_init */
-    0,                        /* tp_alloc */
-    0,                        /* tp_new */
+    (destructor)PyRecord::tp_dealloc,         /* tp_dealloc */
+    0,                                        /* tp_print */
+    0,                                        /* tp_getattr */
+    0,                                        /* tp_setattr */
+    0,                                        /* tp_compare */
+    &PyRecord::tp_repr,                       /* tp_repr */
+    0,                                        /* tp_as_number */
+    0,                                        /* tp_as_sequence */
+    0,                                        /* tp_as_mapping */
+    0,                                        /* tp_hash */
+    0,                                        /* tp_call */
+    0,                                        /* tp_str */
+    PyRecord::getattro,                       /* tp_getattro */
+    PyRecord::setattro,                       /* tp_setattro */
+    0,                                        /* tp_as_buffer */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
+    0,                                        /* tp_doc */
+    0,                                        /* tp_traverse */
+    0,                                        /* tp_clear */
+    PyRecord::tp_richcompare,                 /* tp_richcompare */
+    0,                                        /* tp_weaklistoffset */
+    0,                                        /* tp_iter */
+    0,                                        /* tp_iternext */
+    PyRecord::methods,                        /* tp_methods */
+    0,                                        /* tp_members */
+    0,                                        /* tp_getset */
+    0,                                        /* tp_base */
+    0,                                        /* tp_dict */
+    0,                                        /* tp_descr_get */
+    0,                                        /* tp_descr_set */
+    0,                                        /* tp_dictoffset */
+    0,                                        /* tp_init */
+    0,                                        /* tp_alloc */
+    (newfunc)PyRecord::tp_new,                /* tp_new */
 };
 
 static PyObject *PyRecord_reduce(PyObject *self, PyObject *args)
@@ -496,7 +585,7 @@ PyObject *PyRecord::getattro(PyObject *self, PyObject *obname)
     // Short-circuit sub-structs and arrays here, so we don't allocate a new chunk
     // of memory and copy it - we need sub-structs to persist.
     if (V_VT(&vret) == (VT_BYREF | VT_RECORD))
-        return new PyRecord(V_RECORDINFO(&vret), V_RECORD(&vret), pyrec->owner);
+        return PyRecord::new_record(V_RECORDINFO(&vret), V_RECORD(&vret), pyrec->owner);
     else if (V_VT(&vret) == (VT_BYREF | VT_ARRAY | VT_RECORD)) {
         SAFEARRAY *psa = *V_ARRAYREF(&vret);
         if (SafeArrayGetDim(psa) != 1)
@@ -531,7 +620,7 @@ PyObject *PyRecord::getattro(PyObject *self, PyObject *obname)
         // in the last parameter, i.e. 'sub_data == NULL'.
         this_data = (BYTE *)psa->pvData;
         for (i = 0; i < nelems; i++) {
-            PyTuple_SET_ITEM(ret_tuple, i, new PyRecord(sub, this_data, pyrec->owner));
+            PyTuple_SET_ITEM(ret_tuple, i, PyRecord::new_record(sub, this_data, pyrec->owner));
             this_data += element_size;
         }
     array_end:
@@ -645,4 +734,8 @@ done:
     return ret;
 }
 
-void PyRecord::tp_dealloc(PyObject *ob) { delete (PyRecord *)ob; }
+void PyRecord::tp_dealloc(PyRecord *self)
+{
+    self->~PyRecord();
+    Py_TYPE(self)->tp_free((PyObject *)self);
+}
