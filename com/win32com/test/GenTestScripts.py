@@ -3,6 +3,7 @@
 #
 import os
 import sys
+import traceback
 
 import pythoncom
 import win32com
@@ -60,10 +61,7 @@ def GenerateAll():
 
 def CleanAll():
     print("Cleaning generated test scripts...")
-    try:  # Clear exceptions!
-        1 / 0
-    except:
-        pass
+    traceback.clear_frames(sys.exc_info()[2])  # Clear exceptions!
     genPath = GetGenPath()
     for args in genList:
         try:
