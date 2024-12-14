@@ -65,7 +65,7 @@ class EventDemoService(win32serviceutil.ServiceFramework):
         elif control == win32service.SERVICE_CONTROL_HARDWAREPROFILECHANGE:
             msg = f"A hardware profile changed: type={event_type}, data={data}"
         elif control == win32service.SERVICE_CONTROL_POWEREVENT:
-            msg = "A power event: setting {}".format(data)
+            msg = "A power event: setting %s" % data
         elif control == win32service.SERVICE_CONTROL_SESSIONCHANGE:
             # data is a single elt tuple, but this could potentially grow
             # in the future if the win32 struct does

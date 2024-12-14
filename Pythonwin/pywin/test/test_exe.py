@@ -68,7 +68,7 @@ class TestPythonwinExe(unittest.TestCase):
 
     def tearDown(self):
         os.remove(self.tfn)
-        print("-- removed '{}' --".format(self.tfn), file=sys.stderr)
+        print("-- removed '%s' --" % self.tfn, file=sys.stderr)
 
 
 if __name__ == "__main__":

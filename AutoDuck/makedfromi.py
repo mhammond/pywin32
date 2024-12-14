@@ -114,7 +114,7 @@ def make_doc_summary(inFile, outFile):
         for meth, extras in these_methods:
             fields = meth.split("|")
             if len(fields) != 3:
-                print("**Error - {} does not have enough fields".format(meth))
+                print("**Error - %s does not have enough fields" % meth)
             else:
                 outFile.write(
                     f"// @pymethod {fields[0]}|{thisModName}|{fields[1]}|{fields[2]}\n"
@@ -123,7 +123,7 @@ def make_doc_summary(inFile, outFile):
                 outFile.write(extra)
         if g_com_parent:
             outFile.write(f"\n// @object {thisModName}|{modDoc}")
-            outFile.write("\n// <nl>Derived from <o {}>\n".format(g_com_parent))
+            outFile.write("\n// <nl>Derived from <o %s>\n" % (g_com_parent))
         else:
             outFile.write(f"\n// @module {thisModName}|{modDoc}\n")
         for meth, extras in these_methods:
@@ -134,7 +134,7 @@ def make_doc_summary(inFile, outFile):
 
     outFile.write("\n")
     for extra in extra_tags:
-        outFile.write("{}\n".format(extra))
+        outFile.write("%s\n" % (extra))
     for cname, doc in constants:
         outFile.write(f"// @const {modName}|{cname}|{doc}\n")
 
@@ -153,7 +153,7 @@ def doit():
     except getopt.error:
         _, msg, _ = sys.exc_info()
         print(msg)
-        print("Usage: {} [-o output_name] [-p com_parent] filename".format(sys.argv[0]))
+        print("Usage: %s [-o output_name] [-p com_parent] filename" % sys.argv[0])
         return
 
     inName = args[0]
@@ -162,9 +162,8 @@ def doit():
     inFile = open(inName)
     outFile = open(outName, "w")
     outFile.write(
-        "// @doc\n// Generated file - built from {}\n// DO NOT CHANGE - CHANGES WILL BE LOST!\n\n".format(
-            inName
-        )
+        "// @doc\n// Generated file - built from %s\n// DO NOT CHANGE - CHANGES WILL BE LOST!\n\n"
+        % inName
     )
     make_doc_summary(inFile, outFile)
     inFile.close()

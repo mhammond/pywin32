@@ -282,7 +282,7 @@ def genCategoryHTML(output_dir, cats):
 
 
 def _genItemsFromDict(dict, cat, output, target, do_children=1):
-    CHM = f"mk:@MSITStore:{target}.chm::/"
+    CHM = "mk:@MSITStore:%s.chm::/" % target
     for k in sorted(dict):
         context = dict[k].context
         name = dict[k].name
@@ -318,7 +318,7 @@ def _genItemsFromDict(dict, cat, output, target, do_children=1):
 
 
 def genTOC(cats, output, title, target):
-    CHM = "mk:@MSITStore:{}.chm::/".format(target)
+    CHM = "mk:@MSITStore:%s.chm::/" % target
     output.write(
         """
 <!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">

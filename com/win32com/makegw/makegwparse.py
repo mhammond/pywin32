@@ -129,9 +129,7 @@ class ArgFormatter:
     def GetInterfaceArgCleanup(self):
         "Return cleanup code for C++ args passed to the interface method."
         if DEBUG:
-            return "/* GetInterfaceArgCleanup output goes here: {} */\n".format(
-                self.arg.name
-            )
+            return "/* GetInterfaceArgCleanup output goes here: %s */\n" % self.arg.name
         else:
             return ""
 
@@ -140,9 +138,8 @@ class ArgFormatter:
         method that must be executed with the GIL held"""
         if DEBUG:
             return (
-                "/* GetInterfaceArgCleanup (GIL held) output goes here: {} */\n".format(
-                    self.arg.name
-                )
+                "/* GetInterfaceArgCleanup (GIL held) output goes here: %s */\n"
+                % self.arg.name
             )
         else:
             return ""
@@ -168,8 +165,9 @@ class ArgFormatter:
         # 	return "\t%s %s;\n" % (self.arg.type, self.arg.name)
         # else:
         if DEBUG:
-            return "/* Declare ParseArgTupleInputConverter goes here: {} */\n".format(
-                self.arg.name
+            return (
+                "/* Declare ParseArgTupleInputConverter goes here: %s */\n"
+                % self.arg.name
             )
         else:
             return ""
@@ -177,16 +175,14 @@ class ArgFormatter:
     def GetParsePostCode(self):
         "Get a string of C++ code to be executed after (ie, to finalise) the PyArg_ParseTuple conversion"
         if DEBUG:
-            return "/* GetParsePostCode code goes here: {} */\n".format(self.arg.name)
+            return "/* GetParsePostCode code goes here: %s */\n" % self.arg.name
         else:
             return ""
 
     def GetBuildForInterfacePreCode(self):
         "Get a string of C++ code to be executed before (ie, to initialise) the Py_BuildValue conversion for Interfaces"
         if DEBUG:
-            return "/* GetBuildForInterfacePreCode goes here: {} */\n".format(
-                self.arg.name
-            )
+            return "/* GetBuildForInterfacePreCode goes here: %s */\n" % self.arg.name
         else:
             return ""
 
@@ -195,17 +191,13 @@ class ArgFormatter:
         s = self.GetBuildForInterfacePreCode()  # Usually the same
         if DEBUG:
             if s[:4] == "/* G":
-                s = "/* GetBuildForGatewayPreCode goes here: {} */\n".format(
-                    self.arg.name
-                )
+                s = "/* GetBuildForGatewayPreCode goes here: %s */\n" % self.arg.name
         return s
 
     def GetBuildForInterfacePostCode(self):
         "Get a string of C++ code to be executed after (ie, to finalise) the Py_BuildValue conversion for Interfaces"
         if DEBUG:
-            return "/* GetBuildForInterfacePostCode goes here: {} */\n".format(
-                self.arg.name
-            )
+            return "/* GetBuildForInterfacePostCode goes here: %s */\n" % self.arg.name
         return ""
 
     def GetBuildForGatewayPostCode(self):
@@ -213,9 +205,7 @@ class ArgFormatter:
         s = self.GetBuildForInterfacePostCode()  # Usually the same
         if DEBUG:
             if s[:4] == "/* G":
-                s = "/* GetBuildForGatewayPostCode goes here: {} */\n".format(
-                    self.arg.name
-                )
+                s = "/* GetBuildForGatewayPostCode goes here: %s */\n" % self.arg.name
         return s
 
     def GetAutoduckString(self):
@@ -241,7 +231,7 @@ class ArgFormatterFloat(ArgFormatter):
 
     def DeclareParseArgTupleInputConverter(self):
         # Declare a double variable
-        return "\tdouble dbl{};\n".format(self.arg.name)
+        return "\tdouble dbl%s;\n" % self.arg.name
 
     def GetParseTupleArg(self):
         return "&dbl" + self.arg.name
@@ -257,7 +247,7 @@ class ArgFormatterFloat(ArgFormatter):
 
     def GetBuildForGatewayPreCode(self):
         return (
-            "\tdbl{} = ".format(self.arg.name)
+            "\tdbl%s = " % self.arg.name
             + self._IndirectPrefix(self._GetDeclaredIndirection(), 0)
             + self.arg.name
             + ";\n"
@@ -268,7 +258,7 @@ class ArgFormatterFloat(ArgFormatter):
         if self.gatewayMode:
             s += self._IndirectPrefix(self._GetDeclaredIndirection(), 0)
         s += self.arg.name
-        s += " = (float)dbl{};\n".format(self.arg.name)
+        s += " = (float)dbl%s;\n" % self.arg.name
         return s
 
 
@@ -280,7 +270,7 @@ class ArgFormatterShort(ArgFormatter):
 
     def DeclareParseArgTupleInputConverter(self):
         # Declare a double variable
-        return "\tINT i{};\n".format(self.arg.name)
+        return "\tINT i%s;\n" % self.arg.name
 
     def GetParseTupleArg(self):
         return "&i" + self.arg.name
@@ -296,7 +286,7 @@ class ArgFormatterShort(ArgFormatter):
 
     def GetBuildForGatewayPreCode(self):
         return (
-            "\ti{} = ".format(self.arg.name)
+            "\ti%s = " % self.arg.name
             + self._IndirectPrefix(self._GetDeclaredIndirection(), 0)
             + self.arg.name
             + ";\n"
@@ -307,7 +297,7 @@ class ArgFormatterShort(ArgFormatter):
         if self.gatewayMode:
             s += self._IndirectPrefix(self._GetDeclaredIndirection(), 0)
         s += self.arg.name
-        s += " = i{};\n".format(self.arg.name)
+        s += " = i%s;\n" % self.arg.name
         return s
 
 
@@ -318,7 +308,7 @@ class ArgFormatterLONG_PTR(ArgFormatter):
 
     def DeclareParseArgTupleInputConverter(self):
         # Declare a PyObject variable
-        return "\tPyObject *ob{};\n".format(self.arg.name)
+        return "\tPyObject *ob%s;\n" % self.arg.name
 
     def GetParseTupleArg(self):
         return "&ob" + self.arg.name
@@ -330,7 +320,7 @@ class ArgFormatterLONG_PTR(ArgFormatter):
         return "ob" + self.arg.name
 
     def GetBuildForInterfacePostCode(self):
-        return "\tPy_XDECREF(ob{});\n".format(self.arg.name)
+        return "\tPy_XDECREF(ob%s);\n" % self.arg.name
 
     def GetParsePostCode(self):
         return "\tif (bPythonIsHappy && !PyWinLong_AsULONG_PTR(ob{}, (ULONG_PTR *){})) bPythonIsHappy = FALSE;\n".format(
@@ -342,7 +332,7 @@ class ArgFormatterLONG_PTR(ArgFormatter):
         return f"\tob{self.arg.name} = PyWinObject_FromULONG_PTR({notdirected});\n"
 
     def GetBuildForGatewayPostCode(self):
-        return "\tPy_XDECREF(ob{});\n".format(self.arg.name)
+        return "\tPy_XDECREF(ob%s);\n" % self.arg.name
 
 
 class ArgFormatterPythonCOM(ArgFormatter):
@@ -356,19 +346,19 @@ class ArgFormatterPythonCOM(ArgFormatter):
     # 		"%s %s%s" % (self.arg.unc_type, "*" * self._GetDeclaredIndirection(), self.arg.name)
     def DeclareParseArgTupleInputConverter(self):
         # Declare a PyObject variable
-        return "\tPyObject *ob{};\n".format(self.arg.name)
+        return "\tPyObject *ob%s;\n" % self.arg.name
 
     def GetParseTupleArg(self):
         return "&ob" + self.arg.name
 
     def _GetPythonTypeDesc(self):
-        return "<o Py{}>".format(self.arg.type)
+        return "<o Py%s>" % self.arg.type
 
     def GetBuildValueArg(self):
         return "ob" + self.arg.name
 
     def GetBuildForInterfacePostCode(self):
-        return "\tPy_XDECREF(ob{});\n".format(self.arg.name)
+        return "\tPy_XDECREF(ob%s);\n" % self.arg.name
 
 
 class ArgFormatterBSTR(ArgFormatterPythonCOM):
@@ -391,7 +381,7 @@ class ArgFormatterBSTR(ArgFormatterPythonCOM):
         )
 
     def GetBuildForGatewayPostCode(self):
-        return "\tPy_XDECREF(ob{});\n".format(self.arg.name)
+        return "\tPy_XDECREF(ob%s);\n" % self.arg.name
 
 
 class ArgFormatterOLECHAR(ArgFormatterPythonCOM):
@@ -410,7 +400,7 @@ class ArgFormatterOLECHAR(ArgFormatterPythonCOM):
         )
 
     def GetInterfaceArgCleanup(self):
-        return "\tSysFreeString({});\n".format(self.GetIndirectedArgName(None, 1))
+        return "\tSysFreeString(%s);\n" % self.GetIndirectedArgName(None, 1)
 
     def GetBuildForInterfacePreCode(self):
         # the variable was declared with just its builtin indirection
@@ -425,7 +415,7 @@ class ArgFormatterOLECHAR(ArgFormatterPythonCOM):
         )
 
     def GetBuildForGatewayPostCode(self):
-        return "\tPy_XDECREF(ob{});\n".format(self.arg.name)
+        return "\tPy_XDECREF(ob%s);\n" % self.arg.name
 
 
 class ArgFormatterTCHAR(ArgFormatterPythonCOM):
@@ -444,9 +434,7 @@ class ArgFormatterTCHAR(ArgFormatterPythonCOM):
         )
 
     def GetInterfaceArgCleanup(self):
-        return "\tPyWinObject_FreeTCHAR({});\n".format(
-            self.GetIndirectedArgName(None, 1)
-        )
+        return "\tPyWinObject_FreeTCHAR(%s);\n" % self.GetIndirectedArgName(None, 1)
 
     def GetBuildForInterfacePreCode(self):
         # the variable was declared with just its builtin indirection
@@ -457,7 +445,7 @@ class ArgFormatterTCHAR(ArgFormatterPythonCOM):
         return "// ??? - TCHAR post code\n"
 
     def GetBuildForGatewayPostCode(self):
-        return "\tPy_XDECREF(ob{});\n".format(self.arg.name)
+        return "\tPy_XDECREF(ob%s);\n" % self.arg.name
 
 
 class ArgFormatterIID(ArgFormatterPythonCOM):
@@ -476,7 +464,7 @@ class ArgFormatterIID(ArgFormatterPythonCOM):
         return f"\tob{self.arg.name} = PyWinObject_FromIID({notdirected});\n"
 
     def GetInterfaceCppObjectInfo(self):
-        return self.arg.name, "IID {}".format(self.arg.name)
+        return self.arg.name, "IID %s" % (self.arg.name)
 
 
 class ArgFormatterTime(ArgFormatterPythonCOM):
@@ -513,7 +501,7 @@ class ArgFormatterTime(ArgFormatterPythonCOM):
         ret = ""
         if self.builtinIndirection + self.arg.indirectionLevel > 1:
             # memory returned into an OLECHAR should be freed
-            ret = "\tCoTaskMemFree({});\n".format(self.arg.name)
+            ret = "\tCoTaskMemFree(%s);\n" % self.arg.name
         return ret + ArgFormatterPythonCOM.GetBuildForInterfacePostCode(self)
 
 
@@ -538,7 +526,7 @@ class ArgFormatterSTATSTG(ArgFormatterPythonCOM):
 
 class ArgFormatterGeneric(ArgFormatterPythonCOM):
     def _GetPythonTypeDesc(self):
-        return "<o {}>".format(self.arg.type)
+        return "<o %s>" % self.arg.type
 
     def GetParsePostCode(self):
         return "\tif (!PyObject_As{}(ob{}, &{}) bPythonIsHappy = FALSE;\n".format(
@@ -601,7 +589,7 @@ class ArgFormatterLARGE_INTEGER(ArgFormatterPythonCOM):
         return "LARGE_INTEGER"
 
     def _GetPythonTypeDesc(self):
-        return "<o {}>".format(self.GetKeyName())
+        return "<o %s>" % self.GetKeyName()
 
     def GetParsePostCode(self):
         return "\tif (!PyWinObject_As{}(ob{}, {})) bPythonIsHappy = FALSE;\n".format(
@@ -675,7 +663,7 @@ class ArgFormatterVARIANT(ArgFormatterPythonCOM):
         return f"\tob{self.arg.name} = PyCom_PyObjectFromVariant({notdirected});\n"
 
     def GetBuildForGatewayPostCode(self):
-        return "\tPy_XDECREF(ob{});\n".format(self.arg.name)
+        return "\tPy_XDECREF(ob%s);\n" % self.arg.name
 
         # Key :		, Python Type Description, ParseTuple format char
 
@@ -927,9 +915,7 @@ class Method:
                 )
             else:
                 print(
-                    "Method {} - Only HRESULT return types are supported.".format(
-                        self.name
-                    )
+                    "Method %s - Only HRESULT return types are supported." % self.name
                 )
             # 				raise error_not_supported,		if VERBOSE:
             print(f"     Method {self.result} {self.name}(")

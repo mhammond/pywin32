@@ -61,7 +61,7 @@ def FindPackagePath(packageName, knownFileName, searchPaths):
             # Found it
             ret = os.path.abspath(pathLook)
             return ret, ret
-    raise error("The package {} can not be located".format(packageName))
+    raise error("The package %s can not be located" % packageName)
 
 
 def FindHelpPath(helpFile, helpDesc, searchPaths):
@@ -95,7 +95,7 @@ def FindHelpPath(helpFile, helpDesc, searchPaths):
         pathLook = os.path.join(pathLook, "Help")
         if FileExists(os.path.join(pathLook, helpFile)):
             return os.path.abspath(pathLook)
-    raise error("The help file {} can not be located".format(helpFile))
+    raise error("The help file %s can not be located" % helpFile)
 
 
 def FindAppPath(appName, knownFileName, searchPaths):
@@ -167,7 +167,7 @@ def QuotedFileName(fname):
 
     try:
         fname.index(" ")  # Other chars forcing quote?
-        return '"{}"'.format(fname)
+        return '"%s"' % fname
     except ValueError:
         # No space in name.
         return fname
@@ -203,9 +203,8 @@ def LocateFileName(fileNamesString, searchPaths):
             import win32ui
         except ImportError:
             raise error(
-                "Need to locate the file {}, but the win32ui module is not available\nPlease run the program again, passing as a parameter the path to this file.".format(
-                    fileName
-                )
+                "Need to locate the file %s, but the win32ui module is not available\nPlease run the program again, passing as a parameter the path to this file."
+                % fileName
             )
         # Display a common dialog to locate the file.
         flags = win32con.OFN_FILEMUSTEXIST
@@ -269,11 +268,11 @@ def LocatePythonCore(searchPaths):
     corePath = None
     suffix = IsDebug()
     for path in presearchPaths:
-        if FileExists(os.path.join(path, "unicodedata{}.pyd".format(suffix))):
+        if FileExists(os.path.join(path, "unicodedata%s.pyd" % suffix)):
             corePath = path
             break
     if corePath is None and searchPaths is not None:
-        corePath = LocatePath("unicodedata{}.pyd".format(suffix), searchPaths)
+        corePath = LocatePath("unicodedata%s.pyd" % suffix, searchPaths)
     if corePath is None:
         raise error("The core Python path could not be located.")
 
@@ -432,11 +431,11 @@ def RegisterShellInfo(searchPaths):
 
     suffix = IsDebug()
     # Set up a pointer to the .exe's
-    exePath = FindRegisterPythonExe("Python{}.exe".format(suffix), searchPaths)
+    exePath = FindRegisterPythonExe("Python%s.exe" % suffix, searchPaths)
     regutil.SetRegistryDefaultValue(".py", "Python.File", win32con.HKEY_CLASSES_ROOT)
     regutil.RegisterShellCommand("Open", QuotedFileName(exePath) + ' "%1" %*', "&Run")
     regutil.SetRegistryDefaultValue(
-        "Python.File\\DefaultIcon", "{},0".format(exePath), win32con.HKEY_CLASSES_ROOT
+        "Python.File\\DefaultIcon", "%s,0" % exePath, win32con.HKEY_CLASSES_ROOT
     )
 
     FindRegisterHelpFile("Python.hlp", searchPaths, "Main Python Documentation")
@@ -454,7 +453,7 @@ regsetup.py - Setup/maintain the registry for Python apps.
 Run without options, (but possibly search paths) to repair a totally broken
 python registry setup.  This should allow other options to work.
 
-Usage:   {} [options ...] paths ...
+Usage:   %s [options ...] paths ...
 -p packageName  -- Find and register a package.  Looks in the paths for
                    a sub-directory with the name of the package, and
                    adds a path entry for the package.
@@ -475,7 +474,7 @@ Usage:   {} [options ...] paths ...
 
 --description   -- Print a description of the usage.
 --examples      -- Print examples of usage.
-""".format(sys.argv[0])
+""" % sys.argv[0]
 
 description = """\
 If no options are processed, the program attempts to validate and set

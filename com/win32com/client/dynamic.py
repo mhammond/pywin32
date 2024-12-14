@@ -221,7 +221,7 @@ class CDispatch:
         # desirable???
 
     def __repr__(self):
-        return "<COMObject {}>".format(self._username_)
+        return "<COMObject %s>" % (self._username_)
 
     def __str__(self):
         # __str__ is used when the user does "print(object)", so we gracefully
@@ -409,9 +409,7 @@ class CDispatch:
         try:
             # print(f"Method code for {self._username_} is:\n", methodCode)
             # self._print_details_()
-            codeObject = compile(
-                methodCode, "<COMObject {}>".format(self._username_), "exec"
-            )
+            codeObject = compile(methodCode, "<COMObject %s>" % self._username_, "exec")
             # Exec the code object
             tempNameSpace = {}
             # "Dispatch" in the exec'd code is win32com.client.Dispatch, not ours.
@@ -463,13 +461,13 @@ class CDispatch:
                 print("\t", method)
             print("Props:")
             for prop, entry in self._olerepr_.propMap.items():
-                print(f"\t{prop} = 0x{entry.dispid:x} - {repr(entry)}")
+                print(f"\t{prop} = 0x{entry.dispid:x} - {entry!r}")
             print("Get Props:")
             for prop, entry in self._olerepr_.propMapGet.items():
-                print(f"\t{prop} = 0x{entry.dispid:x} - {repr(entry)}")
+                print(f"\t{prop} = 0x{entry.dispid:x} - {entry!r}")
             print("Put Props:")
             for prop, entry in self._olerepr_.propMapPut.items():
-                print(f"\t{prop} = 0x{entry.dispid:x} - {repr(entry)}")
+                print(f"\t{prop} = 0x{entry.dispid:x} - {entry!r}")
         except:
             traceback.print_exc()
 
@@ -610,13 +608,13 @@ class CDispatch:
                 debug_attr_print("Cached items has attribute!", ret)
                 return ret
             except (KeyError, AttributeError):
-                debug_attr_print("Attribute {} not in cache".format(attr))
+                debug_attr_print("Attribute %s not in cache" % attr)
 
         # If we are still here, and have a retEntry, get the OLE item
         if retEntry is not None:
             invoke_type = _GetDescInvokeType(retEntry, pythoncom.INVOKE_PROPERTYGET)
             debug_attr_print(
-                "Getting property Id 0x{:x} from OLE object".format(retEntry.dispid)
+                "Getting property Id 0x%x from OLE object" % retEntry.dispid
             )
             try:
                 ret = self._oleobj_.Invoke(retEntry.dispid, 0, invoke_type, 1)
@@ -642,9 +640,7 @@ class CDispatch:
             return
         # Allow property assignment.
         debug_attr_print(
-            "SetAttr called for {}.{}={} on DispatchContainer".format(
-                self._username_, attr, repr(value)
-            )
+            f"SetAttr called for {self._username_}.{attr}={value!r} on DispatchContainer"
         )
 
         if self._olerepr_:

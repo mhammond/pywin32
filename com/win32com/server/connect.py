@@ -82,4 +82,4 @@ class ConnectableServer:
                 self._OnNotifyFail(interface, details)
 
     def _OnNotifyFail(self, interface, details):
-        print("Ignoring COM error to connection - {}".format(repr(details)))
+        print(f"Ignoring COM error to connection - {details!r}")

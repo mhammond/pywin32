@@ -110,7 +110,7 @@ class NamedScriptAttribute:
         self.__dict__["_scriptItem_"] = scriptItem
 
     def __repr__(self):
-        return "<NamedItemAttribute" + repr(self._scriptItem_) + ">"
+        return f"<NamedItemAttribute{self._scriptItem_!r}>"
 
     def __getattr__(self, attr):
         # If a known subitem, return it.
@@ -318,11 +318,7 @@ class PyScript(framework.COMScript):
         funcName = self.MakeEventMethodName(subItemName, eventName)
 
         codeBlock = AXScriptCodeBlock(
-            "Script Event {}".format(funcName),
-            code,
-            sourceContextCookie,
-            startLineNumber,
-            0,
+            "Script Event %s" % funcName, code, sourceContextCookie, startLineNumber, 0
         )
         self._AddScriptCodeBlock(codeBlock)
         subItem.scriptlets[funcName] = codeBlock
@@ -339,7 +335,7 @@ class PyScript(framework.COMScript):
         except KeyError:
             pass
         if codeBlock is not None:
-            realCode = "def {}():\n".format(funcName)
+            realCode = "def %s():\n" % funcName
             for line in framework.RemoveCR(codeBlock.codeText).split("\n"):
                 realCode += "\t" + line + "\n"
             realCode += "\n"

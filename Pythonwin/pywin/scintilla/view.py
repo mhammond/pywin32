@@ -437,7 +437,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
             modName = m.group("name")
             fileName = pywin.framework.scriptutils.LocatePythonFile(modName)
             if fileName is None:
-                win32ui.SetStatusText("Can't locate module {}".format(modName))
+                win32ui.SetStatusText("Can't locate module %s" % modName)
                 return 1  # Let the default get it.
             else:
                 win32ui.GetApp().OpenDocumentFile(fileName)
@@ -512,9 +512,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
                         pass
             except:
                 win32ui.SetStatusText(
-                    "Error attempting to get object attributes - {}".format(
-                        repr(sys.exc_info()[0])
-                    )
+                    f"Error attempting to get object attributes - {sys.exc_info()[0]!r}"
                 )
 
         items = [
@@ -838,9 +836,8 @@ def LoadConfiguration():
             configManager = ConfigManager("default")
             if configManager.last_error:
                 win32ui.MessageBox(
-                    "Error loading configuration 'default'\n\n{}".format(
-                        configManager.last_error
-                    )
+                    "Error loading configuration 'default'\n\n%s"
+                    % (configManager.last_error)
                 )
 
 

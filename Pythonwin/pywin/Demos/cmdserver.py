@@ -47,7 +47,7 @@ class ThreadWriter:
 def Test():
     num = 1
     while num < 1000:
-        print("Hello there no " + str(num))
+        print("Hello there no", num)
         win32api.Sleep(50)
         num += 1
 
@@ -72,7 +72,7 @@ def StartServer(cmd, title=None, bCloseOnEnd=0, serverFlags=flags.SERVER_BEST):
 def ServerThread(myout, cmd, title, bCloseOnEnd):
     try:
         writer.register(myout)
-        print('Executing "{}"\n'.format(cmd))
+        print('Executing "%s"\n' % cmd)
         bOK = 1
         try:
             import __main__

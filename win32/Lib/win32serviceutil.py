@@ -124,7 +124,7 @@ def LocateSpecificServiceExe(serviceName):
     # Return the .exe name of any service.
     hkey = win32api.RegOpenKey(
         win32con.HKEY_LOCAL_MACHINE,
-        "SYSTEM\\CurrentControlSet\\Services\\{}".format(serviceName),
+        "SYSTEM\\CurrentControlSet\\Services\\%s" % (serviceName),
         0,
         win32con.KEY_QUERY_VALUE,
     )
@@ -155,7 +155,7 @@ def InstallPerfmonForService(serviceName, iniName, dllName=None):
     # Now setup all the required "Performance" entries.
     hkey = win32api.RegOpenKey(
         win32con.HKEY_LOCAL_MACHINE,
-        "SYSTEM\\CurrentControlSet\\Services\\{}".format(serviceName),
+        "SYSTEM\\CurrentControlSet\\Services\\%s" % (serviceName),
         0,
         win32con.KEY_ALL_ACCESS,
     )
@@ -227,7 +227,7 @@ def InstallService(
     if errorControl is None:
         errorControl = win32service.SERVICE_ERROR_NORMAL
 
-    exeName = '"{}"'.format(LocatePythonServiceExe(exeName))
+    exeName = '"%s"' % LocatePythonServiceExe(exeName)
     commandLine = _GetCommandLine(exeName, exeArgs)
     hscm = win32service.OpenSCManager(None, None, win32service.SC_MANAGER_ALL_ACCESS)
     try:
@@ -298,7 +298,7 @@ def ChangeServiceConfig(
         pass
 
     # The EXE location may have changed
-    exeName = '"{}"'.format(LocatePythonServiceExe(exeName))
+    exeName = '"%s"' % LocatePythonServiceExe(exeName)
 
     # Handle the default arguments.
     if startType is None:
@@ -362,7 +362,7 @@ def InstallPythonClassString(pythonClassString, serviceName):
     if pythonClassString:
         key = win32api.RegCreateKey(
             win32con.HKEY_LOCAL_MACHINE,
-            "System\\CurrentControlSet\\Services\\{}\\PythonClass".format(serviceName),
+            "System\\CurrentControlSet\\Services\\%s\\PythonClass" % serviceName,
         )
         try:
             win32api.RegSetValue(key, None, win32con.REG_SZ, pythonClassString)
@@ -378,7 +378,7 @@ def SetServiceCustomOption(serviceName, option, value):
         pass
     key = win32api.RegCreateKey(
         win32con.HKEY_LOCAL_MACHINE,
-        "System\\CurrentControlSet\\Services\\{}\\Parameters".format(serviceName),
+        "System\\CurrentControlSet\\Services\\%s\\Parameters" % serviceName,
     )
     try:
         if isinstance(value, int):
@@ -398,7 +398,7 @@ def GetServiceCustomOption(serviceName, option, defaultValue=None):
         pass
     key = win32api.RegCreateKey(
         win32con.HKEY_LOCAL_MACHINE,
-        "System\\CurrentControlSet\\Services\\{}\\Parameters".format(serviceName),
+        "System\\CurrentControlSet\\Services\\%s\\Parameters" % serviceName,
     )
     try:
         try:
@@ -630,7 +630,7 @@ def GetServiceClassString(cls, argv=None):
                 fname = os.path.join(path, filelist[0][8])
         except win32api.error:
             raise error(
-                "Could not resolve the path name '{}' to a full path".format(argv[0])
+                "Could not resolve the path name '%s' to a full path" % (argv[0])
             )
         modName = os.path.splitext(fname)[0]
     return modName + "." + cls.__name__
@@ -655,9 +655,8 @@ def usage():
     except:
         fname = sys.argv[0]
     print(
-        "Usage: '{} [options] install|update|remove|start [...]|stop|restart [...]|debug [...]'".format(
-            fname
-        )
+        "Usage: '%s [options] install|update|remove|start [...]|stop|restart [...]|debug [...]'"
+        % fname
     )
     print("Options for 'install' and 'update' commands only:")
     print(" --username domain\\username : The Username the service is to run under")
@@ -772,7 +771,7 @@ def HandleCommandLine(
     # First we process all arguments which pass additional args on
     if arg == "start":
         knownArg = 1
-        print("Starting service {}".format(serviceName))
+        print("Starting service %s" % (serviceName))
         try:
             StartService(serviceName, args[1:])
             if waitSecs:
@@ -780,12 +779,12 @@ def HandleCommandLine(
                     serviceName, win32service.SERVICE_RUNNING, waitSecs
                 )
         except win32service.error as exc:
-            print("Error starting service: {}".format(exc.strerror))
+            print("Error starting service: %s" % exc.strerror)
             err = exc.winerror
 
     elif arg == "restart":
         knownArg = 1
-        print("Restarting service {}".format(serviceName))
+        print("Restarting service %s" % (serviceName))
         RestartService(serviceName, args[1:])
         if waitSecs:
             WaitForServiceStatus(serviceName, win32service.SERVICE_RUNNING, waitSecs)
@@ -870,7 +869,7 @@ def HandleCommandLine(
                 )
                 err = exc.winerror
         except ValueError as msg:  # Can be raised by custom option handler.
-            print("Error installing service: {}".format(str(msg)))
+            print("Error installing service: %s" % str(msg))
             err = -1
             # xxx - maybe I should remove after _any_ failed install - however,
             # xxx - it may be useful to help debug to leave the service as it failed.
@@ -930,7 +929,7 @@ def HandleCommandLine(
 
     elif arg == "remove":
         knownArg = 1
-        print("Removing service {}".format(serviceName))
+        print("Removing service %s" % (serviceName))
         try:
             RemoveService(serviceName)
             print("Service removed")
@@ -939,7 +938,7 @@ def HandleCommandLine(
             err = exc.winerror
     elif arg == "stop":
         knownArg = 1
-        print("Stopping service {}".format(serviceName))
+        print("Stopping service %s" % (serviceName))
         try:
             if waitSecs:
                 StopServiceWithDeps(serviceName, waitSecs=waitSecs)
@@ -950,7 +949,7 @@ def HandleCommandLine(
             err = exc.winerror
     if not knownArg:
         err = -1
-        print("Unknown command - '{}'".format(arg))
+        print("Unknown command - '%s'" % arg)
         usage()
     return err
 

@@ -330,7 +330,7 @@ class RCParser:
                     # We don't know what the resource type is, but we
                     # have already consumed the next, which can cause problems,
                     # so push it back.
-                    self.debug("Skipping top-level '{}'".format(base_token))
+                    self.debug("Skipping top-level '%s'" % base_token)
                     self.ungetToken()
 
     def addId(self, id_name):
@@ -617,9 +617,9 @@ def GenerateFrozenResource(rc_name, output_name, h_name=None):
     in_stat = os.stat(rc_name)
 
     out = open(output_name, "wt")
-    out.write("#{}\n".format(output_name))
-    out.write("#This is a generated file. Please edit {} instead.\n".format(rc_name))
-    out.write("__version__={!r}\n".format(__version__))
+    out.write("#%s\n" % output_name)
+    out.write("#This is a generated file. Please edit %s instead.\n" % rc_name)
+    out.write("__version__=%r\n" % __version__)
     out.write(
         "_rc_size_=%d\n_rc_mtime_=%d\n"
         % (in_stat[stat.ST_SIZE], in_stat[stat.ST_MTIME])
@@ -657,7 +657,7 @@ if __name__ == "__main__":
         filename = sys.argv[1]
         if "-v" in sys.argv:
             RCParser.debugEnabled = True
-        print("Dumping all resources in '{}'".format(filename))
+        print("Dumping all resources in '%s'" % filename)
         resources = Parse(filename)
         for id, ddef in resources.dialogs.items():
             print("Dialog %s (%d controls)" % (id, len(ddef)))

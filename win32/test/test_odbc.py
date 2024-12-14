@@ -54,7 +54,7 @@ class TestStuff(unittest.TestCase):
         self.cur = self.conn.cursor()
         ## self.cur.setoutputsize(1000)
         try:
-            self.cur.execute("""drop table {}""".format(self.tablename))
+            self.cur.execute("""drop table %s""" % self.tablename)
         except (odbc.error, odbc.progError):
             pass
 
@@ -63,7 +63,7 @@ class TestStuff(unittest.TestCase):
         ##  - varchar -> nvarchar
         self.assertEqual(
             self.cur.execute(
-                """create table {} (
+                """create table %s (
                     userid varchar(25),
                     username varchar(25),
                     bitfield bit,
@@ -73,7 +73,8 @@ class TestStuff(unittest.TestCase):
                     rawfield varbinary(100),
                     longtextfield memo,
                     longbinaryfield image
-            )""".format(self.tablename)
+            )"""
+                % self.tablename
             ),
             -1,
         )
@@ -81,9 +82,9 @@ class TestStuff(unittest.TestCase):
     def tearDown(self):
         if self.cur is not None:
             try:
-                self.cur.execute("""drop table {}""".format(self.tablename))
+                self.cur.execute("""drop table %s""" % self.tablename)
             except (odbc.error, odbc.progError) as why:
-                print("Failed to delete test table {}".format(self.tablename), why)
+                print("Failed to delete test table %s" % self.tablename, why)
 
             self.cur.close()
             self.cur = None
@@ -99,24 +100,27 @@ class TestStuff(unittest.TestCase):
     def test_insert_select(self, userid="Frank", username="Frank Millman"):
         self.assertEqual(
             self.cur.execute(
-                "insert into {} (userid, username) \
-            values (?,?)".format(self.tablename),
+                "insert into %s (userid, username) \
+            values (?,?)"
+                % self.tablename,
                 [userid, username],
             ),
             1,
         )
         self.assertEqual(
             self.cur.execute(
-                "select * from {} \
-            where userid = ?".format(self.tablename),
+                "select * from %s \
+            where userid = ?"
+                % self.tablename,
                 [userid.lower()],
             ),
             0,
         )
         self.assertEqual(
             self.cur.execute(
-                "select * from {} \
-            where username = ?".format(self.tablename),
+                "select * from %s \
+            where username = ?"
+                % self.tablename,
                 [username.lower()],
             ),
             0,
@@ -125,24 +129,27 @@ class TestStuff(unittest.TestCase):
     def test_insert_select_unicode(self, userid="Frank", username="Frank Millman"):
         self.assertEqual(
             self.cur.execute(
-                "insert into {} (userid, username)\
-            values (?,?)".format(self.tablename),
+                "insert into %s (userid, username)\
+            values (?,?)"
+                % self.tablename,
                 [userid, username],
             ),
             1,
         )
         self.assertEqual(
             self.cur.execute(
-                "select * from {} \
-            where userid = ?".format(self.tablename),
+                "select * from %s \
+            where userid = ?"
+                % self.tablename,
                 [userid.lower()],
             ),
             0,
         )
         self.assertEqual(
             self.cur.execute(
-                "select * from {} \
-            where username = ?".format(self.tablename),
+                "select * from %s \
+            where username = ?"
+                % self.tablename,
                 [username.lower()],
             ),
             0,
@@ -155,9 +162,7 @@ class TestStuff(unittest.TestCase):
 
     def _test_val(self, fieldName, value):
         for x in range(100):
-            self.cur.execute(
-                "delete from {} where userid='Frank'".format(self.tablename)
-            )
+            self.cur.execute("delete from %s where userid='Frank'" % self.tablename)
             self.assertEqual(
                 self.cur.execute(
                     f"insert into {self.tablename} (userid, {fieldName}) values (?,?)",
@@ -220,40 +225,38 @@ class TestStuff(unittest.TestCase):
     def test_set_nonzero_length(self):
         self.assertEqual(
             self.cur.execute(
-                "insert into {} (userid,username) values (?,?)".format(self.tablename),
+                "insert into %s (userid,username) values (?,?)" % self.tablename,
                 ["Frank", "Frank Millman"],
             ),
             1,
         )
         self.assertEqual(
-            self.cur.execute(
-                "update {} set username = ?".format(self.tablename), ["Frank"]
-            ),
+            self.cur.execute("update %s set username = ?" % self.tablename, ["Frank"]),
             1,
         )
-        self.assertEqual(self.cur.execute("select * from {}".format(self.tablename)), 0)
+        self.assertEqual(self.cur.execute("select * from %s" % self.tablename), 0)
         self.assertEqual(len(self.cur.fetchone()[1]), 5)
 
     def test_set_zero_length(self):
         self.assertEqual(
             self.cur.execute(
-                "insert into {} (userid,username) values (?,?)".format(self.tablename),
+                "insert into %s (userid,username) values (?,?)" % self.tablename,
                 [b"Frank", ""],
             ),
             1,
         )
-        self.assertEqual(self.cur.execute("select * from {}".format(self.tablename)), 0)
+        self.assertEqual(self.cur.execute("select * from %s" % self.tablename), 0)
         self.assertEqual(len(self.cur.fetchone()[1]), 0)
 
     def test_set_zero_length_unicode(self):
         self.assertEqual(
             self.cur.execute(
-                "insert into {} (userid,username) values (?,?)".format(self.tablename),
+                "insert into %s (userid,username) values (?,?)" % self.tablename,
                 ["Frank", ""],
             ),
             1,
         )
-        self.assertEqual(self.cur.execute("select * from {}".format(self.tablename)), 0)
+        self.assertEqual(self.cur.execute("select * from %s" % self.tablename), 0)
         self.assertEqual(len(self.cur.fetchone()[1]), 0)
 
 

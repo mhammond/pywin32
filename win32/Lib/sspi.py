@@ -375,13 +375,13 @@ if __name__ == "__main__":
     while not sspiclient.authenticated or (sec_buffer and len(sec_buffer[0].Buffer)):
         client_step += 1
         err, sec_buffer = sspiclient.authorize(sec_buffer)
-        print("Client step {}".format(client_step))
+        print("Client step %s" % client_step)
         if sspiserver.authenticated and len(sec_buffer[0].Buffer) == 0:
             break
 
         server_step += 1
         err, sec_buffer = sspiserver.authorize(sec_buffer)
-        print("Server step {}".format(server_step))
+        print("Server step %s" % server_step)
 
     # Authentication process is finished.
     print("Initiator name from the service side:", sspiserver.initiator_name)

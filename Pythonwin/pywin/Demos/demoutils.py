@@ -53,10 +53,10 @@ def NeedApp():
         try:
             parent = win32ui.GetMainFrame().GetSafeHwnd()
             win32api.ShellExecute(
-                parent, None, "pythonwin.exe", '/app "{}"'.format(sys.argv[0]), None, 1
+                parent, None, "pythonwin.exe", '/app "%s"' % sys.argv[0], None, 1
             )
         except win32api.error as details:
-            win32ui.MessageBox("Error executing command - {}".format(details), "Demos")
+            win32ui.MessageBox("Error executing command - %s" % (details), "Demos")
 
 
 if __name__ == "__main__":

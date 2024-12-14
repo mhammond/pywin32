@@ -41,7 +41,7 @@ def RegisterPythonServer(filename, progids=None, verbose=0):
                 break
             try:
                 HKCR = winreg.HKEY_CLASSES_ROOT
-                hk = winreg.OpenKey(HKCR, "CLSID\\{}".format(clsid))
+                hk = winreg.OpenKey(HKCR, "CLSID\\%s" % clsid)
                 dll = winreg.QueryValue(hk, "InprocServer32")
             except OSError:
                 # no CLSID or InProcServer32 - not registered
@@ -75,11 +75,12 @@ def RegisterPythonServer(filename, progids=None, verbose=0):
             # old, less-secure OS - assume *is* admin.
             is_admin = True
     if not is_admin:
-        msg = "{!r} isn't registered, but I'm not an administrator who can register it.".format(
-            progids[0]
+        msg = (
+            "%r isn't registered, but I'm not an administrator who can register it."
+            % progids[0]
         )
         if why_not:
-            msg += "\n(registration check failed as {})".format(why_not)
+            msg += "\n(registration check failed as %s)" % why_not
         # throw a normal "class not registered" exception - we don't report
         # them the same way as "real" errors.
         raise pythoncom.com_error(winerror.CO_E_CLASSSTRING, msg, None, -1)
@@ -92,7 +93,7 @@ def RegisterPythonServer(filename, progids=None, verbose=0):
     if rc:
         print("Registration command was:")
         print(cmd)
-        raise RuntimeError("Registration of engine '{}' failed".format(filename))
+        raise RuntimeError("Registration of engine '%s' failed" % filename)
 
 
 def ExecuteShellCommand(
@@ -102,7 +103,7 @@ def ExecuteShellCommand(
     tracebacks_ok=0,  # OK if the output contains a t/b?
 ):
     output_name = tempfile.mktemp("win32com_test")
-    cmd += ' > "{}" 2>&1'.format(output_name)
+    cmd += ' > "%s" 2>&1' % output_name
     rc = os.system(cmd)
     output = open(output_name, "r").read().strip()
     os.remove(output_name)
@@ -119,7 +120,7 @@ def ExecuteShellCommand(
             raise Failed("traceback in program output")
         return output
     except Failed as why:
-        print("Failed to exec command '{!r}'".format(cmd))
+        print("Failed to exec command '%r'" % cmd)
         print("Failed as", why)
         print("** start of program output **")
         print(output)
@@ -133,7 +134,7 @@ def assertRaisesCOM_HRESULT(testcase, hresult, func, *args, **kw):
     except pythoncom.com_error as details:
         if details.hresult == hresult:
             return
-    testcase.fail("Excepected COM exception with HRESULT 0x{:x}".format(hresult))
+    testcase.fail("Excepected COM exception with HRESULT 0x%x" % hresult)
 
 
 class CaptureWriter:
@@ -234,7 +235,7 @@ class _CapturingFunctionTestCase(unittest.FunctionTestCase):  # , TestCaseMixin)
 
     def checkOutput(self, output, result):
         if output.find("Traceback") >= 0:
-            msg = "Test output contained a traceback\n---\n{}\n---".format(output)
+            msg = "Test output contained a traceback\n---\n%s\n---" % output
             result.errors.append((self, msg))
 
 

@@ -24,13 +24,13 @@ def CheckRegisteredExe(exename):
             )
         )
     except (OSError, win32api.error):
-        print("Registration of {} - Not registered correctly".format(exename))
+        print("Registration of %s - Not registered correctly" % exename)
 
 
 def CheckPathString(pathString):
     for path in pathString.split(";"):
         if not os.path.isdir(path):
-            return "'{}' is not a valid directory!".format(path)
+            return "'%s' is not a valid directory!" % path
     return None
 
 
@@ -115,7 +115,7 @@ def CheckHelpFiles(verbose):
                     if verbose:
                         print(helpFile)
                 except OSError:
-                    print("** Help file {} does not exist".format(helpFile))
+                    print("** Help file %s does not exist" % helpFile)
                 keyNo += 1
             except win32api.error as exc:
                 import winerror

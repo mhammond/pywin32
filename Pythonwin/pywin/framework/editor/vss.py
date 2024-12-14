@@ -53,7 +53,7 @@ def FindVssProjectInfo(fullfname):
         retPaths.insert(0, addpath)
     if not project:
         win32ui.MessageBox(
-            "{}\r\n\r\nThis directory is not configured for Python/VSS".format(origPath)
+            "%s\r\n\r\nThis directory is not configured for Python/VSS" % origPath
         )
         return
     return project, "/".join(retPaths), database
@@ -99,6 +99,6 @@ def CheckoutFile(fileName):
     except:
         typ, val, tb = sys.exc_info()
         traceback.print_exc()
-        win32ui.MessageBox(f"{str(typ)} - {str(val)}", "Error checking out file")
+        win32ui.MessageBox(f"{typ} - {val}", "Error checking out file")
         tb = None  # Cleanup a cycle
     return ok

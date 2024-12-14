@@ -113,7 +113,7 @@ class WritableItem:
         return self.order < other.order
 
     def __repr__(self):
-        return "OleItem: doc=%s, order=%d" % (repr(self.doc), self.order)
+        return f"OleItem: doc={self.doc!r}, order={self.order}"
 
 
 class RecordItem(build.OleItem, WritableItem):
@@ -233,10 +233,7 @@ class EnumerationItem(build.OleItem, WritableItem):
                     # Sanitize it, in case the repr contains its own quotes.  (??? line breaks too ???)
                     use = use.replace('"', "'")
                     use = (
-                        '"'
-                        + use
-                        + '"'
-                        + " # This VARIANT type cannot be converted automatically"
+                        f'"{use}" # This VARIANT type cannot be converted automatically'
                     )
                 print(
                     "\t%-30s=%-10s # from enum %s"
@@ -338,16 +335,15 @@ class DispatchItem(build.DispatchItem, WritableItem):
         try:
             progId = pythoncom.ProgIDFromCLSID(self.clsid)
             print(
-                "\t# This class is creatable by the name '{}'".format(progId),
-                file=stream,
+                "\t# This class is creatable by the name '%s'" % (progId), file=stream
             )
         except pythoncom.com_error:
             pass
-        print("\tCLSID = " + repr(self.clsid), file=stream)
+        print(f"\tCLSID = {self.clsid!r}", file=stream)
         if self.coclass_clsid is None:
             print("\tcoclass_clsid = None", file=stream)
         else:
-            print("\tcoclass_clsid = " + repr(self.coclass_clsid), file=stream)
+            print(f"\tcoclass_clsid = {self.coclass_clsid!r}", file=stream)
         print(file=stream)
         self.bWritten = 1
 
@@ -361,16 +357,15 @@ class DispatchItem(build.DispatchItem, WritableItem):
         try:
             progId = pythoncom.ProgIDFromCLSID(self.clsid)
             print(
-                "\t# This class is creatable by the name '{}'".format(progId),
-                file=stream,
+                "\t# This class is creatable by the name '%s'" % (progId), file=stream
             )
         except pythoncom.com_error:
             pass
-        print("\tCLSID = CLSID_Sink = " + repr(self.clsid), file=stream)
+        print(f"\tCLSID = CLSID_Sink = {self.clsid!r}", file=stream)
         if self.coclass_clsid is None:
             print("\tcoclass_clsid = None", file=stream)
         else:
-            print("\tcoclass_clsid = " + repr(self.coclass_clsid), file=stream)
+            print(f"\tcoclass_clsid = {self.coclass_clsid!r}", file=stream)
         print("\t_public_methods_ = [] # For COM Server support", file=stream)
         WriteSinkEventMap(self, stream)
         print(file=stream)
@@ -486,9 +481,8 @@ class DispatchItem(build.DispatchItem, WritableItem):
                     print("\t# Result is of type " + entry.GetResultName(), file=stream)
                 if entry.wasProperty:
                     print(
-                        "\t# The method {} is actually a property, but must be used as a method to correctly pass the arguments".format(
-                            name
-                        ),
+                        "\t# The method %s is actually a property, but must be used as a method to correctly pass the arguments"
+                        % name,
                         file=stream,
                     )
                 ret = self.MakeFuncMethod(entry, build.MakePublicAttributeName(name))
@@ -637,9 +631,8 @@ class DispatchItem(build.DispatchItem, WritableItem):
             else:
                 typename = "property"
                 ret = [
-                    "\tdef __call__(self):\n\t\treturn self._ApplyTypes_(*{})".format(
-                        propArgs
-                    )
+                    "\tdef __call__(self):\n\t\treturn self._ApplyTypes_(*%s)"
+                    % propArgs
                 ]
             print(
                 f"\t# Default {typename} for this class is '{entry.names[0]}'",
@@ -684,7 +677,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
         )
         # Iterator is wrapped as PyIEnumVariant, and each result of __next__ is Dispatch'ed if necessary
         print(
-            "\t\treturn win32com.client.util.Iterator(ob, {})".format(resultCLSID),
+            "\t\treturn win32com.client.util.Iterator(ob, %s)" % resultCLSID,
             file=stream,
         )
 
@@ -718,14 +711,11 @@ class DispatchItem(build.DispatchItem, WritableItem):
             else:
                 typename = "property"
                 ret = [
-                    "\tdef __len__(self):\n\t\treturn self._ApplyTypes_(*{})".format(
-                        propArgs
-                    )
+                    "\tdef __len__(self):\n\t\treturn self._ApplyTypes_(*%s)" % propArgs
                 ]
             print(
-                "\t#This class has Count() {} - allow len(ob) to provide this".format(
-                    typename
-                ),
+                "\t#This class has Count() %s - allow len(ob) to provide this"
+                % (typename),
                 file=stream,
             )
             for line in ret:
@@ -780,14 +770,11 @@ class CoClassItem(build.OleItem, WritableItem):
                 ref.bWritten = 1
         try:
             progId = pythoncom.ProgIDFromCLSID(self.clsid)
-            print(
-                "# This CoClass is known by the name '{}'".format(progId), file=stream
-            )
+            print("# This CoClass is known by the name '%s'" % (progId), file=stream)
         except pythoncom.com_error:
             pass
         print(
-            "class {}(CoClassBaseClass): # A CoClass".format(self.python_name),
-            file=stream,
+            "class %s(CoClassBaseClass): # A CoClass" % (self.python_name), file=stream
         )
         if doc and doc[1]:
             print("\t# " + doc[1], file=stream)
@@ -802,14 +789,14 @@ class CoClassItem(build.OleItem, WritableItem):
             if item.bWritten:
                 key = item.python_name
             else:
-                key = repr(str(item.clsid))  # really the iid.
-            print("\t\t{},".format(key), file=stream)
+                key = f"'{item.clsid}'"  # really the iid.
+            print(f"\t\t{key},", file=stream)
         print("\t]", file=stream)
         if defItem:
             if defItem.bWritten:
                 defName = defItem.python_name
             else:
-                defName = repr(str(defItem.clsid))  # really the iid.
+                defName = f"'{defItem.clsid}'"  # really the iid.
             print(f"\tdefault_source = {defName}", file=stream)
         print("\tcoclass_interfaces = [", file=stream)
         defItem = None
@@ -820,14 +807,14 @@ class CoClassItem(build.OleItem, WritableItem):
             if item.bWritten:
                 key = item.python_name
             else:
-                key = repr(str(item.clsid))  # really the iid.
+                key = f"'{item.clsid}'"  # really the iid.
             print(f"\t\t{key},", file=stream)
         print("\t]", file=stream)
         if defItem:
             if defItem.bWritten:
                 defName = defItem.python_name
             else:
-                defName = repr(str(defItem.clsid))  # really the iid.
+                defName = f"'{defItem.clsid}'"  # really the iid.
             print(f"\tdefault_interface = {defName}", file=stream)
         self.bWritten = 1
         print(file=stream)
@@ -1101,11 +1088,11 @@ class Generator:
                 f"# From type library '{os.path.split(self.sourceFilename)[1]}'",
                 file=self.file,
             )
-        print("# On {}".format(time.ctime(time.time())), file=self.file)
+        print("# On %s" % time.ctime(time.time()), file=self.file)
 
         print(build._makeDocString(docDesc), file=self.file)
 
-        print("makepy_version =", repr(makepy_version), file=self.file)
+        print(f"makepy_version = {makepy_version!r}", file=self.file)
         print(f"python_version = 0x{sys.hexversion:x}", file=self.file)
         print(file=self.file)
         print(
@@ -1127,10 +1114,10 @@ class Generator:
         print("defaultNamedNotOptArg=pythoncom.Empty", file=self.file)
         print("defaultUnnamedArg=pythoncom.Empty", file=self.file)
         print(file=self.file)
-        print("CLSID = " + repr(la[0]), file=self.file)
-        print("MajorVersion = " + str(la[3]), file=self.file)
-        print("MinorVersion = " + str(la[4]), file=self.file)
-        print("LibraryFlags = " + str(la[5]), file=self.file)
+        print(f"CLSID = {la[0]!r}", file=self.file)
+        print(f"MajorVersion = {la[3]}", file=self.file)
+        print(f"MinorVersion = {la[4]}", file=self.file)
+        print(f"LibraryFlags = {la[5]}", file=self.file)
         print("LCID = " + hex(la[1]), file=self.file)
         print(file=self.file)
 
@@ -1176,17 +1163,14 @@ class Generator:
         print("RecordMap = {", file=stream)
         for record in recordItems.values():
             if record.clsid == pythoncom.IID_NULL:
+                record_str = f"{record.doc[0]!r}: '{record.clsid}',"
                 print(
-                    "\t###{}: {}, # Record disabled because it doesn't have a non-null GUID".format(
-                        repr(record.doc[0]), repr(str(record.clsid))
-                    ),
+                    f"\t###{record_str}",
+                    "# Record disabled because it doesn't have a non-null GUID",
                     file=stream,
                 )
             else:
-                print(
-                    f"\t{repr(record.doc[0])}: {repr(str(record.clsid))},",
-                    file=stream,
-                )
+                print(f"\t{record_str}", file=stream)
         print("}", file=stream)
         print(file=stream)
 
@@ -1196,7 +1180,7 @@ class Generator:
             for item in oleItems.values():
                 if item is not None and item.bWritten:
                     print(
-                        f"\t'{str(item.clsid)}' : {item.python_name},",
+                        f"\t'{item.clsid}' : {item.python_name},",
                         file=stream,
                     )
             print("}", file=stream)
@@ -1218,7 +1202,7 @@ class Generator:
             for item in oleItems.values():
                 if item is not None:
                     print(
-                        f"\t'{str(item.clsid)}' : {repr(item.python_name)},",
+                        f"\t'{item.clsid}' : {item.python_name!r},",
                         file=stream,
                     )
             print("}", file=stream)

@@ -421,7 +421,7 @@ def install(lib_dir):
             for fname in files:
                 base = os.path.basename(fname)
                 dst = os.path.join(dest_dir, base)
-                CopyTo("installing {}".format(base), fname, dst)
+                CopyTo("installing %s" % base, fname, dst)
                 if verbose:
                     print(f"Copied {base} to {dst}")
                 worked = 1
@@ -447,9 +447,9 @@ def install(lib_dir):
                 # in that place - otherwise that one will still get used!
                 if os.path.exists(dst):
                     msg = (
-                        "The file '{}' exists, but can not be replaced "
+                        "The file '%s' exists, but can not be replaced "
                         "due to insufficient permissions.  You must "
-                        "reinstall this software as an Administrator".format(dst)
+                        "reinstall this software as an Administrator" % dst
                     )
                     print(msg)
                     raise RuntimeError(msg)
@@ -627,7 +627,7 @@ def uninstall(lib_dir):
                         os.remove(dst)
                         worked = 1
                         if verbose:
-                            print("Removed file {}".format(dst))
+                            print("Removed file %s" % (dst))
                     except Exception:
                         print(f"FAILED to remove {dst}")
             if worked:

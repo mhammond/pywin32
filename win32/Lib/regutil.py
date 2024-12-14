@@ -49,7 +49,7 @@ def SetRegistryDefaultValue(subKey, value, rootkey=None):
     elif isinstance(value, int):
         typeId = win32con.REG_DWORD
     else:
-        raise TypeError("Value must be string or integer - was passed " + repr(value))
+        raise TypeError(f"Value must be string or integer - was passed {value!r}")
 
     win32api.RegSetValue(rootkey, subKey, typeId, value)
 
@@ -150,10 +150,10 @@ def RegisterModule(modName, modPath):
 
         os.stat(modPath)
     except OSError:
-        print("Warning: Registering non-existant module {}".format(modPath))
+        print("Warning: Registering non-existant module %s" % modPath)
     win32api.RegSetValue(
         GetRootKey(),
-        BuildDefaultPythonKey() + "\\Modules\\{}".format(modName),
+        BuildDefaultPythonKey() + "\\Modules\\%s" % modName,
         win32con.REG_SZ,
         modPath,
     )
@@ -166,7 +166,7 @@ def UnregisterModule(modName):
     """
     try:
         win32api.RegDeleteKey(
-            GetRootKey(), BuildDefaultPythonKey() + "\\Modules\\{}".format(modName)
+            GetRootKey(), BuildDefaultPythonKey() + "\\Modules\\%s" % modName
         )
     except win32api.error as exc:
         import winerror
@@ -212,7 +212,7 @@ def RegisterHelpFile(helpFile, helpPath, helpDesc=None, bCheckFile=1):
     # Now register with Python itself.
     win32api.RegSetValue(
         GetRootKey(),
-        BuildDefaultPythonKey() + "\\Help\\{}".format(helpDesc),
+        BuildDefaultPythonKey() + "\\Help\\%s" % helpDesc,
         win32con.REG_SZ,
         fullHelpFile,
     )
@@ -246,7 +246,7 @@ def UnregisterHelpFile(helpFile, helpDesc=None):
         helpDesc = helpFile
     try:
         win32api.RegDeleteKey(
-            GetRootKey(), BuildDefaultPythonKey() + "\\Help\\{}".format(helpDesc)
+            GetRootKey(), BuildDefaultPythonKey() + "\\Help\\%s" % helpDesc
         )
     except win32api.error as exc:
         import winerror
@@ -268,7 +268,7 @@ def RegisterCoreDLL(coredllName=None):
         try:
             os.stat(coredllName)
         except OSError:
-            print("Warning: Registering non-existant core DLL {}".format(coredllName))
+            print("Warning: Registering non-existant core DLL %s" % coredllName)
 
     hKey = win32api.RegCreateKey(GetRootKey(), BuildDefaultPythonKey())
     try:
@@ -301,17 +301,17 @@ def RegisterFileExtensions(defPyIcon, defPycIcon, runCommand):
     )
     win32api.RegSetValue(
         win32con.HKEY_CLASSES_ROOT,
-        "{}\\CLSID".format(pythonFileId),
+        "%s\\CLSID" % pythonFileId,
         win32con.REG_SZ,
         CLSIDPyFile,
     )
     win32api.RegSetValue(
         win32con.HKEY_CLASSES_ROOT,
-        "{}\\DefaultIcon".format(pythonFileId),
+        "%s\\DefaultIcon" % pythonFileId,
         win32con.REG_SZ,
         defPyIcon,
     )
-    base = "{}\\Shell".format(RegistryIDPyFile)
+    base = "%s\\Shell" % RegistryIDPyFile
     win32api.RegSetValue(
         win32con.HKEY_CLASSES_ROOT, base + "\\Open", win32con.REG_SZ, "Run"
     )
@@ -335,11 +335,11 @@ def RegisterFileExtensions(defPyIcon, defPycIcon, runCommand):
     )
     win32api.RegSetValue(
         win32con.HKEY_CLASSES_ROOT,
-        "{}\\DefaultIcon".format(pythonFileId),
+        "%s\\DefaultIcon" % pythonFileId,
         win32con.REG_SZ,
         defPycIcon,
     )
-    base = "{}\\Shell".format(pythonFileId)
+    base = "%s\\Shell" % pythonFileId
     win32api.RegSetValue(
         win32con.HKEY_CLASSES_ROOT, base + "\\Open", win32con.REG_SZ, "Run"
     )
@@ -356,40 +356,40 @@ def RegisterShellCommand(shellCommand, exeCommand, shellUserCommand=None):
     # or shell execute (eg, just entering "foo.py"), the Command must be "Open",
     # but you may associate a different name for the right-click menu.
     # In our case, normally we have "Open=Run"
-    base = "{}\\Shell".format(RegistryIDPyFile)
+    base = "%s\\Shell" % RegistryIDPyFile
     if shellUserCommand:
         win32api.RegSetValue(
             win32con.HKEY_CLASSES_ROOT,
-            base + "\\{}".format(shellCommand),
+            base + "\\%s" % (shellCommand),
             win32con.REG_SZ,
             shellUserCommand,
         )
 
     win32api.RegSetValue(
         win32con.HKEY_CLASSES_ROOT,
-        base + "\\{}\\Command".format(shellCommand),
+        base + "\\%s\\Command" % (shellCommand),
         win32con.REG_SZ,
         exeCommand,
     )
 
 
 def RegisterDDECommand(shellCommand, ddeApp, ddeTopic, ddeCommand):
-    base = "{}\\Shell".format(RegistryIDPyFile)
+    base = "%s\\Shell" % RegistryIDPyFile
     win32api.RegSetValue(
         win32con.HKEY_CLASSES_ROOT,
-        base + "\\{}\\ddeexec".format(shellCommand),
+        base + "\\%s\\ddeexec" % (shellCommand),
         win32con.REG_SZ,
         ddeCommand,
     )
     win32api.RegSetValue(
         win32con.HKEY_CLASSES_ROOT,
-        base + "\\{}\\ddeexec\\Application".format(shellCommand),
+        base + "\\%s\\ddeexec\\Application" % (shellCommand),
         win32con.REG_SZ,
         ddeApp,
     )
     win32api.RegSetValue(
         win32con.HKEY_CLASSES_ROOT,
-        base + "\\{}\\ddeexec\\Topic".format(shellCommand),
+        base + "\\%s\\ddeexec\\Topic" % (shellCommand),
         win32con.REG_SZ,
         ddeTopic,
     )

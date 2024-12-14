@@ -46,7 +46,7 @@ def DumpClipboard():
             elif medium.tymed == pythoncom.TYMED_HGLOBAL:
                 data = "%d bytes via HGLOBAL" % len(medium.data)
             elif medium.tymed == pythoncom.TYMED_FILE:
-                data = "filename '{}'".format(data)
+                data = "filename '%s'" % data
             elif medium.tymed == pythoncom.TYMED_ISTREAM:
                 stream = medium.data
                 stream.Seek(0, 0)

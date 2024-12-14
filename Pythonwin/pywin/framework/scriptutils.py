@@ -290,7 +290,7 @@ def RunScript(defName=None, defArgs=None, bShowDialog=1, debuggingType=None):
         except OSError:
             fullScript = LocatePythonFile(script)
             if fullScript is None:
-                win32ui.MessageBox("The file '{}' can not be located".format(script))
+                win32ui.MessageBox("The file '%s' can not be located" % script)
                 return
             script = fullScript
     else:
@@ -334,7 +334,7 @@ def RunScript(defName=None, defArgs=None, bShowDialog=1, debuggingType=None):
     base = os.path.split(script)[1]
     # Allow windows to repaint before starting.
     win32ui.PumpWaitingMessages()
-    win32ui.SetStatusText("Running script {}...".format(base), 1)
+    win32ui.SetStatusText("Running script %s..." % base, 1)
     exitCode = 0
     from pywin.framework import interact
 
@@ -399,7 +399,7 @@ def RunScript(defName=None, defArgs=None, bShowDialog=1, debuggingType=None):
     if bWorked:
         win32ui.SetStatusText(f"Script '{script}' returned exit code {exitCode}")
     else:
-        win32ui.SetStatusText("Exception raised while running script  {}".format(base))
+        win32ui.SetStatusText("Exception raised while running script  %s" % base)
     try:
         sys.stdout.flush()
     except AttributeError:
@@ -483,7 +483,7 @@ def ImportFile():
             + what
             + "ed module '"
             + modName
-            + "': {}".format(getattr(mod, "__file__", "<unkown file>"))
+            + "': %s" % getattr(mod, "__file__", "<unkown file>")
         )
     except:
         _HandlePythonFailure(what)
@@ -612,10 +612,10 @@ def _HandlePythonFailure(what, syntaxErrorPathName=None):
             _JumpToPosition(fileName, line, col)
         except (TypeError, ValueError):
             msg = str(details)
-        win32ui.SetStatusText("Failed to " + what + " - syntax error - {}".format(msg))
+        win32ui.SetStatusText(f"Failed to {what} - syntax error - {msg}")
     else:
         traceback.print_exc()
-        win32ui.SetStatusText("Failed to " + what + " - " + str(details))
+        win32ui.SetStatusText(f"Failed to {what} - {details}")
     tb = None  # Clean up a cycle.
 
 
@@ -630,13 +630,13 @@ def FindTabNanny():
     try:
         path = win32api.RegQueryValue(
             win32con.HKEY_LOCAL_MACHINE,
-            "SOFTWARE\\Python\\PythonCore\\{}\\InstallPath".format(sys.winver),
+            "SOFTWARE\\Python\\PythonCore\\%s\\InstallPath" % (sys.winver),
         )
     except win32api.error:
         print("WARNING - The Python registry does not have an 'InstallPath' setting")
-        print("          The file '{}' can not be located".format(filename))
+        print("          The file '%s' can not be located" % (filename))
         return None
-    fname = os.path.join(path, "Tools\\Scripts\\{}".format(filename))
+    fname = os.path.join(path, "Tools\\Scripts\\%s" % filename)
     try:
         os.stat(fname)
     except OSError:

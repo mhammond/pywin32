@@ -42,7 +42,7 @@ def split_line(line, lineno):
     sep_pos = line.rfind("=")
     if sep_pos == -1:
         if line.strip():
-            print("Warning: Line %d: %s is an invalid entry" % (lineno, repr(line)))
+            print(f"Warning: Line {lineno}: {line!r} is an invalid entry")
             return None, None
         return "", ""
     return line[:sep_pos].strip(), line[sep_pos + 1 :].strip()
@@ -92,7 +92,7 @@ class ConfigManager:
                 f = find_config_file(f)
                 src_stat = os.stat(f)
             except OSError:
-                self.report_error("Config file '{}' not found".format(f))
+                self.report_error("Config file '%s' not found" % f)
                 return
             self.filename = f
             self.basename = os.path.basename(f)
@@ -210,9 +210,7 @@ class ConfigManager:
                     editor.idle.IDLEExtension(ext)
                     trace("Loaded IDLE extension", ext)
                 except:
-                    self.report_error(
-                        "Can not load the IDLE extension '{}'".format(ext)
-                    )
+                    self.report_error("Can not load the IDLE extension '%s'" % ext)
 
         # Now bind up the key-map (remembering a reverse map
         subsection_keymap = self.get_data("keys")

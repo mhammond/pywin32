@@ -18,9 +18,8 @@ class Enum:
                         const_val = getattr(winnt, const_name)
                     except AttributeError:
                         raise AttributeError(
-                            'Constant "{}" not found in win32security, ntsecuritycon, or winnt.'.format(
-                                const_name
-                            )
+                            'Constant "%s" not found in win32security, ntsecuritycon, or winnt.'
+                            % const_name
                         )
             setattr(self, const_name, const_val)
 
@@ -29,7 +28,7 @@ class Enum:
         for k, v in self.__dict__.items():
             if v == const_val:
                 return k
-        raise AttributeError("Value {} not found in enum".format(const_val))
+        raise AttributeError("Value %s not found in enum" % const_val)
 
     def lookup_flags(self, flags):
         """Returns the names of all recognized flags in input, and any flags not found in the enum."""

@@ -115,7 +115,7 @@ def new_icon(hdesk, desktop_name):
         flags,
         win32con.WM_USER + 20,
         hicon,
-        "Desktop Manager ({})".format(desktop_name),
+        "Desktop Manager (%s)" % desktop_name,
     )
     window_info[hwnd] = notify_info
     ## wait for explorer to initialize system tray for new desktop

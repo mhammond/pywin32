@@ -34,10 +34,10 @@ def LoadToolMenuItems():
     items = []
     lookNo = 1
     while 1:
-        menu = win32ui.GetProfileVal("Tools Menu\\{}".format(lookNo), "", "")
+        menu = win32ui.GetProfileVal("Tools Menu\\%s" % lookNo, "", "")
         if menu == "":
             break
-        cmd = win32ui.GetProfileVal("Tools Menu\\{}".format(lookNo), "Command", "")
+        cmd = win32ui.GetProfileVal("Tools Menu\\%s" % lookNo, "Command", "")
         items.append((menu, cmd))
         lookNo += 1
 
@@ -67,8 +67,8 @@ def WriteToolMenuItems(items):
         return
     itemNo = 1
     for menu, cmd in items:
-        win32ui.WriteProfileVal("Tools Menu\\{}".format(itemNo), "", menu)
-        win32ui.WriteProfileVal("Tools Menu\\{}".format(itemNo), "Command", cmd)
+        win32ui.WriteProfileVal("Tools Menu\\%s" % itemNo, "", menu)
+        win32ui.WriteProfileVal("Tools Menu\\%s" % itemNo, "Command", cmd)
         itemNo += 1
 
 
@@ -113,7 +113,7 @@ def HandleToolCommand(cmd, code):
 
     global tools
     (menuString, pyCmd, desc) = tools[cmd]
-    win32ui.SetStatusText("Executing tool {}".format(desc), 1)
+    win32ui.SetStatusText("Executing tool %s" % desc, 1)
     pyCmd = re.sub(r"\\n", "\n", pyCmd)
     win32ui.DoWaitCursor(1)
     oldFlag = None
@@ -124,13 +124,13 @@ def HandleToolCommand(cmd, code):
         pass
 
     try:
-        exec("{}\n".format(pyCmd))
+        exec("%s\n" % pyCmd)
         worked = 1
     except SystemExit:
         # The program raised a SystemExit - ignore it.
         worked = 1
     except:
-        print("Failed to execute command:\n{}".format(pyCmd))
+        print("Failed to execute command:\n%s" % pyCmd)
         traceback.print_exc()
         worked = 0
     if oldFlag is not None:
@@ -139,7 +139,7 @@ def HandleToolCommand(cmd, code):
     if worked:
         text = "Completed successfully."
     else:
-        text = "Error executing {}.".format(desc)
+        text = "Error executing %s." % desc
     win32ui.SetStatusText(text, 1)
 
 

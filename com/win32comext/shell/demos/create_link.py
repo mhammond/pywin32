@@ -44,7 +44,8 @@ if __name__ == "__main__":
         shortcut.load(file)
         # now print data...
         print(
-            "Shortcut in file {} to file:\n\t{}\nArguments:\n\t{}\nDescription:\n\t{}\nWorking Directory:\n\t{}\nItemIDs:\n\t<skipped>".format(
+            "Shortcut in file %s to file:\n\t%s\nArguments:\n\t%s\nDescription:\n\t%s\nWorking Directory:\n\t%s\nItemIDs:\n\t<skipped>"
+            % (
                 file,
                 shortcut.GetPath(shell.SLGP_SHORTPATH)[0],
                 shortcut.GetArguments(),

@@ -79,9 +79,7 @@ class Extension(threaded_extension.ThreadPoolExtension):
         # effective way from an extension.
         ver = float(ecb.GetServerVariable("SERVER_SOFTWARE").split("/")[1])
         if ver < 6.0:
-            return "This is IIS version {:g} - unicode only works in IIS6 and later".format(
-                ver
-            )
+            return "This is IIS version %g - unicode only works in IIS6 and later" % ver
 
         us = ecb.GetServerVariable("UNICODE_SERVER_NAME")
         assert isinstance(us, str), "unexpected type!"

@@ -53,7 +53,7 @@ class ColumnProvider:
             else:
                 ext = ".pyo"
             title = ext + " size"
-            description = "Size of compiled {} file".format(ext)
+            description = "Size of compiled %s file" % ext
             col_id = (self._reg_clsid_, index)  # fmtid  # pid
             col_info = (
                 col_id,  # scid

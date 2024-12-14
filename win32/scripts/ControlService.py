@@ -270,7 +270,7 @@ class ServiceDlg(dialog.Dialog):
         self.listCtrl = self.GetDlgItem(self.IDC_LIST)
         self.listCtrl.SetTabStops([158, 200])
         if self.machineName:
-            self.SetWindowText("Services on {}".format(self.machineName))
+            self.SetWindowText("Services on %s" % self.machineName)
         self.ReloadData()
         return dialog.Dialog.OnInitDialog(self)
 

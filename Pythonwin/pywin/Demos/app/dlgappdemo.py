@@ -40,7 +40,7 @@ class TestAppDialog(dlgappcore.AppDialog):
             # translate \n to \n\r
             self.edit.ReplaceSel(str.replace("\n", "\r\n"))
         else:
-            win32ui.OutputDebug("dlgapp - no edit control! >>\n{}\n<<\n".format(str))
+            win32ui.OutputDebug("dlgapp - no edit control! >>\n%s\n<<\n" % str)
 
 
 app = TestDialogApp()

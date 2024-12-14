@@ -115,7 +115,7 @@ def DoDumpAccessInfo(dbname):
     try:
         sys.stderr.write("Creating Access Application...\n")
         a = Dispatch("Access.Application")
-        print("Opening database {}".format(dbname))
+        print("Opening database %s" % dbname)
         a.OpenCurrentDatabase(dbname)
         db = a.CurrentDb()
         daodump.DumpDB(db, 1)
@@ -168,7 +168,7 @@ def test(dbname=None):
             print("*** Can not import the MSAccess type libraries - tests skipped")
             return
         dbname = CreateTestAccessDatabase()
-        print("A test database at '{}' was created".format(dbname))
+        print("A test database at '%s' was created" % dbname)
 
     DumpAccessInfo(dbname)
 

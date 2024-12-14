@@ -56,7 +56,7 @@ def Disconnect(handle):
                 handle = info[0]
                 break
         else:
-            raise ConnectionError(0, "Not connected to entry '{}'".format(handle))
+            raise ConnectionError(0, "Not connected to entry '%s'" % handle)
 
     win32ras.HangUp(handle)
 

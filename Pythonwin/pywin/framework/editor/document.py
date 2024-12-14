@@ -82,11 +82,11 @@ class EditorDocumentBase(ParentEditorDocument):
         try:
             self.SaveFile(fileName)
         except OSError as details:
-            win32ui.MessageBox("Error - could not save file\r\n\r\n{}".format(details))
+            win32ui.MessageBox("Error - could not save file\r\n\r\n%s" % details)
             return 0
         except (UnicodeEncodeError, LookupError) as details:
             rc = win32ui.MessageBox(
-                "Encoding failed: \r\n{}".format(details)
+                "Encoding failed: \r\n%s" % details
                 + "\r\nPlease add desired source encoding as first line of file, eg \r\n"
                 + "# -*- coding: mbcs -*-\r\n\r\n"
                 + "If you continue, the file will be saved as binary and will\r\n"
@@ -100,7 +100,7 @@ class EditorDocumentBase(ParentEditorDocument):
                     self.SaveFile(fileName, encoding="latin-1")
                 except OSError as details:
                     win32ui.MessageBox(
-                        "Error - could not save file\r\n\r\n{}".format(details)
+                        "Error - could not save file\r\n\r\n%s" % details
                     )
                     return 0
             else:
@@ -182,14 +182,16 @@ class EditorDocumentBase(ParentEditorDocument):
         if changed:
             question = None
             if self.IsModified():
-                question = "{}\r\n\r\nThis file has been modified outside of the source editor.\r\nDo you want to reload it and LOSE THE CHANGES in the source editor?".format(
-                    self.GetPathName()
+                question = (
+                    "%s\r\n\r\nThis file has been modified outside of the source editor.\r\nDo you want to reload it and LOSE THE CHANGES in the source editor?"
+                    % self.GetPathName()
                 )
                 mbStyle = win32con.MB_YESNO | win32con.MB_DEFBUTTON2  # Default to "No"
             else:
                 if not self.bAutoReload:
-                    question = "{}\r\n\r\nThis file has been modified outside of the source editor.\r\nDo you want to reload it?".format(
-                        self.GetPathName()
+                    question = (
+                        "%s\r\n\r\nThis file has been modified outside of the source editor.\r\nDo you want to reload it?"
+                        % self.GetPathName()
                     )
                     mbStyle = win32con.MB_YESNO  # Default to "Yes"
             if question:

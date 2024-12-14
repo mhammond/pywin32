@@ -20,7 +20,7 @@ while 1:
             break
         ##for event in events:
         ##	print(win32evtlog.EvtRender(event, win32evtlog.EvtRenderEventXml))
-        print("retrieved {} events".format(len(events)))
+        print("retrieved %s events" % len(events))
     while 1:
         print("waiting...")
         w = win32event.WaitForSingleObjectEx(h, 2000, True)

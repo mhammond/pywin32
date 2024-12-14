@@ -130,7 +130,7 @@ def scan(build, root: str, desc, **custom_vars):
     try:
         build = int(build)
     except ValueError:
-        print("ERROR: build number is not a number: {}".format(build))
+        print("ERROR: build number is not a number: %s" % build)
         sys.exit(1)
 
     debug = 0  ### maybe fix this one day

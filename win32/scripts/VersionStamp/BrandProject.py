@@ -90,8 +90,8 @@ if __name__ == "__main__":
     try:
         os.stat(descFile)
     except OSError:
-        usage("The description file '{}' can not be found".format(descFile))
+        usage("The description file '%s' can not be found" % (descFile))
     if not os.path.isdir(path):
-        usage("The path to the files to stamp '{}' does not exist".format(path))
+        usage("The path to the files to stamp '%s' does not exist" % (path))
 
     BrandProject(vssProjectName, descFile, path, stampFiles, desc, bAuto, bRebrand)

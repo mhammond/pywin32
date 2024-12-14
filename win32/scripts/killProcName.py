@@ -36,7 +36,7 @@ def killProcName(procname):
         pass
 
     if len(pids) == 0:
-        result = "Can't find {}".format(procname)
+        result = "Can't find %s" % procname
     elif len(pids) > 1:
         result = f"Found too many {procname}'s - pids=`{pids}`"
     else:
@@ -57,6 +57,6 @@ if __name__ == "__main__":
                 print("Dumping all processes...")
                 win32pdhutil.ShowAllProcesses()
             else:
-                print("Killed {}".format(procname))
+                print("Killed %s" % procname)
     else:
         print("Usage: killProcName.py procname ...")

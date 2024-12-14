@@ -152,7 +152,7 @@ class ExcelRTDServer:
         GetNewValues = True
         result = self.topics[TopicID]
         if result is None:
-            result = "# {}: Waiting for update".format(self.__class__.__name__)
+            result = "# %s: Waiting for update" % self.__class__.__name__
         else:
             result = result.GetValue()
 
@@ -391,7 +391,7 @@ class TimeTopic(RTDTopic):
             # We could simply return a "# ERROR" type string as the
             # topic value, but explosions like this should be able to get handled by
             # the VBA-side "On Error" stuff.
-            raise ValueError("Invalid topic strings: {}".format(str(TopicStrings)))
+            raise ValueError("Invalid topic strings: %s" % str(TopicStrings))
 
         # self.cmd = str(self.cmd)
         self.delay = float(self.delay)

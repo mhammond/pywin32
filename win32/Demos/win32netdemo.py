@@ -58,7 +58,7 @@ def UserEnum():
             "Call to NetUserEnum obtained %d entries of %d total" % (len(data), total)
         )
         for user in data:
-            verbose("Found user {}".format(user["name"]))
+            verbose("Found user %s" % user["name"])
             nuser += 1
         if not resume:
             break
@@ -127,7 +127,7 @@ def ServerEnum():
             server, 100, win32netcon.SV_TYPE_ALL, None, resume
         )
         for s in data:
-            verbose("Found server {}".format(s["name"]))
+            verbose("Found server %s" % s["name"])
             # Now loop over the shares.
             shareresume = 0
             while 1:
@@ -199,9 +199,7 @@ def SetInfo(userName=None):
         win32net.NetUserSetInfo(server, userName, 3, d)
         new = win32net.NetUserGetInfo(server, userName, 3)["usr_comment"]
         if str(new) != "Test comment":
-            raise RuntimeError(
-                "Could not read the same comment back - got {}".format(new)
-            )
+            raise RuntimeError("Could not read the same comment back - got %s" % new)
         print("Changed the data for the user")
     finally:
         win32net.NetUserSetInfo(server, userName, 3, oldData)
@@ -217,9 +215,7 @@ def SetComputerInfo():
 def usage(tests):
     import os
 
-    print(
-        "Usage: {} [-s server ] [-v] [Test ...]".format(os.path.basename(sys.argv[0]))
-    )
+    print("Usage: %s [-s server ] [-v] [Test ...]" % os.path.basename(sys.argv[0]))
     print("  -v : Verbose - print more information")
     print("  -s : server - execute the tests against the named server")
     print("  -c : include the CreateUser test by default")
@@ -260,7 +256,7 @@ def main():
                     dotests.append(t)
                     break
             else:
-                print("Test '{}' unknown - skipping".format(arg))
+                print("Test '%s' unknown - skipping" % arg)
     if not len(dotests):
         print("Nothing to do!")
         usage(tests)
@@ -268,7 +264,7 @@ def main():
         try:
             test()
         except:
-            print("Test {} failed".format(test.__name__))
+            print("Test %s failed" % test.__name__)
             traceback.print_exc()
 
 

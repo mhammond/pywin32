@@ -142,7 +142,7 @@ class AXScriptCodeBlock:
     def GetFileName(self):
         # Gets the "file name" for Python - uses <...> so Python doesn't think
         # it is a real file.
-        return "<{}>".format(self.name)
+        return "<%s>" % self.name
 
     def GetDisplayName(self):
         return self.name
