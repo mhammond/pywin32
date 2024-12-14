@@ -42,20 +42,13 @@ class HLIPythonObject(hierlist.HierListItem):
             type = self.GetHLIType()
         except:
             type = "Generic"
-        return (
-            "HLIPythonObject("
-            + type
-            + ") - name: "
-            + self.name
-            + " object: "
-            + repr(self.myobject)
-        )
+        return f"HLIPythonObject({type}) - name: {self.name} object: {self.myobject!r}"
 
     def GetText(self):
         try:
-            return str(self.name) + " (" + self.GetHLIType() + ")"
+            return f"{self.name} ({self.GetHLIType()})"
         except AttributeError:
-            return str(self.name) + " = " + repr(self.myobject)
+            return f"{self.name} = {self.myobject!r}"
 
     def InsertDocString(self, lst):
         ob = getattr(self.myobject, "__doc__", None)
