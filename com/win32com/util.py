@@ -1,6 +1,6 @@
 """General utility functions common to client and server.
 
-  This module contains a collection of general purpose utility functions.
+This module contains a collection of general purpose utility functions.
 """
 
 import pythoncom
