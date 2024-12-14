@@ -465,13 +465,13 @@ class CDispatch:
                 print("\t", method)
             print("Props:")
             for prop, entry in self._olerepr_.propMap.items():
-                print(f"\t{prop} = 0x{entry.dispid:x} - {repr(entry)}")
+                print(f"\t{prop} = 0x{entry.dispid:x} - {entry!r}")
             print("Get Props:")
             for prop, entry in self._olerepr_.propMapGet.items():
-                print(f"\t{prop} = 0x{entry.dispid:x} - {repr(entry)}")
+                print(f"\t{prop} = 0x{entry.dispid:x} - {entry!r}")
             print("Put Props:")
             for prop, entry in self._olerepr_.propMapPut.items():
-                print(f"\t{prop} = 0x{entry.dispid:x} - {repr(entry)}")
+                print(f"\t{prop} = 0x{entry.dispid:x} - {entry!r}")
         except:
             traceback.print_exc()
 
@@ -644,9 +644,7 @@ class CDispatch:
             return
         # Allow property assignment.
         debug_attr_print(
-            "SetAttr called for {}.{}={} on DispatchContainer".format(
-                self._username_, attr, repr(value)
-            )
+            f"SetAttr called for {self._username_}.{attr}={value!r} on DispatchContainer"
         )
 
         if self._olerepr_:
