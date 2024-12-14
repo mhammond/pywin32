@@ -478,8 +478,8 @@ PyObject *PyRecord::getattro(PyObject *self, PyObject *obname)
 
     PY_INTERFACE_PRECALL;
     HRESULT hr = pyrec->pri->GetFieldNoCopy(pyrec->pdata, wname, &vret, &sub_data);
-    PyWinObject_FreeWCHAR(wname);
     PY_INTERFACE_POSTCALL;
+    PyWinObject_FreeWCHAR(wname);
 
     if (FAILED(hr)) {
         if (hr == TYPE_E_FIELDNOTFOUND) {
@@ -499,9 +499,6 @@ PyObject *PyRecord::getattro(PyObject *self, PyObject *obname)
         return new PyRecord(V_RECORDINFO(&vret), V_RECORD(&vret), pyrec->owner);
     else if (V_VT(&vret) == (VT_BYREF | VT_ARRAY | VT_RECORD)) {
         SAFEARRAY *psa = *V_ARRAYREF(&vret);
-        int d = SafeArrayGetDim(psa);
-        if (sub_data == NULL)
-            return PyErr_Format(PyExc_RuntimeError, "Did not get a buffer for the array!");
         if (SafeArrayGetDim(psa) != 1)
             return PyErr_Format(PyExc_TypeError, "Only support single dimensional arrays of records");
         IRecordInfo *sub = NULL;
@@ -526,7 +523,13 @@ PyObject *PyRecord::getattro(PyObject *self, PyObject *obname)
         ret_tuple = PyTuple_New(nelems);
         if (ret_tuple == NULL)
             goto array_end;
-        this_data = (BYTE *)sub_data;
+        // We're dealing here with a Record field that is a SAFEARRAY of Records.
+        // Therefore the VARIANT that was returned by the call to 'pyrec->pri->GetFieldNoCopy'
+        // does contain a reference to the SAFEARRAY of Records, i.e. the actual data of the
+        // Record elements of this SAFEARRAY is referenced by the 'pvData' field of the SAFEARRAY.
+        // In this particular case the implementation of 'GetFieldNoCopy' returns a NULL pointer
+        // in the last parameter, i.e. 'sub_data == NULL'.
+        this_data = (BYTE *)psa->pvData;
         for (i = 0; i < nelems; i++) {
             PyTuple_SET_ITEM(ret_tuple, i, new PyRecord(sub, this_data, pyrec->owner));
             this_data += element_size;

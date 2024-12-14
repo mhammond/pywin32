@@ -8,8 +8,7 @@ Base class for Dialogs.  Also contains a few useful utility functions
 import win32con
 import win32ui
 
-# sob - 2to3 doesn't see this as a relative import :(
-from pywin.mfc import window
+from . import window
 
 
 def dllFromDll(dllid):
