@@ -29,9 +29,7 @@ RS_DEBUGGER_PM = (
 debugging_options = """No debugging
 Step-through in the debugger
 Run in the debugger
-Post-Mortem of unhandled exceptions""".split(
-    "\n"
-)
+Post-Mortem of unhandled exceptions""".split("\n")
 
 byte_cr = b"\r"
 byte_lf = b"\n"
@@ -616,10 +614,10 @@ def _HandlePythonFailure(what, syntaxErrorPathName=None):
             _JumpToPosition(fileName, line, col)
         except (TypeError, ValueError):
             msg = str(details)
-        win32ui.SetStatusText("Failed to " + what + " - syntax error - %s" % msg)
+        win32ui.SetStatusText(f"Failed to {what} - syntax error - {msg}")
     else:
         traceback.print_exc()
-        win32ui.SetStatusText("Failed to " + what + " - " + str(details))
+        win32ui.SetStatusText(f"Failed to {what} - {details}")
     tb = None  # Clean up a cycle.
 
 
