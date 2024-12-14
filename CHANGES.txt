@@ -15,6 +15,7 @@ Coming in build 309, as yet unreleased
 --------------------------------------
 
 * Restored shipping a helpfile with the wheel. Run like for pywin32 306 and before, you can run the `pywin32_postinstall` script to register it  (#2432, @Avasam)
+* Restored axdebug builds on Python 3.10 (#2416, @Avasam)
 * Pythonwin: Bumped Scintilla from 1.77 to 4.4.6. The full changelog can be found here: https://www.scintilla.org/ScintillaHistory.html
 * Fixed `ddeclient` and `ddeserver` demos import error (#2290, @Avasam)
 * The `EvtSubscribe_push` demo now actually demonstrates the callback action and the event context being filled. (#2281, @Avasam)

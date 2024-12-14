@@ -25,8 +25,8 @@ generates Windows .hlp files.
 
 // Identical to PyW32_BEGIN_ALLOW_THREADS except no script "{" !!!
 // means variables can be declared between the blocks
-#define PyW32_BEGIN_ALLOW_THREADS PyThreadState *_save = PyEval_SaveThread();
-#define PyW32_END_ALLOW_THREADS PyEval_RestoreThread(_save);
+#define PyW32_BEGIN_ALLOW_THREADS PyThreadState *_save = PyEval_SaveThread()
+#define PyW32_END_ALLOW_THREADS PyEval_RestoreThread(_save)
 #define PyW32_BLOCK_THREADS Py_BLOCK_THREADS
 
 #if (_WIN32_WINNT < 0x0500)
@@ -132,8 +132,10 @@ static PyObject *PyBeep(PyObject *self, PyObject *args)
                                   // One value has a special meaning: If dwDuration is  - 1, the function
                                   // operates asynchronously and produces sound until called again.
         return NULL;
-    PyW32_BEGIN_ALLOW_THREADS BOOL ok = ::Beep(freq, dur);
-    PyW32_END_ALLOW_THREADS if (!ok)  // @pyseeapi Beep
+    PyW32_BEGIN_ALLOW_THREADS;
+    BOOL ok = ::Beep(freq, dur);
+    PyW32_END_ALLOW_THREADS;
+    if (!ok)  // @pyseeapi Beep
         return ReturnAPIError("Beep");
     Py_INCREF(Py_None);
     return Py_None;
@@ -288,8 +290,10 @@ static PyObject *PyCopyFile(PyObject *self, PyObject *args)
         PyWinObject_FreeTCHAR(src);
         return NULL;
     }
-    PyW32_BEGIN_ALLOW_THREADS BOOL ok = ::CopyFile(src, dest, failOnExist);
-    PyW32_END_ALLOW_THREADS PyWinObject_FreeTCHAR(src);
+    PyW32_BEGIN_ALLOW_THREADS;
+    BOOL ok = ::CopyFile(src, dest, failOnExist);
+    PyW32_END_ALLOW_THREADS;
+    PyWinObject_FreeTCHAR(src);
     PyWinObject_FreeTCHAR(dest);
     if (!ok)  // @pyseeapi CopyFile
         return ReturnAPIError("CopyFile");
@@ -303,8 +307,10 @@ static PyObject *PyDebugBreak(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, ":DebugBreak"))
         return NULL;
     // @pyseeapi DebugBreak
-    PyW32_BEGIN_ALLOW_THREADS DebugBreak();
-    PyW32_END_ALLOW_THREADS Py_INCREF(Py_None);
+    PyW32_BEGIN_ALLOW_THREADS;
+    DebugBreak();
+    PyW32_END_ALLOW_THREADS;
+    Py_INCREF(Py_None);
     return Py_None;
 }
 
@@ -319,8 +325,10 @@ static PyObject *PyDeleteFile(PyObject *self, PyObject *args)
     if (!PyWinObject_AsTCHAR(obPath, &szPath, FALSE))
         return NULL;
     // @pyseeapi DeleteFile
-    PyW32_BEGIN_ALLOW_THREADS BOOL ok = DeleteFile(szPath);
-    PyW32_END_ALLOW_THREADS PyWinObject_FreeTCHAR(szPath);
+    PyW32_BEGIN_ALLOW_THREADS;
+    BOOL ok = DeleteFile(szPath);
+    PyW32_END_ALLOW_THREADS;
+    PyWinObject_FreeTCHAR(szPath);
     if (!ok)
         return ReturnAPIError("DeleteFile");
     Py_INCREF(Py_None);
@@ -343,9 +351,13 @@ static PyObject *PyDragQueryFile(PyObject *self, PyObject *args)
     if (iFileNum < 0)
         return Py_BuildValue("i", ::DragQueryFile(hDrop, (UINT)-1, NULL, 0));
     else {  // @pyseeapi DragQueryFile
-        PyW32_BEGIN_ALLOW_THREADS int ret = ::DragQueryFile(hDrop, iFileNum, buf, sizeof(buf) / sizeof(buf[0]));
-        PyW32_END_ALLOW_THREADS if (ret <= 0) return ReturnAPIError("DragQueryFile");
-        else return PyWinObject_FromTCHAR(buf);
+        PyW32_BEGIN_ALLOW_THREADS;
+        int ret = ::DragQueryFile(hDrop, iFileNum, buf, sizeof(buf) / sizeof(buf[0]));
+        PyW32_END_ALLOW_THREADS;
+        if (ret <= 0)
+            return ReturnAPIError("DragQueryFile");
+        else
+            return PyWinObject_FromTCHAR(buf);
     }
     // @rdesc If the fileNum parameter is 0xFFFFFFFF (the default) then the return value
     // is an integer with the count of files dropped.  If fileNum is between 0 and Count,
@@ -362,8 +374,10 @@ static PyObject *PyDragFinish(PyObject *self, PyObject *args)
         return NULL;
     if (!PyWinObject_AsHANDLE(obhDrop, (HANDLE *)&hDrop))
         return NULL;
-    PyW32_BEGIN_ALLOW_THREADS ::DragFinish(hDrop);  // @pyseeapi DragFinish
-    PyW32_END_ALLOW_THREADS Py_INCREF(Py_None);
+    PyW32_BEGIN_ALLOW_THREADS;
+    ::DragFinish(hDrop);  // @pyseeapi DragFinish
+    PyW32_END_ALLOW_THREADS;
+    Py_INCREF(Py_None);
     return Py_None;
 }
 
@@ -379,8 +393,10 @@ static PyObject *PyGetEnvironmentVariable(PyObject *self, PyObject *args)
     if (!PyWinObject_AsTCHAR(obVar, &szVar, FALSE))
         return NULL;
     // @pyseeapi GetEnvironmentVariable
-    PyW32_BEGIN_ALLOW_THREADS DWORD size = GetEnvironmentVariable(szVar, NULL, 0);
-    PyW32_END_ALLOW_THREADS TCHAR *pResult = NULL;
+    PyW32_BEGIN_ALLOW_THREADS;
+    DWORD size = GetEnvironmentVariable(szVar, NULL, 0);
+    PyW32_END_ALLOW_THREADS;
+    TCHAR *pResult = NULL;
     if (!size) {
         Py_INCREF(Py_None);
         ret = Py_None;
@@ -390,8 +406,10 @@ static PyObject *PyGetEnvironmentVariable(PyObject *self, PyObject *args)
         if (pResult == NULL)
             PyErr_NoMemory();
         else {
-            PyW32_BEGIN_ALLOW_THREADS GetEnvironmentVariable(szVar, pResult, size);
-            PyW32_END_ALLOW_THREADS ret = PyWinObject_FromTCHAR(pResult);
+            PyW32_BEGIN_ALLOW_THREADS;
+            GetEnvironmentVariable(szVar, pResult, size);
+            PyW32_END_ALLOW_THREADS;
+            ret = PyWinObject_FromTCHAR(pResult);
         }
     }
 
@@ -492,9 +510,13 @@ static PyObject *PyExpandEnvironmentStrings(PyObject *self, PyObject *args)
     if (!result)
         PyErr_NoMemory();
     else {
-        PyW32_BEGIN_ALLOW_THREADS long lrc = ExpandEnvironmentStrings(in, result, size);
-        PyW32_END_ALLOW_THREADS if (lrc == 0) rc = ReturnAPIError("ExpandEnvironmentStrings");
-        else rc = PyWinObject_FromTCHAR(result);
+        PyW32_BEGIN_ALLOW_THREADS;
+        long lrc = ExpandEnvironmentStrings(in, result, size);
+        PyW32_END_ALLOW_THREADS;
+        if (lrc == 0)
+            rc = ReturnAPIError("ExpandEnvironmentStrings");
+        else
+            rc = PyWinObject_FromTCHAR(result);
     }
     PyWinObject_FreeTCHAR(in);
     if (result)
@@ -522,15 +544,17 @@ static PyObject *PyFindExecutable(PyObject *self, PyObject *args)
             freedir = FALSE;
         }
         HINSTANCE rc;
-        PyW32_BEGIN_ALLOW_THREADS rc = ::FindExecutable(file, dir, res);
-        PyW32_END_ALLOW_THREADS if (rc <= (HINSTANCE)32)
-        {
+        PyW32_BEGIN_ALLOW_THREADS;
+        rc = ::FindExecutable(file, dir, res);
+        PyW32_END_ALLOW_THREADS;
+        if (rc <= (HINSTANCE)32) {
             if (rc == (HINSTANCE)31)
                 PyErr_SetString(PyWinExc_ApiError, "FindExecutable: There is no association for the file");
             else
                 PyWin_SetAPIError("FindExecutable", (int)rc);
         }
-        else ret = Py_BuildValue("(NN)", PyWinLong_FromHANDLE(rc), PyWinObject_FromTCHAR(res));
+        else
+            ret = Py_BuildValue("(NN)", PyWinLong_FromHANDLE(rc), PyWinObject_FromTCHAR(res));
     }
     PyWinObject_FreeTCHAR(file);
     if (freedir)
@@ -644,8 +668,10 @@ static PyObject *PyFindFirstChangeNotification(PyObject *self, PyObject *args)
     TCHAR *pathName;
     if (!PyWinObject_AsTCHAR(obPathName, &pathName, FALSE))
         return NULL;
-    PyW32_BEGIN_ALLOW_THREADS HANDLE h = FindFirstChangeNotification(pathName, subDirs, dwFilter);
-    PyW32_END_ALLOW_THREADS PyWinObject_FreeTCHAR(pathName);
+    PyW32_BEGIN_ALLOW_THREADS;
+    HANDLE h = FindFirstChangeNotification(pathName, subDirs, dwFilter);
+    PyW32_END_ALLOW_THREADS;
+    PyWinObject_FreeTCHAR(pathName);
     if (h == NULL || h == INVALID_HANDLE_VALUE)
         return ReturnAPIError("FindFirstChangeNotification");
     return PyWinLong_FromHANDLE(h);
@@ -662,8 +688,11 @@ static PyObject *PyFindNextChangeNotification(PyObject *self, PyObject *args)
         return NULL;
     if (!PyWinObject_AsHANDLE(obh, &h))
         return NULL;
-    PyW32_BEGIN_ALLOW_THREADS BOOL ok = FindNextChangeNotification(h);
-    PyW32_END_ALLOW_THREADS if (!ok) return ReturnAPIError("FindNextChangeNotification");
+    PyW32_BEGIN_ALLOW_THREADS;
+    BOOL ok = FindNextChangeNotification(h);
+    PyW32_END_ALLOW_THREADS;
+    if (!ok)
+        return ReturnAPIError("FindNextChangeNotification");
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -678,8 +707,11 @@ static PyObject *PyFindCloseChangeNotification(PyObject *self, PyObject *args)
         return NULL;
     if (!PyWinObject_AsHANDLE(obh, &h))
         return NULL;
-    PyW32_BEGIN_ALLOW_THREADS BOOL ok = FindCloseChangeNotification(h);
-    PyW32_END_ALLOW_THREADS if (!ok) return ReturnAPIError("FindCloseChangeNotification");
+    PyW32_BEGIN_ALLOW_THREADS;
+    BOOL ok = FindCloseChangeNotification(h);
+    PyW32_END_ALLOW_THREADS;
+    if (!ok)
+        return ReturnAPIError("FindCloseChangeNotification");
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -767,16 +799,15 @@ static PyObject *PyFormatMessageW(PyObject *self, PyObject *args)
     flags |= (FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_ARGUMENT_ARRAY);
 
     {
-        PyW32_BEGIN_ALLOW_THREADS __try
-        {
+        PyW32_BEGIN_ALLOW_THREADS;
+        __try {
             lrc = ::FormatMessageW(flags, pSource, msgId, langId, (LPWSTR)&resultBuf, 0, (va_list *)pInserts);
         }
         __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER
-                                                                   : EXCEPTION_CONTINUE_SEARCH)
-        {
+                                                                   : EXCEPTION_CONTINUE_SEARCH) {
             baccessviolation = TRUE;
         }
-        PyW32_END_ALLOW_THREADS
+        PyW32_END_ALLOW_THREADS;
     }
 
     if (baccessviolation)
@@ -809,8 +840,11 @@ static PyObject *PyGenerateConsoleCtrlEvent(PyObject *self, PyObject *args)
                           &dwProcessGroupId))  // @pyparm int|processGroupId||Process group to get signal.
         return NULL;
     // @pyseeapi GenerateConsoleCtrlEvent
-    PyW32_BEGIN_ALLOW_THREADS BOOL ok = GenerateConsoleCtrlEvent(dwControlEvent, dwProcessGroupId);
-    PyW32_END_ALLOW_THREADS if (!ok) return ReturnAPIError("GenerateConsoleCtrlEvent");
+    PyW32_BEGIN_ALLOW_THREADS;
+    BOOL ok = GenerateConsoleCtrlEvent(dwControlEvent, dwProcessGroupId);
+    PyW32_END_ALLOW_THREADS;
+    if (!ok)
+        return ReturnAPIError("GenerateConsoleCtrlEvent");
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -907,9 +941,10 @@ static PyObject *PyGetComputerNameEx(PyObject *self, PyObject *args)
     formattedname = (WCHAR *)malloc(nSize * sizeof(WCHAR));
     if (!formattedname)
         return PyErr_NoMemory();
-    PyW32_BEGIN_ALLOW_THREADS ok = (*pfnGetComputerNameEx)(fmt, formattedname, &nSize);
-    PyW32_END_ALLOW_THREADS if (!ok)
-    {
+    PyW32_BEGIN_ALLOW_THREADS;
+    ok = (*pfnGetComputerNameEx)(fmt, formattedname, &nSize);
+    PyW32_END_ALLOW_THREADS;
+    if (!ok) {
         PyWin_SetAPIError("GetComputerNameEx");
         goto done;
     }
@@ -942,11 +977,11 @@ static PyObject *PyGetComputerObjectName(PyObject *self, PyObject *args)
     formattedname = (WCHAR *)malloc(nSize * sizeof(WCHAR));
     if (!formattedname)
         return PyErr_NoMemory();
-    PyW32_BEGIN_ALLOW_THREADS ok = (*pfnGetComputerObjectName)(fmt, formattedname, &nSize);
-    PyW32_END_ALLOW_THREADS
+    PyW32_BEGIN_ALLOW_THREADS;
+    ok = (*pfnGetComputerObjectName)(fmt, formattedname, &nSize);
+    PyW32_END_ALLOW_THREADS;
 
-        if (!ok)
-    {
+    if (!ok) {
         PyWin_SetAPIError("GetComputerObjectName");
         goto done;
     }
@@ -993,9 +1028,10 @@ static PyObject *PyGetUserNameEx(PyObject *self, PyObject *args)
     formattedname = (WCHAR *)malloc(nSize * sizeof(WCHAR));
     if (!formattedname)
         return PyErr_NoMemory();
-    PyW32_BEGIN_ALLOW_THREADS ok = (*pfnGetUserNameEx)(fmt, formattedname, &nSize);
-    PyW32_END_ALLOW_THREADS if (!ok)
-    {
+    PyW32_BEGIN_ALLOW_THREADS;
+    ok = (*pfnGetUserNameEx)(fmt, formattedname, &nSize);
+    PyW32_END_ALLOW_THREADS;
+    if (!ok) {
         PyWin_SetAPIError("GetUserNameEx");
         goto done;
     }
@@ -1101,8 +1137,11 @@ static PyObject *PyGetFocus(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, ":GetFocus"))
         return NULL;
     // @pyseeapi GetFocus
-    PyW32_BEGIN_ALLOW_THREADS HWND rc = GetFocus();
-    PyW32_END_ALLOW_THREADS if (rc == NULL) return ReturnError("No window has the focus");
+    PyW32_BEGIN_ALLOW_THREADS;
+    HWND rc = GetFocus();
+    PyW32_END_ALLOW_THREADS;
+    if (rc == NULL)
+        return ReturnError("No window has the focus");
     return PyWinLong_FromHANDLE(rc);
     // @rdesc The method raises an exception if no window with the focus exists.
 }
@@ -1122,8 +1161,11 @@ static PyObject *PyClipCursor(PyObject *self, PyObject *args)
     else
         pRect = &r;
     // @pyseeapi ClipCursor
-    PyW32_BEGIN_ALLOW_THREADS BOOL ok = ::ClipCursor(pRect);
-    PyW32_END_ALLOW_THREADS if (!ok) return ReturnAPIError("ClipCursor");
+    PyW32_BEGIN_ALLOW_THREADS;
+    BOOL ok = ::ClipCursor(pRect);
+    PyW32_END_ALLOW_THREADS;
+    if (!ok)
+        return ReturnAPIError("ClipCursor");
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -1135,8 +1177,11 @@ static PyObject *PyGetCursorPos(PyObject *self, PyObject *args)
         return NULL;
     POINT pt;
     // @pyseeapi GetCursorPos
-    PyW32_BEGIN_ALLOW_THREADS BOOL ok = GetCursorPos(&pt);
-    PyW32_END_ALLOW_THREADS if (!ok) return ReturnAPIError("GetCursorPos");
+    PyW32_BEGIN_ALLOW_THREADS;
+    BOOL ok = GetCursorPos(&pt);
+    PyW32_END_ALLOW_THREADS;
+    if (!ok)
+        return ReturnAPIError("GetCursorPos");
     return Py_BuildValue("ii", pt.x, pt.y);
 }
 
@@ -1151,8 +1196,10 @@ static PyObject *PySetCursor(PyObject *self, PyObject *args)
     if (!PyWinObject_AsHANDLE(obhCursor, (HANDLE *)&hCursor))
         return NULL;
     // @pyseeapi SetCursor
-    PyW32_BEGIN_ALLOW_THREADS HCURSOR ret = ::SetCursor(hCursor);
-    PyW32_END_ALLOW_THREADS return PyWinLong_FromHANDLE(ret);
+    PyW32_BEGIN_ALLOW_THREADS;
+    HCURSOR ret = ::SetCursor(hCursor);
+    PyW32_END_ALLOW_THREADS;
+    return PyWinLong_FromHANDLE(ret);
     // @rdesc The result is the previous cursor if there was one.
 }
 
@@ -1173,8 +1220,10 @@ static PyObject *PyLoadCursor(PyObject *self, PyObject *args)
     if (!PyWinObject_AsResourceId(obid, &id))
         return NULL;
     // @pyseeapi LoadCursor
-    PyW32_BEGIN_ALLOW_THREADS HCURSOR ret = ::LoadCursor(hInstance, MAKEINTRESOURCE(id));
-    PyW32_END_ALLOW_THREADS PyWinObject_FreeResourceId(id);
+    PyW32_BEGIN_ALLOW_THREADS;
+    HCURSOR ret = ::LoadCursor(hInstance, MAKEINTRESOURCE(id));
+    PyW32_END_ALLOW_THREADS;
+    PyWinObject_FreeResourceId(id);
     if (ret == NULL)
         ReturnAPIError("LoadCursor");
     return PyWinLong_FromHANDLE(ret);
@@ -1236,8 +1285,10 @@ PyObject *PyGetDiskFreeSpace(PyObject *self, PyObject *args)
 
     DWORD spc, bps, fc, c;
     // @pyseeapi GetDiskFreeSpace
-    PyW32_BEGIN_ALLOW_THREADS BOOL ok = ::GetDiskFreeSpace(path, &spc, &bps, &fc, &c);
-    PyW32_END_ALLOW_THREADS PyWinObject_FreeTCHAR(path);
+    PyW32_BEGIN_ALLOW_THREADS;
+    BOOL ok = ::GetDiskFreeSpace(path, &spc, &bps, &fc, &c);
+    PyW32_END_ALLOW_THREADS;
+    PyWinObject_FreeTCHAR(path);
     if (!ok)
         return ReturnAPIError("GetDiskSpaceFree");
     return Py_BuildValue("(iiii)", spc, bps, fc, c);
@@ -1261,8 +1312,10 @@ PyObject *PyGetDiskFreeSpaceEx(PyObject *self, PyObject *args)
         return NULL;
     ULARGE_INTEGER freeBytes, totalBytes, totalFree;
     // @pyseeapi GetDiskFreeSpaceEx
-    PyW32_BEGIN_ALLOW_THREADS BOOL ok = ::GetDiskFreeSpaceEx(path, &freeBytes, &totalBytes, &totalFree);
-    PyW32_END_ALLOW_THREADS PyWinObject_FreeTCHAR(path);
+    PyW32_BEGIN_ALLOW_THREADS;
+    BOOL ok = ::GetDiskFreeSpaceEx(path, &freeBytes, &totalBytes, &totalFree);
+    PyW32_END_ALLOW_THREADS;
+    PyWinObject_FreeTCHAR(path);
     if (!ok)
         return ReturnAPIError("GetDiskSpaceFreeEx");
     return Py_BuildValue("LLL", freeBytes, totalBytes, totalFree);
@@ -1282,10 +1335,11 @@ static PyObject *PyGetAsyncKeyState(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "i:GetAsyncKeyState", &key))
         return (NULL);
     int ret;
-    PyW32_BEGIN_ALLOW_THREADS
-        // @pyseeapi GetAsyncKeyState
-        ret = GetAsyncKeyState(key);
-    PyW32_END_ALLOW_THREADS return Py_BuildValue("i", ret);
+    PyW32_BEGIN_ALLOW_THREADS;
+    // @pyseeapi GetAsyncKeyState
+    ret = GetAsyncKeyState(key);
+    PyW32_END_ALLOW_THREADS;
+    return Py_BuildValue("i", ret);
     // @rdesc The return value specifies whether the key was pressed since the last
     // call to GetAsyncKeyState, and whether the key is currently up or down. If
     // the most significant bit is set, the key is down, and if the least significant
@@ -1342,10 +1396,11 @@ static PyObject *PyGetKeyState(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "i:GetKeyState", &key))
         return (NULL);
     int ret;
-    PyW32_BEGIN_ALLOW_THREADS
-        // @pyseeapi GetKeyState
-        ret = GetKeyState(key);
-    PyW32_END_ALLOW_THREADS return Py_BuildValue("i", ret);
+    PyW32_BEGIN_ALLOW_THREADS;
+    // @pyseeapi GetKeyState
+    ret = GetKeyState(key);
+    PyW32_END_ALLOW_THREADS;
+    return Py_BuildValue("i", ret);
     // @rdesc The return value specifies the status of
     // the given virtual key. If the high-order bit is 1, the key is down;
     // otherwise, it is up. If the low-order bit is 1, the key is toggled.
@@ -1366,10 +1421,12 @@ static PyObject *PyGetKeyboardState(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, ":GetKeyboardState"))
         return (NULL);
     BOOL ok;
-    PyW32_BEGIN_ALLOW_THREADS
-        // @pyseeapi GetKeyboardState
-        ok = GetKeyboardState(buf);
-    PyW32_END_ALLOW_THREADS if (!ok) return PyWin_SetAPIError("GetKeyboardState");
+    PyW32_BEGIN_ALLOW_THREADS;
+    // @pyseeapi GetKeyboardState
+    ok = GetKeyboardState(buf);
+    PyW32_END_ALLOW_THREADS;
+    if (!ok)
+        return PyWin_SetAPIError("GetKeyboardState");
 
     return PyBytes_FromStringAndSize((char *)buf, 256);
     // @rdesc The return value is a string of exactly 256 characters.
@@ -1393,10 +1450,10 @@ static PyObject *PyVkKeyScan(PyObject *self, PyObject *args)
             PyErr_SetString(PyExc_TypeError, "must be a byte string of length 1");
             return NULL;
         }
-        PyW32_BEGIN_ALLOW_THREADS
-            // @pyseeapi VkKeyScanA
-            ret = VkKeyScanA(PyBytes_AS_STRING(obkey)[0]);
-        PyW32_END_ALLOW_THREADS
+        PyW32_BEGIN_ALLOW_THREADS;
+        // @pyseeapi VkKeyScanA
+        ret = VkKeyScanA(PyBytes_AS_STRING(obkey)[0]);
+        PyW32_END_ALLOW_THREADS;
     }
     else if (PyUnicode_Check(obkey)) {
         if (PyUnicode_GetLength(obkey) != 1) {
@@ -1406,10 +1463,10 @@ static PyObject *PyVkKeyScan(PyObject *self, PyObject *args)
         TmpWCHAR ts(obkey);
         if (!ts)
             return NULL;
-        PyW32_BEGIN_ALLOW_THREADS
-            // @pyseeapi VkKeyScanW
-            ret = VkKeyScanW(ts[0]);
-        PyW32_END_ALLOW_THREADS
+        PyW32_BEGIN_ALLOW_THREADS;
+        // @pyseeapi VkKeyScanW
+        ret = VkKeyScanW(ts[0]);
+        PyW32_END_ALLOW_THREADS;
     }
     else {
         PyErr_SetString(PyExc_TypeError, "must be a unicode or byte string of length 1");
@@ -1440,10 +1497,10 @@ static PyObject *PyVkKeyScanEx(PyObject *self, PyObject *args)
             PyErr_SetString(PyExc_TypeError, "must be a byte string of length 1");
             return NULL;
         }
-        PyW32_BEGIN_ALLOW_THREADS
-            // @pyseeapi VkKeyScanExA
-            ret = VkKeyScanExA(PyBytes_AS_STRING(obkey)[0], hkl);
-        PyW32_END_ALLOW_THREADS
+        PyW32_BEGIN_ALLOW_THREADS;
+        // @pyseeapi VkKeyScanExA
+        ret = VkKeyScanExA(PyBytes_AS_STRING(obkey)[0], hkl);
+        PyW32_END_ALLOW_THREADS;
     }
     else if (PyUnicode_Check(obkey)) {
         if (PyUnicode_GetLength(obkey) != 1) {
@@ -1453,10 +1510,10 @@ static PyObject *PyVkKeyScanEx(PyObject *self, PyObject *args)
         TmpWCHAR ts(obkey);
         if (!ts)
             return NULL;
-        PyW32_BEGIN_ALLOW_THREADS
-            // @pyseeapi VkKeyScanExW
-            ret = VkKeyScanExW(ts[0], hkl);
-        PyW32_END_ALLOW_THREADS
+        PyW32_BEGIN_ALLOW_THREADS;
+        // @pyseeapi VkKeyScanExW
+        ret = VkKeyScanExW(ts[0], hkl);
+        PyW32_END_ALLOW_THREADS;
     }
     else {
         PyErr_SetString(PyExc_TypeError, "must be a unicode or byte string of length 1");
@@ -1543,11 +1600,11 @@ static PyObject *PyGetModuleFileNameW(PyObject *self, PyObject *args)
         }
 
         bufsize = reqdsize;
-        PyW32_BEGIN_ALLOW_THREADS reqdsize = GetModuleFileNameW(hMod, buf, bufsize);
-        PyW32_END_ALLOW_THREADS
+        PyW32_BEGIN_ALLOW_THREADS;
+        reqdsize = GetModuleFileNameW(hMod, buf, bufsize);
+        PyW32_END_ALLOW_THREADS;
 
-            if (reqdsize == 0)
-        {
+        if (reqdsize == 0) {
             PyWin_SetAPIError("GetModuleFileNameW");
             break;
         }
@@ -1621,8 +1678,10 @@ static PyObject *PyAbortSystemShutdown(PyObject *self, PyObject *args)
     if (!PyWinObject_AsTCHAR(obName, &cname, TRUE))
         return NULL;
     // @pyseeapi AbortSystemShutdown
-    PyW32_BEGIN_ALLOW_THREADS BOOL ok = AbortSystemShutdown(cname);
-    PyW32_END_ALLOW_THREADS PyWinObject_FreeTCHAR(cname);
+    PyW32_BEGIN_ALLOW_THREADS;
+    BOOL ok = AbortSystemShutdown(cname);
+    PyW32_END_ALLOW_THREADS;
+    PyWinObject_FreeTCHAR(cname);
     if (!ok)
         return ReturnAPIError("AbortSystemShutdown");
     Py_INCREF(Py_None);
@@ -1660,8 +1719,10 @@ static PyObject *PyInitiateSystemShutdown(PyObject *self, PyObject *args)
         return NULL;
     }
     // @pyseeapi InitiateSystemShutdown
-    PyW32_BEGIN_ALLOW_THREADS BOOL ok = InitiateSystemShutdown(cname, message, dwTimeOut, bForceClosed, bRebootAfter);
-    PyW32_END_ALLOW_THREADS PyWinObject_FreeTCHAR(cname);
+    PyW32_BEGIN_ALLOW_THREADS;
+    BOOL ok = InitiateSystemShutdown(cname, message, dwTimeOut, bForceClosed, bRebootAfter);
+    PyW32_END_ALLOW_THREADS;
+    PyWinObject_FreeTCHAR(cname);
     PyWinObject_FreeTCHAR(message);
     if (!ok)
         return ReturnAPIError("InitiateSystemShutdown");
@@ -1680,8 +1741,11 @@ static PyObject *PyExitWindows(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "|ll:ExitWindows", &dwReserved, &ulReserved))
         return NULL;
     // @pyseeapi AbortSystemShutdown
-    PyW32_BEGIN_ALLOW_THREADS BOOL ok = ExitWindows(dwReserved, ulReserved);
-    PyW32_END_ALLOW_THREADS if (!ok) return ReturnAPIError("ExitWindows");
+    PyW32_BEGIN_ALLOW_THREADS;
+    BOOL ok = ExitWindows(dwReserved, ulReserved);
+    PyW32_END_ALLOW_THREADS;
+    if (!ok)
+        return ReturnAPIError("ExitWindows");
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -1699,8 +1763,11 @@ static PyObject *PyExitWindowsEx(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "l|l:ExitWindowsEx", &flags, &reserved))
         return NULL;
     // @pyseeapi AbortSystemShutdown
-    PyW32_BEGIN_ALLOW_THREADS BOOL ok = ExitWindowsEx(flags, reserved);
-    PyW32_END_ALLOW_THREADS if (!ok) return ReturnAPIError("ExitWindowsEx");
+    PyW32_BEGIN_ALLOW_THREADS;
+    BOOL ok = ExitWindowsEx(flags, reserved);
+    PyW32_END_ALLOW_THREADS;
+    if (!ok)
+        return ReturnAPIError("ExitWindowsEx");
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -1716,8 +1783,10 @@ static PyObject *PyLoadLibrary(PyObject *self, PyObject *args)
     if (!PyWinObject_AsTCHAR(obfname, &fname, FALSE))
         return NULL;
     // @pyseeapi LoadLibrary
-    PyW32_BEGIN_ALLOW_THREADS HINSTANCE hInst = ::LoadLibrary(fname);
-    PyW32_END_ALLOW_THREADS PyWinObject_FreeTCHAR(fname);
+    PyW32_BEGIN_ALLOW_THREADS;
+    HINSTANCE hInst = ::LoadLibrary(fname);
+    PyW32_END_ALLOW_THREADS;
+    PyWinObject_FreeTCHAR(fname);
     if (hInst == NULL)
         return ReturnAPIError("LoadLibrary");
     return PyWinLong_FromHANDLE(hInst);
@@ -1740,8 +1809,10 @@ static PyObject *PyLoadLibraryEx(PyObject *self, PyObject *args)
     if (!PyWinObject_AsTCHAR(obfname, &fname, FALSE))
         return NULL;
     // @pyseeapi LoadLibraryEx
-    PyW32_BEGIN_ALLOW_THREADS HINSTANCE hInst = ::LoadLibraryEx(fname, handle, flags);
-    PyW32_END_ALLOW_THREADS PyWinObject_FreeTCHAR(fname);
+    PyW32_BEGIN_ALLOW_THREADS;
+    HINSTANCE hInst = ::LoadLibraryEx(fname, handle, flags);
+    PyW32_END_ALLOW_THREADS;
+    PyWinObject_FreeTCHAR(fname);
     if (hInst == NULL)
         return ReturnAPIError("LoadLibraryEx");
     return PyWinLong_FromHANDLE(hInst);
@@ -1758,8 +1829,11 @@ static PyObject *PyFreeLibrary(PyObject *self, PyObject *args)
     if (!PyWinObject_AsHANDLE(obhandle, (HANDLE *)&handle))
         return NULL;
     // @pyseeapi FreeLibrary
-    PyW32_BEGIN_ALLOW_THREADS BOOL ok = ::FreeLibrary(handle);
-    PyW32_END_ALLOW_THREADS if (!ok) return ReturnAPIError("FreeLibrary");
+    PyW32_BEGIN_ALLOW_THREADS;
+    BOOL ok = ::FreeLibrary(handle);
+    PyW32_END_ALLOW_THREADS;
+    if (!ok)
+        return ReturnAPIError("FreeLibrary");
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -1879,9 +1953,11 @@ static PyObject *PyGetProfileVal(PyObject *self, PyObject *args)
             else {
                 TCHAR resBuf[2046];
                 DWORD retlen;
-                PyW32_BEGIN_ALLOW_THREADS retlen =
+                PyW32_BEGIN_ALLOW_THREADS;
+                retlen =
                     ::GetPrivateProfileString(sect, entry, strDef, resBuf, sizeof(resBuf) / sizeof(resBuf[0]), iniName);
-                PyW32_END_ALLOW_THREADS ret = PyWinObject_FromTCHAR(resBuf, retlen);
+                PyW32_END_ALLOW_THREADS;
+                ret = PyWinObject_FromTCHAR(resBuf, retlen);
             }
         }
         else {
@@ -1890,9 +1966,10 @@ static PyObject *PyGetProfileVal(PyObject *self, PyObject *args)
             else {
                 TCHAR resBuf[2046];
                 DWORD retlen;
-                PyW32_BEGIN_ALLOW_THREADS retlen =
-                    ::GetProfileString(sect, entry, strDef, resBuf, sizeof(resBuf) / sizeof(resBuf[0]));
-                PyW32_END_ALLOW_THREADS ret = PyWinObject_FromTCHAR(resBuf, retlen);
+                PyW32_BEGIN_ALLOW_THREADS;
+                retlen = ::GetProfileString(sect, entry, strDef, resBuf, sizeof(resBuf) / sizeof(resBuf[0]));
+                PyW32_END_ALLOW_THREADS;
+                ret = PyWinObject_FromTCHAR(resBuf, retlen);
             }
         }
     }
@@ -1932,11 +2009,13 @@ static PyObject *PyGetProfileSection(PyObject *self, PyObject *args)
                 PyErr_SetString(PyExc_MemoryError, "Error allocating space for return buffer");
                 break;
             }
-            PyW32_BEGIN_ALLOW_THREADS if (iniName) retVal =
-                GetPrivateProfileSection(szSection, szRetBuf, size, iniName);
-            else retVal = GetProfileSection(szSection, szRetBuf, size);
-            PyW32_END_ALLOW_THREADS if (retVal < (size - 2))
-            {
+            PyW32_BEGIN_ALLOW_THREADS;
+            if (iniName)
+                retVal = GetPrivateProfileSection(szSection, szRetBuf, size, iniName);
+            else
+                retVal = GetProfileSection(szSection, szRetBuf, size);
+            PyW32_END_ALLOW_THREADS;
+            if (retVal < (size - 2)) {
                 ret = PyWinObject_FromMultipleString(szRetBuf);
                 break;
             }
@@ -1973,11 +2052,15 @@ static PyObject *PyWriteProfileSection(PyObject *self, PyObject *args)
             PyErr_SetString(PyExc_ValueError, "Section data must be terminated by double null");
         else {
             BOOL ok;
-            PyW32_BEGIN_ALLOW_THREADS if (iniName) ok = WritePrivateProfileSection(szSection, data, iniName);
-            else ok = WriteProfileSection(szSection, data);
-            PyW32_END_ALLOW_THREADS if (!ok) PyWin_SetAPIError("WriteProfileSection");
+            PyW32_BEGIN_ALLOW_THREADS;
+            if (iniName)
+                ok = WritePrivateProfileSection(szSection, data, iniName);
             else
-            {
+                ok = WriteProfileSection(szSection, data);
+            PyW32_END_ALLOW_THREADS;
+            if (!ok)
+                PyWin_SetAPIError("WriteProfileSection");
+            else {
                 Py_INCREF(Py_None);
                 ret = Py_None;
             }
@@ -2059,19 +2142,26 @@ static PyObject *PyGetShortPathName(PyObject *self, PyObject *args)
     WCHAR *szOutPath = NULL;
     DWORD rc, bufsize;
     // @pyseeapi GetShortPathName
-    PyW32_BEGIN_ALLOW_THREADS rc = GetShortPathNameW(path, NULL, 0);
-    PyW32_END_ALLOW_THREADS if (rc == 0) PyWin_SetAPIError("GetShortPathNameW");
-    else
-    {
+    PyW32_BEGIN_ALLOW_THREADS;
+    rc = GetShortPathNameW(path, NULL, 0);
+    PyW32_END_ALLOW_THREADS;
+    if (rc == 0)
+        PyWin_SetAPIError("GetShortPathNameW");
+    else {
         bufsize = rc;
         szOutPath = (WCHAR *)malloc(bufsize * sizeof(WCHAR));
         if (szOutPath == NULL)
             PyErr_NoMemory();
         else {
-            PyW32_BEGIN_ALLOW_THREADS rc = GetShortPathNameW(path, szOutPath, bufsize);
-            PyW32_END_ALLOW_THREADS if (rc == 0) PyWin_SetAPIError("GetShortPathNameW");
-            else if (rc > bufsize) ReturnError("Short path name changed between calls", "GetShortPathNameW");
-            else ret = PyWinObject_FromWCHAR(szOutPath, rc);
+            PyW32_BEGIN_ALLOW_THREADS;
+            rc = GetShortPathNameW(path, szOutPath, bufsize);
+            PyW32_END_ALLOW_THREADS;
+            if (rc == 0)
+                PyWin_SetAPIError("GetShortPathNameW");
+            else if (rc > bufsize)
+                ReturnError("Short path name changed between calls", "GetShortPathNameW");
+            else
+                ret = PyWinObject_FromWCHAR(szOutPath, rc);
         }
     }
     PyWinObject_FreeWCHAR(path);
@@ -2099,10 +2189,10 @@ static PyObject *PyGetLongPathNameW(PyObject *self, PyObject *args)
         return NULL;
     if (!PyWinObject_AsWCHAR(obFileName, &fileName))
         return NULL;
-    PyW32_BEGIN_ALLOW_THREADS DWORD length =
-        (*pfnGetLongPathNameW)(fileName, pathBuf, sizeof(pathBuf) / sizeof(pathBuf[0]));
-    PyW32_END_ALLOW_THREADS if (length)
-    {
+    PyW32_BEGIN_ALLOW_THREADS;
+    DWORD length = (*pfnGetLongPathNameW)(fileName, pathBuf, sizeof(pathBuf) / sizeof(pathBuf[0]));
+    PyW32_END_ALLOW_THREADS;
+    if (length) {
         if (length < sizeof(pathBuf) / sizeof(pathBuf[0]))
             obLongPathNameW = PyWinObject_FromWCHAR(pathBuf);
         else {
@@ -2111,8 +2201,11 @@ static PyObject *PyGetLongPathNameW(PyObject *self, PyObject *args)
             TmpWCHAR buf = PyMem_New(WCHAR, length);
             // The length is the buffer needed, which includes the NULL.
             // PyUnicode_FromWideChar adds one.
-            PyW32_BEGIN_ALLOW_THREADS DWORD length2 = (*pfnGetLongPathNameW)(fileName, buf, length);
-            PyW32_END_ALLOW_THREADS if (length2) obLongPathNameW = PyUnicode_FromWideChar(buf, -1);
+            PyW32_BEGIN_ALLOW_THREADS;
+            DWORD length2 = (*pfnGetLongPathNameW)(fileName, buf, length);
+            PyW32_END_ALLOW_THREADS;
+            if (length2)
+                obLongPathNameW = PyUnicode_FromWideChar(buf, -1);
             // On success, it is the number of chars copied *not* including
             // the NULL.  Check this is true.
             assert(length2 + 1 == length);
@@ -2130,10 +2223,11 @@ static PyObject *PyGetTickCount(PyObject *self, PyObject *args)
 {
     if (!PyArg_ParseTuple(args, ":PyGetTickCount"))
         return NULL;
-    PyW32_BEGIN_ALLOW_THREADS ULONGLONG count = GetTickCount64();
-    PyW32_END_ALLOW_THREADS
+    PyW32_BEGIN_ALLOW_THREADS;
+    ULONGLONG count = GetTickCount64();
+    PyW32_END_ALLOW_THREADS;
 
-        return Py_BuildValue("K", count);
+    return Py_BuildValue("K", count);
 }
 
 // @pymethod string|win32api|GetTempPath|Retrieves the path of the directory designated for temporary files.
@@ -2142,8 +2236,11 @@ static PyObject *PyGetTempPath(PyObject *self, PyObject *args)
     TCHAR buf[MAX_PATH + 1];
     if (!PyArg_ParseTuple(args, ":GetTempPath"))
         return NULL;
-    PyW32_BEGIN_ALLOW_THREADS BOOL ok = GetTempPath(sizeof(buf) / sizeof(buf[0]), buf);
-    PyW32_END_ALLOW_THREADS if (!ok) return ReturnAPIError("GetTempPath");
+    PyW32_BEGIN_ALLOW_THREADS;
+    BOOL ok = GetTempPath(sizeof(buf) / sizeof(buf[0]), buf);
+    PyW32_END_ALLOW_THREADS;
+    if (!ok)
+        return ReturnAPIError("GetTempPath");
     return PyWinObject_FromTCHAR(buf);
 }
 // @pymethod tuple|win32api|GetTempFileName|Returns creates a temporary filename of the following form:
@@ -2166,10 +2263,13 @@ static PyObject *PyGetTempFileName(PyObject *self, PyObject *args)
 
     if (PyWinObject_AsTCHAR(obpath, &path, FALSE) && PyWinObject_AsTCHAR(obprefix, &prefix, FALSE)) {
         TCHAR buf[MAX_PATH + 1];
-        PyW32_BEGIN_ALLOW_THREADS UINT rc = GetTempFileName(path, prefix, n, buf);
-        PyW32_END_ALLOW_THREADS if (!rc)  // @pyseeapi GetTempFileName
+        PyW32_BEGIN_ALLOW_THREADS;
+        UINT rc = GetTempFileName(path, prefix, n, buf);
+        PyW32_END_ALLOW_THREADS;
+        if (!rc)  // @pyseeapi GetTempFileName
             PyWin_SetAPIError("GetTempFileName");
-        else ret = Py_BuildValue("(Ni)", PyWinObject_FromTCHAR(buf), rc);
+        else
+            ret = Py_BuildValue("(Ni)", PyWinObject_FromTCHAR(buf), rc);
     }
     PyWinObject_FreeTCHAR(path);
     PyWinObject_FreeTCHAR(prefix);
@@ -2290,8 +2390,11 @@ static PyObject *PySetTimeZoneInformation(PyObject *self, PyObject *args)
         return NULL;
 
     BOOL rc;
-    PyW32_BEGIN_ALLOW_THREADS rc = ::SetTimeZoneInformation(&tzi);
-    PyW32_END_ALLOW_THREADS if (!rc) return ReturnAPIError("SetTimeZoneInformation");
+    PyW32_BEGIN_ALLOW_THREADS;
+    rc = ::SetTimeZoneInformation(&tzi);
+    PyW32_END_ALLOW_THREADS;
+    if (!rc)
+        return ReturnAPIError("SetTimeZoneInformation");
     Py_RETURN_NONE;
 }
 
@@ -2446,8 +2549,10 @@ static PyObject *PyGetSystemDirectory(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, ":GetSystemDirectory"))
         // @pyseeapi GetSystemDirectory
         return NULL;
-    PyW32_BEGIN_ALLOW_THREADS ::GetSystemDirectory(buf, sizeof(buf) / sizeof(buf[0]));
-    PyW32_END_ALLOW_THREADS return PyWinObject_FromTCHAR(buf);
+    PyW32_BEGIN_ALLOW_THREADS;
+    ::GetSystemDirectory(buf, sizeof(buf) / sizeof(buf[0]));
+    PyW32_END_ALLOW_THREADS;
+    return PyWinObject_FromTCHAR(buf);
 }
 
 // @pymethod tuple|win32api|GetSystemFileCacheSize|Returns the amount of memory reserved for file cache
@@ -2580,10 +2685,11 @@ static PyObject *PyGetVolumeInformation(PyObject *self, PyObject *args)
     DWORD maxCompLength;
     DWORD sysFlags;
     TCHAR szSysName[MAX_PATH + 1];
-    PyW32_BEGIN_ALLOW_THREADS BOOL ok =
-        ::GetVolumeInformation(pathName, szVolName, sizeof(szVolName) / sizeof(szVolName[0]), &serialNo, &maxCompLength,
-                               &sysFlags, szSysName, sizeof(szSysName) / sizeof(szSysName[0]));
-    PyW32_END_ALLOW_THREADS PyWinObject_FreeTCHAR(pathName);
+    PyW32_BEGIN_ALLOW_THREADS;
+    BOOL ok = ::GetVolumeInformation(pathName, szVolName, sizeof(szVolName) / sizeof(szVolName[0]), &serialNo,
+                                     &maxCompLength, &sysFlags, szSysName, sizeof(szSysName) / sizeof(szSysName[0]));
+    PyW32_END_ALLOW_THREADS;
+    PyWinObject_FreeTCHAR(pathName);
     if (!ok)
         return ReturnAPIError("GetVolumeInformation");
     return Py_BuildValue("NlllN", PyWinObject_FromTCHAR(szVolName), (long)serialNo, (long)maxCompLength, (long)sysFlags,
@@ -2609,8 +2715,10 @@ static PyObject *PyGetFullPathName(PyObject *self, PyObject *args)
     if (!PyWinObject_AsTCHAR(obfileName, &fileName, FALSE))
         return NULL;
     TCHAR *temp;
-    PyW32_BEGIN_ALLOW_THREADS BOOL ok = GetFullPathName(fileName, sizeof(pathBuf) / sizeof(pathBuf[0]), pathBuf, &temp);
-    PyW32_END_ALLOW_THREADS PyWinObject_FreeTCHAR(fileName);
+    PyW32_BEGIN_ALLOW_THREADS;
+    BOOL ok = GetFullPathName(fileName, sizeof(pathBuf) / sizeof(pathBuf[0]), pathBuf, &temp);
+    PyW32_END_ALLOW_THREADS;
+    PyWinObject_FreeTCHAR(fileName);
     if (!ok)
         return ReturnAPIError("GetFullPathName");
     return PyWinObject_FromTCHAR(pathBuf);
@@ -2622,8 +2730,10 @@ static PyObject *PyGetWindowsDirectory(PyObject *self, PyObject *args)
     TCHAR buf[MAX_PATH];
     if (!PyArg_ParseTuple(args, ":GetWindowsDirectory"))
         return NULL;
-    PyW32_BEGIN_ALLOW_THREADS ::GetWindowsDirectory(buf, sizeof(buf));
-    PyW32_END_ALLOW_THREADS return PyWinObject_FromTCHAR(buf);
+    PyW32_BEGIN_ALLOW_THREADS;
+    ::GetWindowsDirectory(buf, sizeof(buf));
+    PyW32_END_ALLOW_THREADS;
+    return PyWinObject_FromTCHAR(buf);
 }
 
 // @pymethod |win32api|MoveFile|Renames a file, or a directory (including its children).
@@ -2638,10 +2748,12 @@ static PyObject *PyMoveFile(PyObject *self, PyObject *args)
         return NULL;
     // @pyseeapi MoveFile.
     if (PyWinObject_AsTCHAR(obsrc, &src, FALSE) && PyWinObject_AsTCHAR(obdest, &dest, FALSE)) {
-        PyW32_BEGIN_ALLOW_THREADS BOOL ok = ::MoveFile(src, dest);
-        PyW32_END_ALLOW_THREADS if (!ok) PyWin_SetAPIError("MoveFile");
-        else
-        {
+        PyW32_BEGIN_ALLOW_THREADS;
+        BOOL ok = ::MoveFile(src, dest);
+        PyW32_END_ALLOW_THREADS;
+        if (!ok)
+            PyWin_SetAPIError("MoveFile");
+        else {
             Py_INCREF(Py_None);
             ret = Py_None;
         }
@@ -2667,10 +2779,12 @@ static PyObject *PyMoveFileEx(PyObject *self, PyObject *args)
         return NULL;
     if (PyWinObject_AsTCHAR(obsrc, &src, FALSE) && PyWinObject_AsTCHAR(obdest, &dest, TRUE)) {
         // @pyseeapi MoveFileEx
-        PyW32_BEGIN_ALLOW_THREADS BOOL ok = ::MoveFileEx(src, dest, flags);
-        PyW32_END_ALLOW_THREADS if (!ok) PyWin_SetAPIError("MoveFileEx");
-        else
-        {
+        PyW32_BEGIN_ALLOW_THREADS;
+        BOOL ok = ::MoveFileEx(src, dest, flags);
+        PyW32_END_ALLOW_THREADS;
+        if (!ok)
+            PyWin_SetAPIError("MoveFileEx");
+        else {
             Py_INCREF(Py_None);
             ret = Py_None;
         }
@@ -2747,8 +2861,10 @@ PyObject *PyPostQuitMessage(PyObject *self, PyObject *args)
                           &exitCode))  // @pyparm int|exitCode|0|The exit code
         return NULL;
     // @pyseeapi PostQuitMessage
-    PyW32_BEGIN_ALLOW_THREADS ::PostQuitMessage(exitCode);
-    PyW32_END_ALLOW_THREADS Py_INCREF(Py_None);
+    PyW32_BEGIN_ALLOW_THREADS;
+    ::PostQuitMessage(exitCode);
+    PyW32_END_ALLOW_THREADS;
+    Py_INCREF(Py_None);
     return Py_None;
 }
 
@@ -3042,8 +3158,10 @@ static PyObject *PyRegDeleteValue(PyObject *self, PyObject *args)
     if (!PyWinObject_AsTCHAR(obsubKey, &subKey, TRUE))
         return NULL;
     // @pyseeapi RegDeleteValue
-    PyW32_BEGIN_ALLOW_THREADS rc = RegDeleteValue(hKey, subKey);
-    PyW32_END_ALLOW_THREADS PyWinObject_FreeTCHAR(subKey);
+    PyW32_BEGIN_ALLOW_THREADS;
+    rc = RegDeleteValue(hKey, subKey);
+    PyW32_END_ALLOW_THREADS;
+    PyWinObject_FreeTCHAR(subKey);
     if (rc != ERROR_SUCCESS)
         return ReturnAPIError("RegDeleteValue", rc);
     Py_INCREF(Py_None);
@@ -3168,9 +3286,13 @@ static PyObject *PyRegNotifyChangeKeyValue(PyObject *self, PyObject *args)
         return NULL;
     if (!PyWinObject_AsHANDLE(obevent, &hevent))  // handle should be NULL if asynch is False
         return NULL;
-    PyW32_BEGIN_ALLOW_THREADS err = RegNotifyChangeKeyValue(reghandle, subtree, filter, hevent, asynch);
-    PyW32_END_ALLOW_THREADS if (err == ERROR_SUCCESS) ret = Py_None;
-    else PyWin_SetAPIError("RegNotifyChangeKeyValue", err);
+    PyW32_BEGIN_ALLOW_THREADS;
+    err = RegNotifyChangeKeyValue(reghandle, subtree, filter, hevent, asynch);
+    PyW32_END_ALLOW_THREADS;
+    if (err == ERROR_SUCCESS)
+        ret = Py_None;
+    else
+        PyWin_SetAPIError("RegNotifyChangeKeyValue", err);
     Py_XINCREF(ret);
     return ret;
 }
@@ -3402,9 +3524,11 @@ static PyObject *PyRegEnumValue(PyObject *self, PyObject *args)
         return NULL;
     }
     // @pyseeapi PyRegEnumValue
-    PyW32_BEGIN_ALLOW_THREADS rc =
-        RegEnumValue(hKey, index, retValueBuf, &retValueSize, NULL, &typ, retDataBuf, &retDataSize);
-    PyW32_END_ALLOW_THREADS if (rc != ERROR_SUCCESS) return ReturnAPIError("PyRegEnumValue", rc);
+    PyW32_BEGIN_ALLOW_THREADS;
+    rc = RegEnumValue(hKey, index, retValueBuf, &retValueSize, NULL, &typ, retDataBuf, &retDataSize);
+    PyW32_END_ALLOW_THREADS;
+    if (rc != ERROR_SUCCESS)
+        return ReturnAPIError("PyRegEnumValue", rc);
     PyObject *obData = PyWinObject_FromRegistryValue(retDataBuf, retDataSize, typ);
     if (obData == NULL)
         return NULL;
@@ -3427,8 +3551,11 @@ static PyObject *PyRegFlushKey(PyObject *self, PyObject *args)
     if (!PyWinObject_AsHKEY(obKey, &hKey))
         return NULL;
     // @pyseeapi RegFlushKey
-    PyW32_BEGIN_ALLOW_THREADS rc = RegFlushKey(hKey);
-    PyW32_END_ALLOW_THREADS if (rc != ERROR_SUCCESS) return ReturnAPIError("RegFlushKey", rc);
+    PyW32_BEGIN_ALLOW_THREADS;
+    rc = RegFlushKey(hKey);
+    PyW32_END_ALLOW_THREADS;
+    if (rc != ERROR_SUCCESS)
+        return ReturnAPIError("RegFlushKey", rc);
     Py_INCREF(Py_None);
     return Py_None;
     // @comm It is not necessary to call RegFlushKey to change a key.
@@ -3461,10 +3588,12 @@ static PyObject *PyRegLoadKey(PyObject *self, PyObject *args)
     if (PyWinObject_AsHKEY(obKey, &hKey) && PyWinObject_AsTCHAR(obsubKey, &subKey, FALSE) &&
         PyWinObject_AsTCHAR(obfileName, &fileName, FALSE)) {
         // @pyseeapi RegLoadKey
-        PyW32_BEGIN_ALLOW_THREADS rc = RegLoadKey(hKey, subKey, fileName);
-        PyW32_END_ALLOW_THREADS if (rc != ERROR_SUCCESS) PyWin_SetAPIError("RegLoadKey", rc);
-        else
-        {
+        PyW32_BEGIN_ALLOW_THREADS;
+        rc = RegLoadKey(hKey, subKey, fileName);
+        PyW32_END_ALLOW_THREADS;
+        if (rc != ERROR_SUCCESS)
+            PyWin_SetAPIError("RegLoadKey", rc);
+        else {
             Py_INCREF(Py_None);
             ret = Py_None;
         }
@@ -3497,8 +3626,10 @@ static PyObject *PyRegUnLoadKey(PyObject *self, PyObject *args)
     if (!PyWinObject_AsTCHAR(obsubKey, &subKey, FALSE))
         return NULL;
     // @pyseeapi RegUnLoadKey
-    PyW32_BEGIN_ALLOW_THREADS rc = RegUnLoadKey(hKey, subKey);
-    PyW32_END_ALLOW_THREADS PyWinObject_FreeTCHAR(subKey);
+    PyW32_BEGIN_ALLOW_THREADS;
+    rc = RegUnLoadKey(hKey, subKey);
+    PyW32_END_ALLOW_THREADS;
+    PyWinObject_FreeTCHAR(subKey);
     if (rc != ERROR_SUCCESS)
         return ReturnAPIError("RegUnLoadKey", rc);
     Py_INCREF(Py_None);
@@ -3519,8 +3650,11 @@ static PyObject *PyRegOpenCurrentUser(PyObject *self, PyObject *args)
     // @pyparm int|samDesired|MAXIMUM_ALLOWED|Desired access, combination of win32con.KEY_*
     if (!PyArg_ParseTuple(args, "|k:RegOpenCurrentUser", &sam))
         return NULL;
-    PyW32_BEGIN_ALLOW_THREADS rc = (*pfnRegOpenCurrentUser)(sam, &retKey);
-    PyW32_END_ALLOW_THREADS if (rc != ERROR_SUCCESS) return ReturnAPIError("RegOpenCurrentUser", rc);
+    PyW32_BEGIN_ALLOW_THREADS;
+    rc = (*pfnRegOpenCurrentUser)(sam, &retKey);
+    PyW32_END_ALLOW_THREADS;
+    if (rc != ERROR_SUCCESS)
+        return ReturnAPIError("RegOpenCurrentUser", rc);
     return PyWinObject_FromHKEY(retKey);
 }
 
@@ -3554,8 +3688,10 @@ static PyObject *PyRegOpenKey(PyObject *self, PyObject *args)
         return NULL;
     if (!PyWinObject_AsTCHAR(obsubKey, &subKey, TRUE))
         return NULL;
-    PyW32_BEGIN_ALLOW_THREADS rc = RegOpenKeyEx(hKey, subKey, res, sam, &retKey);
-    PyW32_END_ALLOW_THREADS PyWinObject_FreeTCHAR(subKey);
+    PyW32_BEGIN_ALLOW_THREADS;
+    rc = RegOpenKeyEx(hKey, subKey, res, sam, &retKey);
+    PyW32_END_ALLOW_THREADS;
+    PyWinObject_FreeTCHAR(subKey);
     if (rc != ERROR_SUCCESS)
         return ReturnAPIError("RegOpenKeyEx", rc);
     return PyWinObject_FromHKEY(retKey);
@@ -3877,8 +4013,10 @@ static PyObject *PyRegSaveKey(PyObject *self, PyObject *args)
     if (!PyWinObject_AsTCHAR(obfileName, &fileName, FALSE))
         return NULL;
     // @pyseeapi RegSaveKey
-    PyW32_BEGIN_ALLOW_THREADS rc = RegSaveKey(hKey, fileName, pSA);
-    PyW32_END_ALLOW_THREADS PyWinObject_FreeTCHAR(fileName);
+    PyW32_BEGIN_ALLOW_THREADS;
+    rc = RegSaveKey(hKey, fileName, pSA);
+    PyW32_END_ALLOW_THREADS;
+    PyWinObject_FreeTCHAR(fileName);
     if (rc != ERROR_SUCCESS)
         return ReturnAPIError("RegSaveKey", rc);
     Py_INCREF(Py_None);
@@ -3960,10 +4098,11 @@ static PyObject *PyRegSetValue(PyObject *self, PyObject *args)
     }
 
     // @pyseeapi RegSetValue
-    PyW32_BEGIN_ALLOW_THREADS
-        // length is in bytes, and doesn't include terminating NULL
-        rc = RegSetValue(hKey, subKey, REG_SZ, str, len * sizeof(TCHAR));
-    PyW32_END_ALLOW_THREADS PyWinObject_FreeTCHAR(str);
+    PyW32_BEGIN_ALLOW_THREADS;
+    // length is in bytes, and doesn't include terminating NULL
+    rc = RegSetValue(hKey, subKey, REG_SZ, str, len * sizeof(TCHAR));
+    PyW32_END_ALLOW_THREADS;
+    PyWinObject_FreeTCHAR(str);
     PyWinObject_FreeTCHAR(subKey);
     if (rc != ERROR_SUCCESS)
         return ReturnAPIError("RegSetValue", rc);
@@ -4034,8 +4173,10 @@ static PyObject *PyRegSetValueEx(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    PyW32_BEGIN_ALLOW_THREADS rc = RegSetValueEx(hKey, valueName, NULL, typ, data, len);
-    PyW32_END_ALLOW_THREADS PyWinObject_FreeRegistryValue(typ, data);
+    PyW32_BEGIN_ALLOW_THREADS;
+    rc = RegSetValueEx(hKey, valueName, NULL, typ, data, len);
+    PyW32_END_ALLOW_THREADS;
+    PyWinObject_FreeRegistryValue(typ, data);
     PyWinObject_FreeTCHAR(valueName);
     if (rc != ERROR_SUCCESS)
         return ReturnAPIError("RegSetValueEx", rc);
@@ -4070,8 +4211,11 @@ static PyObject *PyRegSetKeySecurity(PyObject *self, PyObject *args)
     if (!PyWinObject_AsSECURITY_DESCRIPTOR(obSD, &psd, FALSE))
         return NULL;
     // @pyseeapi PyRegSetKeySecurity
-    PyW32_BEGIN_ALLOW_THREADS rc = RegSetKeySecurity(hKey, si, psd);
-    PyW32_END_ALLOW_THREADS if (rc != ERROR_SUCCESS) return ReturnAPIError("RegSetKeySecurity", rc);
+    PyW32_BEGIN_ALLOW_THREADS;
+    rc = RegSetKeySecurity(hKey, si, psd);
+    PyW32_END_ALLOW_THREADS;
+    if (rc != ERROR_SUCCESS)
+        return ReturnAPIError("RegSetKeySecurity", rc);
     Py_INCREF(Py_None);
     return Py_None;
     // @comm If key is one of the predefined keys, the predefined key should be closed with <om win32api.RegCloseKey>.
@@ -4095,8 +4239,11 @@ static PyObject *PyRegGetKeySecurity(PyObject *self, PyObject *args)
     // @pyseeapi RegGetKeySecurity
     DWORD cb = 0;
     DWORD rc;
-    PyW32_BEGIN_ALLOW_THREADS rc = RegGetKeySecurity(hKey, si, NULL, &cb);
-    PyW32_END_ALLOW_THREADS if (rc != ERROR_INSUFFICIENT_BUFFER) return ReturnAPIError("RegGetKeySecurity", rc);
+    PyW32_BEGIN_ALLOW_THREADS;
+    rc = RegGetKeySecurity(hKey, si, NULL, &cb);
+    PyW32_END_ALLOW_THREADS;
+    if (rc != ERROR_INSUFFICIENT_BUFFER)
+        return ReturnAPIError("RegGetKeySecurity", rc);
     PSECURITY_DESCRIPTOR psd = (SECURITY_DESCRIPTOR *)malloc(cb);
     if (psd == NULL)
         return PyErr_NoMemory();
@@ -4128,8 +4275,10 @@ static PyObject *PyRegisterWindowMessage(PyObject *self, PyObject *args)
     if (!PyWinObject_AsTCHAR(obmsgString, &msgString, FALSE))
         return NULL;
     // @pyseeapi RegisterWindowMessage
-    PyW32_BEGIN_ALLOW_THREADS msgID = RegisterWindowMessage(msgString);
-    PyW32_END_ALLOW_THREADS PyWinObject_FreeTCHAR(msgString);
+    PyW32_BEGIN_ALLOW_THREADS;
+    msgID = RegisterWindowMessage(msgString);
+    PyW32_END_ALLOW_THREADS;
+    PyWinObject_FreeTCHAR(msgString);
     if (msgID == 0)
         return ReturnAPIError("RegisterWindowMessage", msgID);
     return Py_BuildValue("i", msgID);
@@ -4158,11 +4307,14 @@ static PyObject *PySearchPath(PyObject *self, PyObject *args)
     if (PyWinObject_AsTCHAR(obPath, &szPath, TRUE) && PyWinObject_AsTCHAR(obFileName, &szFileName, FALSE) &&
         PyWinObject_AsTCHAR(obExt, &szExt, TRUE)) {
         DWORD rc;
-        PyW32_BEGIN_ALLOW_THREADS
-            // @pyseeapi SearchPath
-            rc = ::SearchPath(szPath, szFileName, szExt, sizeof(retBuf) / sizeof(retBuf[0]), retBuf, &szBase);
-        PyW32_END_ALLOW_THREADS if (rc == 0) PyWin_SetAPIError("SearchPath");
-        else ret = Py_BuildValue("NN", PyWinObject_FromTCHAR(retBuf), PyWinLong_FromVoidPtr((void *)(szBase - retBuf)));
+        PyW32_BEGIN_ALLOW_THREADS;
+        // @pyseeapi SearchPath
+        rc = ::SearchPath(szPath, szFileName, szExt, sizeof(retBuf) / sizeof(retBuf[0]), retBuf, &szBase);
+        PyW32_END_ALLOW_THREADS;
+        if (rc == 0)
+            PyWin_SetAPIError("SearchPath");
+        else
+            ret = Py_BuildValue("NN", PyWinObject_FromTCHAR(retBuf), PyWinLong_FromVoidPtr((void *)(szBase - retBuf)));
     }
     PyWinObject_FreeTCHAR(szPath);
     PyWinObject_FreeTCHAR(szFileName);
@@ -4211,8 +4363,10 @@ static PyObject *PySetConsoleTitle(PyObject *self, PyObject *args)
     if (!PyWinObject_AsTCHAR(obtitle, &title, FALSE))
         return NULL;
     // @pyseeapi SetConsoleTitle
-    PyW32_BEGIN_ALLOW_THREADS BOOL ok = ::SetConsoleTitle(title);
-    PyW32_END_ALLOW_THREADS PyWinObject_FreeTCHAR(title);
+    PyW32_BEGIN_ALLOW_THREADS;
+    BOOL ok = ::SetConsoleTitle(title);
+    PyW32_END_ALLOW_THREADS;
+    PyWinObject_FreeTCHAR(title);
     if (!ok)
         return ReturnAPIError("SetConsoleTitle");
     Py_INCREF(Py_None);
@@ -4227,8 +4381,11 @@ static PyObject *PySetCursorPos(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "(ii):SetCursorPos", &x, &y))
         return NULL;
     // @pyseeapi SetCursorPos
-    PyW32_BEGIN_ALLOW_THREADS BOOL ok = ::SetCursorPos(x, y);
-    PyW32_END_ALLOW_THREADS if (!ok) return ReturnAPIError("SetCursorPos");
+    PyW32_BEGIN_ALLOW_THREADS;
+    BOOL ok = ::SetCursorPos(x, y);
+    PyW32_END_ALLOW_THREADS;
+    if (!ok)
+        return ReturnAPIError("SetCursorPos");
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -4242,10 +4399,11 @@ static PyObject *PySetErrorMode(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "i:SetErrorMode", &mode))
         return NULL;
     // @pyseeapi SetErrorMode
-    PyW32_BEGIN_ALLOW_THREADS UINT ret = ::SetErrorMode(mode);
-    PyW32_END_ALLOW_THREADS
-        // @rdesc The result is an integer containing the old error flags.
-        return PyLong_FromLong(ret);
+    PyW32_BEGIN_ALLOW_THREADS;
+    UINT ret = ::SetErrorMode(mode);
+    PyW32_END_ALLOW_THREADS;
+    // @rdesc The result is an integer containing the old error flags.
+    return PyLong_FromLong(ret);
 }
 
 // @pymethod int|win32api|ShowCursor|The ShowCursor method displays or hides the cursor.
@@ -4256,8 +4414,10 @@ static PyObject *PyShowCursor(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "i:ShowCursor", &bShow))
         return NULL;
     // @pyseeapi ShowCursor
-    PyW32_BEGIN_ALLOW_THREADS int rc = ::ShowCursor(bShow);
-    PyW32_END_ALLOW_THREADS return Py_BuildValue("i", rc);
+    PyW32_BEGIN_ALLOW_THREADS;
+    int rc = ::ShowCursor(bShow);
+    PyW32_END_ALLOW_THREADS;
+    return Py_BuildValue("i", rc);
     // @rdesc The return value specifies the new display counter
     // @comm This function sets an internal display counter that
     // determines whether the cursor should be displayed. The
@@ -4295,11 +4455,14 @@ static PyObject *PyShellExecute(PyObject *self, PyObject *args)
             dir = TEXT("");
             bfreedir = FALSE;
         }
-        PyW32_BEGIN_ALLOW_THREADS HINSTANCE rc = ::ShellExecute(hwnd, op, file, params, dir, show);
-        PyW32_END_ALLOW_THREADS
-            // @pyseeapi ShellExecute
-            if (rc <= (HINSTANCE)32) PyWin_SetAPIError("ShellExecute", (int)rc);
-        else ret = PyWinLong_FromVoidPtr(rc);
+        PyW32_BEGIN_ALLOW_THREADS;
+        HINSTANCE rc = ::ShellExecute(hwnd, op, file, params, dir, show);
+        PyW32_END_ALLOW_THREADS;
+        // @pyseeapi ShellExecute
+        if (rc <= (HINSTANCE)32)
+            PyWin_SetAPIError("ShellExecute", (int)rc);
+        else
+            ret = PyWinLong_FromVoidPtr(rc);
     }
     PyWinObject_FreeTCHAR(op);
     PyWinObject_FreeTCHAR(file);
@@ -4321,11 +4484,12 @@ static PyObject *PySleep(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "i|i:Sleep", &time, &bAlertable))
         return NULL;
     DWORD rc;
-    PyW32_BEGIN_ALLOW_THREADS
-        // @pyseeapi Sleep
-        // @pyseeapi SleepEx
-        rc = ::SleepEx(time, bAlertable);
-    PyW32_END_ALLOW_THREADS return Py_BuildValue("i", rc);
+    PyW32_BEGIN_ALLOW_THREADS;
+    // @pyseeapi Sleep
+    // @pyseeapi SleepEx
+    rc = ::SleepEx(time, bAlertable);
+    PyW32_END_ALLOW_THREADS;
+    return Py_BuildValue("i", rc);
     // @rdesc The return value is zero if the specified time interval expired.
 }
 // @pymethod |win32api|WinExec|Runs the specified application.
@@ -4337,8 +4501,10 @@ static PyObject *PyWinExec(PyObject *self, PyObject *args)
     // @pyparm int|show|win32con.SW_SHOWNORMAL|The initial state of the applications window.
     if (!PyArg_ParseTuple(args, "s|i:WinExec", &cmd, &style))
         return NULL;
-    PyW32_BEGIN_ALLOW_THREADS int rc = ::WinExec(cmd, style);
-    PyW32_END_ALLOW_THREADS if ((rc) <= 32)  // @pyseeapi WinExec
+    PyW32_BEGIN_ALLOW_THREADS;
+    int rc = ::WinExec(cmd, style);
+    PyW32_END_ALLOW_THREADS;
+    if ((rc) <= 32)  // @pyseeapi WinExec
         return ReturnAPIError("WinExec", rc);
     Py_INCREF(Py_None);
     return Py_None;
@@ -4369,8 +4535,10 @@ static PyObject *PyWinHelp(PyObject *self, PyObject *args)
         return NULL;
     if (!PyWinObject_AsTCHAR(obhlpFile, &hlpFile, FALSE))
         return NULL;
-    PyW32_BEGIN_ALLOW_THREADS BOOL ok = ::WinHelp(hwnd, hlpFile, cmd, data);
-    PyW32_END_ALLOW_THREADS PyWinObject_FreeTCHAR(hlpFile);
+    PyW32_BEGIN_ALLOW_THREADS;
+    BOOL ok = ::WinHelp(hwnd, hlpFile, cmd, data);
+    PyW32_END_ALLOW_THREADS;
+    PyWinObject_FreeTCHAR(hlpFile);
     if (!ok)  // @pyseeapi WinHelp
         return ReturnAPIError("WinHelp");
     Py_INCREF(Py_None);
@@ -4414,11 +4582,15 @@ static PyObject *PyWriteProfileVal(PyObject *self, PyObject *args)
         }
         // @pyseeapi WritePrivateProfileString
         // @pyseeapi WriteProfileString
-        PyW32_BEGIN_ALLOW_THREADS if (iniFile) rc = ::WritePrivateProfileString(sect, entry, strVal, iniFile);
-        else rc = ::WriteProfileString(sect, entry, strVal);
-        PyW32_END_ALLOW_THREADS if (!rc) PyWin_SetAPIError("Write[Private]ProfileString");
+        PyW32_BEGIN_ALLOW_THREADS;
+        if (iniFile)
+            rc = ::WritePrivateProfileString(sect, entry, strVal, iniFile);
         else
-        {
+            rc = ::WriteProfileString(sect, entry, strVal);
+        PyW32_END_ALLOW_THREADS;
+        if (!rc)
+            PyWin_SetAPIError("Write[Private]ProfileString");
+        else {
             Py_INCREF(Py_None);
             return Py_None;
         }
@@ -4444,8 +4616,11 @@ static PyObject *PyMessageBeep(PyObject *self, PyObject *args)
                                   // registry. This parameter can be one of MB_ICONASTERISK,
                                   // MB_ICONEXCLAMATION, MB_ICONHAND, MB_ICONQUESTION or MB_OK.
         return NULL;
-    PyW32_BEGIN_ALLOW_THREADS BOOL ok = MessageBeep(val);
-    PyW32_END_ALLOW_THREADS if (!ok) return ReturnAPIError("MessageBeep");
+    PyW32_BEGIN_ALLOW_THREADS;
+    BOOL ok = MessageBeep(val);
+    PyW32_END_ALLOW_THREADS;
+    if (!ok)
+        return ReturnAPIError("MessageBeep");
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -4470,8 +4645,10 @@ static PyObject *PyMessageBox(PyObject *self, PyObject *args)
         return NULL;
     if (PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd) && PyWinObject_AsTCHAR(obmessage, &message, FALSE) &&
         PyWinObject_AsTCHAR(obtitle, &title, TRUE)) {
-        PyW32_BEGIN_ALLOW_THREADS int rc = ::MessageBoxEx(hwnd, message, title, style, langId);
-        PyW32_END_ALLOW_THREADS ret = Py_BuildValue("i", rc);
+        PyW32_BEGIN_ALLOW_THREADS;
+        int rc = ::MessageBoxEx(hwnd, message, title, style, langId);
+        PyW32_END_ALLOW_THREADS;
+        ret = Py_BuildValue("i", rc);
     }
     PyWinObject_FreeTCHAR(message);
     PyWinObject_FreeTCHAR(title);
@@ -4491,8 +4668,10 @@ static PyObject *PySetFileAttributes(PyObject *self, PyObject *args)
         return NULL;
     if (!PyWinObject_AsTCHAR(obpathName, &pathName, FALSE))
         return NULL;
-    PyW32_BEGIN_ALLOW_THREADS BOOL ok = SetFileAttributes(pathName, attrs);
-    PyW32_END_ALLOW_THREADS PyWinObject_FreeTCHAR(pathName);
+    PyW32_BEGIN_ALLOW_THREADS;
+    BOOL ok = SetFileAttributes(pathName, attrs);
+    PyW32_END_ALLOW_THREADS;
+    PyWinObject_FreeTCHAR(pathName);
     if (!ok)
         return ReturnAPIError("SetFileAttributes");
     Py_INCREF(Py_None);
@@ -4516,8 +4695,10 @@ static PyObject *PyGetWindowLong(PyObject *self, PyObject *args)
     if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
         return NULL;
 
-    PyW32_BEGIN_ALLOW_THREADS LONG_PTR rc = ::GetWindowLongPtr(hwnd, offset);
-    PyW32_END_ALLOW_THREADS return PyWinLong_FromVoidPtr((void *)rc);
+    PyW32_BEGIN_ALLOW_THREADS;
+    LONG_PTR rc = ::GetWindowLongPtr(hwnd, offset);
+    PyW32_END_ALLOW_THREADS;
+    return PyWinLong_FromVoidPtr((void *)rc);
 }
 
 // @pymethod int|win32api|SetWindowLong|Places a long value at the specified offset into the extra window memory of the
@@ -4540,8 +4721,10 @@ static PyObject *PySetWindowLong(PyObject *self, PyObject *args)
         return NULL;
     if (!PyWinLong_AsVoidPtr(obval, (void **)&newVal))
         return NULL;
-    PyW32_BEGIN_ALLOW_THREADS LONG_PTR rc = ::SetWindowLongPtr(hwnd, offset, newVal);
-    PyW32_END_ALLOW_THREADS return PyWinLong_FromVoidPtr((void *)rc);
+    PyW32_BEGIN_ALLOW_THREADS;
+    LONG_PTR rc = ::SetWindowLongPtr(hwnd, offset, newVal);
+    PyW32_END_ALLOW_THREADS;
+    return PyWinLong_FromVoidPtr((void *)rc);
 }
 // @pymethod int|win32api|SetWindowWord|
 // @comm This function is obsolete, use <om win32api.SetWindowLong> instead
@@ -4560,8 +4743,10 @@ static PyObject *PySetWindowWord(PyObject *self, PyObject *args)
         return NULL;
     if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
         return NULL;
-    PyW32_BEGIN_ALLOW_THREADS long rc = ::SetWindowWord(hwnd, offset, newVal);
-    PyW32_END_ALLOW_THREADS return Py_BuildValue("l", rc);
+    PyW32_BEGIN_ALLOW_THREADS;
+    long rc = ::SetWindowWord(hwnd, offset, newVal);
+    PyW32_END_ALLOW_THREADS;
+    return Py_BuildValue("l", rc);
 }
 
 // @pymethod int|win32api|SetClassLong|Replaces the specified 32 or 64 bit value at the specified offset into the extra
@@ -4584,8 +4769,10 @@ static PyObject *PySetClassLong(PyObject *self, PyObject *args)
         return NULL;
     if (!PyWinLong_AsVoidPtr(obval, (void **)&newVal))
         return NULL;
-    PyW32_BEGIN_ALLOW_THREADS LONG_PTR rc = ::SetClassLongPtr(hwnd, offset, newVal);
-    PyW32_END_ALLOW_THREADS return PyWinLong_FromVoidPtr((void *)rc);
+    PyW32_BEGIN_ALLOW_THREADS;
+    LONG_PTR rc = ::SetClassLongPtr(hwnd, offset, newVal);
+    PyW32_END_ALLOW_THREADS;
+    return PyWinLong_FromVoidPtr((void *)rc);
 }
 
 // @pymethod int|win32api|SetClassWord|
@@ -4605,8 +4792,10 @@ static PyObject *PySetClassWord(PyObject *self, PyObject *args)
         return NULL;
     if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
         return NULL;
-    PyW32_BEGIN_ALLOW_THREADS long rc = ::SetClassWord(hwnd, offset, newVal);
-    PyW32_END_ALLOW_THREADS return Py_BuildValue("l", rc);
+    PyW32_BEGIN_ALLOW_THREADS;
+    long rc = ::SetClassWord(hwnd, offset, newVal);
+    PyW32_END_ALLOW_THREADS;
+    return Py_BuildValue("l", rc);
 }
 
 /***** SOME "MACROS" ******/
@@ -4715,7 +4904,8 @@ static PyObject *PyGetSystemTime(PyObject *self, PyObject *args)
     }
     else {
         // GetSystemTime is a void function
-        PyW32_BEGIN_ALLOW_THREADS GetSystemTime(&t);
+        PyW32_BEGIN_ALLOW_THREADS;
+        GetSystemTime(&t);
         PyW32_END_ALLOW_THREADS;
         return Py_BuildValue("(hhhhhhhh)", t.wYear, t.wMonth, t.wDayOfWeek, t.wDay, t.wHour, t.wMinute, t.wSecond,
                              t.wMilliseconds);
@@ -4771,7 +4961,8 @@ static PyObject *PySetSystemTime(PyObject *self, PyObject *args)
                           &t.wMilliseconds  // @pyparm int|millseconds||
                           ))
         return NULL;
-    PyW32_BEGIN_ALLOW_THREADS result = ::SetSystemTime(&t);
+    PyW32_BEGIN_ALLOW_THREADS;
+    result = ::SetSystemTime(&t);
     PyW32_END_ALLOW_THREADS;
 
     if (!result) {
@@ -4812,7 +5003,8 @@ static PyObject *PyOutputDebugString(PyObject *self, PyObject *args)
         return NULL;
     if (!PyWinObject_AsTCHAR(obmsg, &msg, FALSE))
         return NULL;
-    PyW32_BEGIN_ALLOW_THREADS OutputDebugString(msg);
+    PyW32_BEGIN_ALLOW_THREADS;
+    OutputDebugString(msg);
     PyW32_END_ALLOW_THREADS;
     PyWinObject_FreeTCHAR(msg);
     Py_INCREF(Py_None);
@@ -4874,8 +5066,11 @@ static PyObject *PyTerminateProcess(PyObject *self, PyObject *args)
     if (!PyWinObject_AsHANDLE(obHandle, &handle))
         return NULL;
     // @comm See also <om win32api.OpenProcess>
-    PyW32_BEGIN_ALLOW_THREADS BOOL ok = TerminateProcess(handle, exitCode);
-    PyW32_END_ALLOW_THREADS if (!ok) return ReturnAPIError("TerminateProcess");
+    PyW32_BEGIN_ALLOW_THREADS;
+    BOOL ok = TerminateProcess(handle, exitCode);
+    PyW32_END_ALLOW_THREADS;
+    if (!ok)
+        return ReturnAPIError("TerminateProcess");
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -5457,8 +5652,10 @@ PyObject *Pykeybd_event(PyObject *self, PyObject *args)
                           &dwExtraInfo))  // @pyparm DWORD|dwExtraInfo|0|Additional data associated with keystroke
         return NULL;
     // @pyseeapi keybd_event
-    PyW32_BEGIN_ALLOW_THREADS ::keybd_event(bVk, bScan, dwFlags, dwExtraInfo);
-    PyW32_END_ALLOW_THREADS Py_INCREF(Py_None);
+    PyW32_BEGIN_ALLOW_THREADS;
+    ::keybd_event(bVk, bScan, dwFlags, dwExtraInfo);
+    PyW32_END_ALLOW_THREADS;
+    Py_INCREF(Py_None);
     return Py_None;
 }
 //
@@ -5480,8 +5677,10 @@ PyObject *Pymouse_event(PyObject *self, PyObject *args)
 
         return NULL;
     // @pyseeapi mouse_event
-    PyW32_BEGIN_ALLOW_THREADS ::mouse_event(dwFlags, dx, dy, dwData, dwExtraInfo);
-    PyW32_END_ALLOW_THREADS Py_INCREF(Py_None);
+    PyW32_BEGIN_ALLOW_THREADS;
+    ::mouse_event(dwFlags, dx, dy, dwData, dwExtraInfo);
+    PyW32_END_ALLOW_THREADS;
+    Py_INCREF(Py_None);
     return Py_None;
 }
 

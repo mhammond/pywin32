@@ -198,7 +198,7 @@ class CScintillaDocument(ParentScintillaDocument):
     def HookViewNotifications(self, view):
         parent = view.GetParentFrame()
         parent.HookNotify(
-            ViewNotifyDelegate(self, "OnBraceMatch"), scintillacon.SCN_CHECKBRACE
+            ViewNotifyDelegate(self, "OnBraceMatch"), scintillacon.SCN_UPDATEUI
         )
         parent.HookNotify(
             ViewNotifyDelegate(self, "OnMarginClick"), scintillacon.SCN_MARGINCLICK
