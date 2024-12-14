@@ -99,10 +99,10 @@ class MapEntry:
 
     def __repr__(self):
         return (
-            "MapEntry(dispid={s.dispid}, desc={s.desc}, names={s.names}, doc={s.doc!r}, "
-            "resultCLSID={s.resultCLSID}, resultDocumentation={s.resultDocumentation}, "
-            "wasProperty={s.wasProperty}, hidden={s.hidden}"
-        ).format(s=self)
+            f"MapEntry(dispid={self.dispid}, desc={self.desc}, names={self.names}, doc={self.doc!r}, "
+            f"resultCLSID={self.resultCLSID}, resultDocumentation={self.resultDocumentation}, "
+            f"wasProperty={self.wasProperty}, hidden={self.hidden}"
+        )
 
     def GetResultCLSID(self):
         rc = self.resultCLSID
@@ -404,58 +404,24 @@ class DispatchItem(OleItem):
         if len(bad_params) == 0 and len(retDesc) == 2 and retDesc[1] == 0:
             rd = retDesc[0]
             if rd in NoTranslateMap:
-                s = "{}\treturn self._oleobj_.InvokeTypes({}, LCID, {}, {}, {}{})".format(
-                    linePrefix,
-                    id,
-                    fdesc[4],
-                    retDesc,
-                    argsDesc,
-                    _BuildArgList(fdesc, names),
-                )
+                s = f"{linePrefix}\treturn self._oleobj_.InvokeTypes({id}, LCID, {fdesc[4]}, {retDesc}, {argsDesc}{_BuildArgList(fdesc, names)})"
             elif rd in [pythoncom.VT_DISPATCH, pythoncom.VT_UNKNOWN]:
-                s = "{}\tret = self._oleobj_.InvokeTypes({}, LCID, {}, {}, {!r}{})\n".format(
-                    linePrefix,
-                    id,
-                    fdesc[4],
-                    retDesc,
-                    argsDesc,
-                    _BuildArgList(fdesc, names),
-                )
+                s = f"{linePrefix}\tret = self._oleobj_.InvokeTypes({id}, LCID, {fdesc[4]}, {retDesc}, {argsDesc!r}{_BuildArgList(fdesc, names)})\n"
                 s += f"{linePrefix}\tif ret is not None:\n"
                 if rd == pythoncom.VT_UNKNOWN:
-                    s += "{}\t\t# See if this IUnknown is really an IDispatch\n".format(
-                        linePrefix
-                    )
+                    s += f"{linePrefix}\t\t# See if this IUnknown is really an IDispatch\n"
                     s += f"{linePrefix}\t\ttry:\n"
-                    s += "{}\t\t\tret = ret.QueryInterface(pythoncom.IID_IDispatch)\n".format(
-                        linePrefix
-                    )
+                    s += f"{linePrefix}\t\t\tret = ret.QueryInterface(pythoncom.IID_IDispatch)\n"
                     s += f"{linePrefix}\t\texcept pythoncom.error:\n"
                     s += f"{linePrefix}\t\t\treturn ret\n"
                 s += f"{linePrefix}\t\tret = Dispatch(ret, {name!r}, {resclsid})\n"
                 s += f"{linePrefix}\treturn ret"
             elif rd == pythoncom.VT_BSTR:
                 s = f"{linePrefix}\t# Result is a Unicode object\n"
-                s += "{}\treturn self._oleobj_.InvokeTypes({}, LCID, {}, {}, {!r}{})".format(
-                    linePrefix,
-                    id,
-                    fdesc[4],
-                    retDesc,
-                    argsDesc,
-                    _BuildArgList(fdesc, names),
-                )
+                s += f"{linePrefix}\treturn self._oleobj_.InvokeTypes({id}, LCID, {fdesc[4]}, {retDesc}, {argsDesc!r}{_BuildArgList(fdesc, names)})"
             # else s remains None
         if s is None:
-            s = "{}\treturn self._ApplyTypes_({}, {}, {}, {}, {!r}, {}{})".format(
-                linePrefix,
-                id,
-                fdesc[4],
-                retDesc,
-                argsDesc,
-                name,
-                resclsid,
-                _BuildArgList(fdesc, names),
-            )
+            s = f"{linePrefix}\treturn self._ApplyTypes_({id}, {fdesc[4]}, {retDesc}, {argsDesc}, {name!r}, {resclsid}{_BuildArgList(fdesc, names)})"
 
         ret.append(s)
         ret.append("")
