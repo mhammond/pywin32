@@ -15,11 +15,12 @@
 """Generate a .py file from an OLE TypeLibrary file.
 
 
- This module is concerned only with the actual writing of
- a .py file.  It draws on the @build@ module, which builds
- the knowledge of a COM interface.
+This module is concerned only with the actual writing of
+a .py file.  It draws on the @build@ module, which builds
+the knowledge of a COM interface.
 
 """
+
 usageHelp = """ \
 
 Usage:
@@ -105,12 +106,16 @@ def ShowInfo(spec):
                 desc = tlb.GetDocumentation(-1)[0]
         print(desc)
         print(
-            f" {tlbSpec.clsid}, lcid={tlbSpec.lcid}, major={tlbSpec.major}, minor={tlbSpec.minor}"
+            " {}, lcid={}, major={}, minor={}".format(
+                tlbSpec.clsid, tlbSpec.lcid, tlbSpec.major, tlbSpec.minor
+            )
         )
         print(" >>> # Use these commands in Python code to auto generate .py support")
         print(" >>> from win32com.client import gencache")
         print(
-            f" >>> gencache.EnsureModule('{tlbSpec.clsid}', {tlbSpec.lcid}, {tlbSpec.major}, {tlbSpec.minor})"
+            " >>> gencache.EnsureModule('{}', {}, {}, {})".format(
+                tlbSpec.clsid, tlbSpec.lcid, tlbSpec.major, tlbSpec.minor
+            )
         )
 
 

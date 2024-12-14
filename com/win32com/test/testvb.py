@@ -95,10 +95,13 @@ def TestVB(vbtest, bUseGenerated):
         vbtest.VariantProperty == "Hello from Python"
     ), "Could not set the variant string property correctly."
     vbtest.VariantProperty = (1.0, 2.0, 3.0)
-    assert vbtest.VariantProperty == (
-        1.0,
-        2.0,
-        3.0,
+    assert (
+        vbtest.VariantProperty
+        == (
+            1.0,
+            2.0,
+            3.0,
+        )
     ), f"Could not set the variant property to an array of floats correctly - '{vbtest.VariantProperty}'."
 
     TestArrays(vbtest, bUseGenerated)
@@ -195,8 +198,8 @@ def _DoTestCollection(vbtest, col_name, expected):
     check = []
     for item in i:
         check.append(item)
-    assert check == list(
-        expected
+    assert (
+        check == list(expected)
     ), f"Collection iterator {col_name} didn't have {expected!r} 2nd time around (had {check!r})"
     # but an iterator is not restartable
     check = []
@@ -336,12 +339,14 @@ def TestArrays(vbtest, bUseGenerated):
         assert testData == list(resultData)
         testData = ["hi", "from", "Python"]
         resultData, byRefParam = vbtest.PassSAFEARRAYVariant(testData)
-        assert testData == list(
-            byRefParam
-        ), f"Expected '{testData}', got '{list(byRefParam)}'"
-        assert testData == list(
-            resultData
-        ), f"Expected '{testData}', got '{list(resultData)}'"
+        assert testData == list(byRefParam), "Expected '{}', got '{}'".format(
+            testData,
+            list(byRefParam),
+        )
+        assert testData == list(resultData), "Expected '{}', got '{}'".format(
+            testData,
+            list(resultData),
+        )
         # This time, we just pass Unicode, so the result should compare equal
         testData = [1, 2.0, "3"]
         resultData, byRefParam = vbtest.PassSAFEARRAYVariant(testData)
@@ -474,10 +479,18 @@ def TestStructs(vbtest):
         assert "foo" in str(exc), exc
 
     # test repr - it uses repr() of the sub-objects, so check it matches.
-    expected = f"com_struct(int_val={s.int_val!r}, str_val={s.str_val!r}, ob_val={s.ob_val!r}, sub_val={s.sub_val!r})"
-    if repr(s) != expected:
+    expected = (
+        "com_struct(int_val={!r}, str_val={!r}, ob_val={!r}, sub_val={!r})".format(
+            s.int_val,
+            s.str_val,
+            s.ob_val,
+            s.sub_val,
+        )
+    )
+    repr_s = repr(s)
+    if repr_s != expected:
         print("Expected repr:", expected)
-        print("Actual repr  :", repr(s))
+        print("Actual repr  :", repr_s)
         raise AssertionError("repr() of record object failed")
 
     print("Struct/Record tests passed")

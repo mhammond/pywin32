@@ -88,7 +88,12 @@ def VssLog(project, linePrefix="", noLabels=5, maxItems=150):
         if i.Comment:
             commentDesc = f"\n{linePrefix}\t{i.Comment}"
         lines.append(
-            f"{linePrefix}{time.asctime(time.localtime(int(i.Date)))}\t{itemDesc}{commentDesc}"
+            "{}{}\t{}{}".format(
+                linePrefix,
+                time.asctime(time.localtime(int(i.Date))),
+                itemDesc,
+                commentDesc,
+            )
         )
         if labelNum > noLabels:
             break

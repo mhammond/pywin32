@@ -334,7 +334,9 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
             if cmdid is None:
                 # No event of that name - no point displaying it.
                 print(
-                    f'View.AppendMenu(): Unknown event "{event}" specified for menu text "{text}" - ignored'
+                    'View.AppendMenu(): Unknown event "{}" specified for menu text "{}" - ignored'.format(
+                        event, text
+                    )
                 )
                 return
             keyname = configManager.get_key_binding(event, self._GetSubConfigNames())
@@ -510,7 +512,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
                         pass
             except:
                 win32ui.SetStatusText(
-                    f"Error attempting to get object attributes - {repr(sys.exc_info()[0])}"
+                    f"Error attempting to get object attributes - {sys.exc_info()[0]!r}"
                 )
 
         items = [
@@ -745,7 +747,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
             pageStart = self.FormatRange(dc, pageStart, textLen, rc, 0)
             maxPage += 1
             self.starts[maxPage] = pageStart
-        # And a sentinal for one page past the end
+        # And a sentinel for one page past the end
         self.starts[maxPage + 1] = textLen
         # When actually printing, maxPage doesn't have any effect at this late state.
         # but is needed to make the Print Preview work correctly.
@@ -822,8 +824,9 @@ def LoadConfiguration():
     configManager = ConfigManager(configName)
     if configManager.last_error:
         bTryDefault = 0
-        msg = (
-            f"Error loading configuration '{configName}'\n\n{configManager.last_error}"
+        msg = "Error loading configuration '{}'\n\n{}".format(
+            configName,
+            configManager.last_error,
         )
         if configName != "default":
             msg += "\n\nThe default configuration will be loaded."

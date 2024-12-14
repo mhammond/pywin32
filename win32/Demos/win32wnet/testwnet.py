@@ -85,7 +85,9 @@ def TestConnection():
             fname = os.path.join(localName + "\\", os.listdir(localName + "\\")[0])
             try:
                 print(
-                    f"Universal name of '{fname}' is '{win32wnet.WNetGetUniversalName(fname)}'"
+                    "Universal name of '{}' is '{}'".format(
+                        fname, win32wnet.WNetGetUniversalName(fname)
+                    )
                 )
             except win32wnet.error as details:
                 print(f"Couldn't get universal name of '{fname}': {details.strerror}")
@@ -111,7 +113,7 @@ def TestConnection():
 
 def TestGetUser():
     u = win32wnet.WNetGetUser()
-    print("Current global user is", repr(u))
+    print(f"Current global user is {u!r}")
     if u != win32wnet.WNetGetUser(None):
         raise RuntimeError("Default value didn't seem to work!")
 

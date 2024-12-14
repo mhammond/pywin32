@@ -337,7 +337,9 @@ class InteractiveCore:
                     f"PythonWin {sys.version} on {sys.platform}{suffix}.\n"
                 )
                 sys.stderr.write(
-                    f"Portions {win32ui.copyright} - see 'Help/About PythonWin' for further copyright information.\n"
+                    "Portions {} - see 'Help/About PythonWin' for further copyright information.\n".format(
+                        win32ui.copyright
+                    )
                 )
             else:
                 sys.stderr.write(self.banner)

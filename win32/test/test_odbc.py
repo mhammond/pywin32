@@ -43,7 +43,11 @@ class TestStuff(unittest.TestCase):
 
             newdb.Close()
 
-            conn_str = f"Driver={{Microsoft Access Driver (*.mdb)}};dbq={self.db_filename};Uid=;Pwd=;"
+            conn_str = (
+                "Driver={{Microsoft Access Driver (*.mdb)}};dbq={};Uid=;Pwd=;".format(
+                    self.db_filename,
+                )
+            )
         # print("Connection string:", conn_str)
         self.conn = odbc.odbc(conn_str)
         # And we expect a 'users' table for these tests.

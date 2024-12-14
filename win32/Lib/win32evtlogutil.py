@@ -1,5 +1,4 @@
-"""Event Log Utilities - helper for win32evtlog.pyd
-"""
+"""Event Log Utilities - helper for win32evtlog.pyd"""
 
 import win32api
 import win32con
@@ -145,7 +144,10 @@ def FormatMessage(eventLogRecord, logType="Application"):
     # key to look under for the name of the message DLL that contains
     # the messages we need to extract with FormatMessage. So first get
     # the event log source name...
-    keyName = f"SYSTEM\\CurrentControlSet\\Services\\EventLog\\{logType}\\{eventLogRecord.SourceName}"
+    keyName = "SYSTEM\\CurrentControlSet\\Services\\EventLog\\{}\\{}".format(
+        logType,
+        eventLogRecord.SourceName,
+    )
 
     # Now open this key and get the EventMessageFile value, which is
     # the name of the message DLL.

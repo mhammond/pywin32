@@ -155,7 +155,9 @@ def DllRegisterServer():
     # See link at top of file.
     import winreg
 
-    kn = rf"Software\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\{EmptyVolumeCache._reg_desc_}"
+    kn = r"Software\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\{}".format(
+        EmptyVolumeCache._reg_desc_,
+    )
     key = winreg.CreateKey(winreg.HKEY_LOCAL_MACHINE, kn)
     winreg.SetValueEx(key, None, 0, winreg.REG_SZ, EmptyVolumeCache._reg_clsid_)
 
@@ -163,7 +165,9 @@ def DllRegisterServer():
 def DllUnregisterServer():
     import winreg
 
-    kn = rf"Software\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\{EmptyVolumeCache._reg_desc_}"
+    kn = r"Software\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\{}".format(
+        EmptyVolumeCache._reg_desc_,
+    )
     try:
         key = winreg.DeleteKey(winreg.HKEY_LOCAL_MACHINE, kn)
     except OSError as details:

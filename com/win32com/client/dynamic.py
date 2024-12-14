@@ -389,9 +389,10 @@ class CDispatch:
         elif isinstance(ob, tuple):
             return tuple(
                 map(
-                    lambda o, s=self, oun=userName, rc=ReturnCLSID: s._get_good_single_object_(
-                        o, oun, rc
-                    ),
+                    lambda o,
+                    s=self,
+                    oun=userName,
+                    rc=ReturnCLSID: s._get_good_single_object_(o, oun, rc),
                     ob,
                 )
             )
@@ -460,13 +461,13 @@ class CDispatch:
                 print("\t", method)
             print("Props:")
             for prop, entry in self._olerepr_.propMap.items():
-                print(f"\t{prop} = 0x{entry.dispid:x} - {repr(entry)}")
+                print(f"\t{prop} = 0x{entry.dispid:x} - {entry!r}")
             print("Get Props:")
             for prop, entry in self._olerepr_.propMapGet.items():
-                print(f"\t{prop} = 0x{entry.dispid:x} - {repr(entry)}")
+                print(f"\t{prop} = 0x{entry.dispid:x} - {entry!r}")
             print("Put Props:")
             for prop, entry in self._olerepr_.propMapPut.items():
-                print(f"\t{prop} = 0x{entry.dispid:x} - {repr(entry)}")
+                print(f"\t{prop} = 0x{entry.dispid:x} - {entry!r}")
         except:
             traceback.print_exc()
 
@@ -534,7 +535,9 @@ class CDispatch:
 
     def __AttrToID__(self, attr):
         debug_attr_print(
-            f"Calling GetIDsOfNames for property {attr} in Dispatch container {self._username_}"
+            "Calling GetIDsOfNames for property {} in Dispatch container {}".format(
+                attr, self._username_
+            )
         )
         return self._oleobj_.GetIDsOfNames(0, attr)
 
@@ -637,7 +640,7 @@ class CDispatch:
             return
         # Allow property assignment.
         debug_attr_print(
-            f"SetAttr called for {self._username_}.{attr}={repr(value)} on DispatchContainer"
+            f"SetAttr called for {self._username_}.{attr}={value!r} on DispatchContainer"
         )
 
         if self._olerepr_:
@@ -686,7 +689,9 @@ class CDispatch:
                     self._oleobj_.Invoke(entry.dispid, 0, invoke_type, 0, value)
                     self._olerepr_.propMap[attr] = entry
                     debug_attr_print(
-                        f"__setattr__ property {attr} (id=0x{entry.dispid:x}) in Dispatch container {self._username_}"
+                        "__setattr__ property {} (id=0x{:x}) in Dispatch container {}".format(
+                            attr, entry.dispid, self._username_
+                        )
                     )
                     return
                 except pythoncom.com_error:

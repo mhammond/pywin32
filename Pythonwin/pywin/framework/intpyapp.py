@@ -317,13 +317,15 @@ class InteractivePythonApp(app.CApp):
                     # pywin.scintilla.document.CScintillaDocument.OnOpenDocument)
                     # segfaults Pythonwin on recent PY3 builds (b228)
                     win32ui.MessageBox(
-                        f"No such file: {fname}\n\nCommand Line: {win32api.GetCommandLine()}",
+                        "No such file: {}\n\nCommand Line: {}".format(
+                            fname, win32api.GetCommandLine()
+                        ),
                         "Open file for edit",
                         win32con.MB_ICONERROR,
                     )
                     continue
                 if dde:
-                    dde.Exec("win32ui.GetApp().OpenDocumentFile(%s)" % (repr(fname)))
+                    dde.Exec(f"win32ui.GetApp().OpenDocumentFile({fname!r})")
                 else:
                     win32ui.GetApp().OpenDocumentFile(par)
             elif argType == "/rundlg":
@@ -371,7 +373,7 @@ class InteractivePythonApp(app.CApp):
     def LoadUserModules(self, moduleNames=None):
         # Load the users modules.
         if moduleNames is None:
-            default = "pywin.framework.sgrepmdi,pywin.framework.mdi_pychecker"
+            default = "pywin.framework.sgrepmdi"
             moduleNames = win32ui.GetProfileVal("Python", "Startup Modules", default)
         self.DoLoadModules(moduleNames)
 
@@ -465,7 +467,7 @@ class InteractivePythonApp(app.CApp):
         else:
             win32ui.GetApp().OpenDocumentFile(newName)
 
-    # Display all the "options" proprety pages we can find
+    # Display all the "options" property pages we can find
     def OnViewOptions(self, id, code):
         win32ui.InitRichEdit()
         sheet = dialog.PropertySheet("Pythonwin Options")

@@ -16,6 +16,7 @@ dynamically, or possibly even generate .html documentation for objects.
 #
 #        OleItem, DispatchItem, MapEntry, BuildCallList() is used by makepy
 
+import builtins
 import datetime
 import string
 from itertools import chain
@@ -98,10 +99,10 @@ class MapEntry:
 
     def __repr__(self):
         return (
-            f"MapEntry(dispid={self.dispid}, desc={self.desc}, names={self.names}, doc={self.doc!r}, "
-            f"resultCLSID={self.resultCLSID}, resultDocumentation={self.resultDocumentation}, "
-            f"wasProperty={self.wasProperty}, hidden={self.hidden}"
-        )
+            "MapEntry(dispid={s.dispid}, desc={s.desc}, names={s.names}, doc={s.doc!r}, "
+            "resultCLSID={s.resultCLSID}, resultDocumentation={s.resultDocumentation}, "
+            "wasProperty={s.wasProperty}, hidden={s.hidden}"
+        ).format(s=self)
 
     def GetResultCLSID(self):
         rc = self.resultCLSID
@@ -114,9 +115,8 @@ class MapEntry:
         rc = self.GetResultCLSID()
         if rc is None:
             return "None"
-        return repr(
-            str(rc)
-        )  # Convert the IID object to a string, then to a string in a string.
+        # Convert the IID object to a string in a string.
+        return f"'{rc}'"
 
     def GetResultName(self):
         if self.resultDocumentation is None:
@@ -404,7 +404,7 @@ class DispatchItem(OleItem):
         if len(bad_params) == 0 and len(retDesc) == 2 and retDesc[1] == 0:
             rd = retDesc[0]
             if rd in NoTranslateMap:
-                s = "%s\treturn self._oleobj_.InvokeTypes(%d, LCID, %s, %s, %s%s)" % (
+                s = "{}\treturn self._oleobj_.InvokeTypes({}, LCID, {}, {}, {}{})".format(
                     linePrefix,
                     id,
                     fdesc[4],
@@ -413,42 +413,46 @@ class DispatchItem(OleItem):
                     _BuildArgList(fdesc, names),
                 )
             elif rd in [pythoncom.VT_DISPATCH, pythoncom.VT_UNKNOWN]:
-                s = "%s\tret = self._oleobj_.InvokeTypes(%d, LCID, %s, %s, %s%s)\n" % (
+                s = "{}\tret = self._oleobj_.InvokeTypes({}, LCID, {}, {}, {!r}{})\n".format(
                     linePrefix,
                     id,
                     fdesc[4],
                     retDesc,
-                    repr(argsDesc),
+                    argsDesc,
                     _BuildArgList(fdesc, names),
                 )
                 s += f"{linePrefix}\tif ret is not None:\n"
                 if rd == pythoncom.VT_UNKNOWN:
-                    s += f"{linePrefix}\t\t# See if this IUnknown is really an IDispatch\n"
+                    s += "{}\t\t# See if this IUnknown is really an IDispatch\n".format(
+                        linePrefix
+                    )
                     s += f"{linePrefix}\t\ttry:\n"
-                    s += f"{linePrefix}\t\t\tret = ret.QueryInterface(pythoncom.IID_IDispatch)\n"
+                    s += "{}\t\t\tret = ret.QueryInterface(pythoncom.IID_IDispatch)\n".format(
+                        linePrefix
+                    )
                     s += f"{linePrefix}\t\texcept pythoncom.error:\n"
                     s += f"{linePrefix}\t\t\treturn ret\n"
-                s += f"{linePrefix}\t\tret = Dispatch(ret, {repr(name)}, {resclsid})\n"
-                s += "%s\treturn ret" % linePrefix
+                s += f"{linePrefix}\t\tret = Dispatch(ret, {name!r}, {resclsid})\n"
+                s += f"{linePrefix}\treturn ret"
             elif rd == pythoncom.VT_BSTR:
                 s = f"{linePrefix}\t# Result is a Unicode object\n"
-                s += "%s\treturn self._oleobj_.InvokeTypes(%d, LCID, %s, %s, %s%s)" % (
+                s += "{}\treturn self._oleobj_.InvokeTypes({}, LCID, {}, {}, {!r}{})".format(
                     linePrefix,
                     id,
                     fdesc[4],
                     retDesc,
-                    repr(argsDesc),
+                    argsDesc,
                     _BuildArgList(fdesc, names),
                 )
             # else s remains None
         if s is None:
-            s = "%s\treturn self._ApplyTypes_(%d, %s, %s, %s, %s, %s%s)" % (
+            s = "{}\treturn self._ApplyTypes_({}, {}, {}, {}, {!r}, {}{})".format(
                 linePrefix,
                 id,
                 fdesc[4],
                 retDesc,
                 argsDesc,
-                repr(name),
+                name,
                 resclsid,
                 _BuildArgList(fdesc, names),
             )
@@ -650,7 +654,7 @@ def MakePublicAttributeName(className, is_global=False):
         if ret == className:
             ret = ret.upper()
         return ret
-    elif is_global and hasattr(__builtins__, className):
+    elif is_global and hasattr(builtins, className):
         # builtins may be mixed case.  If capitalizing it doesn't change it,
         # force to all uppercase (eg, "None", "True" become "NONE", "TRUE"
         ret = className.capitalize()
