@@ -24,8 +24,8 @@ if not ico_files:
     print("WARNING: Can't find any icon files")
 
 # Our shell extension.
-IExtractIcon_Methods = "Extract GetIconLocation".split()
-IPersistFile_Methods = "IsDirty Load Save SaveCompleted GetCurFile".split()
+IExtractIcon_Methods = ["Extract", "GetIconLocation"]
+IPersistFile_Methods = ["IsDirty", "Load", "Save", "SaveCompleted", "GetCurFile"]
 
 
 class ShellExtension:

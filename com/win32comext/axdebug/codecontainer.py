@@ -9,6 +9,7 @@ from __future__ import annotations
 import os
 import sys
 import tokenize
+from keyword import kwlist
 from typing import Any
 
 import win32api
@@ -17,13 +18,13 @@ from win32com.axdebug import axdebug, contexts
 from win32com.axdebug.util import _wrap
 from win32com.server.exception import COMException
 
-_keywords = {}  # set of Python keywords
-for name in """
- and assert break class continue def del elif else except exec
- finally for from global if import in is lambda not
- or pass print raise return try while
- """.split():
-    _keywords[name] = 1
+_keywords = {
+    _keyword
+    for _keyword in kwlist
+    # Avoids including True/False/None
+    if _keyword.islower()
+}
+"""set of Python keywords"""
 
 
 class SourceCodeContainer:

@@ -133,7 +133,19 @@ def pidl_to_item(pidl):
 # make_item_enum replaces the sample's entire EnumIDList.cpp :)
 def make_item_enum(level, flags):
     pidls = []
-    nums = """zero one two three four five size seven eight nine ten""".split()
+    nums = (
+        "zero",
+        "one",
+        "two",
+        "three",
+        "four",
+        "five",
+        "size",
+        "seven",
+        "eight",
+        "nine",
+        "ten",
+    )
     for i, name in enumerate(nums):
         size = random.randint(0, 255)
         sides = 1
@@ -386,7 +398,7 @@ class FolderViewCategorizer_Value(FolderViewCategorizer):
         ret = []
         for pidl in pidls:
             val = self.sf.GetDetailsEx(pidl, PKEY_ItemNameDisplay)
-            if val in "one two three four".split():
+            if val in ("one", "two", "three", "four"):
                 ret.append(IDS_LESSTHAN5)
             else:
                 ret.append(IDS_5ORGREATER)
