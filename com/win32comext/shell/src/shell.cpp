@@ -859,7 +859,7 @@ void PyObject_CleanupDEFCONTEXTMENU(DEFCONTEXTMENU *dcm)
         PyObject_FreePIDL(dcm->pidlFolder);
     if (dcm->apidl)
         PyObject_FreePIDLArray(dcm->cidl, dcm->apidl);
-    PY_INTERFACE_POSTCALL
+    PY_INTERFACE_POSTCALL;
 }
 
 // @object DEFCONTENTMENU|A tuple representing a DEFCONTEXTMENU structure.
