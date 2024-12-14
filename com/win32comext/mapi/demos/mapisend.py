@@ -48,7 +48,7 @@ def SendEMAPIMail(
     (tag, eid) = props[0]
     # check for errors
     if mapitags.PROP_TYPE(tag) == mapitags.PT_ERROR:
-        raise TypeError("got PT_ERROR instead of PT_BINARY: %s" % eid)
+        raise TypeError("got PT_ERROR instead of PT_BINARY: {}".format(eid))
     outboxfolder = msgstore.OpenEntry(eid, None, mapi.MAPI_BEST_ACCESS)
 
     # create the message and the addrlist

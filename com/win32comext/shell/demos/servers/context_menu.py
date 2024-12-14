@@ -35,7 +35,7 @@ class ShellExtension:
             msg = "&Hello from Python (with %d files selected)" % num_files
         else:
             fname = shell.DragQueryFile(sm.data_handle, 0)
-            msg = "&Hello from Python (with '%s' selected)" % fname
+            msg = "&Hello from Python (with '{}' selected)".format(fname)
         idCmd = idCmdFirst
         items = ["First Python content menu item"]
         if (

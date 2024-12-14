@@ -290,7 +290,7 @@ def RunScript(defName=None, defArgs=None, bShowDialog=1, debuggingType=None):
         except OSError:
             fullScript = LocatePythonFile(script)
             if fullScript is None:
-                win32ui.MessageBox("The file '%s' can not be located" % script)
+                win32ui.MessageBox("The file '{}' can not be located".format(script))
                 return
             script = fullScript
     else:
@@ -334,7 +334,7 @@ def RunScript(defName=None, defArgs=None, bShowDialog=1, debuggingType=None):
     base = os.path.split(script)[1]
     # Allow windows to repaint before starting.
     win32ui.PumpWaitingMessages()
-    win32ui.SetStatusText("Running script %s..." % base, 1)
+    win32ui.SetStatusText("Running script {}...".format(base), 1)
     exitCode = 0
     from pywin.framework import interact
 
@@ -399,7 +399,7 @@ def RunScript(defName=None, defArgs=None, bShowDialog=1, debuggingType=None):
     if bWorked:
         win32ui.SetStatusText(f"Script '{script}' returned exit code {exitCode}")
     else:
-        win32ui.SetStatusText("Exception raised while running script  %s" % base)
+        win32ui.SetStatusText("Exception raised while running script  {}".format(base))
     try:
         sys.stdout.flush()
     except AttributeError:
@@ -483,7 +483,7 @@ def ImportFile():
             + what
             + "ed module '"
             + modName
-            + "': %s" % getattr(mod, "__file__", "<unkown file>")
+            + "': {}".format(getattr(mod, "__file__", "<unkown file>"))
         )
     except:
         _HandlePythonFailure(what)
@@ -630,13 +630,13 @@ def FindTabNanny():
     try:
         path = win32api.RegQueryValue(
             win32con.HKEY_LOCAL_MACHINE,
-            "SOFTWARE\\Python\\PythonCore\\%s\\InstallPath" % (sys.winver),
+            "SOFTWARE\\Python\\PythonCore\\{}\\InstallPath".format(sys.winver),
         )
     except win32api.error:
         print("WARNING - The Python registry does not have an 'InstallPath' setting")
-        print("          The file '%s' can not be located" % (filename))
+        print("          The file '{}' can not be located".format(filename))
         return None
-    fname = os.path.join(path, "Tools\\Scripts\\%s" % filename)
+    fname = os.path.join(path, "Tools\\Scripts\\{}".format(filename))
     try:
         os.stat(fname)
     except OSError:

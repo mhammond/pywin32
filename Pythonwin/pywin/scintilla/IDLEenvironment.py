@@ -255,7 +255,7 @@ def TkIndexToOffset(bm, edit, marks):
                         pos = edit.GetTextLength()
                     pos += int(col)
         except (ValueError, IndexError):
-            raise ValueError("Unexpected literal in '%s'" % base)
+            raise ValueError("Unexpected literal in '{}'".format(base))
     elif base == "insert":
         pos = edit.GetSel()[0]
     elif base == "end":
@@ -267,7 +267,9 @@ def TkIndexToOffset(bm, edit, marks):
         try:
             pos = marks[base]
         except KeyError:
-            raise ValueError("Unsupported base offset or undefined mark '%s'" % base)
+            raise ValueError(
+                "Unsupported base offset or undefined mark '{}'".format(base)
+            )
 
     while 1:
         word, nextTokPos = _NextTok(bm, nextTokPos)
@@ -301,7 +303,7 @@ def TkIndexToOffset(bm, edit, marks):
             while pos < end and edit.SCIGetCharAt(pos) not in "\n\r":
                 pos += 1
         else:
-            raise ValueError("Unsupported relative offset '%s'" % word)
+            raise ValueError("Unsupported relative offset '{}'".format(word))
     return max(pos, 0)  # Tkinter is tollerant of -ve indexes - we aren't
 
 
@@ -462,7 +464,7 @@ class TkText:
         try:
             pos = self._getoffset(pos)
         except EmptyRange:
-            raise TextError("Empty range '%s'" % pos)
+            raise TextError("Empty range '{}'".format(pos))
         if name == "insert":
             self.edit.SetSel(pos)
         else:

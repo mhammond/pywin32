@@ -335,7 +335,8 @@ class DispatchItem(build.DispatchItem, WritableItem):
         try:
             progId = pythoncom.ProgIDFromCLSID(self.clsid)
             print(
-                "\t# This class is creatable by the name '%s'" % (progId), file=stream
+                "\t# This class is creatable by the name '{}'".format(progId),
+                file=stream,
             )
         except pythoncom.com_error:
             pass
@@ -357,7 +358,8 @@ class DispatchItem(build.DispatchItem, WritableItem):
         try:
             progId = pythoncom.ProgIDFromCLSID(self.clsid)
             print(
-                "\t# This class is creatable by the name '%s'" % (progId), file=stream
+                "\t# This class is creatable by the name '{}'".format(progId),
+                file=stream,
             )
         except pythoncom.com_error:
             pass
@@ -481,8 +483,9 @@ class DispatchItem(build.DispatchItem, WritableItem):
                     print("\t# Result is of type " + entry.GetResultName(), file=stream)
                 if entry.wasProperty:
                     print(
-                        "\t# The method %s is actually a property, but must be used as a method to correctly pass the arguments"
-                        % name,
+                        "\t# The method {} is actually a property, but must be used as a method to correctly pass the arguments".format(
+                            name
+                        ),
                         file=stream,
                     )
                 ret = self.MakeFuncMethod(entry, build.MakePublicAttributeName(name))
@@ -631,8 +634,9 @@ class DispatchItem(build.DispatchItem, WritableItem):
             else:
                 typename = "property"
                 ret = [
-                    "\tdef __call__(self):\n\t\treturn self._ApplyTypes_(*%s)"
-                    % propArgs
+                    "\tdef __call__(self):\n\t\treturn self._ApplyTypes_(*{})".format(
+                        propArgs
+                    )
                 ]
             print(
                 f"\t# Default {typename} for this class is '{entry.names[0]}'",
@@ -677,7 +681,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
         )
         # Iterator is wrapped as PyIEnumVariant, and each result of __next__ is Dispatch'ed if necessary
         print(
-            "\t\treturn win32com.client.util.Iterator(ob, %s)" % resultCLSID,
+            "\t\treturn win32com.client.util.Iterator(ob, {})".format(resultCLSID),
             file=stream,
         )
 
@@ -711,11 +715,14 @@ class DispatchItem(build.DispatchItem, WritableItem):
             else:
                 typename = "property"
                 ret = [
-                    "\tdef __len__(self):\n\t\treturn self._ApplyTypes_(*%s)" % propArgs
+                    "\tdef __len__(self):\n\t\treturn self._ApplyTypes_(*{})".format(
+                        propArgs
+                    )
                 ]
             print(
-                "\t#This class has Count() %s - allow len(ob) to provide this"
-                % (typename),
+                "\t#This class has Count() {} - allow len(ob) to provide this".format(
+                    typename
+                ),
                 file=stream,
             )
             for line in ret:
@@ -770,11 +777,14 @@ class CoClassItem(build.OleItem, WritableItem):
                 ref.bWritten = 1
         try:
             progId = pythoncom.ProgIDFromCLSID(self.clsid)
-            print("# This CoClass is known by the name '%s'" % (progId), file=stream)
+            print(
+                "# This CoClass is known by the name '{}'".format(progId), file=stream
+            )
         except pythoncom.com_error:
             pass
         print(
-            "class %s(CoClassBaseClass): # A CoClass" % (self.python_name), file=stream
+            "class {}(CoClassBaseClass): # A CoClass".format(self.python_name),
+            file=stream,
         )
         if doc and doc[1]:
             print("\t# " + doc[1], file=stream)
@@ -1088,7 +1098,7 @@ class Generator:
                 f"# From type library '{os.path.split(self.sourceFilename)[1]}'",
                 file=self.file,
             )
-        print("# On %s" % time.ctime(time.time()), file=self.file)
+        print("# On {}".format(time.ctime(time.time())), file=self.file)
 
         print(build._makeDocString(docDesc), file=self.file)
 

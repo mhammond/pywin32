@@ -131,7 +131,7 @@ class Method:
         # We don't use this ATM.
         #        self.ret = Arg(ret_def)
         if isEventSink and name[:2] != "On":
-            name = "On%s" % name
+            name = "On{}".format(name)
         self.name = name
         cbArgs = 0
         self.args = []

@@ -126,7 +126,7 @@ class BindingsManager:
             handler = getattr(self.parent_view, event + "Event", None)
             if handler is None:
                 # Can't decide if I should report an error??
-                self.report_error("The event name '%s' can not be found." % event)
+                self.report_error("The event name '{}' can not be found.".format(event))
                 # Either way, just let the default handlers grab it.
                 return 1
             binding = self._new_binding(handler, HANDLER_ARGS_NATIVE)
@@ -155,7 +155,7 @@ class BindingsManager:
                 else:
                     rc = 1
         except:
-            message = "Firing event '%s' failed." % event
+            message = "Firing event '{}' failed.".format(event)
             print(message)
             traceback.print_exc()
             self.report_error(message)

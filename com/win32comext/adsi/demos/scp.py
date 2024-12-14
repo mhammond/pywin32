@@ -219,9 +219,9 @@ def SpnRegister(
     spns,  # List of SPNs to register
     operation,  # Add, replace, or delete SPNs
 ):
-    assert not isinstance(spns, str) and hasattr(spns, "__iter__"), (
-        "spns must be a sequence of strings (got %r)" % spns
-    )
+    assert not isinstance(spns, str) and hasattr(
+        spns, "__iter__"
+    ), "spns must be a sequence of strings (got {!r})".format(spns)
     # Bind to a domain controller.
     # Get the domain for the current user.
     samName = win32api.GetUserNameEx(win32api.NameSamCompatible)
@@ -279,7 +279,9 @@ def _get_option(po, opt_name, default=_NoDefault):
     parser, options = po
     ret = getattr(options, opt_name, default)
     if not ret and default is _NoDefault:
-        parser.error("The '%s' option must be specified for this operation" % opt_name)
+        parser.error(
+            "The '{}' option must be specified for this operation".format(opt_name)
+        )
     if not ret:
         ret = default
     return ret
@@ -512,7 +514,9 @@ def main():
         parser.error("No command specified (use --help for valid commands)")
     for arg in args:
         if arg.lower() not in _handlers_dict:
-            parser.error("Invalid command '%s' (use --help for valid commands)" % arg)
+            parser.error(
+                "Invalid command '{}' (use --help for valid commands)".format(arg)
+            )
 
     # Patch up account-name.
     if options.account_name:
@@ -530,7 +534,7 @@ def main():
     for arg in args:
         handler = _handlers_dict[arg.lower()]  # already been validated
         if handler is None:
-            parser.error("Invalid command '%s'" % arg)
+            parser.error("Invalid command '{}'".format(arg))
         err_msg = None
         try:
             try:

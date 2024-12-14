@@ -32,7 +32,7 @@ def BackupClearLog(logType):
         return
     try:
         if win32evtlog.GetNumberOfEventLogRecords(hlog) == 0:
-            print("No records in event log %s - not backed up" % logType)
+            print("No records in event log {} - not backed up".format(logType))
             return
         win32evtlog.ClearEventLog(hlog, fname)
         print(f"Backed up {logType} log to {fname}")

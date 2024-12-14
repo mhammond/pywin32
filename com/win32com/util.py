@@ -26,7 +26,7 @@ def IIDToInterfaceName(iid):
         try:
             try:
                 return win32api.RegQueryValue(
-                    win32con.HKEY_CLASSES_ROOT, "Interface\\%s" % iid
+                    win32con.HKEY_CLASSES_ROOT, "Interface\\{}".format(iid)
                 )
             except win32api.error:
                 pass

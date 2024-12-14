@@ -66,7 +66,7 @@ def TestConnection(dbname):
     c = DispatchWithEvents("ADODB.Connection", ADOEvents)
 
     # Initiate the asynchronous open
-    dsn = "Driver={Microsoft Access Driver (*.mdb)};Dbq=%s" % dbname
+    dsn = "Driver={{Microsoft Access Driver (*.mdb)}};Dbq={}".format(dbname)
     user = "system"
     pw = "manager"
     c.Open(dsn, user, pw, constants.adAsyncConnect)

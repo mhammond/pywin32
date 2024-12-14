@@ -111,8 +111,9 @@ def make_framework_support(
         #    if interface.base not in ["IUnknown", "IDispatch"]:
         #      fout.write('#include "Py%s.h"\n' % interface.base)
         fout.write(
-            '#include "Py%s.h"\n\n// @doc - This file contains autoduck documentation\n'
-            % interface.name
+            '#include "Py{}.h"\n\n// @doc - This file contains autoduck documentation\n'.format(
+                interface.name
+            )
         )
         if bMakeInterface:
             ifc_cpp_writer(fout, interface)
@@ -166,7 +167,9 @@ public:
     )
     for method in interface.methods:
         f.write(
-            "\tstatic PyObject *%s(PyObject *self, PyObject *args);\n" % method.name
+            "\tstatic PyObject *{}(PyObject *self, PyObject *args);\n".format(
+                method.name
+            )
         )
     f.write(
         f"""\
@@ -240,7 +243,7 @@ PyObject *Py{interfacename}::{method}(PyObject *self, PyObject *args)
                         cleanup_gil += argCvt.GetInterfaceArgCleanupGIL()
                 comArgName, comArgDeclString = argCvt.GetInterfaceCppObjectInfo()
                 if comArgDeclString:  # If we should declare a variable
-                    codeCobjects += "\t%s;\n" % comArgDeclString
+                    codeCobjects += "\t{};\n".format(comArgDeclString)
                 argsCOM += ", " + comArgName
             except makegwparse.error_not_supported as why:
                 f.write(
@@ -260,7 +263,7 @@ PyObject *Py{interfacename}::{method}(PyObject *self, PyObject *args)
                 )
 
                 formatChars += "O"
-                argsParseTuple += ", &ob%s" % arg.name
+                argsParseTuple += ", &ob{}".format(arg.name)
 
                 argsCOM += ", " + arg.name
                 cleanup += f"\tPyObject_Free{arg.type}({arg.name});\n"
@@ -322,8 +325,8 @@ PyObject *Py{interfacename}::{method}(PyObject *self, PyObject *args)
             f.write("\tPy_RETURN_NONE;\n")
         f.write("\n}\n\n")
 
-    f.write("// @object Py%s|Description of the interface\n" % (name))
-    f.write("static struct PyMethodDef Py%s_methods[] =\n{\n" % name)
+    f.write("// @object Py{}|Description of the interface\n".format(name))
+    f.write("static struct PyMethodDef Py{}_methods[] =\n{{\n".format(name))
     for method in interface.methods:
         f.write(
             '\t{{ "{}", Py{}::{}, 1 }}, // @pymeth {}|Description of {}\n'.format(
@@ -382,15 +385,15 @@ protected:
     else:
         f.write("\n\n")
 
-    f.write("\t// %s\n" % name)
+    f.write("\t// {}\n".format(name))
 
     for method in interface.methods:
-        f.write("\tSTDMETHOD(%s)(\n" % method.name)
+        f.write("\tSTDMETHOD({})(\n".format(method.name))
         if method.args:
             for arg in method.args[:-1]:
-                f.write("\t\t%s,\n" % (arg.GetRawDeclaration()))
+                f.write("\t\t{},\n".format(arg.GetRawDeclaration()))
             arg = method.args[-1]
-            f.write("\t\t%s);\n\n" % (arg.GetRawDeclaration()))
+            f.write("\t\t{});\n\n".format(arg.GetRawDeclaration()))
         else:
             f.write("\t\tvoid);\n\n")
 
@@ -448,7 +451,7 @@ STDMETHODIMP {gname}::{method.name}(
                 if arg.HasAttribute("out"):
                     cout += 1
                     if arg.indirectionLevel == 2:
-                        f.write("\tif (%s==NULL) return E_POINTER;\n" % arg.name)
+                        f.write("\tif ({}==NULL) return E_POINTER;\n".format(arg.name))
                 if arg.HasAttribute("in"):
                     try:
                         argCvt = makegwparse.make_arg_converter(arg)
@@ -478,9 +481,9 @@ STDMETHODIMP {gname}::{method.name}(
                                 arg.name, method.name
                             )
                         )
-                        codePost += "\tPy_DECREF(ob%s);\n" % arg.name
+                        codePost += "\tPy_DECREF(ob{});\n".format(arg.name)
                         formatChars += "O"
-                        argStr += ", ob%s" % arg.name
+                        argStr += ", ob{}".format(arg.name)
 
         if needConversion:
             f.write("\tUSES_CONVERSION;\n")
@@ -543,8 +546,9 @@ STDMETHODIMP {gname}::{method.name}(
                 f.write("\tBOOL bPythonIsHappy = TRUE;\n")
                 f.write(codePost)
                 f.write(
-                    '\tif (!bPythonIsHappy) hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("%s");\n'
-                    % method.name
+                    '\tif (!bPythonIsHappy) hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("{}");\n'.format(
+                        method.name
+                    )
                 )
             f.write("\tPy_DECREF(result);\n")
         f.write("\treturn hr;\n}\n\n")

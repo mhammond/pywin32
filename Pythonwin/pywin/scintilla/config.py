@@ -92,7 +92,7 @@ class ConfigManager:
                 f = find_config_file(f)
                 src_stat = os.stat(f)
             except OSError:
-                self.report_error("Config file '%s' not found" % f)
+                self.report_error("Config file '{}' not found".format(f))
                 return
             self.filename = f
             self.basename = os.path.basename(f)
@@ -210,7 +210,9 @@ class ConfigManager:
                     editor.idle.IDLEExtension(ext)
                     trace("Loaded IDLE extension", ext)
                 except:
-                    self.report_error("Can not load the IDLE extension '%s'" % ext)
+                    self.report_error(
+                        "Can not load the IDLE extension '{}'".format(ext)
+                    )
 
         # Now bind up the key-map (remembering a reverse map
         subsection_keymap = self.get_data("keys")

@@ -384,7 +384,7 @@ class DispatchItem(OleItem):
 
         resclsid = entry.GetResultCLSID()
         if resclsid:
-            resclsid = "'%s'" % resclsid
+            resclsid = "'{}'".format(resclsid)
         else:
             resclsid = "None"
         # Strip the default values from the arg desc
