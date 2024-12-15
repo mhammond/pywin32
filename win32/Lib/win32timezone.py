@@ -758,7 +758,7 @@ class TimeZoneInfo(datetime.tzinfo):
         registry.
         >>> localTZ = TimeZoneInfo.local()
         >>> now_local = datetime.datetime.now(localTZ)
-        >>> now_UTC = datetime.datetime.now(datetime.timezone.utc)
+        >>> now_UTC = datetime.datetime.utcnow() # deprecated
         >>> (now_UTC - now_local) < datetime.timedelta(seconds = 5)
         Traceback (most recent call last):
         ...
@@ -767,6 +767,11 @@ class TimeZoneInfo(datetime.tzinfo):
         >>> now_UTC = now_UTC.replace(tzinfo = TimeZoneInfo('GMT Standard Time', True))
 
         Now one can compare the results of the two offset aware values
+        >>> (now_UTC - now_local) < datetime.timedelta(seconds = 5)
+        True
+
+        Or use the newer `datetime.timezone.utc`
+        >>> now_UTC = datetime.datetime.now(datetime.timezone.utc)
         >>> (now_UTC - now_local) < datetime.timedelta(seconds = 5)
         True
         """
