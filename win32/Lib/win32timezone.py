@@ -908,6 +908,8 @@ def utcnow() -> datetime.datetime:
 
     >>> (now - datetime.datetime.now(datetime.timezone.utc)) < datetime.timedelta(seconds = 5)
     True
+    >>> type(now.tzinfo) is TimeZoneInfo
+    True
     """
     return datetime.datetime.now(TimeZoneInfo.utc())
 
@@ -919,6 +921,8 @@ def now() -> datetime.datetime:
     >>> now_local = now()
 
     >>> (now_local - datetime.datetime.now(datetime.timezone.utc)) < datetime.timedelta(seconds = 5)
+    True
+    >>> type(now_local.tzinfo) is TimeZoneInfo
     True
     """
     return datetime.datetime.now(TimeZoneInfo.local())
