@@ -49,7 +49,7 @@ def SetRegistryDefaultValue(subKey, value, rootkey=None):
     elif isinstance(value, int):
         typeId = win32con.REG_DWORD
     else:
-        raise TypeError("Value must be string or integer - was passed " + repr(value))
+        raise TypeError(f"Value must be string or integer - was passed {value!r}")
 
     win32api.RegSetValue(rootkey, subKey, typeId, value)
 
