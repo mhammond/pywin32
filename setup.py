@@ -114,10 +114,6 @@ class WinExt(Extension):
         if export_symbol_file:
             extra_link_args.append("/DEF:" + export_symbol_file)
 
-        self.windows_h_version = 0x600  # Vista
-        if windows_h_version:
-            self.windows_h_version = max(self.windows_h_version, windows_h_version)
-
         # Some of our swigged files behave differently in distutils vs
         # MSVC based builds.  Always define DISTUTILS_BUILD so they can tell.
         define_macros = define_macros or []
@@ -128,10 +124,10 @@ class WinExt(Extension):
                 # CRYPT_DECRYPT_MESSAGE_PARA.dwflags is in an ifdef for some unknown reason
                 # See github PR #1444 for more details...
                 ("CRYPT_DECRYPT_MESSAGE_PARA_HAS_EXTRA_FIELDS", None),
-                # Minimum Windows version supported
+                # Minimum Windows version supported (Vista)
                 # https://learn.microsoft.com/en-us/cpp/porting/modifying-winver-and-win32-winnt
-                ("_WIN32_WINNT", hex(self.windows_h_version)),
-                ("WINVER", hex(self.windows_h_version)),
+                ("_WIN32_WINNT", hex(0x0600)),
+                ("WINVER", hex(0x0600)),
             )
         )
         self.pch_header = pch_header
