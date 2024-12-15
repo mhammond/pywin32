@@ -906,10 +906,6 @@ def utcnow() -> datetime.datetime:
     by this module
     >>> now = utcnow()
 
-    >>> (now - datetime.datetime.now()) < datetime.timedelta(seconds = 5)
-    True
-    >>> (now - datetime.datetime.utcnow()) < datetime.timedelta(seconds = 5)  # deprecated
-    True
     >>> (now - datetime.datetime.now(datetime.timezone.utc)) < datetime.timedelta(seconds = 5)
     True
     """
@@ -924,10 +920,6 @@ def now() -> datetime.datetime:
     by this module
     >>> now_local = now()
 
-    >>> (now_local - datetime.datetime.now()) < datetime.timedelta(seconds = 5)
-    True
-    >>> (now_local - datetime.datetime.utcnow()) < datetime.timedelta(seconds = 5)  # deprecated
-    True
     >>> (now_local - datetime.datetime.now(datetime.timezone.utc)) < datetime.timedelta(seconds = 5)
     True
     """
