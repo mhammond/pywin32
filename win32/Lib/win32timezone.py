@@ -905,6 +905,9 @@ def utcnow() -> datetime.datetime:
     Return the UTC time now with timezone awareness as enabled
     by this module
     >>> now = utcnow()
+
+    >>> (now - datetime.datetime.now()) < datetime.timedelta(seconds = 5)
+    True
     >>> (now - datetime.datetime.utcnow()) < datetime.timedelta(seconds = 5)  # deprecated
     True
     >>> (now - datetime.datetime.now(datetime.timezone.utc)) < datetime.timedelta(seconds = 5)
@@ -920,6 +923,13 @@ def now() -> datetime.datetime:
     Return the local time now with timezone awareness as enabled
     by this module
     >>> now_local = now()
+
+    >>> (now - datetime.datetime.now()) < datetime.timedelta(seconds = 5)
+    True
+    >>> (now - datetime.datetime.utcnow()) < datetime.timedelta(seconds = 5)  # deprecated
+    True
+    >>> (now - datetime.datetime.now(datetime.timezone.utc)) < datetime.timedelta(seconds = 5)
+    True
     """
     return datetime.datetime.now(TimeZoneInfo.local())
 
