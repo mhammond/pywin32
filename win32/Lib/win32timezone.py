@@ -909,9 +909,7 @@ def utcnow() -> datetime.datetime:
     >>> (now - datetime.datetime.now(datetime.timezone.utc)) < datetime.timedelta(seconds = 5)
     True
     """
-    return datetime.datetime.now(datetime.timezone.utc).replace(
-        tzinfo=TimeZoneInfo.utc()
-    )
+    return datetime.datetime.now(TimeZoneInfo.utc())
 
 
 def now() -> datetime.datetime:
