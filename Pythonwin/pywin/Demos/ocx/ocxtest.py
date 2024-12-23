@@ -11,7 +11,6 @@ import os
 import win32api
 import win32con
 import win32ui
-import win32uiole
 from pywin.mfc import activex, dialog, window
 from win32com.client import gencache
 

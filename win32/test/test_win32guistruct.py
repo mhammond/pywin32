@@ -3,7 +3,6 @@ import unittest
 
 import pythoncom
 import win32con
-import win32gui
 import win32gui_struct
 
 
