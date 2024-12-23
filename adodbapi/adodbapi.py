@@ -232,7 +232,7 @@ class Connection:
         self.paramstyle = api.paramstyle
         self.supportsTransactions = False
         self.connection_string = ""
-        self.cursors = weakref.WeakValueDictionary()
+        self.cursors = weakref.WeakValueDictionary[int, Cursor]()
         self.dbms_name = ""
         self.dbms_version = ""
         self.errorhandler = None  # use the standard error handler for this instance

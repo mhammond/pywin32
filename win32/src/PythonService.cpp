@@ -70,11 +70,6 @@ static void CheckRegisterEventSourceFile();
 // increased to MAX_SERVICES
 DWORD g_maxServices = 1;
 
-#if (WINVER < 0x0500)
-// SDK probably doesn't define LPHANDLER_FUNCTION_EX, so do it ourselves.
-typedef DWORD(WINAPI *LPHANDLER_FUNCTION_EX)(DWORD dwControl, DWORD dwEventType, LPVOID lpEventData, LPVOID lpContext);
-#endif
-
 typedef SERVICE_STATUS_HANDLE(WINAPI *REGSVC_EX_FN)(LPCTSTR lpServiceName, LPHANDLER_FUNCTION_EX lpHandlerProc,
                                                     LPVOID lpContext);
 
@@ -173,11 +168,12 @@ static PyObject *DoLogMessage(WORD errorType, PyObject *obMsg)
     DWORD errorCode = errorType == EVENTLOG_ERROR_TYPE ? PYS_E_GENERIC_ERROR : PYS_E_GENERIC_WARNING;
     LPCTSTR inserts[] = {msg, NULL};
     BOOL ok;
-    Py_BEGIN_ALLOW_THREADS
+    Py_BEGIN_ALLOW_THREADS;
     ok = ReportError(errorCode, inserts, errorType);
-    Py_END_ALLOW_THREADS
-    PyWinObject_FreeWCHAR(msg); // free msg before potentially raising error 
-    if (!ok) return PyWin_SetAPIError("RegisterEventSource/ReportEvent");
+    Py_END_ALLOW_THREADS;
+    PyWinObject_FreeWCHAR(msg);  // free msg before potentially raising error
+    if (!ok)
+        return PyWin_SetAPIError("RegisterEventSource/ReportEvent");
     Py_INCREF(Py_None);
     return Py_None;
 }
