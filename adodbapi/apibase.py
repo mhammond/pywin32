@@ -13,6 +13,7 @@ import numbers
 import sys
 import time
 from collections.abc import Callable, Iterable, Mapping
+from typing import Any
 
 # noinspection PyUnresolvedReferences
 from . import ado_consts as adc
@@ -453,7 +454,7 @@ def convert_to_python(variant, func):  # convert DB value into Python value
     return None if variant is None else func(variant)
 
 
-class MultiMap(dict[int, Callable[[object], object]]):
+class MultiMap(dict[int, Callable[[Any], object]]):
     # builds a dictionary from {(iterable,of,keys) : function}
     """A dictionary of ado.type : function
     -- but you can set multiple items by passing an iterable of keys"""
