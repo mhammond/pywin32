@@ -14,7 +14,6 @@
 __version__ = "$Revision: 1.15.0 $"[11:-2]
 __author__ = "Stuart Bishop <stuart@stuartbishop.net>"
 
-import sys
 import time
 import unittest
 
@@ -197,14 +196,9 @@ class DatabaseAPI20Test(unittest.TestCase):
             self.fail("Driver doesn't define paramstyle")
 
     def test_Exceptions(self):
-        # Make sure required exceptions exist, and are in the
-        # defined hierarchy.
-        if sys.version[0] == "3":  # under Python 3 StardardError no longer exists
-            self.assertTrue(issubclass(self.driver.Warning, Exception))
-            self.assertTrue(issubclass(self.driver.Error, Exception))
-        else:
-            self.failUnless(issubclass(self.driver.Warning, Exception))
-            self.failUnless(issubclass(self.driver.Error, Exception))
+        # Make sure required exceptions exist, and are in the defined hierarchy.
+        self.assertTrue(issubclass(self.driver.Warning, Exception))
+        self.assertTrue(issubclass(self.driver.Error, Exception))
 
         self.assertTrue(issubclass(self.driver.InterfaceError, self.driver.Error))
         self.assertTrue(issubclass(self.driver.DatabaseError, self.driver.Error))

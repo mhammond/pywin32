@@ -101,7 +101,7 @@ class AutoIndent:
             elif key == "context_use_ps1":
                 self.context_use_ps1 = value
             else:
-                raise KeyError("bad option name: %s" % repr(key))
+                raise KeyError(f"bad option name: {key!r}")
 
     # If ispythonsource and guess are true, guess a good value for
     # indentwidth based on file content (if possible), and if
@@ -230,7 +230,7 @@ class AutoIndent:
             y = PyParse.Parser(self.indentwidth, self.tabwidth)
             for context in self.num_context_lines:
                 startat = max(lno - context, 1)
-                startatindex = repr(startat) + ".0"
+                startatindex = f"{startat!r}.0"
                 rawtext = text.get(startatindex, "insert")
                 y.set_str(rawtext)
                 bod = y.find_good_parse_start(
@@ -500,7 +500,7 @@ class IndentSearcher:
             val = ""
         else:
             i = self.i = self.i + 1
-            mark = repr(i) + ".0"
+            mark = f"{i!r}.0"
             if self.text.compare(mark, ">=", "end"):
                 val = ""
             else:
