@@ -282,7 +282,8 @@ if __name__ == "__main__":
         ncb.Reset()
         ncb.Command = NCBASTAT
         ncb.Lana_num = la_enum.lana[i]
-        ncb.Callname = b"*               "
+        # False-positive in mypy? Typeshed clearly types the setter as accepting bytes
+        ncb.Callname = b"*               "  # type: ignore[assignment]
         adapter = ADAPTER_STATUS()
         ncb.Buffer = adapter
         Netbios(ncb)
