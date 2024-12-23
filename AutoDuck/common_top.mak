@@ -10,3 +10,5 @@ ADDOC     = /RD "/O$(GENDIR)\$(TARGET).DOC" /D "doc_header=$(DOCHDR)"
 ADTAB     = 8
 HC        = hcw /a /c /e
 HHC       = hhc
+# PYTHON is set in make.py, defaulting to the one found on PATH
+PYTHON    = python
