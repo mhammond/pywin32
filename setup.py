@@ -117,11 +117,19 @@ class WinExt(Extension):
         # Some of our swigged files behave differently in distutils vs
         # MSVC based builds.  Always define DISTUTILS_BUILD so they can tell.
         define_macros = define_macros or []
-        define_macros.append(("DISTUTILS_BUILD", None))
-        define_macros.append(("_CRT_SECURE_NO_WARNINGS", None))
-        # CRYPT_DECRYPT_MESSAGE_PARA.dwflags is in an ifdef for some unknown reason
-        # See github PR #1444 for more details...
-        define_macros.append(("CRYPT_DECRYPT_MESSAGE_PARA_HAS_EXTRA_FIELDS", None))
+        define_macros.extend(
+            (
+                ("DISTUTILS_BUILD", None),
+                ("_CRT_SECURE_NO_WARNINGS", None),
+                # CRYPT_DECRYPT_MESSAGE_PARA.dwflags is in an ifdef for some unknown reason
+                # See github PR #1444 for more details...
+                ("CRYPT_DECRYPT_MESSAGE_PARA_HAS_EXTRA_FIELDS", None),
+                # Minimum Windows version supported (Vista)
+                # https://learn.microsoft.com/en-us/cpp/porting/modifying-winver-and-win32-winnt
+                ("_WIN32_WINNT", hex(0x0600)),
+                ("WINVER", hex(0x0600)),
+            )
+        )
         self.pch_header = pch_header
         self.extra_swig_commands = extra_swig_commands or []
         self.optional_headers = optional_headers
@@ -372,7 +380,7 @@ class my_build_ext(build_ext):
         # axdebug fails to build on 3.11 due to Python "frame" objects changing.
         # This could be fixed, but is almost certainly not in use any more, so
         # just skip it.
-        if ext.name == "axdebug" and sys.version_info > (3, 10):
+        if ext.name == "axdebug" and sys.version_info >= (3, 11):
             return "AXDebug no longer builds on 3.11 and up"
 
         include_dirs = self.compiler.include_dirs + os.environ.get("INCLUDE", "").split(
