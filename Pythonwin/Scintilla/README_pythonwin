@@ -5,9 +5,11 @@ Scintilla's home is https://www.scintilla.org/
 Only the sources relevant to Scintilla under Pythonwin are
 included (plus the Scintilla Licence.txt and README).
 For the full set of Scintilla sources, including its documentation
-and companion editor SciTE, see https://www.scintilla.org/.
+and companion editor SciTE, see https://www.scintilla.org/ .
 
 When updating the Scintilla source, also update the copyright year
 in Pythonwin/pywin/framework/app.py and regenerate
-Pythonwin/pywin/scintilla/scintillacon.py using h2py:
-https://github.com/python/cpython/blob/3.8/Tools/scripts/h2py.py
+Pythonwin/pywin/scintilla/scintillacon.py by running
+`nmake /f makefile_pythonwin scintillacon.py`.
+(nmake will be found in your VS Build Tools, for instance:
+`C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.41.34120\bin\Hostx86\x86\nmake.exe`)

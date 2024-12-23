@@ -478,8 +478,8 @@ PyObject *PyRecord::getattro(PyObject *self, PyObject *obname)
 
     PY_INTERFACE_PRECALL;
     HRESULT hr = pyrec->pri->GetFieldNoCopy(pyrec->pdata, wname, &vret, &sub_data);
-    PyWinObject_FreeWCHAR(wname);
     PY_INTERFACE_POSTCALL;
+    PyWinObject_FreeWCHAR(wname);
 
     if (FAILED(hr)) {
         if (hr == TYPE_E_FIELDNOTFOUND) {

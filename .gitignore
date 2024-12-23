@@ -2,7 +2,6 @@ MANIFEST
 build
 dist
 __pycache__
-*.exe
 *.zip
 *.dbg
 *.exp
@@ -14,6 +13,7 @@ __pycache__
 *.chw
 *.pyo
 *.pdb
+*.whl
 arm64libs/
 pywin32.egg-info/
 PyWin32.kpf
