@@ -12,7 +12,7 @@ DIR_O = ..\Build\Temp\Scintilla\Release
 
 DIR_BIN = ..\Build
 
-DIR_PYTHON=\src\python-cvs
+PYTHON = python
 
 # Relative to the subdirectory for the sub-makefile
 !ifndef SUB_DIR_BIN
@@ -28,26 +28,24 @@ SCINTILLA_DLL = $(SUB_DIR_BIN)\Scintilla_d.dll
 SCINTILLA_DLL = $(SUB_DIR_BIN)\Scintilla.dll
 !ENDIF
 
-all: ..\pywin\scintilla\scintillacon.py Scintilla
-
+all: Scintilla
 
 clean:
-	cd win32 && $(MAKE) /$(MAKEFLAGS) -f scintilla.mak DIR_BIN=$(SUB_DIR_BIN) DIR_O=$(SUB_DIR_O) clean && cd ..
+  cd win32 && $(MAKE) /$(MAKEFLAGS) -f scintilla.mak DIR_BIN=$(SUB_DIR_BIN) DIR_O=$(SUB_DIR_O) clean && cd ..
 
 Scintilla:
-	@if not exist $(DIR_O) md $(DIR_O)
-	@if not exist $(DIR_BIN) md $(DIR_BIN)
-	@set DEBUG=$(DEBUG)
-	@set CL=$(CL) /nologo
-	@set LINK=$(LINK) /nologo
-	where cl
-	set INCLUDE
-	@cd win32 && $(MAKE) /$(MAKEFLAGS) /f scintilla.mak DIR_BIN=$(SUB_DIR_BIN) DIR_O=$(SUB_DIR_O) LEXCOMPONENT=$(SCINTILLA_DLL) COMPONENT=dummy $(SCINTILLA_DLL) && cd ..
+  @if not exist $(DIR_O) md $(DIR_O)
+  @if not exist $(DIR_BIN) md $(DIR_BIN)
+  @set DEBUG=$(DEBUG)
+  @set CL=$(CL) /nologo
+  @set LINK=$(LINK) /nologo
+  where cl
+  set INCLUDE
+  @cd win32 && $(MAKE) /$(MAKEFLAGS) /f scintilla.mak DIR_BIN=$(SUB_DIR_BIN) DIR_O=$(SUB_DIR_O) LEXCOMPONENT=$(SCINTILLA_DLL) COMPONENT=dummy $(SCINTILLA_DLL) && cd ..
 
-..\pywin\scintilla\scintillacon.py: Include\Scintilla.h Include\SciLexer.h
-	@if not exist $(DIR_PYTHON)\tools\scripts\h2py.py echo ***** Can't find h2py.py in '$(DIR_PYTHON)\tools\scripts - please pass DIR_PYTHON to this script *******
-	$(DIR_PYTHON)\tools\scripts\h2py.py Include\scintilla.h
-	$(DIR_PYTHON)\tools\scripts\h2py.py Include\scilexer.h
-    type scintilla.py > ..\pywin\scintilla\scintillacon.py
-	type scilexer.py >> ..\pywin\scintilla\scintillacon.py
-	del scintilla.py scilexer.py
+scintillacon.py: Include\Scintilla.h Include\SciLexer.h
+  $(PYTHON) ..\..\Win32\scripts\h2py.py Include\scintilla.h
+  $(PYTHON) ..\..\Win32\scripts\h2py.py Include\scilexer.h
+  type scintilla.py > ..\pywin\scintilla\scintillacon.py
+  type scilexer.py >> ..\pywin\scintilla\scintillacon.py
+  del scintilla.py scilexer.py
