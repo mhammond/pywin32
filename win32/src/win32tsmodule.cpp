@@ -417,10 +417,8 @@ static PyObject *PyWTSQuerySessionInformation(PyObject *self, PyObject *args, Py
                                 "VerticalResolution", wcd->VerticalResolution, "ColorDepth", wcd->ColorDepth);
             break;
         }
-        case WTSClientAddress: {  // @flag WTSClientAddress|Dict containing type and value of client's IP address (None
-                                  // if console session) IPV6 addresses may not be returned correctly on Windows
-                                  // versions earlier than Windows Server 2012 (see
-                                  // http://sourceforge.net/p/pywin32/bugs/664/ for details)
+        case WTSClientAddress: {  // @flag WTSClientAddress|Dict containing type and value of client's IP address
+                                  // (None if console session)
             PyObject *obaddress;
             size_t address_cnt, address_ind;
             WTS_CLIENT_ADDRESS *wca = (WTS_CLIENT_ADDRESS *)buf;
