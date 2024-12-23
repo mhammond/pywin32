@@ -805,7 +805,7 @@ class TimeZoneInfo(datetime.tzinfo):
         registry.
         >>> localTZ = TimeZoneInfo.local()
         >>> now_local = datetime.datetime.now(localTZ)
-        >>> now_UTC = datetime.datetime.utcnow()
+        >>> now_UTC = datetime.datetime.utcnow()  # deprecated
         >>> (now_UTC - now_local) < datetime.timedelta(seconds = 5)
         Traceback (most recent call last):
         ...
@@ -814,6 +814,11 @@ class TimeZoneInfo(datetime.tzinfo):
         >>> now_UTC = now_UTC.replace(tzinfo = TimeZoneInfo('GMT Standard Time', True))
 
         Now one can compare the results of the two offset aware values
+        >>> (now_UTC - now_local) < datetime.timedelta(seconds = 5)
+        True
+
+        Or use the newer `datetime.timezone.utc`
+        >>> now_UTC = datetime.datetime.now(datetime.timezone.utc)
         >>> (now_UTC - now_local) < datetime.timedelta(seconds = 5)
         True
         """
@@ -953,8 +958,13 @@ def utcnow() -> datetime.datetime:
     Return the UTC time now with timezone awareness as enabled
     by this module
     >>> now = utcnow()
+
+    >>> (now - datetime.datetime.now(datetime.timezone.utc)) < datetime.timedelta(seconds = 5)
+    True
+    >>> type(now.tzinfo) is TimeZoneInfo
+    True
     """
-    return datetime.datetime.utcnow().replace(tzinfo=TimeZoneInfo.utc())
+    return datetime.datetime.now(TimeZoneInfo.utc())
 
 
 def now() -> datetime.datetime:
@@ -962,6 +972,11 @@ def now() -> datetime.datetime:
     Return the local time now with timezone awareness as enabled
     by this module
     >>> now_local = now()
+
+    >>> (now_local - datetime.datetime.now(datetime.timezone.utc)) < datetime.timedelta(seconds = 5)
+    True
+    >>> type(now_local.tzinfo) is TimeZoneInfo
+    True
     """
     return datetime.datetime.now(TimeZoneInfo.local())
 
