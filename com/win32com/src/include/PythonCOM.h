@@ -425,8 +425,8 @@ class PYCOM_EXPORT PyOleNothing : public PyObject {
 // The other 2 wrap directly around the underlying method call.
 #define PY_INTERFACE_METHOD
 // Identical to Py_BEGIN_ALLOW_THREADS except no { !!!
-#define PY_INTERFACE_PRECALL PyThreadState *_save = PyEval_SaveThread();
-#define PY_INTERFACE_POSTCALL PyEval_RestoreThread(_save);
+#define PY_INTERFACE_PRECALL PyThreadState *_save = PyEval_SaveThread()
+#define PY_INTERFACE_POSTCALL PyEval_RestoreThread(_save)
 
 /////////////////////////////////////////////////////////////////////////////
 // class PyIUnknown

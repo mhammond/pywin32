@@ -1,13 +1,12 @@
 // @doc
-#define _WIN32_WINNT 0x501
 #include "PyWinTypes.h"
 #include "PyWinObjects.h"
 #include "structmember.h"
 
 #include "malloc.h"
 
-#define PyW32_BEGIN_ALLOW_THREADS PyThreadState *_save = PyEval_SaveThread();
-#define PyW32_END_ALLOW_THREADS PyEval_RestoreThread(_save);
+#define PyW32_BEGIN_ALLOW_THREADS PyThreadState *_save = PyEval_SaveThread()
+#define PyW32_END_ALLOW_THREADS PyEval_RestoreThread(_save)
 #define PyW32_BLOCK_THREADS Py_BLOCK_THREADS
 
 // function pointers
@@ -941,11 +940,6 @@ PyObject *PyConsoleScreenBuffer::PySetConsoleMode(PyObject *self, PyObject *args
     return Py_None;
 }
 
-#ifndef _WIN32_WINNT_LONGHORN
-// 'reserved' ReadConsole param is defined as a PCONSOLE_READCONSOLE_CONTROL
-// in Vista's SDK.  If no such def exists, assume it's still 'void *'
-#define PCONSOLE_READCONSOLE_CONTROL void *
-#endif
 // @pymethod <o PyUNICODE>|PyConsoleScreenBuffer|ReadConsole|Reads characters from the console input buffer
 PyObject *PyConsoleScreenBuffer::PyReadConsole(PyObject *self, PyObject *args, PyObject *kwargs)
 {
