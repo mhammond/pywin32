@@ -20,7 +20,7 @@ try:  # first command line argument will be xls file name -- default to the one 
 except IndexError:
     filename = "xx.xls"
 
-constr = "Provider=%s;Data Source=%s;%s" % (driver, filename, extended)
+constr = f"Provider={driver};Data Source={filename};{extended}"
 
 conn = adodbapi.connect(constr)
 
@@ -30,10 +30,10 @@ except IndexError:
     # use ADO feature to get the name of the first worksheet
     sheet = conn.get_table_names()[0]
 
-print("Shreadsheet=%s  Worksheet=%s" % (filename, sheet))
+print(f"Shreadsheet={filename}  Worksheet={sheet}")
 print("------------------------------------------------------------")
 crsr = conn.cursor()
-sql = "SELECT * from [%s]" % sheet
+sql = f"SELECT * from [{sheet}]"
 crsr.execute(sql)
 for row in crsr.fetchmany(10):
     print(repr(row))
