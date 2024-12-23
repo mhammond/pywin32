@@ -415,9 +415,7 @@ def ForgetAboutTypelibInterface(typelib_ob):
     except KeyError:
         # Not worth raising an exception - maybe they don't know we only remember for demand generated, etc.
         print(
-            "ForgetAboutTypelibInterface:: Warning - type library with info {} is not being remembered!".format(
-                info
-            )
+            f"ForgetAboutTypelibInterface:: Warning - type library with info {info} is not being remembered!"
         )
     # and drop any version redirects to it
     for key, val in versionRedirectMap.items():
@@ -513,10 +511,7 @@ def EnsureModule(
                 bValidateFile = 0
         if module is not None and bValidateFile:
             assert not is_readonly, "Can't validate in a read-only gencache"
-            filePathPrefix = "{}\\{}".format(
-                GetGeneratePath(),
-                GetGeneratedFileName(typelibCLSID, lcid, major, minor),
-            )
+            filePathPrefix = f"{GetGeneratePath()}\\{GetGeneratedFileName(typelibCLSID, lcid, major, minor)}"
             filePath = filePathPrefix + ".py"
             filePathPyc = filePathPrefix + ".py"
             if __debug__:
@@ -550,10 +545,7 @@ def EnsureModule(
                 bReloadNeeded = 1
             else:
                 minor = module.MinorVersion
-                filePathPrefix = "{}\\{}".format(
-                    GetGeneratePath(),
-                    GetGeneratedFileName(typelibCLSID, lcid, major, minor),
-                )
+                filePathPrefix = f"{GetGeneratePath()}\\{GetGeneratedFileName(typelibCLSID, lcid, major, minor)}"
                 filePath = filePathPrefix + ".py"
                 filePathPyc = filePathPrefix + ".pyc"
                 # print("Trying py stat: ", filePath)
@@ -748,9 +740,7 @@ def Rebuild(verbose=1):
             AddModuleToCache(iid, lcid, major, minor, verbose, 0)
         except:
             print(
-                "Could not add module {} - {}: {}".format(
-                    info, sys.exc_info()[0], sys.exc_info()[1]
-                )
+                f"Could not add module {info} - {sys.exc_info()[0]}: {sys.exc_info()[1]}"
             )
     if verbose and len(infos):  # Don't bother reporting this when directory is empty!
         print("Done.")
