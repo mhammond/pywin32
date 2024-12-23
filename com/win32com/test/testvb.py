@@ -487,9 +487,10 @@ def TestStructs(vbtest):
             s.sub_val,
         )
     )
-    if repr(s) != expected:
+    repr_s = repr(s)
+    if repr_s != expected:
         print("Expected repr:", expected)
-        print("Actual repr  :", repr(s))
+        print("Actual repr  :", repr_s)
         raise AssertionError("repr() of record object failed")
 
     print("Struct/Record tests passed")
