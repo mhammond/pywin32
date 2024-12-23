@@ -172,7 +172,7 @@ def process(fp, outfp, env={}):
                     try:
                         inclfp = open(dir + "/" + filename)
                         break
-                    except IOError:
+                    except OSError:
                         pass
                 if inclfp:
                     with inclfp:
