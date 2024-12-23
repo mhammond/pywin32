@@ -40,8 +40,7 @@ jobs:
           pip install --upgrade setuptools>=74 wheel
 
       - name: Build and install
-        run: |
-          python setup.py install --user
+        run: pip install . -v --user
 
       # This needs to happen *after* installing pywin32 since
       # AutoDuck/py2d.py currently relies on runtime imports for introspection
@@ -56,16 +55,15 @@ jobs:
         run: python pywin32_testall.py -v -skip-adodbapi
 
       - name: Build wheels
-        run: |
-          python setup.py bdist_wheel --skip-build
+        run: pip wheel . -v --wheel-dir=dist
 
       - uses: actions/upload-artifact@v3
+        # Upload artifacts even if tests fail
         if: ${{ always() }}
         with:
           name: artifacts
-          path: |
-            dist/*.whl
-            dist/*.exe
+          path: dist/*.whl
+          if-no-files-found: error
 
   # We cannot build and test on ARM64, so we cross-compile.
   # Later, when available, we can add tests using this wheel on ARM64 VMs
@@ -93,21 +91,19 @@ jobs:
         run: |
           python --version
           pip --version
-          pip install --upgrade setuptools>=74 wheel
+          pip install --upgrade setuptools>=74 wheel build
 
       - name: Obtain ARM64 library files
-        run: |
-          python .github\workflows\download-arm64-libs.py .\arm64libs
+        run: python .github\workflows\download-arm64-libs.py .\arm64libs
 
       - name: Build wheels
-        run: python setup.py build_ext -L .\arm64libs --plat-name win-arm64 build --plat-name win-arm64 bdist_wheel --plat-name win-arm64
+        run: python -m build --wheel --config-setting=--build-option=build_ext --config-setting=--build-option=-L.\arm64libs --config-setting=--build-option=--plat-name=win-arm64 --config-setting=--build-option=build --config-setting=--build-option=--plat-name=win-arm64 --config-setting=--build-option=bdist_wheel --config-setting=--build-option=--plat-name=win-arm64
 
       - uses: actions/upload-artifact@v3
-        if: ${{ always() }}
         with:
           name: artifacts
-          path: |-
-            dist/*.whl
+          path: dist/*.whl
+          if-no-files-found: error
 
   # This job can be run locally by running `pre-commit run`
   checkers:
@@ -130,7 +126,8 @@ jobs:
         with:
           version: "0.4.9"
           args: "format --check"
-      - run: | # Too many files to fit in a single command, also exclude vendored Scintilla and MAPIStubLibrary
+      - run:
+          | # Too many files to fit in a single command, also exclude vendored Scintilla and MAPIStubLibrary
           clang-format --Werror --dry-run $(git ls-files '*.cpp' ':!:com/win32comext/mapi/src/MAPIStubLibrary/')
           if ($LastExitCode -ne 0) { exit $LastExitCode }
           clang-format --Werror --dry-run $(git ls-files '*.h' ':!:Pythonwin/Scintilla/' ':!:com/win32comext/mapi/src/MAPIStubLibrary/')
@@ -160,7 +157,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

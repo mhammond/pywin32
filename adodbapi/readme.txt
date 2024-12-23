@@ -23,7 +23,7 @@ Prerequisites:
  and pywin32 (Mark Hammond's python for windows extensions.)
 
 Installation:
-* (C-Python on Windows): Install pywin32 ("pip install pywin32") which includes adodbapi.
+* (C-Python on Windows): Install pywin32 (`python -m pip install pywin32`) which includes adodbapi.
 * (IronPython on Windows): Download adodbapi from http://sf.net/projects/adodbapi.  Unpack the zip.
 
 NOTE: ...........
