@@ -263,7 +263,6 @@ BOOL PyWinObject_AsTRUSTEE(PyObject *obtrustee, TRUSTEE_W *ptrustee)
                 }
                 break;
             }
-#if WINVER >= 0x0501
             case TRUSTEE_IS_OBJECTS_AND_SID:
             case TRUSTEE_IS_OBJECTS_AND_NAME: {
                 // still need to add TRUSTEE_IS_OBJECTS_AND_SID and TRUSTEE_IS_OBJECTS_AND_NAME
@@ -271,11 +270,6 @@ BOOL PyWinObject_AsTRUSTEE(PyObject *obtrustee, TRUSTEE_W *ptrustee)
                 bsuccess = FALSE;
                 break;
             }
-#else
-#pragma message(                                                  \
-    "NOTE: You are building with an early Platform SDK - not all" \
-    "TRUSTEE operations on SIDs will be supported")
-#endif  // WINVER
             default: {
                 PyErr_SetString(PyExc_ValueError, "Invalid value for TrusteeForm");
                 bsuccess = FALSE;
@@ -298,13 +292,11 @@ PyObject *PyWinObject_FromTRUSTEE(TRUSTEE_W *ptrustee)
             obIdentifier = PyWinObject_FromWCHAR(ptrustee->ptstrName);
             break;
         }
-#if WINVER >= 0x0501
         case TRUSTEE_IS_OBJECTS_AND_SID:
         case TRUSTEE_IS_OBJECTS_AND_NAME: {
             PyErr_SetString(PyExc_NotImplementedError, "TrusteeForm not yet supported");
             return FALSE;
         }
-#endif
         default: {
             PyErr_SetString(PyExc_ValueError, "Invalid value for TrusteeForm");
             return FALSE;
@@ -964,10 +956,7 @@ PyObject *PyACL::GetAce(PyObject *self, PyObject *args)
         case ACCESS_ALLOWED_ACE_TYPE:
         case ACCESS_DENIED_ACE_TYPE:
         case SYSTEM_AUDIT_ACE_TYPE:
-#ifdef _WIN32_WINNT_LONGHORN
-        case SYSTEM_MANDATORY_LABEL_ACE_TYPE:
-#endif
-        {
+        case SYSTEM_MANDATORY_LABEL_ACE_TYPE: {
             ACCESS_ALLOWED_ACE *pAce = (ACCESS_ALLOWED_ACE *)p;
             return Py_BuildValue("(ll)lN", pAceHeader->AceType, pAceHeader->AceFlags, pAce->Mask,
                                  PyWinObject_FromSID((PSID)(&pAce->SidStart)));
