@@ -119,9 +119,9 @@ jobs:
           cache-dependency-path: .github/workflows/main.yml
       - run: pip install clang-format==18.1.* pycln
       - run: pycln . --config=pycln.toml --check
-      - uses: astral-sh/ruff-action@v2
+      - uses: astral-sh/ruff-action@v3
         with:
-          version: "0.8.2"
+          version: "0.8.4"
       - run: ruff format --check
       - run:
           | # Too many files to fit in a single command, also exclude vendored Scintilla and MAPIStubLibrary
@@ -145,7 +145,7 @@ jobs:
           cache: pip
           cache-dependency-path: .github/workflows/main.yml
           check-latest: true
-      - run: pip install types-setuptools PyOpenGL mypy[faster-cache]==1.13.*
+      - run: pip install types-setuptools PyOpenGL mypy[faster-cache]==1.14.*
       - run: mypy . --python-version=${{ matrix.python-version }}
 
   pyright:
@@ -168,5 +168,5 @@ jobs:
       - uses: jakebailey/pyright-action@v2
         with:
           python-version: ${{ matrix.python-version }}
-          version: "1.1.383"
+          version: "1.1.391"
           annotate: errors
