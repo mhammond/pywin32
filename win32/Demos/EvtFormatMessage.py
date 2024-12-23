@@ -76,7 +76,7 @@ def main():
                         # > UnicodeEncodeError: \'charmap\' codec can\'t encode character \'\\u200e\' in position 57: character maps to <undefined>\r\n'
                         # Can't reproduce when running manually, so it seems more a subprocess.Popen()
                         # than ours:
-                        print(" Failed to decode:", repr(message))
+                        print(f" Failed to decode: {message!r}")
 
 
 if __name__ == "__main__":

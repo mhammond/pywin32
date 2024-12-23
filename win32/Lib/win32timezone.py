@@ -463,7 +463,7 @@ class TimeZoneDefinition(DYNAMIC_TIME_ZONE_INFORMATION):
         """
         # MS stores Sunday as 0, Python datetime stores Monday as zero
         target_weekday = (cutoff.day_of_week + 6) % 7
-        # For SYSTEMTIMEs relating to time zone inforamtion, cutoff.day
+        # For SYSTEMTIMEs relating to time zone information, cutoff.day
         #  is the week of the month
         week_of_month = cutoff.day
         # so the following is the first day of that week
@@ -632,7 +632,7 @@ class TimeZoneInfo(datetime.tzinfo):
         )
 
     def __repr__(self):
-        result = f"{self.__class__.__name__}({repr(self.timeZoneName)}"
+        result = f"{self.__class__.__name__}({self.timeZoneName!r}"
         if self.fixedStandardTime:
             result += ", True"
         result += ")"
@@ -758,7 +758,7 @@ class TimeZoneInfo(datetime.tzinfo):
         registry.
         >>> localTZ = TimeZoneInfo.local()
         >>> now_local = datetime.datetime.now(localTZ)
-        >>> now_UTC = datetime.datetime.utcnow()
+        >>> now_UTC = datetime.datetime.utcnow()  # deprecated
         >>> (now_UTC - now_local) < datetime.timedelta(seconds = 5)
         Traceback (most recent call last):
         ...
@@ -767,6 +767,11 @@ class TimeZoneInfo(datetime.tzinfo):
         >>> now_UTC = now_UTC.replace(tzinfo = TimeZoneInfo('GMT Standard Time', True))
 
         Now one can compare the results of the two offset aware values
+        >>> (now_UTC - now_local) < datetime.timedelta(seconds = 5)
+        True
+
+        Or use the newer `datetime.timezone.utc`
+        >>> now_UTC = datetime.datetime.now(datetime.timezone.utc)
         >>> (now_UTC - now_local) < datetime.timedelta(seconds = 5)
         True
         """
@@ -895,22 +900,30 @@ class _RegKeyDict(Dict[str, int]):
             pass
 
 
-def utcnow():
+def utcnow() -> datetime.datetime:
     """
     Return the UTC time now with timezone awareness as enabled
     by this module
     >>> now = utcnow()
+
+    >>> (now - datetime.datetime.now(datetime.timezone.utc)) < datetime.timedelta(seconds = 5)
+    True
+    >>> type(now.tzinfo) is TimeZoneInfo
+    True
     """
-    now = datetime.datetime.utcnow()
-    now = now.replace(tzinfo=TimeZoneInfo.utc())
-    return now
+    return datetime.datetime.now(TimeZoneInfo.utc())
 
 
-def now():
+def now() -> datetime.datetime:
     """
     Return the local time now with timezone awareness as enabled
     by this module
     >>> now_local = now()
+
+    >>> (now_local - datetime.datetime.now(datetime.timezone.utc)) < datetime.timedelta(seconds = 5)
+    True
+    >>> type(now_local.tzinfo) is TimeZoneInfo
+    True
     """
     return datetime.datetime.now(TimeZoneInfo.local())
 
