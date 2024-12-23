@@ -10,7 +10,7 @@ import commctrl
 import win32api
 import win32con
 import win32ui
-from pywin.mfc import afxres, dialog
+from pywin.mfc import afxres, dialog, docview
 
 from . import app, dbgcommands
 
@@ -28,9 +28,7 @@ def _SetupSharedMenu_(self):
     help.SetHelpMenuOtherHelp(sharedMenu)
 
 
-from pywin.mfc import docview
-
-docview.DocTemplate._SetupSharedMenu_ = _SetupSharedMenu_
+docview.DocTemplate._SetupSharedMenu_ = _SetupSharedMenu_  # type: ignore[method-assign]
 
 
 class MainFrame(app.MainFrame):
