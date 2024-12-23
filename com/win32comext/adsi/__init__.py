@@ -1,3 +1,5 @@
+from typing import TYPE_CHECKING
+
 import win32com
 import win32com.client
 
@@ -6,7 +8,11 @@ if isinstance(__path__, str):
     import sys
 
     try:
-        import adsi
+        if TYPE_CHECKING:
+            # Get the name from typeshed stubs
+            from win32comext.adsi import adsi
+        else:
+            import adsi
 
         sys.modules["win32com.adsi.adsi"] = adsi
     except ImportError:
@@ -21,11 +27,15 @@ else:
 # helpers.
 
 # Of specific note - most of the interfaces supported by ADSI
-# derive from IDispatch - thus, you get the custome methods from the
+# derive from IDispatch - thus, you get the custom methods from the
 # interface, as well as via IDispatch.
 import pythoncom
 
-from .adsi import *  # nopycln: import # Re-export everything from win32comext/adsi/adsi.pyd
+if TYPE_CHECKING:
+    # Get the names from typeshed stubs
+    from win32comext.adsi.adsi import *  # pyright: ignore[reportAssignmentType,reportWildcardImportFromLibrary]
+else:
+    from .adsi import *  # nopycln: import # Re-export everything from win32comext/adsi/adsi.pyd
 
 LCID = 0
 
