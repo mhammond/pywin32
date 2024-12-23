@@ -8,7 +8,6 @@
 import pythoncom
 import win32con
 import win32ui
-import win32uiole
 from pywin.mfc import activex, dialog
 from win32com.client import gencache
 
@@ -56,7 +55,7 @@ def MakeDlgTemplate():
 #
 # Serial Control
 #
-class MySerialControl(activex.Control, serialModule.MSComm):
+class MySerialControl(activex.Control, serialModule.MSComm):  # type: ignore[name-defined] # Generated module
     def __init__(self, parent):
         activex.Control.__init__(self)
         serialModule.MSComm.__init__(self)
