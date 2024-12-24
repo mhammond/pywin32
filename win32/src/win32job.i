@@ -4,10 +4,6 @@
 // available in Windows 2000 and later.
 
 %{
-#ifndef _WIN32_WINNT
-#define _WIN32_WINNT 0x500
-#endif
-
 #include "PyWinTypes.h"
 
 #define CHECK_PFN(fname)if (pfn##fname==NULL) return PyErr_Format(PyExc_NotImplementedError,"%s is not available on this platform", #fname);

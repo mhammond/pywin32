@@ -22,11 +22,6 @@
 //		<nl>RemoveDirectory / RemoveDirectoryTransacted
 
 %{
-//#define FAR
-#ifndef _WIN32_WINNT
-#define _WIN32_WINNT 0x0600
-#endif
-
 // We use the deprecated API
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 
