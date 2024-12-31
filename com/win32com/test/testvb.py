@@ -95,10 +95,13 @@ def TestVB(vbtest, bUseGenerated):
         vbtest.VariantProperty == "Hello from Python"
     ), "Could not set the variant string property correctly."
     vbtest.VariantProperty = (1.0, 2.0, 3.0)
-    assert vbtest.VariantProperty == (
-        1.0,
-        2.0,
-        3.0,
+    assert (
+        vbtest.VariantProperty
+        == (
+            1.0,
+            2.0,
+            3.0,
+        )
     ), f"Could not set the variant property to an array of floats correctly - '{vbtest.VariantProperty}'."
 
     TestArrays(vbtest, bUseGenerated)
@@ -195,8 +198,8 @@ def _DoTestCollection(vbtest, col_name, expected):
     check = []
     for item in i:
         check.append(item)
-    assert check == list(
-        expected
+    assert (
+        check == list(expected)
     ), f"Collection iterator {col_name} didn't have {expected!r} 2nd time around (had {check!r})"
     # but an iterator is not restartable
     check = []
@@ -484,9 +487,10 @@ def TestStructs(vbtest):
             s.sub_val,
         )
     )
-    if repr(s) != expected:
+    repr_s = repr(s)
+    if repr_s != expected:
         print("Expected repr:", expected)
-        print("Actual repr  :", repr(s))
+        print("Actual repr  :", repr_s)
         raise AssertionError("repr() of record object failed")
 
     print("Struct/Record tests passed")
