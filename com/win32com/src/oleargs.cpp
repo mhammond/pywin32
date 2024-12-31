@@ -4,6 +4,7 @@
 
 #include "stdafx.h"
 #include "PythonCOM.h"
+#include "PyRecord.h"
 
 extern PyObject *PyObject_FromRecordInfo(IRecordInfo *, void *, ULONG);
 extern PyObject *PyObject_FromSAFEARRAYRecordInfo(SAFEARRAY *psa);
@@ -278,9 +279,23 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
     // So make sure this check is after anything else which qualifies.
     else if (PySequence_Check(obj)) {
         V_ARRAY(var) = NULL;  // not a valid, existing array.
-        if (!PyCom_SAFEARRAYFromPyObject(obj, &V_ARRAY(var)))
-            return FALSE;
-        V_VT(var) = VT_ARRAY | VT_VARIANT;
+        BOOL is_record_item = false;
+        if (PyObject_Length(obj) > 0) {
+            PyObject *obItemCheck = PySequence_GetItem(obj, 0);
+            is_record_item = PyRecord_Check(obItemCheck);
+        }
+        // If the sequence elements are PyRecord objects we do NOT package
+        // them as VARIANT elements but put them directly into the SAFEARRAY.
+        if (is_record_item) {
+            if (!PyCom_SAFEARRAYFromPyObject(obj, &V_ARRAY(var), VT_RECORD))
+                return FALSE;
+            V_VT(var) = VT_ARRAY | VT_RECORD;
+        }
+        else {
+            if (!PyCom_SAFEARRAYFromPyObject(obj, &V_ARRAY(var)))
+                return FALSE;
+            V_VT(var) = VT_ARRAY | VT_VARIANT;
+        }
     }
     else if (PyRecord_Check(obj)) {
         if (!PyObject_AsVARIANTRecordInfo(obj, var))
@@ -554,6 +569,9 @@ static BOOL PyCom_SAFEARRAYFromPyObjectBuildDimension(PyObject *obj, SAFEARRAY *
                     helper.m_reqdType = vt;
                     ok = helper.MakeObjToVariant(item, &element);
                     switch (vt) {
+                        case VT_RECORD:
+                            pvData = V_RECORD(&element);
+                            break;
                         case VT_DISPATCH:
                             pvData = V_DISPATCH(&element);
                             break;
@@ -759,7 +777,14 @@ static BOOL PyCom_SAFEARRAYFromPyObjectEx(PyObject *obj, SAFEARRAY **ppSA, bool 
 
     if (bAllocNewArray) {
         // OK - Finally can create the array...
-        *ppSA = SafeArrayCreate(vt, cDims, pBounds);
+        if (vt == VT_RECORD) {
+            // SAFEARRAYS of UDTs need a special treatment.
+            obItemCheck = PySequence_GetItem(obj, 0);
+            PyRecord *pyrec = (PyRecord *)obItemCheck;
+            *ppSA = SafeArrayCreateEx(vt, cDims, pBounds, pyrec->pri);
+        }
+        else
+            *ppSA = SafeArrayCreate(vt, cDims, pBounds);
         if (*ppSA == NULL) {
             delete[] pBounds;
             PyErr_SetString(PyExc_MemoryError, "CreatingSafeArray");
@@ -1572,7 +1597,7 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
             // Nothing else to do - the code below sets the VT up correctly.
             break;
         case VT_RECORD:
-		case VT_RECORD | VT_BYREF:
+        case VT_RECORD | VT_BYREF:
             rc = PyObject_AsVARIANTRecordInfo(obj, var);
             break;
         case VT_CY:

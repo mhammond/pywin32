@@ -411,6 +411,7 @@ def TestDynamic():
 
 def TestGenerated():
     # Create an instance of the server.
+    from win32com.client import Record
     from win32com.client.gencache import EnsureDispatch
 
     o = EnsureDispatch("PyCOMTest.PyCOMTest")
@@ -432,6 +433,19 @@ def TestGenerated():
     # This is `CoSimpleCounter` and the counter tests should work.
     coclass = GetClass("{B88DD310-BAE8-11D0-AE86-76F2C1000000}")()
     TestCounter(coclass, True)
+
+    # Test records with SAFEARRAY(VT_RECORD) fields.
+    progress("Testing records with SAFEARRAY(VT_RECORD) fields.")
+    l = []
+    for i in range(3):
+        rec = Record("TestStruct1", o)
+        rec.str_value = "This is record number"
+        rec.int_value = i + 1
+        l.append(rec)
+    test_rec = Record("TestStruct2", o)
+    test_rec.array_of_records = l
+    test_rec.rec_count = i + 1
+    assert o.VerifyArrayOfStructs(test_rec)
 
     # XXX - this is failing in dynamic tests, but should work fine.
     i1, i2 = o.GetMultipleInterfaces()
@@ -595,7 +609,7 @@ def TestPyVariant(o, is_generated):
 
 def TestCounter(counter, bIsGenerated):
     # Test random access into container
-    progress("Testing counter", repr(counter))
+    progress(f"Testing counter {counter!r}")
     import random
 
     for i in range(50):

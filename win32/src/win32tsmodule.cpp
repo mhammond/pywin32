@@ -1,5 +1,4 @@
 // @doc
-#define _WIN32_WINNT 0x501
 #include "PyWinTypes.h"
 #include "PyWinObjects.h"
 #include "structmember.h"
@@ -418,10 +417,8 @@ static PyObject *PyWTSQuerySessionInformation(PyObject *self, PyObject *args, Py
                                 "VerticalResolution", wcd->VerticalResolution, "ColorDepth", wcd->ColorDepth);
             break;
         }
-        case WTSClientAddress: {  // @flag WTSClientAddress|Dict containing type and value of client's IP address (None
-                                  // if console session) IPV6 addresses may not be returned correctly on Windows
-                                  // versions earlier than Windows Server 2012 (see
-                                  // http://sourceforge.net/p/pywin32/bugs/664/ for details)
+        case WTSClientAddress: {  // @flag WTSClientAddress|Dict containing type and value of client's IP address
+                                  // (None if console session)
             PyObject *obaddress;
             size_t address_cnt, address_ind;
             WTS_CLIENT_ADDRESS *wca = (WTS_CLIENT_ADDRESS *)buf;
@@ -836,10 +833,8 @@ PYWIN_MODULE_INIT_FUNC(win32ts)
     PyModule_AddIntConstant(module, "NOTIFY_FOR_THIS_SESSION", NOTIFY_FOR_THIS_SESSION);
     PyModule_AddIntConstant(module, "NOTIFY_FOR_ALL_SESSIONS", NOTIFY_FOR_ALL_SESSIONS);
 
-    HMODULE h = GetModuleHandle(L"wtsapi32.dll");
-    if (h == NULL)
-        h = LoadLibrary(L"wtsapi32.dll");
-    if (h) {
+    HMODULE h = PyWin_GetOrLoadLibraryHandle("wtsapi32.dll");
+    if (h != NULL) {
         pfnWTSQueryUserToken = (WTSQueryUserTokenfunc)GetProcAddress(h, "WTSQueryUserToken");
         pfnWTSRegisterSessionNotification =
             (WTSRegisterSessionNotificationfunc)GetProcAddress(h, "WTSRegisterSessionNotification");
@@ -847,10 +842,8 @@ PYWIN_MODULE_INIT_FUNC(win32ts)
             (WTSUnRegisterSessionNotificationfunc)GetProcAddress(h, "WTSUnRegisterSessionNotification");
     }
 
-    h = GetModuleHandle(L"kernel32.dll");
-    if (h == NULL)
-        h = LoadLibrary(L"kernel32.dll");
-    if (h) {
+    h = PyWin_GetOrLoadLibraryHandle("kernel32.dll");
+    if (h != NULL) {
         pfnProcessIdToSessionId = (ProcessIdToSessionIdfunc)GetProcAddress(h, "ProcessIdToSessionId");
         pfnWTSGetActiveConsoleSessionId =
             (WTSGetActiveConsoleSessionIdfunc)GetProcAddress(h, "WTSGetActiveConsoleSessionId");
