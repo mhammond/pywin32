@@ -11,15 +11,16 @@ from pywin.mfc import dialog
 
 class ListDialog(dialog.Dialog):
     def __init__(
-        self, title, list: Sequence[Sequence[object]]  # TODO: Make list generic
+        self,
+        title,
+        # TODO: Make list generic, Sequence to avoid 1-time iterable
+        list: Sequence[Sequence[object]],
     ):
         dialog.Dialog.__init__(self, self._maketemplate(title))
         self.HookMessage(self.on_size, win32con.WM_SIZE)
         self.HookNotify(self.OnListItemChange, commctrl.LVN_ITEMCHANGED)
         self.HookCommand(self.OnListClick, win32ui.IDC_LIST1)
-        self.items: Sequence[Sequence[object]] = (  # Sequence to avoid 1-time iterable
-            list
-        )
+        self.items: Sequence[Sequence[object]] = list
 
     def _maketemplate(self, title):
         style = win32con.WS_DLGFRAME | win32con.WS_SYSMENU | win32con.WS_VISIBLE

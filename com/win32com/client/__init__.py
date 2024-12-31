@@ -494,7 +494,6 @@ def Record(name, object):
 # The base of all makepy generated classes
 ############################################
 class DispatchBaseClass:
-
     # _prop_map_*_ are set in generated subclasses by gen_py
     _prop_map_get_: ClassVar[
         dict[
