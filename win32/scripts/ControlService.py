@@ -307,13 +307,7 @@ class ServiceDlg(dialog.Dialog):
             # svc[2][2] control buttons
             pos = self.listCtrl.AddString(str(svc[1]) + "\t" + status + "\t" + startup)
             self.listCtrl.SetItemData(pos, i)
-            self.data.append(
-                tuple(svc[2])
-                + (
-                    svc[1],
-                    svc[0],
-                )
-            )
+            self.data.append((*tuple(svc[2]), svc[1], svc[0]))
             i += 1
 
             if service and service[1] == svc[0]:
