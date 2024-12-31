@@ -48,7 +48,7 @@ from distutils._msvccompiler import MSVCCompiler
 from distutils.command.install_data import install_data
 
 build_id_patch = build_id
-if "." not in build_id_patch:
+if not "." in build_id_patch:
     build_id_patch += ".0"
 pywin32_version = "%d.%d.%s" % (
     sys.version_info.major,
@@ -304,7 +304,7 @@ class WinExt_win32com_mapi(WinExt_win32com):
 
         # The stand-alone exchange SDK has these libs
         # Additional utility functions are only available for 32-bit builds.
-        if platform.machine() not in ("AMD64", "ARM64"):
+        if not platform.machine() in ("AMD64", "ARM64"):
             libs += " version user32 advapi32 Ex2KSdk sadapi netapi32"
         kw["libraries"] = libs
         WinExt_win32com.__init__(self, name, **kw)
@@ -1955,7 +1955,7 @@ def expand_modules(module_dir: str | os.PathLike[str]):
 # will 'do the right thing' in terms of installing licence.txt into
 # 'Lib/site-packages/pythonwin/licence.txt'.  We exploit this to
 # get 'com/win32com/whatever' installed to 'win32com/whatever'
-def convert_data_files(files: Iterable[str]):
+def convert_data_files(files: Iterable[str]) -> list[tuple[str, tuple[str]]]:
     ret: list[tuple[str, tuple[str]]] = []
     for file in files:
         file = os.path.normpath(file)
@@ -1980,8 +1980,8 @@ def convert_data_files(files: Iterable[str]):
     return ret
 
 
-def convert_optional_data_files(files):
-    ret = []
+def convert_optional_data_files(files) -> list[tuple[str, tuple[str]]]:
+    ret: list[tuple[str, tuple[str]]] = []
     for file in files:
         try:
             temp = convert_data_files([file])
@@ -2087,13 +2087,10 @@ dist = setup(
     packages=packages,
     py_modules=py_modules,
     data_files=[
-        ("", (os.path.join(gettempdir(), "pywin32.version.txt"),)),
-        *convert_optional_data_files(
-            [
-                "PyWin32.chm",
-            ]
-        ),
-        *convert_data_files(
+        # mypy list-item: This needs to be fixed in typeshed's types-setuptools stubs
+        ("", (os.path.join(gettempdir(), "pywin32.version.txt"),)),  # type: ignore[list-item]
+        *convert_optional_data_files(["PyWin32.chm"]),  # type: ignore[list-item]
+        *convert_data_files(  # type: ignore[list-item]
             [
                 "Pythonwin/start_pythonwin.pyw",
                 "pythonwin/pywin/*.cfg",
@@ -2151,8 +2148,8 @@ dist = setup(
             ]
         ),
         # The headers and .lib files
-        ("win32/include", ("win32/src/PyWinTypes.h",)),
-        (
+        ("win32/include", ("win32/src/PyWinTypes.h",)),  # type: ignore[list-item]
+        (  # type: ignore[list-item]
             "win32com/include",
             (
                 "com/win32com/src/include/PythonCOM.h",
@@ -2161,11 +2158,11 @@ dist = setup(
             ),
         ),
         # And data files convert_data_files can't handle.
-        ("win32com", ("com/License.txt",)),
+        ("win32com", ("com/License.txt",)),  # type: ignore[list-item]
         # pythoncom.py doesn't quite fit anywhere else.
         # Note we don't get an auto .pyc - but who cares?
-        ("", ("com/pythoncom.py",)),
-        ("", ("pywin32.pth",)),
+        ("", ("com/pythoncom.py",)),  # type: ignore[list-item]
+        ("", ("pywin32.pth",)),  # type: ignore[list-item]
     ],
 )
 

@@ -44,7 +44,7 @@ def BuildModule(module, built_nodes, rootNode, create_node_fn, create_node_args)
         # print("keeping", module.__name__)
         node = ModuleTreeNode(module)
         built_nodes[module] = node
-        realNode = create_node_fn(*(node, *create_node_args))
+        realNode = create_node_fn(node, *create_node_args)
         node.realNode = realNode
 
         # Split into parent nodes.

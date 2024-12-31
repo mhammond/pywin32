@@ -212,7 +212,7 @@ class NCBStruct:
         for format, name in self._items:
             vals.append(self.__dict__.get(name))
 
-        self._buffer_[:] = struct.pack(*(self._format, *tuple(vals)))
+        self._buffer_[:] = struct.pack(self._format, *vals)
 
     def _unpack(self):
         items = struct.unpack(self._format, self._buffer_)

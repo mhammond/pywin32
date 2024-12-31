@@ -53,7 +53,7 @@ def profile(fn, *args):
     try:
         # roll on 1.6 :-)
         # 		return prof.runcall(fn, *args)
-        return prof.runcall(*(fn, *args))
+        return prof.runcall(fn, *args)
     finally:
         import pstats
 
