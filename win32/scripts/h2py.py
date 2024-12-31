@@ -1,7 +1,12 @@
 #! /usr/bin/env python3
 """
 Vendored from https://github.com/python/cpython/blob/3.8/Tools/scripts/h2py.py
-Minimal changes to satisfy our checkers.
+
+Changes since vendored version:
+- Minimal changes to satisfy our checkers.
+- Rename `p_hex` to `p_signed_hex` and improve to include lowercase l
+- Fixed `pytify` to remove leftover L after numbers
+- Added `p_int_cast` and `p_literal_constant`
 
 ---
 
@@ -43,12 +48,14 @@ p_include = re.compile(r"^[\t ]*#[\t ]*include[\t ]+<([^>\n]+)>")
 
 p_comment = re.compile(r"/\*([^*]+|\*+[^/])*(\*+/)?")
 p_cpp_comment = re.compile("//.*")
+# Maybe we want these to cause integer truncation instead?
+p_int_cast = re.compile(r"\((DWORD|LONG|HWND|HANDLE|int|HBITMAP)\)")
 
-ignores = [p_comment, p_cpp_comment]
+ignores = [p_comment, p_cpp_comment, p_int_cast]
 
 p_char = re.compile(r"'(\\.[^\\]*|[^\\])'")
-
-p_hex = re.compile(r"0x([0-9a-fA-F]+)L?")
+p_signed_hex = re.compile(r"0x([0-9a-fA-F]+)[lL]?")
+p_literal_constant = re.compile(r"((0x[0-9a-fA-F]+?)|([0-9]+?))[uUlL]")
 
 filedict: dict[str, None] = {}
 importable: dict[str, str] = {}
@@ -107,7 +114,7 @@ def pytify(body):
     start = 0
     UMAX = 2 * (sys.maxsize + 1)
     while 1:
-        m = p_hex.search(body, start)
+        m = p_signed_hex.search(body, start)
         if not m:
             break
         s, e = m.span()
@@ -116,6 +123,8 @@ def pytify(body):
             val -= UMAX
             body = body[:s] + "(" + str(val) + ")" + body[e:]
         start = s + 1
+    # remove literal constant indicator (u U l L)
+    body = p_literal_constant.sub("\\1", body)
     return body
 
 
