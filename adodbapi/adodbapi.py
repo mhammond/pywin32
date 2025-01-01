@@ -33,7 +33,6 @@ version = "adodbapi v" + __version__
 import copy
 import decimal
 import os
-import sys
 import weakref
 
 from . import ado_consts as adc, apibase as api, process_connect_string
@@ -248,9 +247,9 @@ class Connection:
             self.connection_string = (
                 kwargs["connection_string"] % kwargs
             )  # insert keyword arguments
-        except Exception as e:
+        except Exception:
             self._raiseConnectionError(
-                KeyError, "Python string format error in connection string->"
+                KeyError("Python string format error in connection string->")
             )
         self.timeout = kwargs.get("timeout", 30)
         self.mode = kwargs.get("mode", adc.adModeUnknown)
@@ -266,8 +265,7 @@ class Connection:
             self.connector.Open()  # Open the ADO connection
         except api.Error:
             self._raiseConnectionError(
-                api.DatabaseError,
-                "ADO error trying to Open=%s" % self.connection_string,
+                api.DatabaseError(f"ADO error trying to Open={self.connection_string}")
             )
 
         try:  # Stefan Fuchs; support WINCCOLEDBProvider
@@ -298,11 +296,9 @@ class Connection:
         if verbose:
             print("adodbapi New connection at %X" % id(self))
 
-    def _raiseConnectionError(self, errorclass, errorvalue):
-        eh = self.errorhandler
-        if eh is None:
-            eh = api.standardErrorHandler
-        eh(self, None, errorclass, errorvalue)
+    def _raiseConnectionError(self, errorvalue: BaseException):
+        eh = self.errorhandler or api.standardErrorHandler
+        eh(self, None, type(errorvalue), errorvalue)
 
     def _closeAdoConnection(self):  # all v2.1 Rose
         """close the underlying ADO Connection object,
@@ -334,7 +330,7 @@ class Connection:
         try:
             self._closeAdoConnection()  # v2.1 Rose
         except Exception as e:
-            self._raiseConnectionError(sys.exc_info()[0], sys.exc_info()[1])
+            self._raiseConnectionError(e)
 
         self.connector = None  # v2.4.2.2 fix subtle timeout bug
         # per M.Hammond: "I expect the benefits of uninitializing are probably fairly small,
@@ -364,7 +360,7 @@ class Connection:
                 # If not, we will have to start a new transaction by this command:
                 self.transaction_level = self.connector.BeginTrans()
         except Exception as e:
-            self._raiseConnectionError(api.ProgrammingError, e)
+            self._raiseConnectionError(api.ProgrammingError(e))
 
     def _rollback(self):
         """In case a database does provide transactions this method causes the the database to roll back to
@@ -398,7 +394,7 @@ class Connection:
                     if not self.transaction_level:
                         self.transaction_level = self.connector.BeginTrans()
             except Exception as e:
-                self._raiseConnectionError(api.ProgrammingError, e)
+                self._raiseConnectionError(api.ProgrammingError(e))
 
     def __setattr__(self, name, value):
         if name == "autocommit":  # extension: allow user to turn autocommit on or off
@@ -412,8 +408,9 @@ class Connection:
         elif name == "paramstyle":
             if value not in api.accepted_paramstyles:
                 self._raiseConnectionError(
-                    api.NotSupportedError,
-                    f"paramstyle={value!r} not in:{api.accepted_paramstyles!r}",
+                    api.NotSupportedError(
+                        f"paramstyle={value!r} not in:{api.accepted_paramstyles!r}"
+                    )
                 )
         elif name == "variantConversions":
             # make a new copy -- no changes in the default, please
@@ -582,15 +579,13 @@ class Cursor:
         "Allow database cursors to be used with context managers."
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
         "Allow database cursors to be used with context managers."
         self.close()
 
-    def _raiseCursorError(self, errorclass, errorvalue):
-        eh = self.errorhandler
-        if eh is None:
-            eh = api.standardErrorHandler
-        eh(self.connection, self, errorclass, errorvalue)
+    def _raiseCursorError(self, errorvalue: BaseException) -> None:
+        eh = self.errorhandler or api.standardErrorHandler
+        eh(self.connection, self, type(errorvalue), errorvalue)
 
     def build_column_info(self, recordset):
         self.converters = []  # conversion function for each column
@@ -617,7 +612,7 @@ class Cursor:
                 )  # conversion function for this column
             except KeyError:
                 self._raiseCursorError(
-                    api.InternalError, "Data column of Unknown ADO type=%s" % f.Type
+                    api.InternalError(f"Data column of Unknown ADO type={f.Type}")
                 )
             self.columnNames[f.Name.lower()] = i  # columnNames lookup
 
@@ -714,7 +709,7 @@ class Cursor:
         self.messages = []
 
         if self.connection is None:
-            self._raiseCursorError(api.InterfaceError, None)
+            self._raiseCursorError(api.InterfaceError())
             return
         try:
             self.cmd = Dispatch("ADODB.Command")
@@ -725,8 +720,9 @@ class Cursor:
             self.cmd.Prepared = bool(self._ado_prepared)
         except:
             self._raiseCursorError(
-                api.DatabaseError,
-                f"Error creating new ADODB.Command object for {self.commandText!r}",
+                api.DatabaseError(
+                    f"Error creating new ADODB.Command object for {self.commandText!r}"
+                ),
             )
 
     def _execute_command(self):
@@ -749,7 +745,7 @@ class Cursor:
                 format_parameters(self.cmd.Parameters, True),
             )
             klass = self.connection._suggest_error_class()
-            self._raiseCursorError(klass, _message)
+            self._raiseCursorError(klass(_message))
         try:
             self.rowcount = recordset.RecordCount
         except:
@@ -854,7 +850,6 @@ class Cursor:
             except api.Error:
                 if verbose:
                     print("ADO Parameter Refresh failed")
-                pass
             else:
                 if len(parameters) != self.cmd.Parameters.Count - 1:
                     raise api.ProgrammingError(
@@ -879,7 +874,7 @@ class Cursor:
                                 parameters[pm_name],
                             )
                             self._raiseCursorError(
-                                api.DataError, f"{_message}->{e.args!r}"
+                                api.DataError(f"{_message}->{e.args!r}")
                             )
                 else:  # regular sequence of parameters
                     for value in parameters:
@@ -899,7 +894,7 @@ class Cursor:
                                 value,
                             )
                             self._raiseCursorError(
-                                api.DataError, f"{_message}->{e.args!r}"
+                                api.DataError(f"{_message}->{e.args!r}")
                             )
                         i += 1
             else:  # -- build own parameter list
@@ -924,7 +919,7 @@ class Cursor:
                                 )
                             )
                             self._raiseCursorError(
-                                api.DataError, f"{_message}->{e.args!r}"
+                                api.DataError(f"{_message}->{e.args!r}")
                             )
                 else:  # expecting the usual sequence of parameters
                     if sproc:
@@ -952,7 +947,7 @@ class Cursor:
                                 )
                             )
                             self._raiseCursorError(
-                                api.DataError, f"{_message}->{e.args!r}"
+                                api.DataError(f"{_message}->{e.args!r}")
                             )
                         i += 1
                 if self._ado_prepared == "setup":
@@ -1033,7 +1028,7 @@ class Cursor:
         """
         if self.connection is None or self.rs is None:
             self._raiseCursorError(
-                api.FetchFailedError, "fetch() on closed connection or empty query set"
+                api.FetchFailedError("fetch() on closed connection or empty query set")
             )
             return
 
@@ -1114,15 +1109,16 @@ class Cursor:
         self.messages = []
         if self.connection is None or self.rs is None:
             self._raiseCursorError(
-                api.OperationalError,
-                ("nextset() on closed connection or empty query set"),
+                api.OperationalError(
+                    "nextset() on closed connection or empty query set"
+                ),
             )
             return None
 
         try:  # [begin 2.1 ekelund]
             rsTuple = self.rs.NextRecordset()  #
         except pywintypes.com_error as exc:  # return appropriate error
-            self._raiseCursorError(api.NotSupportedError, exc.args)  # [end 2.1 ekelund]
+            self._raiseCursorError(api.NotSupportedError(exc.args))  # [end 2.1 ekelund]
         recordset = rsTuple[0]
         if recordset is None:
             return None
