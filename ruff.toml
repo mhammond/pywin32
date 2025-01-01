@@ -9,6 +9,7 @@ select = [
   "I", # isort
   "PLC", # Pylint Convention
   "PLE", # Pylint Error
+  "RUF005", # collection-literal-concatenation
   "RSE", # flake8-raise
   "W", # pycodestyle Warning
   "YTT", # flake8-2020
@@ -46,7 +47,7 @@ ignore = [
 # Explicit re-exports is fine in __init__.py, still a code smell elsewhere.
 "__init__.py" = ["PLC0414"]
 # TODO: Make adodbapi changes in their own PRs
-"adodbapi/*" = ["C4", "YTT301", "UP031", "UP032"]
+"adodbapi/*" = ["C4", "YTT301", "UP031", "UP032", "RUF005"]
 
 [lint.isort]
 combine-as-imports = true
