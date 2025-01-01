@@ -657,6 +657,10 @@ def main():
 
     > python pywin32_postinstall.py -install
 
+    * or if pywin32 is already installed:
+
+    > pywin32_postinstall -install
+
     This should be run automatically after installation,
     but if it fails you can run it again.
 
