@@ -8,7 +8,6 @@
 import pythoncom
 import win32con
 import win32ui
-import win32uiole
 from pywin.mfc import activex, dialog
 from win32com.client import gencache
 
