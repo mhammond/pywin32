@@ -4,9 +4,10 @@ Vendored from https://github.com/python/cpython/blob/3.8/Tools/scripts/h2py.py
 
 Changes since vendored version:
 - Minimal changes to satisfy our checkers.
-- Rename `p_hex` to `p_signed_hex` and improve to include lowercase l
+- Renamed `p_hex` to `p_signed_hex` and improve to include lowercase l
 - Fixed `pytify` to remove leftover L after numbers
 - Added `p_int_cast` and `p_literal_constant`
+- Added support for boolean/None literals
 
 ---
 
@@ -53,7 +54,17 @@ p_int_cast = re.compile(r"\((DWORD|LONG|HWND|HANDLE|int|HBITMAP)\)")
 
 ignores = [p_comment, p_cpp_comment, p_int_cast]
 
-p_char = re.compile(r"'(\\.[^\\]*|[^\\])'")
+early_simple_replacements = {
+    # replace ignored patterns by spaces
+    **{p: "" for p in ignores},
+    # replace char literals by ord(...)
+    re.compile(r"'(\\.[^\\]*|[^\\])'"): "ord('\\1')",
+    # replace boolean/None literals
+    re.compile(r"\bTRUE\b"): "True",
+    re.compile(r"\bFALSE\b"): "False",
+    re.compile(r"\bNULL\b"): "None",
+}
+
 p_signed_hex = re.compile(r"0x([0-9a-fA-F]+)[lL]?")
 p_literal_constant = re.compile(r"((0x[0-9a-fA-F]+?)|([0-9]+?))[uUlL]")
 
@@ -105,11 +116,9 @@ def main():
 
 
 def pytify(body):
-    # replace ignored patterns by spaces
-    for p in ignores:
-        body = p.sub(" ", body)
-    # replace char literals by ord(...)
-    body = p_char.sub("ord('\\1')", body)
+    for p, replace in early_simple_replacements.items():
+        body = p.sub(replace, body)
+
     # Compute negative hexadecimal constants
     start = 0
     UMAX = 2 * (sys.maxsize + 1)
