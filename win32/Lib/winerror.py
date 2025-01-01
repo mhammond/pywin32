@@ -1,3 +1,5 @@
+# pyright: reportConstantRedefinition=false
+# TODO: Fix in its own PR be regenerating this module
 """Error related constants for win32
 
 Generated from winerror.h and cderror.h"""
