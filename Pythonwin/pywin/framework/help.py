@@ -1,4 +1,6 @@
 # help.py - help utilities for PythonWin.
+from __future__ import annotations
+
 import os
 
 import regutil
@@ -122,7 +124,7 @@ def SelectAndRunHelpFile():
         OpenHelpFile(helpFiles[index][1])
 
 
-helpIDMap = None
+helpIDMap: dict[int, tuple[str, str]] | None = None
 
 
 def SetHelpMenuOtherHelp(mainMenu):
@@ -144,7 +146,6 @@ def SetHelpMenuOtherHelp(mainMenu):
             if desc in excludeList:
                 excludeFnames.append(fname)
 
-        helpDescs = []
         for desc, fname in firstList:
             if fname not in excludeFnames:
                 helpIDMap[cmdID] = (desc, fname)
