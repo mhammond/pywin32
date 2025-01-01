@@ -5,7 +5,7 @@ Vendored from https://github.com/python/cpython/blob/3.8/Tools/scripts/h2py.py
 Changes since vendored version:
 - Minimal changes to satisfy our checkers.
 - Renamed `p_hex` to `p_signed_hex` and improve to include lowercase l
-- Fixed `pytify` to remove leftover L after numbers
+- Fixed `pytify` to remove leftover L after numbers and actually compute negative hexadecimal constants
 - Added `p_int_cast` and `p_literal_constant`
 - Added support for boolean/None literals
 
@@ -34,6 +34,7 @@ e.g. to ignore casts to u_long: simply specify "-i '(u_long)'".
 # - what to do about macros with multiple parameters?
 from __future__ import annotations
 
+import ctypes
 import getopt
 import os
 import re
@@ -50,8 +51,7 @@ p_include = re.compile(r"^[\t ]*#[\t ]*include[\t ]+<([^>\n]+)>")
 p_comment = re.compile(r"/\*([^*]+|\*+[^/])*(\*+/)?")
 p_cpp_comment = re.compile("//.*")
 # Maybe we want these to cause integer truncation instead?
-p_int_cast = re.compile(r"\((DWORD|LONG|HWND|HANDLE|int|HBITMAP)\)")
-
+p_int_cast = re.compile(r"\((DWORD|HRESULT|SCODE|LONG|HWND|HANDLE|int|HBITMAP)\)")
 ignores = [p_comment, p_cpp_comment, p_int_cast]
 
 early_simple_replacements = {
@@ -121,15 +121,13 @@ def pytify(body):
 
     # Compute negative hexadecimal constants
     start = 0
-    UMAX = 2 * (sys.maxsize + 1)
     while 1:
         m = p_signed_hex.search(body, start)
         if not m:
             break
         s, e = m.span()
-        val = int(body[slice(*m.span(1))], 16)
-        if val > sys.maxsize:
-            val -= UMAX
+        val = ctypes.c_int32(int(body[slice(*m.span(1))], 16)).value
+        if val < 0:
             body = body[:s] + "(" + str(val) + ")" + body[e:]
         start = s + 1
     # remove literal constant indicator (u U l L)
