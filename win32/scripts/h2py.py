@@ -6,7 +6,7 @@ Changes since vendored version:
 - Minimal changes to satisfy our checkers.
 - Renamed `p_hex` to `p_signed_hex` and improve to include lowercase l
 - Fixed `pytify` to remove leftover L after numbers and actually compute negative hexadecimal constants
-- Added `p_int_cast` and `p_literal_constant`
+- Added DEFAULT_GLOBALS, `p_int_cast`, `p_text_cast` and `p_literal_constant`
 - Added support for boolean/None literals
 
 ---
@@ -51,25 +51,53 @@ p_include = re.compile(r"^[\t ]*#[\t ]*include[\t ]+<([^>\n]+)>")
 p_comment = re.compile(r"/\*([^*]+|\*+[^/])*(\*+/)?")
 p_cpp_comment = re.compile("//.*")
 # Maybe we want these to cause integer truncation instead?
-p_int_cast = re.compile(r"\((DWORD|HRESULT|SCODE|LONG|HWND|HANDLE|int|HBITMAP)\)")
-ignores = [p_comment, p_cpp_comment, p_int_cast]
+p_int_cast = re.compile(
+    r"\( *?("
+    + "|DWORD"
+    + "|HRESULT"
+    + "|SCODE"
+    + "|LONG"
+    + "|HWND"
+    + "|HANDLE"
+    + "|int"
+    + "|HBITMAP"
+    + "|COLORREF"
+    + "|WORD"
+    + "|HKEY"
+    + "|ULONG_PTR"
+    + "|BYTE"
+    + "|CHAR"
+    + "|WCHAR"
+    + "|UINT"
+    + "|SHORT"
+    + r") *?\)"
+)
+p_text_cast = re.compile(r"\bTEXT\b")  # This winnt.h function simply acts on encoding
+ignores = [p_comment, p_cpp_comment, p_int_cast, p_text_cast]
 
 early_simple_replacements = {
     # replace ignored patterns by spaces
     **{p: "" for p in ignores},
     # replace char literals by ord(...)
     re.compile(r"'(\\.[^\\]*|[^\\])'"): "ord('\\1')",
-    # replace boolean/None literals
+    # Remove L in front of strings
+    re.compile(r'\bL"'): '"',
+    # Inline minwindef.h vars. Because bool subtypes int, we can use actual bools
     re.compile(r"\bTRUE\b"): "True",
     re.compile(r"\bFALSE\b"): "False",
-    re.compile(r"\bNULL\b"): "None",
+    re.compile(r"\bNULL\b"): "0  # NULL",
 }
 
 p_signed_hex = re.compile(r"0x([0-9a-fA-F]+)[lL]?")
-p_literal_constant = re.compile(r"((0x[0-9a-fA-F]+?)|([0-9]+?))[uUlL]")
+p_literal_constant = re.compile(r"((0x[0-9a-fA-F]+?)|([0-9]+?))[uUlL]+")
 
 filedict: dict[str, None] = {}
 importable: dict[str, str] = {}
+
+DEFAULT_GLOBALS = {
+    # https://learn.microsoft.com/en-us/windows/win32/winmsg/wm-user
+    "WM_USER": True,
+}
 
 try:
     searchdirs = os.environ["include"].split(";")
@@ -135,7 +163,7 @@ def pytify(body):
     return body
 
 
-def process(fp, outfp, env={}):
+def process(fp, outfp, env=DEFAULT_GLOBALS):
     lineno = 0
     while 1:
         line = fp.readline()
@@ -154,7 +182,6 @@ def process(fp, outfp, env={}):
             name = match.group(1)
             body = line[match.end() :]
             body = pytify(body)
-            ok = 0
             stmt = "%s = %s\n" % (name, body.strip())
             try:
                 exec(stmt, env)
