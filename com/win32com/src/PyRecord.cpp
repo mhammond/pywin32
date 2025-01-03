@@ -142,7 +142,7 @@ PyObject *PyObject_FromRecordInfo(IRecordInfo *ri, void *data, ULONG cbData)
         delete owner;
         return PyCom_BuildPyException(hr, ri, IID_IRecordInfo);
     }
-    return (PyObject *)PyRecord::new_record(ri, owner->data, owner);
+    return PyRecord::new_record(ri, owner->data, owner);
 }
 
 // @pymethod <o PyRecord>|pythoncom|GetRecordFromGuids|Creates a new record object from the given GUIDs
@@ -206,8 +206,7 @@ PyObject *pythoncom_GetRecordFromTypeInfo(PyObject *self, PyObject *args)
 // of the 'com_record' base type, it instantiates this subclass.
 PyRecord *PyRecord::new_record(IRecordInfo *ri, PVOID data, PyRecordBuffer *owner)
 {
-    PyObject *list, *raw, *ref;
-    Py_ssize_t i;
+    PyObject *list;
     GUID structguid;
     OLECHAR *guidString;
     // By default we create an instance of the base 'com_record' type.
