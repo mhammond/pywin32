@@ -113,7 +113,7 @@ def TestConnection():
 
 def TestGetUser():
     u = win32wnet.WNetGetUser()
-    print("Current global user is", repr(u))
+    print(f"Current global user is {u!r}")
     if u != win32wnet.WNetGetUser(None):
         raise RuntimeError("Default value didn't seem to work!")
 

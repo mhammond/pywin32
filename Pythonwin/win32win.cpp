@@ -25,7 +25,7 @@ generates Windows .hlp files.
 #include "win32cmdui.h"
 #include "win32rgn.h"
 #include "reswin32ui.h"
-#include "AFXSTAT_.H"
+#include "afxstat_.h"
 
 static char *szErrMsgBadHandle = "The window handle does not specify a valid window";
 #define CHECK_HWND_VALID(pWnd)       \

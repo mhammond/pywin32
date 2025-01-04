@@ -237,7 +237,7 @@ def demo():
 
 
 if __name__ == "__main__":
-    from . import demoutils
+    import demoutils
 
     if demoutils.NeedGoodGUI():
         testall()

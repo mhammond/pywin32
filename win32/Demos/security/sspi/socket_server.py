@@ -95,7 +95,7 @@ class SSPISocketServer(socketserver.TCPServer):
                 if data is None or key is None:
                     break
                 data = self.sa.decrypt(data, key)
-                print("Client sent:", repr(data))
+                print(f"Client sent: {data!r}")
         finally:
             self.sa.ctxt.RevertSecurityContext()
         self.close_request(request)
