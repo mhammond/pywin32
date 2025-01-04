@@ -146,15 +146,28 @@ void CDDEItem::Create(const TCHAR *pszName) { m_strName = pszName; }
 BOOL CDDEItem::Request(UINT wFmt, CDDEAllocator &allocr) { return FALSE; }
 
 // CT BEGIN
-BOOL CDDEItem::NSRequest(const TCHAR *szItem, CDDEAllocator &allocr) { return FALSE; }
+BOOL CDDEItem::NSRequest(const TCHAR *szItem, CDDEAllocator &allocr)
+{
+    PyErr_Warn(PyExc_DeprecationWarning, "NSRequest is deprecated as Netscape is no longer supported");
+    return FALSE;
+}
 // CT END
 
 BOOL CDDEItem::Poke(UINT wFmt, void *pData, DWORD dwSize) { return FALSE; }
 
 // CT BEGIN
-BOOL CDDEItem::Poke(void *pData, DWORD dwSize) { return FALSE; }
+BOOL CDDEItem::Poke(void *pData, DWORD dwSize)
+{
+    PyErr_Warn(PyExc_DeprecationWarning,
+               "format-less version of Poke is deprecated as Netscape is no longer supported");
+    return FALSE;
+}
 
-BOOL CDDEItem::NSPoke(const TCHAR *szItem, void *pData, DWORD dwSize) { return FALSE; }
+BOOL CDDEItem::NSPoke(const TCHAR *szItem, void *pData, DWORD dwSize)
+{
+    PyErr_Warn(PyExc_DeprecationWarning, "NSPoke is deprecated as Netscape is no longer supported");
+    return FALSE;
+}
 // CT END
 
 BOOL CDDEItem::IsSupportedFormat(WORD wFormat)
@@ -276,7 +289,11 @@ BOOL CDDETopic::Request(UINT wFmt, const TCHAR *pszItem, CDDEAllocator &allocr)
 }
 
 // CT BEGIN
-BOOL CDDETopic::NSRequest(const TCHAR *szItem, CDDEAllocator &allocr) { return FALSE; }
+BOOL CDDETopic::NSRequest(const TCHAR *szItem, CDDEAllocator &allocr)
+{
+    PyErr_Warn(PyExc_DeprecationWarning, "NSRequest is deprecated as Netscape is no longer supported");
+    return FALSE;
+}
 // CT END
 
 BOOL CDDETopic::Poke(UINT wFmt, const TCHAR *pszItem, void *pData, DWORD dwSize)
@@ -300,9 +317,18 @@ BOOL CDDETopic::Poke(UINT wFmt, const TCHAR *pszItem, void *pData, DWORD dwSize)
 
 // CT BEGIN
 
-BOOL CDDETopic::Poke(const TCHAR *pszItem, void *pData, DWORD dwSize) { return Poke(CF_TEXT, pszItem, pData, dwSize); }
+BOOL CDDETopic::Poke(const TCHAR *pszItem, void *pData, DWORD dwSize)
+{
+    PyErr_Warn(PyExc_DeprecationWarning,
+               "format-less version of Poke is deprecated as Netscape is no longer supported");
+    return Poke(CF_TEXT, pszItem, pData, dwSize);
+}
 
-BOOL CDDETopic::NSPoke(const TCHAR *szItem, void *pData, DWORD dwSize) { return FALSE; }
+BOOL CDDETopic::NSPoke(const TCHAR *szItem, void *pData, DWORD dwSize)
+{
+    PyErr_Warn(PyExc_DeprecationWarning, "NSPoke is deprecated as Netscape is no longer supported");
+    return FALSE;
+}
 // CT END
 
 BOOL CDDETopic::Exec(void *pData, DWORD dwSize) { return FALSE; }
@@ -314,11 +340,14 @@ CDDEItem *CDDETopic::FindItem(const TCHAR *pszItem)
         CDDEItem *pItem = m_ItemList.GetNext(pos);
         // CT BEGIN
         // NETSCAPE Hack
+        // Netscape is long dead, so this is deprecated
         if (pItem->m_strName == "") {
+            PyErr_Warn(PyExc_DeprecationWarning,
+                       "Having an empty name is deprecated and was allowed for Netscape support");
             return pItem;
         }
-        // empty item matches all
         // CT END
+        // empty item matches all
         if (pItem->m_strName.CompareNoCase(pszItem) == 0)
             return pItem;
     }
@@ -545,7 +574,10 @@ BOOL CDDEConv::Poke(const TCHAR *pszItem, void *pData, DWORD dwSize)
 {
     //
     // format-less version for Netscape defaults to text
+    // Netscape is long dead, so this is deprecated
     //
+    PyErr_Warn(PyExc_DeprecationWarning,
+               "format-less version of Poke is deprecated as Netscape is no longer supported");
     return Poke(CF_TEXT, pszItem, pData, dwSize);
 }
 // CT END
