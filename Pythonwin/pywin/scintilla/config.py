@@ -42,7 +42,7 @@ def split_line(line, lineno):
     sep_pos = line.rfind("=")
     if sep_pos == -1:
         if line.strip():
-            print("Warning: Line %d: %s is an invalid entry" % (lineno, repr(line)))
+            print(f"Warning: Line {lineno}: {line!r} is an invalid entry")
             return None, None
         return "", ""
     return line[:sep_pos].strip(), line[sep_pos + 1 :].strip()
