@@ -34,11 +34,12 @@ select = [
   "UP037", # quoted-annotation
 
   # Helps prevent circular imports and other unneeded imports
-  "TCH", # flake8-type-checking
+  "TC", # flake8-type-checking
 ]
-extend-ignore = [
+ignore = [
+  "PLE0704", # misplaced-bare-raise: TODO
   # No such concerns for stdlib
-  "TCH003", # typing-only-standard-library-import
+  "TC003", # typing-only-standard-library-import
 ]
 
 [lint.per-file-ignores]

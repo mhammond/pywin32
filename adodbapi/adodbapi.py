@@ -160,15 +160,15 @@ def _configure_parameter(p, value, adotype, settings_known):
         p.AppendChunk(value)
 
     elif isinstance(value, str):  # v2.1 Jevon
-        L = len(value)
+        length = len(value)
         if adotype in api.adoStringTypes:  # v2.2.1 Cole
             if settings_known:
-                L = min(L, p.Size)  # v2.1 Cole limit data to defined size
-            p.Value = value[:L]  # v2.1 Jevon & v2.1 Cole
+                length = min(length, p.Size)  # v2.1 Cole limit data to defined size
+            p.Value = value[:length]  # v2.1 Jevon & v2.1 Cole
         else:
             p.Value = value  # don't limit if db column is numeric
-        if L > 0:  # v2.1 Cole something does not like p.Size as Zero
-            p.Size = L  # v2.1 Jevon
+        if length > 0:  # v2.1 Cole something does not like p.Size as Zero
+            p.Size = length  # v2.1 Jevon
 
     elif isinstance(value, decimal.Decimal):
         p.Value = value
