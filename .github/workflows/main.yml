@@ -131,13 +131,10 @@ jobs:
           cache-dependency-path: .github/workflows/main.yml
       - run: pip install clang-format==18.1.* pycln
       - run: pycln . --config=pycln.toml --check
-      - uses: astral-sh/ruff-action@v1
+      - uses: astral-sh/ruff-action@v2
         with:
-          version: "0.4.9"
-      - uses: astral-sh/ruff-action@v1
-        with:
-          version: "0.4.9"
-          args: "format --check"
+          version: "0.8.2"
+      - run: ruff format --check
       - run:
           | # Too many files to fit in a single command, also exclude vendored Scintilla and MAPIStubLibrary
           clang-format --Werror --dry-run $(git ls-files '*.cpp' ':!:com/win32comext/mapi/src/MAPIStubLibrary/')
@@ -169,7 +166,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

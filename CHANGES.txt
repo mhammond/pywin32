@@ -1,4 +1,4 @@
-﻿Notable changes in recent builds.
+Notable changes in recent builds.
 
 Maintained by hand, so what's "notable" is subjective! Contributors are
 encouraged to add entries for their work.
@@ -14,6 +14,8 @@ https://mhammond.github.io/pywin32_installers.html.
 Coming in build 309, as yet unreleased
 --------------------------------------
 
+* Removed param `hIcon` from `win32comext.shell.ShellExecuteEx`. It was unusable since Windows Vista (#2423, @Avasam)
+* Fixed `nbios.NCBStruct` packing (#2406, @Avasam)
 * Restored axdebug builds on Python 3.10 (#2416, @Avasam)
 * Pythonwin: Bumped Scintilla from 1.77 to 4.4.6. The full changelog can be found here: https://www.scintilla.org/ScintillaHistory.html
 * Fixed `ddeclient` and `ddeserver` demos import error (#2290, @Avasam)
