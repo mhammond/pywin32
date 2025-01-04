@@ -198,7 +198,7 @@ class CScintillaDocument(ParentScintillaDocument):
     def HookViewNotifications(self, view):
         parent = view.GetParentFrame()
         parent.HookNotify(
-            ViewNotifyDelegate(self, "OnBraceMatch"), scintillacon.SCN_CHECKBRACE
+            ViewNotifyDelegate(self, "OnBraceMatch"), scintillacon.SCN_UPDATEUI
         )
         parent.HookNotify(
             ViewNotifyDelegate(self, "OnMarginClick"), scintillacon.SCN_MARGINCLICK
@@ -240,7 +240,7 @@ class CScintillaDocument(ParentScintillaDocument):
 
     def MarkerCheck(self, lineNo, marker):
         v = self.GetEditorView()
-        lineNo = lineNo - 1  # Make 0 based
+        lineNo -= 1  # Make 0 based
         markerState = v.SCIMarkerGet(lineNo)
         return markerState & (1 << marker) != 0
 

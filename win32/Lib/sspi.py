@@ -17,7 +17,7 @@ functions directly.
 import sspicon
 import win32security
 
-error = win32security.error
+error = win32security.error  # Re-exported alias
 
 
 class _BaseAuth:
@@ -26,7 +26,7 @@ class _BaseAuth:
 
     def reset(self):
         """Reset everything to an unauthorized state"""
-        self.ctxt = None
+        self.ctxt: win32security.PyCtxtHandleType | None = None
         self.authenticated = False
         self.initiator_name = None
         self.service_name = None
@@ -39,7 +39,7 @@ class _BaseAuth:
         implementation is to increment a counter
         """
         ret = self.next_seq_num
-        self.next_seq_num = self.next_seq_num + 1
+        self.next_seq_num += 1
         return ret
 
     def encrypt(self, data):

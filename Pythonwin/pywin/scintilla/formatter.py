@@ -185,7 +185,7 @@ class FormatterBase:
         defaultStyle = Style("default", baseFormat)
         defaultStyle.stylenum = scintillacon.STYLE_DEFAULT
         self._ReformatStyle(defaultStyle)
-        for style in list(self.styles.values()):
+        for style in self.styles.values():
             if style.aliased is None:
                 style.NormalizeAgainstDefault(baseFormat)
             self._ReformatStyle(style)
@@ -202,7 +202,7 @@ class FormatterBase:
         )
         self.bUseFixed = int(self.LoadPreference("Use Fixed", 1))
 
-        for style in list(self.styles.values()):
+        for style in self.styles.values():
             new = self.LoadPreference(style.name, str(style.format))
             try:
                 style.format = eval(new)
@@ -222,7 +222,7 @@ class FormatterBase:
         self.SavePreference("Base Format Fixed", str(self.baseFormatFixed))
         self.SavePreference("Base Format Proportional", str(self.baseFormatProp))
         self.SavePreference("Use Fixed", self.bUseFixed)
-        for style in list(self.styles.values()):
+        for style in self.styles.values():
             if style.aliased is None:
                 self.SavePreference(style.name, str(style.format))
                 bg_name = style.name + " background"
@@ -265,18 +265,18 @@ class Formatter(FormatterBase):
         self.Colorize(endStyled, notify.position)
 
     def ColorSeg(self, start, end, styleName):
-        end = end + 1
+        end += 1
         # 		assert end-start>=0, "Can't have negative styling"
         stylenum = self.styles[styleName].stylenum
         while start < end:
             self.style_buffer[start] = stylenum
-            start = start + 1
+            start += 1
         # self.scintilla.SCISetStyling(end - start + 1, stylenum)
 
     def RegisterStyle(self, style, stylenum=None):
         if stylenum is None:
             stylenum = self.nextstylenum
-            self.nextstylenum = self.nextstylenum + 1
+            self.nextstylenum += 1
         FormatterBase.RegisterStyle(self, style, stylenum)
 
     def ColorizeString(self, str, styleStart):
@@ -519,7 +519,7 @@ class PythonSourceFormatter(Formatter):
                     startSeg = i
                     state = STYLE_COMMENT
                     if chNext == '"' and chNext2 == '"':
-                        i = i + 2
+                        i += 2
                         state = STYLE_TQDSTRING
                         ch = " "
                         chPrev = " "
@@ -533,7 +533,7 @@ class PythonSourceFormatter(Formatter):
                     startSeg = i
                     state = STYLE_COMMENT
                     if chNext == "'" and chNext2 == "'":
-                        i = i + 2
+                        i += 2
                         state = STYLE_TQSSTRING
                         ch = " "
                         chPrev = " "
@@ -558,7 +558,7 @@ class PythonSourceFormatter(Formatter):
                             state = STYLE_COMMENT
                     elif ch == '"':
                         if chNext == '"' and chNext2 == '"':
-                            i = i + 2
+                            i += 2
                             state = STYLE_TQDSTRING
                             ch = " "
                             chPrev = " "
@@ -569,7 +569,7 @@ class PythonSourceFormatter(Formatter):
                             state = STYLE_STRING
                     elif ch == "'":
                         if chNext == "'" and chNext2 == "'":
-                            i = i + 2
+                            i += 2
                             state = STYLE_TQSSTRING
                             ch = " "
                             chPrev = " "
@@ -589,7 +589,7 @@ class PythonSourceFormatter(Formatter):
             elif state == STYLE_STRING:
                 if ch == "\\":
                     if chNext == '"' or chNext == "'" or chNext == "\\":
-                        i = i + 1
+                        i += 1
                         ch = chNext
                         chNext = " "
                         if i + 1 < lengthDoc:
@@ -601,7 +601,7 @@ class PythonSourceFormatter(Formatter):
             elif state == STYLE_SQSTRING:
                 if ch == "\\":
                     if chNext == '"' or chNext == "'" or chNext == "\\":
-                        i = i + 1
+                        i += 1
                         ch = chNext
                         chNext = " "
                         if i + 1 < lengthDoc:
@@ -628,7 +628,7 @@ class PythonSourceFormatter(Formatter):
             chPrev3 = chPrev2
             chPrev2 = chPrev
             chPrev = ch
-            i = i + 1
+            i += 1
         if startSeg < lengthDoc:
             if state == STYLE_KEYWORD:
                 self.ClassifyWord(cdoc, startSeg, lengthDoc - 1, prevWord)
@@ -668,7 +668,7 @@ class BuiltinSourceFormatter(FormatterBase):
         assert style.stylenum is None, "Style has already been registered"
         if stylenum is None:
             stylenum = self.nextstylenum
-            self.nextstylenum = self.nextstylenum + 1
+            self.nextstylenum += 1
         assert self.styles.get(stylenum) is None, "We are reusing a style number!"
         style.stylenum = stylenum
         self.styles[style.name] = style

@@ -17,7 +17,7 @@ import win32con
 import win32service
 import winerror
 
-error = RuntimeError
+error = RuntimeError  # Re-exported alias
 
 
 # Returns the full path to an executable for hosting a Python service - typically
@@ -50,8 +50,13 @@ def LocatePythonServiceExe(exe=None):
     # pywin32 installed it next to win32service.pyd (but we can't run it from there)
     maybe = os.path.join(os.path.dirname(win32service.__file__), exe)
     if os.path.exists(maybe):
-        print(f"copying host exe '{maybe}' -> '{correct}'")
-        win32api.CopyFile(maybe, correct)
+        print(f"moving host exe '{maybe}' -> '{correct}'")
+        # Handle case where MoveFile() fails. Particularly if destination file
+        # has a resource lock and can't be replaced by src file
+        try:
+            win32api.MoveFileEx(maybe, correct, win32con.MOVEFILE_REPLACE_EXISTING)
+        except win32api.error as exc:
+            print(f"Failed to move host exe '{exc}'")
 
     if not os.path.exists(correct):
         raise error(f"Can't find '{correct}'")
@@ -218,7 +223,7 @@ def InstallService(
         startType = win32service.SERVICE_DEMAND_START
     serviceType = win32service.SERVICE_WIN32_OWN_PROCESS
     if bRunInteractive:
-        serviceType = serviceType | win32service.SERVICE_INTERACTIVE_PROCESS
+        serviceType |= win32service.SERVICE_INTERACTIVE_PROCESS
     if errorControl is None:
         errorControl = win32service.SERVICE_ERROR_NORMAL
 
@@ -304,7 +309,7 @@ def ChangeServiceConfig(
     hscm = win32service.OpenSCManager(None, None, win32service.SC_MANAGER_ALL_ACCESS)
     serviceType = win32service.SERVICE_WIN32_OWN_PROCESS
     if bRunInteractive:
-        serviceType = serviceType | win32service.SERVICE_INTERACTIVE_PROCESS
+        serviceType |= win32service.SERVICE_INTERACTIVE_PROCESS
     commandLine = _GetCommandLine(exeName, exeArgs)
     try:
         hs = SmartOpenService(hscm, serviceName, win32service.SERVICE_ALL_ACCESS)
@@ -452,7 +457,7 @@ def __FindSvcDeps(findName):
             svc = win32api.RegEnumKey(k, num)
         except win32api.error:
             break
-        num = num + 1
+        num += 1
         sk = win32api.RegOpenKey(k, svc)
         try:
             deps, typ = win32api.RegQueryValueEx(sk, "DependOnService")
@@ -746,10 +751,9 @@ def HandleCommandLine(
                 "delayed": win32service.SERVICE_AUTO_START,  ## ChangeServiceConfig2 called later
                 "disabled": win32service.SERVICE_DISABLED,
             }
-            try:
-                startup = map[val.lower()]
-            except KeyError:
-                print("'%s' is not a valid startup option" % val)
+            startup = map.get(val.lower())
+            if not startup:
+                print(f"{val!r} is not a valid startup option")
             if val.lower() == "delayed":
                 delayedstart = True
             elif val.lower() == "auto":
@@ -981,11 +985,11 @@ class ServiceFramework:
         # override this.
         accepted = 0
         if hasattr(self, "SvcStop"):
-            accepted = accepted | win32service.SERVICE_ACCEPT_STOP
+            accepted |= win32service.SERVICE_ACCEPT_STOP
         if hasattr(self, "SvcPause") and hasattr(self, "SvcContinue"):
-            accepted = accepted | win32service.SERVICE_ACCEPT_PAUSE_CONTINUE
+            accepted |= win32service.SERVICE_ACCEPT_PAUSE_CONTINUE
         if hasattr(self, "SvcShutdown"):
-            accepted = accepted | win32service.SERVICE_ACCEPT_SHUTDOWN
+            accepted |= win32service.SERVICE_ACCEPT_SHUTDOWN
         return accepted
 
     def ReportServiceStatus(
@@ -1004,7 +1008,7 @@ class ServiceFramework:
         ]:
             checkPoint = 0
         else:
-            self.checkPoint = self.checkPoint + 1
+            self.checkPoint += 1
             checkPoint = self.checkPoint
 
         # Now report the status to the control manager

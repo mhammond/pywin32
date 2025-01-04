@@ -31,7 +31,7 @@ class LeakTestCase(unittest.TestCase):
         self.num_test_cases = 1
         self.num_leak_iters = 2  # seems to be enough!
         if hasattr(sys, "gettotalrefcount"):
-            self.num_test_cases = self.num_test_cases + self.num_leak_iters
+            self.num_test_cases += self.num_leak_iters
 
     def countTestCases(self):
         return self.num_test_cases
@@ -273,7 +273,7 @@ class TestRunner(unittest.TextTestRunner):
         return TestResult(self.stream, self.descriptions, self.verbosity)
 
 
-# TestProgream subclass necessary just to get our TestRunner hooked up,
+# TestProgram subclass necessary just to get our TestRunner hooked up,
 # which is necessary to get our TestResult hooked up *sob*
 class TestProgram(unittest.TestProgram):
     def runTests(self):
@@ -282,7 +282,7 @@ class TestProgram(unittest.TestProgram):
         unittest.TestProgram.runTests(self)
 
 
-# A convenient entry-point - if used, 'SKIPPED' exceptions will be supressed.
+# A convenient entry-point - if used, 'SKIPPED' exceptions will be suppressed.
 def testmain(*args, **kw):
     new_kw = kw.copy()
     if "testLoader" not in new_kw:

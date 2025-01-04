@@ -1,5 +1,4 @@
-"""Utilities for selecting and enumerating the Type Libraries installed on the system
-"""
+"""Utilities for selecting and enumerating the Type Libraries installed on the system"""
 
 import pythoncom
 import win32api
@@ -83,7 +82,7 @@ def EnumKeys(root):
             val = ""  # code using this assumes a string.
 
         ret.append((item, val))
-        index = index + 1
+        index += 1
     return ret
 
 

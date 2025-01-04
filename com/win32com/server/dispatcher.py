@@ -6,7 +6,7 @@ Please see policy.py for a discussion on dispatchers and policies
 from __future__ import annotations
 
 import traceback
-from sys import exc_info
+from typing import NoReturn
 
 import pythoncom
 import win32api
@@ -32,51 +32,48 @@ class DispatcherBase:
         # default location (typically 'print')
         self.logger = getattr(win32com, "logger", None)
 
-    # Note the "return self._HandleException_()" is purely to stop pychecker
-    # complaining - _HandleException_ will itself raise an exception for the
-    # pythoncom framework, so the result will never be seen.
     def _CreateInstance_(self, clsid, reqIID):
         try:
             self.policy._CreateInstance_(clsid, reqIID)
             return pythoncom.WrapObject(self, reqIID)
         except:
-            return self._HandleException_()
+            self._HandleException_()
 
     def _QueryInterface_(self, iid):
         try:
             return self.policy._QueryInterface_(iid)
         except:
-            return self._HandleException_()
+            self._HandleException_()
 
     def _Invoke_(self, dispid, lcid, wFlags, args):
         try:
             return self.policy._Invoke_(dispid, lcid, wFlags, args)
         except:
-            return self._HandleException_()
+            self._HandleException_()
 
     def _GetIDsOfNames_(self, names, lcid):
         try:
             return self.policy._GetIDsOfNames_(names, lcid)
         except:
-            return self._HandleException_()
+            self._HandleException_()
 
     def _GetTypeInfo_(self, index, lcid):
         try:
             return self.policy._GetTypeInfo_(index, lcid)
         except:
-            return self._HandleException_()
+            self._HandleException_()
 
     def _GetTypeInfoCount_(self):
         try:
             return self.policy._GetTypeInfoCount_()
         except:
-            return self._HandleException_()
+            self._HandleException_()
 
     def _GetDispID_(self, name, fdex):
         try:
             return self.policy._GetDispID_(name, fdex)
         except:
-            return self._HandleException_()
+            self._HandleException_()
 
     def _InvokeEx_(self, dispid, lcid, wFlags, args, kwargs, serviceProvider):
         try:
@@ -84,45 +81,45 @@ class DispatcherBase:
                 dispid, lcid, wFlags, args, kwargs, serviceProvider
             )
         except:
-            return self._HandleException_()
+            self._HandleException_()
 
     def _DeleteMemberByName_(self, name, fdex):
         try:
             return self.policy._DeleteMemberByName_(name, fdex)
         except:
-            return self._HandleException_()
+            self._HandleException_()
 
     def _DeleteMemberByDispID_(self, id):
         try:
             return self.policy._DeleteMemberByDispID_(id)
         except:
-            return self._HandleException_()
+            self._HandleException_()
 
     def _GetMemberProperties_(self, id, fdex):
         try:
             return self.policy._GetMemberProperties_(id, fdex)
         except:
-            return self._HandleException_()
+            self._HandleException_()
 
     def _GetMemberName_(self, dispid):
         try:
             return self.policy._GetMemberName_(dispid)
         except:
-            return self._HandleException_()
+            self._HandleException_()
 
     def _GetNextDispID_(self, fdex, flags):
         try:
             return self.policy._GetNextDispID_(fdex, flags)
         except:
-            return self._HandleException_()
+            self._HandleException_()
 
     def _GetNameSpaceParent_(self):
         try:
             return self.policy._GetNameSpaceParent_()
         except:
-            return self._HandleException_()
+            self._HandleException_()
 
-    def _HandleException_(self):
+    def _HandleException_(self) -> NoReturn:
         """Called whenever an exception is raised.
 
         Default behaviour is to print the exception.
@@ -153,8 +150,8 @@ class DispatcherTrace(DispatcherBase):
         rc = DispatcherBase._QueryInterface_(self, iid)
         if not rc:
             self._trace_(
-                "in {}._QueryInterface_ with unsupported IID {} ({})".format(
-                    repr(self.policy._obj_), IIDToInterfaceName(iid), iid
+                "in {!r}._QueryInterface_ with unsupported IID {} ({})".format(
+                    self.policy._obj_, IIDToInterfaceName(iid), iid
                 )
             )
         return rc
@@ -222,9 +219,7 @@ class DispatcherWin32trace(DispatcherTrace):
         if self.logger is None:
             # If we have no logger, setup our output.
             import win32traceutil  # Sets up everything.
-        self._trace_(
-            "Object with win32trace dispatcher created (object=%s)" % repr(object)
-        )
+        self._trace_(f"Object with win32trace dispatcher created (object={object!r})")
 
 
 class DispatcherOutputDebugString(DispatcherTrace):
@@ -236,66 +231,8 @@ class DispatcherOutputDebugString(DispatcherTrace):
         win32api.OutputDebugString(str(args[-1]) + "\n")
 
 
-DispatcherWin32dbg_deprecation_message = """\
-The DispatcherWin32dbg dispatcher is deprecated!
-Please open an issue at https://github.com/mhammond/pywin32 is this is a problem.
-Comment the relevant DeprecationWarning in dispatcher.py to re-enable.\
-"""
-
-
-class DispatcherWin32dbg(DispatcherBase):
-    """A source-level debugger dispatcher
-
-    A dispatcher which invokes the debugger as an object is instantiated, or
-    when an unexpected exception occurs.
-
-    Requires Pythonwin.
-    """
-
-    def __init__(self, policyClass, ob):
-        raise DeprecationWarning(DispatcherWin32dbg_deprecation_message)
-        # No one uses this, and it just causes py2exe to drag all of pythonwin in.
-        import pywin.debugger
-
-        pywin.debugger.brk()
-        # DEBUGGER Note - You can either:
-        # * Hit Run and wait for a (non Exception class) exception to occur!
-        # * Set a breakpoint and hit run.
-        # * Step into the object creation (a few steps away!)
-        DispatcherBase.__init__(self, policyClass, ob)
-
-    def _HandleException_(self):
-        """Invoke the debugger post mortem capability"""
-        raise DeprecationWarning(DispatcherWin32dbg_deprecation_message)
-        # Save details away.
-        typ, val, tb = exc_info()
-        import pywin.debugger
-        import pywin.debugger.dbgcon
-
-        debug = 0
-        try:
-            raise typ(val)
-        except Exception:  # AARG - What is this Exception???
-            # Use some inside knowledge to borrow a Debugger option which dictates if we
-            # stop at "expected" exceptions.
-            debug = pywin.debugger.GetDebugger().get_option(
-                pywin.debugger.dbgcon.OPT_STOP_EXCEPTIONS
-            )
-        except:
-            debug = 1
-        if debug:
-            try:
-                pywin.debugger.post_mortem(tb, typ, val)  # The original exception
-            except:
-                traceback.print_exc()
-
-        # But still raise it.
-        del tb
-        raise
-
-
 try:
-    import win32trace
+    import win32trace  # nopycln: import # Check for win32traceutil w/o importing it
 
     DefaultDebugDispatcher: type[DispatcherTrace] = DispatcherWin32trace
 except ImportError:  # no win32trace module - just use a print based one.

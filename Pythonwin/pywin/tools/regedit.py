@@ -197,7 +197,7 @@ class RegistryValueView(docview.ListView):
                     name = "(Default)"
                 self.InsertItem(valNum, name)
                 self.SetItemText(valNum, 1, str(res[1]))
-                valNum = valNum + 1
+                valNum += 1
         finally:
             win32api.RegCloseKey(hkey)
 
@@ -216,7 +216,7 @@ class RegistryValueView(docview.ListView):
                 style = win32api.GetWindowLong(
                     self.edit.GetSafeHwnd(), win32con.GWL_STYLE
                 )
-                style = style & (~win32con.ES_WANTRETURN)
+                style &= ~win32con.ES_WANTRETURN
                 win32api.SetWindowLong(
                     self.edit.GetSafeHwnd(), win32con.GWL_STYLE, style
                 )
@@ -364,7 +364,7 @@ class HLIRegistryKey(hierlist.HierListItem):
                 except win32api.error:
                     break
                 ret.append(HLIRegistryKey(self.keyRoot, self.keyName + "\\" + key, key))
-                keyNum = keyNum + 1
+                keyNum += 1
         finally:
             win32api.RegCloseKey(hkey)
             win32ui.DoWaitCursor(0)

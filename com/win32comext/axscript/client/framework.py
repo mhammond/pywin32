@@ -1,10 +1,10 @@
 """AXScript Client Framework
 
-  This module provides a core framework for an ActiveX Scripting client.
-  Derived classes actually implement the AX Client itself, including the
-  scoping rules, etc.
+This module provides a core framework for an ActiveX Scripting client.
+Derived classes actually implement the AX Client itself, including the
+scoping rules, etc.
 
-  There are classes defined for the engine itself, and for ScriptItems
+There are classes defined for the engine itself, and for ScriptItems
 """
 
 from __future__ import annotations
@@ -19,6 +19,9 @@ import win32com.client.connect
 import win32com.server.util
 import winerror
 from win32com.axscript import axscript
+from win32com.server.exception import COMException, IsCOMServerException
+
+from . import error  # axscript.client.error
 
 
 def RemoveCR(text):
@@ -32,9 +35,6 @@ SCRIPTTEXT_FORCEEXECUTION = -2147483648  # 0x80000000
 SCRIPTTEXT_ISEXPRESSION = 0x00000020
 SCRIPTTEXT_ISPERSISTENT = 0x00000040
 
-from win32com.server.exception import COMException, IsCOMServerException
-
-from . import error  # ax.client.error
 
 state_map = {
     axscript.SCRIPTSTATE_UNINITIALIZED: "SCRIPTSTATE_UNINITIALIZED",
@@ -487,7 +487,7 @@ class ScriptItem:
                     fdesc = defaultType.GetFuncDesc(index)
                 except pythoncom.com_error:
                     break  # No more funcs
-                index = index + 1
+                index += 1
                 dispid = fdesc[0]
                 funckind = fdesc[3]
                 invkind = fdesc[4]
@@ -690,9 +690,9 @@ class COMScript:
             or self.scriptState == axscript.SCRIPTSTATE_CONNECTED
             or self.scriptState == axscript.SCRIPTSTATE_DISCONNECTED
         ):
-            flags = flags | SCRIPTTEXT_FORCEEXECUTION
+            flags |= SCRIPTTEXT_FORCEEXECUTION
         else:
-            flags = flags & (~SCRIPTTEXT_FORCEEXECUTION)
+            flags &= ~SCRIPTTEXT_FORCEEXECUTION
 
         if flags & SCRIPTTEXT_FORCEEXECUTION:
             # About to execute the code.
@@ -987,7 +987,7 @@ class COMScript:
         # Due to the way we work, we re-create persistent ones.
         existing = self.subItems
         self.subItems = {}
-        for name, item in existing.items():
+        for item in existing.values():
             item.Close()
             if item.flags & axscript.SCRIPTITEM_ISPERSISTENT:
                 self.AddNamedItem(item.name, item.flags)

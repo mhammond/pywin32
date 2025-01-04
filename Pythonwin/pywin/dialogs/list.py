@@ -44,14 +44,17 @@ class ListDialog(dialog.Dialog):
         return 1
 
     def OnListItemChange(self, std, extra):
-        (hwndFrom, idFrom, code), (
-            itemNotify,
-            sub,
-            newState,
-            oldState,
-            change,
-            point,
-            lparam,
+        (
+            (hwndFrom, idFrom, code),
+            (
+                itemNotify,
+                sub,
+                newState,
+                oldState,
+                change,
+                point,
+                lparam,
+            ),
         ) = (std, extra)
         oldSel = (oldState & commctrl.LVIS_SELECTED) != 0
         newSel = (newState & commctrl.LVIS_SELECTED) != 0
@@ -103,7 +106,7 @@ class ListsDialog(ListDialog):
         for col in self.colHeadings:
             itemDetails = (commctrl.LVCFMT_LEFT, int(width / numCols), col, 0)
             self.itemsControl.InsertColumn(index, itemDetails)
-            index = index + 1
+            index += 1
         index = 0
         for items in self.items:
             index = self.itemsControl.InsertItem(index + 1, str(items[0]), 0)

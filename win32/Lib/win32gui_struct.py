@@ -80,9 +80,9 @@ def UnpackNMITEMACTIVATE(lparam):
     if is64bit:
         # the struct module doesn't handle this correctly as some of the items
         # are actually structs in structs, which get individually aligned.
-        format = format + "iiiiiiixxxxP"
+        format += "iiiiiiixxxxP"
     else:
-        format = format + "iiiiiiiP"
+        format += "iiiiiiiP"
     buf = win32gui.PyMakeBuffer(struct.calcsize(format), lparam)
     return _MakeResult(
         "NMITEMACTIVATE hwndFrom idFrom code iItem iSubItem uNewState uOldState uChanged actionx actiony lParam",
@@ -463,7 +463,7 @@ def EmptyTVITEM(hitem, mask=None, text_buf_size=512):
     else:
         text_addr = text_buf_size = 0
     buf = struct.pack(
-        _tvitem_fmt, mask, hitem, 0, 0, text_addr, text_buf_size, 0, 0, 0, 0  # text
+        _tvitem_fmt, mask, hitem, 0, 0, text_addr, text_buf_size, 0, 0, 0, 0
     )
     return array.array("b", buf), extra
 
@@ -522,10 +522,10 @@ def UnpackTVNOTIFY(lparam):
     item_size = struct.calcsize(_tvitem_fmt)
     format = _nmhdr_fmt + _nmhdr_align_padding
     if is64bit:
-        format = format + "ixxxx"
+        format += "ixxxx"
     else:
-        format = format + "i"
-    format = format + "%ds%ds" % (item_size, item_size)
+        format += "i"
+    format += "%ds%ds" % (item_size, item_size)
     buf = win32gui.PyGetMemory(lparam, struct.calcsize(format))
     hwndFrom, id, code, action, buf_old, buf_new = struct.unpack(format, buf)
     item_old = UnpackTVITEM(buf_old)
@@ -670,8 +670,8 @@ def UnpackLVDISPINFO(lparam):
 def UnpackLVNOTIFY(lparam):
     format = _nmhdr_fmt + _nmhdr_align_padding + "7i"
     if is64bit:
-        format = format + "xxxx"  # point needs padding.
-    format = format + "P"
+        format += "xxxx"  # point needs padding.
+    format += "P"
     buf = win32gui.PyGetMemory(lparam, struct.calcsize(format))
     (
         hwndFrom,
@@ -758,7 +758,7 @@ def PackLVCOLUMN(fmt=None, cx=None, text=None, subItem=None, image=None, order=N
         text_addr, _ = text_buffer.buffer_info()
         text_len = len(text)
     buf = struct.pack(
-        _lvcolumn_fmt, mask, fmt, cx, text_addr, text_len, subItem, image, order  # text
+        _lvcolumn_fmt, mask, fmt, cx, text_addr, text_len, subItem, image, order
     )
     return array.array("b", buf), extra
 
@@ -808,9 +808,7 @@ def EmptyLVCOLUMN(mask=None, text_buf_size=512):
         text_addr, _ = text_buffer.buffer_info()
     else:
         text_addr = text_buf_size = 0
-    buf = struct.pack(
-        _lvcolumn_fmt, mask, 0, 0, text_addr, text_buf_size, 0, 0, 0  # text
-    )
+    buf = struct.pack(_lvcolumn_fmt, mask, 0, 0, text_addr, text_buf_size, 0, 0, 0)
     return array.array("b", buf), extra
 
 
@@ -952,6 +950,8 @@ def UnpackDEV_BROADCAST(lparam):
         _, _, _, x["unitmask"], x["flags"] = struct.unpack(
             fmt, buf[: struct.calcsize(fmt)]
         )
+    elif devtype == win32con.DBT_DEVTYP_PORT:
+        x["name"] = win32gui.PyGetString(lparam + struct.calcsize(hdr_format))
     else:
         raise NotImplementedError("unknown device type %d" % (devtype,))
     return DEV_BROADCAST_INFO(devtype, **extra)

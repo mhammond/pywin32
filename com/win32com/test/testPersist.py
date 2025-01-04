@@ -42,29 +42,29 @@ class LockBytes:
         return result
 
     def WriteAt(self, offset, data):
-        print("WriteAt " + str(offset))
-        print("len " + str(len(data)))
+        print("WriteAt", offset)
+        print("len", len(data))
         print("data:")
         # print(data)
         if len(self.data) >= offset:
             newdata = self.data[0:offset] + data
         print(len(newdata))
         if len(self.data) >= offset + len(data):
-            newdata = newdata + self.data[offset + len(data) :]
+            newdata += self.data[offset + len(data) :]
         print(len(newdata))
         self.data = newdata
         return len(data)
 
     def Flush(self, whatsthis=0):
-        print("Flush" + str(whatsthis))
+        print("Flush", whatsthis)
         fname = os.path.join(win32api.GetTempPath(), "persist.doc")
         open(fname, "wb").write(self.data)
         return S_OK
 
     def SetSize(self, size):
-        print("Set Size" + str(size))
+        print("Set Size", size)
         if size > len(self.data):
-            self.data = self.data + b"\000" * (size - len(self.data))
+            self.data += b"\000" * (size - len(self.data))
         else:
             self.data = self.data[0:size]
         return S_OK
@@ -76,7 +76,7 @@ class LockBytes:
         print("UnlockRegion")
 
     def Stat(self, statflag):
-        print("returning Stat " + str(statflag))
+        print("returning Stat", statflag)
         return (
             "PyMemBytes",
             storagecon.STGTY_LOCKBYTES,
@@ -121,7 +121,7 @@ class OleClientSite:
         return S_OK
 
     def GetMoniker(self, dwAssign, dwWhichMoniker):
-        print("GetMoniker " + str(dwAssign) + " " + str(dwWhichMoniker))
+        print("GetMoniker", dwAssign, dwWhichMoniker)
 
     def GetContainer(self):
         print("GetContainer")
@@ -130,7 +130,7 @@ class OleClientSite:
         print("ShowObject")
 
     def OnShowWindow(self, fShow):
-        print("ShowObject" + str(fShow))
+        print("ShowObject", fShow)
 
     def RequestNewObjectLayout(self):
         print("RequestNewObjectLayout")

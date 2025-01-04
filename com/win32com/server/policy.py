@@ -66,8 +66,6 @@ Error Handling
  problem, rather than a COM error.
 """
 
-__author__ = "Greg Stein and Mark Hammond"
-
 import sys
 import types
 
@@ -83,16 +81,16 @@ from pythoncom import (
     DISPATCH_PROPERTYGET,
     DISPATCH_PROPERTYPUT,
     DISPATCH_PROPERTYPUTREF,
-    DISPID_COLLECT,
-    DISPID_CONSTRUCTOR,
-    DISPID_DESTRUCTOR,
     DISPID_EVALUATE,
     DISPID_NEWENUM,
     DISPID_PROPERTYPUT,
     DISPID_STARTENUM,
-    DISPID_UNKNOWN,
     DISPID_VALUE,
 )
+
+from .exception import COMException
+
+__author__ = "Greg Stein and Mark Hammond"
 
 S_OK = 0
 
@@ -100,9 +98,6 @@ S_OK = 0
 IDispatchType = pythoncom.TypeIIDs[pythoncom.IID_IDispatch]
 IUnknownType = pythoncom.TypeIIDs[pythoncom.IID_IUnknown]
 
-from .exception import COMException
-
-error = __name__ + " error"
 
 regSpec = "CLSID\\%s\\PythonCOM"
 regPolicy = "CLSID\\%s\\PythonCOMPolicy"
@@ -210,9 +205,8 @@ class BasicWrapPolicy:
                 win32con.HKEY_CLASSES_ROOT, regSpec % clsid
             )
         except win32api.error:
-            raise error(
-                "The object is not correctly registered - %s key can not be read"
-                % (regSpec % clsid)
+            raise ValueError(
+                f"The object is not correctly registered - {regSpec % clsid} key can not be read"
             )
         myob = call_func(classSpec)
         self._wrap_(myob)
@@ -327,7 +321,7 @@ class BasicWrapPolicy:
 
     # IDispatchEx support for policies.  Most of the IDispathEx functionality
     # by default will raise E_NOTIMPL.  Thus it is not necessary for derived
-    # policies to explicitely implement all this functionality just to not implement it!
+    # policies to explicitly implement all this functionality just to not implement it!
 
     def _GetDispID_(self, name, fdex):
         return self._getdispid_(name, fdex)
@@ -361,7 +355,7 @@ class BasicWrapPolicy:
         Simply raises an exception.
         """
         # Base classes should override this method (and not call the base)
-        raise error("This class does not provide _invokeex_ semantics")
+        raise NotImplementedError("This class does not provide _invokeex_ semantics")
 
     def _DeleteMemberByName_(self, name, fdex):
         return self._deletememberbyname_(name, fdex)
@@ -391,10 +385,8 @@ class BasicWrapPolicy:
         return self._getnextdispid_(fdex, dispid)
 
     def _getnextdispid_(self, fdex, dispid):
-        ids = list(self._name_to_dispid_.values())
+        ids = [id for id in self._name_to_dispid_.values() if id != DISPID_STARTENUM]
         ids.sort()
-        if DISPID_STARTENUM in ids:
-            ids.remove(DISPID_STARTENUM)
         if dispid == DISPID_STARTENUM:
             return ids[0]
         else:
@@ -515,8 +507,9 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
             universal_data = []
         MappedWrapPolicy._wrap_(self, ob)
         if not hasattr(ob, "_public_methods_") and not hasattr(ob, "_typelib_guid_"):
-            raise error(
-                "Object does not support DesignatedWrapPolicy, as it does not have either _public_methods_ or _typelib_guid_ attributes."
+            raise ValueError(
+                "Object does not support DesignatedWrapPolicy, "
+                + "as it does not have either _public_methods_ or _typelib_guid_ attributes.",
             )
 
         # Copy existing _dispid_to_func_ entries to _name_to_dispid_
@@ -608,7 +601,7 @@ class DesignatedWrapPolicy(MappedWrapPolicy):
 
     def _allocnextdispid(self, last_dispid):
         while 1:
-            last_dispid = last_dispid + 1
+            last_dispid += 1
             if (
                 last_dispid not in self._dispid_to_func_
                 and last_dispid not in self._dispid_to_get_
@@ -732,7 +725,7 @@ class DynamicPolicy(BasicWrapPolicy):
     def _wrap_(self, object):
         BasicWrapPolicy._wrap_(self, object)
         if not hasattr(self._obj_, "_dynamic_"):
-            raise error("Object does not support Dynamic COM Policy")
+            raise ValueError("Object does not support Dynamic COM Policy")
         self._next_dynamic_ = self._min_dynamic_ = 1000
         self._dyn_dispid_to_name_ = {
             DISPID_VALUE: "_value_",
@@ -808,15 +801,3 @@ def _import_module(mname):
     # Eeek - result of _import_ is "win32com" - not "win32com.a.b.c"
     # Get the full module from sys.modules
     return sys.modules[mname]
-
-
-#######
-#
-# Temporary hacks until all old code moves.
-#
-# These have been moved to a new source file, but some code may
-# still reference them here.  These will end up being removed.
-try:
-    from .dispatcher import DispatcherTrace, DispatcherWin32trace
-except ImportError:  # Quite likely a frozen executable that doesn't need dispatchers
-    pass

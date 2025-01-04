@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import struct
+from collections.abc import Iterable
 
 import win32wnet
 
@@ -191,7 +194,7 @@ def Netbios(ncb):
 
 
 class NCBStruct:
-    def __init__(self, items):
+    def __init__(self, items: Iterable[tuple[str, str]]) -> None:
         self._format = "".join([item[0] for item in items])
         self._items = items
         self._buffer_ = win32wnet.NCBBuffer(struct.calcsize(self._format))
@@ -199,23 +202,18 @@ class NCBStruct:
         for format, name in self._items:
             if len(format) == 1:
                 if format == "c":
-                    val = "\0"
+                    val: bytes | int = b"\0"
                 else:
                     val = 0
             else:
                 l = int(format[:-1])
-                val = "\0" * l
+                val = b"\0" * l
             self.__dict__[name] = val
 
     def _pack(self):
-        vals = []
-        for format, name in self._items:
-            try:
-                vals.append(self.__dict__[name])
-            except KeyError:
-                vals.append(None)
+        vals = [self.__dict__.get(name) for format, name in self._items]
 
-        self._buffer_[:] = struct.pack(*(self._format,) + tuple(vals))
+        self._buffer_[:] = struct.pack(self._format, *vals)
 
     def _unpack(self):
         items = struct.unpack(self._format, self._buffer_)

@@ -1,4 +1,3 @@
-import gc
 import logging
 import os
 import sys
@@ -13,7 +12,6 @@ import win32api
 import win32com
 import winerror
 from pythoncom import _GetGatewayCount, _GetInterfaceCount
-from pywin32_testutil import LeakTestCase, TestLoader, TestResult, TestRunner
 
 
 def CheckClean():
@@ -102,7 +100,7 @@ def ExecuteShellCommand(
     tracebacks_ok=0,  # OK if the output contains a t/b?
 ):
     output_name = tempfile.mktemp("win32com_test")
-    cmd = cmd + ' > "%s" 2>&1' % output_name
+    cmd += ' > "%s" 2>&1' % output_name
     rc = os.system(cmd)
     output = open(output_name, "r").read().strip()
     os.remove(output_name)
@@ -210,7 +208,7 @@ TestCase = unittest.TestCase
 
 def CapturingFunctionTestCase(*args, **kw):
     real_test = _CapturingFunctionTestCase(*args, **kw)
-    return LeakTestCase(real_test)
+    return pywin32_testutil.LeakTestCase(real_test)
 
 
 class _CapturingFunctionTestCase(unittest.FunctionTestCase):  # , TestCaseMixin):

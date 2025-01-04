@@ -5,8 +5,7 @@
 import pythoncom
 from win32com.client import gencache
 
-com_error = pythoncom.com_error
-_univgw = pythoncom._univgw
+com_error = pythoncom.com_error  # Re-exported alias
 
 
 def RegisterInterfaces(typelibGUID, lcid, major, minor, interface_names=None):
@@ -59,9 +58,7 @@ def RegisterInterfaces(typelibGUID, lcid, major, minor, interface_names=None):
                 ret.append((dispid, invkind, names[0]))
     else:
         # Cool - can used cached info.
-        if not interface_names:
-            interface_names = list(mod.VTablesToClassMap.values())
-        for name in interface_names:
+        for name in interface_names or mod.VTablesToClassMap.values():
             try:
                 iid = mod.NamesToIIDMap[name]
             except KeyError:
@@ -86,15 +83,15 @@ def RegisterInterfaces(typelibGUID, lcid, major, minor, interface_names=None):
 
 def _doCreateVTable(iid, interface_name, is_dispatch, method_defs):
     defn = Definition(iid, is_dispatch, method_defs)
-    vtbl = _univgw.CreateVTable(defn, is_dispatch)
-    _univgw.RegisterVTable(vtbl, iid, interface_name)
+    vtbl = pythoncom._univgw.CreateVTable(defn, is_dispatch)
+    pythoncom._univgw.RegisterVTable(vtbl, iid, interface_name)
 
 
 def _CalcTypeSize(typeTuple):
     t = typeTuple[0]
     if t & (pythoncom.VT_BYREF | pythoncom.VT_ARRAY):
         # It's a pointer.
-        cb = _univgw.SizeOfVT(pythoncom.VT_PTR)[1]
+        cb = pythoncom._univgw.SizeOfVT(pythoncom.VT_PTR)[1]
     elif t == pythoncom.VT_RECORD:
         # Just because a type library uses records doesn't mean the user
         # is trying to.  We need to better place to warn about this, but it
@@ -104,10 +101,10 @@ def _CalcTypeSize(typeTuple):
         #     warnings.warn("warning: records are known to not work for vtable interfaces")
         # except ImportError:
         #     print("warning: records are known to not work for vtable interfaces")
-        cb = _univgw.SizeOfVT(pythoncom.VT_PTR)[1]
+        cb = pythoncom._univgw.SizeOfVT(pythoncom.VT_PTR)[1]
         # cb = typeInfo.GetTypeAttr().cbSizeInstance
     else:
-        cb = _univgw.SizeOfVT(t)[1]
+        cb = pythoncom._univgw.SizeOfVT(t)[1]
     return cb
 
 
@@ -141,7 +138,7 @@ class Method:
         for argDesc in arg_defs:
             arg = Arg(argDesc)
             arg.offset = cbArgs
-            cbArgs = cbArgs + arg.size
+            cbArgs += arg.size
             self.args.append(arg)
         self.cbArgs = cbArgs
         self._gw_in_args = self._GenerateInArgTuple()
@@ -191,8 +188,8 @@ class Definition:
         ob,
         index,
         argPtr,
-        ReadFromInTuple=_univgw.ReadFromInTuple,
-        WriteFromOutTuple=_univgw.WriteFromOutTuple,
+        ReadFromInTuple=pythoncom._univgw.ReadFromInTuple,
+        WriteFromOutTuple=pythoncom._univgw.WriteFromOutTuple,
     ):
         "Dispatch a call to an interface method."
         meth = self._methods[index]

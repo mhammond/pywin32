@@ -463,7 +463,7 @@ class WindowOutput(docview.DocTemplate):
         except KeyboardInterrupt:
             # First interrupt since idle we just pass on.
             # later ones we dump the queue and give up.
-            self.interruptCount = self.interruptCount + 1
+            self.interruptCount += 1
             if self.interruptCount > 1:
                 # Drop the queue quickly as the user is already annoyed :-)
                 self.outputQueue = queue.Queue(-1)
@@ -511,7 +511,7 @@ class WindowOutput(docview.DocTemplate):
                 rc = 1
                 break
             if max is not None:
-                max = max - 1
+                max -= 1
         if len(items) != 0:
             if not self.CheckRecreateWindow():
                 debug(":Recreate failed!\n")

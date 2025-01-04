@@ -70,7 +70,7 @@ modifiers = {
 
 
 def parse_key_name(name):
-    name = name + "-"  # Add a sentinal
+    name += "-"  # Add a sentinel
     start = pos = 0
     max = len(name)
     toks = []
@@ -121,7 +121,7 @@ def make_key_name(vk, flags):
         for name, checkflag in moddata:
             if flags & checkflag:
                 parts.append(name)
-                flags_done = flags_done & checkflag
+                flags_done &= checkflag
                 break
     if flags_done & flags:
         parts.append(hex(flags & ~flags_done))
@@ -144,7 +144,7 @@ def make_key_name(vk, flags):
 
 def _psc(char):
     sc, mods = get_vk(char)
-    print("Char %s -> %d -> %s" % (repr(char), sc, key_code_to_name.get(sc)))
+    print(f"Char {char!r} -> {sc} -> {key_code_to_name.get(sc)}")
 
 
 def test1():

@@ -59,7 +59,7 @@ def UserEnum():
         )
         for user in data:
             verbose("Found user %s" % user["name"])
-            nuser = nuser + 1
+            nuser += 1
         if not resume:
             break
     assert nuser, "Could not find any users!"
@@ -82,7 +82,7 @@ def GroupEnum():
                 )
                 for member in memberdata:
                     verbose(" Member {name}".format(**member))
-                    nmembers = nmembers + 1
+                    nmembers += 1
                 if memberresume == 0:
                     break
         if not resume:
@@ -109,7 +109,7 @@ def LocalGroupEnum():
                     username, domain, type = win32security.LookupAccountSid(
                         server, member["sid"]
                     )
-                    nmembers = nmembers + 1
+                    nmembers += 1
                     verbose(" Member {} ({})".format(username, member["domainandname"]))
                 if memberresume == 0:
                     break
@@ -184,7 +184,7 @@ def GetInfo(userName=None):
         userName = win32api.GetUserName()
     print("Dumping level 3 information about user")
     info = win32net.NetUserGetInfo(server, userName, 3)
-    for key, val in list(info.items()):
+    for key, val in info.items():
         verbose(f"{key}={val}")
 
 
@@ -228,10 +228,7 @@ def usage(tests):
 
 
 def main():
-    tests = []
-    for ob in list(globals().values()):
-        if isinstance(ob, Callable) and ob.__doc__:
-            tests.append(ob)
+    tests = [ob for ob in globals().values() if isinstance(ob, Callable) and ob.__doc__]
     opts, args = getopt.getopt(sys.argv[1:], "s:hvc")
     create_user = False
     for opt, val in opts:
@@ -242,7 +239,7 @@ def main():
             usage(tests)
         if opt == "-v":
             global verbose_level
-            verbose_level = verbose_level + 1
+            verbose_level += 1
         if opt == "-c":
             create_user = True
 

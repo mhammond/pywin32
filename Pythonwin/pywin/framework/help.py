@@ -97,7 +97,7 @@ def _ListAllHelpFilesInRoot(root):
                 helpDesc = win32api.RegEnumKey(key, keyNo)
                 helpFile = win32api.RegQueryValue(key, helpDesc)
                 retList.append((helpDesc, helpFile))
-                keyNo = keyNo + 1
+                keyNo += 1
             except win32api.error as exc:
                 import winerror
 
@@ -149,7 +149,7 @@ def SetHelpMenuOtherHelp(mainMenu):
             if fname not in excludeFnames:
                 helpIDMap[cmdID] = (desc, fname)
                 win32ui.GetMainFrame().HookCommand(HandleHelpOtherCommand, cmdID)
-                cmdID = cmdID + 1
+                cmdID += 1
 
     helpMenu = mainMenu.GetSubMenu(
         mainMenu.GetMenuItemCount() - 1

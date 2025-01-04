@@ -24,7 +24,7 @@ import time
 
 import win32pdh
 
-error = win32pdh.error
+error = win32pdh.error  # Re-exported alias
 
 # Handle some localization issues.
 # see http://support.microsoft.com/default.aspx?scid=http://support.microsoft.com:80/support/kb/articles/Q287/1/59.asp&NoWebContent=1
@@ -103,7 +103,7 @@ def FindPerformanceAttributesByName(
     instance_dict = {}
     for instance in instances:
         try:
-            instance_dict[instance] = instance_dict[instance] + 1
+            instance_dict[instance] += 1
         except KeyError:
             instance_dict[instance] = 0
 
@@ -128,7 +128,7 @@ def ShowAllProcesses():
     instance_dict = {}
     for instance in instances:
         try:
-            instance_dict[instance] = instance_dict[instance] + 1
+            instance_dict[instance] += 1
         except KeyError:
             instance_dict[instance] = 0
 

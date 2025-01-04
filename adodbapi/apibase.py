@@ -5,11 +5,14 @@ Copyright (C) 2002 Henrik Ekelund, version 2.1 by Vernon Cole
 * http://sourceforge.net/projects/adodbapi
 """
 
+from __future__ import annotations
+
 import datetime
 import decimal
 import numbers
 import sys
 import time
+from collections.abc import Callable, Iterable, Mapping
 
 # noinspection PyUnresolvedReferences
 from . import ado_consts as adc
@@ -461,20 +464,25 @@ def convert_to_python(variant, func):  # convert DB value into Python value
     return func(variant)  # call the appropriate conversion function
 
 
-class MultiMap(dict):  # builds a dictionary from {(sequence,of,keys) : function}
-    """A dictionary of ado.type : function -- but you can set multiple items by passing a sequence of keys"""
+class MultiMap(dict[int, Callable[[object], object]]):
+    # builds a dictionary from {(iterable,of,keys) : function}
+    """A dictionary of ado.type : function
+    -- but you can set multiple items by passing an iterable of keys"""
 
     # useful for defining conversion functions for groups of similar data types.
-    def __init__(self, aDict):
-        for k, v in list(aDict.items()):
+    def __init__(self, aDict: Mapping[Iterable[int] | int, Callable[[object], object]]):
+        for k, v in aDict.items():
             self[k] = v  # we must call __setitem__
 
-    def __setitem__(self, adoType, cvtFn):
-        "set a single item, or a whole sequence of items"
-        try:  # user passed us a sequence, set them individually
+    def __setitem__(
+        self, adoType: Iterable[int] | int, cvtFn: Callable[[object], object]
+    ):
+        "set a single item, or a whole iterable of items"
+        if isinstance(adoType, Iterable):
+            # user passed us an iterable, set them individually
             for type in adoType:
                 dict.__setitem__(self, type, cvtFn)
-        except TypeError:  # a single value fails attempt to iterate
+        else:
             dict.__setitem__(self, adoType, cvtFn)
 
 

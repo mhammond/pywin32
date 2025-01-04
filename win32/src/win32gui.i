@@ -3,10 +3,6 @@
 
 %module win32gui // A module which provides an interface to the native win32 GUI API.
 
-%{
-#define _WIN32_WINNT 0x0501
-
-%}
 %include "typemaps.i"
 %include "pywintypes.i"
 
@@ -14,7 +10,7 @@
 #undef PyHANDLE
 #include "pywinobjects.h"
 #include "winuser.h"
-#include "commctrl.h"
+#include "CommCtrl.h"
 #include "windowsx.h" // For edit control hacks.
 #include "Dbt.h" // device notification
 #include "malloc.h"
@@ -266,42 +262,36 @@ for (PyMethodDef *pmd = win32guiMethods; pmd->ml_name; pmd++)
 		)
 		pmd->ml_flags = METH_VARARGS | METH_KEYWORDS;
 
-HMODULE hmodule=GetModuleHandle(TEXT("user32.dll"));
-if (hmodule==NULL)
-	hmodule=LoadLibrary(TEXT("user32.dll"));
-if (hmodule){
-	pfnSetLayeredWindowAttributes=(SetLayeredWindowAttributesfunc)GetProcAddress(hmodule,"SetLayeredWindowAttributes");
-	pfnGetLayeredWindowAttributes=(GetLayeredWindowAttributesfunc)GetProcAddress(hmodule,"GetLayeredWindowAttributes");
-	pfnUpdateLayeredWindow=(UpdateLayeredWindowfunc)GetProcAddress(hmodule,"UpdateLayeredWindow");
-	pfnAnimateWindow=(AnimateWindowfunc)GetProcAddress(hmodule,"AnimateWindow");
-	pfnGetMenuInfo=(GetMenuInfofunc)GetProcAddress(hmodule,"GetMenuInfo");
-	pfnSetMenuInfo=(SetMenuInfofunc)GetProcAddress(hmodule,"SetMenuInfo");
-	pfnDrawTextW=(DrawTextWfunc)GetProcAddress(hmodule, "DrawTextW");
-	}
+HMODULE hmodule = PyWin_GetOrLoadLibraryHandle("user32.dll");
+if (hmodule != NULL) {
+    pfnSetLayeredWindowAttributes = (SetLayeredWindowAttributesfunc)GetProcAddress(hmodule,"SetLayeredWindowAttributes");
+    pfnGetLayeredWindowAttributes = (GetLayeredWindowAttributesfunc)GetProcAddress(hmodule,"GetLayeredWindowAttributes");
+    pfnUpdateLayeredWindow = (UpdateLayeredWindowfunc)GetProcAddress(hmodule,"UpdateLayeredWindow");
+    pfnAnimateWindow = (AnimateWindowfunc)GetProcAddress(hmodule,"AnimateWindow");
+    pfnGetMenuInfo = (GetMenuInfofunc)GetProcAddress(hmodule,"GetMenuInfo");
+    pfnSetMenuInfo = (SetMenuInfofunc)GetProcAddress(hmodule,"SetMenuInfo");
+    pfnDrawTextW = (DrawTextWfunc)GetProcAddress(hmodule, "DrawTextW");
+}
 
-hmodule=GetModuleHandle(TEXT("gdi32.dll"));
-if (hmodule==NULL)
-	hmodule=LoadLibrary(TEXT("gdi32.dll"));
-if (hmodule){
-	pfnAngleArc=(AngleArcfunc)GetProcAddress(hmodule,"AngleArc");
-	pfnPlgBlt=(PlgBltfunc)GetProcAddress(hmodule,"PlgBlt");
-	pfnGetWorldTransform=(GetWorldTransformfunc)GetProcAddress(hmodule,"GetWorldTransform");
-	pfnSetWorldTransform=(SetWorldTransformfunc)GetProcAddress(hmodule,"SetWorldTransform");
-	pfnModifyWorldTransform=(ModifyWorldTransformfunc)GetProcAddress(hmodule,"ModifyWorldTransform");
-	pfnCombineTransform=(CombineTransformfunc)GetProcAddress(hmodule,"CombineTransform");
-	pfnMaskBlt=(MaskBltfunc)GetProcAddress(hmodule,"MaskBlt");
-	pfnGetLayout=(GetLayoutfunc)GetProcAddress(hmodule,"GetLayout");
-	pfnSetLayout=(SetLayoutfunc)GetProcAddress(hmodule,"SetLayout");
-	}
+hmodule = PyWin_GetOrLoadLibraryHandle("gdi32.dll");
+if (hmodule != NULL) {
+    pfnAngleArc = (AngleArcfunc)GetProcAddress(hmodule,"AngleArc");
+    pfnPlgBlt = (PlgBltfunc)GetProcAddress(hmodule,"PlgBlt");
+    pfnGetWorldTransform = (GetWorldTransformfunc)GetProcAddress(hmodule,"GetWorldTransform");
+    pfnSetWorldTransform = (SetWorldTransformfunc)GetProcAddress(hmodule,"SetWorldTransform");
+    pfnModifyWorldTransform = (ModifyWorldTransformfunc)GetProcAddress(hmodule,"ModifyWorldTransform");
+    pfnCombineTransform = (CombineTransformfunc)GetProcAddress(hmodule,"CombineTransform");
+    pfnMaskBlt = (MaskBltfunc)GetProcAddress(hmodule,"MaskBlt");
+    pfnGetLayout = (GetLayoutfunc)GetProcAddress(hmodule,"GetLayout");
+    pfnSetLayout = (SetLayoutfunc)GetProcAddress(hmodule,"SetLayout");
+}
 
-hmodule=GetModuleHandle(TEXT("msimg32.dll"));
-if (hmodule==NULL)
-	hmodule=LoadLibrary(TEXT("msimg32.dll"));
-if (hmodule){
-	pfnGradientFill=(GradientFillfunc)GetProcAddress(hmodule,"GradientFill");
-	pfnTransparentBlt=(TransparentBltfunc)GetProcAddress(hmodule,"TransparentBlt");
-	pfnAlphaBlend=(AlphaBlendfunc)GetProcAddress(hmodule,"AlphaBlend");
-	}
+hmodule = PyWin_GetOrLoadLibraryHandle("msimg32.dll");
+if (hmodule != NULL) {
+    pfnGradientFill = (GradientFillfunc)GetProcAddress(hmodule,"GradientFill");
+    pfnTransparentBlt = (TransparentBltfunc)GetProcAddress(hmodule,"TransparentBlt");
+    pfnAlphaBlend = (AlphaBlendfunc)GetProcAddress(hmodule,"AlphaBlend");
+}
 %}
 
 %{
@@ -5998,26 +5988,49 @@ PyGetScrollInfo (PyObject *self, PyObject *args)
 %native (GetScrollInfo) PyGetScrollInfo;
 
 %{
+#define MAX_CHARS 0x100
+
 // @pyswig string|GetClassName|Retrieves the name of the class to which the specified window belongs.
 static PyObject *
 PyGetClassName(PyObject *self, PyObject *args)
 {
-	HWND hwnd;
-	PyObject *obhwnd;
-	TCHAR buf[256];
-	// @pyparm <o PyHANDLE>|hwnd||The handle to the window
-	if (!PyArg_ParseTuple(args, "O:GetClassName", &obhwnd))
-		return NULL;
-	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
-		return NULL;
-	// don't bother with lock - no callback possible.
-	int nchars = GetClassName(hwnd, buf, sizeof buf/sizeof buf[0]);
-	if (nchars==0)
-		return PyWin_SetAPIError("GetClassName");
-	return PyWinObject_FromTCHAR(buf, nchars);
+    HWND hwnd;
+    PyObject *obhwnd;
+    TCHAR buf[MAX_CHARS];
+    // @pyparm <o PyHANDLE>|hwnd||The handle to the window
+    if (!PyArg_ParseTuple(args, "O:GetClassName", &obhwnd))
+        return NULL;
+    if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE*)&hwnd))
+        return NULL;
+    // don't bother with lock - no callback possible.
+    int nchars = GetClassName(hwnd, buf, MAX_CHARS);
+    if (nchars == 0)
+        return PyWin_SetAPIErrorOrReturnNone("GetClassName");
+    return PyWinObject_FromTCHAR(buf, nchars);
 }
+
+// @pyswig string|RealGetWindowClass|Retrieves the name of the class to which the specified window belongs.
+static PyObject *
+PyRealGetWindowClass(PyObject *self, PyObject *args)
+{
+    HWND hwnd;
+    PyObject *obhwnd;
+    TCHAR buf[MAX_CHARS];
+    // @pyparm <o PyHANDLE>|hwnd||The handle to the window
+    if (!PyArg_ParseTuple(args, "O:RealGetWindowClass", &obhwnd))
+        return NULL;
+    if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE*)&hwnd))
+        return NULL;
+    // don't bother with lock - no callback possible.
+    UINT nchars = RealGetWindowClass(hwnd, buf, MAX_CHARS);
+    if (nchars == 0)
+        return PyWin_SetAPIErrorOrReturnNone("RealGetWindowClass");
+    return PyWinObject_FromTCHAR(buf, nchars);
+}
+
 %}
 %native (GetClassName) PyGetClassName;
+%native (RealGetWindowClass) PyRealGetWindowClass;
 
 // @pyswig int|WindowFromPoint|Retrieves a handle to the window that contains the specified point.
 // @pyparm (int, int)|point||The point.
@@ -6065,7 +6078,7 @@ static int CALLBACK PySortFunc(
 	assert(!PyErr_Occurred());
 	args = Py_BuildValue("llO", lParam1, lParam2, pc->data);
 	if (!args) goto done;
-	result = PyEval_CallObject(pc->fn, args);
+	result = PyObject_CallObject(pc->fn, args);
 	// API says must return 0, but there might be a good reason.
 	if (!result) goto done;
 	if (!PyLong_Check(result)) {

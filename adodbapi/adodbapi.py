@@ -66,7 +66,7 @@ from collections.abc import Mapping
 def make_COM_connecter():
     try:
         pythoncom.CoInitialize()  # v2.1 Paj
-        c = Dispatch("ADODB.Connection")  # connect _after_ CoIninialize v2.1.1 adamvan
+        c = Dispatch("ADODB.Connection")  # connect _after_ CoInitialize v2.1.1 adamvan
     except:
         raise api.InterfaceError(
             "Windows COM Error: Dispatch('ADODB.Connection') failed."
@@ -162,15 +162,15 @@ def _configure_parameter(p, value, adotype, settings_known):
         p.AppendChunk(value)
 
     elif isinstance(value, str):  # v2.1 Jevon
-        L = len(value)
+        length = len(value)
         if adotype in api.adoStringTypes:  # v2.2.1 Cole
             if settings_known:
-                L = min(L, p.Size)  # v2.1 Cole limit data to defined size
-            p.Value = value[:L]  # v2.1 Jevon & v2.1 Cole
+                length = min(length, p.Size)  # v2.1 Cole limit data to defined size
+            p.Value = value[:length]  # v2.1 Jevon & v2.1 Cole
         else:
             p.Value = value  # don't limit if db column is numeric
-        if L > 0:  # v2.1 Cole something does not like p.Size as Zero
-            p.Size = L  # v2.1 Jevon
+        if length > 0:  # v2.1 Cole something does not like p.Size as Zero
+            p.Size = length  # v2.1 Jevon
 
     elif isinstance(value, decimal.Decimal):
         p.Value = value
@@ -234,7 +234,7 @@ class Connection:
         self.paramstyle = api.paramstyle
         self.supportsTransactions = False
         self.connection_string = ""
-        self.cursors = weakref.WeakValueDictionary()
+        self.cursors = weakref.WeakValueDictionary[int, Cursor]()
         self.dbms_name = ""
         self.dbms_version = ""
         self.errorhandler = None  # use the standard error handler for this instance
@@ -395,9 +395,7 @@ class Connection:
                     # If attributes has adXactAbortRetaining it performs retaining aborts that is,
                     # calling RollbackTrans automatically starts a new transaction. Not all providers support this.
                     # If not, we will have to start a new transaction by this command:
-                    if (
-                        not self.transaction_level
-                    ):  # if self.transaction_level == 0 or self.transaction_level is None:
+                    if not self.transaction_level:
                         self.transaction_level = self.connector.BeginTrans()
             except Exception as e:
                 self._raiseConnectionError(api.ProgrammingError, e)
@@ -418,9 +416,8 @@ class Connection:
                     f"paramstyle={value!r} not in:{api.accepted_paramstyles!r}",
                 )
         elif name == "variantConversions":
-            value = copy.copy(
-                value
-            )  # make a new copy -- no changes in the default, please
+            # make a new copy -- no changes in the default, please
+            value = copy.copy(value)
         object.__setattr__(self, name, value)
 
     def __getattr__(self, item):
@@ -596,7 +593,7 @@ class Cursor:
         eh(self.connection, self, errorclass, errorvalue)
 
     def build_column_info(self, recordset):
-        self.converters = []  # convertion function for each column
+        self.converters = []  # conversion function for each column
         self.columnNames = {}  # names of columns {lowercase name : number,...}
         self._description = None
 
@@ -635,9 +632,8 @@ class Cursor:
             if self.rs.EOF or self.rs.BOF:
                 display_size = None
             else:
-                display_size = (
-                    f.ActualSize
-                )  # TODO: Is this the correct defintion according to the DB API 2 Spec ?
+                # TODO: Is this the correct defintion according to the DB API 2 Spec ?
+                display_size = f.ActualSize
             null_ok = bool(f.Attributes & adc.adFldMayBeNull)  # v2.1 Cole
             desc.append(
                 (
@@ -775,9 +771,8 @@ class Cursor:
         after the last recordset has been read.  In that case, you must coll nextset() until it
         returns None, then call this method to get your returned information."""
 
-        retLst = (
-            []
-        )  # store procedures may return altered parameters, including an added "return value" item
+        # store procedures may return altered parameters, including an added "return value" item
+        retLst = []
         for p in tuple(self.cmd.Parameters):
             if verbose > 2:
                 print(
@@ -908,9 +903,8 @@ class Cursor:
                             )
                         i += 1
             else:  # -- build own parameter list
-                if (
-                    self._parameter_names
-                ):  # we expect a dictionary of parameters, this is the list of expected names
+                # we expect a dictionary of parameters, this is the list of expected names
+                if self._parameter_names:
                     for parm_name in self._parameter_names:
                         elem = parameters[parm_name]
                         adotype = api.pyTypeToADOType(elem)

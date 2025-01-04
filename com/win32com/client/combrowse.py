@@ -1,25 +1,25 @@
 """A utility for browsing COM objects.
 
- Usage:
+Usage:
 
-  Command Prompt
+ Command Prompt
 
-    Use the command *"python.exe combrowse.py"*.  This will display
-    display a fairly small, modal dialog.
+   Use the command *"python.exe combrowse.py"*.  This will display
+   display a fairly small, modal dialog.
 
-  Pythonwin
+ Pythonwin
 
-    Use the "Run Script" menu item, and this will create the browser in an
-    MDI window.  This window can be fully resized.
+   Use the "Run Script" menu item, and this will create the browser in an
+   MDI window.  This window can be fully resized.
 
- Details
+Details
 
-   This module allows browsing of registered Type Libraries, COM categories,
-   and running COM objects.  The display is similar to the Pythonwin object
-   browser, and displays the objects in a hierarchical window.
+  This module allows browsing of registered Type Libraries, COM categories,
+  and running COM objects.  The display is similar to the Pythonwin object
+  browser, and displays the objects in a hierarchical window.
 
-   Note that this module requires the win32ui (ie, Pythonwin) distribution to
-   work.
+  Note that this module requires the win32ui (ie, Pythonwin) distribution to
+  work.
 
 """
 
@@ -92,8 +92,6 @@ class HLI_Enum(HLI_Interface):
         else:
             rc = 0
         return rc
-
-    pass
 
 
 class HLI_IEnumMoniker(HLI_Enum):
@@ -235,11 +233,11 @@ class HLIRegisteredTypeLibrary(HLICOM):
                             except win32api.error:
                                 fname = ""
                             collected.append((lcid, platform, fname))
-                            lcidnum = lcidnum + 1
+                            lcidnum += 1
                         win32api.RegCloseKey(lcidkey)
                     except ValueError:
                         pass
-                num = num + 1
+                num += 1
         finally:
             win32ui.DoWaitCursor(0)
             win32api.RegCloseKey(key)
@@ -265,10 +263,7 @@ class HLITypeLibEntry(HLICOM):
     def GetText(self):
         tlb, index = self.myobject
         name, doc, ctx, helpFile = tlb.GetDocumentation(index)
-        try:
-            typedesc = HLITypeKinds[tlb.GetTypeInfoType(index)][1]
-        except KeyError:
-            typedesc = "Unknown!"
+        typedesc = HLITypeKinds.get(tlb.GetTypeInfoType(index), (None, "Unknown!"))[1]
         return name + " - " + typedesc
 
     def GetSubList(self):
@@ -448,10 +443,7 @@ class HLITypeLibFunction(HLICOM):
 
     def MakeReturnTypeName(self, typ):
         justtyp = typ & pythoncom.VT_TYPEMASK
-        try:
-            typname = self.vartypes[justtyp]
-        except KeyError:
-            typname = "?Bad type?"
+        typname = self.vartypes.get(justtyp, "?Bad type?")
         for flag, desc in self.type_flags:
             if flag & typ:
                 typname = f"{desc}({typname})"
@@ -462,7 +454,7 @@ class HLITypeLibFunction(HLICOM):
             first = returnTypeDesc[0]
             result = self.MakeReturnType(first)
             if first != pythoncom.VT_USERDEFINED:
-                result = result + " " + self.MakeReturnType(returnTypeDesc[1])
+                result += " " + self.MakeReturnType(returnTypeDesc[1])
             return result
         else:
             return self.MakeReturnTypeName(returnTypeDesc)
@@ -481,27 +473,21 @@ class HLITypeLibFunction(HLICOM):
             typ, flags, default = fd[8]
             val = self.MakeReturnType(typ)
             if flags:
-                val = "%s (Flags=%d, default=%s)" % (val, flags, default)
+                val += f" (Flags={flags}, default={default})"
             ret.append(browser.MakeHLI(val, "Return Type"))
 
         for argDesc in fd[2]:
             typ, flags, default = argDesc
             val = self.MakeReturnType(typ)
             if flags:
-                val = "%s (Flags=%d)" % (val, flags)
+                val += f" (Flags={flags})"
             if default is not None:
-                val = f"{val} (Default={default})"
+                val += f" (Default={default})"
             ret.append(browser.MakeHLI(val, "Argument"))
 
-        try:
-            fkind = self.funckinds[fd[3]]
-        except KeyError:
-            fkind = "Unknown"
+        fkind = self.funckinds.get(fd[3], "Unknown")
         ret.append(browser.MakeHLI(fkind, "Function Kind"))
-        try:
-            ikind = self.invokekinds[fd[4]]
-        except KeyError:
-            ikind = "Unknown"
+        ikind = self.invokekinds.get([fd[4]], "Unknown")
         ret.append(browser.MakeHLI(ikind, "Invoke Kind"))
         # 5 = call conv
         # 5 = offset vtbl
@@ -581,12 +567,12 @@ class HLIHeadingRegisterdTypeLibs(HLICOM):
                         if versionFlt > bestVersion:
                             bestVersion = versionFlt
                             name = win32api.RegQueryValue(subKey, versionStr)
-                        subNum = subNum + 1
+                        subNum += 1
                 finally:
                     win32api.RegCloseKey(subKey)
                 if name is not None:
                     ret.append(HLIRegisteredTypeLibrary((keyName, versionStr), name))
-                num = num + 1
+                num += 1
         finally:
             win32api.RegCloseKey(key)
             win32ui.DoWaitCursor(0)
@@ -595,8 +581,6 @@ class HLIHeadingRegisterdTypeLibs(HLICOM):
 
 
 def main(modal=True, mdi=False):
-    from pywin.tools import hierlist
-
     root = HLIRoot("COM Browser")
     if mdi and "pywin.framework.app" in sys.modules:
         # do it in a MDI window

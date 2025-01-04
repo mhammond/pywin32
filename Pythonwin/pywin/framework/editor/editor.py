@@ -9,7 +9,7 @@
 # We now support reloading of externally modified documented
 # (eg, presumably by some other process, such as source control or
 # another editor.
-# We also suport auto-loading of externally modified files.
+# We also support auto-loading of externally modified files.
 # - if the current document has not been modified in this
 # editor, but has been modified on disk, then the file
 # can be automatically reloaded.
@@ -19,7 +19,6 @@
 
 import re
 
-import regex
 import win32api
 import win32con
 import win32ui
@@ -36,8 +35,8 @@ from .document import EditorDocumentBase as ParentEditorDocument
 # from pywin.mfc.docview import EditView as ParentEditorView
 # from pywin.mfc.docview import Document as ParentEditorDocument
 
-patImport = regex.symcomp(r"import \(<name>.*\)")
-patIndent = regex.compile(r"^\([ \t]*[~ \t]\)")
+patImport = re.compile(r"import (?P<name>.*)")
+patIndent = re.compile(r"^([ \t]*[~ \t])")
 
 ID_LOCATE_FILE = 0xE200
 ID_GOTO_LINE = 0xE2001
@@ -236,7 +235,7 @@ class EditorView(ParentEditorView):
             try:
                 if color is None:
                     color = self.defCharFormat[4]
-                lineNo = lineNo - 1
+                lineNo -= 1
                 startIndex = self.LineIndex(lineNo)
                 if startIndex != -1:
                     self.SetSel(startIndex, self.LineIndex(lineNo + 1))
@@ -261,7 +260,7 @@ class EditorView(ParentEditorView):
             if ch == "\t":
                 curCol = ((curCol / self.tabSize) + 1) * self.tabSize
             else:
-                curCol = curCol + 1
+                curCol += 1
         nextColumn = ((curCol / self.indentSize) + 1) * self.indentSize
         # print("curCol is", curCol, "nextColumn is", nextColumn)
         ins = None
@@ -274,7 +273,7 @@ class EditorView(ParentEditorView):
                     if check in ("\t", " "):
                         ins = check
                         break
-                    lookLine = lookLine - 1
+                    lookLine -= 1
             else:  # See if the previous char can tell us
                 check = line[realCol - 1]
                 if check in ("\t", " "):
@@ -290,7 +289,7 @@ class EditorView(ParentEditorView):
 
         if ins == " ":
             # Calc the number of spaces to take us to the next stop
-            ins = ins * (nextColumn - curCol)
+            ins *= nextColumn - curCol
 
         self._obj_.ReplaceSel(ins)
 
@@ -364,9 +363,10 @@ class EditorView(ParentEditorView):
         # look for a module name
         line = self._obj_.GetLine().strip()
         flags = win32con.MF_STRING | win32con.MF_ENABLED
-        if patImport.match(line) == len(line):
+        matchResult = patImport.match(line)
+        if matchResult and matchResult[0] == line:
             menu.AppendMenu(
-                flags, ID_LOCATE_FILE, "&Locate %s.py" % patImport.group("name")
+                flags, ID_LOCATE_FILE, "&Locate %s.py" % matchResult.group("name")
             )
             menu.AppendMenu(win32con.MF_SEPARATOR)
         menu.AppendMenu(flags, win32ui.ID_EDIT_UNDO, "&Undo")

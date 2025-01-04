@@ -88,7 +88,7 @@ class CallTips:
         chars = text.get("insert linestart", "insert")
         i = len(chars)
         while i and chars[i - 1] in wordchars:
-            i = i - 1
+            i -= 1
         word = chars[i:]
         if word:
             # How is this for a hack!
@@ -147,8 +147,8 @@ def get_arg_text(ob):
                 if pos < 0 or pos > 70:
                     pos = 70
                 if argText:
-                    argText = argText + "\n"
-                argText = argText + doc[:pos]
+                    argText += "\n"
+                argText += doc[:pos]
 
     return argText
 
@@ -207,9 +207,7 @@ if __name__ == "__main__":
             expected = t.__doc__ + "\n" + t.__doc__
             if get_arg_text(t) != expected:
                 failed.append(t)
-                print(
-                    f"{t} - expected {repr(expected)}, but got {repr(get_arg_text(t))}"
-                )
+                print(f"{t} - expected {expected!r}, but got {get_arg_text(t)!r}")
         print("%d of %d tests failed" % (len(failed), len(tests)))
 
     tc = TC()

@@ -36,7 +36,7 @@ def getsubdirs(d):
     for f in flist:
         if os.path.isdir(f):
             dlist.append(f)
-            dlist = dlist + getsubdirs(f)
+            dlist += getsubdirs(f)
     return dlist
 
 
@@ -94,9 +94,7 @@ class dirpath:
                                     sd = sd.lower()
                                     if sd not in dirs:
                                         dirs[sd] = None
-        self.dirs = []
-        for d in list(dirs.keys()):
-            self.dirs.append(d)
+        self.dirs = list(dirs)
 
     def __getitem__(self, key):
         return self.dirs[key]
@@ -129,8 +127,6 @@ class dirpath:
 
 
 # Group(1) is the filename, group(2) is the lineno.
-# regexGrepResult=regex.compile(r"^\([a-zA-Z]:.*\)(\([0-9]+\))")
-
 regexGrep = re.compile(r"^([a-zA-Z]:[^(]*)\(([0-9]+)\)")
 
 # these are the atom numbers defined by Windows for basic dialog controls
@@ -218,9 +214,9 @@ class GrepDocument(docview.RichEditDoc):
             paramstr = win32ui.GetProfileVal("Grep", "Params", "\t\t\t1\t0\t0")
         params = paramstr.split("\t")
         if len(params) < 3:
-            params = params + [""] * (3 - len(params))
+            params.extend([""] * (3 - len(params)))
         if len(params) < 6:
-            params = params + [0] * (6 - len(params))
+            params.extend([0] * (6 - len(params)))
         self.dirpattern = params[0]
         self.filpattern = params[1]
         self.greppattern = params[2]
@@ -266,11 +262,11 @@ class GrepDocument(docview.RichEditDoc):
         self.dp = dirpath(self.dirpattern, self.recurse)
         self.SetTitle(f"Grep for {self.greppattern} in {self.filpattern}")
         # self.text = []
-        self.GetFirstView().Append("#Search " + self.dirpattern + "\n")
+        self.GetFirstView().Append(f"#Search {self.dirpattern}\n")
         if self.verbose:
-            self.GetFirstView().Append("#   =" + repr(self.dp.dirs) + "\n")
-        self.GetFirstView().Append("# Files " + self.filpattern + "\n")
-        self.GetFirstView().Append("#   For " + self.greppattern + "\n")
+            self.GetFirstView().Append(f"#   ={self.dp.dirs!r}\n")
+        self.GetFirstView().Append(f"# Files {self.filpattern}\n")
+        self.GetFirstView().Append(f"#   For {self.greppattern}\n")
         self.fplist = self.filpattern.split(";")
         if self.casesensitive:
             self.pat = re.compile(self.greppattern)
@@ -290,7 +286,7 @@ class GrepDocument(docview.RichEditDoc):
             win32ui.GetApp().AddIdleHandler(self.SearchFile)
 
     def SearchFile(self, handler, count):
-        self.fndx = self.fndx + 1
+        self.fndx += 1
         if self.fndx < len(self.flist):
             f = self.flist[self.fndx]
             if self.verbose:
@@ -303,17 +299,17 @@ class GrepDocument(docview.RichEditDoc):
                 for i in range(len(lines)):
                     line = lines[i]
                     if self.pat.search(line) is not None:
-                        self.GetFirstView().Append(f + "(" + repr(i + 1) + ") " + line)
+                        self.GetFirstView().Append(f"{f} ({i + 1!r}) {line}")
         else:
             self.fndx = -1
-            self.fpndx = self.fpndx + 1
+            self.fpndx += 1
             if self.fpndx < len(self.fplist):
                 self.flist = glob.glob(
                     self.dp[self.dpndx] + "\\" + self.fplist[self.fpndx]
                 )
             else:
                 self.fpndx = 0
-                self.dpndx = self.dpndx + 1
+                self.dpndx += 1
                 if self.dpndx < len(self.dp):
                     self.flist = glob.glob(
                         self.dp[self.dpndx] + "\\" + self.fplist[self.fpndx]
@@ -329,18 +325,13 @@ class GrepDocument(docview.RichEditDoc):
         return 1
 
     def GetParams(self):
-        return (
-            self.dirpattern
-            + "\t"
-            + self.filpattern
-            + "\t"
-            + self.greppattern
-            + "\t"
-            + repr(self.casesensitive)
-            + "\t"
-            + repr(self.recurse)
-            + "\t"
-            + repr(self.verbose)
+        return "{}\t{}\t{}\t{!r}\t{!r}\t{!r}".format(
+            self.dirpattern,
+            self.filpattern,
+            self.greppattern,
+            self.casesensitive,
+            self.recurse,
+            self.verbose,
         )
 
     def OnSaveDocument(self, filename):
@@ -624,10 +615,10 @@ class GrepDialog(dialog.Dialog):
             i = 0
             newitems = dlg.getNew()
             if newitems:
-                items = items + newitems
+                items.extend(newitems)
                 for item in items:
                     win32api.WriteProfileVal(section, repr(i), item, ini)
-                    i = i + 1
+                    i += 1
             self.UpdateData(0)
 
     def OnOK(self):

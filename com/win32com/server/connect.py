@@ -1,6 +1,6 @@
 """Utilities for Server Side connections.
 
-  A collection of helpers for server side connection points.
+A collection of helpers for server side connection points.
 """
 
 import pythoncom
@@ -52,7 +52,7 @@ class ConnectableServer:
             )
         except pythoncom.com_error:
             raise COMException(scode=olectl.CONNECT_E_NOCONNECTION)
-        self.cookieNo = self.cookieNo + 1
+        self.cookieNo += 1
         self.connections[self.cookieNo] = interface
         return self.cookieNo
 
@@ -82,4 +82,4 @@ class ConnectableServer:
                 self._OnNotifyFail(interface, details)
 
     def _OnNotifyFail(self, interface, details):
-        print("Ignoring COM error to connection - %s" % (repr(details)))
+        print(f"Ignoring COM error to connection - {details!r}")

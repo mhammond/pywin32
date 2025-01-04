@@ -12,7 +12,7 @@
 # If you need to use the Tree Control, you may still find this API a reasonable
 # choice.  However, you should investigate using the tree control directly
 # to provide maximum flexibility (but with extra work).
-
+from __future__ import annotations
 
 import commctrl
 import win32api
@@ -217,7 +217,7 @@ class HierList(object.Object):
                 if old_items[iold] == new_items[inewlook]:
                     matched = 1
                     break
-                inewlook = inewlook + 1
+                inewlook += 1
             if matched:
                 # Insert the new items.
                 # print("Inserting after", old_items[iold], old_handles[iold])
@@ -259,7 +259,7 @@ class HierList(object.Object):
         else:
             return 4
 
-    def GetSelectedBitmapColumn(self, item):
+    def GetSelectedBitmapColumn(self, item) -> int | None:
         return 0
 
     def CheckChangedChildren(self):

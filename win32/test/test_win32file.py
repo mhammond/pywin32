@@ -227,16 +227,25 @@ class TestSimpleOps(unittest.TestCase):
         )
         try:
             ct, at, wt = win32file.GetFileTime(f)
-            self.assertTrue(
-                ct >= now,
+            # NOTE (Avasam): I've seen the time be off from -0.003 to +1.11 seconds,
+            # so the above comment about microseconds might be wrong.
+            # Let's standardize ms and avoid random CI failures
+            # https://github.com/mhammond/pywin32/issues/2203
+            ct = ct.replace(microsecond=0)
+            at = at.replace(microsecond=0)
+            wt = wt.replace(microsecond=0)
+            self.assertGreaterEqual(
+                ct,
+                now,
                 f"File was created in the past - now={now}, created={ct}",
             )
-            self.assertTrue(now <= ct <= nowish, (now, ct))
-            self.assertTrue(
-                wt >= now,
+            self.assertTrue(now <= ct <= nowish, (now, ct, nowish))
+            self.assertGreaterEqual(
+                wt,
+                now,
                 f"File was written-to in the past now={now}, written={wt}",
             )
-            self.assertTrue(now <= wt <= nowish, (now, wt))
+            self.assertTrue(now <= wt <= nowish, (now, wt, nowish))
 
             # Now set the times.
             win32file.SetFileTime(f, later, later, later, UTCTimes=True)
@@ -313,7 +322,7 @@ class TestOverlapped(unittest.TestCase):
         for i in range(num_loops):
             win32file.WriteFile(h, chunk_data, overlapped)
             win32event.WaitForSingleObject(overlapped.hEvent, win32event.INFINITE)
-            overlapped.Offset = overlapped.Offset + len(chunk_data)
+            overlapped.Offset += len(chunk_data)
         h.Close()
         # Now read the data back overlapped
         overlapped = pywintypes.OVERLAPPED()
@@ -328,7 +337,7 @@ class TestOverlapped(unittest.TestCase):
             try:
                 hr, data = win32file.ReadFile(h, buffer, overlapped)
                 win32event.WaitForSingleObject(overlapped.hEvent, win32event.INFINITE)
-                overlapped.Offset = overlapped.Offset + len(data)
+                overlapped.Offset += len(data)
                 if not data is buffer:
                     self.fail(
                         "Unexpected result from ReadFile - should be the same buffer we passed it"
@@ -632,7 +641,10 @@ class TestDirectoryChanges(unittest.TestCase):
             try:
                 print("waiting", dh)
                 changes = win32file.ReadDirectoryChangesW(
-                    dh, 8192, False, flags  # sub-tree
+                    dh,
+                    8192,
+                    False,  # sub-tree
+                    flags,
                 )
                 print("got", changes)
             except:
@@ -646,7 +658,11 @@ class TestDirectoryChanges(unittest.TestCase):
         overlapped.hEvent = win32event.CreateEvent(None, 0, 0, None)
         while 1:
             win32file.ReadDirectoryChangesW(
-                dh, buf, False, flags, overlapped  # sub-tree
+                dh,
+                buf,
+                False,  # sub-tree
+                flags,
+                overlapped,
             )
             # Wait for our event, or for 5 seconds.
             rc = win32event.WaitForSingleObject(overlapped.hEvent, 5000)

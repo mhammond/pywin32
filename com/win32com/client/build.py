@@ -16,8 +16,10 @@ dynamically, or possibly even generate .html documentation for objects.
 #
 #        OleItem, DispatchItem, MapEntry, BuildCallList() is used by makepy
 
+import builtins
 import datetime
 import string
+from itertools import chain
 from keyword import iskeyword
 
 import pythoncom
@@ -28,8 +30,6 @@ from pywintypes import TimeType
 # literals like a quote char and backslashes makes life a little painful to
 # always render the string perfectly - so just punt and fall-back to a repr()
 _makeDocString = repr
-
-error = "PythonCOM.Client.Build error"
 
 
 class NotSupportedException(Exception):
@@ -115,9 +115,8 @@ class MapEntry:
         rc = self.GetResultCLSID()
         if rc is None:
             return "None"
-        return repr(
-            str(rc)
-        )  # Convert the IID object to a string, then to a string in a string.
+        # Convert the IID object to a string in a string.
+        return f"'{rc}'"
 
     def GetResultName(self):
         if self.resultDocumentation is None:
@@ -328,15 +327,15 @@ class DispatchItem(OleItem):
         for argCheck in argTuple:
             inOut = argCheck[1]
             if inOut == 0:
-                ins = ins + 1
-                out = out + 1
+                ins += 1
+                out += 1
             else:
                 if inOut & pythoncom.PARAMFLAG_FIN:
-                    ins = ins + 1
+                    ins += 1
                 if inOut & pythoncom.PARAMFLAG_FOPT:
-                    opts = opts + 1
+                    opts += 1
                 if inOut & pythoncom.PARAMFLAG_FOUT:
-                    out = out + 1
+                    out += 1
         return ins, out, opts
 
     def MakeFuncMethod(self, entry, name, bMakeClass=1):
@@ -405,7 +404,7 @@ class DispatchItem(OleItem):
         if len(bad_params) == 0 and len(retDesc) == 2 and retDesc[1] == 0:
             rd = retDesc[0]
             if rd in NoTranslateMap:
-                s = "%s\treturn self._oleobj_.InvokeTypes(%d, LCID, %s, %s, %s%s)" % (
+                s = "{}\treturn self._oleobj_.InvokeTypes({}, LCID, {}, {}, {}{})".format(
                     linePrefix,
                     id,
                     fdesc[4],
@@ -414,60 +413,46 @@ class DispatchItem(OleItem):
                     _BuildArgList(fdesc, names),
                 )
             elif rd in [pythoncom.VT_DISPATCH, pythoncom.VT_UNKNOWN]:
-                s = "%s\tret = self._oleobj_.InvokeTypes(%d, LCID, %s, %s, %s%s)\n" % (
+                s = "{}\tret = self._oleobj_.InvokeTypes({}, LCID, {}, {}, {!r}{})\n".format(
                     linePrefix,
                     id,
                     fdesc[4],
                     retDesc,
-                    repr(argsDesc),
+                    argsDesc,
                     _BuildArgList(fdesc, names),
                 )
-                s = s + f"{linePrefix}\tif ret is not None:\n"
+                s += f"{linePrefix}\tif ret is not None:\n"
                 if rd == pythoncom.VT_UNKNOWN:
-                    s = (
-                        s
-                        + "{}\t\t# See if this IUnknown is really an IDispatch\n".format(
-                            linePrefix,
-                        )
+                    s += "{}\t\t# See if this IUnknown is really an IDispatch\n".format(
+                        linePrefix
                     )
-                    s = s + f"{linePrefix}\t\ttry:\n"
-                    s = (
-                        s
-                        + "{}\t\t\tret = ret.QueryInterface(pythoncom.IID_IDispatch)\n".format(
-                            linePrefix
-                        )
+                    s += f"{linePrefix}\t\ttry:\n"
+                    s += "{}\t\t\tret = ret.QueryInterface(pythoncom.IID_IDispatch)\n".format(
+                        linePrefix
                     )
-                    s = s + f"{linePrefix}\t\texcept pythoncom.error:\n"
-                    s = s + f"{linePrefix}\t\t\treturn ret\n"
-                s = s + "{}\t\tret = Dispatch(ret, {}, {})\n".format(
-                    linePrefix,
-                    repr(name),
-                    resclsid,
-                )
-                s = s + "%s\treturn ret" % (linePrefix)
+                    s += f"{linePrefix}\t\texcept pythoncom.error:\n"
+                    s += f"{linePrefix}\t\t\treturn ret\n"
+                s += f"{linePrefix}\t\tret = Dispatch(ret, {name!r}, {resclsid})\n"
+                s += f"{linePrefix}\treturn ret"
             elif rd == pythoncom.VT_BSTR:
                 s = f"{linePrefix}\t# Result is a Unicode object\n"
-                s = (
-                    s
-                    + "%s\treturn self._oleobj_.InvokeTypes(%d, LCID, %s, %s, %s%s)"
-                    % (
-                        linePrefix,
-                        id,
-                        fdesc[4],
-                        retDesc,
-                        repr(argsDesc),
-                        _BuildArgList(fdesc, names),
-                    )
+                s += "{}\treturn self._oleobj_.InvokeTypes({}, LCID, {}, {}, {!r}{})".format(
+                    linePrefix,
+                    id,
+                    fdesc[4],
+                    retDesc,
+                    argsDesc,
+                    _BuildArgList(fdesc, names),
                 )
             # else s remains None
         if s is None:
-            s = "%s\treturn self._ApplyTypes_(%d, %s, %s, %s, %s, %s%s)" % (
+            s = "{}\treturn self._ApplyTypes_({}, {}, {}, {}, {!r}, {}{})".format(
                 linePrefix,
                 id,
                 fdesc[4],
                 retDesc,
                 argsDesc,
-                repr(name),
+                name,
                 resclsid,
                 _BuildArgList(fdesc, names),
             )
@@ -507,18 +492,20 @@ class VTableItem(DispatchItem):
         DispatchItem.Build(self, typeinfo, attr, bForUser)
         assert typeinfo is not None, "Can't build vtables without type info!"
 
-        meth_list = (
-            list(self.mapFuncs.values())
-            + list(self.propMapGet.values())
-            + list(self.propMapPut.values())
+        meth_list = sorted(
+            chain(
+                self.mapFuncs.values(),
+                self.propMapGet.values(),
+                self.propMapPut.values(),
+            ),
+            key=lambda m: m.desc[7],
         )
-        meth_list.sort(key=lambda m: m.desc[7])
 
         # Now turn this list into the run-time representation
         # (ready for immediate use or writing to gencache)
-        self.vtableFuncs = []
-        for entry in meth_list:
-            self.vtableFuncs.append((entry.names, entry.dispid, entry.desc))
+        self.vtableFuncs = [
+            (entry.names, entry.dispid, entry.desc) for entry in meth_list
+        ]
 
 
 # A Lazy dispatch item - builds an item on request using info from
@@ -559,7 +546,6 @@ def _ResolveType(typerepr, itypeinfo):
             if was_user and subrepr in [
                 pythoncom.VT_DISPATCH,
                 pythoncom.VT_UNKNOWN,
-                pythoncom.VT_RECORD,
             ]:
                 # Drop the VT_PTR indirection
                 return subrepr, sub_clsid, sub_doc
@@ -629,7 +615,7 @@ def _BuildArgList(fdesc, names):
     # As per BuildCallList(), avoid huge lines.
     # Hack a "\n" at the end of every 5th name
     for i in range(0, len(names), 5):
-        names[i] = names[i] + "\n\t\t\t"
+        names[i] += "\n\t\t\t"
     return "," + ", ".join(names)
 
 
@@ -668,7 +654,7 @@ def MakePublicAttributeName(className, is_global=False):
         if ret == className:
             ret = ret.upper()
         return ret
-    elif is_global and hasattr(__builtins__, className):
+    elif is_global and hasattr(builtins, className):
         # builtins may be mixed case.  If capitalizing it doesn't change it,
         # force to all uppercase (eg, "None", "True" become "NONE", "TRUE"
         ret = className.capitalize()
@@ -731,7 +717,7 @@ def BuildCallList(
     strval = ""
     if numOptArgs == -1:  # Special value that says "var args after here"
         firstOptArg = numArgs
-        numArgs = numArgs - 1
+        numArgs -= 1
     else:
         firstOptArg = numArgs - numOptArgs
     for arg in range(numArgs):
@@ -768,15 +754,15 @@ def BuildCallList(
         # This may still fail if the arg names are insane, but that seems
         # unlikely.  See also _BuildArgList()
         if (arg + 1) % 5 == 0:
-            strval = strval + "\n"
+            strval += "\n"
             if is_comment:
-                strval = strval + "#"
-            strval = strval + "\t\t\t"
-        strval = strval + ", " + argName
+                strval += "#"
+            strval += "\t\t\t"
+        strval += ", " + argName
         if defArgVal:
-            strval = strval + "=" + defArgVal
+            strval += "=" + defArgVal
     if numOptArgs == -1:
-        strval = strval + ", *" + names[-1]
+        strval += ", *" + names[-1]
 
     return strval
 

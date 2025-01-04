@@ -42,7 +42,7 @@ def split_line(line, lineno):
     sep_pos = line.rfind("=")
     if sep_pos == -1:
         if line.strip():
-            print("Warning: Line %d: %s is an invalid entry" % (lineno, repr(line)))
+            print(f"Warning: Line {lineno}: {line!r} is an invalid entry")
             return None, None
         return "", ""
     return line[:sep_pos].strip(), line[sep_pos + 1 :].strip()
@@ -133,7 +133,7 @@ class ConfigManager:
                 line = fp.readline()
                 if not line:
                     break
-                lineno = lineno + 1
+                lineno += 1
                 section, subsection = get_section_header(line)
             if not line:
                 break
@@ -151,7 +151,7 @@ class ConfigManager:
                     f"Unrecognised section header '{section}:{subsection}'"
                 )
                 line = fp.readline()
-                lineno = lineno + 1
+                lineno += 1
         if b_close:
             fp.close()
         # Check critical data.
@@ -198,10 +198,10 @@ class ConfigManager:
                 ns = None
             if ns:
                 num = 0
-                for name, func in list(ns.items()):
+                for name, func in ns.items():
                     if isinstance(func, types.FunctionType) and name[:1] != "_":
                         bindings.bind(name, func)
-                        num = num + 1
+                        num += 1
                 trace("Configuration Extension code loaded", num, "events")
         # Load the idle extensions
         for subsection in subsections:
@@ -218,7 +218,7 @@ class ConfigManager:
         for subsection in subsections:
             keymap = subsection_keymap.get(subsection, {})
             bindings.update_keymap(keymap)
-            num_bound = num_bound + len(keymap)
+            num_bound += len(keymap)
         trace("Configuration bound", num_bound, "keys")
 
     def get_key_binding(self, event, subsections=None):
@@ -230,10 +230,8 @@ class ConfigManager:
         for subsection in subsections:
             map = self.key_to_events.get(subsection)
             if map is None:  # Build it
-                map = {}
                 keymap = subsection_keymap.get(subsection, {})
-                for key_info, map_event in list(keymap.items()):
-                    map[map_event] = key_info
+                map = {map_event: key_info for key_info, map_event in keymap.items()}
                 self.key_to_events[subsection] = map
 
             info = map.get(event)
@@ -250,7 +248,7 @@ class ConfigManager:
 
     def _readline(self, fp, lineno, bStripComments=1):
         line = fp.readline()
-        lineno = lineno + 1
+        lineno += 1
         if line:
             bBreak = (
                 get_section_header(line)[0] is not None

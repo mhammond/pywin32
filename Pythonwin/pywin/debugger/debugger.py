@@ -29,7 +29,6 @@ from pywin.tools import browser, hierlist
 from .dbgcon import *
 
 LVN_ENDLABELEDIT = commctrl.LVN_ENDLABELEDITW
-error = "pywin.debugger.error"
 
 
 def SetInteractiveContext(globs, locs):
@@ -289,7 +288,7 @@ class DebuggerListViewWindow(DebuggerWindow):
         list.InsertColumn(0, itemDetails)
         col = 1
         for title, width in self.columns[1:]:
-            col = col + 1
+            col += 1
             itemDetails = (commctrl.LVCFMT_LEFT, width, title, 0)
             list.InsertColumn(col, itemDetails)
         parent.HookNotify(self.OnListEndLabelEdit, LVN_ENDLABELEDIT)
@@ -390,7 +389,7 @@ class DebuggerBreakpointsWindow(DebuggerListViewWindow):
             item_id = self.GetItem(num)[6]
             from bdb import Breakpoint
 
-            for bplist in list(Breakpoint.bplist.values()):
+            for bplist in Breakpoint.bplist.values():
                 for bp in bplist:
                     if id(bp) == item_id:
                         self.debugger.clear_break(bp.file, bp.line)
@@ -635,8 +634,8 @@ class Debugger(debugger_parent):
         """Public interface into debugger options"""
         try:
             return self.options[option]
-        except KeyError:
-            raise error("Option %s is not a valid option" % option)
+        except KeyError as error:
+            raise KeyError(f"Option {option} is not a valid option") from error
 
     def prep_run(self, cmd):
         pass
@@ -746,7 +745,7 @@ class Debugger(debugger_parent):
             self.prep_run(cmd)
             sys.settrace(self.trace_dispatch)
             if not isinstance(cmd, types.CodeType):
-                cmd = cmd + "\n"
+                cmd += "\n"
             try:
                 try:
                     if start_stepping:
@@ -870,15 +869,14 @@ class Debugger(debugger_parent):
         elif state == DBGSTATE_RUNNING:  # Code is running under the debugger.
             title = " - running"
         elif state == DBGSTATE_BREAK:  # We are at a breakpoint or stepping or whatever.
-            if self.bAtException:
-                if self.bAtPostMortem:
-                    title = " - post mortem exception"
-                else:
-                    title = " - exception"
-            else:
+            if not self.bAtException:
                 title = " - break"
+            elif self.bAtPostMortem:
+                title = " - post mortem exception"
+            else:
+                title = " - exception"
         else:
-            raise error("Invalid debugger state passed!")
+            raise ValueError("Invalid debugger state passed!")
         win32ui.GetMainFrame().SetWindowText(
             win32ui.LoadString(win32ui.IDR_MAINFRAME) + title
         )

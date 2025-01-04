@@ -73,15 +73,15 @@ def DumpSchema():
         class_name = child.Class
         if class_name == "classSchema":
             _DumpClass(child)
-            nclasses = nclasses + 1
+            nclasses += 1
         elif class_name == "attributeSchema":
             _DumpAttribute(child)
-            nattr = nattr + 1
+            nattr += 1
         elif class_name == "subSchema":
-            nsub = nsub + 1
+            nsub += 1
         else:
             print("Unknown class:", class_name)
-            nunk = nunk + 1
+            nunk += 1
     if verbose_level:
         print("Processed", nclasses, "classes")
         print("Processed", nattr, "attributes")
@@ -162,7 +162,7 @@ def DumpSchema2():
                         item.Name, desc, iid_name
                     )
                 )
-            nclass = nclass + 1
+            nclass += 1
         elif item_class == "property":
             if item.MultiValued:
                 val_type = "Multi-Valued"
@@ -170,12 +170,12 @@ def DumpSchema2():
                 val_type = "Single-Valued"
             if verbose_level >= 2:
                 print(f"Property: Name={item.Name}, {val_type}")
-            nprop = nprop + 1
+            nprop += 1
         elif item_class == "syntax":
             data_type = vt_map.get(item.OleAutoDataType, "<unknown type>")
             if verbose_level >= 2:
                 print(f"Syntax: Name={item.Name}, Datatype = {data_type}")
-            nsyntax = nsyntax + 1
+            nsyntax += 1
     if verbose_level >= 1:
         print("Processed", nclass, "classes")
         print("Processed", nprop, "properties")
@@ -238,14 +238,14 @@ def main():
     for opt, val in opts:
         if opt == "-s":
             if val[-1] not in "\\/":
-                val = val + "/"
+                val += "/"
             global server
             server = val
         if opt == "-h":
             usage(tests)
         if opt == "-v":
             global verbose_level
-            verbose_level = verbose_level + 1
+            verbose_level += 1
 
     if len(args) == 0:
         print("Running all tests - use '-h' to see command-line options...")

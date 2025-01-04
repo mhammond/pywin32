@@ -4,9 +4,13 @@ A code container is a class which holds source code for a debugger.  It knows ho
 to color the text, and also how to translate lines into offsets, and back.
 """
 
+from __future__ import annotations
+
 import os
 import sys
 import tokenize
+from keyword import kwlist
+from typing import Any
 
 import win32api
 import winerror
@@ -14,19 +18,19 @@ from win32com.axdebug import axdebug, contexts
 from win32com.axdebug.util import _wrap
 from win32com.server.exception import COMException
 
-_keywords = {}  # set of Python keywords
-for name in """
- and assert break class continue def del elif else except exec
- finally for from global if import in is lambda not
- or pass print raise return try while
- """.split():
-    _keywords[name] = 1
+_keywords = {
+    _keyword
+    for _keyword in kwlist
+    # Avoids including True/False/None
+    if _keyword.islower()
+}
+"""set of Python keywords"""
 
 
 class SourceCodeContainer:
     def __init__(
         self,
-        text,
+        text: str | None,
         fileName="<Remove Me!>",
         sourceContext=0,
         startLineNumber=0,
@@ -34,12 +38,13 @@ class SourceCodeContainer:
         debugDocument=None,
     ):
         self.sourceContext = sourceContext  # The source context added by a smart host.
-        self.text = text
+        self.text: str | None = text
         if text:
             self._buildlines()
         self.nextLineNo = 0
         self.fileName = fileName
-        self.codeContexts = {}
+        # Any: PyIDispatch type is not statically exposed
+        self.codeContexts: dict[int, Any] = {}
         self.site = site
         self.startLineNumber = startLineNumber
         self.debugDocument = debugDocument
@@ -75,7 +80,7 @@ class SourceCodeContainer:
             if lineOffset > charPos:
                 break
             lastOffset = lineOffset
-            lineNo = lineNo + 1
+            lineNo += 1
         else:  # for not broken.
             # print("Can't find", charPos, "in", self.lineOffsets)
             raise COMException(scode=winerror.S_FALSE)
@@ -87,7 +92,7 @@ class SourceCodeContainer:
             self.nextLineNo = 0  # auto-reset.
             return ""
         rc = self.lines[self.nextLineNo]
-        self.nextLineNo = self.nextLineNo + 1
+        self.nextLineNo += 1
         return rc
 
     def GetLine(self, num):
@@ -193,7 +198,6 @@ class SourceCodeContainer:
         charPos = self.GetPositionOfLine(lineNo)
         try:
             cc = self.codeContexts[charPos]
-        # trace(" GetContextOfPos using existing")
         except KeyError:
             cc = self._MakeContextAtPosition(charPos)
             self.codeContexts[charPos] = cc
@@ -226,7 +230,7 @@ class SourceModuleContainer(SourceCodeContainer):
                 try:
                     self.text = open(fname, "r").read()
                 except OSError as details:
-                    self.text = f"# COMException opening file\n# {repr(details)}"
+                    self.text = f"# COMException opening file\n# {details!r}"
             else:
                 self.text = f"# No file available for module '{self.module}'"
             self._buildlines()
@@ -261,9 +265,9 @@ if __name__ == "__main__":
     attrlen = 0
     for attr in attrs:
         if isinstance(attr, tuple):
-            attrlen = attrlen + attr[1]
+            attrlen += attr[1]
         else:
-            attrlen = attrlen + 1
+            attrlen += 1
     text = sc.GetText()
     if attrlen != len(text):
         print(f"Lengths don't match!!! ({attrlen}/{len(text)})")

@@ -5,8 +5,6 @@ import sys
 import win32api
 import win32con
 
-error = "Registry utility error"
-
 # A .py file has a CLSID associated with it (why? - dunno!)
 CLSIDPyFile = "{b51df050-06ae-11cf-ad3b-524153480001}"
 
@@ -51,7 +49,7 @@ def SetRegistryDefaultValue(subKey, value, rootkey=None):
     elif isinstance(value, int):
         typeId = win32con.REG_DWORD
     else:
-        raise TypeError("Value must be string or integer - was passed " + repr(value))
+        raise TypeError(f"Value must be string or integer - was passed {value!r}")
 
     win32api.RegSetValue(rootkey, subKey, typeId, value)
 
@@ -78,7 +76,7 @@ def RegisterPythonExe(exeFullPath, exeAlias=None, exeAppPath=None):
     """
     # Note - Don't work on win32s (but we don't care anymore!)
     if exeAppPath:
-        raise error("Do not support exeAppPath argument currently")
+        raise ValueError("Do not support exeAppPath argument currently")
     if exeAlias is None:
         exeAlias = os.path.basename(exeFullPath)
     win32api.RegSetValue(
@@ -107,7 +105,7 @@ def RegisterNamedPath(name, path):
     """Register a named path - ie, a named PythonPath entry."""
     keyStr = BuildDefaultPythonKey() + "\\PythonPath"
     if name:
-        keyStr = keyStr + "\\" + name
+        keyStr += "\\" + name
     win32api.RegSetValue(GetRootKey(), keyStr, win32con.REG_SZ, path)
 
 
@@ -128,7 +126,7 @@ def GetRegisteredNamedPath(name):
     """Get a registered named path, or None if it doesn't exist."""
     keyStr = BuildDefaultPythonKey() + "\\PythonPath"
     if name:
-        keyStr = keyStr + "\\" + name
+        keyStr += "\\" + name
     try:
         return win32api.RegQueryValue(GetRootKey(), keyStr)
     except win32api.error as exc:

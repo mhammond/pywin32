@@ -48,7 +48,7 @@ def ReadLog(computer, logType="Application", dumpEachRecord=0):
                     print("(unicode error printing message: repr() follows...)")
                     print(repr(msg))
 
-        num = num + len(objects)
+        num += len(objects)
 
     if numRecords == num:
         print("Successfully read all", numRecords, "records")
@@ -104,7 +104,7 @@ def test():
         if opt == "-w":
             do_write = 0
         if opt == "-v":
-            verbose = verbose + 1
+            verbose += 1
     if do_write:
         ph = win32api.GetCurrentProcess()
         th = win32security.OpenProcessToken(ph, win32con.TOKEN_READ)

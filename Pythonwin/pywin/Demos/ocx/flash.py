@@ -33,9 +33,9 @@ class MyFlashComponent(activex.Control, FlashModule.ShockwaveFlash):
 
     def OnFSCommand(self, command, args):
         print("FSCommend", command, args)
-        self.x = self.x + 20
-        self.y = self.y + 20
-        self.angle = self.angle + 20
+        self.x += 20
+        self.y += 20
+        self.angle += 20
         if self.x > 200 or self.y > 200:
             self.x = 0
             self.y = 0

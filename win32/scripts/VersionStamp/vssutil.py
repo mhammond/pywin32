@@ -10,8 +10,6 @@ constants = win32com.client.constants
 
 win32com.client.gencache.EnsureModule("{783CD4E0-9D54-11CF-B8EE-00608CC9A71F}", 0, 5, 0)
 
-error = "vssutil error"
-
 
 def GetSS():
     ss = win32com.client.Dispatch("SourceSafe")
@@ -74,14 +72,14 @@ def VssLog(project, linePrefix="", noLabels=5, maxItems=150):
     num = 0
     labelNum = 0
     for i in project.GetVersions(constants.VSSFLAG_RECURSYES):
-        num = num + 1
+        num += 1
         if num > maxItems:
             break
         commentDesc = itemDesc = ""
         if i.Action[:5] == "Added":
             continue
         if len(i.Label):
-            labelNum = labelNum + 1
+            labelNum += 1
             itemDesc = i.Action
         else:
             itemDesc = i.VSSItem.Name
@@ -128,10 +126,10 @@ def CountCheckouts(item):
     num = 0
     if item.Type == constants.VSSITEM_PROJECT:
         for sub in item.Items:
-            num = num + CountCheckouts(sub)
+            num += CountCheckouts(sub)
     else:
         if item.IsCheckedOut:
-            num = num + 1
+            num += 1
     return num
 
 
@@ -170,10 +168,12 @@ def MakeNewBuildNo(project, buildDesc=None, auto=0, bRebrand=0):
         try:
             buildNo = int(buildNo)
             if not bRebrand:
-                buildNo = buildNo + 1
+                buildNo += 1
             buildNo = str(buildNo)
-        except ValueError:
-            raise error("The previous label could not be incremented: %s" % (oldBuild))
+        except ValueError as error:
+            raise ValueError(
+                f"The previous label could not be incremented: {oldBuild}"
+            ) from error
 
     if not auto:
         from pywin.mfc import dialog

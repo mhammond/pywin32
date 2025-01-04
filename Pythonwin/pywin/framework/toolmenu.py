@@ -6,8 +6,6 @@ import win32api
 import win32con
 import win32ui
 
-from . import app
-
 tools = {}
 idPos = 100
 
@@ -41,7 +39,7 @@ def LoadToolMenuItems():
             break
         cmd = win32ui.GetProfileVal("Tools Menu\\%s" % lookNo, "Command", "")
         items.append((menu, cmd))
-        lookNo = lookNo + 1
+        lookNo += 1
 
     if len(items) == 0:
         items = defaultToolMenuItems
@@ -71,7 +69,7 @@ def WriteToolMenuItems(items):
     for menu, cmd in items:
         win32ui.WriteProfileVal("Tools Menu\\%s" % itemNo, "", menu)
         win32ui.WriteProfileVal("Tools Menu\\%s" % itemNo, "Command", cmd)
-        itemNo = itemNo + 1
+        itemNo += 1
 
 
 def SetToolsMenu(menu, menuPos=None):
@@ -90,7 +88,7 @@ def SetToolsMenu(menu, menuPos=None):
             win32con.MF_ENABLED | win32con.MF_STRING, idPos, menuString
         )
         win32ui.GetMainFrame().HookCommand(HandleToolCommand, idPos)
-        idPos = idPos + 1
+        idPos += 1
 
     # Find the correct spot to insert the new tools menu.
     if menuPos is None:
@@ -191,7 +189,7 @@ class ToolMenuPropPage(dialog.PropertyPage):
         for desc, cmd in LoadToolMenuItems():
             lc.InsertItem(itemNo, desc)
             lc.SetItemText(itemNo, 1, cmd)
-            itemNo = itemNo + 1
+            itemNo += 1
 
         self.listControl = lc
         return dialog.PropertyPage.OnInitDialog(self)
@@ -209,7 +207,7 @@ class ToolMenuPropPage(dialog.PropertyPage):
             except win32ui.error:
                 # no more items!
                 break
-            itemLook = itemLook + 1
+            itemLook += 1
         WriteToolMenuItems(items)
         return self._obj_.OnOK()
 

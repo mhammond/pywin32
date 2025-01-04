@@ -14,15 +14,15 @@ import pywintypes
 import win32api
 import win32com
 import win32com.client.connect
+import win32com.test.util
 import win32timezone
 import winerror
 from win32com.client import VARIANT, CastTo, DispatchBaseClass, constants
-from win32com.test.util import RegisterPythonServer
 
 importMsg = "**** PyCOMTest is not installed ***\n  PyCOMTest is a Python test specific COM client and server.\n  It is likely this server is not installed on this machine\n  To install the server, you must get the win32com sources\n  and build it using MS Visual C++"
 
 # This test uses a Python implemented COM server - ensure correctly registered.
-RegisterPythonServer(
+win32com.test.util.RegisterPythonServer(
     os.path.join(os.path.dirname(__file__), "..", "servers", "test_pycomtest.py"),
     "Python.Test.PyCOMTest",
 )
@@ -96,7 +96,7 @@ class RandomEventHandler:
 
     def OnFire(self, no):
         try:
-            self.fireds[no] = self.fireds[no] + 1
+            self.fireds[no] += 1
         except KeyError:
             self.fireds[no] = 0
 
@@ -198,6 +198,18 @@ def TestCommon(o, is_generated):
     progress("Checking structs")
     r = o.GetStruct()
     assert r.int_value == 99 and str(r.str_value) == "Hello from C++"
+    # Dynamic does not support struct byref as [ in, out ] parameters
+    if hasattr(o, "CLSID"):
+        progress("Checking struct byref as [ in, out ] parameter")
+        mod_r = o.ModifyStruct(r)
+        # We expect the input value to stay unchanged
+        assert r.int_value == 99 and str(r.str_value) == "Hello from C++"
+        # and the return value to reflect the modifications performed on the COM server side
+        assert (
+            mod_r.int_value == 100
+            and str(mod_r.str_value) == "Nothing is as constant as change"
+        )
+
     assert o.DoubleString("foo") == "foofoo"
 
     progress("Checking var args")
@@ -250,9 +262,9 @@ def TestCommon(o, is_generated):
     ), f"Property value wrong - got {o.ULongProp} (expected {check})"
     TestApplyResult(o.Test, ("Unused", 99), 1)  # A bool function
     TestApplyResult(o.Test, ("Unused", -1), 1)  # A bool function
-    TestApplyResult(o.Test, ("Unused", 1 == 1), 1)  # A bool function
+    TestApplyResult(o.Test, ("Unused", True), 1)  # A bool function
     TestApplyResult(o.Test, ("Unused", 0), 0)
-    TestApplyResult(o.Test, ("Unused", 1 == 0), 0)
+    TestApplyResult(o.Test, ("Unused", False), 0)
 
     assert o.DoubleString("foo") == "foofoo"
 
@@ -399,6 +411,7 @@ def TestDynamic():
 
 def TestGenerated():
     # Create an instance of the server.
+    from win32com.client import Record
     from win32com.client.gencache import EnsureDispatch
 
     o = EnsureDispatch("PyCOMTest.PyCOMTest")
@@ -420,6 +433,19 @@ def TestGenerated():
     # This is `CoSimpleCounter` and the counter tests should work.
     coclass = GetClass("{B88DD310-BAE8-11D0-AE86-76F2C1000000}")()
     TestCounter(coclass, True)
+
+    # Test records with SAFEARRAY(VT_RECORD) fields.
+    progress("Testing records with SAFEARRAY(VT_RECORD) fields.")
+    l = []
+    for i in range(3):
+        rec = Record("TestStruct1", o)
+        rec.str_value = "This is record number"
+        rec.int_value = i + 1
+        l.append(rec)
+    test_rec = Record("TestStruct2", o)
+    test_rec.array_of_records = l
+    test_rec.rec_count = i + 1
+    assert o.VerifyArrayOfStructs(test_rec)
 
     # XXX - this is failing in dynamic tests, but should work fine.
     i1, i2 = o.GetMultipleInterfaces()
@@ -583,7 +609,7 @@ def TestPyVariant(o, is_generated):
 
 def TestCounter(counter, bIsGenerated):
     # Test random access into container
-    progress("Testing counter", repr(counter))
+    progress(f"Testing counter {counter!r}")
     import random
 
     for i in range(50):
@@ -625,7 +651,7 @@ def TestCounter(counter, bIsGenerated):
         counter.SetBounds(bounds[0], bounds[1])
 
     for item in counter:
-        num = num + 1
+        num += 1
     assert num == len(
         counter
     ), "*** Length of counter and loop iterations don't match ***"
@@ -640,7 +666,7 @@ def TestCounter(counter, bIsGenerated):
     counter.Reset()
     num = 0
     for item in counter:
-        num = num + 1
+        num += 1
     assert num == 10, f"*** Unexpected number of loop iterations - got {num} ***"
     progress("Finished testing counter")
 
