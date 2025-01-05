@@ -30,6 +30,7 @@ extern PyObject *pythoncom_IsGatewayRegistered(PyObject *self, PyObject *args);
 extern PyObject *g_obPyCom_MapIIDToType;
 extern PyObject *g_obPyCom_MapGatewayIIDToName;
 extern PyObject *g_obPyCom_MapInterfaceNameToIID;
+extern PyObject *g_obPyCom_MapRecordGUIDToRecordClass;
 
 PyObject *g_obEmpty = NULL;
 PyObject *g_obMissing = NULL;
@@ -2194,6 +2195,13 @@ PYWIN_MODULE_INIT_FUNC(pythoncom)
     if (PyCom_RegisterCoreSupport() != 0) {
         PYWIN_MODULE_INIT_RETURN_ERROR;
     }
+
+    // Initialize the dictionary for registering com_record subclasses.
+    g_obPyCom_MapRecordGUIDToRecordClass = PyDict_New();
+    if (g_obPyCom_MapRecordGUIDToRecordClass == NULL) {
+        PYWIN_MODULE_INIT_RETURN_ERROR;
+    }
+    PyDict_SetItemString(dict, "RecordClasses", g_obPyCom_MapRecordGUIDToRecordClass);
 
     // XXX - more error checking?
     PyDict_SetItemString(dict, "TypeIIDs", g_obPyCom_MapIIDToType);
