@@ -378,13 +378,18 @@ def fixup_dbi():
                 print(f"FAILED to rename '{this_pyd}': {exc}")
 
 
-def cleanup_old_installs():
+def install(lib_dir):
+    import traceback
+
     # The .pth file is now installed as a regular file.
     # Create the .pth file in the site-packages dir, and use only relative paths
     # We used to write a .pth directly to sys.prefix - clobber it.
     if os.path.isfile(os.path.join(sys.prefix, "pywin32.pth")):
         os.unlink(os.path.join(sys.prefix, "pywin32.pth"))
-
+    # The .pth may be new and therefore not loaded in this session.
+    # Setup the paths just in case.
+    for name in "win32 win32\\lib Pythonwin".split():
+        sys.path.append(os.path.join(lib_dir, name))
     # It is possible people with old versions installed with still have
     # pywintypes and pythoncom registered.  We no longer need this, and stale
     # entries hurt us.
@@ -399,16 +404,9 @@ def cleanup_old_installs():
                 winreg.DeleteKey(root, keyname)
             except OSError:
                 pass
-
-
-def install(lib_dir):
-    import traceback
-
-    import win32api
-
-    cleanup_old_installs()
     LoadSystemModule(lib_dir, "pywintypes")
     LoadSystemModule(lib_dir, "pythoncom")
+    import win32api
 
     # and now we can get the system directory:
     files = glob.glob(os.path.join(lib_dir, "pywin32_system32\\*.*"))
