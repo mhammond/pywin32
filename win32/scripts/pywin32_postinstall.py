@@ -378,18 +378,13 @@ def fixup_dbi():
                 print(f"FAILED to rename '{this_pyd}': {exc}")
 
 
-def install(lib_dir):
-    import traceback
-
+def cleanup_old_installs():
     # The .pth file is now installed as a regular file.
     # Create the .pth file in the site-packages dir, and use only relative paths
     # We used to write a .pth directly to sys.prefix - clobber it.
     if os.path.isfile(os.path.join(sys.prefix, "pywin32.pth")):
         os.unlink(os.path.join(sys.prefix, "pywin32.pth"))
-    # The .pth may be new and therefore not loaded in this session.
-    # Setup the paths just in case.
-    for name in "win32 win32\\lib Pythonwin".split():
-        sys.path.append(os.path.join(lib_dir, name))
+
     # It is possible people with old versions installed with still have
     # pywintypes and pythoncom registered.  We no longer need this, and stale
     # entries hurt us.
@@ -404,9 +399,16 @@ def install(lib_dir):
                 winreg.DeleteKey(root, keyname)
             except OSError:
                 pass
+
+
+def install(lib_dir):
+    import traceback
+
+    import win32api
+
+    cleanup_old_installs()
     LoadSystemModule(lib_dir, "pywintypes")
     LoadSystemModule(lib_dir, "pythoncom")
-    import win32api
 
     # and now we can get the system directory:
     files = glob.glob(os.path.join(lib_dir, "pywin32_system32\\*.*"))
@@ -655,13 +657,13 @@ def main():
 
     * Typical usage:
 
-    > python pywin32_postinstall.py -install
+    > python -m pywin32_postinstall -install
 
-    * or if pywin32 is already installed:
+    * or (shorter but you don't have control over which python environment is used)
 
     > pywin32_postinstall -install
 
-    This should be run automatically after installation,
+    This should be run automatically after installation when installing from source,
     but if it fails you can run it again.
 
     Given EXE installers are no longer provided,
