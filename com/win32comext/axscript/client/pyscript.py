@@ -17,7 +17,7 @@ import win32com.server.register
 import winerror
 from win32com.axscript import axscript
 from win32com.axscript.client import framework, scriptdispatch
-from win32com.axscript.client.framework import (  # pyright: ignore[reportMissingImports] # TODO: Add to typeshed
+from win32com.axscript.client.framework import (
     SCRIPTTEXT_FORCEEXECUTION,
     SCRIPTTEXT_ISEXPRESSION,
     SCRIPTTEXT_ISPERSISTENT,

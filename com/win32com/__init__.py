@@ -98,7 +98,7 @@ if not _frozen:
 # a package.
 if not __gen_path__:
     try:
-        import win32com.gen_py  # pyright: ignore[reportMissingImports] # TODO: Add to typeshed
+        import win32com.gen_py
 
         # __path__ is only ensured to be an Iterable, not a list.
         __gen_path__ = next(iter(sys.modules["win32com.gen_py"].__path__))
