@@ -3,6 +3,8 @@
 #include "PythonCOM.h"
 #include "PyRecord.h"
 
+extern PyObject *g_obPyCom_MapRecordGUIDToRecordClass;
+
 // @doc
 
 // The owner of the record buffer - many records may point here!
@@ -202,13 +204,13 @@ PyObject *pythoncom_GetRecordFromTypeInfo(PyObject *self, PyObject *args)
 }
 
 // This function creates a new 'com_record' instance with placement new.
-// If the particular Record GUID belongs to a directly derived subclass
+// If the particular Record GUID belongs to a registered subclass
 // of the 'com_record' base type, it instantiates this subclass.
 PyRecord *PyRecord::new_record(IRecordInfo *ri, PVOID data, PyRecordBuffer *owner)
 {
-    PyObject *list;
     GUID structguid;
     OLECHAR *guidString;
+    PyObject *guidUnicode, *recordType;
     // By default we create an instance of the base 'com_record' type.
     PyTypeObject *type = &PyRecord::Type;
     // Retrieve the GUID of the Record to be created.
@@ -219,30 +221,16 @@ PyRecord *PyRecord::new_record(IRecordInfo *ri, PVOID data, PyRecordBuffer *owne
     }
     if (S_OK != StringFromCLSID(structguid, &guidString))
         return NULL;
-    // Obtain a copy of the subclasses list to iterate over.
-    list = PyObject_CallMethod((PyObject *)type, "__subclasses__", NULL);
-    // We now have a list of the directly derived subclasses of 'com_record'.
-    // If no subclasses have been defined the list is empty.
-    // Iterate over the list and try to find a subclass with matching GUID.
-    PyObject *recordIter = PyObject_GetIter(list);
-    PyTypeObject *recordType;
-    wchar_t *item_guid;
-    while (recordType = (PyTypeObject *)PyIter_Next(recordIter)) {
-        if (PyObject *item = PyDict_GetItemString(recordType->tp_dict, "GUID")) {
-            if (!(item_guid = PyUnicode_AsWideCharString(item, NULL)))
-                continue;
-            if (wcscmp(guidString, item_guid) == 0) {
-                type = recordType;
-                PyMem_Free(item_guid);
-                break;
-            }
-            PyMem_Free(item_guid);
-        }
-        Py_DECREF(recordType);
-    }
-    Py_DECREF(recordIter);
-    Py_DECREF(list);
+    if (!(guidUnicode = PyUnicode_FromWideChar(guidString, -1)))
+        return NULL;
     ::CoTaskMemFree(guidString);
+    recordType = PyDict_GetItem(g_obPyCom_MapRecordGUIDToRecordClass, guidUnicode);
+    Py_DECREF(guidUnicode);
+    // If the Record GUID is registered as a subclass of com_record
+    // we return an object of the subclass type.
+    if (recordType && PyObject_IsSubclass(recordType, (PyObject *)&PyRecord::Type)) {
+        type = (PyTypeObject *)recordType;
+    }
     // Finally allocate the memory for the the appropriate
     // Record type and construct the instance with placement new.
     char *buf = (char *)PyRecord::Type.tp_alloc(type, 0);
