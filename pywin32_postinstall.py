@@ -166,7 +166,7 @@ def LoadSystemModule(lib_dir, modname):
     filename = os.path.join(lib_dir, "pywin32_system32", filename)
     print("listdir lib_dir:", os.listdir(lib_dir))
     print(
-        "listdir lib_dir/pywin32_system32:", os.listdir(lib_dir) + "/pywin32_system32"
+        "listdir lib_dir/pywin32_system32:", os.listdir(lib_dir + "/pywin32_system32")
     )
     loader = importlib.machinery.ExtensionFileLoader(modname, filename)
     spec = importlib.machinery.ModuleSpec(name=modname, loader=loader, origin=filename)
@@ -711,6 +711,8 @@ def main():
         type=verify_destination,
         help="Location of the PyWin32 installation",
     )
+    print("destination default:", sysconfig.get_paths()["platlib"])
+    print("current file location:", __file__)
 
     args = parser.parse_args()
 
