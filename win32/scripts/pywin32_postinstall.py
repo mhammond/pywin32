@@ -661,9 +661,6 @@ def main():
 
     > pywin32_postinstall -install
 
-    This should be run automatically after installation when installing from source,
-    but if it fails you can run it again.
-
     Given EXE installers are no longer provided,
     and wheel installs can't run postinstall scripts,
     you almost certainly need to run this to
