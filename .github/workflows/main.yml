@@ -45,11 +45,11 @@ jobs:
       # This needs to happen *after* installing pywin32 since
       # AutoDuck/py2d.py currently relies on runtime imports for introspection
       # This isn't included in the wheel (TODO: could we?)
-      # and only servces as a PR test for the docs.yaml workflow
+      # and only serves as a PR test for the docs.yaml workflow
       - name: Generate PyWin32.chm help file
         run: python AutoDuck/make.py
 
-      # Smokescreen test to validate it doesn't crash
+      # Smokescreen test to validate it doesn't crash and dlls can be found
       - name: Run postinstall install/remove
         run: |
           echo "$(python -m site --user-site)"
