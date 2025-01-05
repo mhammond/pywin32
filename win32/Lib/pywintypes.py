@@ -93,7 +93,7 @@ def __import_pywin32_system_module__(modname, globs):
         # Simply import pywin32_system32 and look in the paths in pywin32_system32.__path__
 
         if found is None:
-            import pywin32_system32
+            import pywin32_system32  # pyright: ignore[reportMissingImports] # Empty module created in setup.py to store dlls
 
             for path in pywin32_system32.__path__:
                 maybe = os.path.join(path, filename)

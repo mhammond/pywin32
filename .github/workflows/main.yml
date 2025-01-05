@@ -164,7 +164,7 @@ jobs:
           cache-dependency-path: .github/workflows/main.yml
           check-latest: true
       # pyright vendors typeshed, but let's make sure we have the most up to date stubs
-      - run: pip install types-setuptools PyOpenGL
+      - run: pip install types-setuptools PyOpenGL types-pywin32
       - uses: jakebailey/pyright-action@v2
         with:
           python-version: ${{ matrix.python-version }}
