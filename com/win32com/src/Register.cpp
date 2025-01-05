@@ -66,7 +66,6 @@ PyObject *g_obPyCom_MapInterfaceNameToIID = NULL;       // map of names to IID
 PyObject *g_obPyCom_MapServerIIDToGateway = NULL;       // map of IID's to gateways.
 PyObject *g_obPyCom_MapRecordGUIDToRecordClass = NULL;  // map of COM Record GUIDs to subclasses of com_record.
 
-
 // Register a Python on both the UID and Name maps.
 int PyCom_RegisterClientType(PyTypeObject *typeOb, const GUID *guid)
 {
