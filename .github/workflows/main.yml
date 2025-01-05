@@ -52,11 +52,10 @@ jobs:
       # Smokescreen test to validate it doesn't crash and dlls can be found
       - name: Run postinstall install/remove
         run: |
-          echo "$(python -m site --user-site)"
-          echo "$(python -m site)"
-          cd "$(python -m site --user-site)/.."
-          python Scripts/pywin32_postinstall.py -install
-          python Scripts/pywin32_postinstall.py -remove
+          $UserSite = "$(python -m site --user-site)"
+          cd "$UserSite/.."
+          python Scripts/pywin32_postinstall.py -install -destination "$UserSite"
+          python Scripts/pywin32_postinstall.py -remove -destination "$UserSite"
 
       - name: Run tests
         # Run the tests directly from the source dir so support files (eg, .wav files etc)
