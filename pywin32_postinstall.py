@@ -166,6 +166,7 @@ def LoadSystemModule(lib_dir, modname):
     filename = os.path.join(lib_dir, "pywin32_system32", filename)
     loader = importlib.machinery.ExtensionFileLoader(modname, filename)
     spec = importlib.machinery.ModuleSpec(name=modname, loader=loader, origin=filename)
+    print(filename, loader, spec)
     mod = importlib.util.module_from_spec(spec)
     loader.exec_module(mod)
 
