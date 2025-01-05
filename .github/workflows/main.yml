@@ -52,6 +52,8 @@ jobs:
       # Smokescreen test to validate it doesn't crash
       - name: Run postinstall install/remove
         run: |
+          echo "$(python -m site --user-site)"
+          echo "$(python -m site)"
           cd "$(python -m site --user-site)/.."
           python Scripts/pywin32_postinstall.py -install
           python Scripts/pywin32_postinstall.py -remove
