@@ -856,7 +856,11 @@ class my_install(install):
         This is only run for local installs. Wheel-based installs won't run this code.
         """
         install.run(self)
-        self.execute(self._postinstall, (), msg="Executing post install script...")
+        # Hacky, skip for build-only commands
+        if "build" in sys.argv:
+            print("Skipping post install script for build commands.")
+        else:
+            self.execute(self._postinstall, (), msg="Executing post install script...")
 
     def _postinstall(self):
         filename = os.path.join(self.install_scripts, "pywin32_postinstall.py")
