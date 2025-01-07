@@ -20,10 +20,12 @@ Following is documentation for the PyIShellLink object.
 
 @ex This documentation class is based on:
 	http://msdn.microsoft.com/isapi/msdnlib.idc?theURL=/library/sdkdoc/shellcc/shell/ifaces/ishelllink/ishelllink.htm
+    (Updated docs at https://learn.microsoft.com/en-us/windows/win32/api/shobjidl_core/nn-shobjidl_core-ishelllinkw)
 	With only minor alterations and notations by Mike Fletcher.
 	Errors may be present, read at your own risk.
 See also:
 	http://msdn.microsoft.com/isapi/msdnlib.idc?theURL=/library/books/win95ui/chpt09-01.htm
+    (Archive found at https://library.thedatadungeon.com/msdn-2000-04/win95ui/html/chpt09-01.htm)
 	A tutorial-like introduction, includes brief discussion
 	of non-file linking, and a fairly simple C sample application
 	for file-based linking.
