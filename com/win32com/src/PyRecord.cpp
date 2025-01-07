@@ -511,6 +511,15 @@ PyObject *PyRecord::getattro(PyObject *self, PyObject *obname)
     char *name = PYWIN_ATTR_CONVERT(obname);
     if (name == NULL)
         return NULL;
+    if (strcmp(name, "__record_type_name__") == 0) {
+        BSTR rec_name;
+        HRESULT hr = pyrec->pri->GetName(&rec_name);
+        if (FAILED(hr))
+            return PyCom_BuildPyException(hr, pyrec->pri, IID_IRecordInfo);
+        PyObject *res = PyWinCoreString_FromString(rec_name);
+        SysFreeString(rec_name);
+        return res;
+    }
     if (strcmp(name, "__members__") == 0) {
         ULONG cnames = 0;
         HRESULT hr = pyrec->pri->GetFieldNames(&cnames, NULL);

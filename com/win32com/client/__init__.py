@@ -507,7 +507,7 @@ def register_record_class(cls):
     if cls not in pythoncom.com_record.__subclasses__():
         raise TypeError("Only subclasses of 'com_record' can be registered.")
     try:
-        _ = cls()
+        obj = cls()
     except:
         raise TypeError(f"Class {cls.__name__} cannot be instantiated.")
     # Since the class can be instantiated we know that it represents a valid COM Record
@@ -516,6 +516,13 @@ def register_record_class(cls):
         raise ValueError(
             f"Record class with same GUID {cls.GUID} "
             f"is already registered with name '{pythoncom.RecordClasses[cls.GUID].__name__}'."
+        )
+    # Finally check that the name of the subclass we're going to register matches the
+    # name of the COM Record in the TypeLibrary.
+    if cls.__name__ != obj.__record_type_name__:
+        raise ValueError(
+            f"Name of class does not match the record type name '{obj.__record_type_name__}' "
+            f"for GUID {cls.GUID} in the TypeLibrary."
         )
     pythoncom.RecordClasses[cls.GUID] = cls
 
