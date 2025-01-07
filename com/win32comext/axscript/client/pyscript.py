@@ -309,9 +309,8 @@ class PyScript(framework.COMScript):
     ):
         # Just store the code away - compile when called.  (JIT :-)
         item = self.GetNamedItem(itemName)
-        if (
-            itemName == subItemName
-        ):  # Explicit handlers - eg <SCRIPT LANGUAGE="Python" for="TestForm" Event="onSubmit">
+        if itemName == subItemName:
+            # Explicit handlers - eg <SCRIPT LANGUAGE="Python" RUNAT=Server for="TestForm" Event="onSubmit">
             subItem = item
         else:
             subItem = item.GetCreateSubItem(item, subItemName, None, None)

@@ -27,7 +27,6 @@ HTML_FILES = $(WIN32_HELP_DIR)\*.html \
 		$(WIN32COM_DIR)/HTML/*.html \
 		$(WIN32COM_DIR)/HTML/image/* \
 		$(WIN32COM_HELP_DIR)/*.htm* \
-		$(WIN32COMEXT_DIR)/axscript/demos/client/ie/* \
 		$(ISAPI_DIR)/doc/*.html \
 		$(PYTHONWIN_DIR)/readme.html $(PYTHONWIN_DIR)/doc/* $(PYTHONWIN_DIR)/doc/debugger/* \
 		../CHANGES.txt \
