@@ -1,5 +1,9 @@
 # TODO: Keep removed names available! (but with a deprecation warning)
 
+import sys
+
+_WIN64 = sys.maxsize > 2**32
+
 # Constants h2py couldn't migrate
 IMAGE_ARCHIVE_LONGNAMES_MEMBER = "//              "  # Thinks it's a comment
 SECURITY_DESCRIPTOR_MIN_LENGTH = 20  # sizeof(SECURITY_DESCRIPTOR)
@@ -123,18 +127,10 @@ def C_ASSERT(e):
     return
 
 
-def DECLSPEC_ALIGN(x):
-    return __declspec(align(x))
-
-
 X86_CACHE_ALIGNMENT_SIZE = 64
 ARM_CACHE_ALIGNMENT_SIZE = 128
 SYSTEM_CACHE_ALIGNMENT_SIZE = X86_CACHE_ALIGNMENT_SIZE
 SYSTEM_CACHE_ALIGNMENT_SIZE = ARM_CACHE_ALIGNMENT_SIZE
-
-
-def DECLSPEC_UUID(x):
-    return __declspec(uuid(x))
 
 
 PRAGMA_DEPRECATED_DDK = 1
@@ -143,18 +139,6 @@ PRAGMA_DEPRECATED_DDK = 0
 UCSCHAR_INVALID_CHARACTER = -1
 MIN_UCSCHAR = 0
 MAX_UCSCHAR = 0x0010FFFF
-
-
-def __TEXT(quote):
-    return L  ##quote
-
-
-def __TEXT(quote):
-    return quote
-
-
-def TEXT(quote):
-    return __TEXT(quote)
 
 
 ALL_PROCESSOR_GROUPS = 0xFFFF
@@ -183,40 +167,8 @@ MAXWORD = 0xFFFF
 MAXDWORD = -1
 
 
-def RTL_NUMBER_OF_V1(A):
-    return sizeof(A) / sizeof((A)[0])
-
-
-def RTL_NUMBER_OF_V2(A):
-    return sizeof(*RtlpNumberOf(A))
-
-
-def RTL_NUMBER_OF_V2(A):
-    return RTL_NUMBER_OF_V1(A)
-
-
-def RTL_NUMBER_OF(A):
-    return RTL_NUMBER_OF_V2(A)
-
-
-def RTL_NUMBER_OF(A):
-    return RTL_NUMBER_OF_V1(A)
-
-
-def ARRAYSIZE(A):
-    return RTL_NUMBER_OF_V2(A)
-
-
-def _ARRAYSIZE(A):
-    return RTL_NUMBER_OF_V1(A)
-
-
 def RTL_CONST_CAST(type):
     return type
-
-
-def RTL_BITS_OF(sizeOfArg):
-    return sizeof(sizeOfArg) * 8
 
 
 ENCLAVE_SHORT_ID_LENGTH = 16
@@ -844,30 +796,6 @@ LOCALE_TRANSIENT_KEYBOARD4 = 0x2C00
 
 
 def UNREFERENCED_PARAMETER(P):
-    return _Prefast_unreferenced_parameter_impl_("PREfast", ((void)(P), 0))
-
-
-def DBG_UNREFERENCED_PARAMETER(P):
-    return _Prefast_unreferenced_parameter_impl_("PREfast", ((void)(P), 0))
-
-
-def DBG_UNREFERENCED_LOCAL_VARIABLE(V):
-    return _Prefast_unreferenced_parameter_impl_("PREfast", ((void)(V), 0))
-
-
-def UNREFERENCED_PARAMETER(P):
-    return P
-
-
-def DBG_UNREFERENCED_PARAMETER(P):
-    return P
-
-
-def DBG_UNREFERENCED_LOCAL_VARIABLE(V):
-    return V
-
-
-def UNREFERENCED_PARAMETER(P):
     return
 
 
@@ -876,10 +804,6 @@ def DBG_UNREFERENCED_PARAMETER(P):
 
 
 def DBG_UNREFERENCED_LOCAL_VARIABLE(V):
-    return
-
-
-def DEFINE_ENUM_FLAG_OPERATORS(ENUMTYPE):
     return
 
 
@@ -955,22 +879,10 @@ MAXIMUM_WAIT_OBJECTS = 64
 MAXIMUM_SUSPEND_COUNT = MAXCHAR
 
 
-def CacheLineFlush(Address):
-    return _mm_clflush(Address)
-
-
 _MM_HINT_T0 = 1
 _MM_HINT_T1 = 2
 _MM_HINT_T2 = 3
 _MM_HINT_NTA = 0
-
-
-def PrefetchForWrite(p):
-    return _m_prefetchw(p)
-
-
-def ReadForWriteAccess(p):
-    return (_m_prefetchw(p), *(p))
 
 
 PF_TEMPORAL_LEVEL_1 = _MM_HINT_T0
@@ -1069,10 +981,6 @@ def ARM64_SYSREG_CRM(_Reg_):
 
 def ARM64_SYSREG_OP2(_Reg_):
     return (_Reg_) & 7
-
-
-def ARM64_PMXEVCNTRn_EL0(n):
-    return ARM64_SYSREG(3, 3, 14, 8 + ((n) / 8), (n) % 8)
 
 
 PF_TEMPORAL_LEVEL_1 = 0
@@ -1584,44 +1492,42 @@ SE_SECURITY_DESCRIPTOR_FLAG_NO_ACCESS_FILTER_ACE = 0x00000004
 SE_SECURITY_DESCRIPTOR_VALID_FLAGS = 0x00000007
 SE_ACCESS_CHECK_FLAG_NO_LEARNING_MODE_LOGGING = 0x00000008
 SE_ACCESS_CHECK_VALID_FLAGS = 0x00000008
-SE_CREATE_TOKEN_NAME = TEXT("SeCreateTokenPrivilege")
-SE_ASSIGNPRIMARYTOKEN_NAME = TEXT("SeAssignPrimaryTokenPrivilege")
-SE_LOCK_MEMORY_NAME = TEXT("SeLockMemoryPrivilege")
-SE_INCREASE_QUOTA_NAME = TEXT("SeIncreaseQuotaPrivilege")
-SE_UNSOLICITED_INPUT_NAME = TEXT("SeUnsolicitedInputPrivilege")
-SE_MACHINE_ACCOUNT_NAME = TEXT("SeMachineAccountPrivilege")
-SE_TCB_NAME = TEXT("SeTcbPrivilege")
-SE_SECURITY_NAME = TEXT("SeSecurityPrivilege")
-SE_TAKE_OWNERSHIP_NAME = TEXT("SeTakeOwnershipPrivilege")
-SE_LOAD_DRIVER_NAME = TEXT("SeLoadDriverPrivilege")
-SE_SYSTEM_PROFILE_NAME = TEXT("SeSystemProfilePrivilege")
-SE_SYSTEMTIME_NAME = TEXT("SeSystemtimePrivilege")
-SE_PROF_SINGLE_PROCESS_NAME = TEXT("SeProfileSingleProcessPrivilege")
-SE_INC_BASE_PRIORITY_NAME = TEXT("SeIncreaseBasePriorityPrivilege")
-SE_CREATE_PAGEFILE_NAME = TEXT("SeCreatePagefilePrivilege")
-SE_CREATE_PERMANENT_NAME = TEXT("SeCreatePermanentPrivilege")
-SE_BACKUP_NAME = TEXT("SeBackupPrivilege")
-SE_RESTORE_NAME = TEXT("SeRestorePrivilege")
-SE_SHUTDOWN_NAME = TEXT("SeShutdownPrivilege")
-SE_DEBUG_NAME = TEXT("SeDebugPrivilege")
-SE_AUDIT_NAME = TEXT("SeAuditPrivilege")
-SE_SYSTEM_ENVIRONMENT_NAME = TEXT("SeSystemEnvironmentPrivilege")
-SE_CHANGE_NOTIFY_NAME = TEXT("SeChangeNotifyPrivilege")
-SE_REMOTE_SHUTDOWN_NAME = TEXT("SeRemoteShutdownPrivilege")
-SE_UNDOCK_NAME = TEXT("SeUndockPrivilege")
-SE_SYNC_AGENT_NAME = TEXT("SeSyncAgentPrivilege")
-SE_ENABLE_DELEGATION_NAME = TEXT("SeEnableDelegationPrivilege")
-SE_MANAGE_VOLUME_NAME = TEXT("SeManageVolumePrivilege")
-SE_IMPERSONATE_NAME = TEXT("SeImpersonatePrivilege")
-SE_CREATE_GLOBAL_NAME = TEXT("SeCreateGlobalPrivilege")
-SE_TRUSTED_CREDMAN_ACCESS_NAME = TEXT("SeTrustedCredManAccessPrivilege")
-SE_RELABEL_NAME = TEXT("SeRelabelPrivilege")
-SE_INC_WORKING_SET_NAME = TEXT("SeIncreaseWorkingSetPrivilege")
-SE_TIME_ZONE_NAME = TEXT("SeTimeZonePrivilege")
-SE_CREATE_SYMBOLIC_LINK_NAME = TEXT("SeCreateSymbolicLinkPrivilege")
-SE_DELEGATE_SESSION_USER_IMPERSONATE_NAME = TEXT(
-    "SeDelegateSessionUserImpersonatePrivilege"
-)
+SE_CREATE_TOKEN_NAME = "SeCreateTokenPrivilege"
+SE_ASSIGNPRIMARYTOKEN_NAME = "SeAssignPrimaryTokenPrivilege"
+SE_LOCK_MEMORY_NAME = "SeLockMemoryPrivilege"
+SE_INCREASE_QUOTA_NAME = "SeIncreaseQuotaPrivilege"
+SE_UNSOLICITED_INPUT_NAME = "SeUnsolicitedInputPrivilege"
+SE_MACHINE_ACCOUNT_NAME = "SeMachineAccountPrivilege"
+SE_TCB_NAME = "SeTcbPrivilege"
+SE_SECURITY_NAME = "SeSecurityPrivilege"
+SE_TAKE_OWNERSHIP_NAME = "SeTakeOwnershipPrivilege"
+SE_LOAD_DRIVER_NAME = "SeLoadDriverPrivilege"
+SE_SYSTEM_PROFILE_NAME = "SeSystemProfilePrivilege"
+SE_SYSTEMTIME_NAME = "SeSystemtimePrivilege"
+SE_PROF_SINGLE_PROCESS_NAME = "SeProfileSingleProcessPrivilege"
+SE_INC_BASE_PRIORITY_NAME = "SeIncreaseBasePriorityPrivilege"
+SE_CREATE_PAGEFILE_NAME = "SeCreatePagefilePrivilege"
+SE_CREATE_PERMANENT_NAME = "SeCreatePermanentPrivilege"
+SE_BACKUP_NAME = "SeBackupPrivilege"
+SE_RESTORE_NAME = "SeRestorePrivilege"
+SE_SHUTDOWN_NAME = "SeShutdownPrivilege"
+SE_DEBUG_NAME = "SeDebugPrivilege"
+SE_AUDIT_NAME = "SeAuditPrivilege"
+SE_SYSTEM_ENVIRONMENT_NAME = "SeSystemEnvironmentPrivilege"
+SE_CHANGE_NOTIFY_NAME = "SeChangeNotifyPrivilege"
+SE_REMOTE_SHUTDOWN_NAME = "SeRemoteShutdownPrivilege"
+SE_UNDOCK_NAME = "SeUndockPrivilege"
+SE_SYNC_AGENT_NAME = "SeSyncAgentPrivilege"
+SE_ENABLE_DELEGATION_NAME = "SeEnableDelegationPrivilege"
+SE_MANAGE_VOLUME_NAME = "SeManageVolumePrivilege"
+SE_IMPERSONATE_NAME = "SeImpersonatePrivilege"
+SE_CREATE_GLOBAL_NAME = "SeCreateGlobalPrivilege"
+SE_TRUSTED_CREDMAN_ACCESS_NAME = "SeTrustedCredManAccessPrivilege"
+SE_RELABEL_NAME = "SeRelabelPrivilege"
+SE_INC_WORKING_SET_NAME = "SeIncreaseWorkingSetPrivilege"
+SE_TIME_ZONE_NAME = "SeTimeZonePrivilege"
+SE_CREATE_SYMBOLIC_LINK_NAME = "SeCreateSymbolicLinkPrivilege"
+SE_DELEGATE_SESSION_USER_IMPERSONATE_NAME = "SeDelegateSessionUserImpersonatePrivilege"
 SE_ACTIVATE_AS_USER_CAPABILITY = "activateAsUser"
 SE_CONSTRAINED_IMPERSONATION_CAPABILITY = "constrainedImpersonation"
 SE_SESSION_IMPERSONATION_CAPABILITY = "sessionImpersonation"
@@ -3089,26 +2995,22 @@ def IMAGE_SNAP_BY_ORDINAL32(Ordinal):
     return (Ordinal & IMAGE_ORDINAL_FLAG32) != 0
 
 
-IMAGE_ORDINAL_FLAG = IMAGE_ORDINAL_FLAG64
+if _WIN64:
+    IMAGE_ORDINAL_FLAG = IMAGE_ORDINAL_FLAG64
 
+    def IMAGE_ORDINAL(Ordinal):
+        return IMAGE_ORDINAL64(Ordinal)
 
-def IMAGE_ORDINAL(Ordinal):
-    return IMAGE_ORDINAL64(Ordinal)
+    def IMAGE_SNAP_BY_ORDINAL(Ordinal):
+        return IMAGE_SNAP_BY_ORDINAL64(Ordinal)
+else:
+    IMAGE_ORDINAL_FLAG = IMAGE_ORDINAL_FLAG32  # pyright: ignore[reportConstantRedefinition]
 
+    def IMAGE_ORDINAL(Ordinal):
+        return IMAGE_ORDINAL32(Ordinal)
 
-def IMAGE_SNAP_BY_ORDINAL(Ordinal):
-    return IMAGE_SNAP_BY_ORDINAL64(Ordinal)
-
-
-IMAGE_ORDINAL_FLAG = IMAGE_ORDINAL_FLAG32
-
-
-def IMAGE_ORDINAL(Ordinal):
-    return IMAGE_ORDINAL32(Ordinal)
-
-
-def IMAGE_SNAP_BY_ORDINAL(Ordinal):
-    return IMAGE_SNAP_BY_ORDINAL32(Ordinal)
+    def IMAGE_SNAP_BY_ORDINAL(Ordinal):
+        return IMAGE_SNAP_BY_ORDINAL32(Ordinal)
 
 
 IMAGE_RESOURCE_NAME_IS_STRING = -2147483648
@@ -3410,10 +3312,6 @@ RTL_CORRELATION_VECTOR_V1_PREFIX_LENGTH = 16
 RTL_CORRELATION_VECTOR_V1_LENGTH = 64
 RTL_CORRELATION_VECTOR_V2_PREFIX_LENGTH = 22
 RTL_CORRELATION_VECTOR_V2_LENGTH = 128
-
-
-def TraceLoggingCORRELATION_VECTOR(cv):
-    return TraceLoggingString((cv).Vector, "__TlgCV__")
 
 
 IMAGE_POLICY_METADATA_VERSION = 1
