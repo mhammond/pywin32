@@ -124,7 +124,7 @@ class WinExt(Extension):
                 # CRYPT_DECRYPT_MESSAGE_PARA.dwflags is in an ifdef for some unknown reason
                 # See github PR #1444 for more details...
                 ("CRYPT_DECRYPT_MESSAGE_PARA_HAS_EXTRA_FIELDS", None),
-                # Minimum Windows version supported (Vista)
+                # Minimum Windows version supported (Vista / Windows Server 2008)
                 # https://learn.microsoft.com/en-us/cpp/porting/modifying-winver-and-win32-winnt
                 ("_WIN32_WINNT", hex(0x0600)),
                 ("WINVER", hex(0x0600)),
@@ -2055,7 +2055,16 @@ classifiers = [
     "Environment :: Win32 (MS Windows)",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: Python Software Foundation License",
+    "Development Status :: 5 - Production/Stable",
+    "Topic :: Text Editors :: Integrated Development Environments (IDE)",
     "Operating System :: Microsoft :: Windows",
+    "Operating System :: Microsoft :: Windows :: Windows Server 2008",
+    "Operating System :: Microsoft :: Windows :: Windows Vista",
+    "Operating System :: Microsoft :: Windows :: Windows 7",
+    "Operating System :: Microsoft :: Windows :: Windows 8",
+    "Operating System :: Microsoft :: Windows :: Windows 8.1",
+    "Operating System :: Microsoft :: Windows :: Windows 10",
+    "Operating System :: Microsoft :: Windows :: Windows 11",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
