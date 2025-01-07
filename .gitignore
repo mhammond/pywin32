@@ -50,7 +50,7 @@ win32/src/win32service_messages.h
 win32/src/win32evtlog_messages.h
 isapi/src/pyISAPI_messages.h
 
-# VC2003 and up project files
+# Visual Studio project files
 *.sln
 *.suo
 *.vcproj
