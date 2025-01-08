@@ -504,7 +504,7 @@ def register_record_class(cls):
 
     To instantiate such a subclasses it has to be registered via this function.
     """
-    if cls not in pythoncom.com_record.__subclasses__():
+    if not issubclass(cls, pythoncom.com_record):
         raise TypeError("Only subclasses of 'com_record' can be registered.")
     try:
         obj = cls()
