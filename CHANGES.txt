@@ -14,6 +14,7 @@ https://mhammond.github.io/pywin32_installers.html.
 Coming in build 309, as yet unreleased
 --------------------------------------
 
+## pywin32
 * Removed param `hIcon` from `win32comext.shell.ShellExecuteEx`. It was unusable since Windows Vista (#2423, @Avasam)
 * Fixed `nbios.NCBStruct` packing (#2406, @Avasam)
 * Restored axdebug builds on Python 3.10 (#2416, @Avasam)
@@ -36,6 +37,9 @@ Coming in build 309, as yet unreleased
 * Fixed "Open GL Demo" (`Pythonwin/pywin/Demos/openGLDemo.py`) and restore "Font" demo in `Pythonwin/pywin/Demos/guidemo.py` (#2345, @Avasam)
 * Fixed accidentally trying to raise an undefined name instead of an `Exception` in `Pythonwin/pywin/debugger/debugger.py` (#2326, @Avasam)
 * Fixed PythonService DoLogMessage raising fatal GIL lock error (#2426, JacobNolan1)
+
+## adodbapi
+* Fixes `NameError: name 'os' is not defined` error for `"getenv"` macro in `adodbapi.process_connect_string.macro_call` (#2283, @Avasam)
 
 Build 308, released 2024-10-12
 ------------------------------
