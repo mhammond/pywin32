@@ -14,6 +14,7 @@ https://mhammond.github.io/pywin32_installers.html.
 Coming in build 309, as yet unreleased
 --------------------------------------
 
+* Restored shipping a helpfile with the wheel. Run like for pywin32 306 and before, you can run the `pywin32_postinstall` script to register it  (#2432, @Avasam)
 * Removed param `hIcon` from `win32comext.shell.ShellExecuteEx`. It was unusable since Windows Vista (#2423, @Avasam)
 * Fixed `nbios.NCBStruct` packing (#2406, @Avasam)
 * Restored axdebug builds on Python 3.10 (#2416, @Avasam)
