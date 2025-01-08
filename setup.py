@@ -522,10 +522,17 @@ class my_build_ext(build_ext):
                 for path in path_file.readlines()
                 if not path.startswith("#")
             ] + [
+                # Add the build folder to python path
                 build_lib_absolute,
                 # For pythoncom.py, since it doesn't get added to the build folder
                 os.path.abspath("com"),
             ]
+            print("paths:", paths)
+            print("build_lib_absolute:", build_lib_absolute)
+            print("tmp_pywin32_build_pth:", tmp_pywin32_build_pth)
+        (Path(build_lib_absolute) / "tmp_pywin32_build.pth").write_text(
+            "\n".join(paths)
+        )
         tmp_pywin32_build_pth.write_text("\n".join(paths))
 
         # Actually generate the helpfile
