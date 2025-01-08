@@ -1,14 +1,12 @@
-"""adodbapi -- a pure Python PEP 249 DB-API package using Microsoft ADO
+"""adodbapi - a pure Python PEP 249 DB-API package using Microsoft ADO
 
-Adodbapi can be run on CPython 3.5 and later.
+Adodbapi can be run on CPython 3.7 and later.
 """
 
 NAME = "adodbapi"
 MAINTAINER = "Vernon Cole"
 MAINTAINER_EMAIL = "vernondcole@gmail.com"
-DESCRIPTION = (
-    """A pure Python package implementing PEP 249 DB-API using Microsoft ADO."""
-)
+DESCRIPTION = "A pure Python package implementing PEP 249 DB-API using Microsoft ADO."
 URL = "http://sourceforge.net/projects/adodbapi"
 LICENSE = "LGPL"
 CLASSIFIERS = [
