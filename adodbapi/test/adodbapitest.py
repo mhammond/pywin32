@@ -465,7 +465,7 @@ class CommonDBTests(unittest.TestCase):
             self.helpForceDropOnTblTemp()  # so drop it now
             crsr.execute(tabdef)
         for i in range(9):  # note: this poor SQL code, but a valid test
-            crsr.execute("INSERT INTO xx_%s (fldData) VALUES (%i)" % (config.tmp, i))
+            crsr.execute(f"INSERT INTO xx_{config.tmp} (fldData) VALUES ({i})")
             # NOTE: building the test table without using parameter substitution
 
     def testFetchAll(self):

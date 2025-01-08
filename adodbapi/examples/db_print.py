@@ -44,16 +44,21 @@ else:
         c.execute(sql)
 
         # check the results
-        print(
-            'result rowcount shows as= %d. (Note: -1 means "not known")' % (c.rowcount,)
-        )
+        print('result rowcount shows as= c.rowcount. (Note: -1 means "not known")')
         print("")
         print("result data description is:")
         print("            NAME Type         DispSize IntrnlSz Prec Scale Null?")
         for d in c.description:
             print(
-                ("%16s %-12s %8s %8d %4d %5d %s")
-                % (d[0], adc.adTypeNames[d[1]], d[2], d[3], d[4], d[5], bool(d[6]))
+                "{:>16} {:<12} {:>8} {:>8} {:>4} {:>5} {}".format(  # noqa: UP032
+                    d[0],
+                    adc.adTypeNames[d[1]],
+                    d[2],
+                    d[3],
+                    d[4],
+                    d[5],
+                    bool(d[6]),
+                )
             )
         print("")
         print("str() of first five records are...")

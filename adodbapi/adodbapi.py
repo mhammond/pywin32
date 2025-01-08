@@ -456,7 +456,7 @@ class Connection:
     def printADOerrors(self):
         j = self.connector.Errors.Count
         if j:
-            print("ADO Errors:(%i)" % j)
+            print(f"ADO Errors:({j})")
         for e in self.connector.Errors:
             print(f"Description: {e.Description}")
             print(
@@ -850,8 +850,7 @@ class Cursor:
             else:
                 if len(parameters) != self.cmd.Parameters.Count - 1:
                     raise api.ProgrammingError(
-                        "You must supply %d parameters for this stored procedure"
-                        % (self.cmd.Parameters.Count - 1)
+                        f"You must supply {(self.cmd.Parameters.Count - 1)} parameters for this stored procedure"
                     )
         if sproc or parameters != []:
             i = 0
@@ -909,7 +908,7 @@ class Cursor:
                         self.cmd.Parameters.Append(p)
 
                     for elem in parameters:
-                        name = "p%i" % i
+                        name = f"p{i}"
                         adotype = api.pyTypeToADOType(elem)
                         p = self.cmd.CreateParameter(
                             name, adotype, adc.adParamInput
