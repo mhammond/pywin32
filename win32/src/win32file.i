@@ -2924,12 +2924,6 @@ static Wow64DisableWow64FsRedirectionfunc pfnWow64DisableWow64FsRedirection = NU
 typedef BOOL (WINAPI *Wow64RevertWow64FsRedirectionfunc)(PVOID);
 static Wow64RevertWow64FsRedirectionfunc pfnWow64RevertWow64FsRedirection = NULL;
 
-/* GetFileInformationByHandleEx and supporting structs are defined in SDK for Vista and later,
-	but can also be used on XP with a separate header and lib:
-	https://web.archive.org/web/20121118034013/http://www.microsoft.com:80/en-us/download/details.aspx?id=22599
-    or https://web.archive.org/web/20130718200015/http://www.microsoft.com/en-us/download/confirmation.aspx?id=22599
-	However, the filextd.lib included is static, so this module would have to be compiled for XP only.
-*/
 typedef BOOL (WINAPI *GetFileInformationByHandleExfunc)(HANDLE,FILE_INFO_BY_HANDLE_CLASS,LPVOID,DWORD);
 static GetFileInformationByHandleExfunc pfnGetFileInformationByHandleEx = NULL;
 typedef BOOL (WINAPI *SetFileInformationByHandlefunc)(HANDLE,FILE_INFO_BY_HANDLE_CLASS,LPVOID,DWORD);

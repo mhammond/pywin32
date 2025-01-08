@@ -61,11 +61,7 @@ says that you must use 64 bit Python in this case. However, see the
 answer in
 <https://stackoverflow.com/questions/12270453/ms-access-db-engine-32-bit-with-office-64-bit>.
 If you decide to try hacking the installers, you may find
-<https://www.pantaray.com/msi_super_orca.html> to be a useful alternative
-to Orca. My experience is that such a [hacked installer (like this
-one)](http://shares.digvil.info/redis) (dead link) can also be used on machines
-where "click to buy" versions of Office have been removed, but are still
-blocking installation of the redistributable provider.
+<https://www.pantaray.com/msi_super_orca.html> to be a useful alternative to Orca.
 
 - To use any ODBC driver from 64 bit Python, you also need the MSDASQL
 provider, which is shipped with Windows.
