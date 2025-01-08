@@ -91,7 +91,7 @@ def UnpackNMITEMACTIVATE(lparam):
 
 
 # MENUITEMINFO struct
-# http://msdn.microsoft.com/library/default.asp?url=/library/en-us/winui/WinUI/WindowsUserInterface/Resources/Menus/MenuReference/MenuStructures/MENUITEMINFO.asp
+# https://learn.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-menuiteminfow
 # We use the struct module to pack and unpack strings as MENUITEMINFO
 # structures.  We also have special handling for the 'fMask' item in that
 # structure to avoid the caller needing to explicitly check validity

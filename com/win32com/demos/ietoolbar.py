@@ -219,7 +219,7 @@ class IEToolbar:
 
     def on_first_button(self):
         print("first!")
-        self.webbrowser.Navigate2("http://starship.python.net/crew/mhammond/")
+        self.webbrowser.Navigate2("https://github.com/mhammond/pywin32")
 
     def on_second_button(self):
         print("second!")

@@ -84,7 +84,7 @@ class TestSSPI(unittest.TestCase):
 
     def _doTestEncryptStream(self, pkg_name):
         # Test out the SSPI/GSSAPI interop wrapping examples at
-        # https://docs.microsoft.com/en-us/windows/win32/secauthn/sspi-kerberos-interoperability-with-gssapi
+        # https://learn.microsoft.com/en-us/windows/win32/secauthn/sspi-kerberos-interoperability-with-gssapi
 
         sspiclient, sspiserver = self._doAuth(pkg_name)
 

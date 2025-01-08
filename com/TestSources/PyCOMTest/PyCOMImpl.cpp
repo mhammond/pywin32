@@ -437,7 +437,7 @@ HRESULT CPyCOMTest::Fire(long nID)
             if (FAILED(hr))
                 break;
             // call FireWithNamedParams a variety of ways.
-            // See http://msdn2.microsoft.com/en-us/library/ms221653.aspx
+            // See https://learn.microsoft.com/en-ca/previous-versions/windows/desktop/automat/passing-parameters
             // "Passing Parameters (Component Automation)" for details.
 
             OLECHAR *names2[] = {L"OnFireWithNamedParams"};

@@ -44,7 +44,8 @@ def OpenHelpFile(fileName, helpCmd=None, helpArg=None):
         # XXX - using the htmlhelp API wreaks havoc with keyboard shortcuts
         # so we disable it, forcing ShellExecute, which works fine (but
         # doesn't close the help file when Pythonwin is closed.
-        # Tom Heller also points out http://www.microsoft.com/mind/0499/faq/faq0499.asp,
+        # Tom Heller also points out
+        # https://web.archive.org/web/20070519165457/http://www.microsoft.com:80/mind/0499/faq/faq0499.asp ,
         # which may or may not be related.
         elif 0 and ext == ".chm":
             import win32help

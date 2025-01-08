@@ -9,7 +9,7 @@ or
     https://github.com/mhammond/pywin32/compare/b3xx...main
 
 As of build 305, installation .exe files have been deprecated; see
-https://mhammond.github.io/pywin32_installers.html.
+https://mhammond.github.io/pywin32_installers.html .
 
 Coming in build 309, as yet unreleased
 --------------------------------------

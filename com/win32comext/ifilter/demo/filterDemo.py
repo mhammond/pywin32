@@ -239,7 +239,7 @@ def _usage():
     print("by default .htm, .txt, .doc, .dot, .xls, .xlt, .ppt are supported")
     print("you can filter .pdf's by downloading adobes ifilter component. ")
     print(
-        "(currently found at http://download.adobe.com/pub/adobe/acrobat/win/all/ifilter50.exe)."
+        "(currently found at https://download.adobe.com/pub/adobe/acrobat/win/all/ifilter50.exe)."
     )
     print("ifilters for other filetypes are also available.")
     print()

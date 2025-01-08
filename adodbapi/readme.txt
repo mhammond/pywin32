@@ -5,7 +5,7 @@ adodbapi
 A Python DB-API 2.0 (PEP-249) module that makes it easy to use Microsoft ADO
 for connecting with databases and other data sources using CPython.
 
-Home page: <http://sourceforge.net/projects/adodbapi>
+Home page: <https://sourceforge.net/projects/adodbapi>
 
 Features:
 * 100% DB-API 2.0 (PEP-249) compliant (including most extensions and recommendations).
@@ -24,7 +24,7 @@ Prerequisites:
 
 Installation:
 * (C-Python on Windows): Install pywin32 (`python -m pip install pywin32`) which includes adodbapi.
-* (IronPython on Windows): Download adodbapi from http://sf.net/projects/adodbapi.  Unpack the zip.
+* (IronPython on Windows): Download adodbapi from https://sourceforge.net/projects/adodbapi/ .  Unpack the zip.
 
 NOTE: ...........
 If you do not like the new default operation of returning Numeric columns as decimal.Decimal,
@@ -69,15 +69,16 @@ what's new in version 2.5
 
 License
 -------
-LGPL, see http://www.opensource.org/licenses/lgpl-license.php
+LGPL, see https://opensource.org/license/lgpl-2-1
 
 Documentation
 -------------
 
-Look at adodbapi/quick_reference.md
-http://www.python.org/topics/database/DatabaseAPI-2.0.html
-read the examples in adodbapi/examples
-and look at the test cases in adodbapi/test directory.
+Look at:
+- `adodbapi/quick_reference.md`
+- https://wiki.python.org/moin/DatabaseProgramming#The_DB-API
+- read the examples in adodbapi/examples
+- and the test cases in `adodbapi/test directory`
 
 Mailing lists
 -------------

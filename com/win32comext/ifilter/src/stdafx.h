@@ -17,8 +17,8 @@
 #ifdef MISSING_PROPSTG
 // Ack - NTQuery.h is failing with the Vista SDK - pull in what we need
 // Problem is missing propstg.h, and all the work-arounds are uglier than
-// just these 3 prototypes.
-// See http://forums.microsoft.com/MSDN/ShowPost.aspx?PostID=508254&SiteID=1
+// just these 3 prototypes. See
+// https://web.archive.org/web/20071215081009/http://forums.microsoft.com:80/MSDN/ShowPost.aspx?PostID=508254&SiteID=1
 
 STDAPI LoadIFilter(PCWSTR pwcsPath, __in IUnknown *pUnkOuter, __deref_out void **ppIUnk);
 STDAPI BindIFilterFromStorage(__in IStorage *pStg, __in IUnknown *pUnkOuter, __deref_out void **ppIUnk);

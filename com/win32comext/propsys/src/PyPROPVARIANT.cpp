@@ -532,7 +532,7 @@ BOOL PyWin_NewPROPVARIANT(PyObject *ob, VARTYPE vt, PROPVARIANT *ppv)
             break;
         }
             // Docs are contradictory as to whether VT_VARIANT can be used with VT_ARRAY
-            // http://msdn.microsoft.com/en-us/library/aa380072%28VS.85%29.aspx
+            // https://learn.microsoft.com/en-ca/windows/win32/api/propidlbase/ns-propidlbase-propvariant
             // In the section on VT_ARRAY, it says it can be or'ed with VT_VARIANT.  However,
             // under VT_VARIANT it says it can only be used with VT_VECTOR or VT_BYREF
 

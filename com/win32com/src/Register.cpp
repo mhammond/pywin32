@@ -141,7 +141,7 @@ HRESULT PyCom_RegisterGatewayObject(REFIID iid, pfnPyGatewayConstructor ctor, co
 /* PyType_Ready assures that the type's tp_base is ready, but it does *not* call
     itself for entries in tp_bases, leading to a crash or indecipherable errors
     if one of multiple bases is not itself ready.
-    http://bugs.python.org:80/issue3453
+    https://github.com/python/cpython/issues/47703
     This code is also in win32uimodule.cpp, should move into pywintypes.
 */
 int PyWinType_Ready(PyTypeObject *pT)

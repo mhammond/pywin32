@@ -512,7 +512,7 @@ PyLong_AsVoidPtr is unsuitable for use in many places due to the following issue
     that function and can be converted back to a usable address.
 
 From the response to this bug report:
-http://sourceforge.net/tracker/?func=detail&atid=105470&aid=1630863&group_id=5470
+https://github.com/python/cpython/issues/44430
 apparently if you want any reasonable or consistent behaviour from this function
 you're expected to perform the type checking yourself first.
 And if you have to do all that, why use the damn function at all ?

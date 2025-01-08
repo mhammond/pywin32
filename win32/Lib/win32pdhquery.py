@@ -88,10 +88,10 @@ number of common one-off tasks.
 If you can access the MS Developers Network Library, you can find
 information about the PDH API as MS describes it.  For a background article,
 try:
-http://msdn.microsoft.com/library/en-us/dnperfmo/html/msdn_pdhlib.asp
+https://web.archive.org/web/20040926110045/http://msdn.microsoft.com:80/library/en-us/dnperfmo/html/msdn_pdhlib.asp
 
 The reference guide for the PDH API was last spotted at:
-http://msdn.microsoft.com/library/en-us/perfmon/base/using_the_pdh_interface.asp
+https://learn.microsoft.com/en-us/windows/win32/perfctrs/using-the-pdh-functions-to-consume-counter-data
 
 
 In general the Python version of the API is just a wrapper around the
@@ -108,7 +108,7 @@ in this plan.  There should be an article describing the creation of
 a simple logger there, but the example above is 90% of the work of
 that project, so don't sweat it if you don't find anything there.
 (currently the account hasn't been set up).
-http://starship.skyport.net/crew/mcfletch/
+https://web.archive.org/web/19980422204546/http://starship.skyport.net/crew/mcfletch/
 
 If you need to contact me immediately, (why I can't imagine), you can
 email me at mcfletch@golden.net, or just post your question to the

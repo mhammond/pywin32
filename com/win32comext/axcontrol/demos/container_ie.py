@@ -234,7 +234,7 @@ if __name__ == "__main__":
         h.browser2.Navigate2("about:blank")
         doc = h.browser2.Document
         doc.write(
-            'This is an IE page hosted by <a href="http://www.python.org">python</a>'
+            'This is an IE page hosted by <a href="https://www.python.org">python</a>'
         )
         doc.write("<br>(you can also specify a URL on the command-line...)")
     else:

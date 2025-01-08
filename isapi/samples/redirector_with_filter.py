@@ -46,7 +46,7 @@ if hasattr(sys, "isapidllhandle"):
     import win32traceutil
 
 # The site we are proxying.
-proxy = "http://www.python.org"
+proxy = "https://www.python.org"
 # The name of the virtual directory we install in, and redirect from.
 virtualdir = "/python"
 

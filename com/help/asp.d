@@ -40,8 +40,9 @@ block -- they don't extend past intervening html to the next block. For
 me that normally isn't an issue, since I do not like mixing code and
 html. Prefering a clean split of code and html, I generally
 generate webpages using templates all in python w/HTMLgen. Take a look
-at: http://www.python.org/topics/web/HTML.html for available resources
-w/HTML.  An very basic page would look like:
+at: https://wiki.python.org/moin/WebBrowserProgramming and
+https://wiki.python.org/moin/Asking%20for%20Help/How%20to%20run%20python%20from%20HTML
+for available resources w/HTML.  A very basic page would look like:
 
 @ex Basic Python ASP page: |
 

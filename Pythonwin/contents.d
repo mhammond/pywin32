@@ -84,7 +84,7 @@ If the first fold in the file is collapsed, all top-level folds are opened.  Oth
 @flag Ctrl+Down|Recall the next command in the history list.
 
 @topic Source code folding in the editor|
-Thanks to Scintilla (http://www.scintilla.org), Pythonwin supports
+Thanks to Scintilla (https://www.scintilla.org), Pythonwin supports
 source code folding.  Folding is the ability to collapse sections of
 your source-code into a single line, making it easier to navigate
 around large files.  Any Python statement which introduces a new block

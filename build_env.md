@@ -51,7 +51,8 @@ way to build pywin32 - it's build process should find these tools automatically.
 
 ## For Visual Studio 2019
 
-- Install the [Build Tools for Visual Studio 2019](https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16#) (`vs_BuildTools.exe` ~ 1 MB)
+- Install the [Build Tools for Visual Studio 2019](https://my.visualstudio.com/Downloads?q=Build%20Tools%20for%20Visual%20Studio%202019) (Version 16.0)
+  Public landing page: <https://visualstudio.microsoft.com/vs/older-downloads/#2019-family>
 
 - Maybe stop your virus scanner
 - In `Visual Studio Installer`:

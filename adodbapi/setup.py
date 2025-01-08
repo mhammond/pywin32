@@ -9,7 +9,7 @@ MAINTAINER_EMAIL = "vernondcole@gmail.com"
 DESCRIPTION = (
     """A pure Python package implementing PEP 249 DB-API using Microsoft ADO."""
 )
-URL = "http://sourceforge.net/projects/adodbapi"
+URL = "https://sourceforge.net/projects/adodbapi"
 LICENSE = "LGPL"
 CLASSIFIERS = [
     "Development Status :: 5 - Production/Stable",
