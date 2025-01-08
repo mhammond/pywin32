@@ -68,10 +68,7 @@ where "click to buy" versions of Office have been removed, but are still
 blocking installation of the redistributable provider.
 
 - To use any ODBC driver from 64 bit Python, you also need the MSDASQL
-provider. It is shipped with Server 2008, and Vista and later. For
-Server 2003, You will have to [download
-it](https://web.archive.org/web/20140205114906/http://www.microsoft.com:80/en-us/download/details.aspx?id=20065) from
-Microsoft.
+provider, which is shipped with Windows.
 
 - MySQL driver <https://dev.mysql.com/downloads/connector/odbc/>
 or MariaDB driver <https://mariadb.org/connector-odbc/all-releases/>
