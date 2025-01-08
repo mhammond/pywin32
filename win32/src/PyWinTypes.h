@@ -32,10 +32,10 @@
 #define PYWIN_MODULE_INIT_FUNC(module_name) extern "C" __declspec(dllexport) PyObject *PyInit_##module_name(void)
 
 // If the module needs to early-exit on an error condition.
-#define PYWIN_MODULE_INIT_RETURN_ERROR return NULL;
+#define PYWIN_MODULE_INIT_RETURN_ERROR return NULL
 
 // When the module has successfully initialized.
-#define PYWIN_MODULE_INIT_RETURN_SUCCESS return module;
+#define PYWIN_MODULE_INIT_RETURN_SUCCESS return module
 
 // To setup the module object itself and the module's dictionary.
 #define PYWIN_MODULE_INIT_PREPARE(module_name, functions, docstring)                                        \

@@ -8,7 +8,6 @@
 import pythoncom
 import win32con
 import win32ui
-import win32uiole
 from pywin.mfc import activex, dialog
 from win32com.client import gencache
 
@@ -127,7 +126,7 @@ def test():
 
 
 if __name__ == "__main__":
-    from . import demoutils
+    import demoutils
 
     if demoutils.NeedGoodGUI():
         test()

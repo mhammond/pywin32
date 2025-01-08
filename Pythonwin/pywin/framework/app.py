@@ -10,6 +10,7 @@ import builtins
 import os
 import sys
 import traceback
+import warnings
 from typing import TYPE_CHECKING
 
 import regutil
@@ -172,7 +173,7 @@ class CApp(WinApp):
                 try:
                     thisRet = handler(handler, count)
                 except:
-                    print("Idle handler %s failed" % (repr(handler)))
+                    print(f"Idle handler {handler!r} failed")
                     traceback.print_exc()
                     print("Idle handler removed from list")
                     try:
@@ -346,27 +347,17 @@ class AboutBox(dialog.Dialog):
             win32ui.copyright, sys.copyright, scintilla, idle, contributors
         )
         self.SetDlgItemText(win32ui.IDC_EDIT1, text)
-        # Get the build number - written by installers.
-        # For distutils build, read pywin32.version.txt
         import sysconfig
 
         site_packages = sysconfig.get_paths()["platlib"]
+        version_path = os.path.join(site_packages, "pywin32.version.txt")
         try:
-            build_no = (
-                open(os.path.join(site_packages, "pywin32.version.txt")).read().strip()
-            )
-            ver = "pywin32 build %s" % build_no
+            with open(version_path) as f:
+                ver = "pywin32 build %s" % f.read().strip()
         except OSError:
             ver = None
-        if ver is None:
-            # See if we are Part of Active Python
-            ver = _GetRegistryValue(
-                "SOFTWARE\\ActiveState\\ActivePython", "CurrentVersion"
-            )
-            if ver is not None:
-                ver = f"ActivePython build {ver}"
-        if ver is None:
-            ver = ""
+        if not ver:
+            warnings.warn(f"Could not read pywin32's version from '{version_path}'")
         self.SetDlgItemText(win32ui.IDC_ABOUT_VERSION, ver)
         self.HookCommand(self.OnButHomePage, win32ui.IDC_BUTTON1)
 
