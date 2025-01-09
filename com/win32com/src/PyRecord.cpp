@@ -94,7 +94,10 @@ PyObject *PyObject_FromSAFEARRAYRecordInfo(SAFEARRAY *psa)
         hr = info->RecordCopy(source_data, this_dest_data);
         if (FAILED(hr))
             goto exit;
-        PyTuple_SET_ITEM(ret_tuple, i, PyRecord::new_record(info, this_dest_data, owner));
+        PyRecord *rec = PyRecord::new_record(info, this_dest_data, owner);
+        if (rec == NULL)
+            goto exit;
+        PyTuple_SET_ITEM(ret_tuple, i, rec);
         this_dest_data += cb_elem;
         source_data += cb_elem;
     }
@@ -216,14 +219,19 @@ PyRecord *PyRecord::new_record(IRecordInfo *ri, PVOID data, PyRecordBuffer *owne
     // Retrieve the GUID of the Record to be created.
     HRESULT hr = ri->GetGuid(&structguid);
     if (FAILED(hr)) {
+        PyCom_BuildPyException(hr, ri, IID_IRecordInfo);
+        return NULL;
+    }
+    hr = StringFromCLSID(structguid, &guidString);
+    if (FAILED(hr)) {
         PyCom_BuildPyException(hr);
         return NULL;
     }
-    if (S_OK != StringFromCLSID(structguid, &guidString))
+    guidUnicode = PyWinCoreString_FromString(guidString);
+    if (guidUnicode == NULL) {
+        ::CoTaskMemFree(guidString);
         return NULL;
-    if (!(guidUnicode = PyUnicode_FromWideChar(guidString, -1)))
-        return NULL;
-    ::CoTaskMemFree(guidString);
+    }
     recordType = PyDict_GetItem(g_obPyCom_MapRecordGUIDToRecordClass, guidUnicode);
     Py_DECREF(guidUnicode);
     // If the Record GUID is registered as a subclass of com_record
@@ -533,7 +541,7 @@ PyObject *PyRecord::getattro(PyObject *self, PyObject *obname)
         HRESULT hr = pyrec->pri->GetName(&rec_name);
         if (FAILED(hr))
             return PyCom_BuildPyException(hr, pyrec->pri, IID_IRecordInfo);
-        PyObject *res = PyWinCoreString_FromString(rec_name);
+        res = PyWinCoreString_FromString(rec_name);
         SysFreeString(rec_name);
         return res;
     }
