@@ -508,9 +508,26 @@ PyObject *PyRecord::getattro(PyObject *self, PyObject *obname)
 {
     PyObject *res;
     PyRecord *pyrec = (PyRecord *)self;
+    GUID structguid;
+    OLECHAR *guidString;
     char *name = PYWIN_ATTR_CONVERT(obname);
     if (name == NULL)
         return NULL;
+    if (strcmp(name, "__record_type_guid__") == 0) {
+        HRESULT hr = pyrec->pri->GetGuid(&structguid);
+        if (FAILED(hr)) {
+            PyCom_BuildPyException(hr, pyrec->pri, IID_IRecordInfo);
+            return NULL;
+        }
+        hr = StringFromCLSID(structguid, &guidString);
+        if (FAILED(hr)) {
+            PyCom_BuildPyException(hr);
+            return NULL;
+        }
+        res = PyWinCoreString_FromString(guidString);
+        ::CoTaskMemFree(guidString);
+        return res;
+    }
     if (strcmp(name, "__record_type_name__") == 0) {
         BSTR rec_name;
         HRESULT hr = pyrec->pri->GetName(&rec_name);
