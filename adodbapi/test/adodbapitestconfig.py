@@ -179,6 +179,6 @@ if doPostgresTest:
         **kws,
     )
 
-assert (
-    doAccessTest or doSqlServerTest or doMySqlTest or doPostgresTest
-), "No database engine found for testing"
+assert doAccessTest or doSqlServerTest or doMySqlTest or doPostgresTest, (
+    "No database engine found for testing"
+)
