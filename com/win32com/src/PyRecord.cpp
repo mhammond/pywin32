@@ -244,6 +244,7 @@ PyRecord *PyRecord::new_record(IRecordInfo *ri, PVOID data, PyRecordBuffer *owne
     char *buf = (char *)PyRecord::Type.tp_alloc(type, 0);
     if (buf == NULL) {
         delete owner;
+        PyErr_NoMemory();
         return NULL;
     }
     return new (buf) PyRecord(ri, owner->data, owner);
@@ -641,7 +642,13 @@ PyObject *PyRecord::getattro(PyObject *self, PyObject *obname)
         // in the last parameter, i.e. 'sub_data == NULL'.
         this_data = (BYTE *)psa->pvData;
         for (i = 0; i < nelems; i++) {
-            PyTuple_SET_ITEM(ret_tuple, i, PyRecord::new_record(sub, this_data, pyrec->owner));
+            PyRecord *rec = PyRecord::new_record(sub, this_data, pyrec->owner);
+            if (rec == NULL) {
+                Py_DECREF(ret_tuple);
+                ret_tuple = NULL;
+                goto array_end;
+            }
+            PyTuple_SET_ITEM(ret_tuple, i, rec);
             this_data += element_size;
         }
     array_end:
