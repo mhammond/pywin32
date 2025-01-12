@@ -129,7 +129,7 @@ jobs:
       - run: pycln . --config=pycln.toml --check
       - uses: astral-sh/ruff-action@v3
         with:
-          version: "0.8.4"
+          version: "0.9.5"
       - run: ruff format --check
       - run:
           | # Too many files to fit in a single command, also exclude vendored Scintilla and MAPIStubLibrary

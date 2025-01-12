@@ -931,9 +931,9 @@ class Generator:
                 if clsid not in vtableItems and refAttr[11] & pythoncom.TYPEFLAG_FDUAL:
                     refType = refType.GetRefTypeInfo(refType.GetRefTypeOfImplType(-1))
                     refAttr = refType.GetTypeAttr()
-                    assert (
-                        refAttr.typekind == pythoncom.TKIND_INTERFACE
-                    ), "must be interface bynow!"
+                    assert refAttr.typekind == pythoncom.TKIND_INTERFACE, (
+                        "must be interface bynow!"
+                    )
                     vtableItem = VTableItem(refType, refAttr, doc)
                     vtableItems[clsid] = vtableItem
         coclass.sources = list(sources.values())
@@ -965,7 +965,9 @@ class Generator:
         return oleItem, vtableItem
 
     def BuildOleItemsFromType(self):
-        assert self.bBuildHidden, "This code doesn't look at the hidden flag - I thought everyone set it true!?!?!"
+        assert self.bBuildHidden, (
+            "This code doesn't look at the hidden flag - I thought everyone set it true!?!?!"
+        )
         oleItems = {}
         enumItems = {}
         recordItems = {}
@@ -1274,9 +1276,9 @@ class Generator:
                             if vtableItem is not None:
                                 vtableItems[clsid] = vtableItem
 
-            assert (
-                found
-            ), f"Can't find the '{child}' interface in the CoClasses, or the interfaces"
+            assert found, (
+                f"Can't find the '{child}' interface in the CoClasses, or the interfaces"
+            )
             # Make a map of iid: dispitem, vtableitem)
             items = {}
             for key, value in oleItems.items():
