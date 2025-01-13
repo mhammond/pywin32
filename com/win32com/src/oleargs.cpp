@@ -6,7 +6,7 @@
 #include "PythonCOM.h"
 #include "PyRecord.h"
 
-extern PyObject *PyObject_FromRecordInfo(IRecordInfo *, void *, ULONG);
+extern PyObject *PyObject_FromRecordInfo(IRecordInfo *, void *, ULONG, PyTypeObject *type = NULL);
 extern PyObject *PyObject_FromSAFEARRAYRecordInfo(SAFEARRAY *psa);
 extern BOOL PyObject_AsVARIANTRecordInfo(PyObject *ob, VARIANT *pv);
 extern BOOL PyRecord_Check(PyObject *ob);

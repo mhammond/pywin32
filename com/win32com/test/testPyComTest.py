@@ -517,9 +517,15 @@ def TestGenerated():
 
     progress("Testing registration of pythoncom.com_record subclasses.")
     # Instantiating a pythoncom.com_record subclass, which has proper GUID attributes,
-    # does return an instance of the base class, as long as we have not registered it.
-    r_base = TestStruct1()
-    assert type(r_base) is pythoncom.com_record
+    # does raise a TypeError, as long as we have not registered it.
+    try:
+        r_sub = TestStruct1()
+    except TypeError:
+        pass
+    except Exception as e:
+        raise AssertionError from e
+    else:
+        raise AssertionError
     # Register the subclasses in pythoncom.
     register_record_class(TestStruct1)
     register_record_class(ArrayOfStructsTestStruct)
@@ -545,6 +551,12 @@ def TestGenerated():
     test_rec = ArrayOfStructsTestStruct()
     assert type(test_rec) is ArrayOfStructsTestStruct
     TestArrayOfStructs(o, test_rec)
+
+    # Test initialization of registered pythoncom.com_record subclasses.
+    progress("Testing initialization of pythoncom.com_record subclasses.")
+    buf = o.GetStruct().__reduce__()[1][5]
+    test_rec = TestStruct1(buf)
+    assert test_rec.int_value == 99 and str(test_rec.str_value) == "Hello from C++"
 
     # XXX - this is failing in dynamic tests, but should work fine.
     i1, i2 = o.GetMultipleInterfaces()

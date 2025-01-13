@@ -507,7 +507,15 @@ def register_record_class(cls):
     if not issubclass(cls, pythoncom.com_record):
         raise TypeError("Only subclasses of 'com_record' can be registered.")
     try:
-        _ = cls()
+        TLBID = cls.TLBID
+        MJVER = cls.MJVER
+        MNVER = cls.MNVER
+        LCID = cls.LCID
+        GUID = cls.GUID
+    except AttributeError as e:
+        raise AttributeError(f"Class {cls.__name__} cannot be instantiated.") from e
+    try:
+        _ = pythoncom.GetRecordFromGuids(TLBID, MJVER, MNVER, LCID, GUID)
     except Exception as e:
         raise TypeError(f"Class {cls.__name__} cannot be instantiated.") from e
     # Since the class can be instantiated we know that it represents a valid COM Record

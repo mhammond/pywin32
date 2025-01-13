@@ -122,7 +122,7 @@ exit:
     return ret;
 }
 // Creates a new Record by TAKING A COPY of the passed record.
-PyObject *PyObject_FromRecordInfo(IRecordInfo *ri, void *data, ULONG cbData)
+PyObject *PyObject_FromRecordInfo(IRecordInfo *ri, void *data, ULONG cbData, PyTypeObject *type = NULL)
 {
     if ((data != NULL && cbData == 0) || (data == NULL && cbData != 0))
         return PyErr_Format(PyExc_RuntimeError, "Both or neither data and size must be given");
@@ -147,7 +147,7 @@ PyObject *PyObject_FromRecordInfo(IRecordInfo *ri, void *data, ULONG cbData)
         delete owner;
         return PyCom_BuildPyException(hr, ri, IID_IRecordInfo);
     }
-    return PyRecord::new_record(ri, owner->data, owner);
+    return PyRecord::new_record(ri, owner->data, owner, type);
 }
 
 // @pymethod <o PyRecord>|pythoncom|GetRecordFromGuids|Creates a new record object from the given GUIDs
@@ -209,35 +209,38 @@ PyObject *pythoncom_GetRecordFromTypeInfo(PyObject *self, PyObject *args)
 // This function creates a new 'com_record' instance with placement new.
 // If the particular Record GUID belongs to a registered subclass
 // of the 'com_record' base type, it instantiates this subclass.
-PyRecord *PyRecord::new_record(IRecordInfo *ri, PVOID data, PyRecordBuffer *owner)
+PyRecord *PyRecord::new_record(IRecordInfo *ri, PVOID data, PyRecordBuffer *owner,
+                               PyTypeObject *type) /* default: type = NULL */
 {
     GUID structguid;
     OLECHAR *guidString;
     PyObject *guidUnicode, *recordType;
-    // By default we create an instance of the base 'com_record' type.
-    PyTypeObject *type = &PyRecord::Type;
-    // Retrieve the GUID of the Record to be created.
-    HRESULT hr = ri->GetGuid(&structguid);
-    if (FAILED(hr)) {
-        PyCom_BuildPyException(hr, ri, IID_IRecordInfo);
-        return NULL;
-    }
-    hr = StringFromCLSID(structguid, &guidString);
-    if (FAILED(hr)) {
-        PyCom_BuildPyException(hr);
-        return NULL;
-    }
-    guidUnicode = PyWinCoreString_FromString(guidString);
-    if (guidUnicode == NULL) {
-        ::CoTaskMemFree(guidString);
-        return NULL;
-    }
-    recordType = PyDict_GetItem(g_obPyCom_MapRecordGUIDToRecordClass, guidUnicode);
-    Py_DECREF(guidUnicode);
-    // If the Record GUID is registered as a subclass of com_record
-    // we return an object of the subclass type.
-    if (recordType && PyObject_IsSubclass(recordType, (PyObject *)&PyRecord::Type)) {
-        type = (PyTypeObject *)recordType;
+    if (type == NULL) {
+        // By default we create an instance of the base 'com_record' type.
+        type = &PyRecord::Type;
+        // Retrieve the GUID of the Record to be created.
+        HRESULT hr = ri->GetGuid(&structguid);
+        if (FAILED(hr)) {
+            PyCom_BuildPyException(hr, ri, IID_IRecordInfo);
+            return NULL;
+        }
+        hr = StringFromCLSID(structguid, &guidString);
+        if (FAILED(hr)) {
+            PyCom_BuildPyException(hr);
+            return NULL;
+        }
+        guidUnicode = PyWinCoreString_FromString(guidString);
+        if (guidUnicode == NULL) {
+            ::CoTaskMemFree(guidString);
+            return NULL;
+        }
+        recordType = PyDict_GetItem(g_obPyCom_MapRecordGUIDToRecordClass, guidUnicode);
+        Py_DECREF(guidUnicode);
+        // If the Record GUID is registered as a subclass of com_record
+        // we return an object of the subclass type.
+        if (recordType && PyObject_IsSubclass(recordType, (PyObject *)&PyRecord::Type)) {
+            type = (PyTypeObject *)recordType;
+        }
     }
     // Finally allocate the memory for the the appropriate
     // Record type and construct the instance with placement new.
@@ -267,39 +270,102 @@ PyRecord::~PyRecord()
 
 PyObject *PyRecord::tp_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
-    PyObject *item, *obGuid, *obInfoGuid;
+    PyObject *item, *guidUnicode;
+    PyTypeObject *registeredType;
     int major, minor, lcid;
     GUID guid, infoGuid;
-    if (type == &PyRecord::Type)
-    // If the base 'com_record' type was called try to get the
-    // information required for instance creation from the call parameters.
-    {
-        if (!PyArg_ParseTuple(args, "OiiiO:__new__",
-                              &obGuid,       // @pyparm <o PyIID>|iid||The GUID of the type library
-                              &major,        // @pyparm int|verMajor||The major version number of the type lib.
-                              &minor,        // @pyparm int|verMinor||The minor version number of the type lib.
-                              &lcid,         // @pyparm int|lcid||The LCID of the type lib.
-                              &obInfoGuid))  // @pyparm <o PyIID>|infoIID||The GUID of the record info in the library
-            return NULL;
-        if (!PyWinObject_AsIID(obGuid, &guid))
-            return NULL;
-        if (!PyWinObject_AsIID(obInfoGuid, &infoGuid))
-            return NULL;
-    }
-    // Otherwise try to get the information from the class variables of the derived type.
-    else if (!(item = PyDict_GetItemString(type->tp_dict, "GUID")) || !PyWinObject_AsIID(item, &infoGuid) ||
-             !(item = PyDict_GetItemString(type->tp_dict, "TLBID")) || !PyWinObject_AsIID(item, &guid) ||
-             !(item = PyDict_GetItemString(type->tp_dict, "MJVER")) || ((major = PyLong_AsLong(item)) == -1) ||
-             !(item = PyDict_GetItemString(type->tp_dict, "MNVER")) || ((minor = PyLong_AsLong(item)) == -1) ||
-             !(item = PyDict_GetItemString(type->tp_dict, "LCID")) || ((lcid = PyLong_AsLong(item)) == -1))
+    if (type == &PyRecord::Type) {
+        PyErr_SetString(PyExc_TypeError,
+                        "Can't instantiate base class com_record. "
+                        "Use the factory function win32com.client.Record instead.");
         return NULL;
+    }
+    // For subclasses of com_record try to get the record type information from the class variables of the derived type.
+    else {
+        if (!(guidUnicode = PyDict_GetItemString(type->tp_dict, "GUID"))) {
+            PyErr_Format(PyExc_AttributeError, "Missing %s class attribute.", "GUID");
+            return NULL;
+        }
+        if (!PyWinObject_AsIID(guidUnicode, &infoGuid)) {
+            PyErr_Format(PyExc_ValueError, "Invalid value for %s class attribute.", "GUID");
+            return NULL;
+        }
+        if (!(item = PyDict_GetItemString(type->tp_dict, "TLBID"))) {
+            PyErr_Format(PyExc_AttributeError, "Missing %s class attribute.", "TLBID");
+            return NULL;
+        }
+        if (!PyWinObject_AsIID(item, &guid)) {
+            PyErr_Format(PyExc_ValueError, "Invalid value for %s class attribute.", "TLBID");
+            return NULL;
+        }
+        if (!(item = PyDict_GetItemString(type->tp_dict, "MJVER"))) {
+            PyErr_Format(PyExc_AttributeError, "Missing %s class attribute.", "MJVER");
+            return NULL;
+        }
+        if (((major = PyLong_AsLong(item)) == -1)) {
+            PyErr_Format(PyExc_ValueError, "Invalid value for %s class attribute.", "MJVER");
+            return NULL;
+        }
+        if (!(item = PyDict_GetItemString(type->tp_dict, "MNVER"))) {
+            PyErr_Format(PyExc_AttributeError, "Missing %s class attribute.", "MNVER");
+            return NULL;
+        }
+        if (((minor = PyLong_AsLong(item)) == -1)) {
+            PyErr_Format(PyExc_ValueError, "Invalid value for %s class attribute.", "MNVER");
+            return NULL;
+        }
+        if (!(item = PyDict_GetItemString(type->tp_dict, "LCID"))) {
+            PyErr_Format(PyExc_AttributeError, "Missing %s class attribute.", "LCID");
+            return NULL;
+        }
+        if (((lcid = PyLong_AsLong(item)) == -1)) {
+            PyErr_Format(PyExc_ValueError, "Invalid value for %s class attribute.", "LCID");
+            return NULL;
+        }
+    }
+    // Instances can only be created for registerd subclasses.
+    registeredType = (PyTypeObject *)PyDict_GetItem(g_obPyCom_MapRecordGUIDToRecordClass, guidUnicode);
+    if (!(registeredType && type == registeredType)) {
+        PyErr_Format(PyExc_TypeError, "Can't instantiate class %s because it is not registered.", type->tp_name);
+        return NULL;
+    }
     IRecordInfo *ri = NULL;
     HRESULT hr = GetRecordInfoFromGuids(guid, major, minor, lcid, infoGuid, &ri);
     if (FAILED(hr))
         return PyCom_BuildPyException(hr);
-    PyObject *ret = PyObject_FromRecordInfo(ri, NULL, 0);
+    PyObject *ret = PyObject_FromRecordInfo(ri, NULL, 0, type);
     ri->Release();
     return ret;
+}
+
+int PyRecord::tp_init(PyObject *self, PyObject *args, PyObject *kwds)
+{
+    PyRecord *pyrec = (PyRecord *)self;
+    PyObject *obdata = NULL;
+    if (!PyArg_ParseTuple(args, "|O:__init__",
+                          &obdata))  // @pyparm string or buffer|data|None|The raw data to initialize the record with.
+        return -1;
+    if (obdata != NULL) {
+        PyWinBufferView pybuf(obdata, false, false);  // None not ok
+        if (!pybuf.ok())
+            return -1;
+        ULONG cb;
+        HRESULT hr = pyrec->pri->GetSize(&cb);
+        if (FAILED(hr)) {
+            PyCom_BuildPyException(hr, pyrec->pri, IID_IRecordInfo);
+            return -1;
+        }
+        if (pybuf.len() != cb) {
+            PyErr_Format(PyExc_ValueError, "Expecting a string of %d bytes (got %d)", cb, pybuf.len());
+            return -1;
+        }
+        hr = pyrec->pri->RecordCopy(pybuf.ptr(), pyrec->pdata);
+        if (FAILED(hr)) {
+            PyCom_BuildPyException(hr, pyrec->pri, IID_IRecordInfo);
+            return -1;
+        }
+    }
+    return 0;
 }
 
 PyTypeObject PyRecord::Type = {
@@ -337,7 +403,7 @@ PyTypeObject PyRecord::Type = {
     0,                                        /* tp_descr_get */
     0,                                        /* tp_descr_set */
     0,                                        /* tp_dictoffset */
-    0,                                        /* tp_init */
+    (initproc)PyRecord::tp_init,              /* tp_init */
     0,                                        /* tp_alloc */
     (newfunc)PyRecord::tp_new,                /* tp_new */
 };
