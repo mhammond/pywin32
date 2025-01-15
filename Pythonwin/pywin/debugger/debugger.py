@@ -818,14 +818,12 @@ class Debugger(debugger_parent):
             print(repr(name), "None")
 
     def set_trace(self):
-        # Start debugging from _2_ levels up!
-        try:
-            1 + ""
-        except:
-            frame = sys.exc_info()[2].tb_frame.f_back.f_back
+        frames = traceback.walk_stack(sys._getframe())
+        # Start debugging from _1_ level up!
+        next(frames)
         self.reset()
         self.userbotframe = None
-        while frame:
+        for frame, i in frames:
             # scriptutils.py creates a local variable with name
             # '_debugger_stop_frame_', and we don't go past it
             # (everything above this is Pythonwin framework code)
@@ -835,7 +833,6 @@ class Debugger(debugger_parent):
 
             frame.f_trace = self.trace_dispatch
             self.botframe = frame
-            frame = frame.f_back
         self.set_step()
         sys.settrace(self.trace_dispatch)
 

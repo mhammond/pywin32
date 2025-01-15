@@ -3,6 +3,8 @@
 Provides Implements a nearly complete wrapper for a stack frame.
 """
 
+import traceback
+
 import pythoncom
 
 from . import axdebug, expressions, gateways
@@ -19,9 +21,8 @@ class EnumDebugStackFrames(gateways.EnumDebugStackFrames):
 
     def __init__(self, debugger):
         infos = []
-        frame = debugger.currentframe
         # print("Stack check")
-        while frame:
+        for frame, i in traceback.walk_stack(debugger.currentframe):
             # print(" Checking frame", frame.f_code.co_filename, frame.f_lineno-1, frame.f_trace)
             # Get a DebugCodeContext for the stack frame.  If we fail, then it
             # is not debuggable, and therefore not worth displaying.
@@ -44,7 +45,6 @@ class EnumDebugStackFrames(gateways.EnumDebugStackFrames):
             #     print("- Kept!")
             # else:
             #     print("- rejected")
-            frame = frame.f_back
 
         gateways.EnumDebugStackFrames.__init__(self, infos, 0)
 
