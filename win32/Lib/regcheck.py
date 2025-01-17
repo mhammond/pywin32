@@ -18,13 +18,15 @@ import win32con
 
 def CheckRegisteredExe(exename):
     try:
-        os.stat(
+        if os.path.exists(
             win32api.RegQueryValue(
                 regutil.GetRootKey(), regutil.GetAppPathsKey() + "\\" + exename
             )
-        )
-    except (OSError, win32api.error):
-        print("Registration of %s - Not registered correctly" % exename)
+        ):
+            return
+    except win32api.error:
+        pass
+    print(f"Registration of {exename} - Not registered correctly")
 
 
 def CheckPathString(pathString):
@@ -110,11 +112,10 @@ def CheckHelpFiles(verbose):
                 if verbose:
                     print("\t" + helpDesc + ":", end=" ")
                 # query the os section.
-                try:
-                    os.stat(helpFile)
+                if os.path.exists(helpFile):
                     if verbose:
                         print(helpFile)
-                except OSError:
+                else:
                     print("** Help file %s does not exist" % helpFile)
                 keyNo += 1
             except win32api.error as exc:
