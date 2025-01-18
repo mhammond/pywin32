@@ -39,7 +39,6 @@ class SplitterFrame(window.MDIChildWnd):
         self.v3.InsertItem(0, "Icon 1", 0)
         self.v3.InsertItem(0, "Icon 2", 1)
         self.v3.InsertItem(0, "Icon 3", 2)
-        # 		self.v3.Arrange(commctrl.LVA_DEFAULT) Hmmm - win95 aligns left always???
         return 1
 
     def OnDestroy(self, msg):
