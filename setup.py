@@ -37,16 +37,15 @@ import winreg
 from collections.abc import MutableSequence
 from pathlib import Path
 from setuptools import Extension, setup
+from setuptools._distutils import ccompiler
+from setuptools._distutils._msvccompiler import MSVCCompiler
+from setuptools._distutils.command.install_data import install_data
 from setuptools.command.build import build
 from setuptools.command.build_ext import build_ext
 from setuptools.command.install import install
 from setuptools.modified import newer_group
 from tempfile import gettempdir
 from typing import Iterable
-
-from distutils import ccompiler
-from distutils._msvccompiler import MSVCCompiler
-from distutils.command.install_data import install_data
 
 build_id_patch = build_id
 if not "." in build_id_patch:
@@ -957,7 +956,7 @@ class my_compiler(MSVCCompiler):
         sources = sorted(sources, key=key_reverse_mc)
         return MSVCCompiler.compile(self, sources, **kwargs)
 
-    def spawn(self, cmd: MutableSequence[str]) -> None:  # type: ignore[override]
+    def spawn(self, cmd: MutableSequence[str]) -> None:
         is_link = cmd[0].endswith("link.exe") or cmd[0].endswith('"link.exe"')
         is_mt = cmd[0].endswith("mt.exe") or cmd[0].endswith('"mt.exe"')
         if is_mt:
