@@ -856,17 +856,11 @@ class my_install(install):
         This is only run for local installs. Wheel-based installs won't run this code.
         """
         install.run(self)
-        # If self.root has a value, it means we are being "installed" into some other
-        # directory than Python itself - in which case we must *not* run our installer.
-        # bdist_wininst used to trigger this by using a temp directory.
-        # Is this still a concern ?
-        if self.root:
-            print(
-                "Not executing post install script when "
-                + f"not installing in Python itself (self.root={self.root})"
-            )
-            return
-        self.execute(self._postinstall, (), msg="Executing post install script...")
+        # Hacky, skip for build-only commands
+        if "build" in sys.argv:
+            print("Skipping post install script for build commands.")
+        else:
+            self.execute(self._postinstall, (), msg="Executing post install script...")
 
     def _postinstall(self):
         filename = os.path.join(self.install_scripts, "pywin32_postinstall.py")
@@ -874,17 +868,16 @@ class my_install(install):
             raise RuntimeError(f"Can't find '{filename}'")
         # As of setuptools>=74.0.0, we no longer need to
         # be concerned about distutils calling win32api
-        subprocess.Popen(
-            [
+        subprocess.check_call(
+            (
                 sys.executable,
                 filename,
                 "-install",
                 "-destination",
                 self.install_lib,
-                "-quiet",
                 "-wait",
                 str(os.getpid()),
-            ]
+            )
         )
 
 
