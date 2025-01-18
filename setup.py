@@ -37,15 +37,17 @@ import winreg
 from collections.abc import MutableSequence
 from pathlib import Path
 from setuptools import Extension, setup
-from setuptools._distutils import ccompiler
-from setuptools._distutils._msvccompiler import MSVCCompiler
-from setuptools._distutils.command.install_data import install_data
 from setuptools.command.build import build
 from setuptools.command.build_ext import build_ext
 from setuptools.command.install import install
 from setuptools.modified import newer_group
 from tempfile import gettempdir
 from typing import Iterable
+
+# must be after
+from setuptools._distutils import ccompiler  # isort: skip
+from setuptools._distutils._msvccompiler import MSVCCompiler  # isort: skip
+from setuptools._distutils.command.install_data import install_data  # isort: skip
 
 build_id_patch = build_id
 if not "." in build_id_patch:
