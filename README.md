@@ -24,7 +24,7 @@ Feel free to [open issues](https://github.com/mhammond/pywin32/issues) for
 all bugs (or suspected bugs) in pywin32. [pull-requests](https://github.com/mhammond/pywin32/pulls)
 for all bugs or features are also welcome.
 
-However, please **do not open github issues for general support requests**, or
+However, please **do not open GitHub issues for general support requests**, or
 for problems or questions using the modules in this package - they will be
 closed. For such issues, please email the
 [python-win32 mailing list](http://mail.python.org/mailman/listinfo/python-win32) -

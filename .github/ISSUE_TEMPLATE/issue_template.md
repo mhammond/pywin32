@@ -1,3 +1,8 @@
+---
+name: New issue
+about: Do not open GitHub issues for general support requests
+---
+
 <!--
 Note that issues in this repository are only for bugs or feature requests in the pywin32.
 
