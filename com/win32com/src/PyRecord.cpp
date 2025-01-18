@@ -122,6 +122,9 @@ exit:
     return ret;
 }
 // Creates a new Record by TAKING A COPY of the passed record.
+// The optinal 'type' parameter is used by the 'tp_new' slot method to
+// specify the subclass and must match the corresponding 'IRecordInfo' object
+// passed in by the 'ri' parameter.
 PyObject *PyObject_FromRecordInfo(IRecordInfo *ri, void *data, ULONG cbData, PyTypeObject *type = NULL)
 {
     if ((data != NULL && cbData == 0) || (data == NULL && cbData != 0))
@@ -209,6 +212,10 @@ PyObject *pythoncom_GetRecordFromTypeInfo(PyObject *self, PyObject *args)
 // This function creates a new 'com_record' instance with placement new.
 // If the particular Record GUID belongs to a registered subclass
 // of the 'com_record' base type, it instantiates this subclass.
+// The optinal 'type' parameter is used by the 'tp_new' slot method to
+// specify the subclass right ahead and shortcut the type identification
+// procedure. It must match the corresponding 'IRecordInfo' object
+// passed in by the 'ri' parameter.
 PyRecord *PyRecord::new_record(IRecordInfo *ri, PVOID data, PyRecordBuffer *owner,
                                PyTypeObject *type) /* default: type = NULL */
 {
@@ -281,47 +288,45 @@ PyObject *PyRecord::tp_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
         return NULL;
     }
     // For subclasses of com_record try to get the record type information from the class variables of the derived type.
-    else {
-        if (!(guidUnicode = PyDict_GetItemString(type->tp_dict, "GUID"))) {
-            PyErr_Format(PyExc_AttributeError, "Missing %s class attribute.", "GUID");
-            return NULL;
-        }
-        if (!PyWinObject_AsIID(guidUnicode, &infoGuid)) {
-            PyErr_Format(PyExc_ValueError, "Invalid value for %s class attribute.", "GUID");
-            return NULL;
-        }
-        if (!(item = PyDict_GetItemString(type->tp_dict, "TLBID"))) {
-            PyErr_Format(PyExc_AttributeError, "Missing %s class attribute.", "TLBID");
-            return NULL;
-        }
-        if (!PyWinObject_AsIID(item, &guid)) {
-            PyErr_Format(PyExc_ValueError, "Invalid value for %s class attribute.", "TLBID");
-            return NULL;
-        }
-        if (!(item = PyDict_GetItemString(type->tp_dict, "MJVER"))) {
-            PyErr_Format(PyExc_AttributeError, "Missing %s class attribute.", "MJVER");
-            return NULL;
-        }
-        if (((major = PyLong_AsLong(item)) == -1)) {
-            PyErr_Format(PyExc_ValueError, "Invalid value for %s class attribute.", "MJVER");
-            return NULL;
-        }
-        if (!(item = PyDict_GetItemString(type->tp_dict, "MNVER"))) {
-            PyErr_Format(PyExc_AttributeError, "Missing %s class attribute.", "MNVER");
-            return NULL;
-        }
-        if (((minor = PyLong_AsLong(item)) == -1)) {
-            PyErr_Format(PyExc_ValueError, "Invalid value for %s class attribute.", "MNVER");
-            return NULL;
-        }
-        if (!(item = PyDict_GetItemString(type->tp_dict, "LCID"))) {
-            PyErr_Format(PyExc_AttributeError, "Missing %s class attribute.", "LCID");
-            return NULL;
-        }
-        if (((lcid = PyLong_AsLong(item)) == -1)) {
-            PyErr_Format(PyExc_ValueError, "Invalid value for %s class attribute.", "LCID");
-            return NULL;
-        }
+    if (!(guidUnicode = PyDict_GetItemString(type->tp_dict, "GUID"))) {
+        PyErr_Format(PyExc_AttributeError, "Missing %s class attribute.", "GUID");
+        return NULL;
+    }
+    if (!PyWinObject_AsIID(guidUnicode, &infoGuid)) {
+        PyErr_Format(PyExc_ValueError, "Invalid value for %s class attribute.", "GUID");
+        return NULL;
+    }
+    if (!(item = PyDict_GetItemString(type->tp_dict, "TLBID"))) {
+        PyErr_Format(PyExc_AttributeError, "Missing %s class attribute.", "TLBID");
+        return NULL;
+    }
+    if (!PyWinObject_AsIID(item, &guid)) {
+        PyErr_Format(PyExc_ValueError, "Invalid value for %s class attribute.", "TLBID");
+        return NULL;
+    }
+    if (!(item = PyDict_GetItemString(type->tp_dict, "MJVER"))) {
+        PyErr_Format(PyExc_AttributeError, "Missing %s class attribute.", "MJVER");
+        return NULL;
+    }
+    if (((major = PyLong_AsLong(item)) == -1 || major < 0)) {
+        PyErr_Format(PyExc_ValueError, "Class attribute %s must be a non negative integer.", "MJVER");
+        return NULL;
+    }
+    if (!(item = PyDict_GetItemString(type->tp_dict, "MNVER"))) {
+        PyErr_Format(PyExc_AttributeError, "Missing %s class attribute.", "MNVER");
+        return NULL;
+    }
+    if (((minor = PyLong_AsLong(item)) == -1 || minor < 0)) {
+        PyErr_Format(PyExc_ValueError, "Class attribute %s must be a non negative integer.", "MNVER");
+        return NULL;
+    }
+    if (!(item = PyDict_GetItemString(type->tp_dict, "LCID"))) {
+        PyErr_Format(PyExc_AttributeError, "Missing %s class attribute.", "LCID");
+        return NULL;
+    }
+    if (((lcid = PyLong_AsLong(item)) == -1 || lcid < 0)) {
+        PyErr_Format(PyExc_ValueError, "Class attribute %s must be a non negative integer.", "LCID");
+        return NULL;
     }
     // Instances can only be created for registerd subclasses.
     registeredType = (PyTypeObject *)PyDict_GetItem(g_obPyCom_MapRecordGUIDToRecordClass, guidUnicode);
