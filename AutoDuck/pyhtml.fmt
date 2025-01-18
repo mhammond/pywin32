@@ -471,7 +471,7 @@ $(def1)$4$(par)
 
 .tag=pyseeapi, html, 1, 1
 .pre=$(rmh)Win32 API References$(rmhe)$(par)
-.format=$(term1)Search for <i>$1</i> at <a href="http://search.msdn.microsoft.com/search/results.aspx?view=msdn&query=$1" target="_blank">msdn</a>, <a href="http://www.google.com/search?q=$1" target="_blank">google</a> or <a href="http://groups.google.com/groups?q=$1" target="_blank">google groups</a>.$(par)
+.format=$(term1)Search for <i>$1</i> at <a href="https://learn.microsoft.com/en-ca/search/?terms=$1" target="_blank">msdn</a>, <a href="https://www.google.com/search?q=$1" target="_blank">google</a> or <a href="https://groups.google.com/groups?q=$1" target="_blank">google groups</a>.$(par)
 
 .tag=pyundocmfc, html, 2, 1
 .pre=$(rmh)Undocumented MFC References$(par)
