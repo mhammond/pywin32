@@ -45,8 +45,9 @@ PyObject *PyIQueryAssociations::Init(PyObject *self, PyObject *args)
     HRESULT hr;
     PY_INTERFACE_PRECALL;
     hr = pIQA->Init(flags, pszAssoc, hkProgid, hwnd);
-    PyWinObject_FreeWCHAR(pszAssoc);
     PY_INTERFACE_POSTCALL;
+    PyWinObject_FreeWCHAR(pszAssoc);
+    
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIQA, IID_IQueryAssociations);
     Py_INCREF(Py_None);
