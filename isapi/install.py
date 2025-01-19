@@ -40,8 +40,8 @@ _DEFAULT_ACCESS_SCRIPT = False
 _DEFAULT_CONTENT_INDEXED = False
 _DEFAULT_ENABLE_DIR_BROWSING = False
 _DEFAULT_ENABLE_DEFAULT_DOC = False
-
-this_dir = os.path.abspath(os.path.dirname(__file__))
+# __file__ can be relative before Python 3.9
+this_dir = os.path.dirname(os.path.abspath(__file__))
 
 
 class FilterParameters:
