@@ -105,8 +105,9 @@ class TestSerDialog(dialog.Dialog):
                 self.olectl.PortOpen = 1
             except pythoncom.com_error as details:
                 print(
-                    "Could not open the specified serial port - %s"
-                    % (details.excepinfo[2])
+                    "Could not open the specified serial port - {}".format(
+                        details.excepinfo[2]
+                    )
                 )
                 self.EndDialog(win32con.IDCANCEL)
         return rc
@@ -116,7 +117,7 @@ class TestSerDialog(dialog.Dialog):
             try:
                 self.olectl.PortOpen = 0
             except pythoncom.com_error as details:
-                print("Error closing port - %s" % (details.excepinfo[2]))
+                print("Error closing port - {}".format(details.excepinfo[2]))
         return dialog.Dialog.OnDestroy(self, msg)
 
 
