@@ -45,9 +45,17 @@ jobs:
       # This needs to happen *after* installing pywin32 since
       # AutoDuck/py2d.py currently relies on runtime imports for introspection
       # This isn't included in the wheel (TODO: could we?)
-      # and only servces as a PR test for the docs.yaml workflow
+      # and only serves as a PR test for the docs.yaml workflow
       - name: Generate PyWin32.chm help file
         run: python AutoDuck/make.py
+
+      # Smokescreen test to validate it doesn't crash and dlls can be found
+      - name: Run postinstall install/remove
+        run: |
+          $UserSite = "$(python -m site --user-site)"
+          cd "$UserSite/.."
+          python Scripts/pywin32_postinstall.py -install -destination "$UserSite"
+          python Scripts/pywin32_postinstall.py -remove -destination "$UserSite"
 
       - name: Run tests
         # Run the tests directly from the source dir so support files (eg, .wav files etc)
@@ -119,9 +127,9 @@ jobs:
           cache-dependency-path: .github/workflows/main.yml
       - run: pip install clang-format==18.1.* pycln
       - run: pycln . --config=pycln.toml --check
-      - uses: astral-sh/ruff-action@v2
+      - uses: astral-sh/ruff-action@v3
         with:
-          version: "0.8.2"
+          version: "0.8.4"
       - run: ruff format --check
       - run:
           | # Too many files to fit in a single command, also exclude vendored Scintilla and MAPIStubLibrary
@@ -136,7 +144,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -145,7 +153,7 @@ jobs:
           cache: pip
           cache-dependency-path: .github/workflows/main.yml
           check-latest: true
-      - run: pip install types-pywin32 types-setuptools PyOpenGL mypy[faster-cache]==1.13.*
+      - run: pip install types-pywin32 types-setuptools PyOpenGL mypy[faster-cache]==1.14.*
       - run: mypy . --python-version=${{ matrix.python-version }}
 
   pyright:
@@ -168,5 +176,5 @@ jobs:
       - uses: jakebailey/pyright-action@v2
         with:
           python-version: ${{ matrix.python-version }}
-          version: "1.1.358"
+          version: "1.1.389"
           annotate: errors
