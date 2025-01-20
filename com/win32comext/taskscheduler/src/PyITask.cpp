@@ -79,9 +79,8 @@ PyObject *PyITask::SetParameters(PyObject *self, PyObject *args)
     HRESULT hr;
     PY_INTERFACE_PRECALL;
     hr = pIT->SetParameters(pwszParameters);
-    PyWinObject_FreeWCHAR(pwszParameters);
-
     PY_INTERFACE_POSTCALL;
+    PyWinObject_FreeWCHAR(pwszParameters);
 
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIT, IID_ITask);
