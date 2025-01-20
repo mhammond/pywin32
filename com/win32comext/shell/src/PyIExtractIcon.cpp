@@ -38,8 +38,9 @@ PyObject *PyIExtractIcon::Extract(PyObject *self, PyObject *args)
     HRESULT hr;
     PY_INTERFACE_PRECALL;
     hr = pIEI->Extract(pszFile, nIconIndex, &hiconLarge, &hiconSmall, nIconSize);
-    PyWinObject_FreeChars(pszFile);
     PY_INTERFACE_POSTCALL;
+    PyWinObject_FreeChars(pszFile);
+
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIEI, IID_IExtractIcon);
     if (hr == S_FALSE)
