@@ -3,12 +3,19 @@ README for building of Scintilla and SciTE
 Scintilla can be built by itself.
 To build SciTE, Scintilla must first be built.
 
+Lexers can be either compiled into Scintilla or built separately into a Lexilla
+shared library.
+A separate Lexilla is the preferred option and will become the only supported
+direction in Scintilla 5.0.
+See lexilla/src/README for information on building Lexilla.
 
 *** GTK+/Linux version ***
 
-You must first have GTK+ 1.2 or later and GCC (3.1 or better) installed.
-GTK+ 1.0x will not work and when it did it was very slow.
+You must first have GTK+ 2.24 or later and GCC (7.1 or better) installed.
+Clang may be used by adding CLANG=1 to the make command line.
 Other C++ compilers may work but may require tweaking the make file.
+Either GTK+ 2.x or 3.x may be used with 2.x the default and 3.x
+chosen with the make argument GTK3=1.
 
 To build Scintilla, use the makefile located in the scintilla/gtk directory
 	cd scintilla/gtk
@@ -18,7 +25,7 @@ To build Scintilla, use the makefile located in the scintilla/gtk directory
 To build and install SciTE, use the makefile located in the scite/gtk directory
 	cd scite/gtk
 	make
-	make install
+	sudo make install
 
 This installs SciTE into $prefix/bin. The value of $prefix is determined from
 the location of Gnome if it is installed. This is usually /usr if installed
@@ -29,12 +36,8 @@ and make install as this location is compiled into the executable. The global
 properties file is installed at $prefix/share/scite/SciTEGlobal.properties.
 The language specific properties files are also installed into this directory.
 
-To build Scintilla for GTK+ 1 rather than the default GTK+ 2, define GTK1 on
-the make command line:
-	make GTK1=1
-
 To remove SciTE
-	make uninstall
+	sudo make uninstall
 
 To clean the object files which may be needed to change $prefix
 	make clean
@@ -44,26 +47,58 @@ The current make file only supports static linking between SciTE and Scintilla.
 
 *** Windows version ***
 
-A C++ compiler is required. Visual Studio .NET 2008 is the development system
-used for most development although Mingw32 3.1 is also supported.
-Borland did work but the command lines are now too long and the most recent
-Borland version does not work. For older versions such as version 5.02, add the -l option.
+A C++ 17 compiler is required.
+Visual Studio 2017 is the development system used for most development
+although Mingw-w64 7.1 is also supported.
+
+There are versions of Scintilla with lexers (SciLexer.DLL) and without lexers
+(Scintilla.DLL). Make builds both versions.
 
 To build Scintilla, make in the scintilla/win32 directory
 		cd scintilla\win32
 GCC:		mingw32-make
-VS .NET:	nmake -f scintilla.mak
-VC++ 6:	nmake -f scintilla_vc6.mak
-Borland: 	make -fscintilla.mak
+Visual C++:	nmake -f scintilla.mak
 		cd ..\..
 
 To build SciTE, use the makefiles located in the scite/win32 directory
 		cd scite\win32
 GCC:		mingw32-make
-VS .NET: 	nmake -f scite.mak
-Borland:	make -fscite.mak
+Visual C++: 	nmake -f scite.mak
 
-An executable SciTE will now be in scite\bin.
+An executable SciTE will now be in scite/bin.
 
-The Visual C++ 6.0 project (.dsp) files are no longer supported but are left
-in the download for people that are prepared to update them.
+*** GTK+/Windows version ***
+
+Mingw-w64 is known to work. Other compilers will probably not work.
+
+Only Scintilla will build with GTK+ on Windows. SciTE will not work.
+
+Make builds both a static library version of Scintilla with lexers (scintilla.a) and
+a shared library without lexers (libscintilla.so or or libscintilla.dll).
+
+To build Scintilla, make in the scintilla/gtk directory
+	cd scintilla\gtk
+	mingw32-make
+
+*** macOS Cocoa version ***
+
+Xcode 9.2 or later may be used to build Scintilla on macOS.
+
+There is no open source version of SciTE for macOS but there is a commercial
+version available through the App Store.
+
+There are versions of Scintilla.framework with lexers (ScintillaFramework) and
+without lexers (Scintilla).
+
+To build Scintilla, run xcodebuild in the scintilla/cocoa/ScintillaFramework or 
+scintilla/cocoa/Scintilla directory
+
+        cd cocoa/Scintilla
+		or
+        cd cocoa/ScintillaFramework
+
+	xcodebuild
+
+*** Qt version ***
+
+See the qt/README file to build Scintilla with Qt.

@@ -4,10 +4,6 @@
 
 %module win32security // An interface to the win32 security API's
 
-%{
-#define _WIN32_WINNT 0x0600 // Vista!
-%}
-
 %include "typemaps.i"
 %include "pywin32.i"
 
@@ -613,14 +609,11 @@ void PyWinObject_FreeTOKEN_PRIVILEGES(TOKEN_PRIVILEGES *pPriv)
 	ADD_UNICODE_CONSTANT(SE_DENY_REMOTE_INTERACTIVE_LOGON_NAME);
 	ADD_UNICODE_CONSTANT(SE_IMPERSONATE_NAME);
 	ADD_UNICODE_CONSTANT(SE_CREATE_GLOBAL_NAME);
-	// Requires Vista SDK
-	#ifdef _WIN32_WINNT_LONGHORN
 	ADD_UNICODE_CONSTANT(SE_TRUSTED_CREDMAN_ACCESS_NAME);
 	ADD_UNICODE_CONSTANT(SE_RELABEL_NAME);
 	ADD_UNICODE_CONSTANT(SE_INC_WORKING_SET_NAME);
 	ADD_UNICODE_CONSTANT(SE_TIME_ZONE_NAME);
 	ADD_UNICODE_CONSTANT(SE_CREATE_SYMBOLIC_LINK_NAME);
-	#endif
 
 	PyDict_SetItemString(d,"MSV1_0_PACKAGE_NAME",PyBytes_FromString(MSV1_0_PACKAGE_NAME));
 	PyDict_SetItemString(d,"MICROSOFT_KERBEROS_NAME_A",PyBytes_FromString(MICROSOFT_KERBEROS_NAME_A));
@@ -643,42 +636,37 @@ void PyWinObject_FreeTOKEN_PRIVILEGES(TOKEN_PRIVILEGES *pPriv)
 	PyModule_AddIntConstant(m,"TokenSandBoxInert", TokenSandBoxInert);
 	PyModule_AddIntConstant(m,"TokenAuditPolicy", TokenAuditPolicy);
 	PyModule_AddIntConstant(m,"TokenOrigin", TokenOrigin);
-	// ??? These are defined in Vista platform SDK, but they aren't conditionally defined.
-	//	This symbol is defined in the Vista SDK, but not in earlier ones.
-	//	There's probably a better way to determine which SDK is in use. ???
-	#ifdef _WIN32_WINNT_LONGHORN
 		PyModule_AddIntConstant(m,"TokenElevationType", TokenElevationType);
-		PyModule_AddIntConstant(m,"TokenLinkedToken", TokenLinkedToken);
-		PyModule_AddIntConstant(m,"TokenElevation", TokenElevation);
-		PyModule_AddIntConstant(m,"TokenHasRestrictions", TokenHasRestrictions);
-		PyModule_AddIntConstant(m,"TokenAccessInformation", TokenAccessInformation);
-		PyModule_AddIntConstant(m,"TokenVirtualizationAllowed", TokenVirtualizationAllowed);
-		PyModule_AddIntConstant(m,"TokenVirtualizationEnabled", TokenVirtualizationEnabled);
-		PyModule_AddIntConstant(m,"TokenIntegrityLevel", TokenIntegrityLevel);
-		PyModule_AddIntConstant(m,"TokenUIAccess", TokenUIAccess);
-		PyModule_AddIntConstant(m,"TokenMandatoryPolicy", TokenMandatoryPolicy);
-		PyModule_AddIntConstant(m,"TokenLogonSid", TokenLogonSid);
+    PyModule_AddIntConstant(m,"TokenLinkedToken", TokenLinkedToken);
+    PyModule_AddIntConstant(m,"TokenElevation", TokenElevation);
+    PyModule_AddIntConstant(m,"TokenHasRestrictions", TokenHasRestrictions);
+    PyModule_AddIntConstant(m,"TokenAccessInformation", TokenAccessInformation);
+    PyModule_AddIntConstant(m,"TokenVirtualizationAllowed", TokenVirtualizationAllowed);
+    PyModule_AddIntConstant(m,"TokenVirtualizationEnabled", TokenVirtualizationEnabled);
+    PyModule_AddIntConstant(m,"TokenIntegrityLevel", TokenIntegrityLevel);
+    PyModule_AddIntConstant(m,"TokenUIAccess", TokenUIAccess);
+    PyModule_AddIntConstant(m,"TokenMandatoryPolicy", TokenMandatoryPolicy);
+    PyModule_AddIntConstant(m,"TokenLogonSid", TokenLogonSid);
 
-		// TOKEN_ELEVATION_TYPE enum
-		PyModule_AddIntConstant(m,"TokenElevationTypeDefault",TokenElevationTypeDefault);
-		PyModule_AddIntConstant(m,"TokenElevationTypeFull",TokenElevationTypeFull);
-		PyModule_AddIntConstant(m,"TokenElevationTypeLimited",TokenElevationTypeLimited);
+    // TOKEN_ELEVATION_TYPE enum
+    PyModule_AddIntConstant(m,"TokenElevationTypeDefault",TokenElevationTypeDefault);
+    PyModule_AddIntConstant(m,"TokenElevationTypeFull",TokenElevationTypeFull);
+    PyModule_AddIntConstant(m,"TokenElevationTypeLimited",TokenElevationTypeLimited);
 
-		// TOKEN_MANDATORY_POLICY enum
-		PyModule_AddIntConstant(m,"TOKEN_MANDATORY_POLICY_OFF",TOKEN_MANDATORY_POLICY_OFF);
-		PyModule_AddIntConstant(m,"TOKEN_MANDATORY_POLICY_NO_WRITE_UP",TOKEN_MANDATORY_POLICY_NO_WRITE_UP);
-		PyModule_AddIntConstant(m,"TOKEN_MANDATORY_POLICY_NEW_PROCESS_MIN",TOKEN_MANDATORY_POLICY_NEW_PROCESS_MIN);
-		PyModule_AddIntConstant(m,"TOKEN_MANDATORY_POLICY_VALID_MASK",TOKEN_MANDATORY_POLICY_VALID_MASK);
+    // TOKEN_MANDATORY_POLICY enum
+    PyModule_AddIntConstant(m,"TOKEN_MANDATORY_POLICY_OFF",TOKEN_MANDATORY_POLICY_OFF);
+    PyModule_AddIntConstant(m,"TOKEN_MANDATORY_POLICY_NO_WRITE_UP",TOKEN_MANDATORY_POLICY_NO_WRITE_UP);
+    PyModule_AddIntConstant(m,"TOKEN_MANDATORY_POLICY_NEW_PROCESS_MIN",TOKEN_MANDATORY_POLICY_NEW_PROCESS_MIN);
+    PyModule_AddIntConstant(m,"TOKEN_MANDATORY_POLICY_VALID_MASK",TOKEN_MANDATORY_POLICY_VALID_MASK);
 
-		PyModule_AddIntConstant(m,"SE_GROUP_INTEGRITY", SE_GROUP_INTEGRITY);
-		PyModule_AddIntConstant(m,"SE_GROUP_INTEGRITY_ENABLED", SE_GROUP_INTEGRITY_ENABLED);
+    PyModule_AddIntConstant(m,"SE_GROUP_INTEGRITY", SE_GROUP_INTEGRITY);
+    PyModule_AddIntConstant(m,"SE_GROUP_INTEGRITY_ENABLED", SE_GROUP_INTEGRITY_ENABLED);
 
-		// Access mask used with integrity level ACE's (SYSTEM_MANDATORY_LABEL_ACE_TYPE)
-		PyModule_AddIntConstant(m,"SYSTEM_MANDATORY_LABEL_NO_WRITE_UP", SYSTEM_MANDATORY_LABEL_NO_WRITE_UP);
-		PyModule_AddIntConstant(m,"SYSTEM_MANDATORY_LABEL_NO_READ_UP", SYSTEM_MANDATORY_LABEL_NO_READ_UP);
-		PyModule_AddIntConstant(m,"SYSTEM_MANDATORY_LABEL_NO_EXECUTE_UP", SYSTEM_MANDATORY_LABEL_NO_EXECUTE_UP);
-		PyModule_AddIntConstant(m,"SYSTEM_MANDATORY_LABEL_VALID_MASK", SYSTEM_MANDATORY_LABEL_VALID_MASK);
-	#endif
+    // Access mask used with integrity level ACE's (SYSTEM_MANDATORY_LABEL_ACE_TYPE)
+    PyModule_AddIntConstant(m,"SYSTEM_MANDATORY_LABEL_NO_WRITE_UP", SYSTEM_MANDATORY_LABEL_NO_WRITE_UP);
+    PyModule_AddIntConstant(m,"SYSTEM_MANDATORY_LABEL_NO_READ_UP", SYSTEM_MANDATORY_LABEL_NO_READ_UP);
+    PyModule_AddIntConstant(m,"SYSTEM_MANDATORY_LABEL_NO_EXECUTE_UP", SYSTEM_MANDATORY_LABEL_NO_EXECUTE_UP);
+    PyModule_AddIntConstant(m,"SYSTEM_MANDATORY_LABEL_VALID_MASK", SYSTEM_MANDATORY_LABEL_VALID_MASK);
 
 	// WELL_KNOWN_SID_TYPE used with CreateWellKnownSid
 	PyModule_AddIntConstant(m,"WinNullSid", WinNullSid);
@@ -740,27 +728,24 @@ void PyWinObject_FreeTOKEN_PRIVILEGES(TOKEN_PRIVILEGES *pPriv)
 	PyModule_AddIntConstant(m,"WinBuiltinIncomingForestTrustBuildersSid", WinBuiltinIncomingForestTrustBuildersSid);
 	PyModule_AddIntConstant(m,"WinBuiltinPerfMonitoringUsersSid", WinBuiltinPerfMonitoringUsersSid);
 	PyModule_AddIntConstant(m,"WinBuiltinPerfLoggingUsersSid", WinBuiltinPerfLoggingUsersSid);
-	// These require recent SDK
-	#ifdef _WIN32_WINNT_LONGHORN
-		PyModule_AddIntConstant(m,"WinBuiltinAuthorizationAccessSid", WinBuiltinAuthorizationAccessSid);
-		PyModule_AddIntConstant(m,"WinBuiltinTerminalServerLicenseServersSid", WinBuiltinTerminalServerLicenseServersSid);
-		PyModule_AddIntConstant(m,"WinBuiltinDCOMUsersSid", WinBuiltinDCOMUsersSid);
-		PyModule_AddIntConstant(m,"WinBuiltinIUsersSid", WinBuiltinIUsersSid);
-		PyModule_AddIntConstant(m,"WinIUserSid", WinIUserSid);
-		PyModule_AddIntConstant(m,"WinBuiltinCryptoOperatorsSid", WinBuiltinCryptoOperatorsSid);
-		PyModule_AddIntConstant(m,"WinUntrustedLabelSid", WinUntrustedLabelSid);
-		PyModule_AddIntConstant(m,"WinLowLabelSid", WinLowLabelSid);
-		PyModule_AddIntConstant(m,"WinMediumLabelSid", WinMediumLabelSid);
-		PyModule_AddIntConstant(m,"WinHighLabelSid", WinHighLabelSid);
-		PyModule_AddIntConstant(m,"WinSystemLabelSid", WinSystemLabelSid);
-		PyModule_AddIntConstant(m,"WinWriteRestrictedCodeSid", WinWriteRestrictedCodeSid);
-		PyModule_AddIntConstant(m,"WinCreatorOwnerRightsSid", WinCreatorOwnerRightsSid);
-		PyModule_AddIntConstant(m,"WinCacheablePrincipalsGroupSid", WinCacheablePrincipalsGroupSid);
-		PyModule_AddIntConstant(m,"WinNonCacheablePrincipalsGroupSid", WinNonCacheablePrincipalsGroupSid);
-		PyModule_AddIntConstant(m,"WinEnterpriseReadonlyControllersSid", WinEnterpriseReadonlyControllersSid);
-		PyModule_AddIntConstant(m,"WinAccountReadonlyControllersSid", WinAccountReadonlyControllersSid);
-		PyModule_AddIntConstant(m,"WinBuiltinEventLogReadersGroup", WinBuiltinEventLogReadersGroup);
-	#endif
+    PyModule_AddIntConstant(m,"WinBuiltinAuthorizationAccessSid", WinBuiltinAuthorizationAccessSid);
+    PyModule_AddIntConstant(m,"WinBuiltinTerminalServerLicenseServersSid", WinBuiltinTerminalServerLicenseServersSid);
+    PyModule_AddIntConstant(m,"WinBuiltinDCOMUsersSid", WinBuiltinDCOMUsersSid);
+    PyModule_AddIntConstant(m,"WinBuiltinIUsersSid", WinBuiltinIUsersSid);
+    PyModule_AddIntConstant(m,"WinIUserSid", WinIUserSid);
+    PyModule_AddIntConstant(m,"WinBuiltinCryptoOperatorsSid", WinBuiltinCryptoOperatorsSid);
+    PyModule_AddIntConstant(m,"WinUntrustedLabelSid", WinUntrustedLabelSid);
+    PyModule_AddIntConstant(m,"WinLowLabelSid", WinLowLabelSid);
+    PyModule_AddIntConstant(m,"WinMediumLabelSid", WinMediumLabelSid);
+    PyModule_AddIntConstant(m,"WinHighLabelSid", WinHighLabelSid);
+    PyModule_AddIntConstant(m,"WinSystemLabelSid", WinSystemLabelSid);
+    PyModule_AddIntConstant(m,"WinWriteRestrictedCodeSid", WinWriteRestrictedCodeSid);
+    PyModule_AddIntConstant(m,"WinCreatorOwnerRightsSid", WinCreatorOwnerRightsSid);
+    PyModule_AddIntConstant(m,"WinCacheablePrincipalsGroupSid", WinCacheablePrincipalsGroupSid);
+    PyModule_AddIntConstant(m,"WinNonCacheablePrincipalsGroupSid", WinNonCacheablePrincipalsGroupSid);
+    PyModule_AddIntConstant(m,"WinEnterpriseReadonlyControllersSid", WinEnterpriseReadonlyControllersSid);
+    PyModule_AddIntConstant(m,"WinAccountReadonlyControllersSid", WinAccountReadonlyControllersSid);
+    PyModule_AddIntConstant(m,"WinBuiltinEventLogReadersGroup", WinBuiltinEventLogReadersGroup);
 
 	advapi32_dll=loadmodule(_T("Advapi32.dll"));
 	secur32_dll =loadmodule(_T("Secur32.dll"));
@@ -1246,9 +1231,9 @@ done:
     if it fails. If the SID can be constructed successfully,
     a valid binary SID is returned.
 
-    This function requires TCHAR.H and the C runtime library.
+    This function requires tchar.h and the C runtime library.
 
-    The following are macros defined in TCHAR.H that allow this
+    The following are macros defined in tchar.h that allow this
     function to be compiled with or without UNICODE defined. To
     replace these macros with direct calls to their corresponding
     ANSI functions first make sure this module is not compiled
@@ -1871,13 +1856,11 @@ static PyObject *PyGetTokenInformation(PyObject *self, PyObject *args)
 		case TokenSandBoxInert:	// @flag TokenSandBoxInert|Boolean
 		case TokenType:	// @flag TokenType|Value from TOKEN_TYPE enum (TokenPrimary,TokenImpersonation)
 		case TokenImpersonationLevel:	// @flag TokenImpersonationLevel|Value from SECURITY_IMPERSONATION_LEVEL enum
-		#ifdef _WIN32_WINNT_LONGHORN		// Vista info types related to UAC
 		case TokenVirtualizationEnabled:	// @flag TokenVirtualizationEnabled|Boolean
 		case TokenVirtualizationAllowed:	// @flag TokenVirtualizationAllowed|Boolean
 		case TokenHasRestrictions:	// @flag TokenHasRestrictions|Boolean
 		case TokenElevationType:	// @flag TokenElevationType|int - TokenElevation* value indicating what type of token is linked to
 		case TokenUIAccess:			// @flag TokenUIAccess|Boolean
-		#endif
 			bufSize = sizeof(DWORD);
 			if (!GetTokenInformation(handle, typ, &dwordbuf, bufSize, &retLength))
 				return PyWin_SetAPIError("GetTokenInformation");
@@ -1981,9 +1964,6 @@ static PyObject *PyGetTokenInformation(PyObject *self, PyObject *args)
 			ret = PyWinObject_FromLARGE_INTEGER(luid);
 			break;
 			}
-
-		#ifdef _WIN32_WINNT_LONGHORN
-		// Vista-specific types require recent platform SDK
 		case TokenLinkedToken: {
 			// @flag TokenLinkedToken|<o PyHANDLE> - Returns handle to the access token to which token is linked
 			TOKEN_LINKED_TOKEN *tlt=(TOKEN_LINKED_TOKEN *)buf;
@@ -2033,7 +2013,6 @@ static PyObject *PyGetTokenInformation(PyObject *self, PyObject *args)
 			SID_HASH_ENTRY Hash[SID_HASH_SIZE];
 		} SID_AND_ATTRIBUTES_HASH
 		*/
-		#endif
 		default:
 			PyErr_Format(PyExc_NotImplementedError, "TokenInformationClass %d is not supported yet", typ);
 	}
@@ -2364,10 +2343,8 @@ static PyObject *PySetTokenInformation(PyObject *self, PyObject *args)
 			break;
 			}
 		case TokenSessionId:				// @flag TokenSessionId|Int - Terminal services session id
-		#ifdef _WIN32_WINNT_LONGHORN		// Vista info types related to UAC
 		case TokenVirtualizationEnabled:	// @flag TokenVirtualizationEnabled|Boolean
 		case TokenVirtualizationAllowed:	// @flag TokenVirtualizationAllowed|Boolean
-		#endif
 			bufsize = sizeof(DWORD);
 			buf=malloc(bufsize);
 			if (buf==NULL)
@@ -2380,7 +2357,6 @@ static PyObject *PySetTokenInformation(PyObject *self, PyObject *args)
 				goto done;
 				}
 			break;
-		#ifdef _WIN32_WINNT_LONGHORN
 		case TokenIntegrityLevel:	// @flag TokenIntegrityLevel|<o PySID_AND_ATTRIBUTES> containing an integrity SID and SE_GROUP_INTEGRITY flag
 			bufsize=sizeof(TOKEN_MANDATORY_LABEL);
 			buf=malloc(bufsize);
@@ -2402,7 +2378,6 @@ static PyObject *PySetTokenInformation(PyObject *self, PyObject *args)
 				goto done;
 				}
 			break;
-		#endif
 		default:
 			PyErr_Format(PyExc_NotImplementedError, "TokenInformationClass %d is not yet supported", typ);
 			goto done;

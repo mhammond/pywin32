@@ -103,6 +103,7 @@ PyObject *PyDDEConv_Poke(PyObject *self, PyObject *args)
         return NULL;
     TCHAR *szCmd;
     PyObject *obCmd;
+    // TODO: How would this code look like w/o consideration for Netscape ?
     void *pData = NULL;  // may be empty, as for Netscape's use of Poke
     Py_ssize_t size = 0;
     if (!PyArg_ParseTuple(args, "O|z#:Poke", &obCmd, &pData, &size))
@@ -110,7 +111,7 @@ PyObject *PyDDEConv_Poke(PyObject *self, PyObject *args)
     if (!PyWinObject_AsTCHAR(obCmd, &szCmd, FALSE))
         return NULL;
     GUI_BGN_SAVE;
-    BOOL ok = pConv->Poke(szCmd, pData, size);
+    BOOL ok = pConv->Poke(CF_TEXT, szCmd, pData, size);
     GUI_END_SAVE;
     PyWinObject_FreeTCHAR(szCmd);
     if (!ok)

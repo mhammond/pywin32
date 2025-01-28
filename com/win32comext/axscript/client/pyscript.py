@@ -11,7 +11,6 @@ import re
 import types
 
 import pythoncom
-import win32api
 import win32com
 import win32com.client.dynamic
 import win32com.server.register
@@ -100,7 +99,7 @@ class AXScriptAttribute:
 
 
 class NamedScriptAttribute:
-    "An explicitely named object in an objects namespace"
+    "An explicitly named object in an objects namespace"
 
     # Each named object holds a reference to one of these.
     # Whenever a sub-item appears in a namespace, it is really one of these
@@ -110,7 +109,7 @@ class NamedScriptAttribute:
         self.__dict__["_scriptItem_"] = scriptItem
 
     def __repr__(self):
-        return "<NamedItemAttribute" + repr(self._scriptItem_) + ">"
+        return f"<NamedItemAttribute{self._scriptItem_!r}>"
 
     def __getattr__(self, attr):
         # If a known subitem, return it.

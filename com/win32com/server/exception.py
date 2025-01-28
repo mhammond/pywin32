@@ -1,15 +1,15 @@
 """Exception Handling
 
- Exceptions
+Exceptions
 
-     To better support COM exceptions, the framework allows for an instance to be
-     raised.  This instance may have a certain number of known attributes, which are
-     translated into COM exception details.
+    To better support COM exceptions, the framework allows for an instance to be
+    raised.  This instance may have a certain number of known attributes, which are
+    translated into COM exception details.
 
-     This means, for example, that Python could raise a COM exception that includes details
-     on a Help file and location, and a description for the user.
+    This means, for example, that Python could raise a COM exception that includes details
+    on a Help file and location, and a description for the user.
 
-     This module provides a class which provides the necessary attributes.
+    This module provides a class which provides the necessary attributes.
 """
 
 import sys
@@ -19,7 +19,7 @@ import pythoncom
 
 # Note that we derive from com_error, which derives from builtin Exception
 # Also note that we don't support "self.args", as we don't support tuple-unpacking
-class COMException(pythoncom.com_error):
+class COMException(pythoncom.com_error):  # type: ignore[name-defined] # Dynamic module
     """An Exception object that is understood by the framework.
 
     If the framework is presented with an exception of type class,

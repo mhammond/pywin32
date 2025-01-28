@@ -260,10 +260,10 @@ static int AddIID(PyObject *dict, const char *key, REFGUID guid)
 
 #define ADD_CONSTANT(tok)                  \
     if (0 != AddConstant(dict, #tok, tok)) \
-    PYWIN_MODULE_INIT_RETURN_ERROR
+        PYWIN_MODULE_INIT_RETURN_ERROR;
 #define ADD_IID(tok)                  \
     if (0 != AddIID(dict, #tok, tok)) \
-    PYWIN_MODULE_INIT_RETURN_ERROR
+        PYWIN_MODULE_INIT_RETURN_ERROR;
 
 // @object PyIFilter|Wraps the interfaces used with Indexing Service filtering
 static struct PyMethodDef PyIFilter_methods[] = {

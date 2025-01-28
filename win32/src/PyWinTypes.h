@@ -32,10 +32,10 @@
 #define PYWIN_MODULE_INIT_FUNC(module_name) extern "C" __declspec(dllexport) PyObject *PyInit_##module_name(void)
 
 // If the module needs to early-exit on an error condition.
-#define PYWIN_MODULE_INIT_RETURN_ERROR return NULL;
+#define PYWIN_MODULE_INIT_RETURN_ERROR return NULL
 
 // When the module has successfully initialized.
-#define PYWIN_MODULE_INIT_RETURN_SUCCESS return module;
+#define PYWIN_MODULE_INIT_RETURN_SUCCESS return module
 
 // To setup the module object itself and the module's dictionary.
 #define PYWIN_MODULE_INIT_PREPARE(module_name, functions, docstring)                                        \
@@ -82,6 +82,8 @@ typedef Py_ssize_t Py_hash_t;
 #endif  // DEBUG/_DEBUG
 #endif  // _MSC_VER
 #endif  // BUILD_PYWINTYPES
+
+extern PYWINTYPES_EXPORT HMODULE PyWin_GetOrLoadLibraryHandle(const char *name);
 
 // Py3k uses memoryview object in place of buffer, and we don't yet.
 extern PYWINTYPES_EXPORT PyObject *PyBuffer_New(Py_ssize_t size);

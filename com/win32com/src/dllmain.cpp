@@ -156,7 +156,7 @@ typedef HRESULT(WINAPI *PFNCoInitializeEx)(LPVOID pvReserved, DWORD dwCoInit);
 // particular about the order of shutdown - in MAPI's case, you MUST
 // do the CoUninit _before_ the MAPIUninit.
 // These functions have logic so the Python programmer can call either
-// the Init for Term function explicitely, and the framework will detect
+// the Init for Term function explicitly, and the framework will detect
 // it no longer needs doing.
 // XXX - Needs more thought about threading implications.
 HRESULT PyCom_CoInitializeEx(LPVOID reserved, DWORD dwInit)

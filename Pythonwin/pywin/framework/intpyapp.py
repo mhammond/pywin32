@@ -9,7 +9,7 @@ import commctrl
 import win32api
 import win32con
 import win32ui
-from pywin.mfc import afxres, dialog
+from pywin.mfc import afxres, dialog, docview
 
 from . import app, dbgcommands
 
@@ -27,9 +27,7 @@ def _SetupSharedMenu_(self):
     help.SetHelpMenuOtherHelp(sharedMenu)
 
 
-from pywin.mfc import docview
-
-docview.DocTemplate._SetupSharedMenu_ = _SetupSharedMenu_
+docview.DocTemplate._SetupSharedMenu_ = _SetupSharedMenu_  # type: ignore[method-assign]
 
 
 class MainFrame(app.MainFrame):
@@ -325,7 +323,7 @@ class InteractivePythonApp(app.CApp):
                     )
                     continue
                 if dde:
-                    dde.Exec("win32ui.GetApp().OpenDocumentFile(%s)" % (repr(fname)))
+                    dde.Exec(f"win32ui.GetApp().OpenDocumentFile({fname!r})")
                 else:
                     win32ui.GetApp().OpenDocumentFile(par)
             elif argType == "/rundlg":
@@ -373,7 +371,7 @@ class InteractivePythonApp(app.CApp):
     def LoadUserModules(self, moduleNames=None):
         # Load the users modules.
         if moduleNames is None:
-            default = "pywin.framework.sgrepmdi,pywin.framework.mdi_pychecker"
+            default = "pywin.framework.sgrepmdi"
             moduleNames = win32ui.GetProfileVal("Python", "Startup Modules", default)
         self.DoLoadModules(moduleNames)
 
@@ -467,7 +465,7 @@ class InteractivePythonApp(app.CApp):
         else:
             win32ui.GetApp().OpenDocumentFile(newName)
 
-    # Display all the "options" proprety pages we can find
+    # Display all the "options" property pages we can find
     def OnViewOptions(self, id, code):
         win32ui.InitRichEdit()
         sheet = dialog.PropertySheet("Pythonwin Options")

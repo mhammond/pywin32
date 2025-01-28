@@ -859,7 +859,7 @@ void PyObject_CleanupDEFCONTEXTMENU(DEFCONTEXTMENU *dcm)
         PyObject_FreePIDL(dcm->pidlFolder);
     if (dcm->apidl)
         PyObject_FreePIDLArray(dcm->cidl, dcm->apidl);
-    PY_INTERFACE_POSTCALL
+    PY_INTERFACE_POSTCALL;
 }
 
 // @object DEFCONTENTMENU|A tuple representing a DEFCONTEXTMENU structure.
@@ -2532,15 +2532,14 @@ static PyObject *PyShellExecuteEx(PyObject *self, PyObject *args, PyObject *kw)
 
     static char *kw_items[] = {
         "fMask",    "hwnd",    "lpVerb",    "lpFile",   "lpParameters", "lpDirectory", "nShow",
-        "lpIDList", "lpClass", "hkeyClass", "dwHotKey", "hIcon",        "hMonitor",    NULL,
+        "lpIDList", "lpClass", "hkeyClass", "dwHotKey", "hMonitor",     NULL,
     };
     PyObject *obhwnd = Py_None, *obVerb = NULL, *obFile = NULL, *obParams = NULL;
     PyObject *obDirectory = NULL, *obIDList = NULL, *obClass = NULL;
-    PyObject *obhkeyClass = NULL, *obHotKey = NULL, *obhIcon = NULL;
-    PyObject *obhMonitor = NULL;
-    // @pyparm int|fMask|0|The default mask for the structure.  Other
-    // masks may be added based on what paramaters are supplied.
-    if (!PyArg_ParseTupleAndKeywords(args, kw, "|lOOOOOlOOOOOO", kw_items, &info.fMask,
+    PyObject *obhkeyClass = NULL, *obHotKey = NULL, *obhMonitor = NULL;
+    if (!PyArg_ParseTupleAndKeywords(args, kw, "|lOOOOOlOOOOO", kw_items,
+                                     &info.fMask,   // @pyparm int|fMask|0|The default mask for the structure.
+                                                    // Other masks may be added based on what paramaters are supplied.
                                      &obhwnd,       // @pyparm <o PyHANDLE>|hwnd|0|
                                      &obVerb,       // @pyparm string|lpVerb||
                                      &obFile,       // @pyparm string|lpFile||
@@ -2551,7 +2550,6 @@ static PyObject *PyShellExecuteEx(PyObject *self, PyObject *args, PyObject *kw)
                                      &obClass,      // @pyparm string|obClass||
                                      &obhkeyClass,  // @pyparm int|hkeyClass||
                                      &obHotKey,     // @pyparm int|dwHotKey||
-                                     &obhIcon,      // @pyparm <o PyHANDLE>|hIcon||
                                      &obhMonitor))  // @pyparm <o PyHANDLE>|hMonitor||
         goto done;
     if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&info.hwnd))
@@ -2584,17 +2582,6 @@ static PyObject *PyShellExecuteEx(PyObject *self, PyObject *args, PyObject *kw)
         info.dwHotKey = PyLong_AsLong(obHotKey);
         if (PyErr_Occurred())
             goto done;
-    }
-    if (obhIcon) {
-// SEE_MASK_ICON is defined around 'if (NTDDI_VERSION < NTDDI_LONGHORN)' and commented as 'not used'
-#ifndef SEE_MASK_ICON
-        PyErr_SetString(PyExc_NotImplementedError, "SEE_MASK_ICON not declared on this platform");
-        goto done;
-#else
-        info.fMask |= SEE_MASK_ICON;
-        if (!PyWinObject_AsHANDLE(obhIcon, &info.hIcon))
-            goto done;
-#endif
     }
     if (obhMonitor) {
         info.fMask |= SEE_MASK_HMONITOR;

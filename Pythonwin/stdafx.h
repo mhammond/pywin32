@@ -5,12 +5,6 @@
 
 #define WIN32_LEAN_AND_MEAN
 
-#ifndef WINVER
-// we don't need this, but vs2009 makes noise without it set to something -
-// and this is what we currently use...
-#define WINVER 0x0600
-#endif
-
 #define _USING_V110_SDK71_
 // MFC support for mbcs is going away, but no need for us to constantly be told...
 #define NO_WARN_MBCS_MFC_DEPRECATION

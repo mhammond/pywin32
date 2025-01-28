@@ -4,7 +4,6 @@ import sys
 import traceback
 
 import pythoncom
-import win32api
 import win32com.test.util
 import winerror
 from win32com.client import gencache, makepy, selecttlb

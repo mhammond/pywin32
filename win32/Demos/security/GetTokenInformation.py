@@ -1,5 +1,5 @@
-""" Lists various types of information about current user's access token,
-    including UAC status on Vista
+"""Lists various types of information about current user's access token,
+including UAC status on Vista
 """
 
 import pywintypes
@@ -40,7 +40,7 @@ def dump_token(th):
         flag_names, unk = TOKEN_PRIVILEGE_ATTRIBUTES.lookup_flags(priv_flags)
         flag_desc = " ".join(flag_names)
         if unk:
-            flag_desc += "(" + str(unk) + ")"
+            flag_desc += f"({unk})"
 
         priv_name = win32security.LookupPrivilegeName("", priv_luid)
         priv_desc = win32security.LookupPrivilegeDisplayName("", priv_name)
@@ -52,7 +52,7 @@ def dump_token(th):
         flag_names, unk = TOKEN_GROUP_ATTRIBUTES.lookup_flags(group_attr)
         flag_desc = " ".join(flag_names)
         if unk:
-            flag_desc += "(" + str(unk) + ")"
+            flag_desc += f"({unk})"
         if group_attr & TOKEN_GROUP_ATTRIBUTES.SE_GROUP_LOGON_ID:
             sid_desc = "Logon sid"
         else:

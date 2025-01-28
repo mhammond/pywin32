@@ -26,6 +26,17 @@ extern PyObject *PyWinMethod_NewHKEY(PyObject *self, PyObject *args);
 extern BOOL _PyWinDateTime_Init();
 extern BOOL _PyWinDateTime_PrepareModuleDict(PyObject *dict);
 
+HMODULE PyWin_GetOrLoadLibraryHandle(const char *name)
+{
+    DWORD lastErr = GetLastError();
+    HMODULE hmodule = GetModuleHandleA(name);
+    if (hmodule == NULL)
+        hmodule = LoadLibraryA(name);
+    if (hmodule != NULL)
+        SetLastError(lastErr);
+    return hmodule;
+}
+
 // XXX - Needs py3k modernization!
 // For py3k, a function that returns new memoryview object instead of buffer.
 // ??? Byte array object is mutable, maybe just use that directly as a substitute ???
@@ -970,10 +981,8 @@ extern "C" __declspec(dllexport) BOOL WINAPI DllMain(HANDLE hInstance, DWORD dwR
 {
     FARPROC fp;
     // dll usually will already be loaded
-    HMODULE hmodule = GetModuleHandle(_T("AdvAPI32.dll"));
-    if (hmodule == NULL)
-        hmodule = LoadLibrary(_T("AdvAPI32.dll"));
-    if (hmodule) {
+    HMODULE hmodule = PyWin_GetOrLoadLibraryHandle("advapi32.dll");
+    if (hmodule != NULL) {
         fp = GetProcAddress(hmodule, "AddAccessAllowedAce");
         if (fp)
             addaccessallowedace = (addacefunc)(fp);

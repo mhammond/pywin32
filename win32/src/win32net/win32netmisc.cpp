@@ -1353,8 +1353,6 @@ PyObject *PyNetServerComputerNameDel(PyObject *self, PyObject *args)
     return ret;
 }
 
-#if WINVER >= 0x0500
-
 extern "C" NetValidateNamefunc pfnNetValidateName = NULL;
 // @pymethod |win32net|NetValidateName|Checks that domain/machine/workgroup name is valid for given context
 // @rdesc Returns none if valid, exception if not
@@ -1652,5 +1650,3 @@ done:
         (*pfnNetValidatePasswordPolicyFree)((void **)&out_arg);
     return ret;
 }
-
-#endif  // WINVER

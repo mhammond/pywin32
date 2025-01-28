@@ -32,9 +32,7 @@ conversion is required.
 
 #include "assert.h"
 
-#if WINVER >= 0x0500
 NetGetJoinInformationfunc pfnNetGetJoinInformation = NULL;
-#endif
 
 /*****************************************************************************/
 /* error helpers */
@@ -946,8 +944,6 @@ done:
     return ret;
 }
 
-#if WINVER >= 0x0500
-
 // @pymethod <o PyUnicode>, int|win32net|NetGetJoinInformation|Retrieves join status information for the specified
 // computer.
 static PyObject *PyNetGetJoinInformation(PyObject *self, PyObject *args)
@@ -979,7 +975,6 @@ done:
     NetApiBufferFree(result);
     return ret;
 }
-#endif  // WINVER
 
 /*************************************************************************************************************
 **
@@ -1059,10 +1054,8 @@ extern PyObject *PyNetServerComputerNameDel(PyObject *self, PyObject *args);
 /* List of functions exported by this module */
 // @module win32net|A module encapsulating the Windows Network API.
 static struct PyMethodDef win32net_functions[] = {
-#if WINVER >= 0x0500
     {"NetGetJoinInformation", PyNetGetJoinInformation,
      1},  // @pymeth NetGetJoinInformation|Retrieves join status information for the specified computer.
-#endif
     {"NetGroupGetInfo", PyNetGroupGetInfo,
      1},  // @pymeth NetGroupGetInfo|Retrieves information about a particular group on a server.
     {"NetGroupGetUsers", PyNetGroupGetUsers, 1},  // @pymeth NetGroupGetUsers|Enumerates the users in a group.
@@ -1180,13 +1173,11 @@ static struct PyMethodDef win32net_functions[] = {
     {"NetServerComputerNameDel", PyNetServerComputerNameDel,
      1},  // @pymeth NetServerComputerNameDel|Deletes an emulated computer name created by <om
           // win32net.PyNetServerComputerNameAdd>
-#if WINVER >= 0x0500
     {"NetValidateName", PyNetValidateName,
      1},  // @pymeth NetValidateName|Verify that computer/domain name is valid for given context
     {"NetValidatePasswordPolicy", PyNetValidatePasswordPolicy,
      1},  // @pymeth NetValidatePasswordPolicy|Allows an application to check password compliance against an
           // application-provided account database.
-#endif
     {NULL, NULL}};
 
 static void AddConstant(PyObject *dict, char *name, long val)
@@ -1211,10 +1202,7 @@ PYWIN_MODULE_INIT_FUNC(win32net)
     AddConstant(dict, "USE_FORCE", USE_FORCE);
     AddConstant(dict, "USE_LOTS_OF_FORCE", USE_LOTS_OF_FORCE);
 
-    HMODULE hmodule = GetModuleHandle(_T("netapi32"));
-#if WINVER >= 0x0500
-    if (hmodule == NULL)
-        hmodule = LoadLibrary(_T("netapi32"));
+    HMODULE hmodule = PyWin_GetOrLoadLibraryHandle("netapi32.dll");
     if (hmodule != NULL) {
         pfnNetValidateName = (NetValidateNamefunc)GetProcAddress(hmodule, "NetValidateName");
         pfnNetGetJoinInformation = (NetGetJoinInformationfunc)GetProcAddress(hmodule, "NetGetJoinInformation");
@@ -1223,6 +1211,5 @@ PYWIN_MODULE_INIT_FUNC(win32net)
         pfnNetValidatePasswordPolicyFree =
             (NetValidatePasswordPolicyFreefunc)GetProcAddress(hmodule, "NetValidatePasswordPolicyFree");
     }
-#endif
     PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }

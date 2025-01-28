@@ -4,7 +4,6 @@
 import sys
 import time
 
-import win32api
 import win32con
 import win32file
 import win32gui

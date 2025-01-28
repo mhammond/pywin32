@@ -15,15 +15,11 @@
 %include "pywintypes.i"
 
 %{
-#define _WIN32_WINNT 0x0501
-
 #undef PyHANDLE
 #include "pywinobjects.h"
 #include "windows.h"
 #include "Uxtheme.h"
-#include "commctrl.h"
-
-
+#include "CommCtrl.h"
 %}
 
 // @object PyHTHEME|A <o PyHANDLE> object wrapping a HTHEME.

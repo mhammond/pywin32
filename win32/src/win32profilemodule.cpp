@@ -489,10 +489,7 @@ PYWIN_MODULE_INIT_FUNC(win32profile)
     PyModule_AddIntConstant(module, "PT_ROAMING", PT_ROAMING);
     PyModule_AddIntConstant(module, "PT_TEMPORARY", PT_TEMPORARY);
 
-    HMODULE hmodule;
-    hmodule = GetModuleHandle(L"Userenv.dll");
-    if (hmodule == NULL)
-        hmodule = LoadLibrary(L"Userenv.dll");
+    HMODULE hmodule = PyWin_GetOrLoadLibraryHandle("userenv.dll");
     if (hmodule != NULL) {
         pfnDeleteProfile = (DeleteProfilefunc)GetProcAddress(hmodule, "DeleteProfileW");
         pfnExpandEnvironmentStringsForUser =

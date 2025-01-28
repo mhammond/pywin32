@@ -235,10 +235,8 @@ PYWIN_MODULE_INIT_FUNC(win32transaction)
                               " transacted NTFS and transacted registry functions.");
 
     // Load dll and function pointers to avoid dependency on newer libraries and headers
-    HMODULE hmodule = GetModuleHandle(L"Ktmw32.dll");
-    if (hmodule == NULL)
-        hmodule = LoadLibrary(L"Ktmw32.dll");
-    if (hmodule) {
+    HMODULE hmodule = PyWin_GetOrLoadLibraryHandle("ktmw32.dll");
+    if (hmodule != NULL) {
         pfnCreateTransaction = (CreateTransactionfunc)GetProcAddress(hmodule, "CreateTransaction");
         pfnRollbackTransaction = (RollbackTransactionfunc)GetProcAddress(hmodule, "RollbackTransaction");
         pfnRollbackTransactionAsync = (RollbackTransactionAsyncfunc)GetProcAddress(hmodule, "RollbackTransactionAsync");
