@@ -702,7 +702,7 @@ PyObject *dataconv_ReadFromInTuple(PyObject *self, PyObject *args)
                 default:
                     obArg = NULL;
                     PyErr_SetString(PyExc_TypeError, "Unknown/bad type description type!");
-                    // barf here, we don't wtf they were thinking...
+                    // barf here, we don't know wtf they were thinking...
                     break;
             }  // switch
         }  // if ARRAY

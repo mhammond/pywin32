@@ -2,22 +2,23 @@
 /** @file Document.h
  ** Text document that handles notifications, DBCS, styling, words and end of line.
  **/
-// Copyright 1998-2003 by Neil Hodgson <neilh@scintilla.org>
+// Copyright 1998-2011 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
 
 #ifndef DOCUMENT_H
 #define DOCUMENT_H
 
-#ifdef SCI_NAMESPACE
 namespace Scintilla {
-#endif
 
-/**
- * A Position is a position within a document between two characters or at the beginning or end.
- * Sometimes used as a character index where it identifies the character after the position.
- */
-typedef int Position;
-const Position invalidPosition = -1;
+class DocWatcher;
+class DocModification;
+class Document;
+class LineMarkers;
+class LineLevels;
+class LineState;
+class LineAnnotation;
+
+enum class EncodingFamily { eightBit, unicode, dbcs };
 
 /**
  * The range class represents a range of text in a document.
@@ -27,22 +28,34 @@ const Position invalidPosition = -1;
  */
 class Range {
 public:
-	Position start;
-	Position end;
+	Sci::Position start;
+	Sci::Position end;
 
-	Range(Position pos=0) :
+	explicit Range(Sci::Position pos=0) noexcept :
 		start(pos), end(pos) {
-	};
-	Range(Position start_, Position end_) :
+	}
+	Range(Sci::Position start_, Sci::Position end_) noexcept :
 		start(start_), end(end_) {
-	};
+	}
 
-	bool Valid() const {
-		return (start != invalidPosition) && (end != invalidPosition);
+	bool operator==(const Range &other) const noexcept {
+		return (start == other.start) && (end == other.end);
+	}
+
+	bool Valid() const noexcept {
+		return (start != Sci::invalidPosition) && (end != Sci::invalidPosition);
+	}
+
+	Sci::Position First() const noexcept {
+		return (start <= end) ? start : end;
+	}
+
+	Sci::Position Last() const noexcept {
+		return (start > end) ? start : end;
 	}
 
 	// Is the position within the range?
-	bool Contains(Position pos) const {
+	bool Contains(Sci::Position pos) const noexcept {
 		if (start < end) {
 			return (pos >= start && pos <= end);
 		} else {
@@ -51,7 +64,7 @@ public:
 	}
 
 	// Is the character after pos within the range?
-	bool ContainsCharacter(Position pos) const {
+	bool ContainsCharacter(Sci::Position pos) const noexcept {
 		if (start < end) {
 			return (pos >= start && pos < end);
 		} else {
@@ -59,11 +72,11 @@ public:
 		}
 	}
 
-	bool Contains(Range other) const {
+	bool Contains(Range other) const noexcept {
 		return Contains(other.start) && Contains(other.end);
 	}
 
-	bool Overlaps(Range other) const {
+	bool Overlaps(Range other) const noexcept {
 		return
 		Contains(other.start) ||
 		Contains(other.end) ||
@@ -72,206 +85,455 @@ public:
 	}
 };
 
-class DocWatcher;
-class DocModification;
-class Document;
-
 /**
  * Interface class for regular expression searching
  */
 class RegexSearchBase {
 public:
-	virtual ~RegexSearchBase(){}
+	virtual ~RegexSearchBase() {}
 
-	virtual long FindText(Document* doc, int minPos, int maxPos, const char *s,
-                        bool caseSensitive, bool word, bool wordStart, int flags, int *length) = 0;
+	virtual Sci::Position FindText(Document *doc, Sci::Position minPos, Sci::Position maxPos, const char *s,
+                        bool caseSensitive, bool word, bool wordStart, int flags, Sci::Position *length) = 0;
 
 	///@return String with the substitutions, must remain valid until the next call or destruction
-	virtual const char *SubstituteByPosition(Document* doc, const char *text, int *length) = 0;
+	virtual const char *SubstituteByPosition(Document *doc, const char *text, Sci::Position *length) = 0;
 };
 
 /// Factory function for RegexSearchBase
-extern RegexSearchBase* CreateRegexSearch(CharClassify *charClassTable);
+extern RegexSearchBase *CreateRegexSearch(CharClassify *charClassTable);
+
+struct StyledText {
+	size_t length;
+	const char *text;
+	bool multipleStyles;
+	size_t style;
+	const unsigned char *styles;
+	StyledText(size_t length_, const char *text_, bool multipleStyles_, int style_, const unsigned char *styles_) noexcept :
+		length(length_), text(text_), multipleStyles(multipleStyles_), style(style_), styles(styles_) {
+	}
+	// Return number of bytes from start to before '\n' or end of text.
+	// Return 1 when start is outside text
+	size_t LineLength(size_t start) const noexcept {
+		size_t cur = start;
+		while ((cur < length) && (text[cur] != '\n'))
+			cur++;
+		return cur-start;
+	}
+	size_t StyleAt(size_t i) const noexcept {
+		return multipleStyles ? styles[i] : style;
+	}
+};
+
+class HighlightDelimiter {
+public:
+	HighlightDelimiter() noexcept : isEnabled(false) {
+		Clear();
+	}
+
+	void Clear() noexcept {
+		beginFoldBlock = -1;
+		endFoldBlock = -1;
+		firstChangeableLineBefore = -1;
+		firstChangeableLineAfter = -1;
+	}
+
+	bool NeedsDrawing(Sci::Line line) const noexcept {
+		return isEnabled && (line <= firstChangeableLineBefore || line >= firstChangeableLineAfter);
+	}
+
+	bool IsFoldBlockHighlighted(Sci::Line line) const noexcept {
+		return isEnabled && beginFoldBlock != -1 && beginFoldBlock <= line && line <= endFoldBlock;
+	}
+
+	bool IsHeadOfFoldBlock(Sci::Line line) const noexcept {
+		return beginFoldBlock == line && line < endFoldBlock;
+	}
+
+	bool IsBodyOfFoldBlock(Sci::Line line) const noexcept {
+		return beginFoldBlock != -1 && beginFoldBlock < line && line < endFoldBlock;
+	}
+
+	bool IsTailOfFoldBlock(Sci::Line line) const noexcept {
+		return beginFoldBlock != -1 && beginFoldBlock < line && line == endFoldBlock;
+	}
+
+	Sci::Line beginFoldBlock;	// Begin of current fold block
+	Sci::Line endFoldBlock;	// End of current fold block
+	Sci::Line firstChangeableLineBefore;	// First line that triggers repaint before starting line that determined current fold block
+	Sci::Line firstChangeableLineAfter;	// First line that triggers repaint after starting line that determined current fold block
+	bool isEnabled;
+};
+
+constexpr int LevelNumber(int level) noexcept {
+	return level & SC_FOLDLEVELNUMBERMASK;
+}
+
+class LexInterface {
+protected:
+	Document *pdoc;
+	ILexer5 *instance;
+	bool performingStyle;	///< Prevent reentrance
+public:
+	explicit LexInterface(Document *pdoc_) noexcept : pdoc(pdoc_), instance(nullptr), performingStyle(false) {
+	}
+	virtual ~LexInterface() {
+	}
+	void Colourise(Sci::Position start, Sci::Position end);
+	virtual int LineEndTypesSupported();
+	bool UseContainerLexing() const noexcept {
+		return instance == nullptr;
+	}
+};
+
+struct RegexError : public std::runtime_error {
+	RegexError() : std::runtime_error("regex failure") {}
+};
+
+/**
+ * The ActionDuration class stores the average time taken for some action such as styling or
+ * wrapping a line. It is used to decide how many repetitions of that action can be performed
+ * on idle to maximize efficiency without affecting application responsiveness.
+ * The duration changes if the time for the action changes. For example, if a simple lexer is
+ * changed to a complex lexer. Changes are damped and clamped to avoid short periods of easy
+ * or difficult processing moving the value too far leading to inefficiency or poor user
+ * experience.
+ */
+
+class ActionDuration {
+	double duration;
+	const double minDuration;
+	const double maxDuration;
+public:
+	ActionDuration(double duration_, double minDuration_, double maxDuration_) noexcept;
+	void AddSample(size_t numberActions, double durationOfActions) noexcept;
+	double Duration() const noexcept;
+};
 
 /**
  */
-class Document {
+class Document : PerLine, public IDocument, public ILoader {
 
 public:
 	/** Used to pair watcher pointer with user data. */
-	class WatcherWithUserData {
-	public:
+	struct WatcherWithUserData {
 		DocWatcher *watcher;
 		void *userData;
-		WatcherWithUserData() {
-			watcher = 0;
-			userData = 0;
+		WatcherWithUserData(DocWatcher *watcher_=nullptr, void *userData_=nullptr) noexcept :
+			watcher(watcher_), userData(userData_) {
+		}
+		bool operator==(const WatcherWithUserData &other) const noexcept {
+			return (watcher == other.watcher) && (userData == other.userData);
 		}
 	};
-
-	enum charClassification { ccSpace, ccNewLine, ccWord, ccPunctuation };
 
 private:
 	int refCount;
 	CellBuffer cb;
 	CharClassify charClass;
-	char stylingMask;
-	int endStyled;
+	CharacterCategoryMap charMap;
+	std::unique_ptr<CaseFolder> pcf;
+	Sci::Position endStyled;
 	int styleClock;
 	int enteredModification;
 	int enteredStyling;
 	int enteredReadOnlyCount;
 
-	WatcherWithUserData *watchers;
-	int lenWatchers;
+	bool insertionSet;
+	std::string insertion;
+
+	std::vector<WatcherWithUserData> watchers;
+
+	// ldSize is not real data - it is for dimensions and loops
+	enum lineData { ldMarkers, ldLevels, ldState, ldMargin, ldAnnotation, ldEOLAnnotation, ldSize };
+	std::unique_ptr<PerLine> perLineData[ldSize];
+	LineMarkers *Markers() const noexcept;
+	LineLevels *Levels() const noexcept;
+	LineState *States() const noexcept;
+	LineAnnotation *Margins() const noexcept;
+	LineAnnotation *Annotations() const noexcept;
+	LineAnnotation *EOLAnnotations() const noexcept;
 
 	bool matchesValid;
-	RegexSearchBase* regex;
+	std::unique_ptr<RegexSearchBase> regex;
+	std::unique_ptr<LexInterface> pli;
 
 public:
-	int stylingBits;
-	int stylingBitsMask;
+
+	struct CharacterExtracted {
+		unsigned int character;
+		unsigned int widthBytes;
+		CharacterExtracted(unsigned int character_, unsigned int widthBytes_) noexcept :
+			character(character_), widthBytes(widthBytes_) {
+		}
+		// For DBCS characters turn 2 bytes into an int
+		static CharacterExtracted DBCS(unsigned char lead, unsigned char trail) noexcept {
+			return CharacterExtracted((lead << 8) | trail, 2);
+		}
+	};
 
 	int eolMode;
 	/// Can also be SC_CP_UTF8 to enable UTF-8 mode
 	int dbcsCodePage;
+	int lineEndBitSet;
 	int tabInChars;
 	int indentInChars;
 	int actualIndentInChars;
 	bool useTabs;
 	bool tabIndents;
 	bool backspaceUnindents;
+	ActionDuration durationStyleOneLine;
 
-	DecorationList decorations;
+	std::unique_ptr<IDecorationList> decorations;
 
-	Document();
-	virtual ~Document();
+	Document(int options);
+	// Deleted so Document objects can not be copied.
+	Document(const Document &) = delete;
+	Document(Document &&) = delete;
+	void operator=(const Document &) = delete;
+	Document &operator=(Document &&) = delete;
+	~Document() override;
 
 	int AddRef();
-	int Release();
+	int SCI_METHOD Release() override;
 
-	int LineFromPosition(int pos);
-	int ClampPositionIntoDocument(int pos);
-	bool IsCrLf(int pos);
-	int LenChar(int pos);
-	bool InGoodUTF8(int pos, int &start, int &end);
-	int MovePositionOutsideChar(int pos, int moveDir, bool checkLineEnd=true);
+	// From PerLine
+	void Init() override;
+	void InsertLine(Sci::Line line) override;
+	void InsertLines(Sci::Line line, Sci::Line lines) override;
+	void RemoveLine(Sci::Line line) override;
+
+	int LineEndTypesSupported() const;
+	bool SetDBCSCodePage(int dbcsCodePage_);
+	int GetLineEndTypesAllowed() const noexcept { return cb.GetLineEndTypes(); }
+	bool SetLineEndTypesAllowed(int lineEndBitSet_);
+	int GetLineEndTypesActive() const noexcept { return cb.GetLineEndTypes(); }
+
+	int SCI_METHOD Version() const override {
+		return dvRelease4;
+	}
+
+	void SCI_METHOD SetErrorStatus(int status) override;
+
+	Sci_Position SCI_METHOD LineFromPosition(Sci_Position pos) const override;
+	Sci::Line SciLineFromPosition(Sci::Position pos) const noexcept;	// Avoids casting LineFromPosition
+	Sci::Position ClampPositionIntoDocument(Sci::Position pos) const noexcept;
+	bool ContainsLineEnd(const char *s, Sci::Position length) const noexcept { return cb.ContainsLineEnd(s, length); }
+	bool IsCrLf(Sci::Position pos) const noexcept;
+	int LenChar(Sci::Position pos) const noexcept;
+	bool InGoodUTF8(Sci::Position pos, Sci::Position &start, Sci::Position &end) const noexcept;
+	Sci::Position MovePositionOutsideChar(Sci::Position pos, Sci::Position moveDir, bool checkLineEnd=true) const noexcept;
+	Sci::Position NextPosition(Sci::Position pos, int moveDir) const noexcept;
+	bool NextCharacter(Sci::Position &pos, int moveDir) const noexcept;	// Returns true if pos changed
+	Document::CharacterExtracted CharacterAfter(Sci::Position position) const noexcept;
+	Document::CharacterExtracted CharacterBefore(Sci::Position position) const noexcept;
+	Sci_Position SCI_METHOD GetRelativePosition(Sci_Position positionStart, Sci_Position characterOffset) const override;
+	Sci::Position GetRelativePositionUTF16(Sci::Position positionStart, Sci::Position characterOffset) const noexcept;
+	int SCI_METHOD GetCharacterAndWidth(Sci_Position position, Sci_Position *pWidth) const override;
+	int SCI_METHOD CodePage() const override;
+	bool SCI_METHOD IsDBCSLeadByte(char ch) const override;
+	bool IsDBCSLeadByteNoExcept(char ch) const noexcept;
+	bool IsDBCSLeadByteInvalid(char ch) const noexcept;
+	bool IsDBCSTrailByteInvalid(char ch) const noexcept;
+	int DBCSDrawBytes(std::string_view text) const noexcept;
+	int SafeSegment(const char *text, int length, int lengthSegment) const noexcept;
+	EncodingFamily CodePageFamily() const noexcept;
 
 	// Gateways to modifying document
-	void ModifiedAt(int pos);
+	void ModifiedAt(Sci::Position pos) noexcept;
 	void CheckReadOnly();
-	bool DeleteChars(int pos, int len);
-	bool InsertString(int position, const char *s, int insertLength);
-	int Undo();
-	int Redo();
-	bool CanUndo() { return cb.CanUndo(); }
-	bool CanRedo() { return cb.CanRedo(); }
+	bool DeleteChars(Sci::Position pos, Sci::Position len);
+	Sci::Position InsertString(Sci::Position position, const char *s, Sci::Position insertLength);
+	void ChangeInsertion(const char *s, Sci::Position length);
+	int SCI_METHOD AddData(const char *data, Sci_Position length) override;
+	void * SCI_METHOD ConvertToDocument() override;
+	Sci::Position Undo();
+	Sci::Position Redo();
+	bool CanUndo() const noexcept { return cb.CanUndo(); }
+	bool CanRedo() const noexcept { return cb.CanRedo(); }
 	void DeleteUndoHistory() { cb.DeleteUndoHistory(); }
 	bool SetUndoCollection(bool collectUndo) {
 		return cb.SetUndoCollection(collectUndo);
 	}
-	bool IsCollectingUndo() { return cb.IsCollectingUndo(); }
+	bool IsCollectingUndo() const noexcept { return cb.IsCollectingUndo(); }
 	void BeginUndoAction() { cb.BeginUndoAction(); }
 	void EndUndoAction() { cb.EndUndoAction(); }
+	void AddUndoAction(Sci::Position token, bool mayCoalesce) { cb.AddUndoAction(token, mayCoalesce); }
 	void SetSavePoint();
-	bool IsSavePoint() { return cb.IsSavePoint(); }
-	const char *BufferPointer() { return cb.BufferPointer(); }
+	bool IsSavePoint() const noexcept { return cb.IsSavePoint(); }
 
-	int GetLineIndentation(int line);
-	void SetLineIndentation(int line, int indent);
-	int GetLineIndentPosition(int line) const;
-	int GetColumn(int position);
-	int FindColumn(int line, int column);
-	void Indent(bool forwards, int lineBottom, int lineTop);
-	static char *TransformLineEnds(int *pLenOut, const char *s, size_t len, int eolMode);
+	void TentativeStart() { cb.TentativeStart(); }
+	void TentativeCommit() { cb.TentativeCommit(); }
+	void TentativeUndo();
+	bool TentativeActive() const noexcept { return cb.TentativeActive(); }
+
+	const char * SCI_METHOD BufferPointer() override { return cb.BufferPointer(); }
+	const char *RangePointer(Sci::Position position, Sci::Position rangeLength) noexcept { return cb.RangePointer(position, rangeLength); }
+	Sci::Position GapPosition() const noexcept { return cb.GapPosition(); }
+
+	int SCI_METHOD GetLineIndentation(Sci_Position line) override;
+	Sci::Position SetLineIndentation(Sci::Line line, Sci::Position indent);
+	Sci::Position GetLineIndentPosition(Sci::Line line) const;
+	Sci::Position GetColumn(Sci::Position pos);
+	Sci::Position CountCharacters(Sci::Position startPos, Sci::Position endPos) const noexcept;
+	Sci::Position CountUTF16(Sci::Position startPos, Sci::Position endPos) const noexcept;
+	Sci::Position FindColumn(Sci::Line line, Sci::Position column);
+	void Indent(bool forwards, Sci::Line lineBottom, Sci::Line lineTop);
+	static std::string TransformLineEnds(const char *s, size_t len, int eolModeWanted);
 	void ConvertLineEnds(int eolModeSet);
 	void SetReadOnly(bool set) { cb.SetReadOnly(set); }
-	bool IsReadOnly() { return cb.IsReadOnly(); }
+	bool IsReadOnly() const noexcept { return cb.IsReadOnly(); }
+	bool IsLarge() const noexcept { return cb.IsLarge(); }
+	int Options() const noexcept;
 
-	bool InsertChar(int pos, char ch);
-	bool InsertCString(int position, const char *s);
-	void ChangeChar(int pos, char ch);
-	void DelChar(int pos);
-	void DelCharBack(int pos);
+	void DelChar(Sci::Position pos);
+	void DelCharBack(Sci::Position pos);
 
-	char CharAt(int position) { return cb.CharAt(position); }
-	void GetCharRange(char *buffer, int position, int lengthRetrieve) {
+	char CharAt(Sci::Position position) const noexcept { return cb.CharAt(position); }
+	void SCI_METHOD GetCharRange(char *buffer, Sci_Position position, Sci_Position lengthRetrieve) const override {
 		cb.GetCharRange(buffer, position, lengthRetrieve);
 	}
-	char StyleAt(int position) { return cb.StyleAt(position); }
-	int GetMark(int line) { return cb.GetMark(line); }
-	int AddMark(int line, int markerNum);
-	void AddMarkSet(int line, int valueSet);
-	void DeleteMark(int line, int markerNum);
+	char SCI_METHOD StyleAt(Sci_Position position) const override { return cb.StyleAt(position); }
+	int StyleIndexAt(Sci_Position position) const noexcept { return static_cast<unsigned char>(cb.StyleAt(position)); }
+	void GetStyleRange(unsigned char *buffer, Sci::Position position, Sci::Position lengthRetrieve) const {
+		cb.GetStyleRange(buffer, position, lengthRetrieve);
+	}
+	int GetMark(Sci::Line line) const noexcept;
+	Sci::Line MarkerNext(Sci::Line lineStart, int mask) const noexcept;
+	int AddMark(Sci::Line line, int markerNum);
+	void AddMarkSet(Sci::Line line, int valueSet);
+	void DeleteMark(Sci::Line line, int markerNum);
 	void DeleteMarkFromHandle(int markerHandle);
 	void DeleteAllMarks(int markerNum);
-	int LineFromHandle(int markerHandle) { return cb.LineFromHandle(markerHandle); }
-	int LineStart(int line) const;
-	int LineEnd(int line) const;
-	int LineEndPosition(int position);
-	int VCHomePosition(int position);
+	Sci::Line LineFromHandle(int markerHandle) const noexcept;
+	int MarkerNumberFromLine(Sci::Line line, int which) const noexcept;
+	int MarkerHandleFromLine(Sci::Line line, int which) const noexcept;
+	Sci_Position SCI_METHOD LineStart(Sci_Position line) const override;
+	bool IsLineStartPosition(Sci::Position position) const;
+	Sci_Position SCI_METHOD LineEnd(Sci_Position line) const override;
+	Sci::Position LineEndPosition(Sci::Position position) const;
+	bool IsLineEndPosition(Sci::Position position) const;
+	bool IsPositionInLineEnd(Sci::Position position) const;
+	Sci::Position VCHomePosition(Sci::Position position) const;
+	Sci::Position IndexLineStart(Sci::Line line, int lineCharacterIndex) const noexcept;
+	Sci::Line LineFromPositionIndex(Sci::Position pos, int lineCharacterIndex) const noexcept;
 
-	int SetLevel(int line, int level);
-	int GetLevel(int line) { return cb.GetLevel(line); }
-	void ClearLevels() { cb.ClearLevels(); }
-	int GetLastChild(int lineParent, int level=-1);
-	int GetFoldParent(int line);
+	int SCI_METHOD SetLevel(Sci_Position line, int level) override;
+	int SCI_METHOD GetLevel(Sci_Position line) const override;
+	void ClearLevels();
+	Sci::Line GetLastChild(Sci::Line lineParent, int level=-1, Sci::Line lastLine=-1);
+	Sci::Line GetFoldParent(Sci::Line line) const;
+	void GetHighlightDelimiters(HighlightDelimiter &highlightDelimiter, Sci::Line line, Sci::Line lastLine);
 
-	void Indent(bool forwards);
-	int ExtendWordSelect(int pos, int delta, bool onlyWordCharacters=false);
-	int NextWordStart(int pos, int delta);
-	int NextWordEnd(int pos, int delta);
-	int Length() const { return cb.Length(); }
-	void Allocate(int newSize) { cb.Allocate(newSize); }
-	long FindText(int minPos, int maxPos, const char *s,
-		bool caseSensitive, bool word, bool wordStart, bool regExp, int flags, int *length);
-	long FindText(int iMessage, unsigned long wParam, long lParam);
-	const char *SubstituteByPosition(const char *text, int *length);
-	int LinesTotal() const;
+	Sci::Position ExtendWordSelect(Sci::Position pos, int delta, bool onlyWordCharacters=false) const;
+	Sci::Position NextWordStart(Sci::Position pos, int delta) const;
+	Sci::Position NextWordEnd(Sci::Position pos, int delta) const;
+	Sci_Position SCI_METHOD Length() const override { return cb.Length(); }
+	Sci::Position LengthNoExcept() const noexcept { return cb.Length(); }
+	void Allocate(Sci::Position newSize) { cb.Allocate(newSize); }
 
-	void ChangeCase(Range r, bool makeUpperCase);
+	CharacterExtracted ExtractCharacter(Sci::Position position) const noexcept;
+
+	bool IsWordStartAt(Sci::Position pos) const;
+	bool IsWordEndAt(Sci::Position pos) const;
+	bool IsWordAt(Sci::Position start, Sci::Position end) const;
+
+	bool MatchesWordOptions(bool word, bool wordStart, Sci::Position pos, Sci::Position length) const;
+	bool HasCaseFolder() const noexcept;
+	void SetCaseFolder(CaseFolder *pcf_) noexcept;
+	Sci::Position FindText(Sci::Position minPos, Sci::Position maxPos, const char *search, int flags, Sci::Position *length);
+	const char *SubstituteByPosition(const char *text, Sci::Position *length);
+	int LineCharacterIndex() const noexcept;
+	void AllocateLineCharacterIndex(int lineCharacterIndex);
+	void ReleaseLineCharacterIndex(int lineCharacterIndex);
+	Sci::Line LinesTotal() const noexcept;
 
 	void SetDefaultCharClasses(bool includeWordClass);
 	void SetCharClasses(const unsigned char *chars, CharClassify::cc newCharClass);
-	void SetStylingBits(int bits);
-	void StartStyling(int position, char mask);
-	bool SetStyleFor(int length, char style);
-	bool SetStyles(int length, char *styles);
-	int GetEndStyled() { return endStyled; }
-	void EnsureStyledTo(int pos);
-	int GetStyleClock() { return styleClock; }
-	void IncrementStyleClock();
-	void DecorationFillRange(int position, int value, int fillLength);
+	int GetCharsOfClass(CharClassify::cc characterClass, unsigned char *buffer) const;
+	void SetCharacterCategoryOptimization(int countCharacters);
+	int CharacterCategoryOptimization() const noexcept;
+	void SCI_METHOD StartStyling(Sci_Position position) override;
+	bool SCI_METHOD SetStyleFor(Sci_Position length, char style) override;
+	bool SCI_METHOD SetStyles(Sci_Position length, const char *styles) override;
+	Sci::Position GetEndStyled() const noexcept { return endStyled; }
+	void EnsureStyledTo(Sci::Position pos);
+	void StyleToAdjustingLineDuration(Sci::Position pos);
+	void LexerChanged();
+	int GetStyleClock() const noexcept { return styleClock; }
+	void IncrementStyleClock() noexcept;
+	void SCI_METHOD DecorationSetCurrentIndicator(int indicator) override;
+	void SCI_METHOD DecorationFillRange(Sci_Position position, int value, Sci_Position fillLength) override;
+	LexInterface *GetLexInterface() const noexcept;
+	void SetLexInterface(std::unique_ptr<LexInterface> pLexInterface) noexcept;
 
-	int SetLineState(int line, int state);
-	int GetLineState(int line) { return cb.GetLineState(line); }
-	int GetMaxLineState() { return cb.GetMaxLineState(); }
+	int SCI_METHOD SetLineState(Sci_Position line, int state) override;
+	int SCI_METHOD GetLineState(Sci_Position line) const override;
+	Sci::Line GetMaxLineState() const noexcept;
+	void SCI_METHOD ChangeLexerState(Sci_Position start, Sci_Position end) override;
+
+	StyledText MarginStyledText(Sci::Line line) const noexcept;
+	void MarginSetStyle(Sci::Line line, int style);
+	void MarginSetStyles(Sci::Line line, const unsigned char *styles);
+	void MarginSetText(Sci::Line line, const char *text);
+	void MarginClearAll();
+
+	StyledText AnnotationStyledText(Sci::Line line) const noexcept;
+	void AnnotationSetText(Sci::Line line, const char *text);
+	void AnnotationSetStyle(Sci::Line line, int style);
+	void AnnotationSetStyles(Sci::Line line, const unsigned char *styles);
+	int AnnotationLines(Sci::Line line) const noexcept;
+	void AnnotationClearAll();
+
+	StyledText EOLAnnotationStyledText(Sci::Line line) const noexcept;
+	void EOLAnnotationSetStyle(Sci::Line line, int style);
+	void EOLAnnotationSetText(Sci::Line line, const char *text);
+	void EOLAnnotationClearAll();
 
 	bool AddWatcher(DocWatcher *watcher, void *userData);
 	bool RemoveWatcher(DocWatcher *watcher, void *userData);
-	const WatcherWithUserData *GetWatchers() const { return watchers; }
-	int GetLenWatchers() const { return lenWatchers; }
 
-	bool IsWordPartSeparator(char ch);
-	int WordPartLeft(int pos);
-	int WordPartRight(int pos);
-	int ExtendStyleRange(int pos, int delta, bool singleLine = false);
-	bool IsWhiteLine(int line) const;
-	int ParaUp(int pos);
-	int ParaDown(int pos);
-	int IndentSize() { return actualIndentInChars; }
-	int BraceMatch(int position, int maxReStyle);
+	CharClassify::cc WordCharacterClass(unsigned int ch) const;
+	bool IsWordPartSeparator(unsigned int ch) const;
+	Sci::Position WordPartLeft(Sci::Position pos) const;
+	Sci::Position WordPartRight(Sci::Position pos) const;
+	Sci::Position ExtendStyleRange(Sci::Position pos, int delta, bool singleLine) noexcept;
+	bool IsWhiteLine(Sci::Line line) const;
+	Sci::Position ParaUp(Sci::Position pos) const;
+	Sci::Position ParaDown(Sci::Position pos) const;
+	int IndentSize() const noexcept { return actualIndentInChars; }
+	Sci::Position BraceMatch(Sci::Position position, Sci::Position maxReStyle, Sci::Position startPos, bool useStartPos) noexcept;
 
 private:
-	CharClassify::cc WordCharClass(unsigned char ch);
-	bool IsWordStartAt(int pos);
-	bool IsWordEndAt(int pos);
-	bool IsWordAt(int start, int end);
-
 	void NotifyModifyAttempt();
 	void NotifySavePoint(bool atSavePoint);
 	void NotifyModified(DocModification mh);
 };
+
+class UndoGroup {
+	Document *pdoc;
+	bool groupNeeded;
+public:
+	UndoGroup(Document *pdoc_, bool groupNeeded_=true) :
+		pdoc(pdoc_), groupNeeded(groupNeeded_) {
+		if (groupNeeded) {
+			pdoc->BeginUndoAction();
+		}
+	}
+	// Deleted so UndoGroup objects can not be copied.
+	UndoGroup(const UndoGroup &) = delete;
+	UndoGroup(UndoGroup &&) = delete;
+	void operator=(const UndoGroup &) = delete;
+	UndoGroup &operator=(UndoGroup &&) = delete;
+	~UndoGroup() {
+		if (groupNeeded) {
+			pdoc->EndUndoAction();
+		}
+	}
+	bool Needed() const noexcept {
+		return groupNeeded;
+	}
+};
+
 
 /**
  * To optimise processing of document modifications by DocWatchers, a hint is passed indicating the
@@ -280,17 +542,19 @@ private:
  */
 class DocModification {
 public:
-  	int modificationType;
-	int position;
- 	int length;
- 	int linesAdded;	/**< Negative if lines deleted. */
- 	const char *text;	/**< Only valid for changes to text, not for changes to style. */
- 	int line;
+	int modificationType;
+	Sci::Position position;
+	Sci::Position length;
+	Sci::Line linesAdded;	/**< Negative if lines deleted. */
+	const char *text;	/**< Only valid for changes to text, not for changes to style. */
+	Sci::Line line;
 	int foldLevelNow;
 	int foldLevelPrev;
+	Sci::Line annotationLinesAdded;
+	Sci::Position token;
 
-	DocModification(int modificationType_, int position_=0, int length_=0,
-		int linesAdded_=0, const char *text_=0, int line_=0) :
+	DocModification(int modificationType_, Sci::Position position_=0, Sci::Position length_=0,
+		Sci::Line linesAdded_=0, const char *text_=nullptr, Sci::Line line_=0) noexcept :
 		modificationType(modificationType_),
 		position(position_),
 		length(length_),
@@ -298,17 +562,21 @@ public:
 		text(text_),
 		line(line_),
 		foldLevelNow(0),
-		foldLevelPrev(0) {}
+		foldLevelPrev(0),
+		annotationLinesAdded(0),
+		token(0) {}
 
-	DocModification(int modificationType_, const Action &act, int linesAdded_=0) :
+	DocModification(int modificationType_, const Action &act, Sci::Line linesAdded_=0) noexcept :
 		modificationType(modificationType_),
 		position(act.position),
 		length(act.lenData),
 		linesAdded(linesAdded_),
-		text(act.data),
+		text(act.data.get()),
 		line(0),
 		foldLevelNow(0),
-		foldLevelPrev(0) {}
+		foldLevelPrev(0),
+		annotationLinesAdded(0),
+		token(0) {}
 };
 
 /**
@@ -322,12 +590,12 @@ public:
 	virtual void NotifyModifyAttempt(Document *doc, void *userData) = 0;
 	virtual void NotifySavePoint(Document *doc, void *userData, bool atSavePoint) = 0;
 	virtual void NotifyModified(Document *doc, DocModification mh, void *userData) = 0;
-	virtual void NotifyDeleted(Document *doc, void *userData) = 0;
-	virtual void NotifyStyleNeeded(Document *doc, void *userData, int endPos) = 0;
+	virtual void NotifyDeleted(Document *doc, void *userData) noexcept = 0;
+	virtual void NotifyStyleNeeded(Document *doc, void *userData, Sci::Position endPos) = 0;
+	virtual void NotifyLexerChanged(Document *doc, void *userData) = 0;
+	virtual void NotifyErrorOccurred(Document *doc, void *userData, int status) = 0;
 };
 
-#ifdef SCI_NAMESPACE
 }
-#endif
 
 #endif

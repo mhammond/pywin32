@@ -11,7 +11,6 @@ import time
 
 import pythoncom
 import pywintypes
-import win32api
 import win32com
 import win32com.client.connect
 import win32com.test.util
@@ -609,7 +608,7 @@ def TestPyVariant(o, is_generated):
 
 def TestCounter(counter, bIsGenerated):
     # Test random access into container
-    progress("Testing counter", repr(counter))
+    progress(f"Testing counter {counter!r}")
     import random
 
     for i in range(50):
