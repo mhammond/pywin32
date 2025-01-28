@@ -1,4 +1,9 @@
 target-version = "py38" # Target the oldest supported version in editors and default CLI
+# This file is not UTF-8
+extend-exclude = ["Pythonwin/pywin/test/_dbgscript.py"]
+
+[format]
+line-ending = "cr-lf"
 
 [lint]
 select = [
@@ -15,7 +20,6 @@ select = [
   "FLY", # static-join-to-f-string
   "G", # flake8-logging-format
   # Note, we still want to allow multiline ISC
-  "ISC001", # single-line-implicit-string-concatenation
   "UP025", # Remove unicode literals from strings
   "UP030", # Use implicit references for positional format fields
   # TODO: Still lots of manual fixes needed
@@ -33,18 +37,22 @@ select = [
   "UP037", # quoted-annotation
 
   # Helps prevent circular imports and other unneeded imports
-  "TCH", # flake8-type-checking
+  "TC", # flake8-type-checking
 ]
+
 extend-ignore = [
+  # TODO: Consider passing exception around to ensure methods are only ever used within exception handlers
+  "PLE0704", # misplaced-bare-raise
+
   # No such concerns for stdlib
-  "TCH003", # typing-only-standard-library-import
+  "TC003", # typing-only-standard-library-import
 ]
 
 [lint.per-file-ignores]
 # Explicit re-exports is fine in __init__.py, still a code smell elsewhere.
 "__init__.py" = ["PLC0414"]
 # TODO: Make adodbapi changes in their own PRs
-"adodbapi/*" = ["C4", "YTT301", "UP031", "UP032", "ISC002"]
+"adodbapi/*" = ["C4", "YTT301", "UP031", "UP032"]
 
 [lint.isort]
 combine-as-imports = true

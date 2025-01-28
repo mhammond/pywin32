@@ -15,11 +15,12 @@
 """Generate a .py file from an OLE TypeLibrary file.
 
 
- This module is concerned only with the actual writing of
- a .py file.  It draws on the @build@ module, which builds
- the knowledge of a COM interface.
+This module is concerned only with the actual writing of
+a .py file.  It draws on the @build@ module, which builds
+the knowledge of a COM interface.
 
 """
+
 usageHelp = """ \
 
 Usage:
@@ -292,10 +293,11 @@ def GenerateFromTypeLibSpec(
     for typelib, info in typelibs:
         gen = genpy.Generator(typelib, info.dll, progress, bBuildHidden=bBuildHidden)
 
+        this_name = gencache.GetGeneratedFileName(
+            info.clsid, info.lcid, info.major, info.minor
+        )
+
         if file is None:
-            this_name = gencache.GetGeneratedFileName(
-                info.clsid, info.lcid, info.major, info.minor
-            )
             full_name = os.path.join(gencache.GetGeneratePath(), this_name)
             if bForDemand:
                 try:
@@ -326,7 +328,8 @@ def GenerateFromTypeLibSpec(
             worked = True
         finally:
             if file is None:
-                gen.finish_writer(outputName, fileUse, worked)
+                with gencache.ModuleMutex(this_name):
+                    gen.finish_writer(outputName, fileUse, worked)
         importlib.invalidate_caches()
         if bToGenDir:
             progress.SetDescription("Importing module")
@@ -371,7 +374,8 @@ def GenerateChildFromTypeLibSpec(
         gen.generate_child(child, dir_path_name)
         progress.SetDescription("Importing module")
         importlib.invalidate_caches()
-        __import__("win32com.gen_py." + dir_name + "." + child)
+        with gencache.ModuleMutex(dir_name):
+            __import__("win32com.gen_py." + dir_name + "." + child)
     progress.Close()
 
 

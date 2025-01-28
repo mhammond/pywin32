@@ -26,6 +26,17 @@ extern PyObject *PyWinMethod_NewHKEY(PyObject *self, PyObject *args);
 extern BOOL _PyWinDateTime_Init();
 extern BOOL _PyWinDateTime_PrepareModuleDict(PyObject *dict);
 
+HMODULE PyWin_GetOrLoadLibraryHandle(const char *name)
+{
+    DWORD lastErr = GetLastError();
+    HMODULE hmodule = GetModuleHandleA(name);
+    if (hmodule == NULL)
+        hmodule = LoadLibraryA(name);
+    if (hmodule != NULL)
+        SetLastError(lastErr);
+    return hmodule;
+}
+
 // XXX - Needs py3k modernization!
 // For py3k, a function that returns new memoryview object instead of buffer.
 // ??? Byte array object is mutable, maybe just use that directly as a substitute ???
@@ -501,7 +512,7 @@ PyLong_AsVoidPtr is unsuitable for use in many places due to the following issue
     that function and can be converted back to a usable address.
 
 From the response to this bug report:
-http://sourceforge.net/tracker/?func=detail&atid=105470&aid=1630863&group_id=5470
+https://github.com/python/cpython/issues/44430
 apparently if you want any reasonable or consistent behaviour from this function
 you're expected to perform the type checking yourself first.
 And if you have to do all that, why use the damn function at all ?
@@ -970,10 +981,8 @@ extern "C" __declspec(dllexport) BOOL WINAPI DllMain(HANDLE hInstance, DWORD dwR
 {
     FARPROC fp;
     // dll usually will already be loaded
-    HMODULE hmodule = GetModuleHandle(_T("AdvAPI32.dll"));
-    if (hmodule == NULL)
-        hmodule = LoadLibrary(_T("AdvAPI32.dll"));
-    if (hmodule) {
+    HMODULE hmodule = PyWin_GetOrLoadLibraryHandle("advapi32.dll");
+    if (hmodule != NULL) {
         fp = GetProcAddress(hmodule, "AddAccessAllowedAce");
         if (fp)
             addaccessallowedace = (addacefunc)(fp);

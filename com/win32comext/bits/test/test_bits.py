@@ -44,7 +44,7 @@ class BackgroundJobCallback:
         if f.GetRemoteName().endswith("missing-favicon.ico"):
             print("Changing to point to correct file")
             f2 = f.QueryInterface(bits.IID_IBackgroundCopyFile2)
-            favicon = "http://www.python.org/favicon.ico"
+            favicon = "https://www.python.org/favicon.ico"
             print("Changing RemoteName from", f2.GetRemoteName(), "to", favicon)
             f2.SetRemoteName(favicon)
             job.Resume()
@@ -93,11 +93,11 @@ job.SetNotifyFlags(
 # servers, an invalid hostname will *always* be resolved (they
 # redirect you to a search page), so be careful when testing.
 job.AddFile(
-    "http://www.python.org/favicon.ico",
+    "https://www.python.org/favicon.ico",
     os.path.join(tempfile.gettempdir(), "bits-favicon.ico"),
 )
 job.AddFile(
-    "http://www.python.org/missing-favicon.ico",
+    "https://www.python.org/missing-favicon.ico",
     os.path.join(tempfile.gettempdir(), "bits-missing-favicon.ico"),
 )
 

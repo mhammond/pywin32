@@ -1,11 +1,12 @@
 {
   "typeCheckingMode": "basic",
   // Target the oldest supported version in editors and default CLI
-  "pythonVersion": "3.8",
+  "pythonVersion": "3.9",
   // Keep it simple for now by allowing both mypy and pyright to use `type: ignore`
   "enableTypeIgnoreComments": true,
   // Exclude from scanning when running pyright
   "exclude": [
+    ".git/",
     "build/",
     // Vendored
     "Pythonwin/Scintilla/",
@@ -24,6 +25,7 @@
     "win32/Lib",
     "Pythonwin",
   ],
+  "reportConstantRedefinition": "error",
   // TODO: For now this allows us to at least put pyright in place by massively reducing checked code
   // it also reduces issues with the shipped types-pywin32 from typeshed
   "reportGeneralTypeIssues": "none",
@@ -39,8 +41,6 @@
   "reportOptionalSubscript": "warning",
   // Needs fixes in types-pywin32 and requires Python 3.8 to annotate ambiguous global variables
   "reportUnnecessaryComparison": "warning",
-  // TODO: Leave Unbound its own PR(s)
-  "reportUnboundVariable": "warning",
   // Too many dynamically generated modules. This will require type stubs to properly fix.
   "reportMissingImports": "warning",
   // IDEM, but happens when pywin32 is not in site-packages but module is found from typeshed.

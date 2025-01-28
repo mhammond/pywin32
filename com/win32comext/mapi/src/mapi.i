@@ -52,9 +52,8 @@
 #include "IConverterSession.h"
 #include "PyIConverterSession.h"
 
-#include "MAPISPI.H"
-#include "MAPISPI.H"
-#include "IMESSAGE.H"
+#include "MAPISPI.h"
+#include "IMessage.h"
 #include "MSPST.h"
 
 #include "extraMAPIGuids.h"
@@ -556,6 +555,9 @@ static PyObject *PyMAPIUninitialize(PyObject *self, PyObject *args)
 #define FLUSH_ASYNC_OK FLUSH_ASYNC_OK
 
 // IConverterSession Constants - http://msdn2.microsoft.com/en-us/library/bb905201.aspx
+// TODO: Update to
+// https://learn.microsoft.com/en-us/previous-versions/office/developer/office-2007/bb905201(v=office.12)
+// https://learn.microsoft.com/en-us/previous-versions/office/developer/office-2010/hh204509(v=office.14)#mapi-mime-conversion-api
 #define CCSF_SMTP             CCSF_SMTP // the converter is being passed an SMTP message
 #define CCSF_NOHEADERS        CCSF_NOHEADERS // the converter should ignore the headers on the outside message
 #define CCSF_USE_TNEF         CCSF_USE_TNEF // the converter should embed TNEF in the MIME message
@@ -871,7 +873,7 @@ done:
 
 %{
 // Code for converting RTF to HTML.
-// Found at http://www.wischik.com/lu/programmer/mapi_utils.html
+// Found at https://www.wischik.com/lu/programmer/mapi_utils.html
 // MarkH converted it to Python, but was too slow.  Moving to a regex
 // based parser was too much work.
 

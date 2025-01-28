@@ -51,7 +51,8 @@ way to build pywin32 - it's build process should find these tools automatically.
 
 ## For Visual Studio 2019
 
-- Install the [Build Tools for Visual Studio 2019](https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16#) (`vs_BuildTools.exe` ~ 1 MB)
+- Install the [Build Tools for Visual Studio 2019](https://my.visualstudio.com/Downloads?q=Build%20Tools%20for%20Visual%20Studio%202019) (Version 16.0)
+  Public landing page: <https://visualstudio.microsoft.com/vs/older-downloads/#2019-family>
 
 - Maybe stop your virus scanner
 - In `Visual Studio Installer`:
@@ -117,17 +118,19 @@ where mc
 ```
 
 (Note that the above process for 'mc' doesn't appear necessary for VS2017, but
-markh hasn't tried with VS2019 - please share your experiences!)
+@mhammond hasn't tried with VS2019 - please share your experiences!)
 
 # Build
 
-One everything is setup, just execute:
+Once everything is setup, just execute the following from the pywin32 directory:
 
 ```shell
-python setup.py -q install
+pip install . -v
 ```
 
-from the pywin32 directory.
+Some modules need obscure SDKs to build - `pip install` should succeed, gracefully
+telling you why it failed to build them with the `-v` flag - if the build actually fails with your
+configuration, please [open an issue](https://github.com/mhammond/pywin32/issues).
 
 ## Cross-compiling for ARM64 (Microsoft Visual C++ 14.1 and up)
 
@@ -155,7 +158,7 @@ from the pywin32 directory.
 - Build the extensions, passing the directory from earlier. You may optionally add the `bdist_wheel` command to generate a wheel.
 
     ```shell
-    python setup.py build_ext -L "<temporary path from earlier>" bdist_wheel
+    python -m build --wheel --config-setting=--build-option=build_ext --config-setting=--build-option=-L.\arm64libs --config-setting=--build-option=--plat-name=win-arm64 --config-setting=--build-option=bdist_wheel --config-setting=--build-option=--plat-name=win-arm64
     ```
 
   - If you are not using an initialized build environment, you will need to specify the `build_ext`, `build` and `bdist_wheel` commands and pass `--plat-name win-arm64` to *each* of them separately. Otherwise you may get a mixed platform build and/or linker errors.
@@ -163,5 +166,5 @@ from the pywin32 directory.
 - Copy the built wheel to the target machine and install directly:
 
     ```shell
-    python -m pip install "<path to wheel>"
+    pip install "<path to wheel>" -v
     ```

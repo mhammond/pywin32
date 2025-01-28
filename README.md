@@ -15,7 +15,7 @@ See [CHANGES.txt](https://github.com/mhammond/pywin32/blob/master/CHANGES.txt) f
 ## Docs
 
 The docs are a long and sad story, but [there's now an online version](https://mhammond.github.io/pywin32/)
-of the helpfile that ships with the installers (thanks [@ofek](https://github.com/mhammond/pywin32/pull/1774)!).
+of the `PyWin32.chm` helpfile (thanks [@ofek](https://github.com/mhammond/pywin32/pull/1774)!).
 Lots of that is very old, but some is auto-generated and current. Would love help untangling the docs!
 
 ## Support
@@ -27,7 +27,7 @@ for all bugs or features are also welcome.
 However, please **do not open github issues for general support requests**, or
 for problems or questions using the modules in this package - they will be
 closed. For such issues, please email the
-[python-win32 mailing list](http://mail.python.org/mailman/listinfo/python-win32) -
+[python-win32 mailing list](https://mail.python.org/mailman/listinfo/python-win32) -
 note that you must be subscribed to the list before posting.
 
 ## Binaries
@@ -73,8 +73,8 @@ To run as a service, you probably want to install pywin32 globally from an eleva
 command prompt - see above.
 
 You also need to ensure Python is installed in a location where the user running
-the service has access to the installation and is able to load `pywintypesXX.dll` and `pythonXX.dll`. In particular, the `LocalSystem` account typically will not have access
-to your local `%USER%` directory structure.
+the service has access to the installation and is able to load `pywintypesXX.dll` and `pythonXX.dll`.
+In particular, the `LocalSystem` account typically will not have access to your local `%USER%` directory structure.
 
 ## Troubleshooting
 
@@ -112,23 +112,7 @@ Install Visual Studio 2019 (later probably works, but options might be different
 follow the instructions in [Build environment](/build_env.md#build-environment)
 for the version you install.
 
-(the free compilers probably work too, but haven't been tested - let me know your experiences!)
-
-`setup.py` is a standard distutils build script, so you probably want:
-
-```shell
-python setup.py install
-```
-
-or
-
-```shell
-python setup.py --help
-```
-
-Some modules need obscure SDKs to build - `setup.py` should succeed, gracefully
-telling you why it failed to build them - if the build actually fails with your
-configuration, please [open an issue](https://github.com/mhammond/pywin32/issues).
+Then follow the [Build](/build_env.md#build) instructions for the build itself (including ARM64 cross-compilation).
 
 ## Release process
 
@@ -147,7 +131,7 @@ Since build 307 the release process is based on the artifacts created by Github 
 * Push these changes to github, wait for the actions to complete, then
   download the artifacts from that run.
 
-* Upload .whl artifacts to pypi - we do this before pushing the tag because they might be
+* Upload `.whl` artifacts to pypi - we do this before pushing the tag because they might be
   rejected for an invalid `README.md`. Done via `py -3.? -m twine upload dist/*XXX*.whl`.
 
 * Create a new git tag for the release.
