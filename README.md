@@ -67,6 +67,14 @@ copied to the root of your Python install and some changes made to HKCU). If you
 an elevated process, it will be global for the machine (files will be copied to System32, HKLM
 will be changed, etc)
 
+### Installing for MingGW/msys2
+
+The folks at <https://github.com/msys2/MINGW-packages/tree/master/mingw-w64-python-pywin32> are graciously keeping an updated set of patches to install pywin32 for MingGW/msys2.
+
+We'd suggest installing from <https://packages.msys2.org/base/mingw-w64-python-pywin32> `pacman -S mingw-w64-python-pywin32`.
+
+We're open to seeing these patches be upstreamed in pywin32 if they can be tested automatically on the CI.
+
 ### Running as a Windows Service
 
 To run as a service, you probably want to install pywin32 globally from an elevated
