@@ -125,7 +125,7 @@ jobs:
       - name: Delete standalone Artifacts
         uses: geekyeggo/delete-artifact@v5
         with:
-          name: artifact-*
+          name: artifacts-*
 
   # This job can be run locally by running `pre-commit run`
   checkers:
