@@ -34,6 +34,7 @@ import shutil
 import subprocess
 import sys
 import winreg
+from collections.abc import Iterable
 from pathlib import Path
 from setuptools import Extension, setup
 from setuptools.command.build import build
@@ -41,7 +42,6 @@ from setuptools.command.build_ext import build_ext
 from setuptools.command.install import install
 from setuptools.modified import newer_group
 from tempfile import gettempdir
-from typing import Iterable
 
 from distutils import ccompiler
 from distutils._msvccompiler import MSVCCompiler
@@ -913,7 +913,7 @@ class my_compiler(MSVCCompiler):
         debug=0,
         *args,
         **kw,
-    ):
+    ) -> None:
         super().link(
             target_desc,
             objects,
@@ -931,18 +931,18 @@ class my_compiler(MSVCCompiler):
         # target.  Do this externally to avoid suddenly dragging in the
         # modules needed by this process, and which we will soon try and
         # update.
-        args = [
-            sys.executable,
-            # NOTE: On Python 3.7, all args must be str
-            str(Path(__file__).parent / "win32" / "Lib" / "win32verstamp.py"),
-            f"--version={pywin32_version}",
-            "--comments=https://github.com/mhammond/pywin32",
-            f"--original-filename={os.path.basename(output_filename)}",
-            "--product=PyWin32",
-            "--quiet" if "-v" not in sys.argv else "",
-            output_filename,
-        ]
-        self.spawn(args)
+        self.spawn(
+            [
+                sys.executable,
+                str(Path(__file__).parent / "win32" / "Lib" / "win32verstamp.py"),
+                f"--version={pywin32_version}",
+                "--comments=https://github.com/mhammond/pywin32",
+                f"--original-filename={os.path.basename(output_filename)}",
+                "--product=PyWin32",
+                "--quiet" if "-v" not in sys.argv else "",
+                output_filename,
+            ]
+        )
 
     # Work around bpo-36302/bpo-42009 - it sorts sources but this breaks
     # support for building .mc files etc :(
@@ -1973,9 +1973,7 @@ def convert_data_files(files: Iterable[str]):
                 raise RuntimeError("No file '%s'" % file)
             files_use = (file,)
         for fname in files_use:
-            path_use = os.path.dirname(fname)
-            if path_use.startswith("com\\"):
-                path_use = path_use[4:]
+            path_use = os.path.dirname(fname).removeprefix("com\\")
             ret.append((path_use, (fname,)))
     return ret
 
@@ -2056,7 +2054,6 @@ classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: Python Software Foundation License",
     "Operating System :: Microsoft :: Windows",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
