@@ -16,7 +16,14 @@ import win32com.client.connect
 import win32com.test.util
 import win32timezone
 import winerror
-from win32com.client import VARIANT, CastTo, DispatchBaseClass, constants
+from win32com.client import (
+    VARIANT,
+    CastTo,
+    DispatchBaseClass,
+    Record,
+    constants,
+    register_record_class,
+)
 
 importMsg = "**** PyCOMTest is not installed ***\n  PyCOMTest is a Python test specific COM client and server.\n  It is likely this server is not installed on this machine\n  To install the server, you must get the win32com sources\n  and build it using MS Visual C++"
 
@@ -42,6 +49,46 @@ from win32com import universal
 universal.RegisterInterfaces("{6BCDCB60-5605-11D0-AE5F-CADD4C000000}", 0, 1, 1)
 
 verbose = 0
+
+
+# Subclasses of pythoncom.com_record.
+# Registration is performed in 'TestGenerated'.
+class TestStruct1(pythoncom.com_record):
+    __slots__ = ()
+    TLBID = "{6BCDCB60-5605-11D0-AE5F-CADD4C000000}"
+    MJVER = 1
+    MNVER = 1
+    LCID = 0
+    GUID = "{7A4CE6A7-7959-4E85-A3C0-B41442FF0F67}"
+
+
+class TestStruct2(pythoncom.com_record):
+    __slots__ = ()
+    TLBID = "{6BCDCB60-5605-11D0-AE5F-CADD4C000000}"
+    MJVER = 1
+    MNVER = 1
+    LCID = 0
+    GUID = "{78F0EA07-B7CF-42EA-A251-A4C6269F76AF}"
+
+
+# We don't need to stick with the struct name in the TypeLibrry for the subclass name.
+# The following class has the same GUID as TestStruct2 from the TypeLibrary.
+class ArrayOfStructsTestStruct(pythoncom.com_record):
+    __slots__ = ()
+    TLBID = "{6BCDCB60-5605-11D0-AE5F-CADD4C000000}"
+    MJVER = 1
+    MNVER = 1
+    LCID = 0
+    GUID = "{78F0EA07-B7CF-42EA-A251-A4C6269F76AF}"
+
+
+class NotInTypeLibraryTestStruct(pythoncom.com_record):
+    __slots__ = ()
+    TLBID = "{6BCDCB60-5605-11D0-AE5F-CADD4C000000}"
+    MJVER = 1
+    MNVER = 1
+    LCID = 0
+    GUID = "{79BB6AC3-12DE-4AC5-88AC-225C29A58043}"
 
 
 def check_get_set(func, arg):
@@ -197,18 +244,6 @@ def TestCommon(o, is_generated):
     progress("Checking structs")
     r = o.GetStruct()
     assert r.int_value == 99 and str(r.str_value) == "Hello from C++"
-    # Dynamic does not support struct byref as [ in, out ] parameters
-    if hasattr(o, "CLSID"):
-        progress("Checking struct byref as [ in, out ] parameter")
-        mod_r = o.ModifyStruct(r)
-        # We expect the input value to stay unchanged
-        assert r.int_value == 99 and str(r.str_value) == "Hello from C++"
-        # and the return value to reflect the modifications performed on the COM server side
-        assert (
-            mod_r.int_value == 100
-            and str(mod_r.str_value) == "Nothing is as constant as change"
-        )
-
     assert o.DoubleString("foo") == "foofoo"
 
     progress("Checking var args")
@@ -408,9 +443,46 @@ def TestDynamic():
     # assert o.ParamProp(0) == 1, o.paramProp(0)
 
 
+def TestStructByref(o, r):
+    progress("Checking struct byref as [ in, out ] parameter")
+    mod_r = o.ModifyStruct(r)
+    # If 'TestStruct1' was registered as an instantiable subclass
+    # of pythoncom.com_record, the return value should have this type.
+    if isinstance(r, TestStruct1):
+        assert type(mod_r) is TestStruct1
+    else:
+        assert type(mod_r) is pythoncom.com_record
+    # We expect the input value to stay unchanged
+    assert r.int_value == 99 and str(r.str_value) == "Hello from C++"
+    # and the return value to reflect the modifications performed on the COM server side
+    assert (
+        mod_r.int_value == 100
+        and str(mod_r.str_value) == "Nothing is as constant as change"
+    )
+
+
+def TestArrayOfStructs(o, test_rec):
+    progress("Testing struct with SAFEARRAY(VT_RECORD) fields.")
+    rec_list = []
+    for i in range(3):
+        # If 'ArrayOfStructsTestStruct' and 'TestStruct1' were registered as instantiable
+        # subclasses of pythoncom.com_record, we expect to work with these types.
+        if isinstance(test_rec, ArrayOfStructsTestStruct):
+            rec = TestStruct1()
+            assert type(rec) is TestStruct1
+        else:
+            rec = Record("TestStruct1", o)
+            assert type(rec) is pythoncom.com_record
+        rec.str_value = "This is record number"
+        rec.int_value = i + 1
+        rec_list.append(rec)
+    test_rec.array_of_records = rec_list
+    test_rec.rec_count = i + 1
+    assert o.VerifyArrayOfStructs(test_rec)
+
+
 def TestGenerated():
     # Create an instance of the server.
-    from win32com.client import Record
     from win32com.client.gencache import EnsureDispatch
 
     o = EnsureDispatch("PyCOMTest.PyCOMTest")
@@ -433,18 +505,57 @@ def TestGenerated():
     coclass = GetClass("{B88DD310-BAE8-11D0-AE86-76F2C1000000}")()
     TestCounter(coclass, True)
 
-    # Test records with SAFEARRAY(VT_RECORD) fields.
-    progress("Testing records with SAFEARRAY(VT_RECORD) fields.")
-    l = []
-    for i in range(3):
-        rec = Record("TestStruct1", o)
-        rec.str_value = "This is record number"
-        rec.int_value = i + 1
-        l.append(rec)
+    # Test plain pythoncom.com_record structs.
+    progress("Testing baseclass pythoncom.com_record structs.")
+    r = o.GetStruct()
+    assert type(r) is pythoncom.com_record
+    TestStructByref(o, r)
     test_rec = Record("TestStruct2", o)
-    test_rec.array_of_records = l
-    test_rec.rec_count = i + 1
-    assert o.VerifyArrayOfStructs(test_rec)
+    assert type(test_rec) is pythoncom.com_record
+    TestArrayOfStructs(o, test_rec)
+
+    progress("Testing registration of pythoncom.com_record subclasses.")
+    # Instantiating a pythoncom.com_record subclass, which has proper GUID attributes,
+    # does raise a TypeError, as long as we have not registered it.
+    try:
+        r_sub = TestStruct1()
+    except TypeError:
+        pass
+    except Exception as e:
+        raise AssertionError from e
+    else:
+        raise AssertionError
+    # Register the subclasses in pythoncom.
+    register_record_class(TestStruct1)
+    register_record_class(ArrayOfStructsTestStruct)
+    # Now the type of the instance is the registered subclass.
+    r_sub = TestStruct1()
+    assert type(r_sub) is TestStruct1
+    # Now also the 'Record' factory function returns an instance of the registered subtype.
+    r_sub = Record("TestStruct1", o)
+    assert type(r_sub) is TestStruct1
+    # It should not be possible to register multiple classes with the same GUID, e.g.
+    # 'TestStruct2' has the same GUID class attribute value as 'ArrayOfStructsTestStruct'.
+    check_get_set_raises(ValueError, register_record_class, TestStruct2)
+    # Also registering a class with a GUID that is not in the TypeLibrary should fail.
+    check_get_set_raises(TypeError, register_record_class, NotInTypeLibraryTestStruct)
+
+    # Perform the 'Byref' and 'ArrayOfStruct tests using the registered subclasses.
+    progress("Testing subclasses of pythoncom.com_record.")
+    r = o.GetStruct()
+    # After 'TestStruct1' was registered as an instantiable subclass
+    # of pythoncom.com_record, the return value should have this type.
+    assert type(r) is TestStruct1
+    TestStructByref(o, r)
+    test_rec = ArrayOfStructsTestStruct()
+    assert type(test_rec) is ArrayOfStructsTestStruct
+    TestArrayOfStructs(o, test_rec)
+
+    # Test initialization of registered pythoncom.com_record subclasses.
+    progress("Testing initialization of pythoncom.com_record subclasses.")
+    buf = o.GetStruct().__reduce__()[1][5]
+    test_rec = TestStruct1(buf)
+    assert test_rec.int_value == 99 and str(test_rec.str_value) == "Hello from C++"
 
     # XXX - this is failing in dynamic tests, but should work fine.
     i1, i2 = o.GetMultipleInterfaces()

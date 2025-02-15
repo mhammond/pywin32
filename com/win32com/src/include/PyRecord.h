@@ -11,7 +11,10 @@ class PyRecord : public PyObject {
     PyRecord(IRecordInfo *ri, PVOID data, PyRecordBuffer *owner);
     ~PyRecord();
 
-    static void tp_dealloc(PyObject *ob);
+    static PyRecord *new_record(IRecordInfo *ri, PVOID data, PyRecordBuffer *owner, PyTypeObject *type = NULL);
+    static PyObject *tp_new(PyTypeObject *type, PyObject *args, PyObject *kwds);
+    static int tp_init(PyObject *self, PyObject *args, PyObject *kwds);
+    static void tp_dealloc(PyRecord *ob);
     static PyObject *getattro(PyObject *self, PyObject *obname);
     static int setattro(PyObject *self, PyObject *obname, PyObject *v);
     static PyObject *tp_repr(PyObject *self);
