@@ -800,7 +800,7 @@ class TimeZoneInfo(datetime.tzinfo):
         return self.__dict__ != other.__dict__
 
     @classmethod
-    def local(cls) -> Self:
+    def local(cls):
         """Returns the local time zone as defined by the operating system in the
         registry.
         >>> localTZ = TimeZoneInfo.local()
