@@ -39,7 +39,7 @@ be able to process this information in either format. The resulting mass
 of confusion is called a "connection string". There is an entire web
 site dedicated to giving examples of connection strings in numerous
 combinations. See
-[http://www.connectionstrings.com](http://www.connectionstrings.com/)
+[https://www.connectionstrings.com](https://www.connectionstrings.com/)
 
 The software which connects ODBC to an engine is called a "Driver". One
 which talks in ADO is called a "Provider". Sometimes there will be a
@@ -47,11 +47,9 @@ Provider for a Driver.
 
 ### Driver (and Provider) download links
 
-The current (as of 2019) SQL Server OLE DB provider (which they call a
-"driver" here) is
-<https://www.microsoft.com/en-us/download/details.aspx?id=56730> which
-is linked from, and explained [here, in their
-document.](https://docs.microsoft.com/en-us/sql/connect/oledb/oledb-driver-for-sql-server?view=sql-server-2017)
+The current SQL Server OLE DB provider (which they call a
+"driver" here) is explained and can be downloaded from
+[their document](https://learn.microsoft.com/en-us/sql/connect/oledb/download-oledb-driver-for-sql-server#download).
 
 - Jet (ACCESS database) and other file datasets (like .xls and .csv) "ACE"
 Provider:
@@ -61,21 +59,17 @@ Windows. Note that you are not permitted load the 32 bit "ACE" provider
 if you have any 64-bit Office components installed. Conventional wisdom
 says that you must use 64 bit Python in this case. However, see the
 answer in
-<http://stackoverflow.com/questions/12270453/ms-access-db-engine-32-bit-with-office-64-bit>.
+<https://stackoverflow.com/questions/12270453/ms-access-db-engine-32-bit-with-office-64-bit>.
 If you decide to try hacking the installers, you may find
-<http://www.pantaray.com/msi_super_orca.html> to be a useful alternative
-to Orca. My experience is that such a [hacked installer (like this
-one)](http://shares.digvil.info/redis) can also be used on machines
-where "click to buy" versions of Office have been removed, but are still
-blocking installation of the redistributable provider.
+<https://www.pantaray.com/msi_super_orca.html> to be a useful alternative to Orca.
 
 - To use any ODBC driver from 64 bit Python, you also need the MSDASQL
-provider. It is shipped with Server 2008, and Vista and later.
+provider, which is shipped with Windows.
 
-- MySQL driver <http://dev.mysql.com/downloads/connector/odbc/>
-or MariaDB driver <https://downloads.mariadb.org/connector-odbc/>
+- MySQL driver <https://dev.mysql.com/downloads/connector/odbc/>
+or MariaDB driver <https://mariadb.org/connector-odbc/all-releases/>
 or `choco install mysql.odbc`
-- PostgreSQL driver <http://www.postgresql.org/ftp/odbc/versions/msi/>
+- PostgreSQL driver <https://www.postgresql.org/ftp/odbc/releases/>
 (scroll all the way to the bottom) or `choco install psqlodbc`.
 
 \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--
@@ -89,7 +83,7 @@ the PEP-249 api. I may write a book later. Here, I only intend to cover
 the extensions and special features of adodbapi. The PEP-249 database
 access api specification is found at:
 
-<http://www.python.org/dev/peps/pep-0249/>
+<https://peps.python.org/pep-0249/>
 
 ### Module level attributes
 

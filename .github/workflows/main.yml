@@ -65,11 +65,11 @@ jobs:
       - name: Build wheels
         run: pip wheel . -v --wheel-dir=dist
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         # Upload artifacts even if tests fail
         if: ${{ always() }}
         with:
-          name: artifacts
+          name: artifacts-${{ matrix.python-version }}-${{ matrix.architecture }}
           path: dist/*.whl
           if-no-files-found: error
 
@@ -107,11 +107,25 @@ jobs:
       - name: Build wheels
         run: python -m build --wheel --config-setting=--build-option=build_ext --config-setting=--build-option=-L.\arm64libs --config-setting=--build-option=--plat-name=win-arm64 --config-setting=--build-option=build --config-setting=--build-option=--plat-name=win-arm64 --config-setting=--build-option=bdist_wheel --config-setting=--build-option=--plat-name=win-arm64
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
-          name: artifacts
+          name: artifacts-${{ matrix.python-version }}-arm64
           path: dist/*.whl
           if-no-files-found: error
+
+  merge:
+    runs-on: windows-latest
+    needs: [test, build_arm64]
+    steps:
+      - name: Merge Artifacts
+        uses: actions/upload-artifact/merge@v4
+        with:
+          name: artifacts
+          pattern: artifacts-*
+      - name: Delete standalone Artifacts
+        uses: geekyeggo/delete-artifact@v5
+        with:
+          name: artifacts-*
 
   # This job can be run locally by running `pre-commit run`
   checkers:
