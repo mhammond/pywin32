@@ -83,9 +83,9 @@ class Extension(threaded_extension.ThreadPoolExtension):
 
         us = ecb.GetServerVariable("UNICODE_SERVER_NAME")
         assert isinstance(us, str), "unexpected type!"
-        assert us == str(
-            ecb.GetServerVariable("SERVER_NAME")
-        ), "Unicode and non-unicode values were not the same"
+        assert us == str(ecb.GetServerVariable("SERVER_NAME")), (
+            "Unicode and non-unicode values were not the same"
+        )
         return "worked!"
 
 
