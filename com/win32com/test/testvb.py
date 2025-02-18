@@ -275,7 +275,7 @@ def TestArrays(vbtest, bUseGenerated):
     # Floats
     _DoTestArray(vbtest, (1.0, 2.0, 3.0))
     # Strings.
-    _DoTestArray(vbtest, tuple("Hello from Python".split()))
+    _DoTestArray(vbtest, ("Hello", "from", "Python"))
     # Date and Time?
     # COM objects.
     _DoTestArray(vbtest, (vbtest, vbtest))
@@ -325,7 +325,7 @@ def TestArrays(vbtest, bUseGenerated):
         # The function itself also _returns_ the arram param.
         # Therefore, Python sees _2_ result values - one for the result,
         # and one for the byref.
-        testData = "Mark was here".split()
+        testData = ["Mark", "was", "here"]
         resultData, byRefParam = vbtest.PassSAFEARRAY(testData)
         assert testData == list(
             resultData
