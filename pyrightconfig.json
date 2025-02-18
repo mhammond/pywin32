@@ -33,16 +33,16 @@
   "reportAttributeAccessIssue": "none",
   // FIXE: These all need to be fixed first and turned back to error
   // some of the fixes need to be done in types-pywin32 from typeshed
-  "reportCallIssue": "warning",
-  "reportOperatorIssue": "warning",
-  "reportOptionalCall": "warning",
-  "reportOptionalIterable": "warning",
-  "reportOptionalMemberAccess": "warning",
-  "reportOptionalSubscript": "warning",
+  "reportCallIssue": "none",
+  "reportOperatorIssue": "none",
+  "reportOptionalCall": "none",
+  "reportOptionalIterable": "none",
+  "reportOptionalMemberAccess": "none",
+  "reportOptionalSubscript": "none",
   // Needs fixes in types-pywin32 and requires Python 3.8 to annotate ambiguous global variables
-  "reportUnnecessaryComparison": "warning",
+  "reportUnnecessaryComparison": "none",
   // Too many dynamically generated modules. This will require type stubs to properly fix.
-  "reportMissingImports": "warning",
+  "reportMissingImports": "none",
   // IDEM, but happens when pywin32 is not in site-packages but module is found from typeshed.
   // TODO: Is intended to be fixed with an editable install
   // Since we're a library, and not user code, we care less about forgetting to install a dependency,
