@@ -1,6 +1,8 @@
 """a clumsy attempt at a macro language to let the programmer execute code on the server (ex: determine 64bit)"""
 
-from . import is64bit
+from __future__ import annotations
+
+from collections.abc import MutableMapping
 
 
 def macro_call(macro_name, args, kwargs):
@@ -20,6 +22,8 @@ def macro_call(macro_name, args, kwargs):
     new_key = args[0]
     try:
         if macro_name == "is64bit":
+            from . import is64bit
+
             if is64bit.Python():  # if on 64 bit Python
                 return new_key, args[1]  # return first argument
             else:
@@ -76,7 +80,7 @@ def macro_call(macro_name, args, kwargs):
 
 
 def process(
-    args, kwargs, expand_macros=False
+    args, kwargs: MutableMapping[str, object], expand_macros=False
 ):  # --> connection string with keyword arguments processed.
     """attempts to inject arguments into a connection string using Python "%" operator for strings
 
@@ -124,7 +128,8 @@ def process(
             except KeyError:
                 raise TypeError("Must define 'connection_string' for ado connections")
     if expand_macros:
-        for kwarg in list(kwargs.keys()):
+        # copy the list to avoid size changing during iteration
+        for kwarg in list(kwargs):
             if kwarg.startswith("macro_"):  # If a key defines a macro
                 macro_name = kwarg[6:]  # name without the "macro_"
                 macro_code = kwargs.pop(

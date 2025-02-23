@@ -327,9 +327,8 @@ class Connection:
         an Error (or subclass) exception will be raised if any operation is attempted with the connection.
         The same applies to all cursor objects trying to use the connection.
         """
-        for crsr in list(self.cursors.values())[
-            :
-        ]:  # copy the list, then close each one
+        # copy the list of cursors to avoid size changing during iteration, then close each one
+        for crsr in list(self.cursors.values()):
             crsr.close(dont_tell_me=True)  # close without back-link clearing
         self.messages = []
         try:
@@ -1015,7 +1014,7 @@ class Cursor:
 
             Return values are not defined.
         """
-        self.messages = list()
+        self.messages = []
         total_recordcount = 0
 
         self.prepare(operation)
@@ -1039,7 +1038,7 @@ class Cursor:
             return
 
         if self.rs.State == adc.adStateClosed or self.rs.BOF or self.rs.EOF:
-            return list()
+            return []
         if limit:  # limit number of rows retrieved
             ado_results = self.rs.GetRows(limit)
         else:  # get all rows

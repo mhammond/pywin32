@@ -30,7 +30,7 @@ Coming in build 309, as yet unreleased
   Import `DispatcherWin32trace` and `DispatcherTrace` from `win32com.server.dispatcher` instead.
 * Fixed `win32timezone.TimeZoneInfo` initialization from a `[DYNAMIC_]TIME_ZONE_INFORMATION` (#2339, @Avasam)
 * Added runtime deprecation warning of `win2kras`, use `win32ras` instead (#2356, @Avasam)
-* Improved handling of dict iterations and fallbacks (removes Python 2 support code, small general speed improvement) (#2332, #2330, @Avasam)
+* Improved handling of dict iterations and fallbacks (removes Python 2 support code, small general speed improvement) (#2330, #2331, #2332, @Avasam)
 * Fixed accidentally trying to raise an undefined name instead of an `Exception` in `Pythonwin/pywin/debugger/debugger.py` (#2326, @Avasam)
 * Fixed PythonService DoLogMessage raising fatal GIL lock error (#2426, JacobNolan1)
 * Fixed and improved the following demos: `ddeclient`, `ddeserver`, `EvtSubscribe_push`, `openGLDemo`, `guidemo`, `ocxserialtest`, `ocxtest` (#2290, #2281, #2291, @Avasam)
