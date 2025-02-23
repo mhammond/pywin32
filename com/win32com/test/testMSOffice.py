@@ -17,8 +17,13 @@ from win32com.test.util import CheckClean
 
 # Test a few of the MSOffice components.
 def TestWord():
-    # Try and load the object exposed by Word 8
     # Office 97 - _totally_ different object model!
+    word7 = win32com.client.Dispatch("Word.Basic")
+    if word7.FileNew:  # Check if any property is not None
+        print("Starting Word 7 for dynamic test")
+        TestWord7(word7)
+
+    # Try and load the object exposed by Word 8
     try:
         # NOTE - using "client.Dispatch" would return an msword8.py instance!
         print("Starting Word 8 for dynamic test")
@@ -35,12 +40,6 @@ def TestWord():
         word = win32com.client.dynamic.CDispatch(dispatch, olerepr)
         dispatch = typeinfo = attr = olerepr = None
         TestWord8(word)
-
-    except pythoncom.com_error:
-        print("Starting Word 7 for dynamic test")
-        word = win32com.client.Dispatch("Word.Basic")
-        TestWord7(word)
-
     except Exception as e:
         print("Word dynamic tests failed", e)
         traceback.print_exc()
@@ -74,24 +73,24 @@ def TestWord8(word):
     doc = word.Documents.Add()
     wrange = doc.Range()
     for i in range(10):
-        wrange.InsertAfter("Hello from Python %d\n" % i)
+        wrange.InsertAfter(f"Hello from Python {i + 1}\n")
     paras = doc.Paragraphs
-    for i in range(len(paras)):
-        # *sob* - in Word 2019, `p = paras(i+1)` seems to work to get a para
-        # but `p.Font` then blows up.
-        #        p = paras[i]()
-        p = paras(i + 1)
-        p.Font.ColorIndex = i + 1
-        p.Font.Size = 12 + (4 * i)
-    # XXX - note that
-    # for para in paras:
-    #       para().Font...
-    # doesn't seem to work - no error, just doesn't work
-    # Should check if it works for VB!
-    doc.Close(SaveChanges=0)
+    if int(word.Version.split(".")[0]) >= 16:
+        # With Word 16 / Word 2019
+        for i, p in enumerate(paras):
+            p.Range.Font.ColorIndex = i + 1
+            p.Range.Font.Size = 12 + (4 * i)
+    else:
+        # NOTE: Iterating on paras doesn't seem to work - no error, just doesn't work
+        # for para in paras:
+        #     para().Font...
+        for i in range(len(paras)):
+            p = paras(i + 1)
+            p.Font.ColorIndex = i + 1
+            p.Font.Size = 12 + (4 * i)
+    doc.Close(SaveChanges=False)
     word.Quit()
-    win32api.Sleep(1000)  # Wait for word to close, else we
-    # may get OA error.
+    win32api.Sleep(1000)  # Wait for word to close, else we may get OA error.
 
 
 def TestWord8OldStyle():
@@ -168,7 +167,7 @@ def TestAll():
     try:
         print("Starting Excel 8 for generated excel8.py test...")
         mod = gencache.EnsureModule(
-            "{00020813-0000-0000-C000-000000000046}", 0, 1, 2, bForDemand=1
+            "{00020813-0000-0000-C000-000000000046}", 0, 1, 2, bForDemand=True
         )
         xl = win32com.client.Dispatch("Excel.Application")
         TextExcel(xl)

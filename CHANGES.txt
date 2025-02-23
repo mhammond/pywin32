@@ -33,7 +33,7 @@ Coming in build 309, as yet unreleased
 * Improved handling of dict iterations and fallbacks (removes Python 2 support code, small general speed improvement) (#2332, #2330, @Avasam)
 * Fixed accidentally trying to raise an undefined name instead of an `Exception` in `Pythonwin/pywin/debugger/debugger.py` (#2326, @Avasam)
 * Fixed PythonService DoLogMessage raising fatal GIL lock error (#2426, JacobNolan1)
-* Fixed and improved the following demos: `ddeclient`, `ddeserver`, `EvtSubscribe_push`, `openGLDemo`, `guidemo`, `ocxserialtest`, `ocxtest` (#2290, #2281, #2291, @Avasam)
+* Fixed and improved the following demos: `ddeclient`, `ddeserver`, `EvtSubscribe_push`, `openGLDemo`, `guidemo`, `ocxserialtest`, `ocxtest`, `testMSOffice.TestWord8` (#2290, #2281, #2291, #2478 @Avasam)
 
 Build 308, released 2024-10-12
 ------------------------------
