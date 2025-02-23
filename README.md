@@ -27,7 +27,7 @@ for all bugs or features are also welcome.
 However, please **do not open GitHub issues for general support requests**, or
 for problems or questions using the modules in this package - they will be
 closed. For such issues, please email the
-[python-win32 mailing list](http://mail.python.org/mailman/listinfo/python-win32) -
+[python-win32 mailing list](https://mail.python.org/mailman/listinfo/python-win32) -
 note that you must be subscribed to the list before posting.
 
 ## Binaries
@@ -66,6 +66,14 @@ If you do this with normal permissions it will be global for your user (a few fi
 copied to the root of your Python install and some changes made to HKCU). If you execute this from
 an elevated process, it will be global for the machine (files will be copied to System32, HKLM
 will be changed, etc)
+
+### Installing for MingGW/msys2
+
+The folks at <https://github.com/msys2/MINGW-packages/tree/master/mingw-w64-python-pywin32> are graciously keeping an updated set of patches to install pywin32 for MingGW/msys2.
+
+We'd suggest installing from <https://packages.msys2.org/base/mingw-w64-python-pywin32> `pacman -S mingw-w64-python-pywin32`.
+
+We're open to seeing these patches be upstreamed in pywin32 if they can be tested automatically on the CI.
 
 ### Running as a Windows Service
 
