@@ -8,9 +8,13 @@
 
 -----
 
-This is the readme for the Python for Win32 (pywin32) extensions, which provides access to many of the Windows APIs from Python.
+This is the readme for the Python for Win32 (pywin32) extensions, which provides access to many of the Windows APIs from Python, including COM support.
 
-See [CHANGES.txt](https://github.com/mhammond/pywin32/blob/master/CHANGES.txt) for recent notable changes.
+See [CHANGES.txt](https://github.com/mhammond/pywin32/blob/main/CHANGES.txt) for recent notable changes.
+
+adodbapi's documentation can be found in: [adodbapi/readme.txt](https://github.com/mhammond/pywin32/blob/main/adodbapi/readme.txt)
+
+isapi's documentation can be found in: [isapi/README.txt](https://github.com/mhammond/pywin32/blob/main/isapi/README.txt)
 
 ## Docs
 
