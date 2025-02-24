@@ -487,6 +487,47 @@ def Record(name, object):
     )
 
 
+# Registration function for com_record subclasses.
+def register_record_class(cls):
+    """
+    Register a subclass of com_record to enable creation of the represented record objects.
+
+    A subclass of com_record requires the following class attributes to be instantiable:
+
+        TLBID : The GUID of the containing TypeLibrary as a string.
+        MJVER : The major version number of the TypeLibrary as an integer.
+        MNVER : The minor version number of the TypeLibrary as an integer.
+        LCID  : The LCID of the TypeLibrary as an integer.
+        GUID  : The GUID of the COM Record as a string.
+
+    with GUID strings in {xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx} notation.
+
+    To instantiate such a subclasses it has to be registered via this function.
+    """
+    if not issubclass(cls, pythoncom.com_record):
+        raise TypeError("Only subclasses of 'com_record' can be registered.")
+    try:
+        TLBID = cls.TLBID
+        MJVER = cls.MJVER
+        MNVER = cls.MNVER
+        LCID = cls.LCID
+        GUID = cls.GUID
+    except AttributeError as e:
+        raise AttributeError(f"Class {cls.__name__} cannot be instantiated.") from e
+    try:
+        _ = pythoncom.GetRecordFromGuids(TLBID, MJVER, MNVER, LCID, GUID)
+    except Exception as e:
+        raise TypeError(f"Class {cls.__name__} cannot be instantiated.") from e
+    # Since the class can be instantiated we know that it represents a valid COM Record
+    # in a properly registered TypeLibrary and that it has a 'GUID' class attribute.
+    if cls.GUID in pythoncom.RecordClasses:
+        raise ValueError(
+            f"Record class with same GUID {cls.GUID} "
+            f"is already registered with name '{pythoncom.RecordClasses[cls.GUID].__name__}'."
+        )
+    pythoncom.RecordClasses[cls.GUID] = cls
+
+
 ############################################
 # The base of all makepy generated classes
 ############################################
