@@ -17,29 +17,29 @@ from win32com.test.util import CheckClean
 
 # Test a few of the MSOffice components.
 def TestWord():
-    # Office 97 - _totally_ different object model!
-    word7 = win32com.client.Dispatch("Word.Basic")
-    if word7.FileNew:  # Check if any property is not None
-        print("Starting Word 7 for dynamic test")
-        TestWord7(word7)
-
-    # Try and load the object exposed by Word 8
     try:
-        # NOTE - using "client.Dispatch" would return an msword8.py instance!
-        print("Starting Word 8 for dynamic test")
-        word = win32com.client.dynamic.Dispatch("Word.Application")
-        TestWord8(word)
+        # Office 97 - _totally_ different object model!
+        word7 = win32com.client.Dispatch("Word.Basic")
+        # Check if any property needed by TestWord7 is not None
+        if word7.FileNew:
+            print("Starting Word 7 for dynamic test")
+            TestWord7(word7)
+        else:
+            # NOTE - using "client.Dispatch" would return an msword8.py instance!
+            print("Starting Word 8 for dynamic test")
+            word = win32com.client.dynamic.Dispatch("Word.Application")
+            TestWord8(word)
 
-        word = None
-        # Now we will test Dispatch without the new "lazy" capabilities
-        print("Starting Word 8 for non-lazy dynamic test")
-        dispatch = win32com.client.dynamic._GetGoodDispatch("Word.Application")
-        typeinfo = dispatch.GetTypeInfo()
-        attr = typeinfo.GetTypeAttr()
-        olerepr = win32com.client.build.DispatchItem(typeinfo, attr, None, 0)
-        word = win32com.client.dynamic.CDispatch(dispatch, olerepr)
-        dispatch = typeinfo = attr = olerepr = None
-        TestWord8(word)
+            word = None
+            # Now we will test Dispatch without the new "lazy" capabilities
+            print("Starting Word 8 for non-lazy dynamic test")
+            dispatch = win32com.client.dynamic._GetGoodDispatch("Word.Application")
+            typeinfo = dispatch.GetTypeInfo()
+            attr = typeinfo.GetTypeAttr()
+            olerepr = win32com.client.build.DispatchItem(typeinfo, attr, None, 0)
+            word = win32com.client.dynamic.CDispatch(dispatch, olerepr)
+            dispatch = typeinfo = attr = olerepr = None
+            TestWord8(word)
     except Exception as e:
         print("Word dynamic tests failed", e)
         traceback.print_exc()
