@@ -22,13 +22,18 @@ The docs are a long and sad story, but [there's now an online version](https://m
 of the `PyWin32.chm` helpfile (thanks [@ofek](https://github.com/mhammond/pywin32/pull/1774)!).
 Lots of that is very old, but some is auto-generated and current. Would love help untangling the docs!
 
+You can get type hints, signatures and annotations from [`types-pywin32`](https://pypi.org/project/types-pywin32/).
+
 ## Support
 
 Feel free to [open issues](https://github.com/mhammond/pywin32/issues) for
 all bugs (or suspected bugs) in pywin32. [pull-requests](https://github.com/mhammond/pywin32/pulls)
 for all bugs or features are also welcome.
 
-However, please **do not open github issues for general support requests**, or
+Type stubs currently live in [typeshed](<https://github.com/python/typeshed/tree/main/stubs/pywin32>).
+Any issue or request related to static type-checking and IntelliSense should be raised there.
+
+However, please **do not open GitHub issues for general support requests**, or
 for problems or questions using the modules in this package - they will be
 closed. For such issues, please email the
 [python-win32 mailing list](https://mail.python.org/mailman/listinfo/python-win32) -

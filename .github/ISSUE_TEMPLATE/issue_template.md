@@ -4,7 +4,10 @@ about: Do not open github issues for general support requests
 ---
 
 <!--
-Note that issues in this repository are only for bugs or feature requests in the pywin32.
+Note that issues in this repository are only for bugs or feature requests in the pywin32 repository.
+
+Type stubs currently live in [typeshed](<https://github.com/python/typeshed/tree/main/stubs/pywin32>).
+Any issue or request related to static type-checking and IntelliSense should be raised there.
 
 **If you need support or help using this package, please follow [these instructions](https://github.com/mhammond/pywin32/blob/main/README.md#support)** - support or help requests will be closed without comment.
 -->
