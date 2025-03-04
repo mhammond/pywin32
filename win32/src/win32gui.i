@@ -6452,7 +6452,7 @@ PyCFunction pfnPyGetOpenFileNameW=(PyCFunction)PyGetOpenFileNameW;
 BOOL PyObject_AsUINT(PyObject *ob, UINT *puint)
 {
 	// PyLong_AsUnsignedLong throws a bogus error in 2.3 if passed an int, and there is no PyInt_AsUnsignedLong
-	// ref: http://mail.python.org/pipermail/patches/2004-September/016060.html
+	// ref: https://mail.python.org/pipermail/patches/2004-September/016060.html
 	// And for some reason none of the Unsigned*Mask functions check for overflow ???
 
 	__int64 UINT_candidate=PyLong_AsLongLong(ob);
