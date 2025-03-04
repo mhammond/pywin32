@@ -190,5 +190,5 @@ jobs:
       - uses: jakebailey/pyright-action@v2
         with:
           python-version: ${{ matrix.python-version }}
-          version: "1.1.391"
+          version: "1.1.396"
           annotate: errors
