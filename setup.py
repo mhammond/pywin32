@@ -44,7 +44,7 @@ from setuptools.modified import newer_group
 from tempfile import gettempdir
 from typing import TYPE_CHECKING, Iterable
 
-# We must import form distutils directly at runtime
+# We must import from distutils directly at runtime
 # But this prevents typing issues across Python 3.11-3.12
 if TYPE_CHECKING:
     from setuptools._distutils import ccompiler
