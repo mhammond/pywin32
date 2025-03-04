@@ -7,10 +7,8 @@ import sys
 
 # locate the dirs based on where this script is - it may be either in the
 # source tree, or in an installed Python 'Scripts' tree.
-this_dir = os.path.dirname(__file__)
-site_packages = [
-    site.getusersitepackages(),
-] + site.getsitepackages()
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+site_packages = [site.getusersitepackages()] + site.getsitepackages()
 
 failures = []
 
@@ -45,7 +43,7 @@ def find_and_run(possible_locations, extras):
 def main():
     import argparse
 
-    code_directories = [this_dir] + site_packages
+    code_directories = [project_root] + site_packages
 
     parser = argparse.ArgumentParser(
         description="A script to trigger tests in all subprojects of PyWin32."
@@ -89,10 +87,7 @@ def main():
     # win32com
     maybes = [
         os.path.join(directory, "win32com", "test", "testall.py")
-        for directory in [
-            os.path.join(this_dir, "com"),
-        ]
-        + site_packages
+        for directory in [os.path.join(project_root, "com")] + site_packages
     ]
     extras = remains + ["1"]  # only run "level 1" tests in CI
     find_and_run(maybes, extras)

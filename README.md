@@ -53,7 +53,7 @@ There is a post-install script (see below) which should *not* be run inside virt
 it should only be run in "global" installs.
 
 For unreleased changes, you can download builds made by [github actions](https://github.com/mhammond/pywin32/actions/) -
-choose any "workflow" from the `main` branch and download its "artifacts")
+choose any "workflow" from the `main` branch and download its "artifacts"
 
 ### Installing globally
 
@@ -61,10 +61,14 @@ Outside of a virtual environment you might want to install COM objects, services
 this by executing:
 
 ```shell
-python Scripts/pywin32_postinstall.py -install
+python -m pywin32_postinstall -install
 ```
 
-From the root of your Python installation.
+or (shorter but you don't have control over which python environment is used)
+
+```shell
+pywin32_postinstall -install
+```
 
 If you do this with normal permissions it will be global for your user (a few files will be
 copied to the root of your Python install and some changes made to HKCU). If you execute this from
@@ -103,7 +107,13 @@ It usually means one of 2 things:
 So you should run it again:
 
     ```shell
-    python Scripts/pywin32_postinstall.py -install
+    python -m pywin32_postinstall -install
+    ```
+
+    or (shorter but you don't have control over which python environment is used)
+
+    ```shell
+    pywin32_postinstall -install
     ```
 
     This will make some small attempts to cleanup older conflicting installs.
