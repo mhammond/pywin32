@@ -2,6 +2,9 @@ target-version = "py38" # Target the oldest supported version in editors and def
 # This file is not UTF-8
 extend-exclude = ["Pythonwin/pywin/test/_dbgscript.py"]
 
+[format]
+line-ending = "cr-lf"
+
 [lint]
 select = [
   "C4", # flake8-comprehensions
@@ -34,11 +37,15 @@ select = [
   "UP037", # quoted-annotation
 
   # Helps prevent circular imports and other unneeded imports
-  "TCH", # flake8-type-checking
+  "TC", # flake8-type-checking
 ]
+
 extend-ignore = [
+  # TODO: Consider passing exception around to ensure methods are only ever used within exception handlers
+  "PLE0704", # misplaced-bare-raise
+
   # No such concerns for stdlib
-  "TCH003", # typing-only-standard-library-import
+  "TC003", # typing-only-standard-library-import
 ]
 
 [lint.per-file-ignores]

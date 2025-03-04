@@ -1,5 +1,5 @@
 # A sample implementation of IEmptyVolumeCache - see
-# http://msdn2.microsoft.com/en-us/library/aa969271.aspx for an overview.
+# https://learn.microsoft.com/en-ca/windows/win32/lwef/disk-cleanup for an overview.
 #
 # * Execute this script to register the handler
 # * Start the "disk cleanup" tool - look for "pywin32 compiled files"
