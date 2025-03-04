@@ -5,6 +5,7 @@
 # Note that if the unknown dispatch object then returns a known
 # dispatch object, the known class will be used.  This contrasts
 # with dynamic.Dispatch behaviour, where dynamic objects are always used.
+from __future__ import annotations
 
 import sys
 from itertools import chain
@@ -532,6 +533,8 @@ def register_record_class(cls):
 # The base of all makepy generated classes
 ############################################
 class DispatchBaseClass:
+    Properties_: DispatchBaseClass
+
     def __init__(self, oobj=None):
         if oobj is None:
             oobj = pythoncom.new(self.CLSID)
