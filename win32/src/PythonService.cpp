@@ -147,7 +147,7 @@ SERVICE_STATUS stoppedErrorStatus = {SERVICE_WIN32_OWN_PROCESS,
                                      0,                             // dwCheckPoint
                                      0};
 // The Service Control Manager/Event Log seems to interpret dwServiceSpecificExitCode as a Win32 Error code
-// (https://docs.microsoft.com/en-us/windows/win32/debug/system-error-codes)
+// (https://learn.microsoft.com/en-us/windows/win32/debug/system-error-codes)
 // So stoppedErrorStatus has dwServiceSpecificExitCode with bit 29 set to indicate an application-defined error code.
 
 ///////////////////////////////////////////////////////////////////////

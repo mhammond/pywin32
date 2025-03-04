@@ -1,6 +1,6 @@
 #pragma once
 
-// https://support.microsoft.com/en-ca/help/171907/info-save-message-to-msg-compound-file
+// https://learn.microsoft.com/en-us/outlook/troubleshoot/development/save-message-to-msg-file
 // CLSID_MailMessage{00020D0B-0000-0000-C000-000000000046}
 DEFINE_GUID(CLSID_MailMessage, 0x00020D0B, 0x0000, 0x0000, 0xC0, 0x00, 0x0, 0x00, 0x0, 0x00, 0x00, 0x46);
 
