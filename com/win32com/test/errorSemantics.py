@@ -84,9 +84,9 @@ def test():
             str(com_exc),
         )
     # Check we saw a traceback in stderr
-    assert (
-        cap.get_captured().find("Traceback") >= 0
-    ), f"Could not find a traceback in stderr: {cap.get_captured()!r}"
+    assert cap.get_captured().find("Traceback") >= 0, (
+        f"Could not find a traceback in stderr: {cap.get_captured()!r}"
+    )
 
     # Now do it all again, but using IDispatch
     com_server = Dispatch(wrap(TestServer()))
@@ -131,9 +131,9 @@ def test():
             str(com_exc),
         )
     # Check we saw a traceback in stderr
-    assert (
-        cap.get_captured().find("Traceback") >= 0
-    ), f"Could not find a traceback in stderr: {cap.get_captured()!r}"
+    assert cap.get_captured().find("Traceback") >= 0, (
+        f"Could not find a traceback in stderr: {cap.get_captured()!r}"
+    )
 
     # And an explicit com_error
     cap.clear()
