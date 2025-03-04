@@ -982,7 +982,7 @@ class my_compiler(MSVCCompiler):
                 if cmd[i] == "-manifest":
                     cmd[i + 1] += ".orig"
                     break
-        super().spawn(cmd)
+        super().spawn(cmd)  # type: ignore[arg-type] # mypy variance issue, but pyright ok
         if is_link:
             # We want a copy of the original manifest so we can use it later.
             for i in range(len(cmd)):
