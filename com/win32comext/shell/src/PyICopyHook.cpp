@@ -54,10 +54,9 @@ PyObject *PyICopyHookA::CopyCallback(PyObject *self, PyObject *args)
     HRESULT hr;
     PY_INTERFACE_PRECALL;
     hr = pICH->CopyCallback(hwnd, wFunc, wFlags, srcFile, srcAttribs, destFile, destAttribs);
+    PY_INTERFACE_POSTCALL;
     PyWinObject_FreeChars(srcFile);
     PyWinObject_FreeChars(destFile);
-
-    PY_INTERFACE_POSTCALL;
 
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pICH, IID_IShellCopyHook);
@@ -143,10 +142,10 @@ PyObject *PyICopyHookW::CopyCallback(PyObject *self, PyObject *args)
     HRESULT hr;
     PY_INTERFACE_PRECALL;
     hr = pICH->CopyCallback(hwnd, wFunc, wFlags, srcFile, srcAttribs, destFile, destAttribs);
-    PyWinObject_FreeWCHAR(srcFile);
-    PyWinObject_FreeWCHAR(destFile);
 
     PY_INTERFACE_POSTCALL;
+    PyWinObject_FreeWCHAR(srcFile);
+    PyWinObject_FreeWCHAR(destFile);
 
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pICH, IID_IShellCopyHook);

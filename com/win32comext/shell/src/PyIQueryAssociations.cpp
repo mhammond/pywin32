@@ -45,8 +45,9 @@ PyObject *PyIQueryAssociations::Init(PyObject *self, PyObject *args)
     HRESULT hr;
     PY_INTERFACE_PRECALL;
     hr = pIQA->Init(flags, pszAssoc, hkProgid, hwnd);
-    PyWinObject_FreeWCHAR(pszAssoc);
     PY_INTERFACE_POSTCALL;
+    PyWinObject_FreeWCHAR(pszAssoc);
+
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIQA, IID_IQueryAssociations);
     Py_INCREF(Py_None);
@@ -77,8 +78,8 @@ PyObject *PyIQueryAssociations::GetKey(PyObject *self, PyObject *args)
     HRESULT hr;
     PY_INTERFACE_PRECALL;
     hr = pIQA->GetKey(flags, (ASSOCKEY)assoc, pszExtra, &ret);
-    PyWinObject_FreeWCHAR(pszExtra);
     PY_INTERFACE_POSTCALL;
+    PyWinObject_FreeWCHAR(pszExtra);
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIQA, IID_IQueryAssociations);
     // observation of the "open handles" count in task-manager indicates
@@ -116,8 +117,8 @@ PyObject *PyIQueryAssociations::GetString(PyObject *self, PyObject *args)
     HRESULT hr;
     PY_INTERFACE_PRECALL;
     hr = pIQA->GetString(flags, (ASSOCSTR)assoc, pszExtra, result_buf, &result_size);
-    PyWinObject_FreeWCHAR(pszExtra);
     PY_INTERFACE_POSTCALL;
+    PyWinObject_FreeWCHAR(pszExtra);
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIQA, IID_IQueryAssociations);
     // docs don't explicitly say if result_size includes NULL.  It says:

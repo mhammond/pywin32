@@ -1654,9 +1654,9 @@ static PyObject *ui_window_message_box(PyObject *self, PyObject *args)
     // @pyseemfc CWnd|MessageBox
 
     rc = pWnd->MessageBox(message, title, style);
+    GUI_END_SAVE;
     PyWinObject_FreeTCHAR(message);
     PyWinObject_FreeTCHAR(title);
-    GUI_END_SAVE;
     return Py_BuildValue("i", rc);
     // @rdesc An integer identifying the button pressed to dismiss the dialog.
 }
