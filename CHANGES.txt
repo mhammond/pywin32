@@ -14,6 +14,10 @@ https://mhammond.github.io/pywin32_installers.html .
 Coming in build 309, as yet unreleased
 --------------------------------------
 
+* Removed considerations for Windows 95/98/ME (#2400, @Avasam)
+  This removes the following constants:
+  * `win32con.FILE_ATTRIBUTE_ATOMIC_WRITE`
+  * `win32con.FILE_ATTRIBUTE_XACTION_WRITE`
 * Changed the implementation of 'com_record' to a subclassable Python type (2437#, #2361, @geppi)
 * Removed param `hIcon` from `win32comext.shell.ShellExecuteEx`. It was unusable since Windows Vista (#2423, @Avasam)
 * Fixed `nbios.NCBStruct` packing (#2406, @Avasam)
