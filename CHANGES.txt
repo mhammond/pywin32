@@ -14,7 +14,8 @@ https://mhammond.github.io/pywin32_installers.html .
 Coming in build 309, as yet unreleased
 --------------------------------------
 
-* Changed the implementation of 'com_record' to a subclassable Python type (2437#, #2361, @geppi)
+* Fixed Access Violation crashes in 3.12 by moving `PyWInObject_Free*` methods so GIL is acquired (#2467, @Mscht)
+* Changed the implementation of 'com_record' to a subclassable Python type (#2437, #2361, @geppi)
 * Removed param `hIcon` from `win32comext.shell.ShellExecuteEx`. It was unusable since Windows Vista (#2423, @Avasam)
 * Fixed `nbios.NCBStruct` packing (#2406, @Avasam)
 * Restored axdebug builds on Python 3.10 (#2416, @Avasam)
