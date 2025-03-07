@@ -1,6 +1,9 @@
+#include <new>
 #include "stdafx.h"
 #include "PythonCOM.h"
 #include "PyRecord.h"
+
+extern PyObject *g_obPyCom_MapRecordGUIDToRecordClass;
 
 // @doc
 
@@ -31,7 +34,7 @@ class PyRecordBuffer {
     long ref;
 };
 
-BOOL PyRecord_Check(PyObject *ob) { return ((ob)->ob_type == &PyRecord::Type); }
+BOOL PyRecord_Check(PyObject *ob) { return PyObject_IsInstance(ob, (PyObject *)&PyRecord::Type); }
 
 BOOL PyObject_AsVARIANTRecordInfo(PyObject *ob, VARIANT *pv)
 {
@@ -91,7 +94,10 @@ PyObject *PyObject_FromSAFEARRAYRecordInfo(SAFEARRAY *psa)
         hr = info->RecordCopy(source_data, this_dest_data);
         if (FAILED(hr))
             goto exit;
-        PyTuple_SET_ITEM(ret_tuple, i, new PyRecord(info, this_dest_data, owner));
+        PyRecord *rec = PyRecord::new_record(info, this_dest_data, owner);
+        if (rec == NULL)
+            goto exit;
+        PyTuple_SET_ITEM(ret_tuple, i, rec);
         this_dest_data += cb_elem;
         source_data += cb_elem;
     }
@@ -116,7 +122,10 @@ exit:
     return ret;
 }
 // Creates a new Record by TAKING A COPY of the passed record.
-PyObject *PyObject_FromRecordInfo(IRecordInfo *ri, void *data, ULONG cbData)
+// The optinal 'type' parameter is used by the 'tp_new' slot method to
+// specify the subclass and must match the corresponding 'IRecordInfo' object
+// passed in by the 'ri' parameter.
+PyObject *PyObject_FromRecordInfo(IRecordInfo *ri, void *data, ULONG cbData, PyTypeObject *type = NULL)
 {
     if ((data != NULL && cbData == 0) || (data == NULL && cbData != 0))
         return PyErr_Format(PyExc_RuntimeError, "Both or neither data and size must be given");
@@ -141,7 +150,7 @@ PyObject *PyObject_FromRecordInfo(IRecordInfo *ri, void *data, ULONG cbData)
         delete owner;
         return PyCom_BuildPyException(hr, ri, IID_IRecordInfo);
     }
-    return new PyRecord(ri, owner->data, owner);
+    return PyRecord::new_record(ri, owner->data, owner, type);
 }
 
 // @pymethod <o PyRecord>|pythoncom|GetRecordFromGuids|Creates a new record object from the given GUIDs
@@ -200,14 +209,63 @@ PyObject *pythoncom_GetRecordFromTypeInfo(PyObject *self, PyObject *args)
     return ret;
 }
 
-PyRecord::PyRecord(IRecordInfo *ri, PVOID data, PyRecordBuffer *owner)
+// This function creates a new 'com_record' instance with placement new.
+// If the particular Record GUID belongs to a registered subclass
+// of the 'com_record' base type, it instantiates this subclass.
+// The optinal 'type' parameter is used by the 'tp_new' slot method to
+// specify the subclass right ahead and shortcut the type identification
+// procedure. It must match the corresponding 'IRecordInfo' object
+// passed in by the 'ri' parameter.
+PyRecord *PyRecord::new_record(IRecordInfo *ri, PVOID data, PyRecordBuffer *owner,
+                               PyTypeObject *type) /* default: type = NULL */
 {
-    ob_type = &PyRecord::Type;
-    _Py_NewReference(this);
+    GUID structguid;
+    OLECHAR *guidString;
+    PyObject *guidUnicode, *recordType;
+    if (type == NULL) {
+        // By default we create an instance of the base 'com_record' type.
+        type = &PyRecord::Type;
+        // Retrieve the GUID of the Record to be created.
+        HRESULT hr = ri->GetGuid(&structguid);
+        if (FAILED(hr)) {
+            PyCom_BuildPyException(hr, ri, IID_IRecordInfo);
+            return NULL;
+        }
+        hr = StringFromCLSID(structguid, &guidString);
+        if (FAILED(hr)) {
+            PyCom_BuildPyException(hr);
+            return NULL;
+        }
+        guidUnicode = PyWinCoreString_FromString(guidString);
+        if (guidUnicode == NULL) {
+            ::CoTaskMemFree(guidString);
+            return NULL;
+        }
+        recordType = PyDict_GetItem(g_obPyCom_MapRecordGUIDToRecordClass, guidUnicode);
+        Py_DECREF(guidUnicode);
+        // If the Record GUID is registered as a subclass of com_record
+        // we return an object of the subclass type.
+        if (recordType && PyObject_IsSubclass(recordType, (PyObject *)&PyRecord::Type)) {
+            type = (PyTypeObject *)recordType;
+        }
+    }
+    // Finally allocate the memory for the the appropriate
+    // Record type and construct the instance with placement new.
+    char *buf = (char *)PyRecord::Type.tp_alloc(type, 0);
+    if (buf == NULL) {
+        delete owner;
+        PyErr_NoMemory();
+        return NULL;
+    }
+    return new (buf) PyRecord(ri, owner->data, owner);
+}
+
+PyRecord::PyRecord(IRecordInfo *ri, PVOID data, PyRecordBuffer *buf_owner)
+{
     ri->AddRef();
     pri = ri;
     pdata = data;
-    this->owner = owner;
+    owner = buf_owner;
     owner->AddRef();
 };
 
@@ -217,44 +275,142 @@ PyRecord::~PyRecord()
     pri->Release();
 }
 
+PyObject *PyRecord::tp_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+{
+    PyObject *item, *guidUnicode;
+    PyTypeObject *registeredType;
+    int major, minor, lcid;
+    GUID guid, infoGuid;
+    if (type == &PyRecord::Type) {
+        PyErr_SetString(PyExc_TypeError,
+                        "Can't instantiate base class com_record. "
+                        "Use the factory function win32com.client.Record instead.");
+        return NULL;
+    }
+    // For subclasses of com_record try to get the record type information from the class variables of the derived type.
+    if (!(guidUnicode = PyDict_GetItemString(type->tp_dict, "GUID"))) {
+        PyErr_Format(PyExc_AttributeError, "Missing %s class attribute.", "GUID");
+        return NULL;
+    }
+    if (!PyWinObject_AsIID(guidUnicode, &infoGuid)) {
+        PyErr_Format(PyExc_ValueError, "Invalid value for %s class attribute.", "GUID");
+        return NULL;
+    }
+    if (!(item = PyDict_GetItemString(type->tp_dict, "TLBID"))) {
+        PyErr_Format(PyExc_AttributeError, "Missing %s class attribute.", "TLBID");
+        return NULL;
+    }
+    if (!PyWinObject_AsIID(item, &guid)) {
+        PyErr_Format(PyExc_ValueError, "Invalid value for %s class attribute.", "TLBID");
+        return NULL;
+    }
+    if (!(item = PyDict_GetItemString(type->tp_dict, "MJVER"))) {
+        PyErr_Format(PyExc_AttributeError, "Missing %s class attribute.", "MJVER");
+        return NULL;
+    }
+    if (((major = PyLong_AsLong(item)) == -1 || major < 0)) {
+        PyErr_Format(PyExc_ValueError, "Class attribute %s must be a non negative integer.", "MJVER");
+        return NULL;
+    }
+    if (!(item = PyDict_GetItemString(type->tp_dict, "MNVER"))) {
+        PyErr_Format(PyExc_AttributeError, "Missing %s class attribute.", "MNVER");
+        return NULL;
+    }
+    if (((minor = PyLong_AsLong(item)) == -1 || minor < 0)) {
+        PyErr_Format(PyExc_ValueError, "Class attribute %s must be a non negative integer.", "MNVER");
+        return NULL;
+    }
+    if (!(item = PyDict_GetItemString(type->tp_dict, "LCID"))) {
+        PyErr_Format(PyExc_AttributeError, "Missing %s class attribute.", "LCID");
+        return NULL;
+    }
+    if (((lcid = PyLong_AsLong(item)) == -1 || lcid < 0)) {
+        PyErr_Format(PyExc_ValueError, "Class attribute %s must be a non negative integer.", "LCID");
+        return NULL;
+    }
+    // Instances can only be created for registerd subclasses.
+    registeredType = (PyTypeObject *)PyDict_GetItem(g_obPyCom_MapRecordGUIDToRecordClass, guidUnicode);
+    if (!(registeredType && type == registeredType)) {
+        PyErr_Format(PyExc_TypeError, "Can't instantiate class %s because it is not registered.", type->tp_name);
+        return NULL;
+    }
+    IRecordInfo *ri = NULL;
+    HRESULT hr = GetRecordInfoFromGuids(guid, major, minor, lcid, infoGuid, &ri);
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr);
+    PyObject *ret = PyObject_FromRecordInfo(ri, NULL, 0, type);
+    ri->Release();
+    return ret;
+}
+
+int PyRecord::tp_init(PyObject *self, PyObject *args, PyObject *kwds)
+{
+    PyRecord *pyrec = (PyRecord *)self;
+    PyObject *obdata = NULL;
+    if (!PyArg_ParseTuple(args, "|O:__init__",
+                          &obdata))  // @pyparm string or buffer|data|None|The raw data to initialize the record with.
+        return -1;
+    if (obdata != NULL) {
+        PyWinBufferView pybuf(obdata, false, false);  // None not ok
+        if (!pybuf.ok())
+            return -1;
+        ULONG cb;
+        HRESULT hr = pyrec->pri->GetSize(&cb);
+        if (FAILED(hr)) {
+            PyCom_BuildPyException(hr, pyrec->pri, IID_IRecordInfo);
+            return -1;
+        }
+        if (pybuf.len() != cb) {
+            PyErr_Format(PyExc_ValueError, "Expecting a string of %d bytes (got %d)", cb, pybuf.len());
+            return -1;
+        }
+        hr = pyrec->pri->RecordCopy(pybuf.ptr(), pyrec->pdata);
+        if (FAILED(hr)) {
+            PyCom_BuildPyException(hr, pyrec->pri, IID_IRecordInfo);
+            return -1;
+        }
+    }
+    return 0;
+}
+
 PyTypeObject PyRecord::Type = {
     PYWIN_OBJECT_HEAD "com_record",
     sizeof(PyRecord),
     0,
-    PyRecord::tp_dealloc,     /* tp_dealloc */
-    0,                        /* tp_print */
-    0,                        /* tp_getattr */
-    0,                        /* tp_setattr */
-    0,                        /* tp_compare */
-    &PyRecord::tp_repr,       /* tp_repr */
-    0,                        /* tp_as_number */
-    0,                        /* tp_as_sequence */
-    0,                        /* tp_as_mapping */
-    0,                        /* tp_hash */
-    0,                        /* tp_call */
-    0,                        /* tp_str */
-    PyRecord::getattro,       /* tp_getattro */
-    PyRecord::setattro,       /* tp_setattro */
-    0,                        /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT,       /* tp_flags */
-    0,                        /* tp_doc */
-    0,                        /* tp_traverse */
-    0,                        /* tp_clear */
-    PyRecord::tp_richcompare, /* tp_richcompare */
-    0,                        /* tp_weaklistoffset */
-    0,                        /* tp_iter */
-    0,                        /* tp_iternext */
-    PyRecord::methods,        /* tp_methods */
-    0,                        /* tp_members */
-    0,                        /* tp_getset */
-    0,                        /* tp_base */
-    0,                        /* tp_dict */
-    0,                        /* tp_descr_get */
-    0,                        /* tp_descr_set */
-    0,                        /* tp_dictoffset */
-    0,                        /* tp_init */
-    0,                        /* tp_alloc */
-    0,                        /* tp_new */
+    (destructor)PyRecord::tp_dealloc,         /* tp_dealloc */
+    0,                                        /* tp_print */
+    0,                                        /* tp_getattr */
+    0,                                        /* tp_setattr */
+    0,                                        /* tp_compare */
+    &PyRecord::tp_repr,                       /* tp_repr */
+    0,                                        /* tp_as_number */
+    0,                                        /* tp_as_sequence */
+    0,                                        /* tp_as_mapping */
+    0,                                        /* tp_hash */
+    0,                                        /* tp_call */
+    0,                                        /* tp_str */
+    PyRecord::getattro,                       /* tp_getattro */
+    PyRecord::setattro,                       /* tp_setattro */
+    0,                                        /* tp_as_buffer */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
+    0,                                        /* tp_doc */
+    0,                                        /* tp_traverse */
+    0,                                        /* tp_clear */
+    PyRecord::tp_richcompare,                 /* tp_richcompare */
+    0,                                        /* tp_weaklistoffset */
+    0,                                        /* tp_iter */
+    0,                                        /* tp_iternext */
+    PyRecord::methods,                        /* tp_methods */
+    0,                                        /* tp_members */
+    0,                                        /* tp_getset */
+    0,                                        /* tp_base */
+    0,                                        /* tp_dict */
+    0,                                        /* tp_descr_get */
+    0,                                        /* tp_descr_set */
+    0,                                        /* tp_dictoffset */
+    (initproc)PyRecord::tp_init,              /* tp_init */
+    0,                                        /* tp_alloc */
+    (newfunc)PyRecord::tp_new,                /* tp_new */
 };
 
 static PyObject *PyRecord_reduce(PyObject *self, PyObject *args)
@@ -432,9 +588,35 @@ PyObject *PyRecord::getattro(PyObject *self, PyObject *obname)
 {
     PyObject *res;
     PyRecord *pyrec = (PyRecord *)self;
+    GUID structguid;
+    OLECHAR *guidString;
     char *name = PYWIN_ATTR_CONVERT(obname);
     if (name == NULL)
         return NULL;
+    if (strcmp(name, "__record_type_guid__") == 0) {
+        HRESULT hr = pyrec->pri->GetGuid(&structguid);
+        if (FAILED(hr)) {
+            PyCom_BuildPyException(hr, pyrec->pri, IID_IRecordInfo);
+            return NULL;
+        }
+        hr = StringFromCLSID(structguid, &guidString);
+        if (FAILED(hr)) {
+            PyCom_BuildPyException(hr);
+            return NULL;
+        }
+        res = PyWinCoreString_FromString(guidString);
+        ::CoTaskMemFree(guidString);
+        return res;
+    }
+    if (strcmp(name, "__record_type_name__") == 0) {
+        BSTR rec_name;
+        HRESULT hr = pyrec->pri->GetName(&rec_name);
+        if (FAILED(hr))
+            return PyCom_BuildPyException(hr, pyrec->pri, IID_IRecordInfo);
+        res = PyWinCoreString_FromString(rec_name);
+        SysFreeString(rec_name);
+        return res;
+    }
     if (strcmp(name, "__members__") == 0) {
         ULONG cnames = 0;
         HRESULT hr = pyrec->pri->GetFieldNames(&cnames, NULL);
@@ -496,7 +678,7 @@ PyObject *PyRecord::getattro(PyObject *self, PyObject *obname)
     // Short-circuit sub-structs and arrays here, so we don't allocate a new chunk
     // of memory and copy it - we need sub-structs to persist.
     if (V_VT(&vret) == (VT_BYREF | VT_RECORD))
-        return new PyRecord(V_RECORDINFO(&vret), V_RECORD(&vret), pyrec->owner);
+        return PyRecord::new_record(V_RECORDINFO(&vret), V_RECORD(&vret), pyrec->owner);
     else if (V_VT(&vret) == (VT_BYREF | VT_ARRAY | VT_RECORD)) {
         SAFEARRAY *psa = *V_ARRAYREF(&vret);
         if (SafeArrayGetDim(psa) != 1)
@@ -531,7 +713,13 @@ PyObject *PyRecord::getattro(PyObject *self, PyObject *obname)
         // in the last parameter, i.e. 'sub_data == NULL'.
         this_data = (BYTE *)psa->pvData;
         for (i = 0; i < nelems; i++) {
-            PyTuple_SET_ITEM(ret_tuple, i, new PyRecord(sub, this_data, pyrec->owner));
+            PyRecord *rec = PyRecord::new_record(sub, this_data, pyrec->owner);
+            if (rec == NULL) {
+                Py_DECREF(ret_tuple);
+                ret_tuple = NULL;
+                goto array_end;
+            }
+            PyTuple_SET_ITEM(ret_tuple, i, rec);
             this_data += element_size;
         }
     array_end:
@@ -645,4 +833,8 @@ done:
     return ret;
 }
 
-void PyRecord::tp_dealloc(PyObject *ob) { delete (PyRecord *)ob; }
+void PyRecord::tp_dealloc(PyRecord *self)
+{
+    self->~PyRecord();
+    Py_TYPE(self)->tp_free((PyObject *)self);
+}

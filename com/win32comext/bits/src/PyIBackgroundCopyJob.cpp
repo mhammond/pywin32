@@ -620,9 +620,9 @@ PyObject *PyIBackgroundCopyJob::SetProxySettings(PyObject *self, PyObject *args)
     HRESULT hr;
     PY_INTERFACE_PRECALL;
     hr = pIBCJ->SetProxySettings(ProxyUsage, ProxyList, ProxyBypassList);
+    PY_INTERFACE_POSTCALL;
     PyWinObject_FreeWCHAR(ProxyList);
     PyWinObject_FreeWCHAR(ProxyBypassList);
-    PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIBCJ, IID_IBackgroundCopyJob);
     Py_INCREF(Py_None);

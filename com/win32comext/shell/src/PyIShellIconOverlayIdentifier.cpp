@@ -43,6 +43,7 @@ PyObject *PyIShellIconOverlayIdentifier::IsMemberOf(PyObject *self, PyObject *ar
     HRESULT hr;
     PY_INTERFACE_PRECALL;
     hr = pISIOI->IsMemberOf(path, attrib);
+
     PY_INTERFACE_POSTCALL;
     PyWinObject_FreeWCHAR(path);
 

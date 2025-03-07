@@ -34,6 +34,7 @@ import shutil
 import subprocess
 import sys
 import winreg
+from collections.abc import MutableSequence
 from pathlib import Path
 from setuptools import Extension, setup
 from setuptools.command.build import build
@@ -41,11 +42,18 @@ from setuptools.command.build_ext import build_ext
 from setuptools.command.install import install
 from setuptools.modified import newer_group
 from tempfile import gettempdir
-from typing import Iterable
+from typing import TYPE_CHECKING, Iterable
 
-from distutils import ccompiler
-from distutils._msvccompiler import MSVCCompiler
-from distutils.command.install_data import install_data
+# We must import from distutils directly at runtime
+# But this prevents typing issues across Python 3.11-3.12
+if TYPE_CHECKING:
+    from setuptools._distutils import ccompiler
+    from setuptools._distutils._msvccompiler import MSVCCompiler
+    from setuptools._distutils.command.install_data import install_data
+else:
+    from distutils import ccompiler
+    from distutils._msvccompiler import MSVCCompiler
+    from distutils.command.install_data import install_data
 
 build_id_patch = build_id
 if not "." in build_id_patch:
@@ -956,7 +964,7 @@ class my_compiler(MSVCCompiler):
         sources = sorted(sources, key=key_reverse_mc)
         return MSVCCompiler.compile(self, sources, **kwargs)
 
-    def spawn(self, cmd):
+    def spawn(self, cmd: MutableSequence[str]) -> None:  # type: ignore[override] # More restrictive than supertype
         is_link = cmd[0].endswith("link.exe") or cmd[0].endswith('"link.exe"')
         is_mt = cmd[0].endswith("mt.exe") or cmd[0].endswith('"mt.exe"')
         if is_mt:
@@ -974,7 +982,7 @@ class my_compiler(MSVCCompiler):
                 if cmd[i] == "-manifest":
                     cmd[i + 1] += ".orig"
                     break
-        super().spawn(cmd)
+        super().spawn(cmd)  # type: ignore[arg-type] # mypy variance issue, but pyright ok
         if is_link:
             # We want a copy of the original manifest so we can use it later.
             for i in range(len(cmd)):
