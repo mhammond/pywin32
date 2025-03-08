@@ -14,7 +14,12 @@ https://mhammond.github.io/pywin32_installers.html .
 Coming in build 309, as yet unreleased
 --------------------------------------
 
+## pywin32
 * Fixed Access Violation crashes in 3.12 by moving `PyWInObject_Free*` methods so GIL is acquired (#2467, @Mscht)
+* Added support for relative path for `pywin32_postinstall`'s `-destination` argument (#2454, @Avasam)
+* The postinstall script is now available as a console script. You can invoke it in one of two new methods: (#2408, @Avasam)
+  1. `python -m pywin32_postinstall -install` (recommended)
+  2. `pywin32_postinstall -install` (shorter but you don't have control over which python environment is used)
 * Changed the implementation of 'com_record' to a subclassable Python type (#2437, #2361, @geppi)
 * Removed param `hIcon` from `win32comext.shell.ShellExecuteEx`. It was unusable since Windows Vista (#2423, @Avasam)
 * Fixed `nbios.NCBStruct` packing (#2406, @Avasam)
@@ -37,6 +42,9 @@ Coming in build 309, as yet unreleased
 * Fixed accidentally trying to raise an undefined name instead of an `Exception` in `Pythonwin/pywin/debugger/debugger.py` (#2326, @Avasam)
 * Fixed PythonService DoLogMessage raising fatal GIL lock error (#2426, JacobNolan1)
 * Fixed and improved the following demos: `ddeclient`, `ddeserver`, `EvtSubscribe_push`, `openGLDemo`, `guidemo`, `ocxserialtest`, `ocxtest`, `testMSOffice.TestWord8` (#2290, #2281, #2291, #2478 @Avasam)
+
+## adodbapi
+* Fixes `NameError: name 'os' is not defined` error for `"getenv"` macro in `adodbapi.process_connect_string.macro_call` (#2283, @Avasam)
 
 Build 308, released 2024-10-12
 ------------------------------
