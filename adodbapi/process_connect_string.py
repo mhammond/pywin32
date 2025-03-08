@@ -2,6 +2,7 @@
 
 from . import is64bit
 
+
 def macro_call(macro_name, args, kwargs):
     """allow the programmer to perform limited processing on the server by passing macro names and args
 
