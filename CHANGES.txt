@@ -14,6 +14,7 @@ https://mhammond.github.io/pywin32_installers.html .
 Coming in build 309, as yet unreleased
 --------------------------------------
 
+## pywin32
 * Added support for relative path for `pywin32_postinstall`'s `-destination` argument (#2454, @Avasam)
 * The postinstall script is now available as a console script. You can invoke it in one of two new methods: (#2408, @Avasam)
   1. `python -m pywin32_postinstall -install` (recommended)
@@ -40,6 +41,9 @@ Coming in build 309, as yet unreleased
 * Fixed accidentally trying to raise an undefined name instead of an `Exception` in `Pythonwin/pywin/debugger/debugger.py` (#2326, @Avasam)
 * Fixed PythonService DoLogMessage raising fatal GIL lock error (#2426, JacobNolan1)
 * Fixed and improved the following demos: `ddeclient`, `ddeserver`, `EvtSubscribe_push`, `openGLDemo`, `guidemo`, `ocxserialtest`, `ocxtest`, `testMSOffice.TestWord8` (#2290, #2281, #2291, #2478 @Avasam)
+
+## adodbapi
+* Fixes `NameError: name 'os' is not defined` error for `"getenv"` macro in `adodbapi.process_connect_string.macro_call` (#2283, @Avasam)
 
 Build 308, released 2024-10-12
 ------------------------------
