@@ -642,9 +642,12 @@ def uninstall(lib_dir):
 # Out of principle, we're still not using system exits.
 
 
-def verify_destination(location):
+def verify_destination(location: str) -> str:
+    location = os.path.abspath(location)
     if not os.path.isdir(location):
-        raise argparse.ArgumentTypeError(f'Path "{location}" does not exist!')
+        raise argparse.ArgumentTypeError(
+            f'Path "{location}" is not an existing directory!'
+        )
     return location
 
 

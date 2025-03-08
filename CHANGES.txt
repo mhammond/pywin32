@@ -14,10 +14,11 @@ https://mhammond.github.io/pywin32_installers.html .
 Coming in build 309, as yet unreleased
 --------------------------------------
 
+* Added support for relative path for `pywin32_postinstall`'s `-destination` argument (#2454, @Avasam)
 * The postinstall script is now available as a console script. You can invoke it in one of two new methods: (#2408, @Avasam)
   1. `python -m pywin32_postinstall -install` (recommended)
   2. `pywin32_postinstall -install` (shorter but you don't have control over which python environment is used)
-* Changed the implementation of 'com_record' to a subclassable Python type (2437#, #2361, @geppi)
+* Changed the implementation of 'com_record' to a subclassable Python type (#2437, #2361, @geppi)
 * Removed param `hIcon` from `win32comext.shell.ShellExecuteEx`. It was unusable since Windows Vista (#2423, @Avasam)
 * Fixed `nbios.NCBStruct` packing (#2406, @Avasam)
 * Restored axdebug builds on Python 3.10 (#2416, @Avasam)
