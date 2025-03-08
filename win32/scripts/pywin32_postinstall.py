@@ -661,13 +661,8 @@ def main():
 
     > pywin32_postinstall -install
 
-    Given EXE installers are no longer provided,
-    and wheel installs can't run postinstall scripts,
-    you almost certainly need to run this to
-    setup the environment correctly.
-
-    Execute this script with a '-install' parameter, to ensure the environment
-    is setup correctly.
+    You need to execute this script, with a '-install' parameter,
+    to ensure the environment is setup correctly to install COM objects, services, etc.
     """,
     )
     parser.add_argument(

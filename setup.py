@@ -31,7 +31,6 @@ import os
 import platform
 import re
 import shutil
-import subprocess
 import sys
 import winreg
 from collections.abc import MutableSequence
@@ -39,7 +38,6 @@ from pathlib import Path
 from setuptools import Extension, setup
 from setuptools.command.build import build
 from setuptools.command.build_ext import build_ext
-from setuptools.command.install import install
 from setuptools.modified import newer_group
 from tempfile import gettempdir
 from typing import TYPE_CHECKING, Iterable
@@ -856,44 +854,6 @@ class my_build_ext(build_ext):
                 logging.info("skipping swig of %s", source)
 
         return new_sources
-
-
-class my_install(install):
-    def run(self):
-        """Custom script we run at the end of installing
-        This is only run for local installs. Wheel-based installs won't run this code.
-        """
-        install.run(self)
-        # If self.root has a value, it means we are being "installed" into some other
-        # directory than Python itself - in which case we must *not* run our installer.
-        # bdist_wininst used to trigger this by using a temp directory.
-        # Is this still a concern ?
-        if self.root:
-            print(
-                "Not executing post install script when "
-                + f"not installing in Python itself (self.root={self.root})"
-            )
-            return
-        self.execute(self._postinstall, (), msg="Executing post install script...")
-
-    def _postinstall(self):
-        filename = os.path.join(self.install_scripts, "pywin32_postinstall.py")
-        if not os.path.isfile(filename):
-            raise RuntimeError(f"Can't find '{filename}'")
-        # As of setuptools>=74.0.0, we no longer need to
-        # be concerned about distutils calling win32api
-        subprocess.Popen(
-            [
-                sys.executable,
-                filename,
-                "-install",
-                "-destination",
-                self.install_lib,
-                "-quiet",
-                "-wait",
-                str(os.getpid()),
-            ]
-        )
 
 
 def my_new_compiler(**kw):
@@ -2053,7 +2013,6 @@ ext_modules = (
 )
 
 cmdclass = {
-    "install": my_install,
     "build": my_build,
     "build_ext": my_build_ext,
     "install_data": my_install_data,

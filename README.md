@@ -108,7 +108,7 @@ Entry-point not found
 
 It usually means one of 2 things:
 
-* You've upgraded an install where the post-install script has previously run.
+* You've upgraded an install where the post-install script was previously run.
 So you should run it again:
 
     ```shell
