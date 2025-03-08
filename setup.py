@@ -132,7 +132,7 @@ class WinExt(Extension):
                 # CRYPT_DECRYPT_MESSAGE_PARA.dwflags is in an ifdef for some unknown reason
                 # See github PR #1444 for more details...
                 ("CRYPT_DECRYPT_MESSAGE_PARA_HAS_EXTRA_FIELDS", None),
-                # Minimum Windows version supported (Vista)
+                # Minimum Windows version supported (Vista / Windows Server 2008)
                 # https://learn.microsoft.com/en-us/cpp/porting/modifying-winver-and-win32-winnt
                 ("_WIN32_WINNT", hex(0x0600)),
                 ("WINVER", hex(0x0600)),
@@ -2063,6 +2063,7 @@ classifiers = [
     "Environment :: Win32 (MS Windows)",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: Python Software Foundation License",
+    "Development Status :: 5 - Production/Stable",
     "Operating System :: Microsoft :: Windows",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
@@ -2085,7 +2086,18 @@ dist = setup(
     license="PSF",
     classifiers=classifiers,
     cmdclass=cmdclass,
-    scripts=["pywin32_postinstall.py", "pywin32_testall.py"],
+    # This adds the scripts under Python3XX/Scripts, but doesn't actually do much
+    scripts=[
+        "win32/scripts/pywin32_postinstall.py",
+        "win32/scripts/pywin32_testall.py",
+    ],
+    # This shortcuts `python -m win32.scripts.some_script` to just `some_script`
+    entry_points={
+        "console_scripts": [
+            "pywin32_postinstall = win32.scripts.pywin32_postinstall:main",
+            "pywin32_testall = win32.scripts.pywin32_testall:main",
+        ]
+    },
     ext_modules=ext_modules,
     package_dir={
         "win32com": "com/win32com",
