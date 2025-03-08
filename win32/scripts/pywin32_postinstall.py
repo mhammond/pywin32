@@ -655,7 +655,11 @@ def main():
 
     * Typical usage:
 
-    > python pywin32_postinstall.py -install
+    > python -m pywin32_postinstall -install
+
+    * or (shorter but you don't have control over which python environment is used)
+
+    > pywin32_postinstall -install
 
     You need to execute this script, with a '-install' parameter,
     to ensure the environment is setup correctly to install COM objects, services, etc.

@@ -408,8 +408,9 @@ PyObject *PyObject_FromPIDLArray(UINT cidl, LPCITEMIDLIST *pidl)
 }
 
 // See MSDN
-// http://msdn.microsoft.com/library/default.asp?url=/library/en-us/shellcc/platform/shell/programmersguide/shell_basics/shell_basics_programming/transferring/clipboard.asp
-// (or search MSDN for "CFSTR_SHELLIDLIST"
+// https://learn.microsoft.com/en-us/windows/win32/shell/dragdrop
+// https://learn.microsoft.com/en-us/windows/win32/shell/clipboard#cfstr_shellidlist
+// (or search for "CFSTR_SHELLIDLIST")
 #define GetPIDLFolder(pida) (LPCITEMIDLIST)(((LPBYTE)pida) + (pida)->aoffset[0])
 #define GetPIDLItem(pida, i) (LPCITEMIDLIST)(((LPBYTE)pida) + (pida)->aoffset[i + 1])
 PyObject *PyObject_FromCIDA(CIDA *pida)
@@ -855,11 +856,11 @@ void PyObject_CleanupDEFCONTEXTMENU(DEFCONTEXTMENU *dcm)
         dcm->psf->Release();
     if (dcm->punkAssociationInfo)
         dcm->punkAssociationInfo->Release();
+    PY_INTERFACE_POSTCALL;
     if (dcm->pidlFolder)
         PyObject_FreePIDL(dcm->pidlFolder);
     if (dcm->apidl)
         PyObject_FreePIDLArray(dcm->cidl, dcm->apidl);
-    PY_INTERFACE_POSTCALL;
 }
 
 // @object DEFCONTENTMENU|A tuple representing a DEFCONTEXTMENU structure.
