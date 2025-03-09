@@ -3,9 +3,6 @@
 
 #include "shell_pch.h"
 
-// Requires Windows 7 SDK to build
-#if WINVER >= 0x0601
-
 #include "PyIShellLibrary.h"
 
 // @doc - This file contains autoduck documentation
@@ -431,7 +428,6 @@ PyObject *PyIShellLibrary::SaveInKnownFolder(PyObject *self, PyObject *args)
 }
 
 // @object PyIShellLibrary|Interface used to access Libraries
-// @comm Requires Windows 7 or later
 static struct PyMethodDef PyIShellLibrary_methods[] = {
     {"LoadLibraryFromItem", PyIShellLibrary::LoadLibraryFromItem,
      1},  // @pymeth LoadLibraryFromItem|Loads an existing library file
@@ -463,5 +459,3 @@ static struct PyMethodDef PyIShellLibrary_methods[] = {
 
 PyComTypeObject PyIShellLibrary::type("PyIShellLibrary", &PyIUnknown::type, sizeof(PyIShellLibrary),
                                       PyIShellLibrary_methods, GET_PYCOM_CTOR(PyIShellLibrary));
-
-#endif  // WINVER
