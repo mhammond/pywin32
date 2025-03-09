@@ -11,9 +11,8 @@ or
 As of build 305, installation .exe files have been deprecated; see
 https://mhammond.github.io/pywin32_installers.html .
 
-Coming in build 309, as yet unreleased
---------------------------------------
-
+Build 309, released 2025/03/09
+------------------------------
 ## pywin32
 * Added support for relative path for `pywin32_postinstall`'s `-destination` argument (#2454, @Avasam)
 * The postinstall script is now available as a console script. You can invoke it in one of two new methods: (#2408, @Avasam)
