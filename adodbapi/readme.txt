@@ -37,7 +37,7 @@ or:
         adodbapi.apibase.variantConversions[adodbapi.ado_consts.adNumeric] = write_your_own_conversion_function
 		............
 notes for 2.6.2:
-    The definitive source has been moved to https://github.com/mhammond/pywin32/tree/master/adodbapi.
+    The definitive source has been moved to https://github.com/mhammond/pywin32/tree/main/adodbapi.
     Remote has proven too hard to configure and test with Pyro4. I am moving it to unsupported status
     until I can change to a different connection method.
 what's new in version 2.6
