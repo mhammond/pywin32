@@ -30,6 +30,7 @@ extern PyObject *pythoncom_IsGatewayRegistered(PyObject *self, PyObject *args);
 extern PyObject *g_obPyCom_MapIIDToType;
 extern PyObject *g_obPyCom_MapGatewayIIDToName;
 extern PyObject *g_obPyCom_MapInterfaceNameToIID;
+extern PyObject *g_obPyCom_MapRecordGUIDToRecordClass;
 
 PyObject *g_obEmpty = NULL;
 PyObject *g_obMissing = NULL;
@@ -2195,6 +2196,13 @@ PYWIN_MODULE_INIT_FUNC(pythoncom)
         PYWIN_MODULE_INIT_RETURN_ERROR;
     }
 
+    // Initialize the dictionary for registering com_record subclasses.
+    g_obPyCom_MapRecordGUIDToRecordClass = PyDict_New();
+    if (g_obPyCom_MapRecordGUIDToRecordClass == NULL) {
+        PYWIN_MODULE_INIT_RETURN_ERROR;
+    }
+    PyDict_SetItemString(dict, "RecordClasses", g_obPyCom_MapRecordGUIDToRecordClass);
+
     // XXX - more error checking?
     PyDict_SetItemString(dict, "TypeIIDs", g_obPyCom_MapIIDToType);
     PyDict_SetItemString(dict, "ServerInterfaces", g_obPyCom_MapGatewayIIDToName);
@@ -2246,6 +2254,10 @@ PYWIN_MODULE_INIT_FUNC(pythoncom)
     if (PyType_Ready(&PyFUNCDESC::Type) == -1 || PyType_Ready(&PySTGMEDIUM::Type) == -1 ||
         PyType_Ready(&PyTYPEATTR::Type) == -1 || PyType_Ready(&PyVARDESC::Type) == -1 ||
         PyType_Ready(&PyRecord::Type) == -1)
+        PYWIN_MODULE_INIT_RETURN_ERROR;
+
+    // Add the PyRecord type as a module attribute
+    if (PyModule_AddObject(module, "com_record", (PyObject *)&PyRecord::Type) != 0)
         PYWIN_MODULE_INIT_RETURN_ERROR;
 
     // Setup our sub-modules
