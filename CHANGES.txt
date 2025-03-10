@@ -16,6 +16,9 @@ Coming in build 310, as yet unreleased
 * Drop support for Vista, set Windows 7 as the minimal Windows version. (#, @Avasam)
   * Restores many IIDs in `win32com(ext).shell.shell`. See #2486 for details.
 
+## adodbapi
+* When `errorhandler` is called, the `errorvalue` argument is now always an `Exception` and the `errortype` is the `type` of that specific `errorvalue` (#2351, @Avasam)
+
 Build 309, released 2025/03/09
 ------------------------------
 ## pywin32
