@@ -19,6 +19,7 @@ Coming in build 310, as yet unreleased
 Build 309, released 2025/03/09
 ------------------------------
 ## pywin32
+* Fixed Access Violation crashes in 3.12 by moving `PyWInObject_Free*` methods so GIL is acquired (#2467, @Mscht)
 * Added support for relative path for `pywin32_postinstall`'s `-destination` argument (#2454, @Avasam)
 * The postinstall script is now available as a console script. You can invoke it in one of two new methods: (#2408, @Avasam)
   1. `python -m pywin32_postinstall -install` (recommended)
