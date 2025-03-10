@@ -90,7 +90,9 @@ def ShowInfo(spec):
             )
         except pythoncom.com_error:  # May be badly registered.
             sys.stderr.write(
-                "Warning - could not load registered typelib '%s'\n" % (tlbSpec.clsid)
+                "Warning - could not load registered typelib '{}'\n".format(
+                    tlbSpec.clsid
+                )
             )
             tlb = None
 
@@ -101,7 +103,7 @@ def ShowInfo(spec):
         desc = tlbSpec.desc
         if desc is None:
             if tlb is None:
-                desc = "<Could not load typelib %s>" % (tlbSpec.dll)
+                desc = "<Could not load typelib {}>".format(tlbSpec.dll)
             else:
                 desc = tlb.GetDocumentation(-1)[0]
         print(desc)
@@ -144,7 +146,7 @@ class SimpleProgress(genpy.GeneratorProgress):
             sys.stderr.write(desc + "\n")
 
     def LogBeginGenerate(self, filename):
-        self.VerboseProgress("Generating to %s" % filename, 1)
+        self.VerboseProgress("Generating to {}".format(filename), 1)
 
     def LogWarning(self, desc):
         self.VerboseProgress("WARNING: " + desc, 1)
@@ -210,7 +212,7 @@ def GetTypeLibsForSpec(arg):
                 except pythoncom.com_error:
                     pass
             if len(tlbs) == 0:
-                print("Could not locate a type library matching '%s'" % (arg))
+                print("Could not locate a type library matching '{}'".format(arg))
             for spec in tlbs:
                 # Version numbers not always reliable if enumerated from registry.
                 # (as some libs use hex, other's don't.  Both examples from MS, of course.)
