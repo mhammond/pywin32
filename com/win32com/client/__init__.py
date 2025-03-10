@@ -269,7 +269,12 @@ def __get_disp_and_event_classes(dispatch):
     disp = Dispatch(dispatch)
 
     if disp.__class__.__dict__.get("CLSID"):
-        return disp.__class__
+        disp_class = disp.__class__
+        clsid = disp_class.CLSID
+        events_class = getevents(clsid)
+        if events_class is None:
+            raise ValueError("This COM object does not support events.")
+        return disp, disp_class, events_class
 
     # Eeek - no makepy support - try and build it.
     error_msg = "This COM object can not automate the makepy process - please run makepy manually for this object"
