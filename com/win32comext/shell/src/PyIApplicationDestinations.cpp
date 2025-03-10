@@ -3,9 +3,6 @@
 
 #include "shell_pch.h"
 
-// Requires Windows 7 SDK to build
-#if WINVER >= 0x0601
-
 #include "PyIApplicationDestinations.h"
 
 // @doc - This file contains autoduck documentation
@@ -90,7 +87,6 @@ PyObject *PyIApplicationDestinations::RemoveAllDestinations(PyObject *self, PyOb
 }
 
 // @object PyIApplicationDestinations|Allows an application to removed items from its jump lists
-// @comm Available on Windows 7 and later
 static struct PyMethodDef PyIApplicationDestinations_methods[] = {
     {"SetAppID", PyIApplicationDestinations::SetAppID,
      1},  // @pymeth SetAppID|Specifies the application whose jump list is to be accessed
@@ -103,4 +99,3 @@ static struct PyMethodDef PyIApplicationDestinations_methods[] = {
 PyComTypeObject PyIApplicationDestinations::type("PyIApplicationDestinations", &PyIUnknown::type,
                                                  sizeof(PyIApplicationDestinations), PyIApplicationDestinations_methods,
                                                  GET_PYCOM_CTOR(PyIApplicationDestinations));
-#endif  // WINVER

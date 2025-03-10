@@ -22,13 +22,18 @@ The docs are a long and sad story, but [there's now an online version](https://m
 of the `PyWin32.chm` helpfile (thanks [@ofek](https://github.com/mhammond/pywin32/pull/1774)!).
 Lots of that is very old, but some is auto-generated and current. Would love help untangling the docs!
 
+You can get type hints, signatures and annotations from [`types-pywin32`](https://pypi.org/project/types-pywin32/).
+
 ## Support
 
 Feel free to [open issues](https://github.com/mhammond/pywin32/issues) for
 all bugs (or suspected bugs) in pywin32. [pull-requests](https://github.com/mhammond/pywin32/pulls)
 for all bugs or features are also welcome.
 
-However, please **do not open github issues for general support requests**, or
+Type stubs currently live in [typeshed](<https://github.com/python/typeshed/tree/main/stubs/pywin32>).
+Any issue or request related to static type-checking and IntelliSense should be raised there.
+
+However, please **do not open GitHub issues for general support requests**, or
 for problems or questions using the modules in this package - they will be
 closed. For such issues, please email the
 [python-win32 mailing list](https://mail.python.org/mailman/listinfo/python-win32) -
@@ -53,7 +58,7 @@ There is a post-install script (see below) which should *not* be run inside virt
 it should only be run in "global" installs.
 
 For unreleased changes, you can download builds made by [github actions](https://github.com/mhammond/pywin32/actions/) -
-choose any "workflow" from the `main` branch and download its "artifacts")
+choose any "workflow" from the `main` branch and download its "artifacts"
 
 ### Installing globally
 
@@ -61,10 +66,14 @@ Outside of a virtual environment you might want to install COM objects, services
 this by executing:
 
 ```shell
-python Scripts/pywin32_postinstall.py -install
+python -m pywin32_postinstall -install
 ```
 
-From the root of your Python installation.
+or (shorter but you don't have control over which python environment is used)
+
+```shell
+pywin32_postinstall -install
+```
 
 If you do this with normal permissions it will be global for your user (a few files will be
 copied to the root of your Python install and some changes made to HKCU). If you execute this from
@@ -99,11 +108,17 @@ Entry-point not found
 
 It usually means one of 2 things:
 
-* You've upgraded an install where the post-install script has previously run.
+* You've upgraded an install where the post-install script was previously run.
 So you should run it again:
 
     ```shell
-    python Scripts/pywin32_postinstall.py -install
+    python -m pywin32_postinstall -install
+    ```
+
+    or (shorter but you don't have control over which python environment is used)
+
+    ```shell
+    pywin32_postinstall -install
     ```
 
     This will make some small attempts to cleanup older conflicting installs.
