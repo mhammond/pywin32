@@ -40,7 +40,7 @@ from setuptools.command.build import build
 from setuptools.command.build_ext import build_ext
 from setuptools.modified import newer_group
 from tempfile import gettempdir
-from typing import TYPE_CHECKING, Iterable
+from typing import TYPE_CHECKING
 
 # We must import from distutils directly at runtime
 # But this prevents typing issues across Python 3.11-3.12
