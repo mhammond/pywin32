@@ -496,7 +496,7 @@ class my_build_ext(build_ext):
 
         We can't just add to sys.path to point to the build folder,
         because this uses subprocesses,
-        so we we create a temporary .pth file instead.
+        so we create a temporary .pth file instead.
         """
         build_lib_absolute = os.path.abspath(self.build_lib)
         tmp_pywin32_build_pth = (

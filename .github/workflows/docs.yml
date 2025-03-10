@@ -30,7 +30,7 @@ jobs:
       - name: Set Python user site directory
         run: python -c "import os,site; open(os.environ['GITHUB_ENV'], 'a').write(f'USER_DIR={site.USER_SITE}\n')"
 
-      - name: Decompile shipped help file
+      - name: Decompile shipped help file into HTML
         run: hh -decompile site ${env:USER_DIR}\PyWin32.chm
 
       - name: Rename root HTML file
