@@ -116,9 +116,9 @@ def TextExcel(xl):
         xl.Cells(i + 1, i + 1).Value = "Hi %d" % i
 
     assert xl.Range("A1").Value == "Hi 0", "Single cell range failed"
-    assert xl.Range("A1:B1").Value == (
-        ("Hi 0", 2),
-    ), "flat-horizontal cell range failed"
+    assert xl.Range("A1:B1").Value == (("Hi 0", 2),), (
+        "flat-horizontal cell range failed"
+    )
     assert xl.Range("A1:A2").Value == (
         ("Hi 0",),
         ("x",),
