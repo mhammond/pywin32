@@ -130,10 +130,10 @@ class WinExt(Extension):
                 # CRYPT_DECRYPT_MESSAGE_PARA.dwflags is in an ifdef for some unknown reason
                 # See github PR #1444 for more details...
                 ("CRYPT_DECRYPT_MESSAGE_PARA_HAS_EXTRA_FIELDS", None),
-                # Minimum Windows version supported (Vista / Windows Server 2008)
+                # Minimum Windows version supported (Windows 7 / Windows Server 2008)
                 # https://learn.microsoft.com/en-us/cpp/porting/modifying-winver-and-win32-winnt
-                ("_WIN32_WINNT", hex(0x0600)),
-                ("WINVER", hex(0x0600)),
+                ("_WIN32_WINNT", hex(0x0601)),
+                ("WINVER", hex(0x0601)),
             )
         )
         self.pch_header = pch_header
