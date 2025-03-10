@@ -13,6 +13,7 @@ https://mhammond.github.io/pywin32_installers.html .
 
 Coming in build 310, as yet unreleased
 --------------------------------------
+* Restored shipping a helpfile with the wheel. Run like for pywin32 306 and before, you can run the `pywin32_postinstall` script to register it  (#2432, @Avasam)
 * Drop support for Vista, set Windows 7 as the minimal Windows version. (#, @Avasam)
   * Restores many IIDs in `win32com(ext).shell.shell`. See #2486 for details.
 
