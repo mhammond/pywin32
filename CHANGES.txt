@@ -11,9 +11,8 @@ or
 As of build 305, installation .exe files have been deprecated; see
 https://mhammond.github.io/pywin32_installers.html .
 
-Unreleased
-----------
-
+Coming in build 310, as yet unreleased
+--------------------------------------
 * Drop support for Vista, set Windows 7 as the minimal Windows version. (#, @Avasam)
   * Restores many IIDs in `win32com(ext).shell.shell`. See #2486 for details.
 
