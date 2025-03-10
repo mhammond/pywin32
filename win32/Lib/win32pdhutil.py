@@ -27,7 +27,7 @@ import win32pdh
 error = win32pdh.error  # Re-exported alias
 
 # Handle some localization issues.
-# see http://support.microsoft.com/default.aspx?scid=http://support.microsoft.com:80/support/kb/articles/Q287/1/59.asp&NoWebContent=1
+# see https://www.betaarchive.com/wiki/index.php?title=Microsoft_KB_Archive/287159
 # Build a map of english_counter_name: counter_id
 counter_english_map: dict[str, int] = {}
 
@@ -60,8 +60,8 @@ def GetPerformanceAttributes(
     # thread's CPU usage is either 0 or 100).  To read counters like this,
     # you should copy this function, but keep the counter open, and call
     # CollectQueryData() each time you need to know.
-    # See http://support.microsoft.com/default.aspx?scid=kb;EN-US;q262938
-    # and http://msdn.microsoft.com/library/en-us/dnperfmo/html/perfmonpt2.asp
+    # See https://www.betaarchive.com/wiki/index.php?title=Microsoft_KB_Archive/262938
+    # and https://web.archive.org/web/20040926105842/http://msdn.microsoft.com:80/library/en-us/dnperfmo/html/perfmonpt2.asp
     # My older explanation for this was that the "AddCounter" process forced
     # the CPU to 100%, but the above makes more sense :)
     path = win32pdh.MakeCounterPath((machine, object, instance, None, inum, counter))
@@ -145,8 +145,8 @@ def ShowAllProcesses():
                 )
                 hcs.append(win32pdh.AddCounter(hq, path))
             win32pdh.CollectQueryData(hq)
-            # as per http://support.microsoft.com/default.aspx?scid=kb;EN-US;q262938, some "%" based
-            # counters need two collections
+            # as per https://www.betaarchive.com/wiki/index.php?title=Microsoft_KB_Archive/262938
+            # some "%" based  counters need two collections
             time.sleep(0.01)
             win32pdh.CollectQueryData(hq)
             print("%-15s\t" % (instance[:15]), end=" ")

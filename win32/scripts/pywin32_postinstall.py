@@ -642,9 +642,12 @@ def uninstall(lib_dir):
 # Out of principle, we're still not using system exits.
 
 
-def verify_destination(location):
+def verify_destination(location: str) -> str:
+    location = os.path.abspath(location)
     if not os.path.isdir(location):
-        raise argparse.ArgumentTypeError(f'Path "{location}" does not exist!')
+        raise argparse.ArgumentTypeError(
+            f'Path "{location}" is not an existing directory!'
+        )
     return location
 
 
@@ -655,18 +658,14 @@ def main():
 
     * Typical usage:
 
-    > python pywin32_postinstall.py -install
+    > python -m pywin32_postinstall -install
 
-    This should be run automatically after installation,
-    but if it fails you can run it again.
+    * or (shorter but you don't have control over which python environment is used)
 
-    Given EXE installers are no longer provided,
-    and wheel installs can't run postinstall scripts,
-    you almost certainly need to run this to
-    setup the environment correctly.
+    > pywin32_postinstall -install
 
-    Execute this script with a '-install' parameter, to ensure the environment
-    is setup correctly.
+    You need to execute this script, with a '-install' parameter,
+    to ensure the environment is setup correctly to install COM objects, services, etc.
     """,
     )
     parser.add_argument(

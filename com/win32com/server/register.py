@@ -304,7 +304,7 @@ def RegisterServer(
     if addPyComCat is None:
         addPyComCat = pythoncom.frozen == 0
     if addPyComCat:
-        catids.append(CATID_PythonCOMServer)
+        catids = catids + [CATID_PythonCOMServer]
 
     # Set up the implemented categories
     if catids:

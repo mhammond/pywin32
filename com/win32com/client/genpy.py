@@ -1151,8 +1151,8 @@ class Generator:
 
         print("RecordMap = {", file=stream)
         for record in recordItems.values():
+            record_str = f"{record.doc[0]!r}: '{record.clsid}',"
             if record.clsid == pythoncom.IID_NULL:
-                record_str = f"{record.doc[0]!r}: '{record.clsid}',"
                 print(
                     f"\t###{record_str}",
                     "# Record disabled because it doesn't have a non-null GUID",

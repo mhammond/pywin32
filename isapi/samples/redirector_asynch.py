@@ -17,7 +17,7 @@ if hasattr(sys, "isapidllhandle"):
     import win32traceutil
 
 # The site we are proxying.
-proxy = "http://www.python.org"
+proxy = "https://www.python.org"
 
 # We synchronously read chunks of this size then asynchronously write them.
 CHUNK_SIZE = 8192
