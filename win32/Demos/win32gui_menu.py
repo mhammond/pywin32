@@ -177,9 +177,9 @@ class MainWindow:
         InsertMenuItem(menu, 0, 1, item)
 
         # Owner-draw menus mainly from:
-        # http://windowssdk.msdn.microsoft.com/en-us/library/ms647558.aspx
+        # https://learn.microsoft.com/en-ca/windows/win32/menurc/using-menus
         # and:
-        # http://www.codeguru.com/cpp/controls/menu/bitmappedmenus/article.php/c165
+        # https://www.codeguru.com/cplusplus/owner-drawn-menu-with-icons/
 
         # Create one with an icon - this is *lots* more work - we do it
         # owner-draw!  The primary reason is to handle transparency better -

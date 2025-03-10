@@ -17,7 +17,7 @@ else:
     import os
 
     # We're guaranteed only that __path__: Iterable[str]
-    # https://docs.python.org/3/reference/import.html#__path__
+    # https://docs.python.org/3/reference/import.html#path-attributes-on-modules
     for path in pywin32_system32.__path__:
         if os.path.isdir(path):
             os.add_dll_directory(path)
