@@ -6,7 +6,7 @@
 #include "PythonCOM.h"
 #include "PyRecord.h"
 
-extern PyObject *PyObject_FromRecordInfo(IRecordInfo *, void *, ULONG);
+extern PyObject *PyObject_FromRecordInfo(IRecordInfo *, void *, ULONG, PyTypeObject *type = NULL);
 extern PyObject *PyObject_FromSAFEARRAYRecordInfo(SAFEARRAY *psa);
 extern BOOL PyObject_AsVARIANTRecordInfo(PyObject *ob, VARIANT *pv);
 extern BOOL PyRecord_Check(PyObject *ob);
@@ -288,7 +288,7 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
         // them as VARIANT elements but put them directly into the SAFEARRAY.
         if (is_record_item) {
             if (!PyCom_SAFEARRAYFromPyObject(obj, &V_ARRAY(var), VT_RECORD))
-                    return FALSE;
+                return FALSE;
             V_VT(var) = VT_ARRAY | VT_RECORD;
         }
         else {
@@ -1462,23 +1462,15 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
             break;
         case VT_BOOL | VT_BYREF:
             if (bCreateBuffers)
-#if _MSC_VER <= 1010
-                // use this macro for MSVC4.1 or before
-                V_BOOLREF(var) = &m_boolBuf;
-#define MYBOOLREF V_BOOLREF(var)
-#else
                 // this is used in MSVC4.2 and after
                 var->pboolVal = &m_boolBuf;
-#define MYBOOLREF (var->pboolVal)
-#endif
-
             if (!VALID_BYREF_MISSING(obj)) {
                 if ((obUse = PyNumber_Long(obj)) == NULL)
                     BREAK_FALSE
-                *MYBOOLREF = PyLong_AsLong(obj) ? VARIANT_TRUE : VARIANT_FALSE;
+                *(var->pboolVal) = PyLong_AsLong(obj) ? VARIANT_TRUE : VARIANT_FALSE;
             }
             else
-                *MYBOOLREF = 0;
+                *(var->pboolVal) = 0;
             break;
         case VT_R8:
             if ((obUse = PyNumber_Float(obj)) == NULL)
@@ -1597,7 +1589,7 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
             // Nothing else to do - the code below sets the VT up correctly.
             break;
         case VT_RECORD:
-		case VT_RECORD | VT_BYREF:
+        case VT_RECORD | VT_BYREF:
             rc = PyObject_AsVARIANTRecordInfo(obj, var);
             break;
         case VT_CY:

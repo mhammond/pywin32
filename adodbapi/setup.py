@@ -30,7 +30,7 @@ VERSION = None  # in case searching for version fails
 a = open("adodbapi.py")  # find the version string in the source code
 for line in a:
     if "__version__" in line:
-        VERSION = line.split("'")[1]
+        VERSION = line.split("'")[1]  # pyright: ignore[reportConstantRedefinition]
         print('adodbapi version="%s"' % VERSION)
         break
 a.close()

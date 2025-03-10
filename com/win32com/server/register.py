@@ -272,7 +272,7 @@ def RegisterServer(
             exeName = _find_localserver_exe(1)
             exeName = win32api.GetShortPathName(exeName)
             pyfile = _find_localserver_module()
-            command = f'{exeName} "{pyfile}" {str(clsid)}'
+            command = f'{exeName} "{pyfile}" {clsid}'
         _set_string(keyNameRoot + "\\LocalServer32", command)
     else:  # Remove any old LocalServer32 registrations
         _remove_key(keyNameRoot + "\\LocalServer32")
@@ -304,7 +304,7 @@ def RegisterServer(
     if addPyComCat is None:
         addPyComCat = pythoncom.frozen == 0
     if addPyComCat:
-        catids.append(CATID_PythonCOMServer)
+        catids = catids + [CATID_PythonCOMServer]
 
     # Set up the implemented categories
     if catids:
@@ -383,7 +383,7 @@ def UnregisterServer(clsid, progID=None, verProgID=None, customKeys=None):
 
 def GetRegisteredServerOption(clsid, optionName):
     """Given a CLSID for a server and option name, return the option value"""
-    keyNameRoot = f"CLSID\\{str(clsid)}\\{str(optionName)}"
+    keyNameRoot = f"CLSID\\{clsid}\\{optionName}"
     return _get_string(keyNameRoot)
 
 
@@ -523,11 +523,10 @@ def UnregisterClasses(*classes, **flags):
         extra()
 
 
-#
 # Unregister info is for installers or external uninstallers.
 # The WISE installer, for example firstly registers the COM server,
 # then queries for the Unregister info, appending it to its
-# install log.  Uninstalling the package will the uninstall the server
+# install log.  Uninstalling the package will uninstall the server.
 def UnregisterInfoClasses(*classes, **flags):
     ret = []
     for cls in classes:
