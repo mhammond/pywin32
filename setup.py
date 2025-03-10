@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-build_id = "308.1"  # may optionally include a ".{patchno}" suffix.
+build_id = "309.1"  # may optionally include a ".{patchno}" suffix.
 
 __doc__ = """This is a distutils setup-script for the pywin32 extensions.
 
@@ -31,21 +31,27 @@ import os
 import platform
 import re
 import shutil
-import subprocess
 import sys
 import winreg
+from collections.abc import MutableSequence
 from pathlib import Path
 from setuptools import Extension, setup
 from setuptools.command.build import build
 from setuptools.command.build_ext import build_ext
-from setuptools.command.install import install
 from setuptools.modified import newer_group
 from tempfile import gettempdir
-from typing import Iterable
+from typing import TYPE_CHECKING, Iterable
 
-from distutils import ccompiler
-from distutils._msvccompiler import MSVCCompiler
-from distutils.command.install_data import install_data
+# We must import from distutils directly at runtime
+# But this prevents typing issues across Python 3.11-3.12
+if TYPE_CHECKING:
+    from setuptools._distutils import ccompiler
+    from setuptools._distutils._msvccompiler import MSVCCompiler
+    from setuptools._distutils.command.install_data import install_data
+else:
+    from distutils import ccompiler
+    from distutils._msvccompiler import MSVCCompiler
+    from distutils.command.install_data import install_data
 
 build_id_patch = build_id
 if not "." in build_id_patch:
@@ -124,10 +130,10 @@ class WinExt(Extension):
                 # CRYPT_DECRYPT_MESSAGE_PARA.dwflags is in an ifdef for some unknown reason
                 # See github PR #1444 for more details...
                 ("CRYPT_DECRYPT_MESSAGE_PARA_HAS_EXTRA_FIELDS", None),
-                # Minimum Windows version supported (Vista)
+                # Minimum Windows version supported (Windows 7 / Windows Server 2008)
                 # https://learn.microsoft.com/en-us/cpp/porting/modifying-winver-and-win32-winnt
-                ("_WIN32_WINNT", hex(0x0600)),
-                ("WINVER", hex(0x0600)),
+                ("_WIN32_WINNT", hex(0x0601)),
+                ("WINVER", hex(0x0601)),
             )
         )
         self.pch_header = pch_header
@@ -850,44 +856,6 @@ class my_build_ext(build_ext):
         return new_sources
 
 
-class my_install(install):
-    def run(self):
-        """Custom script we run at the end of installing
-        This is only run for local installs. Wheel-based installs won't run this code.
-        """
-        install.run(self)
-        # If self.root has a value, it means we are being "installed" into some other
-        # directory than Python itself - in which case we must *not* run our installer.
-        # bdist_wininst used to trigger this by using a temp directory.
-        # Is this still a concern ?
-        if self.root:
-            print(
-                "Not executing post install script when "
-                + f"not installing in Python itself (self.root={self.root})"
-            )
-            return
-        self.execute(self._postinstall, (), msg="Executing post install script...")
-
-    def _postinstall(self):
-        filename = os.path.join(self.install_scripts, "pywin32_postinstall.py")
-        if not os.path.isfile(filename):
-            raise RuntimeError(f"Can't find '{filename}'")
-        # As of setuptools>=74.0.0, we no longer need to
-        # be concerned about distutils calling win32api
-        subprocess.Popen(
-            [
-                sys.executable,
-                filename,
-                "-install",
-                "-destination",
-                self.install_lib,
-                "-quiet",
-                "-wait",
-                str(os.getpid()),
-            ]
-        )
-
-
 def my_new_compiler(**kw):
     if "compiler" in kw and kw["compiler"] in (None, "msvc"):
         return my_compiler()
@@ -956,7 +924,7 @@ class my_compiler(MSVCCompiler):
         sources = sorted(sources, key=key_reverse_mc)
         return MSVCCompiler.compile(self, sources, **kwargs)
 
-    def spawn(self, cmd):
+    def spawn(self, cmd: MutableSequence[str]) -> None:  # type: ignore[override] # More restrictive than supertype
         is_link = cmd[0].endswith("link.exe") or cmd[0].endswith('"link.exe"')
         is_mt = cmd[0].endswith("mt.exe") or cmd[0].endswith('"mt.exe"')
         if is_mt:
@@ -974,7 +942,7 @@ class my_compiler(MSVCCompiler):
                 if cmd[i] == "-manifest":
                     cmd[i + 1] += ".orig"
                     break
-        super().spawn(cmd)
+        super().spawn(cmd)  # type: ignore[arg-type] # mypy variance issue, but pyright ok
         if is_link:
             # We want a copy of the original manifest so we can use it later.
             for i in range(len(cmd)):
@@ -2045,7 +2013,6 @@ ext_modules = (
 )
 
 cmdclass = {
-    "install": my_install,
     "build": my_build,
     "build_ext": my_build_ext,
     "install_data": my_install_data,
@@ -2055,6 +2022,7 @@ classifiers = [
     "Environment :: Win32 (MS Windows)",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: Python Software Foundation License",
+    "Development Status :: 5 - Production/Stable",
     "Operating System :: Microsoft :: Windows",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
@@ -2077,7 +2045,18 @@ dist = setup(
     license="PSF",
     classifiers=classifiers,
     cmdclass=cmdclass,
-    scripts=["pywin32_postinstall.py", "pywin32_testall.py"],
+    # This adds the scripts under Python3XX/Scripts, but doesn't actually do much
+    scripts=[
+        "win32/scripts/pywin32_postinstall.py",
+        "win32/scripts/pywin32_testall.py",
+    ],
+    # This shortcuts `python -m win32.scripts.some_script` to just `some_script`
+    entry_points={
+        "console_scripts": [
+            "pywin32_postinstall = win32.scripts.pywin32_postinstall:main",
+            "pywin32_testall = win32.scripts.pywin32_testall:main",
+        ]
+    },
     ext_modules=ext_modules,
     package_dir={
         "win32com": "com/win32com",
