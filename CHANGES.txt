@@ -13,6 +13,7 @@ https://mhammond.github.io/pywin32_installers.html .
 
 Coming in build 310, as yet unreleased
 --------------------------------------
+* Fixed `AttributeError: 'Enumerator' object has no attribute 'resultCLSID'` when cloning a win32com client enumerator (#2333, @Avasam)
 * Drop support for Vista, set Windows 7 as the minimal Windows version. (#, @Avasam)
   * Restores many IIDs in `win32com(ext).shell.shell`. See #2486 for details.
 
