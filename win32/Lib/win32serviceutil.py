@@ -63,8 +63,7 @@ def LocatePythonServiceExe(exe=None):
 
     # If pywintypes.dll isn't next to us, or at least next to pythonXX.dll,
     # there's a good chance the service will not run. That's usually copied by
-    # `pywin32_postinstall`, but putting it next to the python DLL seems
-    # reasonable.
+    # `pywin32_postinstall`, but putting it next to the python DLL seems reasonable.
     # (Unlike the .exe above, we don't unconditionally copy this, and possibly
     # copy it to a different place. Doesn't seem a good reason for that!?)
     python_dll = win32api.GetModuleFileName(sys.dllhandle)

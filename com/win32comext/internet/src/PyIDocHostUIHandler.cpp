@@ -376,8 +376,8 @@ PyObject *PyIDocHostUIHandler::TranslateUrl(PyObject *self, PyObject *args)
     HRESULT hr;
     PY_INTERFACE_PRECALL;
     hr = pIDHUIH->TranslateUrl(dwTranslate, pchURLIn, &pchURLOut);
-    PyWinObject_FreeWCHAR(pchURLIn);
     PY_INTERFACE_POSTCALL;
+    PyWinObject_FreeWCHAR(pchURLIn);
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIDHUIH, IID_IDocHostUIHandler);
     PyObject *pyretval = MakeOLECHARToObj(pchURLOut);
