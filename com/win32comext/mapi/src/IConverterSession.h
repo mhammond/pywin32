@@ -8,7 +8,10 @@ DEFINE_GUID(CLSID_IConverterSession, 0x4e3a7680, 0xb77a, 0x11d0, 0x9d, 0xa5, 0x0
 // {4b401570-b77b-11d0-9da5-00c04fd65685}
 DEFINE_GUID(IID_IConverterSession, 0x4b401570, 0xb77b, 0x11d0, 0x9d, 0xa5, 0x0, 0xc0, 0x4f, 0xd6, 0x56, 0x85);
 
-// Constants
+// Constants - http://msdn2.microsoft.com/en-us/library/bb905201.aspx
+// TODO: Update to
+// https://learn.microsoft.com/en-us/previous-versions/office/developer/office-2007/bb905201(v=office.12)
+// https://learn.microsoft.com/en-us/previous-versions/office/developer/office-2010/hh204509(v=office.14)#mapi-mime-conversion-api
 #define CCSF_SMTP 0x0002              // the converter is being passed an SMTP message
 #define CCSF_NOHEADERS 0x0004         // the converter should ignore the headers on the outside message
 #define CCSF_USE_TNEF 0x0010          // the converter should embed TNEF in the MIME message
@@ -21,6 +24,9 @@ DEFINE_GUID(IID_IConverterSession, 0x4b401570, 0xb77b, 0x11d0, 0x9d, 0xa5, 0x0, 
 #define CCSF_PRESERVE_SOURCE 0x40000  // don't modify the source message
 
 // http://msdn2.microsoft.com/en-us/library/bb905202.aspx
+// TODO: Update to
+// https://learn.microsoft.com/en-us/previous-versions/office/developer/office-2007/bb905202(v=office.12)
+// https://learn.microsoft.com/en-us/previous-versions/office/developer/office-2010/ff960231(v=office.14)
 interface IConverterSession : public IUnknown
 {
    public:
