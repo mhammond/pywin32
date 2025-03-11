@@ -272,6 +272,7 @@ def __get_disp_and_event_classes(dispatch):
         disp_class = disp.__class__
     else:
         # Eeek - no makepy support - try and build it.
+        error_msg = "This COM object can not automate the makepy process - please run makepy manually for this object"
         try:
             ti = disp._oleobj_.GetTypeInfo()
             disp_clsid = ti.GetTypeAttr()[0]
@@ -281,10 +282,11 @@ def __get_disp_and_event_classes(dispatch):
             # Get the class from the module.
             disp_class = gencache.GetClassForProgID(str(disp_clsid))
         except pythoncom.com_error as error:
-            disp_class = None
+            raise TypeError(error_msg) from error
+
 
         if disp_class is None:
-            raise TypeError("This COM object can not automate the makepy process - please run makepy manually for this object")
+            raise TypeError(error_msg)
 
     # Get the clsid
     clsid = disp_class.CLSID
