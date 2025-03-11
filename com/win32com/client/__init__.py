@@ -276,7 +276,7 @@ def __get_disp_and_event_classes(dispatch):
     disp = Dispatch(dispatch)
 
     if disp.__class__.__dict__.get("CLSID"):
-        disp_class = disp.__class__
+        return disp.__class__
 
     # Eeek - no makepy support - try and build it.
     error_msg = "This COM object can not automate the makepy process - please run makepy manually for this object"
