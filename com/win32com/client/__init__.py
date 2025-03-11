@@ -265,11 +265,18 @@ class EventsProxy:
 
 
 def __get_disp_and_event_classes(dispatch):
+    """
+    If has already been dispatched, return the same results.
+    >>> disp1, disp_class1, events_class1 = __get_disp_and_event_classes("InternetExplorer.Application")
+    >>> disp2, disp_class2, events_class2  = __get_disp_and_event_classes("InternetExplorer.Application")
+    >>> disp_class1 == disp_class2 and events_class1 == events_class2
+    True
+    """
     # Create/Get the object.
     disp = Dispatch(dispatch)
 
     if disp.__class__.__dict__.get("CLSID"):
-        return disp.__class__
+        disp_class = disp.__class__
 
     # Eeek - no makepy support - try and build it.
     error_msg = "This COM object can not automate the makepy process - please run makepy manually for this object"
@@ -333,7 +340,11 @@ def DispatchWithEvents(clsid, user_event_class) -> EventsProxy:
     >>> ie = DispatchWithEvents("InternetExplorer.Application", IEEvents)
     >>> ie.Visible = 1
     Visible changed: 1
-    >>>
+
+    If has already been dispatched, get the same base classes.
+    >>> ie2 = DispatchWithEvents("InternetExplorer.Application", IEEvents)
+    >>> ie._obj_.__class__.__bases__ == ie2._obj_.__class__.__bases__
+    True
     """
     disp, disp_class, events_class = __get_disp_and_event_classes(clsid)
     result_class = type(
@@ -364,6 +375,11 @@ def WithEvents(disp, user_event_class):
     >>> ie_events = WithEvents(ie, IEEvents)
     >>> ie.Visible = 1
     Visible changed: 1
+
+    If has already been dispatched, get the same base classes.
+    >>> ie_events2 = WithEvents(ie, IEEvents)
+    >>> ie_events.__class__.__bases__ == ie_events2.__class__.__bases__
+    True
 
     Compare with the code sample for DispatchWithEvents, where you get a
     single object that is both the interface and the event handler.  Note that
