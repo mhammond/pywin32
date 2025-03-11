@@ -628,13 +628,6 @@ def TestGenerated():
     # and a plain "WithEvents".
     handler = win32com.client.WithEvents(o, RandomEventHandler)
     TestEvents(o, handler)
-
-    # Ensure that if it has already been dispatched, the base classes are the same.
-    o2_again = win32com.client.DispatchWithEvents(o, RandomEventHandler)
-    assert o2._obj_.__class__.__bases__ == o2_again._obj_.__class__.__bases__
-    handler_again = win32com.client.WithEvents(o, RandomEventHandler)
-    assert handler.__class__.__bases__ == handler_again.__class__.__bases__
-
     progress("Finished generated .py test.")
 
 

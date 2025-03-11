@@ -13,7 +13,7 @@ https://mhammond.github.io/pywin32_installers.html .
 
 Coming in build 310, as yet unreleased
 --------------------------------------
-* Fixed a regression where `win32com.client.DispatchWithEvents` and win32com.client.WithEvents` would throw a `TypeError` on the second call (#2489, @Avasam)
+* Fixed a regression where `win32com.client.DispatchWithEvents` and win32com.client.WithEvents` would throw a `TypeError` on the second call (#2491, @Avasam)
 * Drop support for Vista, set Windows 7 as the minimal Windows version. (#2487, @Avasam)
   * Restores many IIDs in `win32com(ext).shell.shell`. See #2486 for details.
 
