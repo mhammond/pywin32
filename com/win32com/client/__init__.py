@@ -269,7 +269,7 @@ def __get_disp_and_event_classes(dispatch):
     disp = Dispatch(dispatch)
 
     if disp.__class__.__dict__.get("CLSID"):
-        return disp.__class__
+        disp_class = disp.__class__
 
     # Eeek - no makepy support - try and build it.
     error_msg = "This COM object can not automate the makepy process - please run makepy manually for this object"
@@ -333,7 +333,6 @@ def DispatchWithEvents(clsid, user_event_class) -> EventsProxy:
     >>> ie = DispatchWithEvents("InternetExplorer.Application", IEEvents)
     >>> ie.Visible = 1
     Visible changed: 1
-    >>>
     """
     disp, disp_class, events_class = __get_disp_and_event_classes(clsid)
     result_class = type(
