@@ -270,22 +270,22 @@ def __get_disp_and_event_classes(dispatch):
 
     if disp.__class__.__dict__.get("CLSID"):
         disp_class = disp.__class__
+    else:
+        # Eeek - no makepy support - try and build it.
+        try:
+            ti = disp._oleobj_.GetTypeInfo()
+            disp_clsid = ti.GetTypeAttr()[0]
+            tlb, index = ti.GetContainingTypeLib()
+            tla = tlb.GetLibAttr()
+            gencache.EnsureModule(tla[0], tla[1], tla[3], tla[4], bValidateFile=0)
+            # Get the class from the module.
+            disp_class = gencache.GetClassForProgID(str(disp_clsid))
+        except pythoncom.com_error as error:
+            disp_class = None
 
-    # Eeek - no makepy support - try and build it.
-    error_msg = "This COM object can not automate the makepy process - please run makepy manually for this object"
-    try:
-        ti = disp._oleobj_.GetTypeInfo()
-        disp_clsid = ti.GetTypeAttr()[0]
-        tlb, index = ti.GetContainingTypeLib()
-        tla = tlb.GetLibAttr()
-        gencache.EnsureModule(tla[0], tla[1], tla[3], tla[4], bValidateFile=0)
-        # Get the class from the module.
-        disp_class = gencache.GetClassForProgID(str(disp_clsid))
-    except pythoncom.com_error as error:
-        raise TypeError(error_msg) from error
+        if disp_class is None:
+            raise TypeError("This COM object can not automate the makepy process - please run makepy manually for this object")
 
-    if disp_class is None:
-        raise TypeError(error_msg)
     # Get the clsid
     clsid = disp_class.CLSID
     # Create a new class that derives from 2 classes:
