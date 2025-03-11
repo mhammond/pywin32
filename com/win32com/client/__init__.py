@@ -284,7 +284,6 @@ def __get_disp_and_event_classes(dispatch):
         except pythoncom.com_error as error:
             raise TypeError(error_msg) from error
 
-
         if disp_class is None:
             raise TypeError(error_msg)
 
