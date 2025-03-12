@@ -59,10 +59,10 @@ def testClient(server, msg):
         print("Sending", msg)
     data = CallPipe(
         CallNamedPipe,
-        ("\\\\%s\\pipe\\PyPipeTest" % server, msg, 256, NMPWAIT_WAIT_FOREVER),
+        ("\\\\{}\\pipe\\PyPipeTest".format(server), msg, 256, NMPWAIT_WAIT_FOREVER),
     )
     if verbose:
-        print("Server sent back '%s'" % data)
+        print("Server sent back '{}'".format(data))
     print("Sent and received a message!")
 
 
@@ -72,7 +72,7 @@ def testLargeMessage(server, size=4096):
     msg = "*" * size
     data = CallPipe(
         CallNamedPipe,
-        ("\\\\%s\\pipe\\PyPipeTest" % server, msg, 512, NMPWAIT_WAIT_FOREVER),
+        ("\\\\{}\\pipe\\PyPipeTest".format(server), msg, 512, NMPWAIT_WAIT_FOREVER),
     )
     if len(data) - size:
         print("Sizes are all wrong - send %d, got back %d" % (size, len(data)))
@@ -85,7 +85,7 @@ def stressThread(server, numMessages, wait):
                 r = CallPipe(
                     CallNamedPipe,
                     (
-                        "\\\\%s\\pipe\\PyPipeTest" % server,
+                        "\\\\{}\\pipe\\PyPipeTest".format(server),
                         "#" * 512,
                         1024,
                         NMPWAIT_WAIT_FOREVER,
@@ -137,8 +137,9 @@ def main():
         print(msg)
         my_name = os.path.split(sys.argv[0])[1]
         print(
-            "Usage: %s [-v] [-s server] [-t thread_count=0] [-m msg_count=500] msg ..."
-            % my_name
+            "Usage: {} [-v] [-s server] [-t thread_count=0] [-m msg_count=500] msg ...".format(
+                my_name
+            )
         )
         print("       -v = verbose")
         print(
