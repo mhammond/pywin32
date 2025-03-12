@@ -26,6 +26,7 @@
     "Pythonwin",
   ],
   "reportConstantRedefinition": "error",
+  "reportSelfClsParameterName": "error",
   // TODO: For now this allows us to at least put pyright in place by massively reducing checked code
   // it also reduces issues with the shipped types-pywin32 from typeshed
   "reportGeneralTypeIssues": "none",
