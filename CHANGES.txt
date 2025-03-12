@@ -13,9 +13,10 @@ https://mhammond.github.io/pywin32_installers.html .
 
 Coming in build 310, as yet unreleased
 --------------------------------------
-* Fix Python failure handling in Pythonwin and improve error message (#2319, @Avasam)
-* Drop support for Vista, set Windows 7 as the minimal Windows version. (#, @Avasam)
-  * Restores many IIDs in `win32com(ext).shell.shell`. See #2486 for details.
+* Fixed Python failure handling in Pythonwin and improve error message (#2319, @Avasam)
+* Fixed a regression where `win32com.client.DispatchWithEvents` and win32com.client.WithEvents` would throw a `TypeError` on the second call (#2491, @Avasam)
+* Dropped support for Vista, set Windows 7 as the minimal Windows version. (#2487, @Avasam)
+* Restored many IIDs in `win32com(ext).shell.shell`. See #2486 for details. (#2487, @Avasam)
 
 Build 309, released 2025/03/09
 ------------------------------
