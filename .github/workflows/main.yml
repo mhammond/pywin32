@@ -71,6 +71,8 @@ jobs:
         run: |
           cd com/TestSources/PyCOMTest
           msbuild .\PyCOMTest.sln -property:Configuration=Release
+          cd x64/Release
+          regsvr32 .\PyCOMTest.dll
 
       - name: Run tests
         # Run the tests directly from the source dir so support files (eg, .wav files etc)
