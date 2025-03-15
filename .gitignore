@@ -18,15 +18,23 @@ arm64libs/
 pywin32.egg-info/
 PyWin32.kpf
 
+# Visual Studio project files
+*.sln
+*.suo
+*.vc*proj*
+*.user
+
 # COM test bits
 com/TestSources/Build
 com/TestSources/PyCOMTest/PyCOMTest.h
-com/TestSources/PyCOMTest/PyCOMTest.sln
 com/TestSources/PyCOMTest/PyCOMTest.suo
 com/TestSources/PyCOMTest/PyCOMTest.tlb
-com/TestSources/PyCOMTest/PyCOMTest.vc*proj*
 com/TestSources/PyCOMTest/PyCOMTest_i.c
 com/TestSources/PyCOMTest/.vs/
+com/TestSources/PyCOMTest/PyCOMTest/
+com/TestSources/PyCOMTest/x64/
+!com/TestSources/PyCOMTest/PyCOMTest.sln
+!com/TestSources/PyCOMTest/PyCOMTest.vcxproj
 
 # SWIG generated files.
 com/win32comext/adsi/src/*.cpp
@@ -49,12 +57,6 @@ win32/src/PythonServiceMessages.h
 win32/src/win32service_messages.h
 win32/src/win32evtlog_messages.h
 isapi/src/pyISAPI_messages.h
-
-# Visual Studio project files
-*.sln
-*.suo
-*.vcproj
-*.user
 
 # Eclipse + PyDev
 .project

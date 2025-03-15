@@ -178,10 +178,11 @@ output_checked_programs = [
 
 custom_test_cases = [
     # Level 1 tests.
-    [],
-    # Level 2 tests.
     [
         PyCOMTest,
+    ],
+    # Level 2 tests.
+    [
         PippoTest,
     ],
     # Level 3 tests
