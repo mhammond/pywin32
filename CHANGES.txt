@@ -343,7 +343,7 @@ Build 302, released 2021-10-11
   import win2kras and it fails with 'you must import win32ras first', then it
   means an old win2kras.pyd exists, which you should remove.
 
-* github branch 'master' was renamed to 'main'.
+* GitHub branch 'master' was renamed to 'main'.
 
 Build 301, released 2021-05-30
 ------------------------------

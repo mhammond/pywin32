@@ -129,7 +129,7 @@ unittest_modules = [
           testConversionErrors
         """.split(),
     # Level 2 tests - wants our demo COM objects registered.
-    # (these are strange; on github CI they get further than expected when
+    # (these are strange; on GitHub CI they get further than expected when
     # our objects are not installed, so fail to quietly fail with "can't
     # register" like they do locally. So really just a nod to CI)
     """
