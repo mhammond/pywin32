@@ -39,6 +39,14 @@ jobs:
           pip --version
           pip install --upgrade setuptools>=74 wheel
 
+      - name: Fix user Scripts missing from PATH
+        if: matrix.architecture == 'x86'
+        run: |
+          # Work around https://github.com/actions/setup-python/issues/1005
+          $ScriptsPath = python -c "import sysconfig,os; print(sysconfig.get_path('scripts', f'{os.name}_user'))"
+          echo $ScriptsPath
+          Add-Content $env:GITHUB_PATH $ScriptsPath
+
       - name: Build and install
         run: pip install . -v --user
 
@@ -49,18 +57,17 @@ jobs:
       - name: Generate PyWin32.chm help file
         run: python AutoDuck/make.py
 
-      # Smokescreen test to validate it doesn't crash and dlls can be found
+      # Smokescreen test to validate postinstall doesn't crash, dlls can be found, and both pathless invocation methods work
       - name: Run postinstall install/remove
         run: |
           $UserSite = "$(python -m site --user-site)"
-          cd "$UserSite/.."
-          python Scripts/pywin32_postinstall.py -install -destination "$UserSite"
-          python Scripts/pywin32_postinstall.py -remove -destination "$UserSite"
+          python -m win32.scripts.pywin32_postinstall -install -destination "$UserSite"
+          pywin32_postinstall -remove -destination "$UserSite"
 
       - name: Run tests
         # Run the tests directly from the source dir so support files (eg, .wav files etc)
         # can be found - they aren't installed into the Python tree.
-        run: python pywin32_testall.py -v -skip-adodbapi
+        run: python win32/scripts/pywin32_testall.py -v -skip-adodbapi
 
       - name: Build wheels
         run: pip wheel . -v --wheel-dir=dist
@@ -158,7 +165,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -190,5 +197,5 @@ jobs:
       - uses: jakebailey/pyright-action@v2
         with:
           python-version: ${{ matrix.python-version }}
-          version: "1.1.389"
+          version: "1.1.396"
           annotate: errors

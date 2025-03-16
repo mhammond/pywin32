@@ -5,6 +5,7 @@
 # Note that if the unknown dispatch object then returns a known
 # dispatch object, the known class will be used.  This contrasts
 # with dynamic.Dispatch behaviour, where dynamic objects are always used.
+from __future__ import annotations
 
 import sys
 from itertools import chain
@@ -263,7 +264,40 @@ class EventsProxy:
         setattr(self._obj_, attr, val)
 
 
-def DispatchWithEvents(clsid, user_event_class):
+def __get_disp_and_event_classes(dispatch):
+    # Create/Get the object.
+    disp = Dispatch(dispatch)
+
+    if disp.__class__.__dict__.get("CLSID"):
+        disp_class = disp.__class__
+    else:
+        # Eeek - no makepy support - try and build it.
+        error_msg = "This COM object can not automate the makepy process - please run makepy manually for this object"
+        try:
+            ti = disp._oleobj_.GetTypeInfo()
+            disp_clsid = ti.GetTypeAttr()[0]
+            tlb, index = ti.GetContainingTypeLib()
+            tla = tlb.GetLibAttr()
+            gencache.EnsureModule(tla[0], tla[1], tla[3], tla[4], bValidateFile=0)
+            # Get the class from the module.
+            disp_class = gencache.GetClassForProgID(str(disp_clsid))
+        except pythoncom.com_error as error:
+            raise TypeError(error_msg) from error
+
+        if disp_class is None:
+            raise TypeError(error_msg)
+
+    # Get the clsid
+    clsid = disp_class.CLSID
+    # Create a new class that derives from 2 classes:
+    # the event sink class and the user class.
+    events_class = getevents(clsid)
+    if events_class is None:
+        raise ValueError("This COM object does not support events.")
+    return disp, disp_class, events_class
+
+
+def DispatchWithEvents(clsid, user_event_class) -> EventsProxy:
     """Create a COM object that can fire events to a user defined class.
     clsid -- The ProgID or CLSID of the object to create.
     user_event_class -- A Python class object that responds to the events.
@@ -300,41 +334,15 @@ def DispatchWithEvents(clsid, user_event_class):
     >>> ie = DispatchWithEvents("InternetExplorer.Application", IEEvents)
     >>> ie.Visible = 1
     Visible changed: 1
-    >>>
     """
-    # Create/Get the object.
-    disp = Dispatch(clsid)
-    if not disp.__class__.__dict__.get(
-        "CLSID"
-    ):  # Eeek - no makepy support - try and build it.
-        try:
-            ti = disp._oleobj_.GetTypeInfo()
-            disp_clsid = ti.GetTypeAttr()[0]
-            tlb, index = ti.GetContainingTypeLib()
-            tla = tlb.GetLibAttr()
-            gencache.EnsureModule(tla[0], tla[1], tla[3], tla[4], bValidateFile=0)
-            # Get the class from the module.
-            disp_class = gencache.GetClassForProgID(str(disp_clsid))
-        except pythoncom.com_error:
-            raise TypeError(
-                "This COM object can not automate the makepy process - please run makepy manually for this object"
-            )
-    else:
-        disp_class = disp.__class__
-    # If the clsid was an object, get the clsid
-    clsid = disp_class.CLSID
-    # Create a new class that derives from 3 classes - the dispatch class, the event sink class and the user class.
-    events_class = getevents(clsid)
-    if events_class is None:
-        raise ValueError("This COM object does not support events.")
+    disp, disp_class, events_class = __get_disp_and_event_classes(clsid)
     result_class = type(
         "COMEventClass",
         (disp_class, events_class, user_event_class),
         {"__setattr__": _event_setattr_},
     )
-    instance = result_class(
-        disp._oleobj_
-    )  # This only calls the first base class __init__.
+    # This only calls the first base class __init__.
+    instance = result_class(disp._oleobj_)
     events_class.__init__(instance, instance)
     if hasattr(user_event_class, "__init__"):
         user_event_class.__init__(instance)
@@ -365,33 +373,14 @@ def WithEvents(disp, user_event_class):
     This is mainly useful where using DispatchWithEvents causes
     circular reference problems that the simple proxy doesn't deal with
     """
-    disp = Dispatch(disp)
-    if not disp.__class__.__dict__.get(
-        "CLSID"
-    ):  # Eeek - no makepy support - try and build it.
-        try:
-            ti = disp._oleobj_.GetTypeInfo()
-            disp_clsid = ti.GetTypeAttr()[0]
-            tlb, index = ti.GetContainingTypeLib()
-            tla = tlb.GetLibAttr()
-            gencache.EnsureModule(tla[0], tla[1], tla[3], tla[4], bValidateFile=0)
-            # Get the class from the module.
-            disp_class = gencache.GetClassForProgID(str(disp_clsid))
-        except pythoncom.com_error:
-            raise TypeError(
-                "This COM object can not automate the makepy process - please run makepy manually for this object"
-            )
-    else:
-        disp_class = disp.__class__
-    # Get the clsid
-    clsid = disp_class.CLSID
-    # Create a new class that derives from 2 classes - the event sink
-    # class and the user class.
-    events_class = getevents(clsid)
-    if events_class is None:
-        raise ValueError("This COM object does not support events.")
-    result_class = type("COMEventClass", (events_class, user_event_class), {})
-    instance = result_class(disp)  # This only calls the first base class __init__.
+    disp, disp_class, events_class = __get_disp_and_event_classes(disp)
+    result_class = type(
+        "COMEventClass",
+        (events_class, user_event_class),
+        {},
+    )
+    # This only calls the first base class __init__.
+    instance = result_class(disp)
     if hasattr(user_event_class, "__init__"):
         user_event_class.__init__(instance)
     return instance
@@ -485,6 +474,47 @@ def Record(name, object):
     return pythoncom.GetRecordFromGuids(
         module.CLSID, module.MajorVersion, module.MinorVersion, module.LCID, struct_guid
     )
+
+
+# Registration function for com_record subclasses.
+def register_record_class(cls):
+    """
+    Register a subclass of com_record to enable creation of the represented record objects.
+
+    A subclass of com_record requires the following class attributes to be instantiable:
+
+        TLBID : The GUID of the containing TypeLibrary as a string.
+        MJVER : The major version number of the TypeLibrary as an integer.
+        MNVER : The minor version number of the TypeLibrary as an integer.
+        LCID  : The LCID of the TypeLibrary as an integer.
+        GUID  : The GUID of the COM Record as a string.
+
+    with GUID strings in {xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx} notation.
+
+    To instantiate such a subclasses it has to be registered via this function.
+    """
+    if not issubclass(cls, pythoncom.com_record):
+        raise TypeError("Only subclasses of 'com_record' can be registered.")
+    try:
+        TLBID = cls.TLBID
+        MJVER = cls.MJVER
+        MNVER = cls.MNVER
+        LCID = cls.LCID
+        GUID = cls.GUID
+    except AttributeError as e:
+        raise AttributeError(f"Class {cls.__name__} cannot be instantiated.") from e
+    try:
+        _ = pythoncom.GetRecordFromGuids(TLBID, MJVER, MNVER, LCID, GUID)
+    except Exception as e:
+        raise TypeError(f"Class {cls.__name__} cannot be instantiated.") from e
+    # Since the class can be instantiated we know that it represents a valid COM Record
+    # in a properly registered TypeLibrary and that it has a 'GUID' class attribute.
+    if cls.GUID in pythoncom.RecordClasses:
+        raise ValueError(
+            f"Record class with same GUID {cls.GUID} "
+            f"is already registered with name '{pythoncom.RecordClasses[cls.GUID].__name__}'."
+        )
+    pythoncom.RecordClasses[cls.GUID] = cls
 
 
 ############################################

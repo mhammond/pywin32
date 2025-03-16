@@ -145,8 +145,8 @@ PyObject *PyIInternetSecurityManager::ProcessUrlAction(PyObject *self, PyObject 
     PY_INTERFACE_PRECALL;
     hr = pIISM->ProcessUrlAction(pwszUrl, dwAction, (BYTE *)&dwPolicy, sizeof(dwPolicy), (BYTE *)context, cbcontext,
                                  dwFlags, 0);
-    PyWinObject_FreeWCHAR(pwszUrl);
     PY_INTERFACE_POSTCALL;
+    PyWinObject_FreeWCHAR(pwszUrl);
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pIISM, IID_IInternetSecurityManager);
     return Py_BuildValue("ll", hr, dwPolicy);

@@ -53,10 +53,6 @@
 #	undef socklen_t
 #endif
 #include "Ws2tcpip.h"
-// *sob* - msvc6 can't handle the _WSPIAPI_COUNTOF in later SDKs...
-#if _MSC_VER < 1300
-#define _WSPIAPI_COUNTOF(_Array) (sizeof(_Array) / sizeof(_Array[0]))
-#endif
 #include "Wspiapi.h" // for WspiapiGetAddrInfo/WspiapiFreeAddrInfo
 
 #define NEED_PYWINOBJECTS_H
