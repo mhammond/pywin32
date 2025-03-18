@@ -147,17 +147,23 @@ jobs:
           cache: pip
           cache-dependency-path: .github/workflows/main.yml
       - run: pip install clang-format==18.1.* pycln
+      # !cancelled(): Show issues even if the previous steps failed
       - run: pycln . --config=pycln.toml --check
       - uses: astral-sh/ruff-action@v3
         with:
           version: "0.11.0"
+        if: ${{ !cancelled() }}
       - run: ruff format --check --diff
-      - run:
-          | # Too many files to fit in a single command, also exclude vendored Scintilla and MAPIStubLibrary
+        if: ${{ !cancelled() }}
+      # Too many files to fit in a single command, also exclude vendored Scintilla and MAPIStubLibrary
+      - run: |
           clang-format --Werror --dry-run $(git ls-files '*.cpp' ':!:com/win32comext/mapi/src/MAPIStubLibrary/')
           if ($LastExitCode -ne 0) { exit $LastExitCode }
+        if: ${{ !cancelled() }}
+      - run: |
           clang-format --Werror --dry-run $(git ls-files '*.h' ':!:Pythonwin/Scintilla/' ':!:com/win32comext/mapi/src/MAPIStubLibrary/')
           if ($LastExitCode -ne 0) { exit $LastExitCode }
+        if: ${{ !cancelled() }}
 
   mypy:
     runs-on: windows-2019
