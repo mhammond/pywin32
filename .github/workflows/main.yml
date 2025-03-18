@@ -151,7 +151,7 @@ jobs:
       - uses: astral-sh/ruff-action@v3
         with:
           version: "0.11.0"
-      - run: ruff format --check
+      - run: ruff format --check --diff
       - run:
           | # Too many files to fit in a single command, also exclude vendored Scintilla and MAPIStubLibrary
           clang-format --Werror --dry-run $(git ls-files '*.cpp' ':!:com/win32comext/mapi/src/MAPIStubLibrary/')
