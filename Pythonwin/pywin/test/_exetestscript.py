@@ -21,8 +21,9 @@ try:
     _clock = time.perf_counter
     print("Start!", file=out)
     mf = win32ui.GetMainFrame()
-    file_abs = os.path.abspath(__file__)
-    src_dir = os.path.dirname(file_abs)
+
+    __file__ = os.path.abspath(__file__)  # __file__ can be relative before Python 3.9
+    src_dir = os.path.dirname(__file__)
 
     # open a source file
     some_fn = src_dir + "\\_dbgscript.py"
@@ -35,7 +36,7 @@ try:
     scriptutils.JumpToDocument(__file__)
     win32ui.PumpWaitingMessages(0, -1)
     v = scriptutils.GetActiveEditControl()
-    assert file_abs == v.GetDocument().GetPathName()
+    assert __file__ == v.GetDocument().GetPathName()
     t = v.GetTextRange()
     assert "t = v.GetTextRange()" in t
     print("Success!")
