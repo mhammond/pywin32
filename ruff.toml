@@ -27,20 +27,26 @@ select = [
   # "UP032", # Use f-string instead of format call
 
   # Ensure modern type annotation syntax and best practices
-  # Not including those covered by type-checkers
+  # Not including those covered by type-checkers or exclusive to Python 3.11+
   "FA", # flake8-future-annotations
   "F404", # late-future-import
   "PYI", # flake8-pyi
   "UP006", # non-pep585-annotation
   "UP007", # non-pep604-annotation
   "UP010", # unnecessary-future-import
+  "UP035", # deprecated-import
   "UP037", # quoted-annotation
+  "UP043", # unnecessary-default-type-args
 
   # Helps prevent circular imports and other unneeded imports
   "TC", # flake8-type-checking
 ]
 
 extend-ignore = [
+  # TODO: These are new rules, they're good, but apply them in a separate non-formatting run
+  "C420", # unnecessary-dict-comprehension-for-iterable
+  "PLC1802", # len-test
+
   # TODO: Consider passing exception around to ensure methods are only ever used within exception handlers
   "PLE0704", # misplaced-bare-raise
 
