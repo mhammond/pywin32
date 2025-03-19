@@ -71,7 +71,7 @@ class TestStruct2(pythoncom.com_record):
     GUID = "{78F0EA07-B7CF-42EA-A251-A4C6269F76AF}"
 
 
-# We don't need to stick with the struct name in the TypeLibrry for the subclass name.
+# We don't need to stick with the struct name in the TypeLibrary for the subclass name.
 # The following class has the same GUID as TestStruct2 from the TypeLibrary.
 class ArrayOfStructsTestStruct(pythoncom.com_record):
     __slots__ = ()
