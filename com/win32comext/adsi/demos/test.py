@@ -13,7 +13,7 @@ local_name = win32api.GetComputerName()
 
 def DumpRoot():
     "Dumps the root DSE"
-    path = "LDAP://%srootDSE" % server
+    path = "LDAP://{}rootDSE".format(server)
     rootdse = ADsGetObject(path)
 
     for item in rootdse.Get("SupportedLDAPVersion"):
@@ -57,7 +57,7 @@ def _DumpTheseAttributes(child, attrs):
 def DumpSchema():
     "Dumps the default DSE schema"
     # Bind to rootDSE to get the schemaNamingContext property.
-    path = "LDAP://%srootDSE" % server
+    path = "LDAP://{}rootDSE".format(server)
     rootdse = ADsGetObject(path)
     name = rootdse.Get("schemaNamingContext")
 
@@ -113,7 +113,7 @@ def _DumpObject(ob, level=0):
 
 def DumpAllObjects():
     "Recursively dump the entire directory!"
-    path = "LDAP://%srootDSE" % server
+    path = "LDAP://{}rootDSE".format(server)
     rootdse = ADsGetObject(path)
     name = rootdse.Get("defaultNamingContext")
 
@@ -215,7 +215,9 @@ def DumpLocalGroups():
 def usage(tests):
     import os
 
-    print("Usage: %s [-s server ] [-v] [Test ...]" % os.path.basename(sys.argv[0]))
+    print(
+        "Usage: {} [-s server ] [-v] [Test ...]".format(os.path.basename(sys.argv[0]))
+    )
     print("  -v : Verbose - print more information")
     print("  -s : server - execute the tests against the named server")
     print("where Test is one of:")
@@ -258,7 +260,7 @@ def main():
                     dotests.append(t)
                     break
             else:
-                print("Test '%s' unknown - skipping" % arg)
+                print("Test '{}' unknown - skipping".format(arg))
     if not len(dotests):
         print("Nothing to do!")
         usage(tests)
@@ -266,7 +268,7 @@ def main():
         try:
             test()
         except:
-            print("Test %s failed" % test.__name__)
+            print("Test {} failed".format(test.__name__))
             traceback.print_exc()
 
 
