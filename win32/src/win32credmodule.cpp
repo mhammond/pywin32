@@ -1,5 +1,4 @@
 // @doc
-#define _WIN32_WINNT 0x501  // Credentials functions only available on WinXP
 #include "PyWinTypes.h"
 #include "PyWinObjects.h"
 #include "WinCred.h"
@@ -63,7 +62,7 @@ BOOL PyWinObject_AsCREDENTIAL_ATTRIBUTE(PyObject *obattr, PCREDENTIAL_ATTRIBUTE 
         goto done;
     }
     // Handle `Value`: the docs
-    // https://docs.microsoft.com/en-us/windows/win32/api/wincred/ns-wincred-credential_attributew say it's an LPBYTE
+    // https://learn.microsoft.com/en-us/windows/win32/api/wincred/ns-wincred-credential_attributew say it's an LPBYTE
     // Value (meaning it's just bytes) but then the description says "Data associated with the attribute. By convention,
     // if Value is a text string, then Value should not include the trailing zero character and should be in UNICODE."
     if (PyUnicode_Check(obValue)) {

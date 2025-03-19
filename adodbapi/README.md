@@ -29,7 +29,7 @@ Installation
 ------------
 
 * (CPython on Windows): Install [pywin32](https://pypi.org/project/pywin32/) (`python -m pip install pywin32`) which includes adodbapi.
-* (IronPython on Windows): Refer to <http://sf.net/projects/adodbapi> instead.
+* (IronPython on Windows): Refer to <https://sourceforge.net/projects/adodbapi/> instead.
 
 NOTE
 ----
@@ -59,7 +59,7 @@ CHANGES
 
 notes for 2.6.2:
 
-* The definitive source has been moved to <https://github.com/mhammond/pywin32/tree/master/adodbapi> .
+* The definitive source has been moved to <https://github.com/mhammond/pywin32/tree/main/adodbapi> .
 * Remote has proven too hard to configure and test with Pyro4. I am moving it to unsupported status until I can change to a different connection method.
 
 what's new in version 2.6
@@ -102,15 +102,17 @@ what's new in version 2.5
 License
 -------
 
-LGPL, see <http://www.opensource.org/licenses/lgpl-license.php>
+[LGPL-2.1](https://opensource.org/license/lgpl-2-1)
 
 Documentation
 -------------
 
-* Look at [adodbapi/quick_reference.md](/adodbapi/quick_reference.md)
-* <http://www.python.org/topics/database/DatabaseAPI-2.0.html>
+Look at:
+
+* [adodbapi/quick_reference.md](/adodbapi/quick_reference.md)
+* <https://www.python.org/topics/database/DatabaseAPI-2.0.html>
 * read the examples in [adodbapi/examples](/adodbapi/examples)
-* and look at the test cases in [adodbapi/test](/adodbapi/test) directory.
+* and the test cases in [adodbapi/test](/adodbapi/test) directory.
 
 Mailing lists
 -------------
@@ -118,5 +120,5 @@ Mailing lists
 The adodbapi mailing lists have been deactivated. Submit comments to the
 [python-win32 mailing list](https://mail.python.org/mailman/listinfo/python-win32) .
 
-* the bug tracker on <https://sf.net/projects/adodbapi/> may be checked, (infrequently).
+* the bug tracker on <https://sourceforge.net/projects/adodbapi/> may be checked, (infrequently).
 * please use: <https://github.com/mhammond/pywin32/issues>
