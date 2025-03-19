@@ -36,7 +36,9 @@ win32com.test.util.RegisterPythonServer(
 from win32com.client import gencache
 
 try:
-    gencache.EnsureModule("{6BCDCB60-5605-11D0-AE5F-CADD4C000000}", 0, 1, 1, bForDemand=False)
+    gencache.EnsureModule(
+        "{6BCDCB60-5605-11D0-AE5F-CADD4C000000}", 0, 1, 1, bForDemand=False
+    )
 except pythoncom.com_error:
     print("The PyCOMTest module can not be located or generated.")
     print(importMsg)
