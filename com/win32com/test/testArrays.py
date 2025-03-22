@@ -51,7 +51,7 @@ def _normalize_array(a):
 
 class ArrayTest(util.TestCase):
     def setUp(self):
-        self.arr = gencache.EnsureDispatch("PyCOMTest.ArrayTest")
+        self.arr = gencache.EnsureDispatch("PyCOMTest.ArrayTest", bForDemand=False)
 
     def tearDown(self):
         self.arr = None
