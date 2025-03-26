@@ -254,7 +254,8 @@ def EmptyMENUITEMINFO(mask=None, text_buf_size=512):
             | win32con.MIIM_STATE
             | win32con.MIIM_STRING
             | win32con.MIIM_SUBMENU
-            | win32con.MIIM_TYPE
+            # Note: No MIIM_TYPE - this used to screw win2k/98.
+            # We don't know the impact now and whether it could/should be added to the mask.
         )
 
     if mask & win32con.MIIM_STRING:
