@@ -41,14 +41,9 @@ class CrashingTestCase(unittest.TestCase):
 class TestBitmap(unittest.TestCase):
     def setUp(self):
         self.bmp_handle = None
-        try:
-            this_file = __file__
-        except NameError:
-            this_file = sys.argv[0]
-        this_dir = os.path.dirname(this_file)
-        self.bmp_name = os.path.join(
-            os.path.abspath(this_dir), "..", "Demos", "images", "smiley.bmp"
-        )
+        # __file__ can be relative before Python 3.9
+        this_dir = os.path.dirname(os.path.abspath(__file__))
+        self.bmp_name = os.path.join(this_dir, "..", "Demos", "images", "smiley.bmp")
         self.assertTrue(os.path.isfile(self.bmp_name), self.bmp_name)
         flags = win32con.LR_DEFAULTSIZE | win32con.LR_LOADFROMFILE
         self.bmp_handle = win32gui.LoadImage(
