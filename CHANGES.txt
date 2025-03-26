@@ -14,6 +14,7 @@ https://mhammond.github.io/pywin32_installers.html .
 Coming in build 311, as yet unreleased
 --------------------------------------
 * Fixed Python failure handling in Pythonwin and improve error message (#2319, @Avasam)
+* Fixed a regression that broke special __dunder__ methods with CoClass. (#1870, #2493, @Avasam, @geppi)
 
 Build 310, released 2025/03/16
 ------------------------------
