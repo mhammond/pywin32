@@ -84,9 +84,9 @@
 
 #define EVENT_ALL_ACCESS EVENT_ALL_ACCESS // Specifies all possible access flags for the event object.
 
-#define EVENT_MODIFY_STATE EVENT_MODIFY_STATE // Enables use of the event handle in the SetEvent and ResetEvent�functions to modify the event�s state.
+#define EVENT_MODIFY_STATE EVENT_MODIFY_STATE // Enables use of the event handle in the SetEvent and ResetEvent functions to modify the event's state.
 
-#define SYNCHRONIZE SYNCHRONIZE // Windows NT only:�Enables use of the event handle in any of the wait functions�to wait for the event�s state to be signaled.
+#define SYNCHRONIZE SYNCHRONIZE // Windows NT only: Enables use of the event handle in any of the wait functions to wait for the event's state to be signaled.
 
 // @pyswig |CancelWaitableTimer|Cancels a waiting timer.
 BOOLAPI CancelWaitableTimer(PyHANDLE handle);
