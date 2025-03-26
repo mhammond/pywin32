@@ -467,7 +467,7 @@ Usage:   %s [options ...] paths ...
                    core path, you can avoid packages re-registering the same path.
 -m filename     -- Find and register the specific file name as a module.
                    Do not include a path on the filename!
---shell         -- Register everything with the Win95/NT shell.
+--shell         -- Register everything with the Windows shell.
 --upackage name -- Unregister the package
 --uapp name     -- Unregister the app (identical to --upackage)
 --umodule name  -- Unregister the module

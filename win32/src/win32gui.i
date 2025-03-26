@@ -2753,7 +2753,6 @@ static PyObject *PyTransparentBlt(PyObject *self, PyObject *args)
 
 // @pyswig |MaskBlt|Combines the color data for the source and destination
 // bitmaps using the specified mask and raster operation.
-// @comm This function is not supported on Win9x.
 // @pyseeapi MaskBlt
 static PyObject *PyMaskBlt(PyObject *self, PyObject *args)
 {
@@ -6972,8 +6971,8 @@ static PyObject *PySystemParametersInfo(PyObject *self, PyObject *args, PyObject
 		// @flag SPI_SETFASTTASKSWITCH|Unsupported (obsolete)
 		// @flag SPI_SETSCREENSAVERRUNNING|Unsupported (documented as internal use only)
 		// @flag SPI_SCREENSAVERRUNNING|Same as SPI_SETSCREENSAVERRUNNING
-		// @flag SPI_SETPENWINDOWS|Unsupported (only relevant for win95)
-		// @flag SPI_GETWINDOWSEXTENSION|Unsupported (only relevant for win95)
+		// @flag SPI_SETPENWINDOWS|Unsupported (only relevant for Win95)
+		// @flag SPI_GETWINDOWSEXTENSION|Unsupported (only relevant for Win95)
 		// @flag SPI_GETGRIDGRANULARITY|Unsupported (obsolete)
 		// @flag SPI_SETGRIDGRANULARITY|Unsupported (obsolete)
 		// @flag SPI_LANGDRIVER|Unsupported (use is not documented)
