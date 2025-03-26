@@ -688,8 +688,8 @@ PyObject *pythoncom_loadtypelib(PyObject *self, PyObject *args)
     ITypeLib *ptl;
     PY_INTERFACE_PRECALL;
     SCODE sc = LoadTypeLib(bstrName, &ptl);
-    PyWinObject_FreeBstr(bstrName);
     PY_INTERFACE_POSTCALL;
+    PyWinObject_FreeBstr(bstrName);
     if (FAILED(sc))
         return PyCom_BuildPyException(sc);
 
