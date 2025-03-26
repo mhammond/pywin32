@@ -1,3 +1,5 @@
+// -*- coding: latin1 -*-
+
 // PyCOMTest.idl : IDL source for PyCOMTest.dll
 //
 // This is a test harness for Python
@@ -26,7 +28,7 @@ typedef enum // Missing EnumTestAttributes2
 	uuid(6bcdcb60-5605-11d0-ae5f-cadd4c000000),
 	version(1.1),
 	// an extended character in the help string should stress things...
-	helpstring("Python COM Test Harness 1.0 Type Library, © pywin32 contributors")
+	helpstring("Python COM Test Harness 1.0 Type Library, Â© pywin32 contributors")
 ]
 library PyCOMTestLib
 {
@@ -70,7 +72,7 @@ library PyCOMTestLib
 		const long LongTest2 = 0x7FFFFFFFL;
 		const unsigned char UCharTest = 255;
 		const char CharTest = -1;
-		const LPWSTR StringTest = L"Hello Wo®ld";
+		const LPWSTR StringTest = L"Hello WoÂ®ld";
 	};
 
 	enum TestAttributes3{ // Note missing the enum name.
