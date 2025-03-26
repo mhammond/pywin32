@@ -65,9 +65,9 @@ class DebugManager:
             self.debugApplication = pdm.GetDefaultApplication()
             self.rootNode = self.debugApplication.GetRootNode()
 
-        assert (
-            self.debugApplication is not None
-        ), "Need to have a DebugApplication object by now!"
+        assert self.debugApplication is not None, (
+            "Need to have a DebugApplication object by now!"
+        )
         self.activeScriptDebug = None
 
         if self.debugApplication is not None:
