@@ -51,6 +51,16 @@ jobs:
           python -m win32.scripts.pywin32_postinstall -install -destination "$UserSite"
           pywin32_postinstall -remove -destination "$UserSite"
 
+      # Compilation and registration of the PyCOMTest server dll
+      - name: Set up MSVC
+        uses: microsoft/setup-msbuild@v2
+      - name: Build and register the PyCOMTest server dll
+        run: |
+          cd com/TestSources/PyCOMTest
+          msbuild .\PyCOMTest.sln -property:Configuration=Release
+          cd x64/Release
+          regsvr32 .\PyCOMTest.dll
+
       - name: Run tests
         # Run the tests directly from the source dir so support files (eg, .wav files etc)
         # can be found - they aren't installed into the Python tree.
