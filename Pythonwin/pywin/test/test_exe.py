@@ -27,11 +27,6 @@ class TestPythonwinExe(unittest.TestCase):
 
         fh, self.tfn = tempfile.mkstemp(suffix=".testout.txt", prefix="pywintest-")
         os.close(fh)
-        scriptpath = src_dir + "\\_exetestscript.py"
-        cmd = [pythonwinexe_path, "/new", "/run", scriptpath, self.tfn]
-        ##wd = src_dir
-        ##wd = os.path.dirname(pythonwinexe_path)
-        wd = os.path.dirname(sys.executable)
         usersite = site.getusersitepackages()
         if usersite in pythonwinexe_path and sys.exec_prefix not in pythonwinexe_path:
             # Workaround for Pythonwin.exe to find PythonNN.dll from user
@@ -51,13 +46,15 @@ class TestPythonwinExe(unittest.TestCase):
                     os.symlink(src, dst)
                 except (OSError, AssertionError) as e:
                     print(f"-- cannot make symlink {dst!r}: {e!r}", file=sys.stderr)
-        print(f"-- Starting: {cmd!r} in {wd!r}", file=sys.stderr)
-        self.p = subprocess.Popen(cmd, cwd=wd)
 
     def test_exe(self):
-        print("-- Waiting --", file=sys.stderr)
+        scriptpath = src_dir + "\\_exetestscript.py"
+        cmd = [pythonwinexe_path, "/new", "/run", scriptpath, self.tfn]
+        wd = os.path.dirname(sys.executable)
+
+        print(f"-- Starting: '{' '.join(cmd)}' in '{wd}'", file=sys.stderr)
         try:
-            rc = self.p.wait(20)
+            rc = subprocess.run(cmd, cwd=wd, timeout=20).returncode
         except subprocess.TimeoutExpired:
             rc = "TIMEOUT"
         with open(self.tfn) as f:
