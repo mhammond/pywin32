@@ -99,6 +99,7 @@ def _LoadDicts():
         arc_path = loader.archive
         dicts_path = os.path.join(win32com.__gen_path__, "dicts.dat")
         if dicts_path.startswith(arc_path):
+            # Remove the leading slash as well
             dicts_path = dicts_path[len(arc_path) + 1 :]
         else:
             # Hm. See below.
