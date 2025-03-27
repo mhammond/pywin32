@@ -13,7 +13,7 @@ https://mhammond.github.io/pywin32_installers.html .
 
 Coming in build 311, as yet unreleased
 --------------------------------------
-* Restored shipping a helpfile with the wheel. Just like for pywin32 306 and before, you can run the `pywin32_postinstall` script to register it  (#2432, @Avasam)
+* Restored shipping a helpfile with the wheel. Just like for pywin32 306 and before, you can run the `pywin32_postinstall` script to register it (#2432, @Avasam)
 
 Build 310, released 2025/03/16
 ------------------------------

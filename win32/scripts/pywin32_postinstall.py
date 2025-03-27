@@ -233,10 +233,16 @@ def RegisterHelpFile(register=True, lib_dir=None):
     if register:
         # Register the .chm help file.
         chm_file = os.path.join(lib_dir, "PyWin32.chm")
-        # This isn't recursive, so if 'Help' doesn't exist, we croak
-        SetPyKeyVal("Help", None, None)
-        SetPyKeyVal("Help\\Pythonwin Reference", None, chm_file)
-        return chm_file
+        if os.path.isfile(chm_file):
+            # This isn't recursive, so if 'Help' doesn't exist, we croak
+            SetPyKeyVal("Help", None, None)
+            SetPyKeyVal("Help\\Pythonwin Reference", None, chm_file)
+            return chm_file
+        else:
+            print(
+                "NOTE: PyWin32.chm can not be located, so has not been registered. "
+                + "This is expected if the wheel was cross-compiled."
+            )
     else:
         UnsetPyKeyVal("Help\\Pythonwin Reference", None, delete_key=True)
     return None

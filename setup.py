@@ -493,12 +493,16 @@ class my_build_ext(build_ext):
     def _build_helpfile(self) -> None:
         """
         Since AutoDuck/py2d.py relies on import,
-        this must be done after all extensions are built.
+        this must be done after all extensions are built,
+        and we can't build a helpfile when cross-compiling.
 
         We can't just add to sys.path to point to the build folder,
         because this uses subprocesses,
         so we create a temporary .pth file instead.
         """
+        if self.plat_name != sysconfig.get_platform():
+            return
+
         build_lib_absolute = os.path.abspath(self.build_lib)
         tmp_pywin32_build_pth = (
             Path(sysconfig.get_paths()["platlib"]) / "tmp_pywin32_build.pth"
@@ -2072,6 +2076,12 @@ classifiers = [
     "Programming Language :: Python :: Implementation :: CPython",
 ]
 
+is_cross_compiling = any(
+    not argument.endswith(sysconfig.get_platform())
+    for argument in sys.argv
+    if argument.startswith("--plat-name=")
+)
+
 dist = setup(
     name="pywin32",
     version=build_id,
@@ -2181,8 +2191,10 @@ dist = setup(
         # Note we don't get an auto .pyc - but who cares?
         ("", ("com/pythoncom.py",)),
         ("", ("pywin32.pth",)),
-        ("", ("PyWin32.chm",)),
-    ],
+    ]
+    + [("", ("PyWin32.chm",))]
+    if not is_cross_compiling
+    else [],
 )
 
 # If we did any extension building, and report if we skipped any.
