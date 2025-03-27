@@ -11,9 +11,20 @@ or
 As of build 305, installation .exe files have been deprecated; see
 https://mhammond.github.io/pywin32_installers.html .
 
+Coming in build 311, as yet unreleased
+--------------------------------------
+* Fixed a regression that broke special __dunder__ methods with CoClass. (#1870, #2493, @Avasam, @geppi)
+
+Build 310, released 2025/03/16
+------------------------------
+* Fixed a regression where `win32com.client.DispatchWithEvents` and win32com.client.WithEvents` would throw a `TypeError` on the second call (#2491, @Avasam)
+* Fixed regresion causing `win32com.shell.shell` to be missing a number of `IID`s. (#2487, @Avasam)
+* As part of the above, Windows 7 is now minimum supported.
+
 Build 309, released 2025/03/09
 ------------------------------
 ## pywin32
+* Fixed Access Violation crashes in 3.12 by moving `PyWInObject_Free*` methods so GIL is acquired (#2467, @Mscht)
 * Added support for relative path for `pywin32_postinstall`'s `-destination` argument (#2454, @Avasam)
 * The postinstall script is now available as a console script. You can invoke it in one of two new methods: (#2408, @Avasam)
   1. `python -m pywin32_postinstall -install` (recommended)
