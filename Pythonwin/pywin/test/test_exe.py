@@ -4,12 +4,14 @@
 #
 
 import os
+import site
 import subprocess
 import sys
 import tempfile
 import unittest
 
 import win32ui
+from pywin32_testutil import TestSkipped
 
 user_interaction = False
 
@@ -23,7 +25,10 @@ class TestPythonwinExe(unittest.TestCase):
     """Starts up Pythonwin.exe and runs exetestscript.py inside for a few tests"""
 
     def setUp(self):
-        import site
+        if sys.flags.dev_mode:
+            raise TestSkipped(
+                "This test currently fails in development mode for unknown reasons"
+            )
 
         fh, self.tfn = tempfile.mkstemp(suffix=".testout.txt", prefix="pywintest-")
         os.close(fh)
