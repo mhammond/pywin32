@@ -11,7 +11,6 @@ import tempfile
 import unittest
 
 import win32ui
-from pywin32_testutil import TestSkipped
 
 user_interaction = False
 
@@ -25,11 +24,6 @@ class TestPythonwinExe(unittest.TestCase):
     """Starts up Pythonwin.exe and runs exetestscript.py inside for a few tests"""
 
     def setUp(self):
-        if sys.flags.dev_mode:
-            raise TestSkipped(
-                "This test currently fails in development mode for unknown reasons"
-            )
-
         fh, self.tfn = tempfile.mkstemp(suffix=".testout.txt", prefix="pywintest-")
         os.close(fh)
         usersite = site.getusersitepackages()
@@ -52,6 +46,10 @@ class TestPythonwinExe(unittest.TestCase):
                 except (OSError, AssertionError) as e:
                     print(f"-- cannot make symlink {dst!r}: {e!r}", file=sys.stderr)
 
+    @unittest.skipIf(
+        sys.flags.dev_mode,
+        "This test currently fails in development mode for unknown reasons",
+    )
     def test_exe(self):
         scriptpath = src_dir + "\\_exetestscript.py"
         cmd = [pythonwinexe_path, "/new", "/run", scriptpath, self.tfn]
