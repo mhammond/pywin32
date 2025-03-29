@@ -10,6 +10,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
 
+env:
+  PYTHONDEVMODE: 1
+
 jobs:
   test:
     name: Build and test
