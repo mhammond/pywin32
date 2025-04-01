@@ -551,7 +551,7 @@ class DispatchBaseClass:
                 # So just let it use the existing object if E_NOINTERFACE
                 if details.hresult != winerror.E_NOINTERFACE:
                     raise
-                
+
         self.__dict__["_oleobj_"] = oobj  # so we don't call __setattr__
 
     def __dir__(self):
