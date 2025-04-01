@@ -32,6 +32,11 @@ jobs:
           cache: pip
           cache-dependency-path: .github/workflows/main.yml
           check-latest: true
+          
+      - name: Enable long path support in Windows
+        run: |
+          # Enable long path support at the system level
+          New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" -Name "LongPathsEnabled" -Value 1 -PropertyType DWORD -Force
 
       - name: Fix user Scripts missing from PATH
         if: matrix.architecture == 'x86'
@@ -105,6 +110,11 @@ jobs:
           cache: pip
           cache-dependency-path: .github/workflows/main.yml
           check-latest: true
+          
+      - name: Enable long path support in Windows
+        run: |
+          # Enable long path support at the system level
+          New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" -Name "LongPathsEnabled" -Value 1 -PropertyType DWORD -Force
 
       - name: Install build module
         run: pip install --upgrade  build
