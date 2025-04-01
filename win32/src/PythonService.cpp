@@ -23,7 +23,9 @@
 #if !defined(PYSERVICE_BUILD_DLL) && defined(_MSC_VER)
 #pragma comment(linker, "/MANIFESTUAC:\"level='asInvoker' uiAccess='false'\"")
 #pragma comment(linker, "/MANIFEST:EMBED")
-#pragma comment(linker, "/MANIFESTINPUT:\"<?xml version='1.0' encoding='UTF-8' standalone='yes'?><assembly xmlns='urn:schemas-microsoft-com:asm.v1' manifestVersion='1.0'><application xmlns='urn:schemas-microsoft-com:asm.v3'><windowsSettings xmlns:ws2='http://schemas.microsoft.com/SMI/2016/WindowsSettings'><ws2:longPathAware>true</ws2:longPathAware></windowsSettings></application></assembly>\"")
+#pragma comment( \
+    linker,      \
+    "/MANIFESTINPUT:\"<?xml version='1.0' encoding='UTF-8' standalone='yes'?><assembly xmlns='urn:schemas-microsoft-com:asm.v1' manifestVersion='1.0'><application xmlns='urn:schemas-microsoft-com:asm.v3'><windowsSettings xmlns:ws2='http://schemas.microsoft.com/SMI/2016/WindowsSettings'><ws2:longPathAware>true</ws2:longPathAware></windowsSettings></application></assembly>\"")
 #endif
 
 #ifdef PYSERVICE_BUILD_DLL
