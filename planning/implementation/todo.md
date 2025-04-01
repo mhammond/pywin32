@@ -1,58 +1,51 @@
-# Implementation Todo List: Long Path Support for PythonService.exe
+# Implementation Todo Checklist for Long Path Support
 
-This checklist tracks the implementation progress for adding long path support to pythonservice.exe, following the detailed design document.
+This checklist tracks progress on implementing long path support in pythonservice.exe according to the prompt plan.
 
-## 6.1 Phase 1: Development
+## Prompt 1: Understanding the PythonService.cpp Structure
+- [x] Analyze PythonService.cpp file structure
+- [x] Identify conditional compilation macros for DLL vs EXE builds
+- [x] Determine appropriate location for manifest code
+- [x] Check for existing manifest or resource-related code
 
-- [ ] Create the manifest file
-  - [ ] Create directory for manifest if needed
-  - [ ] Write pythonservice.exe.manifest with longPathAware element
-  - [ ] Validate manifest XML syntax
+## Prompt 2: Creating a Test Service for Verification
+- [x] Create Windows service test script
+- [x] Implement long path access test
+- [x] Add logging functionality
+- [x] Document installation and removal process
 
-- [ ] Modify the build process to embed the manifest
-  - [ ] Locate appropriate build step in setup.py
-  - [ ] Add code to generate/copy manifest file
-  - [ ] Add mt.exe command to embed manifest
-  - [ ] Handle potential errors if mt.exe is not available
+## Prompt 3: Adding the Application Manifest to PythonService.cpp
+- [x] Create #pragma comment(linker) directives
+- [x] Add conditional compilation for EXE build only
+- [x] Include complete manifest XML with longPathAware element
+- [x] Insert code at appropriate location in file
 
-- [ ] Build a test version of pywin32 with the changes
-  - [ ] Verify manifest is correctly embedded
-  - [ ] Check for any build warnings or errors
+## Prompt 3: Adding the Application Manifest to PythonService.cpp
+- [ ] Create #pragma comment(linker) directives
+- [ ] Add conditional compilation for EXE build only
+- [ ] Include complete manifest XML with longPathAware element
+- [ ] Insert code at appropriate location in file
 
-## 6.2 Phase 2: Testing
+## Prompt 4: Build Verification Process
+- [ ] Document commands to build pythonservice.exe
+- [ ] Provide commands to extract and examine manifest
+- [ ] List verification criteria for manifest
+- [ ] Document potential build issues to watch for
 
-- [ ] Execute the test cases defined in the design document
-  - [ ] Basic functionality test (normal paths)
-  - [ ] Long path test with registry enabled
-  - [ ] Long path test with registry disabled
-  - [ ] Edge cases (paths near 260 chars, Unicode paths, network paths)
+## Prompt 5: Testing the Implementation
+- [ ] Create step-by-step testing instructions
+- [ ] Document test environment setup
+- [ ] Provide service installation and execution steps
+- [ ] Explain result interpretation
+- [ ] Include tests for both enabled and disabled registry settings
 
-- [ ] Verify backward compatibility
-  - [ ] Test on existing services
-  - [ ] Verify no regression in normal path handling
+## Prompt 6: Documentation and Release Notes
+- [ ] Draft CHANGES.txt entry
+- [ ] Create user documentation for long path support
+- [ ] Document requirements and caveats
 
-- [ ] Test on different Windows versions
-  - [ ] Windows 10 version 1607+
-  - [ ] Windows 11
-  - [ ] Verify graceful behavior on unsupported Windows versions
-
-## 6.3 Phase 3: Documentation and Release
-
-- [ ] Update documentation to mention long path support
-  - [ ] Add note to README.md about long path support
-  - [ ] Document registry requirement for users
-
-- [ ] Add a note to CHANGES.txt
-  - [ ] Describe the feature addition
-  - [ ] Note any limitations or requirements
-
-- [ ] Submit pull request
-  - [ ] Create detailed PR description
-  - [ ] Reference any related issues
-  - [ ] Address review feedback
-
-## Additional Tasks
-
-- [ ] Consider adding a utility function to check if long paths are supported
-- [ ] Explore adding long path support to other pywin32 executables if needed
-- [ ] Create a simple test script that demonstrates the functionality
+## Prompt 7: Integration and Final Review
+- [ ] Summarize all implementation changes
+- [ ] Create final review checklist
+- [ ] Document edge cases and compatibility considerations
+- [ ] Provide final testing recommendations

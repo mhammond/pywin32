@@ -1,192 +1,208 @@
-# Detailed Design: Adding Long Path Support to PythonService.exe
+# Long Path Support for pythonservice.exe - Detailed Design Document
 
-## 1. Overview
+## Overview
 
-This document outlines the implementation details for adding long path support to the `pythonservice.exe` component of the pywin32 package. Currently, Python scripts running as Windows services through `pythonservice.exe` cannot access paths exceeding the traditional MAX_PATH limit (260 characters), even when long path support is enabled in the Windows registry. This implementation will address this limitation.
+This document provides a detailed design for implementing long path support in the pythonservice.exe component of pywin32. The implementation will enable Python services running through pythonservice.exe to access paths longer than the traditional MAX_PATH limit (260 characters) when the host Windows system has long path support enabled.
 
-## 2. Problem Statement
+## Background
 
-When running Python scripts as Windows services using pywin32's `pythonservice.exe`, attempts to access long paths (>260 characters) result in a "[WinError 3] The system cannot find the path specified" error, even when:
-- Long path support is enabled in the Windows registry
-- The same Python code can access long paths when run directly (not as a service)
+Starting in Windows 10 version 1607, Microsoft introduced the ability for applications to opt into long path support by:
+1. Setting a registry value (`HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem LongPathsEnabled` to 1)
+2. Including a manifest in the application that declares it as "longPathAware"
 
-This occurs because `pythonservice.exe` is not currently built with the `longPathAware` manifest attribute that would allow it to opt into Windows' long path support.
+Python itself is long path aware by default, but pythonservice.exe in pywin32 is not currently configured with the necessary manifest, causing services running through it to be unable to access long paths even when the registry setting is enabled.
 
-## 3. Requirements
+## Requirements
 
-### 3.1 Functional Requirements
-- `pythonservice.exe` must be able to access file paths longer than 260 characters when the Windows registry has long path support enabled
-- No changes should be required to user code; this should be transparent to service implementations
-- The solution must work on Windows 10 version 1607 and later
+1. Make pythonservice.exe long path aware by adding the appropriate application manifest
+2. Implement the change at build time, not as a post-build modification
+3. Ensure backward compatibility with existing services
 
-### 3.2 Non-Functional Requirements
-- The implementation should not affect performance
-- The solution should be maintainable and follow pywin32's existing build patterns
-- The implementation should not break backward compatibility
+## Design
 
-## 4. Technical Solution
+### Application Manifest Implementation
 
-### 4.1 Application Manifest Approach
+The primary change will be to modify PythonService.cpp directly to include the longPathAware manifest element. This will be done using direct source code embedding with the `#pragma comment(linker)` directive.
 
-The solution involves adding an application manifest to `pythonservice.exe` that includes the `longPathAware` element. This will opt the executable into Windows' long path support when the registry setting is enabled.
-
-#### 4.1.1 Manifest Content
-
-Create a manifest file (`pythonservice.exe.manifest`) with the following content:
+The manifest must include the `longPathAware` element in the proper namespace:
 
 ```xml
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0" xmlns:asmv3="urn:schemas-microsoft-com:asm.v3">
-  <assemblyIdentity
-    type="win32"
-    name="Python.PythonService"
-    version="1.0.0.0"
-    processorArchitecture="*"
-  />
-  <description>Python Service Host</description>
-  <trustInfo xmlns="urn:schemas-microsoft-com:asm.v3">
-    <security>
-      <requestedPrivileges>
-        <requestedExecutionLevel level="asInvoker" uiAccess="false"/>
-      </requestedPrivileges>
-    </security>
-  </trustInfo>
-  <compatibility xmlns="urn:schemas-microsoft-com:compatibility.v1">
-    <application>
-      <!-- Windows 10 and Windows 11 -->
-      <supportedOS Id="{8e0f7a12-bfb3-4fe8-b9a5-48fd50a15a9a}"/>
-      <!-- Windows 8.1 -->
-      <supportedOS Id="{1f676c76-80e1-4239-95bb-83d0f6d0da78}"/>
-      <!-- Windows 8 -->
-      <supportedOS Id="{4a2f28e3-53b9-4441-ba9c-d69d4a4a6e38}"/>
-      <!-- Windows 7 -->
-      <supportedOS Id="{35138b9a-5d96-4fbd-8e2d-a2440225f93a}"/>
-    </application>
-  </compatibility>
-  <asmv3:application>
-    <asmv3:windowsSettings xmlns:ws2="http://schemas.microsoft.com/SMI/2016/WindowsSettings">
-      <ws2:longPathAware>true</ws2:longPathAware>
-    </asmv3:windowsSettings>
-  </asmv3:application>
-</assembly>
+<application xmlns="urn:schemas-microsoft-com:asm.v3">
+    <windowsSettings xmlns:ws2="http://schemas.microsoft.com/SMI/2016/WindowsSettings">
+        <ws2:longPathAware>true</ws2:longPathAware>
+    </windowsSettings>
+</application>
 ```
 
-### 4.2 Build System Integration
+#### Implementation in PythonService.cpp
 
-#### 4.2.1 Embedding the Manifest
-
-The manifest needs to be embedded into the `pythonservice.exe` binary during the build process. This can be done using the Microsoft Manifest Tool (mt.exe) which is part of the Windows SDK.
-
-#### 4.2.2 Build Script Modifications
-
-Modify the build process in `setup.py` to:
-1. Generate the manifest file
-2. Embed the manifest into `pythonservice.exe` after it's built
-
-Add the following steps to the build process:
-
-```python
-# In setup.py, modify the build_extension method of the appropriate Extension class
-
-def build_extension(self, ext):
-    # Existing build code...
-    
-    # After pythonservice.exe is built, embed the manifest
-    if ext.name == "servicemanager":
-        # Path to the built pythonservice.exe
-        exe_path = os.path.join(self.build_lib, "win32", "pythonservice.exe")
-        
-        # Path to the manifest file
-        manifest_path = os.path.join(os.path.dirname(__file__), "win32", "src", "PythonService", "pythonservice.exe.manifest")
-        
-        # Embed the manifest using mt.exe
-        mt_cmd = ["mt.exe", "-manifest", manifest_path, "-outputresource:%s;1" % exe_path]
-        self.spawn(mt_cmd)
-```
-
-### 4.3 Alternative Approach: Direct Code Modification
-
-If embedding a manifest proves challenging in the build process, an alternative approach is to modify the source code directly to opt into long path support:
+Add the following code to PythonService.cpp:
 
 ```cpp
-// In PythonService.cpp, add the following code near the top of the file
-
-#ifndef PYSERVICE_BUILD_DLL
-// This ensures the executable opts into long path support
-extern "C" {
-    // MSVC-specific pragma to add a manifest dependency
-    #pragma comment(linker, "/manifestdependency:\"type='win32' name='Python.PythonService' version='1.0.0.0' processorArchitecture='*' publicKeyToken='0000000000000000' language='*'\"")
-    
-    // This enables long path support when available
-    #if _WIN32_WINNT >= 0x0A00  // Windows 10 or later
-    #pragma comment(linker, "/MANIFESTDEPENDENCY:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
-    #endif
-}
+// Only needed when building the EXE, not the DLL
+#if !defined(PYSERVICE_BUILD_DLL) && defined(_MSC_VER)
+#pragma comment(linker, "/MANIFESTUAC:\"level='asInvoker' uiAccess='false'\"")
+#pragma comment(linker, "/MANIFEST:EMBED")
+#pragma comment(linker, "/MANIFESTINPUT:\"<?xml version='1.0' encoding='UTF-8' standalone='yes'?><assembly xmlns='urn:schemas-microsoft-com:asm.v1' manifestVersion='1.0'><application xmlns='urn:schemas-microsoft-com:asm.v3'><windowsSettings xmlns:ws2='http://schemas.microsoft.com/SMI/2016/WindowsSettings'><ws2:longPathAware>true</ws2:longPathAware></windowsSettings></application></assembly>\"")
 #endif
 ```
 
-## 5. Testing Strategy
+This code should be placed near the top of the file, after any existing includes but before any function definitions.
 
-### 5.1 Test Cases
+## Testing
 
-1. **Basic Functionality Test**:
-   - Create a Windows service using `pythonservice.exe`
-   - Verify it can access normal paths (<260 characters)
+### Test Plan
 
-2. **Long Path Test with Registry Enabled**:
-   - Enable long path support in the registry
-   - Create a deeply nested directory structure exceeding 260 characters
-   - Verify the service can access files in this structure
+1. **Build Verification**:
+   - Build pythonservice.exe with the changes
+   - Verify the manifest is correctly embedded using the `mt.exe` tool:
+     ```
+     mt.exe -inputresource:pythonservice.exe;#1 -out:manifest.xml
+     ```
+   - Check that the manifest.xml file contains the longPathAware element
 
-3. **Long Path Test with Registry Disabled**:
-   - Disable long path support in the registry
-   - Verify the service behaves as expected (fails with appropriate error)
+2. **Functionality Testing**:
+   - Create a test service that attempts to access a path longer than 260 characters
+   - Test on a system with the registry setting enabled
+   - Test on a system with the registry setting disabled
 
-4. **Edge Cases**:
-   - Test with paths just under and just over the 260 character limit
-   - Test with Unicode characters in paths
-   - Test with network paths
+3. **Test Script**:
+   Use the provided test script to verify functionality:
 
-### 5.2 Test Environment
+```python
+# service_test.py
+import win32serviceutil
+import win32service
+import win32event
+import servicemanager
+import socket
+import time
+import os
+import logging
 
-- Windows 10 version 1607 or later
-- Python 3.6+ (multiple versions)
-- Registry setting for long paths both enabled and disabled
+logger = logging.getLogger()
+service_dir = os.path.dirname(__file__)
+logFile = "service-test-log.txt"
+asbLogFile = os.path.join(service_dir, logFile)
 
-## 6. Implementation Plan
+logging.basicConfig(
+    filename = asbLogFile,
+    level = logging.DEBUG, 
+    format = '%(asctime)s [%(levelname)-7.7s] %(message)s'
+)
 
-### 6.1 Phase 1: Development
-1. Create the manifest file
-2. Modify the build process to embed the manifest
-3. Build a test version of pywin32 with the changes
+class TestingService(win32serviceutil.ServiceFramework):
+    _future = None
+    _svc_name_ = "TESTING_Service"
+    _svc_display_name_ = "TESTING Service"
+   
+    def __init__(self,args):
+        win32serviceutil.ServiceFramework.__init__(self,args)
+        self.stop_event = win32event.CreateEvent(None,0,0,None)
+        socket.setdefaulttimeout(60)
+        self.stop_requested = False
 
-### 6.2 Phase 2: Testing
-1. Execute the test cases defined above
-2. Verify backward compatibility
-3. Test on different Windows versions
+    def SvcStop(self):
+        self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING)
+        win32event.SetEvent(self.stop_event)
+        logger.info('Stopping service ...')
+        self.stop_requested = True
 
-### 6.3 Phase 3: Documentation and Release
-1. Update documentation to mention long path support
-2. Add a note to CHANGES.txt
-3. Submit pull request
+    def SvcDoRun(self):
+        servicemanager.LogMsg(
+            servicemanager.EVENTLOG_INFORMATION_TYPE,
+            servicemanager.PYS_SERVICE_STARTED,
+            (self._svc_name_,'')
+        )
+        self.main()
 
-## 7. Considerations and Limitations
+    def main(self):
+        logging.info('Attempting to Access Long Path')
+        service_dir = os.path.dirname(__file__)
+        
+        # Create a long path for testing
+        longPathFile = "longpath\\files\\longpath_testoutput_4k_fibfibfibfibfibfibfibfibfibfibfibfibfibfibfibfibfibfibfibfibfibfibfibfibfibfibfibfibfibfibfibfibfibfibfibfibfibfibfibfibfibfibfibfibfibfibfibfifibfibbfibfiibfibfibfibfibfibfibfibfibfibfibfibfibfibfibfibfibfibfibbo.exr.f307214C.txt"
+        absLongPathFile = os.path.join(service_dir, longPathFile)
 
-### 7.1 Registry Requirement
-- Users must still enable long path support in the Windows registry
-- Consider adding documentation about this requirement
+        try:
+            # Create directory structure if it doesn't exist
+            os.makedirs(os.path.dirname(absLongPathFile), exist_ok=True)
+            
+            # Create test file if it doesn't exist
+            if not os.path.exists(absLongPathFile):
+                with open(absLongPathFile, "w") as f:
+                    f.write("Test content for long path file")
+                logging.info(f"Created test file at: {absLongPathFile}")
+            
+            # Try to read the file
+            with open(absLongPathFile, "r") as f:
+                content = f.read()
+                logging.info(f"Successfully read file with content: {content}")
+        except Exception as err:
+            logging.exception(f"Error accessing long path: {err}")
 
-### 7.2 Windows Version Compatibility
-- Long path support is only available on Windows 10 version 1607 and later
-- Older Windows versions will not benefit from this change
 
-### 7.3 File System Compatibility
-- Some file systems may have their own path length limitations
-- Network paths may have additional constraints
+if __name__ == '__main__':
+    try:
+        win32serviceutil.HandleCommandLine(TestingService)
+    except Exception as err:
+        logging.exception(err)
+```
 
-## 8. References
+### Test Instructions
 
-1. [Enabling Long Path Support in Windows 10](https://docs.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation)
-2. [Application Manifest Documentation](https://docs.microsoft.com/en-us/windows/win32/sbscs/application-manifests)
-3. [Mt.exe (Manifest Tool) Documentation](https://docs.microsoft.com/en-us/windows/win32/sbscs/mt-exe)
-4. [PythonService Implementation Guide](https://github.com/mhammond/pywin32/blob/main/win32/src/PythonService/PythonService.cpp)
+1. Install pywin32 to the global site-packages:
+   ```
+   pip install pywin32
+   ```
+
+2. Install the test service:
+   ```
+   python service_test.py install
+   ```
+
+3. Run the pywin32 post-install script:
+   ```
+   pywin32_postinstall.py -install
+   ```
+
+4. Start the service:
+   ```
+   net start TESTING_Service
+   ```
+
+5. Check the log file for results
+
+6. Delete the service when done:
+   ```
+   sc delete TESTING_Service
+   ```
+
+## Documentation Updates
+
+### CHANGES.txt Update
+
+Add the following entry to CHANGES.txt for the next release:
+
+```
+Coming in build XXX:
+- Added long path support to pythonservice.exe when running on Windows systems with long path support enabled
+```
+
+## Implementation Notes
+
+1. **Compatibility**: This change should not affect existing services that don't use long paths.
+
+2. **Registry Requirement**: Long path support will only be active when the Windows registry has the appropriate setting enabled (`LongPathsEnabled=1`).
+
+3. **Build Process**: The change is implemented at build time through source code modification, not as a post-build step.
+
+4. **Windows Version**: Long path support requires Windows 10 version 1607 or later.
+
+## Files to Modify
+
+1. **PythonService.cpp**: Add the manifest embedding code
+
+## Implementation Timeline
+
+This change should be included in the next regular release of pywin32.
