@@ -18,14 +18,18 @@ from pywin32_testutil import TestSkipped, testmain
 # Traditional MAX_PATH limit
 MAX_PATH = 260
 
+
 def is_long_path_enabled_in_registry():
     """Check if long path support is enabled in the Windows registry"""
     try:
-        with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"SYSTEM\CurrentControlSet\Control\FileSystem") as key:
+        with winreg.OpenKey(
+            winreg.HKEY_LOCAL_MACHINE, r"SYSTEM\CurrentControlSet\Control\FileSystem"
+        ) as key:
             value, _ = winreg.QueryValueEx(key, "LongPathsEnabled")
             return value == 1
     except Exception:
         return False
+
 
 def is_windows_10_1607_or_later():
     """Check if the system is Windows 10 version 1607 or later"""
@@ -40,9 +44,11 @@ def is_windows_10_1607_or_later():
     except Exception:
         return False
 
+
 def can_use_long_paths():
     """Check if the system can use long paths"""
     return is_windows_10_1607_or_later() and is_long_path_enabled_in_registry()
+
 
 class TestLongPaths(unittest.TestCase):
     def setUp(self):
@@ -72,7 +78,6 @@ class TestLongPaths(unittest.TestCase):
         except Exception:
             pass
 
-
     def test_find_files(self):
         """Test finding files with long paths"""
         # Create multiple files in our long path directory
@@ -92,5 +97,6 @@ class TestLongPaths(unittest.TestCase):
         for i in range(3):
             self.assertIn(f"find_test_{i}.txt", file_names)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     testmain()
