@@ -6,14 +6,13 @@ MAX_PATH limit (260 characters) when the system is configured to support them.
 """
 
 import os
+import shutil
 import sys
 import tempfile
 import unittest
-import shutil
 import winreg
 
 import win32file
-import pywintypes
 from pywin32_testutil import TestSkipped, testmain
 
 # Traditional MAX_PATH limit
@@ -50,19 +49,19 @@ class TestLongPaths(unittest.TestCase):
         # Skip tests if long path support is not enabled
         if not can_use_long_paths():
             raise TestSkipped("Long path support not enabled on this system")
-        
+
         # Create a temporary directory for our tests
         self.temp_dir = tempfile.mkdtemp(prefix="pywin32_longpath_test_")
-        
+
         # Create a path longer than MAX_PATH
         # We'll use a deep directory structure to exceed MAX_PATH
         self.long_dir_name = os.path.join(self.temp_dir, "long_" + "x" * 200)
         os.makedirs(self.long_dir_name, exist_ok=True)
-        
+
         # Create a filename that will result in a path > MAX_PATH
         self.long_filename = "test_" + "y" * 100 + ".txt"
         self.long_path = os.path.join(self.long_dir_name, self.long_filename)
-        
+
         # Verify our path is actually longer than MAX_PATH
         self.assertGreater(len(self.long_path), MAX_PATH)
 
@@ -81,13 +80,13 @@ class TestLongPaths(unittest.TestCase):
             file_path = os.path.join(self.long_dir_name, f"find_test_{i}.txt")
             with open(file_path, "w") as f:
                 f.write(f"Test content {i}")
-        
+
         # Use FindFiles to list the directory
         files = win32file.FindFiles(os.path.join(self.long_dir_name, "*"))
-        
+
         # We should have at least 3 files (plus possibly . and ..)
         self.assertGreaterEqual(len(files), 3)
-        
+
         # Verify we can find our specific files
         file_names = [file[8] for file in files]  # Index 8 is the filename
         for i in range(3):
