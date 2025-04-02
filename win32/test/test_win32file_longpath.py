@@ -87,7 +87,7 @@ class TestLongPaths(unittest.TestCase):
                 f.write(f"Test content {i}")
 
         # Use FindFiles to list the directory
-        files = win32file.FindFiles(os.path.join(self.long_dir_name, "*"))
+        files = win32file.FindFilesW(os.path.join(self.long_dir_name, "*"))
 
         # We should have at least 3 files (plus possibly . and ..)
         self.assertGreaterEqual(len(files), 3)
