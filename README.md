@@ -30,14 +30,13 @@ Feel free to [open issues](https://github.com/mhammond/pywin32/issues) for
 all bugs (or suspected bugs) in pywin32. [pull-requests](https://github.com/mhammond/pywin32/pulls)
 for all bugs or features are also welcome.
 
+However, please **do not open GitHub issues for general support requests**, or
+for problems or questions using the modules in this package. For such requests, please start a [discussion](https://github.com/mhammond/pywin32/discussions) under the [Q&A category](https://github.com/mhammond/pywin32/discussions/new?category=q-a). This is now preferred to the
+[python-win32 mailing list](https://mail.python.org/mailman/listinfo/python-win32).
+All non bug related issues will be converted into a discussion anyhow.
+
 Type stubs currently live in [typeshed](<https://github.com/python/typeshed/tree/main/stubs/pywin32>).
 Any issue or request related to static type-checking and IntelliSense should be raised there.
-
-However, please **do not open GitHub issues for general support requests**, or
-for problems or questions using the modules in this package - they will be
-closed. For such issues, please email the
-[python-win32 mailing list](https://mail.python.org/mailman/listinfo/python-win32) -
-note that you must be subscribed to the list before posting.
 
 ## Binaries
 
