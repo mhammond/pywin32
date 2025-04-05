@@ -3,6 +3,6 @@ contact_links:
   - name: Typeshed type stubs and annotations
     url: https://github.com/python/typeshed/issues?q=state%3Aopen+pywin32
     about: For static type-checking and IntelliSense
-  - name: python-win32 mailing list
-    url: http://mail.python.org/mailman/listinfo/python-win32
+  - name: Discussions Q&A category
+    url: https://github.com/mhammond/pywin32/discussions/new?category=q-a
     about: For support requests, problems or questions
