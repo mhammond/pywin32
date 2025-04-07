@@ -23,7 +23,7 @@ pythonwinexe_path = os.path.dirname(win32ui.__file__) + "\\Pythonwin.exe"
 class TestPythonwinExe(unittest.TestCase):
     """Starts up Pythonwin.exe and runs exetestscript.py inside for a few tests"""
 
-    def setUp(self):
+    def setUp(self) -> None:
         fh, self.tfn = tempfile.mkstemp(suffix=".testout.txt", prefix="pywintest-")
         os.close(fh)
         usersite = site.getusersitepackages()
@@ -50,25 +50,22 @@ class TestPythonwinExe(unittest.TestCase):
         sys.flags.dev_mode,
         "This test currently fails in development mode for unknown reasons",
     )
-    def test_exe(self):
+    def test_exe(self) -> None:
         scriptpath = src_dir + "\\_exetestscript.py"
         cmd = [pythonwinexe_path, "/new", "/run", scriptpath, self.tfn]
         wd = os.path.dirname(sys.executable)
 
         print(f"-- Starting: '{' '.join(cmd)}' in '{wd}'", file=sys.stderr)
-        try:
-            rc = subprocess.run(cmd, cwd=wd, timeout=20).returncode
-        except subprocess.TimeoutExpired:
-            rc = "TIMEOUT"
+        rc = subprocess.run(cmd, cwd=wd, timeout=20).returncode
         with open(self.tfn) as f:
             outs = f.read()
         self.assertEqual(rc, 0, f"outs={outs!r}")
         self.assertIn("Success!", outs)
         print("-- test_exe Ok! --", file=sys.stderr)
 
-    def tearDown(self):
+    def tearDown(self) -> None:
         os.remove(self.tfn)
-        print("-- removed '%s' --" % self.tfn, file=sys.stderr)
+        print(f"-- removed '{self.tfn}' --", file=sys.stderr)
 
 
 if __name__ == "__main__":
