@@ -72,13 +72,13 @@ def RemoveRefCountOutput(data):
     return data
 
 
-def ExecuteSilentlyIfOK(cmd, testcase):
+def ExecuteSilentlyIfOK(cmd: str, testcase: TestCase) -> str:
     f = os.popen(cmd)
     data = f.read().strip()
     rc = f.close()
     if rc:
         print(data)
-        testcase.fail("Executing '%s' failed (%d)" % (cmd, rc))
+        testcase.fail(f"Executing '{cmd}' failed ({rc})")
     # for "_d" builds, strip the '[xxx refs]' line
     return RemoveRefCountOutput(data)
 
