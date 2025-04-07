@@ -62,11 +62,7 @@ jobs:
       - name: Set up MSVC
         uses: microsoft/setup-msbuild@v2
       - name: Build and register the PyCOMTest server dll
-        run: |
-          cd com/TestSources/PyCOMTest
-          msbuild .\PyCOMTest.sln -property:Configuration=Release
-          cd x64/Release
-          regsvr32 .\PyCOMTest.dll
+        run: com/TestSources/PyCOMTest/buildAndRegister.bat
 
       - name: Run tests
         # Run the tests directly from the source dir so support files (eg, .wav files etc)
