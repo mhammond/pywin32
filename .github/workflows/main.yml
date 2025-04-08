@@ -71,7 +71,7 @@ jobs:
       - name: Run tests
         # Run the tests directly from the source dir so support files (eg, .wav files etc)
         # can be found - they aren't installed into the Python tree.
-        run: python -X dev win32/scripts/pywin32_testall.py -v -skip-adodbapi
+        run: python win32/scripts/pywin32_testall.py -v -skip-adodbapi
 
       - name: Build wheels
         run: pip wheel . -v --wheel-dir=dist
