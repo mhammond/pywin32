@@ -10,6 +10,7 @@ select = [
   "C4", # flake8-comprehensions
   "F811", # redefined-while-unused
   "I", # isort
+  "PIE800", # unnecessary-spread
   "PLC", # Pylint Convention
   "PLE", # Pylint Error
   "RUF005", # collection-literal-concatenation
