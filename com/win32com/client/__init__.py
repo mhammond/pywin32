@@ -555,7 +555,7 @@ class DispatchBaseClass:
         return list(set(attributes))
 
     # Provide a prettier name than the CLSID
-    def __repr__(self):
+    def __repr__(self) -> str:
         # Need to get the docstring for the module for this class.
         try:
             mod_doc = sys.modules[self.__class__.__module__].__doc__
@@ -630,7 +630,7 @@ class CoClassBaseClass:
             oobj = pythoncom.new(self.CLSID)
         self.__dict__["_dispobj_"] = self.default_interface(oobj)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<win32com.gen_py.{__doc__}.{self.__class__.__name__}>"
 
     def __getattr__(self, attr):
@@ -700,5 +700,5 @@ class VARIANT:
 
     value = property(_get_value, _set_value, _del_value)
 
-    def __repr__(self):
-        return f"win32com.client.VARIANT({self.varianttype!r}, {self._value!r})"
+    def __repr__(self) -> str:
+        return f"{self.__class__.__qualname__}({self.varianttype!r}, {self._value!r})"

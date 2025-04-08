@@ -18,8 +18,8 @@ class ModuleTreeNode:
         self.realNode = None
         self.cont = codecontainer.SourceModuleContainer(module)
 
-    def __repr__(self):
-        return f"<ModuleTreeNode wrapping {self.module}>"
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__} wrapping {self.module}>"
 
     def Attach(self, parentRealNode):
         self.realNode.Attach(parentRealNode)

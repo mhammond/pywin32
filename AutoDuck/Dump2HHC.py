@@ -48,7 +48,7 @@ class topic:
             {"context": self.context, "name": self.name, "contains": self.contains}
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         if len(self.contains) > 0:
             return repr(
                 {"context": self.context, "name": self.name, "contains": self.contains}
