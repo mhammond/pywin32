@@ -24,6 +24,9 @@ from win32com.client import (
     constants,
     register_record_class,
 )
+from win32api import OpenProcess, CloseHandle, GetCurrentProcessId
+from win32process import GetProcessMemoryInfo
+
 
 importMsg = "**** PyCOMTest is not installed ***\n  PyCOMTest is a Python test specific COM client and server.\n  It is likely this server is not installed on this machine\n  To install the server, you must get the win32com sources\n  and build it using MS Visual C++"
 
@@ -138,13 +141,10 @@ def TestConstant(constName, pyConst):
 
 
 def GetMemoryUsage():
-    from win32api import OpenProcess, CloseHandle
-    from win32api import GetCurrentProcessId
     pid = GetCurrentProcessId()
     PROCESS_QUERY_INFORMATION =0x0400
     PROCESS_VM_READ = 0x0010
-    hprocess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, False, pid) 
-    from win32process import GetProcessMemoryInfo
+    hprocess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, False, pid)
     mem_info = GetProcessMemoryInfo(hprocess)
     CloseHandle(hprocess)
     return mem_info['WorkingSetSize']
