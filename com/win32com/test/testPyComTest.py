@@ -16,6 +16,7 @@ import win32com.client.connect
 import win32com.test.util
 import win32timezone
 import winerror
+from win32api import CloseHandle, GetCurrentProcessId, OpenProcess
 from win32com.client import (
     VARIANT,
     CastTo,
@@ -24,9 +25,7 @@ from win32com.client import (
     constants,
     register_record_class,
 )
-from win32api import OpenProcess, CloseHandle, GetCurrentProcessId
 from win32process import GetProcessMemoryInfo
-
 
 importMsg = "**** PyCOMTest is not installed ***\n  PyCOMTest is a Python test specific COM client and server.\n  It is likely this server is not installed on this machine\n  To install the server, you must get the win32com sources\n  and build it using MS Visual C++"
 
