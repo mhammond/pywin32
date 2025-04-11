@@ -137,6 +137,19 @@ def TestConstant(constName, pyConst):
     ), f"Constant value wrong for {constName} - got {comConst}, wanted {pyConst}"
 
 
+def GetMemoryUsage():
+    from win32api import OpenProcess, CloseHandle
+    from win32api import GetCurrentProcessId
+    pid = GetCurrentProcessId()
+    PROCESS_QUERY_INFORMATION =0x0400
+    PROCESS_VM_READ = 0x0010
+    hprocess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, False, pid) 
+    from win32process import GetProcessMemoryInfo
+    mem_info = GetProcessMemoryInfo(hprocess)
+    CloseHandle(hprocess)
+    return mem_info['WorkingSetSize']
+
+
 # Simple handler class.  This demo only fires one event.
 class RandomEventHandler:
     def _Init(self):
@@ -600,6 +613,13 @@ def TestGenerated():
     ll = [1, 2, 3, 0x100000000]
     TestApplyResult(o.SetLongLongSafeArray, (ll,), len(ll))
     TestApplyResult(o.SetULongLongSafeArray, (ll,), len(ll))
+
+    # check freeing of safe arrays
+    mem_before = GetMemoryUsage()
+    o.GetByteArray(50 * 1024 * 1024)
+    mem_after = GetMemoryUsage()
+    delta = mem_after - mem_before
+    assert(delta < 1024 * 1024), f"Memory not freed - delta {delta/(1024*1024)} MB"
 
     # Tell the server to do what it does!
     TestApplyResult(o.Test2, (constants.Attr2,), constants.Attr2)
