@@ -141,7 +141,7 @@ def TestConstant(constName, pyConst):
 
 def GetMemoryUsage():
     pid = GetCurrentProcessId()
-    PROCESS_QUERY_INFORMATION =0x0400
+    PROCESS_QUERY_INFORMATION = 0x0400
     PROCESS_VM_READ = 0x0010
     hprocess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, False, pid)
     mem_info = GetProcessMemoryInfo(hprocess)
