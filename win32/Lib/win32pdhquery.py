@@ -564,7 +564,7 @@ class QueryError(Exception):
     def __init__(self, query: BaseQuery):
         self.query = query
 
-    def __repr__(self):
-        return f"<Query Error in {self.query!r}>"
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__} in {self.query!r}>"
 
     __str__ = __repr__

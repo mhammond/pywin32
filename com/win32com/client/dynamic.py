@@ -220,8 +220,8 @@ class CDispatch:
         # _Possibly_ want to defer to __len__ if available, but I'm not sure this is
         # desirable???
 
-    def __repr__(self):
-        return "<COMObject %s>" % (self._username_)
+    def __repr__(self) -> str:
+        return f"<COMObject {self._username_}>"
 
     def __str__(self):
         # __str__ is used when the user does "print(object)", so we gracefully

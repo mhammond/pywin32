@@ -111,7 +111,7 @@ class WritableItem:
             return self.doc < other.doc
         return self.order < other.order
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"OleItem: doc={self.doc!r}, order={self.order}"
 
 

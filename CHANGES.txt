@@ -14,6 +14,21 @@ https://mhammond.github.io/pywin32_installers.html .
 Coming in build 311, as yet unreleased
 --------------------------------------
 * Fixed a regression that broke special __dunder__ methods with CoClass. (#1870, #2493, @Avasam, @geppi)
+* Added missing quotes and closing parenthesis to `win32com.client.build.MapEntry`'s `repr` (#2555, @Avasam)
+* The following classes will now use the correct subclass name in `repr`: (#2555, @Avasam)
+  * `win32rcparser.StringDef`
+  * `win32pdhquery.QueryError`
+  * `pywin.tools.browser.HLIPythonObject`
+  * `win32comext.axscript.client.pyscript.NamedScriptAttribute`
+  * `win32comext.axscript.client.error.AXScriptException`
+  * `win32comext.axdebug.debugger.ModuleTreeNode`
+  * `win32com.server.exception.COMException`
+  * `win32com.client.VARIANT`
+* The following classes now produce a valid `eval` string representation when calling `repr`: (#2555, @Avasam)
+  * `pywin.tools.browser.HLIPythonObject`
+  * `win32comext.axscript.client.pyscript.NamedScriptAttribute`
+  * `win32comext.axscript.client.error.AXScriptException`
+  * `win32com.server.exception.COMException`
 
 Build 310, released 2025/03/16
 ------------------------------

@@ -165,8 +165,8 @@ class Event:
     def __init__(self):
         self.name = "<None>"
 
-    def __repr__(self):
-        return "<%s at %d: %s>" % (self.__class__.__name__, id(self), self.name)
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__} at {id(self)}: {self.name}>"
 
     def Reset(self):
         pass
@@ -314,16 +314,11 @@ class ScriptItem:
 
     # 		trace("Creating ScriptItem", name, "of parent", parentItem,"with dispatch", dispatch)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         flagsDesc = ""
         if self.flags is not None and self.flags & axscript.SCRIPTITEM_GLOBALMEMBERS:
             flagsDesc = "/Global"
-        return "<%s at %d: %s%s>" % (
-            self.__class__.__name__,
-            id(self),
-            self.name,
-            flagsDesc,
-        )
+        return f"<{self.__class__.__name__} at {id(self)}: {self.name}{flagsDesc}>"
 
     def _dump_(self, level):
         flagDescs = []
