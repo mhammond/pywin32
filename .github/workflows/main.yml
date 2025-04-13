@@ -62,6 +62,7 @@ jobs:
       - name: Set up MSVC
         uses: microsoft/setup-msbuild@v2
       - name: Build and register the PyCOMTest server dll
+        # Pass Silent flag to regsvr32 to avoid hanging on confirmation window
         run: com/TestSources/PyCOMTest/buildAndRegister.bat /s
 
       - name: Run tests
