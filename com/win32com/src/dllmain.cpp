@@ -165,8 +165,6 @@ HRESULT PyCom_CoInitializeEx(LPVOID reserved, DWORD dwInit)
     CEnterLeaveFramework _celf;
     if (g_bCoInitThreadHasInit && g_dwCoInitThread == GetCurrentThreadId())
         return S_OK;
-    // Do a LoadLibrary, as the Ex version may not always exist
-    // on Win95.
     HMODULE hMod = GetModuleHandle(_T("ole32.dll"));
     if (hMod == 0)
         return E_HANDLE;
