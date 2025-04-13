@@ -517,10 +517,8 @@ PyObject *PyIDispatch::InvokeTypes(PyObject *self, PyObject *args)
 
 error:
     if (dispparams.rgvarg) {
-        for (i = dispparams.cArgs; i--;) 
-        {
-            if ((V_VT(&dispparams.rgvarg[i]) & ~VT_TYPEMASK) == (VT_BYREF | VT_ARRAY))
-            {
+        for (i = dispparams.cArgs; i--;) {
+            if ((V_VT(&dispparams.rgvarg[i]) & ~VT_TYPEMASK) == (VT_BYREF | VT_ARRAY)) {
                 SafeArrayDestroy(*V_ARRAYREF(&dispparams.rgvarg[i]));
             }
             VariantClear(&dispparams.rgvarg[i]);
