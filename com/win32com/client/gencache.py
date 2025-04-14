@@ -434,9 +434,7 @@ def ForgetAboutTypelibInterface(typelib_ob):
     except KeyError:
         # Not worth raising an exception - maybe they don't know we only remember for demand generated, etc.
         print(
-            "ForgetAboutTypelibInterface:: Warning - type library with info {} is not being remembered!".format(
-                info
-            )
+            f"ForgetAboutTypelibInterface:: Warning - type library with {info=} is not being remembered!"
         )
     # and drop any version redirects to it
     # copy into a list to avoid size changing during iteration

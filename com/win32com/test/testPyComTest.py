@@ -2,6 +2,7 @@
 # gateway count doesn't hit zero.  Hence the print statements!
 
 import sys
+from pathlib import Path
 
 sys.coinit_flags = 0  # Must be free-threaded!
 import datetime
@@ -25,11 +26,12 @@ from win32com.client import (
     register_record_class,
 )
 
+localWin32comDirectory = Path(__file__).parent.parent
 importMsg = "**** PyCOMTest is not installed ***\n  PyCOMTest is a Python test specific COM client and server.\n  It is likely this server is not installed on this machine\n  To install the server, you must get the win32com sources\n  and build it using MS Visual C++"
 
 # This test uses a Python implemented COM server - ensure correctly registered.
 win32com.test.util.RegisterPythonServer(
-    os.path.join(os.path.dirname(__file__), "..", "servers", "test_pycomtest.py"),
+    os.path.join(localWin32comDirectory, "servers", "test_pycomtest.py"),
     "Python.Test.PyCOMTest",
 )
 
@@ -866,6 +868,35 @@ def TestQueryInterface(long_lived_server=0, iterations=5):
         tester.TestQueryInterface()
 
 
+def TestRememberedGeneratedTypeLibraries():
+    typelib_ob = pythoncom.LoadTypeLib(
+        os.path.join(
+            localWin32comDirectory.parent, "TestSources", "PyCOMTest", "PyCOMTest.tlb"
+        )
+    )
+    # Make sure the TypeLib isn't already present, or that defeats the point of this test
+    assert typelib_ob not in gencache.demandGeneratedTypeLibraries.values()
+
+    module = gencache.EnsureModuleForTypelibInterface(typelib_ob, bForDemand=True)
+    tla = typelib_ob.GetLibAttr()
+    guid = tla[0]
+    lcid = tla[1]
+    major = tla[3]
+    minor = tla[4]
+    info = str(guid), lcid, major, minor
+    assert gencache.demandGeneratedTypeLibraries[info] is typelib_ob
+
+    # # TODO: How can I get a None module in EnsureModule to test versionRedirectMap ?
+    # old_is_readonly, gencache.is_readonly = gencache.is_readonly, True
+    # gencache.EnsureModule(*info)
+    # gencache.is_readonly = old_is_readonly
+    # assert gencache.versionRedirectMap[info] is module
+
+    gencache.ForgetAboutTypelibInterface(typelib_ob)
+    assert info not in gencache.demandGeneratedTypeLibraries
+    assert info not in gencache.versionRedirectMap
+
+
 class Tester(win32com.test.util.TestCase):
     def testVTableInProc(self):
         # We used to crash running this the second time - do it a few times
@@ -902,6 +933,9 @@ class Tester(win32com.test.util.TestCase):
 
     def testGenerated(self):
         TestGenerated()
+
+    def testRememberedGeneratedTypeLibraries(self):
+        TestRememberedGeneratedTypeLibraries()
 
 
 if __name__ == "__main__":
