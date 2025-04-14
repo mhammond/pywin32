@@ -429,9 +429,9 @@ def ForgetAboutTypelibInterface(typelib_ob):
     major = tla[3]
     minor = tla[4]
     info = str(guid), lcid, major, minor
-    try:
+    if info in demandGeneratedTypeLibraries:
         del demandGeneratedTypeLibraries[info]
-    except KeyError:
+    else:
         # Not worth raising an exception - maybe they don't know we only remember for demand generated, etc.
         print(
             f"ForgetAboutTypelibInterface:: Warning - type library with {info=} is not being remembered!"
