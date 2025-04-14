@@ -437,7 +437,6 @@ def ForgetAboutTypelibInterface(typelib_ob):
             f"ForgetAboutTypelibInterface:: Warning - type library with {info=} is not being remembered!"
         )
     # and drop any version redirects to it
-    # copy into a list to avoid size changing during iteration
     if info in versionRedirectMap:
         del versionRedirectMap[info]
 
