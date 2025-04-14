@@ -524,11 +524,10 @@ class DispatchBaseClass:
     def __init__(self, oobj=None):
         if oobj is None:
             oobj = pythoncom.new(self.CLSID)
-        elif isinstance(oobj, DispatchBaseClass):
+        elif isinstance(oobj, (DispatchBaseClass, _PyIDispatchType)):
             try:
-                oobj = oobj._oleobj_.QueryInterface(
-                    self.CLSID, pythoncom.IID_IDispatch
-                )  # Must be a valid COM instance
+                oobj = oobj._oleobj_ if isinstance(oobj, DispatchBaseClass) else oobj
+                oobj = oobj.QueryInterface(self.CLSID, pythoncom.IID_IDispatch)
             except pythoncom.com_error as details:
                 import winerror
 
@@ -537,7 +536,7 @@ class DispatchBaseClass:
                 # So just let it use the existing object if E_NOINTERFACE
                 if details.hresult != winerror.E_NOINTERFACE:
                     raise
-                oobj = oobj._oleobj_
+
         self.__dict__["_oleobj_"] = oobj  # so we don't call __setattr__
 
     def __dir__(self):
@@ -628,18 +627,7 @@ class CoClassBaseClass:
     def __init__(self, oobj=None):
         if oobj is None:
             oobj = pythoncom.new(self.CLSID)
-        dispobj = self.__dict__["_dispobj_"] = self.default_interface(oobj)
-        # See comments below re the special methods.
-        for maybe in [
-            "__call__",
-            "__str__",
-            "__int__",
-            "__iter__",
-            "__len__",
-            "__bool__",
-        ]:
-            if hasattr(dispobj, maybe):
-                setattr(self, maybe, getattr(self, "__maybe" + maybe))
+        self.__dict__["_dispobj_"] = self.default_interface(oobj)
 
     def __repr__(self):
         return f"<win32com.gen_py.{__doc__}.{self.__class__.__name__}>"
@@ -663,31 +651,29 @@ class CoClassBaseClass:
             pass
         self.__dict__[attr] = value
 
-        # Special methods don't use __getattr__ etc, so explicitly delegate here.
-        # Note however, that not all are safe to let bubble up - things like
-        # `bool(ob)` will break if the object defines __int__ but then raises an
-        # attribute error - eg, see #1753.
-        # It depends on what the wrapped COM object actually defines whether these
-        # will exist on the underlying object, so __init__ explicitly checks if they
-        # do and if so, wires them up.
+    # Special methods don't use __getattr__ etc, so explicitly delegate here.
+    # Some wrapped objects might not have them, but that's OK - the attribute
+    # error can just bubble up.
+    # This was initially implemented to address #1699 which did cause a problem
+    # with bool() in #1753 because the code initially implemented __nonzero__
+    # instead of __bool__, which was pointed out in the conclusion of #1870.
+    def __call__(self, *args, **kwargs):
+        return self.__dict__["_dispobj_"](*args, **kwargs)
 
-    def __maybe__call__(self, *args, **kwargs):
-        return self.__dict__["_dispobj_"].__call__(*args, **kwargs)
+    def __str__(self, *args):
+        return str(self.__dict__["_dispobj_"])
 
-    def __maybe__str__(self, *args):
-        return self.__dict__["_dispobj_"].__str__(*args)
+    def __int__(self, *args):
+        return int(self.__dict__["_dispobj_"])
 
-    def __maybe__int__(self, *args):
-        return self.__dict__["_dispobj_"].__int__(*args)
+    def __iter__(self):
+        return iter(self.__dict__["_dispobj_"])
 
-    def __maybe__iter__(self):
-        return self.__dict__["_dispobj_"].__iter__()
+    def __len__(self):
+        return len(self.__dict__["_dispobj_"])
 
-    def __maybe__len__(self):
-        return self.__dict__["_dispobj_"].__len__()
-
-    def __maybe__bool__(self):
-        return self.__dict__["_dispobj_"].__bool__()
+    def __bool__(self):
+        return bool(self.__dict__["_dispobj_"])
 
 
 # A very simple VARIANT class.  Only to be used with poorly-implemented COM
