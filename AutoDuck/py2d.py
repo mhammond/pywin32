@@ -17,9 +17,6 @@ def ad_escape(s: str) -> str:
     return re.sub(r"([^<]*)<([^>]*)>", r"\g<1>\\<\g<2>\\>", s)
 
 
-Print: Callable[..., None] = print
-
-
 class DocInfo(Generic[_T]):
     def __init__(self, name: str, ob: _T) -> None:
         docstring = (ob.__doc__ or "").strip()
@@ -46,7 +43,7 @@ def BuildArgInfos(ob: FunctionType | MethodType) -> list[ArgInfo]:
     defs = list(ob.__defaults__ or [])
     for n in vars:
         default = ""
-        if len(defs):
+        if defs:
             default = repr(defs.pop())
             # the default may be an object, so the repr gives '<...>'
             # and the angle brackets screw AutoDuck.
@@ -168,6 +165,9 @@ def build_module(mod_name: str) -> None:
         if isinstance(val, int):
             desc += f" (0x{val:x})"
         Print(f"// @const {mod_name}|{name}|{desc}")
+
+
+Print: Callable[..., None] = print
 
 
 def main(fp: SupportsWrite[str], args: Iterable[str]) -> None:
