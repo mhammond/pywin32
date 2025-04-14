@@ -441,7 +441,8 @@ def ImportFile():
     # meaning sys.modules can change as a side-effect of looking at
     # module.__file__ - so we must take a copy (ie, list(items()))
     for key, mod in sys.modules.items():
-        if fname := getattr(mod, "__file__", None):
+        if getattr(mod, "__file__", None):
+            fname = mod.__file__
             base, ext = os.path.splitext(fname)
             if ext.lower() in (".pyo", ".pyc"):
                 ext = ".py"
