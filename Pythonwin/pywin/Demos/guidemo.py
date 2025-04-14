@@ -19,7 +19,7 @@ demos = [
     ("OCX Serial Port Demo", "from ocx import ocxserialtest; ocxserialtest.test()"),
     (
         "Internet Explorer Control Demo",
-        'from ocx import webbrowser; webbrowser.Demo("http://www.python.org")',
+        'from ocx import webbrowser; webbrowser.Demo("https://www.python.org")',
     ),
 ]
 

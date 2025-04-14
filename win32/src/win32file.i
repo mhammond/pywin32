@@ -22,11 +22,6 @@
 //		<nl>RemoveDirectory / RemoveDirectoryTransacted
 
 %{
-//#define FAR
-#ifndef _WIN32_WINNT
-#define _WIN32_WINNT 0x0600
-#endif
-
 // We use the deprecated API
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 
@@ -58,10 +53,6 @@
 #	undef socklen_t
 #endif
 #include "Ws2tcpip.h"
-// *sob* - msvc6 can't handle the _WSPIAPI_COUNTOF in later SDKs...
-#if _MSC_VER < 1300
-#define _WSPIAPI_COUNTOF(_Array) (sizeof(_Array) / sizeof(_Array[0]))
-#endif
 #include "Wspiapi.h" // for WspiapiGetAddrInfo/WspiapiFreeAddrInfo
 
 #define NEED_PYWINOBJECTS_H
@@ -2929,11 +2920,6 @@ static Wow64DisableWow64FsRedirectionfunc pfnWow64DisableWow64FsRedirection = NU
 typedef BOOL (WINAPI *Wow64RevertWow64FsRedirectionfunc)(PVOID);
 static Wow64RevertWow64FsRedirectionfunc pfnWow64RevertWow64FsRedirection = NULL;
 
-/* GetFileInformationByHandleEx and supporting structs are defined in SDK for Vista and later,
-	but can also be used on XP with a separate header and lib:
-	http://www.microsoft.com/en-us/download/details.aspx?id=22599
-	However, the filextd.lib included is static, so this module would have to be compiled for XP only.
-*/
 typedef BOOL (WINAPI *GetFileInformationByHandleExfunc)(HANDLE,FILE_INFO_BY_HANDLE_CLASS,LPVOID,DWORD);
 static GetFileInformationByHandleExfunc pfnGetFileInformationByHandleEx = NULL;
 typedef BOOL (WINAPI *SetFileInformationByHandlefunc)(HANDLE,FILE_INFO_BY_HANDLE_CLASS,LPVOID,DWORD);
