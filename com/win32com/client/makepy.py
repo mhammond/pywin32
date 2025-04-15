@@ -319,6 +319,8 @@ def GenerateFromTypeLibSpec(
                 outputName = full_name + ".py"
             fileUse = gen.open_writer(outputName)
             progress.LogBeginGenerate(outputName)
+        elif isinstance(file, str):
+            fileUse = gen.open_writer(file)
         else:
             fileUse = file
 
@@ -330,6 +332,8 @@ def GenerateFromTypeLibSpec(
             if file is None:
                 with gencache.ModuleMutex(this_name):
                     gen.finish_writer(outputName, fileUse, worked)
+            elif isinstance(file, str):
+                gen.finish_writer(file, fileUse, worked)
         importlib.invalidate_caches()
         if bToGenDir:
             progress.SetDescription("Importing module")

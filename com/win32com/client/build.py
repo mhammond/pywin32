@@ -382,6 +382,22 @@ class DispatchItem(OleItem):
         if doc and doc[1]:
             ret.append(linePrefix + "\t" + _makeDocString(doc[1]))
 
+        for i in range(len(fdesc[2])):
+            desc = fdesc[2][i]
+
+            if (
+                desc[1] & (pythoncom.PARAMFLAG_FOUT | pythoncom.PARAMFLAG_FIN)
+                == pythoncom.PARAMFLAG_FOUT
+            ):
+                if (
+                    desc[0] & pythoncom.VT_RECORD
+                    and desc[3]
+                    and desc[3].__class__.__name__ == "PyIID"
+                ):
+                    newVal = f"pythoncom.GetRecordFromGuids(CLSID, MajorVersion, MinorVersion, LCID, {repr(desc[3])})"
+                    ret.append(linePrefix + "\t" + f"if {names[i+1]} == {defOutArg}:")
+                    ret.append(linePrefix + "\t\t" + f"{names[i+1]} = {newVal}")
+
         resclsid = entry.GetResultCLSID()
         if resclsid:
             resclsid = "'%s'" % resclsid
@@ -592,7 +608,7 @@ def _ResolveType(typerepr, itypeinfo):
                 return pythoncom.VT_UNKNOWN, clsid, retdoc
 
             elif typeKind == pythoncom.TKIND_RECORD:
-                return pythoncom.VT_RECORD, None, None
+                return pythoncom.VT_RECORD, resultAttr.iid, None
             raise NotSupportedException("Can not resolve alias or user-defined type")
     return typeSubstMap.get(typerepr, typerepr), None, None
 
@@ -612,6 +628,7 @@ def _BuildArgList(fdesc, names):
     name_num = 0
     while len(names) < numArgs:
         names.append("arg%d" % (len(names),))
+
     # As per BuildCallList(), avoid huge lines.
     # Hack a "\n" at the end of every 5th name
     for i in range(0, len(names), 5):

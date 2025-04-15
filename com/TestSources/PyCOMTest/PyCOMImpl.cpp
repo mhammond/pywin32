@@ -619,6 +619,16 @@ HRESULT CPyCOMTest::GetStruct(TestStruct1 *ret)
     return S_OK;
 }
 
+HRESULT CPyCOMTest::GetOutStruct(TestStruct1 *ret)
+{
+    if (ret == NULL) {
+        return E_POINTER;
+    }
+    ret->int_value = 99;
+    ret->str_value = SysAllocString(L"Hello from C++");
+    return S_OK;
+}
+
 HRESULT CPyCOMTest::ModifyStruct(TestStruct1 *prec)
 {
     prec->int_value = 100;
