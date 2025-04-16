@@ -134,9 +134,9 @@ def TestConstant(constName, pyConst):
         comConst = getattr(constants, constName)
     except:
         raise AssertionError(f"Constant {constName} missing")
-    assert comConst == pyConst, (
-        f"Constant value wrong for {constName} - got {comConst}, wanted {pyConst}"
-    )
+    assert (
+        comConst == pyConst
+    ), f"Constant value wrong for {constName} - got {comConst}, wanted {pyConst}"
 
 
 # Simple handler class.  This demo only fires one event.
@@ -204,9 +204,9 @@ def TestCommon(o, is_generated):
     expected_class = o.__class__
     # CoClass instances have `default_interface`
     expected_class = getattr(expected_class, "default_interface", expected_class)
-    assert isinstance(o.GetSetDispatch(o), expected_class), (
-        f"GetSetDispatch failed: {o.GetSetDispatch(o)!r}"
-    )
+    assert isinstance(
+        o.GetSetDispatch(o), expected_class
+    ), f"GetSetDispatch failed: {o.GetSetDispatch(o)!r}"
     progress("Checking getting/passing IDispatch of known type")
     expected_class = o.__class__
     expected_class = getattr(expected_class, "default_interface", expected_class)
@@ -283,21 +283,21 @@ def TestCommon(o, is_generated):
 
     progress("Checking properties")
     o.LongProp = 3
-    assert o.LongProp == o.IntProp == 3, (
-        f"Property value wrong - got {o.LongProp}/{o.IntProp}"
-    )
+    assert (
+        o.LongProp == o.IntProp == 3
+    ), f"Property value wrong - got {o.LongProp}/{o.IntProp}"
     o.LongProp = o.IntProp = -3
-    assert o.LongProp == o.IntProp == -3, (
-        f"Property value wrong - got {o.LongProp}/{o.IntProp}"
-    )
+    assert (
+        o.LongProp == o.IntProp == -3
+    ), f"Property value wrong - got {o.LongProp}/{o.IntProp}"
     # This number fits in an unsigned long.  Attempting to set it to a normal
     # long will involve overflow, which is to be expected. But we do
     # expect it to work in a property explicitly a VT_UI4.
     check = 3 * 10**9
     o.ULongProp = check
-    assert o.ULongProp == check, (
-        f"Property value wrong - got {o.ULongProp} (expected {check})"
-    )
+    assert (
+        o.ULongProp == check
+    ), f"Property value wrong - got {o.ULongProp} (expected {check})"
     TestApplyResult(o.Test, ("Unused", 99), 1)  # A bool function
     TestApplyResult(o.Test, ("Unused", -1), 1)  # A bool function
     TestApplyResult(o.Test, ("Unused", True), 1)  # A bool function
@@ -564,9 +564,9 @@ def TestGenerated():
     # XXX - this is failing in dynamic tests, but should work fine.
     i1, i2 = o.GetMultipleInterfaces()
     # Yay - is now an instance returned!
-    assert isinstance(i1, DispatchBaseClass) and isinstance(i2, DispatchBaseClass), (
-        f"GetMultipleInterfaces did not return instances - got '{i1}', '{i2}'"
-    )
+    assert isinstance(i1, DispatchBaseClass) and isinstance(
+        i2, DispatchBaseClass
+    ), f"GetMultipleInterfaces did not return instances - got '{i1}', '{i2}'"
     del i1
     del i2
 
@@ -735,9 +735,9 @@ def TestCounter(counter, bIsGenerated):
                 ret = counter.Item(num + 1)
             else:
                 ret = counter[num]
-            assert ret == num + 1, (
-                f"Random access into element {num} failed - return was {ret!r}"
-            )
+            assert (
+                ret == num + 1
+            ), f"Random access into element {num} failed - return was {ret!r}"
         except IndexError:
             raise AssertionError(f"** IndexError accessing collection element {num}")
 
@@ -759,16 +759,16 @@ def TestCounter(counter, bIsGenerated):
 
     if bIsGenerated:
         bounds = counter.GetBounds()
-        assert bounds[0] == 1 and bounds[1] == 10, (
-            "** Error - counter did not give the same properties back"
-        )
+        assert (
+            bounds[0] == 1 and bounds[1] == 10
+        ), "** Error - counter did not give the same properties back"
         counter.SetBounds(bounds[0], bounds[1])
 
     for item in counter:
         num += 1
-    assert num == len(counter), (
-        "*** Length of counter and loop iterations don't match ***"
-    )
+    assert num == len(
+        counter
+    ), "*** Length of counter and loop iterations don't match ***"
     assert num == 10, "*** Unexpected number of loop iterations ***"
 
     try:
