@@ -39,7 +39,7 @@ def BuildArgInfos(ob: FunctionType | MethodType) -> list[ArgInfo]:
     ret: list[ArgInfo] = []
     # Reversed for easier default checking.
     # Since arguments w/ default can only be at the end of a function.
-    vars = reversed(ob.__code__.co_varnames[: ob.__code__.co_argcount])  # type: ignore[union-attr] # false-positive in typeshed https://github.com/python/typeshed/pull/12749
+    vars = reversed(ob.__code__.co_varnames[: ob.__code__.co_argcount])
     defs = list(ob.__defaults__ or [])
     for n in vars:
         default = ""
