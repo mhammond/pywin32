@@ -226,7 +226,8 @@ class RCParser:
     # quote.  consumes all tokens until the end of the string
     def currentQuotedString(self):
         # Handle quoted strings - pity shlex doesn't handle it.
-        assert self.token and self.token.startswith('"'), self.token
+        assert self.token
+        assert self.token.startswith('"'), self.token
         bits = [self.token]
         while 1:
             tok = self.getToken()
