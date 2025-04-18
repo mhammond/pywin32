@@ -15,6 +15,7 @@ Coming in build 311, as yet unreleased
 --------------------------------------
 * Fixed a regression that broke special __dunder__ methods with CoClass. (#1870, #2493, @Avasam, @geppi)
 * Fixed dispatch handling for properties (@the-snork)
+* Added initial `DECIMAL/VT_DECIMAL` support (#1501, @gesslerpd)
 
 Build 310, released 2025/03/16
 ------------------------------
