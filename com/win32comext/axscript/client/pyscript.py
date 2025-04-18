@@ -158,7 +158,7 @@ class ScriptItem(framework.ScriptItem):
         self.attributeObject = NamedScriptAttribute(self)
         if self.dispatch:
             # Need to avoid the new Python "lazy" dispatch behaviour.
-            olerepr, clsid = None
+            olerepr = clsid = None
             try:
                 engine = self.GetEngine()
                 typeinfo = self.dispatch.GetTypeInfo()
