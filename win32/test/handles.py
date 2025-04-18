@@ -87,7 +87,7 @@ class PyHandleTestCase(unittest.TestCase):
             # Ideally, we'd:
             #     self.assertRaises(win32api.error, h.Close)
             # and everywhere markh has tried, that would pass - but not on
-            # github automation, where the .Close apparently works fine.
+            # GitHub automation, where the .Close apparently works fine.
             # (same for -1. Using 0 appears to work fine everywhere)
             # There still seems value in testing it though, so we just accept
             # either working or failing.
