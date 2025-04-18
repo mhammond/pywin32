@@ -901,7 +901,6 @@ class my_compiler(MSVCCompiler):
         # update.
         args = [
             sys.executable,
-            # NOTE: On Python 3.7, all args must be str
             str(Path(__file__).parent / "win32" / "Lib" / "win32verstamp.py"),
             f"--version={pywin32_version}",
             "--comments=https://github.com/mhammond/pywin32",
