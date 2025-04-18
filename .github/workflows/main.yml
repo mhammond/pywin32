@@ -10,6 +10,10 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
 
+env:
+  # We can't yet run tests with PYTHONDEVMODE=1, let's at least show warnings
+  PYTHONWARNINGS: always
+
 jobs:
   test:
     name: Build and test
