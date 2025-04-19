@@ -16,6 +16,7 @@ import win32com.client.connect
 import win32com.test.util
 import win32timezone
 import winerror
+from win32api import CloseHandle, GetCurrentProcessId, OpenProcess
 from win32com.client import (
     VARIANT,
     CastTo,
@@ -24,6 +25,7 @@ from win32com.client import (
     constants,
     register_record_class,
 )
+from win32process import GetProcessMemoryInfo
 
 importMsg = "**** PyCOMTest is not installed ***\n  PyCOMTest is a Python test specific COM client and server.\n  It is likely this server is not installed on this machine\n  To install the server, you must get the win32com sources\n  and build it using MS Visual C++"
 
@@ -36,7 +38,9 @@ win32com.test.util.RegisterPythonServer(
 from win32com.client import gencache
 
 try:
-    gencache.EnsureModule("{6BCDCB60-5605-11D0-AE5F-CADD4C000000}", 0, 1, 1)
+    gencache.EnsureModule(
+        "{6BCDCB60-5605-11D0-AE5F-CADD4C000000}", 0, 1, 1, bForDemand=False
+    )
 except pythoncom.com_error:
     print("The PyCOMTest module can not be located or generated.")
     print(importMsg)
@@ -133,6 +137,16 @@ def TestConstant(constName, pyConst):
     assert (
         comConst == pyConst
     ), f"Constant value wrong for {constName} - got {comConst}, wanted {pyConst}"
+
+
+def GetMemoryUsage():
+    pid = GetCurrentProcessId()
+    PROCESS_QUERY_INFORMATION = 0x0400
+    PROCESS_VM_READ = 0x0010
+    hprocess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, False, pid)
+    mem_info = GetProcessMemoryInfo(hprocess)
+    CloseHandle(hprocess)
+    return mem_info["WorkingSetSize"]
 
 
 # Simple handler class.  This demo only fires one event.
@@ -598,6 +612,13 @@ def TestGenerated():
     ll = [1, 2, 3, 0x100000000]
     TestApplyResult(o.SetLongLongSafeArray, (ll,), len(ll))
     TestApplyResult(o.SetULongLongSafeArray, (ll,), len(ll))
+
+    # check freeing of safe arrays
+    mem_before = GetMemoryUsage()
+    o.GetByteArray(50 * 1024 * 1024)
+    mem_after = GetMemoryUsage()
+    delta = mem_after - mem_before
+    assert delta < 1024 * 1024, f"Memory not freed - delta {delta / (1024 * 1024)} MB"
 
     # Tell the server to do what it does!
     TestApplyResult(o.Test2, (constants.Attr2,), constants.Attr2)
