@@ -26,6 +26,7 @@ Details
 import sys
 
 import pythoncom
+import pywintypes
 import win32api
 import win32con
 import win32ui
@@ -61,7 +62,7 @@ class HLICOM(browser.HLIPythonObject):
 class HLICLSID(HLICOM):
     def __init__(self, myobject, name=None):
         if isinstance(myobject, str):
-            myobject = pythoncom.MakeIID(myobject)
+            myobject = pywintypes.IID(myobject)
         if name is None:
             try:
                 name = pythoncom.ProgIDFromCLSID(myobject)

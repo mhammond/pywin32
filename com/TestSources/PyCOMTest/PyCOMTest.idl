@@ -237,6 +237,7 @@ library PyCOMTestLib
 		HRESULT GetSafeArrays([out] SAFEARRAY(QsAttribute)* attrs,
                                       [out] SAFEARRAY(enum tagQsAttribute)*attrs2,
                                       [out] SAFEARRAY(int)*ints);
+        HRESULT GetByteArray([in] long sizeInBytes, [out] SAFEARRAY(byte) *bytes);
 		HRESULT ChangeDoubleSafeArray([in, out]SAFEARRAY(double)*vals);
 		HRESULT GetSimpleCounter([out, retval] ISimpleCounter** counter);
 		HRESULT CheckVariantSafeArray([in] SAFEARRAY(VARIANT)* data, [out, retval]int *sum);
