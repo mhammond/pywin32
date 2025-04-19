@@ -103,11 +103,11 @@ class ADSIDispatch(win32com.client.CDispatch):
 
 
 # We override the adsi.pyd methods to do the right thing.
-def ADsGetObject(path, iid=pythoncom.IID_IDispatch):
+def ADsGetObject(path, iid=pythoncom.IID_IDispatch):  # type: ignore[no-redef]
     ret = adsi.ADsGetObject(path, iid)
     return _get_good_ret(ret)
 
 
-def ADsOpenObject(path, username, password, reserved=0, iid=pythoncom.IID_IDispatch):
+def ADsOpenObject(path, username, password, reserved=0, iid=pythoncom.IID_IDispatch):  # type: ignore[no-redef]
     ret = adsi.ADsOpenObject(path, username, password, reserved, iid)
     return _get_good_ret(ret)
