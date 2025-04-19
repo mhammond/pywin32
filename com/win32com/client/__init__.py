@@ -557,11 +557,8 @@ class DispatchBaseClass:
     def __repr__(self):
         # Need to get the docstring for the module for this class.
         try:
-            mod_doc = sys.modules[self.__class__.__module__].__doc__
-            if mod_doc:
-                mod_name = "win32com.gen_py." + mod_doc
-            else:
-                mod_name = sys.modules[self.__class__.__module__].__name__
+            module = sys.modules[self.__class__.__module__]
+            mod_name = "win32com.gen_py." + (module.__doc__ or module.__name__)
         except KeyError:
             mod_name = "win32com.gen_py.unknown"
         return f"<{mod_name}.{self.__class__.__name__} instance at 0x{id(self)}>"
@@ -630,7 +627,7 @@ class CoClassBaseClass:
         self.__dict__["_dispobj_"] = self.default_interface(oobj)
 
     def __repr__(self):
-        return f"<win32com.gen_py.{__doc__}.{self.__class__.__name__}>"
+        return f"<{self.__class__.__module__}.{self.__class__.__name__}>"
 
     def __getattr__(self, attr):
         d = self.__dict__["_dispobj_"]

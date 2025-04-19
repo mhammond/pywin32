@@ -70,7 +70,7 @@ NoTranslateMap = set(NoTranslateTypes)
 
 
 class MapEntry:
-    "Simple holder for named attibutes - items in a map."
+    """Simple holder for named attributes - items in a map."""
 
     def __init__(
         self,
@@ -98,11 +98,9 @@ class MapEntry:
         self.hidden = hidden
 
     def __repr__(self):
-        return (
-            "MapEntry(dispid={s.dispid}, desc={s.desc}, names={s.names}, doc={s.doc!r}, "
-            "resultCLSID={s.resultCLSID}, resultDocumentation={s.resultDocumentation}, "
-            "wasProperty={s.wasProperty}, hidden={s.hidden}"
-        ).format(s=self)
+        return "MapEntry(" + ", ".join(
+            [f"{key}={value!r}" for key, value in self.__dict__.items()]
+        )
 
     def GetResultCLSID(self):
         rc = self.resultCLSID
