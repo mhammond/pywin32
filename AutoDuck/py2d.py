@@ -4,10 +4,7 @@ import re
 import sys
 from collections.abc import Iterable
 from types import FunctionType, MethodType
-from typing import TYPE_CHECKING, Generator, Generic, TypeVar, Union
-
-if TYPE_CHECKING:
-    from _typeshed import SupportsWrite
+from typing import Generator, Generic, TypeVar, Union
 
 _T = TypeVar("_T")
 
