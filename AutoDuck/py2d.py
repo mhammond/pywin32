@@ -1,10 +1,14 @@
 import re
 import sys
 import types
+from functools import partial
 
 
 def ad_escape(s):
     return re.sub(r"([^<]*)<([^>]*)>", r"\g<1>\\<\g<2>\\>", s)
+
+
+Print = partial(print, file=sys.stdout)
 
 
 class DocInfo:
@@ -24,7 +28,7 @@ def BuildArgInfos(ob):
         info = DocInfo(n, ob)
         info.short_desc = info.desc = n
         info.default = ""
-        if len(defs):
+        if defs:
             default = repr(defs.pop())
             # the default may be an object, so the repr gives '<...>' - and
             # the angle brackets screw autoduck.
@@ -91,7 +95,7 @@ def format_desc(desc):
     return "\n".join(chunks)
 
 
-def build_module(fp, mod_name):
+def build_module(mod_name):
     __import__(mod_name)
     mod = sys.modules[mod_name]
     functions = []
@@ -109,30 +113,27 @@ def build_module(fp, mod_name):
         elif name.upper() == name and isinstance(ob, (int, str)):
             constants.append((name, ob))
     info = BuildInfo(mod_name, mod)
-    print(f"// @module {mod_name}|{format_desc(info.desc)}", file=fp)
+    Print(f"// @module {mod_name}|{format_desc(info.desc)}")
     functions = [f for f in functions if should_build_function(f)]
     for ob in functions:
-        print(f"// @pymeth {ob.name}|{ob.short_desc}", file=fp)
+        Print(f"// @pymeth {ob.name}|{ob.short_desc}")
     for ob in classes:
         # only classes with docstrings get printed.
         if not ob.ob.__doc__:
             continue
         ob_name = mod_name + "." + ob.name
-        print(f"// @pyclass {ob.name}|{ob.short_desc}", file=fp)
+        Print(f"// @pyclass {ob.name}|{ob.short_desc}")
     for ob in functions:
-        print(
-            f"// @pymethod |{mod_name}|{ob.name}|{format_desc(ob.desc)}",
-            file=fp,
-        )
+        Print(f"// @pymethod |{mod_name}|{ob.name}|{format_desc(ob.desc)}")
         for ai in BuildArgInfos(ob.ob):
-            print(f"// @pyparm |{ai.name}|{ai.default}|{ai.short_desc}", file=fp)
+            Print(f"// @pyparm |{ai.name}|{ai.default}|{ai.short_desc}")
 
     for ob in classes:
         # only classes with docstrings get printed.
         if not ob.ob.__doc__:
             continue
         ob_name = mod_name + "." + ob.name
-        print(f"// @object {ob_name}|{format_desc(ob.desc)}", file=fp)
+        Print(f"// @object {ob_name}|{format_desc(ob.desc)}")
         func_infos = []
         # We need to iter the keys then to a getattr() so the funky descriptor
         # things work.
@@ -143,36 +144,27 @@ def build_module(fp, mod_name):
                 if should_build_function(info):
                     func_infos.append(info)
         for fi in func_infos:
-            print(f"// @pymeth {fi.name}|{fi.short_desc}", file=fp)
+            Print(f"// @pymeth {fi.name}|{fi.short_desc}")
         for fi in func_infos:
-            print(
-                f"// @pymethod |{ob_name}|{fi.name}|{format_desc(fi.desc)}",
-                file=fp,
-            )
+            Print(f"// @pymethod |{ob_name}|{fi.name}|{format_desc(fi.desc)}")
             if hasattr(fi.ob, "im_self") and fi.ob.im_self is ob.ob:
-                print("// @comm This is a @classmethod.", file=fp)
-            print(
-                f"// @pymethod |{ob_name}|{fi.name}|{format_desc(fi.desc)}",
-                file=fp,
-            )
+                Print("// @comm This is a @classmethod.")
+            Print(f"// @pymethod |{ob_name}|{fi.name}|{format_desc(fi.desc)}")
             for ai in BuildArgInfos(fi.ob):
-                print(
-                    f"// @pyparm |{ai.name}|{ai.default}|{ai.short_desc}",
-                    file=fp,
-                )
+                Print(f"// @pyparm |{ai.name}|{ai.default}|{ai.short_desc}")
 
     for name, val in constants:
         desc = f"{name} = {val!r}"
         if isinstance(val, int):
             desc += f" (0x{val:x})"
-        print(f"// @const {mod_name}|{name}|{desc}", file=fp)
+        Print(f"// @const {mod_name}|{name}|{desc}")
 
 
-def main(fp, args):
-    print("// @doc", file=fp)
+def main(args):
+    Print("// @doc")
     for arg in args:
-        build_module(sys.stdout, arg)
+        build_module(arg)
 
 
 if __name__ == "__main__":
-    main(sys.stdout, sys.argv[1:])
+    main(sys.argv[1:])
