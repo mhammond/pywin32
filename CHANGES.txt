@@ -16,6 +16,16 @@ Coming in build 311, as yet unreleased
 * Fixed a regression that broke special __dunder__ methods with CoClass. (#1870, #2493, @Avasam, @geppi)
 * Fixed a memory leak when SafeArrays are used as out parameters (@the-snork)
 * Fixed dispatch handling for properties (@the-snork)
+* The following classes will now use the correct subclass name in `repr`: (#2570, @Avasam)
+  * `pywin.tools.browser.HLIPythonObject`
+  * `win32com.client.VARIANT`
+  * `win32com.client.build.MapEntry`
+  * `win32com.server.exception.COMException`
+  * `win32comext.axdebug.debugger.ModuleTreeNode`
+  * `win32comext.axscript.client.pyscript.NamedScriptAttribute`
+  * `win32comext.axscript.client.error.AXScriptException`
+  * `win32pdhquery.QueryError`
+  * `win32rcparser.StringDef`
 
 Build 310, released 2025/03/16
 ------------------------------
