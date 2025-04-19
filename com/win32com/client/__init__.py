@@ -630,7 +630,7 @@ class CoClassBaseClass:
         self.__dict__["_dispobj_"] = self.default_interface(oobj)
 
     def __repr__(self):
-        return f"<win32com.gen_py.{__doc__}.{self.__class__.__name__}>"
+        return f"<{self.__class__.__module__}.{self.__class__.__name__}>"
 
     def __getattr__(self, attr):
         d = self.__dict__["_dispobj_"]
