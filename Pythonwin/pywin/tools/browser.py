@@ -49,7 +49,7 @@ class HLIPythonObject(hierlist.HierListItem):
             type = self.GetHLIType()
         except:
             type = "Generic"
-        return f"HLIPythonObject({type}) - name: {self.name} object: {self.myobject!r}"
+        return f"{self.__class__.__name__}({type}) - name: {self.name} object: {self.myobject!r}"
 
     def GetText(self):
         try:
