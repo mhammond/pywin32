@@ -379,6 +379,13 @@ STDMETHODIMP CPyCOMTest::GetSafeArrays(SAFEARRAY **attrs, SAFEARRAY **attrs2, SA
     return S_OK;
 }
 
+STDMETHODIMP CPyCOMTest::GetByteArray(long sizeBytes, SAFEARRAY **array)
+{
+    SAFEARRAYBOUND bound = {static_cast<ULONG>(sizeBytes), 0};
+    *array = SafeArrayCreate(VT_UI1, 1, &bound);
+    return S_OK;
+}
+
 STDMETHODIMP CPyCOMTest::GetSimpleSafeArray(SAFEARRAY **attrs) { return MakeFillIntArray(attrs, 10, VT_I4); }
 
 STDMETHODIMP CPyCOMTest::CheckVariantSafeArray(SAFEARRAY **attrs, int *result)
