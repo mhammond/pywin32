@@ -85,11 +85,10 @@ def format_desc(desc: str) -> str:
     # '@iex >>> etc.'
     if not desc:
         return ""
-    g = gen_paras(desc)
-    first = next(g)[0]
-    chunks = [first]
-    chunks.extend(["// " + l for l in first[1:]])
-    for lines in g:
+    paragraphs = gen_paras(desc)
+    first_paragraph = next(paragraphs)
+    chunks = [first_paragraph[0], *[f"// {line}" for line in first_paragraph[1:]]]
+    for lines in paragraphs:
         first = lines[0]
         if first.startswith(">>> "):
             prefix = "// @iex \n// "
