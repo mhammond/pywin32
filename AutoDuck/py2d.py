@@ -2,8 +2,7 @@ from __future__ import annotations
 
 import re
 import sys
-from collections.abc import Callable, Iterable
-from functools import partial
+from collections.abc import Iterable
 from types import FunctionType, MethodType
 from typing import TYPE_CHECKING, Generator, Generic, TypeVar, Union
 
@@ -120,28 +119,28 @@ def build_module(mod_name: str) -> None:
         elif name.upper() == name and isinstance(ob, (int, str)):
             constants.append((name, ob))
     module_info = DocInfo(mod_name, mod)
-    Print(f"// @module {mod_name}|{format_desc(module_info.desc)}")
+    print(f"// @module {mod_name}|{format_desc(module_info.desc)}")
     for ob in functions:
-        Print(f"// @pymeth {ob.name}|{ob.short_desc}")
+        print(f"// @pymeth {ob.name}|{ob.short_desc}")
     for ob in classes:
         # only classes with docstrings get printed.
         if not ob.ob.__doc__:
             continue
         ob_name = mod_name + "." + ob.name
-        Print(f"// @pyclass {ob.name}|{ob.short_desc}")
+        print(f"// @pyclass {ob.name}|{ob.short_desc}")
     for ob in functions:
         print(
             f"// @pymethod |{mod_name}|{ob.name}|{format_desc(ob.desc)}",
         )
         for ai in BuildArgInfos(ob.ob):
-            Print(f"// @pyparm |{ai.name}|{ai.default}|{ai.short_desc}")
+            print(f"// @pyparm |{ai.name}|{ai.default}|{ai.short_desc}")
 
     for ob in classes:
         # only classes with docstrings get printed.
         if not ob.ob.__doc__:
             continue
         ob_name = mod_name + "." + ob.name
-        Print(f"// @object {ob_name}|{format_desc(ob.desc)}")
+        print(f"// @object {ob_name}|{format_desc(ob.desc)}")
         func_infos: list[DocInfo[FunctionType | MethodType]] = []
         # We need to iter the keys then to a getattr() so the funky descriptor
         # things work.
@@ -151,33 +150,27 @@ def build_module(mod_name: str) -> None:
                 if should_build_function(o):
                     func_infos.append(DocInfo(n, o))
         for fi in func_infos:
-            Print(f"// @pymeth {fi.name}|{fi.short_desc}")
+            print(f"// @pymeth {fi.name}|{fi.short_desc}")
         for fi in func_infos:
-            Print(f"// @pymethod |{ob_name}|{fi.name}|{format_desc(fi.desc)}")
+            print(f"// @pymethod |{ob_name}|{fi.name}|{format_desc(fi.desc)}")
             if hasattr(fi.ob, "im_self") and fi.ob.im_self is ob.ob:
-                Print("// @comm This is a @classmethod.")
-            Print(f"// @pymethod |{ob_name}|{fi.name}|{format_desc(fi.desc)}")
+                print("// @comm This is a @classmethod.")
+            print(f"// @pymethod |{ob_name}|{fi.name}|{format_desc(fi.desc)}")
             for ai in BuildArgInfos(fi.ob):
-                Print(f"// @pyparm |{ai.name}|{ai.default}|{ai.short_desc}")
+                print(f"// @pyparm |{ai.name}|{ai.default}|{ai.short_desc}")
 
     for name, val in constants:
         desc = f"{name} = {val!r}"
         if isinstance(val, int):
             desc += f" (0x{val:x})"
-        Print(f"// @const {mod_name}|{name}|{desc}")
+        print(f"// @const {mod_name}|{name}|{desc}")
 
 
-Print: Callable[..., None] = print
-
-
-def main(fp: SupportsWrite[str], args: Iterable[str]) -> None:
-    global Print
-    Print = partial(print, file=fp)
-
-    Print("// @doc")
+def main(args: Iterable[str]) -> None:
+    print("// @doc")
     for arg in args:
         build_module(arg)
 
 
 if __name__ == "__main__":
-    main(sys.stdout, sys.argv[1:])
+    main(sys.argv[1:])
