@@ -14,6 +14,7 @@ import win32com
 import win32com.test.util
 import win32timezone
 import winerror
+from win32api import CloseHandle, GetCurrentProcessId, OpenProcess
 from win32com import universal
 from win32com.client import (
     VARIANT,
@@ -24,6 +25,7 @@ from win32com.client import (
     gencache,
     register_record_class,
 )
+from win32process import GetProcessMemoryInfo
 
 # This test uses a Python implemented COM server - ensure correctly registered.
 win32com.test.util.RegisterPythonServer(
@@ -133,6 +135,16 @@ def TestConstant(constName, pyConst):
     assert (
         comConst == pyConst
     ), f"Constant value wrong for {constName} - got {comConst}, wanted {pyConst}"
+
+
+def GetMemoryUsage():
+    pid = GetCurrentProcessId()
+    PROCESS_QUERY_INFORMATION = 0x0400
+    PROCESS_VM_READ = 0x0010
+    hprocess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, False, pid)
+    mem_info = GetProcessMemoryInfo(hprocess)
+    CloseHandle(hprocess)
+    return mem_info["WorkingSetSize"]
 
 
 # Simple handler class.  This demo only fires one event.
@@ -598,6 +610,13 @@ def TestGenerated():
     ll = [1, 2, 3, 0x100000000]
     TestApplyResult(o.SetLongLongSafeArray, (ll,), len(ll))
     TestApplyResult(o.SetULongLongSafeArray, (ll,), len(ll))
+
+    # check freeing of safe arrays
+    mem_before = GetMemoryUsage()
+    o.GetByteArray(50 * 1024 * 1024)
+    mem_after = GetMemoryUsage()
+    delta = mem_after - mem_before
+    assert delta < 1024 * 1024, f"Memory not freed - delta {delta / (1024 * 1024)} MB"
 
     # Tell the server to do what it does!
     TestApplyResult(o.Test2, (constants.Attr2,), constants.Attr2)
