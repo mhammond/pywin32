@@ -1153,6 +1153,17 @@ class Generator:
         print("}", file=stream)
         print(file=stream)
 
+        # create classes for records
+        for record in recordItems.values():
+            if record.clsid != pythoncom.IID_NULL:
+                print(f"class {record.doc[0]}:", file=stream)
+                print("\tdef __new__(cls, *args, **kwargs):", file=stream)
+                print(
+                    f"\t\treturn pythoncom.GetRecordFromGuids(CLSID, MajorVersion, MinorVersion, LCID, '{record.clsid}')",
+                    file=stream,
+                )
+        print(file=stream)
+
         # Write out _all_ my generated CLSID's in the map
         if self.generate_type == GEN_FULL:
             print("CLSIDToClassMap = {", file=stream)

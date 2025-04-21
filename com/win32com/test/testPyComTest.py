@@ -6,6 +6,7 @@ import sys
 sys.coinit_flags = 0  # Must be free-threaded!
 import datetime
 import decimal
+import importlib
 import os
 import time
 
@@ -23,7 +24,9 @@ from win32com.client import (
     DispatchBaseClass,
     Record,
     constants,
+    makepy,
     register_record_class,
+    selecttlb,
 )
 from win32process import GetProcessMemoryInfo
 
@@ -885,6 +888,34 @@ def TestQueryInterface(long_lived_server=0, iterations=5):
         tester.TestQueryInterface()
 
 
+def TestMakePy():
+    tlb = [
+        entry
+        for entry in selecttlb.EnumTlbs()
+        if entry.clsid.lower() == "{6bcdcb60-5605-11d0-ae5f-cadd4c000000}"
+    ]
+    if len(tlb) == 0:
+        return
+
+    file_name = "makepy_generated.py"
+
+    makepy.GenerateFromTypeLibSpec(tlb[0].dll, file_name)
+
+    spec = importlib.util.spec_from_file_location("makepy_generated", file_name)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules["makepy_generated"] = module
+    spec.loader.exec_module(module)
+
+    coclass = module.CoPyCOMTest()
+
+    # test structs
+    coclass.GetStruct()
+    coclass.GetOutStruct()
+
+    data = module.TestStruct1()
+    coclass.ModifyStruct(data)
+
+
 class Tester(win32com.test.util.TestCase):
     def testVTableInProc(self):
         # We used to crash running this the second time - do it a few times
@@ -921,6 +952,9 @@ class Tester(win32com.test.util.TestCase):
 
     def testGenerated(self):
         TestGenerated()
+
+    def testMakePy(self):
+        TestMakePy()
 
 
 if __name__ == "__main__":
