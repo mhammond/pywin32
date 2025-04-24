@@ -26,7 +26,7 @@ typedef enum // Missing EnumTestAttributes2
 	uuid(6bcdcb60-5605-11d0-ae5f-cadd4c000000),
 	version(1.1),
 	// an extended character in the help string should stress things...
-	helpstring("Python COM Test Harness 1.0 Type Library, ï¿½ pywin32 contributors")
+	helpstring("Python COM Test Harness 1.0 Type Library, © pywin32 contributors")
 ]
 library PyCOMTestLib
 {
@@ -70,7 +70,7 @@ library PyCOMTestLib
 		const long LongTest2 = 0x7FFFFFFFL;
 		const unsigned char UCharTest = 255;
 		const char CharTest = -1;
-		const LPWSTR StringTest = L"Hello Woï¿½ld";
+		const LPWSTR StringTest = L"Hello Wo®ld";
 	};
 
 	enum TestAttributes3{ // Note missing the enum name.
@@ -235,6 +235,7 @@ library PyCOMTestLib
 		HRESULT GetSafeArrays([out] SAFEARRAY(QsAttribute)* attrs,
                                       [out] SAFEARRAY(enum tagQsAttribute)*attrs2,
                                       [out] SAFEARRAY(int)*ints);
+        HRESULT GetByteArray([in] long sizeInBytes, [out] SAFEARRAY(byte) *bytes);
 		HRESULT ChangeDoubleSafeArray([in, out]SAFEARRAY(double)*vals);
 		HRESULT GetSimpleCounter([out, retval] ISimpleCounter** counter);
 		HRESULT CheckVariantSafeArray([in] SAFEARRAY(VARIANT)* data, [out, retval]int *sum);

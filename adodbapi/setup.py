@@ -9,7 +9,7 @@ MAINTAINER_EMAIL = "vernondcole@gmail.com"
 DESCRIPTION = (
     """A pure Python package implementing PEP 249 DB-API using Microsoft ADO."""
 )
-URL = "http://sourceforge.net/projects/adodbapi"
+URL = "https://sourceforge.net/projects/adodbapi"
 LICENSE = "LGPL"
 CLASSIFIERS = [
     "Development Status :: 5 - Production/Stable",
@@ -32,7 +32,7 @@ VERSION = None  # in case searching for version fails
 a = open("adodbapi.py")  # find the version string in the source code
 for line in a:
     if "__version__" in line:
-        VERSION = line.split("'")[1]
+        VERSION = line.split("'")[1]  # pyright: ignore[reportConstantRedefinition]
         print('adodbapi version="%s"' % VERSION)
         break
 a.close()

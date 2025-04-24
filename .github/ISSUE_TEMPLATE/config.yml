@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Typeshed type stubs and annotations
+    url: https://github.com/python/typeshed/issues?q=state%3Aopen+pywin32
+    about: For static type-checking and IntelliSense
+  - name: Discussions Q&A category
+    url: https://github.com/mhammond/pywin32/discussions/new?category=q-a
+    about: For support requests, problems or questions

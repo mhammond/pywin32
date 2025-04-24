@@ -11,7 +11,6 @@ import re
 import types
 
 import pythoncom
-import win32api
 import win32com
 import win32com.client.dynamic
 import win32com.server.register
@@ -159,7 +158,7 @@ class ScriptItem(framework.ScriptItem):
         self.attributeObject = NamedScriptAttribute(self)
         if self.dispatch:
             # Need to avoid the new Python "lazy" dispatch behaviour.
-            olerepr, clsid = None
+            olerepr = clsid = None
             try:
                 engine = self.GetEngine()
                 typeinfo = self.dispatch.GetTypeInfo()
