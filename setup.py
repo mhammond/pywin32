@@ -78,6 +78,14 @@ if os.path.dirname(this_file):
 # dll_base_address later in this file...
 dll_base_address = 0x1E200000
 
+# Same as setuptools._distutils.compilers.C.msvc._vcvars_names
+_vcvars_names = {
+    "win32": "x86",
+    "win-amd64": "amd64",
+    "win-arm32": "arm",
+    "win-arm64": "arm64",
+}
+
 
 class WinExt(Extension):
     # Base class for all win32 extensions, with some predefined
@@ -160,7 +168,7 @@ class WinExt(Extension):
         )
         self.depends = depends or []  # stash it here, as py22 doesn't have it.
 
-    def finalize_options(self, build_ext):
+    def finalize_options(self, build_ext: my_build_ext) -> None:
         # distutils doesn't define this function for an Extension - it is
         # our own invention, and called just before the extension is built.
         if not build_ext.mingw32:
@@ -168,10 +176,7 @@ class WinExt(Extension):
                 self.extra_compile_args = self.extra_compile_args or []
 
             # bugger - add this to python!
-            if build_ext.plat_name == "win32":
-                self.extra_link_args.append("/MACHINE:x86")
-            else:
-                self.extra_link_args.append("/MACHINE:%s" % build_ext.plat_name[4:])
+            self.extra_link_args.append(f"/MACHINE:{build_ext.plat_dir}")
 
             # like Python, always use debug info, even in release builds
             # (note the compiler doesn't include debug info, so you only get
@@ -366,10 +371,7 @@ class my_build_ext(build_ext):
     def finalize_options(self):
         build_ext.finalize_options(self)
 
-        self.plat_dir = {
-            "win-amd64": "x64",
-            "win-arm64": "arm64",
-        }.get(self.plat_name, "x86")
+        self.plat_dir = _vcvars_names.get(self.plat_name, "x86")
 
         # The pywintypes library is created in the build_temp
         # directory, so we need to add this to library_dirs
@@ -608,7 +610,7 @@ class my_build_ext(build_ext):
             return
         if not vcbase:
             raise RuntimeError("Can't find MFC redist DLLs with unkown VC base path")
-        redist_globs = [vcbase + r"redist\%s\*MFC\mfc140u.dll" % self.plat_dir]
+        redist_globs = [vcbase + r"redist\{}\*MFC\mfc140u.dll".format(self.plat_dir)]
         m = re.search(r"\\VC\\Tools\\", vcbase)
         if m:
             # typical path on newer Visual Studios
