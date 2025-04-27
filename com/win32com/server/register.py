@@ -210,9 +210,9 @@ def RegisterServer(
     # And if we are frozen, ignore the ones that don't make sense in this
     # context.
     if pythoncom.frozen:
-        assert (
-            sys.frozen
-        ), "pythoncom is frozen, but sys.frozen is not set - don't know the context!"
+        assert sys.frozen, (
+            "pythoncom is frozen, but sys.frozen is not set - don't know the context!"
+        )
         if sys.frozen == "dll":
             clsctx &= pythoncom.CLSCTX_INPROC_SERVER
         else:
@@ -304,7 +304,7 @@ def RegisterServer(
     if addPyComCat is None:
         addPyComCat = pythoncom.frozen == 0
     if addPyComCat:
-        catids.append(CATID_PythonCOMServer)
+        catids = catids + [CATID_PythonCOMServer]
 
     # Set up the implemented categories
     if catids:

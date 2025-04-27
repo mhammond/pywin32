@@ -39,9 +39,9 @@ def wav_header_unpack(data):
 
     # fmt chuck is not first chunk, directly followed by data chuck
     # It is nowhere required that they are, it is just very common
-    assert (
-        fmtsize == 16 and fmt == b"fmt " and data == b"data"
-    ), "cannot understand wav header"
+    assert fmtsize == 16 and fmt == b"fmt " and data == b"data", (
+        "cannot understand wav header"
+    )
 
     wfx = pywintypes.WAVEFORMATEX()
     wfx.wFormatTag = format

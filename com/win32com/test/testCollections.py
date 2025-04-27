@@ -32,23 +32,23 @@ def MakeTestEnum():
 
 def TestEnumAgainst(o, check):
     for i in range(len(check)):
-        assert (
-            o(i) == check[i]
-        ), f"Using default method gave the incorrect value - {o(i)!r}/{check[i]!r}"
+        assert o(i) == check[i], (
+            f"Using default method gave the incorrect value - {o(i)!r}/{check[i]!r}"
+        )
 
     for i in range(len(check)):
-        assert (
-            o.Item(i) == check[i]
-        ), f"Using Item method gave the incorrect value - {o(i)!r}/{check[i]!r}"
+        assert o.Item(i) == check[i], (
+            f"Using Item method gave the incorrect value - {o(i)!r}/{check[i]!r}"
+        )
 
     # First try looping.
     cmp = []
     for s in o:
         cmp.append(s)
 
-    assert (
-        cmp[: len(check)] == check
-    ), f"Result after looping isn't correct - {cmp[: len(check)]!r}/{check!r}"
+    assert cmp[: len(check)] == check, (
+        f"Result after looping isn't correct - {cmp[: len(check)]!r}/{check!r}"
+    )
 
     for i in range(len(check)):
         assert o[i] == check[i], "Using indexing gave the incorrect value"
@@ -101,26 +101,26 @@ def TestEnum(quiet=None):
             "default method with no args worked when it shouldn't have!"
         )
     except pythoncom.com_error as exc:
-        assert (
-            exc.hresult == winerror.DISP_E_BADPARAMCOUNT
-        ), f"Expected DISP_E_BADPARAMCOUNT - got {exc}"
+        assert exc.hresult == winerror.DISP_E_BADPARAMCOUNT, (
+            f"Expected DISP_E_BADPARAMCOUNT - got {exc}"
+        )
 
     try:
         o.Insert("foo", 2)
         raise AssertionError("Insert worked when it shouldn't have!")
     except pythoncom.com_error as exc:
-        assert (
-            exc.hresult == winerror.DISP_E_TYPEMISMATCH
-        ), f"Expected DISP_E_TYPEMISMATCH - got {exc}"
+        assert exc.hresult == winerror.DISP_E_TYPEMISMATCH, (
+            f"Expected DISP_E_TYPEMISMATCH - got {exc}"
+        )
 
     # Remove the sublist for this test!
     try:
         o.Remove(o.Count())
         raise AssertionError("Remove worked when it shouldn't have!")
     except pythoncom.com_error as exc:
-        assert (
-            exc.hresult == winerror.DISP_E_BADINDEX
-        ), f"Expected DISP_E_BADINDEX - got {exc}"
+        assert exc.hresult == winerror.DISP_E_BADINDEX, (
+            f"Expected DISP_E_BADINDEX - got {exc}"
+        )
 
     # Test an empty collection
     if not quiet:
@@ -145,9 +145,9 @@ def TestEnum(quiet=None):
         ob = o(0)
         raise AssertionError("Empty list could be indexed")
     except pythoncom.com_error as exc:
-        assert (
-            exc.hresult == winerror.DISP_E_BADINDEX
-        ), f"Expected DISP_E_BADINDEX - got {exc}"
+        assert exc.hresult == winerror.DISP_E_BADINDEX, (
+            f"Expected DISP_E_BADINDEX - got {exc}"
+        )
 
 
 class TestCase(win32com.test.util.TestCase):

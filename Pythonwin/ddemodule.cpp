@@ -22,15 +22,16 @@
   the internal list. Instead, the item must be evaluated by the
   Python server class.
 
-  Reason: Netscape makes heavy usage of string items and does not use
-    them in a fixed manner. Instead, the items are (ab)used as the
+  Reason: Netscape made heavy usage of string items and did not use
+    them in a fixed manner. Instead, the items were (ab)used as the
     parameter list in DDE_Poke and DDE_Request.
+    TODO: Netscape is long dead, so we could clean this up
 
   Server issues (Server):
   -----------------------
   Poke and Request are now exposed to the Python server interface.
   Poke    - does not require a result
-          - has an optional value parameter (not used by Netscape)
+          - has an optional value parameter (wasn't used by Netscape)
   Request - should return a string object
 
   Client issues (Conversation):
@@ -38,7 +39,7 @@
   Poke and Request are now available.
   Poke (item, value=None)
           - sends a Poke to it's conversation's server
-          - has an optional value parameter (not used by Netscape)
+          - has an optional value parameter (wasn't used by Netscape)
           - does not return anything
   Request (item)
           - sends a request to it's conversation's server
