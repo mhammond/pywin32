@@ -78,14 +78,6 @@ if os.path.dirname(this_file):
 # dll_base_address later in this file...
 dll_base_address = 0x1E200000
 
-# Same as setuptools._distutils.compilers.C.msvc._vcvars_names
-_vcvars_names = {
-    "win32": "x86",
-    "win-amd64": "amd64",
-    "win-arm32": "arm",
-    "win-arm64": "arm64",
-}
-
 
 class WinExt(Extension):
     # Base class for all win32 extensions, with some predefined
@@ -371,7 +363,7 @@ class my_build_ext(build_ext):
     def finalize_options(self):
         build_ext.finalize_options(self)
 
-        self.plat_dir = _vcvars_names.get(self.plat_name, "x86")
+        self.plat_dir = "x86" if self.plat_name == "win32" else self.plat_name[4:]
 
         # The pywintypes library is created in the build_temp
         # directory, so we need to add this to library_dirs
