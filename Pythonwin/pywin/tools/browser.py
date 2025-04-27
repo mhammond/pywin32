@@ -45,11 +45,9 @@ class HLIPythonObject(hierlist.HierListItem):
         return self.name == other.name
 
     def __repr__(self):
-        try:
-            type = self.GetHLIType()
-        except:
-            type = "Generic"
-        return f"{self.__class__.__name__}({type}) - name: {self.name} object: {self.myobject!r}"
+        return (
+            f"{self.__class__.__name__}(myobject={self.myobject!r}, name={self.name!r})"
+        )
 
     def GetText(self):
         try:
