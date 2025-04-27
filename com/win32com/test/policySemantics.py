@@ -44,9 +44,9 @@ def DispExTest(ob):
     #       assert ob.GetMemberName(10, 0)=="add", "Policy did not give me the correct function for the dispid"
     assert ob.GetDispID("Remove", 0) == 11, "Policy did not honour the dispid"
     assert ob.GetDispID("In", 0) == 1000, "Allocated dispid unexpected value"
-    assert (
-        ob.GetDispID("_NewEnum", 0) == pythoncom.DISPID_NEWENUM
-    ), "_NewEnum() got unexpected DISPID"
+    assert ob.GetDispID("_NewEnum", 0) == pythoncom.DISPID_NEWENUM, (
+        "_NewEnum() got unexpected DISPID"
+    )
     dispids = []
     dispid = -1
     while 1:

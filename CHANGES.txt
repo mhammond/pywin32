@@ -11,12 +11,38 @@ or
 As of build 305, installation .exe files have been deprecated; see
 https://mhammond.github.io/pywin32_installers.html .
 
-Coming in build 309, as yet unreleased
+Coming in build 311, as yet unreleased
 --------------------------------------
+* Fixed a regression that broke special __dunder__ methods with CoClass. (#1870, #2493, @Avasam, @geppi)
+* Fixed `TypeError: cannot unpack non-iterable NoneType object` when registering an axscript client ScriptItem (#2513, @Avasam)
+* Fixed a memory leak when SafeArrays are used as out parameters (@the-snork)
+* Fixed dispatch handling for properties (@the-snork)
+* Resolved a handful of deprecation warnings (#2567, #2576, @Avasam)
+* The following classes now produce a valid `eval` string representation when calling `repr`: (#2573, @Avasam)
+  * `pywin.tools.browser.HLIPythonObject`
+  * `win32com.server.exception.COMException`
+  * `win32comext.axscript.client.error.AXScriptException`
+  * `win32comext.axscript.client.pyscript.NamedScriptAttribute`
 
+Build 310, released 2025/03/16
+------------------------------
+* Fixed a regression where `win32com.client.DispatchWithEvents` and win32com.client.WithEvents` would throw a `TypeError` on the second call (#2491, @Avasam)
+* Fixed regresion causing `win32com.shell.shell` to be missing a number of `IID`s. (#2487, @Avasam)
+* As part of the above, Windows 7 is now minimum supported.
+
+Build 309, released 2025/03/09
+------------------------------
+## pywin32
+* Fixed Access Violation crashes in 3.12 by moving `PyWInObject_Free*` methods so GIL is acquired (#2467, @Mscht)
+* Added support for relative path for `pywin32_postinstall`'s `-destination` argument (#2454, @Avasam)
+* The postinstall script is now available as a console script. You can invoke it in one of two new methods: (#2408, @Avasam)
+  1. `python -m pywin32_postinstall -install` (recommended)
+  2. `pywin32_postinstall -install` (shorter but you don't have control over which python environment is used)
+* Changed the implementation of 'com_record' to a subclassable Python type (#2437, #2361, @geppi)
 * Removed param `hIcon` from `win32comext.shell.ShellExecuteEx`. It was unusable since Windows Vista (#2423, @Avasam)
 * Fixed `nbios.NCBStruct` packing (#2406, @Avasam)
 * Restored axdebug builds on Python 3.10 (#2416, @Avasam)
+* Fix for Python 3.12 interpreter crashes when accessing a COM Record field (#2415, @geppi)
 * Pythonwin: Bumped Scintilla from 1.77 to 4.4.6. The full changelog can be found here: https://www.scintilla.org/ScintillaHistory.html
 * Fixed Pythonwin's editor failing due to invalid regex import (#2419, @Avasam)
 * Last error wrongly set by some modules (#2302, @CristiFati)
@@ -33,7 +59,10 @@ Coming in build 309, as yet unreleased
 * Improved handling of dict iterations and fallbacks (removes Python 2 support code, small general speed improvement) (#2332, #2330, @Avasam)
 * Fixed accidentally trying to raise an undefined name instead of an `Exception` in `Pythonwin/pywin/debugger/debugger.py` (#2326, @Avasam)
 * Fixed PythonService DoLogMessage raising fatal GIL lock error (#2426, JacobNolan1)
-* Fixed and improved the following demos: `ddeclient`, `ddeserver`, `EvtSubscribe_push`, `openGLDemo`, `guidemo`, `ocxserialtest`, `ocxtest` (#2290, #2281, #2291, @Avasam)
+* Fixed and improved the following demos: `ddeclient`, `ddeserver`, `EvtSubscribe_push`, `openGLDemo`, `guidemo`, `ocxserialtest`, `ocxtest`, `testMSOffice.TestWord8` (#2290, #2281, #2291, #2478 @Avasam)
+
+## adodbapi
+* Fixes `NameError: name 'os' is not defined` error for `"getenv"` macro in `adodbapi.process_connect_string.macro_call` (#2283, @Avasam)
 
 Build 308, released 2024-10-12
 ------------------------------
