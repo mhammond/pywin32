@@ -99,7 +99,7 @@ def _WaitForFinish(ob, timeout):
             break
         pythoncom.PumpWaitingMessages()
         stopEvent.wait(0.2)
-        if stopEvent.isSet():
+        if stopEvent.is_set():
             stopEvent.clear()
             break
         try:

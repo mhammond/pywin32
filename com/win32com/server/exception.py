@@ -78,7 +78,7 @@ class COMException(pythoncom.com_error):  # type: ignore[name-defined] # Dynamic
         pythoncom.com_error.__init__(self, scode, self.description, None, -1)
 
     def __repr__(self):
-        return f"<COM Exception - scode={self.scode}, desc={self.description}>"
+        return f"{self.__class__.__name__}(scode={self.scode!r}, desc={self.description!r})"
 
 
 def IsCOMException(t=None):

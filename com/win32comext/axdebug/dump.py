@@ -30,7 +30,7 @@ def DumpDebugApplicationNode(node, level=0):
         text, attr = doctext.GetText(0, numChars, 1)
         print(f"{spacer}Text is '{text[:40] + '...'}', {len(text)} bytes long")
     else:
-        print(f"{spacer*2}<No document available>")
+        print(f"{spacer * 2}<No document available>")
 
     for child in Enumerator(node.EnumChildren()):
         DumpDebugApplicationNode(child, level + 1)

@@ -64,9 +64,9 @@ def Test():
 
         v = ["Hello", "From", "Python", 1.4]
         client.TestSequence = v
-        assert v == list(
-            client.TestSequence
-        ), f"Dynamic sequences not working! {v!r}/{client.testSequence!r}"
+        assert v == list(client.TestSequence), (
+            f"Dynamic sequences not working! {v!r}/{client.testSequence!r}"
+        )
 
         client.write("This", "output", "has", "come", "via", "testDynamic.py")
         # Check our new "_FlagAsMethod" works (kinda!)
