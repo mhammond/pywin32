@@ -21,7 +21,7 @@ select = [
   "G", # flake8-logging-format
 
   # Ensure modern type annotation syntax and best practices
-  # Not including those covered by type-checkers
+  # Not including those covered by type-checkers or exclusive to Python 3.11+
   "FA", # flake8-future-annotations
   "F404", # late-future-import
   "PYI", # flake8-pyi
