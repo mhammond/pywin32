@@ -168,7 +168,7 @@ class WinExt(Extension):
                 self.extra_compile_args = self.extra_compile_args or []
 
             # bugger - add this to python!
-            self.extra_link_args.append(f"/MACHINE:{build_ext.plat_dir}")
+            self.extra_link_args.append(f"/MACHINE:{build_ext.target_machine}")
 
             # like Python, always use debug info, even in release builds
             # (note the compiler doesn't include debug info, so you only get
@@ -363,7 +363,8 @@ class my_build_ext(build_ext):
     def finalize_options(self):
         build_ext.finalize_options(self)
 
-        self.plat_dir = "x86" if self.plat_name == "win32" else self.plat_name[4:]
+        self.target_machine = "x86" if self.plat_name == "win32" else self.plat_name[4:]
+        """Valid value for https://learn.microsoft.com/en-us/cpp/build/reference/machine-specify-target-platform"""
 
         # The pywintypes library is created in the build_temp
         # directory, so we need to add this to library_dirs
@@ -504,7 +505,7 @@ class my_build_ext(build_ext):
         # The afxres.h/atls.lib files aren't always included by default,
         # so find and add them
         if vcbase and not atlmfc_found:
-            atls_lib = glob.glob(vcbase + rf"ATLMFC\lib\{self.plat_dir}\atls.lib")
+            atls_lib = glob.glob(vcbase + rf"ATLMFC\lib\{self.target_machine}\atls.lib")
             if atls_lib:
                 self.library_dirs.append(os.path.dirname(atls_lib[0]))
                 self.include_dirs.append(
@@ -602,19 +603,19 @@ class my_build_ext(build_ext):
             return
         if not vcbase:
             raise RuntimeError("Can't find MFC redist DLLs with unkown VC base path")
-        redist_globs = [vcbase + r"redist\{}\*MFC\mfc140u.dll".format(self.plat_dir)]
+        redist_globs = [vcbase + rf"redist\{self.target_machine}\*MFC\mfc140u.dll"]
         m = re.search(r"\\VC\\Tools\\", vcbase)
         if m:
             # typical path on newer Visual Studios
-            # prefere corresponding version but accept different version
+            # prefer corresponding version but accept different version
             same_version = vcverdir is not None and os.path.isdir(
                 vcbase[: m.start()]
-                + r"\VC\Redist\MSVC\{}{}".format(vcverdir, self.plat_dir)
+                + rf"\VC\Redist\MSVC\{vcverdir}{self.target_machine}"
             )
             redist_globs.append(
                 vcbase[: m.start()]
                 + r"\VC\Redist\MSVC\{}{}\*\mfc140u.dll".format(
-                    vcverdir if same_version else "*\\", self.plat_dir
+                    vcverdir if same_version else "*\\", self.target_machine
                 )
             )
         # Only mfcNNNu DLL is required (mfcmNNNX is Windows Forms, rest is ANSI)
