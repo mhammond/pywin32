@@ -43,10 +43,6 @@ select = [
 ]
 
 extend-ignore = [
-  # TODO: These are new rules, they're good, but apply them in a separate non-formatting run
-  "C420", # unnecessary-dict-comprehension-for-iterable
-  "PLC1802", # len-test
-
   # TODO: Consider passing exception around to ensure methods are only ever used within exception handlers
   "PLE0704", # misplaced-bare-raise
 
