@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1252">
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html" charset="utf-8">
 <META NAME="Generator" CONTENT="Microsoft Word 97">
 <TITLE>Quick Start to Server Side COM and Python</TITLE>
 <META NAME="Version" CONTENT="8.0.3410">
@@ -39,7 +39,7 @@
 
 </CODE><P>This is obviously a very simple server. In particular, custom error handling would be needed for a production class server. In addition, there are some contrived properties just for demonstration purposes.</P>
 <H3>Make Unicode concessions</H3>
-<P>At this stage, Python and Unicode don’t really work well together. All strings which come from COM will actually be Unicode objects rather than string objects.</P>
+<P>At this stage, Python and Unicode don't really work well together. All strings which come from COM will actually be Unicode objects rather than string objects.</P>
 <P>To make this code work in a COM environment, the last line of the "Hello" method must become:</P><DIR>
 <DIR>
 <DIR>
@@ -85,7 +85,7 @@
 <P>_public_attrs_ = ['softspace', 'noCalls']</P>
 <P>_readonly_attrs_ = ['noCalls']</P>
 <P>def __init__(self):</P>
-<P>[Same from here…]</P></DIR>
+<P>[Same from here...]</P></DIR>
 </DIR>
 
 </CODE><H3><A NAME="Registering">Registering and assigning a CLSID for the object</A></H3>
@@ -179,7 +179,7 @@
 <H3>Default Policy attributes </H3>
 <P>The default policy object has a few special attributes that define who the object is exposed to COM. The example above shows the _public_methods attribute, but this section describes all such attributes in detail. </P>
 <H5>_public_methods_ </H5>
-<P>Required list of strings, containing the names of all methods to be exposed to COM. It is possible this will be enhanced in the future (eg, possibly '*' will be recognised to say all methods, or some other ideas…) </P>
+<P>Required list of strings, containing the names of all methods to be exposed to COM. It is possible this will be enhanced in the future (eg, possibly '*' will be recognised to say all methods, or some other ideas...) </P>
 <H5>_public_attrs_ </H5>
 <P>Optional list of strings containing all attribute names to be exposed, both for reading and writing. The attribute names must be valid instance variables. </P>
 <H5>_readonly_attrs_ </H5>

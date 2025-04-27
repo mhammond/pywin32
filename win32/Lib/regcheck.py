@@ -4,8 +4,8 @@
 import warnings
 
 warnings.warn(
-    "The regcheck module has been pending deprecation since build 210",
-    category=PendingDeprecationWarning,
+    "The regcheck module has been deprecated and pending removal since build 210",
+    category=DeprecationWarning,
 )
 
 import os
