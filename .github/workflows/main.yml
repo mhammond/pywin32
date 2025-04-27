@@ -17,13 +17,13 @@ env:
 jobs:
   test:
     name: Build and test
-    runs-on: windows-2019
-    timeout-minutes: 20
+    runs-on: windows-2022
+    timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
         python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
-        architecture: ["x64", "x86"]
+        architecture: [x64, x86]
 
     steps:
       - uses: actions/checkout@v4
@@ -65,12 +65,26 @@ jobs:
       # Compilation and registration of the PyCOMTest server dll
       - name: Set up MSVC
         uses: microsoft/setup-msbuild@v2
+
+      # See https://github.com/actions/runner-images/issues/9701
+      # Adapted from https://github.com/actions/runner-images/issues/9873#issuecomment-2139288682
+      - name: Install missing Visual Studio components
+        run: |
+          Set-Location "C:\Program Files (x86)\Microsoft Visual Studio\Installer\"
+          $VsInstallPath = vswhere.exe -latest -products * -requires Microsoft.Component.MSBuild -property installationPath
+          [string]$ComponentsToAdd = @(
+            "Microsoft.VisualStudio.Component.VC.14.29.16.11.ATL"
+          ) | ForEach-Object {"--add $_"}
+          $ArgumentList = ('modify', '--installPath', "`"$VsInstallPath`"", $ComponentsToAdd, '--quiet', '--norestart', '--nocache')
+          echo "vs_installer.exe $($ArgumentList -join ' ')"
+          # should be run twice for some reason
+          Start-Process -FilePath vs_installer.exe -ArgumentList $ArgumentList -Wait -PassThru -WindowStyle Hidden
+          Start-Process -FilePath vs_installer.exe -ArgumentList $ArgumentList -Wait -PassThru -WindowStyle Hidden
+
       - name: Build and register the PyCOMTest server dll
         run: |
-          cd com/TestSources/PyCOMTest
-          msbuild .\PyCOMTest.sln -property:Configuration=Release
-          cd x64/Release
-          regsvr32 .\PyCOMTest.dll
+          msbuild com/TestSources/PyCOMTest/PyCOMTest.sln -property:Configuration=Release
+          regsvr32 com/TestSources/PyCOMTest/x64/Release/PyCOMTest.dll
 
       - name: Run tests
         # Run the tests directly from the source dir so support files (eg, .wav files etc)
@@ -92,8 +106,8 @@ jobs:
   # Later, when available, we can add tests using this wheel on ARM64 VMs
   build_arm64:
     name: Cross-compile ARM
-    runs-on: windows-2019
-    timeout-minutes: 20
+    runs-on: windows-2022
+    timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
@@ -141,8 +155,8 @@ jobs:
 
   # This job can be run locally by running `pre-commit run`
   checkers:
-    runs-on: windows-2019
-    timeout-minutes: 20
+    runs-on: windows-2022
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -157,15 +171,16 @@ jobs:
         with:
           version: "0.8.4"
       - run: ruff format --check
-      - run: | # Too many files to fit in a single command, also exclude vendored Scintilla and MAPIStubLibrary
+      # Too many files to fit in a single command, also exclude vendored Scintilla and MAPIStubLibrary
+      - run: |
           clang-format --Werror --dry-run $(git ls-files '*.cpp' ':!:com/win32comext/mapi/src/MAPIStubLibrary/')
           if ($LastExitCode -ne 0) { exit $LastExitCode }
           clang-format --Werror --dry-run $(git ls-files '*.h' ':!:Pythonwin/Scintilla/' ':!:com/win32comext/mapi/src/MAPIStubLibrary/')
           if ($LastExitCode -ne 0) { exit $LastExitCode }
 
   mypy:
-    runs-on: windows-2019
-    timeout-minutes: 20
+    runs-on: windows-2022
+    timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
@@ -182,8 +197,8 @@ jobs:
       - run: mypy . --python-version=${{ matrix.python-version }}
 
   pyright:
-    runs-on: windows-2019
-    timeout-minutes: 20
+    runs-on: windows-2022
+    timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
