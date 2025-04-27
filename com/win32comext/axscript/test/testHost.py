@@ -2,6 +2,7 @@ import sys
 import unittest
 
 import pythoncom
+import pywintypes
 import win32com.server.policy
 import win32com.test.util
 from win32com.axscript import axscript
@@ -72,7 +73,7 @@ class Test:
 #### Connections currently won't work, as there is no way for the engine to
 #### know what events we support.  We need typeinfo support.
 
-IID_ITestEvents = pythoncom.MakeIID("{8EB72F90-0D44-11d1-9C4B-00AA00125A98}")
+IID_ITestEvents = pywintypes.IID("{8EB72F90-0D44-11d1-9C4B-00AA00125A98}")
 
 
 class TestConnectServer(connect.ConnectableServer):
