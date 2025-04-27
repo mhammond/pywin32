@@ -137,31 +137,30 @@ configuration, please [open an issue](https://github.com/mhammond/pywin32/issues
 - Follow the `For Visual Studio XXXX` instructions above and pick the optional ARM64 build tools
 
 - Download prebuilt Python ARM64 binaries to a temporary location on your machine. You will need this location in a later step.
+  - This script downloads a Python ARM64 build [from NuGet](https://www.nuget.org/packages/pythonarm64/#versions-tab) that matches the version you used to run it.
 
     ```shell
-    python .github\workflows\download-arm64-libraries.py "<temporary path>"
+    python .github\workflows\download-arm64-libs.py ./arm64libs
     ```
 
-  - This script downloads a Python ARM64 build [from NuGet](https://www.nuget.org/packages/pythonarm64/#versions-tab) that matches the version you used to run it.
 - Setup the cross-compilation environment:
 
     ```shell
     "C:\Program Files (x86)\Microsoft Visual Studio\XXXX\BuildTools\vc\Auxiliary\Build\vcvarsall.bat" x86_arm64
     ```
 
-- Update `setuptools` and set the following environment variables to ensure it is used:
+- Set the following environment variables to ensure it is used by `setuptools`:
 
     ```shell
     set DISTUTILS_USE_SDK=1
     ```
 
 - Build the extensions, passing the directory from earlier. You may optionally add the `bdist_wheel` command to generate a wheel.
+  - If you are not using an initialized build environment, you will need to specify the `build_ext`, `build` and `bdist_wheel` commands and pass `--plat-name win-arm64` to *each* of them separately. Otherwise you may get a mixed platform build and/or linker errors.
 
     ```shell
-    python -m build --wheel --config-setting=--build-option=build_ext --config-setting=--build-option=-L.\arm64libs --config-setting=--build-option=--plat-name=win-arm64 --config-setting=--build-option=bdist_wheel --config-setting=--build-option=--plat-name=win-arm64
+    python -m build --wheel --config-setting=--build-option="build_ext -L./arm64libs --plat-name=win-arm64 bdist_wheel --plat-name=win-arm64"
     ```
-
-  - If you are not using an initialized build environment, you will need to specify the `build_ext`, `build` and `bdist_wheel` commands and pass `--plat-name win-arm64` to *each* of them separately. Otherwise you may get a mixed platform build and/or linker errors.
 
 - Copy the built wheel to the target machine and install directly:
 
