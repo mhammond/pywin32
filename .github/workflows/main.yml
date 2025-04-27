@@ -55,7 +55,14 @@ jobs:
           echo $ScriptsPath
           Add-Content $env:GITHUB_PATH $ScriptsPath
 
-      - name: Build and install
+      - name: Build and install (arm)
+        if: matrix.os == 'windows-11-arm'
+        run: |
+          python .github\workflows\download-arm64-libs.py ./arm64libs
+          pip install . -v --user --config-setting=--build-option="build_ext -L./arm64libs --plat-name=win-arm64 build --plat-name=win-arm64"
+
+      - name: Build and install (x86-x64)
+        if: matrix.os != 'windows-11-arm'
         run: pip install . -v --user
 
       # This needs to happen *after* installing pywin32 since
@@ -103,7 +110,12 @@ jobs:
         # can be found - they aren't installed into the Python tree.
         run: python win32/scripts/pywin32_testall.py -v -skip-adodbapi
 
-      - name: Build wheels
+      - name: Build wheels (arm)
+        if: matrix.os == 'windows-11-arm'
+        run: pip wheel . -v --wheel-dir=dist --config-setting=--build-option="bdist_wheel --plat-name=win-arm64"
+
+      - name: Build wheels (x86-x64)
+        if: matrix.os != 'windows-11-arm'
         run: pip wheel . -v --wheel-dir=dist
 
       - uses: actions/upload-artifact@v4
