@@ -90,6 +90,9 @@ class CPyCOMTest : public IDispatchImpl<IPyCOMTest, &IID_IPyCOMTest, &LIBID_PyCO
     STDMETHOD(DoubleCurrency)(CY, CY *);
     STDMETHOD(DoubleCurrencyByVal)(CY *);
     STDMETHOD(AddCurrencies)(CY v1, CY v2, CY *);
+    STDMETHOD(DoubleDecimal)(DECIMAL, DECIMAL *);
+    STDMETHOD(DoubleDecimalByVal)(DECIMAL *);
+    STDMETHOD(AddDecimals)(DECIMAL v1, DECIMAL v2, DECIMAL *);
 
     // method to broadcast a call on the current connections
     STDMETHOD(Fire)(long nID);

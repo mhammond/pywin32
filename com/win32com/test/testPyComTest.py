@@ -340,6 +340,23 @@ def TestCommon(o, is_generated):
     v2 = decimal.Decimal("9012.3456")
     TestApplyResult(o.AddCurrencies, (v1, v2), v1 + v2)
 
+    progress("Checking decimal type")
+    assert o.DecimalProp == 0, f"Expecting 0, got {o.DecimalProp!r}"
+    for val in (
+        "1234",
+        "123456789.123456789",
+        "-987654321.987654321",
+        "0.123456789123456789",
+        "-0.123456789123456789",
+    ):
+        o.CurrencyProp = decimal.Decimal(val)
+        assert o.DecimalProp == decimal.Decimal(val), f"{val} got {o.DecimalProp!r}"
+    v1 = decimal.Decimal("1234.5678")
+    TestApplyResult(o.DoubleDecimal, (v1,), v1 * 2)
+
+    v2 = decimal.Decimal("654.321")
+    TestApplyResult(o.AddDecimals, (v1, v2), v1 + v2)
+
     TestTrickyTypesWithVariants(o, is_generated)
     progress("Checking win32com.client.VARIANT")
     TestPyVariant(o, is_generated)
@@ -409,6 +426,15 @@ def TestTrickyTypesWithVariants(o, is_generated):
     else:
         v = VARIANT(pythoncom.VT_BYREF | pythoncom.VT_CY, val)
         o.DoubleCurrencyByVal(v)
+        got = v.value
+    assert got == val * 2
+
+    val = decimal.Decimal("-1234.5678")
+    if is_generated:
+        got = o.DoubleDecimalByVal(val)
+    else:
+        v = VARIANT(pythoncom.VT_BYREF | pythoncom.VT_DECIMAL, val)
+        o.DoubleDecimalByVal(v)
         got = v.value
     assert got == val * 2
 
