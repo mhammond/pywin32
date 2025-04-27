@@ -114,10 +114,10 @@ jobs:
         run: pip install --upgrade  build
 
       - name: Obtain ARM64 library files
-        run: python .github\workflows\download-arm64-libs.py .\arm64libs
+        run: python .github\workflows\download-arm64-libs.py ./arm64libs
 
       - name: Build wheels
-        run: python -m build --wheel --config-setting=--build-option=build_ext --config-setting=--build-option=-L.\arm64libs --config-setting=--build-option=--plat-name=win-arm64 --config-setting=--build-option=build --config-setting=--build-option=--plat-name=win-arm64 --config-setting=--build-option=bdist_wheel --config-setting=--build-option=--plat-name=win-arm64
+        run: python -m build --wheel --config-setting=--build-option="build_ext -L./arm64libs --plat-name=win-arm64 build --plat-name=win-arm64 bdist_wheel --plat-name=win-arm64"
 
       - uses: actions/upload-artifact@v4
         with:
@@ -157,7 +157,8 @@ jobs:
         with:
           version: "0.8.4"
       - run: ruff format --check
-      - run: | # Too many files to fit in a single command, also exclude vendored Scintilla and MAPIStubLibrary
+      # Too many files to fit in a single command, also exclude vendored Scintilla and MAPIStubLibrary
+      - run: |
           clang-format --Werror --dry-run $(git ls-files '*.cpp' ':!:com/win32comext/mapi/src/MAPIStubLibrary/')
           if ($LastExitCode -ne 0) { exit $LastExitCode }
           clang-format --Werror --dry-run $(git ls-files '*.h' ':!:Pythonwin/Scintilla/' ':!:com/win32comext/mapi/src/MAPIStubLibrary/')
