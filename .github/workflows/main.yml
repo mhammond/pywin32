@@ -59,7 +59,7 @@ jobs:
         if: matrix.os == 'windows-11-arm'
         run: |
           python .github\workflows\download-arm64-libs.py ./arm64libs
-          pip install . -v --user --config-setting=--build-option="build_ext -L./arm64libs --plat-name=win-arm64 build --plat-name=win-arm64"
+          pip install . -v --user --config-setting=--build-option="build_ext -L./arm64libs --plat-name=win-arm64 build --plat-name=win-arm64 bdist_wheel --plat-name=win-arm64"
 
       - name: Build and install (x86-x64)
         if: matrix.os != 'windows-11-arm'
