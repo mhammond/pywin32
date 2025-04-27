@@ -14,8 +14,8 @@ import win32com
 import win32com.test.util
 import win32timezone
 import winerror
-from win32com import universal
 from win32api import CloseHandle, GetCurrentProcessId, OpenProcess
+from win32com import universal
 from win32com.client import (
     VARIANT,
     CastTo,
