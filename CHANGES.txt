@@ -27,6 +27,7 @@ Coming in build 311, as yet unreleased
   * `win32comext.axscript.client.error.AXScriptException`
   * `win32pdhquery.QueryError`
   * `win32rcparser.StringDef`
+* Resolved a handful of deprecation warnings (#2567, #2576, @Avasam)
 * The following classes now produce a valid `eval` string representation when calling `repr`: (#2573, @Avasam)
   * `pywin.tools.browser.HLIPythonObject`
   * `win32com.server.exception.COMException`
