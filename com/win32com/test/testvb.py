@@ -334,12 +334,12 @@ def TestArrays(vbtest, bUseGenerated):
         assert testData == list(resultData)
         testData = ["hi", "from", "Python"]
         resultData, byRefParam = vbtest.PassSAFEARRAYVariant(testData)
-        assert testData == list(
-            byRefParam
-        ), f"Expected '{testData}', got '{list(byRefParam)}'"
-        assert testData == list(
-            resultData
-        ), f"Expected '{testData}', got '{list(resultData)}'"
+        assert testData == list(byRefParam), (
+            f"Expected '{testData}', got '{list(byRefParam)}'"
+        )
+        assert testData == list(resultData), (
+            f"Expected '{testData}', got '{list(resultData)}'"
+        )
         # This time, we just pass Unicode, so the result should compare equal
         testData = [1, 2.0, "3"]
         resultData, byRefParam = vbtest.PassSAFEARRAYVariant(testData)
