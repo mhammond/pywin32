@@ -24,7 +24,7 @@ def BuildArgInfos(ob):
         info = DocInfo(n, ob)
         info.short_desc = info.desc = n
         info.default = ""
-        if len(defs):
+        if defs:
             default = repr(defs.pop())
             # the default may be an object, so the repr gives '<...>' - and
             # the angle brackets screw autoduck.
