@@ -31,7 +31,7 @@ jobs:
             python-architecture: arm64
           - os: windows-2019
         exclude:
-          # actions/setup-python does not provide prebuilt arm Python before 3.11
+          # actions/setup-python does not provide prebuilt arm64 Python before 3.11
           - python-architecture: arm64
             python-version: "3.8"
           - python-architecture: arm64
@@ -134,7 +134,7 @@ jobs:
       - name: Set up latest stable Python
         uses: actions/setup-python@v5
         with:
-          python-version: 3.x
+          python-version: ${{ matrix.python-version }}
           architecture: x64
           cache: pip
           cache-dependency-path: .github/workflows/main.yml
