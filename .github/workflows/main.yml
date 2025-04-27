@@ -26,14 +26,18 @@ jobs:
         python-version: ["3.8", "3.9.10", "3.10", "3.11", "3.12", "3.13"]
         # CPython has no ARM distribution until 3.11
         python-architecture: [x64, x86]
-        os: [windows-2019, windows-11-arm]
+        include:
+          - os: windows-11-arm
+            python-architecture: arm64
+          - os: windows-2019
         exclude:
-          # We provide arm64, not arm
-          - os: windows-11-arm
-            python-architecture: x86
-          # pythonarm64 NuGet has no download for Python 3.8
-          - os: windows-11-arm
+          # actions/setup-python does not provide prebuilt arm Python before 3.11
+          - python-architecture: arm64
             python-version: "3.8"
+          - python-architecture: arm64
+            python-version: "3.9"
+          - python-architecture: arm64
+            python-version: "3.10"
 
     steps:
       - uses: actions/checkout@v4
@@ -55,14 +59,7 @@ jobs:
           echo $ScriptsPath
           Add-Content $env:GITHUB_PATH $ScriptsPath
 
-      - name: Build and install (arm)
-        if: matrix.os == 'windows-11-arm'
-        run: |
-          python .github\workflows\download-arm64-libs.py ./arm64libs
-          pip install . -v --user --config-setting=--build-option="build_ext -L./arm64libs --plat-name=win-arm64 build --plat-name=win-arm64 bdist_wheel --plat-name=win-arm64"
-
-      - name: Build and install (x86-x64)
-        if: matrix.os != 'windows-11-arm'
+      - name: Build and install
         run: pip install . -v --user
 
       # This needs to happen *after* installing pywin32 since
@@ -110,27 +107,27 @@ jobs:
         # can be found - they aren't installed into the Python tree.
         run: python win32/scripts/pywin32_testall.py -v -skip-adodbapi
 
-      - name: Build wheels (arm)
-        if: matrix.os == 'windows-11-arm'
-        run: pip wheel . -v --wheel-dir=dist --config-setting=--build-option="bdist_wheel --plat-name=win-arm64"
-
-      - name: Build wheels (x86-x64)
-        if: matrix.os != 'windows-11-arm'
+      - name: Build wheels
         run: pip wheel . -v --wheel-dir=dist
 
       - uses: actions/upload-artifact@v4
         # Upload artifacts even if tests fail
         if: ${{ always() }}
         with:
-          name: artifacts-${{ matrix.python-version }}-${{ matrix.python-architecture }}-${{ matrix.os }}
+          name: artifacts-${{ matrix.python-version }}-${{ matrix.python-architecture }}
           path: dist/*.whl
           if-no-files-found: error
 
-  # Do a single ARM64 cross-compilation to ensure we still support it
-  test_cross_compile:
+  # actions/setup-python does not provide prebuilt arm64 Python before 3.11, so we cross-compile.
+  build_arm64:
     name: Cross-compile ARM
     runs-on: windows-2019
     timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        # pythonarm64 NuGet has no download for Python 3.8 and Python ~=3.9.11
+        python-version: ["3.9.10", "3.10"]
     steps:
       - uses: actions/checkout@v4
 
@@ -152,9 +149,14 @@ jobs:
       - name: Build wheels
         run: python -m build --wheel --config-setting=--build-option="build_ext -L./arm64libs --plat-name=win-arm64 build --plat-name=win-arm64 bdist_wheel --plat-name=win-arm64"
 
+      - uses: actions/upload-artifact@v4
+        with:
+          name: artifacts-${{ matrix.python-version }}-arm64
+          path: dist/*.whl
+          if-no-files-found: error
   merge:
     runs-on: windows-latest
-    needs: [test]
+    needs: [test, build_arm64]
     steps:
       - name: Merge Artifacts
         uses: actions/upload-artifact/merge@v4
