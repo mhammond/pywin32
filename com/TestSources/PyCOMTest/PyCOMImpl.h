@@ -21,6 +21,10 @@ class CPyCOMTest : public IDispatchImpl<IPyCOMTest, &IID_IPyCOMTest, &LIBID_PyCO
     {
         memset(m_rsArray, 0, nMaxSessions * sizeof(PyCOMTestSessionData));
         m_cy.int64 = 0;
+        m_dec.Lo64 = 0;
+        m_dec.Hi32 = 0;
+        m_dec.scale = 0;
+        m_dec.sign = 0;
         m_long = 0;
     }
     ~CPyCOMTest();
@@ -116,6 +120,8 @@ class CPyCOMTest : public IDispatchImpl<IPyCOMTest, &IID_IPyCOMTest, &LIBID_PyCO
     STDMETHOD(put_IntProp)(int val);
     STDMETHOD(get_CurrencyProp)(CY *ret);
     STDMETHOD(put_CurrencyProp)(CY val);
+    STDMETHOD(get_DecimalProp)(DECIMAL *ret);
+    STDMETHOD(put_DecimalProp)(DECIMAL val);
     STDMETHOD(get_ParamProp)(int which, int *ret2);
     STDMETHOD(put_ParamProp)(int which, int val);
 
@@ -142,6 +148,7 @@ class CPyCOMTest : public IDispatchImpl<IPyCOMTest, &IID_IPyCOMTest, &LIBID_PyCO
     long m_long;
     unsigned long m_ulong;
     CY m_cy;
+    DECIMAL m_dec;
     int m_paramprop1, m_paramprop2;
 };
 

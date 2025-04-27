@@ -1009,7 +1009,7 @@ HRESULT CPyCOMTest::get_CurrencyProp(CY *ret)
 
 HRESULT CPyCOMTest::put_DecimalProp(DECIMAL val)
 {
-    m_decimal = val;
+    m_dec = val;
     return S_OK;
 }
 
@@ -1017,7 +1017,7 @@ HRESULT CPyCOMTest::get_DecimalProp(DECIMAL *ret)
 {
     if (!ret)
         return E_POINTER;
-    *ret = (DECIMAL)m_decimal;
+    *ret = (DECIMAL)m_dec;
     return S_OK;
 }
 
