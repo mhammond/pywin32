@@ -23,7 +23,6 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
-        # CPython has no ARM distribution until 3.11
         python-architecture: [x64, x86, arm64]
         include:
           - python-architecture: arm64
