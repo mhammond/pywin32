@@ -13,10 +13,10 @@ which is capable of building the version of Python you are targeting, then:
 
 For a debug (_d) version, you need a local debug build of Python, but must use
 the release version executable for the build. eg:
-  pip install . -v --config-setting=--build-option="build --debug"
+  pip install . -v --config-setting=--build-option=build --config-setting=--build-option=--debug
 
 Cross-compilation from x86 to ARM is well supported (assuming installed vs tools etc) - eg:
-  python -m build --wheel --config-setting=--build-option="build_ext --plat-name=win-arm64 build --plat-name=win-arm64 bdist_wheel --plat-name=win-arm64"
+  python -m build --wheel --config-setting=--build-option=build_ext --config-setting=--build-option=--plat-name=win-arm64 --config-setting=--build-option=build --config-setting=--build-option=--plat-name=win-arm64 --config-setting=--build-option=bdist_wheel --config-setting=--build-option=--plat-name=win-arm64
 
 Some modules require special SDKs or toolkits to build (eg, mapi/exchange),
 which often aren't available in CI. The build process treats them as optional -
@@ -160,7 +160,7 @@ class WinExt(Extension):
         )
         self.depends = depends or []  # stash it here, as py22 doesn't have it.
 
-    def finalize_options(self, build_ext: my_build_ext) -> None:
+    def finalize_options(self, build_ext):
         # distutils doesn't define this function for an Extension - it is
         # our own invention, and called just before the extension is built.
         if not build_ext.mingw32:
@@ -168,7 +168,10 @@ class WinExt(Extension):
                 self.extra_compile_args = self.extra_compile_args or []
 
             # bugger - add this to python!
-            self.extra_link_args.append(f"/MACHINE:{build_ext.target_machine}")
+            if build_ext.plat_name == "win32":
+                self.extra_link_args.append("/MACHINE:x86")
+            else:
+                self.extra_link_args.append("/MACHINE:%s" % build_ext.plat_name[4:])
 
             # like Python, always use debug info, even in release builds
             # (note the compiler doesn't include debug info, so you only get
@@ -363,8 +366,10 @@ class my_build_ext(build_ext):
     def finalize_options(self):
         build_ext.finalize_options(self)
 
-        self.target_machine = "x86" if self.plat_name == "win32" else self.plat_name[4:]
-        """Valid value for https://learn.microsoft.com/en-us/cpp/build/reference/machine-specify-target-platform"""
+        self.plat_dir = {
+            "win-amd64": "x64",
+            "win-arm64": "arm64",
+        }.get(self.plat_name, "x86")
 
         # The pywintypes library is created in the build_temp
         # directory, so we need to add this to library_dirs
@@ -505,7 +510,7 @@ class my_build_ext(build_ext):
         # The afxres.h/atls.lib files aren't always included by default,
         # so find and add them
         if vcbase and not atlmfc_found:
-            atls_lib = glob.glob(vcbase + rf"ATLMFC\lib\{self.target_machine}\atls.lib")
+            atls_lib = glob.glob(vcbase + rf"ATLMFC\lib\{self.plat_dir}\atls.lib")
             if atls_lib:
                 self.library_dirs.append(os.path.dirname(atls_lib[0]))
                 self.include_dirs.append(
@@ -603,19 +608,19 @@ class my_build_ext(build_ext):
             return
         if not vcbase:
             raise RuntimeError("Can't find MFC redist DLLs with unkown VC base path")
-        redist_globs = [vcbase + rf"redist\{self.target_machine}\*MFC\mfc140u.dll"]
+        redist_globs = [vcbase + r"redist\%s\*MFC\mfc140u.dll" % self.plat_dir]
         m = re.search(r"\\VC\\Tools\\", vcbase)
         if m:
             # typical path on newer Visual Studios
-            # prefer corresponding version but accept different version
+            # prefere corresponding version but accept different version
             same_version = vcverdir is not None and os.path.isdir(
                 vcbase[: m.start()]
-                + rf"\VC\Redist\MSVC\{vcverdir}{self.target_machine}"
+                + r"\VC\Redist\MSVC\{}{}".format(vcverdir, self.plat_dir)
             )
             redist_globs.append(
                 vcbase[: m.start()]
                 + r"\VC\Redist\MSVC\{}{}\*\mfc140u.dll".format(
-                    vcverdir if same_version else "*\\", self.target_machine
+                    vcverdir if same_version else "*\\", self.plat_dir
                 )
             )
         # Only mfcNNNu DLL is required (mfcmNNNX is Windows Forms, rest is ANSI)
