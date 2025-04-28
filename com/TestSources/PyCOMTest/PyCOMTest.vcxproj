@@ -57,20 +57,16 @@
   <ImportGroup Label="Shared">
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props"
-      Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props"
-      Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props"
-      Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props"
-      Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -87,9 +83,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;PYCOMTEST_EXPORTS;/nologo /MDd /W3 /Gm /GX /ZI /Od /D
-        _DEBUG /D WIN32 /D _WINDOWS /D _USRDLL /D _UNICODE /D _WINDLL /D _AFXDLL /D _MBCS /Yupreconn.h /FD
-        /c;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;PYCOMTEST_EXPORTS;/nologo /MDd /W3 /Gm /GX /ZI /Od /D _DEBUG /D WIN32 /D _WINDOWS /D _USRDLL /D _UNICODE /D _WINDLL /D _AFXDLL /D _MBCS /Yupreconn.h /FD /c;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <WarningLevel>Level3</WarningLevel>
     </ClCompile>
     <Link>
@@ -100,9 +94,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <PreprocessorDefinitions>_DEBUG;_WINDOWS;_USRDLL;PYCOMTEST_EXPORTS;/nologo /MDd /W3 /Gm /GX /ZI /Od /D _DEBUG /D
-        WIN32 /D _WINDOWS /D _USRDLL /D _UNICODE /D _WINDLL /D _AFXDLL /D _MBCS /Yupreconn.h /FD
-        /c;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_WINDOWS;_USRDLL;PYCOMTEST_EXPORTS;/nologo /MDd /W3 /Gm /GX /ZI /Od /D _DEBUG /D WIN32 /D _WINDOWS /D _USRDLL /D _UNICODE /D _WINDLL /D _AFXDLL /D _MBCS /Yupreconn.h /FD /c;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <WarningLevel>Level3</WarningLevel>
     </ClCompile>
     <Link>
@@ -113,9 +105,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;PYCOMTEST_EXPORTS;/nologo /MD /W3 /GX /O2 /D NDEBUG /D
-        WIN32 /D _WINDOWS /D _USRDLL /D _UNICODE /D _WINDLL /D _AFXDLL /D _MBCS /Yupreconn.h /FD
-        /c;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;PYCOMTEST_EXPORTS;/nologo /MD /W3 /GX /O2 /D NDEBUG /D WIN32 /D _WINDOWS /D _USRDLL /D _UNICODE /D _WINDLL /D _AFXDLL /D _MBCS /Yupreconn.h /FD /c;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <WarningLevel>Level3</WarningLevel>
     </ClCompile>
     <Link>
@@ -128,8 +118,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <PreprocessorDefinitions>NDEBUG;_WINDOWS;_USRDLL;PYCOMTEST_EXPORTS;/nologo /MD /W3 /GX /O2 /D NDEBUG /D WIN32 /D
-        _WINDOWS /D _USRDLL /D _UNICODE /D _WINDLL /D _AFXDLL /D _MBCS /Yupreconn.h /FD /c;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_WINDOWS;_USRDLL;PYCOMTEST_EXPORTS;/nologo /MD /W3 /GX /O2 /D NDEBUG /D WIN32 /D _WINDOWS /D _USRDLL /D _UNICODE /D _WINDLL /D _AFXDLL /D _MBCS /Yupreconn.h /FD /c;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <WarningLevel>Level3</WarningLevel>
     </ClCompile>
     <Link>
