@@ -25,10 +25,10 @@ jobs:
         # pythonarm64 NuGet's has no download for latest Python ~=3.9.11
         python-version: ["3.8", "3.9.10", "3.10", "3.11", "3.12", "3.13"]
         # CPython has no ARM distribution until 3.11
-        python-architecture: [x64, x86]
+        python-architecture: [x64, x86, arm64]
         include:
-          - os: windows-11-arm
-            python-architecture: arm64
+          - python-architecture: arm64
+            os: windows-11-arm
           - os: windows-2019
         exclude:
           # actions/setup-python does not provide prebuilt arm64 Python before 3.11
