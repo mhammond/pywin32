@@ -213,10 +213,10 @@ class CApp(WinApp):
                 from . import help
 
                 help.OpenHelpFile(helpFile, helpCmd)
-        except:
-            t, v, tb = sys.exc_info()
-            win32ui.MessageBox(f"Internal error in help file processing\r\n{t}: {v}")
-            tb = None  # Prevent a cycle
+        except Exception as error:
+            win32ui.MessageBox(
+                f"Internal error in help file processing\r\n{type(error)}: {error}"
+            )
 
     def DoLoadModules(self, modules):
         # XXX - this should go, but the debugger uses it :-(
@@ -280,23 +280,23 @@ class CApp(WinApp):
     # but handles errors slightly better.
     # It all still works, tho, so if you need similar functionality, you can use it.
     # Therefore I haven't deleted this code completely!
-    # 	def CallbackManager( self, ob, args = () ):
-    # 		"""Manage win32 callbacks.  Trap exceptions, report on them, then return 'All OK'
-    # 		to the frame-work. """
-    # 		import traceback
-    # 		try:
-    # 			ret = apply(ob, args)
-    # 			return ret
-    # 		except:
-    # 			# take copies of the exception values, else other (handled) exceptions may get
-    # 			# copied over by the other fns called.
-    # 			win32ui.SetStatusText('An exception occured in a windows command handler.')
-    # 			t, v, tb = sys.exc_info()
-    # 			traceback.print_exception(t, v, tb.tb_next)
-    # 			try:
-    # 				sys.stdout.flush()
-    # 			except (NameError, AttributeError):
-    # 				pass
+    # def CallbackManager(self, ob, args=()):
+    #     """Manage win32 callbacks.  Trap exceptions, report on them, then return 'All OK'
+    #     to the frame-work."""
+    #     try:
+    #         ret = apply(ob, args)
+    #         return ret
+    #     except Exception as error:
+    #         import traceback
+    #
+    #         # take copies of the exception values, else other (handled) exceptions may get
+    #         # copied over by the other fns called.
+    #         win32ui.SetStatusText("An exception occurred in a windows command handler.")
+    #         traceback.print_exception(type(error), error, error.__traceback__.tb_next)
+    #         try:
+    #             sys.stdout.flush()
+    #         except (NameError, AttributeError):
+    #             pass
 
     # Command handlers.
     def OnFileMRU(self, id, code):

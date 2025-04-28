@@ -33,7 +33,6 @@ version = "adodbapi v" + __version__
 import copy
 import decimal
 import os
-import sys
 import weakref
 
 from . import ado_consts as adc, apibase as api, process_connect_string
@@ -335,7 +334,7 @@ class Connection:
         try:
             self._closeAdoConnection()  # v2.1 Rose
         except Exception as e:
-            self._raiseConnectionError(sys.exc_info()[0], sys.exc_info()[1])
+            self._raiseConnectionError(type(e), e)
 
         self.connector = None  # v2.4.2.2 fix subtle timeout bug
         # per M.Hammond: "I expect the benefits of uninitializing are probably fairly small,
@@ -855,7 +854,6 @@ class Cursor:
             except api.Error:
                 if verbose:
                     print("ADO Parameter Refresh failed")
-                pass
             else:
                 if len(parameters) != self.cmd.Parameters.Count - 1:
                     raise api.ProgrammingError(

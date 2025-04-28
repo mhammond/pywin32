@@ -83,10 +83,7 @@ def ServerThread(myout, cmd, title, bCloseOnEnd):
         if bOK:
             print("Command terminated without errors.")
         else:
-            t, v, tb = sys.exc_info()
-            print(t, ": ", v)
-            traceback.print_tb(tb)
-            tb = None  # prevent a cycle
+            traceback.print_exc()
             print("Command terminated with an unhandled exception")
         writer.unregister()
         if bOK and bCloseOnEnd:
@@ -94,10 +91,7 @@ def ServerThread(myout, cmd, title, bCloseOnEnd):
 
     # Unhandled exception of any kind in a thread kills the gui!
     except:
-        t, v, tb = sys.exc_info()
-        print(t, ": ", v)
-        traceback.print_tb(tb)
-        tb = None
+        traceback.print_exc()
         print("Thread failed")
 
 

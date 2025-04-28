@@ -478,10 +478,8 @@ class DebuggerWatchWindow(DebuggerListViewWindow):
                     val = repr(eval(text, globs, locs))
                 except SyntaxError:
                     val = "Syntax Error"
-                except:
-                    t, v, tb = sys.exc_info()
-                    val = traceback.format_exception_only(t, v)[0].strip()
-                    tb = None  # prevent a cycle.
+                except Exception as error:
+                    val = traceback.format_exception_only(type(error), error)[0].strip()
             self.SetItemText(i, 1, val)
 
 

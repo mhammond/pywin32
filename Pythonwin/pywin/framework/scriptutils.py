@@ -603,7 +603,7 @@ def JumpToDocument(fileName, lineno=0, col=1, nChars=0, bScrollToTop=0):
 
 
 def _HandlePythonFailure(what, syntaxErrorPathName=None):
-    typ, details, tb = sys.exc_info()
+    details = sys.exc_info()[1]
     if isinstance(details, SyntaxError):
         try:
             msg, (fileName, line, col, text) = details
@@ -616,7 +616,6 @@ def _HandlePythonFailure(what, syntaxErrorPathName=None):
     else:
         traceback.print_exc()
         win32ui.SetStatusText(f"Failed to {what} - {details}")
-    tb = None  # Clean up a cycle.
 
 
 # Find the Python TabNanny in either the standard library or the Python Tools/Scripts directory.

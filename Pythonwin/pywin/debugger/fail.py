@@ -5,7 +5,6 @@
 
 # It does nothing useful, and it even doesn't do that!
 
-import sys
 import time
 
 import pywin.debugger
@@ -15,9 +14,9 @@ def a():
     a = 1
     try:
         b()
-    except:
+    except Exception as error:
         # Break into the debugger with the exception information.
-        pywin.debugger.post_mortem(sys.exc_info()[2])
+        pywin.debugger.post_mortem(error.__traceback__)
         a = 1
         a = 2
         a = 3

@@ -1,11 +1,18 @@
-# Utilities for the pywin32 tests
+"""Utilities for the pywin32 tests"""
+
+from __future__ import annotations
+
 import gc
 import os
 import site
 import sys
 import unittest
+from typing import TYPE_CHECKING
 
 import winerror
+
+if TYPE_CHECKING:
+    from _typeshed import OptExcInfo
 
 ##
 ## unittest related stuff
@@ -214,7 +221,7 @@ class TestResult(unittest.TextTestResult):
         super().__init__(*args, **kw)
         self.skips = {}  # count of skips for each reason.
 
-    def addError(self, test, err):
+    def addError(self, test, err: OptExcInfo) -> None:
         """Called when an error has occurred. 'err' is a tuple of values as
         returned by sys.exc_info().
         """

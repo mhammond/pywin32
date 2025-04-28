@@ -563,16 +563,14 @@ def RemoveDirectory(params, options):
         # Be robust should IIS get upset about unloading.
         try:
             directory.AppUnLoad()
-        except:
-            exc_val = sys.exc_info()[1]
+        except Exception as exc_val:
             log(2, f"AppUnLoad() for {params.Name} failed: {exc_val}")
         # Continue trying to delete it.
         try:
             parent = GetObject(directory.Parent)
             parent.Delete(directory.Class, directory.Name)
             log(1, f"Deleted Virtual Directory: {params.Name}")
-        except:
-            exc_val = sys.exc_info()[1]
+        except Exception as exc_val:
             log(1, f"Failed to remove directory {params.Name}: {exc_val}")
 
 

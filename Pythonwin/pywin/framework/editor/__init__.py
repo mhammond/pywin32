@@ -29,37 +29,41 @@ defaultCharacterFormat = (-402653169, 0, 200, 0, 0, 0, 49, "Courier New")
 def LoadDefaultEditor():
     pass
 
-
-##	prefModule = GetDefaultEditorModuleName()
-##	restorePrefModule = None
-##	mod = None
-##	if prefModule:
-##		try:
-##			mod = __import__(prefModule)
-##		except 'xx':
-##			msg = "Importing your preferred editor ('%s') failed.\n\nError %s: %s\n\nAn attempt will be made to load the default editor.\n\nWould you like this editor disabled in the future?" % (prefModule, sys.exc_info()[0], sys.exc_info()[1])
-##			rc = win32ui.MessageBox(msg, "Error importing editor", win32con.MB_YESNO)
-##			if rc == win32con.IDNO:
-##				restorePrefModule = prefModule
-##			WriteDefaultEditorModule("")
-##			del rc
-##
-##	try:
-##		# Try and load the default one - don't catch errors here.
-##		if mod is None:
-##			prefModule = "pywin.framework.editor.color.coloreditor"
-##			mod = __import__(prefModule)
-##
-##		# Get at the real module.
-##		mod = sys.modules[prefModule]
-##
-##		# Do a "from mod import *"
-##		globals().update(mod.__dict__)
-##
-##	finally:
-##		# Restore the users default editor if it failed and they requested not to disable it.
-##		if restorePrefModule:
-##			WriteDefaultEditorModule(restorePrefModule)
+    # prefModule = GetDefaultEditorModuleName()
+    # restorePrefModule = None
+    # mod = None
+    # if prefModule:
+    #     try:
+    #         mod = __import__(prefModule)
+    #     except Exception as error:
+    #         msg = (
+    #             f"Importing your preferred editor ('{prefModule}') failed."
+    #             + f"\n\nError {type(error)}: {error}"
+    #             + "\n\nAn attempt will be made to load the default editor."
+    #             + "\n\nWould you like this editor disabled in the future?"
+    #         )
+    #         rc = win32ui.MessageBox(msg, "Error importing editor", win32con.MB_YESNO)
+    #         if rc == win32con.IDNO:
+    #             restorePrefModule = prefModule
+    #         WriteDefaultEditorModule("")
+    #         del rc
+    #
+    # try:
+    #     # Try and load the default one - don't catch errors here.
+    #     if mod is None:
+    #         prefModule = "pywin.framework.editor.color.coloreditor"
+    #         mod = __import__(prefModule)
+    #
+    #     # Get at the real module.
+    #     mod = sys.modules[prefModule]
+    #
+    #     # Do a "from mod import *"
+    #     globals().update(mod.__dict__)
+    #
+    # finally:
+    #     # Restore the users default editor if it failed and they requested not to disable it.
+    #     if restorePrefModule:
+    #         WriteDefaultEditorModule(restorePrefModule)
 
 
 def GetEditorOption(option, defaultValue, min=None, max=None):

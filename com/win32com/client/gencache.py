@@ -766,12 +766,8 @@ def Rebuild(verbose=1):
             print("Checking", GetGeneratedFileName(*info))
         try:
             AddModuleToCache(iid, lcid, major, minor, verbose, 0)
-        except:
-            print(
-                "Could not add module {} - {}: {}".format(
-                    info, sys.exc_info()[0], sys.exc_info()[1]
-                )
-            )
+        except Exception as error:
+            print(f"Could not add module {info} - {type(error)}: {error}")
     if verbose and len(infos):  # Don't bother reporting this when directory is empty!
         print("Done.")
     _SaveDicts()

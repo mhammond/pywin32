@@ -80,19 +80,15 @@ class Dispatcher(win32com.server.dispatcher.DispatcherWin32trace):
             )
             # print("Invoke of", dispid, "returning", rc)
             return rc
-        except COMException:
-            t, v, tb = sys.exc_info()
-            tb = None  # A cycle
-            scode = v.scode
+        except COMException as v:
             try:
                 desc = f" ({v.description})"
             except AttributeError:
                 desc = ""
-            print(f"*** Invoke of {dispid} raised COM exception 0x{scode:x}{desc}")
+            print(f"*** Invoke of {dispid} raised COM exception 0x{v.scode:x}{desc}")
         except:
             print(f"*** Invoke of {dispid} failed:")
-            typ, val, tb = sys.exc_info()
             import traceback
 
-            traceback.print_exception(typ, val, tb)
+            traceback.print_exc()
             raise

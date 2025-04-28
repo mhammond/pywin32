@@ -83,9 +83,8 @@ def make_doc_summary(inFile, outFile):
                                 curMethod[1].append("// " + doc + "\n")
                             else:
                                 extra_tags.append("// " + doc + "\n")
-        except:
-            _, msg, _ = sys.exc_info()
-            print("Line %d is badly formed - %s" % (lineNo, msg))
+        except Exception as msg:
+            print(f"Line {lineNo} is badly formed - {msg}")
 
         lineNo += 1
 
@@ -150,10 +149,9 @@ def doit():
             elif o == "-o":
                 outName = a
         msg = " ".join(args)
-    except getopt.error:
-        _, msg, _ = sys.exc_info()
+    except getopt.error as msg:
         print(msg)
-        print("Usage: %s [-o output_name] [-p com_parent] filename" % sys.argv[0])
+        print(f"Usage: {sys.argv[0]} [-o output_name] [-p com_parent] filename")
         return
 
     inName = args[0]

@@ -156,7 +156,6 @@ class ThreadPoolExtension(isapi.simple.SimpleExtension):
         ecb.HttpStatusCode = isapicon.HSE_STATUS_ERROR
         # control_block.LogData = "we failed!"
         exc_typ, exc_val, exc_tb = sys.exc_info()
-        limit = None
         try:
             try:
                 import html
@@ -166,9 +165,9 @@ class ThreadPoolExtension(isapi.simple.SimpleExtension):
                 )
                 print(file=ecb)
                 print("<H3>Traceback (most recent call last):</H3>", file=ecb)
-                list = traceback.format_tb(
-                    exc_tb, limit
-                ) + traceback.format_exception_only(exc_typ, exc_val)
+                list = traceback.format_tb(exc_tb) + traceback.format_exception_only(
+                    exc_typ, exc_val
+                )
                 bold = list.pop()
                 print(
                     "<PRE>{}<B>{}</B></PRE>".format(
@@ -187,7 +186,4 @@ class ThreadPoolExtension(isapi.simple.SimpleExtension):
                 print("ORIGINAL extension error:")
                 traceback.print_exception(exc_typ, exc_val, exc_tb)
         finally:
-            # holding tracebacks in a local of a frame that may itself be
-            # part of a traceback used to be evil and cause leaks!
-            exc_tb = None
             ecb.DoneWithSession()

@@ -202,8 +202,8 @@ def get_test_mod_and_func(test_name, import_failures):
     try:
         __import__(fq_mod_name)
         mod = sys.modules[fq_mod_name]
-    except:
-        import_failures.append((mod_name, sys.exc_info()[:2]))
+    except Exception as error:
+        import_failures.append((mod_name, error.__traceback__))
         return None, None
     func = None if func_name is None else getattr(mod, func_name)
     return mod, func
@@ -238,8 +238,8 @@ def make_test_suite(test_level=1):
         for mod_name in unittest_other_modules[i]:
             try:
                 __import__(mod_name)
-            except:
-                import_failures.append((mod_name, sys.exc_info()[:2]))
+            except Exception as error:
+                import_failures.append((mod_name, error.__traceback__))
                 continue
 
             mod = sys.modules[mod_name]

@@ -59,9 +59,9 @@ def _docopy(src, dest):
         shutil.copy(src, dest)
         print(f"Copied {src} -> {dest}")
         return 1
-    except:
+    except Exception as error:
         print(f"Error copying '{src}' -> '{dest}'")
-        print(sys.exc_info()[1])
+        print(error)
         usage_and_die(3)
 
 

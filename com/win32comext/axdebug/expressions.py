@@ -1,5 +1,4 @@
 import io
-import sys
 import traceback
 from pprint import pprint
 
@@ -58,10 +57,8 @@ class Expression(gateways.DebugExpression):
                     exec(self.code, self.frame.f_globals, self.frame.f_locals)
                     self.result = ""
                 self.hresult = 0
-            except:
-                l = traceback.format_exception_only(
-                    sys.exc_info()[0], sys.exc_info()[1]
-                )
+            except Exception as error:
+                l = traceback.format_exception_only(type(error), error)
                 # l is a list of strings with trailing "\n"
                 self.result = "\n".join(s[:-1] for s in l)
                 self.hresult = winerror.E_FAIL

@@ -229,10 +229,8 @@ def GetTypeLibsForSpec(arg):
                 spec.lcid = attr[1]
                 typelibs.append((tlb, spec))
         return typelibs
-    except pythoncom.com_error:
-        t, v, tb = sys.exc_info()
+    except pythoncom.com_error as v:
         sys.stderr.write(f"Unable to load type library from '{arg}' - {v}\n")
-        tb = None  # Storing tb in a local is a cycle!
         sys.exit(1)
 
 

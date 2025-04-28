@@ -5,7 +5,6 @@
 # is open.  Strange, but true.  If you have problems with this, close all Command Prompts!
 
 
-import sys
 import traceback
 
 import win32ui
@@ -29,10 +28,9 @@ class DDESystemTopic(object.Object):
             # print("Executing", cmd)
             self.app.OnDDECommand(data)
         except:
-            t, v, tb = sys.exc_info()
             # The DDE Execution failed.
             print("Error executing DDE command.")
-            traceback.print_exception(t, v, tb)
+            traceback.print_exc()
             return 0
 
 

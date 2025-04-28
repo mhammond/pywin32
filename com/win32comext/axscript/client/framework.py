@@ -763,13 +763,9 @@ class COMScript:
                 "Debugging extensions (axdebug) module does not exist - debugging is disabled.."
             )
             self.debugManager = None
-        except:
+        except Exception as error:
             traceback.print_exc()
-            trace(
-                "*** Debugger Manager could not initialize - {}: {}".format(
-                    sys.exc_info()[0], sys.exc_info()[1]
-                )
-            )
+            trace(f"*** Debugger Manager could not initialize - {type(error)}: {error}")
             self.debugManager = None
 
         try:
@@ -1197,11 +1193,11 @@ class COMScript:
 
     def HandleException(self, codeBlock: AXScriptCodeBlock | None) -> NoReturn:
         """Never returns - raises a ComException"""
-        exc_type, exc_value, *_ = sys.exc_info()
+        exc_value = sys.exc_info()[1]
         # If a SERVER exception, re-raise it.  If a client side COM error, it is
         # likely to have originated from the script code itself, and therefore
         # needs to be reported like any other exception.
-        if IsCOMServerException(exc_type):
+        if IsCOMServerException(type(exc_value)):
             # Ensure the traceback doesn't cause a cycle.
             raise
         # It could be an error by another script.

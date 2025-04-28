@@ -5,7 +5,6 @@
 # >>> browser.Browse()
 # or
 # >>> browser.Browse(your_module)
-import sys
 import types
 
 import __main__
@@ -340,10 +339,8 @@ class DialogShowObject(dialog.Dialog):
         self.edit = self.GetDlgItem(win32ui.IDC_EDIT1)
         try:
             strval = str(self.object)
-        except:
-            t, v, tb = sys.exc_info()
-            strval = f"Exception getting object value\n\n{t}:{v}"
-            tb = None
+        except Exception as error:
+            strval = f"Exception getting object value\n\n{type(error)}:{error}"
         strval = re.sub(r"\n", "\r\n", strval)
         self.edit.ReplaceSel(strval)
 
