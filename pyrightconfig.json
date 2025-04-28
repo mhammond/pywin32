@@ -32,7 +32,6 @@
   "reportArgumentType": "none",
   "reportAttributeAccessIssue": "none",
   // FIXE: These all need to be fixed first and turned back to error
-  // some of the fixes need to be done in types-pywin32 from typeshed
   "reportCallIssue": "warning",
   "reportOperatorIssue": "warning",
   "reportOptionalIterable": "warning",
