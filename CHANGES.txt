@@ -1,4 +1,4 @@
-Notable changes in recent builds.
+﻿Notable changes in recent builds.
 
 Maintained by hand, so what's "notable" is subjective! Contributors are
 encouraged to add entries for their work.
