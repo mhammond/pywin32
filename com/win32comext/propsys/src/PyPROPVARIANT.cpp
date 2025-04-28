@@ -450,6 +450,12 @@ BOOL PyWin_NewPROPVARIANT(PyObject *ob, VARTYPE vt, PROPVARIANT *ppv)
         case VT_CY | VT_VECTOR:
             ret = SeqToVector(ob, &ppv->cacy.pElems, &ppv->cacy.cElems, PyObject_AsCurrency);
             break;
+        case VT_DECIMAL:
+            ret = PyObject_AsDecimal(ob, &ppv->decVal);
+            break;
+        case VT_DECIMAL | VT_VECTOR:
+            ret = SeqToVector(ob, &ppv->cacy.pElems, &ppv->cacy.cElems, PyObject_AsDecimal);
+            break;
         case VT_BOOL:
             ret = PyWinObject_AsVARIANT_BOOL(ob, &ppv->boolVal);
             break;
