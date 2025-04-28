@@ -165,7 +165,7 @@ if doPostgresTest:
         "Provider=MSDASQL;Driver={PostgreSQL Unicode(x64)}",
         "Driver=PostgreSQL Unicode",
     ]
-    # get driver from http://www.postgresql.org/ftp/odbc/versions/
+    # get driver from https://www.postgresql.org/ftp/odbc/releases/
     # test using positional and keyword arguments (bad example for real code)
     print(f"    ...Testing PostgreSQL login to {_computername}...")
     doPostgresTest, connStrPostgres, dbPostgresConnect = tryconnection.try_connection(
@@ -178,6 +178,6 @@ if doPostgresTest:
         **kws,
     )
 
-assert (
-    doAccessTest or doSqlServerTest or doMySqlTest or doPostgresTest
-), "No database engine found for testing"
+assert doAccessTest or doSqlServerTest or doMySqlTest or doPostgresTest, (
+    "No database engine found for testing"
+)

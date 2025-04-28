@@ -1,9 +1,9 @@
 """adodbapi - A python DB API 2.0 (PEP 249) interface to Microsoft ADO
 
 Copyright (C) 2002 Henrik Ekelund, versions 2.1 and later by Vernon Cole
-* http://sourceforge.net/projects/pywin32
+* https://sourceforge.net/projects/pywin32
 * https://github.com/mhammond/pywin32
-* http://sourceforge.net/projects/adodbapi
+* https://sourceforge.net/projects/adodbapi
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -21,7 +21,7 @@ Copyright (C) 2002 Henrik Ekelund, versions 2.1 and later by Vernon Cole
 
     django adaptations and refactoring by Adam Vandenberg
 
-DB-API 2.0 specification: http://www.python.org/dev/peps/pep-0249/
+DB-API 2.0 specification: https://peps.python.org/pep-0249/
 
 This module source should run correctly in CPython versions 2.7 and later,
 or CPython 3.4 or later.
@@ -79,8 +79,9 @@ def connect(*args, **kwargs):  # --> a db-api connection object
 
     call using:
     :connection_string -- An ADODB formatted connection string, see:
-         * http://www.connectionstrings.com
-         * http://www.asp101.com/articles/john/connstring/default.asp
+         * https://www.connectionstrings.com
+         * https://www.codeguru.com/dotnet/whats-in-an-ado-connection-string/
+         * https://learn.microsoft.com/en-us/dotnet/framework/data/adonet/connection-strings
     :timeout -- A command timeout value, in seconds (default 30 seconds)
     """
     co = Connection()  # make an empty connection object
@@ -474,7 +475,7 @@ class Connection:
         """Introspect the current ADO Errors and determine an appropriate error class.
 
         Error.SQLState is a SQL-defined error condition, per the SQL specification:
-        http://www.contrib.andrew.cmu.edu/~shadow/sql/sql1992.txt
+        https://www.contrib.andrew.cmu.edu/~shadow/sql/sql1992.txt
 
         The 23000 class of errors are integrity errors.
         Error 40002 is a transactional integrity error.

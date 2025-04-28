@@ -1,8 +1,8 @@
 """adodbapi.apibase - A python DB API 2.0 (PEP 249) interface to Microsoft ADO
 
 Copyright (C) 2002 Henrik Ekelund, version 2.1 by Vernon Cole
-* http://sourceforge.net/projects/pywin32
-* http://sourceforge.net/projects/adodbapi
+* https://sourceforge.net/projects/pywin32
+* https://sourceforge.net/projects/adodbapi
 """
 
 from __future__ import annotations
