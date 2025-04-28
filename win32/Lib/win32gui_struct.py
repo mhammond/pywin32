@@ -91,7 +91,7 @@ def UnpackNMITEMACTIVATE(lparam):
 
 
 # MENUITEMINFO struct
-# http://msdn.microsoft.com/library/default.asp?url=/library/en-us/winui/WinUI/WindowsUserInterface/Resources/Menus/MenuReference/MenuStructures/MENUITEMINFO.asp
+# https://learn.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-menuiteminfow
 # We use the struct module to pack and unpack strings as MENUITEMINFO
 # structures.  We also have special handling for the 'fMask' item in that
 # structure to avoid the caller needing to explicitly check validity
@@ -115,9 +115,9 @@ def PackMENUITEMINFO(
     # memory is used) for the lifetime of the INFO item.
     extras = []
     # ack - dwItemData and dwTypeData were confused for a while...
-    assert (
-        dwItemData is None or dwTypeData is None
-    ), "sorry - these were confused - you probably want dwItemData"
+    assert dwItemData is None or dwTypeData is None, (
+        "sorry - these were confused - you probably want dwItemData"
+    )
     # if we are a long way past 209, then we can nuke the above...
     if dwTypeData is not None:
         import warnings

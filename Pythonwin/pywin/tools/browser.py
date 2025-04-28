@@ -45,24 +45,15 @@ class HLIPythonObject(hierlist.HierListItem):
         return self.name == other.name
 
     def __repr__(self):
-        try:
-            type = self.GetHLIType()
-        except:
-            type = "Generic"
         return (
-            "HLIPythonObject("
-            + type
-            + ") - name: "
-            + self.name
-            + " object: "
-            + repr(self.myobject)
+            f"{self.__class__.__name__}(name={self.name!r}, object={self.myobject!r})"
         )
 
     def GetText(self):
         try:
-            return str(self.name) + " (" + self.GetHLIType() + ")"
+            return f"{self.name} ({self.GetHLIType()})"
         except AttributeError:
-            return str(self.name) + " = " + repr(self.myobject)
+            return f"{self.name} = {self.myobject!r}"
 
     def InsertDocString(self, lst):
         ob = None
@@ -260,7 +251,7 @@ class HLISeq(HLIPythonObject):
         ret = []
         pos = 0
         for item in self.myobject:
-            ret.append(MakeHLI(item, "[" + str(pos) + "]"))
+            ret.append(MakeHLI(item, f"[{pos}]"))
             pos += 1
         self.InsertDocString(ret)
         return ret

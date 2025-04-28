@@ -839,8 +839,8 @@ static PyObject *ui_edit_window_save_file(PyObject *self, PyObject *args)
     CDocument *pDocument = pView->GetDocument();
     if (pDocument)
         pDocument->SetModifiedFlag(FALSE);  // start off with unmodified
-    PyWinObject_FreeTCHAR(fileName);
     GUI_END_SAVE;
+    PyWinObject_FreeTCHAR(fileName);
     RETURN_NONE;
 }
 // @pymethod tuple|PyCEditView|PreCreateWindow|Calls the underlying MFC PreCreateWindow method.

@@ -72,9 +72,10 @@ class ThreadInterpCase(InterpCase):
                 pythoncom.IID_IDispatch, interp._oleobj_
             )
             t = threading.Thread(
-                target=self._testInterpInThread, args=(hEvent, interpStream)
+                target=self._testInterpInThread,
+                args=(hEvent, interpStream),
+                daemon=True,  # so errors don't cause shutdown hang
             )
-            t.setDaemon(1)  # so errors don't cause shutdown hang
             t.start()
             threads.append(t)
         interp = None
@@ -100,8 +101,11 @@ class ThreadInterpCase(InterpCase):
         threads = []
         for i in range(numThreads):
             hEvent = win32event.CreateEvent(None, 0, 0, None)
-            t = threading.Thread(target=self._testInterpInThread, args=(hEvent, interp))
-            t.setDaemon(1)  # so errors don't cause shutdown hang
+            t = threading.Thread(
+                target=self._testInterpInThread,
+                args=(hEvent, interp),
+                daemon=True,  # so errors don't cause shutdown hang
+            )
             t.start()
             events.append(hEvent)
             threads.append(t)

@@ -1,9 +1,9 @@
 """adodbapi - A python DB API 2.0 (PEP 249) interface to Microsoft ADO
 
 Copyright (C) 2002 Henrik Ekelund, versions 2.1 and later by Vernon Cole
-* http://sourceforge.net/projects/pywin32
+* https://sourceforge.net/projects/pywin32
 * https://github.com/mhammond/pywin32
-* http://sourceforge.net/projects/adodbapi
+* https://sourceforge.net/projects/adodbapi
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -21,7 +21,7 @@ Copyright (C) 2002 Henrik Ekelund, versions 2.1 and later by Vernon Cole
 
     django adaptations and refactoring by Adam Vandenberg
 
-DB-API 2.0 specification: http://www.python.org/dev/peps/pep-0249/
+DB-API 2.0 specification: https://peps.python.org/pep-0249/
 
 This module source should run correctly in CPython versions 2.7 and later,
 or CPython 3.4 or later.
@@ -79,8 +79,9 @@ def connect(*args, **kwargs):  # --> a db-api connection object
 
     call using:
     :connection_string -- An ADODB formatted connection string, see:
-         * http://www.connectionstrings.com
-         * http://www.asp101.com/articles/john/connstring/default.asp
+         * https://www.connectionstrings.com
+         * https://www.codeguru.com/dotnet/whats-in-an-ado-connection-string/
+         * https://learn.microsoft.com/en-us/dotnet/framework/data/adonet/connection-strings
     :timeout -- A command timeout value, in seconds (default 30 seconds)
     """
     co = Connection()  # make an empty connection object
@@ -162,15 +163,15 @@ def _configure_parameter(p, value, adotype, settings_known):
         p.AppendChunk(value)
 
     elif isinstance(value, str):  # v2.1 Jevon
-        L = len(value)
+        length = len(value)
         if adotype in api.adoStringTypes:  # v2.2.1 Cole
             if settings_known:
-                L = min(L, p.Size)  # v2.1 Cole limit data to defined size
-            p.Value = value[:L]  # v2.1 Jevon & v2.1 Cole
+                length = min(length, p.Size)  # v2.1 Cole limit data to defined size
+            p.Value = value[:length]  # v2.1 Jevon & v2.1 Cole
         else:
             p.Value = value  # don't limit if db column is numeric
-        if L > 0:  # v2.1 Cole something does not like p.Size as Zero
-            p.Size = L  # v2.1 Jevon
+        if length > 0:  # v2.1 Cole something does not like p.Size as Zero
+            p.Size = length  # v2.1 Jevon
 
     elif isinstance(value, decimal.Decimal):
         p.Value = value
@@ -234,7 +235,7 @@ class Connection:
         self.paramstyle = api.paramstyle
         self.supportsTransactions = False
         self.connection_string = ""
-        self.cursors = weakref.WeakValueDictionary()
+        self.cursors = weakref.WeakValueDictionary[int, Cursor]()
         self.dbms_name = ""
         self.dbms_version = ""
         self.errorhandler = None  # use the standard error handler for this instance
@@ -474,7 +475,7 @@ class Connection:
         """Introspect the current ADO Errors and determine an appropriate error class.
 
         Error.SQLState is a SQL-defined error condition, per the SQL specification:
-        http://www.contrib.andrew.cmu.edu/~shadow/sql/sql1992.txt
+        https://www.contrib.andrew.cmu.edu/~shadow/sql/sql1992.txt
 
         The 23000 class of errors are integrity errors.
         Error 40002 is a transactional integrity error.
