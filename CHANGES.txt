@@ -1,4 +1,4 @@
-Notable changes in recent builds.
+﻿Notable changes in recent builds.
 
 Maintained by hand, so what's "notable" is subjective! Contributors are
 encouraged to add entries for their work.
@@ -13,6 +13,7 @@ https://mhammond.github.io/pywin32_installers.html .
 
 Coming in build 311, as yet unreleased
 --------------------------------------
+* Added many missing license and copyright notice files (#2590, @Avasam)
 * Fixed a regression that broke special __dunder__ methods with CoClass. (#1870, #2493, @Avasam, @geppi)
 * Fixed `TypeError: cannot unpack non-iterable NoneType object` when registering an axscript client ScriptItem (#2513, @Avasam)
 * Fixed a memory leak when SafeArrays are used as out parameters (@the-snork)
