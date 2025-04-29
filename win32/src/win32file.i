@@ -2203,7 +2203,7 @@ MyCopyEvent(PyObject *dict, WSANETWORKEVENTS *events, long event, int eventbit)
 }
 
 // @pyswig dict|WSAEnumNetworkEvents|Return network events that caused the event associated with the socket to be signaled.
-// @rdesc A dictionary mapping network events that occured for the specified socket since the last call to this function (e.g. FD_READ, FD_WRITE) to their associated error code, or 0 if the event occured without an error. The events returned are a subset of events previously registered for this socket with WSAEventSelect.
+// @rdesc A dictionary mapping network events that occurred for the specified socket since the last call to this function (e.g. FD_READ, FD_WRITE) to their associated error code, or 0 if the event occurred without an error. The events returned are a subset of events previously registered for this socket with WSAEventSelect.
 static PyObject*
 MyWSAEnumNetworkEvents(PyObject *self, PyObject *args)
 {
