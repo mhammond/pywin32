@@ -233,10 +233,6 @@ PyObject *PyObject_FromPROPVARIANT(PROPVARIANT *pVar)
             return PyObject_FromCurrency(pVar->cyVal);
         case VT_CY | VT_VECTOR:
             return VectorToSeq<CY>(pVar->cacy.pElems, pVar->cacy.cElems, PyObject_FromCurrency);
-        case VT_DECIMAL:
-            return PyObject_FromDecimal(pVar->decVal);
-        case VT_DECIMAL | VT_VECTOR:
-            return VectorToSeq<CY>(pVar->cacy.pElems, pVar->cacy.cElems, PyObject_FromDecimal);
         case VT_DATE:
             return PyWinObject_FromDATE(pVar->date);
         case VT_DATE | VT_VECTOR:
