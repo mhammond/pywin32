@@ -429,7 +429,7 @@ PyObject *PyCWnd::CreateControl(PyObject *self, PyObject *args)
                           &id,         // @pyparm int|id||The child ID for the view
                           &obPersist,  // @pyparm object|obPersist|None|Place holder for future support.
                           &bStorage,   // @pyparm int|bStorage|FALSE|Not used.
-                          &obLicKey))  // @pyparm string|licKey|None|The licence key for the control.
+                          &obLicKey))  // @pyparm string|licKey|None|The license key for the control.
         return NULL;
 
     if (!PyWinObject_AsTCHAR(obClass, &szClass, FALSE))

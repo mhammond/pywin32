@@ -10,7 +10,7 @@ on the registry entries defined by the operating system.
     Copyright © 2003-2012.
     All Rights Reserved.
 
-    This module is licenced for use in Mark Hammond's pywin32
+    This module is licensed for use in Mark Hammond's pywin32
 library under the same terms as the pywin32 library.
 
     To use this time zone module with the datetime module, simply pass
