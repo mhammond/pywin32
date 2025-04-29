@@ -16,7 +16,16 @@ import win32com.client.connect
 import win32com.test.util
 import win32timezone
 import winerror
-from win32com.client import VARIANT, CastTo, DispatchBaseClass, constants
+from win32api import CloseHandle, GetCurrentProcessId, OpenProcess
+from win32com.client import (
+    VARIANT,
+    CastTo,
+    DispatchBaseClass,
+    Record,
+    constants,
+    register_record_class,
+)
+from win32process import GetProcessMemoryInfo
 
 importMsg = "**** PyCOMTest is not installed ***\n  PyCOMTest is a Python test specific COM client and server.\n  It is likely this server is not installed on this machine\n  To install the server, you must get the win32com sources\n  and build it using MS Visual C++"
 
@@ -29,7 +38,9 @@ win32com.test.util.RegisterPythonServer(
 from win32com.client import gencache
 
 try:
-    gencache.EnsureModule("{6BCDCB60-5605-11D0-AE5F-CADD4C000000}", 0, 1, 1)
+    gencache.EnsureModule(
+        "{6BCDCB60-5605-11D0-AE5F-CADD4C000000}", 0, 1, 1, bForDemand=False
+    )
 except pythoncom.com_error:
     print("The PyCOMTest module can not be located or generated.")
     print(importMsg)
@@ -42,6 +53,46 @@ from win32com import universal
 universal.RegisterInterfaces("{6BCDCB60-5605-11D0-AE5F-CADD4C000000}", 0, 1, 1)
 
 verbose = 0
+
+
+# Subclasses of pythoncom.com_record.
+# Registration is performed in 'TestGenerated'.
+class TestStruct1(pythoncom.com_record):
+    __slots__ = ()
+    TLBID = "{6BCDCB60-5605-11D0-AE5F-CADD4C000000}"
+    MJVER = 1
+    MNVER = 1
+    LCID = 0
+    GUID = "{7A4CE6A7-7959-4E85-A3C0-B41442FF0F67}"
+
+
+class TestStruct2(pythoncom.com_record):
+    __slots__ = ()
+    TLBID = "{6BCDCB60-5605-11D0-AE5F-CADD4C000000}"
+    MJVER = 1
+    MNVER = 1
+    LCID = 0
+    GUID = "{78F0EA07-B7CF-42EA-A251-A4C6269F76AF}"
+
+
+# We don't need to stick with the struct name in the TypeLibrry for the subclass name.
+# The following class has the same GUID as TestStruct2 from the TypeLibrary.
+class ArrayOfStructsTestStruct(pythoncom.com_record):
+    __slots__ = ()
+    TLBID = "{6BCDCB60-5605-11D0-AE5F-CADD4C000000}"
+    MJVER = 1
+    MNVER = 1
+    LCID = 0
+    GUID = "{78F0EA07-B7CF-42EA-A251-A4C6269F76AF}"
+
+
+class NotInTypeLibraryTestStruct(pythoncom.com_record):
+    __slots__ = ()
+    TLBID = "{6BCDCB60-5605-11D0-AE5F-CADD4C000000}"
+    MJVER = 1
+    MNVER = 1
+    LCID = 0
+    GUID = "{79BB6AC3-12DE-4AC5-88AC-225C29A58043}"
 
 
 def check_get_set(func, arg):
@@ -83,9 +134,19 @@ def TestConstant(constName, pyConst):
         comConst = getattr(constants, constName)
     except:
         raise AssertionError(f"Constant {constName} missing")
-    assert (
-        comConst == pyConst
-    ), f"Constant value wrong for {constName} - got {comConst}, wanted {pyConst}"
+    assert comConst == pyConst, (
+        f"Constant value wrong for {constName} - got {comConst}, wanted {pyConst}"
+    )
+
+
+def GetMemoryUsage():
+    pid = GetCurrentProcessId()
+    PROCESS_QUERY_INFORMATION = 0x0400
+    PROCESS_VM_READ = 0x0010
+    hprocess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, False, pid)
+    mem_info = GetProcessMemoryInfo(hprocess)
+    CloseHandle(hprocess)
+    return mem_info["WorkingSetSize"]
 
 
 # Simple handler class.  This demo only fires one event.
@@ -153,9 +214,9 @@ def TestCommon(o, is_generated):
     expected_class = o.__class__
     # CoClass instances have `default_interface`
     expected_class = getattr(expected_class, "default_interface", expected_class)
-    assert isinstance(
-        o.GetSetDispatch(o), expected_class
-    ), f"GetSetDispatch failed: {o.GetSetDispatch(o)!r}"
+    assert isinstance(o.GetSetDispatch(o), expected_class), (
+        f"GetSetDispatch failed: {o.GetSetDispatch(o)!r}"
+    )
     progress("Checking getting/passing IDispatch of known type")
     expected_class = o.__class__
     expected_class = getattr(expected_class, "default_interface", expected_class)
@@ -197,18 +258,6 @@ def TestCommon(o, is_generated):
     progress("Checking structs")
     r = o.GetStruct()
     assert r.int_value == 99 and str(r.str_value) == "Hello from C++"
-    # Dynamic does not support struct byref as [ in, out ] parameters
-    if hasattr(o, "CLSID"):
-        progress("Checking struct byref as [ in, out ] parameter")
-        mod_r = o.ModifyStruct(r)
-        # We expect the input value to stay unchanged
-        assert r.int_value == 99 and str(r.str_value) == "Hello from C++"
-        # and the return value to reflect the modifications performed on the COM server side
-        assert (
-            mod_r.int_value == 100
-            and str(mod_r.str_value) == "Nothing is as constant as change"
-        )
-
     assert o.DoubleString("foo") == "foofoo"
 
     progress("Checking var args")
@@ -244,21 +293,21 @@ def TestCommon(o, is_generated):
 
     progress("Checking properties")
     o.LongProp = 3
-    assert (
-        o.LongProp == o.IntProp == 3
-    ), f"Property value wrong - got {o.LongProp}/{o.IntProp}"
+    assert o.LongProp == o.IntProp == 3, (
+        f"Property value wrong - got {o.LongProp}/{o.IntProp}"
+    )
     o.LongProp = o.IntProp = -3
-    assert (
-        o.LongProp == o.IntProp == -3
-    ), f"Property value wrong - got {o.LongProp}/{o.IntProp}"
+    assert o.LongProp == o.IntProp == -3, (
+        f"Property value wrong - got {o.LongProp}/{o.IntProp}"
+    )
     # This number fits in an unsigned long.  Attempting to set it to a normal
     # long will involve overflow, which is to be expected. But we do
     # expect it to work in a property explicitly a VT_UI4.
     check = 3 * 10**9
     o.ULongProp = check
-    assert (
-        o.ULongProp == check
-    ), f"Property value wrong - got {o.ULongProp} (expected {check})"
+    assert o.ULongProp == check, (
+        f"Property value wrong - got {o.ULongProp} (expected {check})"
+    )
     TestApplyResult(o.Test, ("Unused", 99), 1)  # A bool function
     TestApplyResult(o.Test, ("Unused", -1), 1)  # A bool function
     TestApplyResult(o.Test, ("Unused", True), 1)  # A bool function
@@ -408,9 +457,46 @@ def TestDynamic():
     # assert o.ParamProp(0) == 1, o.paramProp(0)
 
 
+def TestStructByref(o, r):
+    progress("Checking struct byref as [ in, out ] parameter")
+    mod_r = o.ModifyStruct(r)
+    # If 'TestStruct1' was registered as an instantiable subclass
+    # of pythoncom.com_record, the return value should have this type.
+    if isinstance(r, TestStruct1):
+        assert type(mod_r) is TestStruct1
+    else:
+        assert type(mod_r) is pythoncom.com_record
+    # We expect the input value to stay unchanged
+    assert r.int_value == 99 and str(r.str_value) == "Hello from C++"
+    # and the return value to reflect the modifications performed on the COM server side
+    assert (
+        mod_r.int_value == 100
+        and str(mod_r.str_value) == "Nothing is as constant as change"
+    )
+
+
+def TestArrayOfStructs(o, test_rec):
+    progress("Testing struct with SAFEARRAY(VT_RECORD) fields.")
+    rec_list = []
+    for i in range(3):
+        # If 'ArrayOfStructsTestStruct' and 'TestStruct1' were registered as instantiable
+        # subclasses of pythoncom.com_record, we expect to work with these types.
+        if isinstance(test_rec, ArrayOfStructsTestStruct):
+            rec = TestStruct1()
+            assert type(rec) is TestStruct1
+        else:
+            rec = Record("TestStruct1", o)
+            assert type(rec) is pythoncom.com_record
+        rec.str_value = "This is record number"
+        rec.int_value = i + 1
+        rec_list.append(rec)
+    test_rec.array_of_records = rec_list
+    test_rec.rec_count = i + 1
+    assert o.VerifyArrayOfStructs(test_rec)
+
+
 def TestGenerated():
     # Create an instance of the server.
-    from win32com.client import Record
     from win32com.client.gencache import EnsureDispatch
 
     o = EnsureDispatch("PyCOMTest.PyCOMTest")
@@ -433,25 +519,64 @@ def TestGenerated():
     coclass = GetClass("{B88DD310-BAE8-11D0-AE86-76F2C1000000}")()
     TestCounter(coclass, True)
 
-    # Test records with SAFEARRAY(VT_RECORD) fields.
-    progress("Testing records with SAFEARRAY(VT_RECORD) fields.")
-    l = []
-    for i in range(3):
-        rec = Record("TestStruct1", o)
-        rec.str_value = "This is record number"
-        rec.int_value = i + 1
-        l.append(rec)
+    # Test plain pythoncom.com_record structs.
+    progress("Testing baseclass pythoncom.com_record structs.")
+    r = o.GetStruct()
+    assert type(r) is pythoncom.com_record
+    TestStructByref(o, r)
     test_rec = Record("TestStruct2", o)
-    test_rec.array_of_records = l
-    test_rec.rec_count = i + 1
-    assert o.VerifyArrayOfStructs(test_rec)
+    assert type(test_rec) is pythoncom.com_record
+    TestArrayOfStructs(o, test_rec)
+
+    progress("Testing registration of pythoncom.com_record subclasses.")
+    # Instantiating a pythoncom.com_record subclass, which has proper GUID attributes,
+    # does raise a TypeError, as long as we have not registered it.
+    try:
+        r_sub = TestStruct1()
+    except TypeError:
+        pass
+    except Exception as e:
+        raise AssertionError from e
+    else:
+        raise AssertionError
+    # Register the subclasses in pythoncom.
+    register_record_class(TestStruct1)
+    register_record_class(ArrayOfStructsTestStruct)
+    # Now the type of the instance is the registered subclass.
+    r_sub = TestStruct1()
+    assert type(r_sub) is TestStruct1
+    # Now also the 'Record' factory function returns an instance of the registered subtype.
+    r_sub = Record("TestStruct1", o)
+    assert type(r_sub) is TestStruct1
+    # It should not be possible to register multiple classes with the same GUID, e.g.
+    # 'TestStruct2' has the same GUID class attribute value as 'ArrayOfStructsTestStruct'.
+    check_get_set_raises(ValueError, register_record_class, TestStruct2)
+    # Also registering a class with a GUID that is not in the TypeLibrary should fail.
+    check_get_set_raises(TypeError, register_record_class, NotInTypeLibraryTestStruct)
+
+    # Perform the 'Byref' and 'ArrayOfStruct tests using the registered subclasses.
+    progress("Testing subclasses of pythoncom.com_record.")
+    r = o.GetStruct()
+    # After 'TestStruct1' was registered as an instantiable subclass
+    # of pythoncom.com_record, the return value should have this type.
+    assert type(r) is TestStruct1
+    TestStructByref(o, r)
+    test_rec = ArrayOfStructsTestStruct()
+    assert type(test_rec) is ArrayOfStructsTestStruct
+    TestArrayOfStructs(o, test_rec)
+
+    # Test initialization of registered pythoncom.com_record subclasses.
+    progress("Testing initialization of pythoncom.com_record subclasses.")
+    buf = o.GetStruct().__reduce__()[1][5]
+    test_rec = TestStruct1(buf)
+    assert test_rec.int_value == 99 and str(test_rec.str_value) == "Hello from C++"
 
     # XXX - this is failing in dynamic tests, but should work fine.
     i1, i2 = o.GetMultipleInterfaces()
     # Yay - is now an instance returned!
-    assert isinstance(i1, DispatchBaseClass) and isinstance(
-        i2, DispatchBaseClass
-    ), f"GetMultipleInterfaces did not return instances - got '{i1}', '{i2}'"
+    assert isinstance(i1, DispatchBaseClass) and isinstance(i2, DispatchBaseClass), (
+        f"GetMultipleInterfaces did not return instances - got '{i1}', '{i2}'"
+    )
     del i1
     del i2
 
@@ -487,6 +612,13 @@ def TestGenerated():
     ll = [1, 2, 3, 0x100000000]
     TestApplyResult(o.SetLongLongSafeArray, (ll,), len(ll))
     TestApplyResult(o.SetULongLongSafeArray, (ll,), len(ll))
+
+    # check freeing of safe arrays
+    mem_before = GetMemoryUsage()
+    o.GetByteArray(50 * 1024 * 1024)
+    mem_after = GetMemoryUsage()
+    delta = mem_after - mem_before
+    assert delta < 1024 * 1024, f"Memory not freed - delta {delta / (1024 * 1024)} MB"
 
     # Tell the server to do what it does!
     TestApplyResult(o.Test2, (constants.Attr2,), constants.Attr2)
@@ -620,9 +752,9 @@ def TestCounter(counter, bIsGenerated):
                 ret = counter.Item(num + 1)
             else:
                 ret = counter[num]
-            assert (
-                ret == num + 1
-            ), f"Random access into element {num} failed - return was {ret!r}"
+            assert ret == num + 1, (
+                f"Random access into element {num} failed - return was {ret!r}"
+            )
         except IndexError:
             raise AssertionError(f"** IndexError accessing collection element {num}")
 
@@ -644,16 +776,16 @@ def TestCounter(counter, bIsGenerated):
 
     if bIsGenerated:
         bounds = counter.GetBounds()
-        assert (
-            bounds[0] == 1 and bounds[1] == 10
-        ), "** Error - counter did not give the same properties back"
+        assert bounds[0] == 1 and bounds[1] == 10, (
+            "** Error - counter did not give the same properties back"
+        )
         counter.SetBounds(bounds[0], bounds[1])
 
     for item in counter:
         num += 1
-    assert num == len(
-        counter
-    ), "*** Length of counter and loop iterations don't match ***"
+    assert num == len(counter), (
+        "*** Length of counter and loop iterations don't match ***"
+    )
     assert num == 10, "*** Unexpected number of loop iterations ***"
 
     try:

@@ -4,9 +4,6 @@
 //
 // Interface Declaration
 
-// Requires Windows 7 SDK to build
-#if WINVER >= 0x0601
-
 class PyICustomDestinationList : public PyIUnknown {
    public:
     MAKE_PYCOM_CTOR(PyICustomDestinationList);
@@ -28,5 +25,3 @@ class PyICustomDestinationList : public PyIUnknown {
     PyICustomDestinationList(IUnknown *pdisp);
     ~PyICustomDestinationList();
 };
-
-#endif  // WINVER

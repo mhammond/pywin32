@@ -144,7 +144,7 @@ PyObject *PyCERTSTORE::PyCertCloseStore(PyObject *self, PyObject *args, PyObject
         return NULL;
     }
     if (dwFlags != (DWORD)-1) {
-        PyErr_Warn(PyExc_PendingDeprecationWarning,
+        PyErr_Warn(PyExc_DeprecationWarning,
                    "The Flags param to CertCloseStore is deprecated; a non-zero value is likely to crash");
     }
     BOOL bsuccess;
