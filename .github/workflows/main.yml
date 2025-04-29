@@ -97,7 +97,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10", "3.11", "3.12", "3.13"]
+        # pythonarm64 NuGet's has no download for Python ~=3.9.11
+        python-version: ["3.9.10", "3.10", "3.11", "3.12", "3.13"]
     steps:
       - uses: actions/checkout@v4
 
@@ -152,17 +153,25 @@ jobs:
           cache: pip
           cache-dependency-path: .github/workflows/main.yml
       - run: pip install clang-format==18.1.* pycln
+      # !cancelled(): Show issues even if the previous steps failed. But still fail the job
       - run: pycln . --config=pycln.toml --check
-      - uses: astral-sh/ruff-action@v3
+      - name: Run Ruff linter
+        uses: astral-sh/ruff-action@v3
         with:
-          version: "0.8.4"
-      - run: ruff format --check
-      - run:
-          | # Too many files to fit in a single command, also exclude vendored Scintilla and MAPIStubLibrary
+          version: "0.11.0"
+        if: ${{ !cancelled() }}
+      - name: Run Ruff formatter
+        run: ruff format --check
+        if: ${{ !cancelled() }}
+      # Too many files to fit in a single command, also exclude vendored Scintilla and MAPIStubLibrary
+      - run: |
           clang-format --Werror --dry-run $(git ls-files '*.cpp' ':!:com/win32comext/mapi/src/MAPIStubLibrary/')
           if ($LastExitCode -ne 0) { exit $LastExitCode }
+        if: ${{ !cancelled() }}
+      - run: |
           clang-format --Werror --dry-run $(git ls-files '*.h' ':!:Pythonwin/Scintilla/' ':!:com/win32comext/mapi/src/MAPIStubLibrary/')
           if ($LastExitCode -ne 0) { exit $LastExitCode }
+        if: ${{ !cancelled() }}
 
   mypy:
     runs-on: windows-2019
