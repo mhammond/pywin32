@@ -215,29 +215,29 @@ class CommonDBTests(unittest.TestCase):
         )
 
         if DBAPIDataTypeString == "STRING":
-            assert (
-                descTuple[1] == api.STRING
-            ), f'was "{descTuple[1]}" expected "{api.STRING.values}"'
+            assert descTuple[1] == api.STRING, (
+                f'was "{descTuple[1]}" expected "{api.STRING.values}"'
+            )
         elif DBAPIDataTypeString == "NUMBER":
-            assert (
-                descTuple[1] == api.NUMBER
-            ), f'was "{descTuple[1]}" expected "{api.NUMBER.values}"'
+            assert descTuple[1] == api.NUMBER, (
+                f'was "{descTuple[1]}" expected "{api.NUMBER.values}"'
+            )
         elif DBAPIDataTypeString == "BINARY":
-            assert (
-                descTuple[1] == api.BINARY
-            ), f'was "{descTuple[1]}" expected "{api.BINARY.values}"'
+            assert descTuple[1] == api.BINARY, (
+                f'was "{descTuple[1]}" expected "{api.BINARY.values}"'
+            )
         elif DBAPIDataTypeString == "DATETIME":
-            assert (
-                descTuple[1] == api.DATETIME
-            ), f'was "{descTuple[1]}" expected "{api.DATETIME.values}"'
+            assert descTuple[1] == api.DATETIME, (
+                f'was "{descTuple[1]}" expected "{api.DATETIME.values}"'
+            )
         elif DBAPIDataTypeString == "ROWID":
-            assert (
-                descTuple[1] == api.ROWID
-            ), f'was "{descTuple[1]}" expected "{api.ROWID.values}"'
+            assert descTuple[1] == api.ROWID, (
+                f'was "{descTuple[1]}" expected "{api.ROWID.values}"'
+            )
         elif DBAPIDataTypeString == "UUID":
-            assert (
-                descTuple[1] == api.OTHER
-            ), f'was "{descTuple[1]}" expected "{api.OTHER.values}"'
+            assert descTuple[1] == api.OTHER, (
+                f'was "{descTuple[1]}" expected "{api.OTHER.values}"'
+            )
         else:
             raise NotImplementedError  # "DBAPIDataTypeString not provided"
 
@@ -261,13 +261,13 @@ class CommonDBTests(unittest.TestCase):
             rs = crsr.fetchone()
             if allowedReturnValues:
                 allowedTypes = tuple([type(aRV) for aRV in allowedReturnValues])
-                assert isinstance(
-                    rs[0], allowedTypes
-                ), f'result type "{type(rs[0])}" must be one of {allowedTypes}'
+                assert isinstance(rs[0], allowedTypes), (
+                    f'result type "{type(rs[0])}" must be one of {allowedTypes}'
+                )
             else:
-                assert isinstance(
-                    rs[0], type(pyData)
-                ), f'result type "{type(rs[0])}" must be instance of {type(pyData)}'
+                assert isinstance(rs[0], type(pyData)), (
+                    f'result type "{type(rs[0])}" must be instance of {type(pyData)}'
+                )
 
             if compareAlmostEqual and DBAPIDataTypeString == "DATETIME":
                 iso1 = adodbapi.dateconverter.DateObjectToIsoFormatString(rs[0])
@@ -276,9 +276,9 @@ class CommonDBTests(unittest.TestCase):
             elif compareAlmostEqual:
                 s = float(pyData)
                 v = float(rs[0])
-                assert (
-                    abs(v - s) / s < 0.00001
-                ), f"Values not almost equal recvd={rs[0]}, expected={s:f}"
+                assert abs(v - s) / s < 0.00001, (
+                    f"Values not almost equal recvd={rs[0]}, expected={s:f}"
+                )
             else:
                 if allowedReturnValues:
                     ok = False
@@ -617,9 +617,9 @@ class CommonDBTests(unittest.TestCase):
             rec = crsr.fetchone()
             # check that stepping through an emulated row works
             for j in range(len(inParam)):
-                assert (
-                    rec[j] == inParam[j]
-                ), f'returned value:"{rec[j]}" != test value:"{inParam[j]}"'
+                assert rec[j] == inParam[j], (
+                    f'returned value:"{rec[j]}" != test value:"{inParam[j]}"'
+                )
             # check that we can get a complete tuple from a row
             assert tuple(rec) == inParam, (
                 f'returned value:"{rec!r}" != test value:"{inParam!r}"'
