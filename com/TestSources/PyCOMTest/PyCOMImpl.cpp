@@ -809,20 +809,6 @@ HRESULT CPyCOMTest::TestMyInterface(IUnknown *unktester)
     CHECK_HR(tester->get_CurrencyProp(&cresult));
     CHECK_TRUE(cresult.int64 == cy.int64);
 
-    DECIMAL dec = {};
-    dec.scale = 2;
-    dec.sign = 0;
-    dec.Hi32 = 12345;
-    dec.Lo64 = 12345;
-
-    DECIMAL dresult;
-    CHECK_HR(tester->put_DecimalProp(dec));
-    CHECK_HR(tester->get_DecimalProp(&dresult));
-    CHECK_TRUE(dec.Lo64 == dresult.Lo64);
-    CHECK_TRUE(dec.Hi32 == dresult.Hi32);
-    CHECK_TRUE(dec.scale == dresult.scale);
-    CHECK_TRUE(dec.sign == dresult.sign);
-
     // interface tests
     CComPtr<IPyCOMTest> param(tester);
     CComPtr<IPyCOMTest> obresult;

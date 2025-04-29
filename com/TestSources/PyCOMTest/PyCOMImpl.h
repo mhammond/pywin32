@@ -21,10 +21,10 @@ class CPyCOMTest : public IDispatchImpl<IPyCOMTest, &IID_IPyCOMTest, &LIBID_PyCO
     {
         memset(m_rsArray, 0, nMaxSessions * sizeof(PyCOMTestSessionData));
         m_cy.int64 = 0;
-        m_dec.Lo64 = 0;
-        m_dec.Hi32 = 0;
-        m_dec.scale = 0;
         m_dec.sign = 0;
+        m_dec.scale = 0;
+        m_dec.Hi32 = 0;
+        m_dec.Lo64 = 0;
         m_long = 0;
     }
     ~CPyCOMTest();
