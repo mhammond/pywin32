@@ -777,14 +777,14 @@ static PyObject *pythoncom_WrapObject(PyObject *self, PyObject *args)
 
 static PyObject *pythoncom_MakeIID(PyObject *self, PyObject *args)
 {
-    PyErr_Warn(PyExc_PendingDeprecationWarning, "MakeIID is deprecated - please use pywintypes.IID() instead.");
+    PyErr_Warn(PyExc_DeprecationWarning, "MakeIID is deprecated - please use pywintypes.IID() instead.");
     return PyWinMethod_NewIID(self, args);
 }
 
 // no autoduck - this is deprecated.
 static PyObject *pythoncom_MakeTime(PyObject *self, PyObject *args)
 {
-    PyErr_Warn(PyExc_PendingDeprecationWarning, "MakeTime is deprecated - please use pywintypes.Time() instead.");
+    PyErr_Warn(PyExc_DeprecationWarning, "MakeTime is deprecated - please use pywintypes.Time() instead.");
     return PyWinMethod_NewTime(self, args);
 }
 
