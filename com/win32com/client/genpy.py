@@ -21,9 +21,8 @@ import time
 from itertools import chain
 
 import pythoncom
-import win32com
 
-from . import build
+from . import build, gencache
 
 makepy_version = "0.5.01"  # Written to generated file.
 
@@ -934,9 +933,9 @@ class Generator:
                 if clsid not in vtableItems and refAttr[11] & pythoncom.TYPEFLAG_FDUAL:
                     refType = refType.GetRefTypeInfo(refType.GetRefTypeOfImplType(-1))
                     refAttr = refType.GetTypeAttr()
-                    assert (
-                        refAttr.typekind == pythoncom.TKIND_INTERFACE
-                    ), "must be interface bynow!"
+                    assert refAttr.typekind == pythoncom.TKIND_INTERFACE, (
+                        "must be interface bynow!"
+                    )
                     vtableItem = VTableItem(refType, refAttr, doc)
                     vtableItems[clsid] = vtableItem
         coclass.sources = list(sources.values())
@@ -968,7 +967,9 @@ class Generator:
         return oleItem, vtableItem
 
     def BuildOleItemsFromType(self):
-        assert self.bBuildHidden, "This code doesn't look at the hidden flag - I thought everyone set it true!?!?!"
+        assert self.bBuildHidden, (
+            "This code doesn't look at the hidden flag - I thought everyone set it true!?!?!"
+        )
         oleItems = {}
         enumItems = {}
         recordItems = {}
@@ -1019,35 +1020,15 @@ class Generator:
 
     def finish_writer(self, filename, f, worked):
         f.close()
-        try:
-            os.unlink(filename)
-        except OSError:
-            pass
         temp_filename = self.get_temp_filename(filename)
         if worked:
-            try:
-                os.rename(temp_filename, filename)
-            except OSError:
-                # If we are really unlucky, another process may have written the
-                # file in between our calls to os.unlink and os.rename. So try
-                # again, but only once.
-                # There are still some race conditions, but they seem difficult to
-                # fix, and they probably occur much less frequently:
-                # * The os.rename failure could occur more than once if more than
-                #   two processes are involved.
-                # * In between os.unlink and os.rename, another process could try
-                #   to import the module, having seen that it already exists.
-                # * If another process starts a COM server while we are still
-                #   generating __init__.py, that process sees that the folder
-                #   already exists and assumes that __init__.py is already there
-                #   as well.
-                try:
-                    os.unlink(filename)
-                except OSError:
-                    pass
-                os.rename(temp_filename, filename)
+            os.replace(temp_filename, filename)
         else:
-            os.unlink(temp_filename)
+            try:
+                os.unlink(filename)
+                os.unlink(temp_filename)
+            except OSError:
+                pass
 
     def get_temp_filename(self, filename):
         return "%s.%d.temp" % (filename, os.getpid())
@@ -1164,8 +1145,8 @@ class Generator:
 
         print("RecordMap = {", file=stream)
         for record in recordItems.values():
+            record_str = f"{record.doc[0]!r}: '{record.clsid}',"
             if record.clsid == pythoncom.IID_NULL:
-                record_str = f"{record.doc[0]!r}: '{record.clsid}',"
                 print(
                     f"\t###{record_str}",
                     "# Record disabled because it doesn't have a non-null GUID",
@@ -1297,9 +1278,9 @@ class Generator:
                             if vtableItem is not None:
                                 vtableItems[clsid] = vtableItem
 
-            assert (
-                found
-            ), f"Can't find the '{child}' interface in the CoClasses, or the interfaces"
+            assert found, (
+                f"Can't find the '{child}' interface in the CoClasses, or the interfaces"
+            )
             # Make a map of iid: dispitem, vtableitem)
             items = {}
             for key, value in oleItems.items():
@@ -1329,7 +1310,8 @@ class Generator:
                     self.progress.Tick()
                     worked = True
                 finally:
-                    self.finish_writer(out_name, self.file, worked)
+                    with gencache.ModuleMutex(self.base_mod_name.split(".")[-1]):
+                        self.finish_writer(out_name, self.file, worked)
                     self.file = None
         finally:
             self.progress.Finished()
