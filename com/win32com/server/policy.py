@@ -257,7 +257,7 @@ class BasicWrapPolicy:
                     if i[0] != "{":
                         i = pythoncom.InterfaceNames[i]
                     else:
-                        i = pythoncom.MakeIID(i)
+                        i = pywintypes.IID(i)
                 self._com_interfaces_.append(i)
         else:
             self._com_interfaces_ = []
