@@ -52,9 +52,6 @@
 // Macro to handle PyObject layout changes in Py3k
 #define PYWIN_OBJECT_HEAD PyVarObject_HEAD_INIT(NULL, 0)
 
-// This macro is kept for legacy reason as it's casting from `const char *` to `char *`
-#define PYWIN_ATTR_CONVERT (char *)PyUnicode_AsUTF8
-
 typedef Py_ssize_t Py_hash_t;
 
 // This only enables runtime checks in debug builds - so we use

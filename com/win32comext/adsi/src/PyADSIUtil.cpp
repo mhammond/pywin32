@@ -449,7 +449,7 @@ class PyADS_ATTR_INFO : public PyObject {
 
     static PyObject *getattro(PyObject *self, PyObject *obname)
     {
-        char *name = PYWIN_ATTR_CONVERT(obname);
+        const char *name = PyUnicode_AsUTF8(obname);
         if (name == NULL)
             return NULL;
         if (strcmp(name, "__members__") == 0) {

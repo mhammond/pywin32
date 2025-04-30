@@ -168,7 +168,7 @@ class PYCOM_EXPORT PyIBase : public PyObject {
    public:
     // virtuals for Python support
     virtual PyObject *getattr(char *name);
-    virtual int setattr(char *name, PyObject *v);
+    virtual int setattr(const char *name, PyObject *v);
     virtual PyObject *repr();
     virtual int compare(PyObject *other)
     {

@@ -171,7 +171,7 @@ PyCDialog::~PyCDialog()
 
 PyObject *PyCDialog::getattro(PyObject *obname)
 {
-    char *name = PYWIN_ATTR_CONVERT(obname);
+    const char *name = PyUnicode_AsUTF8(obname);
     if (strcmp(name, "data") == 0) {
         Py_INCREF(dddict);
         return dddict;

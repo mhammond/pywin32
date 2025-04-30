@@ -230,7 +230,7 @@ void PySTGMEDIUM::Close()
 
 PyObject *PySTGMEDIUM::getattro(PyObject *self, PyObject *obname)
 {
-    char *name = PYWIN_ATTR_CONVERT(obname);
+    const char *name = PyUnicode_AsUTF8(obname);
     if (name == NULL)
         return NULL;
 
