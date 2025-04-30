@@ -117,8 +117,8 @@ jobs:
           if-no-files-found: error
 
   # actions/setup-python does not provide prebuilt arm64 Python before 3.11, so we cross-compile.
-  build_arm64:
-    name: Cross-compile ARM
+  cross_compile_arm64:
+    name: Cross-compile ARM64
     runs-on: windows-2019
     timeout-minutes: 25
     strategy:
@@ -152,9 +152,10 @@ jobs:
           name: artifacts-${{ matrix.python-version }}-arm64
           path: dist/*.whl
           if-no-files-found: error
+
   merge:
     runs-on: windows-latest
-    needs: [test, build_arm64]
+    needs: [test, cross_compile_arm64]
     steps:
       - name: Merge Artifacts
         uses: actions/upload-artifact/merge@v4
