@@ -5,11 +5,14 @@
 # (which is win32service.error, pywintypes.error, etc)
 # when things go wrong - eg, not enough permissions to hit the
 # registry etc.
+from __future__ import annotations
 
 import importlib.machinery
 import os
 import sys
 import warnings
+from collections.abc import Iterable, Sequence
+from typing import ClassVar
 
 import pywintypes
 import win32api
@@ -958,16 +961,20 @@ def HandleCommandLine(
 #
 class ServiceFramework:
     # Required Attributes:
-    # _svc_name_ = The service name
-    # _svc_display_name_ = The service display name
+    _svc_name_: ClassVar[str]
+    """The service name"""
+    _svc_display_name_: ClassVar[str]
+    """The service display name"""
 
     # Optional Attributes:
-    _svc_deps_ = None  # sequence of service names on which this depends
-    _exe_name_ = None  # Default to PythonService.exe
-    _exe_args_ = None  # Default to no arguments
-    _svc_description_ = (
-        None  # Only exists on Windows 2000 or later, ignored on windows NT
-    )
+    _svc_deps_: ClassVar[Iterable[str] | None] = None
+    """Iterable of service names on which this depends"""
+    _exe_name_: ClassVar[str | None] = None
+    """Default to PythonService.exe"""
+    _exe_args_: ClassVar[str | None] = None
+    """Default to no arguments"""
+    _svc_description_: ClassVar[str | None] = None
+    """Only exists on Windows 2000 or later, ignored on windows NT"""
 
     def __init__(self, args):
         import servicemanager

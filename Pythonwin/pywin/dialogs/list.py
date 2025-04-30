@@ -13,7 +13,8 @@ class ListDialog(dialog.Dialog):
     def __init__(
         self,
         title,
-        # TODO: Make list generic, Sequence to avoid 1-time iterable
+        # Sequence rather than Iterable to avoid single-use iterable
+        # TODO: Make the "list" parameter generic,
         list: Sequence[Sequence[object]],
     ):
         dialog.Dialog.__init__(self, self._maketemplate(title))

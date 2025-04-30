@@ -640,7 +640,8 @@ class GrepDialog(dialog.Dialog):
 
 class GrepParamsDialog(dialog.Dialog):
     def __init__(self, items: Sequence[str]):
-        self.items: Sequence[str] = items  # Sequence to avoid 1-time iterable
+        # Sequence rather than Iterable to avoid single-use iterable
+        self.items: Sequence[str] = items
         self.newitems: list[str] = []
         style = (
             win32con.DS_MODALFRAME
