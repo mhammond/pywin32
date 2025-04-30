@@ -10,6 +10,10 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
 
+env:
+  # We can't yet run tests with PYTHONDEVMODE=1, let's at least show warnings
+  PYTHONWARNINGS: always
+
 jobs:
   test:
     name: Build and test
@@ -32,12 +36,6 @@ jobs:
           cache: pip
           cache-dependency-path: .github/workflows/main.yml
           check-latest: true
-
-      - name: Setup environment
-        run: |
-          python --version
-          pip --version
-          pip install --upgrade setuptools>=74 wheel
 
       - name: Fix user Scripts missing from PATH
         if: matrix.architecture == 'x86'
@@ -64,6 +62,16 @@ jobs:
           python -m win32.scripts.pywin32_postinstall -install -destination "$UserSite"
           pywin32_postinstall -remove -destination "$UserSite"
 
+      # Compilation and registration of the PyCOMTest server dll
+      - name: Set up MSVC
+        uses: microsoft/setup-msbuild@v2
+      - name: Build and register the PyCOMTest server dll
+        run: |
+          cd com/TestSources/PyCOMTest
+          msbuild .\PyCOMTest.sln -property:Configuration=Release
+          cd x64/Release
+          regsvr32 .\PyCOMTest.dll
+
       - name: Run tests
         # Run the tests directly from the source dir so support files (eg, .wav files etc)
         # can be found - they aren't installed into the Python tree.
@@ -89,7 +97,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10", "3.11", "3.12", "3.13"]
+        # pythonarm64 NuGet's has no download for Python ~=3.9.11
+        python-version: ["3.9.10", "3.10", "3.11", "3.12", "3.13"]
     steps:
       - uses: actions/checkout@v4
 
@@ -102,11 +111,8 @@ jobs:
           cache-dependency-path: .github/workflows/main.yml
           check-latest: true
 
-      - name: Setup Environment
-        run: |
-          python --version
-          pip --version
-          pip install --upgrade setuptools>=74 wheel build
+      - name: Install build module
+        run: pip install --upgrade  build
 
       - name: Obtain ARM64 library files
         run: python .github\workflows\download-arm64-libs.py .\arm64libs
@@ -147,17 +153,25 @@ jobs:
           cache: pip
           cache-dependency-path: .github/workflows/main.yml
       - run: pip install clang-format==18.1.* pycln
+      # !cancelled(): Show issues even if the previous steps failed. But still fail the job
       - run: pycln . --config=pycln.toml --check
-      - uses: astral-sh/ruff-action@v3
+      - name: Run Ruff linter
+        uses: astral-sh/ruff-action@v3
         with:
-          version: "0.8.4"
-      - run: ruff format --check
-      - run:
-          | # Too many files to fit in a single command, also exclude vendored Scintilla and MAPIStubLibrary
+          version: "0.11.0"
+        if: ${{ !cancelled() }}
+      - name: Run Ruff formatter
+        run: ruff format --check
+        if: ${{ !cancelled() }}
+      # Too many files to fit in a single command, also exclude vendored Scintilla and MAPIStubLibrary
+      - run: |
           clang-format --Werror --dry-run $(git ls-files '*.cpp' ':!:com/win32comext/mapi/src/MAPIStubLibrary/')
           if ($LastExitCode -ne 0) { exit $LastExitCode }
+        if: ${{ !cancelled() }}
+      - run: |
           clang-format --Werror --dry-run $(git ls-files '*.h' ':!:Pythonwin/Scintilla/' ':!:com/win32comext/mapi/src/MAPIStubLibrary/')
           if ($LastExitCode -ne 0) { exit $LastExitCode }
+        if: ${{ !cancelled() }}
 
   mypy:
     runs-on: windows-2019

@@ -1,4 +1,4 @@
-﻿Notable changes in recent builds.
+Notable changes in recent builds.
 
 Maintained by hand, so what's "notable" is subjective! Contributors are
 encouraged to add entries for their work.
@@ -11,10 +11,24 @@ or
 As of build 305, installation .exe files have been deprecated; see
 https://mhammond.github.io/pywin32_installers.html .
 
-Coming in build 310, as yet unreleased
+Coming in build 311, as yet unreleased
 --------------------------------------
-* Drop support for Vista, set Windows 7 as the minimal Windows version. (#, @Avasam)
-  * Restores many IIDs in `win32com(ext).shell.shell`. See #2486 for details.
+* Fixed a regression that broke special __dunder__ methods with CoClass. (#1870, #2493, @Avasam, @geppi)
+* Fixed `TypeError: cannot unpack non-iterable NoneType object` when registering an axscript client ScriptItem (#2513, @Avasam)
+* Fixed a memory leak when SafeArrays are used as out parameters (@the-snork)
+* Fixed dispatch handling for properties (@the-snork)
+* Resolved a handful of deprecation warnings (#2567, #2576, @Avasam)
+* The following classes now produce a valid `eval` string representation when calling `repr`: (#2573, @Avasam)
+  * `pywin.tools.browser.HLIPythonObject`
+  * `win32com.server.exception.COMException`
+  * `win32comext.axscript.client.error.AXScriptException`
+  * `win32comext.axscript.client.pyscript.NamedScriptAttribute`
+
+Build 310, released 2025/03/16
+------------------------------
+* Fixed a regression where `win32com.client.DispatchWithEvents` and win32com.client.WithEvents` would throw a `TypeError` on the second call (#2491, @Avasam)
+* Fixed regresion causing `win32com.shell.shell` to be missing a number of `IID`s. (#2487, @Avasam)
+* As part of the above, Windows 7 is now minimum supported.
 
 Build 309, released 2025/03/09
 ------------------------------
