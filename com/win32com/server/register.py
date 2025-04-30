@@ -7,6 +7,8 @@ construct the necessary Python object, and dispatch COM events.
 
 """
 
+from __future__ import annotations
+
 import os
 import sys
 
@@ -16,6 +18,8 @@ import win32con
 import winerror
 
 CATID_PythonCOMServer = "{B3EF80D0-68E2-11D0-A689-00C04FD658FF}"
+
+__frozen: str | bool = getattr(sys, "frozen", False)
 
 
 def _set_subkeys(keyName, valueDict, base=win32con.HKEY_CLASSES_ROOT):
@@ -207,13 +211,9 @@ def RegisterServer(
     # Set default clsctx.
     if not clsctx:
         clsctx = pythoncom.CLSCTX_INPROC_SERVER | pythoncom.CLSCTX_LOCAL_SERVER
-    # And if we are frozen, ignore the ones that don't make sense in this
-    # context.
-    if pythoncom.frozen:
-        assert sys.frozen, (
-            "pythoncom is frozen, but sys.frozen is not set - don't know the context!"
-        )
-        if sys.frozen == "dll":
+    # And if we are frozen, ignore the ones that don't make sense in this context.
+    if __frozen:
+        if __frozen == "dll":
             clsctx &= pythoncom.CLSCTX_INPROC_SERVER
         else:
             clsctx &= pythoncom.CLSCTX_LOCAL_SERVER
@@ -223,7 +223,7 @@ def RegisterServer(
         # nod to Gordon's installer - if sys.frozen and sys.frozendllhandle
         # exist, then we are being registered via a DLL - use this DLL as the
         # file name.
-        if pythoncom.frozen:
+        if __frozen:
             if hasattr(sys, "frozendllhandle"):
                 dllName = win32api.GetModuleFileName(sys.frozendllhandle)
             else:
@@ -261,9 +261,8 @@ def RegisterServer(
         _remove_key(keyNameRoot + "\\InprocServer32")
 
     if clsctx & pythoncom.CLSCTX_LOCAL_SERVER:
-        if pythoncom.frozen:
-            # If we are frozen, we write "{exe} /Automate", just
-            # like "normal" .EXEs do
+        if __frozen:
+            # If we are frozen, we write "{exe} /Automate", just like "normal" .EXEs do
             exeName = win32api.GetShortPathName(sys.executable)
             command = f"{exeName} /Automate"
         else:
@@ -302,7 +301,7 @@ def RegisterServer(
         _remove_key(keyNameRoot + "\\PythonCOMPath")
 
     if addPyComCat is None:
-        addPyComCat = pythoncom.frozen == 0
+        addPyComCat = __frozen == False
     if addPyComCat:
         catids = catids + [CATID_PythonCOMServer]
 
@@ -422,7 +421,7 @@ def RegisterClasses(*classes, **flags):
         clsctx = _get(cls, "_reg_clsctx_")
         tlb_filename = _get(cls, "_reg_typelib_filename_")
         # default to being a COM category only when not frozen.
-        addPyComCat = not _get(cls, "_reg_disable_pycomcat_", pythoncom.frozen != 0)
+        addPyComCat = not _get(cls, "_reg_disable_pycomcat_", __frozen)
         addnPath = None
         if debugging:
             # If the class has a debugging dispatcher specified, use it, otherwise
@@ -455,7 +454,7 @@ def RegisterClasses(*classes, **flags):
 
             spec = moduleName + "." + cls.__name__
             # Frozen apps don't need their directory on sys.path
-            if not pythoncom.frozen:
+            if not __frozen:
                 scriptDir = os.path.split(sys.argv[0])[0]
                 if not scriptDir:
                     scriptDir = "."
@@ -664,7 +663,7 @@ def RegisterPyComCategory():
     regCat.RegisterCategories([(CATID_PythonCOMServer, 0x0409, "Python COM Server")])
 
 
-if not pythoncom.frozen:
+if not __frozen:
     try:
         win32api.RegQueryValue(
             win32con.HKEY_CLASSES_ROOT,

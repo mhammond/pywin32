@@ -9,11 +9,7 @@ import sys
 import pythoncom
 import win32api
 
-# flag if we are in a "frozen" build.
-_frozen = getattr(sys, "frozen", False)
-# pythoncom dumbly defaults this to zero - we believe sys.frozen over it.
-if _frozen and not getattr(pythoncom, "frozen", 0):
-    pythoncom.frozen = sys.frozen
+__frozen: str | bool = getattr(sys, "frozen", False)
 
 # Add support for an external "COM Extensions" path.
 #  Concept is that you can register a seperate path to be used for
@@ -86,11 +82,11 @@ def SetupEnvironment():
 # (which the win32com developers do!)
 def __PackageSupportBuildPath__(package_path):
     # See if we have a special directory for the binaries (for developers)
-    if not _frozen and __build_path__:
+    if not __frozen and __build_path__:
         package_path.append(__build_path__)
 
 
-if not _frozen:
+if not __frozen:
     SetupEnvironment()
 
 # If we don't have a special __gen_path__, see if we have a gen_py as a
