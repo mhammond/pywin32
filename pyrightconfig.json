@@ -46,7 +46,7 @@
   // Since we're a library, and not user code, we care less about forgetting to install a dependency,
   // as long as we have its stubs. So just disabling for now is fine.
   "reportMissingModuleSource": "none",
-  // External type stubs may not be completable
+  // External type stubs may not be completable, and this will require type stubs for dynamic modules.
   "reportMissingTypeStubs": "information",
   // Use Pycln/Ruff instead
   "reportUnusedImport": "none",

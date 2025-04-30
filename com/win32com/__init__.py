@@ -12,8 +12,8 @@ import win32api
 # flag if we are in a "frozen" build.
 _frozen = getattr(sys, "frozen", False)
 # pythoncom dumbly defaults this to zero - we believe sys.frozen over it.
-if _frozen and not getattr(pythoncom, "frozen", False):
-    pythoncom.frozen = _frozen
+if _frozen and not getattr(pythoncom, "frozen", 0):
+    pythoncom.frozen = sys.frozen
 
 # Add support for an external "COM Extensions" path.
 #  Concept is that you can register a seperate path to be used for
