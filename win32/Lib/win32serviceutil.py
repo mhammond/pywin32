@@ -11,7 +11,7 @@ import importlib.machinery
 import os
 import sys
 import warnings
-from collections.abc import Iterable, Sequence
+from collections.abc import Iterable
 from typing import ClassVar
 
 import pywintypes

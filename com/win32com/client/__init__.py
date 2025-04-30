@@ -7,8 +7,6 @@
 # with dynamic.Dispatch behaviour, where dynamic objects are always used.
 from __future__ import annotations
 
-from __future__ import annotations
-
 import sys
 from itertools import chain
 from typing import Any, ClassVar
