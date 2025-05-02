@@ -8,7 +8,7 @@
 
 try:
     import pywin32_system32
-except ImportError:  # Python ≥3.6: replace ImportError with ModuleNotFoundError
+except ImportError:
     pass
 else:
     import os
@@ -17,5 +17,18 @@ else:
     # https://docs.python.org/3/reference/import.html#path-attributes-on-modules
     for path in pywin32_system32.__path__:
         if os.path.isdir(path):
-            os.add_dll_directory(path)
+            try:
+                # First try the preferred method
+                os.add_dll_directory(path)
+            except Exception:
+                # If anything fails, try to modify PATH if it exists
+                try:
+                    if "PATH" in os.environ:
+                        os.environ["PATH"] = path + os.pathsep + os.environ["PATH"]
+                    else:
+                        # If PATH doesn't exist, just create it
+                        os.environ["PATH"] = path
+                except Exception:
+                    # Last resort - if nothing works, just pass silently
+                    pass
             break
