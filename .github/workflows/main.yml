@@ -17,13 +17,25 @@ env:
 jobs:
   test:
     name: Build and test
-    runs-on: windows-2019
-    timeout-minutes: 20
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
         python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
-        architecture: ["x64", "x86"]
+        python-architecture: [x64, x86, arm64]
+        include:
+          - os: windows-2019
+          - python-architecture: arm64
+            os: windows-11-arm
+        exclude:
+          # actions/setup-python does not provide prebuilt arm64 Python before 3.11
+          - python-architecture: arm64
+            python-version: "3.8"
+          - python-architecture: arm64
+            python-version: "3.9"
+          - python-architecture: arm64
+            python-version: "3.10"
 
     steps:
       - uses: actions/checkout@v4
@@ -32,13 +44,13 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          architecture: ${{ matrix.architecture }}
+          architecture: ${{ matrix.python-architecture }}
           cache: pip
           cache-dependency-path: .github/workflows/main.yml
           check-latest: true
 
       - name: Fix user Scripts missing from PATH
-        if: matrix.architecture == 'x86'
+        if: matrix.python-architecture == 'x86' || matrix.python-architecture == 'arm64'
         run: |
           # Work around https://github.com/actions/setup-python/issues/1005
           $ScriptsPath = python -c "import sysconfig,os; print(sysconfig.get_path('scripts', f'{os.name}_user'))"
@@ -65,12 +77,28 @@ jobs:
       # Compilation and registration of the PyCOMTest server dll
       - name: Set up MSVC
         uses: microsoft/setup-msbuild@v2
+
+      # See https://github.com/actions/runner-images/issues/9701
+      # Adapted from https://github.com/actions/runner-images/issues/9873#issuecomment-2139288682
+      - name: Install missing Visual Studio components
+        if: matrix.os != 'windows-2019' # Only an issue on newer versions of Windows
+        run: |
+          Set-Location "C:\Program Files (x86)\Microsoft Visual Studio\Installer\"
+          $VsInstallPath = vswhere.exe -latest -products * -requires Microsoft.Component.MSBuild -property installationPath
+          [string]$ComponentsToAdd = @(
+            "Microsoft.VisualStudio.Component.VC.14.29.16.11.ATL"
+            "Microsoft.VisualStudio.Component.VC.14.29.16.11.ATL.ARM64"
+          ) | ForEach-Object {"--add $_"}
+          $ArgumentList = ('modify', '--installPath', "`"$VsInstallPath`"", $ComponentsToAdd, '--quiet', '--norestart', '--nocache')
+          echo "vs_installer.exe $($ArgumentList -join ' ')"
+          # should be run twice for some reason
+          Start-Process -FilePath vs_installer.exe -ArgumentList $ArgumentList -Wait -PassThru -WindowStyle Hidden
+          Start-Process -FilePath vs_installer.exe -ArgumentList $ArgumentList -Wait -PassThru -WindowStyle Hidden
+
       - name: Build and register the PyCOMTest server dll
         run: |
-          cd com/TestSources/PyCOMTest
-          msbuild .\PyCOMTest.sln -property:Configuration=Release
-          cd x64/Release
-          regsvr32 .\PyCOMTest.dll
+          msbuild com/TestSources/PyCOMTest/PyCOMTest.sln -property:Configuration=Release
+          regsvr32 com/TestSources/PyCOMTest/x64/Release/PyCOMTest.dll
 
       - name: Run tests
         # Run the tests directly from the source dir so support files (eg, .wav files etc)
@@ -84,29 +112,28 @@ jobs:
         # Upload artifacts even if tests fail
         if: ${{ always() }}
         with:
-          name: artifacts-${{ matrix.python-version }}-${{ matrix.architecture }}
+          name: artifacts-${{ matrix.python-version }}-${{ matrix.python-architecture }}
           path: dist/*.whl
           if-no-files-found: error
 
-  # We cannot build and test on ARM64, so we cross-compile.
-  # Later, when available, we can add tests using this wheel on ARM64 VMs
-  build_arm64:
-    name: Cross-compile ARM
+  # actions/setup-python does not provide prebuilt arm64 Python before 3.11, so we cross-compile.
+  cross_compile_arm64:
+    name: Cross-compile ARM64
     runs-on: windows-2019
-    timeout-minutes: 20
+    timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
-        # pythonarm64 NuGet's has no download for Python ~=3.9.11
-        python-version: ["3.9.10", "3.10", "3.11", "3.12", "3.13"]
+        # pythonarm64 NuGet has no download for Python 3.8 and Python ~=3.9.11
+        python-version: ["3.9.10", "3.10"]
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Set up latest stable Python
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          architecture: "x64"
+          architecture: x64
           cache: pip
           cache-dependency-path: .github/workflows/main.yml
           check-latest: true
@@ -115,10 +142,10 @@ jobs:
         run: pip install --upgrade  build
 
       - name: Obtain ARM64 library files
-        run: python .github\workflows\download-arm64-libs.py .\arm64libs
+        run: python .github\workflows\download-arm64-libs.py ./arm64libs
 
       - name: Build wheels
-        run: python -m build --wheel --config-setting=--build-option=build_ext --config-setting=--build-option=-L.\arm64libs --config-setting=--build-option=--plat-name=win-arm64 --config-setting=--build-option=build --config-setting=--build-option=--plat-name=win-arm64 --config-setting=--build-option=bdist_wheel --config-setting=--build-option=--plat-name=win-arm64
+        run: python -m build --wheel --config-setting=--build-option="build_ext -L./arm64libs --plat-name=win-arm64 build --plat-name=win-arm64 bdist_wheel --plat-name=win-arm64"
 
       - uses: actions/upload-artifact@v4
         with:
@@ -128,7 +155,7 @@ jobs:
 
   merge:
     runs-on: windows-latest
-    needs: [test, build_arm64]
+    needs: [test, cross_compile_arm64]
     steps:
       - name: Merge Artifacts
         uses: actions/upload-artifact/merge@v4
@@ -143,7 +170,7 @@ jobs:
   # This job can be run locally by running `pre-commit run`
   checkers:
     runs-on: windows-2019
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -175,7 +202,7 @@ jobs:
 
   mypy:
     runs-on: windows-2019
-    timeout-minutes: 20
+    timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
@@ -193,7 +220,7 @@ jobs:
 
   pyright:
     runs-on: windows-2019
-    timeout-minutes: 20
+    timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
