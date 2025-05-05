@@ -363,8 +363,8 @@ class my_build(build):
 
 
 class my_build_ext(build_ext):
-    def finalize_options(self):
-        build_ext.finalize_options(self)
+    def finalize_options(self) -> None:
+        super().finalize_options()
 
         self.plat_dir = {
             "win-amd64": "x64",
@@ -378,8 +378,9 @@ class my_build_ext(build_ext):
         if self.mingw32:
             self.libraries.append("stdc++")
 
-        self.excluded_extensions = []  # list of (ext, why)
-        self.swig_cpp = True  # hrm - deprecated - should use swig_opts=-c++??
+        self.excluded_extensions: list[tuple[WinExt, str]] = []
+        """List of excluded extensions and their reason"""
+        self.swig_opts.append("-c++")
 
     def _why_cant_build_extension(self, ext):
         """Return None, or a reason it can't be built."""
