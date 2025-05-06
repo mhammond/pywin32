@@ -35,8 +35,8 @@ import winreg
 from collections.abc import MutableSequence
 from pathlib import Path
 from setuptools import Extension, setup
+from setuptools._distutils import ccompiler
 from setuptools.command.build import build
-from setuptools.command.build_ext import build_ext
 from setuptools.modified import newer_group
 from tempfile import gettempdir
 from typing import TYPE_CHECKING, Iterable
@@ -51,6 +51,21 @@ else:
     from distutils import ccompiler
     from distutils._msvccompiler import MSVCCompiler
     from distutils.command.install_data import install_data
+
+
+def my_new_compiler(**kw):
+    if "compiler" in kw and kw["compiler"] in (None, "msvc"):
+        return my_compiler()
+    return orig_new_compiler(**kw)
+
+
+# No way to cleanly wedge our compiler sub-class in.
+orig_new_compiler = ccompiler.new_compiler
+ccompiler.new_compiler = my_new_compiler  # type: ignore[assignment] # Assuming the caller will always use only kwargs
+
+
+# This import has to be delayed to AFTER the compiler hack
+from setuptools.command.build_ext import build_ext  # noqa: E402
 
 build_id_patch = build_id
 if not "." in build_id_patch:
@@ -582,6 +597,24 @@ class my_build_ext(build_ext):
             print("-- compiler.library_dirs:", self.compiler.library_dirs)
             raise RuntimeError("Too many extensions skipped, check build environment")
 
+        for ext in [*self.extensions, *W32_exe_files]:
+            # Stamp the version of the built target.
+            # Do this externally to avoid suddenly dragging in the
+            # modules needed by this process, and which we will soon try and update.
+            ext_path = self.get_ext_fullpath(ext.name)
+            self.spawn(
+                [
+                    sys.executable,
+                    Path(__file__).parent / "win32" / "Lib" / "win32verstamp.py",
+                    f"--version={pywin32_version}",
+                    "--comments=https://github.com/mhammond/pywin32",
+                    f"--original-filename={os.path.basename(ext_path)}",
+                    "--product=PyWin32",
+                    "--quiet" if "-v" not in sys.argv else "",
+                    ext_path,
+                ]
+            )
+
         # Not sure how to make this completely generic, and there is no
         # need at this stage.
         self._build_scintilla()
@@ -855,62 +888,7 @@ class my_build_ext(build_ext):
         return new_sources
 
 
-def my_new_compiler(**kw):
-    if "compiler" in kw and kw["compiler"] in (None, "msvc"):
-        return my_compiler()
-    return orig_new_compiler(**kw)
-
-
-# No way to cleanly wedge our compiler sub-class in.
-orig_new_compiler = ccompiler.new_compiler
-ccompiler.new_compiler = my_new_compiler  # type: ignore[assignment] # Assuming the caller will always use only kwargs
-
-
 class my_compiler(MSVCCompiler):
-    def link(
-        self,
-        target_desc,
-        objects,
-        output_filename,
-        output_dir=None,
-        libraries=None,
-        library_dirs=None,
-        runtime_library_dirs=None,
-        export_symbols=None,
-        debug=0,
-        *args,
-        **kw,
-    ):
-        super().link(
-            target_desc,
-            objects,
-            output_filename,
-            output_dir,
-            libraries,
-            library_dirs,
-            runtime_library_dirs,
-            export_symbols,
-            debug,
-            *args,
-            **kw,
-        )
-        # Here seems a good place to stamp the version of the built
-        # target.  Do this externally to avoid suddenly dragging in the
-        # modules needed by this process, and which we will soon try and
-        # update.
-        args = [
-            sys.executable,
-            # NOTE: On Python 3.7, all args must be str
-            str(Path(__file__).parent / "win32" / "Lib" / "win32verstamp.py"),
-            f"--version={pywin32_version}",
-            "--comments=https://github.com/mhammond/pywin32",
-            f"--original-filename={os.path.basename(output_filename)}",
-            "--product=PyWin32",
-            "--quiet" if "-v" not in sys.argv else "",
-            output_filename,
-        ]
-        self.spawn(args)
-
     # Work around bpo-36302/bpo-42009 - it sorts sources but this breaks
     # support for building .mc files etc :(
     def compile(self, sources, **kwargs):
