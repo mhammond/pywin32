@@ -1,4 +1,4 @@
-Notable changes in recent builds.
+﻿Notable changes in recent builds.
 
 Maintained by hand, so what's "notable" is subjective! Contributors are
 encouraged to add entries for their work.
@@ -17,7 +17,13 @@ Coming in build 311, as yet unreleased
 * Fixed `TypeError: cannot unpack non-iterable NoneType object` when registering an axscript client ScriptItem (#2513, @Avasam)
 * Fixed a memory leak when SafeArrays are used as out parameters (@the-snork)
 * Fixed dispatch handling for properties (@the-snork)
-* Resolved a handful of deprecation warnings (#2567, #2576, @Avasam)
+* Resolved a handful of deprecation warnings (#2593, #2567, #2576, @Avasam)
+* Deprecate `pythoncom.frozen` (#2593, @Avasam)
+  `pythoncom.frozen` used to expose `Py_FrozenFlag` from the C API.
+  `Py_FrozenFlag` is deprecated since Python 3.12.
+  Ever since pywin32 b200, loading the `win32com` module has silently
+  been replacing `pythoncom.frozen` with `sys.frozen`.
+  Use `getattr(sys, "frozen", False)` directly instead.
 * The following classes now produce a valid `eval` string representation when calling `repr`: (#2573, @Avasam)
   * `pywin.tools.browser.HLIPythonObject`
   * `win32com.server.exception.COMException`
