@@ -3059,7 +3059,7 @@ static PyObject *py_GetVolumePathName(PyObject *self, PyObject *args, PyObject *
 	if (bufsize>0)
 		bufsize+=1;
 	else
-		bufsize=pathlen+2;  // enough to accomodate trailing null, and possibly extra backslash
+		bufsize=pathlen+2;  // enough to accommodate trailing null, and possibly extra backslash
 	mount_point=(WCHAR *)malloc(bufsize*sizeof(WCHAR));
 	if (mount_point==NULL)
 		PyErr_SetString(PyExc_MemoryError,"GetVolumePathName: Unable to allocate return buffer");
