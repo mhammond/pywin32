@@ -55,7 +55,7 @@ python -m pip install --upgrade pywin32
 There is a post-install script (see below) which should *not* be run inside virtual environments;
 it should only be run in "global" installs.
 
-For unreleased changes, you can download builds made by [github actions](https://github.com/mhammond/pywin32/actions/) -
+For unreleased changes, you can download builds made by [GitHub actions](https://github.com/mhammond/pywin32/actions/) -
 choose any "workflow" from the `main` branch and download its "artifacts"
 
 ### Installing globally
@@ -153,7 +153,7 @@ Since build 307 the release process is based on the artifacts created by Github 
   section for the next unreleased version. (ie, a new, empty "Coming in build XXX, as yet unreleased"
   section)
 
-* Push these changes to github, wait for the actions to complete, then
+* Push these changes to GitHub, wait for the actions to complete, then
   download the artifacts from that run.
 
 * Upload `.whl` artifacts to pypi - we do this before pushing the tag because they might be
@@ -164,7 +164,7 @@ Since build 307 the release process is based on the artifacts created by Github 
 * Update setup.py with the new build number + ".1" (eg, 123.1), to ensure
   future test builds aren't mistaken for the real release.
 
-* Make sure everything is pushed to github, including the tag (ie,
+* Make sure everything is pushed to GitHub, including the tag (ie,
   `git push --tags`)
 
 * Send mail to python-win32
@@ -186,12 +186,12 @@ the builds. Build 306 was the last released with this process.
 
 * Commit setup.py (so the new build number is in the repo), create a new git tag
 
-* Upload the .exe installers to github.
+* Upload the .exe installers to GitHub.
 
 * Update setup.py with the new build number + ".1" (eg, 123.1), to ensure
   future test builds aren't mistaken for the real release.
 
-* Make sure everything is pushed to github, including the tag (ie,
+* Make sure everything is pushed to GitHub, including the tag (ie,
   `git push --tags`)
 
 * Send mail to python-win32
