@@ -101,6 +101,7 @@ class AXScriptException(COMException):
             warnings.warn(
                 "`exc_type` and `exc_traceback` were redundant and are now unused.",
                 category=DeprecationWarning,
+                stacklevel=2,
             )
 
         # And my other values...
