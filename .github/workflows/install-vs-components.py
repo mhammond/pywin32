@@ -1,5 +1,6 @@
 import os
 import platform
+from itertools import chain
 from subprocess import check_call, check_output
 
 os.chdir("C:/Program Files (x86)/Microsoft Visual Studio/Installer")
@@ -15,7 +16,7 @@ vs_install_path = check_output(
         "installationPath",
     ),
     text=True,
-).strip()
+)
 components_to_add = (
     ["Microsoft.VisualStudio.Component.VC.14.29.16.11.ATL.ARM64"]
     if platform.machine() == "ARM64"
@@ -26,7 +27,7 @@ args = (
     "modify",
     "--installPath",
     f'"{vs_install_path}"',
-    *[f"--add {component}" for component in components_to_add],
+    *chain.from_iterable([("--add", component) for component in components_to_add]),
     "--quiet",
     "--norestart",
     "--nocache",
