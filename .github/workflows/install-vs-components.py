@@ -15,7 +15,7 @@ vs_install_path = check_output(
         "installationPath",
     ),
     text=True,
-)
+).strip()
 components_to_add = (
     ["Microsoft.VisualStudio.Component.VC.14.29.16.11.ATL.ARM64"]
     if platform.machine() == "ARM64"
