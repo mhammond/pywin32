@@ -4,7 +4,7 @@
 import os
 import platform
 from itertools import chain
-from subprocess import Popen, check_call, check_output, run
+from subprocess import check_call, check_output
 
 os.chdir("C:/Program Files (x86)/Microsoft Visual Studio/Installer")
 vs_install_path = check_output(
