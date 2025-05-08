@@ -190,7 +190,7 @@ void PyNCB::deallocFunc(PyObject *ob) { delete (PyNCB *)ob; };
 PyObject *PyNCB::getattro(PyObject *self, PyObject *obname)
 {
     PyNCB *This = (PyNCB *)self;
-    char *name = PYWIN_ATTR_CONVERT(obname);
+    const char *name = PyUnicode_AsUTF8(obname);
     if (name == NULL)
         return NULL;
     // Our string attributes still need special handling as the NCB isn't
@@ -231,7 +231,7 @@ int PyNCB::setattro(PyObject *self, PyObject *obname, PyObject *v)
         PyErr_SetString(PyExc_AttributeError, "can't delete NCB attributes");
         return -1;
     }
-    char *name = PYWIN_ATTR_CONVERT(obname);
+    const char *name = PyUnicode_AsUTF8(obname);
     if (name == NULL)
         return NULL;
     PyNCB *This = (PyNCB *)self;

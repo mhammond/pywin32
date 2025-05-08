@@ -164,7 +164,7 @@ struct MyMemberList dcmembers[] = {
 
 PyObject *PyCDockContext::getattro(PyObject *obname)
 {
-    char *name = PYWIN_ATTR_CONVERT(obname);
+    const char *name = PyUnicode_AsUTF8(obname);
     if (name == NULL)
         return NULL;
     CDockContext *pC = GetDockContext(this);
@@ -200,7 +200,7 @@ PyObject *PyCDockContext::getattro(PyObject *obname)
 
 int PyCDockContext::setattro(PyObject *obname, PyObject *value)
 {
-    char *name = PYWIN_ATTR_CONVERT(obname);
+    const char *name = PyUnicode_AsUTF8(obname);
     if (name == NULL)
         return -1;
     CDockContext *pC = GetDockContext(this);
@@ -446,7 +446,7 @@ static struct PyMethodDef PyCControlBar_methods[] = {
 
 PyObject *PyCControlBar::getattro(PyObject *obname)
 {
-    char *name = PYWIN_ATTR_CONVERT(obname);
+    const char *name = PyUnicode_AsUTF8(obname);
     if (name == NULL)
         return NULL;
     CControlBar *pCtlBar = PyCControlBar::GetControlBar(this);
@@ -477,7 +477,7 @@ PyObject *PyCControlBar::getattro(PyObject *obname)
 
 int PyCControlBar::setattro(PyObject *obname, PyObject *v)
 {
-    char *name = PYWIN_ATTR_CONVERT(obname);
+    const char *name = PyUnicode_AsUTF8(obname);
     if (name == NULL)
         return -1;
 

@@ -171,7 +171,7 @@ PyDCB::~PyDCB(void) {}
 PyObject *PyDCB::getattro(PyObject *self, PyObject *obname)
 {
     PyDCB *pydcb = (PyDCB *)self;
-    char *name = PYWIN_ATTR_CONVERT(obname);
+    const char *name = PyUnicode_AsUTF8(obname);
     if (!name)
         return NULL;
 
@@ -212,7 +212,7 @@ int PyDCB::setattro(PyObject *self, PyObject *obname, PyObject *v)
         PyErr_SetString(PyExc_AttributeError, "can't delete DCB attributes");
         return -1;
     }
-    char *name = PYWIN_ATTR_CONVERT(obname);
+    const char *name = PyUnicode_AsUTF8(obname);
     if (!name)
         return -1;
     SET_BITFIELD_ENTRY(fBinary)
@@ -373,7 +373,7 @@ PyCOMSTAT::~PyCOMSTAT(void) {}
 PyObject *PyCOMSTAT::getattro(PyObject *self, PyObject *obname)
 {
     PyCOMSTAT *pyCOMSTAT = (PyCOMSTAT *)self;
-    char *name = PYWIN_ATTR_CONVERT(obname);
+    const char *name = PyUnicode_AsUTF8(obname);
     if (!name)
         return NULL;
     if (0)  // boot up our macro magic (the macro starts with an 'else')
@@ -408,7 +408,7 @@ int PyCOMSTAT::setattro(PyObject *self, PyObject *obname, PyObject *v)
         PyErr_SetString(PyExc_AttributeError, "can't delete COMSTAT attributes");
         return -1;
     }
-    char *name = PYWIN_ATTR_CONVERT(obname);
+    const char *name = PyUnicode_AsUTF8(obname);
     if (!name)
         return -1;
     SET_BITFIELD_ENTRY(fCtsHold)

@@ -154,7 +154,7 @@ PyNETRESOURCE::~PyNETRESOURCE(void)
 
 PyObject *PyNETRESOURCE::getattro(PyObject *self, PyObject *obname)
 {
-    char *name = PYWIN_ATTR_CONVERT(obname);
+    const char *name = PyUnicode_AsUTF8(obname);
     if (name == NULL)
         return NULL;
     PyNETRESOURCE *This = (PyNETRESOURCE *)self;
@@ -176,7 +176,7 @@ int PyNETRESOURCE::setattro(PyObject *self, PyObject *obname, PyObject *v)
         PyErr_SetString(PyExc_AttributeError, "can't delete NETRESOURCE attributes");
         return -1;
     }
-    char *name = PYWIN_ATTR_CONVERT(obname);
+    const char *name = PyUnicode_AsUTF8(obname);
     if (name == NULL)
         return NULL;
     PyNETRESOURCE *This = (PyNETRESOURCE *)self;
