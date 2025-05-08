@@ -1,5 +1,5 @@
 # This is a port of the Vista SDK "FolderView" sample, and associated
-# notes at http://shellrevealed.com/blogs/shellblog/archive/2007/03/15/Shell-Namespace-Extension_3A00_-Creating-and-Using-the-System-Folder-View-Object.aspx
+# notes at https://web.archive.org/web/20081225011615/http://shellrevealed.com/blogs/shellblog/archive/2007/03/15/Shell-Namespace-Extension_3A00_-Creating-and-Using-the-System-Folder-View-Object.aspx
 # A key difference to shell_view.py is that this version uses the default
 # IShellView provided by the shell (via SHCreateShellFolderView) rather
 # than our own.
@@ -529,7 +529,7 @@ class ContextMenu:
 
     def InvokeCommand(self, ci):
         mask, hwnd, verb, params, dir, nShow, hotkey, hicon = ci
-        # this seems very convuluted, but it's what the sample does :)
+        # this seems very convoluted, but it's what the sample does :)
         for verb_name, verb_id, flag in folderViewImplContextMenuIDs:
             if isinstance(verb, int):
                 matches = verb == verb_id

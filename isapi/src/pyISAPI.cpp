@@ -23,7 +23,7 @@
  ======================================================================
  */
 
-// PYISAPI.CPP - Implementation file for your Internet Server
+// pyISAPI.cpp - Implementation file for your Internet Server
 //    Python ISAPI Extension
 
 #include "stdafx.h"
@@ -221,7 +221,7 @@ DWORD WINAPI HttpFilterProc(HTTP_FILTER_CONTEXT *phfc, DWORD NotificationType, V
 }
 
 // Hmm - this appears to never be called!?!?
-// http://sf.net/support/tracker.php?aid=1173795
+// https://sourceforge.net/p/pywin32/bugs/206/
 BOOL WINAPI TerminateFilter(DWORD status)
 {
     BOOL bRetStatus;

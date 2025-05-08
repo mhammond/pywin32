@@ -8,8 +8,7 @@ Base class for Dialogs.  Also contains a few useful utility functions
 import win32con
 import win32ui
 
-# sob - 2to3 doesn't see this as a relative import :(
-from pywin.mfc import window
+from . import window
 
 
 def dllFromDll(dllid):
@@ -83,13 +82,13 @@ class Dialog(window.Wnd):
         self._obj_.data[key] = item  # self.UpdateData(0)
 
     def keys(self):
-        return list(self.data.keys())
+        return self.data.keys()
 
     def items(self):
-        return list(self.data.items())
+        return self.data.items()
 
     def values(self):
-        return list(self.data.values())
+        return self.data.values()
 
     def __contains__(self, key):
         return key in self.data
@@ -258,13 +257,11 @@ def GetSimpleInput(prompt, defValue="", title=None):
     # uses a simple dialog to return a string object.
     if title is None:
         title = win32ui.GetMainFrame().GetWindowText()
-    # 2to3 insists on converting 'Dialog.__init__' to 'tkinter.dialog...'
-    DlgBaseClass = Dialog
 
-    class DlgSimpleInput(DlgBaseClass):
+    class DlgSimpleInput(Dialog):
         def __init__(self, prompt, defValue, title):
             self.title = title
-            DlgBaseClass.__init__(self, win32ui.IDD_SIMPLE_INPUT)
+            Dialog.__init__(self, win32ui.IDD_SIMPLE_INPUT)
             self.AddDDX(win32ui.IDC_EDIT1, "result")
             self.AddDDX(win32ui.IDC_PROMPT1, "prompt")
             self._obj_.data["result"] = defValue
@@ -272,7 +269,7 @@ def GetSimpleInput(prompt, defValue="", title=None):
 
         def OnInitDialog(self):
             self.SetWindowText(self.title)
-            return DlgBaseClass.OnInitDialog(self)
+            return Dialog.OnInitDialog(self)
 
     dlg = DlgSimpleInput(prompt, defValue, title)
     if dlg.DoModal() != win32con.IDOK:

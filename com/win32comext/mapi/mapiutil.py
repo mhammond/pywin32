@@ -156,7 +156,7 @@ def SetPropertyValue(obj, prop, val):
     if not isinstance(prop, int):
         props = ((mapi.PS_PUBLIC_STRINGS, prop),)
         propIds = obj.GetIDsFromNames(props, mapi.MAPI_CREATE)
-        if val == (1 == 1) or val == (1 == 0):
+        if val == True or val == False:
             type_tag = mapitags.PT_BOOLEAN
         else:
             type_tag = _MapiTypeMap.get(type(val))
@@ -203,7 +203,7 @@ def SetProperties(msg, propDict):
                 tagType = mapitags.PT_SYSTIME
             else:
                 raise ValueError(
-                    f"The type of object {repr(val)}({type(val)}) can not be written"
+                    f"The type of object {val!r}({type(val)}) can not be written"
                 )
             key = mapitags.PROP_TAG(tagType, mapitags.PROP_ID(newIds[newIdNo]))
             newIdNo += 1

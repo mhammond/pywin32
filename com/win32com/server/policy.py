@@ -66,8 +66,6 @@ Error Handling
  problem, rather than a COM error.
 """
 
-__author__ = "Greg Stein and Mark Hammond"
-
 import sys
 import types
 
@@ -91,6 +89,8 @@ from pythoncom import (
 )
 
 from .exception import COMException
+
+__author__ = "Greg Stein and Mark Hammond"
 
 S_OK = 0
 
@@ -257,7 +257,7 @@ class BasicWrapPolicy:
                     if i[0] != "{":
                         i = pythoncom.InterfaceNames[i]
                     else:
-                        i = pythoncom.MakeIID(i)
+                        i = pywintypes.IID(i)
                 self._com_interfaces_.append(i)
         else:
             self._com_interfaces_ = []
@@ -321,7 +321,7 @@ class BasicWrapPolicy:
 
     # IDispatchEx support for policies.  Most of the IDispathEx functionality
     # by default will raise E_NOTIMPL.  Thus it is not necessary for derived
-    # policies to explicitely implement all this functionality just to not implement it!
+    # policies to explicitly implement all this functionality just to not implement it!
 
     def _GetDispID_(self, name, fdex):
         return self._getdispid_(name, fdex)
@@ -385,10 +385,8 @@ class BasicWrapPolicy:
         return self._getnextdispid_(fdex, dispid)
 
     def _getnextdispid_(self, fdex, dispid):
-        ids = list(self._name_to_dispid_.values())
+        ids = [id for id in self._name_to_dispid_.values() if id != DISPID_STARTENUM]
         ids.sort()
-        if DISPID_STARTENUM in ids:
-            ids.remove(DISPID_STARTENUM)
         if dispid == DISPID_STARTENUM:
             return ids[0]
         else:
@@ -803,15 +801,3 @@ def _import_module(mname):
     # Eeek - result of _import_ is "win32com" - not "win32com.a.b.c"
     # Get the full module from sys.modules
     return sys.modules[mname]
-
-
-#######
-#
-# Temporary hacks until all old code moves.
-#
-# These have been moved to a new source file, but some code may
-# still reference them here.  These will end up being removed.
-try:
-    from .dispatcher import DispatcherTrace, DispatcherWin32trace
-except ImportError:  # Quite likely a frozen executable that doesn't need dispatchers
-    pass

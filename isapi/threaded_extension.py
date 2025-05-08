@@ -29,10 +29,12 @@ class WorkerThread(threading.Thread):
         self.running = False
         self.io_req_port = io_req_port
         self.extension = extension
-        threading.Thread.__init__(self)
-        # We wait 15 seconds for a thread to terminate, but if it fails to,
-        # we don't want the process to hang at exit waiting for it...
-        self.setDaemon(True)
+        threading.Thread.__init__(
+            self,
+            # We wait 15 seconds for a thread to terminate, but if it fails to,
+            # we don't want the process to hang at exit waiting for it...
+            daemon=True,
+        )
 
     def run(self):
         self.running = True
@@ -60,6 +62,7 @@ class WorkerThread(threading.Thread):
 # fully asynch extension.
 class ThreadPoolExtension(isapi.simple.SimpleExtension):
     "Base class for an ISAPI extension based around a thread-pool"
+
     max_workers = 20
     worker_shutdown_wait = 15000  # 15 seconds for workers to quit...
 
@@ -156,7 +159,7 @@ class ThreadPoolExtension(isapi.simple.SimpleExtension):
         limit = None
         try:
             try:
-                import cgi
+                import html
 
                 ecb.SendResponseHeaders(
                     "200 OK", "Content-type: text/html\r\n\r\n", False
@@ -169,8 +172,8 @@ class ThreadPoolExtension(isapi.simple.SimpleExtension):
                 bold = list.pop()
                 print(
                     "<PRE>{}<B>{}</B></PRE>".format(
-                        cgi.escape("".join(list)),
-                        cgi.escape(bold),
+                        html.escape("".join(list)),
+                        html.escape(bold),
                     ),
                     file=ecb,
                 )

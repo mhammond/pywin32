@@ -1,7 +1,7 @@
 MANIFEST
 build
 dist
-*.exe
+__pycache__
 *.zip
 *.dbg
 *.exp
@@ -11,22 +11,30 @@ dist
 *.flg
 *.chm
 *.chw
-*.pyc
 *.pyo
+*.pdb
+*.whl
+arm64libs/
 pywin32.egg-info/
-Pythonwin/Scintilla/win32/*.pdb
 PyWin32.kpf
+
+# Visual Studio project files
+*.sln
+*.suo
+*.vc*proj*
+*.user
 
 # COM test bits
 com/TestSources/Build
 com/TestSources/PyCOMTest/PyCOMTest.h
-com/TestSources/PyCOMTest/PyCOMTest.sln
 com/TestSources/PyCOMTest/PyCOMTest.suo
 com/TestSources/PyCOMTest/PyCOMTest.tlb
-com/TestSources/PyCOMTest/PyCOMTest.vc*proj*
 com/TestSources/PyCOMTest/PyCOMTest_i.c
 com/TestSources/PyCOMTest/.vs/
-
+com/TestSources/PyCOMTest/PyCOMTest/
+com/TestSources/PyCOMTest/x64/
+!com/TestSources/PyCOMTest/PyCOMTest.sln
+!com/TestSources/PyCOMTest/PyCOMTest.vcxproj
 
 # SWIG generated files.
 com/win32comext/adsi/src/*.cpp
@@ -43,19 +51,12 @@ com/win32comext/mapi/src/Py*.h
 !com/win32comext/mapi/src/PyMAPIUtil.h
 win32/src/*_swig.cpp
 
-
 # Generated from message files
 win32/src/PerfMon/PyPerfMsgs.h
 win32/src/PythonServiceMessages.h
 win32/src/win32service_messages.h
 win32/src/win32evtlog_messages.h
 isapi/src/pyISAPI_messages.h
-
-# VC2003 and up project files
-*.sln
-*.suo
-*.vcproj
-*.user
 
 # Eclipse + PyDev
 .project

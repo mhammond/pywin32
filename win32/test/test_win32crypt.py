@@ -2,11 +2,24 @@
 
 import contextlib
 import unittest
-from typing import Any, Iterator
+from collections.abc import Iterator
+from typing import Any
 
 import win32crypt
-from pywin32_testutil import TestSkipped, find_test_fixture, testmain
-from win32cryptcon import *
+from pywin32_testutil import find_test_fixture, testmain
+from win32cryptcon import (
+    CERT_QUERY_CONTENT_CERT,
+    CERT_QUERY_CONTENT_FLAG_CERT,
+    CERT_QUERY_FORMAT_BASE64_ENCODED,
+    CERT_QUERY_FORMAT_BINARY,
+    CERT_QUERY_FORMAT_FLAG_ALL,
+    CERT_QUERY_OBJECT_BLOB,
+    CERT_QUERY_OBJECT_FILE,
+    CERT_STORE_ADD_REPLACE_EXISTING,
+    CERT_STORE_PROV_SYSTEM,
+    CERT_SYSTEM_STORE_CURRENT_USER,
+    CERT_SYSTEM_STORE_LOCAL_MACHINE,
+)
 
 
 class Crypt(unittest.TestCase):

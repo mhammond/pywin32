@@ -7,9 +7,6 @@ def ad_escape(s):
     return re.sub(r"([^<]*)<([^>]*)>", r"\g<1>\\<\g<2>\\>", s)
 
 
-Print = __builtins__.__dict__["print"]
-
-
 class DocInfo:
     def __init__(self, name, ob):
         self.name = name
@@ -27,7 +24,7 @@ def BuildArgInfos(ob):
         info = DocInfo(n, ob)
         info.short_desc = info.desc = n
         info.default = ""
-        if len(defs):
+        if defs:
             default = repr(defs.pop())
             # the default may be an object, so the repr gives '<...>' - and
             # the angle brackets screw autoduck.
@@ -75,7 +72,7 @@ def format_desc(desc):
     # 'first_para_of_docstring'
     # '@comm next para of docstring'
     # '@comm next para of docstring' ... etc
-    # BUT - also handling enbedded doctests, where we write
+    # BUT - also handling embedded doctests, where we write
     # '@iex >>> etc.'
     if not desc:
         return ""
@@ -100,7 +97,7 @@ def build_module(fp, mod_name):
     functions = []
     classes = []
     constants = []
-    for name, ob in list(mod.__dict__.items()):
+    for name, ob in mod.__dict__.items():
         if name.startswith("_"):
             continue
         if hasattr(ob, "__module__") and ob.__module__ != mod_name:
@@ -112,54 +109,54 @@ def build_module(fp, mod_name):
         elif name.upper() == name and isinstance(ob, (int, str)):
             constants.append((name, ob))
     info = BuildInfo(mod_name, mod)
-    Print(f"// @module {mod_name}|{format_desc(info.desc)}", file=fp)
+    print(f"// @module {mod_name}|{format_desc(info.desc)}", file=fp)
     functions = [f for f in functions if should_build_function(f)]
     for ob in functions:
-        Print(f"// @pymeth {ob.name}|{ob.short_desc}", file=fp)
+        print(f"// @pymeth {ob.name}|{ob.short_desc}", file=fp)
     for ob in classes:
         # only classes with docstrings get printed.
         if not ob.ob.__doc__:
             continue
         ob_name = mod_name + "." + ob.name
-        Print(f"// @pyclass {ob.name}|{ob.short_desc}", file=fp)
+        print(f"// @pyclass {ob.name}|{ob.short_desc}", file=fp)
     for ob in functions:
-        Print(
+        print(
             f"// @pymethod |{mod_name}|{ob.name}|{format_desc(ob.desc)}",
             file=fp,
         )
         for ai in BuildArgInfos(ob.ob):
-            Print(f"// @pyparm |{ai.name}|{ai.default}|{ai.short_desc}", file=fp)
+            print(f"// @pyparm |{ai.name}|{ai.default}|{ai.short_desc}", file=fp)
 
     for ob in classes:
         # only classes with docstrings get printed.
         if not ob.ob.__doc__:
             continue
         ob_name = mod_name + "." + ob.name
-        Print(f"// @object {ob_name}|{format_desc(ob.desc)}", file=fp)
+        print(f"// @object {ob_name}|{format_desc(ob.desc)}", file=fp)
         func_infos = []
         # We need to iter the keys then to a getattr() so the funky descriptor
         # things work.
-        for n in list(ob.ob.__dict__.keys()):
+        for n in ob.ob.__dict__:
             o = getattr(ob.ob, n)
             if isinstance(o, (types.FunctionType, types.MethodType)):
                 info = BuildInfo(n, o)
                 if should_build_function(info):
                     func_infos.append(info)
         for fi in func_infos:
-            Print(f"// @pymeth {fi.name}|{fi.short_desc}", file=fp)
+            print(f"// @pymeth {fi.name}|{fi.short_desc}", file=fp)
         for fi in func_infos:
-            Print(
+            print(
                 f"// @pymethod |{ob_name}|{fi.name}|{format_desc(fi.desc)}",
                 file=fp,
             )
             if hasattr(fi.ob, "im_self") and fi.ob.im_self is ob.ob:
-                Print("// @comm This is a @classmethod.", file=fp)
-            Print(
+                print("// @comm This is a @classmethod.", file=fp)
+            print(
                 f"// @pymethod |{ob_name}|{fi.name}|{format_desc(fi.desc)}",
                 file=fp,
             )
             for ai in BuildArgInfos(fi.ob):
-                Print(
+                print(
                     f"// @pyparm |{ai.name}|{ai.default}|{ai.short_desc}",
                     file=fp,
                 )
@@ -168,11 +165,11 @@ def build_module(fp, mod_name):
         desc = f"{name} = {val!r}"
         if isinstance(val, int):
             desc += f" (0x{val:x})"
-        Print(f"// @const {mod_name}|{name}|{desc}", file=fp)
+        print(f"// @const {mod_name}|{name}|{desc}", file=fp)
 
 
 def main(fp, args):
-    Print("// @doc", file=fp)
+    print("// @doc", file=fp)
     for arg in args:
         build_module(sys.stdout, arg)
 

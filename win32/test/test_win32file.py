@@ -227,16 +227,25 @@ class TestSimpleOps(unittest.TestCase):
         )
         try:
             ct, at, wt = win32file.GetFileTime(f)
-            self.assertTrue(
-                ct >= now,
+            # NOTE (Avasam): I've seen the time be off from -0.003 to +1.11 seconds,
+            # so the above comment about microseconds might be wrong.
+            # Let's standardize ms and avoid random CI failures
+            # https://github.com/mhammond/pywin32/issues/2203
+            ct = ct.replace(microsecond=0)
+            at = at.replace(microsecond=0)
+            wt = wt.replace(microsecond=0)
+            self.assertGreaterEqual(
+                ct,
+                now,
                 f"File was created in the past - now={now}, created={ct}",
             )
-            self.assertTrue(now <= ct <= nowish, (now, ct))
-            self.assertTrue(
-                wt >= now,
+            self.assertTrue(now <= ct <= nowish, (now, ct, nowish))
+            self.assertGreaterEqual(
+                wt,
+                now,
                 f"File was written-to in the past now={now}, written={wt}",
             )
-            self.assertTrue(now <= wt <= nowish, (now, wt))
+            self.assertTrue(now <= wt <= nowish, (now, wt, nowish))
 
             # Now set the times.
             win32file.SetFileTime(f, later, later, later, UTCTimes=True)
@@ -427,9 +436,10 @@ class TestOverlapped(unittest.TestCase):
         win32file.CreateIoCompletionPort(handle, port, 1, 0)
 
         t = threading.Thread(
-            target=self._IOCPServerThread, args=(handle, port, test_overlapped_death)
+            target=self._IOCPServerThread,
+            args=(handle, port, test_overlapped_death),
+            daemon=True,  # avoid hanging entire test suite on failure.
         )
-        t.setDaemon(True)  # avoid hanging entire test suite on failure.
         t.start()
         try:
             time.sleep(0.1)  # let thread do its thing.
@@ -521,7 +531,7 @@ class TestSocketExtensions(unittest.TestCase):
         t = threading.Thread(target=self.acceptWorker, args=(port, running, stopped))
         t.start()
         running.wait(2)
-        if not running.isSet():
+        if not running.is_set():
             self.fail("AcceptEx Worker thread failed to start")
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect(("127.0.0.1", port))
@@ -539,7 +549,7 @@ class TestSocketExtensions(unittest.TestCase):
         self.assertEqual(got, b"hello")
         # thread should have stopped
         stopped.wait(2)
-        if not stopped.isSet():
+        if not stopped.is_set():
             self.fail("AcceptEx Worker thread failed to successfully stop")
 
 
@@ -632,7 +642,10 @@ class TestDirectoryChanges(unittest.TestCase):
             try:
                 print("waiting", dh)
                 changes = win32file.ReadDirectoryChangesW(
-                    dh, 8192, False, flags  # sub-tree
+                    dh,
+                    8192,
+                    False,  # sub-tree
+                    flags,
                 )
                 print("got", changes)
             except:
@@ -646,7 +659,11 @@ class TestDirectoryChanges(unittest.TestCase):
         overlapped.hEvent = win32event.CreateEvent(None, 0, 0, None)
         while 1:
             win32file.ReadDirectoryChangesW(
-                dh, buf, False, flags, overlapped  # sub-tree
+                dh,
+                buf,
+                False,  # sub-tree
+                flags,
+                overlapped,
             )
             # Wait for our event, or for 5 seconds.
             rc = win32event.WaitForSingleObject(overlapped.hEvent, 5000)

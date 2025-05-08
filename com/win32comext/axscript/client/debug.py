@@ -3,20 +3,13 @@ import sys
 
 import pythoncom
 import win32api
-import win32com.server.util
 import winerror
 from win32com.axdebug import adb, axdebug, documents, gateways
 from win32com.axdebug.codecontainer import SourceCodeContainer
 from win32com.axdebug.util import _wrap
-from win32com.client.util import Enumerator
 from win32com.server.exception import COMException
-from win32com.util import IIDToInterfaceName
 
-try:
-    os.environ["DEBUG_AXDEBUG"]
-    debuggingTrace = 1  # Should we print "trace" output?
-except KeyError:
-    debuggingTrace = 0
+debuggingTrace = "DEBUG_AXDEBUG" in os.environ  # Should we print "trace" output?
 
 
 def trace(*args):
@@ -72,9 +65,9 @@ class DebugManager:
             self.debugApplication = pdm.GetDefaultApplication()
             self.rootNode = self.debugApplication.GetRootNode()
 
-        assert (
-            self.debugApplication is not None
-        ), "Need to have a DebugApplication object by now!"
+        assert self.debugApplication is not None, (
+            "Need to have a DebugApplication object by now!"
+        )
         self.activeScriptDebug = None
 
         if self.debugApplication is not None:
@@ -132,12 +125,7 @@ class DebugManager:
 
     def OnEnterScript(self):
         trace("OnEnterScript")
-        try:
-            1 / 0
-        except:
-            # Bit of a hack - reach into engine.
-            baseFrame = sys.exc_info()[2].tb_frame.f_back
-        self.adb.SetupAXDebugging(baseFrame)
+        self.adb.SetupAXDebugging(sys._getframe().f_back)
 
     def OnLeaveScript(self):
         trace("OnLeaveScript")

@@ -37,7 +37,7 @@ class DebuggerCommandHandler:
             if not methUpdate is None:
                 frame.HookCommandUpdate(methUpdate, id)
 
-        for id in list(IdToBarNames.keys()):
+        for id in IdToBarNames:
             frame.HookCommand(self.OnDebuggerBar, id)
             frame.HookCommandUpdate(self.OnUpdateDebuggerBar, id)
 
@@ -171,8 +171,7 @@ class DebuggerCommandHandler:
         cmdui.Enable(d is None or len(d.breaks) != 0)
 
     def OnUpdateDebuggerBar(self, cmdui):
-        name, always = IdToBarNames.get(cmdui.m_nID)
-        enabled = always
+        name, enabled = IdToBarNames.get(cmdui.m_nID, (None, 0))
         d = self._GetDebugger()
         if d is not None and d.IsDebugging() and name is not None:
             enabled = 1

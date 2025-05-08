@@ -25,7 +25,7 @@ generates Windows .hlp files.
 #include "win32cmdui.h"
 #include "win32rgn.h"
 #include "reswin32ui.h"
-#include "AFXSTAT_.H"
+#include "afxstat_.h"
 
 static char *szErrMsgBadHandle = "The window handle does not specify a valid window";
 #define CHECK_HWND_VALID(pWnd)       \
@@ -1654,9 +1654,9 @@ static PyObject *ui_window_message_box(PyObject *self, PyObject *args)
     // @pyseemfc CWnd|MessageBox
 
     rc = pWnd->MessageBox(message, title, style);
+    GUI_END_SAVE;
     PyWinObject_FreeTCHAR(message);
     PyWinObject_FreeTCHAR(title);
-    GUI_END_SAVE;
     return Py_BuildValue("i", rc);
     // @rdesc An integer identifying the button pressed to dismiss the dialog.
 }

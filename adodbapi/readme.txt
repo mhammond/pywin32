@@ -5,7 +5,7 @@ adodbapi
 A Python DB-API 2.0 (PEP-249) module that makes it easy to use Microsoft ADO
 for connecting with databases and other data sources using CPython.
 
-Home page: <http://sourceforge.net/projects/adodbapi>
+Home page: <https://sourceforge.net/projects/adodbapi>
 
 Features:
 * 100% DB-API 2.0 (PEP-249) compliant (including most extensions and recommendations).
@@ -23,8 +23,8 @@ Prerequisites:
  and pywin32 (Mark Hammond's python for windows extensions.)
 
 Installation:
-* (C-Python on Windows): Install pywin32 ("pip install pywin32") which includes adodbapi.
-* (IronPython on Windows): Download adodbapi from http://sf.net/projects/adodbapi.  Unpack the zip.
+* (C-Python on Windows): Install pywin32 (`python -m pip install pywin32`) which includes adodbapi.
+* (IronPython on Windows): Download adodbapi from https://sourceforge.net/projects/adodbapi/ .  Unpack the zip.
 
 NOTE: ...........
 If you do not like the new default operation of returning Numeric columns as decimal.Decimal,
@@ -34,10 +34,10 @@ Try:
 or:
         adodbapi.apibase.variantConversions[adodbapi.ado_consts.adNumeric] = adodbapi.apibase.cvtFloat
 or:
-        adodbapi.apibase.variantConversions[adodbapi.ado_consts.adNumeric] = write_your_own_convertion_function
+        adodbapi.apibase.variantConversions[adodbapi.ado_consts.adNumeric] = write_your_own_conversion_function
 		............
 notes for 2.6.2:
-    The definitive source has been moved to https://github.com/mhammond/pywin32/tree/master/adodbapi.
+    The definitive source has been moved to https://github.com/mhammond/pywin32/tree/main/adodbapi.
     Remote has proven too hard to configure and test with Pyro4. I am moving it to unsupported status
     until I can change to a different connection method.
 what's new in version 2.6
@@ -69,15 +69,16 @@ what's new in version 2.5
 
 License
 -------
-LGPL, see http://www.opensource.org/licenses/lgpl-license.php
+LGPL, see https://opensource.org/license/lgpl-2-1
 
 Documentation
 -------------
 
-Look at adodbapi/quick_reference.md
-http://www.python.org/topics/database/DatabaseAPI-2.0.html
-read the examples in adodbapi/examples
-and look at the test cases in adodbapi/test directory.
+Look at:
+- `adodbapi/quick_reference.md`
+- https://wiki.python.org/moin/DatabaseProgramming#The_DB-API
+- read the examples in adodbapi/examples
+- and the test cases in `adodbapi/test directory`
 
 Mailing lists
 -------------

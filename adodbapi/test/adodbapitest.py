@@ -1,4 +1,4 @@
-""" Unit tests version 2.6.1.0 for adodbapi"""
+"""Unit tests version 2.6.1.0 for adodbapi"""
 
 """
     adodbapi - A python DB API 2.0 interface to Microsoft ADO
@@ -27,24 +27,14 @@ import datetime
 import decimal
 import random
 import string
-import sys
 import time
 import unittest
 
 import adodbapitestconfig as config  # run the configuration module. # will set sys.path to find correct version of adodbapi
 import tryconnection  # in our code below, all our switches are from config.whatever
-import win32com.client
 
 import adodbapi
 import adodbapi.apibase as api
-
-try:
-    import adodbapi.ado_consts as ado_consts
-except ImportError:  # we are doing a shortcut import as a module -- so
-    try:
-        import ado_consts
-    except ImportError:
-        from adodbapi import ado_consts
 
 
 def randomstring(length):
@@ -75,9 +65,9 @@ class CommonDBTests(unittest.TestCase):
         mycallable = lambda connection, cursor, errorclass, errorvalue: 1
         conn.errorhandler = mycallable
         crsr = conn.cursor()
-        assert (
-            crsr.errorhandler == mycallable
-        ), "Error handler on crsr should be same as on connection"
+        assert crsr.errorhandler == mycallable, (
+            "Error handler on crsr should be same as on connection"
+        )
 
     def testDefaultErrorHandlerConnection(self):
         conn = self.getConnection()
@@ -107,9 +97,9 @@ class CommonDBTests(unittest.TestCase):
         except:
             pass
         # The Standard errorhandler appends error to messages attribute
-        assert (
-            len(conn.messages) > 0
-        ), "Setting errorhandler to none  should bring back the standard error handler"
+        assert len(conn.messages) > 0, (
+            "Setting errorhandler to none  should bring back the standard error handler"
+        )
 
     def testDefaultErrorHandlerCursor(self):
         crsr = self.getConnection().cursor()
@@ -136,9 +126,9 @@ class CommonDBTests(unittest.TestCase):
         except:
             pass
         # The Standard errorhandler appends error to messages attribute
-        assert (
-            len(crsr.messages) > 0
-        ), "Setting errorhandler to none  should bring back the standard error handler"
+        assert len(crsr.messages) > 0, (
+            "Setting errorhandler to none  should bring back the standard error handler"
+        )
 
     def testUserDefinedConversions(self):
         try:
@@ -188,49 +178,6 @@ class CommonDBTests(unittest.TestCase):
             except:
                 pass
             self.helpRollbackTblTemp()
-
-    def testUserDefinedConversionForExactNumericTypes(self):
-        # variantConversions is a dictionary of conversion functions
-        # held internally in adodbapi.apibase
-        #
-        # !!! this test intentionally alters the value of what should be constant in the module
-        # !!! no new code should use this example, to is only a test to see that the
-        # !!! deprecated way of doing this still works.  (use connection.variantConversions)
-        #
-        if sys.version_info < (3, 0):  ### Py3 need different test
-            oldconverter = adodbapi.variantConversions[
-                ado_consts.adNumeric
-            ]  # keep old function to restore later
-            # By default decimal and "numbers" are returned as decimals.
-            # Instead, make numbers return as  floats
-            try:
-                adodbapi.variantConversions[ado_consts.adNumeric] = adodbapi.cvtFloat
-                self.helpTestDataType(
-                    "decimal(18,2)", "NUMBER", 3.45, compareAlmostEqual=1
-                )
-                self.helpTestDataType(
-                    "numeric(18,2)", "NUMBER", 3.45, compareAlmostEqual=1
-                )
-                # now return strings
-                adodbapi.variantConversions[ado_consts.adNumeric] = adodbapi.cvtString
-                self.helpTestDataType("numeric(18,2)", "NUMBER", "3.45")
-                # now a completly weird user defined convertion
-                adodbapi.variantConversions[ado_consts.adNumeric] = (
-                    lambda x: "!!This function returns a funny unicode string %s!!" % x
-                )
-                self.helpTestDataType(
-                    "numeric(18,2)",
-                    "NUMBER",
-                    "3.45",
-                    allowedReturnValues=[
-                        "!!This function returns a funny unicode string 3.45!!"
-                    ],
-                )
-            finally:
-                # now reset the converter to its original function
-                adodbapi.variantConversions[ado_consts.adNumeric] = (
-                    oldconverter  # Restore the original convertion function
-                )
 
     def helpTestDataType(
         self,
@@ -326,15 +273,16 @@ class CommonDBTests(unittest.TestCase):
             rs = crsr.fetchone()
             if allowedReturnValues:
                 allowedTypes = tuple([type(aRV) for aRV in allowedReturnValues])
-                assert isinstance(
-                    rs[0], allowedTypes
-                ), 'result type "%s" must be one of %s' % (type(rs[0]), allowedTypes)
+                assert isinstance(rs[0], allowedTypes), (
+                    'result type "%s" must be one of %s' % (type(rs[0]), allowedTypes)
+                )
             else:
-                assert isinstance(
-                    rs[0], type(pyData)
-                ), 'result type "%s" must be instance of %s' % (
-                    type(rs[0]),
-                    type(pyData),
+                assert isinstance(rs[0], type(pyData)), (
+                    'result type "%s" must be instance of %s'
+                    % (
+                        type(rs[0]),
+                        type(pyData),
+                    )
                 )
 
             if compareAlmostEqual and DBAPIDataTypeString == "DATETIME":
@@ -344,9 +292,9 @@ class CommonDBTests(unittest.TestCase):
             elif compareAlmostEqual:
                 s = float(pyData)
                 v = float(rs[0])
-                assert (
-                    abs(v - s) / s < 0.00001
-                ), "Values not almost equal recvd=%s, expected=%f" % (rs[0], s)
+                assert abs(v - s) / s < 0.00001, (
+                    "Values not almost equal recvd=%s, expected=%f" % (rs[0], s)
+                )
             else:
                 if allowedReturnValues:
                     ok = False
@@ -432,7 +380,7 @@ class CommonDBTests(unittest.TestCase):
                 "bigint",
                 "NUMBER",
                 3000000000,
-                allowedReturnValues=[3000000000, int(3000000000)],
+                allowedReturnValues=[3000000000, 3000000000],
             )
         self.helpTestDataType("int", "NUMBER", 2147483647)
 
@@ -488,7 +436,7 @@ class CommonDBTests(unittest.TestCase):
             )
 
     def testDataTypeBinary(self):
-        binfld = b"\x07\x00\xE2\x40*"
+        binfld = b"\x07\x00\xe2\x40*"
         arv = [binfld, adodbapi.Binary(binfld), bytes(binfld)]
         if self.getEngine() == "PostgreSQL":
             self.helpTestDataType(
@@ -693,19 +641,19 @@ class CommonDBTests(unittest.TestCase):
             rec = crsr.fetchone()
             # check that stepping through an emulated row works
             for j in range(len(inParam)):
-                assert (
-                    rec[j] == inParam[j]
-                ), 'returned value:"%s" != test value:"%s"' % (rec[j], inParam[j])
+                assert rec[j] == inParam[j], (
+                    'returned value:"%s" != test value:"%s"' % (rec[j], inParam[j])
+                )
             # check that we can get a complete tuple from a row
-            assert (
-                tuple(rec) == inParam
-            ), f'returned value:"{rec!r}" != test value:"{inParam!r}"'
+            assert tuple(rec) == inParam, (
+                f'returned value:"{rec!r}" != test value:"{inParam!r}"'
+            )
             # test that slices of rows work
             slice1 = tuple(rec[:-1])
             slice2 = tuple(inParam[0:2])
-            assert (
-                slice1 == slice2
-            ), f'returned value:"{slice1!r}" != test value:"{slice2!r}"'
+            assert slice1 == slice2, (
+                f'returned value:"{slice1!r}" != test value:"{slice2!r}"'
+            )
             # now test named column retrieval
             assert rec["fldTwo"] == inParam[0]
             assert rec.fldThree == inParam[1]
@@ -967,9 +915,9 @@ class CommonDBTests(unittest.TestCase):
         assert len(rs) == 1
         self.conn.rollback()
         crsr.execute(selectSql)
-        assert (
-            crsr.fetchone() is None
-        ), "cursor.fetchone should return None if a query retrieves no rows"
+        assert crsr.fetchone() is None, (
+            "cursor.fetchone should return None if a query retrieves no rows"
+        )
         crsr.execute("SELECT fldData from xx_%s" % config.tmp)
         rs = crsr.fetchall()
         assert len(rs) == 9, "the original records should still be present"
@@ -1025,9 +973,9 @@ class CommonDBTests(unittest.TestCase):
             row = crsr.fetchone()
         except api.DatabaseError:
             row = None  # if the entire table disappeared the rollback was perfect and the test passed
-        assert (
-            row is None
-        ), f"cursor.fetchone should return None if a query retrieves no rows. Got {row!r}"
+        assert row is None, (
+            f"cursor.fetchone should return None if a query retrieves no rows. Got {row!r}"
+        )
         self.helpRollbackTblTemp()
 
     def testAutoCommit(self):
@@ -1136,7 +1084,7 @@ class TestADOwithSQLServer(CommonDBTests):
         return self.conn
 
     def getAnotherConnection(self, addkeys=None):
-        keys = dict(config.connStrSQLServer[1])
+        keys = config.connStrSQLServer[1].copy()
         if addkeys:
             keys.update(addkeys)
         return config.dbSqlServerconnect(*config.connStrSQLServer[0], **keys)
@@ -1163,9 +1111,9 @@ class TestADOwithSQLServer(CommonDBTests):
         )
         assert retvalues[0] == "Dodsworth", f'{retvalues[0]!r} is not "Dodsworth"'
         assert retvalues[1] == "Anne", f'{retvalues[1]!r} is not "Anne"'
-        assert (
-            retvalues[2] == "DodsworthAnne"
-        ), f'{retvalues[2]!r} is not "DodsworthAnne"'
+        assert retvalues[2] == "DodsworthAnne", (
+            f'{retvalues[2]!r} is not "DodsworthAnne"'
+        )
         self.conn.rollback()
 
     def testMultipleSetReturn(self):
@@ -1252,9 +1200,9 @@ class TestADOwithSQLServer(CommonDBTests):
             {"parameters": ["this is wrong", "Anne", "not Alice"]},
         )
         if result[0]:  # the expected exception was raised
-            assert "@theInput" in str(result[1]) or "DatabaseError" in str(
-                result
-            ), "Identifies the wrong erroneous parameter"
+            assert "@theInput" in str(result[1]) or "DatabaseError" in str(result), (
+                "Identifies the wrong erroneous parameter"
+            )
         else:
             assert result[0], result[1]  # incorrect or no exception
         self.conn.rollback()
@@ -1316,7 +1264,7 @@ class TestADOwithMySql(CommonDBTests):
         return self.conn
 
     def getAnotherConnection(self, addkeys=None):
-        keys = dict(config.connStrMySql[1])
+        keys = config.connStrMySql[1].copy()
         if addkeys:
             keys.update(addkeys)
         return config.dbMySqlconnect(*config.connStrMySql[0], **keys)
@@ -1382,7 +1330,7 @@ class TestADOwithPostgres(CommonDBTests):
         return self.conn
 
     def getAnotherConnection(self, addkeys=None):
-        keys = dict(config.connStrPostgres[1])
+        keys = config.connStrPostgres[1].copy()
         if addkeys:
             keys.update(addkeys)
         return config.dbPostgresConnect(*config.connStrPostgres[0], **keys)

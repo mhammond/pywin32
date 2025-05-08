@@ -3,7 +3,6 @@ import unittest
 
 import pythoncom
 import win32con
-import win32gui
 import win32gui_struct
 
 
@@ -13,10 +12,8 @@ class TestBase(unittest.TestCase):
         for n, v in kw.items():
             self.assertEqual(v, d[n], f"'{n}' doesn't match: {v!r} != {d[n]!r}")
             checked[n] = True
-        checked_keys = list(checked.keys())
-        passed_keys = list(kw.keys())
-        checked_keys.sort()
-        passed_keys.sort()
+        checked_keys = sorted(checked)
+        passed_keys = sorted(kw)
         self.assertEqual(checked_keys, passed_keys)
 
 

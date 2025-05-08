@@ -1,10 +1,10 @@
 """AXScript Client Framework
 
-  This module provides a core framework for an ActiveX Scripting client.
-  Derived classes actually implement the AX Client itself, including the
-  scoping rules, etc.
+This module provides a core framework for an ActiveX Scripting client.
+Derived classes actually implement the AX Client itself, including the
+scoping rules, etc.
 
-  There are classes defined for the engine itself, and for ScriptItems
+There are classes defined for the engine itself, and for ScriptItems
 """
 
 from __future__ import annotations
@@ -19,6 +19,9 @@ import win32com.client.connect
 import win32com.server.util
 import winerror
 from win32com.axscript import axscript
+from win32com.server.exception import COMException, IsCOMServerException
+
+from . import error  # axscript.client.error
 
 
 def RemoveCR(text):
@@ -32,9 +35,6 @@ SCRIPTTEXT_FORCEEXECUTION = -2147483648  # 0x80000000
 SCRIPTTEXT_ISEXPRESSION = 0x00000020
 SCRIPTTEXT_ISPERSISTENT = 0x00000040
 
-from win32com.server.exception import COMException, IsCOMServerException
-
-from . import error  # ax.client.error
 
 state_map = {
     axscript.SCRIPTSTATE_UNINITIALIZED: "SCRIPTSTATE_UNINITIALIZED",
@@ -987,7 +987,7 @@ class COMScript:
         # Due to the way we work, we re-create persistent ones.
         existing = self.subItems
         self.subItems = {}
-        for name, item in existing.items():
+        for item in existing.values():
             item.Close()
             if item.flags & axscript.SCRIPTITEM_ISPERSISTENT:
                 self.AddNamedItem(item.name, item.flags)
@@ -1150,9 +1150,9 @@ class COMScript:
     def ExecInScriptedSection(self, codeBlock: AXScriptCodeBlock, globals, locals=None):
         if locals is None:
             locals = globals
-        assert (
-            not codeBlock.beenExecuted
-        ), "This code block should not have been executed"
+        assert not codeBlock.beenExecuted, (
+            "This code block should not have been executed"
+        )
         codeBlock.beenExecuted = 1
         self.BeginScriptedSection()
         try:
@@ -1178,9 +1178,9 @@ class COMScript:
     def EvalInScriptedSection(self, codeBlock, globals, locals=None):
         if locals is None:
             locals = globals
-        assert (
-            not codeBlock.beenExecuted
-        ), "This code block should not have been executed"
+        assert not codeBlock.beenExecuted, (
+            "This code block should not have been executed"
+        )
         codeBlock.beenExecuted = 1
         self.BeginScriptedSection()
         try:

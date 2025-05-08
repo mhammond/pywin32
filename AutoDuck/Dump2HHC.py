@@ -231,9 +231,7 @@ def _urlescape(name):
 
 
 def _genCategoryHTMLFromDict(dict, output):
-    keys = list(dict.keys())
-    keys.sort()
-    for key in keys:
+    for key in sorted(dict):
         topic = dict[key]
         output.write(f'<LI><A HREF="{topic.context}">{topic.name}</A>\n')
 
@@ -285,9 +283,7 @@ def genCategoryHTML(output_dir, cats):
 
 def _genItemsFromDict(dict, cat, output, target, do_children=1):
     CHM = "mk:@MSITStore:%s.chm::/" % target
-    keys = list(dict.keys())
-    keys.sort()
-    for k in keys:
+    for k in sorted(dict):
         context = dict[k].context
         name = dict[k].name
         output.write(
@@ -297,9 +293,7 @@ def _genItemsFromDict(dict, cat, output, target, do_children=1):
              <param name="ImageNumber" value="1">
              <param name="Local" value="{CHM}{context}">
              </OBJECT>
-      """.format(
-                **locals()
-            )
+      """.format(**locals())
         )
         if not do_children:
             continue
@@ -343,9 +337,7 @@ def genTOC(cats, output, title, target):
         <param name="Local" value="{CHM}{target}.html">
         </OBJECT>
     <UL>
-""".format(
-            **locals()
-        )
+""".format(**locals())
     )
 
     for cat in cats:
@@ -359,9 +351,7 @@ def genTOC(cats, output, title, target):
                  <param name="Local" value="{CHM}{cat_id}.html">
                  </OBJECT>
             <UL>
-        """.format(
-                **locals()
-            )
+        """.format(**locals())
         )
         # Next write the overviews for this category
         output.write(
@@ -372,9 +362,7 @@ def genTOC(cats, output, title, target):
                      <param name="Local" value="{CHM}{cat_id}_overview.html">
                      </OBJECT>
                 <UL>
-        """.format(
-                **locals()
-            )
+        """.format(**locals())
         )
         _genItemsFromDict(cat.overviewTopics, cat, output, target)
         _genItemsFromDict(cat.extOverviewTopics, cat, output, target)
@@ -391,9 +379,7 @@ def genTOC(cats, output, title, target):
                     <param name="Local" value="{CHM}{cat_id}_modules.html">
                     </OBJECT>
                 <UL>
-""".format(
-                **locals()
-            )
+""".format(**locals())
         )
         _genItemsFromDict(cat.modules, cat, output, target)
         output.write(
@@ -408,9 +394,7 @@ def genTOC(cats, output, title, target):
                     <param name="ImageNumber" value="1">
                     <param name="Local" value="{CHM}{cat_id}_objects.html">
                     </OBJECT>
-                <UL>""".format(
-                **locals()
-            )
+                <UL>""".format(**locals())
         )
         # Don't show 'children' for objects - params etc don't need their own child nodes!
         _genItemsFromDict(cat.objects, cat, output, target, do_children=0)
@@ -427,9 +411,7 @@ def genTOC(cats, output, title, target):
          <param name="Local" value="{CHM}{cat_id}_constants.html">
          </OBJECT>
            <UL>
-""".format(
-                **locals()
-            )
+""".format(**locals())
         )
         _genItemsFromDict(cat.constants, cat, output, target)
         output.write(

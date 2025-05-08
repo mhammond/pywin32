@@ -80,6 +80,7 @@ class CPyCOMTest : public IDispatchImpl<IPyCOMTest, &IID_IPyCOMTest, &LIBID_PyCO
     STDMETHOD(SetDoubleSafeArray)(SAFEARRAY *vars, int *retSize);
     STDMETHOD(SetFloatSafeArray)(SAFEARRAY *vars, int *retSize);
     STDMETHOD(GetSafeArrays)(SAFEARRAY **attrs, SAFEARRAY **attrs2, SAFEARRAY **ints);
+    STDMETHOD(GetByteArray)(long sizeBytes, SAFEARRAY **array);
     STDMETHOD(GetSimpleSafeArray)(SAFEARRAY **ints);
     STDMETHOD(ChangeDoubleSafeArray)(SAFEARRAY **vals);
     STDMETHOD(GetSimpleCounter)(ISimpleCounter **counter);
@@ -118,6 +119,9 @@ class CPyCOMTest : public IDispatchImpl<IPyCOMTest, &IID_IPyCOMTest, &LIBID_PyCO
 
     STDMETHOD(None)();
     STDMETHOD(def)();
+
+    STDMETHOD(ModifyStruct)(TestStruct1 *prec);
+    STDMETHOD(VerifyArrayOfStructs)(TestStruct2 *prec, VARIANT_BOOL *is_ok);
 
     // info associated to each session
     struct PyCOMTestSessionData {

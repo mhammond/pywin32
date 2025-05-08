@@ -8,9 +8,14 @@
 import sys
 import traceback
 
-import win32api
 import win32ui
-from dde import *
+from dde import (  # nopycln: import # Re-exported for intpyapp.py
+    CBF_FAIL_SELFCONNECTIONS as CBF_FAIL_SELFCONNECTIONS,  # noqa: PLC0414
+    CreateConversation as CreateConversation,  # noqa: PLC0414
+    CreateServer,
+    CreateServerSystemTopic,
+    error as error,  # noqa: PLC0414
+)
 from pywin.mfc import object
 
 

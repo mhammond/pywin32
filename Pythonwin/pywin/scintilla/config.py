@@ -42,7 +42,7 @@ def split_line(line, lineno):
     sep_pos = line.rfind("=")
     if sep_pos == -1:
         if line.strip():
-            print("Warning: Line %d: %s is an invalid entry" % (lineno, repr(line)))
+            print(f"Warning: Line {lineno}: {line!r} is an invalid entry")
             return None, None
         return "", ""
     return line[:sep_pos].strip(), line[sep_pos + 1 :].strip()
@@ -198,7 +198,7 @@ class ConfigManager:
                 ns = None
             if ns:
                 num = 0
-                for name, func in list(ns.items()):
+                for name, func in ns.items():
                     if isinstance(func, types.FunctionType) and name[:1] != "_":
                         bindings.bind(name, func)
                         num += 1
@@ -230,10 +230,8 @@ class ConfigManager:
         for subsection in subsections:
             map = self.key_to_events.get(subsection)
             if map is None:  # Build it
-                map = {}
                 keymap = subsection_keymap.get(subsection, {})
-                for key_info, map_event in list(keymap.items()):
-                    map[map_event] = key_info
+                map = {map_event: key_info for key_info, map_event in keymap.items()}
                 self.key_to_events[subsection] = map
 
             info = map.get(event)

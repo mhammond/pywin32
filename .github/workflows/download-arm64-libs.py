@@ -21,23 +21,23 @@ dest.mkdir(parents=True, exist_ok=True)
 
 VERSION = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
 if sys.version_info.releaselevel == "alpha":
-    VERSION += f"-a{sys.version_info.serial}"
+    VERSION += f"-a{sys.version_info.serial}"  # pyright: ignore[reportConstantRedefinition]
 if sys.version_info.releaselevel == "beta":
-    VERSION += f"-b{sys.version_info.serial}"
+    VERSION += f"-b{sys.version_info.serial}"  # pyright: ignore[reportConstantRedefinition]
 if sys.version_info.releaselevel == "candidate":
-    VERSION += f"-rc{sys.version_info.serial}"
+    VERSION += f"-rc{sys.version_info.serial}"  # pyright: ignore[reportConstantRedefinition]
 
 URL = f"https://www.nuget.org/api/v2/package/pythonarm64/{VERSION}"
-PATH = dest / f"pythonarm64.{VERSION}.zip"
+DEST_PATH = dest / f"pythonarm64.{VERSION}.zip"
 
-if PATH.is_file():
-    print("Skipping download because", PATH, "exists")
+if DEST_PATH.is_file():
+    print("Skipping download because", DEST_PATH, "exists")
 else:
     print("Downloading", URL)
-    urlretrieve(URL, PATH)
-    print("Downloaded", PATH)
+    urlretrieve(URL, DEST_PATH)
+    print("Downloaded", DEST_PATH)
 
-with ZipFile(PATH, "r") as zf:
+with ZipFile(DEST_PATH, "r") as zf:
     for name in zf.namelist():
         zip_path = pathlib.PurePath(name)
         if zip_path.parts[:2] == ("tools", "libs"):

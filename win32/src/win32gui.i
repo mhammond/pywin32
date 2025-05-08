@@ -3,10 +3,6 @@
 
 %module win32gui // A module which provides an interface to the native win32 GUI API.
 
-%{
-#define _WIN32_WINNT 0x0501
-
-%}
 %include "typemaps.i"
 %include "pywintypes.i"
 
@@ -14,7 +10,7 @@
 #undef PyHANDLE
 #include "pywinobjects.h"
 #include "winuser.h"
-#include "commctrl.h"
+#include "CommCtrl.h"
 #include "windowsx.h" // For edit control hacks.
 #include "Dbt.h" // device notification
 #include "malloc.h"
@@ -266,42 +262,36 @@ for (PyMethodDef *pmd = win32guiMethods; pmd->ml_name; pmd++)
 		)
 		pmd->ml_flags = METH_VARARGS | METH_KEYWORDS;
 
-HMODULE hmodule=GetModuleHandle(TEXT("user32.dll"));
-if (hmodule==NULL)
-	hmodule=LoadLibrary(TEXT("user32.dll"));
-if (hmodule){
-	pfnSetLayeredWindowAttributes=(SetLayeredWindowAttributesfunc)GetProcAddress(hmodule,"SetLayeredWindowAttributes");
-	pfnGetLayeredWindowAttributes=(GetLayeredWindowAttributesfunc)GetProcAddress(hmodule,"GetLayeredWindowAttributes");
-	pfnUpdateLayeredWindow=(UpdateLayeredWindowfunc)GetProcAddress(hmodule,"UpdateLayeredWindow");
-	pfnAnimateWindow=(AnimateWindowfunc)GetProcAddress(hmodule,"AnimateWindow");
-	pfnGetMenuInfo=(GetMenuInfofunc)GetProcAddress(hmodule,"GetMenuInfo");
-	pfnSetMenuInfo=(SetMenuInfofunc)GetProcAddress(hmodule,"SetMenuInfo");
-	pfnDrawTextW=(DrawTextWfunc)GetProcAddress(hmodule, "DrawTextW");
-	}
+HMODULE hmodule = PyWin_GetOrLoadLibraryHandle("user32.dll");
+if (hmodule != NULL) {
+    pfnSetLayeredWindowAttributes = (SetLayeredWindowAttributesfunc)GetProcAddress(hmodule,"SetLayeredWindowAttributes");
+    pfnGetLayeredWindowAttributes = (GetLayeredWindowAttributesfunc)GetProcAddress(hmodule,"GetLayeredWindowAttributes");
+    pfnUpdateLayeredWindow = (UpdateLayeredWindowfunc)GetProcAddress(hmodule,"UpdateLayeredWindow");
+    pfnAnimateWindow = (AnimateWindowfunc)GetProcAddress(hmodule,"AnimateWindow");
+    pfnGetMenuInfo = (GetMenuInfofunc)GetProcAddress(hmodule,"GetMenuInfo");
+    pfnSetMenuInfo = (SetMenuInfofunc)GetProcAddress(hmodule,"SetMenuInfo");
+    pfnDrawTextW = (DrawTextWfunc)GetProcAddress(hmodule, "DrawTextW");
+}
 
-hmodule=GetModuleHandle(TEXT("gdi32.dll"));
-if (hmodule==NULL)
-	hmodule=LoadLibrary(TEXT("gdi32.dll"));
-if (hmodule){
-	pfnAngleArc=(AngleArcfunc)GetProcAddress(hmodule,"AngleArc");
-	pfnPlgBlt=(PlgBltfunc)GetProcAddress(hmodule,"PlgBlt");
-	pfnGetWorldTransform=(GetWorldTransformfunc)GetProcAddress(hmodule,"GetWorldTransform");
-	pfnSetWorldTransform=(SetWorldTransformfunc)GetProcAddress(hmodule,"SetWorldTransform");
-	pfnModifyWorldTransform=(ModifyWorldTransformfunc)GetProcAddress(hmodule,"ModifyWorldTransform");
-	pfnCombineTransform=(CombineTransformfunc)GetProcAddress(hmodule,"CombineTransform");
-	pfnMaskBlt=(MaskBltfunc)GetProcAddress(hmodule,"MaskBlt");
-	pfnGetLayout=(GetLayoutfunc)GetProcAddress(hmodule,"GetLayout");
-	pfnSetLayout=(SetLayoutfunc)GetProcAddress(hmodule,"SetLayout");
-	}
+hmodule = PyWin_GetOrLoadLibraryHandle("gdi32.dll");
+if (hmodule != NULL) {
+    pfnAngleArc = (AngleArcfunc)GetProcAddress(hmodule,"AngleArc");
+    pfnPlgBlt = (PlgBltfunc)GetProcAddress(hmodule,"PlgBlt");
+    pfnGetWorldTransform = (GetWorldTransformfunc)GetProcAddress(hmodule,"GetWorldTransform");
+    pfnSetWorldTransform = (SetWorldTransformfunc)GetProcAddress(hmodule,"SetWorldTransform");
+    pfnModifyWorldTransform = (ModifyWorldTransformfunc)GetProcAddress(hmodule,"ModifyWorldTransform");
+    pfnCombineTransform = (CombineTransformfunc)GetProcAddress(hmodule,"CombineTransform");
+    pfnMaskBlt = (MaskBltfunc)GetProcAddress(hmodule,"MaskBlt");
+    pfnGetLayout = (GetLayoutfunc)GetProcAddress(hmodule,"GetLayout");
+    pfnSetLayout = (SetLayoutfunc)GetProcAddress(hmodule,"SetLayout");
+}
 
-hmodule=GetModuleHandle(TEXT("msimg32.dll"));
-if (hmodule==NULL)
-	hmodule=LoadLibrary(TEXT("msimg32.dll"));
-if (hmodule){
-	pfnGradientFill=(GradientFillfunc)GetProcAddress(hmodule,"GradientFill");
-	pfnTransparentBlt=(TransparentBltfunc)GetProcAddress(hmodule,"TransparentBlt");
-	pfnAlphaBlend=(AlphaBlendfunc)GetProcAddress(hmodule,"AlphaBlend");
-	}
+hmodule = PyWin_GetOrLoadLibraryHandle("msimg32.dll");
+if (hmodule != NULL) {
+    pfnGradientFill = (GradientFillfunc)GetProcAddress(hmodule,"GradientFill");
+    pfnTransparentBlt = (TransparentBltfunc)GetProcAddress(hmodule,"TransparentBlt");
+    pfnAlphaBlend = (AlphaBlendfunc)GetProcAddress(hmodule,"AlphaBlend");
+}
 %}
 
 %{
@@ -1509,7 +1499,7 @@ static PyObject *PyGetObjectType(PyObject *self, PyObject *args)
 
 static PyObject *PyMakeBuffer(PyObject *self, PyObject *args)
 {
-	PyErr_Warn(PyExc_PendingDeprecationWarning, "PyMakeBuffer is deprecated; use PyGetMemory instead");
+	PyErr_Warn(PyExc_DeprecationWarning, "PyMakeBuffer is deprecated; use PyGetMemory instead");
 	size_t len;
 	void *addr=NULL;
 #ifdef _WIN64
@@ -6463,7 +6453,7 @@ PyCFunction pfnPyGetOpenFileNameW=(PyCFunction)PyGetOpenFileNameW;
 BOOL PyObject_AsUINT(PyObject *ob, UINT *puint)
 {
 	// PyLong_AsUnsignedLong throws a bogus error in 2.3 if passed an int, and there is no PyInt_AsUnsignedLong
-	// ref: http://mail.python.org/pipermail/patches/2004-September/016060.html
+	// ref: https://mail.python.org/pipermail/patches/2004-September/016060.html
 	// And for some reason none of the Unsigned*Mask functions check for overflow ???
 
 	__int64 UINT_candidate=PyLong_AsLongLong(ob);

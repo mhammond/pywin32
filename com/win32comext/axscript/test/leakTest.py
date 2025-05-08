@@ -1,7 +1,7 @@
 import sys
 
 import pythoncom
-import win32com.server.policy
+import pywintypes
 from win32com.axscript import axscript
 from win32com.axscript.server import axsite
 from win32com.server import connect, util
@@ -54,7 +54,7 @@ class Test:
 #### Connections currently won't work, as there is no way for the engine to
 #### know what events we support.  We need typeinfo support.
 
-IID_ITestEvents = pythoncom.MakeIID("{8EB72F90-0D44-11d1-9C4B-00AA00125A98}")
+IID_ITestEvents = pywintypes.IID("{8EB72F90-0D44-11d1-9C4B-00AA00125A98}")
 
 
 class TestConnectServer(connect.ConnectableServer):
@@ -145,10 +145,10 @@ def doTestEngine(engine, echoer):
         print("***** Calling 'hello' failed", exc)
         return
     if echoer.last != "Goober":
-        print("***** Function call didn't set value correctly", repr(echoer.last))
+        print(f"***** Function call didnt set value correctly {echoer.last!r}")
 
     if str(ob.prop) != "Property Value":
-        print("***** Property Value not correct - ", repr(ob.prop))
+        print(f"***** Property Value not correct - {ob.prop!r}")
 
     ob.testcollection()
 

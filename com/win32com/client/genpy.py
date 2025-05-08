@@ -16,11 +16,11 @@ The makepy command line etc handling is also getting large enough in its own rig
 import os
 import sys
 import time
+from itertools import chain
 
 import pythoncom
-import win32com
 
-from . import build
+from . import build, gencache
 
 makepy_version = "0.5.01"  # Written to generated file.
 
@@ -90,14 +90,14 @@ def MakeEventMethodName(eventName):
 
 def WriteSinkEventMap(obj, stream):
     print("\t_dispid_to_func_ = {", file=stream)
-    for name, entry in (
-        list(obj.propMapGet.items())
-        + list(obj.propMapPut.items())
-        + list(obj.mapFuncs.items())
+    for entry in chain(
+        obj.propMapGet.values(),
+        obj.propMapPut.values(),
+        obj.mapFuncs.values(),
     ):
-        fdesc = entry.desc
+        memid = entry.desc.memid
         print(
-            '\t\t%9d : "%s",' % (fdesc.memid, MakeEventMethodName(entry.names[0])),
+            '\t\t%9d : "%s",' % (memid, MakeEventMethodName(entry.names[0])),
             file=stream,
         )
     print("\t\t}", file=stream)
@@ -112,7 +112,7 @@ class WritableItem:
         return self.order < other.order
 
     def __repr__(self):
-        return "OleItem: doc=%s, order=%d" % (repr(self.doc), self.order)
+        return f"OleItem: doc={self.doc!r}, order={self.order}"
 
 
 class RecordItem(build.OleItem, WritableItem):
@@ -215,9 +215,7 @@ class EnumerationItem(build.OleItem, WritableItem):
         num = 0
         enumName = self.doc[0]
         # Write in name alpha order
-        names = list(self.mapVars.keys())
-        names.sort()
-        for name in names:
+        for name in sorted(self.mapVars):
             entry = self.mapVars[name]
             vdesc = entry.desc
             if vdesc[4] == pythoncom.VAR_CONST:
@@ -234,10 +232,7 @@ class EnumerationItem(build.OleItem, WritableItem):
                     # Sanitize it, in case the repr contains its own quotes.  (??? line breaks too ???)
                     use = use.replace('"', "'")
                     use = (
-                        '"'
-                        + use
-                        + '"'
-                        + " # This VARIANT type cannot be converted automatically"
+                        f'"{use}" # This VARIANT type cannot be converted automatically'
                     )
                 print(
                     "\t%-30s=%-10s # from enum %s"
@@ -343,11 +338,11 @@ class DispatchItem(build.DispatchItem, WritableItem):
             )
         except pythoncom.com_error:
             pass
-        print("\tCLSID = " + repr(self.clsid), file=stream)
+        print(f"\tCLSID = {self.clsid!r}", file=stream)
         if self.coclass_clsid is None:
             print("\tcoclass_clsid = None", file=stream)
         else:
-            print("\tcoclass_clsid = " + repr(self.coclass_clsid), file=stream)
+            print(f"\tcoclass_clsid = {self.coclass_clsid!r}", file=stream)
         print(file=stream)
         self.bWritten = 1
 
@@ -365,11 +360,11 @@ class DispatchItem(build.DispatchItem, WritableItem):
             )
         except pythoncom.com_error:
             pass
-        print("\tCLSID = CLSID_Sink = " + repr(self.clsid), file=stream)
+        print(f"\tCLSID = CLSID_Sink = {self.clsid!r}", file=stream)
         if self.coclass_clsid is None:
             print("\tcoclass_clsid = None", file=stream)
         else:
-            print("\tcoclass_clsid = " + repr(self.coclass_clsid), file=stream)
+            print(f"\tcoclass_clsid = {self.coclass_clsid!r}", file=stream)
         print("\t_public_methods_ = [] # For COM Server support", file=stream)
         WriteSinkEventMap(self, stream)
         print(file=stream)
@@ -419,10 +414,8 @@ class DispatchItem(build.DispatchItem, WritableItem):
             "\t# If you create handlers, they should have the following prototypes:",
             file=stream,
         )
-        for name, entry in (
-            list(self.propMapGet.items())
-            + list(self.propMapPut.items())
-            + list(self.mapFuncs.items())
+        for entry in chain(
+            self.propMapGet.values(), self.propMapPut.values(), self.mapFuncs.values()
         ):
             fdesc = entry.desc
             methName = MakeEventMethodName(entry.names[0])
@@ -449,17 +442,14 @@ class DispatchItem(build.DispatchItem, WritableItem):
 
     def WriteClassBody(self, generator):
         stream = generator.file
-        # Write in alpha order.
-        names = list(self.mapFuncs.keys())
-        names.sort()
         specialItems = {
             "count": None,
             "item": None,
             "value": None,
             "_newenum": None,
         }  # If found, will end up with (entry, invoke_tupe)
-        itemCount = None
-        for name in names:
+        # Write in alpha order.
+        for name in sorted(self.mapFuncs):
             entry = self.mapFuncs[name]
             assert entry.desc.desckind == pythoncom.DESCKIND_FUNCDESC
             # skip [restricted] methods, unless it is the
@@ -498,9 +488,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
                 for line in ret:
                     print(line, file=stream)
         print("\t_prop_map_get_ = {", file=stream)
-        names = list(self.propMap.keys())
-        names.sort()
-        for key in names:
+        for key in sorted(self.propMap):
             entry = self.propMap[key]
             if generator.bBuildHidden or not entry.hidden:
                 resultName = entry.GetResultName()
@@ -545,9 +533,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
                     f'\t\t"{build.MakePublicAttributeName(key)}": {mapEntry},',
                     file=stream,
                 )
-        names = list(self.propMapGet.keys())
-        names.sort()
-        for key in names:
+        for key in sorted(self.propMapGet):
             entry = self.propMapGet[key]
             if generator.bBuildHidden or not entry.hidden:
                 if entry.GetResultName():
@@ -597,9 +583,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
 
         print("\t_prop_map_put_ = {", file=stream)
         # These are "Invoke" args
-        names = list(self.propMap.keys())
-        names.sort()
-        for key in names:
+        for key in sorted(self.propMap):
             entry = self.propMap[key]
             if generator.bBuildHidden or not entry.hidden:
                 lkey = key.lower()
@@ -621,9 +605,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
                     file=stream,
                 )
 
-        names = list(self.propMapPut.keys())
-        names.sort()
-        for key in names:
+        for key in sorted(self.propMapPut):
             entry = self.propMapPut[key]
             if generator.bBuildHidden or not entry.hidden:
                 details = entry.desc
@@ -806,14 +788,14 @@ class CoClassItem(build.OleItem, WritableItem):
             if item.bWritten:
                 key = item.python_name
             else:
-                key = repr(str(item.clsid))  # really the iid.
-            print("\t\t%s," % (key), file=stream)
+                key = f"'{item.clsid}'"  # really the iid.
+            print(f"\t\t{key},", file=stream)
         print("\t]", file=stream)
         if defItem:
             if defItem.bWritten:
                 defName = defItem.python_name
             else:
-                defName = repr(str(defItem.clsid))  # really the iid.
+                defName = f"'{defItem.clsid}'"  # really the iid.
             print(f"\tdefault_source = {defName}", file=stream)
         print("\tcoclass_interfaces = [", file=stream)
         defItem = None
@@ -824,14 +806,14 @@ class CoClassItem(build.OleItem, WritableItem):
             if item.bWritten:
                 key = item.python_name
             else:
-                key = repr(str(item.clsid))  # really the iid.
+                key = f"'{item.clsid}'"  # really the iid.
             print(f"\t\t{key},", file=stream)
         print("\t]", file=stream)
         if defItem:
             if defItem.bWritten:
                 defName = defItem.python_name
             else:
-                defName = repr(str(defItem.clsid))  # really the iid.
+                defName = f"'{defItem.clsid}'"  # really the iid.
             print(f"\tdefault_interface = {defName}", file=stream)
         self.bWritten = 1
         print(file=stream)
@@ -949,9 +931,9 @@ class Generator:
                 if clsid not in vtableItems and refAttr[11] & pythoncom.TYPEFLAG_FDUAL:
                     refType = refType.GetRefTypeInfo(refType.GetRefTypeOfImplType(-1))
                     refAttr = refType.GetTypeAttr()
-                    assert (
-                        refAttr.typekind == pythoncom.TKIND_INTERFACE
-                    ), "must be interface bynow!"
+                    assert refAttr.typekind == pythoncom.TKIND_INTERFACE, (
+                        "must be interface bynow!"
+                    )
                     vtableItem = VTableItem(refType, refAttr, doc)
                     vtableItems[clsid] = vtableItem
         coclass.sources = list(sources.values())
@@ -983,9 +965,9 @@ class Generator:
         return oleItem, vtableItem
 
     def BuildOleItemsFromType(self):
-        assert (
-            self.bBuildHidden
-        ), "This code doesn't look at the hidden flag - I thought everyone set it true!?!?!"
+        assert self.bBuildHidden, (
+            "This code doesn't look at the hidden flag - I thought everyone set it true!?!?!"
+        )
         oleItems = {}
         enumItems = {}
         recordItems = {}
@@ -1036,35 +1018,15 @@ class Generator:
 
     def finish_writer(self, filename, f, worked):
         f.close()
-        try:
-            os.unlink(filename)
-        except OSError:
-            pass
         temp_filename = self.get_temp_filename(filename)
         if worked:
-            try:
-                os.rename(temp_filename, filename)
-            except OSError:
-                # If we are really unlucky, another process may have written the
-                # file in between our calls to os.unlink and os.rename. So try
-                # again, but only once.
-                # There are still some race conditions, but they seem difficult to
-                # fix, and they probably occur much less frequently:
-                # * The os.rename failure could occur more than once if more than
-                #   two processes are involved.
-                # * In between os.unlink and os.rename, another process could try
-                #   to import the module, having seen that it already exists.
-                # * If another process starts a COM server while we are still
-                #   generating __init__.py, that process sees that the folder
-                #   already exists and assumes that __init__.py is already there
-                #   as well.
-                try:
-                    os.unlink(filename)
-                except OSError:
-                    pass
-                os.rename(temp_filename, filename)
+            os.replace(temp_filename, filename)
         else:
-            os.unlink(temp_filename)
+            try:
+                os.unlink(filename)
+                os.unlink(temp_filename)
+            except OSError:
+                pass
 
     def get_temp_filename(self, filename):
         return "%s.%d.temp" % (filename, os.getpid())
@@ -1111,7 +1073,7 @@ class Generator:
 
         print(build._makeDocString(docDesc), file=self.file)
 
-        print("makepy_version =", repr(makepy_version), file=self.file)
+        print(f"makepy_version = {makepy_version!r}", file=self.file)
         print(f"python_version = 0x{sys.hexversion:x}", file=self.file)
         print(file=self.file)
         print(
@@ -1133,10 +1095,10 @@ class Generator:
         print("defaultNamedNotOptArg=pythoncom.Empty", file=self.file)
         print("defaultUnnamedArg=pythoncom.Empty", file=self.file)
         print(file=self.file)
-        print("CLSID = " + repr(la[0]), file=self.file)
-        print("MajorVersion = " + str(la[3]), file=self.file)
-        print("MinorVersion = " + str(la[4]), file=self.file)
-        print("LibraryFlags = " + str(la[5]), file=self.file)
+        print(f"CLSID = {la[0]!r}", file=self.file)
+        print(f"MajorVersion = {la[3]}", file=self.file)
+        print(f"MinorVersion = {la[4]}", file=self.file)
+        print(f"LibraryFlags = {la[5]}", file=self.file)
         print("LCID = " + hex(la[1]), file=self.file)
         print(file=self.file)
 
@@ -1160,10 +1122,8 @@ class Generator:
         # Generate the constants and their support.
         if enumItems:
             print("class constants:", file=stream)
-            items = list(enumItems.values())
-            items.sort()
             num_written = 0
-            for oleitem in items:
+            for oleitem in sorted(enumItems.values()):
                 num_written += oleitem.WriteEnumerationItems(stream)
                 self.progress.Tick()
             if not num_written:
@@ -1171,15 +1131,11 @@ class Generator:
             print(file=stream)
 
         if self.generate_type == GEN_FULL:
-            items = [l for l in oleItems.values() if l is not None]
-            items.sort()
-            for oleitem in items:
+            for oleitem in sorted(filter(None, oleItems.values())):
                 self.progress.Tick()
                 oleitem.WriteClass(self)
 
-            items = list(vtableItems.values())
-            items.sort()
-            for oleitem in items:
+            for oleitem in sorted(vtableItems.values()):
                 self.progress.Tick()
                 oleitem.WriteClass(self)
         else:
@@ -1187,18 +1143,15 @@ class Generator:
 
         print("RecordMap = {", file=stream)
         for record in recordItems.values():
+            record_str = f"{record.doc[0]!r}: '{record.clsid}',"
             if record.clsid == pythoncom.IID_NULL:
                 print(
-                    "\t###{}: {}, # Record disabled because it doesn't have a non-null GUID".format(
-                        repr(record.doc[0]), repr(str(record.clsid))
-                    ),
+                    f"\t###{record_str}",
+                    "# Record disabled because it doesn't have a non-null GUID",
                     file=stream,
                 )
             else:
-                print(
-                    f"\t{repr(record.doc[0])}: {repr(str(record.clsid))},",
-                    file=stream,
-                )
+                print(f"\t{record_str}", file=stream)
         print("}", file=stream)
         print(file=stream)
 
@@ -1208,7 +1161,7 @@ class Generator:
             for item in oleItems.values():
                 if item is not None and item.bWritten:
                     print(
-                        f"\t'{str(item.clsid)}' : {item.python_name},",
+                        f"\t'{item.clsid}' : {item.python_name},",
                         file=stream,
                     )
             print("}", file=stream)
@@ -1230,7 +1183,7 @@ class Generator:
             for item in oleItems.values():
                 if item is not None:
                     print(
-                        f"\t'{str(item.clsid)}' : {repr(item.python_name)},",
+                        f"\t'{item.clsid}' : {item.python_name!r},",
                         file=stream,
                     )
             print("}", file=stream)
@@ -1323,9 +1276,9 @@ class Generator:
                             if vtableItem is not None:
                                 vtableItems[clsid] = vtableItem
 
-            assert (
-                found
-            ), f"Can't find the '{child}' interface in the CoClasses, or the interfaces"
+            assert found, (
+                f"Can't find the '{child}' interface in the CoClasses, or the interfaces"
+            )
             # Make a map of iid: dispitem, vtableitem)
             items = {}
             for key, value in oleItems.items():
@@ -1355,7 +1308,8 @@ class Generator:
                     self.progress.Tick()
                     worked = True
                 finally:
-                    self.finish_writer(out_name, self.file, worked)
+                    with gencache.ModuleMutex(self.base_mod_name.split(".")[-1]):
+                        self.finish_writer(out_name, self.file, worked)
                     self.file = None
         finally:
             self.progress.Finished()

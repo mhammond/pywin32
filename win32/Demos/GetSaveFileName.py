@@ -17,10 +17,10 @@ fname, customfilter, flags = win32gui.GetSaveFileNameW(
     FilterIndex=1,
 )
 
-print("save file names:", repr(fname))
-print("filter used:", repr(customfilter))
-print("Flags:", flags)
-for k, v in list(win32con.__dict__.items()):
+print(f"save file names: {fname!r}")
+print(f"filter used: {customfilter!r}")
+print(f"Flags: {flags}")
+for k, v in win32con.__dict__.items():
     if k.startswith("OFN_") and flags & v:
         print("\t" + k)
 
@@ -35,9 +35,9 @@ fname, customfilter, flags = win32gui.GetOpenFileNameW(
     FilterIndex=0,
 )
 
-print("open file names:", repr(fname))
-print("filter used:", repr(customfilter))
-print("Flags:", flags)
-for k, v in list(win32con.__dict__.items()):
+print(f"open file names: {fname!r}")
+print(f"filter used: {customfilter!r}")
+print(f"Flags: {flags}")
+for k, v in win32con.__dict__.items():
     if k.startswith("OFN_") and flags & v:
         print("\t" + k)

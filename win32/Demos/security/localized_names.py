@@ -1,11 +1,16 @@
 # A Python port of the MS knowledge base article Q157234
 # "How to deal with localized and renamed user and group names"
-# http://support.microsoft.com/default.aspx?kbid=157234
+# https://www.betaarchive.com/wiki/index.php?title=Microsoft_KB_Archive/157234
 
 import sys
 
 import pywintypes
-from ntsecuritycon import *
+from ntsecuritycon import (
+    DOMAIN_ALIAS_RID_ADMINS,
+    DOMAIN_USER_RID_ADMIN,
+    SECURITY_BUILTIN_DOMAIN_RID,
+    SECURITY_NT_AUTHORITY,
+)
 from win32net import NetUserModalsGet
 from win32security import LookupAccountSid
 

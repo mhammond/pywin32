@@ -34,8 +34,8 @@ PyObject *PyITaskScheduler::SetTargetComputer(PyObject *self, PyObject *args)
     HRESULT hr;
     PY_INTERFACE_PRECALL;
     hr = pITS->SetTargetComputer(Computer);
-    PyWinObject_FreeWCHAR(Computer);
     PY_INTERFACE_POSTCALL;
+    PyWinObject_FreeWCHAR(Computer);
 
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pITS, IID_ITaskScheduler);

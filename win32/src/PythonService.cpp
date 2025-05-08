@@ -70,11 +70,6 @@ static void CheckRegisterEventSourceFile();
 // increased to MAX_SERVICES
 DWORD g_maxServices = 1;
 
-#if (WINVER < 0x0500)
-// SDK probably doesn't define LPHANDLER_FUNCTION_EX, so do it ourselves.
-typedef DWORD(WINAPI *LPHANDLER_FUNCTION_EX)(DWORD dwControl, DWORD dwEventType, LPVOID lpEventData, LPVOID lpContext);
-#endif
-
 typedef SERVICE_STATUS_HANDLE(WINAPI *REGSVC_EX_FN)(LPCTSTR lpServiceName, LPHANDLER_FUNCTION_EX lpHandlerProc,
                                                     LPVOID lpContext);
 
@@ -92,7 +87,7 @@ typedef struct {
 DWORD g_serviceProcessFlags = 0;
 
 // The global SCM dispatch table.  A trailing NULL indicates to the SCM
-// how many are used, so we allocate one extra for this sentinal
+// how many are used, so we allocate one extra for this sentinel
 static SERVICE_TABLE_ENTRY DispatchTable[MAX_SERVICES + 1] = {{NULL, NULL}};
 // A parallel array of Python information for the service.
 static PY_SERVICE_TABLE_ENTRY PythonServiceTable[MAX_SERVICES];
@@ -152,7 +147,7 @@ SERVICE_STATUS stoppedErrorStatus = {SERVICE_WIN32_OWN_PROCESS,
                                      0,                             // dwCheckPoint
                                      0};
 // The Service Control Manager/Event Log seems to interpret dwServiceSpecificExitCode as a Win32 Error code
-// (https://docs.microsoft.com/en-us/windows/win32/debug/system-error-codes)
+// (https://learn.microsoft.com/en-us/windows/win32/debug/system-error-codes)
 // So stoppedErrorStatus has dwServiceSpecificExitCode with bit 29 set to indicate an application-defined error code.
 
 ///////////////////////////////////////////////////////////////////////
@@ -173,9 +168,12 @@ static PyObject *DoLogMessage(WORD errorType, PyObject *obMsg)
     DWORD errorCode = errorType == EVENTLOG_ERROR_TYPE ? PYS_E_GENERIC_ERROR : PYS_E_GENERIC_WARNING;
     LPCTSTR inserts[] = {msg, NULL};
     BOOL ok;
-    Py_BEGIN_ALLOW_THREADS ok = ReportError(errorCode, inserts, errorType);
-    PyWinObject_FreeWCHAR(msg);
-    Py_END_ALLOW_THREADS if (!ok) return PyWin_SetAPIError("RegisterEventSource/ReportEvent");
+    Py_BEGIN_ALLOW_THREADS;
+    ok = ReportError(errorCode, inserts, errorType);
+    Py_END_ALLOW_THREADS;
+    PyWinObject_FreeWCHAR(msg);  // free msg before potentially raising error
+    if (!ok)
+        return PyWin_SetAPIError("RegisterEventSource/ReportEvent");
     Py_INCREF(Py_None);
     return Py_None;
 }

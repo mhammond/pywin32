@@ -1,7 +1,7 @@
-# You can run this locally with `pre-commit run [--all]`
+# You can run this locally with `pre-commit run --all`
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+    rev: v5.0.0
     hooks:
       - id: trailing-whitespace
         args: [--markdown-linebreak-ext=md]
@@ -10,10 +10,11 @@ repos:
         args: [--fix=crlf]
       - id: check-case-conflict
   - repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
-    rev: v2.13.0
+    rev: v2.14.0
     hooks:
-      - id: pretty-format-toml
-        args: [--autofix, --trailing-commas, --inline-comment-spaces, "1", --no-sort]
+      # Has unsafe autofixes. Let's find a better formatter: macisamuele/language-formatters-pre-commit-hooks#202
+      # - id: pretty-format-toml
+      #   args: [--autofix, --trailing-commas, --inline-comment-spaces, "1", --no-sort]
       - id: pretty-format-yaml
         args: [--autofix, --indent, "2", --offset, "2", --preserve-quotes]
       - id: pretty-format-ini
@@ -25,26 +26,21 @@ repos:
         args: [--config=pycln.toml]
         verbose: true
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.4.5
+    rev: v0.11.0
     hooks:
       - id: ruff # Run the linter.
         args: [--fix]
-  - repo: https://github.com/psf/black-pre-commit-mirror
-    rev: 24.4.2
-    hooks:
-      - id: black
-        verbose: true
+      - id: ruff-format
   - repo: https://github.com/pre-commit/mirrors-clang-format
-    rev: v18.1.5
+    rev: v18.1.8
     hooks:
       - id: clang-format
         # Supports a lot more filetypes, but only tagging those we use
         # https://github.com/pre-commit/mirrors-clang-format/blob/main/.pre-commit-hooks.yaml#L6
         types: [c++]
 
-
 # Vendored
-exclude: ^(com/win32comext/mapi/src/mapi_headers/|Pythonwin/Scintilla/).*$
+exclude: ^(com/win32comext/mapi/src/MAPIStubLibrary/|Pythonwin/Scintilla/).*$
 
 ci:
   autoupdate_schedule: quarterly

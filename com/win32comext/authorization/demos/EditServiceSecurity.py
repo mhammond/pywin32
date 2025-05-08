@@ -6,9 +6,7 @@ or as a remote service of the form \\machinename\service
 
 import os
 
-import ntsecuritycon
 import pythoncom
-import win32api
 import win32com.server.policy
 import win32con
 import win32security
@@ -30,35 +28,17 @@ SERVICE_GENERIC_READ = (
 SERVICE_GENERIC_WRITE = win32service.SERVICE_CHANGE_CONFIG
 
 from ntsecuritycon import (
-    PSPCB_SI_INITDIALOG,
     READ_CONTROL,
-    SI_ACCESS_CONTAINER,
     SI_ACCESS_GENERAL,
-    SI_ACCESS_PROPERTY,
     SI_ACCESS_SPECIFIC,
     SI_ADVANCED,
-    SI_CONTAINER,
     SI_EDIT_ALL,
-    SI_EDIT_AUDITS,
-    SI_EDIT_PROPERTIES,
-    SI_PAGE_ADVPERM,
-    SI_PAGE_AUDIT,
-    SI_PAGE_OWNER,
-    SI_PAGE_PERM,
     SI_PAGE_TITLE,
     SI_RESET,
-    STANDARD_RIGHTS_EXECUTE,
-    STANDARD_RIGHTS_READ,
-    STANDARD_RIGHTS_WRITE,
     WRITE_DAC,
     WRITE_OWNER,
 )
 from pythoncom import IID_NULL
-from win32com.shell.shellcon import (  # # Msg parameter to PropertySheetPageCallback
-    PSPCB_CREATE,
-    PSPCB_RELEASE,
-)
-from win32security import CONTAINER_INHERIT_ACE, INHERIT_ONLY_ACE, OBJECT_INHERIT_ACE
 
 
 class ServiceSecurity(win32com.server.policy.DesignatedWrapPolicy):

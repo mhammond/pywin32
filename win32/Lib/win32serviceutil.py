@@ -50,16 +50,20 @@ def LocatePythonServiceExe(exe=None):
     # pywin32 installed it next to win32service.pyd (but we can't run it from there)
     maybe = os.path.join(os.path.dirname(win32service.__file__), exe)
     if os.path.exists(maybe):
-        print(f"copying host exe '{maybe}' -> '{correct}'")
-        win32api.CopyFile(maybe, correct)
+        print(f"moving host exe '{maybe}' -> '{correct}'")
+        # Handle case where MoveFile() fails. Particularly if destination file
+        # has a resource lock and can't be replaced by src file
+        try:
+            win32api.MoveFileEx(maybe, correct, win32con.MOVEFILE_REPLACE_EXISTING)
+        except win32api.error as exc:
+            print(f"Failed to move host exe '{exc}'")
 
     if not os.path.exists(correct):
         raise error(f"Can't find '{correct}'")
 
     # If pywintypes.dll isn't next to us, or at least next to pythonXX.dll,
     # there's a good chance the service will not run. That's usually copied by
-    # `pywin32_postinstall`, but putting it next to the python DLL seems
-    # reasonable.
+    # `pywin32_postinstall`, but putting it next to the python DLL seems reasonable.
     # (Unlike the .exe above, we don't unconditionally copy this, and possibly
     # copy it to a different place. Doesn't seem a good reason for that!?)
     python_dll = win32api.GetModuleFileName(sys.dllhandle)
@@ -746,10 +750,9 @@ def HandleCommandLine(
                 "delayed": win32service.SERVICE_AUTO_START,  ## ChangeServiceConfig2 called later
                 "disabled": win32service.SERVICE_DISABLED,
             }
-            try:
-                startup = map[val.lower()]
-            except KeyError:
-                print("'%s' is not a valid startup option" % val)
+            startup = map.get(val.lower())
+            if not startup:
+                print(f"{val!r} is not a valid startup option")
             if val.lower() == "delayed":
                 delayedstart = True
             elif val.lower() == "auto":

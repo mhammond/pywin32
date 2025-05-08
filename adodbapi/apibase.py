@@ -1,8 +1,8 @@
 """adodbapi.apibase - A python DB API 2.0 (PEP 249) interface to Microsoft ADO
 
 Copyright (C) 2002 Henrik Ekelund, version 2.1 by Vernon Cole
-* http://sourceforge.net/projects/pywin32
-* http://sourceforge.net/projects/adodbapi
+* https://sourceforge.net/projects/pywin32
+* https://sourceforge.net/projects/adodbapi
 """
 
 from __future__ import annotations
@@ -13,7 +13,6 @@ import numbers
 import sys
 import time
 from collections.abc import Callable, Iterable, Mapping
-from typing import Dict
 
 # noinspection PyUnresolvedReferences
 from . import ado_consts as adc
@@ -465,7 +464,7 @@ def convert_to_python(variant, func):  # convert DB value into Python value
     return func(variant)  # call the appropriate conversion function
 
 
-class MultiMap(Dict[int, Callable[[object], object]]):
+class MultiMap(dict[int, Callable[[object], object]]):
     # builds a dictionary from {(iterable,of,keys) : function}
     """A dictionary of ado.type : function
     -- but you can set multiple items by passing an iterable of keys"""

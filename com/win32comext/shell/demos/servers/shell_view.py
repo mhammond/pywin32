@@ -46,7 +46,6 @@
 # a field sep just 'cos we can (and 'cos it can't possibly conflict with the
 # string content)
 
-import _thread
 import os
 import pyclbr
 import sys
@@ -151,7 +150,7 @@ class ShellFolderBase:
         elif typ == "object":
             klass = ShellFolderObject
         else:
-            raise RuntimeError("What is " + repr(typ))
+            raise RuntimeError(f"What is {typ!r}")
         ret = wrap(klass(extra), iid, useDispatcher=(debug > 0))
         return ret
 
@@ -260,7 +259,7 @@ class ShellFolderFile(ShellFolderBase):
     def EnumObjects(self, hwndOwner, flags):
         objects = get_clbr_for_file(self.path)
         pidls = []
-        for name, ob in objects.items():
+        for name in objects:
             pidls.append(["object\0" + self.path + "\0" + name])
         return NewEnum(pidls, iid=shell.IID_IEnumIDList, useDispatcher=(debug > 0))
 
@@ -325,7 +324,7 @@ class ShellFolderObject(ShellFolderBase):
         mod_objects = get_clbr_for_file(self.path)
         my_objects = mod_objects[self.class_name]
         pidls = []
-        for func_name, lineno in my_objects.methods.items():
+        for func_name in my_objects.methods:
             pidl = ["object\0" + self.path + "\0" + self.class_name + "." + func_name]
             pidls.append(pidl)
         return NewEnum(pidls, iid=shell.IID_IEnumIDList, useDispatcher=(debug > 0))
@@ -370,7 +369,7 @@ class ShellFolderRoot(ShellFolderFileSystem):
         # This is the PIDL of us, as created by the shell.  This is our
         # top-level ID.  All other items under us have PIDLs defined
         # by us - see the notes at the top of the file.
-        # print("Initialize called with pidl", repr(pidl))
+        # print("Initialize called with pidl={pidl!r}")
         self.pidl = pidl
 
     def CreateViewObject(self, hwnd, iid):

@@ -84,9 +84,9 @@ def test():
             str(com_exc),
         )
     # Check we saw a traceback in stderr
-    assert (
-        cap.get_captured().find("Traceback") >= 0
-    ), f"Could not find a traceback in stderr: {cap.get_captured()!r}"
+    assert cap.get_captured().find("Traceback") >= 0, (
+        f"Could not find a traceback in stderr: {cap.get_captured()!r}"
+    )
 
     # Now do it all again, but using IDispatch
     com_server = Dispatch(wrap(TestServer()))
@@ -131,9 +131,9 @@ def test():
             str(com_exc),
         )
     # Check we saw a traceback in stderr
-    assert (
-        cap.get_captured().find("Traceback") >= 0
-    ), f"Could not find a traceback in stderr: {cap.get_captured()!r}"
+    assert cap.get_captured().find("Traceback") >= 0, (
+        f"Could not find a traceback in stderr: {cap.get_captured()!r}"
+    )
 
     # And an explicit com_error
     cap.clear()
@@ -158,7 +158,7 @@ def test():
             "The source in the exception tuple did not yield the correct string",
             str(com_exc),
         )
-        assert exc[2] == "\U0001F600", (
+        assert exc[2] == "\U0001f600", (
             "The description in the exception tuple did not yield the correct string",
             str(com_exc),
         )
@@ -213,7 +213,7 @@ if logging is not None:
         except pythoncom.error as exc:
             # `excepinfo` is a tuple with elt 2 being the traceback we captured.
             message = exc.excepinfo[2]
-            assert message.endswith("Exception: \U0001F600\n")
+            assert message.endswith("Exception: \U0001f600\n")
         assert handler.num_emits == 1, handler.num_emits
         assert handler.last_record.startswith(
             "pythoncom error: Unexpected exception in gateway method 'Commit'"
@@ -228,7 +228,7 @@ if logging is not None:
         except pythoncom.error as exc:
             # `excepinfo` is a tuple with elt 2 being the traceback we captured.
             message = exc.excepinfo[2]
-            assert message.endswith("Exception: \U0001F600\n")
+            assert message.endswith("Exception: \U0001f600\n")
         assert handler.num_emits == 1, handler.num_emits
         handler.reset()
 

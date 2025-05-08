@@ -16,6 +16,7 @@ the way they were, simply use this magic incantation:
     import sys
     sys.stdin = sys.stdin.real_file
 """
+
 import sys
 
 get_input_line = input
@@ -168,4 +169,4 @@ Sell you soul to the devil, baby
     finally:
         get_input_line = input
 else:
-    sys.stdin = Stdin()  # type: ignore[assignment] # Not an actual TextIO
+    sys.stdin = Stdin()

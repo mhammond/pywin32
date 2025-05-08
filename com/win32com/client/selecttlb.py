@@ -1,5 +1,4 @@
-"""Utilities for selecting and enumerating the Type Libraries installed on the system
-"""
+"""Utilities for selecting and enumerating the Type Libraries installed on the system"""
 
 import pythoncom
 import win32api
@@ -114,8 +113,8 @@ def EnumTlbs(excludeFlags=0):
             # The Resolve() method on the TypelibSpec does this.
             # For this reason, keep the version numbers as strings - that
             # way we can't be wrong!  Let code that really needs an int to work
-            # out what to do.  FWIW, http://support.microsoft.com/kb/816970 is
-            # pretty clear that they *should* be hex.
+            # out what to do.  FWIW, https://www.betaarchive.com/wiki/index.php?title=Microsoft_KB_Archive/816970
+            # is pretty clear that they *should* be hex.
             major = major_minor[0]
             minor = major_minor[1]
             key3 = win32api.RegOpenKey(key2, str(version))

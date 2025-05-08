@@ -2,11 +2,10 @@
 import sys
 
 import __main__
-import regutil
-import win32api
-import win32ui
+import pywin.dialogs.list
 
-demos = [  # 	('Font', 'import fontdemo;fontdemo.FontDemo()'),
+demos = [
+    ("Font", "import fontdemo;fontdemo.FontDemo()"),
     ("Open GL Demo", "import openGLDemo;openGLDemo.test()"),
     ("Threaded GUI", "import threadedgui;threadedgui.ThreadedDemo()"),
     ("Tree View Demo", "import hiertest;hiertest.demoboth()"),
@@ -19,58 +18,32 @@ demos = [  # 	('Font', 'import fontdemo;fontdemo.FontDemo()'),
     ("OCX Control Demo", "from ocx import ocxtest;ocxtest.demo()"),
     ("OCX Serial Port Demo", "from ocx import ocxserialtest; ocxserialtest.test()"),
     (
-        "IE4 Control Demo",
-        'from ocx import webbrowser; webbrowser.Demo("http://www.python.org")',
+        "Internet Explorer Control Demo",
+        'from ocx import webbrowser; webbrowser.Demo("https://www.python.org")',
     ),
 ]
 
 
-def demo():
+def _exec_demo(cmd):
     try:
-        # seeif I can locate the demo files.
-        import fontdemo
-    except ImportError:
-        # else put the demos direectory on the path (if not already)
-        try:
-            instPath = regutil.GetRegistryDefaultValue(
-                regutil.BuildDefaultPythonKey() + "\\InstallPath"
-            )
-        except win32api.error:
-            print(
-                "The InstallPath can not be located, and the Demos directory is not on the path"
-            )
-            instPath = "."
+        exec(cmd)
+    except Exception as error:
+        print(f"Demo of {cmd} failed - {type(error)}:{error}")
 
-        demosDir = win32ui.FullPath(instPath + "\\Demos")
-        for path in sys.path:
-            if win32ui.FullPath(path) == demosDir:
-                break
-        else:
-            sys.path.append(demosDir)
-        import fontdemo
 
-    import sys
-
+def demo():
     if "/go" in sys.argv:
         for name, cmd in demos:
-            try:
-                exec(cmd)
-            except:
-                print(f"Demo of {cmd} failed - {sys.exc_info()[0]}:{sys.exc_info()[1]}")
+            _exec_demo(cmd)
         return
+
     # Otherwise allow the user to select the demo to run
-
-    import pywin.dialogs.list
-
-    while 1:
+    while True:
         rc = pywin.dialogs.list.SelectFromLists("Select a Demo", demos, ["Demo Title"])
         if rc is None:
             break
         title, cmd = demos[rc]
-        try:
-            exec(cmd)
-        except:
-            print(f"Demo of {title} failed - {sys.exc_info()[0]}:{sys.exc_info()[1]}")
+        _exec_demo(cmd)
 
 
 if __name__ == __main__.__name__:

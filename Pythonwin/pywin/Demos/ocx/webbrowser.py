@@ -1,4 +1,4 @@
-# This demo uses the IE4 Web Browser control.
+# This demo uses the Internet Explorer Web Browser control.
 
 # It catches an "OnNavigate" event, and updates the frame title.
 # (event stuff by Neil Hodgson)
@@ -16,7 +16,7 @@ WebBrowserModule = gencache.EnsureModule(
     "{EAB22AC0-30C1-11CF-A7EB-0000C05BAE0B}", 0, 1, 1
 )
 if WebBrowserModule is None:
-    raise ImportError("IE4 does not appear to be installed.")
+    raise ImportError("Internet Explorer does not appear to be installed.")
 
 
 class MyWebBrowser(activex.Control, WebBrowserModule.WebBrowser):
@@ -32,7 +32,7 @@ class BrowserFrame(window.MDIChildWnd):
         if url is None:
             self.url = regutil.GetRegisteredHelpFile("Main Python Documentation")
             if self.url is None:
-                self.url = "http://www.python.org"
+                self.url = "https://www.python.org"
         else:
             self.url = url
         pass  # Don't call base class doc/view version...

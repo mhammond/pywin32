@@ -26,7 +26,7 @@ class _BaseAuth:
 
     def reset(self):
         """Reset everything to an unauthorized state"""
-        self.ctxt = None
+        self.ctxt: win32security.PyCtxtHandleType | None = None
         self.authenticated = False
         self.initiator_name = None
         self.service_name = None
@@ -100,7 +100,7 @@ class _BaseAuth:
     def unwrap(self, token):
         """
         GSSAPI's unwrap with SSPI.
-        https://docs.microsoft.com/en-us/windows/win32/secauthn/sspi-kerberos-interoperability-with-gssapi
+        https://learn.microsoft.com/en-us/windows/win32/secauthn/sspi-kerberos-interoperability-with-gssapi
 
         Usable mainly with Kerberos SSPI package, but this is not enforced.
 
@@ -125,7 +125,7 @@ class _BaseAuth:
     def wrap(self, msg, encrypt=False):
         """
         GSSAPI's wrap with SSPI.
-        https://docs.microsoft.com/en-us/windows/win32/secauthn/sspi-kerberos-interoperability-with-gssapi
+        https://learn.microsoft.com/en-us/windows/win32/secauthn/sspi-kerberos-interoperability-with-gssapi
 
         Usable mainly with Kerberos SSPI package, but this is not enforced.
 

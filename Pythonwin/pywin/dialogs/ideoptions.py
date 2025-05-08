@@ -114,26 +114,23 @@ class OptionsPropPage(dialog.PropertyPage):
     def OnFormatTitle(self, command, code):
         fmt = self.GetFormat(interact.formatTitle)
         if fmt:
-            formatTitle = fmt
+            interact.formatTitle = fmt
             interact.SaveFontPreferences()
 
     def OnFormatInput(self, command, code):
-        global formatInput
-        fmt = self.GetFormat(formatInput)
+        fmt = self.GetFormat(interact.formatInput)
         if fmt:
-            formatInput = fmt
+            interact.formatInput = fmt
             interact.SaveFontPreferences()
 
     def OnFormatOutput(self, command, code):
-        global formatOutput
-        fmt = self.GetFormat(formatOutput)
+        fmt = self.GetFormat(interact.formatOutput)
         if fmt:
-            formatOutput = fmt
+            interact.formatOutput = fmt
             interact.SaveFontPreferences()
 
     def OnFormatError(self, command, code):
-        global formatOutputError
-        fmt = self.GetFormat(formatOutputError)
+        fmt = self.GetFormat(interact.formatOutputError)
         if fmt:
-            formatOutputError = fmt
+            interact.formatOutputError = fmt
             interact.SaveFontPreferences()

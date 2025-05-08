@@ -6,7 +6,7 @@ import time
 import types
 
 import pythoncom
-from win32com.client import Dispatch, DispatchWithEvents
+from win32com.client import DispatchWithEvents
 
 stopEvent = threading.Event()
 
@@ -57,8 +57,8 @@ def TestExcel():
     book = e.Workbooks.Add()
     book = DispatchWithEvents(book, WorkbookEvents)
     print("Have book", book)
-    #    sheet = e.Worksheets(1)
-    #    sheet = DispatchWithEvents(sheet, WorksheetEvents)
+    # sheet = e.Worksheets(1)
+    # sheet = DispatchWithEvents(sheet, WorksheetEvents)
 
     print("Double-click in a few of the Excel cells...")
     print("Press any key when finished with Excel, or wait 10 seconds...")
@@ -99,7 +99,7 @@ def _WaitForFinish(ob, timeout):
             break
         pythoncom.PumpWaitingMessages()
         stopEvent.wait(0.2)
-        if stopEvent.isSet():
+        if stopEvent.is_set():
             stopEvent.clear()
             break
         try:
