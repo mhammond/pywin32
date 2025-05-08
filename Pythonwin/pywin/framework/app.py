@@ -128,13 +128,10 @@ class CApp(WinApp):
         HookInput()
         numMRU = win32ui.GetProfileVal("Settings", "Recent File List Size", 10)
         win32ui.LoadStdProfileSettings(numMRU)
-        # 		self._obj_.InitMDIInstance()
-        if win32api.GetVersionEx()[0] < 4:
-            win32ui.SetDialogBkColor()
-            win32ui.Enable3dControls()
+        # self._obj_.InitMDIInstance()
 
         # install a "callback caller" - a manager for the callbacks
-        # 		self.oldCallbackCaller = win32ui.InstallCallbackCaller(self.CallbackManager)
+        # self.oldCallbackCaller = win32ui.InstallCallbackCaller(self.CallbackManager)
         self.LoadMainFrame()
         self.SetApplicationPaths()
 
