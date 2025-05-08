@@ -26,7 +26,7 @@ def Callback(hras, msg, state, error, exterror):
         win32event.SetEvent(callbackEvent)
     if error != 0 or int(state) == win32ras.RASCS_Disconnected:
         # we know for sure this is a good place to hangup....
-        print("Detected call failure: %s" % win32ras.GetErrorString(error))
+        print("Detected call failure: {}".format(win32ras.GetErrorString(error)))
         HangUp(hras)
         win32event.SetEvent(callbackEvent)
 
@@ -68,7 +68,7 @@ def Connect(entryName, bUseCallback):
     try:
         dp, b = win32ras.GetEntryDialParams(None, entryName)
     except:
-        print("Couldn't find DUN entry: %s" % entryName)
+        print("Couldn't find DUN entry: {}".format(entryName))
     else:
         hras, rc = win32ras.Dial(
             None, None, (entryName, "", "", dp[3], dp[4], ""), theCallback
