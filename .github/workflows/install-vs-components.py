@@ -1,3 +1,6 @@
+# See https://github.com/actions/runner-images/issues/9701
+# Adapted from https://github.com/actions/runner-images/issues/9873#issuecomment-2139288682
+
 import os
 import platform
 from itertools import chain
@@ -16,7 +19,7 @@ vs_install_path = check_output(
         "installationPath",
     ),
     text=True,
-)
+).strip()
 components_to_add = (
     ["Microsoft.VisualStudio.Component.VC.14.29.16.11.ATL.ARM64"]
     if platform.machine() == "ARM64"
@@ -26,7 +29,7 @@ args = (
     "vs_installer.exe",
     "modify",
     "--installPath",
-    f'"{vs_install_path}"',
+    vs_install_path,
     *chain.from_iterable([("--add", component) for component in components_to_add]),
     "--quiet",
     "--norestart",

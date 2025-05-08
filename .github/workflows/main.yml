@@ -63,11 +63,9 @@ jobs:
           pywin32_postinstall -remove -destination "$UserSite"
 
       # Compilation and registration of the PyCOMTest server dll
-      - name: Set up MSVC
+      - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v2
 
-      # See https://github.com/actions/runner-images/issues/9701
-      # Adapted from https://github.com/actions/runner-images/issues/9873#issuecomment-2139288682
       - name: Install missing Visual Studio components
         run: python .github\workflows\install-vs-components.py
 
