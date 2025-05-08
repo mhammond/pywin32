@@ -25,7 +25,7 @@ args = (
     "vs_installer.exe",
     "modify",
     "--installPath",
-    vs_install_path,
+    f'"{vs_install_path}"',
     *[f"--add {component}" for component in components_to_add],
     "--quiet",
     "--norestart",
