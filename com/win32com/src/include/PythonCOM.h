@@ -265,6 +265,10 @@ PYCOM_EXPORT BOOL PyCom_PyObjectAsSTATPROPSETSTG(PyObject *, STATPROPSETSTG *);
 PYCOM_EXPORT PyObject *PyObject_FromCurrency(CURRENCY &cy);
 PYCOM_EXPORT BOOL PyObject_AsCurrency(PyObject *ob, CURRENCY *pcy);
 
+// Decimal support.
+PYCOM_EXPORT PyObject *PyObject_FromDecimal(DECIMAL &dec);
+PYCOM_EXPORT BOOL PyObject_AsDecimal(PyObject *ob, DECIMAL *pdec);
+
 // OLEMENUGROUPWIDTHS are used by axcontrol, shell, etc
 PYCOM_EXPORT BOOL PyObject_AsOLEMENUGROUPWIDTHS(PyObject *oblpMenuWidths, OLEMENUGROUPWIDTHS *pWidths);
 PYCOM_EXPORT PyObject *PyObject_FromOLEMENUGROUPWIDTHS(const OLEMENUGROUPWIDTHS *pWidths);
@@ -692,6 +696,7 @@ class PYCOM_EXPORT PythonOleArgHelper {
         VARIANT *m_varBuf;
         DATE m_dateBuf;
         CY m_cyBuf;
+        DECIMAL m_decBuf;
     };
 };
 

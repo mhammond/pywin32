@@ -906,6 +906,38 @@ HRESULT CPyCOMTest::AddCurrencies(CY v1, CY v2, CY *pret)
     return S_OK;
 }
 
+HRESULT CPyCOMTest::DoubleDecimalByVal(DECIMAL *v)
+{
+    // Define a DECIMAL value for 2
+    DECIMAL decFactor = {};
+    decFactor.scale = 0;
+    decFactor.sign = 0;
+    decFactor.Hi32 = 0;
+    decFactor.Mid32 = 0;
+    decFactor.Lo32 = 2;
+
+    DECIMAL result;
+    HRESULT hr = VarDecMul(v, &decFactor, &result);
+    if (FAILED(hr))
+        return hr;
+    *v = result;
+    return S_OK;
+}
+
+HRESULT CPyCOMTest::DoubleDecimal(DECIMAL v, DECIMAL *ret)
+{
+    DECIMAL decFactor = {};
+    decFactor.scale = 0;
+    decFactor.sign = 0;
+    decFactor.Hi32 = 0;
+    decFactor.Mid32 = 0;
+    decFactor.Lo32 = 2;
+
+    return VarDecMul(&v, &decFactor, ret);
+}
+
+HRESULT CPyCOMTest::AddDecimals(DECIMAL v1, DECIMAL v2, DECIMAL *pret) { return VarDecAdd(&v1, &v2, pret); }
+
 HRESULT CPyCOMTest::NotScriptable(int *val)
 {
     (*val)++;
@@ -965,6 +997,20 @@ HRESULT CPyCOMTest::get_CurrencyProp(CY *ret)
     if (!ret)
         return E_POINTER;
     *ret = (CY)m_cy;
+    return S_OK;
+}
+
+HRESULT CPyCOMTest::put_DecimalProp(DECIMAL val)
+{
+    m_dec = val;
+    return S_OK;
+}
+
+HRESULT CPyCOMTest::get_DecimalProp(DECIMAL *ret)
+{
+    if (!ret)
+        return E_POINTER;
+    *ret = (DECIMAL)m_dec;
     return S_OK;
 }
 
