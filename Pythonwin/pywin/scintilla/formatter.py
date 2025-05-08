@@ -638,20 +638,35 @@ class PythonSourceFormatter(Formatter):
 
 # These taken from the SciTE properties file.
 source_formatter_extensions = [
-    (".py .pys .pyw".split(), scintillacon.SCLEX_PYTHON),
-    (".html .htm .asp .shtml".split(), scintillacon.SCLEX_HTML),
+    ((".py", ".pys", ".pyw"), scintillacon.SCLEX_PYTHON),
+    ((".html", ".htm", ".asp", ".shtml"), scintillacon.SCLEX_HTML),
     (
-        "c .cc .cpp .cxx .h .hh .hpp .hxx .idl .odl .php3 .phtml .inc .js".split(),
+        (
+            "c",
+            ".cc",
+            ".cpp",
+            ".cxx",
+            ".h",
+            ".hh",
+            ".hpp",
+            ".hxx",
+            ".idl",
+            ".odl",
+            ".php3",
+            ".phtml",
+            ".inc",
+            ".js",
+        ),
         scintillacon.SCLEX_CPP,
     ),
-    (".vbs .frm .ctl .cls".split(), scintillacon.SCLEX_VB),
-    (".pl .pm .cgi .pod".split(), scintillacon.SCLEX_PERL),
-    (".sql .spec .body .sps .spb .sf .sp".split(), scintillacon.SCLEX_SQL),
-    (".tex .sty".split(), scintillacon.SCLEX_LATEX),
-    (".xml .xul".split(), scintillacon.SCLEX_XML),
-    (".err".split(), scintillacon.SCLEX_ERRORLIST),
-    (".mak".split(), scintillacon.SCLEX_MAKEFILE),
-    (".bat .cmd".split(), scintillacon.SCLEX_BATCH),
+    ((".vbs", ".frm", ".ctl", ".cls"), scintillacon.SCLEX_VB),
+    ((".pl", ".pm", ".cgi", ".pod"), scintillacon.SCLEX_PERL),
+    ((".sql", ".spec", ".body", ".sps", ".spb", ".sf", ".sp"), scintillacon.SCLEX_SQL),
+    ((".tex", ".sty"), scintillacon.SCLEX_LATEX),
+    ((".xml", ".xul"), scintillacon.SCLEX_XML),
+    ((".err"), scintillacon.SCLEX_ERRORLIST),
+    ((".mak"), scintillacon.SCLEX_MAKEFILE),
+    ((".bat", ".cmd"), scintillacon.SCLEX_BATCH),
 ]
 
 
