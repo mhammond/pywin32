@@ -34,7 +34,6 @@ args = (
     *chain.from_iterable([("--add", component) for component in components_to_add]),
     "--quiet",
     "--norestart",
-    "--nocache",
 )
 print(*args)
 
