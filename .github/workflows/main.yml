@@ -69,17 +69,7 @@ jobs:
       # See https://github.com/actions/runner-images/issues/9701
       # Adapted from https://github.com/actions/runner-images/issues/9873#issuecomment-2139288682
       - name: Install missing Visual Studio components
-        run: |
-          Set-Location "C:\Program Files (x86)\Microsoft Visual Studio\Installer\"
-          $VsInstallPath = vswhere.exe -latest -products * -requires Microsoft.Component.MSBuild -property installationPath
-          [string]$ComponentsToAdd = @(
-            "Microsoft.VisualStudio.Component.VC.14.29.16.11.ATL"
-          ) | ForEach-Object {"--add $_"}
-          $ArgumentList = ('modify', '--installPath', "`"$VsInstallPath`"", $ComponentsToAdd, '--quiet', '--norestart', '--nocache')
-          echo "vs_installer.exe $($ArgumentList -join ' ')"
-          # should be run twice for some reason
-          Start-Process -FilePath vs_installer.exe -ArgumentList $ArgumentList -Wait -PassThru -WindowStyle Hidden
-          Start-Process -FilePath vs_installer.exe -ArgumentList $ArgumentList -Wait -PassThru -WindowStyle Hidden
+        run: python .github\workflows\install-vs-components.py
 
       - name: Build and register the PyCOMTest server dll
         run: |
