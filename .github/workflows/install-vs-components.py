@@ -4,7 +4,7 @@
 import os
 import platform
 from itertools import chain
-from subprocess import check_call, check_output
+from subprocess import check_call, check_output, run
 
 os.chdir("C:/Program Files (x86)/Microsoft Visual Studio/Installer")
 vs_install_path = check_output(
@@ -19,6 +19,7 @@ vs_install_path = check_output(
         "installationPath",
     ),
     text=True,
+    shell=True,
 ).strip()
 components_to_add = (
     ["Microsoft.VisualStudio.Component.VC.14.29.16.11.ATL.ARM64"]
@@ -35,7 +36,10 @@ args = (
     "--norestart",
     "--nocache",
 )
+print(*args)
 
 # Should be run twice for some reason
-check_call(args)
+print("First run...")
+run(args, capture_output=True, check=True)
+print("Second run...")
 check_call(args)
