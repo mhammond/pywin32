@@ -4,7 +4,7 @@
 import os
 import platform
 from itertools import chain
-from subprocess import CalledProcessError, Popen, check_call, check_output, run
+from subprocess import Popen, check_call, check_output, run
 
 os.chdir("C:/Program Files (x86)/Microsoft Visual Studio/Installer")
 vs_install_path = check_output(
@@ -38,7 +38,7 @@ args = (
 print(*args)
 
 # Should be run twice for some reason
-for process in (Popen(args), Popen(args)):
-    process.wait()
-    if process.returncode != 0:
-        raise CalledProcessError(process.returncode, process.args)
+print("First run...")
+check_call(args)
+print("Second run...")
+check_call(args)
