@@ -3,7 +3,7 @@
 This describes how to setup the build environment for pywin32.
 
 Double check the compiler version you need in the [Python wiki](https://wiki.python.org/moin/WindowsCompilers)
-but note that Python 3.5 -> 3.13 all use version 14.X of the compiler, which,
+but note that Python 3.5+ all use version 14.X of the compiler, which,
 confusingly, report themselves as V.19XX (eg, note in Python's banner,
 3.5's "MSC v.1900", even 3.9b4's "MSC v.1924")
 
