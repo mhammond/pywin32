@@ -1,4 +1,4 @@
-﻿Notable changes in recent builds.
+Notable changes in recent builds.
 
 Maintained by hand, so what's "notable" is subjective! Contributors are
 encouraged to add entries for their work.
@@ -15,7 +15,15 @@ Coming in build 311, as yet unreleased
 --------------------------------------
 * Fixed `AttributeError: 'Enumerator' object has no attribute 'resultCLSID'` when cloning a win32com client enumerator (#2333, @Avasam)
 * Fixed a regression that broke special __dunder__ methods with CoClass. (#1870, #2493, @Avasam, @geppi)
+* Fixed `TypeError: cannot unpack non-iterable NoneType object` when registering an axscript client ScriptItem (#2513, @Avasam)
+* Fixed a memory leak when SafeArrays are used as out parameters (@the-snork)
 * Fixed dispatch handling for properties (@the-snork)
+* Resolved a handful of deprecation warnings (#2567, #2576, @Avasam)
+* The following classes now produce a valid `eval` string representation when calling `repr`: (#2573, @Avasam)
+  * `pywin.tools.browser.HLIPythonObject`
+  * `win32com.server.exception.COMException`
+  * `win32comext.axscript.client.error.AXScriptException`
+  * `win32comext.axscript.client.pyscript.NamedScriptAttribute`
 
 Build 310, released 2025/03/16
 ------------------------------
