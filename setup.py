@@ -134,11 +134,14 @@ class WinExt(Extension):
                 # https://learn.microsoft.com/en-us/cpp/porting/modifying-winver-and-win32-winnt
                 ("_WIN32_WINNT", hex(0x0601)),
                 ("WINVER", hex(0x0601)),
-                # Temporary workaround for Python 3.14 generated headers
-                # https://github.com/python/cpython/issues/133779#issuecomment-2867685033
-                ("Py_GIL_DISABLED", 0),
             )
         )
+
+        undef_macros = undef_macros or []
+        # Temporary workaround for Python 3.14 generated headers
+        # https://github.com/python/cpython/issues/133779#issuecomment-2867685033
+        undef_macros.append("Py_GIL_DISABLED")
+
         self.pch_header = pch_header
         self.extra_swig_commands = extra_swig_commands or []
         self.optional_headers = optional_headers
