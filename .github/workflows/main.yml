@@ -22,7 +22,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13", "3.14-dev"]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
         architecture: ["x64", "x86"]
 
     steps:
@@ -36,6 +36,7 @@ jobs:
           cache: pip
           cache-dependency-path: .github/workflows/main.yml
           check-latest: true
+          allow-prereleases: true
 
       - name: Fix user Scripts missing from PATH
         if: matrix.architecture == 'x86'
@@ -98,7 +99,7 @@ jobs:
       fail-fast: false
       matrix:
         # pythonarm64 NuGet's has no download for Python ~=3.9.11
-        python-version: ["3.9.10", "3.10", "3.11", "3.12", "3.13", "3.14-dev"]
+        python-version: ["3.9.10", "3.10", "3.11", "3.12", "3.13", "3.14"]
     steps:
       - uses: actions/checkout@v4
 
@@ -110,9 +111,10 @@ jobs:
           cache: pip
           cache-dependency-path: .github/workflows/main.yml
           check-latest: true
+          allow-prereleases: true
 
       - name: Install build module
-        run: pip install --upgrade  build
+        run: pip install --upgrade build
 
       - name: Obtain ARM64 library files
         run: python .github\workflows\download-arm64-libs.py .\arm64libs
@@ -173,13 +175,13 @@ jobs:
           if ($LastExitCode -ne 0) { exit $LastExitCode }
         if: ${{ !cancelled() }}
 
-  mypy:
+  type-checkers:
     runs-on: windows-2019
     timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -188,28 +190,14 @@ jobs:
           cache: pip
           cache-dependency-path: .github/workflows/main.yml
           check-latest: true
-      - run: pip install types-setuptools PyOpenGL mypy[faster-cache]==1.14.*
+          allow-prereleases: true
+      - run: pip install types-setuptools PyOpenGL mypy[faster-cache]==1.15.*
+
       - run: mypy . --python-version=${{ matrix.python-version }}
 
-  pyright:
-    runs-on: windows-2019
-    timeout-minutes: 20
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14-dev"]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-          cache: pip
-          cache-dependency-path: .github/workflows/main.yml
-          check-latest: true
-      # pyright vendors typeshed, but let's make sure we have the most up to date stubs
-      - run: pip install types-setuptools PyOpenGL
       - uses: jakebailey/pyright-action@v2
         with:
           python-version: ${{ matrix.python-version }}
-          version: "1.1.396"
+          version: "1.1.400"
           annotate: errors
+        if: ${{ !cancelled() }} # Show issues even if the previous steps failed. But still fail the job
