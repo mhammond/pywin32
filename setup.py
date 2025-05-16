@@ -47,11 +47,9 @@ from typing import TYPE_CHECKING, Iterable
 if TYPE_CHECKING:
     from setuptools._distutils import ccompiler
     from setuptools._distutils._msvccompiler import MSVCCompiler
-    from setuptools._distutils.command.install_data import install_data
 else:
     from distutils import ccompiler
     from distutils._msvccompiler import MSVCCompiler
-    from distutils.command.install_data import install_data
 
 
 def my_new_compiler(**kw):
@@ -940,22 +938,6 @@ class my_compiler(MSVCCompiler):
 
     def set_libraries(self, libs):
         self.libraries.extend(libs)
-
-
-################################################################
-
-
-class my_install_data(install_data):
-    """A custom install_data command, which will install it's files
-    into the standard directories (normally lib/site-packages).
-    """
-
-    def finalize_options(self):
-        if self.install_dir is None:
-            installobj = self.distribution.get_command_obj("install")
-            self.install_dir = installobj.install_lib
-        print("Installing data files to %s" % self.install_dir)
-        install_data.finalize_options(self)
 
 
 ################################################################
@@ -1990,12 +1972,6 @@ ext_modules = (
     win32_extensions + com_extensions + pythonwin_extensions + other_extensions
 )
 
-cmdclass = {
-    "build": my_build,
-    "build_ext": my_build_ext,
-    "install_data": my_install_data,
-}
-
 classifiers = [
     "Environment :: Win32 (MS Windows)",
     "Intended Audience :: Developers",
@@ -2023,7 +1999,10 @@ dist = setup(
     url="https://github.com/mhammond/pywin32",
     license="PSF",
     classifiers=classifiers,
-    cmdclass=cmdclass,
+    cmdclass={
+        "build": my_build,
+        "build_ext": my_build_ext,
+    },
     # This adds the scripts under Python3XX/Scripts, but doesn't actually do much
     scripts=[
         "win32/scripts/pywin32_postinstall.py",
