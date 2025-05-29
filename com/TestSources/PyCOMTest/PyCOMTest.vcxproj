@@ -22,7 +22,9 @@
     <VCProjectVersion>17.0</VCProjectVersion>
     <ProjectGuid>{8EB3046C-6CE8-4537-9B58-6EDD46E6D632}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <WindowsTargetPlatformVersion>10.0.22000.0</WindowsTargetPlatformVersion>
+    <!-- Target Windows Server 2022 which GitHub Actions run on -->
+    <!-- https://github.com/actions/runner-images/blob/main/images/windows/Windows2022-Readme.md#windows-server-2022 -->
+    <WindowsTargetPlatformVersion>10.0.20348.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
