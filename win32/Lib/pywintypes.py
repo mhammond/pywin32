@@ -3,6 +3,7 @@ import importlib.machinery
 import importlib.util
 import os
 import sys
+from typing import TYPE_CHECKING, Any
 
 
 def __import_pywin32_system_module__(modname, globs):
@@ -122,3 +123,10 @@ def __import_pywin32_system_module__(modname, globs):
 
 
 __import_pywin32_system_module__("pywintypes", globals())
+
+# This module dynamically re-exports from a C-Extension.
+# Prevent attribute access issues with checkers and language servers (IDEs)
+# External usage should still prefer typeshed stubs
+if TYPE_CHECKING:
+
+    def __getattr__(name: str) -> Any: ...
