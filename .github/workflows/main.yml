@@ -177,7 +177,7 @@ jobs:
           if ($LastExitCode -ne 0) { exit $LastExitCode }
         if: ${{ !cancelled() }}
 
-  mypy:
+  type-checkers:
     runs-on: windows-2022
     timeout-minutes: 25
     strategy:
