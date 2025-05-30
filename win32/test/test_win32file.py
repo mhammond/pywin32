@@ -557,8 +557,7 @@ class TestFindFiles(unittest.TestCase):
     def testIter(self):
         dir = os.path.join(os.getcwd(), "*")
         files = win32file.FindFilesW(dir)
-        set1 = set()
-        set1.update(files)
+        set1 = set(files)
         set2 = set()
         for file in win32file.FindFilesIterator(dir):
             set2.add(file)
