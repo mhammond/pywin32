@@ -1,7 +1,8 @@
 [build-system]
-# As of setuptools==74, we no longer need to
-# be concerned about distutils calling win32api
-# setuptools==76.1 breaks building of .mc files
-# win32/src/PythonService.cpp(49): fatal error C1083: Cannot open include file: 'PythonServiceMessages.h': No such file or directory
-requires = ["setuptools>=74,<76.1"]
+# setuptools==77.0.3 made PEP-639 license deprecations introduced by 77.0.0 into warnings rather than errors
+# setuptools==75.4 dropped support for Python 3.8
+requires = [
+  "setuptools >=77.0.3; python_version >='3.9'",
+  "setuptools <76.1; python_version <'3.9'",
+]
 build-backend = "setuptools.build_meta"
