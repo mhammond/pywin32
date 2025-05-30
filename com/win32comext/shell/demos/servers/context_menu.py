@@ -2,7 +2,7 @@
 # Adds a 'Hello from Python' menu entry to .py files.  When clicked, a
 # simple message box is displayed.
 #
-# To demostrate:
+# To demonstrate:
 # * Execute this script to register the context menu.
 # * Open Windows Explorer, and browse to a directory with a .py file.
 # * Right-Click on a .py file - locate and click on 'Hello from Python' on

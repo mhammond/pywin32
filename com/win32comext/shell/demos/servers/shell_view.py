@@ -1,6 +1,6 @@
 # A sample shell namespace view
 
-# To demostrate:
+# To demonstrate:
 # * Execute this script to register the namespace.
 # * Open Windows Explorer, and locate the new "Python Path Shell Browser"
 #   folder off "My Computer"

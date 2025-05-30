@@ -625,7 +625,7 @@ void DefaultExceptionHandler(int action, const TCHAR *context, const TCHAR *extr
     PyObject *type, *value, *traceback;
     PyErr_Fetch(&type, &value, &traceback);
     if (!type) {
-        TRACE("DefaultExceptionHandler: no exception occured!\n");
+        TRACE("DefaultExceptionHandler: no exception occurred!\n");
         return;
     }
     if (action == EHA_PRINT_ERROR) {

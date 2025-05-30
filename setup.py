@@ -143,7 +143,7 @@ class WinExt(Extension):
                 ("DISTUTILS_BUILD", None),
                 ("_CRT_SECURE_NO_WARNINGS", None),
                 # CRYPT_DECRYPT_MESSAGE_PARA.dwflags is in an ifdef for some unknown reason
-                # See github PR #1444 for more details...
+                # See GitHub PR #1444 for more details...
                 ("CRYPT_DECRYPT_MESSAGE_PARA_HAS_EXTRA_FIELDS", None),
                 # Minimum Windows version supported (Windows 7)
                 # https://learn.microsoft.com/en-us/cpp/porting/modifying-winver-and-win32-winnt
@@ -1897,9 +1897,9 @@ def expand_modules(module_dir: str | os.PathLike[str]):
 
 
 # NOTE: somewhat counter-intuitively, a result list a-la:
-#  [('Lib/site-packages\\pythonwin', ('pythonwin/license.txt',)),]
-# will 'do the right thing' in terms of installing licence.txt into
-# 'Lib/site-packages/pythonwin/licence.txt'.  We exploit this to
+#  [('Lib/site-packages\\pythonwin', ('pythonwin/License.txt',)),]
+# will 'do the right thing' in terms of installing License.txt into
+# 'Lib/site-packages/pythonwin/License.txt'.  We exploit this to
 # get 'com/win32com/whatever' installed to 'win32com/whatever'
 def convert_data_files(files: Iterable[str]):
     ret: list[tuple[str, tuple[str]]] = []
