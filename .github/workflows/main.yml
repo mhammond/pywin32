@@ -17,13 +17,13 @@ env:
 jobs:
   test:
     name: Build and test
-    runs-on: windows-2019
-    timeout-minutes: 20
+    runs-on: windows-2022
+    timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
-        architecture: ["x64", "x86"]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13", "3.14-dev"]
+        architecture: [x64, x86]
 
     steps:
       - uses: actions/checkout@v4
@@ -63,14 +63,16 @@ jobs:
           pywin32_postinstall -remove -destination "$UserSite"
 
       # Compilation and registration of the PyCOMTest server dll
-      - name: Set up MSVC
+      - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v2
+
+      - name: Install missing Visual Studio components
+        run: python .github\workflows\install-vs-components.py
+
       - name: Build and register the PyCOMTest server dll
         run: |
-          cd com/TestSources/PyCOMTest
-          msbuild .\PyCOMTest.sln -property:Configuration=Release
-          cd x64/Release
-          regsvr32 .\PyCOMTest.dll
+          msbuild com/TestSources/PyCOMTest/PyCOMTest.sln -property:Configuration=Release
+          regsvr32 com/TestSources/PyCOMTest/x64/Release/PyCOMTest.dll
 
       - name: Run tests
         # Run the tests directly from the source dir so support files (eg, .wav files etc)
@@ -92,13 +94,13 @@ jobs:
   # Later, when available, we can add tests using this wheel on ARM64 VMs
   build_arm64:
     name: Cross-compile ARM
-    runs-on: windows-2019
-    timeout-minutes: 20
+    runs-on: windows-2022
+    timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
         # pythonarm64 NuGet's has no download for Python ~=3.9.11
-        python-version: ["3.9.10", "3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.9.10", "3.10", "3.11", "3.12", "3.13", "3.14-dev"]
     steps:
       - uses: actions/checkout@v4
 
@@ -142,8 +144,8 @@ jobs:
 
   # This job can be run locally by running `pre-commit run`
   checkers:
-    runs-on: windows-2019
-    timeout-minutes: 20
+    runs-on: windows-2022
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -174,8 +176,8 @@ jobs:
         if: ${{ !cancelled() }}
 
   mypy:
-    runs-on: windows-2019
-    timeout-minutes: 20
+    runs-on: windows-2022
+    timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
@@ -192,12 +194,12 @@ jobs:
       - run: mypy . --python-version=${{ matrix.python-version }}
 
   pyright:
-    runs-on: windows-2019
-    timeout-minutes: 20
+    runs-on: windows-2022
+    timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14-dev"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
