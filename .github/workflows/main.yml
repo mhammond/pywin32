@@ -191,7 +191,7 @@ jobs:
           cache-dependency-path: .github/workflows/main.yml
           check-latest: true
           allow-prereleases: true
-      - run: pip install types-setuptools PyOpenGL mypy[faster-cache]==1.15.*
+      - run: pip install types-setuptools PyOpenGL mypy==1.16.*
 
       - run: mypy . --python-version=${{ matrix.python-version }}
 
