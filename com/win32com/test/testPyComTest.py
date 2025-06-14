@@ -17,6 +17,7 @@ import win32com.test.util
 import win32timezone
 import winerror
 from win32api import CloseHandle, GetCurrentProcessId, OpenProcess
+from win32com import universal
 from win32com.client import (
     VARIANT,
     CastTo,
@@ -29,8 +30,6 @@ from win32com.client import (
 from win32com.universal import RegisterInterfaces
 from win32process import GetProcessMemoryInfo
 
-importMsg = "**** PyCOMTest is not installed ***\n  PyCOMTest is a Python test specific COM client and server.\n  It is likely this server is not installed on this machine\n  To install the server, you must get the win32com sources\n  and build it using MS Visual C++"
-
 # This test uses a Python implemented COM server - ensure correctly registered.
 win32com.test.util.RegisterPythonServer(
     os.path.join(os.path.dirname(__file__), "..", "servers", "test_pycomtest.py"),
@@ -41,10 +40,14 @@ try:
     gencache.EnsureModule(
         "{6BCDCB60-5605-11D0-AE5F-CADD4C000000}", 0, 1, 1, bForDemand=False
     )
-except pythoncom.com_error:
-    print("The PyCOMTest module can not be located or generated.")
-    print(importMsg)
-    raise RuntimeError(importMsg)
+except pythoncom.com_error as error:
+    importMsg = """*** PyCOMTest is not installed ***
+  PyCOMTest is a Python test specific COM client and server.
+  It is likely this server is not installed on this machine
+  To install the server, you must get the win32com sources
+  and build it using MS Visual C++"""
+    print(f"The PyCOMTest module can not be located or generated.\n{importMsg}\n")
+    raise RuntimeError(importMsg) from error
 
 verbose = 0
 
@@ -69,7 +72,7 @@ class TestStruct2(pythoncom.com_record):
     GUID = "{78F0EA07-B7CF-42EA-A251-A4C6269F76AF}"
 
 
-# We don't need to stick with the struct name in the TypeLibrry for the subclass name.
+# We don't need to stick with the struct name in the TypeLibrary for the subclass name.
 # The following class has the same GUID as TestStruct2 from the TypeLibrary.
 class ArrayOfStructsTestStruct(pythoncom.com_record):
     __slots__ = ()

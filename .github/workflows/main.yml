@@ -2,6 +2,8 @@ name: CI
 
 on:
   push:
+    branches:
+      - main
   pull_request:
     branches:
       - main
@@ -18,7 +20,7 @@ jobs:
   test:
     name: Build and test
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 25
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -48,6 +50,7 @@ jobs:
           cache: pip
           cache-dependency-path: .github/workflows/main.yml
           check-latest: true
+          allow-prereleases: true
 
       - name: Fix user Scripts missing from PATH
         if: matrix.python-architecture == 'x86' || matrix.python-architecture == 'arm64'
@@ -82,9 +85,8 @@ jobs:
         run: python .github\workflows\install-vs-components.py
 
       - name: Build and register the PyCOMTest server dll
-        run: |
-          msbuild com/TestSources/PyCOMTest/PyCOMTest.sln -property:Configuration=Release
-          regsvr32 com/TestSources/PyCOMTest/x64/Release/PyCOMTest.dll
+        # Pass Silent flag to regsvr32 to avoid hanging on confirmation window
+        run: com/TestSources/PyCOMTest/buildAndRegister.bat /s
 
       - name: Run tests
         # Run the tests directly from the source dir so support files (eg, .wav files etc)
@@ -106,7 +108,7 @@ jobs:
   cross_compile_arm64:
     name: Cross-compile ARM64
     runs-on: windows-2022
-    timeout-minutes: 25
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -123,9 +125,10 @@ jobs:
           cache: pip
           cache-dependency-path: .github/workflows/main.yml
           check-latest: true
+          allow-prereleases: true
 
       - name: Install build module
-        run: pip install --upgrade  build
+        run: pip install --upgrade build
 
       - name: Obtain ARM64 library files
         run: python .github\workflows\download-arm64-libs.py ./arm64libs
@@ -156,7 +159,7 @@ jobs:
   # This job can be run locally by running `pre-commit run`
   checkers:
     runs-on: windows-2022
-    timeout-minutes: 25
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -186,13 +189,13 @@ jobs:
           if ($LastExitCode -ne 0) { exit $LastExitCode }
         if: ${{ !cancelled() }}
 
-  mypy:
+  type-checkers:
     runs-on: windows-2022
-    timeout-minutes: 25
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -201,28 +204,14 @@ jobs:
           cache: pip
           cache-dependency-path: .github/workflows/main.yml
           check-latest: true
+          allow-prereleases: true
       - run: pip install types-setuptools PyOpenGL mypy==1.16.*
+
       - run: mypy . --python-version=${{ matrix.python-version }}
 
-  pyright:
-    runs-on: windows-2022
-    timeout-minutes: 25
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14-dev"]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-          cache: pip
-          cache-dependency-path: .github/workflows/main.yml
-          check-latest: true
-      # pyright vendors typeshed, but let's make sure we have the most up to date stubs
-      - run: pip install types-setuptools PyOpenGL
       - uses: jakebailey/pyright-action@v2
         with:
           python-version: ${{ matrix.python-version }}
-          version: "1.1.396"
+          version: "1.1.401"
           annotate: errors
+        if: ${{ !cancelled() }} # Show issues even if the previous steps failed. But still fail the job
