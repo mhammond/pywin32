@@ -104,7 +104,7 @@ char *HTMLErrorResp(const char *msg)
 {
     const char *htmlBody =
         "<html><head><title>Python ISAPI Error</title></head>"
-        "<body><h2>An Error occured while processing your request</h2>"
+        "<body><h2>An Error occurred while processing your request</h2>"
         "<font color=\"Red\"> %s </font></body></html>";
     // should not need the "+1" as the "%s" will be consumed, but...
     int newLen = strlen(htmlBody) + strlen(msg) + 1;
