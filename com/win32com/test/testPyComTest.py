@@ -7,7 +7,9 @@ sys.coinit_flags = 0  # Must be free-threaded!
 import datetime
 import decimal
 import os
+import platform
 import time
+from unittest import SkipTest
 
 import pythoncom
 import win32com
@@ -25,6 +27,7 @@ from win32com.client import (
     gencache,
     register_record_class,
 )
+from win32com.universal import RegisterInterfaces
 from win32process import GetProcessMemoryInfo
 
 # This test uses a Python implemented COM server - ensure correctly registered.
@@ -45,10 +48,6 @@ except pythoncom.com_error as error:
   and build it using MS Visual C++"""
     print(f"The PyCOMTest module can not be located or generated.\n{importMsg}\n")
     raise RuntimeError(importMsg) from error
-
-# We had a bg where RegisterInterfaces would fail if gencache had
-# already been run - exercise that here
-universal.RegisterInterfaces("{6BCDCB60-5605-11D0-AE5F-CADD4C000000}", 0, 1, 1)
 
 verbose = 0
 
@@ -884,15 +883,27 @@ def TestQueryInterface(long_lived_server=0, iterations=5):
 
 
 class Tester(win32com.test.util.TestCase):
-    def testVTableInProc(self):
+    def testRegisterInterfacesAfterGencache(self) -> None:
+        # We had a bug where RegisterInterfaces would fail if gencache had
+        # already been run - exercise that here
+        try:
+            RegisterInterfaces("{6BCDCB60-5605-11D0-AE5F-CADD4C000000}", 0, 1, 1)
+        except NotImplementedError:
+            if platform.machine() == "ARM64":
+                raise SkipTest(
+                    "`win32com.universal.RegisterInterfaces` doesn't support ARM64 yet"
+                )
+            raise
+
+    def testVTableInProc(self) -> None:
         # We used to crash running this the second time - do it a few times
         for i in range(3):
-            progress("Testing VTables in-process #%d..." % (i + 1))
+            progress(f"Testing VTables in-process #{(i + 1)}...")
             TestVTable(pythoncom.CLSCTX_INPROC_SERVER)
 
-    def testVTableLocalServer(self):
+    def testVTableLocalServer(self) -> None:
         for i in range(3):
-            progress("Testing VTables out-of-process #%d..." % (i + 1))
+            progress(f"Testing VTables out-of-process #{(i + 1)}...")
             TestVTable(pythoncom.CLSCTX_LOCAL_SERVER)
 
     def testVTable2(self):
