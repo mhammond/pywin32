@@ -180,19 +180,14 @@ static PyObject *SetThreadStateTrace(PyObject *self, PyObject *args)
     PyThreadState *state;
     if (!PyWinLong_AsVoidPtr(obhandle, (void **)&state))
         return NULL;
-#if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION >= 2) || PY_MAJOR_VERSION > 2
 #pragma message("XXXXXXXXX - upgrade this for new tracing features.")
-/***
-        XXX - maybe use PyEval_SetTrace ????
+    /***
+    // XXX - This was the code for Python<2.3: maybe use PyEval_SetTrace ????
     Py_XDECREF(state->c_tracefunc);
     state->c_tracefunc = func;
     state->tracing = TRUE;
-***/
-#else
-    Py_XDECREF(state->sys_tracefunc);
-    state->sys_tracefunc = func;
-    Py_INCREF(func);
-#endif
+    ***/
+
     // Loop back over all frames, setting each frame back to our
     // first script block frame with the tracer.
     PyFrameObject *frame = state ? state->frame : NULL;

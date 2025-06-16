@@ -53,10 +53,6 @@
 #	undef socklen_t
 #endif
 #include "Ws2tcpip.h"
-// *sob* - msvc6 can't handle the _WSPIAPI_COUNTOF in later SDKs...
-#if _MSC_VER < 1300
-#define _WSPIAPI_COUNTOF(_Array) (sizeof(_Array) / sizeof(_Array[0]))
-#endif
 #include "Wspiapi.h" // for WspiapiGetAddrInfo/WspiapiFreeAddrInfo
 
 #define NEED_PYWINOBJECTS_H
@@ -2207,7 +2203,7 @@ MyCopyEvent(PyObject *dict, WSANETWORKEVENTS *events, long event, int eventbit)
 }
 
 // @pyswig dict|WSAEnumNetworkEvents|Return network events that caused the event associated with the socket to be signaled.
-// @rdesc A dictionary mapping network events that occured for the specified socket since the last call to this function (e.g. FD_READ, FD_WRITE) to their associated error code, or 0 if the event occured without an error. The events returned are a subset of events previously registered for this socket with WSAEventSelect.
+// @rdesc A dictionary mapping network events that occurred for the specified socket since the last call to this function (e.g. FD_READ, FD_WRITE) to their associated error code, or 0 if the event occurred without an error. The events returned are a subset of events previously registered for this socket with WSAEventSelect.
 static PyObject*
 MyWSAEnumNetworkEvents(PyObject *self, PyObject *args)
 {
@@ -2924,11 +2920,6 @@ static Wow64DisableWow64FsRedirectionfunc pfnWow64DisableWow64FsRedirection = NU
 typedef BOOL (WINAPI *Wow64RevertWow64FsRedirectionfunc)(PVOID);
 static Wow64RevertWow64FsRedirectionfunc pfnWow64RevertWow64FsRedirection = NULL;
 
-/* GetFileInformationByHandleEx and supporting structs are defined in SDK for Vista and later,
-	but can also be used on XP with a separate header and lib:
-	http://www.microsoft.com/en-us/download/details.aspx?id=22599
-	However, the filextd.lib included is static, so this module would have to be compiled for XP only.
-*/
 typedef BOOL (WINAPI *GetFileInformationByHandleExfunc)(HANDLE,FILE_INFO_BY_HANDLE_CLASS,LPVOID,DWORD);
 static GetFileInformationByHandleExfunc pfnGetFileInformationByHandleEx = NULL;
 typedef BOOL (WINAPI *SetFileInformationByHandlefunc)(HANDLE,FILE_INFO_BY_HANDLE_CLASS,LPVOID,DWORD);
@@ -3068,7 +3059,7 @@ static PyObject *py_GetVolumePathName(PyObject *self, PyObject *args, PyObject *
 	if (bufsize>0)
 		bufsize+=1;
 	else
-		bufsize=pathlen+2;  // enough to accomodate trailing null, and possibly extra backslash
+		bufsize=pathlen+2;  // enough to accommodate trailing null, and possibly extra backslash
 	mount_point=(WCHAR *)malloc(bufsize*sizeof(WCHAR));
 	if (mount_point==NULL)
 		PyErr_SetString(PyExc_MemoryError,"GetVolumePathName: Unable to allocate return buffer");

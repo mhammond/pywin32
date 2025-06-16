@@ -104,7 +104,7 @@ class MainWindow:
             win32gui.AppendMenu(menu, win32con.MF_STRING, 1024, "Say Hello")
             win32gui.AppendMenu(menu, win32con.MF_STRING, 1025, "Exit program")
             pos = win32gui.GetCursorPos()
-            # See http://msdn.microsoft.com/library/default.asp?url=/library/en-us/winui/menus_0hdi.asp
+            # See https://learn.microsoft.com/en-us/windows/win32/api/_menurc/
             win32gui.SetForegroundWindow(self.hwnd)
             win32gui.TrackPopupMenu(
                 menu, win32con.TPM_LEFTALIGN, pos[0], pos[1], 0, self.hwnd, None

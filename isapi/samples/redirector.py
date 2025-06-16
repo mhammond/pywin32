@@ -29,7 +29,7 @@ if hasattr(sys, "isapidllhandle"):
     import win32traceutil
 
 # The site we are proxying.
-proxy = "http://www.python.org"
+proxy = "https://www.python.org"
 
 # Urls we exclude (ie, allow IIS to handle itself) - all are lowered,
 # and these entries exist by default on Vista...

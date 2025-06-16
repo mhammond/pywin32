@@ -3,7 +3,8 @@ from __future__ import annotations
 
 import contextlib
 import unittest
-from typing import Any, Iterator
+from collections.abc import Iterator
+from typing import Any
 
 import win32crypt
 from pywin32_testutil import find_test_fixture, testmain

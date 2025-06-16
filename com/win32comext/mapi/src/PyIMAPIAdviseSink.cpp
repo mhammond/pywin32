@@ -20,25 +20,14 @@ PyObject *PyObject_FromNOTIFICATION(NOTIFICATION *n)
     switch (n->ulEventType) {
         case fnevCriticalError: {
             ERROR_NOTIFICATION &err = n->info.err;
-            ret = Py_BuildValue(
-#if PY_MAJOR_VERSION >= 3
-                "k(y#iiN)",
-#else
-                "k(s#iiN)",
-#endif
-                n->ulEventType, err.lpEntryID, (Py_ssize_t)err.cbEntryID, err.scode, err.ulFlags,
-                PyObject_FromMAPIERROR(err.lpMAPIError, err.ulFlags & MAPI_UNICODE, FALSE));
+            ret =
+                Py_BuildValue("k(y#iiN)", n->ulEventType, err.lpEntryID, (Py_ssize_t)err.cbEntryID, err.scode,
+                              err.ulFlags, PyObject_FromMAPIERROR(err.lpMAPIError, err.ulFlags & MAPI_UNICODE, FALSE));
             break;
         }
         case fnevExtended: {
             EXTENDED_NOTIFICATION &ext = n->info.ext;
-            ret = Py_BuildValue(
-#if PY_MAJOR_VERSION >= 3
-                "k(ky#)",
-#else
-                "k(ks#)",
-#endif
-                n->ulEventType, ext.ulEvent, ext.pbEventParameters, (Py_ssize_t)ext.cb);
+            ret = Py_BuildValue("k(ky#)", n->ulEventType, ext.ulEvent, ext.pbEventParameters, (Py_ssize_t)ext.cb);
             break;
         }
         case fnevNewMail: {
@@ -48,14 +37,9 @@ PyObject *PyObject_FromNOTIFICATION(NOTIFICATION *n)
                                       : PyBytes_FromString((const char *)newmail.lpszMessageClass);
             if (!msg_class)
                 return NULL;
-            ret = Py_BuildValue(
-#if PY_MAJOR_VERSION >= 3
-                "k(y#y#kNk)",
-#else
-                "k(s#s#kNk)",
-#endif
-                n->ulEventType, newmail.lpEntryID, (Py_ssize_t)newmail.cbEntryID, newmail.lpParentID,
-                (Py_ssize_t)newmail.cbParentID, newmail.ulFlags, msg_class, newmail.ulMessageFlags);
+            ret = Py_BuildValue("k(y#y#kNk)", n->ulEventType, newmail.lpEntryID, (Py_ssize_t)newmail.cbEntryID,
+                                newmail.lpParentID, (Py_ssize_t)newmail.cbParentID, newmail.ulFlags, msg_class,
+                                newmail.ulMessageFlags);
             break;
         }
         case fnevObjectCopied:
@@ -68,15 +52,9 @@ PyObject *PyObject_FromNOTIFICATION(NOTIFICATION *n)
             PyObject *obArray = PyMAPIObject_FromSPropTagArray(obj.lpPropTagArray);
             if (!obArray)
                 return NULL;
-            ret = Py_BuildValue(
-#if PY_MAJOR_VERSION >= 3
-                "k(y#iy#y#y#N)",
-#else
-                "k(s#is#s#s#N)",
-#endif
-                n->ulEventType, obj.lpEntryID, (Py_ssize_t)obj.cbEntryID, obj.ulObjType, obj.lpParentID,
-                (Py_ssize_t)obj.cbParentID, obj.lpOldID, (Py_ssize_t)obj.cbOldID, obj.lpOldParentID,
-                (Py_ssize_t)obj.cbOldParentID, obArray);
+            ret = Py_BuildValue("k(y#iy#y#y#N)", n->ulEventType, obj.lpEntryID, (Py_ssize_t)obj.cbEntryID,
+                                obj.ulObjType, obj.lpParentID, (Py_ssize_t)obj.cbParentID, obj.lpOldID,
+                                (Py_ssize_t)obj.cbOldID, obj.lpOldParentID, (Py_ssize_t)obj.cbOldParentID, obArray);
             break;
         }
         case fnevTableModified: {
@@ -88,14 +66,8 @@ PyObject *PyObject_FromNOTIFICATION(NOTIFICATION *n)
         }
         case fnevStatusObjectModified: {
             STATUS_OBJECT_NOTIFICATION &statobj = n->info.statobj;
-            ret = Py_BuildValue(
-#if PY_MAJOR_VERSION >= 3
-                "k(y#N)",
-#else
-                "k(s#N)",
-#endif
-                n->ulEventType, statobj.lpEntryID, (Py_ssize_t)statobj.cbEntryID,
-                PyMAPIObject_FromSPropValueArray(statobj.lpPropVals, statobj.cValues));
+            ret = Py_BuildValue("k(y#N)", n->ulEventType, statobj.lpEntryID, (Py_ssize_t)statobj.cbEntryID,
+                                PyMAPIObject_FromSPropValueArray(statobj.lpPropVals, statobj.cValues));
             break;
         }
         default: {
