@@ -5,7 +5,7 @@
 # As of Python 2.2, rexec is simply not available - thus, if you use this,
 # a HTML page can do almost *anything* at all on your machine.
 
-# You almost certainly do NOT want to use thus!
+# You almost certainly do NOT want to use this!
 
 import pythoncom
 from win32com.axscript import axscript
