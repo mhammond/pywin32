@@ -23,6 +23,7 @@ Coming in build 311, as yet unreleased
   * `win32com.server.exception.COMException`
   * `win32comext.axscript.client.error.AXScriptException`
   * `win32comext.axscript.client.pyscript.NamedScriptAttribute`
+* Added initial `DECIMAL/VT_DECIMAL` support (#1501, @gesslerpd)
 
 Build 310, released 2025/03/16
 ------------------------------
