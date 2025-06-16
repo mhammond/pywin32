@@ -352,7 +352,7 @@ class DirectSoundCaptureTest(unittest.TestCase):
         self.assertTrue(len(devices[0]) == 3)
 
     def testCreate(self):
-        """DirectSoundCreate()"""
+        """DirectSoundCaptureCreate()"""
         try:
             d = ds.DirectSoundCaptureCreate(None, None)
         except pythoncom.com_error as exc:

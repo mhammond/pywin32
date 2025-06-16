@@ -4,7 +4,6 @@
 
 #ifndef BUILD_FREEZE
 // In a frozen environemnt, these are likely to be picked up by the MAPI module
-
 #define USES_IID_IMsgStore
 #define USES_IID_IMAPISession
 #define USES_IID_IAttachment
