@@ -748,7 +748,7 @@ static PyObject *pythoncom_WrapObject(PyObject *self, PyObject *args)
     // The gateway must exist (ie, we _must_ support PyGIXXX
 
     // XXX - do we need an optional arg for "base object"?
-    // XXX - If we did, we would unwrap it like thus:
+    // XXX - If we did, we would unwrap it like this:
     /****
     IUnknown *pLook = (IUnknown *)(*ppv);
     IInternalUnwrapPythonObject *pTemp;

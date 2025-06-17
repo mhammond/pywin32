@@ -73,9 +73,8 @@ jobs:
         run: python .github\workflows\install-vs-components.py
 
       - name: Build and register the PyCOMTest server dll
-        run: |
-          msbuild com/TestSources/PyCOMTest/PyCOMTest.sln -property:Configuration=Release
-          regsvr32 com/TestSources/PyCOMTest/x64/Release/PyCOMTest.dll
+        # Pass Silent flag to regsvr32 to avoid hanging on confirmation window
+        run: com/TestSources/PyCOMTest/buildAndRegister.bat /s
 
       - name: Run tests
         # Run the tests directly from the source dir so support files (eg, .wav files etc)

@@ -287,7 +287,7 @@ class CApp(WinApp):
     # 		except:
     # 			# take copies of the exception values, else other (handled) exceptions may get
     # 			# copied over by the other fns called.
-    # 			win32ui.SetStatusText('An exception occured in a windows command handler.')
+    # 			win32ui.SetStatusText('An exception occurred in a windows command handler.')
     # 			t, v, tb = sys.exc_info()
     # 			traceback.print_exception(t, v, tb.tb_next)
     # 			try:
@@ -297,7 +297,7 @@ class CApp(WinApp):
 
     # Command handlers.
     def OnFileMRU(self, id, code):
-        "Called when a File 1-n message is recieved"
+        "Called when a File 1-n message is received"
         fileName = win32ui.GetRecentFileList()[id - win32ui.ID_FILE_MRU_FILE1]
         win32ui.GetApp().OpenDocumentFile(fileName)
 
