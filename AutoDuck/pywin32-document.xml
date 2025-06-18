@@ -1,6 +1,6 @@
 <document>
     <important>
-        <item name="View the change log" href="html/CHANGES.txt"/>
+        <item name="View the change log" href="html/CHANGES.md"/>
     </important>
     <links>
         <item name="Python Web Site" href="https://www.python.org"/>
