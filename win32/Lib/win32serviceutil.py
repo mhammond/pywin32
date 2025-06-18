@@ -261,7 +261,9 @@ def InstallService(
                 )
             except (win32service.error, NotImplementedError):
                 ## delayed start only exists on Vista and later - warn only when trying to set delayed to True
-                warnings.warn("Delayed Start not available on this system")
+                warnings.warn(
+                    "Delayed Start not available on this system", stacklevel=2
+                )
         win32service.CloseServiceHandle(hs)
     finally:
         win32service.CloseServiceHandle(hscm)
@@ -345,7 +347,9 @@ def ChangeServiceConfig(
                     ## doensn't exist.  On Win2k and XP, will fail with ERROR_INVALID_LEVEL
                     ## Warn only if trying to set delayed to True
                     if delayedstart:
-                        warnings.warn("Delayed Start not available on this system")
+                        warnings.warn(
+                            "Delayed Start not available on this system", stacklevel=2
+                        )
         finally:
             win32service.CloseServiceHandle(hs)
     finally:

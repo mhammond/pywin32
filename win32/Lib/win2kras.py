@@ -11,4 +11,4 @@ import warnings
 
 from win32ras import *  # nopycln: import
 
-warnings.warn(str(__doc__), category=DeprecationWarning)
+warnings.warn(str(__doc__), category=DeprecationWarning, stacklevel=2)
