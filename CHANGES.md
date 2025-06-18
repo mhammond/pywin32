@@ -18,23 +18,23 @@ As of build 305, installation .exe files have been deprecated; see
 Coming in build 311, as yet unreleased
 --------------------------------------
 
-* Fixed a regression that broke special __dunder__ methods with CoClass. (#1870, #2493, @Avasam, @geppi)
-* Fixed `TypeError: cannot unpack non-iterable NoneType object` when registering an axscript client `ScriptItem` (#2513, @Avasam)
-* Fixed a memory leak when SafeArrays are used as out parameters (@the-snork)
-* Fixed dispatch handling for properties (@the-snork)
-* Resolved a handful of deprecation warnings (#2567, #2576, @Avasam)
-* The following classes now produce a valid `eval` string representation when calling `repr`: (#2573, @Avasam)
+* Fixed a regression that broke special __dunder__ methods with CoClass. (mhammond#1870, mhammond#2493, [@Avasam][Avasam], [@geppi][geppi])
+* Fixed `TypeError: cannot unpack non-iterable NoneType object` when registering an axscript client `ScriptItem` (mhammond#2513, [@Avasam][Avasam])
+* Fixed a memory leak when SafeArrays are used as out parameters ([@the-snork][the-snork])
+* Fixed dispatch handling for properties ([@the-snork][the-snork])
+* Resolved a handful of deprecation warnings (mhammond#2567, mhammond#2576, [@Avasam][Avasam])
+* The following classes now produce a valid `eval` string representation when calling `repr`: (mhammond#2573, [@Avasam][Avasam])
   * `pywin.tools.browser.HLIPythonObject`
   * `win32com.server.exception.COMException`
   * `win32comext.axscript.client.error.AXScriptException`
   * `win32comext.axscript.client.pyscript.NamedScriptAttribute`
-* Added initial `DECIMAL/VT_DECIMAL` support (#1501, @gesslerpd)
+* Added initial `DECIMAL/VT_DECIMAL` support (mhammond#1501, [@gesslerpd][gesslerpd])
 
 Build 310, released 2025/03/16
 ------------------------------
 
-* Fixed a regression where `win32com.client.DispatchWithEvents` and `win32com.client.WithEvents` would throw a `TypeError` on the second call (#2491, @Avasam)
-* Fixed regression causing `win32com.shell.shell` to be missing a number of `IID`s. (#2487, @Avasam)
+* Fixed a regression where `win32com.client.DispatchWithEvents` and `win32com.client.WithEvents` would throw a `TypeError` on the second call (mhammond#2491, [@Avasam][Avasam])
+* Fixed regression causing `win32com.shell.shell` to be missing a number of `IID`s. (mhammond#2487, [@Avasam][Avasam])
 * As part of the above, Windows 7 is now minimum supported.
 
 Build 309, released 2025/03/09
@@ -42,46 +42,46 @@ Build 309, released 2025/03/09
 
 ### pywin32
 
-* Fixed Access Violation crashes in 3.12 by moving `PyWInObject_Free*` methods so GIL is acquired (#2467, @Mscht)
-* Added support for relative path for `pywin32_postinstall`'s `-destination` argument (#2454, @Avasam)
-* The postinstall script is now available as a console script. You can invoke it in one of two new methods: (#2408, @Avasam)
+* Fixed Access Violation crashes in 3.12 by moving `PyWInObject_Free*` methods so GIL is acquired (mhammond#2467, [@Mscht][Mscht])
+* Added support for relative path for `pywin32_postinstall`'s `-destination` argument (mhammond#2454, [@Avasam][Avasam])
+* The postinstall script is now available as a console script. You can invoke it in one of two new methods: (mhammond#2408, [@Avasam][Avasam])
   1. `python -m pywin32_postinstall -install` (recommended)
   2. `pywin32_postinstall -install` (shorter but you don't have control over which python environment is used)
-* Changed the implementation of 'com_record' to a subclassable Python type (#2437, #2361, @geppi)
-* Removed param `hIcon` from `win32comext.shell.ShellExecuteEx`. It was unusable since Windows Vista (#2423, @Avasam)
-* Fixed `nbios.NCBStruct` packing (#2406, @Avasam)
-* Restored axdebug builds on Python 3.10 (#2416, @Avasam)
-* Fix for Python 3.12 interpreter crashes when accessing a COM Record field (#2415, @geppi)
+* Changed the implementation of 'com_record' to a subclassable Python type (mhammond#2437, mhammond#2361, [@geppi][geppi])
+* Removed param `hIcon` from `win32comext.shell.ShellExecuteEx`. It was unusable since Windows Vista (mhammond#2423, [@Avasam][Avasam])
+* Fixed `nbios.NCBStruct` packing (mhammond#2406, [@Avasam][Avasam])
+* Restored axdebug builds on Python 3.10 (mhammond#2416, [@Avasam][Avasam])
+* Fix for Python 3.12 interpreter crashes when accessing a COM Record field (mhammond#2415, [@geppi][geppi])
 * Pythonwin: Bumped Scintilla from 1.77 to 4.4.6. The full changelog can be found here: <https://www.scintilla.org/ScintillaHistory.html>
-* Fixed Pythonwin's editor failing due to invalid regex import (#2419, @Avasam)
-* Last error wrongly set by some modules (#2302, @CristiFati)
-* Dropped support for Python 3.7 (#2207, @Avasam)
-* Implement the creation of SAFEARRAY(VT_RECORD) from a sequence of COM Records (#2317, @geppi)
-* Implement record pointers as [in, out] method parameters of a Dispatch Interface (#2304, #2310, @geppi)
-* Fix memory leak converting to PyObject from some SAFEARRAY elements (#2316)
-* Fix bug where makepy support was unnecessarily generated (#2354, #2353, @geppi)
-* Fail sooner on invalid `win32timezone.TimeZoneInfo` creation (#2338, @Avasam)
-* Removed temporary `win32com.server.policy` reexports hack (#2344, @Avasam)
+* Fixed Pythonwin's editor failing due to invalid regex import (mhammond#2419, [@Avasam][Avasam])
+* Last error wrongly set by some modules (mhammond#2302, [@CristiFati][CristiFati])
+* Dropped support for Python 3.7 (mhammond#2207, [@Avasam][Avasam])
+* Implement the creation of SAFEARRAY(VT_RECORD) from a sequence of COM Records (mhammond#2317, [@geppi][geppi])
+* Implement record pointers as [in, out] method parameters of a Dispatch Interface (mhammond#2304, mhammond#2310, [@geppi][geppi])
+* Fix memory leak converting to PyObject from some SAFEARRAY elements (mhammond#2316)
+* Fix bug where makepy support was unnecessarily generated (mhammond#2354, mhammond#2353, [@geppi][geppi])
+* Fail sooner on invalid `win32timezone.TimeZoneInfo` creation (mhammond#2338, [@Avasam][Avasam])
+* Removed temporary `win32com.server.policy` reexports hack (mhammond#2344, [@Avasam][Avasam])
   Import `DispatcherWin32trace` and `DispatcherTrace` from `win32com.server.dispatcher` instead.
-* Fixed `win32timezone.TimeZoneInfo` initialization from a `[DYNAMIC_]TIME_ZONE_INFORMATION` (#2339, @Avasam)
-* Added runtime deprecation warning of `win2kras`, use `win32ras` instead (#2356, @Avasam)
-* Improved handling of dict iterations and fallbacks (removes Python 2 support code, small general speed improvement) (#2332, #2330, @Avasam)
-* Fixed accidentally trying to raise an undefined name instead of an `Exception` in `Pythonwin/pywin/debugger/debugger.py` (#2326, @Avasam)
-* Fixed PythonService DoLogMessage raising fatal GIL lock error (#2426, JacobNolan1)
-* Fixed and improved the following demos: `ddeclient`, `ddeserver`, `EvtSubscribe_push`, `openGLDemo`, `guidemo`, `ocxserialtest`, `ocxtest`, `testMSOffice.TestWord8` (#2290, #2281, #2291, #2478 @Avasam)
+* Fixed `win32timezone.TimeZoneInfo` initialization from a `[DYNAMIC_]TIME_ZONE_INFORMATION` (mhammond#2339, [@Avasam][Avasam])
+* Added runtime deprecation warning of `win2kras`, use `win32ras` instead (mhammond#2356, [@Avasam][Avasam])
+* Improved handling of dict iterations and fallbacks (removes Python 2 support code, small general speed improvement) (mhammond#2332, mhammond#2330, [@Avasam][Avasam])
+* Fixed accidentally trying to raise an undefined name instead of an `Exception` in `Pythonwin/pywin/debugger/debugger.py` (mhammond#2326, [@Avasam][Avasam])
+* Fixed PythonService DoLogMessage raising fatal GIL lock error (mhammond#2426, JacobNolan1)
+* Fixed and improved the following demos: `ddeclient`, `ddeserver`, `EvtSubscribe_push`, `openGLDemo`, `guidemo`, `ocxserialtest`, `ocxtest`, `testMSOffice.TestWord8` (mhammond#2290, mhammond#2281, mhammond#2291, mhammond#2478 [@Avasam][Avasam])
 
 ### adodbapi
 
-* Fixes `NameError: name 'os' is not defined` error for `"getenv"` macro in `adodbapi.process_connect_string.macro_call` (#2283, @Avasam)
+* Fixes `NameError: name 'os' is not defined` error for `"getenv"` macro in `adodbapi.process_connect_string.macro_call` (mhammond#2283, [@Avasam][Avasam])
 
 Build 308, released 2024-10-12
 ------------------------------
 
-* Fix Pythonwin displaying syntax errors in Python 3.13 (#2393)
-* Allowed installs from source w/o having pywin32 pre-installed (for instance, from GitHub) (#2349, @Avasam)
-* Restored version stamping of installed DLLs (#2349, @Avasam)
-* Fixed a circular import between `win32comext.axscript.client.framework` and `win32comext.axscript.client.error` (#2381, @Avasam)
-* Remove long-deprecated `win32com.server.dispatcher.DispatcherWin32dbg` (#2382, @Avasam)
+* Fix Pythonwin displaying syntax errors in Python 3.13 (mhammond#2393)
+* Allowed installs from source w/o having pywin32 pre-installed (for instance, from GitHub) (mhammond#2349, [@Avasam][Avasam])
+* Restored version stamping of installed DLLs (mhammond#2349, [@Avasam][Avasam])
+* Fixed a circular import between `win32comext.axscript.client.framework` and `win32comext.axscript.client.error` (mhammond#2381, [@Avasam][Avasam])
+* Remove long-deprecated `win32com.server.dispatcher.DispatcherWin32dbg` (mhammond#2382, [@Avasam][Avasam])
 
 Build 307, released 2024-10-04
 ------------------------------
@@ -97,17 +97,17 @@ as the .chm file, certain MAPI libraries etc, and .exe installers.
 
 ### pywin32
 
-* Remove obsolete and unused `pywin.is_platform_unicode` (#2343, @Avasam)
-* Fix `isapi.ThreadPoolExtension`'s printing of exception traceback broken on Python 3.8+ (#2312, @Avasam)
-* Add RealGetWindowClass (#2299, @CristiFati)
-* Make it compile on Python 3.13 (#2260, @clin1234)
-* Fixed accidentally trying to raise a `str` instead of an `Exception` in (#2270, @Avasam)
+* Remove obsolete and unused `pywin.is_platform_unicode` (mhammond#2343, [@Avasam][Avasam])
+* Fix `isapi.ThreadPoolExtension`'s printing of exception traceback broken on Python 3.8+ (mhammond#2312, [@Avasam][Avasam])
+* Add RealGetWindowClass (mhammond#2299, [@CristiFati][CristiFati])
+* Make it compile on Python 3.13 (mhammond#2260, [@clin1234][clin1234])
+* Fixed accidentally trying to raise a `str` instead of an `Exception` in (mhammond#2270, [@Avasam][Avasam])
   * `Pythonwin/pywin/debugger/debugger.py`
   * `Pythonwin/pywin/framework/dlgappcore.py`
   * `com/win32com/server/policy.py`
   * `win32/Lib/regutil.py`
   * `win32/scripts/VersionStamp/vssutil.py`
-* Removed the following unused symbols. They were meant to be used as Exceptions, but were accidentally strings (#2270, #2269, @Avasam)
+* Removed the following unused symbols. They were meant to be used as Exceptions, but were accidentally strings (mhammond#2270, mhammond#2269, [@Avasam][Avasam])
   * `pywin.debugger.debugger.error`
   * `pywin.framework.dlgappcore.error`
   * `win32com.server.policy.error`
@@ -116,35 +116,35 @@ as the .chm file, certain MAPI libraries etc, and .exe installers.
   * `win32com.universal.com_error`
   * `win32com.client.build.error`
   * `win32com.client.genpy.error`
-* Add EnumDesktopWindows (#2219, @CristiFati)
-* Marked `exc_type` and `exc_traceback` in `win32comext.axscript.client.error.AXScriptException.__init__` as deprecated. (#2236, @Avasam)  
+* Add EnumDesktopWindows (mhammond#2219, [@CristiFati][CristiFati])
+* Marked `exc_type` and `exc_traceback` in `win32comext.axscript.client.error.AXScriptException.__init__` as deprecated. (mhammond#2236, [@Avasam][Avasam])  
   They are now unused and all information is taken from the `exc_value` parameter.
-* Fixed non-overriden `pywin.scintilla.formatter.Formatter.ColorizeString` raising `TypeError` instead of `RuntimeError` due to too many parameters (#2216, @Avasam)
-* Fixed broken since Python 3 tokenization in `win32comext.axdebug.codecontainer.pySourceCodeContainer.GetSyntaxColorAttributes` (#2216, @Avasam)
-* Fixed a `TypeError` due to incorrect kwargs in `win32comext.axscript.client.pydumper.Register` (#2216, @Avasam)
-* Fixed error reporting of file copy failure for for installing debug dlls (#2216, @Avasam)
-* Fixed `py.exe -m win32verstamp` command and other quote typos caused by Implied String Concatenation (#2225, @Avasam)
-* Fixed tons of quote-related typos in strings, docs and comments (#2271 , @Avasam)
-* Fixed VT_SAFEARRAY(VT_RECORD) which were missing the last element (#2247)
-* Fixed `MFC redist DLLs not found` by preferring corresponding version but accepting different version (#2248, @andreabravetti)
-* Fixed `pywintypes.error: (5, 'RegOpenKeyEx', 'Access is denied.')` when running service with debug parameter and no elevation (#2238, @jmartens)
-* Fixed handling of `SyntaxError` exception from a Windows Scripting Host Python Script on Python 3.10+ (#2235, @nbbeatty)
-* Add `CredGetSessionTypes` support (#2232, @CristiFati)
-* Fixed `win32clipboard` increasing size of data when `SetClipboardData` used with `CF_DIB` (#2184, @CristiFati)
-* Add `StoreLogoff` to `PyIMsgStore` to prevent possible hang when MAPI uninitializes or during session logoff (#2196, @avivbrg)
-* Enhance CredDelete to work with dictionaries (#2198, @CristiFati)
-* Add UnregisterHotKey support (#2185, @CristiFati)
-* IFolderView COM client support (#2180, #2181, #2182, @CristiFati)
-* Release GIL when calling CreateService or StartService (#2062, @adamkbmc)
-* Drop support for Internet Explorer 10 (#2229, @Avasam)
-* Removed considerations for never-built Windows CE (#2218, @Avasam)
-* Stopped building `winxpgui` (#2217, @Avasam)
+* Fixed non-overriden `pywin.scintilla.formatter.Formatter.ColorizeString` raising `TypeError` instead of `RuntimeError` due to too many parameters (mhammond#2216, [@Avasam][Avasam])
+* Fixed broken since Python 3 tokenization in `win32comext.axdebug.codecontainer.pySourceCodeContainer.GetSyntaxColorAttributes` (mhammond#2216, [@Avasam][Avasam])
+* Fixed a `TypeError` due to incorrect kwargs in `win32comext.axscript.client.pydumper.Register` (mhammond#2216, [@Avasam][Avasam])
+* Fixed error reporting of file copy failure for for installing debug dlls (mhammond#2216, [@Avasam][Avasam])
+* Fixed `py.exe -m win32verstamp` command and other quote typos caused by Implied String Concatenation (mhammond#2225, [@Avasam][Avasam])
+* Fixed tons of quote-related typos in strings, docs and comments (mhammond#2271 , [@Avasam][Avasam])
+* Fixed VT_SAFEARRAY(VT_RECORD) which were missing the last element (mhammond#2247)
+* Fixed `MFC redist DLLs not found` by preferring corresponding version but accepting different version (mhammond#2248, [@andreabravetti][andreabravetti])
+* Fixed `pywintypes.error: (5, 'RegOpenKeyEx', 'Access is denied.')` when running service with debug parameter and no elevation (mhammond#2238, [@jmartens][jmartens])
+* Fixed handling of `SyntaxError` exception from a Windows Scripting Host Python Script on Python 3.10+ (mhammond#2235, [@nbbeatty][nbbeatty])
+* Add `CredGetSessionTypes` support (mhammond#2232, [@CristiFati][CristiFati])
+* Fixed `win32clipboard` increasing size of data when `SetClipboardData` used with `CF_DIB` (mhammond#2184, [@CristiFati][CristiFati])
+* Add `StoreLogoff` to `PyIMsgStore` to prevent possible hang when MAPI uninitializes or during session logoff (mhammond#2196, [@avivbrg][avivbrg])
+* Enhance CredDelete to work with dictionaries (mhammond#2198, [@CristiFati][CristiFati])
+* Add UnregisterHotKey support (mhammond#2185, [@CristiFati][CristiFati])
+* IFolderView COM client support (mhammond#2180, mhammond#2181, mhammond#2182, [@CristiFati][CristiFati])
+* Release GIL when calling CreateService or StartService (mhammond#2062, [@adamkbmc][adamkbmc])
+* Drop support for Internet Explorer 10 (mhammond#2229, [@Avasam][Avasam])
+* Removed considerations for never-built Windows CE (mhammond#2218, [@Avasam][Avasam])
+* Stopped building `winxpgui` (mhammond#2217, [@Avasam][Avasam])
   * Raise `DeprecationWarning` when importing `winxpgui`
   * Added `GetWindowRgnBox` to `win32gui`
   * `winxpgui.GetConsoleWindow` now aliases `win32console.GetConsoleWindow`
   * Everything else is re-exported from `win32gui`
-* Fixed and improved the following demos: `ietoolbar`, `fontdemo`, `msoffice`, `shell_view`, `context_menu`, `win32clipboardDemo` (#2217, #2101, @Avasam)
-* Fixed undefined names reported by Flake8/Ruff (#2101, @Avasam, @kxrob)
+* Fixed and improved the following demos: `ietoolbar`, `fontdemo`, `msoffice`, `shell_view`, `context_menu`, `win32clipboardDemo` (mhammond#2217, mhammond#2101, [@Avasam][Avasam])
+* Fixed undefined names reported by Flake8/Ruff (mhammond#2101, [@Avasam][Avasam], [@kxrob][kxrob])
   * Fixed the following public API:
     * Fixed `NameError` in `WordFrame.Create`, even though it wasn't used
     * Fixed a handful of `NameError` in `pywin.dialogs.ideoptions.OptionsPropPage` with format
@@ -168,40 +168,40 @@ as the .chm file, certain MAPI libraries etc, and .exe installers.
     * `mmsystem.DIBINDEX`
     * `winnt.IMAGE_SNAP_BY_ORDINAL`
     * `winnt.IMAGE_ORDINAL`
-* Removed `Unicode` and `UnicodeType` from `pywintypes` and `win32api` (#2200, @Avasam)
-* Deprecate `afxres` in favor of `pywin.mfc.afxres`. The modules were identical (#2177, @Avasam)
-* Improved `DispatcherWin32dbg`'s deprecation warning and raise an error when used (#2145, @Avasam)
-* Removed obsolete/legacy way of registering a Pythonwin app and its Idle handlers from `pywin.framework.app` (#2144, @Avasam)
-* Removed unused `win32comext.axscript.server.error` (#2202, @Avasam)
-* Removed deprecated `win32com.server.exception.Exception` (#2142, @Avasam)
-* Removed long-deprecated `UnicodeToString` param from multiple methods (#2143, @Avasam)
-* Fixed `win32api.SetClassWord` being overwritten by `win32api.SetWindowWord` (#2199, @Avasam)
+* Removed `Unicode` and `UnicodeType` from `pywintypes` and `win32api` (mhammond#2200, [@Avasam][Avasam])
+* Deprecate `afxres` in favor of `pywin.mfc.afxres`. The modules were identical (mhammond#2177, [@Avasam][Avasam])
+* Improved `DispatcherWin32dbg`'s deprecation warning and raise an error when used (mhammond#2145, [@Avasam][Avasam])
+* Removed obsolete/legacy way of registering a Pythonwin app and its Idle handlers from `pywin.framework.app` (mhammond#2144, [@Avasam][Avasam])
+* Removed unused `win32comext.axscript.server.error` (mhammond#2202, [@Avasam][Avasam])
+* Removed deprecated `win32com.server.exception.Exception` (mhammond#2142, [@Avasam][Avasam])
+* Removed long-deprecated `UnicodeToString` param from multiple methods (mhammond#2143, [@Avasam][Avasam])
+* Fixed `win32api.SetClassWord` being overwritten by `win32api.SetWindowWord` (mhammond#2199, [@Avasam][Avasam])
   * If you were using `win32api.SetClassWord` for its current behaviour, use `win32api.SetWindowWord` instead.
   * This also adds missing support for `win32api.SetWindowWord`
-* Annotated module-level variables with ambiguous typing (#2175, @Avasam)
-* `win32com.client.build.NoTranslateMap` is now a `set` (#2176, @Avasam)
-* Fixed `ModuleNotFoundError: No module named 'dialog'` in `pywin.tools.regpy` (#2187, @Avasam)
-* Fixed passing a `float` to `range` in `win32pdhquery.Query.collectdatafor` (#2170, @Avasam)
-* Check that the filename w/o extension ends with `_d` rather than checking for `_d` anywhere in the file path (#2169, @Avasam)
-* Cleaned up and fixed Axdebug (#2126, @Avasam)
+* Annotated module-level variables with ambiguous typing (mhammond#2175, [@Avasam][Avasam])
+* `win32com.client.build.NoTranslateMap` is now a `set` (mhammond#2176, [@Avasam][Avasam])
+* Fixed `ModuleNotFoundError: No module named 'dialog'` in `pywin.tools.regpy` (mhammond#2187, [@Avasam][Avasam])
+* Fixed passing a `float` to `range` in `win32pdhquery.Query.collectdatafor` (mhammond#2170, [@Avasam][Avasam])
+* Check that the filename w/o extension ends with `_d` rather than checking for `_d` anywhere in the file path (mhammond#2169, [@Avasam][Avasam])
+* Cleaned up and fixed Axdebug (mhammond#2126, [@Avasam][Avasam])
   * `win32comext.axdebug.codecontainer.SourceCodeContainer` now uses the `debugDocument` parameter
   * `win32comext.axdebug.codecontainer` script can now be run independent of location
-  * Fixed Method Resolution Order issue in `win32comext.axdebug.documents` (also #2071, @wxinix-2022)
+  * Fixed Method Resolution Order issue in `win32comext.axdebug.documents` (also mhammond#2071, [@wxinix-2022][wxinix-2022])
   * Fixed undefined names (`NameError`) in `win32comext.axdebug.expressions.DebugProperty.GetPropertyInfo`
   * Removed unused `win32comext.axdebug.util.all_wrapped`
-  * Fixed multiple `ModuleNotFoundError` in `win32comext.axdebug` (#1983, @Avasam)
-* Change `mbcs` encoding to `utf-8` in `com.win32com.client` (#2097, @Avasam)
-* Avoid using `importlib` directly (#2123, @Avasam)
+  * Fixed multiple `ModuleNotFoundError` in `win32comext.axdebug` (mhammond#1983, [@Avasam][Avasam])
+* Change `mbcs` encoding to `utf-8` in `com.win32com.client` (mhammond#2097, [@Avasam][Avasam])
+* Avoid using `importlib` directly (mhammond#2123, [@Avasam][Avasam])
 * Replace most usages of deprecated `distutils`:
-  * Replace distutils.dep_util with setuptools.modified (#2148, @Avasam)
-  * Replaced `distutils.FileList` usage with `pathlib` (#2138, @Avasam)
-  * Replace `distutils.log` with `logging` (#2134, @Avasam)
-  * Replace `distutils` with direct `setuptools` equivalents where possible (#2134, @Avasam)
-* Replaced usages of the removed (in Python 3.12) `imp` module (#2113, @Avasam)
+  * Replace distutils.dep_util with setuptools.modified (mhammond#2148, [@Avasam][Avasam])
+  * Replaced `distutils.FileList` usage with `pathlib` (mhammond#2138, [@Avasam][Avasam])
+  * Replace `distutils.log` with `logging` (mhammond#2134, [@Avasam][Avasam])
+  * Replace `distutils` with direct `setuptools` equivalents where possible (mhammond#2134, [@Avasam][Avasam])
+* Replaced usages of the removed (in Python 3.12) `imp` module (mhammond#2113, [@Avasam][Avasam])
   * Fixed registering Python as a scripting language for `axscript`
   * Fixed `isapi` install
-* Use collection literals and comprehensions where applicable (slight performance improvement) (#2108, @Avasam)
-* Cleanup obsolete code for unsupported Python versions (#1990, #2127, #2205, #2214, @Avasam)
+* Use collection literals and comprehensions where applicable (slight performance improvement) (mhammond#2108, [@Avasam][Avasam])
+* Cleanup obsolete code for unsupported Python versions (mhammond#1990, mhammond#2127, mhammond#2205, mhammond#2214, [@Avasam][Avasam])
   * The following public names have been removed:
     * `pywin.framework.app.Win32RawInput`
     * `win32com.client.makepy.error`
@@ -219,36 +219,36 @@ as the .chm file, certain MAPI libraries etc, and .exe installers.
     * `winnt.SUBLANGID`
     * `winnt.LANGIDFROMLCID`
     * `winnt.SORTIDFROMLCID`
-* Removed obsolete compatibility aliases (#2087, @Avasam)
+* Removed obsolete compatibility aliases (mhammond#2087, [@Avasam][Avasam])
   The following public names have been removed:
   * `win32comext.mapi.mapiutil.TupleType`
   * `win32comext.mapi.mapiutil.ListType`
   * `win32comext.mapi.mapiutil.IntType`
   * `netbios.byte_to_int`
-* Resolved invalid string escapes warnings (#2045, #2124, @Avasam)
-* Idiomatic type comparisons. Better handling of subclasses. (#1991, @Avasam)
+* Resolved invalid string escapes warnings (mhammond#2045, mhammond#2124, [@Avasam][Avasam])
+* Idiomatic type comparisons. Better handling of subclasses. (mhammond#1991, [@Avasam][Avasam])
 * Cleaned up obsolete and redundant code (this should not directly affect the end-user):
-  * Update and standardise obsolete `OSError` aliases (#2107, @Avasam)
-  * Removed redundant and obsolete references to older python unicode compatibility (#2085, @Avasam)
-  * Use byte-string (`b""`) for constant bytes values instead of superfluous `.encode` calls (#2046, @Avasam)
-  * Cleaned up unused imports (#1986, #2051, #1990, #2124, #2126, @Avasam)
-  * Removed duplicated declarations, constants and definitions (#2050, #1950, #1990, @Avasam)
-* Small generalized optimization by using augmented assignments (in-place operators) where possible (#2274, @Avasam)
-* General speed and size improvements due to all the removed code. (#2046, #1986, #2050, #1950, #2085, #2087, #2051, #1990, #2106, #2127, #2124, #2126, #2177, #2218, #2202, #2205, #2217)
+  * Update and standardise obsolete `OSError` aliases (mhammond#2107, [@Avasam][Avasam])
+  * Removed redundant and obsolete references to older python unicode compatibility (mhammond#2085, [@Avasam][Avasam])
+  * Use byte-string (`b""`) for constant bytes values instead of superfluous `.encode` calls (mhammond#2046, [@Avasam][Avasam])
+  * Cleaned up unused imports (mhammond#1986, mhammond#2051, mhammond#1990, mhammond#2124, mhammond#2126, [@Avasam][Avasam])
+  * Removed duplicated declarations, constants and definitions (mhammond#2050, mhammond#1950, mhammond#1990, [@Avasam][Avasam])
+* Small generalized optimization by using augmented assignments (in-place operators) where possible (mhammond#2274, [@Avasam][Avasam])
+* General speed and size improvements due to all the removed code. (mhammond#2046, mhammond#1986, mhammond#2050, mhammond#1950, mhammond#2085, mhammond#2087, mhammond#2051, mhammond#1990, mhammond#2106, mhammond#2127, mhammond#2124, mhammond#2126, mhammond#2177, mhammond#2218, mhammond#2202, mhammond#2205, mhammond#2217)
 
 ### adodbapi
 
-* Remove references to outdated IronPython (#2049, @Avasam)  
+* Remove references to outdated IronPython (mhammond#2049, [@Avasam][Avasam])  
   This removes the following public names:
   * `adodbapi.adodbapi.onWin32`
   * `adodbapi.apibase.onIronPython`
   * `adodbapi.apibase.NullTypes`
   * `adodbapi.apibase.DateTime`
-* Remove references to outdated `mxDateTime` (#2048, @Avasam)  
+* Remove references to outdated `mxDateTime` (mhammond#2048, [@Avasam][Avasam])  
   This removes the following public names:
   * `adodbapi.apibase.mxDateTime`
   * `adodbapi.apibase.mxDateTimeConverter`
-* Removed obsolete Python 2 aliases (#2088, @Avasam)  
+* Removed obsolete Python 2 aliases (mhammond#2088, [@Avasam][Avasam])  
   This removes the following public names:
   * `adodbapi.adodbapi.unicodeType`
   * `adodbapi.adodbapi.longType`
@@ -259,48 +259,48 @@ as the .chm file, certain MAPI libraries etc, and .exe installers.
   * `adodbapi.apibase.StringTypes`
   * `adodbapi.apibase.makeByteBuffer`
   * `adodbapi.apibase.memoryViewType`
-* Remove outdated and unused remote feature (#2098, @Avasam)
-* Migrated from `distutils` to `setuptools` (#2133, @Avasam)
+* Remove outdated and unused remote feature (mhammond#2098, [@Avasam][Avasam])
+* Migrated from `distutils` to `setuptools` (mhammond#2133, [@Avasam][Avasam])
 
 Build 306, released 2023-03-26
 ------------------------------
 
-* Add GetSystemPowerStatus (#2010, @CristiFati)
-* Add CascadeWindows (#1999, @CristiFati)
+* Add GetSystemPowerStatus (mhammond#2010, [@CristiFati][CristiFati])
+* Add CascadeWindows (mhammond#1999, [@CristiFati][CristiFati])
 * Add win32gui.ResetDC
 * Fix leak in win32pdh.GetFormattedCounterArray
-* Fix IIS on later python versions (#2025)
-* Fix for service registration code updated in build 305 (#1985)
+* Fix IIS on later python versions (mhammond#2025)
+* Fix for service registration code updated in build 305 (mhammond#1985)
 * Support for Python 3.6 was dropped, support for later versions was improved.
 
 Build 305, released 2022-11-06
 ------------------------------
 
 * Installation .exe files were deprecated.
-* @kxrob put a lot of work towards removing use of the deprecated Unicode
+* [@kxrob][kxrob] put a lot of work towards removing use of the deprecated Unicode
   API so we can build on Python 3.12. This should be largely invisible, but
   please report any unintended consequences.
-* odbc: Handle `varchar(max)`/`nvarchar(max)` column sizes (#1954)
-* win32api.GetTickCount() now returns an unsigned 64bit integer (@kxrob, #1946)
+* odbc: Handle `varchar(max)`/`nvarchar(max)` column sizes (mhammond#1954)
+* win32api.GetTickCount() now returns an unsigned 64bit integer ([@kxrob][kxrob], mhammond#1946)
 * win32pipe.GetNamedPipeHandleState() now takes a 3rd optional param
   indicating whether the username should be returned, and related constants
-  added. (@kxrob, #1946)
-* Add win32gui.GetTopWindow() and win32gui.GetAncestor() (#1928, @CristiFati)
+  added. ([@kxrob][kxrob], mhammond#1946)
+* Add win32gui.GetTopWindow() and win32gui.GetAncestor() (mhammond#1928, [@CristiFati][CristiFati])
 * Tweaks to how pywintypes searches for DLLs to better support virtualenvs
-  created with --system-site-packages. (@saaketp, #1933)
-* Added win32event.CreateWaitableTimerExW (#1945, @zariiii9003)
+  created with --system-site-packages. ([@saaketp][saaketp], mhammond#1933)
+* Added win32event.CreateWaitableTimerExW (mhammond#1945, [@zariiii9003][zariiii9003])
 * Changes in PARAM handling. Some functions which returned a WPARAM or LPARAM
   allowed you to return a pointer to a Python buffer object or a PyUnicode.
   These functions now only accept a Python long to be returned. Note that
   this DOES NOT apply to functions with accept WPARAM or LPARAM as arguments,
   only when they are being returned. Impacted functions are `OnNotify`
   handler, LV_ITEM/TV_ITEM objects, PyIContextMenu3::HandleMenuMsg2, and the
-  result of a WNDPROC/DLGPROC (#1927).
+  result of a WNDPROC/DLGPROC (mhammond#1927).
 * service registration had an overhaul, avoiding a complicated, and ultimately
   unnecessary "single globally registered service runner" concept.
   Now, when registering a service, the host pythonservice.exe runner will be
   copied to `sys.exec_prefix`, along with possibly `pywintypesXX.dll` and run
-  from there. (#1908)
+  from there. (mhammond#1908)
 * Dropped support for allowing a bytes object to be passed where a COM BSTR
   is expected - this support was accidental on the path from Python 2 -> 3.
 * win32crypt's PyCERTSTORE.CertCloseStore()'s `Flags` argument has been
@@ -309,33 +309,33 @@ Build 305, released 2022-11-06
   always called with `CERT_CLOSE_STORE_CHECK_FLAG`, and support for this
   param will be dropped at some point in the future.
 * Fix a bug where win32crypt.CryptQueryObject() would return a PyCTL_CONTEXT
-  object instead of a PyCERT_CONTEXT for base64 encoded certificates (#1859)
+  object instead of a PyCERT_CONTEXT for base64 encoded certificates (mhammond#1859)
 * win32crypt.CryptQueryObject() is now able to return PyCTL_CONTEXT objects.
   This is technically a breaking change as previously it would return the
   address in memory of the object, but this address wasn't practically usable,
-  so it's very unlikely anyone relied on this behavior. (#1859)
+  so it's very unlikely anyone relied on this behavior. (mhammond#1859)
 
 Build 304, released 2022-05-02
 ------------------------------
 
-* Fixed Unicode issues in the `dde` module (#1861, @markuskimius )
-* Add `PRINTER_INFO_6` support for Set/GetPrinter (#1853, @CristiFati)
+* Fixed Unicode issues in the `dde` module (mhammond#1861, [@markuskimius][markuskimius] )
+* Add `PRINTER_INFO_6` support for Set/GetPrinter (mhammond#1853, [@CristiFati][CristiFati])
 * Fixed codepage/mojibake issues when non-ascii characters were included in
   COM exceptions raised by Python apps. This should be invisible, but might
   break any workarounds which were used, such as using specific encodings in
-  these strings. (#1823, #1833)
+  these strings. (mhammond#1823, mhammond#1833)
 * Fixed a bug triggering `win32print.SetJob` to fail due to data type
-  (`char*` / `wchar_t*`) mismatch (#1849, @CristiFati)
-* Fix eventlog initialization (#1845, #1846, @kxrob)
+  (`char*` / `wchar_t*`) mismatch (mhammond#1849, [@CristiFati][CristiFati])
+* Fix eventlog initialization (mhammond#1845, mhammond#1846, [@kxrob][kxrob])
 
 Build 303, released 2021-12-20
 ------------------------------
 
 * Tweaks to how DLLs are loaded and our installation found, which should
-  improve virtualenv support and version mismatch issues (#1787, #1794)
+  improve virtualenv support and version mismatch issues (mhammond#1787, mhammond#1794)
 * Fixed a bug where `win32clipboard.GetClipboardData()` may have returned extra
   data.
-* Binary installers for 32-bit 3.10+ are no longer released (#1805)
+* Binary installers for 32-bit 3.10+ are no longer released (mhammond#1805)
 
 Build 302, released 2021-10-11
 ------------------------------
@@ -355,26 +355,26 @@ Build 301, released 2021-05-30
 * Fix some confusion on how dynamic COM object properties work. The old
   code was confused, so there's a chance there will be some subtle
   regression here - please open a bug if you find anything, but this
-  should fix #1427.
+  should fix mhammond#1427.
 * COM objects are now registered with the full path to pythoncomXX.dll, fixes
-  #1704.
+  mhammond#1704.
 * Creating a `win32crypt.CRYPT_ATTRIBUTE` object now correctly sets `cbData`.
 * Add wrap and unwrap operations defined in the GSSAPI to the sspi module
   and enhance the examples given in this module.
-  (#1692, Emmanuel Coirier)
+  (mhammond#1692, Emmanuel Coirier)
 * Fix a bug in `win32profile.GetEnvironmentStrings()` relating to environment
-  variables with an equals sign (@maxim-krikun in #1661)
+  variables with an equals sign ([@maxim-krikun][maxim-krikun] in mhammond#1661)
 * Fixed a bug where certain COM dates would fail to be converted to a Python
   datetime object with `ValueError: microsecond must be in 0..999999`. Shoutout
-  to @hujiaxing for reporting and helping reproduce the issue (#1655)
+  to [@hujiaxing][hujiaxing] for reporting and helping reproduce the issue (mhammond#1655)
 * Added win32com.shell.SHGetKnownFolderPath() and related constants.
 * CoClass objects should work better with special methods like __len__ etc.
-  (#1699)
+  (mhammond#1699)
 * Shifted work in win32.lib.pywin32_bootstrap to Python's import system from
-  manual path manipulations (@wkschwartz in #1651)
+  manual path manipulations ([@wkschwartz][wkschwartz] in mhammond#1651)
 * Fixed a bug where win32print.DeviceCapabilities would return strings
   containing the null character followed by junk characters.
-  (#1654, #1660, Lincoln Puzey)
+  (mhammond#1654, mhammond#1660, Lincoln Puzey)
 
 Build 300, released 2020-11-14
 ------------------------------
@@ -390,12 +390,12 @@ Build 300, released 2020-11-14
   ```
 
   after this call, `arg1.value` was actually the value for `arg2`, and
-  vice-versa (#1303, #622).
+  vice-versa (mhammond#1303, mhammond#622).
 
-* Fixed a bug that Pythonwin had an empty `sys.argv` (@kxrob in #1607)
+* Fixed a bug that Pythonwin had an empty `sys.argv` ([@kxrob][kxrob] in mhammond#1607)
 
 * Fixed a bug that prevented win32process.ReadProcessMemory() from working
-  in all scenarios (#1599)
+  in all scenarios (mhammond#1599)
 
 * Changed how Services implemented with win32serviceutil.ServiceFramework
   report that they have stopped. Now if the SvcRun() method (or the SvcDoRun()
@@ -403,7 +403,7 @@ Build 300, released 2020-11-14
   the Service will report a final SERVICE_STOPPED status with a non-zero error
   code. This will cause the Service's recovery actions to be triggered if the
   Service has the "Enable actions for stops with errors" option enabled.
-  (#1563, Lincoln Puzey)
+  (mhammond#1563, Lincoln Puzey)
 
 * adodbapi connect() method now accepts a "mode" keyword argument which is the
   "Mode" property to set on the ADO "Connection" object before opening the
@@ -423,7 +423,7 @@ Notable changes in this transition:
   it matches the old Python 2 behavior. If you use arrays of VT_UI1 and expect
   get back tuples of integers, your code may break.
 
-* Pythonwin's default encoding is now utf-8 (#1559)
+* Pythonwin's default encoding is now utf-8 (mhammond#1559)
 
 * The build environment has been greatly simplified - you just need Visual
   Studio and a Windows 10 SDK. (The free compilers probably work too, but
@@ -436,3 +436,25 @@ Build 228 (2020-06-13) was the last to support Python 2.0.
 
 Older entries are periodically removed - see the git history of this file
 for them.
+
+<!-- Create short-form markdown user links -->
+[adamkbmc]: https://github.com/adamkbmc
+[andreabravetti]: https://github.com/andreabravetti
+[Avasam]: https://github.com/Avasam
+[avivbrg]: https://github.com/avivbrg
+[clin1234]: https://github.com/clin1234
+[CristiFati]: https://github.com/CristiFati
+[geppi]: https://github.com/geppi
+[gesslerpd]: https://github.com/gesslerpd
+[hujiaxing]: https://github.com/hujiaxing
+[jmartens]: https://github.com/jmartens
+[kxrob]: https://github.com/kxrob
+[markuskimius]: https://github.com/markuskimius
+[maxim-krikun]: https://github.com/maxim
+[Mscht]: https://github.com/Mscht
+[nbbeatty]: https://github.com/nbbeatty
+[saaketp]: https://github.com/saaketp
+[the-snork]: https://github.com/the-snork
+[wkschwartz]: https://github.com/wkschwartz
+[wxinix-2022]: https://github.com/wxinix
+[zariiii9003]: https://github.com/zariiii9003
