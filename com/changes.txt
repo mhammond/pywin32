@@ -4,6 +4,12 @@ Significant changes for the win32com extension module:
 The installation program will NOT create any new items on the start menu.
 All it does is make win32com available to an existing Python installation.
 
+If you have installed win32com previously from an installation such as this,
+you should uninstall it before proceeding - and manually remove the
+.pyc files - sorry - working on that!
+If you have win32com installed through installing Pythonwin, you should
+find the win32com directory, and remove it.
+
 February 99!!
 -------------
 Made some of the ITypeInfo tuples objects (keeping compatible with
