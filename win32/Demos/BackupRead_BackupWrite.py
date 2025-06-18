@@ -106,9 +106,9 @@ win32file.CloseHandle(h)
 win32file.CloseHandle(outh)
 
 assert open(tempfile).read() == open(outfile).read(), "File contents differ !"
-assert (
-    open(tempfile + ":streamdata").read() == open(outfile + ":streamdata").read()
-), "streamdata contents differ !"
+assert open(tempfile + ":streamdata").read() == open(outfile + ":streamdata").read(), (
+    "streamdata contents differ !"
+)
 assert (
     open(tempfile + ":anotherstream").read() == open(outfile + ":anotherstream").read()
 ), "anotherstream contents differ !"

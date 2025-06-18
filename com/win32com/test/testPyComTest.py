@@ -10,22 +10,22 @@ import os
 import time
 
 import pythoncom
-import pywintypes
 import win32com
-import win32com.client.connect
 import win32com.test.util
 import win32timezone
 import winerror
+from win32api import CloseHandle, GetCurrentProcessId, OpenProcess
+from win32com import universal
 from win32com.client import (
     VARIANT,
     CastTo,
     DispatchBaseClass,
     Record,
     constants,
+    gencache,
     register_record_class,
 )
-
-importMsg = "**** PyCOMTest is not installed ***\n  PyCOMTest is a Python test specific COM client and server.\n  It is likely this server is not installed on this machine\n  To install the server, you must get the win32com sources\n  and build it using MS Visual C++"
+from win32process import GetProcessMemoryInfo
 
 # This test uses a Python implemented COM server - ensure correctly registered.
 win32com.test.util.RegisterPythonServer(
@@ -33,21 +33,21 @@ win32com.test.util.RegisterPythonServer(
     "Python.Test.PyCOMTest",
 )
 
-from win32com.client import gencache
-
 try:
     gencache.EnsureModule(
         "{6BCDCB60-5605-11D0-AE5F-CADD4C000000}", 0, 1, 1, bForDemand=False
     )
-except pythoncom.com_error:
-    print("The PyCOMTest module can not be located or generated.")
-    print(importMsg)
-    raise RuntimeError(importMsg)
+except pythoncom.com_error as error:
+    importMsg = """*** PyCOMTest is not installed ***
+  PyCOMTest is a Python test specific COM client and server.
+  It is likely this server is not installed on this machine
+  To install the server, you must get the win32com sources
+  and build it using MS Visual C++"""
+    print(f"The PyCOMTest module can not be located or generated.\n{importMsg}\n")
+    raise RuntimeError(importMsg) from error
 
 # We had a bg where RegisterInterfaces would fail if gencache had
 # already been run - exercise that here
-from win32com import universal
-
 universal.RegisterInterfaces("{6BCDCB60-5605-11D0-AE5F-CADD4C000000}", 0, 1, 1)
 
 verbose = 0
@@ -73,7 +73,7 @@ class TestStruct2(pythoncom.com_record):
     GUID = "{78F0EA07-B7CF-42EA-A251-A4C6269F76AF}"
 
 
-# We don't need to stick with the struct name in the TypeLibrry for the subclass name.
+# We don't need to stick with the struct name in the TypeLibrary for the subclass name.
 # The following class has the same GUID as TestStruct2 from the TypeLibrary.
 class ArrayOfStructsTestStruct(pythoncom.com_record):
     __slots__ = ()
@@ -132,9 +132,19 @@ def TestConstant(constName, pyConst):
         comConst = getattr(constants, constName)
     except:
         raise AssertionError(f"Constant {constName} missing")
-    assert (
-        comConst == pyConst
-    ), f"Constant value wrong for {constName} - got {comConst}, wanted {pyConst}"
+    assert comConst == pyConst, (
+        f"Constant value wrong for {constName} - got {comConst}, wanted {pyConst}"
+    )
+
+
+def GetMemoryUsage():
+    pid = GetCurrentProcessId()
+    PROCESS_QUERY_INFORMATION = 0x0400
+    PROCESS_VM_READ = 0x0010
+    hprocess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, False, pid)
+    mem_info = GetProcessMemoryInfo(hprocess)
+    CloseHandle(hprocess)
+    return mem_info["WorkingSetSize"]
 
 
 # Simple handler class.  This demo only fires one event.
@@ -202,9 +212,9 @@ def TestCommon(o, is_generated):
     expected_class = o.__class__
     # CoClass instances have `default_interface`
     expected_class = getattr(expected_class, "default_interface", expected_class)
-    assert isinstance(
-        o.GetSetDispatch(o), expected_class
-    ), f"GetSetDispatch failed: {o.GetSetDispatch(o)!r}"
+    assert isinstance(o.GetSetDispatch(o), expected_class), (
+        f"GetSetDispatch failed: {o.GetSetDispatch(o)!r}"
+    )
     progress("Checking getting/passing IDispatch of known type")
     expected_class = o.__class__
     expected_class = getattr(expected_class, "default_interface", expected_class)
@@ -281,21 +291,21 @@ def TestCommon(o, is_generated):
 
     progress("Checking properties")
     o.LongProp = 3
-    assert (
-        o.LongProp == o.IntProp == 3
-    ), f"Property value wrong - got {o.LongProp}/{o.IntProp}"
+    assert o.LongProp == o.IntProp == 3, (
+        f"Property value wrong - got {o.LongProp}/{o.IntProp}"
+    )
     o.LongProp = o.IntProp = -3
-    assert (
-        o.LongProp == o.IntProp == -3
-    ), f"Property value wrong - got {o.LongProp}/{o.IntProp}"
+    assert o.LongProp == o.IntProp == -3, (
+        f"Property value wrong - got {o.LongProp}/{o.IntProp}"
+    )
     # This number fits in an unsigned long.  Attempting to set it to a normal
     # long will involve overflow, which is to be expected. But we do
     # expect it to work in a property explicitly a VT_UI4.
     check = 3 * 10**9
     o.ULongProp = check
-    assert (
-        o.ULongProp == check
-    ), f"Property value wrong - got {o.ULongProp} (expected {check})"
+    assert o.ULongProp == check, (
+        f"Property value wrong - got {o.ULongProp} (expected {check})"
+    )
     TestApplyResult(o.Test, ("Unused", 99), 1)  # A bool function
     TestApplyResult(o.Test, ("Unused", -1), 1)  # A bool function
     TestApplyResult(o.Test, ("Unused", True), 1)  # A bool function
@@ -339,6 +349,23 @@ def TestCommon(o, is_generated):
 
     v2 = decimal.Decimal("9012.3456")
     TestApplyResult(o.AddCurrencies, (v1, v2), v1 + v2)
+
+    progress("Checking decimal type")
+    assert o.DecimalProp == 0, f"Expecting 0, got {o.DecimalProp!r}"
+    for val in (
+        "1234",
+        "123456789.1234",
+        "-987654321.9876",
+        "0.1234",
+        "-0.1234",
+    ):
+        o.DecimalProp = decimal.Decimal(val)
+        assert o.DecimalProp == decimal.Decimal(val), f"{val} got {o.DecimalProp!r}"
+    v1 = decimal.Decimal("1234.5678")
+    TestApplyResult(o.DoubleDecimal, (v1,), v1 * 2)
+
+    v2 = decimal.Decimal("654.321")
+    TestApplyResult(o.AddDecimals, (v1, v2), v1 + v2)
 
     TestTrickyTypesWithVariants(o, is_generated)
     progress("Checking win32com.client.VARIANT")
@@ -409,6 +436,15 @@ def TestTrickyTypesWithVariants(o, is_generated):
     else:
         v = VARIANT(pythoncom.VT_BYREF | pythoncom.VT_CY, val)
         o.DoubleCurrencyByVal(v)
+        got = v.value
+    assert got == val * 2
+
+    val = decimal.Decimal("123456789.1234")
+    if is_generated:
+        got = o.DoubleDecimalByVal(val)
+    else:
+        v = VARIANT(pythoncom.VT_BYREF | pythoncom.VT_DECIMAL, val)
+        o.DoubleDecimalByVal(v)
         got = v.value
     assert got == val * 2
 
@@ -562,9 +598,9 @@ def TestGenerated():
     # XXX - this is failing in dynamic tests, but should work fine.
     i1, i2 = o.GetMultipleInterfaces()
     # Yay - is now an instance returned!
-    assert isinstance(i1, DispatchBaseClass) and isinstance(
-        i2, DispatchBaseClass
-    ), f"GetMultipleInterfaces did not return instances - got '{i1}', '{i2}'"
+    assert isinstance(i1, DispatchBaseClass) and isinstance(i2, DispatchBaseClass), (
+        f"GetMultipleInterfaces did not return instances - got '{i1}', '{i2}'"
+    )
     del i1
     del i2
 
@@ -600,6 +636,13 @@ def TestGenerated():
     ll = [1, 2, 3, 0x100000000]
     TestApplyResult(o.SetLongLongSafeArray, (ll,), len(ll))
     TestApplyResult(o.SetULongLongSafeArray, (ll,), len(ll))
+
+    # check freeing of safe arrays
+    mem_before = GetMemoryUsage()
+    o.GetByteArray(50 * 1024 * 1024)
+    mem_after = GetMemoryUsage()
+    delta = mem_after - mem_before
+    assert delta < 1024 * 1024, f"Memory not freed - delta {delta / (1024 * 1024)} MB"
 
     # Tell the server to do what it does!
     TestApplyResult(o.Test2, (constants.Attr2,), constants.Attr2)
@@ -733,9 +776,9 @@ def TestCounter(counter, bIsGenerated):
                 ret = counter.Item(num + 1)
             else:
                 ret = counter[num]
-            assert (
-                ret == num + 1
-            ), f"Random access into element {num} failed - return was {ret!r}"
+            assert ret == num + 1, (
+                f"Random access into element {num} failed - return was {ret!r}"
+            )
         except IndexError:
             raise AssertionError(f"** IndexError accessing collection element {num}")
 
@@ -757,16 +800,16 @@ def TestCounter(counter, bIsGenerated):
 
     if bIsGenerated:
         bounds = counter.GetBounds()
-        assert (
-            bounds[0] == 1 and bounds[1] == 10
-        ), "** Error - counter did not give the same properties back"
+        assert bounds[0] == 1 and bounds[1] == 10, (
+            "** Error - counter did not give the same properties back"
+        )
         counter.SetBounds(bounds[0], bounds[1])
 
     for item in counter:
         num += 1
-    assert num == len(
-        counter
-    ), "*** Length of counter and loop iterations don't match ***"
+    assert num == len(counter), (
+        "*** Length of counter and loop iterations don't match ***"
+    )
     assert num == 10, "*** Unexpected number of loop iterations ***"
 
     try:
