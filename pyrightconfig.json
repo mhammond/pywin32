@@ -6,7 +6,7 @@
   "enableTypeIgnoreComments": true,
   // Exclude from scanning when running pyright
   "exclude": [
-    ".git/",
+    ".git/", // Avoids scanning git branch names ending in ".py"
     "build/",
     // Vendored
     "Pythonwin/Scintilla/",
