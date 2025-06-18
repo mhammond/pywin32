@@ -106,7 +106,7 @@ class DebuggerCommandHandler:
             ## sending a normal command if the UI update command fails.
             ## win32ui.MessageBox('There is no active window - no breakpoint can be added')
             warnings.warn(
-                "There is no active window - no breakpoint can be added", stacklevel=2
+                "There is no active window - no breakpoint can be added", stacklevel=1
             )
             return None
         pathName = doc.GetPathName()

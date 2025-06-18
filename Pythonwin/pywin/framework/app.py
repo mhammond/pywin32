@@ -358,7 +358,7 @@ class AboutBox(dialog.Dialog):
             ver = None
         if not ver:
             warnings.warn(
-                f"Could not read pywin32's version from '{version_path}'", stacklevel=2
+                f"Could not read pywin32's version from '{version_path}'", stacklevel=1
             )
         self.SetDlgItemText(win32ui.IDC_ABOUT_VERSION, ver)
         self.HookCommand(self.OnButHomePage, win32ui.IDC_BUTTON1)
