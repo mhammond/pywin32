@@ -5,7 +5,6 @@ import time
 import unittest
 
 import win32trace
-from pywin32_testutil import TestSkipped
 
 if __name__ == "__main__":
     this_file = sys.argv[0]
@@ -13,12 +12,14 @@ else:
     this_file = __file__
 
 
-def SkipIfCI():
-    # This test often fails in CI, probably when it is being run multiple times
-    # (ie, for different Python versions)
-    # Github actions always have a `CI` variable.
+def SkipIfCI() -> None:
+    """For tests that often fails in CI, probably when it is being run multiple times
+    (ie, for different Python versions)
+
+    Github actions always have a `CI` variable.
+    """
     if "CI" in os.environ:
-        raise TestSkipped("We skip this test on CI")
+        raise unittest.SkipTest("We skip this test on CI")
 
 
 def CheckNoOtherReaders():
