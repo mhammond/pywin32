@@ -3,7 +3,7 @@
 #define USES_IID_IExchangeFolderACLs
 
 #ifndef BUILD_FREEZE
-/* In a frozen environemt, these are likely to be picked
+/* In a frozen environemnt, these are likely to be picked
 up by the MAPI module */
 
 #define USES_IID_IMsgStore

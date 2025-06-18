@@ -24,11 +24,12 @@ Coming in build 311, as yet unreleased
   * `win32com.server.exception.COMException`
   * `win32comext.axscript.client.error.AXScriptException`
   * `win32comext.axscript.client.pyscript.NamedScriptAttribute`
+* Added initial `DECIMAL/VT_DECIMAL` support (#1501, @gesslerpd)
 
 Build 310, released 2025/03/16
 ------------------------------
 * Fixed a regression where `win32com.client.DispatchWithEvents` and win32com.client.WithEvents` would throw a `TypeError` on the second call (#2491, @Avasam)
-* Fixed regresion causing `win32com.shell.shell` to be missing a number of `IID`s. (#2487, @Avasam)
+* Fixed regression causing `win32com.shell.shell` to be missing a number of `IID`s. (#2487, @Avasam)
 * As part of the above, Windows 7 is now minimum supported.
 
 Build 309, released 2025/03/09
@@ -357,7 +358,7 @@ Build 302, released 2021-10-11
   import win2kras and it fails with 'you must import win32ras first', then it
   means an old win2kras.pyd exists, which you should remove.
 
-* github branch 'master' was renamed to 'main'.
+* GitHub branch 'master' was renamed to 'main'.
 
 Build 301, released 2021-05-30
 ------------------------------
