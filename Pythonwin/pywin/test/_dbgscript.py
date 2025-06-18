@@ -2,7 +2,7 @@
 #
 # Script for testing pywin.debugger & interactive exec from test_pywin
 
-# Umlauts for encoding test: áéúäöü
+# Umlauts for encoding test: Ã¡Ã©ÃºÃ¤Ã¶Ã¼
 
 aa = 11
 aa = 22
