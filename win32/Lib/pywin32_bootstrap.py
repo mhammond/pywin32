@@ -9,8 +9,11 @@
 try:
     import pywin32_system32
 except ImportError:  # Python ≥3.6: replace ImportError with ModuleNotFoundError
+    print("pywin32_system32 import failed")
     pass
 else:
+    print("pywin32_system32 import success")
+
     import os
 
     # We're guaranteed only that __path__: Iterable[str]
