@@ -124,6 +124,7 @@ def PackMENUITEMINFO(
 
         warnings.warn(
             "PackMENUITEMINFO: please use dwItemData instead of dwTypeData",
+            DeprecationWarning,
             stacklevel=2,
         )
     if dwItemData is None:
