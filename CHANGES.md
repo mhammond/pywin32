@@ -18,6 +18,7 @@ As of build 305, installation .exe files have been deprecated; see
 Coming in build 311, as yet unreleased
 --------------------------------------
 
+* pywin32's own warnings will now refer to the caller, rather than to the internal source of warning itself (mhammond#2594, [@Avasam][Avasam])
 * Fixed a regression that broke special __dunder__ methods with CoClass. (mhammond#1870, mhammond#2493, [@Avasam][Avasam], [@geppi][geppi])
 * Fixed `TypeError: cannot unpack non-iterable NoneType object` when registering an axscript client `ScriptItem` (mhammond#2513, [@Avasam][Avasam])
 * Fixed a memory leak when SafeArrays are used as out parameters ([@the-snork][the-snork])
