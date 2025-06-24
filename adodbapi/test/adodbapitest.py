@@ -868,7 +868,7 @@ class CommonDBTests(unittest.TestCase):
                 'returned value:"%s" != test value:"%s"' % (rec[0], inParam),
             )
             self.assertEqual(rec[1], trouble)
-        #     inputs = [u'four',u'five',u'six']
+        # inputs = ["four", "five", "six"]
         fldId = 10
         for inParam in inputs:
             fldId += 1
