@@ -14,6 +14,7 @@ https://mhammond.github.io/pywin32_installers.html .
 Coming in build 311, as yet unreleased
 --------------------------------------
 * Added many missing license and copyright notice files (#2590, @Avasam)
+* pywin32's own warnings will now refer to the caller, rather than to the internal source of warning itself (#2594, @Avasam)
 * Fixed a regression that broke special __dunder__ methods with CoClass. (#1870, #2493, @Avasam, @geppi)
 * Fixed `TypeError: cannot unpack non-iterable NoneType object` when registering an axscript client ScriptItem (#2513, @Avasam)
 * Fixed a memory leak when SafeArrays are used as out parameters (@the-snork)
@@ -24,11 +25,12 @@ Coming in build 311, as yet unreleased
   * `win32com.server.exception.COMException`
   * `win32comext.axscript.client.error.AXScriptException`
   * `win32comext.axscript.client.pyscript.NamedScriptAttribute`
+* Added initial `DECIMAL/VT_DECIMAL` support (#1501, @gesslerpd)
 
 Build 310, released 2025/03/16
 ------------------------------
 * Fixed a regression where `win32com.client.DispatchWithEvents` and win32com.client.WithEvents` would throw a `TypeError` on the second call (#2491, @Avasam)
-* Fixed regresion causing `win32com.shell.shell` to be missing a number of `IID`s. (#2487, @Avasam)
+* Fixed regression causing `win32com.shell.shell` to be missing a number of `IID`s. (#2487, @Avasam)
 * As part of the above, Windows 7 is now minimum supported.
 
 Build 309, released 2025/03/09
@@ -357,7 +359,7 @@ Build 302, released 2021-10-11
   import win2kras and it fails with 'you must import win32ras first', then it
   means an old win2kras.pyd exists, which you should remove.
 
-* github branch 'master' was renamed to 'main'.
+* GitHub branch 'master' was renamed to 'main'.
 
 Build 301, released 2021-05-30
 ------------------------------
