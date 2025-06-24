@@ -18,6 +18,7 @@ import win32service
 import winerror
 
 _d = "_d" if "_d.pyd" in importlib.machinery.EXTENSION_SUFFIXES else ""
+default_service_exe = f"pythonservice{_d}.exe"
 error = RuntimeError
 
 
@@ -26,18 +27,12 @@ error = RuntimeError
 # * If you pass a param and it exists as a file, you'll get the abs path back
 # * Otherwise we'll use the param instead of 'pythonservice.exe', and we will
 #   look for it.
-def LocatePythonServiceExe(exe=None):
+def LocatePythonServiceExe(exe=default_service_exe):
     if not exe and hasattr(sys, "frozen"):
         # If py2exe etc calls this with no exe, default is current exe,
         # and all setup is their problem :)
         return sys.executable
 
-    if exe and os.path.isfile(exe):
-        return win32api.GetFullPathName(exe)
-
-    # We are confused if we aren't now looking for our default. But if that
-    # exists as specified we assume it's good.
-    exe = f"pythonservice{_d}.exe"
     if os.path.isfile(exe):
         return win32api.GetFullPathName(exe)
 
@@ -47,7 +42,7 @@ def LocatePythonServiceExe(exe=None):
     # Even if that file already exists, we copy the one installed by pywin32
     # in-case it was upgraded.
     # pywin32 installed it next to win32service.pyd (but we can't run it from there)
-    maybe = os.path.join(os.path.dirname(win32service.__file__), exe)
+    maybe = os.path.join(os.path.dirname(win32service.__file__), default_service_exe)
     if os.path.exists(maybe):
         print(f"copying host exe '{maybe}' -> '{correct}'")
         win32api.CopyFile(maybe, correct)
