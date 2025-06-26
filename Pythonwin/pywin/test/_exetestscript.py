@@ -16,6 +16,8 @@ try:
 except NameError:
     fnout = sys.argv[-1]
 assert fnout.endswith(".testout.txt")
+
+mf = None
 out = open(fnout, "w")
 try:
     _clock = time.perf_counter
@@ -50,4 +52,5 @@ except Exception:
     raise
 finally:
     out.close()
-    mf.PostMessage(win32con.WM_CLOSE)
+    if mf:
+        mf.PostMessage(win32con.WM_CLOSE)
