@@ -198,7 +198,7 @@ PyObject *gethandle(PyObject *obHandle, HANDLE h)
 PyObject *PySTARTUPINFO::getattro(PyObject *self, PyObject *obname)
 {
 	PySTARTUPINFO *pO = (PySTARTUPINFO *)self;
-	char *name=PYWIN_ATTR_CONVERT(obname);
+	const char *name = PyUnicode_AsUTF8(obname);
 	if (name == NULL)
 		return NULL;
 	// @prop integer/<o PyHANDLE>|hStdInput|
@@ -242,7 +242,7 @@ int PySTARTUPINFO::setattro(PyObject *self, PyObject *obname, PyObject *v)
 		return -1;
 	}
 	PySTARTUPINFO *pO = (PySTARTUPINFO *)self;
-	char *name=PYWIN_ATTR_CONVERT(obname);
+	const char *name = PyUnicode_AsUTF8(obname);
 	if (name == NULL)
 		return -1;
 	if (strcmp("hStdInput", name)==0)
