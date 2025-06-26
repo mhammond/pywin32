@@ -18,6 +18,16 @@ Coming in build 311, as yet unreleased
 * Fixed `TypeError: cannot unpack non-iterable NoneType object` when registering an axscript client ScriptItem (#2513, @Avasam)
 * Fixed a memory leak when SafeArrays are used as out parameters (@the-snork)
 * Fixed dispatch handling for properties (@the-snork)
+* The following classes will now use the correct subclass name in `repr`: (#2570, @Avasam)
+  * `pywin.tools.browser.HLIPythonObject`
+  * `win32com.client.VARIANT`
+  * `win32com.client.build.MapEntry`
+  * `win32com.server.exception.COMException`
+  * `win32comext.axdebug.debugger.ModuleTreeNode`
+  * `win32comext.axscript.client.pyscript.NamedScriptAttribute`
+  * `win32comext.axscript.client.error.AXScriptException`
+  * `win32pdhquery.QueryError`
+  * `win32rcparser.StringDef`
 * Resolved a handful of deprecation warnings (#2567, #2576, @Avasam)
 * The following classes now produce a valid `eval` string representation when calling `repr`: (#2573, @Avasam)
   * `pywin.tools.browser.HLIPythonObject`
