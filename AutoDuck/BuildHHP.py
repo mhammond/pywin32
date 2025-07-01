@@ -113,7 +113,7 @@ def main():
         for file in lDestFiles:
             html_files += f"{html_dir}\\{file}\n"
 
-    for cat in doc:
+    for cat in doc or ():
         html_files += f"{output_dir}\\{cat.id}.html\n"
         for suffix in "_overview _modules _objects _constants".split():
             html_files += f"{output_dir}\\{cat.id}{suffix}.html\n"
