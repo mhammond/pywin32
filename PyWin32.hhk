@@ -1092,11 +1092,6 @@
         <param name="Local" value="exchange__HrCreateProfileName_meth.html">
         </OBJECT>
     <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="HrFindExchangeGlobalAddressList">
-        <param name="Name" value="exchange.HrFindExchangeGlobalAddressList">
-        <param name="Local" value="exchange__HrFindExchangeGlobalAddressList_meth.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
         <param name="Keyword" value="HrGetExchangeStatus">
         <param name="Name" value="exchange.HrGetExchangeStatus">
         <param name="Local" value="exchange__HrGetExchangeStatus_meth.html">
@@ -1225,76 +1220,6 @@
         <param name="Keyword" value="OPENSTORE_USE_ADMIN_PRIVILEGE">
         <param name="Name" value="OPENSTORE_USE_ADMIN_PRIVILEGE">
         <param name="Local" value="exchange_OPENSTORE_USE_ADMIN_PRIVILEGE.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="exchdapi">
-        <param name="Name" value="exchdapi">
-        <param name="Local" value="exchdapi.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="HrAdminProgramExists">
-        <param name="Name" value="exchdapi.HrAdminProgramExists">
-        <param name="Local" value="exchdapi__HrAdminProgramExists_meth.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="HrCreateGatewayProfile">
-        <param name="Name" value="exchdapi.HrCreateGatewayProfile">
-        <param name="Local" value="exchdapi__HrCreateGatewayProfile_meth.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="HrCreateMailboxAgentProfile">
-        <param name="Name" value="exchdapi.HrCreateMailboxAgentProfile">
-        <param name="Local" value="exchdapi__HrCreateMailboxAgentProfile_meth.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="HrEnumContainers">
-        <param name="Name" value="exchdapi.HrEnumContainers">
-        <param name="Local" value="exchdapi__HrEnumContainers_meth.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="HrEnumOrganizations">
-        <param name="Name" value="exchdapi.HrEnumOrganizations">
-        <param name="Local" value="exchdapi__HrEnumOrganizations_meth.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="HrEnumSiteAdmins">
-        <param name="Name" value="exchdapi.HrEnumSiteAdmins">
-        <param name="Local" value="exchdapi__HrEnumSiteAdmins_meth.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="HrEnumSites">
-        <param name="Name" value="exchdapi.HrEnumSites">
-        <param name="Local" value="exchdapi__HrEnumSites_meth.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="HrGetServiceAccountName">
-        <param name="Name" value="exchdapi.HrGetServiceAccountName">
-        <param name="Local" value="exchdapi__HrGetServiceAccountName_meth.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="HrInstallMailboxAgent">
-        <param name="Name" value="exchdapi.HrInstallMailboxAgent">
-        <param name="Local" value="exchdapi__HrInstallMailboxAgent_meth.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="HrInstallService">
-        <param name="Name" value="exchdapi.HrInstallService">
-        <param name="Local" value="exchdapi__HrInstallService_meth.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="HrMailboxAgentExists">
-        <param name="Name" value="exchdapi.HrMailboxAgentExists">
-        <param name="Local" value="exchdapi__HrMailboxAgentExists_meth.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="HrRemoveMailboxAgent">
-        <param name="Name" value="exchdapi.HrRemoveMailboxAgent">
-        <param name="Local" value="exchdapi__HrRemoveMailboxAgent_meth.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="HrRemoveProfile">
-        <param name="Name" value="exchdapi.HrRemoveProfile">
-        <param name="Local" value="exchdapi__HrRemoveProfile_meth.html">
         </OBJECT>
     <LI><OBJECT type="text/sitemap">
         <param name="Keyword" value="EXP_DARWIN_LINK">
@@ -2217,9 +2142,104 @@
         <param name="Local" value="isapi.simple.html">
         </OBJECT>
     <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="SimpleExtension">
+        <param name="Name" value="isapi.simple.SimpleExtension">
+        <param name="Local" value="isapi.simple.SimpleExtension.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="GetExtensionVersion">
+        <param name="Name" value="isapi.simple.SimpleExtension.GetExtensionVersion">
+        <param name="Local" value="isapi.simple.SimpleExtension__GetExtensionVersion_meth.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="GetExtensionVersion">
+        <param name="Name" value="isapi.simple.SimpleExtension.GetExtensionVersion">
+        <param name="Local" value="isapi.simple.SimpleExtension__GetExtensionVersion_meth_1.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="HttpExtensionProc">
+        <param name="Name" value="isapi.simple.SimpleExtension.HttpExtensionProc">
+        <param name="Local" value="isapi.simple.SimpleExtension__HttpExtensionProc_meth.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="HttpExtensionProc">
+        <param name="Name" value="isapi.simple.SimpleExtension.HttpExtensionProc">
+        <param name="Local" value="isapi.simple.SimpleExtension__HttpExtensionProc_meth_1.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="TerminateExtension">
+        <param name="Name" value="isapi.simple.SimpleExtension.TerminateExtension">
+        <param name="Local" value="isapi.simple.SimpleExtension__TerminateExtension_meth.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="TerminateExtension">
+        <param name="Name" value="isapi.simple.SimpleExtension.TerminateExtension">
+        <param name="Local" value="isapi.simple.SimpleExtension__TerminateExtension_meth_1.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="SimpleFilter">
+        <param name="Name" value="isapi.simple.SimpleFilter">
+        <param name="Local" value="isapi.simple.SimpleFilter.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="GetFilterVersion">
+        <param name="Name" value="isapi.simple.SimpleFilter.GetFilterVersion">
+        <param name="Local" value="isapi.simple.SimpleFilter__GetFilterVersion_meth.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="GetFilterVersion">
+        <param name="Name" value="isapi.simple.SimpleFilter.GetFilterVersion">
+        <param name="Local" value="isapi.simple.SimpleFilter__GetFilterVersion_meth_1.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="HttpFilterProc">
+        <param name="Name" value="isapi.simple.SimpleFilter.HttpFilterProc">
+        <param name="Local" value="isapi.simple.SimpleFilter__HttpFilterProc_meth.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="HttpFilterProc">
+        <param name="Name" value="isapi.simple.SimpleFilter.HttpFilterProc">
+        <param name="Local" value="isapi.simple.SimpleFilter__HttpFilterProc_meth_1.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="TerminateFilter">
+        <param name="Name" value="isapi.simple.SimpleFilter.TerminateFilter">
+        <param name="Local" value="isapi.simple.SimpleFilter__TerminateFilter_meth.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="TerminateFilter">
+        <param name="Name" value="isapi.simple.SimpleFilter.TerminateFilter">
+        <param name="Local" value="isapi.simple.SimpleFilter__TerminateFilter_meth_1.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
         <param name="Keyword" value="threaded_extension">
         <param name="Name" value="isapi.threaded_extension">
         <param name="Local" value="isapi.threaded_extension.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="ThreadPoolExtension">
+        <param name="Name" value="isapi.threaded_extension.ThreadPoolExtension">
+        <param name="Local" value="isapi.threaded_extension.ThreadPoolExtension.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="Dispatch">
+        <param name="Name" value="isapi.threaded_extension.ThreadPoolExtension.Dispatch">
+        <param name="Local" value="isapi.threaded_extension.ThreadPoolExtension__Dispatch_meth.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="Dispatch">
+        <param name="Name" value="isapi.threaded_extension.ThreadPoolExtension.Dispatch">
+        <param name="Local" value="isapi.threaded_extension.ThreadPoolExtension__Dispatch_meth_1.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="HandleDispatchError">
+        <param name="Name" value="isapi.threaded_extension.ThreadPoolExtension.HandleDispatchError">
+        <param name="Local" value="isapi.threaded_extension.ThreadPoolExtension__HandleDispatchError_meth.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="HandleDispatchError">
+        <param name="Name" value="isapi.threaded_extension.ThreadPoolExtension.HandleDispatchError">
+        <param name="Local" value="isapi.threaded_extension.ThreadPoolExtension__HandleDispatchError_meth_1.html">
         </OBJECT>
     <LI><OBJECT type="text/sitemap">
         <param name="Keyword" value="INFINITE">
@@ -2660,6 +2680,51 @@
         <param name="Keyword" value="KEEP_OPEN_READWRITE">
         <param name="Name" value="KEEP_OPEN_READWRITE">
         <param name="Local" value="mapi_KEEP_OPEN_READWRITE.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="LOGOFF_ABORT">
+        <param name="Name" value="LOGOFF_ABORT">
+        <param name="Local" value="mapi_LOGOFF_ABORT.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="LOGOFF_COMPLETE">
+        <param name="Name" value="LOGOFF_COMPLETE">
+        <param name="Local" value="mapi_LOGOFF_COMPLETE.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="LOGOFF_INBOUND">
+        <param name="Name" value="LOGOFF_INBOUND">
+        <param name="Local" value="mapi_LOGOFF_INBOUND.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="LOGOFF_NO_WAIT">
+        <param name="Name" value="LOGOFF_NO_WAIT">
+        <param name="Local" value="mapi_LOGOFF_NO_WAIT.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="LOGOFF_ORDERLY">
+        <param name="Name" value="LOGOFF_ORDERLY">
+        <param name="Local" value="mapi_LOGOFF_ORDERLY.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="LOGOFF_OUTBOUND">
+        <param name="Name" value="LOGOFF_OUTBOUND">
+        <param name="Local" value="mapi_LOGOFF_OUTBOUND.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="LOGOFF_OUTBOUND_QUEUE">
+        <param name="Name" value="LOGOFF_OUTBOUND_QUEUE">
+        <param name="Local" value="mapi_LOGOFF_OUTBOUND_QUEUE.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="LOGOFF_PURGE">
+        <param name="Name" value="LOGOFF_PURGE">
+        <param name="Local" value="mapi_LOGOFF_PURGE.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="LOGOFF_QUIET">
+        <param name="Name" value="LOGOFF_QUIET">
+        <param name="Local" value="mapi_LOGOFF_QUIET.html">
         </OBJECT>
     <LI><OBJECT type="text/sitemap">
         <param name="Keyword" value="MAIL_E_NAMENOTFOUND">
@@ -5255,11 +5320,6 @@
         <param name="Keyword" value="SetModifiedFlag">
         <param name="Name" value="PyCEditView.SetModifiedFlag">
         <param name="Local" value="PyCEditView__SetModifiedFlag_meth.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="PyCEHANDLE">
-        <param name="Name" value="PyCEHANDLE">
-        <param name="Local" value="PyCEHANDLE.html">
         </OBJECT>
     <LI><OBJECT type="text/sitemap">
         <param name="Keyword" value="PyCERT_ALT_NAME_ENTRY">
@@ -9982,6 +10042,11 @@
         <param name="Local" value="PyHANDLE.html">
         </OBJECT>
     <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="__bool__">
+        <param name="Name" value="PyHANDLE.__bool__">
+        <param name="Local" value="PyHANDLE____bool___meth.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
         <param name="Keyword" value="__hash__">
         <param name="Name" value="PyHANDLE.__hash__">
         <param name="Local" value="PyHANDLE____hash___meth.html">
@@ -9995,11 +10060,6 @@
         <param name="Keyword" value="__long__">
         <param name="Name" value="PyHANDLE.__long__">
         <param name="Local" value="PyHANDLE____long___meth.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="__nonzero__">
-        <param name="Name" value="PyHANDLE.__nonzero__">
-        <param name="Local" value="PyHANDLE____nonzero___meth.html">
         </OBJECT>
     <LI><OBJECT type="text/sitemap">
         <param name="Keyword" value="__print__">
@@ -13562,6 +13622,76 @@
         <param name="Local" value="PyIFileOperation__Unadvise_meth.html">
         </OBJECT>
     <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="GetAutoArrange">
+        <param name="Name" value="PyIFolderView.GetAutoArrange">
+        <param name="Local" value="PyIFolderView__GetAutoArrange_meth.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="GetCurrentViewMode">
+        <param name="Name" value="PyIFolderView.GetCurrentViewMode">
+        <param name="Local" value="PyIFolderView__GetCurrentViewMode_meth.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="GetDefaultSpacing">
+        <param name="Name" value="PyIFolderView.GetDefaultSpacing">
+        <param name="Local" value="PyIFolderView__GetDefaultSpacing_meth.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="GetFocusedItem">
+        <param name="Name" value="PyIFolderView.GetFocusedItem">
+        <param name="Local" value="PyIFolderView__GetFocusedItem_meth.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="GetFolder">
+        <param name="Name" value="PyIFolderView.GetFolder">
+        <param name="Local" value="PyIFolderView__GetFolder_meth.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="GetItemPosition">
+        <param name="Name" value="PyIFolderView.GetItemPosition">
+        <param name="Local" value="PyIFolderView__GetItemPosition_meth.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="GetSelectionMarkedItem">
+        <param name="Name" value="PyIFolderView.GetSelectionMarkedItem">
+        <param name="Local" value="PyIFolderView__GetSelectionMarkedItem_meth.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="GetSpacing">
+        <param name="Name" value="PyIFolderView.GetSpacing">
+        <param name="Local" value="PyIFolderView__GetSpacing_meth.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="Item">
+        <param name="Name" value="PyIFolderView.Item">
+        <param name="Local" value="PyIFolderView__Item_meth.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="ItemCount">
+        <param name="Name" value="PyIFolderView.ItemCount">
+        <param name="Local" value="PyIFolderView__ItemCount_meth.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="Items">
+        <param name="Name" value="PyIFolderView.Items">
+        <param name="Local" value="PyIFolderView__Items_meth.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="SelectAndPositionItems">
+        <param name="Name" value="PyIFolderView.SelectAndPositionItems">
+        <param name="Local" value="PyIFolderView__SelectAndPositionItems_meth.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="SelectItem">
+        <param name="Name" value="PyIFolderView.SelectItem">
+        <param name="Local" value="PyIFolderView__SelectItem_meth.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="SetCurrentViewMode">
+        <param name="Name" value="PyIFolderView.SetCurrentViewMode">
+        <param name="Local" value="PyIFolderView__SetCurrentViewMode_meth.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
         <param name="Keyword" value="PyIID">
         <param name="Name" value="PyIID">
         <param name="Local" value="PyIID.html">
@@ -14480,6 +14610,11 @@
         <param name="Keyword" value="OpenEntry">
         <param name="Name" value="PyIMsgStore.OpenEntry">
         <param name="Local" value="PyIMsgStore__OpenEntry_meth.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="StoreLogoff">
+        <param name="Name" value="PyIMsgStore.StoreLogoff">
+        <param name="Local" value="PyIMsgStore__StoreLogoff_meth.html">
         </OBJECT>
     <LI><OBJECT type="text/sitemap">
         <param name="Keyword" value="Unadvise">
@@ -19097,11 +19232,6 @@
         <param name="Local" value="pywintypes__TimeStamp_meth.html">
         </OBJECT>
     <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="Unicode">
-        <param name="Name" value="pywintypes.Unicode">
-        <param name="Local" value="pywintypes__Unicode_meth.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
         <param name="Keyword" value="UnicodeFromRaw">
         <param name="Name" value="pywintypes.UnicodeFromRaw">
         <param name="Local" value="pywintypes__UnicodeFromRaw_meth.html">
@@ -19647,9 +19777,29 @@
         <param name="Local" value="sspi.ClientAuth.html">
         </OBJECT>
     <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="authorize">
+        <param name="Name" value="sspi.ClientAuth.authorize">
+        <param name="Local" value="sspi.ClientAuth__authorize_meth.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="authorize">
+        <param name="Name" value="sspi.ClientAuth.authorize">
+        <param name="Local" value="sspi.ClientAuth__authorize_meth_1.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
         <param name="Keyword" value="ServerAuth">
         <param name="Name" value="sspi.ServerAuth">
         <param name="Local" value="sspi.ServerAuth.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="authorize">
+        <param name="Name" value="sspi.ServerAuth.authorize">
+        <param name="Local" value="sspi.ServerAuth__authorize_meth.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="authorize">
+        <param name="Name" value="sspi.ServerAuth.authorize">
+        <param name="Local" value="sspi.ServerAuth__authorize_meth_1.html">
         </OBJECT>
     <LI><OBJECT type="text/sitemap">
         <param name="Keyword" value="STATSTG">
@@ -20702,11 +20852,6 @@
         <param name="Local" value="win32api__ToAsciiEx_meth.html">
         </OBJECT>
     <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="Unicode">
-        <param name="Name" value="win32api.Unicode">
-        <param name="Local" value="win32api__Unicode_meth.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
         <param name="Keyword" value="UpdateResource">
         <param name="Name" value="win32api.UpdateResource">
         <param name="Local" value="win32api__UpdateResource_meth.html">
@@ -20975,6 +21120,11 @@
         <param name="Keyword" value="CredEnumerate">
         <param name="Name" value="win32cred.CredEnumerate">
         <param name="Local" value="win32cred__CredEnumerate_meth.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="CredGetSessionTypes">
+        <param name="Name" value="win32cred.CredGetSessionTypes">
+        <param name="Local" value="win32cred__CredGetSessionTypes_meth.html">
         </OBJECT>
     <LI><OBJECT type="text/sitemap">
         <param name="Keyword" value="CredGetTargetInfo">
@@ -24722,6 +24872,11 @@
         <param name="Local" value="win32gui__EnumChildWindows_meth.html">
         </OBJECT>
     <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="EnumDesktopWindows">
+        <param name="Name" value="win32gui.EnumDesktopWindows">
+        <param name="Local" value="win32gui__EnumDesktopWindows_meth.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
         <param name="Keyword" value="EnumFontFamilies">
         <param name="Name" value="win32gui.EnumFontFamilies">
         <param name="Local" value="win32gui__EnumFontFamilies_meth.html">
@@ -25572,6 +25727,11 @@
         <param name="Local" value="win32gui__PySetString_meth.html">
         </OBJECT>
     <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="RealGetWindowClass">
+        <param name="Name" value="win32gui.RealGetWindowClass">
+        <param name="Local" value="win32gui__RealGetWindowClass_meth.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
         <param name="Keyword" value="Rectangle">
         <param name="Name" value="win32gui.Rectangle">
         <param name="Local" value="win32gui__Rectangle_meth.html">
@@ -25955,6 +26115,11 @@
         <param name="Keyword" value="UnregisterDeviceNotification">
         <param name="Name" value="win32gui.UnregisterDeviceNotification">
         <param name="Local" value="win32gui__UnregisterDeviceNotification_meth.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="UnregisterHotKey">
+        <param name="Name" value="win32gui.UnregisterHotKey">
+        <param name="Local" value="win32gui__UnregisterHotKey_meth.html">
         </OBJECT>
     <LI><OBJECT type="text/sitemap">
         <param name="Keyword" value="UpdateLayeredWindow">
@@ -31702,6 +31867,16 @@
         <param name="Local" value="win32timezone.TimeZoneInfo__local_meth_1.html">
         </OBJECT>
     <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="tzname">
+        <param name="Name" value="win32timezone.TimeZoneInfo.tzname">
+        <param name="Local" value="win32timezone.TimeZoneInfo__tzname_meth.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="tzname">
+        <param name="Name" value="win32timezone.TimeZoneInfo.tzname">
+        <param name="Local" value="win32timezone.TimeZoneInfo__tzname_meth_1.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
         <param name="Keyword" value="utc">
         <param name="Name" value="win32timezone.TimeZoneInfo.utc">
         <param name="Local" value="win32timezone.TimeZoneInfo__utc_meth.html">
@@ -31740,6 +31915,11 @@
         <param name="Keyword" value="utcnow">
         <param name="Name" value="win32timezone.utcnow">
         <param name="Local" value="win32timezone__utcnow_meth.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="TYPE_CHECKING">
+        <param name="Name" value="TYPE_CHECKING">
+        <param name="Local" value="win32timezone_TYPE_CHECKING.html">
         </OBJECT>
     <LI><OBJECT type="text/sitemap">
         <param name="Keyword" value="win32transaction">
@@ -33622,256 +33802,6 @@
         <param name="Local" value="win32wnet__WNetOpenEnum_meth.html">
         </OBJECT>
     <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="wincerapi">
-        <param name="Name" value="wincerapi">
-        <param name="Local" value="wincerapi.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="CeCheckPassword">
-        <param name="Name" value="wincerapi.CeCheckPassword">
-        <param name="Local" value="wincerapi__CeCheckPassword_meth.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="CeCopyFile">
-        <param name="Name" value="wincerapi.CeCopyFile">
-        <param name="Local" value="wincerapi__CeCopyFile_meth.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="CeCreateDirectory">
-        <param name="Name" value="wincerapi.CeCreateDirectory">
-        <param name="Local" value="wincerapi__CeCreateDirectory_meth.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="CeCreateFile">
-        <param name="Name" value="wincerapi.CeCreateFile">
-        <param name="Local" value="wincerapi__CeCreateFile_meth.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="CeDeleteFile">
-        <param name="Name" value="wincerapi.CeDeleteFile">
-        <param name="Local" value="wincerapi__CeDeleteFile_meth.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="CeGetDesktopDeviceCaps">
-        <param name="Name" value="wincerapi.CeGetDesktopDeviceCaps">
-        <param name="Local" value="wincerapi__CeGetDesktopDeviceCaps_meth.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="CeGetFileAttributes">
-        <param name="Name" value="wincerapi.CeGetFileAttributes">
-        <param name="Local" value="wincerapi__CeGetFileAttributes_meth.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="CeGetFileSize">
-        <param name="Name" value="wincerapi.CeGetFileSize">
-        <param name="Local" value="wincerapi__CeGetFileSize_meth.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="CeGetSpecialFolderPath">
-        <param name="Name" value="wincerapi.CeGetSpecialFolderPath">
-        <param name="Local" value="wincerapi__CeGetSpecialFolderPath_meth.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="CeGetStoreInformation">
-        <param name="Name" value="wincerapi.CeGetStoreInformation">
-        <param name="Local" value="wincerapi__CeGetStoreInformation_meth.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="CeGetSystemInfo">
-        <param name="Name" value="wincerapi.CeGetSystemInfo">
-        <param name="Local" value="wincerapi__CeGetSystemInfo_meth.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="CeGetSystemMetrics">
-        <param name="Name" value="wincerapi.CeGetSystemMetrics">
-        <param name="Local" value="wincerapi__CeGetSystemMetrics_meth.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="CeGetSystemPowerStatusEx">
-        <param name="Name" value="wincerapi.CeGetSystemPowerStatusEx">
-        <param name="Local" value="wincerapi__CeGetSystemPowerStatusEx_meth.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="CeGetTempPath">
-        <param name="Name" value="wincerapi.CeGetTempPath">
-        <param name="Local" value="wincerapi__CeGetTempPath_meth.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="CeGetVersionEx">
-        <param name="Name" value="wincerapi.CeGetVersionEx">
-        <param name="Local" value="wincerapi__CeGetVersionEx_meth.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="CeGlobalMemoryStatus">
-        <param name="Name" value="wincerapi.CeGlobalMemoryStatus">
-        <param name="Local" value="wincerapi__CeGlobalMemoryStatus_meth.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="CEHANDLE">
-        <param name="Name" value="wincerapi.CEHANDLE">
-        <param name="Local" value="wincerapi__CEHANDLE_meth.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="CeMoveFile">
-        <param name="Name" value="wincerapi.CeMoveFile">
-        <param name="Local" value="wincerapi__CeMoveFile_meth.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="CeRapiInit">
-        <param name="Name" value="wincerapi.CeRapiInit">
-        <param name="Local" value="wincerapi__CeRapiInit_meth.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="CeRapiInitEx">
-        <param name="Name" value="wincerapi.CeRapiInitEx">
-        <param name="Local" value="wincerapi__CeRapiInitEx_meth.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="CeRapiUninit">
-        <param name="Name" value="wincerapi.CeRapiUninit">
-        <param name="Local" value="wincerapi__CeRapiUninit_meth.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="CeReadFile">
-        <param name="Name" value="wincerapi.CeReadFile">
-        <param name="Local" value="wincerapi__CeReadFile_meth.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="CeRemoveDirectory">
-        <param name="Name" value="wincerapi.CeRemoveDirectory">
-        <param name="Local" value="wincerapi__CeRemoveDirectory_meth.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="CeSetFileAttributes">
-        <param name="Name" value="wincerapi.CeSetFileAttributes">
-        <param name="Local" value="wincerapi__CeSetFileAttributes_meth.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="CeSHCreateShortcut">
-        <param name="Name" value="wincerapi.CeSHCreateShortcut">
-        <param name="Local" value="wincerapi__CeSHCreateShortcut_meth.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="CeSHGetShortcutTarget">
-        <param name="Name" value="wincerapi.CeSHGetShortcutTarget">
-        <param name="Local" value="wincerapi__CeSHGetShortcutTarget_meth.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="CreateProcess">
-        <param name="Name" value="wincerapi.CreateProcess">
-        <param name="Local" value="wincerapi__CreateProcess_meth.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="FindFiles">
-        <param name="Name" value="wincerapi.FindFiles">
-        <param name="Local" value="wincerapi__FindFiles_meth.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="WriteFile">
-        <param name="Name" value="wincerapi.WriteFile">
-        <param name="Local" value="wincerapi__WriteFile_meth.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="CSIDL_BITBUCKET">
-        <param name="Name" value="CSIDL_BITBUCKET">
-        <param name="Local" value="wincerapi_CSIDL_BITBUCKET.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="CSIDL_COMMON_DESKTOPDIRECTORY">
-        <param name="Name" value="CSIDL_COMMON_DESKTOPDIRECTORY">
-        <param name="Local" value="wincerapi_CSIDL_COMMON_DESKTOPDIRECTORY.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="CSIDL_COMMON_PROGRAMS">
-        <param name="Name" value="CSIDL_COMMON_PROGRAMS">
-        <param name="Local" value="wincerapi_CSIDL_COMMON_PROGRAMS.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="CSIDL_COMMON_STARTMENU">
-        <param name="Name" value="CSIDL_COMMON_STARTMENU">
-        <param name="Local" value="wincerapi_CSIDL_COMMON_STARTMENU.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="CSIDL_COMMON_STARTUP">
-        <param name="Name" value="CSIDL_COMMON_STARTUP">
-        <param name="Local" value="wincerapi_CSIDL_COMMON_STARTUP.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="CSIDL_CONTROLS">
-        <param name="Name" value="CSIDL_CONTROLS">
-        <param name="Local" value="wincerapi_CSIDL_CONTROLS.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="CSIDL_DESKTOP">
-        <param name="Name" value="CSIDL_DESKTOP">
-        <param name="Local" value="wincerapi_CSIDL_DESKTOP.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="CSIDL_DESKTOPDIRECTORY">
-        <param name="Name" value="CSIDL_DESKTOPDIRECTORY">
-        <param name="Local" value="wincerapi_CSIDL_DESKTOPDIRECTORY.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="CSIDL_DRIVES">
-        <param name="Name" value="CSIDL_DRIVES">
-        <param name="Local" value="wincerapi_CSIDL_DRIVES.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="CSIDL_FONTS">
-        <param name="Name" value="CSIDL_FONTS">
-        <param name="Local" value="wincerapi_CSIDL_FONTS.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="CSIDL_NETHOOD">
-        <param name="Name" value="CSIDL_NETHOOD">
-        <param name="Local" value="wincerapi_CSIDL_NETHOOD.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="CSIDL_NETWORK">
-        <param name="Name" value="CSIDL_NETWORK">
-        <param name="Local" value="wincerapi_CSIDL_NETWORK.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="CSIDL_PERSONAL">
-        <param name="Name" value="CSIDL_PERSONAL">
-        <param name="Local" value="wincerapi_CSIDL_PERSONAL.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="CSIDL_PRINTERS">
-        <param name="Name" value="CSIDL_PRINTERS">
-        <param name="Local" value="wincerapi_CSIDL_PRINTERS.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="CSIDL_PROGRAMS">
-        <param name="Name" value="CSIDL_PROGRAMS">
-        <param name="Local" value="wincerapi_CSIDL_PROGRAMS.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="CSIDL_RECENT">
-        <param name="Name" value="CSIDL_RECENT">
-        <param name="Local" value="wincerapi_CSIDL_RECENT.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="CSIDL_SENDTO">
-        <param name="Name" value="CSIDL_SENDTO">
-        <param name="Local" value="wincerapi_CSIDL_SENDTO.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="CSIDL_STARTMENU">
-        <param name="Name" value="CSIDL_STARTMENU">
-        <param name="Local" value="wincerapi_CSIDL_STARTMENU.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="CSIDL_STARTUP">
-        <param name="Name" value="CSIDL_STARTUP">
-        <param name="Local" value="wincerapi_CSIDL_STARTUP.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="CSIDL_TEMPLATES">
-        <param name="Name" value="CSIDL_TEMPLATES">
-        <param name="Local" value="wincerapi_CSIDL_TEMPLATES.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
         <param name="Keyword" value="Windows NT Eventlog">
         <param name="Name" value="Windows NT Eventlog">
         <param name="Local" value="Windows_NT_Eventlog.html">
@@ -33890,11 +33820,6 @@
         <param name="Keyword" value="Windows NT Security -- Impersonation">
         <param name="Name" value="Windows NT Security -- Impersonation">
         <param name="Local" value="Windows_NT_Security_.2d.2d_Impersonation.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="winxpgui">
-        <param name="Name" value="winxpgui">
-        <param name="Local" value="winxpgui.html">
         </OBJECT>
 
 </UL>

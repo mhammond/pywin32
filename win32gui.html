@@ -16,15 +16,7 @@
 
 <H1>Module win32gui</H1><P>
 
-A module which provides an interface to the native win32 
-
-GUI API.<BR>Note that a module <A HREF="winxpgui.html">winxpgui</A> also exists, 
-
-which has the same methods as win32gui, but has an XP 
-
-manifest and is setup for side-by-side sharing support for 
-
-certain system DLLs, notably commctl32.<P>
+A module which provides an interface to the native win32 GUI API.<P>
 
 <H3>Methods</H3><P><DL><DT><A HREF="win32gui__EnumFontFamilies_meth.html">EnumFontFamilies</A><BR>
 
@@ -86,7 +78,9 @@ You almost certainly should use <A HREF="win32gui__PySetMemory_meth.html">win32g
 
 <DD>Enumerates all top-level windows associated with a thread on the screen by passing the handle to each window, in turn, to an application-defined callback function. EnumThreadWindows continues until the last top-level window associated with the thread is enumerated or the callback function returns FALSE&nbsp;<P><DT><A HREF="win32gui__EnumChildWindows_meth.html">EnumChildWindows</A><BR>
 
-<DD>Enumerates the child windows that belong to the specified parent window by passing the handle to each child window, in turn, to an application-defined callback function. EnumChildWindows continues until the last child window is enumerated or the callback function returns FALSE.&nbsp;<P><DT><A HREF="win32gui__DialogBox_meth.html">DialogBox</A><BR>
+<DD>Enumerates the child windows that belong to the specified parent window by passing the handle to each child window, in turn, to an application-defined callback function. EnumChildWindows continues until the last child window is enumerated or the callback function returns FALSE.&nbsp;<P><DT><A HREF="win32gui__EnumDesktopWindows_meth.html">EnumDesktopWindows</A><BR>
+
+<DD>Enumerates all top-level windows associated with a desktop on the screen by passing the handle to each window, in turn, to an application-defined callback function. EnumThreadWindows continues until the last top-level window associated with the thread is enumerated or the callback function returns FALSE&nbsp;<P><DT><A HREF="win32gui__DialogBox_meth.html">DialogBox</A><BR>
 
 <DD>Creates a modal dialog box.&nbsp;<P><DT><A HREF="win32gui__DialogBoxParam_meth.html">DialogBoxParam</A><BR>
 
@@ -680,6 +674,8 @@ the associated group and clears the radio-item type flag for those items.&nbsp;<
 
 <DD>Returns information about a scroll bar&nbsp;<P><DT><A HREF="win32gui__GetClassName_meth.html">GetClassName</A><BR>
 
+<DD>Retrieves the name of the class to which the specified window belongs.&nbsp;<P><DT><A HREF="win32gui__RealGetWindowClass_meth.html">RealGetWindowClass</A><BR>
+
 <DD>Retrieves the name of the class to which the specified window belongs.&nbsp;<P><DT><A HREF="win32gui__WindowFromPoint_meth.html">WindowFromPoint</A><BR>
 
 <DD>Retrieves a handle to the window that contains the specified point.&nbsp;<P><DT><A HREF="win32gui__ChildWindowFromPoint_meth.html">ChildWindowFromPoint</A><BR>
@@ -730,5 +726,7 @@ It is generally not necessary to call this function manually, but in some cases,
 
 handle values may be extracted via the struct module and need to be closed explicitly.&nbsp;<P><DT><A HREF="win32gui__RegisterHotKey_meth.html">RegisterHotKey</A><BR>
 
-<DD>Registers a hotkey for a window&nbsp;<P></DL></body>
+<DD>Registers a hotkey for a window&nbsp;<P><DT><A HREF="win32gui__UnregisterHotKey_meth.html">UnregisterHotKey</A><BR>
+
+<DD>Unregisters a previously registeredhotkey&nbsp;<P></DL></body>
 </html>

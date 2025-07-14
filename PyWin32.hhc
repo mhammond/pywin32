@@ -53,12 +53,6 @@
              </OBJECT>
       
         <LI> <OBJECT type="text/sitemap">
-             <param name="Name" value="Windows NT Security -- Impersonation">
-             <param name="ImageNumber" value="1">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/Windows_NT_Security_.2d.2d_Impersonation.html">
-             </OBJECT>
-      
-        <LI> <OBJECT type="text/sitemap">
              <param name="Name" value="Directory permissions with GetNamedSecurityInfo">
              <param name="ImageNumber" value="1">
              <param name="Local" value="mk:@MSITStore:PyWin32.chm::/html/win32/help/security_directories.html">
@@ -297,11 +291,6 @@
              <param name="Name" value="Time">
              <param name="ImageNumber" value="11">
              <param name="Local" value="mk:@MSITStore:PyWin32.chm::/pywintypes__Time_meth.html">
-            </OBJECT>
-        <LI><OBJECT type="text/sitemap">
-             <param name="Name" value="Unicode">
-             <param name="ImageNumber" value="11">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/pywintypes__Unicode_meth.html">
             </OBJECT>
         <LI><OBJECT type="text/sitemap">
              <param name="Name" value="UnicodeFromRaw">
@@ -1423,11 +1412,6 @@
              <param name="Name" value="ToAsciiEx">
              <param name="ImageNumber" value="11">
              <param name="Local" value="mk:@MSITStore:PyWin32.chm::/win32api__ToAsciiEx_meth.html">
-            </OBJECT>
-        <LI><OBJECT type="text/sitemap">
-             <param name="Name" value="Unicode">
-             <param name="ImageNumber" value="11">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/win32api__Unicode_meth.html">
             </OBJECT>
         <LI><OBJECT type="text/sitemap">
              <param name="Name" value="UpdateResource">
@@ -3441,6 +3425,11 @@
              <param name="Local" value="mk:@MSITStore:PyWin32.chm::/win32gui__EnumChildWindows_meth.html">
             </OBJECT>
         <LI><OBJECT type="text/sitemap">
+             <param name="Name" value="EnumDesktopWindows">
+             <param name="ImageNumber" value="11">
+             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/win32gui__EnumDesktopWindows_meth.html">
+            </OBJECT>
+        <LI><OBJECT type="text/sitemap">
              <param name="Name" value="EnumFontFamilies">
              <param name="ImageNumber" value="11">
              <param name="Local" value="mk:@MSITStore:PyWin32.chm::/win32gui__EnumFontFamilies_meth.html">
@@ -4291,6 +4280,11 @@
              <param name="Local" value="mk:@MSITStore:PyWin32.chm::/win32gui__PySetString_meth.html">
             </OBJECT>
         <LI><OBJECT type="text/sitemap">
+             <param name="Name" value="RealGetWindowClass">
+             <param name="ImageNumber" value="11">
+             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/win32gui__RealGetWindowClass_meth.html">
+            </OBJECT>
+        <LI><OBJECT type="text/sitemap">
              <param name="Name" value="RectInRegion">
              <param name="ImageNumber" value="11">
              <param name="Local" value="mk:@MSITStore:PyWin32.chm::/win32gui__RectInRegion_meth.html">
@@ -4669,6 +4663,11 @@
              <param name="Name" value="UnregisterDeviceNotification">
              <param name="ImageNumber" value="11">
              <param name="Local" value="mk:@MSITStore:PyWin32.chm::/win32gui__UnregisterDeviceNotification_meth.html">
+            </OBJECT>
+        <LI><OBJECT type="text/sitemap">
+             <param name="Name" value="UnregisterHotKey">
+             <param name="ImageNumber" value="11">
+             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/win32gui__UnregisterHotKey_meth.html">
             </OBJECT>
         <LI><OBJECT type="text/sitemap">
              <param name="Name" value="UpdateLayeredWindow">
@@ -7053,153 +7052,6 @@
              <param name="Local" value="mk:@MSITStore:PyWin32.chm::/win32wnet__WNetOpenEnum_meth.html">
             </OBJECT>
         </UL>
-        <LI> <OBJECT type="text/sitemap">
-             <param name="Name" value="wincerapi">
-             <param name="ImageNumber" value="1">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/wincerapi.html">
-             </OBJECT>
-      <UL>
-        <LI><OBJECT type="text/sitemap">
-             <param name="Name" value="CeCheckPassword">
-             <param name="ImageNumber" value="11">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/wincerapi__CeCheckPassword_meth.html">
-            </OBJECT>
-        <LI><OBJECT type="text/sitemap">
-             <param name="Name" value="CeCopyFile">
-             <param name="ImageNumber" value="11">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/wincerapi__CeCopyFile_meth.html">
-            </OBJECT>
-        <LI><OBJECT type="text/sitemap">
-             <param name="Name" value="CeCreateDirectory">
-             <param name="ImageNumber" value="11">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/wincerapi__CeCreateDirectory_meth.html">
-            </OBJECT>
-        <LI><OBJECT type="text/sitemap">
-             <param name="Name" value="CeCreateFile">
-             <param name="ImageNumber" value="11">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/wincerapi__CeCreateFile_meth.html">
-            </OBJECT>
-        <LI><OBJECT type="text/sitemap">
-             <param name="Name" value="CeDeleteFile">
-             <param name="ImageNumber" value="11">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/wincerapi__CeDeleteFile_meth.html">
-            </OBJECT>
-        <LI><OBJECT type="text/sitemap">
-             <param name="Name" value="CeGetDesktopDeviceCaps">
-             <param name="ImageNumber" value="11">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/wincerapi__CeGetDesktopDeviceCaps_meth.html">
-            </OBJECT>
-        <LI><OBJECT type="text/sitemap">
-             <param name="Name" value="CeGetFileAttributes">
-             <param name="ImageNumber" value="11">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/wincerapi__CeGetFileAttributes_meth.html">
-            </OBJECT>
-        <LI><OBJECT type="text/sitemap">
-             <param name="Name" value="CeGetFileSize">
-             <param name="ImageNumber" value="11">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/wincerapi__CeGetFileSize_meth.html">
-            </OBJECT>
-        <LI><OBJECT type="text/sitemap">
-             <param name="Name" value="CeGetSpecialFolderPath">
-             <param name="ImageNumber" value="11">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/wincerapi__CeGetSpecialFolderPath_meth.html">
-            </OBJECT>
-        <LI><OBJECT type="text/sitemap">
-             <param name="Name" value="CeGetStoreInformation">
-             <param name="ImageNumber" value="11">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/wincerapi__CeGetStoreInformation_meth.html">
-            </OBJECT>
-        <LI><OBJECT type="text/sitemap">
-             <param name="Name" value="CeGetSystemInfo">
-             <param name="ImageNumber" value="11">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/wincerapi__CeGetSystemInfo_meth.html">
-            </OBJECT>
-        <LI><OBJECT type="text/sitemap">
-             <param name="Name" value="CeGetSystemMetrics">
-             <param name="ImageNumber" value="11">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/wincerapi__CeGetSystemMetrics_meth.html">
-            </OBJECT>
-        <LI><OBJECT type="text/sitemap">
-             <param name="Name" value="CeGetSystemPowerStatusEx">
-             <param name="ImageNumber" value="11">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/wincerapi__CeGetSystemPowerStatusEx_meth.html">
-            </OBJECT>
-        <LI><OBJECT type="text/sitemap">
-             <param name="Name" value="CeGetTempPath">
-             <param name="ImageNumber" value="11">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/wincerapi__CeGetTempPath_meth.html">
-            </OBJECT>
-        <LI><OBJECT type="text/sitemap">
-             <param name="Name" value="CeGetVersionEx">
-             <param name="ImageNumber" value="11">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/wincerapi__CeGetVersionEx_meth.html">
-            </OBJECT>
-        <LI><OBJECT type="text/sitemap">
-             <param name="Name" value="CeGlobalMemoryStatus">
-             <param name="ImageNumber" value="11">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/wincerapi__CeGlobalMemoryStatus_meth.html">
-            </OBJECT>
-        <LI><OBJECT type="text/sitemap">
-             <param name="Name" value="CeMoveFile">
-             <param name="ImageNumber" value="11">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/wincerapi__CeMoveFile_meth.html">
-            </OBJECT>
-        <LI><OBJECT type="text/sitemap">
-             <param name="Name" value="CeRapiInit">
-             <param name="ImageNumber" value="11">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/wincerapi__CeRapiInit_meth.html">
-            </OBJECT>
-        <LI><OBJECT type="text/sitemap">
-             <param name="Name" value="CeRapiInitEx">
-             <param name="ImageNumber" value="11">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/wincerapi__CeRapiInitEx_meth.html">
-            </OBJECT>
-        <LI><OBJECT type="text/sitemap">
-             <param name="Name" value="CeRapiUninit">
-             <param name="ImageNumber" value="11">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/wincerapi__CeRapiUninit_meth.html">
-            </OBJECT>
-        <LI><OBJECT type="text/sitemap">
-             <param name="Name" value="CeReadFile">
-             <param name="ImageNumber" value="11">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/wincerapi__CeReadFile_meth.html">
-            </OBJECT>
-        <LI><OBJECT type="text/sitemap">
-             <param name="Name" value="CeRemoveDirectory">
-             <param name="ImageNumber" value="11">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/wincerapi__CeRemoveDirectory_meth.html">
-            </OBJECT>
-        <LI><OBJECT type="text/sitemap">
-             <param name="Name" value="CeSHCreateShortcut">
-             <param name="ImageNumber" value="11">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/wincerapi__CeSHCreateShortcut_meth.html">
-            </OBJECT>
-        <LI><OBJECT type="text/sitemap">
-             <param name="Name" value="CeSHGetShortcutTarget">
-             <param name="ImageNumber" value="11">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/wincerapi__CeSHGetShortcutTarget_meth.html">
-            </OBJECT>
-        <LI><OBJECT type="text/sitemap">
-             <param name="Name" value="CeSetFileAttributes">
-             <param name="ImageNumber" value="11">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/wincerapi__CeSetFileAttributes_meth.html">
-            </OBJECT>
-        <LI><OBJECT type="text/sitemap">
-             <param name="Name" value="CreateProcess">
-             <param name="ImageNumber" value="11">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/wincerapi__CreateProcess_meth.html">
-            </OBJECT>
-        <LI><OBJECT type="text/sitemap">
-             <param name="Name" value="FindFiles">
-             <param name="ImageNumber" value="11">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/wincerapi__FindFiles_meth.html">
-            </OBJECT>
-        <LI><OBJECT type="text/sitemap">
-             <param name="Name" value="WriteFile">
-             <param name="ImageNumber" value="11">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/wincerapi__WriteFile_meth.html">
-            </OBJECT>
-        </UL>
                 </UL>
                 <LI> <OBJECT type="text/sitemap">
                     <param name="Name" value="Objects">
@@ -7277,12 +7129,6 @@
              <param name="Name" value="PyBLENDFUNCTION">
              <param name="ImageNumber" value="1">
              <param name="Local" value="mk:@MSITStore:PyWin32.chm::/PyBLENDFUNCTION.html">
-             </OBJECT>
-      
-        <LI> <OBJECT type="text/sitemap">
-             <param name="Name" value="PyCEHANDLE">
-             <param name="ImageNumber" value="1">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/PyCEHANDLE.html">
              </OBJECT>
       
         <LI> <OBJECT type="text/sitemap">
@@ -8827,126 +8673,6 @@
              <param name="Name" value="CREATE_WAITABLE_TIMER_MANUAL_RESET">
              <param name="ImageNumber" value="1">
              <param name="Local" value="mk:@MSITStore:PyWin32.chm::/win32event_CREATE_WAITABLE_TIMER_MANUAL_RESET.html">
-             </OBJECT>
-      
-        <LI> <OBJECT type="text/sitemap">
-             <param name="Name" value="CSIDL_BITBUCKET">
-             <param name="ImageNumber" value="1">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/wincerapi_CSIDL_BITBUCKET.html">
-             </OBJECT>
-      
-        <LI> <OBJECT type="text/sitemap">
-             <param name="Name" value="CSIDL_COMMON_DESKTOPDIRECTORY">
-             <param name="ImageNumber" value="1">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/wincerapi_CSIDL_COMMON_DESKTOPDIRECTORY.html">
-             </OBJECT>
-      
-        <LI> <OBJECT type="text/sitemap">
-             <param name="Name" value="CSIDL_COMMON_PROGRAMS">
-             <param name="ImageNumber" value="1">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/wincerapi_CSIDL_COMMON_PROGRAMS.html">
-             </OBJECT>
-      
-        <LI> <OBJECT type="text/sitemap">
-             <param name="Name" value="CSIDL_COMMON_STARTMENU">
-             <param name="ImageNumber" value="1">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/wincerapi_CSIDL_COMMON_STARTMENU.html">
-             </OBJECT>
-      
-        <LI> <OBJECT type="text/sitemap">
-             <param name="Name" value="CSIDL_COMMON_STARTUP">
-             <param name="ImageNumber" value="1">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/wincerapi_CSIDL_COMMON_STARTUP.html">
-             </OBJECT>
-      
-        <LI> <OBJECT type="text/sitemap">
-             <param name="Name" value="CSIDL_CONTROLS">
-             <param name="ImageNumber" value="1">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/wincerapi_CSIDL_CONTROLS.html">
-             </OBJECT>
-      
-        <LI> <OBJECT type="text/sitemap">
-             <param name="Name" value="CSIDL_DESKTOP">
-             <param name="ImageNumber" value="1">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/wincerapi_CSIDL_DESKTOP.html">
-             </OBJECT>
-      
-        <LI> <OBJECT type="text/sitemap">
-             <param name="Name" value="CSIDL_DESKTOPDIRECTORY">
-             <param name="ImageNumber" value="1">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/wincerapi_CSIDL_DESKTOPDIRECTORY.html">
-             </OBJECT>
-      
-        <LI> <OBJECT type="text/sitemap">
-             <param name="Name" value="CSIDL_DRIVES">
-             <param name="ImageNumber" value="1">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/wincerapi_CSIDL_DRIVES.html">
-             </OBJECT>
-      
-        <LI> <OBJECT type="text/sitemap">
-             <param name="Name" value="CSIDL_FONTS">
-             <param name="ImageNumber" value="1">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/wincerapi_CSIDL_FONTS.html">
-             </OBJECT>
-      
-        <LI> <OBJECT type="text/sitemap">
-             <param name="Name" value="CSIDL_NETHOOD">
-             <param name="ImageNumber" value="1">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/wincerapi_CSIDL_NETHOOD.html">
-             </OBJECT>
-      
-        <LI> <OBJECT type="text/sitemap">
-             <param name="Name" value="CSIDL_NETWORK">
-             <param name="ImageNumber" value="1">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/wincerapi_CSIDL_NETWORK.html">
-             </OBJECT>
-      
-        <LI> <OBJECT type="text/sitemap">
-             <param name="Name" value="CSIDL_PERSONAL">
-             <param name="ImageNumber" value="1">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/wincerapi_CSIDL_PERSONAL.html">
-             </OBJECT>
-      
-        <LI> <OBJECT type="text/sitemap">
-             <param name="Name" value="CSIDL_PRINTERS">
-             <param name="ImageNumber" value="1">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/wincerapi_CSIDL_PRINTERS.html">
-             </OBJECT>
-      
-        <LI> <OBJECT type="text/sitemap">
-             <param name="Name" value="CSIDL_PROGRAMS">
-             <param name="ImageNumber" value="1">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/wincerapi_CSIDL_PROGRAMS.html">
-             </OBJECT>
-      
-        <LI> <OBJECT type="text/sitemap">
-             <param name="Name" value="CSIDL_RECENT">
-             <param name="ImageNumber" value="1">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/wincerapi_CSIDL_RECENT.html">
-             </OBJECT>
-      
-        <LI> <OBJECT type="text/sitemap">
-             <param name="Name" value="CSIDL_SENDTO">
-             <param name="ImageNumber" value="1">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/wincerapi_CSIDL_SENDTO.html">
-             </OBJECT>
-      
-        <LI> <OBJECT type="text/sitemap">
-             <param name="Name" value="CSIDL_STARTMENU">
-             <param name="ImageNumber" value="1">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/wincerapi_CSIDL_STARTMENU.html">
-             </OBJECT>
-      
-        <LI> <OBJECT type="text/sitemap">
-             <param name="Name" value="CSIDL_STARTUP">
-             <param name="ImageNumber" value="1">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/wincerapi_CSIDL_STARTUP.html">
-             </OBJECT>
-      
-        <LI> <OBJECT type="text/sitemap">
-             <param name="Name" value="CSIDL_TEMPLATES">
-             <param name="ImageNumber" value="1">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/wincerapi_CSIDL_TEMPLATES.html">
              </OBJECT>
       
         <LI> <OBJECT type="text/sitemap">
@@ -15455,11 +15181,6 @@
              <param name="Local" value="mk:@MSITStore:PyWin32.chm::/exchange__HrCreateProfileName_meth.html">
             </OBJECT>
         <LI><OBJECT type="text/sitemap">
-             <param name="Name" value="HrFindExchangeGlobalAddressList">
-             <param name="ImageNumber" value="11">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/exchange__HrFindExchangeGlobalAddressList_meth.html">
-            </OBJECT>
-        <LI><OBJECT type="text/sitemap">
              <param name="Name" value="HrGetExchangeStatus">
              <param name="ImageNumber" value="11">
              <param name="Local" value="mk:@MSITStore:PyWin32.chm::/exchange__HrGetExchangeStatus_meth.html">
@@ -15563,78 +15284,6 @@
              <param name="Name" value="HrOpenSiteContainerAddressing">
              <param name="ImageNumber" value="11">
              <param name="Local" value="mk:@MSITStore:PyWin32.chm::/exchange__HrOpenSiteContainerAddressing_meth.html">
-            </OBJECT>
-        </UL>
-        <LI> <OBJECT type="text/sitemap">
-             <param name="Name" value="exchdapi">
-             <param name="ImageNumber" value="1">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/exchdapi.html">
-             </OBJECT>
-      <UL>
-        <LI><OBJECT type="text/sitemap">
-             <param name="Name" value="HrAdminProgramExists">
-             <param name="ImageNumber" value="11">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/exchdapi__HrAdminProgramExists_meth.html">
-            </OBJECT>
-        <LI><OBJECT type="text/sitemap">
-             <param name="Name" value="HrCreateGatewayProfile">
-             <param name="ImageNumber" value="11">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/exchdapi__HrCreateGatewayProfile_meth.html">
-            </OBJECT>
-        <LI><OBJECT type="text/sitemap">
-             <param name="Name" value="HrCreateMailboxAgentProfile">
-             <param name="ImageNumber" value="11">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/exchdapi__HrCreateMailboxAgentProfile_meth.html">
-            </OBJECT>
-        <LI><OBJECT type="text/sitemap">
-             <param name="Name" value="HrEnumContainers">
-             <param name="ImageNumber" value="11">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/exchdapi__HrEnumContainers_meth.html">
-            </OBJECT>
-        <LI><OBJECT type="text/sitemap">
-             <param name="Name" value="HrEnumOrganizations">
-             <param name="ImageNumber" value="11">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/exchdapi__HrEnumOrganizations_meth.html">
-            </OBJECT>
-        <LI><OBJECT type="text/sitemap">
-             <param name="Name" value="HrEnumSiteAdmins">
-             <param name="ImageNumber" value="11">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/exchdapi__HrEnumSiteAdmins_meth.html">
-            </OBJECT>
-        <LI><OBJECT type="text/sitemap">
-             <param name="Name" value="HrEnumSites">
-             <param name="ImageNumber" value="11">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/exchdapi__HrEnumSites_meth.html">
-            </OBJECT>
-        <LI><OBJECT type="text/sitemap">
-             <param name="Name" value="HrGetServiceAccountName">
-             <param name="ImageNumber" value="11">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/exchdapi__HrGetServiceAccountName_meth.html">
-            </OBJECT>
-        <LI><OBJECT type="text/sitemap">
-             <param name="Name" value="HrInstallMailboxAgent">
-             <param name="ImageNumber" value="11">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/exchdapi__HrInstallMailboxAgent_meth.html">
-            </OBJECT>
-        <LI><OBJECT type="text/sitemap">
-             <param name="Name" value="HrInstallService">
-             <param name="ImageNumber" value="11">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/exchdapi__HrInstallService_meth.html">
-            </OBJECT>
-        <LI><OBJECT type="text/sitemap">
-             <param name="Name" value="HrMailboxAgentExists">
-             <param name="ImageNumber" value="11">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/exchdapi__HrMailboxAgentExists_meth.html">
-            </OBJECT>
-        <LI><OBJECT type="text/sitemap">
-             <param name="Name" value="HrRemoveMailboxAgent">
-             <param name="ImageNumber" value="11">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/exchdapi__HrRemoveMailboxAgent_meth.html">
-            </OBJECT>
-        <LI><OBJECT type="text/sitemap">
-             <param name="Name" value="HrRemoveProfile">
-             <param name="ImageNumber" value="11">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/exchdapi__HrRemoveProfile_meth.html">
             </OBJECT>
         </UL>
         <LI> <OBJECT type="text/sitemap">
@@ -19616,6 +19265,60 @@
              <param name="Name" value="KEEP_OPEN_READWRITE">
              <param name="ImageNumber" value="1">
              <param name="Local" value="mk:@MSITStore:PyWin32.chm::/mapi_KEEP_OPEN_READWRITE.html">
+             </OBJECT>
+      
+        <LI> <OBJECT type="text/sitemap">
+             <param name="Name" value="LOGOFF_ABORT">
+             <param name="ImageNumber" value="1">
+             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/mapi_LOGOFF_ABORT.html">
+             </OBJECT>
+      
+        <LI> <OBJECT type="text/sitemap">
+             <param name="Name" value="LOGOFF_COMPLETE">
+             <param name="ImageNumber" value="1">
+             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/mapi_LOGOFF_COMPLETE.html">
+             </OBJECT>
+      
+        <LI> <OBJECT type="text/sitemap">
+             <param name="Name" value="LOGOFF_INBOUND">
+             <param name="ImageNumber" value="1">
+             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/mapi_LOGOFF_INBOUND.html">
+             </OBJECT>
+      
+        <LI> <OBJECT type="text/sitemap">
+             <param name="Name" value="LOGOFF_NO_WAIT">
+             <param name="ImageNumber" value="1">
+             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/mapi_LOGOFF_NO_WAIT.html">
+             </OBJECT>
+      
+        <LI> <OBJECT type="text/sitemap">
+             <param name="Name" value="LOGOFF_ORDERLY">
+             <param name="ImageNumber" value="1">
+             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/mapi_LOGOFF_ORDERLY.html">
+             </OBJECT>
+      
+        <LI> <OBJECT type="text/sitemap">
+             <param name="Name" value="LOGOFF_OUTBOUND">
+             <param name="ImageNumber" value="1">
+             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/mapi_LOGOFF_OUTBOUND.html">
+             </OBJECT>
+      
+        <LI> <OBJECT type="text/sitemap">
+             <param name="Name" value="LOGOFF_OUTBOUND_QUEUE">
+             <param name="ImageNumber" value="1">
+             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/mapi_LOGOFF_OUTBOUND_QUEUE.html">
+             </OBJECT>
+      
+        <LI> <OBJECT type="text/sitemap">
+             <param name="Name" value="LOGOFF_PURGE">
+             <param name="ImageNumber" value="1">
+             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/mapi_LOGOFF_PURGE.html">
+             </OBJECT>
+      
+        <LI> <OBJECT type="text/sitemap">
+             <param name="Name" value="LOGOFF_QUIET">
+             <param name="ImageNumber" value="1">
+             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/mapi_LOGOFF_QUIET.html">
              </OBJECT>
       
         <LI> <OBJECT type="text/sitemap">
@@ -23633,6 +23336,24 @@
              <param name="Name" value="HTTP_FILTER_VERSION">
              <param name="ImageNumber" value="1">
              <param name="Local" value="mk:@MSITStore:PyWin32.chm::/HTTP_FILTER_VERSION.html">
+             </OBJECT>
+      
+        <LI> <OBJECT type="text/sitemap">
+             <param name="Name" value="isapi.simple.SimpleExtension">
+             <param name="ImageNumber" value="1">
+             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/isapi.simple.SimpleExtension.html">
+             </OBJECT>
+      
+        <LI> <OBJECT type="text/sitemap">
+             <param name="Name" value="isapi.simple.SimpleFilter">
+             <param name="ImageNumber" value="1">
+             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/isapi.simple.SimpleFilter.html">
+             </OBJECT>
+      
+        <LI> <OBJECT type="text/sitemap">
+             <param name="Name" value="isapi.threaded_extension.ThreadPoolExtension">
+             <param name="ImageNumber" value="1">
+             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/isapi.threaded_extension.ThreadPoolExtension.html">
              </OBJECT>
       
                 </UL>

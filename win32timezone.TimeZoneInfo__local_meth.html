@@ -30,13 +30,19 @@ True<P>
 
 </PRE>
 
-This is a @classmethod.<P>
+Or use the newer `datetime.timezone.utc`<P>
 
-<PRE>&gt&gt&gt localTZ = TimeZoneInfo.local()
+<PRE>&gt&gt&gt now_UTC = datetime.datetime.now(datetime.timezone.utc)
+
+&gt&gt&gt (now_UTC - now_local) &lt datetime.timedelta(seconds = 5)
+
+True<P>
+
+&gt&gt&gt localTZ = TimeZoneInfo.local()
 
 &gt&gt&gt now_local = datetime.datetime.now(localTZ)
 
-&gt&gt&gt now_UTC = datetime.datetime.utcnow()
+&gt&gt&gt now_UTC = datetime.datetime.utcnow()  # deprecated
 
 &gt&gt&gt (now_UTC - now_local) &lt datetime.timedelta(seconds = 5)
 

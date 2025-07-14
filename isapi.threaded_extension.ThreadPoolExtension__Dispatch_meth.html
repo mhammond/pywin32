@@ -1,0 +1,40 @@
+<HTML>
+
+
+
+<HEAD>
+
+
+
+<TITLE>isapi.threaded_extension.ThreadPoolExtension.Dispatch</TITLE>
+
+
+
+<META NAME="GENERATOR" CONTENT="Autoduck, by erica@microsoft.com">
+
+
+
+<H1><A HREF="isapi.threaded_extension.ThreadPoolExtension.html">isapi.threaded_extension.ThreadPoolExtension</A>.Dispatch</H1><P>
+
+<B>Dispatch(</B>)<P>Overridden by the sub-class to handle connection requests.<P>
+
+<H3>Comments</H3>
+
+This class creates a thread-pool using a Windows completion port, 
+
+and dispatches requests via this port.  Sub-classes can generally 
+
+implement each connection request using blocking reads and writes, and 
+
+the thread-pool will still provide decent response to the end user.<P>
+
+The sub-class can set a max_workers attribute (default is 20).  Note 
+
+that this generally does *not* mean 20 threads will all be concurrently 
+
+running, via the magic of Windows completion ports.<P>
+
+There is no default implementation - sub-classes must implement this.<P>
+
+</body>
+</html>

@@ -112,7 +112,7 @@ format into seconds using's python's time and regexp library:<P>
 
 &#09converts '12/23/99 15:54:09' to seconds
 
-&#09print '333333',evt_date
+&#09print("333333",evt_date)
 
 &#09'''
 
@@ -124,9 +124,9 @@ format into seconds using's python's time and regexp library:<P>
 
 &#09the_time=reg_result.group(2)
 
-&#09(mon,day,yr)=map(lambda x: string.atoi(x),string.split(date,'/'))
+&#09(mon,day,yr)=map(lambda x: int(x),date.split('/'))
 
-&#09(hr,min,sec)=map(lambda x: string.atoi(x),string.split(the_time,':'))
+&#09(hr,min,sec)=map(lambda x: int(x),the_time.split(':'))
 
 &#09tup=[yr,mon,day,hr,min,sec,0,0,0]
 
@@ -162,8 +162,6 @@ import time
 
 import re
 
-import string
-
 import sys
 
 import traceback
@@ -188,9 +186,9 @@ def date2sec(evt_date):
 
 &#09the_time=reg_result.group(2)
 
-&#09(mon,day,yr)=map(lambda x: string.atoi(x),string.split(date,'/'))
+&#09(mon,day,yr)=map(lambda x: int(x),date.split('/'))
 
-&#09(hr,min,sec)=map(lambda x: string.atoi(x),string.split(the_time,':'))
+&#09(hr,min,sec)=map(lambda x: int(x),the_time.split(':'))
 
 &#09tup=[yr,mon,day,hr,min,sec,0,0,0]
 
@@ -240,7 +238,7 @@ begin_time=time.strftime('%H:%M:%S  ',time.localtime(begin_sec))
 
 hand=win32evtlog.OpenEventLog(computer,logtype)
 
-print logtype,' events found in the last 8 hours since:',begin_time
+print(logtype,' events found in the last 8 hours since:',begin_time)
 
 
 
@@ -282,7 +280,7 @@ try:
 
 &#09msg = str(win32evtlogutil.SafeFormatMessage(ev_obj, logtype))
 
-&#09print string.join((the_time,computer,src,cat,record,evt_id,evt_type,msg[0:15]),':')
+&#09print(":".join((the_time,computer,src,cat,record,evt_id,evt_type,msg[0:15])))
 
 
 
@@ -292,7 +290,7 @@ try:
 
 except:
 
-    print traceback.print_exc(sys.exc_info())
+    print(traceback.print_exc(sys.exc_info()))
 
 
 

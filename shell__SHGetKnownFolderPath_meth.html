@@ -20,7 +20,9 @@ string = <B>SHGetKnownFolderPath(<I>fid</I><I>, flags</I>
 
 <I>, token</I>
 
-</B>)<P>Retrieves the full path of a known folder identified by the folder's KNOWNFOLDERID.<P>
+</B>)<P>Retrieves the full path of a known folder identified by the folder's 
+
+KNOWNFOLDERID.<P>
 
 <H3>Parameters</H3><P><DT><I>fid</I> : <B>IID</B>
 
@@ -28,11 +30,17 @@ string = <B>SHGetKnownFolderPath(<I>fid</I><I>, flags</I>
 
 <DD>One of the  KNOWNFOLDERID constants.<P><DT><I>flags=0</I> : int<P>
 
-<DD>Flags that specify special retrieval options. This value can be 0; otherwise, one or more of the KNOWN_FOLDER_FLAG values.<P>
+<DD>Flags that specify special retrieval options. This value can 
+
+be 0; otherwise, one or more of the KNOWN_FOLDER_FLAG values.<P>
 
 <DT><I>token=None</I> : <A HREF="PyHANDLE.html">PyHANDLE</A><P>
 
-<DD>An access token that represents a particular user. If this parameter is NULL, which is the most common usage, the function requests the known folder for the current user.<P>
+<DD>An access token that represents a particular 
+
+user. If this parameter is NULL, which is the most common usage, the function 
+
+requests the known folder for the current user.<P>
 
 </body>
 </html>

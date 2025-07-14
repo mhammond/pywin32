@@ -104,9 +104,9 @@ win32security.ImpersonateLoggedOnUser(handel)
 
 
 
-#do stuff here
+# do stuff here
 
-print win32api.GetUserName() #show you're someone else
+print(win32api.GetUserName())  # show you're someone else
 
 
 
@@ -168,13 +168,13 @@ try:
 
     #do whatever here
 
-    print win32api.GetUserName() #show you're someone else
+    print(win32api.GetUserName())  # show you're someone else
 
     a.logoff() #return to normal
 
 except:
 
-    print sys.exc_type , sys.exc_value
+    print(sys.exc_type, sys.exc_value)
 
 </PRE>
 

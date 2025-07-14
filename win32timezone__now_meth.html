@@ -22,6 +22,14 @@ by this module<P>
 
 <PRE>&gt&gt&gt now_local = now()<P>
 
+&gt&gt&gt (now_local - datetime.datetime.now(datetime.timezone.utc)) &lt datetime.timedelta(seconds = 5)
+
+True
+
+&gt&gt&gt type(now_local.tzinfo) is TimeZoneInfo
+
+True<P>
+
 </PRE>
 
 </body>

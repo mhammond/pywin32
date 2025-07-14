@@ -52,25 +52,55 @@ there should be consistent results for these years.<P>
 
 </PRE>
 
-<H3>Methods</H3><P><DL><DT><A HREF="win32timezone.TimeZoneInfo__GetDSTStartTime_meth.html">GetDSTStartTime</A><BR>
+Cannot create a `TimeZoneInfo` with an invalid name.<P>
 
-<DD>Given a year, determines the time when daylight savings time starts&nbsp;<P><DT><A HREF="win32timezone.TimeZoneInfo__get_sorted_time_zones_meth.html">get_sorted_time_zones</A><BR>
+<PRE>&gt&gt&gt TimeZoneInfo('Does not exist')
 
-<DD>Return the time zones sorted by some key.&nbsp;<P><DT><A HREF="win32timezone.TimeZoneInfo__utc_meth.html">utc</A><BR>
+Traceback (most recent call last):
 
-<DD>Returns a time-zone representing UTC.&nbsp;<P><DT><A HREF="win32timezone.TimeZoneInfo__GetDSTEndTime_meth.html">GetDSTEndTime</A><BR>
+...
 
-<DD>Given a year, determines the time when daylight savings ends.&nbsp;<P><DT><A HREF="win32timezone.TimeZoneInfo__dst_meth.html">dst</A><BR>
+ValueError: Timezone Name 'Does not exist' not found
 
-<DD>Calculate the daylight savings offset according to the&nbsp;<P><DT><A HREF="win32timezone.TimeZoneInfo__get_sorted_time_zone_names_meth.html">get_sorted_time_zone_names</A><BR>
+&gt&gt&gt TimeZoneInfo(None)
 
-<DD>Return a list of time zone names that can&nbsp;<P><DT><A HREF="win32timezone.TimeZoneInfo__utcoffset_meth.html">utcoffset</A><BR>
+Traceback (most recent call last):
 
-<DD>Calculates the utcoffset according to the datetime.tzinfo spec&nbsp;<P><DT><A HREF="win32timezone.TimeZoneInfo__getWinInfo_meth.html">getWinInfo</A><BR>
+...
 
-<DD>Return the most relevant "info" for this time zone&nbsp;<P><DT><A HREF="win32timezone.TimeZoneInfo__local_meth.html">local</A><BR>
+ValueError: subkey name cannot be empty
 
-<DD>Returns the local time zone as defined by the operating system in the&nbsp;<P></DL>
+&gt&gt&gt TimeZoneInfo("")
+
+Traceback (most recent call last):
+
+...
+
+ValueError: subkey name cannot be empty<P>
+
+</PRE>
+
+<H3>Methods</H3><P><DL><DT><A HREF="win32timezone.TimeZoneInfo__tzname_meth.html">tzname</A><BR>
+
+<DD>&gt&gt&gt MST = TimeZoneInfo('Mountain Standard Time')&nbsp;<P><DT><A HREF="win32timezone.TimeZoneInfo__getWinInfo_meth.html">getWinInfo</A><BR>
+
+<DD>Return the most relevant "info" for this time zone&nbsp;<P><DT><A HREF="win32timezone.TimeZoneInfo__utcoffset_meth.html">utcoffset</A><BR>
+
+<DD>Calculates the utcoffset according to the datetime.tzinfo spec&nbsp;<P><DT><A HREF="win32timezone.TimeZoneInfo__dst_meth.html">dst</A><BR>
+
+<DD>Calculate the daylight savings offset according to the&nbsp;<P><DT><A HREF="win32timezone.TimeZoneInfo__GetDSTStartTime_meth.html">GetDSTStartTime</A><BR>
+
+<DD>Given a year, determines the time when daylight savings time starts&nbsp;<P><DT><A HREF="win32timezone.TimeZoneInfo__GetDSTEndTime_meth.html">GetDSTEndTime</A><BR>
+
+<DD>Given a year, determines the time when daylight savings ends.&nbsp;<P><DT><A HREF="win32timezone.TimeZoneInfo__local_meth.html">local</A><BR>
+
+<DD>Returns the local time zone as defined by the operating system in the&nbsp;<P><DT><A HREF="win32timezone.TimeZoneInfo__utc_meth.html">utc</A><BR>
+
+<DD>Returns a time-zone representing UTC.&nbsp;<P><DT><A HREF="win32timezone.TimeZoneInfo__get_sorted_time_zone_names_meth.html">get_sorted_time_zone_names</A><BR>
+
+<DD>Return a list of time zone names that can&nbsp;<P><DT><A HREF="win32timezone.TimeZoneInfo__get_sorted_time_zones_meth.html">get_sorted_time_zones</A><BR>
+
+<DD>Return the time zones sorted by some key.&nbsp;<P></DL>
 
 </body>
 </html>

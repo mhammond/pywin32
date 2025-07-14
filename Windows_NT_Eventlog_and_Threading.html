@@ -164,11 +164,13 @@ try:
 
 
 
-    for thread in threads: #print thread results
+    for thread in threads:
 
-      for event in thread.data:
+&#09&#09    # print(thread results)
 
-&#09print event
+&#09for event in thread.data:
+
+&#09&#09  print(event)
 
 
 
@@ -176,7 +178,7 @@ try:
 
 except:
 
-    print traceback.print_exc(sys.exc_info())
+    print(traceback.print_exc(sys.exc_info()))
 
 </PRE>
 
@@ -209,8 +211,6 @@ import winerror
 import time
 
 import re
-
-import string
 
 import sys
 
@@ -306,7 +306,7 @@ class thread_it ( threading.Thread ) :
 
 &#09&#09&#09&#09&#09msg = str(win32evtlogutil.SafeFormatMessage(ev_obj, logtype))
 
-&#09&#09&#09&#09&#09results=string.join((now_time,the_time,computer,src,cat,record,evt_id,evt_type,msg[0:15]),':')
+&#09&#09&#09&#09&#09results=':'.join((now_time,the_time,computer,src,cat,record,evt_id,evt_type,msg[0:15]))
 
 &#09&#09&#09&#09&#09self.data.append(results)
 
@@ -340,9 +340,9 @@ class thread_it ( threading.Thread ) :
 
 
 
-&#09&#09(mon,day,yr)=map(lambda x: string.atoi(x),string.split(date,'/'))
+&#09&#09(mon,day,yr)=map(lambda x: int(x),date.split('/'))
 
-&#09&#09(hr,min,sec)=map(lambda x: string.atoi(x),string.split(the_time,':'))
+&#09&#09(hr,min,sec)=map(lambda x: int(x),the_time.split(':'))
 
 &#09&#09tup=[yr,mon,day,hr,min,sec,0,0,0]
 
@@ -384,17 +384,17 @@ try:
 
 &#09for thread in threads: #compile all of the threads' data together.
 
-&#09&#09print '###############'
+&#09&#09print("###############")
 
 &#09&#09for event in thread.data:
 
-&#09&#09&#09print event
+&#09&#09&#09print(event)
 
 
 
 except:
 
-&#09print traceback.print_exc(sys.exc_info())
+&#09print(traceback.print_exc(sys.exc_info()))
 
 </PRE>
 

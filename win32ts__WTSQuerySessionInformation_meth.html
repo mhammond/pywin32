@@ -76,15 +76,13 @@ WTS_PROTOCOL_TYPE_CONSOLE,WTS_PROTOCOL_TYPE_ICA,WTS_PROTOCOL_TYPE_RDP</TD></TR>
 
 <TR><TD>WTSConnectState</TD><TD>Int, from WTS_CONNECTSTATE_CLASS</TD></TR>
 
+<TR><TD>WTSIsRemoteSession</TD><TD>Boolean</TD></TR>
+
 <TR><TD>WTSClientDisplay</TD><TD>Dict containing client's display settings</TD></TR>
 
-<TR><TD>WTSClientAddress</TD><TD>Dict containing type and value of client's IP address (None 
+<TR><TD>WTSClientAddress</TD><TD>Dict containing type and value of client's IP address 
 
-if console session) IPV6 addresses may not be returned correctly on Windows 
-
-versions earlier than Windows Server 2012 (see 
-
-http://sourceforge.net/p/pywin32/bugs/664/ for details)</TD></TR>
+(None if console session)</TD></TR>
 
 </TABLE></body>
 </html>

@@ -44,9 +44,9 @@
 <hr>
 <h1><a name="SUMMARY">SUMMARY</a></h1>
 <p>
-Python's adsi access works really well with Exchange (late or early binding since you can read microsoft's type library).
-To get started, you will need to download adsi from microsoft:
-<a href="https://www.microsoft.com/windows/server/Technical/directory/adsilinks.asp">Microsoft ADSI</a>.
+Python's ADSI access works really well with Exchange (late or early binding since you can read microsoft's type library).
+To get started, you will need to download ADSI from microsoft:
+<a href="https://learn.microsoft.com/en-us/windows/win32/adsi/setting-up-your-development-environment">Setting Up Your Development Environment</a>.
 Microsoft has documentation for using languages other than python in the sdk.
 </p>
 
@@ -69,7 +69,7 @@ Before doing anything else you need to go through the next two steps:
 </table>
 
 
-<br>Now you have to decide how you want to access the exchange server. 
+<br>Now you have to decide how you want to access the exchange server.
 <br>I have chosen to authenticate, in which case you need to use OpenDSObject()
 
 <table border=2 cellpadding=4 cellspacing=1>
@@ -89,9 +89,10 @@ Before doing anything else you need to go through the next two steps:
 </table>
 
 <br>
-<strong>Note</strong> -- the fourth argument to opendsobject has various options for how to authenticate.  
-For example, if you use 1 instead of zero, it should either use NTLM or Kerberos for authentication.  
-For more information, check out: <a href="http://www.microsoft.com/windows/server/Technical/directory/adsilinks.asp">OpenDSObject</a>
+<strong>Note</strong> -- the fourth argument to OpenDSObject has various options for how to authenticate.
+For example, if you use 1 instead of zero, it should either use NTLM or Kerberos for authentication.
+For more information, check out:
+ <a href="https://learn.microsoft.com/en-us/windows/win32/api/iads/nf-iads-iadsopendsobject-opendsobject">OpenDSObject</a>
 
 <p>
 The ex_path in the above example specifies the resource you are trying to access.  For example:
@@ -152,13 +153,13 @@ myDSObject = ldap.OpenDSObject(ex_path,logon_ex,password,0)
 myDSObject.Getinfo()
 # To access a user's data try:
 attribute = myDSObject.Get('Extension-Attribute-1')
-print attribute
+print(attribute)
 # To modify a user try:
 myDSObject.Put('Extension-Attribute-1','barney was here')
 myDSObject.Setinfo()
 </code>
 Comments
-	
+
 <strong>Note</strong> -- To make any changes permanent setinfo is required.
 
 
@@ -188,7 +189,7 @@ try:
   dsobj.Delete("OrganizationalPerson", "cn="+login)
   dsobj.Setinfo()
 except:
-  print 'Error deleting '+login, sys.exc_type , sys.exc_value
+  print("Error deleting "+login, sys.exc_type , sys.exc_value)
 </code>
 </p>
 <hr>
@@ -228,11 +229,11 @@ def getmembers(path=''):
   dsobj = ldap.OpenDSObject(path,logon_ex,password,0)
   dsobj.Getinfo()
   if dsobj.Class=='organizationalPerson':
-      user_dict[string.capitalize(dsobj.cn)]=dsobj.uid
+      user_dict[dsobj.cn.capitalize()]=dsobj.uid
   elif dsobj.Class=='groupOfNames':
       for i in dsobj.Members():
               if i.Class=='organizationalPerson':
-                  user_dict[string.capitalize(i.cn)]=i.uid
+                  user_dict[i.cn.capitalize()]=i.uid
               elif type(i.member)==types.TupleType:
                   for j in i.member:
                       newpath='LDAP://'+server+'/'+j
@@ -241,11 +242,11 @@ def getmembers(path=''):
                   newpath='LDAP://'+server+'/'+i.member
                   getmembers(newpath)
   elif dsobj.Class=='Remote-Address':
-      User_dict[string.capitalize(dsobj.cn)]=dsobj.uid
+      User_dict[dsobj.cn.capitalize()]=dsobj.uid
   elif  dsobj.Class=='Public-Folder':
       pass
   else:
-      print 'skipped',dsobj.Class,dsobj.uid
+      print("skipped",dsobj.Class,dsobj.uid)
   return user_dict
 
 
@@ -264,15 +265,17 @@ Python has no trouble accessing Microsoft's ADSI to help simplify user managemen
 <h1><a name="Further Info">Further Info</a></h1>
 <p>
 <ul>
-<li><a href="http://msdn.microsoft.com">Microsoft MSDN references</a>
-<li><a href="http://www.microsoft.com/windows/server/Technical/directory/adsilinks.asp">Microsoft ADSI</a>
-<li><a href="http://msdn.microsoft.com/library/default.asp?URL=/library/psdk/adsi/if_core_3uic.htm">Microsoft MSDN ADSI reference</a>
+<li>
+  <a href="https://learn.microsoft.com/en-us/windows/win32/ADSI">
+    Windows Active Directory Service Interfaces documentation
+  </a>
+</li>
 <li>Relevant Python libraries: win32com.client
 </ul>
 </p>
 <hr><h1><a name="Author">Author</a></h1>
-John Nielsen, <a href="mailto:jn@who.net,">jn@who.net</A> 
-<br>-- Have a great time with programming with python! 
+John Nielsen, <a href="mailto:jn@who.net,">jn@who.net</A>
+<br>-- Have a great time with programming with python!
 		<!-- beginning of leaf footer-->
 		<p>&nbsp;</p>
 		<table border=0  cellpadding=0 cellspacing=0 width=100%>

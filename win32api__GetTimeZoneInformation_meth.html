@@ -22,11 +22,11 @@ tuple = <B>GetTimeZoneInformation(<I>times_as_tuples</I></B>)<P>Retrieves the sy
 
 <DD>If true, the SYSTEMTIME elements are returned as tuples instead of a time 
 
-object. Defaults to False on 3.5 and earlier, True otherwise, because this function 
+object. Defaults to True, because this function 
 
-returns SYSTEMTIME information with members which datetime on 3.6 and later treats as 
+returns SYSTEMTIME information with members which datetime treats as 
 
-invalid. In other words, using False on 3.6 and later will result in ValueErrors 
+invalid. In other words, using False will result in ValueErrors 
 
 instead of returning.<P>
 
@@ -86,11 +86,11 @@ GetTimeZoneInformation function. This string can be empty.<P></DL>
 
 <DL><DT>[2] <I><A HREF="PyDateTime.html">PyDateTime</A>/tuple</I> : standardTime<P>
 
-<DD>Specifies a SYSTEMTIME object that contains a date and local time when 
+<DD>Specifies a SYSTEMTIME object that contains a date and local time 
 
-the transition from daylight saving time to standard time occurs on this operating system. If this date is not 
+when the transition from daylight saving time to standard time occurs on this operating system. If this date is 
 
-specified, the wMonth member in the SYSTEMTIME structure must be zero. If this date is specified, the 
+not specified, the wMonth member in the SYSTEMTIME structure must be zero. If this date is specified, the 
 
 DaylightDate value in the TIME_ZONE_INFORMATION structure must also be specified. <BR>To select the correct day 
 

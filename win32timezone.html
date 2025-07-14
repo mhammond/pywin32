@@ -30,11 +30,11 @@ This module may be tested using the doctest module.<P>
 
 Written by Jason R. Coombs (jaraco@jaraco.com). 
 
-Copyright &#194&#169 2003-2012. 
+Copyright &#169 2003-2012. 
 
 All Rights Reserved.<P>
 
-This module is licenced for use in Mark Hammond's pywin32 
+This module is licensed for use in Mark Hammond's pywin32 
 
 library under the same terms as the pywin32 library.<P>
 
@@ -66,11 +66,11 @@ True<P>
 
 generated, unless standard time is always used)<P>
 
-<PRE>&gt&gt&gt now = datetime.datetime.now(TimeZoneInfo('Mountain Standard Time', True))
+<PRE>&gt&gt&gt now = datetime.datetime.now(win32timezone.TimeZoneInfo('Mountain Standard Time', True))
 
 &gt&gt&gt now.utcoffset()
 
-datetime.timedelta(-1, 61200)<P>
+datetime.timedelta(days=-1, seconds=61200)<P>
 
 &gt&gt&gt aug2 = datetime.datetime(2003, 8, 2, tzinfo = MST)
 
@@ -146,9 +146,19 @@ It's possible to construct a TimeZoneInfo from a TimeZoneDescription
 
 including the currently-defined zone.<P>
 
-<PRE>&gt&gt&gt tz = win32timezone.TimeZoneInfo(TimeZoneDefinition.current())
+<PRE>&gt&gt&gt code, info = win32timezone.TimeZoneDefinition.current()
+
+&gt&gt&gt tz = win32timezone.TimeZoneInfo(info, not code)
 
 &gt&gt&gt tz == pickle.loads(pickle.dumps(tz))
+
+True<P>
+
+</PRE>
+
+Although it's easier to use TimeZoneInfo.local() to get the local info<P>
+
+<PRE>&gt&gt&gt tz == TimeZoneInfo.local()
 
 True<P>
 
@@ -184,7 +194,7 @@ True<P>
 
 Microsoft now has a patch for handling time zones in 2007 (see 
 
-http://support.microsoft.com/gp/cp_dst)<P>
+https://learn.microsoft.com/en-us/troubleshoot/windows-client/system-management-components/daylight-saving-time-help-support)<P>
 
 As a result, patched systems will give an incorrect result for 
 
@@ -264,7 +274,7 @@ True<P>
 
 This test helps ensure language support for unicode characters<P>
 
-<PRE>&gt&gt&gt x = TIME_ZONE_INFORMATION(0, u'fran&#195&#167ais')<P>
+<PRE>&gt&gt&gt x = TIME_ZONE_INFORMATION(0, 'fran&#231ais')<P>
 
 </PRE>
 
@@ -278,7 +288,7 @@ Test conversion from one time zone to another at a DST boundary<P>
 
 &gt&gt&gt tz_hi.utcoffset(time_before)
 
-datetime.timedelta(-1, 50400)
+datetime.timedelta(days=-1, seconds=50400)
 
 &gt&gt&gt tz_hi.dst(time_before)
 
@@ -334,7 +344,7 @@ Now do the same tests one minute later in Hawaii.<P>
 
 &gt&gt&gt tz_hi.utcoffset(time_after)
 
-datetime.timedelta(-1, 50400)
+datetime.timedelta(days=-1, seconds=50400)
 
 &gt&gt&gt tz_hi.dst(time_before)
 
@@ -342,11 +352,11 @@ datetime.timedelta(0)<P>
 
 &gt&gt&gt dt_hi = datetime.datetime(2011, 11, 5, 16, 0, 0, 0, tzinfo=tz_hi)
 
-&gt&gt&gt print dt_hi.timetuple()
+&gt&gt&gt print(dt_hi.timetuple())
 
 time.struct_time(tm_year=2011, tm_mon=11, tm_mday=5, tm_hour=16, tm_min=0, tm_sec=0, tm_wday=5, tm_yday=309, tm_isdst=0)
 
-&gt&gt&gt print dt_hi.utctimetuple()
+&gt&gt&gt print(dt_hi.utctimetuple())
 
 time.struct_time(tm_year=2011, tm_mon=11, tm_mday=6, tm_hour=2, tm_min=0, tm_sec=0, tm_wday=6, tm_yday=310, tm_isdst=0)<P>
 
@@ -388,11 +398,11 @@ Check some internal methods<P>
 
 <PRE>&gt&gt&gt tz_pac._getStandardBias(datetime.datetime(2011, 1, 1))
 
-datetime.timedelta(0, 28800)
+datetime.timedelta(seconds=28800)
 
 &gt&gt&gt tz_pac._getDaylightBias(datetime.datetime(2011, 1, 1))
 
-datetime.timedelta(0, 25200)<P>
+datetime.timedelta(seconds=25200)<P>
 
 </PRE>
 
@@ -426,19 +436,19 @@ datetime.datetime(2011, 11, 6, 1, 0, tzinfo=TimeZoneInfo('Pacific Standard Time'
 
 </PRE>
 
-<H3>Methods</H3><P><DL><DT><A HREF="win32timezone__GetTZCapabilities_meth.html">GetTZCapabilities</A><BR>
+<H3>Methods</H3><P><DL><DT><A HREF="win32timezone__utcnow_meth.html">utcnow</A><BR>
 
-<DD>Run a few known tests to determine the capabilities of&nbsp;<P><DT><A HREF="win32timezone__now_meth.html">now</A><BR>
+<DD>Return the UTC time now with timezone awareness as enabled&nbsp;<P><DT><A HREF="win32timezone__now_meth.html">now</A><BR>
 
-<DD>Return the local time now with timezone awareness as enabled&nbsp;<P><DT><A HREF="win32timezone__resolveMUITimeZone_meth.html">resolveMUITimeZone</A><BR>
+<DD>Return the local time now with timezone awareness as enabled&nbsp;<P><DT><A HREF="win32timezone__GetTZCapabilities_meth.html">GetTZCapabilities</A><BR>
 
-<DD>Resolve a multilingual user interface resource for the time zone name&nbsp;<P><DT><A HREF="win32timezone__utcnow_meth.html">utcnow</A><BR>
+<DD>Run a few known tests to determine the capabilities of&nbsp;<P><DT><A HREF="win32timezone__resolveMUITimeZone_meth.html">resolveMUITimeZone</A><BR>
 
-<DD>Return the UTC time now with timezone awareness as enabled&nbsp;<P></DL><H3>Classes</H3><P><DL><DT><A HREF="win32timezone.TimeZoneInfo.html">TimeZoneInfo</A><BR>
+<DD>Resolve a multilingual user interface resource for the time zone name&nbsp;<P></DL><H3>Classes</H3><P><DL><DT><A HREF="win32timezone.TimeZoneDefinition.html">TimeZoneDefinition</A><BR>
 
-<DD>Main class for handling Windows time zones.&nbsp;<P><DT><A HREF="win32timezone.TimeZoneDefinition.html">TimeZoneDefinition</A><BR>
+<DD>A time zone definition class based on the win32&nbsp;<P><DT><A HREF="win32timezone.TimeZoneInfo.html">TimeZoneInfo</A><BR>
 
-<DD>A time zone definition class based on the win32&nbsp;<P><DT><A HREF="win32timezone.RangeMap.html">RangeMap</A><BR>
+<DD>Main class for handling Windows time zones.&nbsp;<P><DT><A HREF="win32timezone.RangeMap.html">RangeMap</A><BR>
 
 <DD>A dictionary-like object that uses the keys as bounds for a range.&nbsp;<P></DL></body>
 </html>
