@@ -590,7 +590,7 @@ PyObject *PyRecord::getattro(PyObject *self, PyObject *obname)
     PyRecord *pyrec = (PyRecord *)self;
     GUID structguid;
     OLECHAR *guidString;
-    char *name = PYWIN_ATTR_CONVERT(obname);
+    const char *name = PyUnicode_AsUTF8(obname);
     if (name == NULL)
         return NULL;
     if (strcmp(name, "__record_type_guid__") == 0) {
