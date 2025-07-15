@@ -1,15 +1,25 @@
+from typing import TYPE_CHECKING
+
 if isinstance(__path__, str):
     # For freeze to work!
     import sys
 
     try:
-        import mapi
+        if TYPE_CHECKING:
+            # Get the name from typeshed stubs
+            from win32comext.mapi import mapi
+        else:
+            import mapi
 
         sys.modules["win32com.mapi.mapi"] = mapi
     except ImportError:
         pass
     try:
-        import exchange
+        if TYPE_CHECKING:
+            # Get the name from typeshed stubs
+            from win32comext.mapi import exchange
+        else:
+            import exchange
 
         sys.modules["win32com.mapi.exchange"] = exchange
     except ImportError:
