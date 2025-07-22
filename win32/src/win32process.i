@@ -750,7 +750,7 @@ PyObject *MyCreateProcessAsUser(
 	SECURITY_ATTRIBUTES *INPUT_NULLOK, // @pyparm <o PySECURITY_ATTRIBUTES>|threadAttributes||thread security attributes, or None
 	BOOL bInheritHandles, // @pyparm int|bInheritHandles||handle inheritance flag
 	DWORD dwCreationFlags, // @pyparm int|dwCreationFlags||creation flags
-	PyObject *env, // @pyparm None|newEnvironment||A dictionary of stringor Unicode pairs to define the environment for the process, or None to inherit the current environment.
+	PyObject *env, // @pyparm None|newEnvironment||A dictionary of string or Unicode pairs to define the environment for the process, or None to inherit the current environment.
 	TCHAR *INPUT_NULLOK, // @pyparm string|currentDirectory||current directory name, or None
 	STARTUPINFO *lpStartupInfo // @pyparm <o PySTARTUPINFO>|startupinfo||a STARTUPINFO object that specifies how the main window for the new process should appear.
 );

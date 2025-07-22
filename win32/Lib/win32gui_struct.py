@@ -115,14 +115,18 @@ def PackMENUITEMINFO(
     # memory is used) for the lifetime of the INFO item.
     extras = []
     # ack - dwItemData and dwTypeData were confused for a while...
-    assert (
-        dwItemData is None or dwTypeData is None
-    ), "sorry - these were confused - you probably want dwItemData"
+    assert dwItemData is None or dwTypeData is None, (
+        "sorry - these were confused - you probably want dwItemData"
+    )
     # if we are a long way past 209, then we can nuke the above...
     if dwTypeData is not None:
         import warnings
 
-        warnings.warn("PackMENUITEMINFO: please use dwItemData instead of dwTypeData")
+        warnings.warn(
+            "PackMENUITEMINFO: please use dwItemData instead of dwTypeData",
+            DeprecationWarning,
+            stacklevel=2,
+        )
     if dwItemData is None:
         dwItemData = dwTypeData or 0
 

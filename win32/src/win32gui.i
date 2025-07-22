@@ -1499,7 +1499,7 @@ static PyObject *PyGetObjectType(PyObject *self, PyObject *args)
 
 static PyObject *PyMakeBuffer(PyObject *self, PyObject *args)
 {
-	PyErr_Warn(PyExc_PendingDeprecationWarning, "PyMakeBuffer is deprecated; use PyGetMemory instead");
+	PyErr_Warn(PyExc_DeprecationWarning, "PyMakeBuffer is deprecated; use PyGetMemory instead");
 	size_t len;
 	void *addr=NULL;
 #ifdef _WIN64
