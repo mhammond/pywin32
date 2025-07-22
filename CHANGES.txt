@@ -11,9 +11,15 @@ or
 As of build 305, installation .exe files have been deprecated; see
 https://mhammond.github.io/pywin32_installers.html .
 
-Coming in build 311, as yet unreleased
+Coming in build 312, as yet unreleased
 --------------------------------------
 * Fixed `gencache.ForgetAboutTypelibInterface` to actually drop cached redirects (#2329, @Avasam)
+
+Build 311, released 2025/07/14
+------------------------------
+* Fix use-after-free in CertDeleteCertificateFromStore (#2637)
+* Better support for COM identifiers with non-ascii characters (#2632)
+* pywin32's own warnings will now refer to the caller, rather than to the internal source of warning itself (#2594, @Avasam)
 * Fixed a regression that broke special __dunder__ methods with CoClass. (#1870, #2493, @Avasam, @geppi)
 * Fixed `TypeError: cannot unpack non-iterable NoneType object` when registering an axscript client ScriptItem (#2513, @Avasam)
 * Fixed a memory leak when SafeArrays are used as out parameters (@the-snork)
