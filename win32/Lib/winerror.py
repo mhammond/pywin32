@@ -40,11 +40,10 @@ def __getattr__(name: str) -> int:
         "CERTDB_E_JET_ERROR": -2146873344,
     }.get(name):
         warnings.warn(
-            DeprecationWarning(
-                f"Constant '{name}' is no longer part of Windows' SDK and may be removed eventually. "
-                + f"If you believe this is incorrect or are still using '{name}', "
-                + "please raise an issue at https://github.com/mhammond/pywin32/issues"
-            ),
+            f"Constant '{name}' is no longer part of Windows' SDK and may be removed eventually. "
+            + f"If you believe this is incorrect or are still using '{name}', "
+            + "please raise an issue at https://github.com/mhammond/pywin32/issues",
+            DeprecationWarning,
             stacklevel=2,
         )
         return attr
