@@ -24,7 +24,7 @@ Build 311, released 2025/07/14
 * Fix use-after-free in CertDeleteCertificateFromStore (mhammond#2637)
 * Better support for COM identifiers with non-ascii characters (mhammond#2632)
 * pywin32's own warnings will now refer to the caller, rather than to the internal source of warning itself (mhammond#2594, [@Avasam][Avasam])
-* Fixed a regression that broke special __dunder__ methods with CoClass. (mhammond#1870, mhammond#2493, [@Avasam][Avasam], [@geppi][geppi])
+* Fixed a regression that broke special `__dunder__` methods with CoClass. (mhammond#1870, mhammond#2493, [@Avasam][Avasam], [@geppi][geppi])
 * Fixed `TypeError: cannot unpack non-iterable NoneType object` when registering an axscript client `ScriptItem` (mhammond#2513, [@Avasam][Avasam])
 * Fixed a memory leak when SafeArrays are used as out parameters ([@the-snork][the-snork])
 * Fixed dispatch handling for properties ([@the-snork][the-snork])
@@ -374,7 +374,7 @@ Build 301, released 2021-05-30
   datetime object with `ValueError: microsecond must be in 0..999999`. Shoutout
   to [@hujiaxing][hujiaxing] for reporting and helping reproduce the issue (mhammond#1655)
 * Added win32com.shell.SHGetKnownFolderPath() and related constants.
-* CoClass objects should work better with special methods like __len__ etc.
+* CoClass objects should work better with special methods like `__len__` etc.
   (mhammond#1699)
 * Shifted work in win32.lib.pywin32_bootstrap to Python's import system from
   manual path manipulations ([@wkschwartz][wkschwartz] in mhammond#1651)
