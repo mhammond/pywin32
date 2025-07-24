@@ -18,6 +18,8 @@ As of build 305, installation .exe files have been deprecated; see
 Coming in build 312, as yet unreleased
 --------------------------------------
 
+* Added missing quotes and closing parenthesis to `win32com.client.build.MapEntry`'s `repr` (mhammond#2572, [@Avasam][Avasam])
+
 Build 311, released 2025/07/14
 ------------------------------
 
