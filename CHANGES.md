@@ -18,6 +18,8 @@ As of build 305, installation .exe files have been deprecated; see
 Coming in build 312, as yet unreleased
 --------------------------------------
 
+* Fixed Python failure handling in Pythonwin and improve error message (mhammond#2319, [@Avasam][Avasam])
+
 Build 311, released 2025/07/14
 ------------------------------
 
