@@ -65,9 +65,9 @@ class CommonDBTests(unittest.TestCase):
         mycallable = lambda connection, cursor, errorclass, errorvalue: 1
         conn.errorhandler = mycallable
         crsr = conn.cursor()
-        assert (
-            crsr.errorhandler == mycallable
-        ), "Error handler on crsr should be same as on connection"
+        assert crsr.errorhandler == mycallable, (
+            "Error handler on crsr should be same as on connection"
+        )
 
     def testDefaultErrorHandlerConnection(self):
         conn = self.getConnection()
@@ -97,9 +97,9 @@ class CommonDBTests(unittest.TestCase):
         except:
             pass
         # The Standard errorhandler appends error to messages attribute
-        assert (
-            len(conn.messages) > 0
-        ), "Setting errorhandler to none  should bring back the standard error handler"
+        assert len(conn.messages) > 0, (
+            "Setting errorhandler to none  should bring back the standard error handler"
+        )
 
     def testDefaultErrorHandlerCursor(self):
         crsr = self.getConnection().cursor()
@@ -126,9 +126,9 @@ class CommonDBTests(unittest.TestCase):
         except:
             pass
         # The Standard errorhandler appends error to messages attribute
-        assert (
-            len(crsr.messages) > 0
-        ), "Setting errorhandler to none  should bring back the standard error handler"
+        assert len(crsr.messages) > 0, (
+            "Setting errorhandler to none  should bring back the standard error handler"
+        )
 
     def testUserDefinedConversions(self):
         try:
@@ -645,15 +645,15 @@ class CommonDBTests(unittest.TestCase):
                     'returned value:"%s" != test value:"%s"' % (rec[j], inParam[j])
                 )
             # check that we can get a complete tuple from a row
-            assert (
-                tuple(rec) == inParam
-            ), f'returned value:"{rec!r}" != test value:"{inParam!r}"'
+            assert tuple(rec) == inParam, (
+                f'returned value:"{rec!r}" != test value:"{inParam!r}"'
+            )
             # test that slices of rows work
             slice1 = tuple(rec[:-1])
             slice2 = tuple(inParam[0:2])
-            assert (
-                slice1 == slice2
-            ), f'returned value:"{slice1!r}" != test value:"{slice2!r}"'
+            assert slice1 == slice2, (
+                f'returned value:"{slice1!r}" != test value:"{slice2!r}"'
+            )
             # now test named column retrieval
             assert rec["fldTwo"] == inParam[0]
             assert rec.fldThree == inParam[1]
@@ -915,9 +915,9 @@ class CommonDBTests(unittest.TestCase):
         assert len(rs) == 1
         self.conn.rollback()
         crsr.execute(selectSql)
-        assert (
-            crsr.fetchone() is None
-        ), "cursor.fetchone should return None if a query retrieves no rows"
+        assert crsr.fetchone() is None, (
+            "cursor.fetchone should return None if a query retrieves no rows"
+        )
         crsr.execute("SELECT fldData from xx_%s" % config.tmp)
         rs = crsr.fetchall()
         assert len(rs) == 9, "the original records should still be present"
@@ -973,9 +973,9 @@ class CommonDBTests(unittest.TestCase):
             row = crsr.fetchone()
         except api.DatabaseError:
             row = None  # if the entire table disappeared the rollback was perfect and the test passed
-        assert (
-            row is None
-        ), f"cursor.fetchone should return None if a query retrieves no rows. Got {row!r}"
+        assert row is None, (
+            f"cursor.fetchone should return None if a query retrieves no rows. Got {row!r}"
+        )
         self.helpRollbackTblTemp()
 
     def testAutoCommit(self):
@@ -1111,9 +1111,9 @@ class TestADOwithSQLServer(CommonDBTests):
         )
         assert retvalues[0] == "Dodsworth", f'{retvalues[0]!r} is not "Dodsworth"'
         assert retvalues[1] == "Anne", f'{retvalues[1]!r} is not "Anne"'
-        assert (
-            retvalues[2] == "DodsworthAnne"
-        ), f'{retvalues[2]!r} is not "DodsworthAnne"'
+        assert retvalues[2] == "DodsworthAnne", (
+            f'{retvalues[2]!r} is not "DodsworthAnne"'
+        )
         self.conn.rollback()
 
     def testMultipleSetReturn(self):
@@ -1200,9 +1200,9 @@ class TestADOwithSQLServer(CommonDBTests):
             {"parameters": ["this is wrong", "Anne", "not Alice"]},
         )
         if result[0]:  # the expected exception was raised
-            assert "@theInput" in str(result[1]) or "DatabaseError" in str(
-                result
-            ), "Identifies the wrong erroneous parameter"
+            assert "@theInput" in str(result[1]) or "DatabaseError" in str(result), (
+                "Identifies the wrong erroneous parameter"
+            )
         else:
             assert result[0], result[1]  # incorrect or no exception
         self.conn.rollback()
