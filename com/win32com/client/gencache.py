@@ -169,11 +169,7 @@ def GetGeneratePath():
     Checks the directory is OK.
     """
     assert not is_readonly, "Why do you want the genpath for a readonly store?"
-    try:
-        os.makedirs(win32com.__gen_path__)
-        # os.mkdir(win32com.__gen_path__)
-    except OSError:
-        pass
+    os.makedirs(win32com.__gen_path__, exist_ok=True)
     try:
         fname = os.path.join(win32com.__gen_path__, "__init__.py")
         os.stat(fname)
