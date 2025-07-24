@@ -269,7 +269,7 @@ static struct PyMethodDef PyCCmdUI_methods[] = {
 
 PyObject *PyCCmdUI::getattro(PyObject *obname)
 {
-    char *name = PYWIN_ATTR_CONVERT(obname);
+    const char *name = PyUnicode_AsUTF8(obname);
     if (strcmp(name, "m_nIndex") == 0) {  // @prop int|m_nIndex|
         CCmdUI *pCU = PyCCmdUI::GetCCmdUIPtr(this);
         if (!pCU)
