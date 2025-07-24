@@ -18,6 +18,8 @@ As of build 305, installation .exe files have been deprecated; see
 Coming in build 312, as yet unreleased
 --------------------------------------
 
+* Added missing quotes and closing parenthesis to `win32com.client.build.MapEntry`'s `repr` (mhammond#2572, [@Avasam][Avasam])
+
 Build 311, released 2025/07/14
 ------------------------------
 
@@ -42,7 +44,6 @@ Build 310, released 2025/03/16
 * Fixed a regression where `win32com.client.DispatchWithEvents` and `win32com.client.WithEvents` would throw a `TypeError` on the second call (mhammond#2491, [@Avasam][Avasam])
 * Fixed regression causing `win32com.shell.shell` to be missing a number of `IID`s. (mhammond#2487, [@Avasam][Avasam])
 * As part of the above, Windows 7 is now minimum supported.
-* Added missing quotes and closing parenthesis to `win32com.client.build.MapEntry`'s `repr` (#2572, @Avasam)
 
 Build 309, released 2025/03/09
 ------------------------------
