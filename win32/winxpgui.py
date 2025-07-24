@@ -10,4 +10,4 @@ from win32console import (  # nopycln: import
 )
 from win32gui import *  # nopycln: import
 
-warnings.warn(str(__doc__), category=DeprecationWarning)
+warnings.warn(str(__doc__), category=DeprecationWarning, stacklevel=2)
