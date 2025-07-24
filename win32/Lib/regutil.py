@@ -145,11 +145,7 @@ def RegisterModule(modName, modPath):
     modName -- The name of the module, as used by import.
     modPath -- The full path and file name of the module.
     """
-    try:
-        import os
-
-        os.stat(modPath)
-    except OSError:
+    if not os.path.exists(modPath):
         print("Warning: Registering non-existant module %s" % modPath)
     win32api.RegSetValue(
         GetRootKey(),
@@ -204,11 +200,9 @@ def RegisterHelpFile(helpFile, helpPath, helpDesc=None, bCheckFile=1):
     if helpDesc is None:
         helpDesc = helpFile
     fullHelpFile = os.path.join(helpPath, helpFile)
-    try:
-        if bCheckFile:
-            os.stat(fullHelpFile)
-    except OSError:
-        raise ValueError("Help file does not exist")
+    if bCheckFile:
+        if not os.path.exists(fullHelpFile):
+            raise ValueError("Help file does not exist")
     # Now register with Python itself.
     win32api.RegSetValue(
         GetRootKey(),
@@ -264,11 +258,8 @@ def RegisterCoreDLL(coredllName=None):
     if coredllName is None:
         coredllName = win32api.GetModuleFileName(sys.dllhandle)
         # must exist!
-    else:
-        try:
-            os.stat(coredllName)
-        except OSError:
-            print("Warning: Registering non-existant core DLL %s" % coredllName)
+    elif not os.path.exists(coredllName):
+        print(f"Warning: Registering non-existant core DLL {coredllName}")
 
     hKey = win32api.RegCreateKey(GetRootKey(), BuildDefaultPythonKey())
     try:
