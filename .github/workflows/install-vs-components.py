@@ -22,11 +22,13 @@ vs_install_path = check_output(
     shell=True,
 ).strip()
 components_to_add = ["Microsoft.VisualStudio.Component.VC.14.29.16.11.ATL"] + (
-    ["Microsoft.VisualStudio.Component.VC.14.29.16.11.ATL.ARM64"]
+    [
+        "Microsoft.VisualStudio.Component.VC.14.29.16.11.ATL.ARM",
+        "Microsoft.VisualStudio.Component.VC.14.29.16.11.ATL.ARM64",
+    ]
     if platform.machine() == "ARM64"
     else []
 )
-
 args = (
     "vs_installer.exe",
     "modify",
