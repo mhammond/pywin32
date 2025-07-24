@@ -73,12 +73,22 @@ def DemoModal():
 
 if __name__ == "__main__":
     flags = 0
-    for flag in """ICC_DATE_CLASSES ICC_ANIMATE_CLASS ICC_ANIMATE_CLASS
-                   ICC_BAR_CLASSES ICC_COOL_CLASSES ICC_DATE_CLASSES
-                   ICC_HOTKEY_CLASS ICC_INTERNET_CLASSES ICC_LISTVIEW_CLASSES
-                   ICC_PAGESCROLLER_CLASS ICC_PROGRESS_CLASS ICC_TAB_CLASSES
-                   ICC_TREEVIEW_CLASSES ICC_UPDOWN_CLASS ICC_USEREX_CLASSES
-                   ICC_WIN95_CLASSES  """.split():
+    for flag in (
+        "ICC_ANIMATE_CLASS",
+        "ICC_BAR_CLASSES",
+        "ICC_COOL_CLASSES",
+        "ICC_DATE_CLASSES",
+        "ICC_HOTKEY_CLASS",
+        "ICC_INTERNET_CLASSES",
+        "ICC_LISTVIEW_CLASSES",
+        "ICC_PAGESCROLLER_CLASS",
+        "ICC_PROGRESS_CLASS",
+        "ICC_TAB_CLASSES",
+        "ICC_TREEVIEW_CLASSES",
+        "ICC_UPDOWN_CLASS",
+        "ICC_USEREX_CLASSES",
+        "ICC_WIN95_CLASSES",
+    ):
         flags |= getattr(commctrl, flag)
     win32gui.InitCommonControlsEx(flags)
     # Need to do this go get rich-edit working.
