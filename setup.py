@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-build_id = "310.1"  # may optionally include a ".{patchno}" suffix.
+build_id = "311.1"  # may optionally include a ".{patchno}" suffix.
 
 __doc__ = """This is a distutils setup-script for the pywin32 extensions.
 
@@ -2020,7 +2020,16 @@ dist = setup(
     long_description_content_type="text/markdown",
     author="Mark Hammond (et al)",
     author_email="mhammond@skippinet.com.au",
-    url="https://github.com/mhammond/pywin32",
+    project_urls={
+        # https://docs.pypi.org/project_metadata/#general-url
+        "Homepage": "https://github.com/mhammond/pywin32",
+        "Changes": "https://github.com/mhammond/pywin32/blob/main/CHANGES.txt",
+        "Docs": "https://mhammond.github.io/pywin32/",
+        "Bugs": "https://github.com/mhammond/pywin32/issues",
+        # Arbitrary URLs (icons still recognized)
+        "Support Requests": "https://github.com/mhammond/pywin32/discussions",
+        "Mailing List": "https://mail.python.org/mailman/listinfo/python-win32",
+    },
     license="PSF",
     classifiers=classifiers,
     cmdclass=cmdclass,
