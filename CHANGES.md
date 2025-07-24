@@ -18,6 +18,8 @@ As of build 305, installation .exe files have been deprecated; see
 Coming in build 312, as yet unreleased
 --------------------------------------
 
+* Added many missing license and copyright notice files (mhammond#2590, [@Avasam][Avasam])
+
 Build 311, released 2025/07/14
 ------------------------------
 
