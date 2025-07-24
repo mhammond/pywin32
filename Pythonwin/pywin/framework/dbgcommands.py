@@ -105,7 +105,9 @@ class DebuggerCommandHandler:
             ## for the toolbar button IDC_DBG_ADD fails, since MFC falls back to
             ## sending a normal command if the UI update command fails.
             ## win32ui.MessageBox('There is no active window - no breakpoint can be added')
-            warnings.warn("There is no active window - no breakpoint can be added")
+            warnings.warn(
+                "There is no active window - no breakpoint can be added", stacklevel=1
+            )
             return None
         pathName = doc.GetPathName()
         lineNo = view.LineFromChar(view.GetSel()[0]) + 1

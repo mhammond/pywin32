@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-build_id = "308.1"  # may optionally include a ".{patchno}" suffix.
+build_id = "311.1"  # may optionally include a ".{patchno}" suffix.
 
 __doc__ = """This is a distutils setup-script for the pywin32 extensions.
 
@@ -31,21 +31,42 @@ import os
 import platform
 import re
 import shutil
-import subprocess
 import sys
 import winreg
+from collections.abc import MutableSequence
 from pathlib import Path
 from setuptools import Extension, setup
+from setuptools._distutils import ccompiler
 from setuptools.command.build import build
-from setuptools.command.build_ext import build_ext
-from setuptools.command.install import install
 from setuptools.modified import newer_group
 from tempfile import gettempdir
-from typing import Iterable
+from typing import TYPE_CHECKING, Iterable
 
-from distutils import ccompiler
-from distutils._msvccompiler import MSVCCompiler
-from distutils.command.install_data import install_data
+# We must import from distutils directly at runtime
+# But this prevents typing issues across Python 3.11-3.12
+if TYPE_CHECKING:
+    from setuptools._distutils import ccompiler
+    from setuptools._distutils._msvccompiler import MSVCCompiler
+    from setuptools._distutils.command.install_data import install_data
+else:
+    from distutils import ccompiler
+    from distutils._msvccompiler import MSVCCompiler
+    from distutils.command.install_data import install_data
+
+
+def my_new_compiler(**kw):
+    if "compiler" in kw and kw["compiler"] in (None, "msvc"):
+        return my_compiler()
+    return orig_new_compiler(**kw)
+
+
+# No way to cleanly wedge our compiler sub-class in.
+orig_new_compiler = ccompiler.new_compiler
+ccompiler.new_compiler = my_new_compiler  # type: ignore[assignment] # Assuming the caller will always use only kwargs
+
+
+# This import has to be delayed to AFTER the compiler hack
+from setuptools.command.build_ext import build_ext  # noqa: E402
 
 build_id_patch = build_id
 if not "." in build_id_patch:
@@ -122,12 +143,12 @@ class WinExt(Extension):
                 ("DISTUTILS_BUILD", None),
                 ("_CRT_SECURE_NO_WARNINGS", None),
                 # CRYPT_DECRYPT_MESSAGE_PARA.dwflags is in an ifdef for some unknown reason
-                # See github PR #1444 for more details...
+                # See GitHub PR #1444 for more details...
                 ("CRYPT_DECRYPT_MESSAGE_PARA_HAS_EXTRA_FIELDS", None),
-                # Minimum Windows version supported (Vista)
+                # Minimum Windows version supported (Windows 7)
                 # https://learn.microsoft.com/en-us/cpp/porting/modifying-winver-and-win32-winnt
-                ("_WIN32_WINNT", hex(0x0600)),
-                ("WINVER", hex(0x0600)),
+                ("_WIN32_WINNT", hex(0x0601)),
+                ("WINVER", hex(0x0601)),
             )
         )
         self.pch_header = pch_header
@@ -577,6 +598,24 @@ class my_build_ext(build_ext):
             print("-- compiler.library_dirs:", self.compiler.library_dirs)
             raise RuntimeError("Too many extensions skipped, check build environment")
 
+        for ext in [*self.extensions, *W32_exe_files]:
+            # Stamp the version of the built target.
+            # Do this externally to avoid suddenly dragging in the
+            # modules needed by this process, and which we will soon try and update.
+            ext_path = self.get_ext_fullpath(ext.name)
+            self.spawn(
+                [
+                    sys.executable,
+                    Path(__file__).parent / "win32" / "Lib" / "win32verstamp.py",
+                    f"--version={pywin32_version}",
+                    "--comments=https://github.com/mhammond/pywin32",
+                    f"--original-filename={os.path.basename(ext_path)}",
+                    "--product=PyWin32",
+                    "--quiet" if "-v" not in sys.argv else "",
+                    ext_path,
+                ]
+            )
+
         # Not sure how to make this completely generic, and there is no
         # need at this stage.
         self._build_scintilla()
@@ -850,100 +889,7 @@ class my_build_ext(build_ext):
         return new_sources
 
 
-class my_install(install):
-    def run(self):
-        """Custom script we run at the end of installing
-        This is only run for local installs. Wheel-based installs won't run this code.
-        """
-        install.run(self)
-        # If self.root has a value, it means we are being "installed" into some other
-        # directory than Python itself - in which case we must *not* run our installer.
-        # bdist_wininst used to trigger this by using a temp directory.
-        # Is this still a concern ?
-        if self.root:
-            print(
-                "Not executing post install script when "
-                + f"not installing in Python itself (self.root={self.root})"
-            )
-            return
-        self.execute(self._postinstall, (), msg="Executing post install script...")
-
-    def _postinstall(self):
-        filename = os.path.join(self.install_scripts, "pywin32_postinstall.py")
-        if not os.path.isfile(filename):
-            raise RuntimeError(f"Can't find '{filename}'")
-        # As of setuptools>=74.0.0, we no longer need to
-        # be concerned about distutils calling win32api
-        subprocess.Popen(
-            [
-                sys.executable,
-                filename,
-                "-install",
-                "-destination",
-                self.install_lib,
-                "-quiet",
-                "-wait",
-                str(os.getpid()),
-            ]
-        )
-
-
-def my_new_compiler(**kw):
-    if "compiler" in kw and kw["compiler"] in (None, "msvc"):
-        return my_compiler()
-    return orig_new_compiler(**kw)
-
-
-# No way to cleanly wedge our compiler sub-class in.
-orig_new_compiler = ccompiler.new_compiler
-ccompiler.new_compiler = my_new_compiler  # type: ignore[assignment] # Assuming the caller will always use only kwargs
-
-
 class my_compiler(MSVCCompiler):
-    def link(
-        self,
-        target_desc,
-        objects,
-        output_filename,
-        output_dir=None,
-        libraries=None,
-        library_dirs=None,
-        runtime_library_dirs=None,
-        export_symbols=None,
-        debug=0,
-        *args,
-        **kw,
-    ):
-        super().link(
-            target_desc,
-            objects,
-            output_filename,
-            output_dir,
-            libraries,
-            library_dirs,
-            runtime_library_dirs,
-            export_symbols,
-            debug,
-            *args,
-            **kw,
-        )
-        # Here seems a good place to stamp the version of the built
-        # target.  Do this externally to avoid suddenly dragging in the
-        # modules needed by this process, and which we will soon try and
-        # update.
-        args = [
-            sys.executable,
-            # NOTE: On Python 3.7, all args must be str
-            str(Path(__file__).parent / "win32" / "Lib" / "win32verstamp.py"),
-            f"--version={pywin32_version}",
-            "--comments=https://github.com/mhammond/pywin32",
-            f"--original-filename={os.path.basename(output_filename)}",
-            "--product=PyWin32",
-            "--quiet" if "-v" not in sys.argv else "",
-            output_filename,
-        ]
-        self.spawn(args)
-
     # Work around bpo-36302/bpo-42009 - it sorts sources but this breaks
     # support for building .mc files etc :(
     def compile(self, sources, **kwargs):
@@ -956,7 +902,7 @@ class my_compiler(MSVCCompiler):
         sources = sorted(sources, key=key_reverse_mc)
         return MSVCCompiler.compile(self, sources, **kwargs)
 
-    def spawn(self, cmd):
+    def spawn(self, cmd: MutableSequence[str]) -> None:  # type: ignore[override] # More restrictive than supertype
         is_link = cmd[0].endswith("link.exe") or cmd[0].endswith('"link.exe"')
         is_mt = cmd[0].endswith("mt.exe") or cmd[0].endswith('"mt.exe"')
         if is_mt:
@@ -974,7 +920,7 @@ class my_compiler(MSVCCompiler):
                 if cmd[i] == "-manifest":
                     cmd[i + 1] += ".orig"
                     break
-        super().spawn(cmd)
+        super().spawn(cmd)  # type: ignore[arg-type] # mypy variance issue, but pyright ok
         if is_link:
             # We want a copy of the original manifest so we can use it later.
             for i in range(len(cmd)):
@@ -1951,9 +1897,9 @@ def expand_modules(module_dir: str | os.PathLike[str]):
 
 
 # NOTE: somewhat counter-intuitively, a result list a-la:
-#  [('Lib/site-packages\\pythonwin', ('pythonwin/license.txt',)),]
-# will 'do the right thing' in terms of installing licence.txt into
-# 'Lib/site-packages/pythonwin/licence.txt'.  We exploit this to
+#  [('Lib/site-packages\\pythonwin', ('pythonwin/License.txt',)),]
+# will 'do the right thing' in terms of installing License.txt into
+# 'Lib/site-packages/pythonwin/License.txt'.  We exploit this to
 # get 'com/win32com/whatever' installed to 'win32com/whatever'
 def convert_data_files(files: Iterable[str]):
     ret: list[tuple[str, tuple[str]]] = []
@@ -2045,7 +1991,6 @@ ext_modules = (
 )
 
 cmdclass = {
-    "install": my_install,
     "build": my_build,
     "build_ext": my_build_ext,
     "install_data": my_install_data,
@@ -2055,6 +2000,7 @@ classifiers = [
     "Environment :: Win32 (MS Windows)",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: Python Software Foundation License",
+    "Development Status :: 5 - Production/Stable",
     "Operating System :: Microsoft :: Windows",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
@@ -2062,6 +2008,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Programming Language :: Python :: Implementation :: CPython",
 ]
 
@@ -2073,11 +2020,31 @@ dist = setup(
     long_description_content_type="text/markdown",
     author="Mark Hammond (et al)",
     author_email="mhammond@skippinet.com.au",
-    url="https://github.com/mhammond/pywin32",
+    project_urls={
+        # https://docs.pypi.org/project_metadata/#general-url
+        "Homepage": "https://github.com/mhammond/pywin32",
+        "Changes": "https://github.com/mhammond/pywin32/blob/main/CHANGES.txt",
+        "Docs": "https://mhammond.github.io/pywin32/",
+        "Bugs": "https://github.com/mhammond/pywin32/issues",
+        # Arbitrary URLs (icons still recognized)
+        "Support Requests": "https://github.com/mhammond/pywin32/discussions",
+        "Mailing List": "https://mail.python.org/mailman/listinfo/python-win32",
+    },
     license="PSF",
     classifiers=classifiers,
     cmdclass=cmdclass,
-    scripts=["pywin32_postinstall.py", "pywin32_testall.py"],
+    # This adds the scripts under Python3XX/Scripts, but doesn't actually do much
+    scripts=[
+        "win32/scripts/pywin32_postinstall.py",
+        "win32/scripts/pywin32_testall.py",
+    ],
+    # This shortcuts `python -m win32.scripts.some_script` to just `some_script`
+    entry_points={
+        "console_scripts": [
+            "pywin32_postinstall = win32.scripts.pywin32_postinstall:main",
+            "pywin32_testall = win32.scripts.pywin32_testall:main",
+        ]
+    },
     ext_modules=ext_modules,
     package_dir={
         "win32com": "com/win32com",

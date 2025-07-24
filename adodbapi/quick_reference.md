@@ -6,7 +6,7 @@ Adodbapi is a Python DB-API 2.0 module that makes it easy to use Microsoft ADO
 for connecting with databases and other data sources using CPython.
 
 Source home page:
-<https://github.com/mhammond/pywin32/tree/master/adodbapi>
+<https://github.com/mhammond/pywin32/tree/main/adodbapi>
 
 For complete installation instructions, see the README.txt file, which you may
 also find at
