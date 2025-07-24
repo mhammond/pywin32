@@ -250,7 +250,7 @@ class HLISeq(HLIPythonObject):
     def GetSubList(self):
         ret = []
         pos = 0
-        for item in self.myobject:
+        for item in self.myobject or ():
             ret.append(MakeHLI(item, f"[{pos}]"))
             pos += 1
         self.InsertDocString(ret)
