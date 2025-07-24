@@ -33,14 +33,14 @@ import re
 import shutil
 import sys
 import winreg
-from collections.abc import MutableSequence
+from collections.abc import Iterable, MutableSequence
 from pathlib import Path
 from setuptools import Extension, setup
 from setuptools._distutils import ccompiler
 from setuptools.command.build import build
 from setuptools.modified import newer_group
 from tempfile import gettempdir
-from typing import TYPE_CHECKING, Iterable
+from typing import TYPE_CHECKING
 
 # We must import from distutils directly at runtime
 # But this prevents typing issues across Python 3.11-3.12
@@ -1919,9 +1919,7 @@ def convert_data_files(files: Iterable[str]):
                 raise RuntimeError("No file '%s'" % file)
             files_use = (file,)
         for fname in files_use:
-            path_use = os.path.dirname(fname)
-            if path_use.startswith("com\\"):
-                path_use = path_use[4:]
+            path_use = os.path.dirname(fname).removeprefix("com\\")
             ret.append((path_use, (fname,)))
     return ret
 
@@ -2002,7 +2000,6 @@ classifiers = [
     "License :: OSI Approved :: Python Software Foundation License",
     "Development Status :: 5 - Production/Stable",
     "Operating System :: Microsoft :: Windows",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",

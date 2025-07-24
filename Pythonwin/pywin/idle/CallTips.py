@@ -94,10 +94,8 @@ class CallTips:
             # How is this for a hack!
             import __main__
 
-            namespace = sys.modules.copy()
-            namespace.update(__main__.__dict__)
             try:
-                return eval(word, namespace)
+                return eval(word, sys.modules | __main__.__dict__)
             except:
                 pass
         return None  # Can't find an object.
