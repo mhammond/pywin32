@@ -66,7 +66,7 @@ def CheckEvent(server, client, val, verbose):
     if client.last_event_arg != val:
         raise RuntimeError(f"Sent {val!r}, but got back {client.last_event_arg!r}")
     if verbose:
-        print("Sent and received %r" % val)
+        print("Sent and received {!r}".format(val))
 
 
 # A simple test script for all this.
