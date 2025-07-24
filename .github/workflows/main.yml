@@ -40,14 +40,6 @@ jobs:
           check-latest: true
           allow-prereleases: true
 
-      - name: Fix user Scripts missing from PATH
-        if: matrix.architecture == 'x86'
-        run: |
-          # Work around https://github.com/actions/setup-python/issues/1005
-          $ScriptsPath = python -c "import sysconfig,os; print(sysconfig.get_path('scripts', f'{os.name}_user'))"
-          echo $ScriptsPath
-          Add-Content $env:GITHUB_PATH $ScriptsPath
-
       - name: Build and install
         run: pip install . -v --user
 
