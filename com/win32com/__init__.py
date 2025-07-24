@@ -109,7 +109,7 @@ if not __gen_path__:
         __gen_path__ = os.path.abspath(os.path.join(__path__[0], "gen_py"))
         if not os.path.isdir(__gen_path__):
             # We used to dynamically create a directory under win32com -
-            # but this sucks.  If the dir doesn't already exist, we we
+            # but this sucks.  If the dir doesn't already exist, we
             # create a version specific directory under the user temp
             # directory.
             __gen_path__ = os.path.join(

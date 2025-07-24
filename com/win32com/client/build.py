@@ -661,6 +661,9 @@ def MakePublicAttributeName(className, is_global=False):
         if ret == className:  # didn't change - force all uppercase.
             ret = ret.upper()
         return ret
+    elif className.isidentifier():
+        # some COM objects have identifiers with national characters
+        return className
     # Strip non printable chars
     return "".join([char for char in className if char in valid_identifier_chars])
 

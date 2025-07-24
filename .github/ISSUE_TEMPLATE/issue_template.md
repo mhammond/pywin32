@@ -1,6 +1,6 @@
 ---
 name: New issue
-about: Do not open github issues for general support requests
+about: Do not open GitHub issues for general support requests
 ---
 
 <!--

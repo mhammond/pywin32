@@ -21,7 +21,7 @@ else:
 # helpers.
 
 # Of specific note - most of the interfaces supported by ADSI
-# derive from IDispatch - thus, you get the custome methods from the
+# derive from IDispatch - thus, you get the custom methods from the
 # interface, as well as via IDispatch.
 import pythoncom
 

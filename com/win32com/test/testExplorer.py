@@ -14,7 +14,7 @@ from win32com.test.util import CheckClean
 
 bVisibleEventFired = 0
 
-# These are errors we might see when this is run in automation (eg, on github)
+# These are errors we might see when this is run in automation (eg, on GitHub)
 # Not sure exactly what -2125463506 is, but google shows it's a common error
 # possibly related to how IE is configured WRT site permissions etc.
 HRESULTS_IN_AUTOMATION = [-2125463506, winerror.MK_E_UNAVAILABLE]

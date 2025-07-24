@@ -285,6 +285,13 @@ library PyCOMTestLib
 		HRESULT DoubleCurrency([in] CY v,
 		                       [out, retval] CY *ret );
 		HRESULT DoubleCurrencyByVal([in, out] CY *v);
+		HRESULT AddDecimals(
+						[in] DECIMAL v1,
+						[in] DECIMAL v2,
+						[out, retval] DECIMAL* pResult);
+		HRESULT DoubleDecimal([in] DECIMAL v,
+		                       [out, retval] DECIMAL *ret );
+		HRESULT DoubleDecimalByVal([in, out] DECIMAL *v);
 		// Some test properties
 		[propget] HRESULT LongProp([out, retval] long* retval);
 		[propput] HRESULT LongProp([in] long val);
@@ -294,6 +301,8 @@ library PyCOMTestLib
 		[propput] HRESULT IntProp([in] int val);
 		[propget] HRESULT CurrencyProp([out, retval] CY* retval);
 		[propput] HRESULT CurrencyProp([in] CY val);
+		[propget] HRESULT DecimalProp([out, retval] DECIMAL* retval);
+		[propput] HRESULT DecimalProp([in] DECIMAL val);
 		[propget] HRESULT ParamProp([in] int which, [out, retval] int *retval);
 		[propput] HRESULT ParamProp([in] int which, [in]int val);
 		// reserved words etc

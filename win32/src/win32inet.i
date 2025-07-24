@@ -526,7 +526,7 @@ PyCFunction pfnPyInternetConnect = (PyCFunction)PyInternetConnect;
 %}
 %native (InternetConnect) pfnPyInternetConnect;
 
-// @pyswig |InternetOpen|Initializes an application's use of the Microsoft� Win32� Internet functions.
+// @pyswig |InternetOpen|Initializes an application's use of the Microsoft® Win32® Internet functions.
 PyHINTERNET InternetOpen(
     TCHAR *lpszAgent, // @pyparm string|agent||A string that contains the name of the application
                       // or entity calling the Internet functions. This name is used as the user
@@ -627,7 +627,7 @@ PyObject *PyInternetCanonicalizeUrl(PyObject *self, PyObject *args)
     // canonicalization. This can be one of the following values:
     // @flag ICU_BROWSER_MODE|Does not encode or decode characters after "#" or "?", and does not remove trailing white space after "?". If this value is not specified, the entire URL is encoded and trailing white space is removed.
     // @flag ICU_DECODE|Converts all %XX sequences to characters, including escape sequences, before the URL is parsed.
-    // @flag ICU_ENCODE_PERCENT|Encodes any percent signs encountered. By default, percent signs are not encoded. This value is available in Microsoft� Internet Explorer 5 and later versions of the Win32� Internet functions.
+    // @flag ICU_ENCODE_PERCENT|Encodes any percent signs encountered. By default, percent signs are not encoded. This value is available in Microsoft® Internet Explorer 5 and later versions of the Win32® Internet functions.
     // @flag ICU_ENCODE_SPACES_ONLY|Encodes spaces only.
     // @flag ICU_NO_ENCODE|Does not convert unsafe characters to escape sequences.
     // @flag ICU_NO_META|Does not remove meta sequences (such as "." and "..") from the URL.
@@ -668,7 +668,7 @@ done:
 %native (InternetCanonicalizeUrl) PyInternetCanonicalizeUrl;
 
 %{
-// @pyswig int, string|InternetGetLastResponseInfo|Retrieves the last Win32� Internet function error description or server response on the thread calling this function.
+// @pyswig int, string|InternetGetLastResponseInfo|Retrieves the last Win32® Internet function error description or server response on the thread calling this function.
 PyObject *PyInternetGetLastResponseInfo(PyObject *self, PyObject *args)
 {
     if (!PyArg_ParseTuple(args, ":InternetGetLastResponseInfo"))

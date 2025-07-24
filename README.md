@@ -10,7 +10,7 @@
 
 This is the readme for the Python for Win32 (pywin32) extensions, which provides access to many of the Windows APIs from Python, including COM support.
 
-See [CHANGES.txt](https://github.com/mhammond/pywin32/blob/main/CHANGES.txt) for recent notable changes.
+See [CHANGES.md](https://github.com/mhammond/pywin32/blob/main/CHANGES.md) for recent notable changes.
 
 adodbapi's documentation can be found in: [adodbapi/readme.txt](https://github.com/mhammond/pywin32/blob/main/adodbapi/readme.txt)
 
@@ -55,7 +55,7 @@ python -m pip install --upgrade pywin32
 There is a post-install script (see below) which should *not* be run inside virtual environments;
 it should only be run in "global" installs.
 
-For unreleased changes, you can download builds made by [github actions](https://github.com/mhammond/pywin32/actions/) -
+For unreleased changes, you can download builds made by [GitHub actions](https://github.com/mhammond/pywin32/actions/) -
 choose any "workflow" from the `main` branch and download its "artifacts"
 
 ### Installing globally
@@ -146,14 +146,14 @@ to form a checklist so @mhammond doesn't forget what to do :)
 
 Since build 307 the release process is based on the artifacts created by Github actions.
 
-* Ensure CHANGES.txt has everything worth noting. Update the header to reflect
+* Ensure CHANGES.md has everything worth noting. Update the header to reflect
   the about-to-be released build and date, commit it.
 
-* Update setup.py with the new build number. Update CHANGES.txt to have a new heading
+* Update setup.py with the new build number. Update CHANGES.md to have a new heading
   section for the next unreleased version. (ie, a new, empty "Coming in build XXX, as yet unreleased"
   section)
 
-* Push these changes to github, wait for the actions to complete, then
+* Push these changes to GitHub, wait for the actions to complete, then
   download the artifacts from that run.
 
 * Upload `.whl` artifacts to pypi - we do this before pushing the tag because they might be
@@ -164,7 +164,7 @@ Since build 307 the release process is based on the artifacts created by Github 
 * Update setup.py with the new build number + ".1" (eg, 123.1), to ensure
   future test builds aren't mistaken for the real release.
 
-* Make sure everything is pushed to github, including the tag (ie,
+* Make sure everything is pushed to GitHub, including the tag (ie,
   `git push --tags`)
 
 * Send mail to python-win32
@@ -174,7 +174,7 @@ Since build 307 the release process is based on the artifacts created by Github 
 This is the old process used when a local dev environment was used to create
 the builds. Build 306 was the last released with this process.
 
-* Ensure CHANGES.txt has everything worth noting. Update the header to reflect
+* Ensure CHANGES.md has everything worth noting. Update the header to reflect
   the about-to-be released build and date, commit it.
 
 * Update setup.py with the new build number.
@@ -186,12 +186,12 @@ the builds. Build 306 was the last released with this process.
 
 * Commit setup.py (so the new build number is in the repo), create a new git tag
 
-* Upload the .exe installers to github.
+* Upload the .exe installers to GitHub.
 
 * Update setup.py with the new build number + ".1" (eg, 123.1), to ensure
   future test builds aren't mistaken for the real release.
 
-* Make sure everything is pushed to github, including the tag (ie,
+* Make sure everything is pushed to GitHub, including the tag (ie,
   `git push --tags`)
 
 * Send mail to python-win32

@@ -906,7 +906,7 @@ void SCI_METHOD LexerBaan::Fold(Sci_PositionU startPos, Sci_Position length, int
 		// Section Foldings.
 		// One way of implementing Section Foldings, as there is no END markings of sections.
 		// first section ends on the previous line of next section.
-		// Re-written whole folding to accomodate this.
+		// Re-written whole folding to accommodate this.
 		if (options.baanFoldSections && atEOL) {
 			currLineStyle = mainOrSubSectionLine(lineCurrent, styler);
 			nextLineStyle = mainOrSubSectionLine(lineCurrent + 1, styler);

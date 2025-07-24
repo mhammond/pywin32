@@ -1,7 +1,9 @@
 import copy
 import unittest
 
+import pywintypes
 import win32cred
+import winerror
 
 
 class TestCredFunctions(unittest.TestCase):
@@ -26,12 +28,18 @@ class TestCredFunctions(unittest.TestCase):
             print(e)
 
     def is_dummy_cred(self):
+        try:
+            credentials = win32cred.CredEnumerate()
+        except pywintypes.error as exc:
+            if exc.winerror != winerror.ERROR_NOT_FOUND:  # Element not found.
+                raise
+            return False
         return (
             len(
                 [
-                    e
-                    for e in win32cred.CredEnumerate()
-                    if e["TargetName"] == self.dummy_cred["TargetName"]
+                    True
+                    for cred in credentials
+                    if cred["TargetName"] == self.dummy_cred["TargetName"]
                 ]
             )
             == 1

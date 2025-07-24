@@ -120,6 +120,9 @@ static inline bool SizeOfVT(VARTYPE vt, int *pitem_size, int *pstack_size)
             case VT_CY:
                 item_size = sizeof(CY);
                 break;
+            case VT_DECIMAL:
+                item_size = sizeof(DECIMAL);
+                break;
             case VT_ERROR:
                 item_size = sizeof(SCODE);
                 break;
@@ -517,6 +520,12 @@ PyObject *dataconv_WriteFromOutTuple(PyObject *self, PyObject *args)
                     goto Error;
                 break;
             }
+            case VT_DECIMAL | VT_BYREF: {
+                DECIMAL *pdec = *(DECIMAL **)pbArg;
+                if (!PyObject_AsDecimal(obOutValue, pdec))
+                    goto Error;
+                break;
+            }
             case VT_I8 | VT_BYREF: {
                 LARGE_INTEGER *pi64 = *(LARGE_INTEGER **)pbArg;
                 if (!PyWinObject_AsLARGE_INTEGER(obOutValue, pi64)) {
@@ -629,6 +638,7 @@ PyObject *dataconv_ReadFromInTuple(PyObject *self, PyObject *args)
                 case VT_R4:
                 case VT_R8:
                 case VT_CY:
+                case VT_DECIMAL:
                 case VT_DATE:
                 case VT_BSTR:
                 case VT_ERROR:
