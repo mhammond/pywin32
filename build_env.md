@@ -149,7 +149,7 @@ configuration, please [open an issue](https://github.com/mhammond/pywin32/issues
     "C:\Program Files (x86)\Microsoft Visual Studio\XXXX\BuildTools\vc\Auxiliary\Build\vcvarsall.bat" x86_arm64
     ```
 
-- Update `setuptools` and set the following environment variables to ensure it is used:
+- Set the following environment variables to ensure it is used by `setuptools`:
 
     ```shell
     set DISTUTILS_USE_SDK=1
