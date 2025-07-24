@@ -18,6 +18,10 @@ As of build 305, installation .exe files have been deprecated; see
 Coming in build 312, as yet unreleased
 --------------------------------------
 
+## adodbapi
+
+* When `errorhandler` is called, the `errorvalue` argument is now always an `Exception` and the `errortype` is the `type` of that specific `errorvalue` (#2351, @Avasam)
+
 Build 311, released 2025/07/14
 ------------------------------
 
@@ -42,9 +46,6 @@ Build 310, released 2025/03/16
 * Fixed a regression where `win32com.client.DispatchWithEvents` and `win32com.client.WithEvents` would throw a `TypeError` on the second call (mhammond#2491, [@Avasam][Avasam])
 * Fixed regression causing `win32com.shell.shell` to be missing a number of `IID`s. (mhammond#2487, [@Avasam][Avasam])
 * As part of the above, Windows 7 is now minimum supported.
-
-## adodbapi
-* When `errorhandler` is called, the `errorvalue` argument is now always an `Exception` and the `errortype` is the `type` of that specific `errorvalue` (#2351, @Avasam)
 
 Build 309, released 2025/03/09
 ------------------------------
