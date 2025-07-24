@@ -18,6 +18,10 @@ As of build 305, installation .exe files have been deprecated; see
 Coming in build 312, as yet unreleased
 --------------------------------------
 
+## adodbapi
+
+* When `errorhandler` is called, the `errorvalue` argument is now always an `Exception` and the `errortype` is the `type` of that specific `errorvalue` (#2351, @Avasam)
+
 Build 311, released 2025/07/14
 ------------------------------
 
