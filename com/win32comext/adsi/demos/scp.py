@@ -219,9 +219,9 @@ def SpnRegister(
     spns,  # List of SPNs to register
     operation,  # Add, replace, or delete SPNs
 ):
-    assert not isinstance(spns, str) and hasattr(
-        spns, "__iter__"
-    ), "spns must be a sequence of strings (got {!r})".format(spns)
+    assert not isinstance(spns, str) and hasattr(spns, "__iter__"), (
+        "spns must be a sequence of strings (got {!r})".format(spns)
+    )
     # Bind to a domain controller.
     # Get the domain for the current user.
     samName = win32api.GetUserNameEx(win32api.NameSamCompatible)
