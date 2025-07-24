@@ -1145,9 +1145,9 @@ class COMScript:
     def ExecInScriptedSection(self, codeBlock: AXScriptCodeBlock, globals, locals=None):
         if locals is None:
             locals = globals
-        assert (
-            not codeBlock.beenExecuted
-        ), "This code block should not have been executed"
+        assert not codeBlock.beenExecuted, (
+            "This code block should not have been executed"
+        )
         codeBlock.beenExecuted = 1
         self.BeginScriptedSection()
         try:
@@ -1173,9 +1173,9 @@ class COMScript:
     def EvalInScriptedSection(self, codeBlock, globals, locals=None):
         if locals is None:
             locals = globals
-        assert (
-            not codeBlock.beenExecuted
-        ), "This code block should not have been executed"
+        assert not codeBlock.beenExecuted, (
+            "This code block should not have been executed"
+        )
         codeBlock.beenExecuted = 1
         self.BeginScriptedSection()
         try:

@@ -346,7 +346,7 @@ class TimeServer(ExcelRTDServer):
         self.ticker.start()
 
     def OnServerTerminate(self):
-        if not self.ticker.finished.isSet():
+        if not self.ticker.finished.is_set():
             self.ticker.cancel()  # Cancel our wake-up thread. Excel has killed us.
 
     def Update(self):

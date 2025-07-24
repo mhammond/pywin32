@@ -590,7 +590,7 @@ if __name__ == "__main__":
                 print("Registering application", a, "to path", path)
                 regutil.RegisterNamedPath(a, path)
             if o == "-c":
-                if not len(searchPaths):
+                if not searchPaths:
                     raise error("-c option must provide at least one additional path")
                 import regutil
 

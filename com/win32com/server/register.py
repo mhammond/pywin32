@@ -210,9 +210,9 @@ def RegisterServer(
     # And if we are frozen, ignore the ones that don't make sense in this
     # context.
     if pythoncom.frozen:
-        assert (
-            sys.frozen
-        ), "pythoncom is frozen, but sys.frozen is not set - don't know the context!"
+        assert sys.frozen, (
+            "pythoncom is frozen, but sys.frozen is not set - don't know the context!"
+        )
         if sys.frozen == "dll":
             clsctx &= pythoncom.CLSCTX_INPROC_SERVER
         else:
