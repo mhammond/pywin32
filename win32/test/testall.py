@@ -118,8 +118,10 @@ def get_demo_tests():
         # Skip any other files than .py and bad tests in any case
         if ext != ".py" or base in bad_demos:
             continue
-        argv = (sys.executable, os.path.join(demo_dir, base + ".py")) + argvs.get(
-            base, ()
+        argv = (
+            sys.executable,
+            os.path.join(demo_dir, base + ".py"),
+            *argvs.get(base, ()),
         )
         ret.append(
             unittest.FunctionTestCase(
@@ -218,6 +220,6 @@ if __name__ == "__main__":
 
     no_user_interaction = not parsed_args.user_interaction
 
-    sys.argv = [sys.argv[0]] + remains
+    sys.argv = [sys.argv[0], *remains]
 
     pywin32_testutil.testmain(testLoader=CustomLoader())
