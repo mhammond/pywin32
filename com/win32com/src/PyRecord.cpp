@@ -53,25 +53,31 @@ BOOL PyObject_AsVARIANTRecordInfo(PyObject *ob, VARIANT *pv)
     return TRUE;
 }
 
-PyObject *PyObject_FromSAFEARRAYRecordInfo(SAFEARRAY *psa)
+PyObject *PyObject_FromSAFEARRAYRecordInfo(SAFEARRAY *psa, long *arrayIndices)
 {
     PyObject *ret = NULL, *ret_tuple = NULL;
     IRecordInfo *info = NULL;
     BYTE *source_data = NULL, *this_dest_data = NULL;
+    UINT dimNo = 0;
     long lbound, ubound, nelems, i;
     ULONG cb_elem;
     PyRecordBuffer *owner = NULL;
+    dimNo = SafeArrayGetDim(psa);
+    if (dimNo == 0) {
+        goto exit;
+    }
+    long *pMyArrayIndex = arrayIndices + (dimNo - 1);
     HRESULT hr = SafeArrayGetRecordInfo(psa, &info);
     if (FAILED(hr))
         goto exit;
-    hr = SafeArrayAccessData(psa, (void **)&source_data);
+    hr = SafeArrayLock(psa);
     if (FAILED(hr))
         goto exit;
     // Allocate a new chunk of memory
-    hr = SafeArrayGetUBound(psa, 1, &ubound);
+    hr = SafeArrayGetUBound(psa, dimNo, &ubound);
     if (FAILED(hr))
         goto exit;
-    hr = SafeArrayGetLBound(psa, 1, &lbound);
+    hr = SafeArrayGetLBound(psa, dimNo, &lbound);
     if (FAILED(hr))
         goto exit;
     nelems = ubound - lbound + 1;
@@ -86,11 +92,13 @@ PyObject *PyObject_FromSAFEARRAYRecordInfo(SAFEARRAY *psa)
     if (ret_tuple == NULL)
         goto exit;
     this_dest_data = (BYTE *)owner->data;
-    for (i = 0; i < nelems; i++) {
+    for (i = 0; i < nelems; (*pMyArrayIndex)++, i++) {
         hr = info->RecordInit(this_dest_data);
         if (FAILED(hr))
             goto exit;
-
+        hr = SafeArrayPtrOfIndex(psa, arrayIndices, (void **)&source_data);
+        if (FAILED(hr))
+            goto exit;
         hr = info->RecordCopy(source_data, this_dest_data);
         if (FAILED(hr))
             goto exit;
@@ -99,7 +107,6 @@ PyObject *PyObject_FromSAFEARRAYRecordInfo(SAFEARRAY *psa)
             goto exit;
         PyTuple_SET_ITEM(ret_tuple, i, rec);
         this_dest_data += cb_elem;
-        source_data += cb_elem;
     }
     ret = ret_tuple;
     Py_INCREF(ret);  // for decref on cleanup.
@@ -118,7 +125,7 @@ exit:
     if (info)
         info->Release();
     if (source_data != NULL)
-        SafeArrayUnaccessData(psa);
+        SafeArrayUnlock(psa);
     return ret;
 }
 // Creates a new Record by TAKING A COPY of the passed record.
@@ -675,66 +682,20 @@ PyObject *PyRecord::getattro(PyObject *self, PyObject *obname)
         return PyCom_BuildPyException(hr, pyrec->pri, IID_IRecordInfo);
     }
 
-    // Short-circuit sub-structs and arrays here, so we don't allocate a new chunk
-    // of memory and copy it - we need sub-structs to persist.
+    // Short-circuit sub-structs here.
     if (V_VT(&vret) == (VT_BYREF | VT_RECORD))
         return PyRecord::new_record(V_RECORDINFO(&vret), V_RECORD(&vret), pyrec->owner);
-    else if (V_VT(&vret) == (VT_BYREF | VT_ARRAY | VT_RECORD)) {
-        SAFEARRAY *psa = *V_ARRAYREF(&vret);
-        if (SafeArrayGetDim(psa) != 1)
-            return PyErr_Format(PyExc_TypeError, "Only support single dimensional arrays of records");
-        IRecordInfo *sub = NULL;
-        long ubound, lbound, nelems;
-        int i;
-        BYTE *this_data;
-        PyObject *ret_tuple = NULL;
-        ULONG element_size = 0;
-        hr = SafeArrayGetUBound(psa, 1, &ubound);
-        if (FAILED(hr))
-            goto array_end;
-        hr = SafeArrayGetLBound(psa, 1, &lbound);
-        if (FAILED(hr))
-            goto array_end;
-        hr = SafeArrayGetRecordInfo(psa, &sub);
-        if (FAILED(hr))
-            goto array_end;
-        hr = sub->GetSize(&element_size);
-        if (FAILED(hr))
-            goto array_end;
-        nelems = ubound - lbound + 1;
-        ret_tuple = PyTuple_New(nelems);
-        if (ret_tuple == NULL)
-            goto array_end;
-        // We're dealing here with a Record field that is a SAFEARRAY of Records.
-        // Therefore the VARIANT that was returned by the call to 'pyrec->pri->GetFieldNoCopy'
-        // does contain a reference to the SAFEARRAY of Records, i.e. the actual data of the
-        // Record elements of this SAFEARRAY is referenced by the 'pvData' field of the SAFEARRAY.
-        // In this particular case the implementation of 'GetFieldNoCopy' returns a NULL pointer
-        // in the last parameter, i.e. 'sub_data == NULL'.
-        this_data = (BYTE *)psa->pvData;
-        for (i = 0; i < nelems; i++) {
-            PyRecord *rec = PyRecord::new_record(sub, this_data, pyrec->owner);
-            if (rec == NULL) {
-                Py_DECREF(ret_tuple);
-                ret_tuple = NULL;
-                goto array_end;
-            }
-            PyTuple_SET_ITEM(ret_tuple, i, rec);
-            this_data += element_size;
-        }
-    array_end:
-        if (sub)
-            sub->Release();
-        if (FAILED(hr))
-            return PyCom_BuildPyException(hr, pyrec->pri, IID_IRecordInfo);
-        return ret_tuple;
-    }
 
-    // This default conversion we use is a little slow (but it will do!)
-    // For arrays, the pparray->pvData member is *not* set, since the actual data
-    // pointer from the record is returned in sub_data, so set it here.
-    if (V_ISARRAY(&vret) && V_ISBYREF(&vret))
-        (*V_ARRAYREF(&vret))->pvData = sub_data;
+    // The following old comment seems to be invalid because the 'pparray->pvData' member
+    // does indeed contain a reference to the actual data of the SAFEARRAY and the
+    // last parameter 'sub_data' contains a NULL pointer afer the call to 'GetFieldNoCopy'.
+    // Leaving the old comment here for reference in any case:
+    /*
+     * Invalid * For arrays, the pparray->pvData member is *not* set, since the actual data
+     * Invalid * pointer from the record is returned in sub_data, so set it here.
+     * Invalid * if (V_ISARRAY(&vret) && V_ISBYREF(&vret))
+     * Invalid *     (*V_ARRAYREF(&vret))->pvData = sub_data;
+     */
     PyObject *ret = PyCom_PyObjectFromVariant(&vret);
 
     //	VariantClear(&vret);

@@ -7,7 +7,7 @@
 #include "PyRecord.h"
 
 extern PyObject *PyObject_FromRecordInfo(IRecordInfo *, void *, ULONG, PyTypeObject *type = NULL);
-extern PyObject *PyObject_FromSAFEARRAYRecordInfo(SAFEARRAY *psa);
+extern PyObject *PyObject_FromSAFEARRAYRecordInfo(SAFEARRAY *psa, long *arrayIndices);
 extern BOOL PyObject_AsVARIANTRecordInfo(PyObject *ob, VARIANT *pv);
 extern BOOL PyRecord_Check(PyObject *ob);
 
@@ -279,17 +279,21 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
     // So make sure this check is after anything else which qualifies.
     else if (PySequence_Check(obj)) {
         V_ARRAY(var) = NULL;  // not a valid, existing array.
-        BOOL is_record_item = false;
-        if (PyObject_Length(obj) > 0) {
-            PyObject *obItemCheck = PySequence_GetItem(obj, 0);
-            is_record_item = PyRecord_Check(obItemCheck);
-        }
-        // If the sequence elements are PyRecord objects we do NOT package
-        // them as VARIANT elements but put them directly into the SAFEARRAY.
-        if (is_record_item) {
+        // If the sequence elements are PyRecord or PyFloat objects we do NOT package
+        // them as VARIANT elements but put them unpackaged into the SAFEARRAY. If we
+        // deal with nested sequences, we need to go down until we find a non sequence
+        // element to figure out the VARTYPE.
+        PyObject *obItemCheck = PySequence_GetItem(obj, 0);
+        while (obItemCheck && PySequence_Check(obItemCheck)) obItemCheck = PySequence_GetItem(obItemCheck, 0);
+        if (obItemCheck != NULL && PyRecord_Check(obItemCheck)) {
             if (!PyCom_SAFEARRAYFromPyObject(obj, &V_ARRAY(var), VT_RECORD))
                 return FALSE;
             V_VT(var) = VT_ARRAY | VT_RECORD;
+        }
+        else if (obItemCheck != NULL && PyFloat_Check(obItemCheck)) {
+            if (!PyCom_SAFEARRAYFromPyObject(obj, &V_ARRAY(var), VT_R8))
+                return FALSE;
+            V_VT(var) = VT_ARRAY | VT_R8;
         }
         else {
             if (!PyCom_SAFEARRAYFromPyObject(obj, &V_ARRAY(var)))
@@ -784,7 +788,6 @@ static BOOL PyCom_SAFEARRAYFromPyObjectEx(PyObject *obj, SAFEARRAY **ppSA, bool 
         // OK - Finally can create the array...
         if (vt == VT_RECORD) {
             // SAFEARRAYS of UDTs need a special treatment.
-            obItemCheck = PySequence_GetItem(obj, 0);
             PyRecord *pyrec = (PyRecord *)obItemCheck;
             *ppSA = SafeArrayCreateEx(vt, cDims, pBounds, pyrec->pri);
         }
@@ -936,8 +939,6 @@ static PyObject *PyCom_PyObjectFromSAFEARRAYDimensionItem(SAFEARRAY *psa, VARENU
             subitem = PyCom_PyObjectFromIUnknown(pUnk, IID_IUnknown, FALSE);
             break;
         }
-            // case VT_RECORD
-
         case VT_I1:
         case VT_UI1: {
             unsigned char i1;
@@ -1044,20 +1045,19 @@ PyObject *PyCom_PyObjectFromSAFEARRAYBuildDimension(SAFEARRAY *psa, VARENUM vt, 
         SafeArrayUnaccessData(psa);
         return ret;
     }
-    // Another shortcut for VT_RECORD types.
-    if (vt == VT_RECORD) {
-        return PyObject_FromSAFEARRAYRecordInfo(psa);
-    }
-    // Normal SAFEARRAY case returning a tuple.
 
+    BOOL bBuildItems = (nDims == dimNo);
+    // Get a pointer for the dimension to iterate.
+    long *pMyArrayIndex = arrayIndices + (dimNo - 1);
+    *pMyArrayIndex = lb;
+    // For Records wie arrange all BuildItems in one single RecordBuffer.
+    if (bBuildItems && vt == VT_RECORD) {
+        return PyObject_FromSAFEARRAYRecordInfo(psa, arrayIndices);
+    }
     PyObject *retTuple = PyTuple_New(ub - lb + 1);
     if (retTuple == NULL)
         return FALSE;
     int tupleIndex = 0;
-    // Get a pointer for the dimension to iterate (the last one)
-    long *pMyArrayIndex = arrayIndices + (dimNo - 1);
-    *pMyArrayIndex = lb;
-    BOOL bBuildItems = (nDims == dimNo);
     for (; *pMyArrayIndex <= ub; (*pMyArrayIndex)++, tupleIndex++) {
         PyObject *subItem = NULL;
         if (bBuildItems) {
