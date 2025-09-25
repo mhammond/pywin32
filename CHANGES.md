@@ -18,7 +18,7 @@ As of build 305, installation .exe files have been deprecated; see
 Coming in build 312, as yet unreleased
 --------------------------------------
 
-* Implement multidimensional SAFEARRAY(COM Record) and SAFEARRAY(double) (mhammond#, [@geppi][geppi])
+* Implement multidimensional SAFEARRAY(COM Record) and SAFEARRAY(double) (mhammond#2655, [@geppi][geppi])
 * Bugfix for COM Record instance creation (mhammond#2641, [@geppi][geppi])
 * Fix regression introduced by mhammond#2506 (mhammond#2640, [@geppi][geppi])
 
