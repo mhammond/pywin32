@@ -18,6 +18,8 @@ As of build 305, installation .exe files have been deprecated; see
 Coming in build 312, as yet unreleased
 --------------------------------------
 
+* Resolved a handful of deprecation warnings (mhammond#2591, [@Avasam][Avasam])
+
 Build 311, released 2025/07/14
 ------------------------------
 
