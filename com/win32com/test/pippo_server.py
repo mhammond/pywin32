@@ -52,7 +52,7 @@ def BuildTypelib():
         assert not rc, "Compiling MIDL failed!"
         # Can't work out how to prevent MIDL from generating the stubs.
         # just nuke them
-        for fname in "dlldata.c pippo_i.c pippo_p.c pippo.h".split():
+        for fname in ("dlldata.c", "pippo_i.c", "pippo_p.c", "pippo.h"):
             os.remove(os.path.join(this_dir, fname))
 
     print(f"Registering {tlb}")

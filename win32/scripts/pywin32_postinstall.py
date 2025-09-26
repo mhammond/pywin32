@@ -104,12 +104,22 @@ def create_shortcut(
 def get_special_folder_path(path_name):
     from win32com.shell import shell, shellcon
 
-    for maybe in """
-        CSIDL_COMMON_STARTMENU CSIDL_STARTMENU CSIDL_COMMON_APPDATA
-        CSIDL_LOCAL_APPDATA CSIDL_APPDATA CSIDL_COMMON_DESKTOPDIRECTORY
-        CSIDL_DESKTOPDIRECTORY CSIDL_COMMON_STARTUP CSIDL_STARTUP
-        CSIDL_COMMON_PROGRAMS CSIDL_PROGRAMS CSIDL_PROGRAM_FILES_COMMON
-        CSIDL_PROGRAM_FILES CSIDL_FONTS""".split():
+    for maybe in (
+        "CSIDL_COMMON_STARTMENU",
+        "CSIDL_STARTMENU",
+        "CSIDL_COMMON_APPDATA",
+        "CSIDL_LOCAL_APPDATA",
+        "CSIDL_APPDATA",
+        "CSIDL_COMMON_DESKTOPDIRECTORY",
+        "CSIDL_DESKTOPDIRECTORY",
+        "CSIDL_COMMON_STARTUP",
+        "CSIDL_STARTUP",
+        "CSIDL_COMMON_PROGRAMS",
+        "CSIDL_PROGRAMS",
+        "CSIDL_PROGRAM_FILES_COMMON",
+        "CSIDL_PROGRAM_FILES",
+        "CSIDL_FONTS",
+    ):
         if maybe == path_name:
             csidl = getattr(shellcon, maybe)
             return shell.SHGetSpecialFolderPath(0, csidl, False)
@@ -388,13 +398,13 @@ def install(lib_dir):
         os.unlink(os.path.join(sys.prefix, "pywin32.pth"))
     # The .pth may be new and therefore not loaded in this session.
     # Setup the paths just in case.
-    for name in "win32 win32\\lib Pythonwin".split():
+    for name in ("win32", "win32\\lib", "Pythonwin"):
         sys.path.append(os.path.join(lib_dir, name))
     # It is possible people with old versions installed with still have
     # pywintypes and pythoncom registered.  We no longer need this, and stale
     # entries hurt us.
-    for name in "pythoncom pywintypes".split():
-        keyname = "Software\\Python\\PythonCore\\" + sys.winver + "\\Modules\\" + name
+    for name in ("pythoncom", "pywintypes"):
+        keyname = f"Software\\Python\\PythonCore\\{sys.winver}\\Modules\\{name}"
         for root in winreg.HKEY_LOCAL_MACHINE, winreg.HKEY_CURRENT_USER:
             try:
                 winreg.DeleteKey(root, keyname + "\\Debug")
