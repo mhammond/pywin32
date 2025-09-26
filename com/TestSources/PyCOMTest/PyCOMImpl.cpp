@@ -650,7 +650,68 @@ HRESULT CPyCOMTest::VerifyArrayOfStructs(TestStruct2 *prec, VARIANT_BOOL *is_ok)
             break;
         }
     }
+    hr = SafeArrayUnaccessData(prec->array_of_records);
+    if (FAILED(hr)) {
+        return E_FAIL;
+    }
     return S_OK;
+}
+
+HRESULT CPyCOMTest::ModifyArrayOfStructs(SAFEARRAY **array_of_structs)
+{
+    HRESULT hr;
+    double *d;
+    LONG index[3] = {0, 0, 0};
+    LONG d_index[3] = {0, 0, 0};
+    TestStruct3 *pstruct;
+
+    // This method loops over all Records in a 3 dimensional SAFEARRAY and
+    // multiplies each Records 'array_of_double' member, which is a 3
+    // dimensional SAFEARRAY of doubles, element wise with a number calculated
+    // from the loop indices.
+    hr = SafeArrayLock(*array_of_structs);
+    if (FAILED(hr)) {
+        return E_FAIL;
+    }
+    for (int k = 0; k < 4; k++) {
+        index[0] = k;
+        for (int j = 0; j < 5; j++) {
+            index[1] = j;
+            for (int i = 0; i < 3; i++) {
+                index[2] = i;
+                hr = SafeArrayPtrOfIndex(*array_of_structs, index, (void **)&pstruct);
+                if (FAILED(hr)) {
+                    return E_FAIL;
+                }
+                hr = SafeArrayLock(pstruct->array_of_double);
+                if (FAILED(hr)) {
+                    return E_FAIL;
+                }
+                for (int n = 0; n < 4; n++) {
+                    d_index[0] = n;
+                    for (int m = 0; m < 5; m++) {
+                        d_index[1] = m;
+                        for (int l = 0; l < 3; l++) {
+                            d_index[2] = l;
+                            hr = SafeArrayPtrOfIndex(pstruct->array_of_double, d_index, (void **)&d);
+                            if (FAILED(hr)) {
+                                return E_FAIL;
+                            }
+                            *d = *d * (k * 15 + j * 3 + i);
+                        }
+                    }
+                }
+                hr = SafeArrayUnlock(pstruct->array_of_double);
+                if (FAILED(hr)) {
+                    return E_FAIL;
+                }
+            }
+        }
+    }
+    hr = SafeArrayUnlock(*array_of_structs);
+    if (FAILED(hr)) {
+        return E_FAIL;
+    }
 }
 
 HRESULT CPyCOMTest::DoubleString(BSTR in, BSTR *out)

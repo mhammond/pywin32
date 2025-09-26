@@ -73,6 +73,15 @@ class TestStruct2(pythoncom.com_record):
     GUID = "{78F0EA07-B7CF-42EA-A251-A4C6269F76AF}"
 
 
+class TestStruct3(pythoncom.com_record):
+    __slots__ = ()
+    TLBID = "{6BCDCB60-5605-11D0-AE5F-CADD4C000000}"
+    MJVER = 1
+    MNVER = 1
+    LCID = 0
+    GUID = "{865045EB-A7AE-4E88-B102-E2C5B97A64B6}"
+
+
 # We don't need to stick with the struct name in the TypeLibrary for the subclass name.
 # The following class has the same GUID as TestStruct2 from the TypeLibrary.
 class ArrayOfStructsTestStruct(pythoncom.com_record):
@@ -519,6 +528,74 @@ def TestArrayOfStructs(o, test_rec):
     assert o.VerifyArrayOfStructs(test_rec)
 
 
+def TestNestedArrays(o):
+    # First we test the assignment of a nested sequence of Records
+    # to a Record member attribute, followed by the retrieval of the
+    # multidimensional SAFEARRAY from the Record member attribute.
+    # Create a nested 3 dimensional tuple of COM Records.
+    record_tuple = tuple(
+        [
+            tuple([tuple([TestStruct1() for i in range(3)]) for j in range(5)])
+            for k in range(4)
+        ]
+    )
+    # Assign a different integer identifier to each Record in the nested tuple.
+    for k in range(4):
+        for j in range(5):
+            for i in range(3):
+                record_tuple[k][j][i].int_value = k * 15 + j * 3 + i
+    # Create an instance of a COM Record that has a member of type
+    # SAFEARRAY(TestStruct1) and assign the nested tuple to this member.
+    rec_with_multidim_sa_of_rec = ArrayOfStructsTestStruct()
+    rec_with_multidim_sa_of_rec.array_of_records = record_tuple
+    # Now retrieve a tuple from the Record member and check that
+    # it is equal to our input nested tuple but not the same object.
+    tuple_retrieved_from_rec = rec_with_multidim_sa_of_rec.array_of_records
+    assert tuple_retrieved_from_rec == record_tuple
+    assert tuple_retrieved_from_rec is not record_tuple
+    # Next we test passing a multidimensional SAFEARRAY of Records
+    # to a COM method that modifies the Records in the SAFEARRAY.
+    record_tuple = tuple(
+        [
+            tuple([tuple([TestStruct3() for i in range(3)]) for j in range(5)])
+            for k in range(4)
+        ]
+    )
+    # We also test a nested sequence of doubles assigned
+    # to a member attribute of the Records.
+    float_tuple = tuple(
+        [
+            tuple(
+                [tuple([float(i + 3 * j + 15 * k) for i in range(3)]) for j in range(5)]
+            )
+            for k in range(4)
+        ]
+    )
+    # Assign the nested sequence of doubles to the SAFEARRAY member attribute
+    # of the Records in the nested Record sequence and also assign a unique
+    # identifier to each of the Records.
+    for k in range(4):
+        for j in range(5):
+            for i in range(3):
+                record_tuple[k][j][i].id = float(k * 15 + j * 3 + i)
+                record_tuple[k][j][i].array_of_double = float_tuple
+    # Use the created nested sequence in the call to a COM method
+    # that modifies the Records. Note that the array dimension sizes
+    # are hard wired in the COM method.
+    array_of_structs = o.ModifyArrayOfStructs(record_tuple)
+    # The method should have multiplied each element of each of the
+    # SAFEARRAY(double) Record members by the id of the respective Record.
+    for k in range(4):
+        for j in range(5):
+            for i in range(3):
+                for n in range(4):
+                    for m in range(5):
+                        for l in range(3):
+                            rec = array_of_structs[k][j][i]
+                            f = float_tuple[n][m][l]
+                            assert rec.array_of_double[n][m][l] == f * rec.id
+
+
 def TestGenerated():
     # Create an instance of the server.
     from win32com.client.gencache import EnsureDispatch
@@ -566,6 +643,7 @@ def TestGenerated():
     # Register the subclasses in pythoncom.
     register_record_class(TestStruct1)
     register_record_class(ArrayOfStructsTestStruct)
+    register_record_class(TestStruct3)
     # Now the type of the instance is the registered subclass.
     r_sub = TestStruct1()
     assert type(r_sub) is TestStruct1
@@ -588,6 +666,8 @@ def TestGenerated():
     test_rec = ArrayOfStructsTestStruct()
     assert type(test_rec) is ArrayOfStructsTestStruct
     TestArrayOfStructs(o, test_rec)
+    progress("Testing multidimensional SAFEARRAYS of Records and double.")
+    TestNestedArrays(o)
 
     # Test initialization of registered pythoncom.com_record subclasses.
     progress("Testing initialization of pythoncom.com_record subclasses.")
