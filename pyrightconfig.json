@@ -39,7 +39,7 @@
   "reportOptionalIterable": "warning",
   "reportOptionalMemberAccess": "warning",
   "reportOptionalSubscript": "warning",
-  // Needs fixes in types-pywin32 and requires Python 3.8 to annotate ambiguous global variables
+  // Needs fixes in types-pywin32 to annotate ambiguous global variables
   "reportUnnecessaryComparison": "warning",
   // Too many dynamically generated modules. This will require type stubs to properly fix.
   "reportMissingImports": "warning",
