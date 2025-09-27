@@ -539,6 +539,25 @@ class my_build_ext(build_ext):
                 print("-- ATLMFC paths likely missing (Required for win32ui)")
         return vcbase, vcverdir
 
+    def _verstamp(self, filename):
+        """
+        Stamp the version of the built target.
+        Do this externally to avoid suddenly dragging in the
+        modules needed by this process.
+        """
+        self.spawn(
+            [
+                sys.executable,
+                Path(__file__).parent / "win32" / "Lib" / "win32verstamp.py",
+                f"--version={pywin32_version}",
+                "--comments=https://github.com/mhammond/pywin32",
+                f"--original-filename={os.path.basename(filename)}",
+                "--product=PyWin32",
+                "--quiet" if "-v" not in sys.argv else "",
+                filename,
+            ]
+        )
+
     def build_extensions(self):
         # First, sanity-check the 'extensions' list
         self.check_extensions_list(self.extensions)
@@ -597,24 +616,6 @@ class my_build_ext(build_ext):
             print("-- compiler.include_dirs:", self.compiler.include_dirs)
             print("-- compiler.library_dirs:", self.compiler.library_dirs)
             raise RuntimeError("Too many extensions skipped, check build environment")
-
-        for ext in [*self.extensions, *W32_exe_files]:
-            # Stamp the version of the built target.
-            # Do this externally to avoid suddenly dragging in the
-            # modules needed by this process, and which we will soon try and update.
-            ext_path = self.get_ext_fullpath(ext.name)
-            self.spawn(
-                [
-                    sys.executable,
-                    Path(__file__).parent / "win32" / "Lib" / "win32verstamp.py",
-                    f"--version={pywin32_version}",
-                    "--comments=https://github.com/mhammond/pywin32",
-                    f"--original-filename={os.path.basename(ext_path)}",
-                    "--product=PyWin32",
-                    "--quiet" if "-v" not in sys.argv else "",
-                    ext_path,
-                ]
-            )
 
         # Not sure how to make this completely generic, and there is no
         # need at this stage.
@@ -701,6 +702,8 @@ class my_build_ext(build_ext):
             build_temp=self.build_temp,
         )
 
+        self._verstamp(full_name)
+
     def build_extension(self, ext):
         # Some of these extensions are difficult to build, requiring various
         # hard-to-track libraries et (eg, exchange sdk, etc).  So we
@@ -741,6 +744,7 @@ class my_build_ext(build_ext):
 
         try:
             build_ext.build_extension(self, ext)
+            self._verstamp(self.get_ext_fullpath(ext.name))
             # Convincing distutils to create .lib files with the name we
             # need is difficult, so we just hack around it by copying from
             # the created name to the name we need.
@@ -890,8 +894,9 @@ class my_build_ext(build_ext):
 
 
 class my_compiler(MSVCCompiler):
-    # Work around bpo-36302/bpo-42009 - it sorts sources but this breaks
-    # support for building .mc files etc :(
+    # Work around python/cpython#80483 / python/cpython#86175
+    # it sorts sources but this breaks support for building .mc files etc :(
+    # See pypa/setuptools#4986 / pypa/distutils#370 for potential upstream fix.
     def compile(self, sources, **kwargs):
         # re-sort the list of source files but ensure all .mc files come first.
         def key_reverse_mc(a):
