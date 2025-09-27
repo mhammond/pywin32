@@ -18,6 +18,11 @@ As of build 305, installation .exe files have been deprecated; see
 Coming in build 312, as yet unreleased
 --------------------------------------
 
+* Removed considerations for Windows 95/98/ME (mhammond#2400, [@Avasam][Avasam])
+  This removes the following constants:
+  * `win32con.FILE_ATTRIBUTE_ATOMIC_WRITE`
+  * `win32con.FILE_ATTRIBUTE_XACTION_WRITE`
+
 Build 311, released 2025/07/14
 ------------------------------
 
