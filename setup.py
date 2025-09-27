@@ -889,8 +889,9 @@ class my_build_ext(build_ext):
 
 
 class my_compiler(MSVCCompiler):
-    # Work around bpo-36302/bpo-42009 - it sorts sources but this breaks
-    # support for building .mc files etc :(
+    # Work around python/cpython#80483 / python/cpython#86175
+    # it sorts sources but this breaks support for building .mc files etc :(
+    # See pypa/setuptools#4986 / pypa/distutils#370 for potential upstream fix.
     def compile(self, sources, **kwargs):
         # re-sort the list of source files but ensure all .mc files come first.
         def key_reverse_mc(a):
