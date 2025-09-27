@@ -62,7 +62,7 @@ int PyCRYPTKEY::setattro(PyObject *self, PyObject *obname, PyObject *v)
 PyObject *PyCRYPTKEY::getattro(PyObject *self, PyObject *obname)
 {
     /*
-    char *name=PYWIN_ATTR_CONVERT(obname);
+    const char *name = PyUnicode_AsUTF8(obname);
     if (name==NULL)
         return NULL;
     if (strcmp(name,"HCRYPTKEY")==0){

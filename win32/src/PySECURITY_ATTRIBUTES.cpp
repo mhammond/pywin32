@@ -157,7 +157,7 @@ int PySECURITY_ATTRIBUTES::setattro(PyObject *self, PyObject *obname, PyObject *
         PyErr_SetString(PyExc_AttributeError, "can't delete SECURITY_ATTRIBUTES attributes");
         return -1;
     }
-    char *name = PYWIN_ATTR_CONVERT(obname);
+    const char *name = PyUnicode_AsUTF8(obname);
     if (name == NULL)
         return -1;
     if (strcmp(name, "SECURITY_DESCRIPTOR") == 0) {
