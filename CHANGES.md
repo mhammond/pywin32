@@ -18,6 +18,8 @@ As of build 305, installation .exe files have been deprecated; see
 Coming in build 312, as yet unreleased
 --------------------------------------
 
+* Fixed `AttributeError: 'Enumerator' object has no attribute 'resultCLSID'` when cloning a win32com client enumerator (mhammond#2333, [@Avasam][Avasam])
+
 Build 311, released 2025/07/14
 ------------------------------
 
