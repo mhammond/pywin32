@@ -34,8 +34,7 @@ class AppDialog(dialog.Dialog):
         dc.DrawIcon((left, top), hIcon)
         self.EndPaint(paintStruct)
 
-    # Only needed to provide a minimized icon (and this seems
-    # less important under win95/NT4
+    # Only needed to provide a minimized icon
     def OnEraseBkgnd(self, dc):
         if self.IsIconic():
             return 1
