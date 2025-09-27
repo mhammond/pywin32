@@ -226,7 +226,6 @@ static PyObject *PyDuplicateHandle(PyObject *self, PyObject *args)
 }
 
 // @pymethod int|win32api|GetHandleInformation|Retrieves a handle's flags.
-// @comm Not available on Win98/Me
 // @rdesc Returns a combination of HANDLE_FLAG_INHERIT, HANDLE_FLAG_PROTECT_FROM_CLOSE
 static PyObject *PyGetHandleInformation(PyObject *self, PyObject *args)
 {
@@ -245,7 +244,6 @@ static PyObject *PyGetHandleInformation(PyObject *self, PyObject *args)
 }
 
 // @pymethod |win32api|SetHandleInformation|Sets a handles's flags
-// @comm Not available on Win98/Me
 static PyObject *PySetHandleInformation(PyObject *self, PyObject *args)
 {
     CHECK_PFN(SetHandleInformation);
@@ -4140,7 +4138,7 @@ static PyObject *PyRegSetValueEx(PyObject *self, PyObject *args)
     // @flag REG_QWORD_LITTLE_ENDIAN|A 64-bit number in little-endian format. This is equivalent to REG_QWORD.<nl>In
     // little-endian format, a multi-byte value is stored in memory from the lowest byte (the little end) to the highest
     // byte. For example, the value 0x12345678 is stored as (0x78 0x56 0x34 0x12) in little-endian format. Windows NT
-    // and Windows 95 are designed to run on little-endian computer architectures. A user may connect to computers that
+    // is designed to run on little-endian computer architectures. A user may connect to computers that
     // have big-endian architectures, such as some UNIX systems.
     // @flag REG_DWORD_BIG_ENDIAN|A 32-bit number in big-endian format.
     // In big-endian format, a multi-byte value is stored in memory from the highest byte (the big end) to the lowest

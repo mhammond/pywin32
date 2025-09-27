@@ -63,8 +63,9 @@ def Connect(entryName, bUseCallback):
         win32event.ResetEvent(callbackEvent)
     else:
         theCallback = None
-    #       in order to *use* the username/password of a particular dun entry, one must
-    #       explicitly get those params under win95....
+    # In order to *use* the username/password of a particular dun entry,
+    # one must explicitly get those params under Win95 ...
+    # It's unclear whether that's even still necessary.
     try:
         dp, b = win32ras.GetEntryDialParams(None, entryName)
     except:
@@ -78,18 +79,19 @@ def Connect(entryName, bUseCallback):
         if not bUseCallback and rc != 0:
             print("Could not dial the RAS connection:", win32ras.GetErrorString(rc))
             hras = HangUp(hras)
-        #       don't wait here if there's no need to....
+        # don't wait here if there's no need to....
         elif (
             bUseCallback
             and win32event.WaitForSingleObject(callbackEvent, 60000)
             != win32event.WAIT_OBJECT_0
         ):
             print("Gave up waiting for the process to complete!")
-            #       sdk docs state one must explcitly hangup, even if there's an error....
+            # sdk docs state one must explicitly hangup, even if there's an error....
+            # https://learn.microsoft.com/en-us/windows/win32/api/ras/nf-ras-rasdialw#remarks
             try:
                 cs = win32ras.GetConnectStatus(hras)
             except:
-                #       on error, attempt a hang up anyway....
+                # on error, attempt a hang up anyway....
                 hras = HangUp(hras)
             else:
                 if int(cs[0]) == win32ras.RASCS_Disconnected:
