@@ -100,7 +100,7 @@ class DockingBar(window.Wnd):
 
         # use the dialog dimensions as default base dimensions
         assert self.dialog.IsWindow(), (
-            "The childCreator function %s did not create a window!" % childCreator
+            "The childCreator function {} did not create a window!".format(childCreator)
         )
         rect = self.dialog.GetWindowRect()
         self.sizeHorz = self.sizeVert = self.sizeFloat = (

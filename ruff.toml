@@ -23,8 +23,8 @@ select = [
   # Note, we still want to allow multiline ISC
   "UP025", # Remove unicode literals from strings
   "UP030", # Use implicit references for positional format fields
+  "UP031", # Use format specifiers instead of percent format
   # TODO: Still lots of manual fixes needed
-  # "UP031", # Use format specifiers instead of percent format
   # "UP032", # Use f-string instead of format call
 
   # Ensure modern type annotation syntax and best practices
