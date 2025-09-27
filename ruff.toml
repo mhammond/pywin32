@@ -1,4 +1,4 @@
-target-version = "py39" # Target the oldest supported version in editors and default CLI
+target-version = "py39" # Target the oldest supported version
 # This file is not UTF-8
 extend-exclude = ["Pythonwin/pywin/test/_dbgscript.py"]
 
