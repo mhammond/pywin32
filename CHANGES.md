@@ -18,6 +18,11 @@ As of build 305, installation .exe files have been deprecated; see
 Coming in build 312, as yet unreleased
 --------------------------------------
 
+* Resolved a handful of deprecation warnings (mhammond#2593, [@Avasam][Avasam])
+* Deprecate `pythoncom.frozen` (mhammond#2593, [@Avasam][Avasam])
+  `pythoncom.frozen` used to expose `Py_FrozenFlag` from the C API.
+  `Py_FrozenFlag` is deprecated since Python 3.12.
+
 Build 311, released 2025/07/14
 ------------------------------
 
