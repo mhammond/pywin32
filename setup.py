@@ -2023,7 +2023,7 @@ dist = setup(
     project_urls={
         # https://docs.pypi.org/project_metadata/#general-url
         "Homepage": "https://github.com/mhammond/pywin32",
-        "Changes": "https://github.com/mhammond/pywin32/blob/main/CHANGES.txt",
+        "Changes": "https://github.com/mhammond/pywin32/blob/main/CHANGES.md",
         "Docs": "https://mhammond.github.io/pywin32/",
         "Bugs": "https://github.com/mhammond/pywin32/issues",
         # Arbitrary URLs (icons still recognized)
