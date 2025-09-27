@@ -1909,13 +1909,11 @@ static PyObject *PyDeviceCapabilities(PyObject *self, PyObject *args)
     // @flagh Capability|Returned value
     switch (capability) {
         // none of these use the output pointer, just the returned DWORD
-        case DC_BINADJUST:
         case DC_COLLATE:
         case DC_COPIES:
         case DC_COLORDEVICE:
         case DC_DUPLEX:
         case DC_DRIVER:
-        case DC_EMF_COMPLIANT:
         case DC_EXTRA:
         case DC_FIELDS:
         case DC_ORIENTATION:
@@ -2111,8 +2109,11 @@ static PyObject *PyDeviceCapabilities(PyObject *self, PyObject *args)
             }
             break;
         }
-        // last 3 are 95/98/Me only
+        // https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/winddiui/nf-winddiui-drvdevicecapabilities
+        // Not used for NT-based operating systems.
+        case DC_BINADJUST:
         case DC_DATATYPE_PRODUCED:
+        case DC_EMF_COMPLIANT:
         case DC_MANUFACTURER:
         case DC_MODEL:
         default:

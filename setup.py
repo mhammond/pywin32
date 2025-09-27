@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-build_id = "310.1"  # may optionally include a ".{patchno}" suffix.
+build_id = "311.1"  # may optionally include a ".{patchno}" suffix.
 
 __doc__ = """This is a distutils setup-script for the pywin32 extensions.
 
@@ -142,9 +142,9 @@ class WinExt(Extension):
                 ("DISTUTILS_BUILD", None),
                 ("_CRT_SECURE_NO_WARNINGS", None),
                 # CRYPT_DECRYPT_MESSAGE_PARA.dwflags is in an ifdef for some unknown reason
-                # See github PR #1444 for more details...
+                # See GitHub PR #1444 for more details...
                 ("CRYPT_DECRYPT_MESSAGE_PARA_HAS_EXTRA_FIELDS", None),
-                # Minimum Windows version supported (Windows 7 / Windows Server 2008)
+                # Minimum Windows version supported (Windows 7)
                 # https://learn.microsoft.com/en-us/cpp/porting/modifying-winver-and-win32-winnt
                 ("_WIN32_WINNT", hex(0x0601)),
                 ("WINVER", hex(0x0601)),
@@ -1889,9 +1889,9 @@ def expand_modules(module_dir: str | os.PathLike[str]):
 
 
 # NOTE: somewhat counter-intuitively, a result list a-la:
-#  [('Lib/site-packages\\pythonwin', ('pythonwin/license.txt',)),]
-# will 'do the right thing' in terms of installing licence.txt into
-# 'Lib/site-packages/pythonwin/licence.txt'.  We exploit this to
+#  [('Lib/site-packages\\pythonwin', ('pythonwin/License.txt',)),]
+# will 'do the right thing' in terms of installing License.txt into
+# 'Lib/site-packages/pythonwin/License.txt'.  We exploit this to
 # get 'com/win32com/whatever' installed to 'win32com/whatever'
 def convert_data_files(files: Iterable[str]):
     ret: list[tuple[str, tuple[str]]] = []
@@ -2000,6 +2000,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Programming Language :: Python :: Implementation :: CPython",
 ]
 
@@ -2011,7 +2012,16 @@ dist = setup(
     long_description_content_type="text/markdown",
     author="Mark Hammond (et al)",
     author_email="mhammond@skippinet.com.au",
-    url="https://github.com/mhammond/pywin32",
+    project_urls={
+        # https://docs.pypi.org/project_metadata/#general-url
+        "Homepage": "https://github.com/mhammond/pywin32",
+        "Changes": "https://github.com/mhammond/pywin32/blob/main/CHANGES.md",
+        "Docs": "https://mhammond.github.io/pywin32/",
+        "Bugs": "https://github.com/mhammond/pywin32/issues",
+        # Arbitrary URLs (icons still recognized)
+        "Support Requests": "https://github.com/mhammond/pywin32/discussions",
+        "Mailing List": "https://mail.python.org/mailman/listinfo/python-win32",
+    },
     license="PSF",
     classifiers=classifiers,
     cmdclass=cmdclass,

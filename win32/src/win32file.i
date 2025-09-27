@@ -233,7 +233,7 @@ PyHANDLE CreateFile(
 			// @flag OPEN_ALWAYS|Opens the file, if it exists. If the file does not exist, the function creates the file as if dwCreationDisposition were CREATE_NEW.
 			// @flag TRUNCATE_EXISTING|Opens the file. Once opened, the file is truncated so that its size is zero bytes. The calling process must open the file with at least GENERIC_WRITE access. The function fails if the file does not exist.
     DWORD dwFlagsAndAttributes,	// @pyparm int|flagsAndAttributes||file attributes
-    PyHANDLE INPUT_NULLOK // @pyparm <o PyHANDLE>|hTemplateFile||Specifies a handle with GENERIC_READ access to a template file. The template file supplies file attributes and extended attributes for the file being created.   Under Win95, this must be 0, else an exception will be raised.
+    PyHANDLE INPUT_NULLOK // @pyparm <o PyHANDLE>|hTemplateFile||Specifies a handle with GENERIC_READ access to a template file. The template file supplies file attributes and extended attributes for the file being created.
 );
 
 // CreateIoCompletionPort gets special treatment due to its special result
@@ -2203,7 +2203,7 @@ MyCopyEvent(PyObject *dict, WSANETWORKEVENTS *events, long event, int eventbit)
 }
 
 // @pyswig dict|WSAEnumNetworkEvents|Return network events that caused the event associated with the socket to be signaled.
-// @rdesc A dictionary mapping network events that occured for the specified socket since the last call to this function (e.g. FD_READ, FD_WRITE) to their associated error code, or 0 if the event occured without an error. The events returned are a subset of events previously registered for this socket with WSAEventSelect.
+// @rdesc A dictionary mapping network events that occurred for the specified socket since the last call to this function (e.g. FD_READ, FD_WRITE) to their associated error code, or 0 if the event occurred without an error. The events returned are a subset of events previously registered for this socket with WSAEventSelect.
 static PyObject*
 MyWSAEnumNetworkEvents(PyObject *self, PyObject *args)
 {
@@ -3059,7 +3059,7 @@ static PyObject *py_GetVolumePathName(PyObject *self, PyObject *args, PyObject *
 	if (bufsize>0)
 		bufsize+=1;
 	else
-		bufsize=pathlen+2;  // enough to accomodate trailing null, and possibly extra backslash
+		bufsize=pathlen+2;  // enough to accommodate trailing null, and possibly extra backslash
 	mount_point=(WCHAR *)malloc(bufsize*sizeof(WCHAR));
 	if (mount_point==NULL)
 		PyErr_SetString(PyExc_MemoryError,"GetVolumePathName: Unable to allocate return buffer");
