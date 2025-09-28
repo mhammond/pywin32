@@ -588,10 +588,10 @@ def TestNestedArrays(o):
     for k in range(4):
         for j in range(5):
             for i in range(3):
+                rec = array_of_structs[k][j][i]
                 for n in range(4):
                     for m in range(5):
                         for l in range(3):
-                            rec = array_of_structs[k][j][i]
                             f = float_tuple[n][m][l]
                             assert rec.array_of_double[n][m][l] == f * rec.id
 
