@@ -19,6 +19,10 @@ Coming in build 312, as yet unreleased
 --------------------------------------
 
 * Implement multidimensional SAFEARRAY(COM Record) and SAFEARRAY(double) (mhammond#2655, [@geppi][geppi])
+* Removed considerations for Windows 95/98/ME (mhammond#2400, [@Avasam][Avasam])
+  This removes the following constants:
+  * `win32con.FILE_ATTRIBUTE_ATOMIC_WRITE`
+  * `win32con.FILE_ATTRIBUTE_XACTION_WRITE`
 * Bugfix for COM Record instance creation (mhammond#2641, [@geppi][geppi])
 * Fix regression introduced by mhammond#2506 (mhammond#2640, [@geppi][geppi])
 
