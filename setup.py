@@ -126,7 +126,7 @@ class WinExt(Extension):
         implib_name=None,
         delay_load_libraries="",
     ):
-        include_dirs = ["com/win32com/src/include", "win32/src"] + include_dirs
+        include_dirs = ["com/win32com/src/include", "win32/src", *include_dirs]
         libraries = libraries.split()
         self.delay_load_libraries = delay_load_libraries.split()
         libraries.extend(self.delay_load_libraries)
@@ -487,7 +487,7 @@ class my_build_ext(build_ext):
         os.environ["LIB"] = os.pathsep.join(self.compiler.library_dirs)
         os.chdir(path)
         try:
-            cmd = [nmake, "/nologo", "/f", makefile] + makeargs
+            cmd = [nmake, "/nologo", "/f", makefile, *makeargs]
             self.compiler.spawn(cmd)
         finally:
             os.chdir(cwd)
@@ -870,7 +870,7 @@ class my_build_ext(build_ext):
             fqsource = os.path.abspath(source)
             fqtarget = os.path.abspath(target)
             rebuild = self.force or (
-                ext and newer_group(ext.swig_deps + [fqsource], fqtarget)
+                ext and newer_group([*ext.swig_deps, fqsource], fqtarget)
             )
 
             # can remove once edklib is no longer used for 32-bit builds
@@ -1907,7 +1907,7 @@ def expand_modules(module_dir: str | os.PathLike[str]):
 # will 'do the right thing' in terms of installing License.txt into
 # 'Lib/site-packages/pythonwin/License.txt'.  We exploit this to
 # get 'com/win32com/whatever' installed to 'win32com/whatever'
-def convert_data_files(files: Iterable[str]):
+def convert_data_files(files: Iterable[str]) -> list[tuple[str, tuple[str]]]:
     ret: list[tuple[str, tuple[str]]] = []
     for file in files:
         file = os.path.normpath(file)
@@ -1932,8 +1932,8 @@ def convert_data_files(files: Iterable[str]):
     return ret
 
 
-def convert_optional_data_files(files):
-    ret = []
+def convert_optional_data_files(files) -> list[tuple[str, tuple[str]]]:
+    ret: list[tuple[str, tuple[str]]] = []
     for file in files:
         try:
             temp = convert_data_files([file])
@@ -2059,74 +2059,70 @@ dist = setup(
     },
     packages=packages,
     py_modules=py_modules,
-    data_files=[("", (os.path.join(gettempdir(), "pywin32.version.txt"),))]
-    + convert_optional_data_files(
-        [
-            "PyWin32.chm",
-        ]
-    )
-    + convert_data_files(
-        [
-            "Pythonwin/start_pythonwin.pyw",
-            "pythonwin/pywin/*.cfg",
-            "pythonwin/pywin/Demos/*.py",
-            "pythonwin/pywin/Demos/app/*.py",
-            "pythonwin/pywin/Demos/ocx/*.py",
-            "pythonwin/license.txt",
-            "win32/license.txt",
-            "win32/scripts/*.py",
-            "win32/test/*.py",
-            "win32/test/win32rcparser/test.rc",
-            "win32/test/win32rcparser/test.h",
-            "win32/test/win32rcparser/python.ico",
-            "win32/test/win32rcparser/python.bmp",
-            "win32/Demos/*.py",
-            "win32/Demos/images/*.bmp",
-            "com/win32com/readme.html",
-            # win32com test utility files.
-            "com/win32com/test/*.idl",
-            "com/win32com/test/*.js",
-            "com/win32com/test/*.sct",
-            "com/win32com/test/*.txt",
-            "com/win32com/test/*.vbs",
-            "com/win32com/test/*.xsl",
-            # win32com docs
-            "com/win32com/HTML/*.html",
-            "com/win32com/HTML/image/*.gif",
-            "com/win32comext/adsi/demos/*.py",
-            # Active Scripting test and demos.
-            "com/win32comext/axscript/test/*.py",
-            "com/win32comext/axscript/test/*.pys",
-            "com/win32comext/axscript/test/*.vbs",
-            "com/win32comext/axscript/Demos/*.pys",
-            "com/win32comext/axscript/Demos/*.htm*",
-            "com/win32comext/axscript/Demos/*.gif",
-            "com/win32comext/axscript/Demos/*.asp",
-            "com/win32comext/mapi/demos/*.py",
-            "com/win32comext/propsys/test/*.py",
-            "com/win32comext/shell/test/*.py",
-            "com/win32comext/shell/demos/servers/*.py",
-            "com/win32comext/shell/demos/*.py",
-            "com/win32comext/taskscheduler/test/*.py",
-            "com/win32comext/ifilter/demo/*.py",
-            "com/win32comext/authorization/demos/*.py",
-            "com/win32comext/bits/test/*.py",
-            "isapi/*.txt",
-            "isapi/samples/*.py",
-            "isapi/samples/*.txt",
-            "isapi/doc/*.html",
-            "isapi/test/*.py",
-            "isapi/test/*.txt",
-            "adodbapi/*.txt",
-            "adodbapi/test/*.py",
-            "adodbapi/examples/*.py",
-        ]
-    )
-    +
-    # The headers and .lib files
-    [
-        ("win32/include", ("win32/src/PyWinTypes.h",)),
-        (
+    data_files=[
+        # mypy list-item: This needs to be fixed in typeshed's types-setuptools stubs
+        ("", (os.path.join(gettempdir(), "pywin32.version.txt"),)),  # type: ignore[list-item]
+        *convert_optional_data_files(["PyWin32.chm"]),  # type: ignore[list-item]
+        *convert_data_files(  # type: ignore[list-item]
+            [
+                "Pythonwin/start_pythonwin.pyw",
+                "pythonwin/pywin/*.cfg",
+                "pythonwin/pywin/Demos/*.py",
+                "pythonwin/pywin/Demos/app/*.py",
+                "pythonwin/pywin/Demos/ocx/*.py",
+                "pythonwin/license.txt",
+                "win32/license.txt",
+                "win32/scripts/*.py",
+                "win32/test/*.py",
+                "win32/test/win32rcparser/test.rc",
+                "win32/test/win32rcparser/test.h",
+                "win32/test/win32rcparser/python.ico",
+                "win32/test/win32rcparser/python.bmp",
+                "win32/Demos/*.py",
+                "win32/Demos/images/*.bmp",
+                "com/win32com/readme.html",
+                # win32com test utility files.
+                "com/win32com/test/*.idl",
+                "com/win32com/test/*.js",
+                "com/win32com/test/*.sct",
+                "com/win32com/test/*.txt",
+                "com/win32com/test/*.vbs",
+                "com/win32com/test/*.xsl",
+                # win32com docs
+                "com/win32com/HTML/*.html",
+                "com/win32com/HTML/image/*.gif",
+                "com/win32comext/adsi/demos/*.py",
+                # Active Scripting test and demos.
+                "com/win32comext/axscript/test/*.py",
+                "com/win32comext/axscript/test/*.pys",
+                "com/win32comext/axscript/test/*.vbs",
+                "com/win32comext/axscript/Demos/*.pys",
+                "com/win32comext/axscript/Demos/*.htm*",
+                "com/win32comext/axscript/Demos/*.gif",
+                "com/win32comext/axscript/Demos/*.asp",
+                "com/win32comext/mapi/demos/*.py",
+                "com/win32comext/propsys/test/*.py",
+                "com/win32comext/shell/test/*.py",
+                "com/win32comext/shell/demos/servers/*.py",
+                "com/win32comext/shell/demos/*.py",
+                "com/win32comext/taskscheduler/test/*.py",
+                "com/win32comext/ifilter/demo/*.py",
+                "com/win32comext/authorization/demos/*.py",
+                "com/win32comext/bits/test/*.py",
+                "isapi/*.txt",
+                "isapi/samples/*.py",
+                "isapi/samples/*.txt",
+                "isapi/doc/*.html",
+                "isapi/test/*.py",
+                "isapi/test/*.txt",
+                "adodbapi/*.txt",
+                "adodbapi/test/*.py",
+                "adodbapi/examples/*.py",
+            ]
+        ),
+        # The headers and .lib files
+        ("win32/include", ("win32/src/PyWinTypes.h",)),  # type: ignore[list-item]
+        (  # type: ignore[list-item]
             "win32com/include",
             (
                 "com/win32com/src/include/PythonCOM.h",
@@ -2134,15 +2130,12 @@ dist = setup(
                 "com/win32com/src/include/PythonCOMServer.h",
             ),
         ),
-    ]
-    +
-    # And data files convert_data_files can't handle.
-    [
-        ("win32com", ("com/License.txt",)),
+        # And data files convert_data_files can't handle.
+        ("win32com", ("com/License.txt",)),  # type: ignore[list-item]
         # pythoncom.py doesn't quite fit anywhere else.
         # Note we don't get an auto .pyc - but who cares?
-        ("", ("com/pythoncom.py",)),
-        ("", ("pywin32.pth",)),
+        ("", ("com/pythoncom.py",)),  # type: ignore[list-item]
+        ("", ("pywin32.pth",)),  # type: ignore[list-item]
     ],
 )
 
