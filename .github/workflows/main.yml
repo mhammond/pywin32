@@ -12,9 +12,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
 
-env:
-  PYTHONDEVMODE: 1
-
 jobs:
   test:
     name: Build and test
@@ -25,12 +22,14 @@ jobs:
       matrix:
         python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
         architecture: [x64, x86]
+    env:
+      PYTHONDEVMODE: 1 # https://docs.python.org/3/library/devmode.html
 
     steps:
       - uses: actions/checkout@v4
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
           architecture: ${{ matrix.architecture }}
@@ -38,14 +37,6 @@ jobs:
           cache-dependency-path: .github/workflows/main.yml
           check-latest: true
           allow-prereleases: true
-
-      - name: Fix user Scripts missing from PATH
-        if: matrix.architecture == 'x86'
-        run: |
-          # Work around https://github.com/actions/setup-python/issues/1005
-          $ScriptsPath = python -c "import sysconfig,os; print(sysconfig.get_path('scripts', f'{os.name}_user'))"
-          echo $ScriptsPath
-          Add-Content $env:GITHUB_PATH $ScriptsPath
 
       - name: Build and install
         run: pip install . -v --user
@@ -106,7 +97,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
           architecture: x64
@@ -150,7 +141,7 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           # This job only needs to target the oldest supported version
           python-version: "3.8"
@@ -186,7 +177,7 @@ jobs:
         python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
