@@ -62,12 +62,14 @@ PyObject *PyObject_FromSAFEARRAYRecordInfo(SAFEARRAY *psa, long *arrayIndices)
     long lbound, ubound, nelems, i;
     ULONG cb_elem;
     PyRecordBuffer *owner = NULL;
+    HRESULT hr;
     dimNo = SafeArrayGetDim(psa);
     if (dimNo == 0) {
+        hr = E_UNEXPECTED;
         goto exit;
     }
     long *pMyArrayIndex = arrayIndices + (dimNo - 1);
-    HRESULT hr = SafeArrayGetRecordInfo(psa, &info);
+    hr = SafeArrayGetRecordInfo(psa, &info);
     if (FAILED(hr))
         goto exit;
     hr = SafeArrayLock(psa);

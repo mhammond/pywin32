@@ -1050,7 +1050,7 @@ PyObject *PyCom_PyObjectFromSAFEARRAYBuildDimension(SAFEARRAY *psa, VARENUM vt, 
     // Get a pointer for the dimension to iterate.
     long *pMyArrayIndex = arrayIndices + (dimNo - 1);
     *pMyArrayIndex = lb;
-    // For Records wie arrange all BuildItems in one single RecordBuffer.
+    // For Records we arrange all BuildItems in one single RecordBuffer.
     if (bBuildItems && vt == VT_RECORD) {
         return PyObject_FromSAFEARRAYRecordInfo(psa, arrayIndices);
     }
