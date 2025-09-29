@@ -56,7 +56,7 @@ class WindowOutputDocument(WindowOutputDocumentParent):
         try:
             self.SaveFile(fileName)
         except OSError as details:
-            win32ui.MessageBox("Error - could not save file\r\n\r\n%s" % details)
+            win32ui.MessageBox("Error - could not save file\r\n\r\n{}".format(details))
             return 0
         win32ui.SetStatusText("Ready")
         return 1
@@ -153,7 +153,7 @@ class WindowOutputViewImpl:
                 return 1
             except win32api.error as details:
                 win32ui.SetStatusText(
-                    "The help file could not be opened - %s" % details.strerror
+                    "The help file could not be opened - {}".format(details.strerror)
                 )
                 return 1
             except:
@@ -182,7 +182,7 @@ class WindowOutputViewImpl:
                 if fileName is None:
                     # Don't force update, so it replaces the idle prompt.
                     win32ui.SetStatusText(
-                        "Can't locate the file '%s'" % (fileNameSpec), 0
+                        "Can't locate the file '{}'".format(fileNameSpec), 0
                     )
                     return 1
 
@@ -190,7 +190,7 @@ class WindowOutputViewImpl:
                     "Jumping to line " + lineNoString + " of file " + fileName, 1
                 )
                 if not scriptutils.JumpToDocument(fileName, int(lineNoString)):
-                    win32ui.SetStatusText("Could not open %s" % fileName)
+                    win32ui.SetStatusText("Could not open {}".format(fileName))
                     return 1  # still was an error message.
                 return 1
         return 0  # not an error line
