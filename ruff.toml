@@ -25,7 +25,7 @@ select = [
   "UP030", # Use implicit references for positional format fields
   # TODO: Still lots of manual fixes needed
   # "UP031", # Use format specifiers instead of percent format
-  # "UP032", # Use f-string instead of format call
+  "UP032", # Use f-string instead of format call
 
   # Ensure modern type annotation syntax and best practices
   # Not including those covered by type-checkers or exclusive to Python 3.11+
