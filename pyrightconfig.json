@@ -36,7 +36,6 @@
   "reportCallIssue": "warning",
   "reportOperatorIssue": "warning",
   "reportOptionalCall": "warning",
-  "reportOptionalIterable": "warning",
   "reportOptionalMemberAccess": "warning",
   "reportOptionalSubscript": "warning",
   // Needs fixes in types-pywin32 and requires Python 3.8 to annotate ambiguous global variables
