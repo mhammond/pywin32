@@ -12,10 +12,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
 
-env:
-  # We can't yet run tests with PYTHONDEVMODE=1, let's at least show warnings
-  PYTHONWARNINGS: always
-
 jobs:
   test:
     name: Build and test
@@ -38,6 +34,13 @@ jobs:
             python-version: "3.9"
           - python-architecture: arm64
             python-version: "3.10"
+    env:
+      # TODO: We can't yet run tests with PYTHONDEVMODE=1, let's emulated it as much as we can
+      # https://docs.python.org/3/library/devmode.html#effects-of-the-python-development-mode
+      PYTHONMALLOC: debug
+      PYTHONASYNCIODEBUG: 1
+      PYTHONWARNINGS: always
+      # PYTHONFAULTHANDLER: 1 # This causes our tests to fail
 
     steps:
       - uses: actions/checkout@v4
