@@ -908,11 +908,6 @@ class my_compiler(MSVCCompiler):
         return MSVCCompiler.compile(self, sources, **kwargs)
 
     def spawn(self, cmd: MutableSequence[str]) -> None:  # type: ignore[override] # More restrictive than supertype
-        is_mt = cmd[0].endswith("mt.exe") or cmd[0].endswith('"mt.exe"')
-        assert not is_mt, (
-            "We don't want mt.exe run. We used to special case it,"
-            + " now just sanity check that this is unreachable"
-        )
         is_link = cmd[0].endswith("link.exe") or cmd[0].endswith('"link.exe"')
         if is_link:
             # remove /MANIFESTFILE:... and add MANIFEST:NO
@@ -921,11 +916,6 @@ class my_compiler(MSVCCompiler):
                     cmd[i] = "/MANIFEST:NO"
                     break
         super().spawn(cmd)  # type: ignore[arg-type] # mypy variance issue, but pyright ok
-        if is_link:
-            assert not any(arg.startswith("/MANIFESTFILE:") for arg in cmd), (
-                "We used to copy the original manifest so we can use it later,"
-                + " now just sanity check that this is unreachable"
-            )
 
     # CCompiler's implementations of these methods completely replace the values
     # determined by the build environment. This seems like a design that must
