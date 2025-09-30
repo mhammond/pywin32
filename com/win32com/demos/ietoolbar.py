@@ -1,5 +1,3 @@
-# -*- coding: latin-1 -*-
-
 # PyWin32 Internet Explorer Toolbar
 #
 # written by Leonard Ritter (paniq@gmx.net)
