@@ -30,7 +30,6 @@ import logging
 import os
 import platform
 import re
-import shutil
 import sys
 import winreg
 from collections.abc import MutableSequence
@@ -910,30 +909,13 @@ class my_compiler(MSVCCompiler):
 
     def spawn(self, cmd: MutableSequence[str]) -> None:  # type: ignore[override] # More restrictive than supertype
         is_link = cmd[0].endswith("link.exe") or cmd[0].endswith('"link.exe"')
-        is_mt = cmd[0].endswith("mt.exe") or cmd[0].endswith('"mt.exe"')
-        if is_mt:
-            # We don't want mt.exe run...
-            return
         if is_link:
             # remove /MANIFESTFILE:... and add MANIFEST:NO
             for i in range(len(cmd)):
                 if cmd[i].startswith(("/MANIFESTFILE:", "/MANIFEST:EMBED")):
                     cmd[i] = "/MANIFEST:NO"
                     break
-        if is_mt:
-            # We want mt.exe run with the original manifest
-            for i in range(len(cmd)):
-                if cmd[i] == "-manifest":
-                    cmd[i + 1] += ".orig"
-                    break
         super().spawn(cmd)  # type: ignore[arg-type] # mypy variance issue, but pyright ok
-        if is_link:
-            # We want a copy of the original manifest so we can use it later.
-            for i in range(len(cmd)):
-                if cmd[i].startswith("/MANIFESTFILE:"):
-                    mfname = cmd[i][14:]
-                    shutil.copyfile(mfname, mfname + ".orig")
-                    break
 
     # CCompiler's implementations of these methods completely replace the values
     # determined by the build environment. This seems like a design that must
