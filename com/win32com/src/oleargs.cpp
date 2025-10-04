@@ -279,27 +279,9 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
     // So make sure this check is after anything else which qualifies.
     else if (PySequence_Check(obj)) {
         V_ARRAY(var) = NULL;  // not a valid, existing array.
-        // If the sequence elements are PyRecord or PyFloat objects we do NOT package
-        // them as VARIANT elements but put them unpackaged into the SAFEARRAY. If we
-        // deal with nested sequences, we need to go down until we find a non sequence
-        // element to figure out the VARTYPE.
-        PyObject *obItemCheck = PySequence_GetItem(obj, 0);
-        while (obItemCheck && PySequence_Check(obItemCheck)) obItemCheck = PySequence_GetItem(obItemCheck, 0);
-        if (obItemCheck != NULL && PyRecord_Check(obItemCheck)) {
-            if (!PyCom_SAFEARRAYFromPyObject(obj, &V_ARRAY(var), VT_RECORD))
-                return FALSE;
-            V_VT(var) = VT_ARRAY | VT_RECORD;
-        }
-        else if (obItemCheck != NULL && PyFloat_Check(obItemCheck)) {
-            if (!PyCom_SAFEARRAYFromPyObject(obj, &V_ARRAY(var), VT_R8))
-                return FALSE;
-            V_VT(var) = VT_ARRAY | VT_R8;
-        }
-        else {
-            if (!PyCom_SAFEARRAYFromPyObject(obj, &V_ARRAY(var)))
-                return FALSE;
-            V_VT(var) = VT_ARRAY | VT_VARIANT;
-        }
+        if (!PyCom_SAFEARRAYFromPyObject(obj, &V_ARRAY(var)))
+            return FALSE;
+        V_VT(var) = VT_ARRAY | VT_VARIANT;
     }
     else if (PyRecord_Check(obj)) {
         if (!PyObject_AsVARIANTRecordInfo(obj, var))
@@ -1358,6 +1340,7 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
                 *V_UI8REF(var) = 0;
             break;
         case VT_I4:
+        case VT_INT:
             if ((obUse = PyNumber_Long(obj)) == NULL)
                 BREAK_FALSE
             V_I4(var) = PyLong_AsLong(obUse);
@@ -1365,6 +1348,7 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
                 BREAK_FALSE;
             break;
         case VT_I4 | VT_BYREF:
+        case VT_INT | VT_BYREF:
             if (bCreateBuffers)
                 V_I4REF(var) = &m_lBuf;
 

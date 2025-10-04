@@ -555,14 +555,18 @@ def TestNestedArrays(o):
     assert tuple_retrieved_from_rec is not record_tuple
     # Next we test passing a multidimensional SAFEARRAY of Records
     # to a COM method that modifies the Records in the SAFEARRAY.
+    # The test seems a little convoluted. However, it should show
+    # that we got the multidimensional indexing right.
+    # First step:
+    # We create a nested sequence of COM Records.
     record_tuple = tuple(
         [
             tuple([tuple([TestStruct3() for i in range(3)]) for j in range(5)])
             for k in range(4)
         ]
     )
-    # We also test a nested sequence of doubles assigned
-    # to a member attribute of the Records.
+    # Second step:
+    # We create a nested sequence of doubles.
     float_tuple = tuple(
         [
             tuple(
@@ -571,17 +575,18 @@ def TestNestedArrays(o):
             for k in range(4)
         ]
     )
-    # Assign the nested sequence of doubles to the SAFEARRAY member attribute
-    # of the Records in the nested Record sequence and also assign a unique
-    # identifier to each of the Records.
+    # Third step:
+    # We assign the nested sequence of doubles to the SAFEARRAY member attribute
+    # in each of the Records in the nested Record sequence.
+    # In addition we also assign a unique identifier to each of the Records.
     for k in range(4):
         for j in range(5):
             for i in range(3):
                 record_tuple[k][j][i].id = float(k * 15 + j * 3 + i)
                 record_tuple[k][j][i].array_of_double = float_tuple
-    # Use the created nested sequence in the call to a COM method
-    # that modifies the Records. Note that the array dimension sizes
-    # are hard wired in the COM method.
+    # Now we use the nested sequence of Records in the call to a COM method
+    # that modifies the Records. Note that the array dimension sizes are
+    # hard wired in the COM method.
     array_of_structs = o.ModifyArrayOfStructs(record_tuple)
     # The method should have multiplied each element of each of the
     # SAFEARRAY(double) Record members by the id of the respective Record.
@@ -656,8 +661,17 @@ def TestGenerated():
     # Also registering a class with a GUID that is not in the TypeLibrary should fail.
     check_get_set_raises(TypeError, register_record_class, NotInTypeLibraryTestStruct)
 
-    # Perform the 'Byref' and 'ArrayOfStruct tests using the registered subclasses.
     progress("Testing subclasses of pythoncom.com_record.")
+    # Test assignment and retrieval of a Record field.
+    member_struct = TestStruct1()
+    member_struct.int_value = 42
+    member_struct.str_value = "The meaning of life, the universe and everything."
+    parent_struct = TestStruct3()
+    parent_struct.a_struct_field = member_struct
+    retrieved_struct = parent_struct.a_struct_field
+    assert retrieved_struct == member_struct
+
+    # Perform the 'Byref' and 'ArrayOfStruct tests using the registered subclasses.
     r = o.GetStruct()
     # After 'TestStruct1' was registered as an instantiable subclass
     # of pythoncom.com_record, the return value should have this type.

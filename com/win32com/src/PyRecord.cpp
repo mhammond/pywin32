@@ -706,27 +706,112 @@ PyObject *PyRecord::getattro(PyObject *self, PyObject *obname)
 
 int PyRecord::setattro(PyObject *self, PyObject *obname, PyObject *v)
 {
+    int ret = 0;
     VARIANT val;
     VariantInit(&val);
     PyRecord *pyrec = (PyRecord *)self;
-
-    if (!PyCom_VariantFromPyObject(v, &val))
-        return -1;
-
+    ITypeInfo *pti = NULL;
+    TYPEATTR *pta = NULL;
+    MEMBERID mem_id;
+    VARDESC *pVarDesc = NULL;
+    HRESULT hr;
     WCHAR *wname;
+    VARTYPE vt;
+
     if (!PyWinObject_AsWCHAR(obname, &wname, FALSE))
         return -1;
+    // We need to create a VARIANT from the PyObject to set
+    // the new Record field value. Before we can do this, we
+    // need to retrieve the information about the required
+    // VARIANT type from ITypeInfo.
+    hr = pyrec->pri->GetTypeInfo(&pti);
+    if (FAILED(hr) || pti == NULL) {
+        PyCom_BuildPyException(hr, pyrec->pri, IID_IRecordInfo);
+        ret = -1;
+        goto done;
+    }
+    // Unfortunately there is no method in ITypeInfo to dirctly
+    // map a field name to the variable description of the field.
+    // Field names are mapped to a member ID but 'GetVarDesc'
+    // uses an 'index' to identify the field and the 'index' is
+    // not the member ID. :-(
+    // We need to take a small detour and loop over all variable
+    // descriptions for this Record type to find the one with a
+    // matching member ID.
+    hr = pti->GetTypeAttr(&pta);
+    if (FAILED(hr) || pta == NULL) {
+        PyCom_BuildPyException(hr);
+        ret = -1;
+        goto done;
+    }
+    hr = pti->GetIDsOfNames(&wname, 1, &mem_id);
+    if (FAILED(hr)) {
+        PyCom_BuildPyException(hr);
+        ret = -1;
+        goto done;
+    }
+    int idx;
+    for (idx = 0; idx < pta->cVars; idx++) {
+        hr = pti->GetVarDesc(idx, &pVarDesc);
+        if (FAILED(hr)) {
+            PyCom_BuildPyException(hr);
+            ret = -1;
+            goto done;
+        }
+        if ((pVarDesc)->memid == mem_id)
+            break;
+        pti->ReleaseVarDesc(pVarDesc);
+    }
+    vt = (pVarDesc)->elemdescVar.tdesc.vt;
+    // The documentation for the TYPEDESC structure (oaidl.h) states:
+    // "If the variable is VT_SAFEARRAY or VT_PTR, the union portion
+    //  of the TYPEDESC contains a pointer to a TYPEDESC that specifies
+    //  the element type."
+    if (vt == VT_SAFEARRAY) {
+        vt = (pVarDesc)->elemdescVar.tdesc.lpadesc->tdescElem.vt;
+        // The struct definitions of COM Records in an IDL file are
+        // translated to an element type of 'VT_USERDEFINED'.
+        if (vt == VT_USERDEFINED) {
+            vt = VT_RECORD;
+        }
+        if (!PyCom_SAFEARRAYFromPyObject(v, &V_ARRAY(&val), (VARENUM)vt)) {
+            ret = -1;
+            goto done;
+        }
+        V_VT(&val) = VT_ARRAY | vt;
+    }
+    else {
+        PythonOleArgHelper helper;
+        // The struct definitions of COM Records in an IDL file are
+        // translated to an element type of 'VT_USERDEFINED'.
+        if (vt == VT_USERDEFINED) {
+            vt = VT_RECORD;
+        }
+        helper.m_reqdType = vt;
+        if (!helper.MakeObjToVariant(v, &val)) {
+            ret = -1;
+            goto done;
+        }
+    }
 
     PY_INTERFACE_PRECALL;
-    HRESULT hr = pyrec->pri->PutField(INVOKE_PROPERTYPUT, pyrec->pdata, wname, &val);
+    hr = pyrec->pri->PutField(INVOKE_PROPERTYPUT, pyrec->pdata, wname, &val);
     PY_INTERFACE_POSTCALL;
-    PyWinObject_FreeWCHAR(wname);
+
     VariantClear(&val);
     if (FAILED(hr)) {
         PyCom_BuildPyException(hr, pyrec->pri, IID_IRecordInfo);
-        return -1;
+        ret = -1;
     }
-    return 0;
+done:
+    PyWinObject_FreeWCHAR(wname);
+    if (pta && pti)
+        pti->ReleaseTypeAttr(pta);
+    if (pVarDesc && pti)
+        pti->ReleaseVarDesc(pVarDesc);
+    if (pti)
+        pti->Release();
+    return ret;
 }
 
 PyObject *PyRecord::tp_richcompare(PyObject *self, PyObject *other, int op)

@@ -96,6 +96,7 @@ library PyCOMTestLib
     } TestStruct2;
     typedef [uuid(865045EB-A7AE-4E88-B102-E2C5B97A64B6), version(1.0)]
     struct TestStruct3 {
+        TestStruct1 a_struct_field;
         SAFEARRAY(double) array_of_double;
         float id;
     } TestStruct3;
