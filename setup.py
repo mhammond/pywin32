@@ -30,12 +30,12 @@ import logging
 import os
 import platform
 import re
+import shutil
 import sys
 import winreg
 from collections.abc import MutableSequence
 from pathlib import Path
 from setuptools import Extension, setup
-from setuptools._distutils import ccompiler
 from setuptools.command.build import build
 from setuptools.modified import newer_group
 from tempfile import gettempdir
@@ -90,6 +90,7 @@ if os.path.dirname(this_file):
 
 version_file_path = Path(gettempdir(), "pywin32.version.txt")
 scintilla_licence_path = Path(gettempdir(), "Scintilla-License.txt")
+mapi_stubs_licence_path = Path(gettempdir(), "MAPI-License.txt")
 
 # Start address we assign base addresses from.  See comment re
 # dll_base_address later in this file...
@@ -370,6 +371,9 @@ class my_build(build):
         super().run()
         version_file_path.write_text(f"{build_id}\n")
         shutil.copyfile("Pythonwin/Scintilla/License.txt", scintilla_licence_path)
+        shutil.copyfile(
+            "com/win32comext/mapi/src/MAPIStubLibrary/LICENSE", mapi_stubs_licence_path
+        )
 
 
 class my_build_ext(build_ext):
@@ -2116,6 +2120,7 @@ dist = setup(
     + [
         ("", (str(version_file_path),)),
         ("pythonwin", (str(scintilla_licence_path),)),
+        ("win32comext/mapi", (str(mapi_stubs_licence_path),)),
         ("win32com", ("com/License.txt",)),
         ("win32comext", ("com/License.txt",)),
         # pythoncom.py doesn't quite fit anywhere else.
