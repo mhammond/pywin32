@@ -26,7 +26,7 @@ from . import error  # axscript.client.error
 
 def RemoveCR(text):
     # No longer just "RemoveCR" - should be renamed to
-    # FixNewlines, or something.  Idea is to fix arbitary newlines into
+    # FixNewlines, or something.  Idea is to fix arbitrary newlines into
     # something Python can compile...
     return re.sub(r"(\r\n)|\r|(\n\r)", "\n", text)
 

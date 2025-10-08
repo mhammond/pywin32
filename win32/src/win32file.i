@@ -820,7 +820,7 @@ PyObject *MyGetFileSize(PyObject *self, PyObject *args)
 // Previous versions of the Windows extensions had a custom object for
 // holding a read buffer.  This has been replaced with the standard Python buffer object.
 // <nl>Python does not provide a method for creating a read-write buffer
-// of arbitary size, so currently this can only be created by <om win32file.AllocateReadBuffer>.
+// of arbitrary size, so currently this can only be created by <om win32file.AllocateReadBuffer>.
 %{
 // @pyswig <o PyOVERLAPPEDReadBuffer>|AllocateReadBuffer|Allocates a buffer which can be used with an overlapped Read operation using <om win32file.ReadFile>
 PyObject *MyAllocateReadBuffer(PyObject *self, PyObject *args)
@@ -1277,7 +1277,7 @@ BOOLAPI MoveFileExW(
 #define MOVEFILE_COPY_ALLOWED MOVEFILE_COPY_ALLOWED // If the file is to be moved to a different volume, the function simulates the move by using the CopyFile and DeleteFile functions. Cannot be combined with the MOVEFILE_DELAY_UNTIL_REBOOT flag.
 #define MOVEFILE_DELAY_UNTIL_REBOOT MOVEFILE_DELAY_UNTIL_REBOOT // Windows NT only: The function does not move the file until the operating system is restarted. The system moves the file immediately after AUTOCHK is executed, but before creating any paging files. Consequently, this parameter enables the function to delete paging files from previous startups.
 #define MOVEFILE_REPLACE_EXISTING MOVEFILE_REPLACE_EXISTING // If a file of the name specified by lpNewFileName already exists, the function replaces its contents with those specified by lpExistingFileName.
-#define MOVEFILE_WRITE_THROUGH MOVEFILE_WRITE_THROUGH // Windows NT only: The function does not return until the file has actually been moved on the disk. Setting this flag guarantees that a move perfomed as a copy and delete operation is flushed to disk before the function returns. The flush occurs at the end of the copy operation.<nl>This flag has no effect if the MOVEFILE_DELAY_UNTIL_REBOOT flag is set.
+#define MOVEFILE_WRITE_THROUGH MOVEFILE_WRITE_THROUGH // Windows NT only: The function does not return until the file has actually been moved on the disk. Setting this flag guarantees that a move performed as a copy and delete operation is flushed to disk before the function returns. The flush occurs at the end of the copy operation.<nl>This flag has no effect if the MOVEFILE_DELAY_UNTIL_REBOOT flag is set.
 #define MOVEFILE_CREATE_HARDLINK MOVEFILE_CREATE_HARDLINK
 #define MOVEFILE_FAIL_IF_NOT_TRACKABLE MOVEFILE_FAIL_IF_NOT_TRACKABLE
 

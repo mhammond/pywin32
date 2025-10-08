@@ -207,7 +207,7 @@ PyObject *MyHrMAPIFindSubfolderEx(
 // @pyswig <o PyIMsgStore>|HrMAPIFindSubfolderEx|Retrieves a subfolder in an information store using the hierarchical path name of the folder.
 %name(HrMAPIFindSubfolderEx) PyObject *MyHrMAPIFindSubfolderEx(
 	IMAPIFolder *INPUT, // @pyparm <o PyIMAPIFolder>|rootFolder||The root folder.
-	TCHAR chSep,	// @pyparm string/<o PyUnicode>|sep||The folder seperator character.
+	TCHAR chSep,	// @pyparm string/<o PyUnicode>|sep||The folder separator character.
 	TCHAR *INPUT // @pyparm string/<o PyUnicode>|name||The folder name
 );
 
@@ -263,7 +263,7 @@ PyObject *PyHrMAPIFindFolderEx(PyObject *self, PyObject *args)
 	PyObject *rc = NULL;
 	if (!PyArg_ParseTuple(args, "OOO:HrMAPIFindFolderEx",
 		&obMDB, // @pyparm <o PyIMsgStore>|msgStore||The folder to search
-		&obSep, // @pyparm string|sepString||The character seperating the folder names - eg '\'
+		&obSep, // @pyparm string|sepString||The character separating the folder names - eg '\'
 		&obPath))// @pyparm string|path||Path to the folder
 		return NULL;
 	TCHAR *szSep = NULL, *szPath = NULL;
@@ -407,7 +407,7 @@ done:
 // @pyswig <o PyIMAPIFolder>|HrMAPIOpenFolderEx|Opens a folder in the information store from the hierarchical path name of the folder.
 %name(HrMAPIOpenFolderEx) HRESULT HrMAPIOpenFolderExW(
 	IMsgStore *INPUT_NULLOK, // @pyparm <o PyIMsgStore>|msgStore||
-	WCHAR INPUT, // @pyparm string/<o PyUnicode>|sep||The folder seperator character.
+	WCHAR INPUT, // @pyparm string/<o PyUnicode>|sep||The folder separator character.
 	WCHAR *INPUT, // @pyparm string/<o PyUnicode>|name||The folder name
 	IMAPIFolder **OUTPUT
 );
