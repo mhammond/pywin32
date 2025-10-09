@@ -142,7 +142,7 @@ class AXScriptCodeBlock:
     def GetFileName(self):
         # Gets the "file name" for Python - uses <...> so Python doesn't think
         # it is a real file.
-        return "<%s>" % self.name
+        return "<{}>".format(self.name)
 
     def GetDisplayName(self):
         return self.name
@@ -166,7 +166,7 @@ class Event:
         self.name = "<None>"
 
     def __repr__(self):
-        return "<%s at %d: %s>" % (self.__class__.__name__, id(self), self.name)
+        return f"<{self.__class__.__name__} at {id(self)}: {self.name}>"
 
     def Reset(self):
         pass
@@ -318,12 +318,7 @@ class ScriptItem:
         flagsDesc = ""
         if self.flags is not None and self.flags & axscript.SCRIPTITEM_GLOBALMEMBERS:
             flagsDesc = "/Global"
-        return "<%s at %d: %s%s>" % (
-            self.__class__.__name__,
-            id(self),
-            self.name,
-            flagsDesc,
-        )
+        return f"<{self.__class__.__name__} at {id(self)}: {self.name}{flagsDesc}>"
 
     def _dump_(self, level):
         flagDescs = []
@@ -1018,7 +1013,7 @@ class COMScript:
             return
         RaiseAssert(
             winerror.E_UNEXPECTED,
-            "Not connected or disconnected - %d" % self.scriptState,
+            f"Not connected or disconnected - {self.scriptState}",
         )
 
     def Connect(self):
