@@ -17,7 +17,7 @@ import win32file
 import win32pipe
 import win32timezone
 import winerror
-from pywin32_testutil import TestSkipped, testmain
+from pywin32_testutil import testmain
 
 
 class TestReadBuffer(unittest.TestCase):
@@ -803,7 +803,7 @@ class TestConnect(unittest.TestCase):
         except win32file.error as exc:
             win32event.SetEvent(giveup_event)
             if exc.winerror == 10022:  # WSAEINVAL
-                raise TestSkipped("ConnectEx is not available on this platform")
+                raise unittest.SkipTest("ConnectEx is not available on this platform")
             raise  # some error error we don't expect.
         # We occasionally see ERROR_CONNECTION_REFUSED in automation
         try:
@@ -811,7 +811,9 @@ class TestConnect(unittest.TestCase):
         except win32file.error as exc:
             win32event.SetEvent(giveup_event)
             if exc.winerror == winerror.ERROR_CONNECTION_REFUSED:
-                raise TestSkipped("Assuming ERROR_CONNECTION_REFUSED is transient")
+                raise unittest.SkipTest(
+                    "Assuming ERROR_CONNECTION_REFUSED is transient"
+                )
             raise
         ol = pywintypes.OVERLAPPED()
         buff = win32file.AllocateReadBuffer(1024)
@@ -838,7 +840,7 @@ class TestConnect(unittest.TestCase):
         except win32file.error as exc:
             win32event.SetEvent(giveup_event)
             if exc.winerror == 10022:  # WSAEINVAL
-                raise TestSkipped("ConnectEx is not available on this platform")
+                raise unittest.SkipTest("ConnectEx is not available on this platform")
             raise  # some error error we don't expect.
         # We occasionally see ERROR_CONNECTION_REFUSED in automation
         try:
@@ -846,7 +848,9 @@ class TestConnect(unittest.TestCase):
         except win32file.error as exc:
             win32event.SetEvent(giveup_event)
             if exc.winerror == winerror.ERROR_CONNECTION_REFUSED:
-                raise TestSkipped("Assuming ERROR_CONNECTION_REFUSED is transient")
+                raise unittest.SkipTest(
+                    "Assuming ERROR_CONNECTION_REFUSED is transient"
+                )
             raise
 
         ol = pywintypes.OVERLAPPED()
