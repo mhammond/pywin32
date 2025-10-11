@@ -90,7 +90,7 @@ if os.path.dirname(this_file):
 
 version_file_path = Path(gettempdir(), "pywin32.version.txt")
 scintilla_licence_path = Path(gettempdir(), "Scintilla-License.txt")
-mapi_stubs_licence_path = Path(gettempdir(), "MAPI-License.txt")
+mapi_stubs_licence_path = Path(gettempdir(), "MAPIStubLibrary-License.txt")
 
 # Start address we assign base addresses from.  See comment re
 # dll_base_address later in this file...
