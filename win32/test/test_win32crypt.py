@@ -1,4 +1,6 @@
-# Test module for win32crypt
+"""Test module for win32crypt"""
+
+from __future__ import annotations
 
 import contextlib
 import unittest
