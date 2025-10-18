@@ -100,10 +100,12 @@ True
 >>> estdt.strftime('%Y-%m-%d %H:%M:%S')
 '2007-06-13 01:00:00'
 
-Microsoft now has a patch for handling time zones in 2007 (see
+The following two tests are kept for coverage and historical reasons.
+
+Microsoft released a patch for handling time zones in 2007 (see
 https://learn.microsoft.com/en-us/troubleshoot/windows-client/system-management-components/daylight-saving-time-help-support)
 
-As a result, patched systems will give an incorrect result for
+As a result, patched systems would give an incorrect result for
 dates prior to the designated year except for Vista and its
 successors, which have dynamic time zone support.
 >>> nov2_pre_change = datetime.datetime(2003, 11, 2, tzinfo = MST)
@@ -113,7 +115,7 @@ successors, which have dynamic time zone support.
 >>> pre_response in (old_response, incorrect_patch_response)
 True
 
-Furthermore, unpatched systems pre-Vista will give an incorrect
+Furthermore, unpatched systems pre-Vista would give an incorrect
 result for dates after 2007.
 >>> nov2_post_change = datetime.datetime(2007, 11, 2, tzinfo = MST)
 >>> incorrect_unpatched_response = (2007, 11, 2, 7, 0, 0, 4, 306, 0)
@@ -1027,8 +1029,7 @@ def resolveMUITimeZone(spec: str) -> str | None:
 
     >>> import sys
     >>> result = resolveMUITimeZone('@tzres.dll,-110')
-    >>> expectedResultType = [type(None),str][sys.getwindowsversion() >= (6,)]
-    >>> type(result) is expectedResultType
+    >>> type(result) is str
     True
     """
     pattern = re.compile(r"@(?P<dllname>.*),-(?P<index>\d+)(?:;(?P<comment>.*))?")

@@ -2,10 +2,6 @@
 // $Id$
 
 // Implements wrappers for the Property System functions and interfaces.
-// These interfaces are present on Windows Vista and later, but can also
-// be installed on XP with Desktop Search 3.
-// However, this module doeen't dynamically load any libraries or functions,
-// so it will fail to import if the components are not installed.
 
 // This source file contains autoduck documentation.
 // @doc
@@ -41,7 +37,6 @@
 #define CHECK_PFN(fname)    \
     if (pfn##fname == NULL) \
         return PyErr_Format(PyExc_NotImplementedError, "%s is not available on this platform", #fname);
-// Not available on Vista or earlier
 typedef HRESULT(WINAPI *PFNSHGetPropertyStoreForWindow)(HWND, REFIID, void **);
 static PFNSHGetPropertyStoreForWindow pfnSHGetPropertyStoreForWindow = NULL;
 
@@ -546,7 +541,7 @@ static PyObject *PySHSetDefaultProperties(PyObject *self, PyObject *args)
 }
 
 /* List of module functions */
-// @module propsys|A module, encapsulating the Vista Property System interfaces
+// @module propsys|A module, encapsulating the Property System interfaces
 static struct PyMethodDef propsys_methods[] = {
     //	{ "SHGetPropertyStoreFromIDList", PySHGetPropertyStoreFromIDList, 1 }, // @pymeth
     // SHGetPropertyStoreFromIDList|Retrieves the property store from an absolute ID list
@@ -618,10 +613,7 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] = {
 /* Module initialisation */
 PYWIN_MODULE_INIT_FUNC(propsys)
 {
-    PYWIN_MODULE_INIT_PREPARE(propsys, propsys_methods,
-                              "A module, encapsulating the Property System interfaces."
-                              "Available on Windows Vista and later, but can also be used"
-                              "on XP if Desktop Search 3 is installed.");
+    PYWIN_MODULE_INIT_PREPARE(propsys, propsys_methods, "A module, encapsulating the Property System interfaces.");
 
     if (PyDict_SetItemString(dict, "error", PyWinExc_COMError) == -1)
         PYWIN_MODULE_INIT_RETURN_ERROR;

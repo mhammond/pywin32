@@ -1,7 +1,6 @@
 /* File : win32job.i */
 
 %module win32job // An interface to the win32 Process and Thread API's,
-// available in Windows 2000 and later.
 
 %{
 #include "PyWinTypes.h"

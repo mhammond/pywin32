@@ -1422,7 +1422,6 @@ static PyObject *PySHGetFolderPath(PyObject *self, PyObject *args)
 }
 
 // @pymethod |shell|SHSetFolderPath|Sets the location of one of the special folders
-// @comm This function is only available on Windows 2000 or later
 static PyObject *PySHSetFolderPath(PyObject *self, PyObject *args)
 {
     int csidl;
@@ -2631,11 +2630,6 @@ static PyObject *PyAssocCreate(PyObject *self, PyObject *args)
 // interface.
 static PyObject *PyAssocCreateForClasses(PyObject *self, PyObject *args)
 {
-    // @comm This function is only available on Vista and later; a
-    // COM exception with E_NOTIMPL will be thrown if the function can't be located.
-    if (pfnAssocCreateForClasses == NULL)
-        return PyCom_BuildPyException(E_NOTIMPL);
-
     PyObject *ret = NULL;
     PyObject *obClasses, *obiid;
     if (!PyArg_ParseTuple(args, "OO:AssocCreateForClasses", &obClasses, &obiid))
@@ -2803,11 +2797,6 @@ done: {
 // defaults can be further configured via the IDefaultExtractIconInit interface.
 static PyObject *PySHCreateDefaultExtractIcon(PyObject *self, PyObject *args)
 {
-    // @comm This function is only available on Vista and later; a
-    // COM exception with E_NOTIMPL will be thrown if the function can't be located.
-    if (pfnSHCreateDefaultExtractIcon == NULL)
-        return PyCom_BuildPyException(E_NOTIMPL);
-
     // be lazy - don't take IID as a param!
     if (!PyArg_ParseTuple(args, ":SHCreateDefaultExtractIcon"))
         return NULL;
@@ -2825,11 +2814,6 @@ static PyObject *PySHCreateDefaultExtractIcon(PyObject *self, PyObject *args)
 // @pymethod <o PyIUnknown>|shell|SHCreateDataObject|
 static PyObject *PySHCreateDataObject(PyObject *self, PyObject *args)
 {
-    // @comm This function is only available on Vista and later; a
-    // COM exception with E_NOTIMPL will be thrown if the function can't be located.
-    if (pfnSHCreateDataObject == NULL)
-        return PyCom_BuildPyException(E_NOTIMPL);
-
     PyObject *ret = NULL;
     PyObject *obParent;
     PyObject *obChildren;
@@ -2879,11 +2863,6 @@ done:
 // @pymethod <o PyIUnknown>|shell|SHCreateDefaultContextMenu|
 static PyObject *PySHCreateDefaultContextMenu(PyObject *self, PyObject *args)
 {
-    // @comm This function is only available on Vista and later; a
-    // COM exception with E_NOTIMPL will be thrown if the function can't be located.
-    if (pfnSHCreateDefaultContextMenu == NULL)
-        return PyCom_BuildPyException(E_NOTIMPL);
-
     PyObject *ret = NULL;
     PyObject *obdcm, *obiid;
     IID iid = IID_IContextMenu;
@@ -2917,10 +2896,6 @@ done:
 // @pymethod str|shell|SHGetNameFromIDList|Retrieves the display name of an item from an ID list.
 static PyObject *PySHGetNameFromIDList(PyObject *self, PyObject *args)
 {
-    // @comm This function is only available on Vista and later; a
-    // COM exception with E_NOTIMPL will be thrown if the function can't be located.
-    if (pfnSHGetNameFromIDList == NULL)
-        return PyCom_BuildPyException(E_NOTIMPL);
     PyObject *ret = NULL;
     PyObject *obpidl;
     SIGDN flags;
@@ -2954,11 +2929,6 @@ done:
 // @pymethod <o PyIShellItemArray>|shell|SHCreateShellItemArray|Creates a Shell item array object.
 static PyObject *PySHCreateShellItemArray(PyObject *self, PyObject *args)
 {
-    // @comm This function is only available on Vista and later; a
-    // COM exception with E_NOTIMPL will be thrown if the function can't be located.
-    if (pfnSHCreateShellItemArray == NULL)
-        return PyCom_BuildPyException(E_NOTIMPL);
-
     PyObject *ret = NULL;
     PyObject *obParent;
     PyObject *obChildren;
@@ -3006,11 +2976,6 @@ done:
 //   interface that contains a list of items (eg CF_HDROP)
 static PyObject *PySHCreateShellItemArrayFromDataObject(PyObject *self, PyObject *args)
 {
-    // @comm This function is only available on Vista and later; a
-    // COM exception with E_NOTIMPL will be thrown if the function can't be located.
-    if (pfnSHCreateShellItemArrayFromDataObject == NULL)
-        return PyCom_BuildPyException(E_NOTIMPL);
-
     PyObject *ret = NULL;
     PyObject *obdo;
     PyObject *obiid = Py_None;
@@ -3046,11 +3011,6 @@ done:
 // item identifiers
 static PyObject *PySHCreateShellItemArrayFromIDLists(PyObject *self, PyObject *args)
 {
-    // @comm This function is only available on Vista and later; a
-    // COM exception with E_NOTIMPL will be thrown if the function can't be located.
-    if (pfnSHCreateShellItemArrayFromIDLists == NULL)
-        return PyCom_BuildPyException(E_NOTIMPL);
-
     PyObject *ret = NULL;
     PyObject *obpidls;
     PCIDLIST_ABSOLUTE_ARRAY pidls = NULL;
@@ -3084,11 +3044,6 @@ done:
 // item
 static PyObject *PySHCreateShellItemArrayFromShellItem(PyObject *self, PyObject *args)
 {
-    // @comm This function is only available on Vista and later; a
-    // COM exception with E_NOTIMPL will be thrown if the function can't be located.
-    if (pfnSHCreateShellItemArrayFromShellItem == NULL)
-        return PyCom_BuildPyException(E_NOTIMPL);
-
     PyObject *obsi;
     IShellItem *isi = NULL;
     IID iid = IID_IShellItemArray;
@@ -3116,10 +3071,6 @@ static PyObject *PySHCreateShellItemArrayFromShellItem(PyObject *self, PyObject 
 // object from a PIDL.  Can also create <o PyIShellItem2> objects.
 static PyObject *PySHCreateItemFromIDList(PyObject *self, PyObject *args)
 {
-    // @comm This function is only available on Vista and later; a
-    // COM exception with E_NOTIMPL will be thrown if the function can't be located.
-    if (pfnSHCreateItemFromIDList == NULL)
-        return PyCom_BuildPyException(E_NOTIMPL);
     PyObject *ret = NULL;
     PyObject *obpidl;
     IID iid = IID_IShellItem;
@@ -3151,11 +3102,6 @@ static PyObject *PySHCreateItemFromIDList(PyObject *self, PyObject *args)
 // parsing name.
 static PyObject *PySHCreateItemFromParsingName(PyObject *self, PyObject *args)
 {
-    // @comm This function is only available on Vista and later; a
-    // COM exception with E_NOTIMPL will be thrown if the function can't be located.
-    if (pfnSHCreateItemFromParsingName == NULL)
-        return PyCom_BuildPyException(E_NOTIMPL);
-
     PyObject *ret = NULL;
     PyObject *obname, *obctx, *obiid;
     // @pyparm str|name||The display name of the item to create, eg a file path
@@ -3203,11 +3149,6 @@ done:
 // relative parsing name.
 static PyObject *PySHCreateItemFromRelativeName(PyObject *self, PyObject *args)
 {
-    // @comm This function is only available on Vista and later; a
-    // COM exception with E_NOTIMPL will be thrown if the function can't be located.
-    if (pfnSHCreateItemFromRelativeName == NULL)
-        return PyCom_BuildPyException(E_NOTIMPL);
-
     PyObject *ret = NULL;
     PyObject *obname, *obctx, *obiid, *obparent;
     // @pyparm <o PyIShellItem>|Parent||Shell item interface on the parent folder
@@ -3267,11 +3208,6 @@ done:
 // inside a known folder.
 static PyObject *PySHCreateItemInKnownFolder(PyObject *self, PyObject *args)
 {
-    // @comm This function is only available on Vista and later; a
-    // COM exception with E_NOTIMPL will be thrown if the function can't be located.
-    if (pfnSHCreateItemInKnownFolder == NULL)
-        return PyCom_BuildPyException(E_NOTIMPL);
-
     DWORD flags;
     PyObject *obname;
     IID riid = IID_IShellItem;
@@ -3302,10 +3238,6 @@ static PyObject *PySHCreateItemInKnownFolder(PyObject *self, PyObject *args)
 // ID.
 static PyObject *PySHCreateItemWithParent(PyObject *self, PyObject *args)
 {
-    // @comm This function is only available on Vista and later; a
-    // COM exception with E_NOTIMPL will be thrown if the function can't be located.
-    if (pfnSHCreateItemWithParent == NULL)
-        return PyCom_BuildPyException(E_NOTIMPL);
     PyObject *ret = NULL;
     PyObject *obpidlparent, *obsfparent, *obpidl;
     IID riid = IID_IShellItem;
@@ -3352,11 +3284,6 @@ done:
 // @pymethod <o PyIDL>|shell|SHGetIDListFromObject|Retrieves the PIDL of an object.
 static PyObject *PySHGetIDListFromObject(PyObject *self, PyObject *args)
 {
-    // @comm This function is only available on Vista and later; a
-    // COM exception with E_NOTIMPL will be thrown if the function can't be located.
-    if (pfnSHGetIDListFromObject == NULL)
-        return PyCom_BuildPyException(E_NOTIMPL);
-
     PyObject *ret = NULL;
     PyObject *ob;
 

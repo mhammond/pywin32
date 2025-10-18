@@ -165,8 +165,7 @@ PyObject *PyIShellFolder2::GetDetailsOf(PyObject *self, PyObject *args)
 }
 
 // @pymethod <o SHCOLUMNID>|PyIShellFolder2|MapColumnToSCID|Returns the unique identifier (FMTID, pid) of a column
-// @rdesc On XP and earlier, this is the Column Id as provided by <o PyIColumnProvider>.
-//	For Vista and later, this is the Property Key used with the property system interfaces.
+// @rdesc This is the Property Key used with the property system interfaces.
 PyObject *PyIShellFolder2::MapColumnToSCID(PyObject *self, PyObject *args)
 {
     IShellFolder2 *pISF2 = GetI(self);

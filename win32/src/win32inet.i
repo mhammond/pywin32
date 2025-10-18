@@ -825,7 +825,7 @@ PyCFunction pfnPyFtpOpenFile = (PyCFunction)PyFtpOpenFile;
 
 %{
 // @pyswig <o PyHINTERNET>|FtpCommand|Allows an application to send commands directly to an FTP server.
-// @comm This function may cause a crash on 32-bit XP and Vista due to an internal error in win32inet.dll.
+// @comm This function may cause a crash on 32-bit due to an internal error in win32inet.dll. (last checked on Vista)
 // @comm Accepts keyword args
 PyObject *PyFtpCommand(PyObject *self, PyObject *args, PyObject *kwargs)
 {

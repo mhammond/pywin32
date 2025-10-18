@@ -1692,9 +1692,6 @@ PyCFunction pfnpy_TransmitFile=(PyCFunction)py_TransmitFile;
 // ConnectEx(sock, (addr, port), buf, overlap)
 // @rdesc Returns the completion code and number of bytes sent.
 //	The completion code will be 0 for a completed operation, or ERROR_IO_PENDING for a pending overlapped operation.
-// @rdesc If the platform does not support ConnectEx (eg, Windows 2000), an
-// exception will be thrown indicating the WSAIoctl function (which is used to
-// fetch the function pointer) failed with error code WSAEINVAL (10022).
 static PyObject *py_ConnectEx( PyObject *self, PyObject *args, PyObject *kwargs ) {
 	OVERLAPPED *pOverlapped = NULL;
 	SOCKET sConnecting;
@@ -2947,7 +2944,6 @@ py_SetVolumeMountPoint(PyObject	*self, PyObject	*args, PyObject *kwargs)
 	// @ex Usage|SetVolumeMountPoint('h:\tmp\','c:\')
 	// @comm Note that both	parameters must	have trailing backslashes.
 	// @rdesc The result is	the	GUID of	the	volume mounted,	as a string.
-	// @comm This method exists only on Windows 2000 or later.  On earlier platforms, NotImplementedError will be raised.
 	CHECK_PFN(GetVolumeNameForVolumeMountPoint);
 	CHECK_PFN(SetVolumeMountPoint);
 	PyObject *ret=NULL;
@@ -2984,7 +2980,6 @@ py_DeleteVolumeMountPoint(PyObject *self, PyObject *args, PyObject *kwargs)
 	// @ex Usage|DeleteVolumeMountPoint('h:\tmp\')
 	// @comm Throws	an error if	it is not a	valid mount	point, returns None	on success.
 	// <nl>Use carefully - will	remove drive letter	assignment if no directory specified
-	// @comm This method requires Windows 2000 or later.  On earlier platforms, NotImplementedError will be raised.
 	CHECK_PFN(DeleteVolumeMountPoint);
 	PyObject *ret=NULL;
 	PyObject *mount_point_obj =	NULL;
@@ -3129,9 +3124,8 @@ py_CreateHardLink(PyObject *self, PyObject *args, PyObject *kwargs)
     // Both file paths must be on the same NTFS volume.<nl>To remove the link, simply delete
     // it and the original file will still remain.
     // @ex Usage|CreateHardLink('h:\dir\newfilename.txt','h:\otherdir\existingfile.txt')
-	// @comm This method exists on Windows 2000 and later.  Otherwise NotImplementedError will be raised.
 	// @comm Accepts keyword args.
-	// @comm If the Transaction parameter is specified, CreateHardLinkTransacted will be called (requires Vista or later)
+	// @comm If the Transaction parameter is specified, CreateHardLinkTransacted will be called
 	PyObject *ret=NULL;
 	PyObject *new_file_obj;
 	PyObject *existing_file_obj;
@@ -3181,7 +3175,6 @@ PyCFunction pfnpy_CreateHardLink=(PyCFunction)py_CreateHardLink;
 // @pyswig |CreateSymbolicLink|Creates a symbolic link (reparse point)
 static PyObject *py_CreateSymbolicLink(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-	// @comm This method only exists on Vista and later.
 	// @comm Accepts keyword args.
 	// @comm Requires SeCreateSymbolicLink priv.
 	// @comm If the Transaction parameter is passed in, CreateSymbolicLinkTransacted will be called
@@ -3299,7 +3292,6 @@ py_EncryptionDisable(PyObject *self, PyObject *args)
 // FILE_IS_ENCRYPTED, FILE_SYSTEM_ATTR, FILE_ROOT_DIR, FILE_SYSTEM_DIR,
 // FILE_UNKNOWN, FILE_SYSTEM_NOT_SUPPORT, FILE_USER_DISALLOWED,
 // or FILE_READ_ONLY
-// @comm Requires Windows 2000 or higher.
 static PyObject*
 py_FileEncryptionStatus(PyObject *self, PyObject *args)
 {
@@ -3968,7 +3960,7 @@ DWORD CALLBACK CopyFileEx_ProgressRoutine(
 // @pyseeapi CopyFileEx
 // @pyseeapi CopyFileTransacted
 // @comm Accepts keyword args.
-// @comm On Vista and later, the Transaction arg can be passed to invoke CopyFileTransacted
+// @comm The Transaction arg can be passed to invoke CopyFileTransacted
 static PyObject*
 py_CopyFileEx(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -4038,9 +4030,8 @@ py_CopyFileEx(PyObject *self, PyObject *args, PyObject *kwargs)
 PyCFunction pfnpy_CopyFileEx=(PyCFunction)py_CopyFileEx;
 
 // @pyswig |MoveFileWithProgress|Moves a file, and reports progress to a callback function
-// @comm Only available on Windows 2000 or later
 // @comm Accepts keyword arguments.
-// @comm On Vista and later, the Transaction arg can be passed to invoke MoveFileTransacted
+// @comm The Transaction arg can be passed to invoke MoveFileTransacted
 static PyObject*
 py_MoveFileWithProgress(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -4108,7 +4099,6 @@ py_MoveFileWithProgress(PyObject *self, PyObject *args, PyObject *kwargs)
 PyCFunction pfnpy_MoveFileWithProgress=(PyCFunction)py_MoveFileWithProgress;
 
 // @pyswig |ReplaceFile|Replaces one file with another
-// @comm Only available on Windows 2000 or later
 static PyObject*
 py_ReplaceFile(PyObject *self, PyObject *args)
 {
@@ -4168,7 +4158,6 @@ void encryptedfilecontextdestructor(PyObject *obctxt){
 // @rdesc Returns a PyCObject containing an operation context that can be passed to
 // <om win32file.ReadEncryptedFileRaw> or <om win32file.WriteEncryptedFileRaw>.  Context must be
 // destroyed using <om win32file.CloseEncryptedFileRaw>.
-// @comm Only available on Windows 2000 or later
 static PyObject*
 py_OpenEncryptedFileRaw(PyObject *self, PyObject *args)
 {
@@ -4232,7 +4221,6 @@ DWORD WINAPI PyExportCallback(PBYTE file_data, PVOID callback_data, ULONG length
 }
 
 // @pyswig |ReadEncryptedFileRaw|Reads the encrypted bytes of a file for backup and restore purposes
-// @comm Only available on Windows 2000 or later
 static PyObject*
 py_ReadEncryptedFileRaw(PyObject *self, PyObject *args)
 {
@@ -4309,7 +4297,6 @@ DWORD WINAPI PyImportCallback(PBYTE file_data, PVOID callback_data, PULONG pleng
 }
 
 // @pyswig |WriteEncryptedFileRaw|Writes raw bytes to an encrypted file
-// @comm Only available on Windows 2000 or later
 static PyObject*
 py_WriteEncryptedFileRaw(PyObject *self, PyObject *args)
 {
@@ -4347,7 +4334,6 @@ py_WriteEncryptedFileRaw(PyObject *self, PyObject *args)
 }
 
 // @pyswig |CloseEncryptedFileRaw|Frees a context created by <om win32file.OpenEncryptedFileRaw>
-// @comm Only available on Windows 2000 or later
 static PyObject*
 py_CloseEncryptedFileRaw(PyObject *self, PyObject *args)
 {
@@ -4357,8 +4343,7 @@ py_CloseEncryptedFileRaw(PyObject *self, PyObject *args)
 		&obctxt))	// @pyparm PyCObject|Context||Context object returned from <om win32file.OpenEncryptedFileRaw>
 		return NULL;
 	// We must nuke our ctxt in the CObject afer closing, else when the
-	// object destructs and we attempt to close it a second time, Vista x64
-	// crashes.
+	// object destructs and we attempt to close it a second time, x64 crashes.
 	// So must bypass the CObject API for this.
 	if (!PyCapsule_IsValid(obctxt, NULL))
 		return PyErr_Format(PyExc_TypeError, "param must be handle to an encrypted file (got type %s)", obctxt->ob_type->tp_name);
@@ -4380,7 +4365,7 @@ py_CloseEncryptedFileRaw(PyObject *self, PyObject *args)
 // @pyswig <o PyHANDLE>|CreateFileW|Unicode version of CreateFile - see <om win32file.CreateFile> for more information.
 // @pyseeapi CreateFile
 // @pyseeapi CreateFileTransacted
-// @comm If Transaction is specified, CreateFileTransacted will be called (requires Vista or later)
+// @comm If Transaction is specified, CreateFileTransacted will be called
 // @comm Accepts keyword arguments.
 static PyObject *py_CreateFileW(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -4456,7 +4441,7 @@ PyCFunction pfnpy_CreateFileW=(PyCFunction)py_CreateFileW;
 // @pyswig |DeleteFileW|Deletes a file
 // @pyseeapi DeleteFile
 // @pyseeapi DeleteFileTransacted
-// @comm If a transaction handle is passed in, DeleteFileTransacted will be called (requires Windows Vista).
+// @comm If a transaction handle is passed in, DeleteFileTransacted will be called.
 // @comm Accepts keyword arguments.
 static PyObject *py_DeleteFileW(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -4527,7 +4512,7 @@ static PyObject *PyObject_FromFILEX_INFO(GET_FILEEX_INFO_LEVELS level, void *p)
 // @pyparm int|InfoLevelId|GetFileExInfoStandard|An integer that gives the set of attribute information to obtain.
 //  See the Win32 SDK documentation for more information.
 // @pyparm <o PyHANDLE>|Transaction|None|Handle to a transaction (optional).  See <om win32transaction.CreateTransaction>.
-//  If this parameter is specified, GetFileAttributesTransacted will be called (requires Vista or later).
+//  If this parameter is specified, GetFileAttributesTransacted will be called.
 // @rdesc The result is a tuple of:
 //	@tupleitem 0|int|attributes|File Attributes.  A combination of the win32com.FILE_ATTRIBUTE_* flags.
 //	@tupleitem 1|<o PyDateTime>|creationTime|Specifies when the file or directory was created.
@@ -4642,7 +4627,7 @@ PyCFunction pfnpy_GetFileAttributesEx=(PyCFunction)py_GetFileAttributesExW;
 // @pyswig |SetFileAttributesW|Sets a file's attributes
 // @pyseeapi SetFileAttributes
 // @pyseeapi SetFileAttributesTransacted
-// @comm If Transaction is not None, SetFileAttributesTransacted will be called (requires Vista or later)
+// @comm If Transaction is not None, SetFileAttributesTransacted will be called
 // @comm Accepts keyword arguments.
 static PyObject *py_SetFileAttributesW(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -4681,7 +4666,7 @@ PyCFunction pfnpy_SetFileAttributesW=(PyCFunction)py_SetFileAttributesW;
 // @pyswig |CreateDirectoryExW|Creates a directory
 // @pyseeapi CreateDirectoryEx
 // @pyseeapi CreateDirectoryTransacted
-// @comm If a transaction handle is passed, CreateDirectoryTransacted will be called (requires Vista or later).
+// @comm If a transaction handle is passed, CreateDirectoryTransacted will be called.
 // @comm Accepts keyword arguments.
 static PyObject *py_CreateDirectoryExW(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -4727,7 +4712,7 @@ PyCFunction pfnpy_CreateDirectoryExW=(PyCFunction)py_CreateDirectoryExW;
 // @pyswig |RemoveDirectory|Removes an existing directory
 // @pyseeapi RemoveDirectory
 // @pyseeapi RemoveDirectoryTransacted
-// @comm If a transaction handle is passed in, RemoveDirectoryTransacted will be called (requires Vista or later)
+// @comm If a transaction handle is passed in, RemoveDirectoryTransacted will be called
 // @comm Accepts keyword arguments.
 static PyObject *py_RemoveDirectory(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -4953,7 +4938,6 @@ PyCFunction pfnpy_FindStreams=(PyCFunction)py_FindStreams;
 
 // @pyswig [string,...]|FindFileNames|Enumerates hard links that point to specified file
 // @comm This uses the API functions FindFirstFileNameW, FindNextFileNameW and FindClose
-// @comm Available on Vista and later
 // @comm If Transaction is specified, a transacted search is performed using FindFirstFileNameTransacted
 static PyObject *py_FindFileNames(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -5354,7 +5338,6 @@ static PyObject *py_Wow64RevertWow64FsRedirection(PyObject *self, PyObject *args
 
 %{
 // @pyswig object|GetFileInformationByHandleEx|Retrieves extended file information for an open file handle.
-// @comm Available on Vista and later.
 // @comm Accepts keyword args.
 // @rdesc Type of returned object is determined by the requested information class
 // @flagh Class|Returned info
@@ -5580,7 +5563,6 @@ PyCFunction pfnpy_GetFileInformationByHandleEx=(PyCFunction)py_GetFileInformatio
 
 %{
 // @pyswig |SetFileInformationByHandle|Changes file characteristics by file handle
-// @comm Available on Vista and later.
 // @comm Accepts keyword args.
 static PyObject *py_SetFileInformationByHandle(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -5733,7 +5715,6 @@ PyCFunction pfnpy_SetFileInformationByHandle=(PyCFunction)py_SetFileInformationB
 
 %{
 // @pyswig <o PyHANDLE>|ReOpenFile|Creates a new handle to an open file
-// @comm Available on Vista and later.
 // @comm Accepts keyword args.
 static PyObject *py_ReOpenFile(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -5762,7 +5743,6 @@ PyCFunction pfnpy_ReOpenFile=(PyCFunction)py_ReOpenFile;
 
 %{
 // @pyswig <o PyHANDLE>|OpenFileById|Opens a file by File Id or Object Id
-// @comm Available on Vista and later.
 // @comm Accepts keyword args.
 static PyObject *py_OpenFileById(PyObject *self, PyObject *args, PyObject *kwargs)
 {

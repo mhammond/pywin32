@@ -2903,7 +2903,6 @@ static PyObject *PyRegConnectRegistry(PyObject *self, PyObject *args)
 
 // @pymethod |win32api|RegCopyTree|Copies an entire registry key to another location
 // @comm Accepts keyword args.
-// @comm Requires Vista or later.
 static PyObject *PyRegCopyTree(PyObject *self, PyObject *args, PyObject *kwargs)
 {
     CHECK_PFN(RegCopyTree);
@@ -2967,7 +2966,7 @@ static PyObject *PyRegCreateKey(PyObject *self, PyObject *args)
 // REG_OPENED_EXISTING_KEY)
 // @pyseeapi RegCreateKeyEx
 // @comm Implemented only as Unicode (RegCreateKeyExW).  Accepts keyword arguments.
-// @comm If a transaction handle is passed in, RegCreateKeyTransacted will be called (requires Vista or later)
+// @comm If a transaction handle is passed in, RegCreateKeyTransacted will be called
 // @pyseeapi RegCreateKeyTransacted
 static PyObject *PyRegCreateKeyEx(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -3053,7 +3052,6 @@ static PyObject *PyRegDeleteKey(PyObject *self, PyObject *args)
 // @pymethod |win32api|RegDeleteKeyEx|Deletes a registry key from 32 or 64 bit registry view
 // @pyseeapi RegDeleteKeyEx
 // @comm Accepts keyword args.
-// @comm Requires 64-bit XP, Vista, or later.
 // @comm Key to be deleted cannot contain subkeys
 // @comm If a transaction handle is specified, RegDeleteKeyTransacted is called
 // @pyseeapi RegDeleteKeyTransacted
@@ -3105,7 +3103,6 @@ static PyObject *PyRegDeleteKeyEx(PyObject *self, PyObject *args, PyObject *kwar
 
 // @pymethod |win32api|RegDeleteTree|Recursively deletes a key's subkeys and values
 // @comm Accepts keyword args.
-// @comm Requires Vista or later.
 static PyObject *PyRegDeleteTree(PyObject *self, PyObject *args, PyObject *kwargs)
 {
     CHECK_PFN(RegDeleteTree);
@@ -3696,7 +3693,6 @@ static PyObject *PyRegOpenKey(PyObject *self, PyObject *args)
 // @rdesc Returns a transacted registry handle.  Note that operations on subkeys are not automatically transacted.
 // @pyseeapi RegOpenKeyTransacted
 // @comm Accepts keyword arguments.
-// @comm Requires Vista or later.
 static PyObject *PyRegOpenKeyTransacted(PyObject *self, PyObject *args, PyObject *kwargs)
 {
     CHECK_PFN(RegOpenKeyTransacted);
@@ -3736,7 +3732,6 @@ static PyObject *PyRegOpenKeyTransacted(PyObject *self, PyObject *args, PyObject
 
 // @pymethod |win32api|RegOverridePredefKey|Redirects one of the predefined keys to different key
 // @pyseeapi RegOverridePredefKey
-// @comm Requires Windows 2000 or later.
 static PyObject *PyRegOverridePredefKey(PyObject *self, PyObject *args, PyObject *kwargs)
 {
     CHECK_PFN(RegOverridePredefKey);

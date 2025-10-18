@@ -1,8 +1,6 @@
 /* File : win32evtlog.i */
 
 %module win32evtlog // A module, encapsulating the Windows Win32 event log API.
-// <nl>The Evt* functions are only available on Vista and later.  Attempting to call
-//	them on XP will result in the process exiting, rather than a python exception.
 
 %include "typemaps.i"
 %include "pywin32.i"
@@ -34,7 +32,7 @@ public:
 };
 
 // @object PyEVT_HANDLE|Handle to an event log, session, query, or any other object used with
-//	the Evt* event log functions on Vista and later.
+//	the Evt* event log functions.
 //	When the object is destroyed, EvtClose is called.
 class PyEVT_HANDLE: public PyHANDLE
 {
@@ -491,7 +489,6 @@ RegisterEventSourceW (
 
 PyObject *PyWinObject_FromEVT_VARIANT(PEVT_VARIANT val);
 
-// New event log functions available on Vista and later
 // @pyswig <o PyEVT_HANDLE>|EvtOpenChannelEnum|Begins an enumeration of event channels
 // @comm Accepts keyword args
 static PyObject *PyEvtOpenChannelEnum(PyObject *self, PyObject *args, PyObject *kwargs)
