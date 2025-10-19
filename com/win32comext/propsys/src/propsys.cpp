@@ -385,7 +385,6 @@ static PyObject *PyPSLookupPropertyHandlerCLSID(PyObject *self, PyObject *args)
 };
 
 // @pymethod <o PyIPropertyStore>|propsys|SHGetPropertyStoreForWindow|Retrieves a collection of a window's properties
-// @comm Requires Windows 7 or later.
 // @rdesc The returned store can be used to set the System.AppUserModel.ID property that determines how windows
 //	are grouped on the taskbar
 static PyObject *PySHGetPropertyStoreForWindow(PyObject *self, PyObject *args)
