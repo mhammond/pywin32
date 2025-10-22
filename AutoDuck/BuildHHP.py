@@ -95,19 +95,13 @@ def main():
         lGlobs = sys.argv[4:]
         lDestFiles, lSrcFiles = handle_globs(lGlobs)
         # ensure HTML Help build directory exists.
-        try:
-            os.makedirs(html_dir)
-        except:
-            pass
+        os.makedirs(html_dir, exist_ok=True)
         # copy files into html_dir
         for i in range(len(lDestFiles)):
             file = lDestFiles[i]
             file = os.path.join(html_dir, file)
             # ensure any directories under html_dir get created.
-            try:
-                os.makedirs(os.path.split(file)[0])
-            except:
-                pass
+            os.makedirs(os.path.split(file)[0], exist_ok=True)
             shutil.copyfile(lSrcFiles[i], file)
 
         for file in lDestFiles:
