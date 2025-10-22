@@ -129,61 +129,14 @@ static PFNSHILCreateFromPath pfnSHILCreateFromPath = NULL;
 typedef HRESULT(WINAPI *PFNAssocCreate)(CLSID, REFIID, LPVOID);
 static PFNAssocCreate pfnAssocCreate = NULL;
 
-typedef HRESULT(WINAPI *PFNAssocCreateForClasses)(const ASSOCIATIONELEMENT *, ULONG cClasses, REFIID riid, void **ppv);
-static PFNAssocCreateForClasses pfnAssocCreateForClasses = NULL;
-
 typedef LRESULT(WINAPI *PFNSHShellFolderView_Message)(HWND, UINT, LPARAM);
 static PFNSHShellFolderView_Message pfnSHShellFolderView_Message = NULL;
 
 typedef BOOL(WINAPI *PFNIsUserAnAdmin)();
 static PFNIsUserAnAdmin pfnIsUserAnAdmin = NULL;
 
-typedef BOOL(WINAPI *PFNSHGetNameFromIDList)(PCIDLIST_ABSOLUTE, SIGDN, PWSTR *);
-static PFNSHGetNameFromIDList pfnSHGetNameFromIDList = NULL;
-
 typedef BOOL(WINAPI *PFNSHCreateShellFolderView)(const SFV_CREATE *, IShellView **ppsv);
 static PFNSHCreateShellFolderView pfnSHCreateShellFolderView = NULL;
-
-typedef BOOL(WINAPI *PFNSHCreateDefaultExtractIcon)(REFIID riid, void **ppv);
-static PFNSHCreateDefaultExtractIcon pfnSHCreateDefaultExtractIcon = NULL;
-
-typedef BOOL(WINAPI *PFNSHCreateDataObject)(PCIDLIST_ABSOLUTE, UINT, PCUITEMID_CHILD_ARRAY, IDataObject *, REFIID,
-                                            void **);
-static PFNSHCreateDataObject pfnSHCreateDataObject = NULL;
-
-typedef BOOL(WINAPI *PFNSHCreateShellItemArray)(PCIDLIST_ABSOLUTE, IShellFolder *, UINT, PCUITEMID_CHILD_ARRAY,
-                                                IShellItemArray **);
-static PFNSHCreateShellItemArray pfnSHCreateShellItemArray = NULL;
-
-typedef BOOL(WINAPI *PFNSHCreateShellItemArrayFromDataObject)(IDataObject *pdo, REFIID, void **);
-static PFNSHCreateShellItemArrayFromDataObject pfnSHCreateShellItemArrayFromDataObject = NULL;
-
-typedef BOOL(WINAPI *PFNSHCreateShellItemArrayFromIDLists)(UINT, PCIDLIST_ABSOLUTE_ARRAY, IShellItemArray **);
-static PFNSHCreateShellItemArrayFromIDLists pfnSHCreateShellItemArrayFromIDLists = NULL;
-
-typedef BOOL(WINAPI *PFNSHCreateShellItemArrayFromShellItem)(IShellItem *, REFIID riid, void **);
-static PFNSHCreateShellItemArrayFromShellItem pfnSHCreateShellItemArrayFromShellItem = NULL;
-
-typedef BOOL(WINAPI *PFNSHCreateDefaultContextMenu)(const DEFCONTEXTMENU *, REFIID, void **);
-static PFNSHCreateDefaultContextMenu pfnSHCreateDefaultContextMenu = NULL;
-
-typedef HRESULT(WINAPI *PFNSHCreateItemFromIDList)(PCIDLIST_ABSOLUTE, REFIID, void **);
-static PFNSHCreateItemFromIDList pfnSHCreateItemFromIDList = NULL;
-
-typedef HRESULT(WINAPI *PFNSHCreateItemFromParsingName)(PCWSTR, IBindCtx *, REFIID, void **);
-static PFNSHCreateItemFromParsingName pfnSHCreateItemFromParsingName = NULL;
-
-typedef HRESULT(WINAPI *PFNSHCreateItemFromRelativeName)(IShellItem *, PCWSTR, IBindCtx *, REFIID, void **);
-static PFNSHCreateItemFromRelativeName pfnSHCreateItemFromRelativeName = NULL;
-
-typedef HRESULT(WINAPI *PFNSHCreateItemInKnownFolder)(REFKNOWNFOLDERID, DWORD, PCWSTR, REFIID, void **);
-static PFNSHCreateItemInKnownFolder pfnSHCreateItemInKnownFolder = NULL;
-
-typedef HRESULT(WINAPI *PFNSHCreateItemWithParent)(PCIDLIST_ABSOLUTE, IShellFolder *, PCUITEMID_CHILD, REFIID, void **);
-static PFNSHCreateItemWithParent pfnSHCreateItemWithParent = NULL;
-
-typedef HRESULT(WINAPI *PFNSHGetIDListFromObject)(IUnknown *, PIDLIST_ABSOLUTE *);
-static PFNSHGetIDListFromObject pfnSHGetIDListFromObject = NULL;
 
 typedef HRESULT(WINAPI *PFNSHCreateShellItem)(PCIDLIST_ABSOLUTE, IShellFolder *, PCUITEMID_CHILD, IShellItem **);
 static PFNSHCreateShellItem pfnSHCreateShellItem = NULL;
@@ -2645,7 +2598,7 @@ static PyObject *PyAssocCreateForClasses(PyObject *self, PyObject *args)
     void *v;
     {
         PY_INTERFACE_PRECALL;
-        hr = (*pfnAssocCreateForClasses)(elts, nclasses, iid, &v);
+        hr = AssocCreateForClasses(elts, nclasses, iid, &v);
         PY_INTERFACE_POSTCALL;
     }
     if (FAILED(hr)) {
@@ -2803,7 +2756,7 @@ static PyObject *PySHCreateDefaultExtractIcon(PyObject *self, PyObject *args)
     IDefaultExtractIconInit *ret = NULL;
     HRESULT hr;
     PY_INTERFACE_PRECALL;
-    hr = (*pfnSHCreateDefaultExtractIcon)(IID_IDefaultExtractIconInit, (void **)&ret);
+    hr = SHCreateDefaultExtractIcon(IID_IDefaultExtractIconInit, (void **)&ret);
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return PyCom_BuildPyException(hr);
@@ -2842,7 +2795,7 @@ static PyObject *PySHCreateDataObject(PyObject *self, PyObject *args)
     HRESULT hr;
     {
         PY_INTERFACE_PRECALL;
-        hr = (*pfnSHCreateDataObject)(parent, nchildren, children, do_inner, iid, &do_ret);
+        hr = SHCreateDataObject(parent, nchildren, children, do_inner, iid, &do_ret);
         PY_INTERFACE_POSTCALL;
     }
     if (FAILED(hr)) {
@@ -2879,7 +2832,7 @@ static PyObject *PySHCreateDefaultContextMenu(PyObject *self, PyObject *args)
     HRESULT hr;
     {
         PY_INTERFACE_PRECALL;
-        hr = (*pfnSHCreateDefaultContextMenu)(&dcm, iid, &iret);
+        hr = SHCreateDefaultContextMenu(&dcm, iid, &iret);
         PY_INTERFACE_POSTCALL;
     }
     if (FAILED(hr)) {
@@ -2910,7 +2863,7 @@ static PyObject *PySHGetNameFromIDList(PyObject *self, PyObject *args)
     HRESULT hr;
     {
         PY_INTERFACE_PRECALL;
-        hr = (*pfnSHGetNameFromIDList)(pidl, flags, &name);
+        hr = SHGetNameFromIDList(pidl, flags, &name);
         PY_INTERFACE_POSTCALL;
     }
     if (FAILED(hr)) {
@@ -2953,7 +2906,7 @@ static PyObject *PySHCreateShellItemArray(PyObject *self, PyObject *args)
     HRESULT hr;
     {
         PY_INTERFACE_PRECALL;
-        hr = (*pfnSHCreateShellItemArray)(parent, sf, nchildren, children, &sia_ret);
+        hr = SHCreateShellItemArray(parent, sf, nchildren, children, &sia_ret);
         PY_INTERFACE_POSTCALL;
     }
     if (FAILED(hr)) {
@@ -2993,7 +2946,7 @@ static PyObject *PySHCreateShellItemArrayFromDataObject(PyObject *self, PyObject
     HRESULT hr;
     {
         PY_INTERFACE_PRECALL;
-        hr = (*pfnSHCreateShellItemArrayFromDataObject)(ido, iid, &iret);
+        hr = SHCreateShellItemArrayFromDataObject(ido, iid, &iret);
         PY_INTERFACE_POSTCALL;
     }
     if (FAILED(hr)) {
@@ -3025,7 +2978,7 @@ static PyObject *PySHCreateShellItemArrayFromIDLists(PyObject *self, PyObject *a
 
     {
         PY_INTERFACE_PRECALL;
-        hr = (*pfnSHCreateShellItemArrayFromIDLists)(npidls, pidls, &iret);
+        hr = SHCreateShellItemArrayFromIDLists(npidls, pidls, &iret);
         PY_INTERFACE_POSTCALL;
     }
     if (FAILED(hr)) {
@@ -3057,7 +3010,7 @@ static PyObject *PySHCreateShellItemArrayFromShellItem(PyObject *self, PyObject 
     HRESULT hr;
     {
         PY_INTERFACE_PRECALL;
-        hr = (*pfnSHCreateShellItemArrayFromShellItem)(isi, iid, &iret);
+        hr = SHCreateShellItemArrayFromShellItem(isi, iid, &iret);
         isi->Release();
         PY_INTERFACE_POSTCALL;
     }
@@ -3086,7 +3039,7 @@ static PyObject *PySHCreateItemFromIDList(PyObject *self, PyObject *args)
     void *out;
     {
         PY_INTERFACE_PRECALL;
-        hr = (*pfnSHCreateItemFromIDList)(pidl, iid, &out);
+        hr = SHCreateItemFromIDList(pidl, iid, &out);
         PY_INTERFACE_POSTCALL;
     }
     if (FAILED(hr))
@@ -3128,7 +3081,7 @@ static PyObject *PySHCreateItemFromParsingName(PyObject *self, PyObject *args)
 
     {
         PY_INTERFACE_PRECALL;
-        hr = (*pfnSHCreateItemFromParsingName)(name, ctx, iid, &out);
+        hr = SHCreateItemFromParsingName(name, ctx, iid, &out);
         PY_INTERFACE_POSTCALL;
     }
     if (FAILED(hr)) {
@@ -3180,7 +3133,7 @@ static PyObject *PySHCreateItemFromRelativeName(PyObject *self, PyObject *args)
 
     {
         PY_INTERFACE_PRECALL;
-        hr = (*pfnSHCreateItemFromRelativeName)(parent, name, ctx, iid, &out);
+        hr = SHCreateItemFromRelativeName(parent, name, ctx, iid, &out);
         PY_INTERFACE_POSTCALL;
     }
     if (FAILED(hr)) {
@@ -3227,7 +3180,7 @@ static PyObject *PySHCreateItemInKnownFolder(PyObject *self, PyObject *args)
         return NULL;
 
     PY_INTERFACE_PRECALL;
-    hr = (*pfnSHCreateItemInKnownFolder)(folderid, flags, name, riid, &out);
+    hr = SHCreateItemInKnownFolder(folderid, flags, name, riid, &out);
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return PyCom_BuildPyException(hr);
@@ -3264,7 +3217,7 @@ static PyObject *PySHCreateItemWithParent(PyObject *self, PyObject *args)
     void *out;
     {
         PY_INTERFACE_PRECALL;
-        hr = (*pfnSHCreateItemWithParent)(parentpidl, sfparent, pidl, riid, &out);
+        hr = SHCreateItemWithParent(parentpidl, sfparent, pidl, riid, &out);
         PY_INTERFACE_POSTCALL;
     }
     if (FAILED(hr)) {
@@ -3300,7 +3253,7 @@ static PyObject *PySHGetIDListFromObject(PyObject *self, PyObject *args)
 
     {
         PY_INTERFACE_PRECALL;
-        hr = (*pfnSHGetIDListFromObject)(unk, &pidl);
+        hr = SHGetIDListFromObject(unk, &pidl);
         PY_INTERFACE_POSTCALL;
     }
     if (FAILED(hr)) {
@@ -3793,29 +3746,6 @@ PYWIN_MODULE_INIT_FUNC(shell)
             (PFNSHShellFolderView_Message)GetProcAddress(shell32, "SHShellFolderView_Message");
         pfnIsUserAnAdmin = (PFNIsUserAnAdmin)GetProcAddress(shell32, "IsUserAnAdmin");
         pfnSHCreateShellFolderView = (PFNSHCreateShellFolderView)GetProcAddress(shell32, "SHCreateShellFolderView");
-        pfnSHCreateDefaultExtractIcon =
-            (PFNSHCreateDefaultExtractIcon)GetProcAddress(shell32, "SHCreateDefaultExtractIcon");
-        pfnSHGetNameFromIDList = (PFNSHGetNameFromIDList)GetProcAddress(shell32, "SHGetNameFromIDList");
-        pfnAssocCreateForClasses = (PFNAssocCreateForClasses)GetProcAddress(shell32, "AssocCreateForClasses");
-        pfnSHCreateShellItemArray = (PFNSHCreateShellItemArray)GetProcAddress(shell32, "SHCreateShellItemArray");
-        pfnSHCreateShellItemArrayFromDataObject =
-            (PFNSHCreateShellItemArrayFromDataObject)GetProcAddress(shell32, "SHCreateShellItemArrayFromDataObject");
-        pfnSHCreateShellItemArrayFromIDLists =
-            (PFNSHCreateShellItemArrayFromIDLists)GetProcAddress(shell32, "SHCreateShellItemArrayFromIDLists");
-        pfnSHCreateShellItemArrayFromShellItem =
-            (PFNSHCreateShellItemArrayFromShellItem)GetProcAddress(shell32, "SHCreateShellItemArrayFromShellItem");
-        pfnSHCreateDefaultContextMenu =
-            (PFNSHCreateDefaultContextMenu)GetProcAddress(shell32, "SHCreateDefaultContextMenu");
-        pfnSHCreateDataObject = (PFNSHCreateDataObject)GetProcAddress(shell32, "SHCreateDataObject");
-        pfnSHCreateItemFromIDList = (PFNSHCreateItemFromIDList)GetProcAddress(shell32, "SHCreateItemFromIDList");
-        pfnSHCreateItemFromParsingName =
-            (PFNSHCreateItemFromParsingName)GetProcAddress(shell32, "SHCreateItemFromParsingName");
-        pfnSHCreateItemFromRelativeName =
-            (PFNSHCreateItemFromRelativeName)GetProcAddress(shell32, "SHCreateItemFromRelativeName");
-        pfnSHCreateItemInKnownFolder =
-            (PFNSHCreateItemInKnownFolder)GetProcAddress(shell32, "SHCreateItemInKnownFolder");
-        pfnSHCreateItemWithParent = (PFNSHCreateItemWithParent)GetProcAddress(shell32, "SHCreateItemWithParent");
-        pfnSHGetIDListFromObject = (PFNSHGetIDListFromObject)GetProcAddress(shell32, "SHGetIDListFromObject");
         pfnSHCreateShellItem = (PFNSHCreateShellItem)GetProcAddress(shell32, "SHCreateShellItem");
         pfnSHOpenFolderAndSelectItems =
             (PFNSHOpenFolderAndSelectItems)GetProcAddress(shell32, "SHOpenFolderAndSelectItems");

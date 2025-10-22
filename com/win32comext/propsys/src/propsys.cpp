@@ -34,12 +34,6 @@
 #include "propvarutil.h"
 #include "Shobjidl.h"
 
-#define CHECK_PFN(fname)    \
-    if (pfn##fname == NULL) \
-        return PyErr_Format(PyExc_NotImplementedError, "%s is not available on this platform", #fname);
-typedef HRESULT(WINAPI *PFNSHGetPropertyStoreForWindow)(HWND, REFIID, void **);
-static PFNSHGetPropertyStoreForWindow pfnSHGetPropertyStoreForWindow = NULL;
-
 // @object PyPROPERTYKEY|A tuple of a fmtid and property id (IID, int) that uniquely identifies a property
 BOOL PyWinObject_AsPROPERTYKEY(PyObject *obkey, PROPERTYKEY *pkey)
 {
@@ -389,7 +383,6 @@ static PyObject *PyPSLookupPropertyHandlerCLSID(PyObject *self, PyObject *args)
 //	are grouped on the taskbar
 static PyObject *PySHGetPropertyStoreForWindow(PyObject *self, PyObject *args)
 {
-    CHECK_PFN(SHGetPropertyStoreForWindow);
     HWND hwnd;
     IID riid = IID_IPropertyStore;
     void *ret;
@@ -401,7 +394,7 @@ static PyObject *PySHGetPropertyStoreForWindow(PyObject *self, PyObject *args)
 
     HRESULT hr;
     PY_INTERFACE_PRECALL;
-    hr = (*pfnSHGetPropertyStoreForWindow)(hwnd, riid, &ret);
+    hr = SHGetPropertyStoreForWindow(hwnd, riid, &ret);
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return PyCom_BuildPyException(hr);
@@ -626,11 +619,6 @@ PYWIN_MODULE_INIT_FUNC(propsys)
     if (PyCom_RegisterExtensionSupport(dict, g_interfaceSupportData,
                                        sizeof(g_interfaceSupportData) / sizeof(PyCom_InterfaceSupportInfo)) != 0)
         PYWIN_MODULE_INIT_RETURN_ERROR;
-
-    HMODULE hmod = GetModuleHandle(L"shell32.dll");
-    if (hmod)
-        pfnSHGetPropertyStoreForWindow =
-            (PFNSHGetPropertyStoreForWindow)GetProcAddress(hmod, "SHGetPropertyStoreForWindow");
 
     PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }
