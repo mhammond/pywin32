@@ -244,16 +244,13 @@ import operator
 import re
 import struct
 import winreg
+from collections.abc import Generator, Iterable, Mapping
 from itertools import count
 from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
     ClassVar,
-    Dict,
-    Generator,
-    Iterable,
-    Mapping,
     TypeVar,
     overload,
 )
@@ -908,7 +905,7 @@ class TimeZoneInfo(datetime.tzinfo):
         return zones
 
 
-class _RegKeyDict(Dict[str, str]):
+class _RegKeyDict(dict[str, str]):
     def __init__(self, key: winreg._KeyType):
         dict.__init__(self)
         self.key = key
@@ -1045,7 +1042,7 @@ def resolveMUITimeZone(spec: str) -> str | None:
 
 
 # from jaraco.collections 5.1
-class RangeMap(Dict[_RangeMapKT, _VT]):
+class RangeMap(dict[_RangeMapKT, _VT]):
     """
     A dictionary-like object that uses the keys as bounds for a range.
     Inclusion of the value for that range is determined by the
