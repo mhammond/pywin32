@@ -2,3 +2,4 @@
 AutoDuck/*.fmt          text eol=crlf
 *.dsp                   text eol=crlf
 *.dsw                   text eol=crlf
+*.py                    text eol=crlf
