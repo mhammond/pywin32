@@ -38,11 +38,8 @@ from .apibase import (
 )
 
 
-def Binary(aString):
-    """This function constructs an object capable of holding a binary (long) string value."""
-    return bytes(aString)
-
-
+# -----------------------------------------------------------
+# conversion functions mandated by PEP 249: https://peps.python.org/pep-0249/#type-objects-and-constructors
 def Date(year, month, day):
     "This function constructs an object holding a date value."
     return dateconverter.Date(year, month, day)
@@ -77,6 +74,11 @@ def TimestampFromTicks(ticks):
     ticks value (number of seconds since the epoch;
     see the documentation of the standard Python time module for details)."""
     return Timestamp(*time.gmtime(ticks)[:6])
+
+
+def Binary(aString):
+    """This function constructs an object capable of holding a binary (long) string value."""
+    return bytes(aString)
 
 
 version = "adodbapi v" + __version__
