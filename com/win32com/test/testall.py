@@ -1,5 +1,6 @@
 import getopt
 import os
+import platform
 import re
 import sys
 import traceback
@@ -22,7 +23,6 @@ import win32com
 win32com.__path__[0] = win32com_src_dir
 
 import pythoncom
-import win32com.client
 from pywin32_testutil import TestLoader, TestRunner
 from win32com.test.util import (
     CapturingFunctionTestCase,
@@ -52,7 +52,7 @@ def CleanGenerated():
 
     if os.path.isdir(win32com.__gen_path__):
         if verbosity > 1:
-            print("Deleting files from %s" % (win32com.__gen_path__))
+            print(f"Deleting files from", win32com.__gen_path__)
         shutil.rmtree(win32com.__gen_path__)
     import win32com.client.gencache
 
@@ -78,11 +78,17 @@ def ExecuteSilentlyIfOK(cmd, testcase):
     rc = f.close()
     if rc:
         print(data)
-        testcase.fail("Executing '%s' failed (%d)" % (cmd, rc))
+        testcase.fail(f"Executing '{cmd}' failed ({rc})")
     # for "_d" builds, strip the '[xxx refs]' line
     return RemoveRefCountOutput(data)
 
 
+@unittest.skipIf(
+    platform.machine() == "ARM64",
+    "PyCOMTest cannot currently be run on ARM64 "
+    + "due to lacking win32com.universal implementation "
+    + "in com/win32com/src/univgw.cpp",
+)
 class PyCOMTest(TestCase):
     no_leak_tests = True  # done by the test itself
 
@@ -291,8 +297,7 @@ if __name__ == "__main__":
             print("These tests may take *many* minutes to run - be patient!")
             print("(running from python.exe will avoid these leak tests)")
         print(
-            "Executing level %d tests - %d test cases will be run"
-            % (testLevel, suite.countTestCases())
+            f"Executing level {testLevel} tests - {suite.countTestCases()} test cases will be run"
         )
         if verbosity == 1 and suite.countTestCases() < 70:
             # A little row of markers so the dots show how close to finished
@@ -307,7 +312,7 @@ if __name__ == "__main__":
             desc = "\n".join(traceback.format_exception_only(exc_type, exc_val))
             testResult.stream.write(f"{mod_name}: {desc}")
         testResult.stream.writeln(
-            "*** %d test(s) could not be run ***" % len(import_failures)
+            f"*** {len(import_failures)} test(s) could not be run ***"
         )
 
     # re-print unit-test error here so it is noticed
