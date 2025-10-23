@@ -13,6 +13,7 @@ import numbers
 import sys
 import time
 from collections.abc import Callable, Iterable, Mapping
+from typing import Any
 
 # noinspection PyUnresolvedReferences
 from . import ado_consts as adc
@@ -112,38 +113,41 @@ class FetchFailedError(OperationalError):
 # Note: Usage of Unix ticks for database interfacing can cause troubles because of the limited date range they cover.
 
 
-# def Date(year,month,day):
-#     "This function constructs an object holding a date value. "
-#     return dateconverter.date(year,month,day)  #dateconverter.Date(year,month,day)
+# def Date(year, month, day):
+#     "This function constructs an object holding a date value."
+#     return dateconverter.date(year, month, day)  # dateconverter.Date(...)
 #
-# def Time(hour,minute,second):
-#     "This function constructs an object holding a time value. "
-#     return dateconverter.time(hour, minute, second) # dateconverter.Time(hour,minute,second)
+# def Time(hour, minute, second):
+#     "This function constructs an object holding a time value."
+#     return dateconverter.time(hour, minute, second)  # dateconverter.Time(...)
 #
-# def Timestamp(year,month,day,hour,minute,second):
-#     "This function constructs an object holding a time stamp value. "
-#     return dateconverter.datetime(year,month,day,hour,minute,second)
+# def Timestamp(year, month, day, hour, minute, second):
+#     "This function constructs an object holding a time stamp value."
+#     return dateconverter.datetime(year, month, day, hour, minute, second)  # dateconverter.Timestamp(...)
 #
 # def DateFromTicks(ticks):
 #     """This function constructs an object holding a date value from the given ticks value
-#     (number of seconds since the epoch; see the documentation of the standard Python time module for details). """
+#     (number of seconds since the epoch; see the documentation of the standard Python time module for details).
+#     """
 #     return Date(*time.gmtime(ticks)[:3])
 #
 # def TimeFromTicks(ticks):
 #     """This function constructs an object holding a time value from the given ticks value
-#     (number of seconds since the epoch; see the documentation of the standard Python time module for details). """
+#     (number of seconds since the epoch; see the documentation of the standard Python time module for details).
+#     """
 #     return Time(*time.gmtime(ticks)[3:6])
 #
 # def TimestampFromTicks(ticks):
 #     """This function constructs an object holding a time stamp value from the given
 #     ticks value (number of seconds since the epoch;
-#     see the documentation of the standard Python time module for details). """
+#     see the documentation of the standard Python time module for details)."""
 #     return Timestamp(*time.gmtime(ticks)[:6])
 #
 # def Binary(aString):
-#     """This function constructs an object capable of holding a binary (long) string value. """
-#     b = bytes(aString)
-#     return b
+#     """This function constructs an object capable of holding a binary (long) string value."""
+#     return bytes(aString)
+
+
 # -----     Time converters ----------------------------------------------
 class TimeConverter:  # this is a generic time converter skeleton
     def __init__(self):  # the details will be filled in by instances
@@ -343,22 +347,20 @@ class DBAPITypeObject:
         return other not in self.values
 
 
-"""This type object is used to describe columns in a database that are string-based (e.g. CHAR). """
+# -----------------------------------------------------------
+# type objects mandated by PEP 249: https://peps.python.org/pep-0249/#type-objects-and-constructors
 STRING = DBAPITypeObject(adoStringTypes)
-
-"""This type object is used to describe (long) binary columns in a database (e.g. LONG, RAW, BLOBs). """
+"""This type object is used to describe columns in a database that are string-based (e.g. CHAR). """
 BINARY = DBAPITypeObject(adoBinaryTypes)
-
-"""This type object is used to describe numeric columns in a database. """
+"""This type object is used to describe (long) binary columns in a database (e.g. LONG, RAW, BLOBs). """
 NUMBER = DBAPITypeObject(
     adoIntegerTypes + adoLongTypes + adoExactNumericTypes + adoApproximateNumericTypes
 )
-
-"""This type object is used to describe date/time columns in a database. """
-
+"""This type object is used to describe numeric columns in a database. """
 DATETIME = DBAPITypeObject(adoDateTimeTypes)
-"""This type object is used to describe the "Row ID" column in a database. """
+"""This type object is used to describe date/time columns in a database. """
 ROWID = DBAPITypeObject(adoRowIdTypes)
+"""This type object is used to describe the "Row ID" column in a database. """
 
 OTHER = DBAPITypeObject(adoRemainingTypes)
 
@@ -400,21 +402,20 @@ def pyTypeToADOType(d):
 # ------------------------------------------------------------------------
 # variant type : function converting variant to Python value
 def variantConvertDate(v):
-    from . import dateconverter  # this function only called when adodbapi is running
+    # this function only called when adodbapi is running
+    from . import dateconverter
 
     return dateconverter.DateObjectFromCOMDate(v)
 
 
-def cvtString(variant):  # use to get old action of adodbapi v1 if desired
-    return str(variant)
+cvtString = str  # use to get old action of adodbapi v1 if desired
 
 
 def cvtDecimal(variant):  # better name
     return _convertNumberWithCulture(variant, decimal.Decimal)
 
 
-def cvtNumeric(variant):  # older name - don't break old code
-    return cvtDecimal(variant)
+cvtNumeric = cvtDecimal  # older name - don't break old code
 
 
 def cvtFloat(variant):
@@ -432,20 +433,10 @@ def _convertNumberWithCulture(variant, f):
             pass
 
 
-def cvtInt(variant):
-    return int(variant)
-
-
-def cvtLong(variant):  # only important in old versions where long and int differ
-    return int(variant)
-
-
-def cvtBuffer(variant):
-    return bytes(variant)
-
-
-def cvtUnicode(variant):
-    return str(variant)
+cvtInt = int
+cvtLong = int  # only important in old versions where long and int differ
+cvtBuffer = bytes
+cvtUnicode = str
 
 
 def identity(x):
@@ -464,19 +455,17 @@ def convert_to_python(variant, func):  # convert DB value into Python value
     return func(variant)  # call the appropriate conversion function
 
 
-class MultiMap(dict[int, Callable[[object], object]]):
+class MultiMap(dict[int, Callable[[Any], object]]):
     # builds a dictionary from {(iterable,of,keys) : function}
     """A dictionary of ado.type : function
     -- but you can set multiple items by passing an iterable of keys"""
 
     # useful for defining conversion functions for groups of similar data types.
-    def __init__(self, aDict: Mapping[Iterable[int] | int, Callable[[object], object]]):
+    def __init__(self, aDict: Mapping[Iterable[int] | int, Callable[[Any], object]]):
         for k, v in aDict.items():
             self[k] = v  # we must call __setitem__
 
-    def __setitem__(
-        self, adoType: Iterable[int] | int, cvtFn: Callable[[object], object]
-    ):
+    def __setitem__(self, adoType: Iterable[int] | int, cvtFn: Callable[[Any], object]):
         "set a single item, or a whole iterable of items"
         if isinstance(adoType, Iterable):
             # user passed us an iterable, set them individually
