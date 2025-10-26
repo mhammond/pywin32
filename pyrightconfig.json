@@ -7,6 +7,7 @@
   // Exclude from scanning when running pyright
   "exclude": [
     ".git/", // Avoids scanning git branch names ending in ".py"
+    ".venv",
     "build/",
     // Vendored
     "Pythonwin/Scintilla/",
