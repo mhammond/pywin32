@@ -7,6 +7,7 @@ line-ending = "cr-lf"
 
 [lint]
 select = [
+  "B028", # no-explicit-stacklevel
   "C4", # flake8-comprehensions
   "F811", # redefined-while-unused
   "I", # isort

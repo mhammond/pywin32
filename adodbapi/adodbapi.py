@@ -52,7 +52,7 @@ try:
 except ImportError:
     import warnings
 
-    warnings.warn("pywin32 package required for adodbapi.", ImportWarning)
+    warnings.warn("pywin32 package required for adodbapi.", ImportWarning, stacklevel=2)
 
 
 def getIndexedValue(obj, index):
