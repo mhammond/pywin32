@@ -191,7 +191,8 @@ jobs:
           allow-prereleases: true
       - run: pip install types-setuptools PyOpenGL mypy==1.16.*
 
-      - run: mypy . --python-version=${{ matrix.python-version }}
+      - if: matrix.python-version != '3.14t'
+        run: mypy . --python-version=${{ matrix.python-version }}
 
       - uses: jakebailey/pyright-action@v2
         with:
