@@ -2019,6 +2019,11 @@ dist = setup(
         "Mailing List": "https://mail.python.org/mailman/listinfo/python-win32",
     },
     license="PSF",
+    license_files=(
+        "**/[Ll]icense.txt",
+        "**/LICENSE*",
+        "isapi/README.txt",
+    ),
     classifiers=classifiers,
     cmdclass=cmdclass,
     # This adds the scripts under Python3XX/Scripts, but doesn't actually do much
