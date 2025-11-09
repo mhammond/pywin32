@@ -162,9 +162,6 @@ def FindPythonExe(exeAlias, possibleRealNames, searchPaths):
 
 def QuotedFileName(fname):
     """Given a filename, return a quoted version if necessary"""
-
-    import regutil
-
     try:
         fname.index(" ")  # Other chars forcing quote?
         return '"%s"' % fname
@@ -182,8 +179,6 @@ def LocateFileName(fileNamesString, searchPaths):
     Raises KeyboardInterrupt if the user cancels.
     """
     import os
-
-    import regutil
 
     fileNames = fileNamesString.split(";")
     for path in searchPaths:

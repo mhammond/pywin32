@@ -9,6 +9,7 @@ line-ending = "cr-lf"
 select = [
   "B028", # no-explicit-stacklevel
   "C4", # flake8-comprehensions
+  "F401", # unused-import
   "F811", # redefined-while-unused
   "I", # isort
   "PLC", # Pylint Convention
@@ -45,6 +46,19 @@ extend-ignore = [
   # TODO: Still lots of manual fixes needed
   "UP031", # Use format specifiers instead of percent format
   "UP032", # Use f-string instead of format call
+]
+
+[lint.pyflakes]
+allowed-unused-imports = [
+  # Modules with known side-effects
+  "coloreditor", # Adds doc template
+  "IDLEenvironment", # Injects fast_readline into the IDLE auto-indent extension
+  "pythoncom", # pythoncomXX.dll loader
+  "pywintypes", # pywintypesXX.dll loader
+  "win32com", # Sets pythoncom.frozen and adds modules to path based on the registry
+  "win32traceutil", # Redirects output to win32trace remote collector
+  "win32ui", # Must always be imported before dde
+  # Note: com/win32com/client/gencache.py does read files on import, but only to fill in it's own dicts from cache
 ]
 
 [lint.isort]

@@ -152,9 +152,8 @@ jobs:
           python-version: "3.8"
           cache: pip
           cache-dependency-path: .github/workflows/main.yml
-      - run: pip install clang-format==18.1.* pycln
+      - run: pip install clang-format==18.1.*
       # !cancelled(): Show issues even if the previous steps failed. But still fail the job
-      - run: pycln . --config=pycln.toml --check
       - name: Run Ruff linter
         uses: astral-sh/ruff-action@v3
         with:
@@ -162,7 +161,6 @@ jobs:
         if: ${{ !cancelled() }}
       - name: Run Ruff formatter
         run: ruff format --check
-        if: ${{ !cancelled() }}
       # Too many files to fit in a single command, also exclude vendored Scintilla and MAPIStubLibrary
       - run: |
           clang-format --Werror --dry-run $(git ls-files '*.cpp' ':!:com/win32comext/mapi/src/MAPIStubLibrary/')
