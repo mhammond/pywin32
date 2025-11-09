@@ -158,7 +158,7 @@ jobs:
       - name: Run Ruff linter
         uses: astral-sh/ruff-action@v3
         with:
-          version: "0.11.0"
+          version: "0.14.4"
         if: ${{ !cancelled() }}
       - name: Run Ruff formatter
         run: ruff format --check
