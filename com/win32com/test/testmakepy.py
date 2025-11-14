@@ -1,9 +1,9 @@
 # Test makepy - try and run it over every OCX in the windows system directory.
 
-import os
-import sys
 import multiprocessing
+import os
 import shutil
+import sys
 import traceback
 
 import pythoncom
