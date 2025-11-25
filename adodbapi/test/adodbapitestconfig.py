@@ -188,7 +188,7 @@ if doPostgresTest:
 # TODO: Eventually we want all tests to be run on CI and fail if one cannot be run
 # For now, we're still flexible on which tests can be run,
 # and allow CI to pass even if DB tests aren't run (time tests still are)
-if os.environ["CI"]:
+if not os.environ["CI"]:
     assert doAccessTest or doSqlServerTest or doMySqlTest or doPostgresTest, (
         "No database engine found for testing"
     )
