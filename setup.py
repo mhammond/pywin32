@@ -13,10 +13,10 @@ which is capable of building the version of Python you are targeting, then:
 
 For a debug (_d) version, you need a local debug build of Python, but must use
 the release version executable for the build. eg:
-  pip install . -v --config-setting=--build-option=build --config-setting=--build-option=--debug
+  pip install . -v --config-setting=--build-option="build --debug"
 
 Cross-compilation from x86 to ARM is well supported (assuming installed vs tools etc) - eg:
-  python -m build --wheel --config-setting=--build-option=build_ext --config-setting=--build-option=--plat-name=win-arm64 --config-setting=--build-option=build --config-setting=--build-option=--plat-name=win-arm64 --config-setting=--build-option=bdist_wheel --config-setting=--build-option=--plat-name=win-arm64
+  python -m build --wheel --config-setting=--build-option="build_ext --plat-name=win-arm64 build --plat-name=win-arm64 bdist_wheel --plat-name=win-arm64"
 
 Some modules require special SDKs or toolkits to build (eg, mapi/exchange),
 which often aren't available in CI. The build process treats them as optional -
