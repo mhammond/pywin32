@@ -5,7 +5,7 @@
 struct PyMethodDef PyCERTSTORE::methods[] = {
     // @pymeth CertCloseStore|Closes the certificate store
     {"CertCloseStore", (PyCFunction)PyCERTSTORE::PyCertCloseStore, METH_KEYWORDS | METH_VARARGS},
-    // @pymeth CertControlStore|Controls sychronization of the certificate store
+    // @pymeth CertControlStore|Controls synchronization of the certificate store
     {"CertControlStore", (PyCFunction)PyCERTSTORE::PyCertControlStore, METH_KEYWORDS | METH_VARARGS},
     // @pymeth CertEnumCertificatesInStore|Lists all certificates in the store
     {"CertEnumCertificatesInStore", PyCERTSTORE::PyCertEnumCertificatesInStore, METH_NOARGS},
@@ -144,7 +144,7 @@ PyObject *PyCERTSTORE::PyCertCloseStore(PyObject *self, PyObject *args, PyObject
         return NULL;
     }
     if (dwFlags != (DWORD)-1) {
-        PyErr_Warn(PyExc_PendingDeprecationWarning,
+        PyErr_Warn(PyExc_DeprecationWarning,
                    "The Flags param to CertCloseStore is deprecated; a non-zero value is likely to crash");
     }
     BOOL bsuccess;
@@ -162,7 +162,7 @@ PyObject *PyCERTSTORE::PyCertCloseStore(PyObject *self, PyObject *args, PyObject
     return Py_None;
 }
 
-// @pymethod |PyCERTSTORE|CertControlStore|Controls sychronization of the certificate store
+// @pymethod |PyCERTSTORE|CertControlStore|Controls synchronization of the certificate store
 PyObject *PyCERTSTORE::PyCertControlStore(PyObject *self, PyObject *args, PyObject *kwargs)
 {
     static char *keywords[] = {"Flags", "CtrlType", "CtrlPara", NULL};

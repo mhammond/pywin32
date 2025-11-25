@@ -94,8 +94,6 @@ PYWINTYPES_EXPORT PyTypeObject PySECURITY_ATTRIBUTESType = {
 // @comm On platforms that support security descriptor operations, SECURITY_DESCRIPTOR
 //   defaults to a blank security descriptor with no owner, group, dacl, or sacl.
 // Set to None to use a NULL security descriptor instead.
-// When PySECURITY_ATTRIBUTES is created on Windows 95/98/Me, SECURITY_DESCRIPTOR defaults
-//   to None and should not be changed.
 // When SECURITY_DESCRIPTOR is not None, any of its methods can be invoked directly
 //   on the PySECURITY_ATTRIBUTES object
 
@@ -106,9 +104,9 @@ PySECURITY_ATTRIBUTES::PySECURITY_ATTRIBUTES(void)
     m_sa.nLength = sizeof(SECURITY_ATTRIBUTES);
     m_obSD = new PySECURITY_DESCRIPTOR(SECURITY_DESCRIPTOR_MIN_LENGTH);
     m_sa.lpSecurityDescriptor = ((PySECURITY_DESCRIPTOR *)m_obSD)->GetSD();
-    // On win95/98/me (or any platform that doesn't have NT security) the
-    // initialization of the SECURITY_DESCRIPTOR should fail, leaving the
-    // sd NULL.
+    // On platforms that don't have NT security,
+    // the initialization of the SECURITY_DESCRIPTOR should fail,
+    // leaving the sd NULL.
     if (m_sa.lpSecurityDescriptor == NULL) {
         Py_DECREF(m_obSD);
         Py_INCREF(Py_None);

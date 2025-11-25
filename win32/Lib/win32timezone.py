@@ -10,7 +10,7 @@ on the registry entries defined by the operating system.
     Copyright © 2003-2012.
     All Rights Reserved.
 
-    This module is licenced for use in Mark Hammond's pywin32
+    This module is licensed for use in Mark Hammond's pywin32
 library under the same terms as the pywin32 library.
 
     To use this time zone module with the datetime module, simply pass
@@ -557,7 +557,6 @@ class TimeZoneInfo(datetime.tzinfo):
     ValueError: subkey name cannot be empty
     """
 
-    # this key works for WinNT+, but not for the Win95 line.
     tzRegKey = r"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Time Zones"
 
     def __init__(
@@ -578,7 +577,7 @@ class TimeZoneInfo(datetime.tzinfo):
 
     def _FindTimeZoneKey(self) -> _RegKeyDict:
         """Find the registry key for the time zone name (self.timeZoneName)."""
-        # for multi-language compatability, match the time zone name in the
+        # for multi-language compatibility, match the time zone name in the
         # "Std" key of the time zone key.
         zoneNames = dict(self._get_indexed_time_zone_keys("Std"))
         # Also match the time zone key name itself, to be compatible with
