@@ -5,14 +5,10 @@ Adodbapi can be run on CPython 3.9 and later.
 
 from setuptools import setup
 
-VERSION = None  # in case searching for version fails
 with open("adodbapi.py") as a:  # find the version string in the source code
-    for line in a:
-        if "__version__" in line:
-            VERSION = line.split('"')[1]  # pyright: ignore[reportConstantRedefinition]
-            print(f'adodbapi version="{VERSION}"')
-            break
-assert VERSION
+    line = next(line for line in a if line.startswith("__version__"))
+    VERSION = line.split('"')[1]
+    print(f'adodbapi version="{VERSION}"')
 
 setup(
     name="adodbapi",
