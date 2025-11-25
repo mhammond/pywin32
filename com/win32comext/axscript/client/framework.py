@@ -625,9 +625,9 @@ class COMScript:
     ]  # , axscript.IID_IActiveScriptParseProcedure]
 
     def __init__(self):
-        # Make sure we can print/trace wihout an exception!
+        # Make sure we can print/trace without an exception!
         MakeValidSysOuts()
-        # 		trace("AXScriptEngine object created", self)
+        # trace("AXScriptEngine object created", self)
         self.baseThreadId = -1
         self.debugManager = None
         self.threadState = axscript.SCRIPTTHREADSTATE_NOTINSCRIPT
