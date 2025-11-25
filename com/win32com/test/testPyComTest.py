@@ -894,8 +894,8 @@ def TestQueryInterface(long_lived_server=False, iterations=5):
         t0 = win32com.client.Dispatch(
             "Python.Test.PyCOMTest", clsctx=pythoncom.CLSCTX_LOCAL_SERVER
         )
-    # Request custom interfaces a number of time
 
+    # Request custom interfaces a number of time
     for i in range(iterations):
         progress(
             f"Testing QueryInterface "
