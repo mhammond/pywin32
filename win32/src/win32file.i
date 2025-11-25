@@ -233,7 +233,7 @@ PyHANDLE CreateFile(
 			// @flag OPEN_ALWAYS|Opens the file, if it exists. If the file does not exist, the function creates the file as if dwCreationDisposition were CREATE_NEW.
 			// @flag TRUNCATE_EXISTING|Opens the file. Once opened, the file is truncated so that its size is zero bytes. The calling process must open the file with at least GENERIC_WRITE access. The function fails if the file does not exist.
     DWORD dwFlagsAndAttributes,	// @pyparm int|flagsAndAttributes||file attributes
-    PyHANDLE INPUT_NULLOK // @pyparm <o PyHANDLE>|hTemplateFile||Specifies a handle with GENERIC_READ access to a template file. The template file supplies file attributes and extended attributes for the file being created.   Under Win95, this must be 0, else an exception will be raised.
+    PyHANDLE INPUT_NULLOK // @pyparm <o PyHANDLE>|hTemplateFile||Specifies a handle with GENERIC_READ access to a template file. The template file supplies file attributes and extended attributes for the file being created.
 );
 
 // CreateIoCompletionPort gets special treatment due to its special result
@@ -820,7 +820,7 @@ PyObject *MyGetFileSize(PyObject *self, PyObject *args)
 // Previous versions of the Windows extensions had a custom object for
 // holding a read buffer.  This has been replaced with the standard Python buffer object.
 // <nl>Python does not provide a method for creating a read-write buffer
-// of arbitary size, so currently this can only be created by <om win32file.AllocateReadBuffer>.
+// of arbitrary size, so currently this can only be created by <om win32file.AllocateReadBuffer>.
 %{
 // @pyswig <o PyOVERLAPPEDReadBuffer>|AllocateReadBuffer|Allocates a buffer which can be used with an overlapped Read operation using <om win32file.ReadFile>
 PyObject *MyAllocateReadBuffer(PyObject *self, PyObject *args)
@@ -1277,7 +1277,7 @@ BOOLAPI MoveFileExW(
 #define MOVEFILE_COPY_ALLOWED MOVEFILE_COPY_ALLOWED // If the file is to be moved to a different volume, the function simulates the move by using the CopyFile and DeleteFile functions. Cannot be combined with the MOVEFILE_DELAY_UNTIL_REBOOT flag.
 #define MOVEFILE_DELAY_UNTIL_REBOOT MOVEFILE_DELAY_UNTIL_REBOOT // Windows NT only: The function does not move the file until the operating system is restarted. The system moves the file immediately after AUTOCHK is executed, but before creating any paging files. Consequently, this parameter enables the function to delete paging files from previous startups.
 #define MOVEFILE_REPLACE_EXISTING MOVEFILE_REPLACE_EXISTING // If a file of the name specified by lpNewFileName already exists, the function replaces its contents with those specified by lpExistingFileName.
-#define MOVEFILE_WRITE_THROUGH MOVEFILE_WRITE_THROUGH // Windows NT only: The function does not return until the file has actually been moved on the disk. Setting this flag guarantees that a move perfomed as a copy and delete operation is flushed to disk before the function returns. The flush occurs at the end of the copy operation.<nl>This flag has no effect if the MOVEFILE_DELAY_UNTIL_REBOOT flag is set.
+#define MOVEFILE_WRITE_THROUGH MOVEFILE_WRITE_THROUGH // Windows NT only: The function does not return until the file has actually been moved on the disk. Setting this flag guarantees that a move performed as a copy and delete operation is flushed to disk before the function returns. The flush occurs at the end of the copy operation.<nl>This flag has no effect if the MOVEFILE_DELAY_UNTIL_REBOOT flag is set.
 #define MOVEFILE_CREATE_HARDLINK MOVEFILE_CREATE_HARDLINK
 #define MOVEFILE_FAIL_IF_NOT_TRACKABLE MOVEFILE_FAIL_IF_NOT_TRACKABLE
 
@@ -2203,7 +2203,7 @@ MyCopyEvent(PyObject *dict, WSANETWORKEVENTS *events, long event, int eventbit)
 }
 
 // @pyswig dict|WSAEnumNetworkEvents|Return network events that caused the event associated with the socket to be signaled.
-// @rdesc A dictionary mapping network events that occured for the specified socket since the last call to this function (e.g. FD_READ, FD_WRITE) to their associated error code, or 0 if the event occured without an error. The events returned are a subset of events previously registered for this socket with WSAEventSelect.
+// @rdesc A dictionary mapping network events that occurred for the specified socket since the last call to this function (e.g. FD_READ, FD_WRITE) to their associated error code, or 0 if the event occurred without an error. The events returned are a subset of events previously registered for this socket with WSAEventSelect.
 static PyObject*
 MyWSAEnumNetworkEvents(PyObject *self, PyObject *args)
 {
@@ -3059,7 +3059,7 @@ static PyObject *py_GetVolumePathName(PyObject *self, PyObject *args, PyObject *
 	if (bufsize>0)
 		bufsize+=1;
 	else
-		bufsize=pathlen+2;  // enough to accomodate trailing null, and possibly extra backslash
+		bufsize=pathlen+2;  // enough to accommodate trailing null, and possibly extra backslash
 	mount_point=(WCHAR *)malloc(bufsize*sizeof(WCHAR));
 	if (mount_point==NULL)
 		PyErr_SetString(PyExc_MemoryError,"GetVolumePathName: Unable to allocate return buffer");

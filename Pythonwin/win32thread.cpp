@@ -108,12 +108,8 @@ void CProtectedWinThread::PumpMessages()
     // for tracking the idle time state
     BOOL bIdle = TRUE;
     LONG lIdleCount = 0;
-#if _MFC_VER >= 0x0710
     _AFX_THREAD_STATE *pState = AfxGetThreadState();
     MSG &msgCur = pState->m_msgCur;
-#else
-    MSG &msgCur = m_msgCur;
-#endif /* _MFC_VER_ */
 
     // acquire and dispatch messages until a WM_QUIT message is received.
     for (;;) {
@@ -128,11 +124,7 @@ void CProtectedWinThread::PumpMessages()
             // pump message, but quit on WM_QUIT
             if (!PumpMessage()) {
 #if defined(_DEBUG)
-#if _MFC_VER < 0x0710
-                m_nDisablePumpCount--;  // application must NOT die
-#else
                 pState->m_nDisablePumpCount--;  // application must NOT die
-#endif
 #endif
                 return;
             }
