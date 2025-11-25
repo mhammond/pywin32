@@ -555,23 +555,8 @@ static PyObject *py_get_clipboard_sequence_number(PyObject *self, PyObject *args
     CHECK_NO_ARGS2(args, "GetClipboardSequenceNumber");
 
     DWORD rc;
-    typedef HRESULT(WINAPI * PFNGetClipboardSequenceNumber)();
-
-    // @comm This method is not available on some early Windows (eg 95) machines.
-    HMODULE hmod = LoadLibrary(TEXT("user32.dll"));
-    PFNGetClipboardSequenceNumber pfnGetClipboardSequenceNumber = NULL;
-    if (hmod)
-        pfnGetClipboardSequenceNumber =
-            (PFNGetClipboardSequenceNumber)GetProcAddress(hmod, "GetClipboardSequenceNumber");
-    if (pfnGetClipboardSequenceNumber == NULL) {
-        if (hmod)
-            FreeLibrary(hmod);
-        return PyErr_Format(PyExc_RuntimeError, "This version of Windows does not support this function");
-    }
     Py_BEGIN_ALLOW_THREADS;
-    rc = (*pfnGetClipboardSequenceNumber)();
-    if (hmod)
-        FreeLibrary(hmod);
+    rc = GetClipboardSequenceNumber();
     Py_END_ALLOW_THREADS;
 
     return (Py_BuildValue("i", (int)rc));

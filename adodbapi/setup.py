@@ -1,6 +1,6 @@
 """adodbapi -- a pure Python PEP 249 DB-API package using Microsoft ADO
 
-Adodbapi can be run on CPython 3.7 and later.
+Adodbapi can be run on CPython 3.9 and later.
 """
 
 NAME = "adodbapi"

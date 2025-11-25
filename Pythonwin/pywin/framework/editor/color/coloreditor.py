@@ -230,7 +230,7 @@ class SyntEditView(SyntEditViewParent):
         # way to get sensible behaviour from it is to ensure tabwidth != indentsize.
         # Further, usetabs will only ever go from 1->0, never 0->1.
         # This is _not_ the behaviour Pythonwin wants:
-        # * Tab width is arbitary, so should have no impact on smarts.
+        # * Tab width is arbitrary, so should have no impact on smarts.
         # * bUseTabs setting should reflect how new files are created, and
         #   if Smart Tabs disabled, existing files are edited
         # * If "Smart Tabs" is enabled, bUseTabs should have no bearing
