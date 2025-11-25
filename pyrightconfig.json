@@ -1,5 +1,7 @@
 {
   "typeCheckingMode": "basic",
+  // Needs to be set for non-Windows CI runners
+  "pythonPlatform": "Windows",
   // Target the oldest supported version in editors and default CLI
   "pythonVersion": "3.9",
   // Keep it simple for now by allowing both mypy and pyright to use `type: ignore`
@@ -17,6 +19,7 @@
     "**/Test/",
     "**/test/",
     "**/Demos/",
+    "**/demos/",
     "**/demo/",
   ],
   // Packages that will be accessible globally.
