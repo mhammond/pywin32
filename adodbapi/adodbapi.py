@@ -465,7 +465,7 @@ class Connection:
             print("Error: %s %s " % (e.Number, adc.adoErrors.get(e.Number, "unknown")))
             if e.Number == adc.ado_error_TIMEOUT:
                 print(
-                    "Timeout Error: Try using adodbpi.connect(constr,timeout=Nseconds)"
+                    "Timeout Error: Try using adodbapi.connect(constr,timeout=Nseconds)"
                 )
             print("Source: %s" % e.Source)
             print("NativeError: %s" % e.NativeError)
@@ -633,7 +633,7 @@ class Cursor:
             if self.rs.EOF or self.rs.BOF:
                 display_size = None
             else:
-                # TODO: Is this the correct defintion according to the DB API 2 Spec ?
+                # TODO: Is this the correct definition according to the DB API 2 Spec ?
                 display_size = f.ActualSize
             null_ok = bool(f.Attributes & adc.adFldMayBeNull)  # v2.1 Cole
             desc.append(
@@ -1013,7 +1013,7 @@ class Cursor:
         """Prepare a database operation (query or command)
         and then execute it against all parameter sequences or mappings found in the sequence seq_of_parameters.
 
-            Return values are not defined.
+        Return values are not defined.
         """
         self.messages = list()
         total_recordcount = 0
