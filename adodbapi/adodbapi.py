@@ -34,8 +34,8 @@ import decimal
 import os
 import sys
 import weakref
-from collections.abc import Iterable, Mapping, Sequence
-from typing import TYPE_CHECKING, Callable, Literal, NoReturn, cast
+from collections.abc import Mapping, Sequence
+from typing import TYPE_CHECKING, Callable, Literal, NoReturn
 
 from . import ado_consts as adc, apibase as api, process_connect_string
 
@@ -871,7 +871,6 @@ class Cursor:
             except api.Error:
                 if verbose:
                     print("ADO Parameter Refresh failed")
-                pass
             else:
                 if len(parameters) != self.cmd.Parameters.Count - 1:
                     raise api.ProgrammingError(

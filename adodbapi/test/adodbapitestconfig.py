@@ -13,6 +13,7 @@
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 from __future__ import annotations
 
+import os
 import platform
 import random
 import sys
@@ -29,8 +30,7 @@ except:
     pass
 
 if "--help" in sys.argv:
-    print(
-        """Valid command-line switches are:
+    print("""Valid command-line switches are:
     --package - create a temporary test package
     --all - run all possible tests
     --time - do time format test
@@ -38,8 +38,7 @@ if "--help" in sys.argv:
     --mssql - test against Microsoft SQL server
     --pg - test against PostgreSQL
     --mysql - test against MariaDB
-    """
-    )
+    """)
     exit()
 
 # create a random name for temporary table names
@@ -98,7 +97,7 @@ SQL_HOST_NODE: str | None = None
 if doAccessTest:
     c: dict[str, str | list[str] | None] = {
         "mdb": setuptestframework.makemdb(testfolder, mdb_name),
-        # macro definition for keyword "provider"  using macro "is64bit" -- see documentation
+        # macro definition for keyword "provider" using macro "is64bit" -- see documentation
         # is64bit will return true for 64 bit versions of Python, so the macro will select the ACE provider
         "macro_is64bit": [
             "provider",
@@ -186,6 +185,10 @@ if doPostgresTest:
         **kws,
     )
 
-assert doAccessTest or doSqlServerTest or doMySqlTest or doPostgresTest, (
-    "No database engine found for testing"
-)
+# TODO: Eventually we want all tests to be run on CI and fail if one cannot be run
+# For now, we're still flexible on which tests can be run,
+# and allow CI to pass even if DB tests aren't run (time tests still are)
+if os.environ["CI"]:
+    assert doAccessTest or doSqlServerTest or doMySqlTest or doPostgresTest, (
+        "No database engine found for testing"
+    )

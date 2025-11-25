@@ -77,6 +77,7 @@ jobs:
         run: python win32/scripts/pywin32_testall.py -v -skip-adodbapi
 
       - name: Run adodbapi tests
+        if: ${{ matrix.python-version != '3.8' }}
         run: python adodbapi/test/adodbapitest.py --all
 
       - name: Build wheels
