@@ -71,10 +71,13 @@ jobs:
         # Pass Silent flag to regsvr32 to avoid hanging on confirmation window
         run: com/TestSources/PyCOMTest/buildAndRegister.bat /s
 
-      - name: Run tests
+      - name: Run pywin32 tests
         # Run the tests directly from the source dir so support files (eg, .wav files etc)
         # can be found - they aren't installed into the Python tree.
         run: python win32/scripts/pywin32_testall.py -v -skip-adodbapi
+
+      - name: Run adodbapi tests
+        run: python adodbapi/test/adodbapitest.py --all
 
       - name: Build wheels
         run: pip wheel . -v --wheel-dir=dist
@@ -196,6 +199,13 @@ jobs:
       - uses: jakebailey/pyright-action@v2
         with:
           python-version: ${{ matrix.python-version }}
-          version: "1.1.401"
+          version: "1.1.407"
           annotate: errors
+        if: ${{ !cancelled() }} # Show issues even if the previous steps failed. But still fail the job
+
+      - uses: jakebailey/pyright-action@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+          version: "1.1.407"
+          project: "pyrightconfig.adodbapi.json"
         if: ${{ !cancelled() }} # Show issues even if the previous steps failed. But still fail the job

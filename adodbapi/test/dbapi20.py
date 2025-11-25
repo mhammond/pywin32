@@ -16,6 +16,7 @@ __author__ = "Stuart Bishop <stuart@stuartbishop.net>"
 
 import time
 import unittest
+from typing import TYPE_CHECKING
 
 # set this to "True" to follow API 2.0 to the letter
 TEST_FOR_NON_IDEMPOTENT_CLOSE = False
@@ -72,9 +73,9 @@ TEST_FOR_NON_IDEMPOTENT_CLOSE = False
 # - Reversed the polarity of buggy test in test_description
 # - Test exception hierarchy correctly
 # - self.populate is now self._populate(), so if a driver stub
-#   overrides self.ddl1 this change propogates
+#   overrides self.ddl1 this change propagates
 # - VARCHAR columns now have a width, which will hopefully make the
-#   DDL even more portible (this will be reversed if it causes more problems)
+#   DDL even more portable (this will be reversed if it causes more problems)
 # - cursor.rowcount being checked after various execute and fetchXXX methods
 # - Check for fetchall and fetchmany returning empty lists after results
 #   are exhausted (already checking for empty lists if select retrieved
@@ -87,7 +88,7 @@ class DatabaseAPI20Test(unittest.TestCase):
     """Test a database self.driver for DB API 2.0 compatibility.
     This implementation tests Gadfly, but the TestCase
     is structured so that other self.drivers can subclass this
-    test case to ensure compiliance with the DB-API. It is
+    test case to ensure compliance with the DB-API. It is
     expected that this TestCase may be expanded in the future
     if ambiguities or edge conditions are discovered.
 
@@ -105,9 +106,15 @@ class DatabaseAPI20Test(unittest.TestCase):
     confuse the unit tester - just 'import dbapi20'.
     """
 
-    # The self.driver module. This should be the module where the 'connect'
-    # method is to be found
-    driver = None
+    # The self.driver module.
+    # This should be the module where the 'connect' method is to be found.
+    if TYPE_CHECKING:
+        # This should be set by the TestCase subclass,
+        # we're just pretending it's always adodbapi module here
+        # for static-typing purposes.
+        import adodbapi as driver  # noqa: PLC0415 # pyright: ignore[reportMissingImports] # False positive ???
+    else:
+        driver = None
     connect_args = ()  # List of arguments to pass to connect
     connect_kw_args = {}  # Keyword arguments for connect
     table_prefix = "dbapi20test_"  # If you need to specify a prefix for tables
@@ -527,7 +534,7 @@ class DatabaseAPI20Test(unittest.TestCase):
             self.assertRaises(self.driver.Error, cur.fetchone)
 
             # cursor.fetchone should raise an Error if called after
-            # executing a query that cannnot return rows
+            # executing a query that cannot return rows
             self.executeDDL1(cur)
             self.assertRaises(self.driver.Error, cur.fetchone)
 
@@ -540,7 +547,7 @@ class DatabaseAPI20Test(unittest.TestCase):
             self.assertTrue(cur.rowcount in (-1, 0))
 
             # cursor.fetchone should raise an Error if called after
-            # executing a query that cannnot return rows
+            # executing a query that cannot return rows
             cur.execute(
                 "insert into %sbooze values ('Victoria Bitter')" % (self.table_prefix)
             )

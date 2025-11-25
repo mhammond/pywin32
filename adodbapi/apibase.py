@@ -13,6 +13,7 @@ import numbers
 import sys
 import time
 from collections.abc import Callable, Iterable, Mapping
+from typing import NoReturn
 
 # noinspection PyUnresolvedReferences
 from . import ado_consts as adc
@@ -21,7 +22,7 @@ verbose = False  # debugging flag
 
 
 # ------- Error handlers ------
-def standardErrorHandler(connection, cursor, errorclass, errorvalue):
+def standardErrorHandler(connection, cursor, errorclass, errorvalue) -> NoReturn:
     err = (errorclass, errorvalue)
     try:
         connection.messages.append(err)
@@ -248,7 +249,7 @@ class pythonDateTimeConverter(TimeConverter):  # standard since Python 2.3
 
 
 class pythonTimeConverter(TimeConverter):  # the old, ?nix type date and time
-    def __init__(self):  # caution: this Class gets confised by timezones and DST
+    def __init__(self):  # caution: this Class gets confused by timezones and DST
         TimeConverter.__init__(self)
         self.types.add(time.struct_time)
 
@@ -548,12 +549,14 @@ class SQLrow:  # a single database row
             vl = [self._getValue(i) for i in range(*indices)]
             return tuple(vl)
         try:
-            return self._getValue(
-                self.rows.columnNames[key.lower()]
-            )  # extension row[columnName] designation
-        except (KeyError, TypeError):
-            er, st, tr = sys.exc_info()
-            raise er(f'No such key as "{key!r}" in {self!r}').with_traceback(tr)
+            # extension row[columnName] designation
+            return self._getValue(self.rows.columnNames[key.lower()])
+        except (KeyError, TypeError) as er:
+            note = f'No such key as "{key!r}" in {self!r}'
+            if sys.version_info >= (3, 11):
+                er.add_note(note)
+            else:
+                raise type(er)(note) from er
 
     def __iter__(self):
         return iter(self.__next__())
@@ -641,14 +644,12 @@ class SQLrows:
     # # # # # functions to re-format SQL requests to other paramstyle requirements # # # # # # # # # #
 
 
-def changeNamedToQmark(
-    op,
-):  # convert from 'named' paramstyle to ADO required '?'mark parameters
+def changeNamedToQmark(op: str):
+    """Convert from 'named' paramstyle to ADO required '?'mark parameters"""
     outOp = ""
     outparms = []
-    chunks = op.split(
-        "'"
-    )  # quote all literals -- odd numbered list results are literals.
+    # quote all literals -- odd numbered list results are literals.
+    chunks = op.split("'")
     inQuotes = False
     for chunk in chunks:
         if inQuotes:  # this is inside a quote
@@ -664,7 +665,7 @@ def changeNamedToQmark(
                 try:
                     chunk = sp[1]
                 except IndexError:
-                    chunk = None
+                    chunk = ""
                 if chunk:  # there was a parameter - parse it out
                     i = 0
                     c = chunk[0]
@@ -683,20 +684,17 @@ def changeNamedToQmark(
     return outOp, outparms
 
 
-def changeFormatToQmark(
-    op,
-):  # convert from 'format' paramstyle to ADO required '?'mark parameters
+def changeFormatToQmark(op: str):
+    """Convert from 'format' paramstyle to ADO required '?'mark parameters"""
     outOp = ""
-    outparams = []
-    chunks = op.split(
-        "'"
-    )  # quote all literals -- odd numbered list results are literals.
+    outparams: list[str] = []
+    # quote all literals -- odd numbered list results are literals.
+    chunks = op.split("'")
     inQuotes = False
     for chunk in chunks:
         if inQuotes:
-            if (
-                outOp != "" and chunk == ""
-            ):  # he used a double apostrophe to quote one apostrophe
+            if outOp != "" and chunk == "":
+                # he used a double apostrophe to quote one apostrophe
                 outOp = outOp[:-1]  # so take one away
             else:
                 outOp += "'" + chunk + "'"  # else pass the quoted string as is.
@@ -715,7 +713,7 @@ def changeFormatToQmark(
                         outparams.append(s)
                         outOp += "?"  # put in the Qmark
                     else:
-                        chunk = None
+                        chunk = ""
             else:  # proper '%s' format
                 sp = chunk.split("%s")  # make each %s
                 outOp += "?".join(sp)  # into ?

@@ -11,6 +11,8 @@
 # #  Skip down to the next "# #" line --
 # #  -- the things you need to change are below it.
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+from __future__ import annotations
+
 import platform
 import random
 import sys
@@ -22,10 +24,7 @@ import tryconnection
 print("\nPython", sys.version)
 node = platform.node()
 try:
-    print(
-        "node=%s, is64bit.os()= %s, is64bit.Python()= %s"
-        % (node, is64bit.os(), is64bit.Python())
-    )
+    print(f"{node=}, {is64bit.os()=}, {is64bit.Python()=}")
 except:
     pass
 
@@ -89,10 +88,15 @@ doTimeTest = ("--time" in sys.argv or doAllTests) and sys.platform == "win32"
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # # start your environment setup here v v v
-SQL_HOST_NODE = "testsql.2txt.us,1430"
+
+# TODO: Make SQL_HOST_NODE and user configurable from the command line,
+
+# if None, will use macro to fill in node name
+# SQL_HOST_NODE: str | None = "testsql.2txt.us,1430"
+SQL_HOST_NODE: str | None = None
 
 if doAccessTest:
-    c = {
+    c: dict[str, str | list[str] | None] = {
         "mdb": setuptestframework.makemdb(testfolder, mdb_name),
         # macro definition for keyword "provider"  using macro "is64bit" -- see documentation
         # is64bit will return true for 64 bit versions of Python, so the macro will select the ACE provider
@@ -112,16 +116,23 @@ if doAccessTest:
 
 if doSqlServerTest:
     c = {
-        "host": SQL_HOST_NODE,  # name of computer with SQL Server
+        **(
+            {"macro_getnode": ["host", r"%s\SQLEXPRESS"]}
+            if SQL_HOST_NODE is None  #
+            else {"host": SQL_HOST_NODE}
+        ),
         "database": "adotest",
-        "user": "adotestuser",  # None implies Windows security
+        # "user": "adotestuser",
+        "user": None,  # None implies Windows security
         "password": "Sq1234567",
         # macro definition for keyword "security" using macro "auto_security"
         "macro_auto_security": "security",
         "provider": "MSOLEDBSQL; MARS Connection=True",
     }
     connStr = "Provider=%(provider)s; Initial Catalog=%(database)s; Data Source=%(host)s; %(security)s;"
-    print("    ...Testing MS-SQL login to {}...".format(c["host"]))
+    print(
+        "    ...Testing MS-SQL login to {}...".format(c.get("host", "local SQLEXPRESS"))
+    )
     (
         doSqlServerTest,
         connStrSQLServer,
@@ -156,7 +167,7 @@ if doPostgresTest:
     _databasename = "adotest"
     _username = "adotestuser"
     _password = "12345678"
-    kws = {"timeout": 4}
+    kws: dict[str, int | list[str]] = {"timeout": 4}
     kws["macro_is64bit"] = [
         "prov_drv",
         "Provider=MSDASQL;Driver={PostgreSQL Unicode(x64)}",
