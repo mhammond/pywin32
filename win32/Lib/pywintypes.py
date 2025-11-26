@@ -48,7 +48,7 @@ def __import_pywin32_system_module__(modname, globs):
             raise ImportError(f"Module '{modname}' isn't in frozen sys.path {sys.path}")
     else:
         # First see if it already in our process - if so, we must use that.
-        import _win32sysloader
+        import _win32sysloader  # pyright: ignore[reportMissingImports] # Private c-extension module
 
         found = _win32sysloader.GetModuleFilename(filename)
         if found is None:
@@ -94,7 +94,7 @@ def __import_pywin32_system_module__(modname, globs):
         # Simply import pywin32_system32 and look in the paths in pywin32_system32.__path__
 
         if found is None:
-            import pywin32_system32
+            import pywin32_system32  # pyright: ignore[reportMissingImports] # Empty module created in setup.py to store dlls
 
             for path in pywin32_system32.__path__:
                 maybe = os.path.join(path, filename)
