@@ -125,7 +125,7 @@ PyObject *PyDISPLAY_DEVICE::Clear(PyObject *self, PyObject *args)
 PyObject *PyDISPLAY_DEVICE::getattro(PyObject *self, PyObject *obname)
 {
     PDISPLAY_DEVICE pdisplay_device = &((PyDISPLAY_DEVICE *)self)->display_device;
-    char *name = PYWIN_ATTR_CONVERT(obname);
+    const char *name = PyUnicode_AsUTF8(obname);
     if (name == NULL)
         return NULL;
 
@@ -162,7 +162,7 @@ PyObject *PyDISPLAY_DEVICE::getattro(PyObject *self, PyObject *obname)
 
 int PyDISPLAY_DEVICE::setattro(PyObject *self, PyObject *obname, PyObject *obvalue)
 {
-    char *name = PYWIN_ATTR_CONVERT(obname);
+    const char *name = PyUnicode_AsUTF8(obname);
     if (name == NULL)
         return -1;
 
