@@ -84,7 +84,8 @@ def parseCategories():
     import document_object
 
     doc = document_object.GetDocument()
-    return [__cat_from_defn(defn) for defn in doc or ()]
+    assert doc is not None
+    return [__cat_from_defn(defn) for defn in doc]
 
 
 def parseTopics(cat, input):
