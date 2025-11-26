@@ -440,15 +440,9 @@ PyObject *ui_propsheet_press_button(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "i", &button))
         return NULL;
     GUI_BGN_SAVE;
-    BOOL ok = TRUE;
-#if _MFC_VER < 0x0710
-    ok =
-#endif
-        pPS->PressButton(button);
-
+    pPS->PressButton(button);
     GUI_END_SAVE;
-    if (!ok)
-        RETURN_ERR("PressButton failed");
+
     RETURN_NONE;
 }
 
