@@ -17,7 +17,7 @@ def maketemp():
     return tempdir
 
 
-def cleanup_function(testfolder, mdb_name):
+def cleanup(testfolder, mdb_name):
     try:
         os.unlink(os.path.join(testfolder, mdb_name))
     except:

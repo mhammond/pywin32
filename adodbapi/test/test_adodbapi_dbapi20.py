@@ -15,8 +15,6 @@ else:
     pth = setuptestframework.find_ado_path()
 if pth not in sys.path:
     sys.path.insert(1, pth)
-# function to clean up the temporary folder -- calling program must run this function before exit.
-cleanup = setuptestframework.cleanup_function
 
 import adodbapi
 import adodbapi.is64bit as is64bit
@@ -28,11 +26,6 @@ if "--verbose" in sys.argv:
 
 print(adodbapi.version)
 print("Tested with dbapi20 %s" % dbapi20.__version__)
-
-try:
-    onWindows = bool(sys.getwindowsversion())  # seems to work on all versions of Python
-except:
-    onWindows = False
 
 node = platform.node()
 
@@ -56,7 +49,7 @@ conn_kws["provider"] = (
 )
 connStr = "%(provider)s; %(security)s; Initial Catalog=%(name)s;Data Source=%(host)s"
 
-if onWindows and node != "z-PC":
+if sys.platform == "win32" and node != "z-PC":
     pass  # default should make a local SQL Server connection
 elif node == "xxx":  # try Postgres database
     _computername = "25.223.161.222"
@@ -192,4 +185,4 @@ class test_adodbapi(dbapi20.DatabaseAPI20Test):
 
 if __name__ == "__main__":
     unittest.main()
-    cleanup(testfolder, None)
+    setuptestframework.cleanup(testfolder, None)
