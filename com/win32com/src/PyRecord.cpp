@@ -257,7 +257,7 @@ PyRecord *PyRecord::new_record(IRecordInfo *ri, PVOID data, PyRecordBuffer *owne
         PyErr_NoMemory();
         return NULL;
     }
-    return new (buf) PyRecord(ri, owner->data, owner);
+    return new (buf) PyRecord(ri, data, owner);
 }
 
 PyRecord::PyRecord(IRecordInfo *ri, PVOID data, PyRecordBuffer *buf_owner)

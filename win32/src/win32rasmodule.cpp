@@ -523,11 +523,10 @@ static PyObject *PyRasDial(PyObject *self, PyObject *args)
             args, "OzOO:Dial",
             &obExtensions,  // @pyparm <o PyRASDIALEXTENSIONS>|dialExtensions||An object providing the RASDIALEXTENSIONS
                             // information, or None
-            &fileName,  // @pyparm string|fileName||Specifies the filename of the phonebook entry, or None.  Ignored on
-                        // Win95.
-            &obParams,  // @pyparm <o RASDIALPARAMS>|RasDialParams||A tuple describing a RASDIALPARAMS structure.
-            &obCallback))  // @pyparm method or hwnd|callback||The method to be called when RAS events occur, or None.
-                           // If not None, the function must have the signature of <om win32ras.RasDialFunc1>
+            &fileName,      // @pyparm string|fileName||Specifies the filename of the phonebook entry, or None.
+            &obParams,      // @pyparm <o RASDIALPARAMS>|RasDialParams||A tuple describing a RASDIALPARAMS structure.
+            &obCallback))   // @pyparm method or hwnd|callback||The method to be called when RAS events occur, or None.
+                            // If not None, the function must have the signature of <om win32ras.RasDialFunc1>
         return NULL;
     if (!PyObjectToRasDialParams(obParams, &dialParams))
         return NULL;
