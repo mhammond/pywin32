@@ -91,14 +91,7 @@ inline Win32uiHostGlue::Win32uiHostGlue()
 }
 inline Win32uiHostGlue::~Win32uiHostGlue() {}
 
-inline HKEY Win32uiHostGlue::GetRegistryRootKey()
-{
-    // different for win32s.
-    OSVERSIONINFO ver;
-    ver.dwOSVersionInfoSize = sizeof(ver);
-    GetVersionEx(&ver);
-    return ver.dwPlatformId == VER_PLATFORM_WIN32s ? HKEY_CLASSES_ROOT : HKEY_LOCAL_MACHINE;
-}
+inline HKEY Win32uiHostGlue::GetRegistryRootKey() { return HKEY_LOCAL_MACHINE; }
 
 #ifndef LINK_WITH_WIN32UI
 

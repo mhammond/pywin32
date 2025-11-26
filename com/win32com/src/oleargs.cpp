@@ -304,6 +304,7 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
     }
     // Decimal class from new _decimal module in Python 3.3 shows different name
     else if (strcmp(obj->ob_type->tp_name, "Decimal") == 0 || strcmp(obj->ob_type->tp_name, "decimal.Decimal") == 0) {
+        // VT_DECIMAL supports more precision here, use in error case? leave existing behavior for now
         if (!PyObject_AsCurrency(obj, &V_CY(var)))
             return FALSE;
         V_VT(var) = VT_CY;
@@ -482,6 +483,10 @@ PyObject *PyCom_PyObjectFromVariant(const VARIANT *var)
             result = PyObject_FromCurrency(varValue.cyVal);
             break;
 
+        case VT_DECIMAL:
+            result = PyObject_FromDecimal(varValue.decVal);
+            break;
+
         case VT_RECORD: {
             ULONG cb;
             V_RECORDINFO(&varValue)->GetSize(&cb);
@@ -583,7 +588,7 @@ static BOOL PyCom_SAFEARRAYFromPyObjectBuildDimension(PyObject *obj, SAFEARRAY *
                             break;
                         default:
                             // The data is in a union - just use an
-                            // arbitary element.
+                            // arbitrary element.
                             pvData = &V_I4(&element);
                             break;
                     }
@@ -872,6 +877,14 @@ static PyObject *PyCom_PyObjectFromSAFEARRAYDimensionItem(SAFEARRAY *psa, VARENU
             subitem = PyObject_FromCurrency(c);
             break;
         }
+        case VT_DECIMAL: {
+            DECIMAL dec;
+            hres = SafeArrayGetElement(psa, arrayIndices, &dec);
+            if (FAILED(hres))
+                break;
+            subitem = PyObject_FromDecimal(dec);
+            break;
+        }
         case VT_DATE: {
             DATE dt;
             hres = SafeArrayGetElement(psa, arrayIndices, &dt);
@@ -923,7 +936,6 @@ static PyObject *PyCom_PyObjectFromSAFEARRAYDimensionItem(SAFEARRAY *psa, VARENU
             subitem = PyCom_PyObjectFromIUnknown(pUnk, IID_IUnknown, FALSE);
             break;
         }
-            // case VT_DECIMAL
             // case VT_RECORD
 
         case VT_I1:
@@ -1604,6 +1616,19 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
             }
             else
                 V_CYREF(var)->int64 = 0;
+            break;
+        case VT_DECIMAL:
+            rc = PyObject_AsDecimal(obj, &V_DECIMAL(var));
+            break;
+        case VT_DECIMAL | VT_BYREF:
+            if (bCreateBuffers)
+                V_DECIMALREF(var) = &m_decBuf;
+            if (!VALID_BYREF_MISSING(obj)) {
+                if (!PyObject_AsDecimal(obj, V_DECIMALREF(var)))
+                    BREAK_FALSE;
+            }
+            else
+                memset(V_DECIMALREF(var), 0, sizeof(DECIMAL));
             break;
         default:
             // could try default, but this error indicates we need to

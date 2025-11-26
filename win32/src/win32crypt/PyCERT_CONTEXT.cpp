@@ -418,6 +418,10 @@ PyObject *PyCERT_CONTEXT::PyCertDeleteCertificateFromStore(PyObject *self, PyObj
     GET_CERT_CONTEXT(pcert_context);
     BOOL bsuccess;
     Py_BEGIN_ALLOW_THREADS bsuccess = CertDeleteCertificateFromStore(pcert_context);
+    // CertDeleteCertificateFromStore internally calls CertFreeCertificateContext, so we need to zero
+    // the context like we do in PyCertFreeCertificateContext, in order to prevent an attempt to free
+    // it again later in the destructor.
+    ((PyCERT_CONTEXT *)self)->pccert_context = NULL;
     Py_END_ALLOW_THREADS if (!bsuccess) return PyWin_SetAPIError("CertDeleteCertificateFromStore");
     Py_INCREF(Py_None);
     return Py_None;
