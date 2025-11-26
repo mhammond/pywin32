@@ -3,7 +3,7 @@
 This module is a functional example of how to implement the IRTDServer interface
 in python, using the pywin32 extensions. Further details, about this interface
 and it can be found at:
-     http://msdn.microsoft.com/library/default.asp?url=/library/en-us/dnexcl2k2/html/odc_xlrtdfaq.asp
+     https://learn.microsoft.com/en-us/previous-versions/office/developer/office-xp/aa140060(v=office.10)
 """
 
 # Copyright (c) 2003-2004 by Chris Nilsson <chris@slort.org>
@@ -346,7 +346,7 @@ class TimeServer(ExcelRTDServer):
         self.ticker.start()
 
     def OnServerTerminate(self):
-        if not self.ticker.finished.isSet():
+        if not self.ticker.finished.is_set():
             self.ticker.cancel()  # Cancel our wake-up thread. Excel has killed us.
 
     def Update(self):

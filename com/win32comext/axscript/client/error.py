@@ -101,6 +101,7 @@ class AXScriptException(COMException):
             warnings.warn(
                 "`exc_type` and `exc_traceback` were redundant and are now unused.",
                 category=DeprecationWarning,
+                stacklevel=2,
             )
 
         # And my other values...
@@ -217,9 +218,6 @@ class AXScriptException(COMException):
         else:
             line = None
         return filename, lineno, name, line
-
-    def __repr__(self):
-        return "AXScriptException Object with description:" + self.description
 
 
 def ProcessAXScriptException(

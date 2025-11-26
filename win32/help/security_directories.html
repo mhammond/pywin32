@@ -9,7 +9,7 @@
 	<TR>
 		<TD valign=middle width="100%"
 		bgcolor="#99ccff"> <font face="sans-serif" size="+1"
-		color="#111111">&nbsp;&nbsp;&nbsp;Extending Python  (directory permisisions w/GetNamedSecurityInfo)  </font>
+		color="#111111">&nbsp;&nbsp;&nbsp;Extending Python  (directory permissions w/GetNamedSecurityInfo)  </font>
 		</TD>
 	</TR>
 	</TABLE>
@@ -52,7 +52,7 @@ return to python permission information for a file or directory.
 <H2><A NAME="Introduction">Introduction</A></H2>
 <p>
 Extending python, though not nearly as simple as pure python, is reasonably
-straightforward. The most convenient method of doing this is to seperate the
+straightforward. The most convenient method of doing this is to separate the
 extension into it's own module which would act like any other python module
 one uses.
 
@@ -70,8 +70,8 @@ a filesystem.
 <H2><A NAME="Extend">Extending Python</A></H3>
 <p>
 There are several ways one can extend python. You can take a raw wrapping
-approach, <a href="http://www.swig.org">SWIG</a> or
-<a href="http://www.boost.org/libs/python/doc/index.html">BPL (Boost Python Libraries) </a>.
+approach, <a href="https://www.swig.org">SWIG</a> or
+<a href="https://www.boost.org/libs/python/doc/">BPL (Boost Python Libraries) </a>.
 
 This extension is simple enough that we're going to wrap the C++ w/out the
 help of SWIG of BPL. This won't be an extensive discussion about extending
@@ -143,16 +143,14 @@ through</li>
 </ol>
 
 The following code goes through those 4 steps in greater detail.
-Refer to <a href="http://msdn.microsoft.com">Microsoft MSDN references</a>
+Refer to <a href="https://learn.microsoft.com/en-us/windows/win32/">Build desktop Windows apps using the Win32 API</a>
 for info about the various win32 calls made.
 
 
 
 <HR>
 <H2><A NAME="Extend_get">Extending Python for Directory Permissions</A></H2>
-To setup Visual Studio correctly for building an extension, it is easiest to
-use a program called <A HREF="http://starship.python.net/crew/da/compile">compile.py</A>
-which builds the project for you. The Extension creates a dictionary of
+The following Extension creates a dictionary of
 user or group plus the access mask. To Python it will look like:
 <pre>
 import fileperm
@@ -514,8 +512,8 @@ else:
 <p>
 Extending python isn't as simple as writing python, but it greatly expands
 python's capabilities. There are many details not covered here like
-reference counting, threading, and error handeling. The python website has documentation about
-<A HREF="http://www.python.org/doc/current/ext/ext.html">Extending Python</A>.
+reference counting, threading, and error handling. The python website has documentation about
+<A HREF="https://docs.python.org/3/extending/index.html">Extending and Embedding the Python Interpreter</A>.
 
 
 </p>
@@ -525,11 +523,14 @@ reference counting, threading, and error handeling. The python website has docum
 <H1><A NAME="Further Info">Further Info</A></H1>
 <p>
 <ul>
-<li><a href="http://msdn.microsoft.com">Microsoft MSDN references</a></li>
-<li><A HREF="http://www.python.org/doc/current/ext/ext.html">Extending Python</A></li>
-<li><A HREF="http://starship.python.net/crew/da/compile">compile.py</A></li>
-<li><a href="http://www.swig.org">SWIG</a> </li>
-<li><a href="http://www.boost.org/libs/python/doc/index.html">BPL (Boost Python Libraries) </a></li>
+<li>
+    <a href="https://learn.microsoft.com/en-us/windows/win32/api/_security/">
+        Windows Security and Identity documentation
+    </a>
+</li>
+<li><A HREF="https://docs.python.org/3/extending/index.html">Extending and Embedding the Python Interpreter</A></li>
+<li><a href="https://www.swig.org">SWIG</a> </li>
+<li><a href="https://www.boost.org/libs/python/doc/">BPL (Boost Python Libraries) </a></li>
 </ul>
 </p>
 <HR><H1><A NAME="Author">Author</A></H1>
@@ -541,7 +542,7 @@ John Nielsen, <A HREF="mailto:jn@who.net,">jn@who.net</A>
 		<TR>
 			<TD valign=middle
 			bgcolor="#99ccff"> <font face="sans-serif" size="+1"
-			color="#111111">&nbsp;&nbsp;&nbsp;Extending Python  (directory permisisions w/GetNamedSecurityInfo)  </font>
+			color="#111111">&nbsp;&nbsp;&nbsp;Extending Python  (directory permissions w/GetNamedSecurityInfo)  </font>
 			</TD>
 		</TR>
 		</TABLE>
