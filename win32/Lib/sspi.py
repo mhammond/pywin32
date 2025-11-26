@@ -337,7 +337,7 @@ if __name__ == "__main__":
     # This is the security package (the security support provider / the security backend)
     # we want to use for this example.
     ssp = "Kerberos"  # or "NTLM" or "Negotiate" which enable negotiation between
-    # Kerberos (prefered) and NTLM (if not supported on the other side).
+    # Kerberos (preferred) and NTLM (if not supported on the other side).
 
     flags = (
         sspicon.ISC_REQ_MUTUAL_AUTH

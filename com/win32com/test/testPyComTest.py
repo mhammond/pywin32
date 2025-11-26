@@ -10,24 +10,22 @@ import os
 import time
 
 import pythoncom
-import pywintypes
 import win32com
-import win32com.client.connect
 import win32com.test.util
 import win32timezone
 import winerror
 from win32api import CloseHandle, GetCurrentProcessId, OpenProcess
+from win32com import universal
 from win32com.client import (
     VARIANT,
     CastTo,
     DispatchBaseClass,
     Record,
     constants,
+    gencache,
     register_record_class,
 )
 from win32process import GetProcessMemoryInfo
-
-importMsg = "**** PyCOMTest is not installed ***\n  PyCOMTest is a Python test specific COM client and server.\n  It is likely this server is not installed on this machine\n  To install the server, you must get the win32com sources\n  and build it using MS Visual C++"
 
 # This test uses a Python implemented COM server - ensure correctly registered.
 win32com.test.util.RegisterPythonServer(
@@ -35,21 +33,21 @@ win32com.test.util.RegisterPythonServer(
     "Python.Test.PyCOMTest",
 )
 
-from win32com.client import gencache
-
 try:
     gencache.EnsureModule(
         "{6BCDCB60-5605-11D0-AE5F-CADD4C000000}", 0, 1, 1, bForDemand=False
     )
-except pythoncom.com_error:
-    print("The PyCOMTest module can not be located or generated.")
-    print(importMsg)
-    raise RuntimeError(importMsg)
+except pythoncom.com_error as error:
+    importMsg = """*** PyCOMTest is not installed ***
+  PyCOMTest is a Python test specific COM client and server.
+  It is likely this server is not installed on this machine
+  To install the server, you must get the win32com sources
+  and build it using MS Visual C++"""
+    print(f"The PyCOMTest module can not be located or generated.\n{importMsg}\n")
+    raise RuntimeError(importMsg) from error
 
 # We had a bg where RegisterInterfaces would fail if gencache had
 # already been run - exercise that here
-from win32com import universal
-
 universal.RegisterInterfaces("{6BCDCB60-5605-11D0-AE5F-CADD4C000000}", 0, 1, 1)
 
 verbose = 0
@@ -75,7 +73,7 @@ class TestStruct2(pythoncom.com_record):
     GUID = "{78F0EA07-B7CF-42EA-A251-A4C6269F76AF}"
 
 
-# We don't need to stick with the struct name in the TypeLibrry for the subclass name.
+# We don't need to stick with the struct name in the TypeLibrary for the subclass name.
 # The following class has the same GUID as TestStruct2 from the TypeLibrary.
 class ArrayOfStructsTestStruct(pythoncom.com_record):
     __slots__ = ()
@@ -352,6 +350,23 @@ def TestCommon(o, is_generated):
     v2 = decimal.Decimal("9012.3456")
     TestApplyResult(o.AddCurrencies, (v1, v2), v1 + v2)
 
+    progress("Checking decimal type")
+    assert o.DecimalProp == 0, f"Expecting 0, got {o.DecimalProp!r}"
+    for val in (
+        "1234",
+        "123456789.1234",
+        "-987654321.9876",
+        "0.1234",
+        "-0.1234",
+    ):
+        o.DecimalProp = decimal.Decimal(val)
+        assert o.DecimalProp == decimal.Decimal(val), f"{val} got {o.DecimalProp!r}"
+    v1 = decimal.Decimal("1234.5678")
+    TestApplyResult(o.DoubleDecimal, (v1,), v1 * 2)
+
+    v2 = decimal.Decimal("654.321")
+    TestApplyResult(o.AddDecimals, (v1, v2), v1 + v2)
+
     TestTrickyTypesWithVariants(o, is_generated)
     progress("Checking win32com.client.VARIANT")
     TestPyVariant(o, is_generated)
@@ -421,6 +436,15 @@ def TestTrickyTypesWithVariants(o, is_generated):
     else:
         v = VARIANT(pythoncom.VT_BYREF | pythoncom.VT_CY, val)
         o.DoubleCurrencyByVal(v)
+        got = v.value
+    assert got == val * 2
+
+    val = decimal.Decimal("123456789.1234")
+    if is_generated:
+        got = o.DoubleDecimalByVal(val)
+    else:
+        v = VARIANT(pythoncom.VT_BYREF | pythoncom.VT_DECIMAL, val)
+        o.DoubleDecimalByVal(v)
         got = v.value
     assert got == val * 2
 

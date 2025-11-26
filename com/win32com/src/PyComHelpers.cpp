@@ -94,6 +94,161 @@ PYCOM_EXPORT BOOL PyObject_AsCurrency(PyObject *ob, CURRENCY *pcy)
     return TRUE;
 }
 
+PYCOM_EXPORT PyObject *PyObject_FromDecimal(DECIMAL &dec)
+{
+    // init Decimal_class
+    if (!Decimal_class && !(Decimal_class = get_Decimal_class())) {
+        return NULL;
+    }
+
+    // assemble 128‑bit integer: (Hi32 << 64) + Lo64
+    PyObject *hi = PyLong_FromUnsignedLong(dec.Hi32);
+    if (!hi) {
+        return NULL;
+    }
+
+    PyObject *sh = PyLong_FromLong(64);
+    if (!sh) {
+        Py_DECREF(hi);
+        return NULL;
+    }
+
+    PyObject *hi_shift = PyNumber_Lshift(hi, sh);
+    Py_DECREF(hi);
+    Py_DECREF(sh);
+    if (!hi_shift) {
+        return NULL;
+    }
+
+    PyObject *lo = PyLong_FromUnsignedLongLong(dec.Lo64);
+    if (!lo) {
+        Py_DECREF(hi_shift);
+        return NULL;
+    }
+
+    PyObject *big = PyNumber_Add(hi_shift, lo);
+    Py_DECREF(hi_shift);
+    Py_DECREF(lo);
+    if (!big) {
+        return NULL;
+    }
+
+    // call Decimal(big)
+    PyObject *res = PyObject_CallFunctionObjArgs(Decimal_class, big, NULL);
+    Py_DECREF(big);
+    if (!res) {
+        return NULL;
+    }
+
+    // apply scale
+    if (dec.scale > 0) {
+        PyObject *tmp = PyObject_CallMethod(res, "scaleb", "l", -dec.scale);
+        Py_DECREF(res);
+        if (!tmp) {
+            return NULL;
+        }
+        res = tmp;
+    }
+
+    // apply sign
+    if (dec.sign > 0) {
+        PyObject *tmp = PyObject_CallMethod(res, "__mul__", "l", -1);
+        Py_DECREF(res);
+        if (!tmp) {
+            return NULL;
+        }
+        res = tmp;
+    }
+
+    return res;
+}
+
+PYCOM_EXPORT BOOL PyObject_AsDecimal(PyObject *ob, DECIMAL *pdec)
+{
+    if (Decimal_class == NULL) {
+        Decimal_class = get_Decimal_class();
+        if (Decimal_class == NULL)
+            return FALSE;
+    }
+
+    int right_type = PyObject_IsInstance(ob, Decimal_class);
+    if (right_type == -1)
+        return FALSE;
+    else if (right_type == 0) {
+        PyErr_Format(PyExc_TypeError, "DECIMAL object must be a Decimal instance (got %s).", ob->ob_type->tp_name);
+        return FALSE;
+    }
+
+    // get (sign, digits, exponent)
+    PyObject *tup = PyObject_CallMethod(ob, "as_tuple", NULL);
+    if (!tup) {
+        return FALSE;
+    }
+    if (!PyTuple_Check(tup) || PyTuple_Size(tup) != 3) {
+        Py_DECREF(tup);
+        PyErr_SetString(PyExc_TypeError, "Decimal.as_tuple() did not return 3‐tuple");
+        return FALSE;
+    }
+
+    // extract sign and exponent
+    long sign = PyLong_AsLong(PyTuple_GET_ITEM(tup, 0));
+    long exp = PyLong_AsLong(PyTuple_GET_ITEM(tup, 2));
+    if (PyErr_Occurred()) {
+        Py_DECREF(tup);
+        return FALSE;
+    }
+
+    unsigned char scale = (exp < 0) ? (unsigned char)(-exp) : 0;
+
+    PyObject *val;
+    if (scale > 0) {
+        val = PyObject_CallMethod(ob, "scaleb", "l", scale);
+        if (!val) {
+            Py_DECREF(tup);
+            return FALSE;
+        }
+    }
+    else {
+        val = ob;
+        Py_INCREF(val);
+    }
+
+    TmpPyObject mant = PyNumber_Long(val);
+    Py_DECREF(val);
+    if (!mant) {
+        Py_DECREF(tup);
+        return FALSE;
+    }
+
+    unsigned long long lo64 = PyLong_AsUnsignedLongLong(mant);
+    if (PyErr_Occurred()) {
+        Py_DECREF(tup);
+        return FALSE;
+    }
+
+    TmpPyObject shamt = PyLong_FromLong(64);
+    TmpPyObject high = PyNumber_Rshift(mant, shamt);
+    if (!high) {
+        Py_DECREF(tup);
+        return FALSE;
+    }
+
+    unsigned long hi32 = PyLong_AsUnsignedLong(high);
+    if (PyErr_Occurred()) {
+        Py_DECREF(tup);
+        return FALSE;
+    }
+
+    Py_DECREF(tup);
+
+    pdec->wReserved = 0;
+    pdec->scale = scale;
+    pdec->sign = (unsigned char)sign;
+    pdec->Hi32 = hi32;
+    pdec->Lo64 = lo64;
+    return TRUE;
+}
+
 // If PyCom_PyObjectFromIUnknown is called with bAddRef==FALSE, the
 // caller is asking us to take ownership of the COM reference.  If we
 // fail to create a Python object, we must release the reference.

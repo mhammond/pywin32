@@ -42,7 +42,7 @@ PyObject *PyIProvideMultipleClassInfo::GetInfoOfIndex(PyObject *self, PyObject *
     if (!PyArg_ParseTuple(args, "ii:GetInfoOfIndex", &item, &flags))
         return NULL;
     // Must be a reason for providing the flags attribute - possible
-    // performance.  Therefore support each item seperately...
+    // performance.  Therefore support each item separately...
     IProvideMultipleClassInfo *pMyInfo = GetI(self);
     if (pMyInfo == NULL)
         return NULL;
