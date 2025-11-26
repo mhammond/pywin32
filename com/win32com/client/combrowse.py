@@ -57,6 +57,7 @@ class HLIRoot(browser.HLIPythonObject[None]):
     def __lt__(self, other):
         return self.name < other.name
 
+
 class HLICOM(browser.HLIPythonObject[_HLICOMT]):
     def GetText(self):
         return self.name
