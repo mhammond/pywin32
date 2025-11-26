@@ -1,7 +1,4 @@
-"""adodbapi - a pure Python PEP 249 DB-API package using Microsoft ADO
-
-Adodbapi can be run on CPython 3.9 and later.
-"""
+"""adodbapi - a pure Python PEP 249 DB-API package using Microsoft ADO"""
 
 NAME = "adodbapi"
 MAINTAINER = "Vernon Cole"
@@ -48,7 +45,6 @@ def setup_package():
         description=DESCRIPTION,
         url=URL,
         keywords="database ado odbc dbapi db-api Microsoft SQL",
-        ##        download_url=DOWNLOAD_URL,
         long_description=open("README.txt").read(),
         license=LICENSE,
         classifiers=CLASSIFIERS,
