@@ -889,14 +889,9 @@ static PyObject *ui_window_dlg_dir_select(PyObject *self, PyObject *args)
     // @pyparm int|idListbox||The Id of the listbox.
     if (!PyArg_ParseTuple(args, "i:DlgDirSelect", &nIDListBox))
         return NULL;
-    int rc;
     TCHAR buf[MAX_PATH];
     GUI_BGN_SAVE;
-#if _MFC_VER >= 0x0800
-    rc = pWnd->DlgDirSelect(buf, sizeof(buf) / sizeof(TCHAR), nIDListBox);
-#else
-    rc = pWnd->DlgDirSelect(buf, nIDListBox);
-#endif
+    int rc = pWnd->DlgDirSelect(buf, sizeof(buf) / sizeof(TCHAR), nIDListBox);
     // @pyseemfc CWnd|DlgDirSelect
     GUI_END_SAVE;
     if (!rc)
@@ -916,15 +911,10 @@ static PyObject *ui_window_dlg_dir_select_combo(PyObject *self, PyObject *args)
     // @pyparm int|idListbox||The Id of the combobox.
     if (!PyArg_ParseTuple(args, "i:DlgDirSelectComboBox", &nIDListBox))
         return NULL;
-    int rc;
     TCHAR buf[MAX_PATH];
     GUI_BGN_SAVE;
     // @pyseemfc CWnd|DlgDirSelectComboBox
-#if _MFC_VER >= 0x0800
-    rc = pWnd->DlgDirSelectComboBox(buf, sizeof(buf) / sizeof(TCHAR), nIDListBox);
-#else
-    rc = pWnd->DlgDirSelectComboBox(buf, nIDListBox);
-#endif
+    int rc = pWnd->DlgDirSelectComboBox(buf, sizeof(buf) / sizeof(TCHAR), nIDListBox);
     GUI_END_SAVE;
     if (!rc)
         RETURN_ERR("DlgDirSelectComboBox failed");
