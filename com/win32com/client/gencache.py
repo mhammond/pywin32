@@ -79,7 +79,9 @@ pickleVersion = 1
 def _SaveDicts():
     if is_readonly:
         raise RuntimeError(
-            "Trying to write to a readonly gencache ('%s')!" % win32com.__gen_path__
+            "Trying to write to a readonly gencache ('{}')!".format(
+                win32com.__gen_path__
+            )
         )
     f = open(os.path.join(GetGeneratePath(), "dicts.dat"), "wb")
     try:
@@ -749,7 +751,7 @@ def GetGeneratedInfos():
 
 def _GetModule(fname):
     """Given the name of a module in the gen_py directory, import and return it."""
-    mod_name = "win32com.gen_py.%s" % fname
+    mod_name = "win32com.gen_py.{}".format(fname)
     with ModuleMutex(fname):
         __import__(mod_name)
     return sys.modules[mod_name]
