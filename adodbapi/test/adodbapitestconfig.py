@@ -23,8 +23,7 @@ print("\nPython", sys.version)
 node = platform.node()
 try:
     print(
-        "node=%s, is64bit.os()= %s, is64bit.Python()= %s"
-        % (node, is64bit.os(), is64bit.Python())
+        f"node={node}, is64bit.os()= {is64bit.os()}, is64bit.Python()= {is64bit.Python()}"
     )
 except:
     pass
@@ -164,7 +163,7 @@ if doPostgresTest:
     ]
     # get driver from https://www.postgresql.org/ftp/odbc/releases/
     # test using positional and keyword arguments (bad example for real code)
-    print("    ...Testing PostgreSQL login to {}...".format(_computername))
+    print(f"    ...Testing PostgreSQL login to {_computername}...")
     doPostgresTest, connStrPostgres, dbPostgresConnect = tryconnection.try_connection(
         verbose,
         "%(prov_drv)s;Server=%(host)s;Database=%(database)s;uid=%(user)s;pwd=%(password)s;port=5430;",  # note nonstandard port

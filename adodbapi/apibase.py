@@ -519,7 +519,7 @@ class SQLrow:  # a single database row
         try:
             return self._getValue(self.rows.columnNames[name.lower()])
         except KeyError:
-            raise AttributeError('Unknown column name "{}"'.format(name))
+            raise AttributeError(f'Unknown column name "{name}"')
 
     def _getValue(self, key):  # key must be an integer
         if (
@@ -710,7 +710,7 @@ def changeFormatToQmark(
                             s, chunk = sp[1].split(")s", 1)  # find the ')s'
                         except ValueError:
                             raise ProgrammingError(
-                                'Pyformat SQL has incorrect format near "%s"' % chunk
+                                f'Pyformat SQL has incorrect format near "{chunk}"'
                             )
                         outparams.append(s)
                         outOp += "?"  # put in the Qmark

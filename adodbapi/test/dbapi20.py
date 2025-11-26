@@ -112,10 +112,10 @@ class DatabaseAPI20Test(unittest.TestCase):
     connect_kw_args = {}  # Keyword arguments for connect
     table_prefix = "dbapi20test_"  # If you need to specify a prefix for tables
 
-    ddl1 = "create table %sbooze (name varchar(20))" % table_prefix
-    ddl2 = "create table %sbarflys (name varchar(20), drink varchar(30))" % table_prefix
-    xddl1 = "drop table %sbooze" % table_prefix
-    xddl2 = "drop table %sbarflys" % table_prefix
+    ddl1 = f"create table {table_prefix}booze (name varchar(20))"
+    ddl2 = f"create table {table_prefix}barflys (name varchar(20), drink varchar(30))"
+    xddl1 = f"drop table {table_prefix}booze"
+    xddl2 = f"drop table {table_prefix}barflys"
 
     lowerfunc = "lower"  # Name of stored procedure to convert string->lowercase
 
@@ -261,9 +261,9 @@ class DatabaseAPI20Test(unittest.TestCase):
             cur2 = con.cursor()
             self.executeDDL1(cur1)
             cur1.execute(
-                "insert into %sbooze values ('Victoria Bitter')" % (self.table_prefix)
+                f"insert into {self.table_prefix}booze values ('Victoria Bitter')"
             )
-            cur2.execute("select name from %sbooze" % self.table_prefix)
+            cur2.execute(f"select name from {self.table_prefix}booze")
             booze = cur2.fetchall()
             self.assertEqual(len(booze), 1)
             self.assertEqual(len(booze[0]), 1)
@@ -282,7 +282,7 @@ class DatabaseAPI20Test(unittest.TestCase):
                 "cursor.description should be none after executing a "
                 "statement that can return no rows (such as DDL)",
             )
-            cur.execute("select name from %sbooze" % self.table_prefix)
+            cur.execute(f"select name from {self.table_prefix}booze")
             self.assertEqual(
                 len(cur.description), 1, "cursor.description describes too many columns"
             )
@@ -299,8 +299,7 @@ class DatabaseAPI20Test(unittest.TestCase):
             self.assertEqual(
                 cur.description[0][1],
                 self.driver.STRING,
-                "cursor.description[x][1] must return column type. Got %r"
-                % cur.description[0][1],
+                f"cursor.description[x][1] must return column type. Got {cur.description[0][1]!r}",
             )
 
             # Make sure self.description gets reset
@@ -325,14 +324,14 @@ class DatabaseAPI20Test(unittest.TestCase):
                 "statements",
             )
             cur.execute(
-                "insert into %sbooze values ('Victoria Bitter')" % (self.table_prefix)
+                f"insert into {self.table_prefix}booze values ('Victoria Bitter')"
             )
             self.assertTrue(
                 cur.rowcount in (-1, 1),
                 "cursor.rowcount should == number or rows inserted, or "
                 "set to -1 after executing an insert statement",
             )
-            cur.execute("select name from %sbooze" % self.table_prefix)
+            cur.execute(f"select name from {self.table_prefix}booze")
             self.assertTrue(
                 cur.rowcount in (-1, 1),
                 "cursor.rowcount should == number of rows returned, or "
@@ -400,46 +399,40 @@ class DatabaseAPI20Test(unittest.TestCase):
     def _paraminsert(self, cur):
         self.executeDDL2(cur)
         cur.execute(
-            "insert into %sbarflys values ('Victoria Bitter', 'thi%%s :may ca%%(u)se? troub:1e')"
-            % (self.table_prefix)
+            f"insert into {self.table_prefix}barflys values ('Victoria Bitter', 'thi%s :may ca%(u)se? troub:1e')"
         )
         self.assertTrue(cur.rowcount in (-1, 1))
 
         if self.driver.paramstyle == "qmark":
             cur.execute(
-                "insert into %sbarflys values (?, 'thi%%s :may ca%%(u)se? troub:1e')"
-                % self.table_prefix,
+                f"insert into {self.table_prefix}barflys values (?, 'thi%s :may ca%(u)se? troub:1e')",
                 ("Cooper's",),
             )
         elif self.driver.paramstyle == "numeric":
             cur.execute(
-                "insert into %sbarflys values (:1, 'thi%%s :may ca%%(u)se? troub:1e')"
-                % self.table_prefix,
+                f"insert into {self.table_prefix}barflys values (:1, 'thi%s :may ca%(u)se? troub:1e')",
                 ("Cooper's",),
             )
         elif self.driver.paramstyle == "named":
             cur.execute(
-                "insert into %sbarflys values (:beer, 'thi%%s :may ca%%(u)se? troub:1e')"
-                % self.table_prefix,
+                f"insert into {self.table_prefix}barflys values (:beer, 'thi%s :may ca%(u)se? troub:1e')",
                 {"beer": "Cooper's"},
             )
         elif self.driver.paramstyle == "format":
             cur.execute(
-                "insert into %sbarflys values (%%s, 'thi%%s :may ca%%(u)se? troub:1e')"
-                % self.table_prefix,
+                f"insert into {self.table_prefix}barflys values (%s, 'thi%s :may ca%(u)se? troub:1e')",
                 ("Cooper's",),
             )
         elif self.driver.paramstyle == "pyformat":
             cur.execute(
-                "insert into %sbarflys values (%%(beer)s, 'thi%%s :may ca%%(u)se? troub:1e')"
-                % self.table_prefix,
+                f"insert into {self.table_prefix}barflys values (%(beer)s, 'thi%s :may ca%(u)se? troub:1e')",
                 {"beer": "Cooper's"},
             )
         else:
             self.fail("Invalid paramstyle")
         self.assertTrue(cur.rowcount in (-1, 1))
 
-        cur.execute("select name, drink from %sbarflys" % self.table_prefix)
+        cur.execute(f"select name, drink from {self.table_prefix}barflys")
         res = cur.fetchall()
         self.assertEqual(len(res), 2, "cursor.fetchall returned too few rows")
         beers = [res[0][0], res[1][0]]
@@ -477,23 +470,23 @@ class DatabaseAPI20Test(unittest.TestCase):
             margs = [{"beer": "Cooper's"}, {"beer": "Boag's"}]
             if self.driver.paramstyle == "qmark":
                 cur.executemany(
-                    "insert into %sbooze values (?)" % self.table_prefix, largs
+                    f"insert into {self.table_prefix}booze values (?)", largs
                 )
             elif self.driver.paramstyle == "numeric":
                 cur.executemany(
-                    "insert into %sbooze values (:1)" % self.table_prefix, largs
+                    f"insert into {self.table_prefix}booze values (:1)", largs
                 )
             elif self.driver.paramstyle == "named":
                 cur.executemany(
-                    "insert into %sbooze values (:beer)" % self.table_prefix, margs
+                    f"insert into {self.table_prefix}booze values (:beer)", margs
                 )
             elif self.driver.paramstyle == "format":
                 cur.executemany(
-                    "insert into %sbooze values (%%s)" % self.table_prefix, largs
+                    f"insert into {self.table_prefix}booze values (%s)", largs
                 )
             elif self.driver.paramstyle == "pyformat":
                 cur.executemany(
-                    "insert into %sbooze values (%%(beer)s)" % (self.table_prefix),
+                    f"insert into {self.table_prefix}booze values (%(beer)s)",
                     margs,
                 )
             else:
@@ -501,9 +494,9 @@ class DatabaseAPI20Test(unittest.TestCase):
             self.assertTrue(
                 cur.rowcount in (-1, 2),
                 "insert using cursor.executemany set cursor.rowcount to "
-                "incorrect value %r" % cur.rowcount,
+                f"incorrect value {cur.rowcount!r}",
             )
-            cur.execute("select name from %sbooze" % self.table_prefix)
+            cur.execute(f"select name from {self.table_prefix}booze")
             res = cur.fetchall()
             self.assertEqual(
                 len(res), 2, "cursor.fetchall retrieved incorrect number of rows"
@@ -511,7 +504,7 @@ class DatabaseAPI20Test(unittest.TestCase):
             beers = [res[0][0], res[1][0]]
             beers.sort()
             self.assertEqual(
-                beers[0], "Boag's", 'incorrect data "%s" retrieved' % beers[0]
+                beers[0], "Boag's", f'incorrect data "{beers[0]}" retrieved'
             )
             self.assertEqual(beers[1], "Cooper's", "incorrect data retrieved")
         finally:
@@ -531,7 +524,7 @@ class DatabaseAPI20Test(unittest.TestCase):
             self.executeDDL1(cur)
             self.assertRaises(self.driver.Error, cur.fetchone)
 
-            cur.execute("select name from %sbooze" % self.table_prefix)
+            cur.execute(f"select name from {self.table_prefix}booze")
             self.assertEqual(
                 cur.fetchone(),
                 None,
@@ -542,11 +535,11 @@ class DatabaseAPI20Test(unittest.TestCase):
             # cursor.fetchone should raise an Error if called after
             # executing a query that cannot return rows
             cur.execute(
-                "insert into %sbooze values ('Victoria Bitter')" % (self.table_prefix)
+                f"insert into {self.table_prefix}booze values ('Victoria Bitter')"
             )
             self.assertRaises(self.driver.Error, cur.fetchone)
 
-            cur.execute("select name from %sbooze" % self.table_prefix)
+            cur.execute(f"select name from {self.table_prefix}booze")
             r = cur.fetchone()
             self.assertEqual(
                 len(r), 1, "cursor.fetchone should have retrieved a single row"
@@ -577,8 +570,7 @@ class DatabaseAPI20Test(unittest.TestCase):
         tests.
         """
         populate = [
-            "insert into %sbooze values ('%s')" % (self.table_prefix, s)
-            for s in self.samples
+            f"insert into {self.table_prefix}booze values ('{s}')" for s in self.samples
         ]
         return populate
 
@@ -595,7 +587,7 @@ class DatabaseAPI20Test(unittest.TestCase):
             for sql in self._populate():
                 cur.execute(sql)
 
-            cur.execute("select name from %sbooze" % self.table_prefix)
+            cur.execute(f"select name from {self.table_prefix}booze")
             r = cur.fetchmany()
             self.assertEqual(
                 len(r),
@@ -623,7 +615,7 @@ class DatabaseAPI20Test(unittest.TestCase):
 
             # Same as above, using cursor.arraysize
             cur.arraysize = 4
-            cur.execute("select name from %sbooze" % self.table_prefix)
+            cur.execute(f"select name from {self.table_prefix}booze")
             r = cur.fetchmany()  # Should get 4 rows
             self.assertEqual(
                 len(r), 4, "cursor.arraysize not being honoured by fetchmany"
@@ -635,7 +627,7 @@ class DatabaseAPI20Test(unittest.TestCase):
             self.assertTrue(cur.rowcount in (-1, 6))
 
             cur.arraysize = 6
-            cur.execute("select name from %sbooze" % self.table_prefix)
+            cur.execute(f"select name from {self.table_prefix}booze")
             rows = cur.fetchmany()  # Should get all rows
             self.assertTrue(cur.rowcount in (-1, 6))
             self.assertEqual(len(rows), 6)
@@ -661,7 +653,7 @@ class DatabaseAPI20Test(unittest.TestCase):
             self.assertTrue(cur.rowcount in (-1, 6))
 
             self.executeDDL2(cur)
-            cur.execute("select name from %sbarflys" % self.table_prefix)
+            cur.execute(f"select name from {self.table_prefix}barflys")
             r = cur.fetchmany()  # Should get empty sequence
             self.assertEqual(
                 len(r),
@@ -691,7 +683,7 @@ class DatabaseAPI20Test(unittest.TestCase):
             # after executing a a statement that cannot return rows
             self.assertRaises(self.driver.Error, cur.fetchall)
 
-            cur.execute("select name from %sbooze" % self.table_prefix)
+            cur.execute(f"select name from {self.table_prefix}booze")
             rows = cur.fetchall()
             self.assertTrue(cur.rowcount in (-1, len(self.samples)))
             self.assertEqual(
@@ -715,7 +707,7 @@ class DatabaseAPI20Test(unittest.TestCase):
             self.assertTrue(cur.rowcount in (-1, len(self.samples)))
 
             self.executeDDL2(cur)
-            cur.execute("select name from %sbarflys" % self.table_prefix)
+            cur.execute(f"select name from {self.table_prefix}barflys")
             rows = cur.fetchall()
             self.assertTrue(cur.rowcount in (-1, 0))
             self.assertEqual(
@@ -736,7 +728,7 @@ class DatabaseAPI20Test(unittest.TestCase):
             for sql in self._populate():
                 cur.execute(sql)
 
-            cur.execute("select name from %sbooze" % self.table_prefix)
+            cur.execute(f"select name from {self.table_prefix}booze")
             rows1 = cur.fetchone()
             rows23 = cur.fetchmany(2)
             rows4 = cur.fetchone()
@@ -824,8 +816,8 @@ class DatabaseAPI20Test(unittest.TestCase):
         try:
             cur = con.cursor()
             self.executeDDL1(cur)
-            cur.execute("insert into %sbooze values (NULL)" % self.table_prefix)
-            cur.execute("select name from %sbooze" % self.table_prefix)
+            cur.execute(f"insert into {self.table_prefix}booze values (NULL)")
+            cur.execute(f"select name from {self.table_prefix}booze")
             r = cur.fetchall()
             self.assertEqual(len(r), 1)
             self.assertEqual(len(r[0]), 1)

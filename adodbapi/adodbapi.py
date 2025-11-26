@@ -92,7 +92,7 @@ def connect(*args, **kwargs):  # --> a db-api connection object
         co.connect(kwargs)
         return co
     except Exception as e:
-        message = 'Error opening connection to "%s"' % co.connection_string
+        message = f'Error opening connection to "{co.connection_string}"'
         raise api.OperationalError(e, message)
 
 
@@ -125,8 +125,7 @@ def format_parameters(ADOparameters, show_value=False):
     try:
         if show_value:
             desc = [
-                'Name: %s, Dir.: %s, Type: %s, Size: %s, Value: "%s", Precision: %s, NumericScale: %s'
-                % (
+                'Name: {}, Dir.: {}, Type: {}, Size: {}, Value: "{}", Precision: {}, NumericScale: {}'.format(
                     p.Name,
                     adc.directions[p.Direction],
                     adc.adTypeNames.get(p.Type, str(p.Type) + " (unknown type)"),
@@ -139,8 +138,7 @@ def format_parameters(ADOparameters, show_value=False):
             ]
         else:
             desc = [
-                "Name: %s, Dir.: %s, Type: %s, Size: %s, Precision: %s, NumericScale: %s"
-                % (
+                "Name: {}, Dir.: {}, Type: {}, Size: {}, Precision: {}, NumericScale: {}".format(
                     p.Name,
                     adc.directions[p.Direction],
                     adc.adTypeNames.get(p.Type, str(p.Type) + " (unknown type)"),
@@ -257,7 +255,7 @@ class Connection:
         self.mode = kwargs.get("mode", adc.adModeUnknown)
         self.kwargs = kwargs
         if verbose:
-            print('%s attempting: "%s"' % (version, self.connection_string))
+            print(f'{version} attempting: "{self.connection_string}"')
         self.connector = connection_maker()
         self.connector.ConnectionTimeout = self.timeout
         self.connector.ConnectionString = self.connection_string
@@ -268,7 +266,7 @@ class Connection:
         except api.Error:
             self._raiseConnectionError(
                 api.DatabaseError,
-                "ADO error trying to Open=%s" % self.connection_string,
+                f"ADO error trying to Open={self.connection_string}",
             )
 
         try:  # Stefan Fuchs; support WINCCOLEDBProvider
@@ -297,7 +295,7 @@ class Connection:
             self.paramstyle = kwargs["paramstyle"]  # let setattr do the error checking
         self.messages = []
         if verbose:
-            print("adodbapi New connection at %X" % id(self))
+            print(f"adodbapi New connection at {id(self):X}")
 
     def _raiseConnectionError(self, errorclass, errorvalue):
         eh = self.errorhandler
@@ -318,7 +316,7 @@ class Connection:
                     pass
         self.connector.Close()
         if verbose:
-            print("adodbapi Closed connection at %X" % id(self))
+            print(f"adodbapi Closed connection at {id(self):X}")
 
     def close(self):
         """Close the connection now (rather than whenever __del__ is called).
@@ -355,7 +353,7 @@ class Connection:
         try:
             self.transaction_level = self.connector.CommitTrans()
             if verbose > 1:
-                print("commit done on connection at %X" % id(self))
+                print(f"commit done on connection at {id(self):X}")
             if not (
                 self._autocommit
                 or (self.connector.Attributes & adc.adXactAbortRetaining)
@@ -389,7 +387,7 @@ class Connection:
             try:
                 self.transaction_level = self.connector.RollbackTrans()
                 if verbose > 1:
-                    print("rollback done on connection at %X" % id(self))
+                    print(f"rollback done on connection at {id(self):X}")
                 if not self._autocommit and not (
                     self.connector.Attributes & adc.adXactAbortRetaining
                 ):
@@ -435,7 +433,7 @@ class Connection:
             return self._autocommit
         else:
             raise AttributeError(
-                'no such attribute in ADO connection object as="%s"' % item
+                f'no such attribute in ADO connection object as="{item}"'
             )
 
     def cursor(self):
@@ -459,17 +457,19 @@ class Connection:
     def printADOerrors(self):
         j = self.connector.Errors.Count
         if j:
-            print("ADO Errors:(%i)" % j)
+            print(f"ADO Errors:({j})")
         for e in self.connector.Errors:
-            print("Description: %s" % e.Description)
-            print("Error: %s %s " % (e.Number, adc.adoErrors.get(e.Number, "unknown")))
+            print(f"Description: {e.Description}")
+            print(
+                "Error: {} {} ".format(e.Number, adc.adoErrors.get(e.Number, "unknown"))
+            )
             if e.Number == adc.ado_error_TIMEOUT:
                 print(
                     "Timeout Error: Try using adodbapi.connect(constr,timeout=Nseconds)"
                 )
-            print("Source: %s" % e.Source)
-            print("NativeError: %s" % e.NativeError)
-            print("SQL State: %s" % e.SQLState)
+            print(f"Source: {e.Source}")
+            print(f"NativeError: {e.NativeError}")
+            print(f"SQL State: {e.SQLState}")
 
     def _suggest_error_class(self):
         """Introspect the current ADO Errors and determine an appropriate error class.
@@ -561,8 +561,7 @@ class Cursor:
         connection._i_am_here(self)
         if verbose:
             print(
-                "%s New cursor at %X on conn %X"
-                % (version, id(self), id(self.connection))
+                f"{version} New cursor at {id(self):X} on conn {id(self.connection):X}"
             )
 
     def __iter__(self):  # [2.1 Zamarev]
@@ -618,7 +617,7 @@ class Cursor:
                 )  # conversion function for this column
             except KeyError:
                 self._raiseCursorError(
-                    api.InternalError, "Data column of Unknown ADO type=%s" % f.Type
+                    api.InternalError, f"Data column of Unknown ADO type={f.Type}"
                 )
             self.columnNames[f.Name.lower()] = i  # columnNames lookup
 
@@ -667,17 +666,14 @@ class Cursor:
             self._makeDescriptionFromRS()
         if isinstance(d, int):
             d = self.description[d]
-        desc = (
-            "Name= %s, Type= %s, DispSize= %s, IntSize= %s, Precision= %s, Scale= %s NullOK=%s"
-            % (
-                d[0],
-                adc.adTypeNames.get(d[1], str(d[1]) + " (unknown type)"),
-                d[2],
-                d[3],
-                d[4],
-                d[5],
-                d[6],
-            )
+        desc = "Name= {}, Type= {}, DispSize= {}, IntSize= {}, Precision= {}, Scale= {} NullOK={}".format(
+            d[0],
+            adc.adTypeNames.get(d[1], str(d[1]) + " (unknown type)"),
+            d[2],
+            d[3],
+            d[4],
+            d[5],
+            d[6],
         )
         return desc
 
@@ -702,7 +698,7 @@ class Cursor:
             None  # this will make all future method calls on me throw an exception
         )
         if verbose:
-            print("adodbapi Closed cursor at %X" % id(self))
+            print(f"adodbapi Closed cursor at {id(self):X}")
 
     def __del__(self):
         try:
@@ -736,7 +732,7 @@ class Cursor:
         recordset = None
         count = -1  # default value
         if verbose:
-            print('Executing command="%s"' % self.commandText)
+            print(f'Executing command="{self.commandText}"')
         try:
             # ----- the actual SQL is executed here ---
             recordset, count = self.cmd.Execute()
@@ -745,10 +741,7 @@ class Cursor:
             _message = ""
             if hasattr(e, "args"):
                 _message += str(e.args) + "\n"
-            _message += "Command:\n%s\nParameters:\n%s" % (
-                self.commandText,
-                format_parameters(self.cmd.Parameters, True),
-            )
+            _message += f"Command:\n{self.commandText}\nParameters:\n{format_parameters(self.cmd.Parameters, True)}"
             klass = self.connection._suggest_error_class()
             self._raiseCursorError(klass, _message)
         try:
@@ -777,9 +770,8 @@ class Cursor:
         for p in tuple(self.cmd.Parameters):
             if verbose > 2:
                 print(
-                    'Returned=Name: %s, Dir.: %s, Type: %s, Size: %s, Value: "%s",'
-                    " Precision: %s, NumericScale: %s"
-                    % (
+                    'Returned=Name: {}, Dir.: {}, Type: {}, Size: {}, Value: "{}",'
+                    " Precision: {}, NumericScale: {}".format(
                         p.Name,
                         adc.directions[p.Direction],
                         adc.adTypeNames.get(p.Type, str(p.Type) + " (unknown type)"),
@@ -859,8 +851,7 @@ class Cursor:
             else:
                 if len(parameters) != self.cmd.Parameters.Count - 1:
                     raise api.ProgrammingError(
-                        "You must supply %d parameters for this stored procedure"
-                        % (self.cmd.Parameters.Count - 1)
+                        f"You must supply {(self.cmd.Parameters.Count - 1)} parameters for this stored procedure"
                     )
         if sproc or parameters != []:
             i = 0
@@ -873,12 +864,7 @@ class Cursor:
                                 p, parameters[pm_name], p.Type, parameters_known
                             )
                         except Exception as e:
-                            _message = "Error Converting Parameter {}: {}, {} <- {!r}\n".format(
-                                p.Name,
-                                adc.ado_type_name(p.Type),
-                                p.Value,
-                                parameters[pm_name],
-                            )
+                            _message = f"Error Converting Parameter {p.Name}: {adc.ado_type_name(p.Type)}, {p.Value} <- {parameters[pm_name]!r}\n"
                             self._raiseCursorError(
                                 api.DataError, f"{_message}->{e.args!r}"
                             )
@@ -893,12 +879,7 @@ class Cursor:
                         try:
                             _configure_parameter(p, value, p.Type, parameters_known)
                         except Exception as e:
-                            _message = "Error Converting Parameter {}: {}, {} <- {!r}\n".format(
-                                p.Name,
-                                adc.ado_type_name(p.Type),
-                                p.Value,
-                                value,
-                            )
+                            _message = f"Error Converting Parameter {p.Name}: {adc.ado_type_name(p.Type)}, {p.Value} <- {value!r}\n"
                             self._raiseCursorError(
                                 api.DataError, f"{_message}->{e.args!r}"
                             )
@@ -916,14 +897,7 @@ class Cursor:
                         try:
                             self.cmd.Parameters.Append(p)
                         except Exception as e:
-                            _message = (
-                                "Error Building Parameter {}: {}, {} <- {!r}\n".format(
-                                    p.Name,
-                                    adc.ado_type_name(p.Type),
-                                    p.Value,
-                                    elem,
-                                )
-                            )
+                            _message = f"Error Building Parameter {p.Name}: {adc.ado_type_name(p.Type)}, {p.Value} <- {elem!r}\n"
                             self._raiseCursorError(
                                 api.DataError, f"{_message}->{e.args!r}"
                             )
@@ -935,7 +909,7 @@ class Cursor:
                         self.cmd.Parameters.Append(p)
 
                     for elem in parameters:
-                        name = "p%i" % i
+                        name = f"p{i}"
                         adotype = api.pyTypeToADOType(elem)
                         p = self.cmd.CreateParameter(
                             name, adotype, adc.adParamInput
@@ -944,14 +918,7 @@ class Cursor:
                         try:
                             self.cmd.Parameters.Append(p)
                         except Exception as e:
-                            _message = (
-                                "Error Building Parameter {}: {}, {} <- {!r}\n".format(
-                                    p.Name,
-                                    adc.ado_type_name(p.Type),
-                                    p.Value,
-                                    elem,
-                                )
-                            )
+                            _message = f"Error Building Parameter {p.Name}: {adc.ado_type_name(p.Type)}, {p.Value} <- {elem!r}\n"
                             self._raiseCursorError(
                                 api.DataError, f"{_message}->{e.args!r}"
                             )
