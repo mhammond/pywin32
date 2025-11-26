@@ -70,12 +70,6 @@ def TopicKey(a):
     return a.name
 
 
-def __cat_from_defn(defn):
-    cat = category(defn)
-    cat.process()
-    return cat
-
-
 def parseCategories():
     # Sucks in an external category file.
     # format:
@@ -83,9 +77,13 @@ def parseCategories():
     # <repeat ...>
     import document_object
 
+    ret = []
     doc = document_object.GetDocument()
-    assert doc is not None
-    return [__cat_from_defn(defn) for defn in doc]
+    for defn in doc:
+        cat = category(defn)
+        cat.process()
+        ret.append(cat)
+    return ret
 
 
 def parseTopics(cat, input):

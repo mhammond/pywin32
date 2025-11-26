@@ -73,12 +73,13 @@ def GetDocument(fname="pywin32-document.xml"):
     handler = categoryHandler()
     parser.setContentHandler(handler)
     parser.parse(fname)
+    if handler.document is None:
+        raise RuntimeError("document was not set by parser")
     return handler.document
 
 
 if __name__ == "__main__":
     doc = GetDocument()
-    assert doc is not None
     print("Important Notes")
     for link in doc.important:
         print(" ", link.name, link.href)

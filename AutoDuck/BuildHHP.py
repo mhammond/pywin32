@@ -81,7 +81,6 @@ import document_object
 
 def main():
     doc = document_object.GetDocument()
-    assert doc is not None
     output = os.path.abspath(sys.argv[1])
     target = sys.argv[2]
     f = open(output + ".hhp", "w")
