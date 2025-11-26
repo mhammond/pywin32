@@ -213,7 +213,7 @@ PYCOM_EXPORT BOOL PyCom_InterfaceFromPyObject(PyObject *ob, REFIID iid, LPVOID *
 // As above, but allows instance with "_oleobj_" attribute.
 PYCOM_EXPORT BOOL PyCom_InterfaceFromPyInstanceOrObject(PyObject *ob, REFIID iid, LPVOID *ppv, BOOL bNoneOK = TRUE);
 
-// Release an arbitary COM pointer.
+// Release an arbitrary COM pointer.
 // NOTE: the PRECALL/POSTCALL stuff is probably not strictly necessary
 // since the PyGILSTATE stuff has been in place (and even then, it only
 // mattered when it was the last Release() on a Python implemented object)
@@ -264,6 +264,10 @@ PYCOM_EXPORT BOOL PyCom_PyObjectAsSTATPROPSETSTG(PyObject *, STATPROPSETSTG *);
 // Currency support.
 PYCOM_EXPORT PyObject *PyObject_FromCurrency(CURRENCY &cy);
 PYCOM_EXPORT BOOL PyObject_AsCurrency(PyObject *ob, CURRENCY *pcy);
+
+// Decimal support.
+PYCOM_EXPORT PyObject *PyObject_FromDecimal(DECIMAL &dec);
+PYCOM_EXPORT BOOL PyObject_AsDecimal(PyObject *ob, DECIMAL *pdec);
 
 // OLEMENUGROUPWIDTHS are used by axcontrol, shell, etc
 PYCOM_EXPORT BOOL PyObject_AsOLEMENUGROUPWIDTHS(PyObject *oblpMenuWidths, OLEMENUGROUPWIDTHS *pWidths);
@@ -425,8 +429,8 @@ class PYCOM_EXPORT PyOleNothing : public PyObject {
 // The other 2 wrap directly around the underlying method call.
 #define PY_INTERFACE_METHOD
 // Identical to Py_BEGIN_ALLOW_THREADS except no { !!!
-#define PY_INTERFACE_PRECALL PyThreadState *_save = PyEval_SaveThread();
-#define PY_INTERFACE_POSTCALL PyEval_RestoreThread(_save);
+#define PY_INTERFACE_PRECALL PyThreadState *_save = PyEval_SaveThread()
+#define PY_INTERFACE_POSTCALL PyEval_RestoreThread(_save)
 
 /////////////////////////////////////////////////////////////////////////////
 // class PyIUnknown
@@ -692,6 +696,7 @@ class PYCOM_EXPORT PythonOleArgHelper {
         VARIANT *m_varBuf;
         DATE m_dateBuf;
         CY m_cyBuf;
+        DECIMAL m_decBuf;
     };
 };
 

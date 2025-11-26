@@ -19,7 +19,7 @@ most links in this document will fail - you can also find this document in the
 CHM file that comes with pywin32, where the links will work</i>
 
 <h3>Introduction</h3>
-This documents Python support for hosting ISAPI exensions and filters inside
+This documents Python support for hosting ISAPI extensions and filters inside
 Microsoft Internet Information Server (IIS). It assumes a basic understanding
 of the ISAPI filter and extension mechanism.
 <p>
@@ -53,7 +53,7 @@ method, which is called on one of the worker threads rather than the thread
 that the request came in on.
 <p>
 There is base-class for a filter in <code>isapi.simple</code>, but there is no
-equivilent threaded filter - filters work under a different model, where
+equivalent threaded filter - filters work under a different model, where
 background processing is not possible.
 <h4>Samples</h4>
 Please see the <code>isapi/samples</code> directory for some sample filters
@@ -87,6 +87,6 @@ You can instruct py2exe to create a 'frozen' Python ISAPI filter/extension.
 In this case, py2exe will create a package with everything you need in one
 directory, and the Python source file embedded in the .zip file.
 <p>
-In general, you will want to build a seperate installation executable along
+In general, you will want to build a separate installation executable along
 with the ISAPI extension.  This executable will be built from the same script.
 See the ISAPI sample in the py2exe distribution.

@@ -82,7 +82,6 @@ generates Windows .hlp files.
 #include "PyITransferMediumItem.h"
 #include "PyIIdentityName.h"
 
-// These Require Windows 7 SDK to build
 #include "PyIEnumObjects.h"
 #include "PyIApplicationDocumentLists.h"
 #include "PyIApplicationDestinations.h"
@@ -408,8 +407,9 @@ PyObject *PyObject_FromPIDLArray(UINT cidl, LPCITEMIDLIST *pidl)
 }
 
 // See MSDN
-// http://msdn.microsoft.com/library/default.asp?url=/library/en-us/shellcc/platform/shell/programmersguide/shell_basics/shell_basics_programming/transferring/clipboard.asp
-// (or search MSDN for "CFSTR_SHELLIDLIST"
+// https://learn.microsoft.com/en-us/windows/win32/shell/dragdrop
+// https://learn.microsoft.com/en-us/windows/win32/shell/clipboard#cfstr_shellidlist
+// (or search for "CFSTR_SHELLIDLIST")
 #define GetPIDLFolder(pida) (LPCITEMIDLIST)(((LPBYTE)pida) + (pida)->aoffset[0])
 #define GetPIDLItem(pida, i) (LPCITEMIDLIST)(((LPBYTE)pida) + (pida)->aoffset[i + 1])
 PyObject *PyObject_FromCIDA(CIDA *pida)
@@ -855,11 +855,11 @@ void PyObject_CleanupDEFCONTEXTMENU(DEFCONTEXTMENU *dcm)
         dcm->psf->Release();
     if (dcm->punkAssociationInfo)
         dcm->punkAssociationInfo->Release();
+    PY_INTERFACE_POSTCALL;
     if (dcm->pidlFolder)
         PyObject_FreePIDL(dcm->pidlFolder);
     if (dcm->apidl)
         PyObject_FreePIDLArray(dcm->cidl, dcm->apidl);
-    PY_INTERFACE_POSTCALL
 }
 
 // @object DEFCONTENTMENU|A tuple representing a DEFCONTEXTMENU structure.
@@ -1491,7 +1491,7 @@ static PyObject *PySHGetFolderLocation(PyObject *self, PyObject *args)
 
 // @pymethod |shell|SHAddToRecentDocs|Adds a document to the shell's list of recently used documents or clears all
 // documents from the list. The user gains access to the list through the Start menu of the Windows taskbar.
-// @comm On Windows 7, the entry is also added to the application's jump list.
+// @comm The entry is also added to the application's jump list.
 // @pyseeapi SHAddToRecentDocs
 // @comm The underlying API function has no return value, and therefore no way to indicate failure.
 static PyObject *PySHAddToRecentDocs(PyObject *self, PyObject *args)
@@ -1556,8 +1556,6 @@ static PyObject *PySHAddToRecentDocs(PyObject *self, PyObject *args)
                 PyObject_FreePIDL(buf);
             break;
         }
-#if WINVER >= 0x0601
-        // Introduced in Windows 7
         case SHARD_APPIDINFO: {
             // @flag SHARD_APPIDINFO|Tuple of (<o PyIShellItem>, str), where str is an AppID
             SHARDAPPIDINFO buf;
@@ -1638,7 +1636,6 @@ static PyObject *PySHAddToRecentDocs(PyObject *self, PyObject *args)
             PY_INTERFACE_POSTCALL;
             break;
         }
-#endif  // WINVER
         default:
             PyErr_SetString(PyExc_NotImplementedError, "SHARD value not supported");
             return NULL;
@@ -2532,15 +2529,14 @@ static PyObject *PyShellExecuteEx(PyObject *self, PyObject *args, PyObject *kw)
 
     static char *kw_items[] = {
         "fMask",    "hwnd",    "lpVerb",    "lpFile",   "lpParameters", "lpDirectory", "nShow",
-        "lpIDList", "lpClass", "hkeyClass", "dwHotKey", "hIcon",        "hMonitor",    NULL,
+        "lpIDList", "lpClass", "hkeyClass", "dwHotKey", "hMonitor",     NULL,
     };
     PyObject *obhwnd = Py_None, *obVerb = NULL, *obFile = NULL, *obParams = NULL;
     PyObject *obDirectory = NULL, *obIDList = NULL, *obClass = NULL;
-    PyObject *obhkeyClass = NULL, *obHotKey = NULL, *obhIcon = NULL;
-    PyObject *obhMonitor = NULL;
-    // @pyparm int|fMask|0|The default mask for the structure.  Other
-    // masks may be added based on what paramaters are supplied.
-    if (!PyArg_ParseTupleAndKeywords(args, kw, "|lOOOOOlOOOOOO", kw_items, &info.fMask,
+    PyObject *obhkeyClass = NULL, *obHotKey = NULL, *obhMonitor = NULL;
+    if (!PyArg_ParseTupleAndKeywords(args, kw, "|lOOOOOlOOOOO", kw_items,
+                                     &info.fMask,   // @pyparm int|fMask|0|The default mask for the structure.
+                                                    // Other masks may be added based on what parameters are supplied.
                                      &obhwnd,       // @pyparm <o PyHANDLE>|hwnd|0|
                                      &obVerb,       // @pyparm string|lpVerb||
                                      &obFile,       // @pyparm string|lpFile||
@@ -2551,7 +2547,6 @@ static PyObject *PyShellExecuteEx(PyObject *self, PyObject *args, PyObject *kw)
                                      &obClass,      // @pyparm string|obClass||
                                      &obhkeyClass,  // @pyparm int|hkeyClass||
                                      &obHotKey,     // @pyparm int|dwHotKey||
-                                     &obhIcon,      // @pyparm <o PyHANDLE>|hIcon||
                                      &obhMonitor))  // @pyparm <o PyHANDLE>|hMonitor||
         goto done;
     if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&info.hwnd))
@@ -2584,17 +2579,6 @@ static PyObject *PyShellExecuteEx(PyObject *self, PyObject *args, PyObject *kw)
         info.dwHotKey = PyLong_AsLong(obHotKey);
         if (PyErr_Occurred())
             goto done;
-    }
-    if (obhIcon) {
-// SEE_MASK_ICON is defined around 'if (NTDDI_VERSION < NTDDI_LONGHORN)' and commented as 'not used'
-#ifndef SEE_MASK_ICON
-        PyErr_SetString(PyExc_NotImplementedError, "SEE_MASK_ICON not declared on this platform");
-        goto done;
-#else
-        info.fMask |= SEE_MASK_ICON;
-        if (!PyWinObject_AsHANDLE(obhIcon, &info.hIcon))
-            goto done;
-#endif
     }
     if (obhMonitor) {
         info.fMask |= SEE_MASK_HMONITOR;
@@ -3532,7 +3516,6 @@ static PyObject *PySHCreateStreamOnFileEx(PyObject *self, PyObject *args, PyObje
 static PyObject *PySetCurrentProcessExplicitAppUserModelID(PyObject *self, PyObject *args)
 {
     // @comm Should be used early in process startup before creating any windows
-    // @comm Requires Windows 7 or later
     // @pyparm str|AppID||The Application User Model ID used to group taskbar buttons
     if (pfnSetCurrentProcessExplicitAppUserModelID == NULL)
         return PyCom_BuildPyException(E_NOTIMPL);
@@ -3555,7 +3538,6 @@ static PyObject *PySetCurrentProcessExplicitAppUserModelID(PyObject *self, PyObj
 
 // @pymethod str|shell|GetCurrentProcessExplicitAppUserModelID|Retrieves the current taskbar identifier
 // @comm Will only retrieve an identifier if set by the application, not a system-assigned default.
-// @comm Requires Windows 7 or later
 static PyObject *PyGetCurrentProcessExplicitAppUserModelID(PyObject *self, PyObject *args)
 {
     if (pfnGetCurrentProcessExplicitAppUserModelID == NULL)
@@ -3817,8 +3799,6 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] = {
     PYCOM_INTERFACE_FULL(CurrentItem),         // based on IRelatedItem with no extra methods
     PYCOM_INTERFACE_FULL(DisplayItem),         // based on IRelatedItem with no extra methods
     PYCOM_INTERFACE_FULL(IdentityName),        // based on IRelatedItem with no extra methods
-                                               // These require Windows 7 SDK to build
-#if WINVER >= 0x0601
     PYCOM_INTERFACE_CLIENT_ONLY(EnumObjects),
     PYCOM_INTERFACE_CLIENT_ONLY(ApplicationDocumentLists),
     PYCOM_INTERFACE_CLSID_ONLY(ApplicationDocumentLists),
@@ -3833,7 +3813,6 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] = {
     PYCOM_INTERFACE_CLIENT_ONLY(CustomDestinationList),
     PYCOM_INTERFACE_CLSID_ONLY(ShellLibrary),
     PYCOM_INTERFACE_CLIENT_ONLY(ShellLibrary),
-#endif
 };
 
 static int AddConstant(PyObject *dict, const char *key, long value)
@@ -4127,8 +4106,6 @@ PYWIN_MODULE_INIT_FUNC(shell)
     ADD_IID(FOLDERID_Contacts);
     ADD_IID(FOLDERID_SidebarParts);
     ADD_IID(FOLDERID_SidebarDefaultParts);
-    // Removed in Windows 7 SDK
-    // ADD_IID(FOLDERID_TreeProperties);
     ADD_IID(FOLDERID_PublicGameTasks);
     ADD_IID(FOLDERID_GameTasks);
     ADD_IID(FOLDERID_SavedGames);
@@ -4139,8 +4116,6 @@ PYWIN_MODULE_INIT_FUNC(shell)
     ADD_IID(FOLDERID_UsersFiles);
     ADD_IID(FOLDERID_SearchHome);
     ADD_IID(FOLDERID_OriginalImages);
-#if WINVER >= 0x0601
-    // Added in Windows 7 SDK
     ADD_IID(FOLDERID_DeviceMetadataStore);
     ADD_IID(FOLDERID_DocumentsLibrary);
     ADD_IID(FOLDERID_HomeGroup);
@@ -4157,7 +4132,6 @@ PYWIN_MODULE_INIT_FUNC(shell)
     ADD_IID(FOLDERID_UserProgramFilesCommon);
     ADD_IID(FOLDERID_UsersLibraries);
     ADD_IID(FOLDERID_VideosLibrary);
-#endif  // WINVER
 
     // Known folder types
     ADD_IID(FOLDERTYPEID_Invalid);
@@ -4173,13 +4147,6 @@ PYWIN_MODULE_INIT_FUNC(shell)
     ADD_IID(FOLDERTYPEID_Contacts);
     ADD_IID(FOLDERTYPEID_NetworkExplorer);
     ADD_IID(FOLDERTYPEID_UserFiles);
-    // Removed in Windows 7 SDK
-    // ADD_IID(FOLDERTYPEID_Library);
-    // ADD_IID(FOLDERTYPEID_MusicDetails);
-    // ADD_IID(FOLDERTYPEID_MusicIcons);
-    // ADD_IID(FOLDERTYPEID_NotSpecified);
-#if WINVER >= 0x0601
-    // Added in Windows 7 SDK
     ADD_IID(FOLDERTYPEID_Communications);
     ADD_IID(FOLDERTYPEID_Generic);
     ADD_IID(FOLDERTYPEID_GenericLibrary);
@@ -4196,7 +4163,6 @@ PYWIN_MODULE_INIT_FUNC(shell)
     ADD_IID(FOLDERTYPEID_StartMenu);
     ADD_IID(FOLDERTYPEID_UsersLibraries);
     ADD_IID(FOLDERTYPEID_Videos);
-#endif  // WINVER
 
     // ??? The shell passes this resource type to IShellResources.OpenResource,
     // but it doesn't seem to be defined anywhere ???

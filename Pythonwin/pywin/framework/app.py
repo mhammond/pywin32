@@ -10,6 +10,7 @@ import builtins
 import os
 import sys
 import traceback
+import warnings
 from typing import TYPE_CHECKING
 
 import regutil
@@ -127,13 +128,10 @@ class CApp(WinApp):
         HookInput()
         numMRU = win32ui.GetProfileVal("Settings", "Recent File List Size", 10)
         win32ui.LoadStdProfileSettings(numMRU)
-        # 		self._obj_.InitMDIInstance()
-        if win32api.GetVersionEx()[0] < 4:
-            win32ui.SetDialogBkColor()
-            win32ui.Enable3dControls()
+        # self._obj_.InitMDIInstance()
 
         # install a "callback caller" - a manager for the callbacks
-        # 		self.oldCallbackCaller = win32ui.InstallCallbackCaller(self.CallbackManager)
+        # self.oldCallbackCaller = win32ui.InstallCallbackCaller(self.CallbackManager)
         self.LoadMainFrame()
         self.SetApplicationPaths()
 
@@ -172,7 +170,7 @@ class CApp(WinApp):
                 try:
                     thisRet = handler(handler, count)
                 except:
-                    print("Idle handler %s failed" % (repr(handler)))
+                    print(f"Idle handler {handler!r} failed")
                     traceback.print_exc()
                     print("Idle handler removed from list")
                     try:
@@ -289,7 +287,7 @@ class CApp(WinApp):
     # 		except:
     # 			# take copies of the exception values, else other (handled) exceptions may get
     # 			# copied over by the other fns called.
-    # 			win32ui.SetStatusText('An exception occured in a windows command handler.')
+    # 			win32ui.SetStatusText('An exception occurred in a windows command handler.')
     # 			t, v, tb = sys.exc_info()
     # 			traceback.print_exception(t, v, tb.tb_next)
     # 			try:
@@ -299,7 +297,7 @@ class CApp(WinApp):
 
     # Command handlers.
     def OnFileMRU(self, id, code):
-        "Called when a File 1-n message is recieved"
+        "Called when a File 1-n message is received"
         fileName = win32ui.GetRecentFileList()[id - win32ui.ID_FILE_MRU_FILE1]
         win32ui.GetApp().OpenDocumentFile(fileName)
 
@@ -346,27 +344,19 @@ class AboutBox(dialog.Dialog):
             win32ui.copyright, sys.copyright, scintilla, idle, contributors
         )
         self.SetDlgItemText(win32ui.IDC_EDIT1, text)
-        # Get the build number - written by installers.
-        # For distutils build, read pywin32.version.txt
         import sysconfig
 
         site_packages = sysconfig.get_paths()["platlib"]
+        version_path = os.path.join(site_packages, "pywin32.version.txt")
         try:
-            build_no = (
-                open(os.path.join(site_packages, "pywin32.version.txt")).read().strip()
-            )
-            ver = "pywin32 build %s" % build_no
+            with open(version_path) as f:
+                ver = "pywin32 build %s" % f.read().strip()
         except OSError:
             ver = None
-        if ver is None:
-            # See if we are Part of Active Python
-            ver = _GetRegistryValue(
-                "SOFTWARE\\ActiveState\\ActivePython", "CurrentVersion"
+        if not ver:
+            warnings.warn(
+                f"Could not read pywin32's version from '{version_path}'", stacklevel=1
             )
-            if ver is not None:
-                ver = f"ActivePython build {ver}"
-        if ver is None:
-            ver = ""
         self.SetDlgItemText(win32ui.IDC_ABOUT_VERSION, ver)
         self.HookCommand(self.OnButHomePage, win32ui.IDC_BUTTON1)
 

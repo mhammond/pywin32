@@ -29,10 +29,12 @@ class WorkerThread(threading.Thread):
         self.running = False
         self.io_req_port = io_req_port
         self.extension = extension
-        threading.Thread.__init__(self)
-        # We wait 15 seconds for a thread to terminate, but if it fails to,
-        # we don't want the process to hang at exit waiting for it...
-        self.setDaemon(True)
+        threading.Thread.__init__(
+            self,
+            # We wait 15 seconds for a thread to terminate, but if it fails to,
+            # we don't want the process to hang at exit waiting for it...
+            daemon=True,
+        )
 
     def run(self):
         self.running = True

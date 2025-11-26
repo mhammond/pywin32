@@ -101,6 +101,7 @@ class AXScriptException(COMException):
             warnings.warn(
                 "`exc_type` and `exc_traceback` were redundant and are now unused.",
                 category=DeprecationWarning,
+                stacklevel=2,
             )
 
         # And my other values...
@@ -218,9 +219,6 @@ class AXScriptException(COMException):
             line = None
         return filename, lineno, name, line
 
-    def __repr__(self):
-        return "AXScriptException Object with description:" + self.description
-
 
 def ProcessAXScriptException(
     scriptingSite: AXSite,
@@ -247,8 +245,8 @@ def ProcessAXScriptException(
         result = scriptingSite.OnScriptError(gateway)
     except pythoncom.com_error as details:
         print("**OnScriptError failed:", details)
-        print("Exception description:'%s'" % (repr(exceptionInstance.description)))
-        print("Exception text:'%s'" % (repr(exceptionInstance.linetext)))
+        print(f"Exception description: '{exceptionInstance.description!r}'")
+        print(f"Exception text: '{exceptionInstance.linetext!r}'")
         result = winerror.S_FALSE
 
     if result == winerror.S_OK:

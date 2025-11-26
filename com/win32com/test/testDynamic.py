@@ -1,10 +1,11 @@
 # Test dynamic policy, and running object table.
 
 import pythoncom
+import pywintypes
 import winerror
 from win32com.server.exception import COMException
 
-iid = pythoncom.MakeIID("{b48969a0-784b-11d0-ae71-d23f56000000}")
+iid = pywintypes.IID("{b48969a0-784b-11d0-ae71-d23f56000000}")
 
 
 class VeryPermissive:
@@ -37,8 +38,8 @@ class VeryPermissive:
             )  # Probably call as PROPGET.
 
         for arg in args[:-1]:
-            print(str(arg), end=" ")
-        print(str(args[-1]))
+            print(arg, end=" ")
+        print(args[-1])
 
 
 def Test():
@@ -63,10 +64,8 @@ def Test():
 
         v = ["Hello", "From", "Python", 1.4]
         client.TestSequence = v
-        assert v == list(
-            client.TestSequence
-        ), "Dynamic sequences not working! {!r}/{!r}".format(
-            repr(v), repr(client.testSequence)
+        assert v == list(client.TestSequence), (
+            f"Dynamic sequences not working! {v!r}/{client.testSequence!r}"
         )
 
         client.write("This", "output", "has", "come", "via", "testDynamic.py")

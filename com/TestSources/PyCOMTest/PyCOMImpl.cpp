@@ -379,6 +379,13 @@ STDMETHODIMP CPyCOMTest::GetSafeArrays(SAFEARRAY **attrs, SAFEARRAY **attrs2, SA
     return S_OK;
 }
 
+STDMETHODIMP CPyCOMTest::GetByteArray(long sizeBytes, SAFEARRAY **array)
+{
+    SAFEARRAYBOUND bound = {static_cast<ULONG>(sizeBytes), 0};
+    *array = SafeArrayCreate(VT_UI1, 1, &bound);
+    return S_OK;
+}
+
 STDMETHODIMP CPyCOMTest::GetSimpleSafeArray(SAFEARRAY **attrs) { return MakeFillIntArray(attrs, 10, VT_I4); }
 
 STDMETHODIMP CPyCOMTest::CheckVariantSafeArray(SAFEARRAY **attrs, int *result)
@@ -437,7 +444,7 @@ HRESULT CPyCOMTest::Fire(long nID)
             if (FAILED(hr))
                 break;
             // call FireWithNamedParams a variety of ways.
-            // See http://msdn2.microsoft.com/en-us/library/ms221653.aspx
+            // See https://learn.microsoft.com/en-ca/previous-versions/windows/desktop/automat/passing-parameters
             // "Passing Parameters (Component Automation)" for details.
 
             OLECHAR *names2[] = {L"OnFireWithNamedParams"};
@@ -637,8 +644,7 @@ HRESULT CPyCOMTest::VerifyArrayOfStructs(TestStruct2 *prec, VARIANT_BOOL *is_ok)
         return E_FAIL;
     }
     *is_ok = VARIANT_TRUE;
-    for (i = 0; i < prec->rec_count; i++)
-    {
+    for (i = 0; i < prec->rec_count; i++) {
         if (_wcsicmp(pdata[i].str_value, L"This is record number") != 0 || pdata[i].int_value != i + 1) {
             *is_ok = VARIANT_FALSE;
             break;
@@ -900,6 +906,38 @@ HRESULT CPyCOMTest::AddCurrencies(CY v1, CY v2, CY *pret)
     return S_OK;
 }
 
+HRESULT CPyCOMTest::DoubleDecimalByVal(DECIMAL *v)
+{
+    // Define a DECIMAL value for 2
+    DECIMAL decFactor = {};
+    decFactor.scale = 0;
+    decFactor.sign = 0;
+    decFactor.Hi32 = 0;
+    decFactor.Mid32 = 0;
+    decFactor.Lo32 = 2;
+
+    DECIMAL result;
+    HRESULT hr = VarDecMul(v, &decFactor, &result);
+    if (FAILED(hr))
+        return hr;
+    *v = result;
+    return S_OK;
+}
+
+HRESULT CPyCOMTest::DoubleDecimal(DECIMAL v, DECIMAL *ret)
+{
+    DECIMAL decFactor = {};
+    decFactor.scale = 0;
+    decFactor.sign = 0;
+    decFactor.Hi32 = 0;
+    decFactor.Mid32 = 0;
+    decFactor.Lo32 = 2;
+
+    return VarDecMul(&v, &decFactor, ret);
+}
+
+HRESULT CPyCOMTest::AddDecimals(DECIMAL v1, DECIMAL v2, DECIMAL *pret) { return VarDecAdd(&v1, &v2, pret); }
+
 HRESULT CPyCOMTest::NotScriptable(int *val)
 {
     (*val)++;
@@ -959,6 +997,20 @@ HRESULT CPyCOMTest::get_CurrencyProp(CY *ret)
     if (!ret)
         return E_POINTER;
     *ret = (CY)m_cy;
+    return S_OK;
+}
+
+HRESULT CPyCOMTest::put_DecimalProp(DECIMAL val)
+{
+    m_dec = val;
+    return S_OK;
+}
+
+HRESULT CPyCOMTest::get_DecimalProp(DECIMAL *ret)
+{
+    if (!ret)
+        return E_POINTER;
+    *ret = (DECIMAL)m_dec;
     return S_OK;
 }
 
