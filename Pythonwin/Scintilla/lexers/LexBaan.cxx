@@ -228,8 +228,8 @@ static bool IsPreProcLine(Sci_Position line, LexAccessor &styler) {
 		if (ch == '#' && style == SCE_BAAN_PREPROCESSOR) {
 			if (styler.Match(i, "#elif") || styler.Match(i, "#else") || styler.Match(i, "#endif")
 				|| styler.Match(i, "#if") || styler.Match(i, "#ifdef") || styler.Match(i, "#ifndef"))
-				// Above PreProcessors has a seperate fold mechanism.
-				return false;
+                // Above PreProcessors has a separate fold mechanism.
+                return false;
 			else
 				return true;
 		}

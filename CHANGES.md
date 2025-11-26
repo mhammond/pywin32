@@ -22,6 +22,16 @@ Coming in build 312, as yet unreleased
 
 * When `errorhandler` is called, the `errorvalue` argument is now always an `Exception` and the `errortype` is the `type` of that specific `errorvalue` (#2351, @Avasam)
 
+## pywin32
+
+* Fixed missing version stamp on built `.dll` and `.exe` files (mhammond#2647, [@Avasam][Avasam])
+* Removed considerations for Windows 95/98/ME (mhammond#2400, [@Avasam][Avasam])
+  This removes the following constants:
+  * `win32con.FILE_ATTRIBUTE_ATOMIC_WRITE`
+  * `win32con.FILE_ATTRIBUTE_XACTION_WRITE`
+* Removed considerations for MFC < 9 (VS 2008) (mhammond#2669, [@Avasam][Avasam])
+  * This removes the unusable `PyCSliderCtrl.VerifyPos` method
+
 Build 311, released 2025/07/14
 ------------------------------
 

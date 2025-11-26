@@ -410,14 +410,7 @@ class CPythonWndFramework : public T {
 
    protected:
     static AFX_DATA const AFX_MSGMAP messageMap;
-    static const AFX_MSGMAP *PASCAL _GetBaseMessageMap()
-    {
-#if _MFC_VER >= 0x0700
-        return T::GetThisMessageMap();
-#else
-        return &T::messageMap;
-#endif /* _MFC_VER */
-    }
+    static const AFX_MSGMAP *PASCAL _GetBaseMessageMap() { return T::GetThisMessageMap(); }
     virtual const AFX_MSGMAP *GetMessageMap() const { return &messageMap; }
 };
 
@@ -425,8 +418,8 @@ template <class T>
 AFX_DATADEF const AFX_MSGMAP CPythonWndFramework<T>::messageMap = {&CPythonWndFramework<T>::_GetBaseMessageMap,
                                                                    &CPythonWndFramework<T>::_messageEntries[0]};
 
-// ack - compile error in MFC9 (and not x64), and only for ON_WM_NCHITTEST!
-#if _MFC_VER >= 0x0900 && !defined(_WIN64)
+// ack - compile error on not x64, and only for ON_WM_NCHITTEST!
+#if !defined(_WIN64)
 #undef ON_WM_NCHITTEST
 // from afxmsg_.h - the UINT was originally LRESULT
 #define ON_WM_NCHITTEST() \
@@ -1073,14 +1066,7 @@ class CPythonPrtDlgFramework : public CPythonDlgFramework<T> {
    protected:
     static AFX_DATA const AFX_MSGMAP messageMap;
 
-    static const AFX_MSGMAP *PASCAL _GetBaseMessageMap()
-    {
-#if _MFC_VER >= 0x0700
-        return T::GetThisMessageMap();
-#else
-        return &T::messageMap;
-#endif
-    }
+    static const AFX_MSGMAP *PASCAL _GetBaseMessageMap() { return T::GetThisMessageMap(); }
     virtual const AFX_MSGMAP *GetMessageMap() const { return &messageMap; }
 };
 
