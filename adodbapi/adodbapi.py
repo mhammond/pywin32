@@ -26,6 +26,7 @@ DB-API 2.0 specification: https://peps.python.org/pep-0249/
 This module source should run correctly in CPython versions 2.7 and later,
 or CPython 3.4 or later.
 """
+
 from __future__ import annotations
 
 __version__ = "2.6.2.0"
@@ -403,6 +404,9 @@ class Connection:
             except Exception as e:
                 self._raiseConnectionError(api.ProgrammingError, e)
 
+    # TODO: Use a property+setter instead
+    variantConversions: api.MultiMap
+
     def __setattr__(self, name, value):
         if name == "autocommit":  # extension: allow user to turn autocommit on or off
             if self.supportsTransactions:
@@ -621,9 +625,8 @@ class Cursor:
         for i in range(self.numberOfColumns):
             f = getIndexedValue(self.rs.Fields, i)
             try:
-                self.converters.append(
-                    varCon[f.Type]
-                )  # conversion function for this column
+                # conversion function for this column
+                self.converters.append(varCon[f.Type])
             except KeyError:
                 self._raiseCursorError(
                     api.InternalError, "Data column of Unknown ADO type=%s" % f.Type
