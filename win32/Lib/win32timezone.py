@@ -10,7 +10,7 @@ on the registry entries defined by the operating system.
     Copyright © 2003-2012.
     All Rights Reserved.
 
-    This module is licenced for use in Mark Hammond's pywin32
+    This module is licensed for use in Mark Hammond's pywin32
 library under the same terms as the pywin32 library.
 
     To use this time zone module with the datetime module, simply pass
@@ -101,7 +101,7 @@ True
 '2007-06-13 01:00:00'
 
 Microsoft now has a patch for handling time zones in 2007 (see
-http://support.microsoft.com/gp/cp_dst)
+https://learn.microsoft.com/en-us/troubleshoot/windows-client/system-management-components/daylight-saving-time-help-support)
 
 As a result, patched systems will give an incorrect result for
 dates prior to the designated year except for Vista and its
@@ -557,7 +557,6 @@ class TimeZoneInfo(datetime.tzinfo):
     ValueError: subkey name cannot be empty
     """
 
-    # this key works for WinNT+, but not for the Win95 line.
     tzRegKey = r"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Time Zones"
 
     def __init__(
@@ -578,7 +577,7 @@ class TimeZoneInfo(datetime.tzinfo):
 
     def _FindTimeZoneKey(self) -> _RegKeyDict:
         """Find the registry key for the time zone name (self.timeZoneName)."""
-        # for multi-language compatability, match the time zone name in the
+        # for multi-language compatibility, match the time zone name in the
         # "Std" key of the time zone key.
         zoneNames = dict(self._get_indexed_time_zone_keys("Std"))
         # Also match the time zone key name itself, to be compatible with
@@ -901,7 +900,7 @@ class TimeZoneInfo(datetime.tzinfo):
         key must be a function that takes a TimeZoneInfo object and returns
         a value suitable for sorting on.
         The key defaults to the bias (descending), as is done in Windows
-        (see http://blogs.msdn.com/michkap/archive/2006/12/22/1350684.aspx)
+        (see https://web.archive.org/web/20130723075340/http://blogs.msdn.com/b/michkap/archive/2006/12/22/1350684.aspx)
         """
         key = key or (lambda tzi: -tzi.staticInfo.bias)
         zones = TimeZoneInfo.get_all_time_zones()
@@ -1023,7 +1022,8 @@ def resolveMUITimeZone(spec: str) -> str | None:
     """Resolve a multilingual user interface resource for the time zone name
 
     spec should be of the format @path,-stringID[;comment]
-    see http://msdn2.microsoft.com/en-us/library/ms725481.aspx for details
+    see https://learn.microsoft.com/en-ca/windows/win32/api/timezoneapi/ns-timezoneapi-time_zone_information
+    for details
 
     >>> import sys
     >>> result = resolveMUITimeZone('@tzres.dll,-110')

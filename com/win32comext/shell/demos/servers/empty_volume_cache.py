@@ -1,5 +1,5 @@
 # A sample implementation of IEmptyVolumeCache - see
-# http://msdn2.microsoft.com/en-us/library/aa969271.aspx for an overview.
+# https://learn.microsoft.com/en-ca/windows/win32/lwef/disk-cleanup for an overview.
 #
 # * Execute this script to register the handler
 # * Start the "disk cleanup" tool - look for "pywin32 compiled files"
@@ -36,8 +36,6 @@ class EmptyVolumeCache:
     _public_methods_ = IEmptyVolumeCache_Methods + IEmptyVolumeCache2_Methods
 
     def Initialize(self, hkey, volume, flags):
-        # This should never be called, except on win98.
-        print("Unless we are on 98, Initialize call is unexpected!")
         raise COMException(hresult=winerror.E_NOTIMPL)
 
     def InitializeEx(self, hkey, volume, key_name, flags):
