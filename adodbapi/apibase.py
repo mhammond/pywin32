@@ -454,6 +454,7 @@ def convert_to_python(variant, func):  # convert DB value into Python value
         return None
     return func(variant)  # call the appropriate conversion function
 
+
 # TODO: Make MultiMap generic
 class MultiMap(dict[int, Callable[[Any], object]]):
     # builds a dictionary from {(iterable,of,keys) : function}
