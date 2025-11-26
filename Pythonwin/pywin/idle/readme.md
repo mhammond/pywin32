@@ -3,7 +3,7 @@ Pythonwin IDLE directory
 
 This directory contains IDLE extensions used by
 Pythonwin.  The files in this directory that also appear in the main IDLE
-directory are intended be indentical to the latest available for IDLE.
+directory are intended be identical to the latest available for IDLE.
 
 If you use IDLE from the CVS sources, then the files should be
 identical.  If you have a Python version installed that is more recent
