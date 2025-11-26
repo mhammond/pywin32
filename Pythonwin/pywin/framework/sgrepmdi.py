@@ -639,9 +639,14 @@ class GrepDialog(dialog.Dialog):
 
 
 class GrepParamsDialog(dialog.Dialog):
-    def __init__(self, items: Sequence[str]):
+    def __init__(
+        self,
         # Sequence rather than Iterable to avoid single-use iterable
-        self.items: Sequence[str] = items
+        items: Sequence[str],
+    ):
+        # This subclass breaks LSP by making "items" not a method
+        # TODO: Consider making this a method or changing the base class to a property
+        self.items: Sequence[str] = items  # type: ignore[assignment]
         self.newitems: list[str] = []
         style = (
             win32con.DS_MODALFRAME

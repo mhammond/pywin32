@@ -21,7 +21,9 @@ class ListDialog(dialog.Dialog):
         self.HookMessage(self.on_size, win32con.WM_SIZE)
         self.HookNotify(self.OnListItemChange, commctrl.LVN_ITEMCHANGED)
         self.HookCommand(self.OnListClick, win32ui.IDC_LIST1)
-        self.items: Sequence[Sequence[object]] = list
+        # This subclass breaks LSP by making "items" not a method
+        # TODO: Consider making this a method or changing the base class to a property
+        self.items: Sequence[Sequence[object]] = list  # type: ignore[assignment]
 
     def _maketemplate(self, title):
         style = win32con.WS_DLGFRAME | win32con.WS_SYSMENU | win32con.WS_VISIBLE
