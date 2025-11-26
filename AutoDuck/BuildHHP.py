@@ -81,6 +81,7 @@ import document_object
 
 def main():
     doc = document_object.GetDocument()
+    assert doc is not None
     output = os.path.abspath(sys.argv[1])
     target = sys.argv[2]
     f = open(output + ".hhp", "w")
@@ -113,7 +114,7 @@ def main():
         for file in lDestFiles:
             html_files += f"{html_dir}\\{file}\n"
 
-    for cat in doc or ():
+    for cat in doc:
         html_files += f"{output_dir}\\{cat.id}.html\n"
         for suffix in "_overview _modules _objects _constants".split():
             html_files += f"{output_dir}\\{cat.id}{suffix}.html\n"

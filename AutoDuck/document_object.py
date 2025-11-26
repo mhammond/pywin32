@@ -78,8 +78,7 @@ def GetDocument(fname="pywin32-document.xml"):
 
 if __name__ == "__main__":
     doc = GetDocument()
-    if doc is None:
-        raise ValueError("Got a None Document")
+    assert doc is not None
 
     print("Important Notes")
     for link in doc.important:

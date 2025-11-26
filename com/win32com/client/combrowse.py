@@ -24,6 +24,7 @@ Details
 """
 
 import sys
+from typing import TYPE_CHECKING
 
 import pythoncom
 import pywintypes
@@ -33,8 +34,11 @@ import win32ui
 from pywin.tools import browser
 from win32com.client import util
 
+if TYPE_CHECKING:
+    from _win32typing import PyIID  # type: ignore[import-untyped]
 
-class HLIRoot(browser.HLIPythonObject):
+
+class HLIRoot(browser.HLIPythonObject[None]):
     def __init__(self, title):
         super().__init__(name=title)
 
@@ -51,7 +55,7 @@ class HLIRoot(browser.HLIPythonObject):
         return self.name < other.name
 
 
-class HLICOM(browser.HLIPythonObject):
+class HLICOM(browser.HLIPythonObject["PyIID"]):
     def GetText(self):
         return self.name
 
