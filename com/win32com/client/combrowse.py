@@ -38,7 +38,7 @@ from win32com.client import util
 # would also require statically exposing many types from pythoncom.
 # So make the type parameter optional and using `__init__` inference for now,
 # and consider relying on typeshed's `pywin32-stubs` later.
-_HLICOMT = TypeVar("_HLICOMT", default=Any)
+_HLICOMT = TypeVar("_HLICOMT", default=Any)  # incomplete
 
 
 class HLIRoot(browser.HLIPythonObject[None]):
