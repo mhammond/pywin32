@@ -13,20 +13,15 @@ import numbers
 import sys
 import time
 from collections.abc import Callable, Iterable, Mapping
-from typing import TYPE_CHECKING, NoReturn
 
+# noinspection PyUnresolvedReferences
 from . import ado_consts as adc
-
-if TYPE_CHECKING:
-    from adodbapi.adodbapi import Connection, Cursor
 
 verbose = False  # debugging flag
 
 
 # ------- Error handlers ------
-def standardErrorHandler(
-    connection: Connection, cursor: Cursor, errorclass: type[Error], errorvalue: object
-) -> NoReturn:
+def standardErrorHandler(connection, cursor, errorclass, errorvalue):
     err = (errorclass, errorvalue)
     try:
         connection.messages.append(err)
