@@ -2559,9 +2559,9 @@ extern "C" PYW_EXPORT BOOL Win32uiApplicationInit(Win32uiHostGlue *pGlue, const 
     PyObject *argv = PySys_GetObject("argv");
     PyInit_win32ui();
     // Decide if we render sys.argv from command line.
-    // PY3.6- Py_Initialize sets sys.argv=NULL .
-    // PY3.7 Py_Initialize or intentional script triggers set sys.argv=[] .
-    // PY3.8+ Py_Initialize sets sys.argv=[''] - cannot be distinguished
+    // Python 3.6- Py_Initialize sets sys.argv=NULL .
+    // Python 3.7 Py_Initialize or intentional script triggers set sys.argv=[] .
+    // Python 3.8+ Py_Initialize sets sys.argv=[''] - cannot be distinguished
     //   from a pre-existing command line setup anymore. So we need to check
     //   another flag regarding the intended type of invokation, e.g. `cmd`
     //   (or untangle all that crossover startup + module + app init here)

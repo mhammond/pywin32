@@ -22,6 +22,13 @@ Coming in build 312, as yet unreleased
 * Deprecate `pythoncom.frozen` (mhammond#2593, [@Avasam][Avasam])
   `pythoncom.frozen` used to expose `Py_FrozenFlag` from the C API.
   `Py_FrozenFlag` is deprecated since Python 3.12.
+* Fixed missing version stamp on built `.dll` and `.exe` files (mhammond#2647, [@Avasam][Avasam])
+* Removed considerations for Windows 95/98/ME (mhammond#2400, [@Avasam][Avasam])
+  This removes the following constants:
+  * `win32con.FILE_ATTRIBUTE_ATOMIC_WRITE`
+  * `win32con.FILE_ATTRIBUTE_XACTION_WRITE`
+* Removed considerations for MFC < 9 (VS 2008) (mhammond#2669, [@Avasam][Avasam])
+  * This removes the unusable `PyCSliderCtrl.VerifyPos` method
 
 Build 311, released 2025/07/14
 ------------------------------

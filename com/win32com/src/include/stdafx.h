@@ -3,7 +3,7 @@
 //      are changed infrequently
 //
 
-// _WIN32_DCOM screws win95 and NT :-(  However, we need to define this
+// _WIN32_DCOM screws Windows NT :-(  However, we need to define this
 // so we don't lose all the constants etc that come with DCOM
 //
 #define _WIN32_DCOM

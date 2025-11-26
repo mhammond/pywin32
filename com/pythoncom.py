@@ -1,15 +1,14 @@
 # Magic utility that "redirects" to pythoncomXX.dll
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import pywintypes
 
 pywintypes.__import_pywin32_system_module__("pythoncom", globals())
 
-
 # This module dynamically re-exports from a C-Extension.
 # `__getattr__() -> Any` prevents checkers attribute access errors
 # without the use of external type stubs.
-# So keep it even if pythoncom.frozen support is removed.
+# So keep an empty stub behind `if TYPE_CHECKING` if pythoncom.frozen support is removed.
 def __getattr__(name: str) -> Any:
     if name == "frozen":
         import sys
