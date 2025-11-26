@@ -300,7 +300,7 @@ class ViewNotifyDelegate:
                 return getattr(v, self.name)(*(std, extra))
 
 
-# Delegate to the document, but only from a single view (as each view sends it seperately)
+# Delegate to the document, but only from a single view (as each view sends it separately)
 class DocumentNotifyDelegate:
     def __init__(self, doc, name):
         self.doc = doc

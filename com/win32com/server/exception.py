@@ -19,7 +19,7 @@ import pythoncom
 
 # Note that we derive from com_error, which derives from builtin Exception
 # Also note that we don't support "self.args", as we don't support tuple-unpacking
-class COMException(pythoncom.com_error):  # type: ignore[name-defined] # Dynamic module
+class COMException(pythoncom.com_error):
     """An Exception object that is understood by the framework.
 
     If the framework is presented with an exception of type class,
@@ -78,7 +78,7 @@ class COMException(pythoncom.com_error):  # type: ignore[name-defined] # Dynamic
         pythoncom.com_error.__init__(self, scode, self.description, None, -1)
 
     def __repr__(self):
-        return f"<COM Exception - scode={self.scode}, desc={self.description}>"
+        return f"{self.__class__.__name__}(scode={self.scode!r}, desc={self.description!r})"
 
 
 def IsCOMException(t=None):
