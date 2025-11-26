@@ -19,6 +19,13 @@ Coming in build 312, as yet unreleased
 --------------------------------------
 
 * Added missing quotes and closing parenthesis to `win32com.client.build.MapEntry`'s `repr` (mhammond#2572, [@Avasam][Avasam])
+* Fixed missing version stamp on built `.dll` and `.exe` files (mhammond#2647, [@Avasam][Avasam])
+* Removed considerations for Windows 95/98/ME (mhammond#2400, [@Avasam][Avasam])
+  This removes the following constants:
+  * `win32con.FILE_ATTRIBUTE_ATOMIC_WRITE`
+  * `win32con.FILE_ATTRIBUTE_XACTION_WRITE`
+* Removed considerations for MFC < 9 (VS 2008) (mhammond#2669, [@Avasam][Avasam])
+  * This removes the unusable `PyCSliderCtrl.VerifyPos` method
 
 Build 311, released 2025/07/14
 ------------------------------
