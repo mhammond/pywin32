@@ -18,6 +18,7 @@ As of build 305, installation .exe files have been deprecated; see
 Coming in build 312, as yet unreleased
 --------------------------------------
 
+* Added many missing license and copyright notice files (mhammond#2590, [@Avasam][Avasam])
 * Fixed missing version stamp on built `.dll` and `.exe` files (mhammond#2647, [@Avasam][Avasam])
 * Removed considerations for Windows 95/98/ME (mhammond#2400, [@Avasam][Avasam])
   This removes the following constants:
