@@ -26,6 +26,7 @@ DB-API 2.0 specification: https://peps.python.org/pep-0249/
 This module source should run correctly in CPython versions 2.7 and later,
 or CPython 3.4 or later.
 """
+from __future__ import annotations
 
 __version__ = "2.6.2.0"
 version = "adodbapi v" + __version__
@@ -35,6 +36,8 @@ import decimal
 import os
 import sys
 import weakref
+from collections.abc import Callable, Mapping
+from typing import NoReturn
 
 from . import ado_consts as adc, apibase as api, process_connect_string
 
@@ -57,9 +60,6 @@ except ImportError:
 
 def getIndexedValue(obj, index):
     return obj(index)
-
-
-from collections.abc import Mapping
 
 
 # -----------------  The .connect method -----------------
@@ -238,7 +238,9 @@ class Connection:
         self.cursors = weakref.WeakValueDictionary[int, Cursor]()
         self.dbms_name = ""
         self.dbms_version = ""
-        self.errorhandler = None  # use the standard error handler for this instance
+        self.errorhandler: (
+            Callable[[Connection, Cursor, type[api.Error], object], NoReturn] | None
+        ) = None  # use the standard error handler for this instance
         self.transaction_level = 0  # 0 == Not in a transaction, at the top level
         self._autocommit = False
 
@@ -542,17 +544,21 @@ class Cursor:
     ## errorhandler...
     ##   allows the programmer to override the connection's default error handler
 
-    def __init__(self, connection):
+    def __init__(self, connection: Connection):
         self.command = None
         self._ado_prepared = False
-        self.messages = []
+        self.messages: list[tuple[type[api.Error], object]] = []
         self.connection = connection
-        self.paramstyle = connection.paramstyle  # used for overriding the paramstyle
-        self._parameter_names = []
+        self.paramstyle = connection.paramstyle
+        """Used for overriding the paramstyle"""
+        self._parameter_names: list[str] = []
         self.recordset_is_remote = False
-        self.rs = None  # the ADO recordset for this cursor
-        self.converters = []  # conversion function for each column
-        self.columnNames = {}  # names of columns {lowercase name : number,...}
+        self.rs = None
+        """The ADO recordset for this cursor"""
+        self.converters: list[Callable[[object], object]] = []
+        """Conversion function for each column"""
+        self.columnNames: dict[str, int] = {}
+        """Names of columns {lowercase name : number,...}"""
         self.numberOfColumns = 0
         self._description = None
         self.rowcount = -1
@@ -587,7 +593,9 @@ class Cursor:
         "Allow database cursors to be used with context managers."
         self.close()
 
-    def _raiseCursorError(self, errorclass, errorvalue):
+    def _raiseCursorError(
+        self, errorclass: type[api.Error], errorvalue: object
+    ) -> NoReturn:
         eh = self.errorhandler
         if eh is None:
             eh = api.standardErrorHandler
@@ -716,7 +724,7 @@ class Cursor:
 
         if self.connection is None:
             self._raiseCursorError(api.InterfaceError, None)
-            return
+            return  # Still return in case a custom errorHandler doesn't raise
         try:
             self.cmd = Dispatch("ADODB.Command")
             self.cmd.ActiveConnection = self.connection.connector
@@ -1036,7 +1044,7 @@ class Cursor:
             self._raiseCursorError(
                 api.FetchFailedError, "fetch() on closed connection or empty query set"
             )
-            return
+            return  # Still return in case a custom errorHandler doesn't raise
 
         if self.rs.State == adc.adStateClosed or self.rs.BOF or self.rs.EOF:
             return list()

@@ -62,7 +62,7 @@ else:
         db_result = c.fetchmany(5)
 
         # print them
-        for rec in db_result or ():
+        for rec in db_result:
             print(rec)
 
         print("")
