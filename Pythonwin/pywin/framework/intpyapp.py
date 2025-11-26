@@ -354,7 +354,7 @@ class InteractivePythonApp(app.CApp):
                 raise RuntimeError(
                     "/app only supported for new instances of Pythonwin.exe"
                 )
-            elif argType == "/dde":  # Send arbitary command
+            elif argType == "/dde":  # Send arbitrary command
                 if dde is not None:
                     dde.Exec(par)
                 else:

@@ -2536,7 +2536,7 @@ static PyObject *PyShellExecuteEx(PyObject *self, PyObject *args, PyObject *kw)
     PyObject *obhkeyClass = NULL, *obHotKey = NULL, *obhMonitor = NULL;
     if (!PyArg_ParseTupleAndKeywords(args, kw, "|lOOOOOlOOOOO", kw_items,
                                      &info.fMask,   // @pyparm int|fMask|0|The default mask for the structure.
-                                                    // Other masks may be added based on what paramaters are supplied.
+                                                    // Other masks may be added based on what parameters are supplied.
                                      &obhwnd,       // @pyparm <o PyHANDLE>|hwnd|0|
                                      &obVerb,       // @pyparm string|lpVerb||
                                      &obFile,       // @pyparm string|lpFile||

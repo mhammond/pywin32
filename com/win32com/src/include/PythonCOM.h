@@ -213,7 +213,7 @@ PYCOM_EXPORT BOOL PyCom_InterfaceFromPyObject(PyObject *ob, REFIID iid, LPVOID *
 // As above, but allows instance with "_oleobj_" attribute.
 PYCOM_EXPORT BOOL PyCom_InterfaceFromPyInstanceOrObject(PyObject *ob, REFIID iid, LPVOID *ppv, BOOL bNoneOK = TRUE);
 
-// Release an arbitary COM pointer.
+// Release an arbitrary COM pointer.
 // NOTE: the PRECALL/POSTCALL stuff is probably not strictly necessary
 // since the PyGILSTATE stuff has been in place (and even then, it only
 // mattered when it was the last Release() on a Python implemented object)
