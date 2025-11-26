@@ -16,9 +16,9 @@ import winerror
 
 # # Use "import *" to keep this looking as much as a "normal" service
 # as possible.  Real code shouldn't do this.
-from win32event import *  # nopycln: import
-from win32file import *  # nopycln: import
-from win32pipe import *  # nopycln: import
+from win32event import *
+from win32file import *
+from win32pipe import *
 
 verbose = 0
 
