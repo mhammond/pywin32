@@ -1,8 +1,8 @@
 """adodbapi.apibase - A python DB API 2.0 (PEP 249) interface to Microsoft ADO
 
 Copyright (C) 2002 Henrik Ekelund, version 2.1 by Vernon Cole
-* http://sourceforge.net/projects/pywin32
-* http://sourceforge.net/projects/adodbapi
+* https://sourceforge.net/projects/pywin32
+* https://sourceforge.net/projects/adodbapi
 """
 
 from __future__ import annotations
@@ -248,7 +248,7 @@ class pythonDateTimeConverter(TimeConverter):  # standard since Python 2.3
 
 
 class pythonTimeConverter(TimeConverter):  # the old, ?nix type date and time
-    def __init__(self):  # caution: this Class gets confised by timezones and DST
+    def __init__(self):  # caution: this Class gets confused by timezones and DST
         TimeConverter.__init__(self)
         self.types.add(time.struct_time)
 

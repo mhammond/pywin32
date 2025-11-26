@@ -2,7 +2,7 @@
 # simple flash/python application demonstrating bidirectional
 # communicaion between flash and python. Click the sphere to see
 # behavior. Uses Bounce.swf from FlashBounce.zip, available from
-# http://pages.cpsc.ucalgary.ca/~saul/vb_examples/tutorial12/
+# https://cspages.ucalgary.ca/~saul/vb_examples/tutorial12/
 
 # Update to the path of the .swf file (note it could be a true URL)
 flash_url = "c:\\bounce.swf"

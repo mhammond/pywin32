@@ -32,7 +32,7 @@ class BrowserFrame(window.MDIChildWnd):
         if url is None:
             self.url = regutil.GetRegisteredHelpFile("Main Python Documentation")
             if self.url is None:
-                self.url = "http://www.python.org"
+                self.url = "https://www.python.org"
         else:
             self.url = url
         pass  # Don't call base class doc/view version...
