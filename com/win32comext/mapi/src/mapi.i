@@ -3,10 +3,10 @@
 /*
    This is designed to be an interface to the MAPI API
 
-   Note that the "exchange" module provides alot of MAPI-like
+   Note that the "exchange" module provides a lot of MAPI-like
    functions, although technically these are not part of MAPI.
 
-   The intent is that this module implementes the "official" API,
+   The intent is that this module implements the "official" API,
    although sometimes it is unclear if a function a truly MAPI or not
 */
 

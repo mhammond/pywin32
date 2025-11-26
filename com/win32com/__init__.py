@@ -16,7 +16,7 @@ if _frozen and not getattr(pythoncom, "frozen", 0):
     pythoncom.frozen = sys.frozen
 
 # Add support for an external "COM Extensions" path.
-#  Concept is that you can register a seperate path to be used for
+#  Concept is that you can register a separate path to be used for
 #  COM extensions, outside of the win32com directory.  These modules, however,
 #  look identical to win32com built-in modules.
 #  This is the technique that we use for the "standard" COM extensions.
