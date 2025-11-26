@@ -1,9 +1,8 @@
-"""adodbapi - a pure Python PEP 249 DB-API package using Microsoft ADO"""
+__doc__ = """adodbapi - A pure Python package implementing PEP 249 DB-API using Microsoft ADO."""
 
-NAME = "adodbapi"
+NAME, DESCRIPTION = __doc__.split(" - ", 1)
 MAINTAINER = "Vernon Cole"
 MAINTAINER_EMAIL = "vernondcole@gmail.com"
-DESCRIPTION = "A pure Python package implementing PEP 249 DB-API using Microsoft ADO."
 URL = "http://sourceforge.net/projects/adodbapi"
 LICENSE = "LGPL"
 CLASSIFIERS = [
