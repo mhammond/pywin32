@@ -18,7 +18,7 @@ import win32com
 # rather than the version installed - otherwise every .py change needs a full install to
 # test!
 # We can't patch win32comext as most of them have a .pyd in their root :(
-# This clearly ins't ideal or perfect :)
+# This clearly isn't ideal or perfect :)
 win32com.__path__[0] = win32com_src_dir
 
 import pythoncom
@@ -129,7 +129,7 @@ unittest_modules = [
           testConversionErrors
         """.split(),
     # Level 2 tests - wants our demo COM objects registered.
-    # (these are strange; on github CI they get further than expected when
+    # (these are strange; on GitHub CI they get further than expected when
     # our objects are not installed, so fail to quietly fail with "can't
     # register" like they do locally. So really just a nod to CI)
     """
@@ -178,10 +178,11 @@ output_checked_programs = [
 
 custom_test_cases = [
     # Level 1 tests.
-    [],
-    # Level 2 tests.
     [
         PyCOMTest,
+    ],
+    # Level 2 tests.
+    [
         PippoTest,
     ],
     # Level 3 tests

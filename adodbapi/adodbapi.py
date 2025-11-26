@@ -1,9 +1,9 @@
 """adodbapi - A python DB API 2.0 (PEP 249) interface to Microsoft ADO
 
 Copyright (C) 2002 Henrik Ekelund, versions 2.1 and later by Vernon Cole
-* http://sourceforge.net/projects/pywin32
+* https://sourceforge.net/projects/pywin32
 * https://github.com/mhammond/pywin32
-* http://sourceforge.net/projects/adodbapi
+* https://sourceforge.net/projects/adodbapi
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -21,7 +21,7 @@ Copyright (C) 2002 Henrik Ekelund, versions 2.1 and later by Vernon Cole
 
     django adaptations and refactoring by Adam Vandenberg
 
-DB-API 2.0 specification: http://www.python.org/dev/peps/pep-0249/
+DB-API 2.0 specification: https://peps.python.org/pep-0249/
 
 This module source should run correctly in CPython versions 2.7 and later,
 or CPython 3.4 or later.
@@ -52,7 +52,7 @@ try:
 except ImportError:
     import warnings
 
-    warnings.warn("pywin32 package required for adodbapi.", ImportWarning)
+    warnings.warn("pywin32 package required for adodbapi.", ImportWarning, stacklevel=2)
 
 
 def getIndexedValue(obj, index):
@@ -79,8 +79,9 @@ def connect(*args, **kwargs):  # --> a db-api connection object
 
     call using:
     :connection_string -- An ADODB formatted connection string, see:
-         * http://www.connectionstrings.com
-         * http://www.asp101.com/articles/john/connstring/default.asp
+         * https://www.connectionstrings.com
+         * https://www.codeguru.com/dotnet/whats-in-an-ado-connection-string/
+         * https://learn.microsoft.com/en-us/dotnet/framework/data/adonet/connection-strings
     :timeout -- A command timeout value, in seconds (default 30 seconds)
     """
     co = Connection()  # make an empty connection object
@@ -162,15 +163,15 @@ def _configure_parameter(p, value, adotype, settings_known):
         p.AppendChunk(value)
 
     elif isinstance(value, str):  # v2.1 Jevon
-        L = len(value)
+        length = len(value)
         if adotype in api.adoStringTypes:  # v2.2.1 Cole
             if settings_known:
-                L = min(L, p.Size)  # v2.1 Cole limit data to defined size
-            p.Value = value[:L]  # v2.1 Jevon & v2.1 Cole
+                length = min(length, p.Size)  # v2.1 Cole limit data to defined size
+            p.Value = value[:length]  # v2.1 Jevon & v2.1 Cole
         else:
             p.Value = value  # don't limit if db column is numeric
-        if L > 0:  # v2.1 Cole something does not like p.Size as Zero
-            p.Size = L  # v2.1 Jevon
+        if length > 0:  # v2.1 Cole something does not like p.Size as Zero
+            p.Size = length  # v2.1 Jevon
 
     elif isinstance(value, decimal.Decimal):
         p.Value = value
@@ -464,7 +465,7 @@ class Connection:
             print("Error: %s %s " % (e.Number, adc.adoErrors.get(e.Number, "unknown")))
             if e.Number == adc.ado_error_TIMEOUT:
                 print(
-                    "Timeout Error: Try using adodbpi.connect(constr,timeout=Nseconds)"
+                    "Timeout Error: Try using adodbapi.connect(constr,timeout=Nseconds)"
                 )
             print("Source: %s" % e.Source)
             print("NativeError: %s" % e.NativeError)
@@ -474,7 +475,7 @@ class Connection:
         """Introspect the current ADO Errors and determine an appropriate error class.
 
         Error.SQLState is a SQL-defined error condition, per the SQL specification:
-        http://www.contrib.andrew.cmu.edu/~shadow/sql/sql1992.txt
+        https://www.contrib.andrew.cmu.edu/~shadow/sql/sql1992.txt
 
         The 23000 class of errors are integrity errors.
         Error 40002 is a transactional integrity error.
@@ -632,7 +633,7 @@ class Cursor:
             if self.rs.EOF or self.rs.BOF:
                 display_size = None
             else:
-                # TODO: Is this the correct defintion according to the DB API 2 Spec ?
+                # TODO: Is this the correct definition according to the DB API 2 Spec ?
                 display_size = f.ActualSize
             null_ok = bool(f.Attributes & adc.adFldMayBeNull)  # v2.1 Cole
             desc.append(
@@ -1012,7 +1013,7 @@ class Cursor:
         """Prepare a database operation (query or command)
         and then execute it against all parameter sequences or mappings found in the sequence seq_of_parameters.
 
-            Return values are not defined.
+        Return values are not defined.
         """
         self.messages = list()
         total_recordcount = 0

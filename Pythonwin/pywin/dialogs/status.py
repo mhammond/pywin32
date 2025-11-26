@@ -202,7 +202,7 @@ def ThreadedStatusProgressDialog(title, msg="", maxticks=100):
     # event - so use a dumb strategy
     end_time = time.time() + 10
     while time.time() < end_time:
-        if t.createdEvent.isSet():
+        if t.createdEvent.is_set():
             break
         win32ui.PumpWaitingMessages()
         time.sleep(0.1)

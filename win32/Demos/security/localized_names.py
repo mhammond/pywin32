@@ -1,6 +1,6 @@
 # A Python port of the MS knowledge base article Q157234
 # "How to deal with localized and renamed user and group names"
-# http://support.microsoft.com/default.aspx?kbid=157234
+# https://www.betaarchive.com/wiki/index.php?title=Microsoft_KB_Archive/157234
 
 import sys
 

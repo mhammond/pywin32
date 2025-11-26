@@ -65,7 +65,8 @@ There are several examples of this:
 
 The python api for the win32net module closely mirrors the C++
 functions documented in the msdn.  This makes it convenient to look at
-the <a href="http://msdn.microsoft.com">Microsoft MSDN </a>
+the <a href="https://learn.microsoft.com/en-us/windows/win32/api/_netmgmt/">
+Windows Network Management documentation</a>
 for further information if necessary. There is a sister module to
 win32net called win32netcon that houses all of the constants needed by
 the win32net modules.
@@ -123,7 +124,7 @@ the call and if you have more data. You also have to extract from
 structures like LPWKSTA_USER_INFO_0 to get the user data keeping track
 of entriesread and the totalentries. Rather tedious. Thankfully, this
 is easy in python. With python a list containing a user dictionary is
-returned which trivial to parse and if resumeHandel is true you make
+returned which trivial to parse and if resumeHandle is true you make
 the win32 call again.
 
 Now for some code:
@@ -319,7 +320,7 @@ are many levels. One of the most useful one is USER_INFO_3 this
 structure lets you change just about anything you want for a
 user.Also, not all levels are available for both NetUserSetInfo and
 NetUserGetInfo. NetUserGetInfo has about 7 available to it. (btw, <a
-href="http://msdn.microsoft.com">Microsoft MSDN </a> would have more
+href="https://learn.microsoft.com/en-us/windows/win32/api/lmaccess/">lmaccess.h header documentation</a> would have more
 information about this). I'll show an example with NetUserSetInfo
 using USER_INFO_1008 that has no corresponding NetUserGetInfo.
 
@@ -445,7 +446,7 @@ the simple access python gives one to the underlying api.
 <H1><A NAME="Further Info">Further Info</A></H1>
 <p>
 <ul>
-<li><a href="http://msdn.microsoft.com">Microsoft MSDN references</a>
+<li><a href="https://learn.microsoft.com/en-us/windows/win32/api/_netmgmt/">Windows Network Management documentation</a>
 <li>Relevant Python libraries: win32net and win32netcon
 </ul>
 </p>

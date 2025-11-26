@@ -15,7 +15,7 @@ lots of unknown ones!) </P>
 <a href="doc/debugger/index.html">integrated debugger</a>, and a rich Python
 editing environment. </P>
 <P>Pythonwin is implemented as a 'wrapper' for the Microsoft Foundation Class library. With it, you can use MFC in an interactive, interpreted environment, or write full blown stand-alone applications tightly coupled with the Windows environment. Over 30 MFC objects are exposed, including Common Controls, Property Pages/Sheets, Control/Toolbars, Threads, etc. </P>
-<P>Pythonwin could almost be considered a sample program for the MFC UI environment. This Python UI environment can be embedded in almost any other application - such as OLE clients/servers, Netscape plugins, as a Macro language etc. </P>
+<P>Pythonwin could almost be considered a sample program for the MFC UI environment. This Python UI environment can be embedded in almost any other application - such as OLE clients/servers, as a Macro language etc. </P>
 <P><A HREF="#RecentChanges">Recent changes can be found at the end of this document</A>.</P>
 <H2>Demos</H2>
 <P>There are many demos in the pywin\demos directory. To see a list of all the demos, run the program "pywin\demos\guidemo.py" from inside Pythonwin.</P>
@@ -37,13 +37,6 @@ editing environment. </P>
 <UL>
 <LI>Some of the configuration options (eg, &quot;Docking Windows&quot;) do not
   take affect until you restart Pythonwin. </LI>
-<LI>Under Windows 9x, any attempt to use Pythonwin features from an MS-DOS
-  prompt seems to cause immediate death.&nbsp; This means that you can not use
-  the Pythonwin debugger for programs running under Python.exe on Windows
-  9x.&nbsp; You should still be able to use the debugger normally from inside
-  Pythonwin itself. </LI>
-<LI>Pythonwin will occasionally crash upon exiting under Windows 9x. The crash is in
-  &quot;user.exe&quot; (old 16 bit code) which makes debugging difficult. It does not happen on Windows NT, so I'm stumped on this one. If someone could even just narrow it down to exactly what code will cause the crash at exit I would really appreciate it. </LI>
 <LI>Some of the menu items are always grey.&nbsp; This functionality is simply not yet implemented in
   Pythonwin. </LI>
 </UL>
@@ -55,7 +48,7 @@ like it has completely hung when infact it is just waiting for some code to
 finish.</P>
 <P>Support for Scintilla's indentation guides, that gives a nice indication of
 the block structure.</P>
-<P>New, improved color editor, using the Scintilla control by Neil Hodgson (see <A HREF="http://hare.net.au/~neilh/ScintillaTide.html">http://hare.net.au/~neilh/ScintillaTide.html</A>). The debugger now requires use of this editor.</P>
+<P>New, improved color editor, using the Scintilla control by Neil Hodgson (see <A HREF="https://www.scintilla.org/">https://www.scintilla.org/</A>). The debugger now requires use of this editor.</P>
 <P>Much better printing support from Roger Burnham. Pythonwin itself still can't print anything, but the framework can (meaning some kind soul could now add the support to Pythonwin :-)</P>
 <P>DDE support is complete.</P>
 <P>Reference helpfile is far more complete.</P>
