@@ -5,6 +5,7 @@ import pywintypes
 
 pywintypes.__import_pywin32_system_module__("pythoncom", globals())
 
+
 # This module dynamically re-exports from a C-Extension.
 # `__getattr__() -> Any` prevents checkers attribute access errors
 # without the use of external type stubs.
