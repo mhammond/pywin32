@@ -11,10 +11,6 @@ generates Windows .hlp files.
 
 ******************************************************************/
 
-#ifndef WINVER
-#define WINVER 0x500
-#endif
-
 #include "pywintypes.h"
 #include "ras.h"
 #include "raserror.h"
@@ -285,7 +281,6 @@ PyObject *PyRASDIALEXTENSIONS::getattro(PyObject *self, PyObject *obname)
     // @prop integer|reserved|
     if (strcmp(name, "reserved") == 0)
         return PyWinObject_FromULONG_PTR(py->m_ext.reserved);
-#if (WINVER >= 0x500)
     // @prop integer|reserved1|
     if (strcmp(name, "reserved1") == 0)
         return PyWinObject_FromULONG_PTR(py->m_ext.reserved1);
@@ -294,7 +289,6 @@ PyObject *PyRASDIALEXTENSIONS::getattro(PyObject *self, PyObject *obname)
         Py_INCREF(py->m_pyeap);
         return py->m_pyeap;
     }
-#endif
     return PyObject_GenericGetAttr(self, obname);
 }
 
@@ -329,7 +323,6 @@ int PyRASDIALEXTENSIONS::setattro(PyObject *self, PyObject *obname, PyObject *va
         py->m_ext.reserved = v;
         return 0;
     }
-#if (WINVER >= 0x500)
     if (strcmp(name, "reserved1") == 0) {
         long v = PyLong_AsLong(val);
         if (v == -1 && PyErr_Occurred())
@@ -348,7 +341,6 @@ int PyRASDIALEXTENSIONS::setattro(PyObject *self, PyObject *obname, PyObject *va
         Py_INCREF(val);
         return 0;
     }
-#endif
     return PyObject_GenericSetAttr(self, obname, val);
 }
 
@@ -531,11 +523,10 @@ static PyObject *PyRasDial(PyObject *self, PyObject *args)
             args, "OzOO:Dial",
             &obExtensions,  // @pyparm <o PyRASDIALEXTENSIONS>|dialExtensions||An object providing the RASDIALEXTENSIONS
                             // information, or None
-            &fileName,  // @pyparm string|fileName||Specifies the filename of the phonebook entry, or None.  Ignored on
-                        // Win95.
-            &obParams,  // @pyparm <o RASDIALPARAMS>|RasDialParams||A tuple describing a RASDIALPARAMS structure.
-            &obCallback))  // @pyparm method or hwnd|callback||The method to be called when RAS events occur, or None.
-                           // If not None, the function must have the signature of <om win32ras.RasDialFunc1>
+            &fileName,      // @pyparm string|fileName||Specifies the filename of the phonebook entry, or None.
+            &obParams,      // @pyparm <o RASDIALPARAMS>|RasDialParams||A tuple describing a RASDIALPARAMS structure.
+            &obCallback))   // @pyparm method or hwnd|callback||The method to be called when RAS events occur, or None.
+                            // If not None, the function must have the signature of <om win32ras.RasDialFunc1>
         return NULL;
     if (!PyObjectToRasDialParams(obParams, &dialParams))
         return NULL;

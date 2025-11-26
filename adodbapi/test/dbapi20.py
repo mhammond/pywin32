@@ -14,7 +14,6 @@
 __version__ = "$Revision: 1.15.0 $"[11:-2]
 __author__ = "Stuart Bishop <stuart@stuartbishop.net>"
 
-import sys
 import time
 import unittest
 
@@ -73,9 +72,9 @@ TEST_FOR_NON_IDEMPOTENT_CLOSE = False
 # - Reversed the polarity of buggy test in test_description
 # - Test exception hierarchy correctly
 # - self.populate is now self._populate(), so if a driver stub
-#   overrides self.ddl1 this change propogates
+#   overrides self.ddl1 this change propagates
 # - VARCHAR columns now have a width, which will hopefully make the
-#   DDL even more portible (this will be reversed if it causes more problems)
+#   DDL even more portable (this will be reversed if it causes more problems)
 # - cursor.rowcount being checked after various execute and fetchXXX methods
 # - Check for fetchall and fetchmany returning empty lists after results
 #   are exhausted (already checking for empty lists if select retrieved
@@ -88,7 +87,7 @@ class DatabaseAPI20Test(unittest.TestCase):
     """Test a database self.driver for DB API 2.0 compatibility.
     This implementation tests Gadfly, but the TestCase
     is structured so that other self.drivers can subclass this
-    test case to ensure compiliance with the DB-API. It is
+    test case to ensure compliance with the DB-API. It is
     expected that this TestCase may be expanded in the future
     if ambiguities or edge conditions are discovered.
 
@@ -197,14 +196,9 @@ class DatabaseAPI20Test(unittest.TestCase):
             self.fail("Driver doesn't define paramstyle")
 
     def test_Exceptions(self):
-        # Make sure required exceptions exist, and are in the
-        # defined hierarchy.
-        if sys.version[0] == "3":  # under Python 3 StardardError no longer exists
-            self.assertTrue(issubclass(self.driver.Warning, Exception))
-            self.assertTrue(issubclass(self.driver.Error, Exception))
-        else:
-            self.failUnless(issubclass(self.driver.Warning, Exception))
-            self.failUnless(issubclass(self.driver.Error, Exception))
+        # Make sure required exceptions exist, and are in the defined hierarchy.
+        self.assertTrue(issubclass(self.driver.Warning, Exception))
+        self.assertTrue(issubclass(self.driver.Error, Exception))
 
         self.assertTrue(issubclass(self.driver.InterfaceError, self.driver.Error))
         self.assertTrue(issubclass(self.driver.DatabaseError, self.driver.Error))
@@ -533,7 +527,7 @@ class DatabaseAPI20Test(unittest.TestCase):
             self.assertRaises(self.driver.Error, cur.fetchone)
 
             # cursor.fetchone should raise an Error if called after
-            # executing a query that cannnot return rows
+            # executing a query that cannot return rows
             self.executeDDL1(cur)
             self.assertRaises(self.driver.Error, cur.fetchone)
 
@@ -546,7 +540,7 @@ class DatabaseAPI20Test(unittest.TestCase):
             self.assertTrue(cur.rowcount in (-1, 0))
 
             # cursor.fetchone should raise an Error if called after
-            # executing a query that cannnot return rows
+            # executing a query that cannot return rows
             cur.execute(
                 "insert into %sbooze values ('Victoria Bitter')" % (self.table_prefix)
             )
