@@ -725,6 +725,9 @@ BOOL initunivgw(PyObject *parentDict)
 
     //	PyObject *dict = PyModule_GetDict(module);
     //	if (!dict) return; /* Another serious error!*/
+#ifdef Py_GIL_DISABLED
+    PyUnstable_Module_SetGIL(module, Py_MOD_GIL_NOT_USED);
+#endif
 
     g_obRegisteredVTables = PyDict_New();
 
