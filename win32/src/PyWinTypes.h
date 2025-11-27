@@ -44,7 +44,10 @@
     if (PyWinGlobals_Ensure() == -1)                                                                        \
         return NULL;                                                                                        \
     if (!(module = PyModule_Create(&module_name##_def)))                                                    \
-        return NULL;                                                                                        \
+        return NULL;              \
+#ifdef Py_GIL_DISABLED
+    PyUnstable_Module_SetGIL(module, Py_MOD_GIL_NOT_USED);                                   \
+#endif                                                                                   
     if (!(dict = PyModule_GetDict(module)))                                                                 \
         return NULL;
 
