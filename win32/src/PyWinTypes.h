@@ -14,7 +14,7 @@
 #undef small
 #endif
 
-#include "Python.h"
+#include <Python.h>
 #include "structmember.h"
 #include "windows.h"
 
