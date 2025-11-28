@@ -8,11 +8,26 @@
 #include "win32net.h"
 #include "stddef.h"
 
-#define GI0_ENTRY(name, t, r) {#name, t, offsetof(GROUP_INFO_0, grpi0_##name), r}
-#define GI1_ENTRY(name, t, r) {#name, t, offsetof(GROUP_INFO_1, grpi1_##name), r}
-#define GI2_ENTRY(name, t, r) {#name, t, offsetof(GROUP_INFO_2, grpi2_##name), r}
-#define GI1002_ENTRY(name, t, r) {#name, t, offsetof(GROUP_INFO_1002, grpi1002_##name), r}
-#define GI1005_ENTRY(name, t, r) {#name, t, offsetof(GROUP_INFO_1005, grpi1005_##name), r}
+#define GI0_ENTRY(name, t, r)                             \
+    {                                                     \
+        #name, t, offsetof(GROUP_INFO_0, grpi0_##name), r \
+    }
+#define GI1_ENTRY(name, t, r)                             \
+    {                                                     \
+        #name, t, offsetof(GROUP_INFO_1, grpi1_##name), r \
+    }
+#define GI2_ENTRY(name, t, r)                             \
+    {                                                     \
+        #name, t, offsetof(GROUP_INFO_2, grpi2_##name), r \
+    }
+#define GI1002_ENTRY(name, t, r)                                \
+    {                                                           \
+        #name, t, offsetof(GROUP_INFO_1002, grpi1002_##name), r \
+    }
+#define GI1005_ENTRY(name, t, r)                                \
+    {                                                           \
+        #name, t, offsetof(GROUP_INFO_1005, grpi1005_##name), r \
+    }
 
 // @object PyGROUP_INFO_0|A dictionary holding the information in a Win32 GROUP_INFO_0 structure.
 static struct PyNET_STRUCT_ITEM gi0[] = {
@@ -50,9 +65,18 @@ static struct PyNET_STRUCT group_infos[] = {  // @flagh Level|Data
     {1005, gi1005, sizeof(GROUP_INFO_1005)},  // @flag 1005|<o PyGROUP_INFO_1005>
     {0, NULL, 0}};
 
-#define LGI0_ENTRY(name, t, r) {#name, t, offsetof(LOCALGROUP_INFO_0, lgrpi0_##name), r}
-#define LGI1_ENTRY(name, t, r) {#name, t, offsetof(LOCALGROUP_INFO_1, lgrpi1_##name), r}
-#define LGI1002_ENTRY(name, t, r) {#name, t, offsetof(LOCALGROUP_INFO_1002, lgrpi1002_##name), r}
+#define LGI0_ENTRY(name, t, r)                                  \
+    {                                                           \
+        #name, t, offsetof(LOCALGROUP_INFO_0, lgrpi0_##name), r \
+    }
+#define LGI1_ENTRY(name, t, r)                                  \
+    {                                                           \
+        #name, t, offsetof(LOCALGROUP_INFO_1, lgrpi1_##name), r \
+    }
+#define LGI1002_ENTRY(name, t, r)                                     \
+    {                                                                 \
+        #name, t, offsetof(LOCALGROUP_INFO_1002, lgrpi1002_##name), r \
+    }
 
 // @object PyLOCALGROUP_INFO_0|A dictionary holding the information in a Win32 LOCALGROUP_INFO_0 structure.
 static struct PyNET_STRUCT_ITEM LGI0[] = {
@@ -77,13 +101,19 @@ static struct PyNET_STRUCT localgroup_infos[] = {   // @flagh Level|Data
     {1002, LGI1002, sizeof(LOCALGROUP_INFO_1002)},  // @flag 1002|<o PyLOCALGROUP_INFO_1002>
     {0, NULL, 0}};
 
-#define LGMI0_ENTRY(name, t, r) {#name, t, offsetof(LOCALGROUP_MEMBERS_INFO_0, lgrmi0_##name), r}
+#define LGMI0_ENTRY(name, t, r)                                         \
+    {                                                                   \
+        #name, t, offsetof(LOCALGROUP_MEMBERS_INFO_0, lgrmi0_##name), r \
+    }
 // @object PyLOCALGROUP_MEMBERS_INFO_0|A dictionary holding the information in a Win32 LOCALGROUP_MEMBERS_INFO_0
 // structure.
 static struct PyNET_STRUCT_ITEM lgmi0[] = {LGMI0_ENTRY(sid, NSI_SID, 0),  // @prop <o PySID>|sid|
                                            {NULL}};
 
-#define LGMI1_ENTRY(name, t, r) {#name, t, offsetof(LOCALGROUP_MEMBERS_INFO_1, lgrmi1_##name), r}
+#define LGMI1_ENTRY(name, t, r)                                         \
+    {                                                                   \
+        #name, t, offsetof(LOCALGROUP_MEMBERS_INFO_1, lgrmi1_##name), r \
+    }
 // @object PyLOCALGROUP_MEMBERS_INFO_1|A dictionary holding the information in a Win32 LOCALGROUP_MEMBERS_INFO_1
 // structure.
 static struct PyNET_STRUCT_ITEM lgmi1[] = {LGMI1_ENTRY(sid, NSI_SID, 0),         // @prop <o PySID>|sid|
@@ -91,7 +121,10 @@ static struct PyNET_STRUCT_ITEM lgmi1[] = {LGMI1_ENTRY(sid, NSI_SID, 0),        
                                            LGMI1_ENTRY(name, NSI_WSTR, 0),       // @prop string/<o PyUnicode>|name|
                                            {NULL}};
 
-#define LGMI2_ENTRY(name, t, r) {#name, t, offsetof(LOCALGROUP_MEMBERS_INFO_2, lgrmi2_##name), r}
+#define LGMI2_ENTRY(name, t, r)                                         \
+    {                                                                   \
+        #name, t, offsetof(LOCALGROUP_MEMBERS_INFO_2, lgrmi2_##name), r \
+    }
 // @object PyLOCALGROUP_MEMBERS_INFO_2|A dictionary holding the information in a Win32 LOCALGROUP_MEMBERS_INFO_2
 // structure.
 static struct PyNET_STRUCT_ITEM lgmi2[] = {
@@ -101,7 +134,10 @@ static struct PyNET_STRUCT_ITEM lgmi2[] = {
                                               // the member prefixed by the domain name and the "\" separator character
     {NULL}};
 
-#define LGMI3_ENTRY(name, t, r) {#name, t, offsetof(LOCALGROUP_MEMBERS_INFO_3, lgrmi3_##name), r}
+#define LGMI3_ENTRY(name, t, r)                                         \
+    {                                                                   \
+        #name, t, offsetof(LOCALGROUP_MEMBERS_INFO_3, lgrmi3_##name), r \
+    }
 // @object PyLOCALGROUP_MEMBERS_INFO_3|A dictionary holding the information in a Win32 LOCALGROUP_MEMBERS_INFO_3
 // structure.
 static struct PyNET_STRUCT_ITEM lgmi3[] = {
@@ -117,8 +153,14 @@ static struct PyNET_STRUCT localgroup_members_infos[] = {  // @flagh Level|Data
     {3, lgmi3, sizeof(LOCALGROUP_MEMBERS_INFO_3)},         // @flag 3|<o PyLOCALGROUP_MEMBERS_INFO_3>
     {NULL}};
 
-#define GUI0_ENTRY(name, t, r) {#name, t, offsetof(GROUP_USERS_INFO_0, grui0_##name), r}
-#define GUI1_ENTRY(name, t, r) {#name, t, offsetof(GROUP_USERS_INFO_1, grui1_##name), r}
+#define GUI0_ENTRY(name, t, r)                                  \
+    {                                                           \
+        #name, t, offsetof(GROUP_USERS_INFO_0, grui0_##name), r \
+    }
+#define GUI1_ENTRY(name, t, r)                                  \
+    {                                                           \
+        #name, t, offsetof(GROUP_USERS_INFO_1, grui1_##name), r \
+    }
 // @object PyGROUP_USERS_INFO_0|A dictionary holding the information in a Win32 GROUP_USERS_INFO_0 structure.
 static struct PyNET_STRUCT_ITEM gui0[] = {
     GUI0_ENTRY(name, NSI_WSTR, 0),  // @prop string/<o PyUnicode>|name|Name of the group or user
