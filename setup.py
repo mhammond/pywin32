@@ -843,7 +843,7 @@ class my_build_ext(build_ext):
                 "-nogil",
                 "-c++",
                 # we never use the .doc files.
-                "-dnone",
+                # "-dnone",
             ]
             swig_cmd.extend(self.current_extension.extra_swig_commands)
             if platform.machine() in ("AMD64", "ARM64"):
