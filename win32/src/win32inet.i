@@ -253,12 +253,12 @@ void CALLBACK PyHINTERNET_StatusChange(
 }
 %}
 
-%typemap(python,ignore) HINTERNET *OUTPUT(HINTERNET temp)
+%typemap(ignore) HINTERNET *OUTPUT(HINTERNET temp)
 {
   $target = &temp;
 }
 
-%typemap(python,except) PyHINTERNET {
+%typemap(except) PyHINTERNET {
     Py_BEGIN_ALLOW_THREADS
     $function
     Py_END_ALLOW_THREADS
@@ -268,7 +268,7 @@ void CALLBACK PyHINTERNET_StatusChange(
     }
 }
 
-%typemap(python,except) HINTERNET {
+%typemap(except) HINTERNET {
     Py_BEGIN_ALLOW_THREADS
     $function
     Py_END_ALLOW_THREADS
@@ -309,31 +309,31 @@ PyObject *PyObject_FromHINTERNET(HINTERNET hi)
 #define PyHINTERNET HINTERNET // Use a #define so we can undef it later if we need the true defn.
 %}
 
-%typemap(python,in) HINTERNET {
+%typemap(in) HINTERNET {
     if (!PyWinObject_AsHANDLE($source, (HANDLE *)&$target))
 		return NULL;
 }
 
-%typemap(python,in) PyHINTERNET {
+%typemap(in) PyHINTERNET {
     if (!PyWinObject_AsHANDLE($source, (HANDLE *)&$target))
 		return NULL;
 }
 
-%typemap(python,in) PyHINTERNET INPUT_NULLOK {
+%typemap(in) PyHINTERNET INPUT_NULLOK {
     if (!PyWinObject_AsHANDLE($source, (HANDLE *)&$target))
 		return NULL;
 }
 
-%typemap(python,ignore) PyHINTERNET *OUTPUT(HINTERNET temp)
+%typemap(ignore) PyHINTERNET *OUTPUT(HINTERNET temp)
 {
   $target = &temp;
 }
 
-%typemap(python,out) PyHINTERNET {
+%typemap(out) PyHINTERNET {
   $target = PyObject_FromHINTERNET($source);
 }
 
-%typemap(python,argout) PyHINTERNET *OUTPUT {
+%typemap(argout) PyHINTERNET *OUTPUT {
     PyObject *o;
     o = PyObject_FromHINTERNET(*$source);
     if (!$target) {

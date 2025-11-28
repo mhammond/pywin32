@@ -7,7 +7,7 @@ extern PyObject *OleSetADSIError(HRESULT hr, IUnknown *pUnk, REFIID iid);
 %}
 
 // Custom error handling for ADSI.
-%typemap(python,except) HRESULT {
+%typemap(except) HRESULT {
 	Py_BEGIN_ALLOW_THREADS
 	$function
 	Py_END_ALLOW_THREADS
@@ -21,7 +21,7 @@ extern PyObject *OleSetADSIError(HRESULT hr, IUnknown *pUnk, REFIID iid);
 	}
 }
 
-%typemap(python,except) HRESULT_KEEP_INFO {
+%typemap(except) HRESULT_KEEP_INFO {
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS
@@ -31,26 +31,26 @@ extern PyObject *OleSetADSIError(HRESULT hr, IUnknown *pUnk, REFIID iid);
       }
 }
 
-%typemap(python,ignore) IDirectoryObject **OUTPUT(IDirectoryObject *temp)
+%typemap(ignore) IDirectoryObject **OUTPUT(IDirectoryObject *temp)
 {
   $target = &temp;
 }
-%typemap(python,argout) IDirectoryObject **OUTPUT {
+%typemap(argout) IDirectoryObject **OUTPUT {
 	MAKE_OUTPUT_INTERFACE($source, $target, IID_IDirectoryObject)
 }
 
 
-%typemap(python,freearg) IDirectoryObject *,
+%typemap(freearg) IDirectoryObject *,
                          IDirectoryObject *INPUT_NULLOK
 {
 	if ($source) $source->Release();
 }
 
-%typemap(python,in) IDirectoryObject * {
+%typemap(in) IDirectoryObject * {
 	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IDirectoryObject, (void **)&$target, 0))
 		return NULL;
 }
-%typemap(python,in) IDirectoryObject *INPUT_NULLOK {
+%typemap(in) IDirectoryObject *INPUT_NULLOK {
 	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IDirectoryObject, (void **)&$target, 1))
 		return NULL;
 }
@@ -60,12 +60,12 @@ typedef long ADS_SEARCH_HANDLE
 
 // The types and structures.
 
-%typemap(python,ignore) ADS_OBJECT_INFO **OUTPUT (ADS_OBJECT_INFO *temp) {
+%typemap(ignore) ADS_OBJECT_INFO **OUTPUT (ADS_OBJECT_INFO *temp) {
 	$target = &temp;
 	*$target = NULL;
 }
 
-%typemap(python,argout) ADS_OBJECT_INFO **OUTPUT {
+%typemap(argout) ADS_OBJECT_INFO **OUTPUT {
 	PyObject *o;
 	o = PyADSIObject_FromADS_OBJECT_INFO(*$source);
 	if (!$target) {
@@ -84,33 +84,33 @@ typedef long ADS_SEARCH_HANDLE
 		Py_XDECREF(o);
 	}
 }
-%typemap(python,freearg) ADS_OBJECT_INFO **OUTPUT {
+%typemap(freearg) ADS_OBJECT_INFO **OUTPUT {
 	if (*$source) FreeADsMem(*$source);
 }
 
 /*************************
 
-%typemap(python,in) ADS_OBJECT_INFO * {
+%typemap(in) ADS_OBJECT_INFO * {
 	if (!PyADSIObject_AsADS_OBJECT_INFO($source, &$target, FALSE))
 		return NULL;
 }
 
-%typemap(python,in) ADS_OBJECT_INFO *INPUT_NULLOK {
+%typemap(in) ADS_OBJECT_INFO *INPUT_NULLOK {
 	if (!PyMAPIObject_AsADS_OBJECT_INFO($source, &$target, TRUE))
 		return NULL;
 }
 
-%typemap(python,freearg) ADS_OBJECT_INFO *, ADS_OBJECT_INFO *INPUT_NULLOK {
+%typemap(freearg) ADS_OBJECT_INFO *, ADS_OBJECT_INFO *INPUT_NULLOK {
 	if ($source) PyMAPIObject_FreeADS_OBJECT_INFO($source);
 }
 
-%typemap(python,in) ADS_OBJECT_INFO *BOTH = ADS_OBJECT_INFO *INPUT;
-%typemap(python,freearg) ADS_OBJECT_INFO *BOTH = ADS_OBJECT_INFO *INPUT;
-%typemap(python,argout) ADS_OBJECT_INFO *BOTH = ADS_OBJECT_INFO *OUTPUT;
+%typemap(in) ADS_OBJECT_INFO *BOTH = ADS_OBJECT_INFO *INPUT;
+%typemap(freearg) ADS_OBJECT_INFO *BOTH = ADS_OBJECT_INFO *INPUT;
+%typemap(argout) ADS_OBJECT_INFO *BOTH = ADS_OBJECT_INFO *OUTPUT;
 
 ************/
 
-%typemap(python,argout) ADS_OBJECT_INFO *OUTPUT {
+%typemap(argout) ADS_OBJECT_INFO *OUTPUT {
 	PyObject *o;
 	o = PyMAPIObject_FromADS_OBJECT_INFO($source);
 	if (!$target) {
@@ -130,6 +130,6 @@ typedef long ADS_SEARCH_HANDLE
 	}
 }
 
-%typemap(python,freearg) ADS_OBJECT_INFO *OUTPUT {
+%typemap(freearg) ADS_OBJECT_INFO *OUTPUT {
 	if ($source) FreeADsMem($source);
 }
