@@ -150,14 +150,14 @@ computationally intensive operations.
 %}
 
 
-%name(timer_clear)   void SWIG_timer_clear(int n);
+%rename(timer_clear)   void SWIG_timer_clear(int n);
 /* Clears timer n. */
 
-%name(timer_start)   void SWIG_timer_start(int n);
+%rename(timer_start)   void SWIG_timer_start(int n);
 /* Starts timer n. */
 
-%name(timer_stop)    void SWIG_timer_stop(int n);
+%rename(timer_stop)    void SWIG_timer_stop(int n);
 /* Stops timer n. */
 
-%name(timer_elapsed) double SWIG_timer_elapsed(int n);
+%rename(timer_elapsed) double SWIG_timer_elapsed(int n);
 /* Return the elapsed time (in seconds) of timer n */
