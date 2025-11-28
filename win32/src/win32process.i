@@ -288,7 +288,7 @@ static PyObject *mySTARTUPINFO(PyObject *self, PyObject *args)
       Py_XDECREF(o);
     }
 }
-%typemap(ignore) STARTUPINFO *OUTPUT(STARTUPINFO temp)
+%typemap(in,numinputs=0) STARTUPINFO *OUTPUT(STARTUPINFO temp)
 {
   $target = &temp;
 }
@@ -1013,7 +1013,7 @@ static PyObject *MySetThreadAffinityMask(PyObject *self, PyObject *args)
 %typemap(out) DWORD_SR_THREAD {
 	$target = PyLong_FromLong($source);
 }
-%typemap(except) DWORD_SR_THREAD {
+%exception DWORD_SR_THREAD {
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS
@@ -1502,7 +1502,7 @@ PyObject *PyIsWow64Process(PyObject *self, PyObject *args)
 %{
 	typedef VOID *LONG_VOIDPTR;
 %}
-%typemap(except) LONG_VOIDPTR {
+%exception LONG_VOIDPTR {
 	Py_BEGIN_ALLOW_THREADS
 	$function
 	Py_END_ALLOW_THREADS

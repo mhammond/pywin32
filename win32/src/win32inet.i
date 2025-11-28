@@ -253,12 +253,12 @@ void CALLBACK PyHINTERNET_StatusChange(
 }
 %}
 
-%typemap(ignore) HINTERNET *OUTPUT(HINTERNET temp)
+%typemap(in,numinputs=0) HINTERNET *OUTPUT(HINTERNET temp)
 {
   $target = &temp;
 }
 
-%typemap(except) PyHINTERNET {
+%exception PyHINTERNET {
     Py_BEGIN_ALLOW_THREADS
     $function
     Py_END_ALLOW_THREADS
@@ -268,7 +268,7 @@ void CALLBACK PyHINTERNET_StatusChange(
     }
 }
 
-%typemap(except) HINTERNET {
+%exception HINTERNET {
     Py_BEGIN_ALLOW_THREADS
     $function
     Py_END_ALLOW_THREADS
@@ -324,7 +324,7 @@ PyObject *PyObject_FromHINTERNET(HINTERNET hi)
 		return NULL;
 }
 
-%typemap(ignore) PyHINTERNET *OUTPUT(HINTERNET temp)
+%typemap(in,numinputs=0) PyHINTERNET *OUTPUT(HINTERNET temp)
 {
   $target = &temp;
 }
