@@ -188,7 +188,7 @@ BOOL PyCom_ExcepInfoFromPyObject(PyObject *v, EXCEPINFO *pExcepInfo, HRESULT *ph
     // Note that with class based exceptions, a simple pointer check fails.
     // Any class sub-classed from the client is considered a server error,
     // so we need to check the class explicitly.
-    if (static_cast<PyObject*>(Py_TYPE(v)) == PyWinExc_COMError) {
+    if (reinterpret_cast<PyObject*>(Py_TYPE(v)) == PyWinExc_COMError) {
         // Client side error
         // Clear the state of the excep info.
         // use abstract API to get at details.
