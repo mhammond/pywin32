@@ -8,7 +8,7 @@
 
 %typedef void *NULL_ONLY
 
-%typemap(python,in) NULL_ONLY {
+%typemap(in) NULL_ONLY {
 	if ($source != Py_None) {
 		PyErr_SetString(PyExc_TypeError, "This param must be None");
 		return NULL;
@@ -18,7 +18,7 @@
 
 // only seem able to make this work with an incorrect level of
 // indirection, and fixing it up inline with a temp.
-%typemap(python,in) PTIMERAPCROUTINE *(PTIMERAPCROUTINE temp) {
+%typemap(in) PTIMERAPCROUTINE *(PTIMERAPCROUTINE temp) {
 	if ($source != Py_None) {
 		PyErr_SetString(PyExc_TypeError, "This param must be None");
 		return NULL;
@@ -29,7 +29,7 @@
 
 // We can get better perf from some of these functions that don't block
 // by not releasing the Python lock as part of the call.
-%typemap(python,except) BOOLAPI {
+%typemap(except) BOOLAPI {
       $function
       if (!$source)  {
            $cleanup
@@ -385,7 +385,7 @@ static PyObject *MyWaitForMultipleObjectsEx(
     BOOL bAlertable 	// @pyparm bool|bAlertable||alertable wait flag.
    );
 %typedef DWORD DWORD_WAITAPI
-%typemap(python,except) DWORD_WAITAPI {
+%typemap(except) DWORD_WAITAPI {
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS

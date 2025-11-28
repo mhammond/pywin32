@@ -9,12 +9,12 @@ typedef long HRESULT;	// This will raise COM Exception.
 typedef long FLAGS;
 
 
-%typemap(python,out) HRESULT {
+%typemap(out) HRESULT {
 	$target = Py_None;
 	Py_INCREF(Py_None);
 }
 
-%typemap(python,except) HRESULT {
+%typemap(except) HRESULT {
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS
@@ -33,11 +33,11 @@ typedef long FLAGS;
 //typedef long HRESULT_KEEP_INFO;
 %typedef long HRESULT_KEEP_INFO;
 
-%typemap(python,out) HRESULT_KEEP_INFO {
+%typemap(out) HRESULT_KEEP_INFO {
 	$target = PyLong_FromLong($source);
 }
 
-%typemap(python,except) HRESULT_KEEP_INFO {
+%typemap(except) HRESULT_KEEP_INFO {
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS
@@ -51,14 +51,14 @@ typedef long FLAGS;
       }
 }
 
-%typemap(python,in) IID *INPUT(IID temp)
+%typemap(in) IID *INPUT(IID temp)
 {
 	$target = &temp;
 	if (!PyWinObject_AsIID($source, $target))
 		return NULL;
 }
 
-%typemap(python,in) IID *INPUT_NULLOK(IID temp)
+%typemap(in) IID *INPUT_NULLOK(IID temp)
 {
 	if ($source==Py_None)
 		$target = NULL;
@@ -69,11 +69,11 @@ typedef long FLAGS;
 	}
 }
 
-%typemap(python,ignore) IUnknown **OUTPUT(IUnknown *temp)
+%typemap(ignore) IUnknown **OUTPUT(IUnknown *temp)
 {
   $target = &temp;
 }
-%typemap(python,ignore) IDispatch **OUTPUT(IDispatch *temp)
+%typemap(ignore) IDispatch **OUTPUT(IDispatch *temp)
 {
   $target = &temp;
 }
@@ -101,26 +101,26 @@ typedef long FLAGS;
 }
 %}
 
-%typemap(python,argout) IUnknown **OUTPUT {
+%typemap(argout) IUnknown **OUTPUT {
 	MAKE_OUTPUT_INTERFACE($source, $target, IID_IUnknown)
 //	$target = PyCom_PyObjectFromIUnknown(*$source, IID_IUnknown, FALSE /* bAddRef */);
 }
 
-%typemap(python,in) IUnknown *INPUT {
+%typemap(in) IUnknown *INPUT {
 	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IUnknown, (void **)&$target, 0))
 		return NULL;
 }
 
-%typemap(python,in) IUnknown *INPUT_NULLOK {
+%typemap(in) IUnknown *INPUT_NULLOK {
 	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IUnknown, (void **)&$target, 1))
 		return NULL;
 }
 
-%typemap(python,argout) IDispatch **OUTPUT {
+%typemap(argout) IDispatch **OUTPUT {
 	MAKE_OUTPUT_INTERFACE($source, $target, IID_IDispatch)
 }
 
-%typemap(python,freearg) IUnknown *INPUT,
+%typemap(freearg) IUnknown *INPUT,
                          IUnknown *INPUT_NULLOK,
                          IMessage *INPUT,
                          IMessage *INPUT_NULLOK,
@@ -140,7 +140,7 @@ typedef long FLAGS;
 	if ($source) $source->Release();
 }
 
-%typemap(python,arginit) IUnknown *,
+%typemap(arginit) IUnknown *,
                          IMAPISession *,
                          IMAPITable *,
                          IMAPIFolder *,
@@ -154,12 +154,12 @@ typedef long FLAGS;
 
 // Variants!
 // SWIG only does this funky stuff for pointers :-(
-%typemap(python,ignore) VARIANT *OUTPUT( VARIANT temp)
+%typemap(ignore) VARIANT *OUTPUT( VARIANT temp)
 {
   $target = &temp;
 }
 
-%typemap(python,argout) VARIANT *OUTPUT {
+%typemap(argout) VARIANT *OUTPUT {
     PyObject *o;
     o = PyCom_PyObjectFromVariant($source);
     if (!$target) {

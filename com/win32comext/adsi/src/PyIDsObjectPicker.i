@@ -72,11 +72,11 @@ done:
 
 %native(Initialize) Initialize;
 
-%typemap(python,ignore) IDataObject  **OUTPUT(IDataObject *temp)
+%typemap(ignore) IDataObject  **OUTPUT(IDataObject *temp)
 {
   $target = &temp;
 }
-%typemap(python,argout) IDataObject **OUTPUT {
+%typemap(argout) IDataObject **OUTPUT {
 	MAKE_OUTPUT_INTERFACE($source, $target, IID_IDataObject)
 }
 

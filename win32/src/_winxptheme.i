@@ -48,14 +48,14 @@ public:
 
 %}
 
-%typemap(python,except) HTHEME {
+%typemap(except) HTHEME {
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS
 }
 
 
-%typemap(python,out) HTHEME {
+%typemap(out) HTHEME {
   if ($source==(HTHEME)0) {
     $target = Py_None;
     Py_INCREF(Py_None);
@@ -63,7 +63,7 @@ public:
     $target = new PyHTHEME($source);
 }
 
-%typemap(python,ignore) HTHEME *(HTHEME temp)
+%typemap(ignore) HTHEME *(HTHEME temp)
 {
   if (temp==(HTHEME)0) {
     $target = Py_None;
@@ -71,7 +71,7 @@ public:
   } else
     $target = new PyHTHEME(temp);
 }
-%typemap(python,in) HTHEME *(HTHEME temp)
+%typemap(in) HTHEME *(HTHEME temp)
 {
     $target = &temp;
     if (!PyWinObject_AsHANDLE($source, $target))
@@ -82,17 +82,17 @@ public:
 typedef HANDLE HTHEME;
 
 typedef float HDC;
-%typemap(python, in) HDC{
+%typemap( in) HDC{
 	if (!PyWinObject_AsHANDLE($source, (HANDLE *)&$target))
 		return NULL;
 }
 
-%typemap(python,ignore) RECT *OUTPUT(RECT temp)
+%typemap(ignore) RECT *OUTPUT(RECT temp)
 {
   $target = &temp;
 }
 
-%typemap(python,in) RECT *INPUT {
+%typemap(in) RECT *INPUT {
     RECT r;
 	if (PyTuple_Check($source)) {
 		if (PyArg_ParseTuple($source, "llll", &r.left, &r.top, &r.right, &r.bottom) == 0) {
@@ -104,7 +104,7 @@ typedef float HDC;
 	}
 }
 
-%typemap(python,in) RECT *INPUT_NULLOK {
+%typemap(in) RECT *INPUT_NULLOK {
     RECT r;
 	if (PyTuple_Check($source)) {
 		if (PyArg_ParseTuple($source, "llll", &r.left, &r.top, &r.right, &r.bottom) == 0) {
@@ -128,12 +128,12 @@ typedef long HRESULT;	// This will raise COM Exception.
 typedef long FLAGS;
 
 
-%typemap(python,out) HRESULT {
+%typemap(out) HRESULT {
 	$target = Py_None;
 	Py_INCREF(Py_None);
 }
 
-%typemap(python,except) HRESULT {
+%typemap(except) HRESULT {
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS

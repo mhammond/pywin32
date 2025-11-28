@@ -263,13 +263,13 @@ static PyObject *mySTARTUPINFO(PyObject *self, PyObject *args)
 %native (STARTUPINFO) mySTARTUPINFO;
 
 
-%typemap(python,in) STARTUPINFO *
+%typemap(in) STARTUPINFO *
 {
 	if (!PyWinObject_AsSTARTUPINFO($source, &$target, FALSE))
 		return NULL;
 }
 
-%typemap(python,argout) STARTUPINFO *OUTPUT {
+%typemap(argout) STARTUPINFO *OUTPUT {
     PyObject *o;
     o = PyWinObject_FromSTARTUPINFO($source);
     if (!$target) {
@@ -288,7 +288,7 @@ static PyObject *mySTARTUPINFO(PyObject *self, PyObject *args)
       Py_XDECREF(o);
     }
 }
-%typemap(python,ignore) STARTUPINFO *OUTPUT(STARTUPINFO temp)
+%typemap(ignore) STARTUPINFO *OUTPUT(STARTUPINFO temp)
 {
   $target = &temp;
 }
@@ -1008,10 +1008,10 @@ static PyObject *MySetThreadAffinityMask(PyObject *self, PyObject *args)
 
 // Special result handling for SuspendThread and ResumeThread
 %typedef DWORD DWORD_SR_THREAD
-%typemap(python,out) DWORD_SR_THREAD {
+%typemap(out) DWORD_SR_THREAD {
 	$target = PyLong_FromLong($source);
 }
-%typemap(python,except) DWORD_SR_THREAD {
+%typemap(except) DWORD_SR_THREAD {
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS
@@ -1498,7 +1498,7 @@ PyObject *PyIsWow64Process(PyObject *self, PyObject *args)
 %}
 
 %typedef VOID *LONG_VOIDPTR;
-%typemap(python,except) LONG_VOIDPTR {
+%typemap(except) LONG_VOIDPTR {
 	Py_BEGIN_ALLOW_THREADS
 	$function
 	Py_END_ALLOW_THREADS
@@ -1508,11 +1508,11 @@ PyObject *PyIsWow64Process(PyObject *self, PyObject *args)
 	}
 }
 
-%typemap(python, in) LONG_VOIDPTR {
+%typemap( in) LONG_VOIDPTR {
 	if (!PyWinLong_AsVoidPtr($source, &$target))
 		return NULL;
 }
-%typemap(python, out) LONG_VOIDPTR
+%typemap( out) LONG_VOIDPTR
 {
 	$target = PyWinLong_FromVoidPtr($source);
 }
