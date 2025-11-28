@@ -1592,11 +1592,11 @@ PyObject *PyIsWow64Process(PyObject *self, PyObject *args)
 	}
 }
 
-%typemap( in) LONG_VOIDPTR {
+%typemap(in) LONG_VOIDPTR {
 	if (!PyWinLong_AsVoidPtr($source, &$target))
 		return NULL;
 }
-%typemap( out) LONG_VOIDPTR
+%typemap(out) LONG_VOIDPTR
 {
 	$target = PyWinLong_FromVoidPtr($source);
 }

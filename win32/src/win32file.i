@@ -2541,93 +2541,93 @@ Error:
 
 %typemap(in) DCB *
 {
-	if (!PyWinObject_AsDCB($source, &$target, TRUE))
+	if (!PyWinObject_AsDCB($input, &$1, TRUE))
 		return NULL;
 }
 %typemap(argout) DCB *OUTPUT {
     PyObject *o;
-    o = PyWinObject_FromDCB($source);
-    if (!$target) {
-      $target = o;
-    } else if ($target == Py_None) {
+    o = PyWinObject_FromDCB($1);
+    if (!$result) {
+      $result = o;
+    } else if ($result == Py_None) {
       Py_DECREF(Py_None);
-      $target = o;
+      $result = o;
     } else {
-      if (!PyList_Check($target)) {
-	PyObject *o2 = $target;
-	$target = PyList_New(0);
-	PyList_Append($target,o2);
+      if (!PyList_Check($result)) {
+	PyObject *o2 = $result;
+	$result = PyList_New(0);
+	PyList_Append($result,o2);
 	Py_XDECREF(o2);
       }
-      PyList_Append($target,o);
+      PyList_Append($result,o);
       Py_XDECREF(o);
     }
 }
 %typemap(in,numinputs=0) DCB *OUTPUT(DCB temp)
 {
-  $target = &temp;
-  $target->DCBlength = sizeof( DCB ) ;
+  $1 = &temp;
+  $1->DCBlength = sizeof( DCB ) ;
 }
 
 %typemap(in) COMSTAT *
 {
-	if (!PyWinObject_AsCOMSTAT($source, &$target, TRUE))
+	if (!PyWinObject_AsCOMSTAT($input, &$1, TRUE))
 		return NULL;
 }
 %typemap(argout) COMSTAT *OUTPUT {
     PyObject *o;
-    o = PyWinObject_FromCOMSTAT(*$source);
-    if (!$target) {
-      $target = o;
-    } else if ($target == Py_None) {
+    o = PyWinObject_FromCOMSTAT(*$1);
+    if (!$result) {
+      $result = o;
+    } else if ($result == Py_None) {
       Py_DECREF(Py_None);
-      $target = o;
+      $result = o;
     } else {
-      if (!PyList_Check($target)) {
-	PyObject *o2 = $target;
-	$target = PyList_New(0);
-	PyList_Append($target,o2);
+      if (!PyList_Check($result)) {
+	PyObject *o2 = $result;
+	$result = PyList_New(0);
+	PyList_Append($result,o2);
 	Py_XDECREF(o2);
       }
-      PyList_Append($target,o);
+      PyList_Append($result,o);
       Py_XDECREF(o);
     }
 }
 %typemap(in,numinputs=0) COMSTAT *OUTPUT(COMSTAT temp)
 {
-  $target = &temp;
+  $1 = &temp;
 }
 
 
 %typemap(in) COMMTIMEOUTS *(COMMTIMEOUTS temp)
 {
-	$target = &temp;
-	if (!PyWinObject_AsCOMMTIMEOUTS($source, $target))
+	$1 = &temp;
+	if (!PyWinObject_AsCOMMTIMEOUTS($input, $1))
 		return NULL;
 }
 
 %typemap(argout) COMMTIMEOUTS *OUTPUT {
     PyObject *o;
-    o = PyWinObject_FromCOMMTIMEOUTS($source);
-    if (!$target) {
-      $target = o;
-    } else if ($target == Py_None) {
+    o = PyWinObject_FromCOMMTIMEOUTS($1);
+    if (!$result) {
+      $result = o;
+    } else if ($result == Py_None) {
       Py_DECREF(Py_None);
-      $target = o;
+      $result = o;
     } else {
-      if (!PyList_Check($target)) {
-	PyObject *o2 = $target;
-	$target = PyList_New(0);
-	PyList_Append($target,o2);
+      if (!PyList_Check($result)) {
+	PyObject *o2 = $result;
+	$result = PyList_New(0);
+	PyList_Append($result,o2);
 	Py_XDECREF(o2);
       }
-      PyList_Append($target,o);
+      PyList_Append($result,o);
       Py_XDECREF(o);
     }
 }
 %typemap(in,numinputs=0) COMMTIMEOUTS *OUTPUT(COMMTIMEOUTS temp)
 {
-  $target = &temp;
+  $1 = &temp;
 }
 
 
