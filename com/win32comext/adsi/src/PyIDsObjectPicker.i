@@ -72,7 +72,7 @@ done:
 
 %native(Initialize) Initialize;
 
-%typemap(ignore) IDataObject  **OUTPUT(IDataObject *temp)
+%typemap(in,numinputs=0) IDataObject  **OUTPUT(IDataObject *temp)
 {
   $target = &temp;
 }
