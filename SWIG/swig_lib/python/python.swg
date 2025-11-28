@@ -1,87 +1,61 @@
-/***********************************************************************
- * $Header$
- * swig_lib/python/python.cfg
+/* ------------------------------------------------------------
+ * python.swg
  *
- * This file contains coded needed to add variable linking to the
- * Python interpreter.   C variables are added as a new kind of Python
- * datatype.
- *
- * Also contains supporting code for building python under Windows
- * and things like that.
- *
- * $Log$
- * Revision 1.1  2000/03/14 23:34:06  mhammond
- * Needed to modify a standard Swig file to avoid the 'extern "C"' around Python.h (which gets upset when it tries to include whcar.h as part of the new Unicode patches)
- *
- ************************************************************************/
+ * Python configuration module.
+ * ------------------------------------------------------------ */
 
-#define PY_SSIZE_T_CLEAN
-#include "Python.h"
+/* ------------------------------------------------------------
+ *  Inner macros
+ * ------------------------------------------------------------ */
+%include <pymacros.swg>
 
-/* Definitions for Windows/Unix exporting */
-#if defined(__WIN32__)
-#   if defined(_MSC_VER)
-#	define SWIGEXPORT(a,b) __declspec(dllexport) a b
-#   else
-#	if defined(__BORLANDC__)
-#	    define SWIGEXPORT(a,b) a _export b
-#	else
-#	    define SWIGEXPORT(a,b) a b
-#	endif
-#   endif
-#else
-#   define SWIGEXPORT(a,b) a b
-#endif
 
-#ifdef SWIG_GLOBAL
-#ifdef __cplusplus
-#define SWIGSTATIC extern "C"
-#else
-#define SWIGSTATIC
-#endif
-#endif
+/* ------------------------------------------------------------
+ *  The runtime part
+ * ------------------------------------------------------------ */
+%include <pyruntime.swg>
 
-#ifndef SWIGSTATIC
-#define SWIGSTATIC static
-#endif
+/* ------------------------------------------------------------
+ *  Special user directives
+ * ------------------------------------------------------------ */
+%include <pyuserdir.swg>
 
-#ifdef NEED_SWIG_VARLINK
+/* ------------------------------------------------------------
+ *  Typemap specializations
+ * ------------------------------------------------------------ */
+%include <pytypemaps.swg>
 
-typedef struct {
-  char  *name;
-  PyObject *(*get_attr)(void);
-  int (*set_attr)(PyObject *);
-} swig_globalvar;
+/* ------------------------------------------------------------
+ *  Overloaded operator support
+ * ------------------------------------------------------------ */
+%include <pyopers.swg>
 
-typedef struct swig_varlinkobject {
-  PyObject_HEAD
-  swig_globalvar **vars;
-  int      nvars;
-  int      maxvars;
-} swig_varlinkobject;
+/* ------------------------------------------------------------
+ * Warnings for Python keywords 
+ * ------------------------------------------------------------ */
+%include <pythonkw.swg>
 
-/* ----------------------------------------------------------------------
-   swig_varlink_repr()
+/* ------------------------------------------------------------
+ * The Python autodoc support
+ * ------------------------------------------------------------ */
+%include <pydocs.swg>
 
-   Function for python repr method
-   ---------------------------------------------------------------------- */
+/* ------------------------------------------------------------
+ * The Python classes, for C++
+ * ------------------------------------------------------------ */
+%include <pyclasses.swg>
 
-static PyObject *
-swig_varlink_repr(swig_varlinkobject *v)
-{
-  v = v;
-  return PyBytes_FromString("<Global variables>");
-}
+/* ------------------------------------------------------------
+ * The Python initialization function 
+ * ------------------------------------------------------------ */
+%include <pyinit.swg>
 
-/* ---------------------------------------------------------------------
-   swig_varlink_print()
 
-   Print out all of the global variable names
-   --------------------------------------------------------------------- */
+/* ------------------------------------------------------------
+ * For backward compatibility
+ * ------------------------------------------------------------ */
+%include <pybackward.swg>
 
-static int
-swig_varlink_print(swig_varlinkobject *v, FILE *fp, int flags)
-{
 
   int i = 0;
   flags = flags;
