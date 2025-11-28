@@ -169,7 +169,11 @@ ui_type::ui_type(const char *name, ui_type *pBase, Py_ssize_t typeSize,
     };
 
     *((PyTypeObject *)this) = type_template;
-    ((PyObject *)Py_TYPE(this)) = &PyType_Type;
+#if PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION >= 9
+    Py_SET_TYPE(this, &PyType_Type);
+#else
+    ((PyObject *)this)->ob_type = &PyType_Type;
+#endif
     tp_methods = methodList;
     // #define funky_offsetof_weakreflist ((size_t) &((PyObject *)(ui_base_class *)0)->weakreflist)
 
