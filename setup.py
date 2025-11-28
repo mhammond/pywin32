@@ -829,7 +829,7 @@ class my_build_ext(build_ext):
                 swig,
                 "-python",
                 # we never use the .doc files.
-                "-dnone",
+                # "-dnone",
             ]
             swig_cmd.extend(self.swig_opts)
             swig_cmd.extend(ext.swig_opts)
