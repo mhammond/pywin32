@@ -1070,7 +1070,9 @@ static PyObject *MySetThreadAffinityMask(PyObject *self, PyObject *args)
 %native(SetThreadAffinityMask) MySetThreadAffinityMask;
 
 // Special result handling for SuspendThread and ResumeThread
-%typedef DWORD DWORD_SR_THREAD
+%{
+	typedef DWORD DWORD_SR_THREAD;
+%}
 %typemap(out) DWORD_SR_THREAD {
 	$target = PyLong_FromLong($source);
 }
@@ -1577,7 +1579,9 @@ PyObject *PyIsWow64Process(PyObject *self, PyObject *args)
 }
 %}
 
-%typedef VOID *LONG_VOIDPTR;
+%{
+	typedef VOID *LONG_VOIDPTR;
+%}
 %typemap(except) LONG_VOIDPTR {
 	Py_BEGIN_ALLOW_THREADS
 	$function

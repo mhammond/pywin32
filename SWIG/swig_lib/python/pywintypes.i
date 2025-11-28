@@ -64,7 +64,9 @@ typedef unsigned long ULONG;
 // Map API functions that return BOOL to
 // functions that return None, but raise exceptions.
 // These functions must set the win32 LastError.
-%typedef BOOL BOOLAPI
+%{
+typedef BOOL BOOLAPI;
+%}
 
 %typemap(out) BOOLAPI {
 	$target = Py_None;
@@ -81,7 +83,9 @@ typedef unsigned long ULONG;
       }
 }
 
-%typedef DWORD DWORDAPI
+%{
+typedef DWORD DWORDAPI;
+%}
 
 %typemap(out) DWORDAPI {
 	$target = Py_None;

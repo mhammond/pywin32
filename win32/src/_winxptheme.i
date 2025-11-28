@@ -124,7 +124,9 @@ typedef float HDC;
 // This uses a 'hresult' API
 
 typedef long HRESULT;	// This will raise COM Exception.
-%typedef long HRESULT_KEEP; // This will keep HRESULT, and return
+%{
+typedef long HRESULT_KEEP; // This will keep HRESULT, and return
+%}
 typedef long FLAGS;
 
 

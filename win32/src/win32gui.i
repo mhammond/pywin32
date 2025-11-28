@@ -182,7 +182,9 @@ typedef float HPEN, HBRUSH, HFONT, HRGN, HBITMAP;
 		return NULL;
 }
 
-%typedef int int_regiontype;
+%{
+	typedef int int_regiontype;
+%}
 // Several functions return an int containg a region type (NULLREGION,SIMPLEREGION,COMPLEXREGION) or ERROR on failure
 %typemap(except) int_regiontype{
 	Py_BEGIN_ALLOW_THREADS
@@ -333,7 +335,9 @@ typedef HANDLE LPARAM;
 typedef HANDLE LRESULT;
 typedef int UINT;
 
-%typedef void *NULL_ONLY
+%{
+	typedef void *NULL_ONLY;
+%}
 
 %typemap(in) NULL_ONLY {
 	if ($source != Py_None) {
@@ -1700,10 +1704,11 @@ static PyObject *PyGetBufferAddressAndLen(PyObject *self, PyObject *args)
 %}
 %native (PyGetBufferAddressAndLen) PyGetBufferAddressAndLen;
 
-
-%typedef TCHAR *STRING_OR_ATOM_CW
-%typedef TCHAR *RESOURCE_ID
-%typedef TCHAR *RESOURCE_ID_NULLOK
+%{
+typedef TCHAR *STRING_OR_ATOM_CW;
+typedef TCHAR *RESOURCE_ID;
+typedef TCHAR *RESOURCE_ID_NULLOK;
+%}
 
 %typemap(arginit) STRING_OR_ATOM_CW, RESOURCE_ID, RESOURCE_ID_NULLOK{
 	$target=NULL;

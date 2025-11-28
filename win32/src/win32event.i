@@ -6,7 +6,10 @@
 %include "typemaps.i"
 %include "pywin32.i"
 
-%typedef void *NULL_ONLY
+
+%{
+typedef void *NULL_ONLY;
+%}
 
 %typemap(in) NULL_ONLY {
 	if ($source != Py_None) {
@@ -384,7 +387,9 @@ static PyObject *MyWaitForMultipleObjectsEx(
     DWORD dwMilliseconds,	// @pyparm int|milliseconds||time-out interval in milliseconds
     BOOL bAlertable 	// @pyparm bool|bAlertable||alertable wait flag.
    );
-%typedef DWORD DWORD_WAITAPI
+%{
+    typedef DWORD DWORD_WAITAPI;
+%}
 %typemap(except) DWORD_WAITAPI {
       Py_BEGIN_ALLOW_THREADS
       $function
