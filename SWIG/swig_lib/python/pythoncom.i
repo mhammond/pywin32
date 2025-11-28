@@ -5,7 +5,9 @@
 %}
 
 typedef long HRESULT;	// This will raise COM Exception.
-%typedef long HRESULT_KEEP; // This will keep HRESULT, and return
+%{
+typedef long HRESULT_KEEP; // This will keep HRESULT, and return
+%}
 typedef long FLAGS;
 
 
@@ -31,7 +33,9 @@ typedef long FLAGS;
 // HRESULT_KEEP_INFO will raise an exception on failure,
 // but still return the hresult to the caller
 //typedef long HRESULT_KEEP_INFO;
-%typedef long HRESULT_KEEP_INFO;
+%{
+typedef long HRESULT_KEEP_INFO;
+%}
 
 %typemap(out) HRESULT_KEEP_INFO {
 	$target = PyLong_FromLong($source);
