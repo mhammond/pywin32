@@ -356,7 +356,7 @@ CString ui_base_class::repr()
 void ui_base_class::cleanup()
 {
     const char *szTyp = ob_type ? ob_type->tp_name : "<bad type!>";
-    TRACE("cleanup detected type %s, refcount = %d\n", szTyp, ob_refcnt);
+    TRACE("cleanup detected type %s, refcount = %d\n", szTyp, Py_REFCNT(this));
 }
 
 /*static*/ void ui_base_class::sui_dealloc(PyObject *ob)
@@ -407,7 +407,7 @@ void DumpAssocPyObject(CDumpContext &dc, void *object)
 void ui_base_class::Dump(CDumpContext &dc) const
 {
     CObject::Dump(dc);
-    dc << "Object of type " << ob_type->tp_name << ", ob_refcnt=" << ob_refcnt;
+    dc << "Object of type " << ob_type->tp_name << ", refcount " << Py_REFCNT(this);
 }
 #endif
 
