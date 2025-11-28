@@ -1484,7 +1484,7 @@ PyObject *PyFILE_NOTIFY_INFORMATION(PyObject *self, PyObject *args)
 // ReadFileEx
 // SearchPath
 
-%rename("%(rstrip:[W])s") "";
+%rename(SetCurrentDirectory) SetCurrentDirectoryW;
 
 // @pyswig |SetCurrentDirectory|Sets the current directory.
 BOOLAPI SetCurrentDirectoryW(
