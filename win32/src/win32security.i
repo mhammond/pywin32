@@ -126,11 +126,11 @@ FARPROC loadapifunc(char *funcname, HMODULE hmodule)
 typedef long SECURITY_IMPERSONATION_LEVEL;
 %apply LARGE_INTEGER {LUID};
 typedef LARGE_INTEGER LUID;
-%typemap(python,ignore) LUID *OUTPUT(LUID temp)
+%typemap(ignore) LUID *OUTPUT(LUID temp)
 {
   $target = &temp;
 }
-%typemap(python,argout) LUID *OUTPUT {
+%typemap(argout) LUID *OUTPUT {
     PyObject *o;
     o = PyWinObject_FromLARGE_INTEGER(*((LARGE_INTEGER *)$source));
     if (!$target) {

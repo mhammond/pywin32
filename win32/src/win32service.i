@@ -1126,22 +1126,22 @@ static PyObject *MyQueryServiceConfig(PyObject *self, PyObject *args)
 %}
 
 typedef float SC_HANDLE, SERVICE_STATUS_HANDLE, SC_LOCK;	// This is just to keep Swig from treating them as pointers
-%typemap(python,out) SC_HANDLE{
+%typemap(out) SC_HANDLE{
 	$target = PyWinObject_FromSC_HANDLE($source);
 }
-%typemap(python,in) SC_HANDLE, SERVICE_STATUS_HANDLE{
+%typemap(in) SC_HANDLE, SERVICE_STATUS_HANDLE{
 	if (!PyWinObject_AsHANDLE($source, (HANDLE *)&$target))
 		return NULL;
 }
-%typemap(python,out) SC_LOCK{
+%typemap(out) SC_LOCK{
 	$target = PyWinLong_FromVoidPtr($source);
 }
-%typemap(python,in) SC_LOCK{
+%typemap(in) SC_LOCK{
 	if (!PyWinLong_AsVoidPtr($source, &$target))
 		return NULL;
 }
 
-%typemap(python,except) SC_HANDLE {
+%typemap(except) SC_HANDLE {
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS
@@ -1152,12 +1152,12 @@ typedef float SC_HANDLE, SERVICE_STATUS_HANDLE, SC_LOCK;	// This is just to keep
 }
 
 // SERVICE_STATUS support
-%typemap(python,ignore) SERVICE_STATUS *outServiceStatus (SERVICE_STATUS temp) {
+%typemap(ignore) SERVICE_STATUS *outServiceStatus (SERVICE_STATUS temp) {
 	$target = &temp;
 }
 
 // @object SERVICE_STATUS|A Win32 service status object is represented by a tuple:
-%typemap(python,argout) SERVICE_STATUS *outServiceStatus {
+%typemap(argout) SERVICE_STATUS *outServiceStatus {
 	Py_DECREF($target);
 	$target = Py_BuildValue("lllllll",
 		$source->dwServiceType, // @tupleitem 0|int|serviceType|The type of service.
@@ -1169,7 +1169,7 @@ typedef float SC_HANDLE, SERVICE_STATUS_HANDLE, SC_LOCK;	// This is just to keep
 		$source->dwWaitHint); // @tupleitem 6|int|waitHint|The wait hint reported by the service.
 }
 
-%typemap(python,in) SERVICE_STATUS *inServiceStatus (SERVICE_STATUS junk) {
+%typemap(in) SERVICE_STATUS *inServiceStatus (SERVICE_STATUS junk) {
 	$target = &junk;
 	if (!PyArg_ParseTuple($source, "lllllll",
 		&$target->dwServiceType,

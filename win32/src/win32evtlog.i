@@ -81,7 +81,7 @@ PyObject *PyWinObject_FromEVT_HANDLE(HANDLE h, PyObject *context=NULL)
 }
 %}
 
-%typemap(python,except) PyEVTLOG_HANDLE {
+%typemap(except) PyEVTLOG_HANDLE {
   Py_BEGIN_ALLOW_THREADS
   $function
   Py_END_ALLOW_THREADS
@@ -91,7 +91,7 @@ PyObject *PyWinObject_FromEVT_HANDLE(HANDLE h, PyObject *context=NULL)
   }
 }
 
-%typemap(python,out) PyEVTLOG_HANDLE {
+%typemap(out) PyEVTLOG_HANDLE {
   $target = PyWinObject_FromEVTLOG_HANDLE($source);
 }
 

@@ -2534,12 +2534,12 @@ Error:
 
 %native (DCB) PyWinMethod_NewDCB;
 
-%typemap(python,in) DCB *
+%typemap(in) DCB *
 {
 	if (!PyWinObject_AsDCB($source, &$target, TRUE))
 		return NULL;
 }
-%typemap(python,argout) DCB *OUTPUT {
+%typemap(argout) DCB *OUTPUT {
     PyObject *o;
     o = PyWinObject_FromDCB($source);
     if (!$target) {
@@ -2558,18 +2558,18 @@ Error:
       Py_XDECREF(o);
     }
 }
-%typemap(python,ignore) DCB *OUTPUT(DCB temp)
+%typemap(ignore) DCB *OUTPUT(DCB temp)
 {
   $target = &temp;
   $target->DCBlength = sizeof( DCB ) ;
 }
 
-%typemap(python,in) COMSTAT *
+%typemap(in) COMSTAT *
 {
 	if (!PyWinObject_AsCOMSTAT($source, &$target, TRUE))
 		return NULL;
 }
-%typemap(python,argout) COMSTAT *OUTPUT {
+%typemap(argout) COMSTAT *OUTPUT {
     PyObject *o;
     o = PyWinObject_FromCOMSTAT(*$source);
     if (!$target) {
@@ -2588,20 +2588,20 @@ Error:
       Py_XDECREF(o);
     }
 }
-%typemap(python,ignore) COMSTAT *OUTPUT(COMSTAT temp)
+%typemap(ignore) COMSTAT *OUTPUT(COMSTAT temp)
 {
   $target = &temp;
 }
 
 
-%typemap(python,in) COMMTIMEOUTS *(COMMTIMEOUTS temp)
+%typemap(in) COMMTIMEOUTS *(COMMTIMEOUTS temp)
 {
 	$target = &temp;
 	if (!PyWinObject_AsCOMMTIMEOUTS($source, $target))
 		return NULL;
 }
 
-%typemap(python,argout) COMMTIMEOUTS *OUTPUT {
+%typemap(argout) COMMTIMEOUTS *OUTPUT {
     PyObject *o;
     o = PyWinObject_FromCOMMTIMEOUTS($source);
     if (!$target) {
@@ -2620,7 +2620,7 @@ Error:
       Py_XDECREF(o);
     }
 }
-%typemap(python,ignore) COMMTIMEOUTS *OUTPUT(COMMTIMEOUTS temp)
+%typemap(ignore) COMMTIMEOUTS *OUTPUT(COMMTIMEOUTS temp)
 {
   $target = &temp;
 }

@@ -45,7 +45,7 @@ typedef unsigned long ULONG;
 %}
 
 // DWORDs can use longs so long as they fit in 32 unsigned bits
-%typemap(python,in) DWORD {
+%typemap(in) DWORD {
 	// PyLong_AsUnsignedLongMask isn't ideal - no overflow checking - but
 	// this is what the 'k' format specifier in PyArg_ParseTuple uses, and
 	// that is what much of pywin32 uses for DWORDS, so we use it here too
@@ -55,7 +55,7 @@ typedef unsigned long ULONG;
 }
 
 // Override the SWIG default for this.
-%typemap(python,out) PyObject *{
+%typemap(out) PyObject *{
 	if ($source==NULL) return NULL; // get out now!
 	$target = $source;
 }
@@ -66,12 +66,12 @@ typedef unsigned long ULONG;
 // These functions must set the win32 LastError.
 %typedef BOOL BOOLAPI
 
-%typemap(python,out) BOOLAPI {
+%typemap(out) BOOLAPI {
 	$target = Py_None;
 	Py_INCREF(Py_None);
 }
 
-%typemap(python,except) BOOLAPI {
+%typemap(except) BOOLAPI {
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS
@@ -83,12 +83,12 @@ typedef unsigned long ULONG;
 
 %typedef DWORD DWORDAPI
 
-%typemap(python,out) DWORDAPI {
+%typemap(out) DWORDAPI {
 	$target = Py_None;
 	Py_INCREF(Py_None);
 }
 
-%typemap(python,except) DWORDAPI {
+%typemap(except) DWORDAPI {
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS
@@ -99,7 +99,7 @@ typedef unsigned long ULONG;
 }
 
 // String support
-%typemap(python,in) char *inNullString {
+%typemap(in) char *inNullString {
 	if ($source==Py_None) {
 		$target = NULL;
 	} else if (PyBytes_Check($source)) {
@@ -110,62 +110,62 @@ typedef unsigned long ULONG;
 	}
 }
 
-%typemap(python,in) TCHAR * {
+%typemap(in) TCHAR * {
 	if (!PyWinObject_AsTCHAR($source, &$target, FALSE))
 		return NULL;
 }
 
-%typemap(python,arginit) TCHAR *,OLECHAR *, WCHAR *
+%typemap(arginit) TCHAR *,OLECHAR *, WCHAR *
 {
 	$target = NULL;
 }
 
-%typemap(python,in) TCHAR *inNullString{
+%typemap(in) TCHAR *inNullString{
 	if (!PyWinObject_AsTCHAR($source, &$target, TRUE))
 		return NULL;
 }
-%typemap(python,in) TCHAR *INPUT_NULLOK = TCHAR *inNullString;
+%typemap(in) TCHAR *INPUT_NULLOK = TCHAR *inNullString;
 
-%typemap(python,freearg) TCHAR *{
+%typemap(freearg) TCHAR *{
 	PyWinObject_FreeTCHAR($source);
 }
 
 // Delete this!
-%typemap(python,freearg) TCHAR *inNullWideString {
+%typemap(freearg) TCHAR *inNullWideString {
 	PyWinObject_FreeTCHAR($source);
 }
 
-%typemap(python,freearg) TCHAR *inNullString {
+%typemap(freearg) TCHAR *inNullString {
 	PyWinObject_FreeTCHAR($source);
 }
 
 
-%typemap(python,in) OLECHAR *, WCHAR *{
+%typemap(in) OLECHAR *, WCHAR *{
 	// Wide string code!
 	if (!PyWinObject_AsWCHAR($source, &$target, FALSE))
 		return NULL;
 }
 
-%typemap(python,in) OLECHAR *inNullWideString,
+%typemap(in) OLECHAR *inNullWideString,
                     WCHAR *inNullWideString {
 	// Wide string code!
 	if (!PyWinObject_AsWCHAR($source, &$target, TRUE))
 		return NULL;
 }
 
-%typemap(python,in) WCHAR *inNullWideString = OLECHAR *inNullWideString;
-%typemap(python,in) WCHAR *INPUT_NULLOK = WCHAR *inNullWideString;
+%typemap(in) WCHAR *inNullWideString = OLECHAR *inNullWideString;
+%typemap(in) WCHAR *INPUT_NULLOK = WCHAR *inNullWideString;
 
-%typemap(python,freearg) OLECHAR *, WCHAR *{
+%typemap(freearg) OLECHAR *, WCHAR *{
 	// Wide string cleanup
 	PyWinObject_FreeWCHAR($source);
 }
 
-%typemap(python,ignore) BSTR *OUTPUT (BSTR temp) {
+%typemap(ignore) BSTR *OUTPUT (BSTR temp) {
 	$target = &temp;
 }
 
-%typemap(python,argout) BSTR *OUTPUT {
+%typemap(argout) BSTR *OUTPUT {
     PyObject *o;
     o = PyWinObject_FromBstr(*$source, TRUE);
     if (!$target) {
@@ -188,24 +188,24 @@ typedef unsigned long ULONG;
 
 // An object that can be used in place of a BSTR, but guarantees
 // cleanup of the string.
-%typemap(python,in) PyWin_AutoFreeBstr inWideString {
+%typemap(in) PyWin_AutoFreeBstr inWideString {
 	// Auto-free Wide string code!
 	if (!PyWinObject_AsAutoFreeBstr($source, &$target, FALSE))
 		return NULL;
 }
 
-%typemap(python,in) PyWin_AutoFreeBstr inNullWideString {
+%typemap(in) PyWin_AutoFreeBstr inNullWideString {
 	// Auto-free Wide string code!
 	if (!PyWinObject_AsAutoFreeBstr($source, &$target, TRUE))
 		return NULL;
 }
 
-%typemap(python,in) OVERLAPPED *
+%typemap(in) OVERLAPPED *
 {
 	if (!PyWinObject_AsOVERLAPPED($source, &$target, TRUE))
 		return NULL;
 }
-%typemap(python,argout) OVERLAPPED *OUTPUT {
+%typemap(argout) OVERLAPPED *OUTPUT {
     PyObject *o;
     o = PyWinObject_FromOVERLAPPED(*$source);
     if (!$target) {
@@ -224,12 +224,12 @@ typedef unsigned long ULONG;
       Py_XDECREF(o);
     }
 }
-%typemap(python,ignore) OVERLAPPED *OUTPUT(OVERLAPPED temp)
+%typemap(ignore) OVERLAPPED *OUTPUT(OVERLAPPED temp)
 {
   $target = &temp;
 }
 
-%typemap(python,argout) OVERLAPPED **OUTPUT {
+%typemap(argout) OVERLAPPED **OUTPUT {
     PyObject *o;
     o = PyWinObject_FromOVERLAPPED(*$source);
     if (!$target) {
@@ -248,14 +248,14 @@ typedef unsigned long ULONG;
       Py_XDECREF(o);
     }
 }
-%typemap(python,ignore) OVERLAPPED **OUTPUT(OVERLAPPED *temp)
+%typemap(ignore) OVERLAPPED **OUTPUT(OVERLAPPED *temp)
 {
   $target = &temp;
 }
 
 
 
-%typemap(python,in) SECURITY_ATTRIBUTES *{
+%typemap(in) SECURITY_ATTRIBUTES *{
 	if (!PyWinObject_AsSECURITY_ATTRIBUTES($source, &$target))
 		return NULL;
 }
@@ -269,12 +269,12 @@ typedef unsigned long ULONG;
 //---------------------------------------------------------------------------
 //typedef void *HANDLE;
 
-%typemap(python,ignore) HANDLE *OUTPUT(HANDLE temp)
+%typemap(ignore) HANDLE *OUTPUT(HANDLE temp)
 {
   $target = &temp;
 }
 
-%typemap(python,except) PyHANDLE {
+%typemap(except) PyHANDLE {
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS
@@ -284,7 +284,7 @@ typedef unsigned long ULONG;
       }
 }
 
-%typemap(python,except) PyHKEY {
+%typemap(except) PyHKEY {
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS
@@ -294,7 +294,7 @@ typedef unsigned long ULONG;
       }
 }
 
-%typemap(python,except) HANDLE {
+%typemap(except) HANDLE {
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS
@@ -311,49 +311,49 @@ typedef HANDLE PyHANDLE;
 //typedef HANDLE PyHKEY;
 %}
 
-%typemap(python,in) HANDLE {
+%typemap(in) HANDLE {
 	if (!PyWinObject_AsHANDLE($source, &$target))
 		return NULL;
 }
 
-%typemap(python,in) PyHANDLE {
+%typemap(in) PyHANDLE {
 	if (!PyWinObject_AsHANDLE($source, &$target))
 		return NULL;
 }
-%typemap(python,in) PyHKEY {
+%typemap(in) PyHKEY {
 	if (!PyWinObject_AsHKEY($source, &$target))
 		return NULL;
 }
 
-%typemap(python,in) PyHANDLE INPUT_NULLOK {
+%typemap(in) PyHANDLE INPUT_NULLOK {
 	if (!PyWinObject_AsHANDLE($source, &$target))
 		return NULL;
 }
-%typemap(python,in) PyHKEY INPUT_NULLOK {
+%typemap(in) PyHKEY INPUT_NULLOK {
 	if (!PyWinObject_AsHKEY($source, &$target))
 		return NULL;
 }
 
-%typemap(python,ignore) PyHANDLE *OUTPUT(HANDLE handle_output)
+%typemap(ignore) PyHANDLE *OUTPUT(HANDLE handle_output)
 {
   $target = &handle_output;
 }
-%typemap(python,ignore) PyHKEY *OUTPUT(HKEY hkey_output)
+%typemap(ignore) PyHKEY *OUTPUT(HKEY hkey_output)
 {
   $target = &hkey_output;
 }
 
-%typemap(python,out) PyHANDLE {
+%typemap(out) PyHANDLE {
   $target = PyWinObject_FromHANDLE($source);
 }
-%typemap(python,out) PyHKEY {
+%typemap(out) PyHKEY {
   $target = PyWinObject_FromHKEY($source);
 }
-%typemap(python,out) HANDLE {
+%typemap(out) HANDLE {
   $target = PyWinLong_FromHANDLE($source);
 }
 
-%typemap(python,argout) PyHANDLE *OUTPUT {
+%typemap(argout) PyHANDLE *OUTPUT {
     PyObject *o;
     o = PyWinObject_FromHANDLE(*$source);
     if (!$target) {
@@ -372,7 +372,7 @@ typedef HANDLE PyHANDLE;
       Py_XDECREF(o);
     }
 }
-%typemap(python,argout) PyHKEY *OUTPUT {
+%typemap(argout) PyHKEY *OUTPUT {
     PyObject *o;
     o = PyWinObject_FromHKEY(*$source);
     if (!$target) {
@@ -395,15 +395,15 @@ typedef HANDLE PyHANDLE;
 // HWND (used in win32process, adsi, win32inet, win32crypt)
 // Has to be typedef'ed to a non-pointer type or the typemaps are ignored
 typedef float HWND;
-%typemap(python, in) HWND{
+%typemap( in) HWND{
 	if (!PyWinObject_AsHANDLE($source, (HANDLE *)&$target))
 		return NULL;
 }
-%typemap(python, out) HWND{
+%typemap( out) HWND{
 	$target=PyWinLong_FromHANDLE($source);
 }
 
-%typemap(python, out) HDESK {
+%typemap( out) HDESK {
     $target = PyWinLong_FromHANDLE($source);
 }
 
@@ -412,42 +412,42 @@ typedef float HWND;
 // LARGE_INTEGER support
 //
 //---------------------------------------------------------------------------
-%typemap(python,in) LARGE_INTEGER {
+%typemap(in) LARGE_INTEGER {
 	if (!PyWinObject_AsLARGE_INTEGER($source, &$target))
 		return NULL;
 }
-%typemap(python,in) LARGE_INTEGER * (LARGE_INTEGER temp) {
+%typemap(in) LARGE_INTEGER * (LARGE_INTEGER temp) {
 	$target = &temp;
 	if (!PyWinObject_AsLARGE_INTEGER($source, $target))
 		return NULL;
 }
-%typemap(python,in) ULARGE_INTEGER {
+%typemap(in) ULARGE_INTEGER {
 	if (!PyWinObject_AsULARGE_INTEGER($source, &$target))
 		return NULL;
 }
-%typemap(python,in) ULARGE_INTEGER * (ULARGE_INTEGER temp) {
+%typemap(in) ULARGE_INTEGER * (ULARGE_INTEGER temp) {
 	$target = &temp;
 	if (!PyWinObject_AsULARGE_INTEGER($source, $target))
 		return NULL;
 }
 
-%typemap(python,ignore) LARGE_INTEGER *OUTPUT(LARGE_INTEGER temp)
+%typemap(ignore) LARGE_INTEGER *OUTPUT(LARGE_INTEGER temp)
 {
   $target = &temp;
 }
-%typemap(python,ignore) ULARGE_INTEGER *OUTPUT(ULARGE_INTEGER temp)
+%typemap(ignore) ULARGE_INTEGER *OUTPUT(ULARGE_INTEGER temp)
 {
   $target = &temp;
 }
 
-%typemap(python,out) LARGE_INTEGER {
+%typemap(out) LARGE_INTEGER {
   $target = PyWinObject_FromLARGE_INTEGER($source);
 }
-%typemap(python,out) ULARGE_INTEGER {
+%typemap(out) ULARGE_INTEGER {
   $target = PyWinObject_FromULARGE_INTEGER($source);
 }
 
-%typemap(python,argout) LARGE_INTEGER *OUTPUT {
+%typemap(argout) LARGE_INTEGER *OUTPUT {
     PyObject *o;
     o = PyWinObject_FromLARGE_INTEGER(*$source);
     if (!$target) {
@@ -466,7 +466,7 @@ typedef float HWND;
       Py_XDECREF(o);
     }
 }
-%typemap(python,argout) ULARGE_INTEGER *OUTPUT {
+%typemap(argout) ULARGE_INTEGER *OUTPUT {
     PyObject *o;
     o = PyWinObject_FromULARGE_INTEGER(*$source);
     if (!$target) {
@@ -491,26 +491,26 @@ typedef float HWND;
 // ULONG_PTR
 //
 //--------------------------------------------------------------------------
-%typemap(python, in) ULONG_PTR
+%typemap( in) ULONG_PTR
 {
 	if (!PyWinLong_AsULONG_PTR($source, &$target))
 		return NULL;
 }
-%typemap(python, in) ULONG_PTR * (ULONG_PTR temp)
+%typemap( in) ULONG_PTR * (ULONG_PTR temp)
 {
 	$target = &temp;
 	if (!PyWinLong_AsULONG_PTR($source, $target))
 		return NULL;
 }
-%typemap(python, ignore) ULONG_PTR *OUTPUT(ULONG_PTR temp)
+%typemap( ignore) ULONG_PTR *OUTPUT(ULONG_PTR temp)
 {
 	$target = &temp;
 }
-%typemap(python, out) ULONG_PTR
+%typemap( out) ULONG_PTR
 {
 	$target = PyWinObject_FromULONG_PTR($source)
 }
-%typemap(python,argout) ULONG_PTR *OUTPUT {
+%typemap(argout) ULONG_PTR *OUTPUT {
 	PyObject *o;
 	o = PyWinObject_FromULONG_PTR(*$source);
 	if (!$target) {
@@ -535,20 +535,20 @@ typedef float HWND;
 // TIME
 //
 //---------------------------------------------------------------------------
-%typemap(python,in) FILETIME * {
+%typemap(in) FILETIME * {
 	if (!PyWinObject_AsFILETIME($source, $target, FALSE))
 		return NULL;
 }
-%typemap(python,ignore) FILETIME *(FILETIME temp)
+%typemap(ignore) FILETIME *(FILETIME temp)
 {
   $target = &temp;
 }
 
-%typemap(python,out) FILETIME * {
+%typemap(out) FILETIME * {
   $target = PyWinObject_FromFILETIME($source);
 }
 
-%typemap(python,argout) FILETIME *OUTPUT {
+%typemap(argout) FILETIME *OUTPUT {
     PyObject *o;
     o = PyWinObject_FromFILETIME(*$source);
     if (!$target) {
@@ -573,7 +573,7 @@ typedef float HWND;
 // SOCKET support.
 //
 //---------------------------------------------------------------------------
-%typemap(python,in) SOCKET *(SOCKET sockettemp)
+%typemap(in) SOCKET *(SOCKET sockettemp)
 {
 	$target = &sockettemp;
 	if (!PySocket_AsSOCKET($source, $target))
