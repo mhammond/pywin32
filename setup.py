@@ -840,6 +840,7 @@ class my_build_ext(build_ext):
             swig_cmd = [
                 swig,
                 "-python",
+                "-nogil",
                 "-c++",
                 # we never use the .doc files.
                 "-dnone",
