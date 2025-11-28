@@ -1,36 +1,15 @@
-//
-// $Header$
-//
-// math.i
-// Dave Beazley
-// March 24, 1996
-// SWIG file for floating point operations
-//
-/* Revision history
- * $Log$
- * Revision 1.1  1996/05/22 17:27:01  beazley
- * Initial revision
+/* -----------------------------------------------------------------------------
+ * math.i
  *
- */
+ * SWIG library file for floating point operations.
+ * ----------------------------------------------------------------------------- */
 
 %module math
 %{
 #include <math.h>
 %}
 
-%section "SWIG Math Module",after,info,nosort,pre,chop_left=3,chop_bottom=0,chop_top=0,chop_right=0,skip=1
-
-%text %{
-%include math.i
-
-This module provides access to the C math library and contains most
-of the functions in <math.h>.  Most scripting languages already provide
-math support, but in certain cases, this module can provide more
-direct access.
-%}
-
-%subsection "Functions"
-
+#ifndef SWIGPHP /* PHP already provides all these functions except fabs() */
 
 extern double	cos(double x);
 /* Cosine of x */
@@ -77,9 +56,6 @@ extern double	pow(double x, double y);
 extern double	sqrt(double x);
 /* Square root. x >= 0 */
 
-extern double	fabs(double x);
-/* Absolute value of x */
-
 extern double	ceil(double x);
 /* Smallest integer not less than x, as a double */
 
@@ -89,7 +65,12 @@ extern double	floor(double x);
 extern double	fmod(double x, double y);
 /* Floating-point remainder of x/y, with the same sign as x. */
 
-%subsection "Mathematical constants",noinfo
+#endif
+
+extern double	fabs(double x);
+/* Absolute value of x */
+
+#ifndef SWIGPHP /* PHP already provides these constants and it's an error to redefine them */
 
 #define M_E		2.7182818284590452354
 #define M_LOG2E		1.4426950408889634074
@@ -104,3 +85,5 @@ extern double	fmod(double x, double y);
 #define M_2_SQRTPI	1.12837916709551257390
 #define M_SQRT2		1.41421356237309504880
 #define M_SQRT1_2	0.70710678118654752440
+
+#endif
