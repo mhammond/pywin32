@@ -649,7 +649,7 @@ PyObject *MyCreateProcess(
 
 // @pyswig <o PyHANDLE>, <o PyHANDLE>, int, int|CreateProcess|Creates a new process and its primary thread. The new process executes the specified executable file.
 // @comm The result is a tuple of (hProcess, hThread, dwProcessId, dwThreadId)
-%name(CreateProcess)
+%rename(CreateProcess)
 PyObject *MyCreateProcess(
 	TCHAR *INPUT_NULLOK,  // @pyparm string|appName||name of executable module, or None
 	TCHAR *INPUT_NULLOK,  // @pyparm string|commandLine||command line string, or None
@@ -741,7 +741,7 @@ PyObject *MyCreateProcessAsUser(
 
 // @pyswig <o PyHANDLE>, <o PyHANDLE>, int, int|CreateProcessAsUser|Creates a new process in the context of the specified user.
 // @comm The result is a tuple of (hProcess, hThread, dwProcessId, dwThreadId)
-%name(CreateProcessAsUser)
+%rename(CreateProcessAsUser)
 PyObject *MyCreateProcessAsUser(
 	HANDLE hToken, // @pyparm <o PyHANDLE>|hToken||Handle to a token that represents a logged-on user
 	TCHAR *INPUT_NULLOK,  // @pyparm string|appName||name of executable module, or None
@@ -986,7 +986,7 @@ static PyObject *MySetThreadIdealProcessor( HANDLE hThread, DWORD dwIdealProc )
 %}
 
 // @pyswig int|SetThreadIdealProcessor|Used to specify a preferred processor for a thread. The system schedules threads on their preferred processors whenever possible.
-%name(SetThreadIdealProcessor)
+%rename(SetThreadIdealProcessor)
 PyObject *MySetThreadIdealProcessor(
   HANDLE hThread,             // @pyparm <o PyHANDLE>|handle||handle to the thread of interest
   DWORD dwIdealProcessor  // @pyparm int|dwIdealProcessor||ideal processor number

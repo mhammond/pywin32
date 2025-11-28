@@ -1485,7 +1485,7 @@ PyObject *PyFILE_NOTIFY_INFORMATION(PyObject *self, PyObject *args)
 // SearchPath
 
 // @pyswig |SetCurrentDirectory|Sets the current directory.
-%name(SetCurrentDirectory) BOOLAPI SetCurrentDirectoryW(
+%rename(SetCurrentDirectory) BOOLAPI SetCurrentDirectoryW(
     WCHAR *lpPathName	// @pyparm str/string|lpPathName||Name of the path to set current.
 );
 
@@ -1567,13 +1567,13 @@ BOOLAPI UnlockFile(
 // File Handle / File Descriptor APIs.
 // @pyswig long|_get_osfhandle|Gets operating-system file handle associated with existing stream
 // @pyparm int|fd||File descriptor as returned by file.fileno()
-%name(_get_osfhandle)
+%rename(_get_osfhandle)
 PyObject *myget_osfhandle( int filehandle );
 
 // @pyswig int|_open_osfhandle|Associates a C run-time file handle with a existing operating-system file handle.
 // @pyparm <o PyHANDLE>|osfhandle||An open file handle
 // @pyparm int|flags||O_APPEND,O_RDONLY, or O_TEXT
-%name(_open_osfhandle)
+%rename(_open_osfhandle)
 PyObject *myopen_osfhandle ( PyHANDLE osfhandle, int flags );
 
 
@@ -2165,7 +2165,7 @@ PyObject* MyWSAEventSelect
 %}
 
 // @pyswig |WSAEventSelect|Specifies an event object to be associated with the supplied set of FD_XXXX network events.
-%name(WSAEventSelect) PyObject *MyWSAEventSelect
+%rename(WSAEventSelect) PyObject *MyWSAEventSelect
 (
 	SOCKET *s, // @pyparm <o PySocket>|socket||socket to attach to the event
 	PyHANDLE hEvent, // @pyparm <o PyHandle>|hEvent||Event handle for the socket to become attached to.
@@ -2287,7 +2287,7 @@ PyObject* MyWSAAsyncSelect
 %}
 
 // @pyswig |WSAAsyncSelect|Request windows message notification for the supplied set of FD_XXXX network events.
-%name(WSAAsyncSelect) PyObject *MyWSAAsyncSelect
+%rename(WSAAsyncSelect) PyObject *MyWSAAsyncSelect
 (
 	SOCKET *s, // @pyparm <o PySocket>|socket||socket to attach to the event
 	HWND hwnd, // @pyparm <o hwnd>|hwnd||Window handle for the socket to become attached to.

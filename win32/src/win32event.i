@@ -179,7 +179,7 @@ static BOOL MakeHandleList(PyObject *handleList, HANDLE **ppBuf, DWORD *pNumEntr
 %}
 
 // @pyswig int|MsgWaitForMultipleObjects|Returns when a message arrives of an event is signalled
-%name(MsgWaitForMultipleObjects) PyObject *MyMsgWaitForMultipleObjects(
+%rename(MsgWaitForMultipleObjects) PyObject *MyMsgWaitForMultipleObjects(
     PyObject *obHandleList, // @pyparm [<o PyHANDLE>, ...]|handleList||A sequence of handles to wait on.
     BOOL bWaitAll, // @pyparm bool|bWaitAll||If true, waits for all handles in the list.
     DWORD dwMilliseconds,	// @pyparm int|milliseconds||time-out interval in milliseconds
@@ -214,7 +214,7 @@ static PyObject * MyMsgWaitForMultipleObjects(
 %}
 
 // @pyswig int|MsgWaitForMultipleObjectsEx|Returns when a message arrives of an event is signalled
-%name(MsgWaitForMultipleObjectsEx) PyObject *MyMsgWaitForMultipleObjectsEx(
+%rename(MsgWaitForMultipleObjectsEx) PyObject *MyMsgWaitForMultipleObjectsEx(
     PyObject *obHandleList, // @pyparm [<o PyHANDLE>, ...]|handleList||A sequence of handles to wait on.
     DWORD dwMilliseconds,	// @pyparm int|milliseconds||time-out interval in milliseconds
     DWORD dwWakeMask, 	// @pyparm int|wakeMask||type of input events to wait for
@@ -349,7 +349,7 @@ static PyObject *MyWaitForMultipleObjects(
 
 %}
 // @pyswig int|WaitForMultipleObjects|Returns when an event is signalled
-%name(WaitForMultipleObjects) PyObject *MyWaitForMultipleObjects(
+%rename(WaitForMultipleObjects) PyObject *MyWaitForMultipleObjects(
     PyObject *handleList,  // @pyparm [<o PyHANDLE>, ...]|handleList||A sequence of handles to wait on.
     BOOL bWaitAll,	// @pyparm bool|bWaitAll||wait flag
     DWORD dwMilliseconds 	// @pyparm int|milliseconds||time-out interval in milliseconds
@@ -381,7 +381,7 @@ static PyObject *MyWaitForMultipleObjectsEx(
 }
 %}
 // @pyswig int|WaitForMultipleObjectsEx|Returns when an event is signalled
-%name(WaitForMultipleObjectsEx) PyObject *MyWaitForMultipleObjectsEx(
+%rename(WaitForMultipleObjectsEx) PyObject *MyWaitForMultipleObjectsEx(
     PyObject *handleList, // @pyparm [<o PyHANDLE>, ...]|handleList||A sequence of handles to wait on.
     BOOL bWaitAll,	// @pyparm bool|bWaitAll||wait flag
     DWORD dwMilliseconds,	// @pyparm int|milliseconds||time-out interval in milliseconds
