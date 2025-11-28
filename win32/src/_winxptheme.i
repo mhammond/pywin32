@@ -82,7 +82,7 @@ public:
 typedef HANDLE HTHEME;
 
 typedef float HDC;
-%typemap( in) HDC{
+%typemap(in) HDC{
 	if (!PyWinObject_AsHANDLE($source, (HANDLE *)&$target))
 		return NULL;
 }
