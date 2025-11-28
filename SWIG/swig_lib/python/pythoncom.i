@@ -16,7 +16,7 @@ typedef long FLAGS;
 	Py_INCREF(Py_None);
 }
 
-%typemap(except) HRESULT {
+%typemap(in,numinputs=0) HRESULT {
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS
@@ -41,7 +41,7 @@ typedef long HRESULT_KEEP_INFO;
 	$target = PyLong_FromLong($source);
 }
 
-%typemap(except) HRESULT_KEEP_INFO {
+%typemap(in,numinputs=0) HRESULT_KEEP_INFO {
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS

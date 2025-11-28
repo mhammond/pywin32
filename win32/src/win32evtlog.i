@@ -81,7 +81,7 @@ PyObject *PyWinObject_FromEVT_HANDLE(HANDLE h, PyObject *context=NULL)
 }
 %}
 
-%typemap(except) PyEVTLOG_HANDLE {
+%typemap(in,numinputs=0) PyEVTLOG_HANDLE {
   Py_BEGIN_ALLOW_THREADS
   $function
   Py_END_ALLOW_THREADS

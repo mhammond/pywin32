@@ -48,7 +48,7 @@ public:
 
 %}
 
-%typemap(except) HTHEME {
+%typemap(in,numinputs=0) HTHEME {
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS
@@ -135,7 +135,7 @@ typedef long FLAGS;
 	Py_INCREF(Py_None);
 }
 
-%typemap(except) HRESULT {
+%typemap(in,numinputs=0) HRESULT {
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS

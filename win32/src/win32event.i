@@ -32,7 +32,7 @@ typedef void *NULL_ONLY;
 
 // We can get better perf from some of these functions that don't block
 // by not releasing the Python lock as part of the call.
-%typemap(except) BOOLAPI {
+%typemap(in,numinputs=0) BOOLAPI {
       $function
       if (!$source)  {
            $cleanup
@@ -390,7 +390,7 @@ static PyObject *MyWaitForMultipleObjectsEx(
 %{
     typedef DWORD DWORD_WAITAPI;
 %}
-%typemap(except) DWORD_WAITAPI {
+%typemap(in,numinputs=0) DWORD_WAITAPI {
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS

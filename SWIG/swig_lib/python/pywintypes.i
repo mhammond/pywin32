@@ -73,7 +73,7 @@ typedef BOOL BOOLAPI;
 	Py_INCREF(Py_None);
 }
 
-%typemap(except) BOOLAPI {
+%typemap(in,numinputs=0) BOOLAPI {
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS
@@ -92,7 +92,7 @@ typedef DWORD DWORDAPI;
 	Py_INCREF(Py_None);
 }
 
-%typemap(except) DWORDAPI {
+%typemap(in,numinputs=0) DWORDAPI {
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS
@@ -278,7 +278,7 @@ typedef DWORD DWORDAPI;
   $target = &temp;
 }
 
-%typemap(except) PyHANDLE {
+%typemap(in,numinputs=0) PyHANDLE {
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS
@@ -288,7 +288,7 @@ typedef DWORD DWORDAPI;
       }
 }
 
-%typemap(except) PyHKEY {
+%typemap(in,numinputs=0) PyHKEY {
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS
@@ -298,7 +298,7 @@ typedef DWORD DWORDAPI;
       }
 }
 
-%typemap(except) HANDLE {
+%typemap(in,numinputs=0) HANDLE {
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS

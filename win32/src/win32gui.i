@@ -158,7 +158,7 @@ PyObject *PyWinObject_FromGdiHANDLE(HGDIOBJ h)
 %}
 
 // SWIG support for GDI handles.
-%typemap(except) HPEN, HBRUSH, HFONT, HRGN, HBITMAP {
+%typemap(in,numinputs=0) HPEN, HBRUSH, HFONT, HRGN, HBITMAP {
 	Py_BEGIN_ALLOW_THREADS
 	$function
 	Py_END_ALLOW_THREADS
@@ -186,7 +186,7 @@ typedef float HPEN, HBRUSH, HFONT, HRGN, HBITMAP;
 	typedef int int_regiontype;
 %}
 // Several functions return an int containg a region type (NULLREGION,SIMPLEREGION,COMPLEXREGION) or ERROR on failure
-%typemap(except) int_regiontype{
+%typemap(in,numinputs=0) int_regiontype{
 	Py_BEGIN_ALLOW_THREADS
 	$function
 	Py_END_ALLOW_THREADS
@@ -311,7 +311,7 @@ extern "C" DECLSPEC_DLLMAIN BOOL WINAPI DllMain(HINST_ARG hInstance, DWORD dwRea
 
 // Custom 'exception handlers' for simple types that exist only to
 // manage the thread-lock.
-%typemap(except) int {
+%typemap(in,numinputs=0) int {
     Py_BEGIN_ALLOW_THREADS
     $function
     Py_END_ALLOW_THREADS
@@ -610,19 +610,19 @@ typedef int UINT;
 	}
 }
 
-%typemap(except) LRESULT {
+%typemap(in,numinputs=0) LRESULT {
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS
 }
 
-%typemap(except) BOOL {
+%typemap(in,numinputs=0) BOOL {
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS
 }
 
-%typemap(except) HWND, HDC, HMENU, HICON, HBITMAP, HIMAGELIST {
+%typemap(in,numinputs=0) HWND, HDC, HMENU, HICON, HBITMAP, HIMAGELIST {
       Py_BEGIN_ALLOW_THREADS
       SetLastError(0);
       $function

@@ -7,7 +7,7 @@ extern PyObject *OleSetADSIError(HRESULT hr, IUnknown *pUnk, REFIID iid);
 %}
 
 // Custom error handling for ADSI.
-%typemap(except) HRESULT {
+%typemap(in,numinputs=0) HRESULT {
 	Py_BEGIN_ALLOW_THREADS
 	$function
 	Py_END_ALLOW_THREADS
@@ -21,7 +21,7 @@ extern PyObject *OleSetADSIError(HRESULT hr, IUnknown *pUnk, REFIID iid);
 	}
 }
 
-%typemap(except) HRESULT_KEEP_INFO {
+%typemap(in,numinputs=0) HRESULT_KEEP_INFO {
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS

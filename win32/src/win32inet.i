@@ -258,7 +258,7 @@ void CALLBACK PyHINTERNET_StatusChange(
   $target = &temp;
 }
 
-%typemap(except) PyHINTERNET {
+%typemap(in,numinputs=0) PyHINTERNET {
     Py_BEGIN_ALLOW_THREADS
     $function
     Py_END_ALLOW_THREADS
@@ -268,7 +268,7 @@ void CALLBACK PyHINTERNET_StatusChange(
     }
 }
 
-%typemap(except) HINTERNET {
+%typemap(in,numinputs=0) HINTERNET {
     Py_BEGIN_ALLOW_THREADS
     $function
     Py_END_ALLOW_THREADS
