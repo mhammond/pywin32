@@ -10,7 +10,7 @@
 %include "pythoncom.i"
 %include "mapilib.i"
 
-%typemap(ignore) IExchangeManageStoreEx **OUTPUT(IExchangeManageStoreEx *temp)
+%typemap(in,numinputs=0) IExchangeManageStoreEx **OUTPUT(IExchangeManageStoreEx *temp)
 {
   $target = &temp;
 }

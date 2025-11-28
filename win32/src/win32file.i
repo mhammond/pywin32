@@ -2563,7 +2563,7 @@ Error:
       Py_XDECREF(o);
     }
 }
-%typemap(ignore) DCB *OUTPUT(DCB temp)
+%typemap(in,numinputs=0) DCB *OUTPUT(DCB temp)
 {
   $target = &temp;
   $target->DCBlength = sizeof( DCB ) ;
@@ -2593,7 +2593,7 @@ Error:
       Py_XDECREF(o);
     }
 }
-%typemap(ignore) COMSTAT *OUTPUT(COMSTAT temp)
+%typemap(in,numinputs=0) COMSTAT *OUTPUT(COMSTAT temp)
 {
   $target = &temp;
 }
@@ -2625,7 +2625,7 @@ Error:
       Py_XDECREF(o);
     }
 }
-%typemap(ignore) COMMTIMEOUTS *OUTPUT(COMMTIMEOUTS temp)
+%typemap(in,numinputs=0) COMMTIMEOUTS *OUTPUT(COMMTIMEOUTS temp)
 {
   $target = &temp;
 }

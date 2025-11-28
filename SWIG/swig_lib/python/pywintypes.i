@@ -73,7 +73,7 @@ typedef BOOL BOOLAPI;
 	Py_INCREF(Py_None);
 }
 
-%typemap(except) BOOLAPI {
+%exception BOOLAPI {
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS
@@ -92,7 +92,7 @@ typedef DWORD DWORDAPI;
 	Py_INCREF(Py_None);
 }
 
-%typemap(except) DWORDAPI {
+%exception DWORDAPI {
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS
@@ -165,7 +165,7 @@ typedef DWORD DWORDAPI;
 	PyWinObject_FreeWCHAR($source);
 }
 
-%typemap(ignore) BSTR *OUTPUT (BSTR temp) {
+%typemap(in,numinputs=0) BSTR *OUTPUT (BSTR temp) {
 	$target = &temp;
 }
 
@@ -228,7 +228,7 @@ typedef DWORD DWORDAPI;
       Py_XDECREF(o);
     }
 }
-%typemap(ignore) OVERLAPPED *OUTPUT(OVERLAPPED temp)
+%typemap(in,numinputs=0) OVERLAPPED *OUTPUT(OVERLAPPED temp)
 {
   $target = &temp;
 }
@@ -252,7 +252,7 @@ typedef DWORD DWORDAPI;
       Py_XDECREF(o);
     }
 }
-%typemap(ignore) OVERLAPPED **OUTPUT(OVERLAPPED *temp)
+%typemap(in,numinputs=0) OVERLAPPED **OUTPUT(OVERLAPPED *temp)
 {
   $target = &temp;
 }
@@ -273,12 +273,12 @@ typedef DWORD DWORDAPI;
 //---------------------------------------------------------------------------
 //typedef void *HANDLE;
 
-%typemap(ignore) HANDLE *OUTPUT(HANDLE temp)
+%typemap(in,numinputs=0) HANDLE *OUTPUT(HANDLE temp)
 {
   $target = &temp;
 }
 
-%typemap(except) PyHANDLE {
+%exception PyHANDLE {
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS
@@ -288,7 +288,7 @@ typedef DWORD DWORDAPI;
       }
 }
 
-%typemap(except) PyHKEY {
+%exception PyHKEY {
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS
@@ -298,7 +298,7 @@ typedef DWORD DWORDAPI;
       }
 }
 
-%typemap(except) HANDLE {
+%exception HANDLE {
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS
@@ -338,11 +338,11 @@ typedef HANDLE PyHANDLE;
 		return NULL;
 }
 
-%typemap(ignore) PyHANDLE *OUTPUT(HANDLE handle_output)
+%typemap(in,numinputs=0) PyHANDLE *OUTPUT(HANDLE handle_output)
 {
   $target = &handle_output;
 }
-%typemap(ignore) PyHKEY *OUTPUT(HKEY hkey_output)
+%typemap(in,numinputs=0) PyHKEY *OUTPUT(HKEY hkey_output)
 {
   $target = &hkey_output;
 }
@@ -435,11 +435,11 @@ typedef float HWND;
 		return NULL;
 }
 
-%typemap(ignore) LARGE_INTEGER *OUTPUT(LARGE_INTEGER temp)
+%typemap(in,numinputs=0) LARGE_INTEGER *OUTPUT(LARGE_INTEGER temp)
 {
   $target = &temp;
 }
-%typemap(ignore) ULARGE_INTEGER *OUTPUT(ULARGE_INTEGER temp)
+%typemap(in,numinputs=0) ULARGE_INTEGER *OUTPUT(ULARGE_INTEGER temp)
 {
   $target = &temp;
 }
@@ -506,7 +506,7 @@ typedef float HWND;
 	if (!PyWinLong_AsULONG_PTR($source, $target))
 		return NULL;
 }
-%typemap( ignore) ULONG_PTR *OUTPUT(ULONG_PTR temp)
+%typemap(in,numinputs=0) ULONG_PTR *OUTPUT(ULONG_PTR temp)
 {
 	$target = &temp;
 }
@@ -543,7 +543,7 @@ typedef float HWND;
 	if (!PyWinObject_AsFILETIME($source, $target, FALSE))
 		return NULL;
 }
-%typemap(ignore) FILETIME *(FILETIME temp)
+%typemap(in,numinputs=0) FILETIME *(FILETIME temp)
 {
   $target = &temp;
 }

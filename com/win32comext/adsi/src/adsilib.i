@@ -7,7 +7,7 @@ extern PyObject *OleSetADSIError(HRESULT hr, IUnknown *pUnk, REFIID iid);
 %}
 
 // Custom error handling for ADSI.
-%typemap(except) HRESULT {
+%exception HRESULT {
 	Py_BEGIN_ALLOW_THREADS
 	$function
 	Py_END_ALLOW_THREADS
@@ -21,7 +21,7 @@ extern PyObject *OleSetADSIError(HRESULT hr, IUnknown *pUnk, REFIID iid);
 	}
 }
 
-%typemap(except) HRESULT_KEEP_INFO {
+%exception HRESULT_KEEP_INFO {
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS
@@ -31,7 +31,7 @@ extern PyObject *OleSetADSIError(HRESULT hr, IUnknown *pUnk, REFIID iid);
       }
 }
 
-%typemap(ignore) IDirectoryObject **OUTPUT(IDirectoryObject *temp)
+%typemap(in,numinputs=0) IDirectoryObject **OUTPUT(IDirectoryObject *temp)
 {
   $target = &temp;
 }
@@ -60,7 +60,7 @@ typedef long ADS_SEARCH_HANDLE
 
 // The types and structures.
 
-%typemap(ignore) ADS_OBJECT_INFO **OUTPUT (ADS_OBJECT_INFO *temp) {
+%typemap(in,numinputs=0) ADS_OBJECT_INFO **OUTPUT (ADS_OBJECT_INFO *temp) {
 	$target = &temp;
 	*$target = NULL;
 }

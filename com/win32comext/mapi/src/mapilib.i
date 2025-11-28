@@ -26,67 +26,67 @@ typedef unsigned long BOOKMARK;
 	}
 }
 
-%typemap(ignore) IMAPIProp **OUTPUT(IMAPIProp *temp)
+%typemap(in,numinputs=0) IMAPIProp **OUTPUT(IMAPIProp *temp)
 {
   $target = &temp;
 }
-%typemap(ignore) IMAPITable **OUTPUT(IMAPITable *temp)
+%typemap(in,numinputs=0) IMAPITable **OUTPUT(IMAPITable *temp)
 {
   $target = &temp;
 }
-%typemap(ignore) IMAPISession **OUTPUT(IMAPISession *temp)
+%typemap(in,numinputs=0) IMAPISession **OUTPUT(IMAPISession *temp)
 {
   $target = &temp;
 }
-%typemap(ignore) IMAPIFolder **OUTPUT(IMAPIFolder *temp)
+%typemap(in,numinputs=0) IMAPIFolder **OUTPUT(IMAPIFolder *temp)
 {
   $target = &temp;
 }
-%typemap(ignore) IMessage **OUTPUT(IMessage *temp)
+%typemap(in,numinputs=0) IMessage **OUTPUT(IMessage *temp)
 {
   $target = &temp;
 }
-%typemap(ignore) IMsgStore **OUTPUT(IMsgStore *temp)
+%typemap(in,numinputs=0) IMsgStore **OUTPUT(IMsgStore *temp)
 {
   $target = &temp;
 }
-%typemap(ignore) IMAPIProgress **OUTPUT(IMAPIProgress *temp)
+%typemap(in,numinputs=0) IMAPIProgress **OUTPUT(IMAPIProgress *temp)
 {
   $target = &temp;
 }
-%typemap(ignore) IAttach **OUTPUT(IAttach *temp)
+%typemap(in,numinputs=0) IAttach **OUTPUT(IAttach *temp)
 {
   $target = &temp;
 }
-%typemap(ignore) IProfAdmin **OUTPUT(IProfAdmin *temp)
+%typemap(in,numinputs=0) IProfAdmin **OUTPUT(IProfAdmin *temp)
 {
   $target = &temp;
 }
-%typemap(ignore) IProfSect **OUTPUT(IProfSect *temp)
+%typemap(in,numinputs=0) IProfSect **OUTPUT(IProfSect *temp)
 {
   $target = &temp;
 }
-%typemap(ignore) IProviderAdmin **OUTPUT(IProviderAdmin *temp)
+%typemap(in,numinputs=0) IProviderAdmin **OUTPUT(IProviderAdmin *temp)
 {
   $target = &temp;
 }
-%typemap(ignore) IMAPIAdviseSink **OUTPUT(IMAPIAdviseSink *temp)
+%typemap(in,numinputs=0) IMAPIAdviseSink **OUTPUT(IMAPIAdviseSink *temp)
 {
   $target = &temp;
 }
-%typemap(ignore) IAddrBook **OUTPUT(IAddrBook *temp)
+%typemap(in,numinputs=0) IAddrBook **OUTPUT(IAddrBook *temp)
 {
   $target = &temp;
 }
-%typemap(ignore) IMsgServiceAdmin **OUTPUT(IMsgServiceAdmin *temp)
+%typemap(in,numinputs=0) IMsgServiceAdmin **OUTPUT(IMsgServiceAdmin *temp)
 {
   $target = &temp;
 }
-%typemap(ignore) IMsgServiceAdmin2 **OUTPUT(IMsgServiceAdmin2 *temp)
+%typemap(in,numinputs=0) IMsgServiceAdmin2 **OUTPUT(IMsgServiceAdmin2 *temp)
 {
   $target = &temp;
 }
-%typemap(ignore) IStream **OUTPUT(IStream *temp)
+%typemap(in,numinputs=0) IStream **OUTPUT(IStream *temp)
 {
   $target = &temp;
 }
@@ -369,12 +369,12 @@ typedef unsigned long BOOKMARK;
 	if ($source) PyMAPIObject_FreeADRLIST($source);
 }
 
-%typemap(ignore) SRowSet **OUTPUT (SRowSet *temp) {
+%typemap(in,numinputs=0) SRowSet **OUTPUT (SRowSet *temp) {
 	$target = &temp;
 	*$target = NULL;
 }
 
-%typemap(ignore) ADRLIST **OUTPUT (ADRLIST *temp) {
+%typemap(in,numinputs=0) ADRLIST **OUTPUT (ADRLIST *temp) {
 	$target = &temp;
 	*$target = NULL;
 }
@@ -483,7 +483,7 @@ typedef unsigned long BOOKMARK;
 %typemap(freearg) ADRLIST *BOTH = ADRLIST *INPUT;
 %typemap(argout) ADRLIST *BOTH = ADRLIST *OUTPUT;
 
-%typemap(ignore) MAPIERROR **OUTPUT (MAPIERROR *temp) {
+%typemap(in,numinputs=0) MAPIERROR **OUTPUT (MAPIERROR *temp) {
 	$target = &temp;
 }
 
@@ -491,7 +491,7 @@ typedef unsigned long BOOKMARK;
 	PyObject_FromMAPIERROR(*$source, TRUE, TRUE);
 }
 
-%typemap(ignore) MAPIINIT_0 *OUTPUT (MAPIINIT_0 temp) {
+%typemap(in,numinputs=0) MAPIINIT_0 *OUTPUT (MAPIINIT_0 temp) {
 	$target = &temp;
 }
 
@@ -515,7 +515,7 @@ typedef unsigned long BOOKMARK;
 	}
 }
 
-%typemap(ignore) SPropTagArray **OUTPUT (SPropTagArray *temp)
+%typemap(in,numinputs=0) SPropTagArray **OUTPUT (SPropTagArray *temp)
 {
 	$target = &temp;
 }
@@ -586,7 +586,7 @@ typedef unsigned long BOOKMARK;
 
 // A "MAPISTRINGARRAY" object - not a real type at all
 // but suitable for "returned array of strings"
-%typemap(ignore) TCHAR **OUTPUT_ARRAY(TCHAR *temp)
+%typemap(in,numinputs=0) TCHAR **OUTPUT_ARRAY(TCHAR *temp)
 {
   $target = &temp;
 }
@@ -601,7 +601,7 @@ typedef unsigned long BOOKMARK;
 	MAPIFreeBuffer($source);
 }
 
-%typemap(ignore) char **OUTPUT_MAPI(char *temp)
+%typemap(in,numinputs=0) char **OUTPUT_MAPI(char *temp)
 {
   $target = &temp;
 }
