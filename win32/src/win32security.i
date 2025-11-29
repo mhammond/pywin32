@@ -128,24 +128,24 @@ typedef long SECURITY_IMPERSONATION_LEVEL;
 typedef LARGE_INTEGER LUID;
 %typemap(in,numinputs=0) LUID *OUTPUT(LUID temp)
 {
-  $target = &temp;
+  $1 = &temp;
 }
 %typemap(argout) LUID *OUTPUT {
     PyObject *o;
-    o = PyWinObject_FromLARGE_INTEGER(*((LARGE_INTEGER *)$source));
-    if (!$target) {
-      $target = o;
-    } else if ($target == Py_None) {
+    o = PyWinObject_FromLARGE_INTEGER(*((LARGE_INTEGER *)$1));
+    if (!$result) {
+      $result = o;
+    } else if ($result == Py_None) {
       Py_DECREF(Py_None);
-      $target = o;
+      $result = o;
     } else {
-      if (!PyList_Check($target)) {
-	PyObject *o2 = $target;
-	$target = PyList_New(0);
-	PyList_Append($target,o2);
+      if (!PyList_Check($result)) {
+	PyObject *o2 = $result;
+	$result = PyList_New(0);
+	PyList_Append($result,o2);
 	Py_XDECREF(o2);
       }
-      PyList_Append($target,o);
+      PyList_Append($result,o);
       Py_XDECREF(o);
     }
 }
