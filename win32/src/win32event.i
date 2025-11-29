@@ -94,8 +94,6 @@ typedef void *NULL_ONLY;
 // @pyswig |CancelWaitableTimer|Cancels a waiting timer.
 BOOLAPI CancelWaitableTimer(PyHANDLE handle);
 
-#end
-
 // @pyswig <o PyHANDLE>|CreateEvent|Creates a waitable event
 // @rdesc The result is a handle to the created object
 PyHANDLE CreateEvent(
