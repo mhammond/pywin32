@@ -1041,7 +1041,7 @@ for name, libraries, sources in (
         "win32/src/win32clipboardmodule.cpp",
     ),
     # win32gui handled below
-    ("win32job", "user32", "win32/src/win32job.i"),
+    ("_win32job", "user32", "win32/src/win32job.i"),
     ("win32lz", "lz32", "win32/src/win32lzmodule.cpp"),
     (
         "win32net",
@@ -1057,17 +1057,17 @@ for name, libraries, sources in (
         """,
     ),
     ("win32pdh", "", "win32/src/win32pdhmodule.cpp"),
-    ("win32pipe", "", "win32/src/win32pipe.i"),
+    ("_win32pipe", "", "win32/src/win32pipe.i"),
     (
         "win32print",
         "winspool user32 gdi32",
         "win32/src/win32print/win32print.cpp",
     ),
-    ("win32process", "advapi32 user32", "win32/src/win32process.i"),
+    ("_win32process", "advapi32 user32", "win32/src/win32process.i"),
     ("win32profile", "Userenv", "win32/src/win32profilemodule.cpp"),
     ("win32ras", "rasapi32 user32", "win32/src/win32rasmodule.cpp"),
     (
-        "win32security",
+        "_win32security",
         "advapi32 user32 netapi32",
         """
         win32/src/win32security.i
@@ -1076,7 +1076,7 @@ for name, libraries, sources in (
         """,
     ),
     (
-        "win32service",
+        "_win32service",
         "advapi32 oleaut32 user32",
         """
         win32/src/win32service_messages.mc
@@ -1095,7 +1095,7 @@ for name, libraries, sources in (
     ),
     (
         "win32inet",
-        "wininet",
+        "_wininet",
         """
         win32/src/win32inet.i
         win32/src/win32inet_winhttp.cpp
