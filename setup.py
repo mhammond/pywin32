@@ -1117,7 +1117,7 @@ for name, libraries, sources in (
 # The few that need slightly special treatment
 win32_extensions += [
     WinExt_win32(
-        "win32evtlog",
+        "_win32evtlog",
         sources="""
                 win32\\src\\win32evtlog_messages.mc win32\\src\\win32evtlog.i
                 """.split(),
@@ -1133,7 +1133,7 @@ win32_extensions += [
         delay_load_libraries="powrprof",
     ),
     WinExt_win32(
-        "win32gui",
+        "_win32gui",
         sources="""
                 win32/src/win32dynamicdialog.cpp
                 win32/src/win32gui.i
