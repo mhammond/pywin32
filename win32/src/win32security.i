@@ -994,8 +994,11 @@ void PyWinObject_FreeTOKEN_PRIVILEGES(TOKEN_PRIVILEGES *pPriv)
 // @pyparm <o PyUnicode>|siteName|None|
 // @pyparm int|flags|0|
 
-%rename (DsCrackNames) PyDsCrackNames;
+%native (DsCrackNames) PyDsCrackNames;
+%{
 extern PyObject *PyDsCrackNames(PyObject *self, PyObject *args);
+%}
+
 // @pyswig [ (status, domain, name) ]|DsCrackNames|Converts an array of directory service object names from one format to another.
 // @pyparm <o PyDS_HANDLE>|hds||Directory service handle as returned by <om win32security.DsBind>
 // @pyparm int|flags||
@@ -1003,37 +1006,54 @@ extern PyObject *PyDsCrackNames(PyObject *self, PyObject *args);
 // @pyparm int|formatDesired||
 // @pyparm [name, ...]|names||
 
-%rename (DsListInfoForServer) PyDsListInfoForServer;
+%native (DsListInfoForServer) PyDsListInfoForServer;
+%{
 extern PyObject *PyDsListInfoForServer(PyObject *self, PyObject *args);
+%}
+
 // @pyswig [ <o PyDS_NAME_RESULT_ITEM>, ...]|DsListInfoForServer|Lists miscellaneous information for a server.
 // @pyparm <o PyDS_HANDLE>|hds||Directory service handle as returned by <om win32security.DsBind>
 // @pyparm <o PyUnicode>|server||
 
-%rename (DsListServersInSite) PyDsListServersInSite;
+%native (DsListServersInSite) PyDsListServersInSite;
+%{
 extern PyObject *PyDsListServersInSite(PyObject *self, PyObject *args);
+%}
+
 // @pyswig [ <o PyDS_NAME_RESULT_ITEM>, ...]|DsListServersInSite|
 // @pyparm <o PyDS_HANDLE>|hds||Directory service handle as returned by <om win32security.DsBind>
 // @pyparm <o PyUnicode>|site||
 
-%rename (DsListServersForDomainInSite) PyDsListServersForDomainInSite;
+%native (DsListServersForDomainInSite) PyDsListServersForDomainInSite;
+%{
 extern PyObject *PyDsListServersForDomainInSite(PyObject *self, PyObject *args);
+%}
+
 // @pyswig [ <o PyDS_NAME_RESULT_ITEM>, ...]|DsListServersInSite|
 // @pyparm <o PyDS_HANDLE>|hds||Directory service handle as returned by <om win32security.DsBind>
 // @pyparm <o PyUnicode>|domain||
 // @pyparm <o PyUnicode>|site||
 
-%rename (DsListSites) PyDsListSites;
+%native (DsListSites) PyDsListSites;
+%{
 extern PyObject *PyDsListSites(PyObject *self, PyObject *args);
+%}
+
 // @pyswig [ <o PyDS_NAME_RESULT_ITEM>, ...]|DsListServersInSite|
 // @pyparm <o PyDS_HANDLE>|hds||Directory service handle as returned by <om win32security.DsBind>
 
-%rename (DsListRoles) PyDsListRoles;
+%native (DsListRoles) PyDsListRoles;
+%{
 extern PyObject *PyDsListRoles(PyObject *self, PyObject *args);
+%}
 // @pyswig [ <o PyDS_NAME_RESULT_ITEM>, ...]|DsListRoles|
 // @pyparm <o PyDS_HANDLE>|hds||Directory service handle as returned by <om win32security.DsBind>
 
-%rename (DsListDomainsInSite) PyDsListDomainsInSite;
+%native (DsListDomainsInSite) PyDsListDomainsInSite;
+%{
 extern PyObject *PyDsListDomainsInSite(PyObject *self, PyObject *args);
+%}
+
 // @pyswig [ <o PyDS_NAME_RESULT_ITEM>, ...]|DsListDomainsInSite|
 // @pyparm <o PyDS_HANDLE>|hds||Directory service handle as returned by <om win32security.DsBind>
 
