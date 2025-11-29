@@ -318,32 +318,32 @@ static PyObject *mySTARTUPINFO(PyObject *self, PyObject *args)
 
 %typemap(in) STARTUPINFO *
 {
-	if (!PyWinObject_AsSTARTUPINFO($source, &$target, FALSE))
+	if (!PyWinObject_AsSTARTUPINFO($input, &$1, FALSE))
 		return NULL;
 }
 
 %typemap(argout) STARTUPINFO *OUTPUT {
     PyObject *o;
-    o = PyWinObject_FromSTARTUPINFO($source);
-    if (!$target) {
-      $target = o;
-    } else if ($target == Py_None) {
+    o = PyWinObject_FromSTARTUPINFO($1);
+    if (!$result) {
+      $result = o;
+    } else if ($result == Py_None) {
       Py_DECREF(Py_None);
-      $target = o;
+      $result = o;
     } else {
-      if (!PyList_Check($target)) {
-	PyObject *o2 = $target;
-	$target = PyList_New(0);
-	PyList_Append($target,o2);
+      if (!PyList_Check($result)) {
+	PyObject *o2 = $result;
+	$result = PyList_New(0);
+	PyList_Append($result,o2);
 	Py_XDECREF(o2);
       }
-      PyList_Append($target,o);
+      PyList_Append($result,o);
       Py_XDECREF(o);
     }
 }
 %typemap(in,numinputs=0) STARTUPINFO *OUTPUT(STARTUPINFO temp)
 {
-  $target = &temp;
+  $1 = &temp;
 }
 
 %{
@@ -649,7 +649,7 @@ PyObject *MyCreateProcess(
 
 // @pyswig <o PyHANDLE>, <o PyHANDLE>, int, int|CreateProcess|Creates a new process and its primary thread. The new process executes the specified executable file.
 // @comm The result is a tuple of (hProcess, hThread, dwProcessId, dwThreadId)
-%rename(CreateProcess)
+%rename(CreateProcess) MyCreateProcess;
 PyObject *MyCreateProcess(
 	TCHAR *INPUT_NULLOK,  // @pyparm string|appName||name of executable module, or None
 	TCHAR *INPUT_NULLOK,  // @pyparm string|commandLine||command line string, or None
@@ -741,7 +741,7 @@ PyObject *MyCreateProcessAsUser(
 
 // @pyswig <o PyHANDLE>, <o PyHANDLE>, int, int|CreateProcessAsUser|Creates a new process in the context of the specified user.
 // @comm The result is a tuple of (hProcess, hThread, dwProcessId, dwThreadId)
-%rename(CreateProcessAsUser)
+%rename(CreateProcessAsUser) MyCreateProcessAsUser;
 PyObject *MyCreateProcessAsUser(
 	HANDLE hToken, // @pyparm <o PyHANDLE>|hToken||Handle to a token that represents a logged-on user
 	TCHAR *INPUT_NULLOK,  // @pyparm string|appName||name of executable module, or None
@@ -986,7 +986,8 @@ static PyObject *MySetThreadIdealProcessor( HANDLE hThread, DWORD dwIdealProc )
 %}
 
 // @pyswig int|SetThreadIdealProcessor|Used to specify a preferred processor for a thread. The system schedules threads on their preferred processors whenever possible.
-%rename(SetThreadIdealProcessor)
+%rename(SetThreadIdealProcessor) MySetThreadIdealProcessor;
+
 PyObject *MySetThreadIdealProcessor(
   HANDLE hThread,             // @pyparm <o PyHANDLE>|handle||handle to the thread of interest
   DWORD dwIdealProcessor  // @pyparm int|dwIdealProcessor||ideal processor number
@@ -1074,13 +1075,13 @@ static PyObject *MySetThreadAffinityMask(PyObject *self, PyObject *args)
 	typedef DWORD DWORD_SR_THREAD;
 %}
 %typemap(out) DWORD_SR_THREAD {
-	$target = PyLong_FromLong($source);
+	$result = PyLong_FromLong($1);
 }
 %exception DWORD_SR_THREAD {
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS
-      if ($source==-1)  {
+      if ($1==-1)  {
            $cleanup
            return PyWin_SetAPIError("$name");
       }
@@ -1586,19 +1587,19 @@ PyObject *PyIsWow64Process(PyObject *self, PyObject *args)
 	Py_BEGIN_ALLOW_THREADS
 	$function
 	Py_END_ALLOW_THREADS
-	if ($source==0)  {
+	if ($1==0)  {
 		$cleanup;
 		return PyWin_SetAPIError("$name");
 	}
 }
 
 %typemap(in) LONG_VOIDPTR {
-	if (!PyWinLong_AsVoidPtr($source, &$target))
+	if (!PyWinLong_AsVoidPtr($input, &$1))
 		return NULL;
 }
 %typemap(out) LONG_VOIDPTR
 {
-	$target = PyWinLong_FromVoidPtr($source);
+	$result = PyWinLong_FromVoidPtr($1);
 }
 
 
