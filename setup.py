@@ -1027,7 +1027,7 @@ for name, libraries, sources in (
         """,
     ),
     (
-        "win32file",
+        "_win32file",
         "ws2_32 mswsock",
         """
         win32/src/win32file.i
