@@ -1127,17 +1127,17 @@ static PyObject *MyQueryServiceConfig(PyObject *self, PyObject *args)
 
 typedef float SC_HANDLE, SERVICE_STATUS_HANDLE, SC_LOCK;	// This is just to keep Swig from treating them as pointers
 %typemap(out) SC_HANDLE{
-	$target = PyWinObject_FromSC_HANDLE($source);
+	$result = PyWinObject_FromSC_HANDLE($1);
 }
 %typemap(in) SC_HANDLE, SERVICE_STATUS_HANDLE{
-	if (!PyWinObject_AsHANDLE($source, (HANDLE *)&$target))
+	if (!PyWinObject_AsHANDLE($input, (HANDLE *)&$1))
 		return NULL;
 }
 %typemap(out) SC_LOCK{
-	$target = PyWinLong_FromVoidPtr($source);
+	$result = PyWinLong_FromVoidPtr($1);
 }
 %typemap(in) SC_LOCK{
-	if (!PyWinLong_AsVoidPtr($source, &$target))
+	if (!PyWinLong_AsVoidPtr($input, &$1))
 		return NULL;
 }
 
@@ -1145,7 +1145,7 @@ typedef float SC_HANDLE, SERVICE_STATUS_HANDLE, SC_LOCK;	// This is just to keep
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS
-      if ($source==0)  {
+      if ($1==0)  {
            $cleanup;
            return PyWin_SetAPIError("$name");
       }
@@ -1153,37 +1153,38 @@ typedef float SC_HANDLE, SERVICE_STATUS_HANDLE, SC_LOCK;	// This is just to keep
 
 // SERVICE_STATUS support
 %typemap(in,numinputs=0) SERVICE_STATUS *outServiceStatus (SERVICE_STATUS temp) {
-	$target = &temp;
+	$1 = &temp;
 }
 
 // @object SERVICE_STATUS|A Win32 service status object is represented by a tuple:
 %typemap(argout) SERVICE_STATUS *outServiceStatus {
-	Py_DECREF($target);
-	$target = Py_BuildValue("lllllll",
-		$source->dwServiceType, // @tupleitem 0|int|serviceType|The type of service.
-		$source->dwCurrentState, // @tupleitem 1|int|serviceState|The current state of the service.
-		$source->dwControlsAccepted, // @tupleitem 2|int|controlsAccepted|The controls the service accepts.
-		$source->dwWin32ExitCode, // @tupleitem 3|int|win32ExitCode|The win32 error code for the service.
-		$source->dwServiceSpecificExitCode, // @tupleitem 4|int|serviceSpecificErrorCode|The service specific error code.
-		$source->dwCheckPoint, // @tupleitem 5|int|checkPoint|The checkpoint reported by the service.
-		$source->dwWaitHint); // @tupleitem 6|int|waitHint|The wait hint reported by the service.
+	Py_DECREF($result);
+	$result = Py_BuildValue("lllllll",
+		$1->dwServiceType, // @tupleitem 0|int|serviceType|The type of service.
+		$1->dwCurrentState, // @tupleitem 1|int|serviceState|The current state of the service.
+		$1->dwControlsAccepted, // @tupleitem 2|int|controlsAccepted|The controls the service accepts.
+		$1->dwWin32ExitCode, // @tupleitem 3|int|win32ExitCode|The win32 error code for the service.
+		$1->dwServiceSpecificExitCode, // @tupleitem 4|int|serviceSpecificErrorCode|The service specific error code.
+		$1->dwCheckPoint, // @tupleitem 5|int|checkPoint|The checkpoint reported by the service.
+		$1->dwWaitHint); // @tupleitem 6|int|waitHint|The wait hint reported by the service.
 }
 
 %typemap(in) SERVICE_STATUS *inServiceStatus (SERVICE_STATUS junk) {
-	$target = &junk;
-	if (!PyArg_ParseTuple($source, "lllllll",
-		&$target->dwServiceType,
-		&$target->dwCurrentState,
-		&$target->dwControlsAccepted,
-		&$target->dwWin32ExitCode,
-		&$target->dwServiceSpecificExitCode,
-		&$target->dwCheckPoint,
-		&$target->dwWaitHint))
+	$1 = &junk;
+	if (!PyArg_ParseTuple($input, "lllllll",
+		&$1->dwServiceType,
+		&$1->dwCurrentState,
+		&$1->dwControlsAccepted,
+		&$1->dwWin32ExitCode,
+		&$1->dwServiceSpecificExitCode,
+		&$1->dwCheckPoint,
+		&$1->dwWaitHint))
 		return NULL;
 }
 
 // @pyswig |StartService|Starts the specified service
-%rename (StartService) PyObject *MyStartService (
+%rename (StartService) MyStartService;
+PyObject *MyStartService (
      SC_HANDLE  hService, // @pyparm <o PySC_HANDLE>|hService||Handle to the service to be started
      PyObject *pyobject /* serviceArgs */); // @pyparm [string, ...]|args||Arguments to the service.
 
@@ -1416,7 +1417,8 @@ BOOLAPI DeleteService(SC_HANDLE);
 // @pyparm <o PySC_HANDLE>|scHandle||Handle to service to be deleted
 
 // @pyswig <o PySC_HANDLE>/(<o PySC_HANDLE>, int)|CreateService|Creates a new service.
-%rename (CreateService) PyObject * MyCreateService(
+%rename (CreateService) MyCreateService;
+PyObject * MyCreateService(
     SC_HANDLE hSCManager,	// @pyparm <o PySC_HANDLE>|scHandle||handle to service control manager database
     TCHAR *name,			// @pyparm string|name||Name of service
     TCHAR *displayName,		// @pyparm string|displayName||Display name
@@ -1433,7 +1435,8 @@ BOOLAPI DeleteService(SC_HANDLE);
    );
 
 // @pyswig int/None|ChangeServiceConfig|Changes the configuration of an existing service.
-%rename (ChangeServiceConfig) PyObject * MyChangeServiceConfig(
+%rename (ChangeServiceConfig) MyChangeServiceConfig;
+PyObject * MyChangeServiceConfig(
     SC_HANDLE hService,		// @pyparm <o PySC_HANDLE>|hService||handle to service to be modified
     DWORD dwServiceType,	// @pyparm int|serviceType||type of service, or SERVICE_NO_CHANGE
     DWORD dwStartType,		// @pyparm int|startType||When/how to start service, or SERVICE_NO_CHANGE
