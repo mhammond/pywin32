@@ -5873,7 +5873,7 @@ PyCFunction pfnpy_OpenFileById=(PyCFunction)py_OpenFileById;
 %native (OpenFileById) pfnpy_OpenFileById;
 
 
-%{
+%init %{
 
 	if (PyType_Ready(&FindFileIterator_Type) == -1
 		||PyType_Ready(&PyDCB::type) == -1
