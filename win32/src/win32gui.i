@@ -2070,7 +2070,7 @@ static PyObject *PySendMessageTimeout(PyObject *self, PyObject *args)
 // @pyparm int|message||The ID of the message to post
 // @pyparm int|wparam|0|An integer whose value depends on the message
 // @pyparm int|lparam|0|An integer whose value depends on the message
-BOOLAPI PostMessage(HWND hwnd, UINT msg, WPARAM wParam = 0, LPARAM lParam = 0);
+BOOLAPI PostMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 // @pyswig |PostThreadMessage|
 // @pyparm int|threadId||The ID of the thread to post the message to.
