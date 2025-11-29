@@ -2286,7 +2286,7 @@ static PyObject *PyDialogBox(PyObject *self, PyObject *args)
 	return PyWinLong_FromVoidPtr((void *)rc);
 }
 %}
-%native (DialogBox) PyDialogBox;
+%rename (DialogBox) PyDialogBox;
 // @pyswig int|DialogBoxParam|See <om win32gui.DialogBox>
 %native (DialogBoxParam) PyDialogBox;
 
@@ -2344,7 +2344,7 @@ static PyObject *PyDialogBoxIndirect(PyObject *self, PyObject *args)
 	return PyWinLong_FromVoidPtr((void *)rc);
 }
 %}
-%native (DialogBoxIndirect) PyDialogBoxIndirect;
+%rename (DialogBoxIndirect) PyDialogBoxIndirect;
 // @pyswig int|DialogBoxIndirectParam|See <om win32gui.DialogBoxIndirect>
 %native (DialogBoxIndirectParam) PyDialogBoxIndirect;
 
@@ -2392,7 +2392,7 @@ static PyObject *PyCreateDialogIndirect(PyObject *self, PyObject *args)
 
 }
 %}
-%native (CreateDialogIndirect) PyCreateDialogIndirect;
+%rename (CreateDialogIndirect) PyCreateDialogIndirect;
 // @pyswig int|DialogBoxIndirectParam|See <om win32gui.CreateDialogIndirect>
 %native (CreateDialogIndirectParam) PyCreateDialogIndirect;
 
