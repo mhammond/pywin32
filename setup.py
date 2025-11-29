@@ -1034,7 +1034,7 @@ for name, libraries, sources in (
         win32/src/win32file_comm.cpp
         """,
     ),
-    ("win32event", "user32", "win32/src/win32event.i"),
+    ("_win32event", "user32", "win32/src/win32event.i"),
     (
         "win32clipboard",
         "gdi32 user32 shell32",
