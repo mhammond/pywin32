@@ -85,14 +85,14 @@ PyObject *PyWinObject_FromEVT_HANDLE(HANDLE h, PyObject *context=NULL)
   Py_BEGIN_ALLOW_THREADS
   $function
   Py_END_ALLOW_THREADS
-  if ($source==0 || $source==INVALID_HANDLE_VALUE)  {
+  if ($1==0 || $1==INVALID_HANDLE_VALUE)  {
     $cleanup
     return PyWin_SetAPIError("$name");
   }
 }
 
 %typemap(out) PyEVTLOG_HANDLE {
-  $target = PyWinObject_FromEVTLOG_HANDLE($source);
+  $result = PyWinObject_FromEVTLOG_HANDLE($1);
 }
 
 typedef HANDLE PyEVTLOG_HANDLE;
@@ -405,14 +405,16 @@ cleanup:
 #define EVENTLOG_PAIRED_EVENT_INACTIVE EVENTLOG_PAIRED_EVENT_INACTIVE
 
 // @pyswig |ClearEventLog|Clears the event log
-%name (ClearEventLog) BOOLAPI
+%rename (ClearEventLog) ClearEventLogW;
+BOOLAPI
 ClearEventLogW (
     HANDLE hEventLog,	// @pyparm int|handle||Handle to the event log to clear.
     WCHAR *INPUT_NULLOK // @pyparm <o PyUnicode>|eventLogName||The name of the event log to save to, or None
     );
 
 // @pyswig |BackupEventLog|Backs up the event log
-%name (BackupEventLog) BOOLAPI
+%rename (BackupEventLog) BackupEventLogW;
+BOOLAPI
 BackupEventLogW (
     HANDLE hEventLog, // @pyparm int|handle||Handle to the event log to backup.
     WCHAR *lpBackupFileName // @pyparm <o PyUnicode>|eventLogName||The name of the event log to save to
@@ -455,13 +457,15 @@ GetOldestEventLogRecord (
     );
 
 // @pyswig <o PyEVTLOG_HANDLE>|OpenEventLog|Opens an event log.
-%name (OpenEventLog) PyEVTLOG_HANDLE OpenEventLogW (
+%rename (OpenEventLog) OpenEventLogW;
+PyEVTLOG_HANDLE OpenEventLogW (
     WCHAR *INPUT_NULLOK, // @pyparm <o PyUnicode>|serverName||The server name, or None
     WCHAR *sourceName    // @pyparm <o PyUnicode>|sourceName||specifies the name of the source that the returned handle will reference. The source name must be a subkey of a logfile entry under the EventLog key in the registry.
     );
 
 // @pyswig int|RegisterEventSource|Registers an Event Source
-%name (RegisterEventSource) HANDLE
+%rename (RegisterEventSource) RegisterEventSourceW;
+HANDLE
 RegisterEventSourceW (
     WCHAR *INPUT_NULLOK, // @pyparm <o PyUnicode>|serverName||The server name, or None
     WCHAR *sourceName  // @pyparm <o PyUnicode>|sourceName||The source name
@@ -469,7 +473,8 @@ RegisterEventSourceW (
 
 
 // @pyswig <o PyEVTLOG_HANDLE>|OpenBackupEventLog|Opens a previously saved event log.
-%name (OpenBackupEventLog) HANDLE OpenBackupEventLogW (
+%rename (OpenBackupEventLog) OpenBackupEventLogW;
+HANDLE OpenBackupEventLogW (
     WCHAR *INPUT_NULLOK, // @pyparm <o PyUnicode>|serverName||The server name, or None
     WCHAR *fileName      // @pyparm <o PyUnicode>|fileName||The filename to open
     );
@@ -477,7 +482,8 @@ RegisterEventSourceW (
 %native (ReadEventLog) MyReadEventLog;
 
 // @pyswig |ReportEvent|Reports an event
-%name (ReportEvent) PyObject *MyReportEvent (
+%rename (ReportEvent) MyReportEvent;
+PyObject *MyReportEvent (
      HANDLE     hEventLog,	// @pyparm <o PyHANDLE>|EventLog||Handle to an event log
      WORD       wType,		// @pyparm int|Type||win32con.EVENTLOG_* value
      WORD       wCategory,	// @pyparm int|Category||Source-specific event category

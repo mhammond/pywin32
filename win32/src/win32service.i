@@ -1183,7 +1183,7 @@ typedef float SC_HANDLE, SERVICE_STATUS_HANDLE, SC_LOCK;	// This is just to keep
 }
 
 // @pyswig |StartService|Starts the specified service
-%name (StartService) PyObject *MyStartService (
+%rename (StartService) PyObject *MyStartService (
      SC_HANDLE  hService, // @pyparm <o PySC_HANDLE>|hService||Handle to the service to be started
      PyObject *pyobject /* serviceArgs */); // @pyparm [string, ...]|args||Arguments to the service.
 
@@ -1416,7 +1416,7 @@ BOOLAPI DeleteService(SC_HANDLE);
 // @pyparm <o PySC_HANDLE>|scHandle||Handle to service to be deleted
 
 // @pyswig <o PySC_HANDLE>/(<o PySC_HANDLE>, int)|CreateService|Creates a new service.
-%name (CreateService) PyObject * MyCreateService(
+%rename (CreateService) PyObject * MyCreateService(
     SC_HANDLE hSCManager,	// @pyparm <o PySC_HANDLE>|scHandle||handle to service control manager database
     TCHAR *name,			// @pyparm string|name||Name of service
     TCHAR *displayName,		// @pyparm string|displayName||Display name
@@ -1433,7 +1433,7 @@ BOOLAPI DeleteService(SC_HANDLE);
    );
 
 // @pyswig int/None|ChangeServiceConfig|Changes the configuration of an existing service.
-%name (ChangeServiceConfig) PyObject * MyChangeServiceConfig(
+%rename (ChangeServiceConfig) PyObject * MyChangeServiceConfig(
     SC_HANDLE hService,		// @pyparm <o PySC_HANDLE>|hService||handle to service to be modified
     DWORD dwServiceType,	// @pyparm int|serviceType||type of service, or SERVICE_NO_CHANGE
     DWORD dwStartType,		// @pyparm int|startType||When/how to start service, or SERVICE_NO_CHANGE
