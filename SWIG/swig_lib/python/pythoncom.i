@@ -12,7 +12,7 @@ typedef long FLAGS;
 
 
 %typemap(out) HRESULT {
-	$target = Py_None;
+	$result = Py_None;
 	Py_INCREF(Py_None);
 }
 
@@ -20,12 +20,12 @@ typedef long FLAGS;
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS
-      if (FAILED($source))  {
+      if (FAILED($1))  {
            $cleanup
 #ifdef SWIG_THIS_IID
-           return PyCom_BuildPyException($source, _swig_self,  SWIG_THIS_IID);
+           return PyCom_BuildPyException($1, _swig_self,  SWIG_THIS_IID);
 #else
-           return PyCom_BuildPyException($source);
+           return PyCom_BuildPyException($1);
 #endif
       }
 }
@@ -38,48 +38,48 @@ typedef long HRESULT_KEEP_INFO;
 %}
 
 %typemap(out) HRESULT_KEEP_INFO {
-	$target = PyLong_FromLong($source);
+	$result = PyLong_FromLong($1);
 }
 
 %exception HRESULT_KEEP_INFO {
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS
-      if (FAILED($source))  {
+      if (FAILED($1))  {
            $cleanup
 #ifdef SWIG_THIS_IID
-           return PyCom_BuildPyException($source, _swig_self,  SWIG_THIS_IID);
+           return PyCom_BuildPyException($1, _swig_self,  SWIG_THIS_IID);
 #else
-           return PyCom_BuildPyException($source);
+           return PyCom_BuildPyException($1);
 #endif
       }
 }
 
 %typemap(in) IID *INPUT(IID temp)
 {
-	$target = &temp;
-	if (!PyWinObject_AsIID($source, $target))
+	$1 = &temp;
+	if (!PyWinObject_AsIID($input, $1))
 		return NULL;
 }
 
 %typemap(in) IID *INPUT_NULLOK(IID temp)
 {
-	if ($source==Py_None)
-		$target = NULL;
+	if ($input==Py_None)
+		$1 = NULL;
 	else {
-		$target = &temp;
-		if (!PyWinObject_AsIID($source, $target))
+		$1 = &temp;
+		if (!PyWinObject_AsIID($input, $1))
 			return NULL;
 	}
 }
 
 %typemap(in,numinputs=0) IUnknown **OUTPUT(IUnknown *temp)
 {
-  $target = &temp;
+  $1 = &temp;
 }
 %typemap(in,numinputs=0) IDispatch **OUTPUT(IDispatch *temp)
 {
-  $target = &temp;
+  $1 = &temp;
 }
 
 %{
@@ -106,22 +106,22 @@ typedef long HRESULT_KEEP_INFO;
 %}
 
 %typemap(argout) IUnknown **OUTPUT {
-	MAKE_OUTPUT_INTERFACE($source, $target, IID_IUnknown)
-//	$target = PyCom_PyObjectFromIUnknown(*$source, IID_IUnknown, FALSE /* bAddRef */);
+	MAKE_OUTPUT_INTERFACE($1, $result, IID_IUnknown)
+//	$result = PyCom_PyObjectFromIUnknown(*$1, IID_IUnknown, FALSE /* bAddRef */);
 }
 
 %typemap(in) IUnknown *INPUT {
-	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IUnknown, (void **)&$target, 0))
+	if (!PyCom_InterfaceFromPyInstanceOrObject($input, IID_IUnknown, (void **)&$1, 0))
 		return NULL;
 }
 
 %typemap(in) IUnknown *INPUT_NULLOK {
-	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IUnknown, (void **)&$target, 1))
+	if (!PyCom_InterfaceFromPyInstanceOrObject($input, IID_IUnknown, (void **)&$1, 1))
 		return NULL;
 }
 
 %typemap(argout) IDispatch **OUTPUT {
-	MAKE_OUTPUT_INTERFACE($source, $target, IID_IDispatch)
+	MAKE_OUTPUT_INTERFACE($1, $result, IID_IDispatch)
 }
 
 %typemap(freearg) IUnknown *INPUT,
@@ -141,7 +141,7 @@ typedef long HRESULT_KEEP_INFO;
 						 IAttach *INPUT,
 						 IAttach *INPUT_NULLOK
 {
-	if ($source) $source->Release();
+	if ($1) $1->Release();
 }
 
 %typemap(arginit) IUnknown *,
@@ -153,32 +153,32 @@ typedef long HRESULT_KEEP_INFO;
 						 IMAPIProgress *,
 						 IAttach *
 {
-	$target = NULL;
+	$1 = NULL;
 }
 
 // Variants!
 // SWIG only does this funky stuff for pointers :-(
 %typemap(in,numinputs=0) VARIANT *OUTPUT( VARIANT temp)
 {
-  $target = &temp;
+  $1 = &temp;
 }
 
 %typemap(argout) VARIANT *OUTPUT {
     PyObject *o;
-    o = PyCom_PyObjectFromVariant($source);
-    if (!$target) {
-      $target = o;
-    } else if ($target == Py_None) {
+    o = PyCom_PyObjectFromVariant($1);
+    if (!$result) {
+      $result = o;
+    } else if ($result == Py_None) {
       Py_DECREF(Py_None);
-      $target = o;
+      $result = o;
     } else {
-      if (!PyList_Check($target)) {
-	PyObject *o2 = $target;
-	$target = PyList_New(0);
-	PyList_Append($target,o2);
+      if (!PyList_Check($result)) {
+	PyObject *o2 = $result;
+	$result = PyList_New(0);
+	PyList_Append($result,o2);
 	Py_XDECREF(o2);
       }
-      PyList_Append($target,o);
+      PyList_Append($result,o);
       Py_XDECREF(o);
     }
 }
