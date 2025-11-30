@@ -3,6 +3,11 @@
 %include "typemaps.i"
 %include "pywin32.i"
 %include "pythoncom.i"
+
+
+%define SWIG_THIS_IID IID_IDsObjectPicker
+%enddef
+
 %include "adsilib.i"
 
 %{
@@ -12,7 +17,6 @@
 
 extern BOOL PyObject_AsDSOP_SCOPE_INIT_INFOs(PyObject *ob, DSOP_SCOPE_INIT_INFO**p, ULONG *n);
 
-#define SWIG_THIS_IID IID_IDsObjectPicker
 
 PyIDsObjectPicker::PyIDsObjectPicker(IUnknown *pDisp) :
 	PyIUnknown(pDisp)

@@ -3,13 +3,15 @@
 %include "typemaps.i"
 %include "pywin32.i"
 %include "pythoncom.i"
+
+%define SWIG_THIS_IID IID_IADsUser
+%enddef
+
 %include "adsilib.i"
 
 %{
 #include "PyIADs.h"
 #include "PyIADsUser.h"
-
-#define SWIG_THIS_IID IID_IADsUser
 
 PyIADsUser::PyIADsUser(IUnknown *pDisp) :
 	PyIADs(pDisp)
