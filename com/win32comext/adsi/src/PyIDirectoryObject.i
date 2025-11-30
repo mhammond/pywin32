@@ -5,7 +5,7 @@
 %include "pythoncom.i"
 
 %define SWIG_THIS_IID IID_IDirectoryObject
-%endif
+%enddef
 
 %include "adsilib.i"
 
