@@ -251,6 +251,7 @@ PyDict_SetItemString(d, "g_DLGMap", g_DLGMap);
 #endif
 
 // hack borrowed from win32security since version of SWIG we use doesn't do keyword arguments
+/*
 for (PyMethodDef *pmd = win32guiMethods; pmd->ml_name; pmd++)
 	if	 (strcmp(pmd->ml_name, "SetLayeredWindowAttributes")==0
 		||strcmp(pmd->ml_name, "GetLayeredWindowAttributes")==0
@@ -297,6 +298,10 @@ typedef float HDC, HCURSOR, HINSTANCE, HMENU, HICON, HGDIOBJ, HIMAGELIST, HACCEL
 }
 %typemap(out) HDC, HCURSOR, HINSTANCE, HMENU, HICON, HGDIOBJ, HIMAGELIST, HACCEL{
 	$result=PyWinLong_FromHANDLE($1);
+}
+
+%typemap(out) LRESULT{
+	$result=Py_BuildValue("K",$1);;
 }
 
 %apply COLORREF {long};
