@@ -1143,7 +1143,7 @@ win32_extensions += [
     ),
     # winxptheme
     WinExt_win32(
-        "winxptheme",
+        "__winxptheme",
         sources=["win32/src/_winxptheme.i"],
         libraries="gdi32 user32 comdlg32 comctl32 shell32 Uxtheme",
     ),
