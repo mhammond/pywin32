@@ -13,12 +13,9 @@ extern PyObject *OleSetADSIError(HRESULT hr, IUnknown *pUnk, REFIID iid);
 	Py_END_ALLOW_THREADS
 	if (FAILED($1))  {
 		$cleanup
-
-/*
 #ifndef SWIG_THIS_IID
 #error This interface must have SWIG_THIS_IID defined!
 #endif
-*/
 		return OleSetADSIError($1, _swig_self,  SWIG_THIS_IID);
 	}
 }

@@ -3,12 +3,13 @@
 %include "typemaps.i"
 %include "pywin32.i"
 %include "pythoncom.i"
+
+%define SWIG_THIS_IID(IID_IADsContainer)
+%enddef
 %include "adsilib.i"
 
 %{
-
 #include "PyIADsContainer.h"
-#define SWIG_THIS_IID IID_IADsContainer
 
 PyIADsContainer::PyIADsContainer(IUnknown *pDisp) :
 	PyIDispatch(pDisp)
