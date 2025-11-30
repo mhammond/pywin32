@@ -1118,7 +1118,7 @@ win32_extensions += [
         define_macros=[("WIN32GUI", None)],
     ),
     WinExt_win32(
-        "winxptheme",
+        "__winxptheme",
         sources=["win32/src/_winxptheme.i"],
         libraries="gdi32 user32 comdlg32 comctl32 shell32 Uxtheme",
     ),
