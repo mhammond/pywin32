@@ -78,10 +78,10 @@ done:
 
 %typemap(in,numinputs=0) IDataObject  **OUTPUT(IDataObject *temp)
 {
-  $target = &temp;
+  $1 = &temp;
 }
 %typemap(argout) IDataObject **OUTPUT {
-	MAKE_OUTPUT_INTERFACE($source, $target, IID_IDataObject)
+	MAKE_OUTPUT_INTERFACE($1, $result, IID_IDataObject)
 }
 
 // @pyswig <o PyIDataObject>|InvokeDialog|Displays a modal object picker dialog box and returns the user's selections.
