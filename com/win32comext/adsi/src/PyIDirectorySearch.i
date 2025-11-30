@@ -9,7 +9,7 @@
 %define SWIG_THIS_IID IID_IDirectorySearch
 %enddef
 
-#define SWIG_THIS_IID IID_IDirectorySearch
+%include "adsilib.i"
 
 %{
 #include "AdsErr.h"
