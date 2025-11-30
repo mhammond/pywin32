@@ -1760,7 +1760,7 @@ typedef TCHAR *RESOURCE_ID_NULLOK;
 %typemap(freearg) STRING_OR_ATOM_CW {
 	// Look up the WNDCLASS object by either atom->wndclass or name->atom->wndclass to set window proc
 	PyObject *obwc=NULL;
-	if (_result) {
+	if (result) {
 		if (IS_INTRESOURCE($1))
 			obwc = PyDict_GetItem(g_AtomMap, $result);
 		else{
@@ -1771,7 +1771,7 @@ typedef TCHAR *RESOURCE_ID_NULLOK;
 			}
 		// A HUGE HACK - set the class extra bytes.
 		if (obwc)
-			SetClassLongPtr(_result, 0, (LONG_PTR)((PyWNDCLASS *)obwc)->m_obWndProc);
+			SetClassLongPtr(result, 0, (LONG_PTR)((PyWNDCLASS *)obwc)->m_obWndProc);
 		}
 	PyWinObject_FreeResourceId($1);
 }
