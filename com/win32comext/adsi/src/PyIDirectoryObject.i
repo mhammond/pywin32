@@ -3,17 +3,13 @@
 %include "typemaps.i"
 %include "pywin32.i"
 %include "pythoncom.i"
-
-%define SWIG_THIS_IID IID_IDirectoryObject
-%enddef
-
 %include "adsilib.i"
 
 %{
 
 #include "PyIDirectoryObject.h"
 
-
+#define SWIG_THIS_IID IID_IDirectoryObject
 
 PyIDirectoryObject::PyIDirectoryObject(IUnknown *pDisp) :
 	PyIUnknown(pDisp)

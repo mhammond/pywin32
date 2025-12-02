@@ -4,17 +4,13 @@
 %include "typemaps.i"
 %include "pywin32.i"
 %include "pythoncom.i"
-
-
-%define SWIG_THIS_IID IID_IDirectorySearch
-%enddef
-
 %include "adsilib.i"
 
 %{
 #include "adserr.h"
 #include "PyIDirectorySearch.h"
 
+#define SWIG_THIS_IID IID_IDirectorySearch
 
 PyIDirectorySearch::PyIDirectorySearch(IUnknown *pDisp) :
 	PyIUnknown(pDisp)

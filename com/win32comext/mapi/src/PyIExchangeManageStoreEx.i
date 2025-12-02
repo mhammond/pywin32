@@ -10,24 +10,24 @@
 %include "pythoncom.i"
 %include "mapilib.i"
 
-%typemap(ignore) IExchangeManageStoreEx **OUTPUT(IExchangeManageStoreEx *temp)
+%typemap(python,ignore) IExchangeManageStoreEx **OUTPUT(IExchangeManageStoreEx *temp)
 {
   $target = &temp;
 }
-%typemap(argout) IExchangeManageStoreEx **OUTPUT {
+%typemap(python,argout) IExchangeManageStoreEx **OUTPUT {
 	MAKE_OUTPUT_INTERFACE($source, $target, IID_IExchangeManageStoreEx)
 }
-%typemap(freearg) IExchangeManageStoreEx *INPUT,
+%typemap(python,freearg) IExchangeManageStoreEx *INPUT,
 			 IExchangeManageStoreEx *INPUT_NULLOK
 {
 	if ($source) $source->Release();
 }
 
-%typemap(in) IExchangeManageStoreEx *INPUT {
+%typemap(python,in) IExchangeManageStoreEx *INPUT {
 	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IExchangeManageStoreEx, (void **)&$target, 0))
 		return NULL;
 }
-%typemap(in) IExchangeManageStoreEx *INPUT_NULLOK {
+%typemap(python,in) IExchangeManageStoreEx *INPUT_NULLOK {
 	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IExchangeManageStoreEx, (void **)&$target, 1))
 		return NULL;
 }
