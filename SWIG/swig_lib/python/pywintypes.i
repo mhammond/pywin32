@@ -45,146 +45,142 @@ typedef unsigned long ULONG;
 %}
 
 // DWORDs can use longs so long as they fit in 32 unsigned bits
-%typemap(in) DWORD {
+%typemap(python,in) DWORD {
 	// PyLong_AsUnsignedLongMask isn't ideal - no overflow checking - but
 	// this is what the 'k' format specifier in PyArg_ParseTuple uses, and
 	// that is what much of pywin32 uses for DWORDS, so we use it here too
-	$1 = PyLong_AsUnsignedLongMask($input);
-	if ($1==(DWORD)-1 && PyErr_Occurred())
+	$target = PyLong_AsUnsignedLongMask($source);
+	if ($target==(DWORD)-1 && PyErr_Occurred())
 		return NULL;
 }
 
 // Override the SWIG default for this.
-%typemap(out) PyObject *{
-	if ($1==NULL) return NULL; // get out now!
-	$result = $1;
+%typemap(python,out) PyObject *{
+	if ($source==NULL) return NULL; // get out now!
+	$target = $source;
 }
 
 //
 // Map API functions that return BOOL to
 // functions that return None, but raise exceptions.
 // These functions must set the win32 LastError.
-%{
-typedef BOOL BOOLAPI;
-%}
+%typedef BOOL BOOLAPI
 
-%typemap(out) BOOLAPI {
-	$result = Py_None;
+%typemap(python,out) BOOLAPI {
+	$target = Py_None;
 	Py_INCREF(Py_None);
 }
 
-%typemap(except) BOOLAPI {
+%typemap(python,except) BOOLAPI {
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS
-      if (!$1)  {
+      if (!$source)  {
            $cleanup
            return PyWin_SetAPIError("$name");
       }
 }
 
-%{
-typedef DWORD DWORDAPI;
-%}
+%typedef DWORD DWORDAPI
 
-%typemap(out) DWORDAPI {
-	$result = Py_None;
+%typemap(python,out) DWORDAPI {
+	$target = Py_None;
 	Py_INCREF(Py_None);
 }
 
-%typemap(except) DWORDAPI {
+%typemap(python,except) DWORDAPI {
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS
-      if ($1!=0)  {
+      if ($source!=0)  {
            $cleanup
-           return PyWin_SetAPIError("$name", $1);
+           return PyWin_SetAPIError("$name", $source);
       }
 }
 
 // String support
-%typemap(in) char *inNullString {
-	if ($input==Py_None) {
-		$1 = NULL;
-	} else if (PyBytes_Check($input)) {
-		$1 = PyBytes_AsString($input);
+%typemap(python,in) char *inNullString {
+	if ($source==Py_None) {
+		$target = NULL;
+	} else if (PyBytes_Check($source)) {
+		$target = PyBytes_AsString($source);
 	} else {
 		PyErr_SetString(PyExc_TypeError, "Argument must be None or a string");
 		return NULL;
 	}
 }
 
-%typemap(in) TCHAR * {
-	if (!PyWinObject_AsTCHAR($input, &$1, FALSE))
+%typemap(python,in) TCHAR * {
+	if (!PyWinObject_AsTCHAR($source, &$target, FALSE))
 		return NULL;
 }
 
-%typemap(arginit) TCHAR *,OLECHAR *, WCHAR *
+%typemap(python,arginit) TCHAR *,OLECHAR *, WCHAR *
 {
-	$1 = NULL;
+	$target = NULL;
 }
 
-%typemap(in) TCHAR *inNullString{
-	if (!PyWinObject_AsTCHAR($input, &$1, TRUE))
+%typemap(python,in) TCHAR *inNullString{
+	if (!PyWinObject_AsTCHAR($source, &$target, TRUE))
 		return NULL;
 }
-%typemap(in) TCHAR *INPUT_NULLOK = TCHAR *inNullString;
+%typemap(python,in) TCHAR *INPUT_NULLOK = TCHAR *inNullString;
 
-%typemap(freearg) TCHAR *{
-	PyWinObject_FreeTCHAR($1);
+%typemap(python,freearg) TCHAR *{
+	PyWinObject_FreeTCHAR($source);
 }
 
 // Delete this!
-%typemap(freearg) TCHAR *inNullWideString {
-	PyWinObject_FreeTCHAR($1);
+%typemap(python,freearg) TCHAR *inNullWideString {
+	PyWinObject_FreeTCHAR($source);
 }
 
-%typemap(freearg) TCHAR *inNullString {
-	PyWinObject_FreeTCHAR($1);
+%typemap(python,freearg) TCHAR *inNullString {
+	PyWinObject_FreeTCHAR($source);
 }
 
 
-%typemap(in) OLECHAR *, WCHAR *{
+%typemap(python,in) OLECHAR *, WCHAR *{
 	// Wide string code!
-	if (!PyWinObject_AsWCHAR($input, &$1, FALSE))
+	if (!PyWinObject_AsWCHAR($source, &$target, FALSE))
 		return NULL;
 }
 
-%typemap(in) OLECHAR *inNullWideString,
+%typemap(python,in) OLECHAR *inNullWideString,
                     WCHAR *inNullWideString {
 	// Wide string code!
-	if (!PyWinObject_AsWCHAR($input, &$1, TRUE))
+	if (!PyWinObject_AsWCHAR($source, &$target, TRUE))
 		return NULL;
 }
 
-%typemap(in) WCHAR *inNullWideString = OLECHAR *inNullWideString;
-%typemap(in) WCHAR *INPUT_NULLOK = WCHAR *inNullWideString;
+%typemap(python,in) WCHAR *inNullWideString = OLECHAR *inNullWideString;
+%typemap(python,in) WCHAR *INPUT_NULLOK = WCHAR *inNullWideString;
 
-%typemap(freearg) OLECHAR *, WCHAR *{
+%typemap(python,freearg) OLECHAR *, WCHAR *{
 	// Wide string cleanup
-	PyWinObject_FreeWCHAR($1);
+	PyWinObject_FreeWCHAR($source);
 }
 
-%typemap(ignore) BSTR *OUTPUT (BSTR temp) {
-	$1 = &temp;
+%typemap(python,ignore) BSTR *OUTPUT (BSTR temp) {
+	$target = &temp;
 }
 
-%typemap(argout) BSTR *OUTPUT {
+%typemap(python,argout) BSTR *OUTPUT {
     PyObject *o;
-    o = PyWinObject_FromBstr(*$1, TRUE);
-    if (!$result) {
-      $result = o;
-    } else if ($result == Py_None) {
+    o = PyWinObject_FromBstr(*$source, TRUE);
+    if (!$target) {
+      $target = o;
+    } else if ($target == Py_None) {
       Py_DECREF(Py_None);
-      $result = o;
+      $target = o;
     } else {
-      if (!PyList_Check($result)) {
-	PyObject *o2 = $result;
-	$result = PyList_New(0);
-	PyList_Append($result,o2);
+      if (!PyList_Check($target)) {
+	PyObject *o2 = $target;
+	$target = PyList_New(0);
+	PyList_Append($target,o2);
 	Py_XDECREF(o2);
       }
-      PyList_Append($result,o);
+      PyList_Append($target,o);
       Py_XDECREF(o);
     }
 }
@@ -192,75 +188,75 @@ typedef DWORD DWORDAPI;
 
 // An object that can be used in place of a BSTR, but guarantees
 // cleanup of the string.
-%typemap(in) PyWin_AutoFreeBstr inWideString {
+%typemap(python,in) PyWin_AutoFreeBstr inWideString {
 	// Auto-free Wide string code!
-	if (!PyWinObject_AsAutoFreeBstr($input, &$1, FALSE))
+	if (!PyWinObject_AsAutoFreeBstr($source, &$target, FALSE))
 		return NULL;
 }
 
-%typemap(in) PyWin_AutoFreeBstr inNullWideString {
+%typemap(python,in) PyWin_AutoFreeBstr inNullWideString {
 	// Auto-free Wide string code!
-	if (!PyWinObject_AsAutoFreeBstr($input, &$1, TRUE))
+	if (!PyWinObject_AsAutoFreeBstr($source, &$target, TRUE))
 		return NULL;
 }
 
-%typemap(in) OVERLAPPED *
+%typemap(python,in) OVERLAPPED *
 {
-	if (!PyWinObject_AsOVERLAPPED($input, &$1, TRUE))
+	if (!PyWinObject_AsOVERLAPPED($source, &$target, TRUE))
 		return NULL;
 }
-%typemap(argout) OVERLAPPED *OUTPUT {
+%typemap(python,argout) OVERLAPPED *OUTPUT {
     PyObject *o;
-    o = PyWinObject_FromOVERLAPPED(*$1);
-    if (!$result) {
-      $result = o;
-    } else if ($result == Py_None) {
+    o = PyWinObject_FromOVERLAPPED(*$source);
+    if (!$target) {
+      $target = o;
+    } else if ($target == Py_None) {
       Py_DECREF(Py_None);
-      $result = o;
+      $target = o;
     } else {
-      if (!PyList_Check($result)) {
-	PyObject *o2 = $result;
-	$result = PyList_New(0);
-	PyList_Append($result,o2);
+      if (!PyList_Check($target)) {
+	PyObject *o2 = $target;
+	$target = PyList_New(0);
+	PyList_Append($target,o2);
 	Py_XDECREF(o2);
       }
-      PyList_Append($result,o);
+      PyList_Append($target,o);
       Py_XDECREF(o);
     }
 }
-%typemap(ignore) OVERLAPPED *OUTPUT(OVERLAPPED temp)
+%typemap(python,ignore) OVERLAPPED *OUTPUT(OVERLAPPED temp)
 {
-  $1 = &temp;
+  $target = &temp;
 }
 
-%typemap(argout) OVERLAPPED **OUTPUT {
+%typemap(python,argout) OVERLAPPED **OUTPUT {
     PyObject *o;
-    o = PyWinObject_FromOVERLAPPED(*$1);
-    if (!$result) {
-      $result = o;
-    } else if ($result == Py_None) {
+    o = PyWinObject_FromOVERLAPPED(*$source);
+    if (!$target) {
+      $target = o;
+    } else if ($target == Py_None) {
       Py_DECREF(Py_None);
-      $result = o;
+      $target = o;
     } else {
-      if (!PyList_Check($result)) {
-	PyObject *o2 = $result;
-	$result = PyList_New(0);
-	PyList_Append($result,o2);
+      if (!PyList_Check($target)) {
+	PyObject *o2 = $target;
+	$target = PyList_New(0);
+	PyList_Append($target,o2);
 	Py_XDECREF(o2);
       }
-      PyList_Append($result,o);
+      PyList_Append($target,o);
       Py_XDECREF(o);
     }
 }
-%typemap(ignore) OVERLAPPED **OUTPUT(OVERLAPPED *temp)
+%typemap(python,ignore) OVERLAPPED **OUTPUT(OVERLAPPED *temp)
 {
-  $1 = &temp;
+  $target = &temp;
 }
 
 
 
-%typemap(in) SECURITY_ATTRIBUTES *{
-	if (!PyWinObject_AsSECURITY_ATTRIBUTES($input, &$1))
+%typemap(python,in) SECURITY_ATTRIBUTES *{
+	if (!PyWinObject_AsSECURITY_ATTRIBUTES($source, &$target))
 		return NULL;
 }
 //---------------------------------------------------------------------------
@@ -273,36 +269,36 @@ typedef DWORD DWORDAPI;
 //---------------------------------------------------------------------------
 //typedef void *HANDLE;
 
-%typemap(ignore) HANDLE *OUTPUT(HANDLE temp)
+%typemap(python,ignore) HANDLE *OUTPUT(HANDLE temp)
 {
-  $1 = &temp;
+  $target = &temp;
 }
 
-%typemap(except) PyHANDLE {
+%typemap(python,except) PyHANDLE {
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS
-      if ($1==0 || $1==INVALID_HANDLE_VALUE)  {
+      if ($source==0 || $source==INVALID_HANDLE_VALUE)  {
            $cleanup
            return PyWin_SetAPIError("$name");
       }
 }
 
-%typemap(except) PyHKEY {
+%typemap(python,except) PyHKEY {
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS
-      if ($1==0 || $1==INVALID_HANDLE_VALUE)  {
+      if ($source==0 || $source==INVALID_HANDLE_VALUE)  {
            $cleanup
            return PyWin_SetAPIError("$name");
       }
 }
 
-%typemap(except) HANDLE {
+%typemap(python,except) HANDLE {
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS
-      if ($1==0 || $1==INVALID_HANDLE_VALUE)  {
+      if ($source==0 || $source==INVALID_HANDLE_VALUE)  {
            $cleanup
            return PyWin_SetAPIError("$name");
       }
@@ -315,83 +311,83 @@ typedef HANDLE PyHANDLE;
 //typedef HANDLE PyHKEY;
 %}
 
-%typemap(in) HANDLE {
-	if (!PyWinObject_AsHANDLE($input, &$1))
+%typemap(python,in) HANDLE {
+	if (!PyWinObject_AsHANDLE($source, &$target))
 		return NULL;
 }
 
-%typemap(in) PyHANDLE {
-	if (!PyWinObject_AsHANDLE($input, &$1))
+%typemap(python,in) PyHANDLE {
+	if (!PyWinObject_AsHANDLE($source, &$target))
 		return NULL;
 }
-%typemap(in) PyHKEY {
-	if (!PyWinObject_AsHKEY($input, &$1))
-		return NULL;
-}
-
-%typemap(in) PyHANDLE INPUT_NULLOK {
-	if (!PyWinObject_AsHANDLE($input, &$1))
-		return NULL;
-}
-%typemap(in) PyHKEY INPUT_NULLOK {
-	if (!PyWinObject_AsHKEY($input, &$1))
+%typemap(python,in) PyHKEY {
+	if (!PyWinObject_AsHKEY($source, &$target))
 		return NULL;
 }
 
-%typemap(ignore) PyHANDLE *OUTPUT(HANDLE handle_output)
+%typemap(python,in) PyHANDLE INPUT_NULLOK {
+	if (!PyWinObject_AsHANDLE($source, &$target))
+		return NULL;
+}
+%typemap(python,in) PyHKEY INPUT_NULLOK {
+	if (!PyWinObject_AsHKEY($source, &$target))
+		return NULL;
+}
+
+%typemap(python,ignore) PyHANDLE *OUTPUT(HANDLE handle_output)
 {
-  $1 = &handle_output;
+  $target = &handle_output;
 }
-%typemap(ignore) PyHKEY *OUTPUT(HKEY hkey_output)
+%typemap(python,ignore) PyHKEY *OUTPUT(HKEY hkey_output)
 {
-  $1 = &hkey_output;
+  $target = &hkey_output;
 }
 
-%typemap(out) PyHANDLE {
-  $result = PyWinObject_FromHANDLE($1);
+%typemap(python,out) PyHANDLE {
+  $target = PyWinObject_FromHANDLE($source);
 }
-%typemap(out) PyHKEY {
-  $result = PyWinObject_FromHKEY($1);
+%typemap(python,out) PyHKEY {
+  $target = PyWinObject_FromHKEY($source);
 }
-%typemap(out) HANDLE {
-  $result = PyWinLong_FromHANDLE($1);
+%typemap(python,out) HANDLE {
+  $target = PyWinLong_FromHANDLE($source);
 }
 
-%typemap(argout) PyHANDLE *OUTPUT {
+%typemap(python,argout) PyHANDLE *OUTPUT {
     PyObject *o;
-    o = PyWinObject_FromHANDLE(*$1);
-    if (!$result) {
-      $result = o;
-    } else if ($result == Py_None) {
+    o = PyWinObject_FromHANDLE(*$source);
+    if (!$target) {
+      $target = o;
+    } else if ($target == Py_None) {
       Py_DECREF(Py_None);
-      $result = o;
+      $target = o;
     } else {
-      if (!PyList_Check($result)) {
-	PyObject *o2 = $result;
-	$result = PyList_New(0);
-	PyList_Append($result,o2);
+      if (!PyList_Check($target)) {
+	PyObject *o2 = $target;
+	$target = PyList_New(0);
+	PyList_Append($target,o2);
 	Py_XDECREF(o2);
       }
-      PyList_Append($result,o);
+      PyList_Append($target,o);
       Py_XDECREF(o);
     }
 }
-%typemap(argout) PyHKEY *OUTPUT {
+%typemap(python,argout) PyHKEY *OUTPUT {
     PyObject *o;
-    o = PyWinObject_FromHKEY(*$1);
-    if (!$result) {
-      $result = o;
-    } else if ($result == Py_None) {
+    o = PyWinObject_FromHKEY(*$source);
+    if (!$target) {
+      $target = o;
+    } else if ($target == Py_None) {
       Py_DECREF(Py_None);
-      $result = o;
+      $target = o;
     } else {
-      if (!PyList_Check($result)) {
-	PyObject *o2 = $result;
-	$result = PyList_New(0);
-	PyList_Append($result,o2);
+      if (!PyList_Check($target)) {
+	PyObject *o2 = $target;
+	$target = PyList_New(0);
+	PyList_Append($target,o2);
 	Py_XDECREF(o2);
       }
-      PyList_Append($result,o);
+      PyList_Append($target,o);
       Py_XDECREF(o);
     }
 }
@@ -399,16 +395,16 @@ typedef HANDLE PyHANDLE;
 // HWND (used in win32process, adsi, win32inet, win32crypt)
 // Has to be typedef'ed to a non-pointer type or the typemaps are ignored
 typedef float HWND;
-%typemap(in) HWND{
-	if (!PyWinObject_AsHANDLE($input, (HANDLE *)&$1))
+%typemap(python, in) HWND{
+	if (!PyWinObject_AsHANDLE($source, (HANDLE *)&$target))
 		return NULL;
 }
-%typemap(out) HWND{
-	$result=PyWinLong_FromHANDLE($1);
+%typemap(python, out) HWND{
+	$target=PyWinLong_FromHANDLE($source);
 }
 
-%typemap(out) HDESK {
-    $result = PyWinLong_FromHANDLE($1);
+%typemap(python, out) HDESK {
+    $target = PyWinLong_FromHANDLE($source);
 }
 
 //---------------------------------------------------------------------------
@@ -416,76 +412,76 @@ typedef float HWND;
 // LARGE_INTEGER support
 //
 //---------------------------------------------------------------------------
-%typemap(in) LARGE_INTEGER {
-	if (!PyWinObject_AsLARGE_INTEGER($input, &$1))
+%typemap(python,in) LARGE_INTEGER {
+	if (!PyWinObject_AsLARGE_INTEGER($source, &$target))
 		return NULL;
 }
-%typemap(in) LARGE_INTEGER * (LARGE_INTEGER temp) {
-	$1 = &temp;
-	if (!PyWinObject_AsLARGE_INTEGER($input, $1))
+%typemap(python,in) LARGE_INTEGER * (LARGE_INTEGER temp) {
+	$target = &temp;
+	if (!PyWinObject_AsLARGE_INTEGER($source, $target))
 		return NULL;
 }
-%typemap(in) ULARGE_INTEGER {
-	if (!PyWinObject_AsULARGE_INTEGER($input, &$1))
+%typemap(python,in) ULARGE_INTEGER {
+	if (!PyWinObject_AsULARGE_INTEGER($source, &$target))
 		return NULL;
 }
-%typemap(in) ULARGE_INTEGER * (ULARGE_INTEGER temp) {
-	$1 = &temp;
-	if (!PyWinObject_AsULARGE_INTEGER($input, $1))
+%typemap(python,in) ULARGE_INTEGER * (ULARGE_INTEGER temp) {
+	$target = &temp;
+	if (!PyWinObject_AsULARGE_INTEGER($source, $target))
 		return NULL;
 }
 
-%typemap(ignore) LARGE_INTEGER *OUTPUT(LARGE_INTEGER temp)
+%typemap(python,ignore) LARGE_INTEGER *OUTPUT(LARGE_INTEGER temp)
 {
-  $1 = &temp;
+  $target = &temp;
 }
-%typemap(ignore) ULARGE_INTEGER *OUTPUT(ULARGE_INTEGER temp)
+%typemap(python,ignore) ULARGE_INTEGER *OUTPUT(ULARGE_INTEGER temp)
 {
-  $1 = &temp;
+  $target = &temp;
 }
 
-%typemap(out) LARGE_INTEGER {
-  $result = PyWinObject_FromLARGE_INTEGER($1);
+%typemap(python,out) LARGE_INTEGER {
+  $target = PyWinObject_FromLARGE_INTEGER($source);
 }
-%typemap(out) ULARGE_INTEGER {
-  $result = PyWinObject_FromULARGE_INTEGER($1);
+%typemap(python,out) ULARGE_INTEGER {
+  $target = PyWinObject_FromULARGE_INTEGER($source);
 }
 
-%typemap(argout) LARGE_INTEGER *OUTPUT {
+%typemap(python,argout) LARGE_INTEGER *OUTPUT {
     PyObject *o;
-    o = PyWinObject_FromLARGE_INTEGER(*$1);
-    if (!$result) {
-      $result = o;
-    } else if ($result == Py_None) {
+    o = PyWinObject_FromLARGE_INTEGER(*$source);
+    if (!$target) {
+      $target = o;
+    } else if ($target == Py_None) {
       Py_DECREF(Py_None);
-      $result = o;
+      $target = o;
     } else {
-      if (!PyList_Check($result)) {
-	PyObject *o2 = $result;
-	$result = PyList_New(0);
-	PyList_Append($result,o2);
+      if (!PyList_Check($target)) {
+	PyObject *o2 = $target;
+	$target = PyList_New(0);
+	PyList_Append($target,o2);
 	Py_XDECREF(o2);
       }
-      PyList_Append($result,o);
+      PyList_Append($target,o);
       Py_XDECREF(o);
     }
 }
-%typemap(argout) ULARGE_INTEGER *OUTPUT {
+%typemap(python,argout) ULARGE_INTEGER *OUTPUT {
     PyObject *o;
-    o = PyWinObject_FromULARGE_INTEGER(*$1);
-    if (!$result) {
-      $result = o;
-    } else if ($result == Py_None) {
+    o = PyWinObject_FromULARGE_INTEGER(*$source);
+    if (!$target) {
+      $target = o;
+    } else if ($target == Py_None) {
       Py_DECREF(Py_None);
-      $result = o;
+      $target = o;
     } else {
-      if (!PyList_Check($result)) {
-	PyObject *o2 = $result;
-	$result = PyList_New(0);
-	PyList_Append($result,o2);
+      if (!PyList_Check($target)) {
+	PyObject *o2 = $target;
+	$target = PyList_New(0);
+	PyList_Append($target,o2);
 	Py_XDECREF(o2);
       }
-      PyList_Append($result,o);
+      PyList_Append($target,o);
       Py_XDECREF(o);
     }
 }
@@ -495,41 +491,41 @@ typedef float HWND;
 // ULONG_PTR
 //
 //--------------------------------------------------------------------------
-%typemap(in) ULONG_PTR
+%typemap(python, in) ULONG_PTR
 {
-	if (!PyWinLong_AsULONG_PTR($input, &$1))
+	if (!PyWinLong_AsULONG_PTR($source, &$target))
 		return NULL;
 }
-%typemap(in) ULONG_PTR * (ULONG_PTR temp)
+%typemap(python, in) ULONG_PTR * (ULONG_PTR temp)
 {
-	$1 = &temp;
-	if (!PyWinLong_AsULONG_PTR($input, $1))
+	$target = &temp;
+	if (!PyWinLong_AsULONG_PTR($source, $target))
 		return NULL;
 }
-%typemap(ignore) ULONG_PTR *OUTPUT(ULONG_PTR temp)
+%typemap(python, ignore) ULONG_PTR *OUTPUT(ULONG_PTR temp)
 {
-	$1 = &temp;
+	$target = &temp;
 }
-%typemap(out) ULONG_PTR
+%typemap(python, out) ULONG_PTR
 {
-	$result = PyWinObject_FromULONG_PTR($1)
+	$target = PyWinObject_FromULONG_PTR($source)
 }
-%typemap(argout) ULONG_PTR *OUTPUT {
+%typemap(python,argout) ULONG_PTR *OUTPUT {
 	PyObject *o;
-	o = PyWinObject_FromULONG_PTR(*$1);
-	if (!$result) {
-		$result = o;
-	} else if ($result == Py_None) {
+	o = PyWinObject_FromULONG_PTR(*$source);
+	if (!$target) {
+		$target = o;
+	} else if ($target == Py_None) {
 		Py_DECREF(Py_None);
-		$result = o;
+		$target = o;
 	} else {
-		if (!PyList_Check($result)) {
-			PyObject *o2 = $result;
-			$result = PyList_New(0);
-			PyList_Append($result,o2);
+		if (!PyList_Check($target)) {
+			PyObject *o2 = $target;
+			$target = PyList_New(0);
+			PyList_Append($target,o2);
 			Py_XDECREF(o2);
 		}
-		PyList_Append($result,o);
+		PyList_Append($target,o);
 		Py_XDECREF(o);
 	}
 }
@@ -539,35 +535,35 @@ typedef float HWND;
 // TIME
 //
 //---------------------------------------------------------------------------
-%typemap(in) FILETIME * {
-	if (!PyWinObject_AsFILETIME($input, $1, FALSE))
+%typemap(python,in) FILETIME * {
+	if (!PyWinObject_AsFILETIME($source, $target, FALSE))
 		return NULL;
 }
-%typemap(ignore) FILETIME *(FILETIME temp)
+%typemap(python,ignore) FILETIME *(FILETIME temp)
 {
-  $1 = &temp;
+  $target = &temp;
 }
 
-%typemap(out) FILETIME * {
-  $result = PyWinObject_FromFILETIME($1);
+%typemap(python,out) FILETIME * {
+  $target = PyWinObject_FromFILETIME($source);
 }
 
-%typemap(argout) FILETIME *OUTPUT {
+%typemap(python,argout) FILETIME *OUTPUT {
     PyObject *o;
-    o = PyWinObject_FromFILETIME(*$1);
-    if (!$result) {
-      $result = o;
-    } else if ($result == Py_None) {
+    o = PyWinObject_FromFILETIME(*$source);
+    if (!$target) {
+      $target = o;
+    } else if ($target == Py_None) {
       Py_DECREF(Py_None);
-      $result = o;
+      $target = o;
     } else {
-      if (!PyList_Check($result)) {
-	PyObject *o2 = $result;
-	$result = PyList_New(0);
-	PyList_Append($result,o2);
+      if (!PyList_Check($target)) {
+	PyObject *o2 = $target;
+	$target = PyList_New(0);
+	PyList_Append($target,o2);
 	Py_XDECREF(o2);
       }
-      PyList_Append($result,o);
+      PyList_Append($target,o);
       Py_XDECREF(o);
     }
 }
@@ -577,10 +573,10 @@ typedef float HWND;
 // SOCKET support.
 //
 //---------------------------------------------------------------------------
-%typemap(in) SOCKET *(SOCKET sockettemp)
+%typemap(python,in) SOCKET *(SOCKET sockettemp)
 {
-	$1 = &sockettemp;
-	if (!PySocket_AsSOCKET($input, $1))
+	$target = &sockettemp;
+	if (!PySocket_AsSOCKET($source, $target))
 	{
 		return NULL;
 	}
