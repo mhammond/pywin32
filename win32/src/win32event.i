@@ -32,7 +32,7 @@ typedef void *NULL_ONLY;
 
 // We can get better perf from some of these functions that don't block
 // by not releasing the Python lock as part of the call.
-%exception BOOLAPI {
+%typemap(except) BOOLAPI {
       $function
       if (!$1)  {
            $cleanup
@@ -177,7 +177,7 @@ static BOOL MakeHandleList(PyObject *handleList, HANDLE **ppBuf, DWORD *pNumEntr
 %}
 
 // @pyswig int|MsgWaitForMultipleObjects|Returns when a message arrives of an event is signalled
-%rename(MsgWaitForMultipleObjects) MyMsgWaitForMultipleObjects;
+%name(MsgWaitForMultipleObjects) MyMsgWaitForMultipleObjects;
 
 PyObject *MyMsgWaitForMultipleObjects(
     PyObject *obHandleList, // @pyparm [<o PyHANDLE>, ...]|handleList||A sequence of handles to wait on.
@@ -214,7 +214,7 @@ static PyObject * MyMsgWaitForMultipleObjects(
 %}
 
 // @pyswig int|MsgWaitForMultipleObjectsEx|Returns when a message arrives of an event is signalled
-%rename(MsgWaitForMultipleObjectsEx) MyMsgWaitForMultipleObjectsEx;
+%name(MsgWaitForMultipleObjectsEx) MyMsgWaitForMultipleObjectsEx;
 
 PyObject *MyMsgWaitForMultipleObjectsEx(
     PyObject *obHandleList, // @pyparm [<o PyHANDLE>, ...]|handleList||A sequence of handles to wait on.
@@ -351,7 +351,7 @@ static PyObject *MyWaitForMultipleObjects(
 
 %}
 // @pyswig int|WaitForMultipleObjects|Returns when an event is signalled
-%rename(WaitForMultipleObjects) MyWaitForMultipleObjects;
+%name(WaitForMultipleObjects) MyWaitForMultipleObjects;
 PyObject *MyWaitForMultipleObjects(
     PyObject *handleList,  // @pyparm [<o PyHANDLE>, ...]|handleList||A sequence of handles to wait on.
     BOOL bWaitAll,	// @pyparm bool|bWaitAll||wait flag
@@ -384,7 +384,7 @@ static PyObject *MyWaitForMultipleObjectsEx(
 }
 %}
 // @pyswig int|WaitForMultipleObjectsEx|Returns when an event is signalled
-%rename(WaitForMultipleObjectsEx) MyWaitForMultipleObjectsEx;
+%name(WaitForMultipleObjectsEx) MyWaitForMultipleObjectsEx;
 
 PyObject *MyWaitForMultipleObjectsEx(
     PyObject *handleList, // @pyparm [<o PyHANDLE>, ...]|handleList||A sequence of handles to wait on.
@@ -395,7 +395,7 @@ PyObject *MyWaitForMultipleObjectsEx(
 %{
     typedef DWORD DWORD_WAITAPI;
 %}
-%exception DWORD_WAITAPI {
+%typemap(except) DWORD_WAITAPI {
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS

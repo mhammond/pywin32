@@ -7,7 +7,7 @@
 %include "pythoncom.i"
 %include "mapilib.i"
 
-%typemap(in,numinputs=0) IConverterSession **OUTPUT(IConverterSession *temp)
+%typemap(ignore) IConverterSession **OUTPUT(IConverterSession *temp)
 {
   $target = &temp;
 }

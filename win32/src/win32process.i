@@ -288,7 +288,7 @@ static PyObject *mySTARTUPINFO(PyObject *self, PyObject *args)
       Py_XDECREF(o);
     }
 }
-%typemap(in,numinputs=0) STARTUPINFO *OUTPUT(STARTUPINFO temp)
+%typemap(ignore) STARTUPINFO *OUTPUT(STARTUPINFO temp)
 {
   $1 = &temp;
 }
@@ -595,7 +595,7 @@ PyObject *MyCreateProcess(
 
 // @pyswig <o PyHANDLE>, <o PyHANDLE>, int, int|CreateProcess|Creates a new process and its primary thread. The new process executes the specified executable file.
 // @comm The result is a tuple of (hProcess, hThread, dwProcessId, dwThreadId)
-%rename(CreateProcess) MyCreateProcess;
+%name(CreateProcess) MyCreateProcess;
 PyObject *MyCreateProcess(
 	TCHAR *INPUT_NULLOK,  // @pyparm string|appName||name of executable module, or None
 	TCHAR *INPUT_NULLOK,  // @pyparm string|commandLine||command line string, or None
@@ -687,7 +687,7 @@ PyObject *MyCreateProcessAsUser(
 
 // @pyswig <o PyHANDLE>, <o PyHANDLE>, int, int|CreateProcessAsUser|Creates a new process in the context of the specified user.
 // @comm The result is a tuple of (hProcess, hThread, dwProcessId, dwThreadId)
-%rename(CreateProcessAsUser) MyCreateProcessAsUser;
+%name(CreateProcessAsUser) MyCreateProcessAsUser;
 PyObject *MyCreateProcessAsUser(
 	HANDLE hToken, // @pyparm <o PyHANDLE>|hToken||Handle to a token that represents a logged-on user
 	TCHAR *INPUT_NULLOK,  // @pyparm string|appName||name of executable module, or None
@@ -924,7 +924,7 @@ static PyObject *MySetThreadIdealProcessor( HANDLE hThread, DWORD dwIdealProc )
 %}
 
 // @pyswig int|SetThreadIdealProcessor|Used to specify a preferred processor for a thread. The system schedules threads on their preferred processors whenever possible.
-%rename(SetThreadIdealProcessor) MySetThreadIdealProcessor;
+%name(SetThreadIdealProcessor) MySetThreadIdealProcessor;
 
 PyObject *MySetThreadIdealProcessor(
   HANDLE hThread,             // @pyparm <o PyHANDLE>|handle||handle to the thread of interest
@@ -1014,7 +1014,7 @@ static PyObject *MySetThreadAffinityMask(PyObject *self, PyObject *args)
 %typemap(out) DWORD_SR_THREAD {
 	$result = PyLong_FromLong($1);
 }
-%exception DWORD_SR_THREAD {
+%typemap(except) DWORD_SR_THREAD {
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS
@@ -1503,7 +1503,7 @@ PyObject *PyIsWow64Process(PyObject *self, PyObject *args)
 %{
 	typedef VOID *LONG_VOIDPTR;
 %}
-%exception LONG_VOIDPTR {
+%typemap(except) LONG_VOIDPTR {
 	Py_BEGIN_ALLOW_THREADS
 	$function
 	Py_END_ALLOW_THREADS

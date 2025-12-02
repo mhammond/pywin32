@@ -16,7 +16,7 @@ typedef long FLAGS;
 	Py_INCREF(Py_None);
 }
 
-%exception HRESULT {
+%typemap(except) HRESULT {
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS
@@ -41,7 +41,7 @@ typedef long HRESULT_KEEP_INFO;
 	$result = PyLong_FromLong($1);
 }
 
-%exception HRESULT_KEEP_INFO {
+%typemap(except) HRESULT_KEEP_INFO {
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS
@@ -73,11 +73,11 @@ typedef long HRESULT_KEEP_INFO;
 	}
 }
 
-%typemap(in,numinputs=0) IUnknown **OUTPUT(IUnknown *temp)
+%typemap(ignore) IUnknown **OUTPUT(IUnknown *temp)
 {
   $1 = &temp;
 }
-%typemap(in,numinputs=0) IDispatch **OUTPUT(IDispatch *temp)
+%typemap(ignore) IDispatch **OUTPUT(IDispatch *temp)
 {
   $1 = &temp;
 }
@@ -158,7 +158,7 @@ typedef long HRESULT_KEEP_INFO;
 
 // Variants!
 // SWIG only does this funky stuff for pointers :-(
-%typemap(in,numinputs=0) VARIANT *OUTPUT( VARIANT temp)
+%typemap(ignore) VARIANT *OUTPUT( VARIANT temp)
 {
   $1 = &temp;
 }

@@ -121,7 +121,7 @@ PyObject *PyWinObject_FromGdiHANDLE(HGDIOBJ h)
 typedef float HPEN, HBRUSH, HFONT, HRGN, HBITMAP;
 
 // SWIG support for GDI handles.
-%exception HPEN {
+%typemap(except) HPEN {
 	Py_BEGIN_ALLOW_THREADS
 	$function
 	Py_END_ALLOW_THREADS
@@ -131,7 +131,7 @@ typedef float HPEN, HBRUSH, HFONT, HRGN, HBITMAP;
 		}
 }
 
-%exception HBRUSH {
+%typemap(except) HBRUSH {
 	Py_BEGIN_ALLOW_THREADS
 	$function
 	Py_END_ALLOW_THREADS
@@ -141,7 +141,7 @@ typedef float HPEN, HBRUSH, HFONT, HRGN, HBITMAP;
 		}
 }
 
-%exception HFONT {
+%typemap(except) HFONT {
 	Py_BEGIN_ALLOW_THREADS
 	$function
 	Py_END_ALLOW_THREADS
@@ -151,7 +151,7 @@ typedef float HPEN, HBRUSH, HFONT, HRGN, HBITMAP;
 		}
 }
 
-%exception HRGN {
+%typemap(except) HRGN {
 	Py_BEGIN_ALLOW_THREADS
 	$function
 	Py_END_ALLOW_THREADS
@@ -161,7 +161,7 @@ typedef float HPEN, HBRUSH, HFONT, HRGN, HBITMAP;
 		}
 }
 
-%exception HBITMAP {
+%typemap(except) HBITMAP {
 	Py_BEGIN_ALLOW_THREADS
 	$function
 	Py_END_ALLOW_THREADS
@@ -187,7 +187,7 @@ typedef float HPEN, HBRUSH, HFONT, HRGN, HBITMAP;
 	typedef int int_regiontype;
 %}
 // Several functions return an int containg a region type (NULLREGION,SIMPLEREGION,COMPLEXREGION) or ERROR on failure
-%exception int_regiontype{
+%typemap(except) int_regiontype{
 	Py_BEGIN_ALLOW_THREADS
 	$function
 	Py_END_ALLOW_THREADS
@@ -284,7 +284,7 @@ extern "C" DECLSPEC_DLLMAIN BOOL WINAPI DllMain(HINST_ARG hInstance, DWORD dwRea
 	typedef int int_excepthandlingtype;
 %}
 
-%exception int_excepthandlingtype {
+%typemap(except) int_excepthandlingtype {
     Py_BEGIN_ALLOW_THREADS
     $function
     Py_END_ALLOW_THREADS
@@ -324,7 +324,7 @@ typedef int UINT;
 	$1 = NULL;
 }
 
-%typemap(in,numinputs=0) MSG *OUTPUT(MSG temp)
+%typemap(ignore) MSG *OUTPUT(MSG temp)
 {
   $1 = &temp;
   memset($1, 0, sizeof(MSG));
@@ -354,7 +354,7 @@ typedef int UINT;
     if (!PyWinObject_AsMSG($input, $1))
         return NULL;
 }
-%typemap(in,numinputs=0) RECT *OUTPUT(RECT rect_output)
+%typemap(ignore) RECT *OUTPUT(RECT rect_output)
 {
   $1 = &rect_output;
 }
@@ -431,7 +431,7 @@ typedef int UINT;
     }
 }
 
-%typemap(in,numinputs=0) POINT *OUTPUT(POINT point_output)
+%typemap(ignore) POINT *OUTPUT(POINT point_output)
 {
   $1 = &point_output;
 }
@@ -501,7 +501,7 @@ typedef int UINT;
     }
 }
 
-%typemap(in,numinputs=0) ICONINFO *OUTPUT(ICONINFO temp)
+%typemap(ignore) ICONINFO *OUTPUT(ICONINFO temp)
 {
   $1 = &temp;
 }
@@ -538,7 +538,7 @@ typedef int UINT;
     }
 }
 
-%typemap(in,numinputs=0) PAINTSTRUCT *OUTPUT(PAINTSTRUCT ps_output)
+%typemap(ignore) PAINTSTRUCT *OUTPUT(PAINTSTRUCT ps_output)
 {
   $1 = &ps_output;
 }
@@ -587,31 +587,19 @@ typedef int UINT;
 	}
 }
 
-%exception LRESULT {
+%typemap(except) LRESULT {
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS
 }
 
-%exception BOOL {
+%typemap(except) BOOL {
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS
 }
 
-%exception HWND {
-      Py_BEGIN_ALLOW_THREADS
-      SetLastError(0);
-      $function
-      Py_END_ALLOW_THREADS
-      DWORD le;
-      if ($1==0 && (le=GetLastError())) {
-           $cleanup
-           return PyWin_SetAPIError("$name", le);
-      }
-}
-
-%exception HDC{
+%typemap(except) HWND {
       Py_BEGIN_ALLOW_THREADS
       SetLastError(0);
       $function
@@ -623,7 +611,7 @@ typedef int UINT;
       }
 }
 
-%exception HMENU {
+%typemap(except) HDC{
       Py_BEGIN_ALLOW_THREADS
       SetLastError(0);
       $function
@@ -635,7 +623,7 @@ typedef int UINT;
       }
 }
 
-%exception HICON {
+%typemap(except) HMENU {
       Py_BEGIN_ALLOW_THREADS
       SetLastError(0);
       $function
@@ -647,7 +635,7 @@ typedef int UINT;
       }
 }
 
-%exception HBITMAP {
+%typemap(except) HICON {
       Py_BEGIN_ALLOW_THREADS
       SetLastError(0);
       $function
@@ -659,7 +647,19 @@ typedef int UINT;
       }
 }
 
-%exception HIMAGELIST {
+%typemap(except) HBITMAP {
+      Py_BEGIN_ALLOW_THREADS
+      SetLastError(0);
+      $function
+      Py_END_ALLOW_THREADS
+      DWORD le;
+      if ($1==0 && (le=GetLastError())) {
+           $cleanup
+           return PyWin_SetAPIError("$name", le);
+      }
+}
+
+%typemap(except) HIMAGELIST {
       Py_BEGIN_ALLOW_THREADS
       SetLastError(0);
       $function

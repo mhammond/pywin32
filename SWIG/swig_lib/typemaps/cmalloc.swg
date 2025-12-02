@@ -26,9 +26,9 @@
 
 %define %malloc(TYPE,NAME...)
 #if #NAME != ""
-%rename(malloc_##NAME) ::malloc(size_t nbytes);
+%name(malloc_##NAME) ::malloc(size_t nbytes);
 #else
-%rename(malloc_##TYPE) ::malloc(size_t nbytes);
+%name(malloc_##TYPE) ::malloc(size_t nbytes);
 #endif
 
 #if #TYPE != "void"
@@ -40,9 +40,9 @@ TYPE *malloc(size_t nbytes);
 
 %define %calloc(TYPE,NAME...)
 #if #NAME != ""
-%rename(calloc_##NAME) ::calloc(size_t nobj, size_t sz);
+%name(calloc_##NAME) ::calloc(size_t nobj, size_t sz);
 #else
-%rename(calloc_##TYPE) ::calloc(size_t nobj, size_t sz);
+%name(calloc_##TYPE) ::calloc(size_t nobj, size_t sz);
 #endif
 #if #TYPE != "void"
 %typemap(default) size_t sz "$1 = (size_t) sizeof(TYPE);"
@@ -79,9 +79,9 @@ TYPE *realloc_##TYPE(TYPE *ptr, size_t nitems);
 
 %define %free(TYPE,NAME...)
 #if #NAME != ""
-%rename(free_##NAME) ::free(TYPE *ptr);
+%name(free_##NAME) ::free(TYPE *ptr);
 #else
-%rename(free_##TYPE) ::free(TYPE *ptr);
+%name(free_##TYPE) ::free(TYPE *ptr);
 #endif
 void free(TYPE *ptr);
 %enddef
