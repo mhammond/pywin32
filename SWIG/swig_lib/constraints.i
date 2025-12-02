@@ -1,77 +1,76 @@
-/* -----------------------------------------------------------------------------
- * constraints.i
- *
- * SWIG constraints library.
- *
- * SWIG library file containing typemaps for implementing various kinds of 
- * constraints.  Depends upon the SWIG exception library for generating
- * errors in a language-independent manner.
- * ----------------------------------------------------------------------------- */
+//
+// SWIG constraint library
+// Dave Beazley
+// May 4, 1997
+//
+// This library file contains typemaps for implementing various kinds of
+// constraints.  Depends upon the SWIG exception library for generating
+// errors in a language-independent manner.
 
-// This library provides support for applying constraints to function
-// arguments.  Using a constraint, you can restrict arguments to be
-// positive numbers, non-NULL pointers, and so on.   The following
-// constraints are available :
-//
-//       Number  POSITIVE        - Positive number (not zero)
-//       Number  NEGATIVE        - Negative number (not zero)
-//       Number  NONZERO         - Nonzero number
-//       Number  NONNEGATIVE     - Positive number (including zero)
-//       Number  NONPOSITIVE     - Negative number (including zero)
-//       Pointer NONNULL         - Non-NULL pointer
-//       Pointer ALIGN8          - 8-byte aligned pointer
-//       Pointer ALIGN4          - 4-byte aligned pointer
-//       Pointer ALIGN2          - 2-byte aligned pointer
-//
-// To use the constraints, you need to "apply" them to specific
-// function arguments in your code.  This is done using the %apply
-// directive.   For example :
-//
-//   %apply Number NONNEGATIVE { double nonneg };
-//   double sqrt(double nonneg);         // Name of argument must match
-//
-//   %apply Pointer NONNULL { FILE *stream };
-//   FILE *fdopen(int NONNEGATIVE);      // May return a NULL pointer
-//   int fclose(void *stream);           // Does not accept a NULL pointer
-//
-// Any function argument of the type you specify with the %apply directive
-// will be checked with the appropriate constraint.   Multiple types may
-// be specified as follows :
-//
-//   %apply Pointer NONNULL { void *, Vector *, List *, double *};
-//
-// In this case, all of the types listed would be checked for non-NULL
-// pointers.
-//
-// The common datatypes of int, short, long, unsigned int, unsigned long,
-// unsigned short, unsigned char, signed char, float, and double can be
-// checked without using the %apply directive by simply using the
-// constraint name as the parameter name. For example :
-//
-//   double sqrt(double NONNEGATIVE);
-//   double log(double POSITIVE);
-//
-// If you have used typedef to change type-names, you can also do this :
-//
-//   %apply double { Real };       // Make everything defined for doubles
-//                                 // work for Reals.
-//   Real sqrt(Real NONNEGATIVE);
-//   Real log(Real POSITIVE);
+#ifdef AUTODOC
+%section "Constraint Library",info,after,pre,nosort,skip=1,chop_left=3,chop_right=0,chop_top=0,chop_bottom=0
 
-%include <exception.i>
+%text %{
+%include constraints.i
 
-#if defined(SWIGCSHARP) || defined(SWIGD)
-// Required attribute for C# and D exception handling
-#define SWIGCSHARPCANTHROW , canthrow=1
-#else
-#define SWIGCSHARPCANTHROW
+This library provides support for applying constraints to function
+arguments.  Using a constraint, you can restrict arguments to be
+positive numbers, non-NULL pointers, and so on.   The following
+constraints are available :
+
+      Number  POSITIVE        - Positive number (not zero)
+      Number  NEGATIVE        - Negative number (not zero)
+      Number  NONZERO         - Nonzero number
+      Number  NONNEGATIVE     - Positive number (including zero)
+      Number  NONPOSITIVE     - Negative number (including zero)
+      Pointer NONNULL         - Non-NULL pointer
+      Pointer ALIGN8          - 8-byte aligned pointer
+      Pointer ALIGN4          - 4-byte aligned pointer
+      Pointer ALIGN2          - 2-byte aligned pointer
+
+To use the constraints, you need to "apply" them to specific
+function arguments in your code.  This is done using the %apply
+directive.   For example :
+
+  %apply Number NONNEGATIVE { double nonneg };
+  double sqrt(double nonneg);         // Name of argument must match
+
+  %apply Pointer NONNULL { void *ptr };
+  void *malloc(int POSITIVE);       // May return a NULL pointer
+  void free(void *ptr);             // May not accept a NULL pointer
+
+Any function argument of the type you specify with the %apply directive
+will be checked with the appropriate constraint.   Multiple types may
+be specified as follows :
+
+  %apply Pointer NONNULL { void *, Vector *, List *, double *};
+
+In this case, all of the types listed would be checked for non-NULL
+pointers.
+
+The common datatypes of int, short, long, unsigned int, unsigned long,
+unsigned short, unsigned char, signed char, float, and double can be
+checked without using the %apply directive by simply using the
+constraint name as the parameter name. For example :
+
+  double sqrt(double NONNEGATIVE);
+  double log(double POSITIVE);
+
+If you have used typedef to change type-names, you can also do this :
+
+  %apply double { Real };       // Make everything defined for doubles
+                                // work for Reals.
+  Real sqrt(Real NONNEGATIVE);
+  Real log(Real POSITIVE);
+
+%}
 #endif
 
+%include exception.i
 
 // Positive numbers
 
-%typemap(check SWIGCSHARPCANTHROW) 
-                int               POSITIVE,
+%typemap(check) int               POSITIVE,
                 short             POSITIVE,
                 long              POSITIVE,
                 unsigned int      POSITIVE,
@@ -83,15 +82,14 @@
                 double            POSITIVE,
                 Number            POSITIVE
 {
-  if ($1 <= 0) {
+  if ($target <= 0) {
     SWIG_exception(SWIG_ValueError,"Expected a positive value.");
   }
 }
 
 // Negative numbers
 
-%typemap(check SWIGCSHARPCANTHROW) 
-                int               NEGATIVE,
+%typemap(check) int               NEGATIVE,
                 short             NEGATIVE,
                 long              NEGATIVE,
                 unsigned int      NEGATIVE,
@@ -103,15 +101,14 @@
                 double            NEGATIVE,
                 Number            NEGATIVE
 {
-  if ($1 >= 0) {
+  if ($target >= 0) {
     SWIG_exception(SWIG_ValueError,"Expected a negative value.");
   }
 }
 
 // Nonzero numbers
 
-%typemap(check SWIGCSHARPCANTHROW) 
-                int               NONZERO,
+%typemap(check) int               NONZERO,
                 short             NONZERO,
                 long              NONZERO,
                 unsigned int      NONZERO,
@@ -123,15 +120,14 @@
                 double            NONZERO,
                 Number            NONZERO
 {
-  if ($1 == 0) {
+  if ($target == 0) {
     SWIG_exception(SWIG_ValueError,"Expected a nonzero value.");
   }
 }
 
 // Nonnegative numbers
 
-%typemap(check SWIGCSHARPCANTHROW) 
-                int               NONNEGATIVE,
+%typemap(check) int               NONNEGATIVE,
                 short             NONNEGATIVE,
                 long              NONNEGATIVE,
                 unsigned int      NONNEGATIVE,
@@ -143,15 +139,14 @@
                 double            NONNEGATIVE,
                 Number            NONNEGATIVE
 {
-  if ($1 < 0) {
+  if ($target < 0) {
     SWIG_exception(SWIG_ValueError,"Expected a non-negative value.");
   }
 }
 
 // Nonpositive numbers
 
-%typemap(check SWIGCSHARPCANTHROW) 
-                int               NONPOSITIVE,
+%typemap(check) int               NONPOSITIVE,
                 short             NONPOSITIVE,
                 long              NONPOSITIVE,
                 unsigned int      NONPOSITIVE,
@@ -163,55 +158,49 @@
                 double            NONPOSITIVE,
                 Number            NONPOSITIVE
 {
-  if ($1 > 0) {
+  if ($target < 0) {
     SWIG_exception(SWIG_ValueError,"Expected a non-positive value.");
   }
 }
-                
+
 // Non-NULL pointer
 
-%typemap(check SWIGCSHARPCANTHROW) 
-                void *            NONNULL,
+%typemap(check) void *            NONNULL,
                 Pointer           NONNULL
 {
-  if (!$1) {
-    SWIG_exception(SWIG_NullReferenceError,"Received a NULL pointer.");
+  if (!$target) {
+    SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
   }
 }
 
 // Aligned pointers
 
-%typemap(check SWIGCSHARPCANTHROW) 
-                void *            ALIGN8,
+%typemap(check) void *            ALIGN8,
                 Pointer           ALIGN8
 {
-   unsigned long long tmp;
-   tmp = (unsigned long long) $1;
+   long tmp;
+   tmp = (long) $target;
    if (tmp & 7) {
      SWIG_exception(SWIG_ValueError,"Pointer must be 8-byte aligned.");
    }
 }
 
-%typemap(check SWIGCSHARPCANTHROW) 
-                void *            ALIGN4,
+%typemap(check) void *            ALIGN4,
                 Pointer           ALIGN4
 {
-   unsigned long long tmp;
-   tmp = (unsigned long long) $1;
+   long tmp;
+   tmp = (long) $target;
    if (tmp & 3) {
      SWIG_exception(SWIG_ValueError,"Pointer must be 4-byte aligned.");
    }
 }
 
-%typemap(check SWIGCSHARPCANTHROW) 
-                void *            ALIGN2,
+%typemap(check) void *            ALIGN2,
                 Pointer           ALIGN2
 {
-   unsigned long long tmp;
-   tmp = (unsigned long long) $1;
+   long tmp;
+   tmp = (long) $target;
    if (tmp & 1) {
      SWIG_exception(SWIG_ValueError,"Pointer must be 2-byte aligned.");
    }
 }
-
-
