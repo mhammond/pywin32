@@ -3,11 +3,6 @@
 %include "typemaps.i"
 %include "pywin32.i"
 %include "pythoncom.i"
-
-
-%define SWIG_THIS_IID IID_IDsObjectPicker
-%enddef
-
 %include "adsilib.i"
 
 %{
@@ -17,6 +12,7 @@
 
 extern BOOL PyObject_AsDSOP_SCOPE_INIT_INFOs(PyObject *ob, DSOP_SCOPE_INIT_INFO**p, ULONG *n);
 
+#define SWIG_THIS_IID IID_IDsObjectPicker
 
 PyIDsObjectPicker::PyIDsObjectPicker(IUnknown *pDisp) :
 	PyIUnknown(pDisp)
@@ -76,12 +72,12 @@ done:
 
 %native(Initialize) Initialize;
 
-%typemap(ignore) IDataObject  **OUTPUT(IDataObject *temp)
+%typemap(python,ignore) IDataObject  **OUTPUT(IDataObject *temp)
 {
-  $1 = &temp;
+  $target = &temp;
 }
-%typemap(argout) IDataObject **OUTPUT {
-	MAKE_OUTPUT_INTERFACE($1, $result, IID_IDataObject)
+%typemap(python,argout) IDataObject **OUTPUT {
+	MAKE_OUTPUT_INTERFACE($source, $target, IID_IDataObject)
 }
 
 // @pyswig <o PyIDataObject>|InvokeDialog|Displays a modal object picker dialog box and returns the user's selections.

@@ -20,7 +20,6 @@
 %include "typemaps.i"
 %include "pywin32.i"
 %include "pythoncom.i"
-#define SWIG_THIS_IID IID_NULL
 %include "adsilib.i"
 
 %{

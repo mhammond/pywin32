@@ -7,24 +7,24 @@
 %include "pythoncom.i"
 %include "mapilib.i"
 
-%typemap(ignore) IConverterSession **OUTPUT(IConverterSession *temp)
+%typemap(python,ignore) IConverterSession **OUTPUT(IConverterSession *temp)
 {
   $target = &temp;
 }
-%typemap(argout) IConverterSession **OUTPUT {
+%typemap(python,argout) IConverterSession **OUTPUT {
 	MAKE_OUTPUT_INTERFACE($source, $target, IID_IConverterSession)
 }
-%typemap(freearg) IConverterSession *INPUT,
+%typemap(python,freearg) IConverterSession *INPUT,
 			 IConverterSession *INPUT_NULLOK
 {
 	if ($source) $source->Release();
 }
 
-%typemap(in) IConverterSession *INPUT {
+%typemap(python,in) IConverterSession *INPUT {
 	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IConverterSession, (void **)&$target, 0))
 		return NULL;
 }
-%typemap(in) IConverterSession *INPUT_NULLOK {
+%typemap(python,in) IConverterSession *INPUT_NULLOK {
 	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IConverterSession, (void **)&$target, 1))
 		return NULL;
 }

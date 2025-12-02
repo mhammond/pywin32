@@ -8,14 +8,14 @@ typedef unsigned long BOOKMARK;
 %apply unsigned long {BOOKMARK};
 
 // A MAPIUID is close enough to an IID for now!
-%typemap(in) MAPIUID *INPUT(MAPIUID temp)
+%typemap(python,in) MAPIUID *INPUT(MAPIUID temp)
 {
 	$target = &temp;
 	if (!PyWinObject_AsIID($source, (IID *)$target))
 		return NULL;
 }
 
-%typemap(in) MAPIUID *INPUT_NULLOK(MAPIUID temp)
+%typemap(python,in) MAPIUID *INPUT_NULLOK(MAPIUID temp)
 {
 	if ($source==Py_None)
 		$target = NULL;
@@ -26,123 +26,123 @@ typedef unsigned long BOOKMARK;
 	}
 }
 
-%typemap(ignore) IMAPIProp **OUTPUT(IMAPIProp *temp)
+%typemap(python,ignore) IMAPIProp **OUTPUT(IMAPIProp *temp)
 {
   $target = &temp;
 }
-%typemap(ignore) IMAPITable **OUTPUT(IMAPITable *temp)
+%typemap(python,ignore) IMAPITable **OUTPUT(IMAPITable *temp)
 {
   $target = &temp;
 }
-%typemap(ignore) IMAPISession **OUTPUT(IMAPISession *temp)
+%typemap(python,ignore) IMAPISession **OUTPUT(IMAPISession *temp)
 {
   $target = &temp;
 }
-%typemap(ignore) IMAPIFolder **OUTPUT(IMAPIFolder *temp)
+%typemap(python,ignore) IMAPIFolder **OUTPUT(IMAPIFolder *temp)
 {
   $target = &temp;
 }
-%typemap(ignore) IMessage **OUTPUT(IMessage *temp)
+%typemap(python,ignore) IMessage **OUTPUT(IMessage *temp)
 {
   $target = &temp;
 }
-%typemap(ignore) IMsgStore **OUTPUT(IMsgStore *temp)
+%typemap(python,ignore) IMsgStore **OUTPUT(IMsgStore *temp)
 {
   $target = &temp;
 }
-%typemap(ignore) IMAPIProgress **OUTPUT(IMAPIProgress *temp)
+%typemap(python,ignore) IMAPIProgress **OUTPUT(IMAPIProgress *temp)
 {
   $target = &temp;
 }
-%typemap(ignore) IAttach **OUTPUT(IAttach *temp)
+%typemap(python,ignore) IAttach **OUTPUT(IAttach *temp)
 {
   $target = &temp;
 }
-%typemap(ignore) IProfAdmin **OUTPUT(IProfAdmin *temp)
+%typemap(python,ignore) IProfAdmin **OUTPUT(IProfAdmin *temp)
 {
   $target = &temp;
 }
-%typemap(ignore) IProfSect **OUTPUT(IProfSect *temp)
+%typemap(python,ignore) IProfSect **OUTPUT(IProfSect *temp)
 {
   $target = &temp;
 }
-%typemap(ignore) IProviderAdmin **OUTPUT(IProviderAdmin *temp)
+%typemap(python,ignore) IProviderAdmin **OUTPUT(IProviderAdmin *temp)
 {
   $target = &temp;
 }
-%typemap(ignore) IMAPIAdviseSink **OUTPUT(IMAPIAdviseSink *temp)
+%typemap(python,ignore) IMAPIAdviseSink **OUTPUT(IMAPIAdviseSink *temp)
 {
   $target = &temp;
 }
-%typemap(ignore) IAddrBook **OUTPUT(IAddrBook *temp)
+%typemap(python,ignore) IAddrBook **OUTPUT(IAddrBook *temp)
 {
   $target = &temp;
 }
-%typemap(ignore) IMsgServiceAdmin **OUTPUT(IMsgServiceAdmin *temp)
+%typemap(python,ignore) IMsgServiceAdmin **OUTPUT(IMsgServiceAdmin *temp)
 {
   $target = &temp;
 }
-%typemap(ignore) IMsgServiceAdmin2 **OUTPUT(IMsgServiceAdmin2 *temp)
+%typemap(python,ignore) IMsgServiceAdmin2 **OUTPUT(IMsgServiceAdmin2 *temp)
 {
   $target = &temp;
 }
-%typemap(ignore) IStream **OUTPUT(IStream *temp)
+%typemap(python,ignore) IStream **OUTPUT(IStream *temp)
 {
   $target = &temp;
 }
 
 
-%typemap(argout) IMAPIProp **OUTPUT {
+%typemap(python,argout) IMAPIProp **OUTPUT {
 	MAKE_OUTPUT_INTERFACE($source, $target, IID_IMAPIProp)
 }
-%typemap(argout) IMAPITable **OUTPUT {
+%typemap(python,argout) IMAPITable **OUTPUT {
 	MAKE_OUTPUT_INTERFACE($source, $target, IID_IMAPITable)
 }
-%typemap(argout) IMAPISession **OUTPUT {
+%typemap(python,argout) IMAPISession **OUTPUT {
 	MAKE_OUTPUT_INTERFACE($source, $target, IID_IMAPISession)
 }
-%typemap(argout) IMAPIFolder **OUTPUT {
+%typemap(python,argout) IMAPIFolder **OUTPUT {
 	MAKE_OUTPUT_INTERFACE($source, $target, IID_IMAPIFolder)
 }
-%typemap(argout) IMessage **OUTPUT {
+%typemap(python,argout) IMessage **OUTPUT {
 	MAKE_OUTPUT_INTERFACE($source, $target, IID_IMessage)
 }
-%typemap(argout) IMsgStore **OUTPUT {
+%typemap(python,argout) IMsgStore **OUTPUT {
 	MAKE_OUTPUT_INTERFACE($source, $target, IID_IMsgStore)
 }
-%typemap(argout) IMAPIProgress **OUTPUT {
+%typemap(python,argout) IMAPIProgress **OUTPUT {
 	MAKE_OUTPUT_INTERFACE($source, $target, IID_IMAPIProgress)
 }
-%typemap(argout) IAttach **OUTPUT {
+%typemap(python,argout) IAttach **OUTPUT {
 	MAKE_OUTPUT_INTERFACE($source, $target, IID_IAttachment)
 }
-%typemap(argout) IProfAdmin **OUTPUT {
+%typemap(python,argout) IProfAdmin **OUTPUT {
 	MAKE_OUTPUT_INTERFACE($source, $target, IID_IProfAdmin)
 }
-%typemap(argout) IProfSect **OUTPUT {
+%typemap(python,argout) IProfSect **OUTPUT {
 	MAKE_OUTPUT_INTERFACE($source, $target, IID_IProfSect)
 }
-%typemap(argout) IProviderAdmin **OUTPUT {
+%typemap(python,argout) IProviderAdmin **OUTPUT {
 	MAKE_OUTPUT_INTERFACE($source, $target, IID_IProviderAdmin)
 }
-%typemap(argout) IMAPIAdviseSink **OUTPUT {
+%typemap(python,argout) IMAPIAdviseSink **OUTPUT {
 	MAKE_OUTPUT_INTERFACE($source, $target, IID_IMAPIAdviseSink)
 }
-%typemap(argout) IAddrBook **OUTPUT {
+%typemap(python,argout) IAddrBook **OUTPUT {
 	MAKE_OUTPUT_INTERFACE($source, $target, IID_IAddrBook)
 }
-%typemap(argout) IMsgServiceAdmin **OUTPUT {
+%typemap(python,argout) IMsgServiceAdmin **OUTPUT {
 	MAKE_OUTPUT_INTERFACE($source, $target, IID_IMsgServiceAdmin)
 }
-%typemap(argout) IMsgServiceAdmin2 **OUTPUT {
+%typemap(python,argout) IMsgServiceAdmin2 **OUTPUT {
 	MAKE_OUTPUT_INTERFACE($source, $target, IID_IMsgServiceAdmin2)
 }
-%typemap(argout) IStream **OUTPUT {
+%typemap(python,argout) IStream **OUTPUT {
 	MAKE_OUTPUT_INTERFACE($source, $target, IID_IStream)
 }
 
 
-%typemap(freearg) IMessage *INPUT,
+%typemap(python,freearg) IMessage *INPUT,
                          IMessage *INPUT_NULLOK,
                          IMAPITable *INPUT,
                          IMAPITable *INPUT_NULLOK,
@@ -178,162 +178,162 @@ typedef unsigned long BOOKMARK;
 	if ($source) $source->Release();
 }
 
-%typemap(in) IMAPIProp *INPUT {
+%typemap(python,in) IMAPIProp *INPUT {
 	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IMAPIProp, (void **)&$target, 0))
 		return NULL;
 }
-%typemap(in) IMAPIProp *INPUT_NULLOK {
+%typemap(python,in) IMAPIProp *INPUT_NULLOK {
 	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IMAPIProp, (void **)&$target, 1))
 		return NULL;
 }
-%typemap(in) IMAPITable *INPUT {
+%typemap(python,in) IMAPITable *INPUT {
 	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IMAPITable, (void **)&$target, 0))
 		return NULL;
 }
-%typemap(in) IMAPITable *INPUT_NULLOK {
+%typemap(python,in) IMAPITable *INPUT_NULLOK {
 	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IMAPITable, (void **)&$target, 1))
 		return NULL;
 }
-%typemap(in) IMAPISession *INPUT {
+%typemap(python,in) IMAPISession *INPUT {
 	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IMAPISession, (void **)&$target, 0))
 		return NULL;
 }
-%typemap(in) IMAPISession *INPUT_NULLOK {
+%typemap(python,in) IMAPISession *INPUT_NULLOK {
 	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IMAPISession, (void **)&$target, 1))
 		return NULL;
 }
-%typemap(in) IMAPIFolder *INPUT {
+%typemap(python,in) IMAPIFolder *INPUT {
 	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IMAPIFolder, (void **)&$target, 0))
 		return NULL;
 }
-%typemap(in) IMAPIFolder *INPUT_NULLOK {
+%typemap(python,in) IMAPIFolder *INPUT_NULLOK {
 	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IMAPIFolder, (void **)&$target, 1))
 		return NULL;
 }
-%typemap(in) IMessage *INPUT {
+%typemap(python,in) IMessage *INPUT {
 	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IMessage, (void **)&$target, 0))
 		return NULL;
 }
-%typemap(in) IMessage *INPUT_NULLOK {
+%typemap(python,in) IMessage *INPUT_NULLOK {
 	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IMessage, (void **)&$target, 1))
 		return NULL;
 }
-%typemap(in) IMsgStore *INPUT {
+%typemap(python,in) IMsgStore *INPUT {
 	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IMsgStore, (void **)&$target, 0))
 		return NULL;
 }
-%typemap(in) IMsgStore *INPUT_NULLOK {
+%typemap(python,in) IMsgStore *INPUT_NULLOK {
 	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IMsgStore, (void **)&$target, 1))
 		return NULL;
 }
-%typemap(in) IMAPIProgress *INPUT {
+%typemap(python,in) IMAPIProgress *INPUT {
 	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IMAPIProgress, (void **)&$target, 0))
 		return NULL;
 }
-%typemap(in) IMAPIProgress *INPUT_NULLOK {
+%typemap(python,in) IMAPIProgress *INPUT_NULLOK {
 	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IMAPIProgress, (void **)&$target, 1))
 		return NULL;
 }
 
-%typemap(in) IAttach *INPUT {
+%typemap(python,in) IAttach *INPUT {
 	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IAttachment, (void **)&$target, 0))
 		return NULL;
 }
 
-%typemap(in) IAttach *INPUT_NULLOK {
+%typemap(python,in) IAttach *INPUT_NULLOK {
 	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IAttachment, (void **)&$target, 1))
 		return NULL;
 }
 
-%typemap(in) IMAPIAdviseSink *INPUT {
+%typemap(python,in) IMAPIAdviseSink *INPUT {
 	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IMAPIAdviseSink, (void **)&$target, 0))
 		return NULL;
 }
 
-%typemap(in) IMAPIAdviseSink *INPUT_NULLOK {
+%typemap(python,in) IMAPIAdviseSink *INPUT_NULLOK {
 	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IMAPIAdviseSink, (void **)&$target, 1))
 		return NULL;
 }
 
-%typemap(in) IProfAdmin *INPUT {
+%typemap(python,in) IProfAdmin *INPUT {
 	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IProfAdmin, (void **)&$target, 0))
 		return NULL;
 }
 
-%typemap(in) IProfAdmin *INPUT_NULLOK {
+%typemap(python,in) IProfAdmin *INPUT_NULLOK {
 	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IProfAdmin, (void **)&$target, 1))
 		return NULL;
 }
 
-%typemap(in) IProfSect *INPUT {
+%typemap(python,in) IProfSect *INPUT {
 	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IProfSect, (void **)&$target, 0))
 		return NULL;
 }
 
-%typemap(in) IProfSect *INPUT_NULLOK {
+%typemap(python,in) IProfSect *INPUT_NULLOK {
 	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IProfSect, (void **)&$target, 1))
 		return NULL;
 }
 
-%typemap(in) IProviderAdmin *INPUT {
+%typemap(python,in) IProviderAdmin *INPUT {
 	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IProviderAdmin, (void **)&$target, 0))
 		return NULL;
 }
 
-%typemap(in) IProviderAdmin *INPUT_NULLOK {
+%typemap(python,in) IProviderAdmin *INPUT_NULLOK {
 	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IProviderAdmin, (void **)&$target, 1))
 		return NULL;
 }
 
-%typemap(in) IAddrBook *INPUT {
+%typemap(python,in) IAddrBook *INPUT {
 	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IAddrBook, (void **)&$target, 0))
 		return NULL;
 }
 
-%typemap(in) IAddrBook *INPUT_NULLOK {
+%typemap(python,in) IAddrBook *INPUT_NULLOK {
 	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IAddrBook, (void **)&$target, 1))
 		return NULL;
 }
-%typemap(in) IMsgServiceAdmin *INPUT {
+%typemap(python,in) IMsgServiceAdmin *INPUT {
 	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IMsgServiceAdmin, (void **)&$target, 0))
 		return NULL;
 }
 
-%typemap(in) IMsgServiceAdmin *INPUT_NULLOK {
+%typemap(python,in) IMsgServiceAdmin *INPUT_NULLOK {
 	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IMsgServiceAdmin, (void **)&$target, 1))
 		return NULL;
 }
 
-%typemap(in) IMsgServiceAdmin2 *INPUT {
+%typemap(python,in) IMsgServiceAdmin2 *INPUT {
 	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IMsgServiceAdmin2, (void **)&$target, 0))
 		return NULL;
 }
 
-%typemap(in) IMsgServiceAdmin2 *INPUT_NULLOK {
+%typemap(python,in) IMsgServiceAdmin2 *INPUT_NULLOK {
 	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IMsgServiceAdmin2, (void **)&$target, 1))
 		return NULL;
 }
 
-%typemap(in) IStream *INPUT {
+%typemap(python,in) IStream *INPUT {
 	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IStream, (void **)&$target, 0))
 		return NULL;
 }
-%typemap(in) IStream *INPUT_NULLOK {
+%typemap(python,in) IStream *INPUT_NULLOK {
 	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IStream, (void **)&$target, 1))
 		return NULL;
 }
 
 // Some ** special cases.
-%typemap(freearg) IMsgStore **INPUT
+%typemap(python,freearg) IMsgStore **INPUT
 {
 	if ($source && *$source) (*$source)->Release();
 }
 
-%typemap(arginit) IMsgStore ** {
+%typemap(python,arginit) IMsgStore ** {
 	$target = NULL;
 }
 
-%typemap(in) IMsgStore **INPUT(IMsgStore *temp)
+%typemap(python,in) IMsgStore **INPUT(IMsgStore *temp)
 {
 	$target = &temp;
 	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IMsgStore, (void **)$target, 0))
@@ -341,45 +341,45 @@ typedef unsigned long BOOKMARK;
 }
 
 
-%typemap(in) SRowSet *INPUT {
+%typemap(python,in) SRowSet *INPUT {
 	if (!PyMAPIObject_AsSRowSet($source, &$target, FALSE))
 		return NULL;
 }
 
-%typemap(in) SRowSet *INPUT_NULLOK {
+%typemap(python,in) SRowSet *INPUT_NULLOK {
 	if (!PyMAPIObject_AsSRowSet($source, &$target, TRUE))
 		return NULL;
 }
 
-%typemap(in) ADRLIST *INPUT {
+%typemap(python,in) ADRLIST *INPUT {
 	if (!PyMAPIObject_AsADRLIST($source, &$target, FALSE))
 		return NULL;
 }
 
-%typemap(in) ADRLIST *INPUT_NULLOK {
+%typemap(python,in) ADRLIST *INPUT_NULLOK {
 	if (!PyMAPIObject_AsADRLIST($source, &$target, TRUE))
 		return NULL;
 }
 
-%typemap(freearg) SRowSet *INPUT, SRowSet *INPUT_NULLOK {
+%typemap(python,freearg) SRowSet *INPUT, SRowSet *INPUT_NULLOK {
 	if ($source) PyMAPIObject_FreeSRowSet($source);
 }
 
-%typemap(freearg) ADRLIST *INPUT, ADRLIST *INPUT_NULLOK {
+%typemap(python,freearg) ADRLIST *INPUT, ADRLIST *INPUT_NULLOK {
 	if ($source) PyMAPIObject_FreeADRLIST($source);
 }
 
-%typemap(ignore) SRowSet **OUTPUT (SRowSet *temp) {
+%typemap(python,ignore) SRowSet **OUTPUT (SRowSet *temp) {
 	$target = &temp;
 	*$target = NULL;
 }
 
-%typemap(ignore) ADRLIST **OUTPUT (ADRLIST *temp) {
+%typemap(python,ignore) ADRLIST **OUTPUT (ADRLIST *temp) {
 	$target = &temp;
 	*$target = NULL;
 }
 
-%typemap(argout) SRowSet **OUTPUT {
+%typemap(python,argout) SRowSet **OUTPUT {
 	PyObject *o;
 	o = PyMAPIObject_FromSRowSet(*$source);
 	if (!$target) {
@@ -399,7 +399,7 @@ typedef unsigned long BOOKMARK;
 	}
 }
 
-%typemap(argout) SRowSet *OUTPUT {
+%typemap(python,argout) SRowSet *OUTPUT {
 	PyObject *o;
 	o = PyMAPIObject_FromSRowSet($source);
 	if (!$target) {
@@ -419,15 +419,15 @@ typedef unsigned long BOOKMARK;
 	}
 }
 
-%typemap(freearg) SRowSet **OUTPUT {
+%typemap(python,freearg) SRowSet **OUTPUT {
 	if (*$source) PyMAPIObject_FreeSRowSet(*$source);
 }
 
-%typemap(freearg) SRowSet *OUTPUT {
+%typemap(python,freearg) SRowSet *OUTPUT {
 	if ($source) PyMAPIObject_FreeSRowSet($source);
 }
 
-%typemap(argout) ADRLIST **OUTPUT {
+%typemap(python,argout) ADRLIST **OUTPUT {
 	PyObject *o;
 	o = PyMAPIObject_FromADRLIST(*$source);
 	if (!$target) {
@@ -447,7 +447,7 @@ typedef unsigned long BOOKMARK;
 	}
 }
 
-%typemap(argout) ADRLIST *OUTPUT {
+%typemap(python,argout) ADRLIST *OUTPUT {
 	PyObject *o;
 	o = PyMAPIObject_FromADRLIST($source);
 	if (!$target) {
@@ -467,42 +467,42 @@ typedef unsigned long BOOKMARK;
 	}
 }
 
-%typemap(freearg) ADDRLIST **OUTPUT {
+%typemap(python,freearg) ADDRLIST **OUTPUT {
 	if (*$source) PyMAPIObject_FreeADDRLIST(*$source);
 }
 
-%typemap(freearg) ADDRLIST *OUTPUT {
+%typemap(python,freearg) ADDRLIST *OUTPUT {
 	if ($source) PyMAPIObject_FreeADDRLIST($source);
 }
 
-%typemap(in) SRowSet *BOTH = SRowSet *INPUT;
-%typemap(freearg) SRowSet *BOTH = SRowSet *INPUT;
-%typemap(argout) SRowSet *BOTH = SRowSet *OUTPUT;
+%typemap(python,in) SRowSet *BOTH = SRowSet *INPUT;
+%typemap(python,freearg) SRowSet *BOTH = SRowSet *INPUT;
+%typemap(python,argout) SRowSet *BOTH = SRowSet *OUTPUT;
 
-%typemap(in) ADRLIST *BOTH = ADRLIST *INPUT;
-%typemap(freearg) ADRLIST *BOTH = ADRLIST *INPUT;
-%typemap(argout) ADRLIST *BOTH = ADRLIST *OUTPUT;
+%typemap(python,in) ADRLIST *BOTH = ADRLIST *INPUT;
+%typemap(python,freearg) ADRLIST *BOTH = ADRLIST *INPUT;
+%typemap(python,argout) ADRLIST *BOTH = ADRLIST *OUTPUT;
 
-%typemap(ignore) MAPIERROR **OUTPUT (MAPIERROR *temp) {
+%typemap(python,ignore) MAPIERROR **OUTPUT (MAPIERROR *temp) {
 	$target = &temp;
 }
 
-%typemap(argout) MAPIERROR **OUTPUT {
+%typemap(python,argout) MAPIERROR **OUTPUT {
 	PyObject_FromMAPIERROR(*$source, TRUE, TRUE);
 }
 
-%typemap(ignore) MAPIINIT_0 *OUTPUT (MAPIINIT_0 temp) {
+%typemap(python,ignore) MAPIINIT_0 *OUTPUT (MAPIINIT_0 temp) {
 	$target = &temp;
 }
 
-%typemap(argout) MAPIINIT_0 *OUTPUT {
+%typemap(python,argout) MAPIINIT_0 *OUTPUT {
 	Py_DECREF($target);
 	$target = Py_BuildValue("ll",
 		$source->ulVersion,
 		$source->ulFlags);
 }
 
-%typemap(in) MAPIINIT_0 *INPUT(MAPIINIT_0 temp)
+%typemap(python,in) MAPIINIT_0 *INPUT(MAPIINIT_0 temp)
 {
 	$target = &temp;
 	if ($source==Py_None)
@@ -515,12 +515,12 @@ typedef unsigned long BOOKMARK;
 	}
 }
 
-%typemap(ignore) SPropTagArray **OUTPUT (SPropTagArray *temp)
+%typemap(python,ignore) SPropTagArray **OUTPUT (SPropTagArray *temp)
 {
 	$target = &temp;
 }
 
-%typemap(argout) SPropTagArray **OUTPUT {
+%typemap(python,argout) SPropTagArray **OUTPUT {
 	if ($target == Py_None)
 		Py_DECREF($target);
 	$target = PyMAPIObject_FromSPropTagArray(*$source);
@@ -530,47 +530,47 @@ typedef unsigned long BOOKMARK;
 	}
 }
 
-%typemap(freearg) SPropTagArray **OUTPUT {
+%typemap(python,freearg) SPropTagArray **OUTPUT {
 	if (*$source) MAPIFreeBuffer(*$source);
 }
-%typemap(arginit) SPropTagArray **OUTPUT {
+%typemap(python,arginit) SPropTagArray **OUTPUT {
 	$target = NULL;
 }
 
 
-%typemap(in) SPropTagArray *INPUT
+%typemap(python,in) SPropTagArray *INPUT
 {
 	if (!PyMAPIObject_AsSPropTagArray($source, &$target))
 		return NULL;
 }
 
-%typemap(freearg) SPropTagArray *INPUT
+%typemap(python,freearg) SPropTagArray *INPUT
 {
 	if ($source) MAPIFreeBuffer($source);
 }
 
-%typemap(in) SRestriction *INPUT {
+%typemap(python,in) SRestriction *INPUT {
 	if (!PyMAPIObject_AsSRestriction($source, &$target))
 		return NULL;
 }
-%typemap(freearg) SRestriction *INPUT
+%typemap(python,freearg) SRestriction *INPUT
 {
 	PyMAPIObject_FreeSRestriction($source);
 }
 
-%typemap(in) SSortOrderSet *INPUT
+%typemap(python,in) SSortOrderSet *INPUT
 {
 	if (!PyMAPIObject_AsSSortOrderSet($source, &$target))
 		return NULL;
 }
 
-%typemap(freearg) SSortOrderSet *INPUT
+%typemap(python,freearg) SSortOrderSet *INPUT
 {
 	PyMAPIObject_FreeSSortOrderSet($source);
 }
 
 
-%typemap(in) SBinaryArray *INPUT (SBinaryArray temp)
+%typemap(python,in) SBinaryArray *INPUT (SBinaryArray temp)
 {
 	$target = &temp;
 	$target->lpbin = NULL;
@@ -579,19 +579,19 @@ typedef unsigned long BOOKMARK;
 		return NULL;
 }
 
-%typemap(freearg) SBinaryArray *INPUT
+%typemap(python,freearg) SBinaryArray *INPUT
 {
 	PyMAPIObject_FreeSBinaryArray($source);
 }
 
 // A "MAPISTRINGARRAY" object - not a real type at all
 // but suitable for "returned array of strings"
-%typemap(ignore) TCHAR **OUTPUT_ARRAY(TCHAR *temp)
+%typemap(python,ignore) TCHAR **OUTPUT_ARRAY(TCHAR *temp)
 {
   $target = &temp;
 }
 
-%typemap(argout) TCHAR **OUTPUT_ARRAY {
+%typemap(python,argout) TCHAR **OUTPUT_ARRAY {
 	$target = PyList_New(0);
 	for (int __i=0; $source[__i] != NULL ;__i++) {
 		PyObject *obNew = PyWinObject_FromTCHAR($source[__i]);
@@ -601,12 +601,12 @@ typedef unsigned long BOOKMARK;
 	MAPIFreeBuffer($source);
 }
 
-%typemap(ignore) char **OUTPUT_MAPI(char *temp)
+%typemap(python,ignore) char **OUTPUT_MAPI(char *temp)
 {
   $target = &temp;
 }
 
-%typemap(argout) char **OUTPUT_MAPI {
+%typemap(python,argout) char **OUTPUT_MAPI {
 	if (*$source==NULL) {
 		$target = Py_None;
 		Py_INCREF(Py_None);
