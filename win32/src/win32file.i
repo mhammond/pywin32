@@ -1104,7 +1104,7 @@ PyObject *PyWinObject_FromQueuedOVERLAPPED(OVERLAPPED *p)
 	// PyObjects are writable, so that extra check is worthwhile)
 	// This is NOT foolproof - screw up reference counting and things may die!
 #if PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION >= 9
-    if (Py_REFCNT(po)<=0 || Py_TYPE(PO)==nullptr || IsBadWritePtr(po, sizeof(PyOVERLAPPED))) {
+    if (Py_REFCNT(po)<=0 || Py_TYPE(po)==nullptr || IsBadWritePtr(po, sizeof(PyOVERLAPPED))) {
 #else
     if (po->ob_refcnt<=0 || po->ob_type==0 || IsBadWritePtr(po, sizeof(PyOVERLAPPED))) {
 #endif
