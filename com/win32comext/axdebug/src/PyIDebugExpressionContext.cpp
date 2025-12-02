@@ -107,7 +107,7 @@ STDMETHODIMP PyGDebugExpressionContext::ParseLanguageText(
     /* [in] */ UINT nRadix,
     /* [in] */ LPCOLESTR pstrDelimiter,
     /* [in] */ DWORD dwFlags,
-    /* [out] */ IDebugExpression __RPC_FAR *__RPC_FAR *ppe)
+    /* [out] */ IDebugExpression __RPC_FAR * __RPC_FAR * ppe)
 {
     PY_GATEWAY_METHOD;
     if (ppe == NULL)

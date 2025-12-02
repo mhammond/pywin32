@@ -65,7 +65,7 @@ STDMETHODIMP PyGDebugDocumentProvider::GetDocumentClassId(GUID __RPC_FAR *pclsid
 }
 
 STDMETHODIMP PyGDebugDocumentProvider::GetDocument(
-    /* [out] */ IDebugDocument __RPC_FAR *__RPC_FAR *ppssd)
+    /* [out] */ IDebugDocument __RPC_FAR * __RPC_FAR * ppssd)
 {
     PY_GATEWAY_METHOD;
     if (ppssd == NULL)

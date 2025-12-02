@@ -12,87 +12,27 @@ of the Network API.  This is part of the win32net module.
 #include "win32net.h"
 #include "stddef.h"
 
-#define UI0_ENTRY(name, t, r)                            \
-    {                                                    \
-        #name, t, offsetof(USER_INFO_0, usri0_##name), r \
-    }
-#define UI1_ENTRY(name, t, r)                            \
-    {                                                    \
-        #name, t, offsetof(USER_INFO_1, usri1_##name), r \
-    }
-#define UI2_ENTRY(name, t, r)                            \
-    {                                                    \
-        #name, t, offsetof(USER_INFO_2, usri2_##name), r \
-    }
-#define UI3_ENTRY(name, t, r)                            \
-    {                                                    \
-        #name, t, offsetof(USER_INFO_3, usri3_##name), r \
-    }
-#define UI4_ENTRY(name, t, r)                            \
-    {                                                    \
-        #name, t, offsetof(USER_INFO_4, usri4_##name), r \
-    }
-#define UI10_ENTRY(name, t, r)                             \
-    {                                                      \
-        #name, t, offsetof(USER_INFO_10, usri10_##name), r \
-    }
-#define UI11_ENTRY(name, t, r)                             \
-    {                                                      \
-        #name, t, offsetof(USER_INFO_11, usri11_##name), r \
-    }
-#define UI20_ENTRY(name, t, r)                             \
-    {                                                      \
-        #name, t, offsetof(USER_INFO_20, usri20_##name), r \
-    }
-#define UI1003_ENTRY(name, t, r)                               \
-    {                                                          \
-        #name, t, offsetof(USER_INFO_1003, usri1003_##name), r \
-    }
-#define UI1005_ENTRY(name, t, r)                               \
-    {                                                          \
-        #name, t, offsetof(USER_INFO_1005, usri1005_##name), r \
-    }
-#define UI1006_ENTRY(name, t, r)                               \
-    {                                                          \
-        #name, t, offsetof(USER_INFO_1006, usri1006_##name), r \
-    }
-#define UI1007_ENTRY(name, t, r)                               \
-    {                                                          \
-        #name, t, offsetof(USER_INFO_1007, usri1007_##name), r \
-    }
-#define UI1008_ENTRY(name, t, r)                               \
-    {                                                          \
-        #name, t, offsetof(USER_INFO_1008, usri1008_##name), r \
-    }
-#define UI1009_ENTRY(name, t, r)                               \
-    {                                                          \
-        #name, t, offsetof(USER_INFO_1009, usri1009_##name), r \
-    }
-#define UI1010_ENTRY(name, t, r)                               \
-    {                                                          \
-        #name, t, offsetof(USER_INFO_1010, usri1010_##name), r \
-    }
-#define UI1011_ENTRY(name, t, r)                               \
-    {                                                          \
-        #name, t, offsetof(USER_INFO_1011, usri1011_##name), r \
-    }
+#define UI0_ENTRY(name, t, r) {#name, t, offsetof(USER_INFO_0, usri0_##name), r}
+#define UI1_ENTRY(name, t, r) {#name, t, offsetof(USER_INFO_1, usri1_##name), r}
+#define UI2_ENTRY(name, t, r) {#name, t, offsetof(USER_INFO_2, usri2_##name), r}
+#define UI3_ENTRY(name, t, r) {#name, t, offsetof(USER_INFO_3, usri3_##name), r}
+#define UI4_ENTRY(name, t, r) {#name, t, offsetof(USER_INFO_4, usri4_##name), r}
+#define UI10_ENTRY(name, t, r) {#name, t, offsetof(USER_INFO_10, usri10_##name), r}
+#define UI11_ENTRY(name, t, r) {#name, t, offsetof(USER_INFO_11, usri11_##name), r}
+#define UI20_ENTRY(name, t, r) {#name, t, offsetof(USER_INFO_20, usri20_##name), r}
+#define UI1003_ENTRY(name, t, r) {#name, t, offsetof(USER_INFO_1003, usri1003_##name), r}
+#define UI1005_ENTRY(name, t, r) {#name, t, offsetof(USER_INFO_1005, usri1005_##name), r}
+#define UI1006_ENTRY(name, t, r) {#name, t, offsetof(USER_INFO_1006, usri1006_##name), r}
+#define UI1007_ENTRY(name, t, r) {#name, t, offsetof(USER_INFO_1007, usri1007_##name), r}
+#define UI1008_ENTRY(name, t, r) {#name, t, offsetof(USER_INFO_1008, usri1008_##name), r}
+#define UI1009_ENTRY(name, t, r) {#name, t, offsetof(USER_INFO_1009, usri1009_##name), r}
+#define UI1010_ENTRY(name, t, r) {#name, t, offsetof(USER_INFO_1010, usri1010_##name), r}
+#define UI1011_ENTRY(name, t, r) {#name, t, offsetof(USER_INFO_1011, usri1011_##name), r}
 
-#define UMI0_ENTRY(name, t, r)                                    \
-    {                                                             \
-        #name, t, offsetof(USER_MODALS_INFO_0, usrmod0_##name), r \
-    }
-#define UMI1_ENTRY(name, t, r)                                    \
-    {                                                             \
-        #name, t, offsetof(USER_MODALS_INFO_1, usrmod1_##name), r \
-    }
-#define UMI2_ENTRY(name, t, r)                                    \
-    {                                                             \
-        #name, t, offsetof(USER_MODALS_INFO_2, usrmod2_##name), r \
-    }
-#define UMI3_ENTRY(name, t, r)                                    \
-    {                                                             \
-        #name, t, offsetof(USER_MODALS_INFO_3, usrmod3_##name), r \
-    }
+#define UMI0_ENTRY(name, t, r) {#name, t, offsetof(USER_MODALS_INFO_0, usrmod0_##name), r}
+#define UMI1_ENTRY(name, t, r) {#name, t, offsetof(USER_MODALS_INFO_1, usrmod1_##name), r}
+#define UMI2_ENTRY(name, t, r) {#name, t, offsetof(USER_MODALS_INFO_2, usrmod2_##name), r}
+#define UMI3_ENTRY(name, t, r) {#name, t, offsetof(USER_MODALS_INFO_3, usrmod3_##name), r}
 
 // @object PyUSER_INFO_0|A dictionary holding the information in a Win32 USER_INFO_0 structure.
 static struct PyNET_STRUCT_ITEM ui0[] = {UI0_ENTRY(name, NSI_WSTR, 0),  // @prop string/<o PyUnicode>|name|

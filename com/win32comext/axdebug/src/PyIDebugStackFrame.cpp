@@ -142,7 +142,7 @@ PyComTypeObject PyIDebugStackFrame::type("PyIDebugStackFrame", &PyIUnknown::type
 // Gateway Implementation
 
 STDMETHODIMP PyGDebugStackFrame::GetCodeContext(
-    /* [out] */ IDebugCodeContext __RPC_FAR *__RPC_FAR *ppcc)
+    /* [out] */ IDebugCodeContext __RPC_FAR * __RPC_FAR * ppcc)
 {
     PY_GATEWAY_METHOD;
     if (ppcc == NULL)
@@ -209,7 +209,7 @@ STDMETHODIMP PyGDebugStackFrame::GetLanguageString(
 }
 
 STDMETHODIMP PyGDebugStackFrame::GetThread(
-    /* [out] */ IDebugApplicationThread __RPC_FAR *__RPC_FAR *ppat)
+    /* [out] */ IDebugApplicationThread __RPC_FAR * __RPC_FAR * ppat)
 {
     PY_GATEWAY_METHOD;
     if (ppat == NULL)
@@ -232,7 +232,7 @@ STDMETHODIMP PyGDebugStackFrame::GetThread(
 }
 
 STDMETHODIMP PyGDebugStackFrame::GetDebugProperty(
-    /* [out] */ IDebugProperty __RPC_FAR *__RPC_FAR *ppdp)
+    /* [out] */ IDebugProperty __RPC_FAR * __RPC_FAR * ppdp)
 {
     PY_GATEWAY_METHOD;
     if (ppdp == NULL)

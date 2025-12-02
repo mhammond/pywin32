@@ -188,7 +188,7 @@ BOOL PyCom_ExcepInfoFromPyObject(PyObject *v, EXCEPINFO *pExcepInfo, HRESULT *ph
     // Note that with class based exceptions, a simple pointer check fails.
     // Any class sub-classed from the client is considered a server error,
     // so we need to check the class explicitly.
-    if (reinterpret_cast<PyObject*>(Py_TYPE(v)) == PyWinExc_COMError) {
+    if (reinterpret_cast<PyObject *>(Py_TYPE(v)) == PyWinExc_COMError) {
         // Client side error
         // Clear the state of the excep info.
         // use abstract API to get at details.
@@ -1064,10 +1064,8 @@ LPCTSTR GetScodeRangeString(HRESULT hr)
         HRESULT hrLast;
         LPCTSTR lpszName;
     };
-#define MAKE_RANGE_ENTRY(hrRange)                                                              \
-    {                                                                                          \
-        hrRange##_FIRST, hrRange##_LAST, _T(#hrRange) _T("_FIRST...") _T(#hrRange) _T("_LAST") \
-    }
+#define MAKE_RANGE_ENTRY(hrRange) \
+    {hrRange##_FIRST, hrRange##_LAST, _T(#hrRange) _T("_FIRST...") _T(#hrRange) _T("_LAST")}
 
     static const RANGE_ENTRY hrRangeTable[] = {
         MAKE_RANGE_ENTRY(CACHE_E),        MAKE_RANGE_ENTRY(CACHE_S),      MAKE_RANGE_ENTRY(CLASSFACTORY_E),

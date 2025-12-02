@@ -170,13 +170,21 @@ static pfnGWMethod make_method(DWORD index, UINT argsize, UINT argc)
         //  00000	55				push	 ebp
         //  00001	8b ec			mov		 ebp, esp
         //  00003	51				push	 ecx
-        0x55, 0x8b, 0xec, 0x51,
+        0x55,
+        0x8b,
+        0xec,
+        0x51,
 
         // ; 47   : 	va_list args;
         // ; 48   : 	va_start(args, _this);
         //  00004	8d 45 0c		lea		 eax, DWORD PTR __this$[ebp+4]
         //  00007	89 45 fc		mov		 DWORD PTR _args$[ebp], eax
-        0x8d, 0x45, 0x0c, 0x89, 0x45, 0xfc,
+        0x8d,
+        0x45,
+        0x0c,
+        0x89,
+        0x45,
+        0xfc,
 
         // ; 49   : 	return univgw_dispatch(0x11223344, _this, args);
         //  0000a	8b 4d fc		mov		 ecx, DWORD PTR _args$[ebp]
@@ -186,21 +194,41 @@ static pfnGWMethod make_method(DWORD index, UINT argsize, UINT argc)
         //  00012	68 44 33 22 11	push	 287454020		; 11223344H
         //  00017	e8 00 00 00 00	call	 ?univgw_dispatch@@YAJKPAUgw_object@@PAD@Z ; univgw_dispatch
         //  0001c	83 c4 0c	 	add		 esp, 12			; 0000000cH
-        0x8b, 0x4d, 0xfc, 0x51, 0x8b, 0x55, 0x08, 0x52, 0x68,
+        0x8b,
+        0x4d,
+        0xfc,
+        0x51,
+        0x8b,
+        0x55,
+        0x08,
+        0x52,
+        0x68,
         // offset = 19 (0x13)
-        0x44, 0x33, 0x22, 0x11,  // replace these with <index>
+        0x44,
+        0x33,
+        0x22,
+        0x11,  // replace these with <index>
         0xe8,
         // offset = 24 (0x18)
-        0x00, 0x00, 0x00, 0x00,  // replace these with <univgw_dispatch>
-        0x83, 0xc4, 0x0c,
+        0x00,
+        0x00,
+        0x00,
+        0x00,  // replace these with <univgw_dispatch>
+        0x83,
+        0xc4,
+        0x0c,
 
         //; 50   : }
         //  0001f	8b e5			mov		 esp, ebp
         //  00021	5d				pop		 ebp
         //  00022	c2 04 00		ret		 4
-        0x8b, 0xe5, 0x5d, 0xc2,
+        0x8b,
+        0xe5,
+        0x5d,
+        0xc2,
         // offset = 35 (0x23)
-        0x04, 0x00,  // replace this with argsize
+        0x04,
+        0x00,  // replace this with argsize
     };
 
     // make a copy of code and plug in the appropriate values.
@@ -307,13 +335,13 @@ static STDMETHODIMP_(ULONG) univgw_Release(gw_object *_this)
 }
 
 /* The IDispatch delegation when necessary */
-static STDMETHODIMP univgw_GetIDsOfNames(gw_object *_this, REFIID riid, OLECHAR FAR *FAR *rgszNames,
+static STDMETHODIMP univgw_GetIDsOfNames(gw_object *_this, REFIID riid, OLECHAR FAR * FAR * rgszNames,
                                          unsigned int cNames, LCID lcid, DISPID FAR *rgDispId)
 {
     return ((PyGatewayBase *)_this->punk)->GetIDsOfNames(riid, rgszNames, cNames, lcid, rgDispId);
 }
 
-static STDMETHODIMP univgw_GetTypeInfo(gw_object *_this, unsigned int iTInfo, LCID lcid, ITypeInfo FAR *FAR *ppTInfo)
+static STDMETHODIMP univgw_GetTypeInfo(gw_object *_this, unsigned int iTInfo, LCID lcid, ITypeInfo FAR * FAR * ppTInfo)
 {
     return ((PyGatewayBase *)_this->punk)->GetTypeInfo(iTInfo, lcid, ppTInfo);
 }
@@ -723,8 +751,8 @@ BOOL initunivgw(PyObject *parentDict)
     if (!module) /* Eeek - some serious error! */
         return FALSE;
 
-        //	PyObject *dict = PyModule_GetDict(module);
-        //	if (!dict) return; /* Another serious error!*/
+    //	PyObject *dict = PyModule_GetDict(module);
+    //	if (!dict) return; /* Another serious error!*/
 #ifdef Py_GIL_DISABLED
     PyUnstable_Module_SetGIL(module, Py_MOD_GIL_NOT_USED);
 #endif
