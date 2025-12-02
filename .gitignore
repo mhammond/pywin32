@@ -39,6 +39,8 @@ com/TestSources/PyCOMTest/x64/
 # SWIG generated files.
 com/win32comext/adsi/src/*.cpp
 !com/win32comext/adsi/src/PyADSIUtil.cpp
+com/win32comext/adsi/src/Py*.h
+!com/win32comext/adsi/src/PyADSIUtil.cpp
 com/win32comext/mapi/src/*.cpp
 !com/win32comext/mapi/src/mapiutil.cpp
 !com/win32comext/mapi/src/mapiguids.cpp
