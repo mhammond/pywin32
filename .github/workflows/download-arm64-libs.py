@@ -32,6 +32,7 @@ if sysconfig.get_config_var("Py_GIL_DISABLED"):
     URL = f"https://www.nuget.org/api/v2/package/pythonarm64-freethreaded/{VERSION}"
 else:
     URL = f"https://www.nuget.org/api/v2/package/pythonarm64/{VERSION}" # pyright: ignore[reportConstantRedefinition]
+
 if sysconfig.get_config_var("Py_GIL_DISABLED"):
     DEST_PATH = dest / f"pythonarm64-freethreaded.{VERSION}.zip"
 else:
