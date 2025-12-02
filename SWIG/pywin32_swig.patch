@@ -1,3 +1,5 @@
+Original patch message is as follows:
+
 This is a patch to create the customized version of SWIG used for pywin32.
 It was created by running the following command on MINGW64 (in git bash):
 `diff --unified --recursive --ignore-space-change SWIG1.1p5-orig/ SWIG1.1p5/ > .../pywin32/SWIG/pywin32_swig.patch`
@@ -158,6 +160,9 @@ diff --unified --recursive --ignore-space-change SWIG1.1p5-orig/Modules/python.c
 +    "  m = PyModule_Create(&%s_def);\n"
 +    "  if (!m)\n"
 +    "    return NULL;\n"
++    "#ifdef Py_GIL_DISABLED\n"
++    "\t PyUnstable_Module_SetGIL(m, Py_MOD_GIL_NOT_USED);\n"
++    "#endif\n"
 +    "  d = PyModule_GetDict(m);\n"
 +    "  if (!d)\n"
 +    "    return NULL;\n",
