@@ -31,11 +31,11 @@ if sys.version_info.releaselevel == "candidate":
 if sysconfig.get_config_var("Py_GIL_DISABLED"):
     URL = f"https://www.nuget.org/api/v2/package/pythonarm64-freethreaded/{VERSION}"
 else:
-    URL = f"https://www.nuget.org/api/v2/package/pythonarm64/{VERSION}"
+    URL = f"https://www.nuget.org/api/v2/package/pythonarm64/{VERSION}" # pyright: ignore[reportConstantRedefinition]
 if sysconfig.get_config_var("Py_GIL_DISABLED"):
     DEST_PATH = dest / f"pythonarm64-freethreaded.{VERSION}.zip"
 else:
-    DEST_PATH = dest / f"pythonarm64.{VERSION}.zip"
+    DEST_PATH = dest / f"pythonarm64.{VERSION}.zip" # pyright: ignore[reportConstantRedefinition]
 
 if DEST_PATH.is_file():
     print("Skipping download because", DEST_PATH, "exists")
