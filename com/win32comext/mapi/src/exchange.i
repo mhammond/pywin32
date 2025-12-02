@@ -205,7 +205,7 @@ PyObject *MyHrMAPIFindSubfolderEx(
 %}
 
 // @pyswig <o PyIMsgStore>|HrMAPIFindSubfolderEx|Retrieves a subfolder in an information store using the hierarchical path name of the folder.
-%rename(HrMAPIFindSubfolderEx) PyObject *MyHrMAPIFindSubfolderEx(
+%name(HrMAPIFindSubfolderEx) PyObject *MyHrMAPIFindSubfolderEx(
 	IMAPIFolder *INPUT, // @pyparm <o PyIMAPIFolder>|rootFolder||The root folder.
 	TCHAR chSep,	// @pyparm string/<o PyUnicode>|sep||The folder separator character.
 	TCHAR *INPUT // @pyparm string/<o PyUnicode>|name||The folder name
@@ -390,7 +390,7 @@ done:
 
 
 // @pyswig <o PyIMsgStore>|HrMailboxLogon|Logs on a server and mailbox.
-%rename(HrMailboxLogon) HRESULT MyHrMailboxLogon(
+%name(HrMailboxLogon) HRESULT MyHrMailboxLogon(
 	IMAPISession *INPUT, // @pyparm <o PyIMAPISession>|session||The session object
 	IMsgStore *INPUT, // @pyparm <o PyIMsgStore>|msgStore||
 	char *INPUT, // @pyparm string/<o PyUnicode>|msgStoreDN||
@@ -399,13 +399,13 @@ done:
 );
 
 // @pyswig |HrMailboxLogoff|Logs off a server and mailbox.
-%rename(HrMailboxLogoff) HRESULT MyHrMailboxLogoff(
+%name(HrMailboxLogoff) HRESULT MyHrMailboxLogoff(
 	IMsgStore **INPUT // @pyparm <o PyIMsgStore>|inbox||The open inbox.
 );
 
 
 // @pyswig <o PyIMAPIFolder>|HrMAPIOpenFolderEx|Opens a folder in the information store from the hierarchical path name of the folder.
-%rename(HrMAPIOpenFolderEx) HRESULT HrMAPIOpenFolderExW(
+%name(HrMAPIOpenFolderEx) HRESULT HrMAPIOpenFolderExW(
 	IMsgStore *INPUT_NULLOK, // @pyparm <o PyIMsgStore>|msgStore||
 	WCHAR INPUT, // @pyparm string/<o PyUnicode>|sep||The folder separator character.
 	WCHAR *INPUT, // @pyparm string/<o PyUnicode>|name||The folder name

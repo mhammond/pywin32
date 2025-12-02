@@ -8,7 +8,7 @@
 */
 
 %define %std_exception_map(Exception, Code)
-  %exceptionclass  Exception; 
+  %typemap(except)class  Exception; 
 #if !defined(SWIG_STD_EXCEPTIONS_AS_CLASSES)
   %typemap(throws,noblock=1) Exception {
     SWIG_exception_fail(Code, $1.what());

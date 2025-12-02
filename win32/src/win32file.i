@@ -1484,10 +1484,8 @@ PyObject *PyFILE_NOTIFY_INFORMATION(PyObject *self, PyObject *args)
 // ReadFileEx
 // SearchPath
 
-%rename(SetCurrentDirectory) SetCurrentDirectoryW;
-
 // @pyswig |SetCurrentDirectory|Sets the current directory.
-BOOLAPI SetCurrentDirectoryW(
+%name(SetCurrentDirectory) BOOLAPI SetCurrentDirectoryW(
     WCHAR *lpPathName	// @pyparm str/string|lpPathName||Name of the path to set current.
 );
 
@@ -1570,14 +1568,12 @@ BOOLAPI UnlockFile(
 // File Handle / File Descriptor APIs.
 // @pyswig long|_get_osfhandle|Gets operating-system file handle associated with existing stream
 // @pyparm int|fd||File descriptor as returned by file.fileno()
-%rename(_get_osfhandle) myget_osfhandle;
-PyObject *myget_osfhandle( int filehandle );
+%name(_get_osfhandle) PyObject *myget_osfhandle( int filehandle );
 
 // @pyswig int|_open_osfhandle|Associates a C run-time file handle with a existing operating-system file handle.
 // @pyparm <o PyHANDLE>|osfhandle||An open file handle
 // @pyparm int|flags||O_APPEND,O_RDONLY, or O_TEXT
-%rename(_open_osfhandle) myopen_osfhandle;
-PyObject *myopen_osfhandle ( PyHANDLE osfhandle, int flags );
+%name(_open_osfhandle) PyObject *myopen_osfhandle ( PyHANDLE osfhandle, int flags );
 
 
 %{
@@ -2168,7 +2164,7 @@ PyObject* MyWSAEventSelect
 %}
 
 // @pyswig |WSAEventSelect|Specifies an event object to be associated with the supplied set of FD_XXXX network events.
-%rename(WSAEventSelect) MyWSAEventSelect;
+%name(WSAEventSelect)
 PyObject *MyWSAEventSelect
 (
 	SOCKET *s, // @pyparm <o PySocket>|socket||socket to attach to the event
@@ -2291,7 +2287,7 @@ PyObject* MyWSAAsyncSelect
 %}
 
 // @pyswig |WSAAsyncSelect|Request windows message notification for the supplied set of FD_XXXX network events.
-%rename(WSAAsyncSelect) MyWSAAsyncSelect;
+%name(WSAAsyncSelect)
 PyObject *MyWSAAsyncSelect
 (
 	SOCKET *s, // @pyparm <o PySocket>|socket||socket to attach to the event
@@ -2563,7 +2559,7 @@ Error:
       Py_XDECREF(o);
     }
 }
-%typemap(in,numinputs=0) DCB *OUTPUT(DCB temp)
+%typemap(ignore) DCB *OUTPUT(DCB temp)
 {
   $1 = &temp;
   $1->DCBlength = sizeof( DCB ) ;
@@ -2593,7 +2589,7 @@ Error:
       Py_XDECREF(o);
     }
 }
-%typemap(in,numinputs=0) COMSTAT *OUTPUT(COMSTAT temp)
+%typemap(ignore) COMSTAT *OUTPUT(COMSTAT temp)
 {
   $1 = &temp;
 }
@@ -2625,7 +2621,7 @@ Error:
       Py_XDECREF(o);
     }
 }
-%typemap(in,numinputs=0) COMMTIMEOUTS *OUTPUT(COMMTIMEOUTS temp)
+%typemap(ignore) COMMTIMEOUTS *OUTPUT(COMMTIMEOUTS temp)
 {
   $1 = &temp;
 }

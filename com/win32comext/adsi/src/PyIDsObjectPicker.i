@@ -76,7 +76,7 @@ done:
 
 %native(Initialize) Initialize;
 
-%typemap(in,numinputs=0) IDataObject  **OUTPUT(IDataObject *temp)
+%typemap(ignore) IDataObject  **OUTPUT(IDataObject *temp)
 {
   $1 = &temp;
 }

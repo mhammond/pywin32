@@ -1141,7 +1141,7 @@ typedef float SC_HANDLE, SERVICE_STATUS_HANDLE, SC_LOCK;	// This is just to keep
 		return NULL;
 }
 
-%exception SC_HANDLE {
+%typemap(except) SC_HANDLE {
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS
@@ -1152,7 +1152,7 @@ typedef float SC_HANDLE, SERVICE_STATUS_HANDLE, SC_LOCK;	// This is just to keep
 }
 
 // SERVICE_STATUS support
-%typemap(in,numinputs=0) SERVICE_STATUS *outServiceStatus (SERVICE_STATUS temp) {
+%typemap(ignore) SERVICE_STATUS *outServiceStatus (SERVICE_STATUS temp) {
 	$1 = &temp;
 }
 

@@ -62,7 +62,7 @@ SWIGCDATA cdata_##NAME(TYPE *ptr, size_t nelements = 1);
 #endif
 %enddef
 
-%rename(cdata) ::cdata_void(void *ptr, size_t nelements = 1);
+%name(cdata) ::cdata_void(void *ptr, size_t nelements = 1);
 
 %cdata(void);
 

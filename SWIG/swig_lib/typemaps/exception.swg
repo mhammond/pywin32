@@ -37,10 +37,10 @@
 
 #ifdef __cplusplus
 /*
-  You can use the SWIG_CATCH_STDEXCEPT macro with the %exception
+  You can use the SWIG_CATCH_STDEXCEPT macro with the %typemap(except)
   directive as follows:
 
-  %exception {
+  %typemap(except) {
     try {
       $action
     }

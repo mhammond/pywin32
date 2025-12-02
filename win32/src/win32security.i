@@ -126,7 +126,7 @@ FARPROC loadapifunc(char *funcname, HMODULE hmodule)
 typedef long SECURITY_IMPERSONATION_LEVEL;
 %apply LARGE_INTEGER {LUID};
 typedef LARGE_INTEGER LUID;
-%typemap(in,numinputs=0) LUID *OUTPUT(LUID temp)
+%typemap(ignore) LUID *OUTPUT(LUID temp)
 {
   $1 = &temp;
 }
@@ -2518,7 +2518,7 @@ static PyObject *PySetTokenInformation(PyObject *self, PyObject *args)
 // we used to expose this as "GetPolicyHandle".  It has been renamed
 // to "LsaOpenPolicy" to be consistent with win32, but GetPolicyHandle still
 // exists as an alias.
-%rename(GetPolicyHandle) PyLsaOpenPolicy;
+%name(GetPolicyHandle) PyLsaOpenPolicy;
 
 // @pyswig <o PyLSA_HANDLE>|LsaOpenPolicy|Opens a policy handle for the specified system
 %native(LsaOpenPolicy) PyLsaOpenPolicy;

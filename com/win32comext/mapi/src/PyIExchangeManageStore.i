@@ -18,7 +18,7 @@
 #include <edkguid.h>
 %}
 
-%typemap(in,numinputs=0) IExchangeManageStore **OUTPUT(IExchangeManageStore *temp)
+%typemap(ignore) IExchangeManageStore **OUTPUT(IExchangeManageStore *temp)
 {
   $target = &temp;
 }
