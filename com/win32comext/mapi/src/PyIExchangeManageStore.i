@@ -18,24 +18,24 @@
 #include <edkguid.h>
 %}
 
-%typemap(ignore) IExchangeManageStore **OUTPUT(IExchangeManageStore *temp)
+%typemap(python,ignore) IExchangeManageStore **OUTPUT(IExchangeManageStore *temp)
 {
   $target = &temp;
 }
-%typemap(argout) IExchangeManageStore **OUTPUT {
+%typemap(python,argout) IExchangeManageStore **OUTPUT {
 	MAKE_OUTPUT_INTERFACE($source, $target, IID_IExchangeManageStore)
 }
-%typemap(freearg) IExchangeManageStore *INPUT,
+%typemap(python,freearg) IExchangeManageStore *INPUT,
 			 IExchangeManageStore *INPUT_NULLOK
 {
 	if ($source) $source->Release();
 }
 
-%typemap(in) IExchangeManageStore *INPUT {
+%typemap(python,in) IExchangeManageStore *INPUT {
 	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IExchangeManageStore, (void **)&$target, 0))
 		return NULL;
 }
-%typemap(in) IExchangeManageStore *INPUT_NULLOK {
+%typemap(python,in) IExchangeManageStore *INPUT_NULLOK {
 	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IExchangeManageStore, (void **)&$target, 1))
 		return NULL;
 }
