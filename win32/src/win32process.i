@@ -316,34 +316,34 @@ static PyObject *mySTARTUPINFO(PyObject *self, PyObject *args)
 %native (STARTUPINFO) mySTARTUPINFO;
 
 
-%typemap(in) STARTUPINFO *
+%typemap(python,in) STARTUPINFO *
 {
-	if (!PyWinObject_AsSTARTUPINFO($input, &$1, FALSE))
+	if (!PyWinObject_AsSTARTUPINFO($source, &$target, FALSE))
 		return NULL;
 }
 
-%typemap(argout) STARTUPINFO *OUTPUT {
+%typemap(python,argout) STARTUPINFO *OUTPUT {
     PyObject *o;
-    o = PyWinObject_FromSTARTUPINFO($1);
-    if (!$result) {
-      $result = o;
-    } else if ($result == Py_None) {
+    o = PyWinObject_FromSTARTUPINFO($source);
+    if (!$target) {
+      $target = o;
+    } else if ($target == Py_None) {
       Py_DECREF(Py_None);
-      $result = o;
+      $target = o;
     } else {
-      if (!PyList_Check($result)) {
-	PyObject *o2 = $result;
-	$result = PyList_New(0);
-	PyList_Append($result,o2);
+      if (!PyList_Check($target)) {
+	PyObject *o2 = $target;
+	$target = PyList_New(0);
+	PyList_Append($target,o2);
 	Py_XDECREF(o2);
       }
-      PyList_Append($result,o);
+      PyList_Append($target,o);
       Py_XDECREF(o);
     }
 }
-%typemap(ignore) STARTUPINFO *OUTPUT(STARTUPINFO temp)
+%typemap(python,ignore) STARTUPINFO *OUTPUT(STARTUPINFO temp)
 {
-  $1 = &temp;
+  $target = &temp;
 }
 
 %{
@@ -649,7 +649,7 @@ PyObject *MyCreateProcess(
 
 // @pyswig <o PyHANDLE>, <o PyHANDLE>, int, int|CreateProcess|Creates a new process and its primary thread. The new process executes the specified executable file.
 // @comm The result is a tuple of (hProcess, hThread, dwProcessId, dwThreadId)
-%name(CreateProcess) MyCreateProcess;
+%name(CreateProcess)
 PyObject *MyCreateProcess(
 	TCHAR *INPUT_NULLOK,  // @pyparm string|appName||name of executable module, or None
 	TCHAR *INPUT_NULLOK,  // @pyparm string|commandLine||command line string, or None
@@ -741,7 +741,7 @@ PyObject *MyCreateProcessAsUser(
 
 // @pyswig <o PyHANDLE>, <o PyHANDLE>, int, int|CreateProcessAsUser|Creates a new process in the context of the specified user.
 // @comm The result is a tuple of (hProcess, hThread, dwProcessId, dwThreadId)
-%name(CreateProcessAsUser) MyCreateProcessAsUser;
+%name(CreateProcessAsUser)
 PyObject *MyCreateProcessAsUser(
 	HANDLE hToken, // @pyparm <o PyHANDLE>|hToken||Handle to a token that represents a logged-on user
 	TCHAR *INPUT_NULLOK,  // @pyparm string|appName||name of executable module, or None
@@ -986,8 +986,7 @@ static PyObject *MySetThreadIdealProcessor( HANDLE hThread, DWORD dwIdealProc )
 %}
 
 // @pyswig int|SetThreadIdealProcessor|Used to specify a preferred processor for a thread. The system schedules threads on their preferred processors whenever possible.
-%name(SetThreadIdealProcessor) MySetThreadIdealProcessor;
-
+%name(SetThreadIdealProcessor)
 PyObject *MySetThreadIdealProcessor(
   HANDLE hThread,             // @pyparm <o PyHANDLE>|handle||handle to the thread of interest
   DWORD dwIdealProcessor  // @pyparm int|dwIdealProcessor||ideal processor number
@@ -1071,17 +1070,15 @@ static PyObject *MySetThreadAffinityMask(PyObject *self, PyObject *args)
 %native(SetThreadAffinityMask) MySetThreadAffinityMask;
 
 // Special result handling for SuspendThread and ResumeThread
-%{
-	typedef DWORD DWORD_SR_THREAD;
-%}
-%typemap(out) DWORD_SR_THREAD {
-	$result = PyLong_FromLong($1);
+%typedef DWORD DWORD_SR_THREAD
+%typemap(python,out) DWORD_SR_THREAD {
+	$target = PyLong_FromLong($source);
 }
-%typemap(except) DWORD_SR_THREAD {
+%typemap(python,except) DWORD_SR_THREAD {
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS
-      if ($1==-1)  {
+      if ($source==-1)  {
            $cleanup
            return PyWin_SetAPIError("$name");
       }
@@ -1580,26 +1577,24 @@ PyObject *PyIsWow64Process(PyObject *self, PyObject *args)
 }
 %}
 
-%{
-	typedef VOID *LONG_VOIDPTR;
-%}
-%typemap(except) LONG_VOIDPTR {
+%typedef VOID *LONG_VOIDPTR;
+%typemap(python,except) LONG_VOIDPTR {
 	Py_BEGIN_ALLOW_THREADS
 	$function
 	Py_END_ALLOW_THREADS
-	if ($1==0)  {
+	if ($source==0)  {
 		$cleanup;
 		return PyWin_SetAPIError("$name");
 	}
 }
 
-%typemap(in) LONG_VOIDPTR {
-	if (!PyWinLong_AsVoidPtr($input, &$1))
+%typemap(python, in) LONG_VOIDPTR {
+	if (!PyWinLong_AsVoidPtr($source, &$target))
 		return NULL;
 }
-%typemap(out) LONG_VOIDPTR
+%typemap(python, out) LONG_VOIDPTR
 {
-	$result = PyWinLong_FromVoidPtr($1);
+	$target = PyWinLong_FromVoidPtr($source);
 }
 
 

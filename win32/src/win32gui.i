@@ -156,82 +156,39 @@ PyObject *PyWinObject_FromGdiHANDLE(HGDIOBJ h)
 	return ret;
 }
 %}
+
+// SWIG support for GDI handles.
+%typemap(python,except) HPEN, HBRUSH, HFONT, HRGN, HBITMAP {
+	Py_BEGIN_ALLOW_THREADS
+	$function
+	Py_END_ALLOW_THREADS
+	if ($source==NULL){
+		$cleanup
+		return PyWin_SetAPIError("$name");
+		}
+}
 /* ??? If you don't map these to a known type, swig obstinately ignores the input and output typemaps and tries to treat them as pointers.
 		However, it doesn't seem to matter what you typedef them to as long as they have in and out typemaps. ??? */
 typedef float HPEN, HBRUSH, HFONT, HRGN, HBITMAP;
-
-// SWIG support for GDI handles.
-%typemap(except) HPEN {
-	Py_BEGIN_ALLOW_THREADS
-	$function
-	Py_END_ALLOW_THREADS
-	if ($1==NULL){
-		$cleanup
-		return PyWin_SetAPIError("$name");
-		}
+%typemap(python,out) HPEN, HBRUSH, HFONT, HRGN, HBITMAP{
+	$target = PyWinObject_FromGdiHANDLE($source);
 }
-
-%typemap(except) HBRUSH {
-	Py_BEGIN_ALLOW_THREADS
-	$function
-	Py_END_ALLOW_THREADS
-	if ($1==NULL){
-		$cleanup
-		return PyWin_SetAPIError("$name");
-		}
-}
-
-%typemap(except) HFONT {
-	Py_BEGIN_ALLOW_THREADS
-	$function
-	Py_END_ALLOW_THREADS
-	if ($1==NULL){
-		$cleanup
-		return PyWin_SetAPIError("$name");
-		}
-}
-
-%typemap(except) HRGN {
-	Py_BEGIN_ALLOW_THREADS
-	$function
-	Py_END_ALLOW_THREADS
-	if ($1==NULL){
-		$cleanup
-		return PyWin_SetAPIError("$name");
-		}
-}
-
-%typemap(except) HBITMAP {
-	Py_BEGIN_ALLOW_THREADS
-	$function
-	Py_END_ALLOW_THREADS
-	if ($1==NULL){
-		$cleanup
-		return PyWin_SetAPIError("$name");
-		}
-}
-
-%typemap(out) HPEN, HBRUSH, HFONT, HRGN, HBITMAP{
-	$result = PyWinObject_FromGdiHANDLE($1);
-}
-%typemap(in) HPEN, HBRUSH, HFONT, HRGN, HBITMAP{
-	if (!PyWinObject_AsHANDLE($input, (HANDLE *)&$1))
+%typemap(python,in) HPEN, HBRUSH, HFONT, HRGN, HBITMAP{
+	if (!PyWinObject_AsHANDLE($source, (HANDLE *)&$target))
 		return NULL;
 }
-%typemap(in) HRGN INPUT_NULLOK, HBRUSH INPUT_NULLOK, HBITMAP INPUT_NULLOK{
-	if (!PyWinObject_AsHANDLE($input, (HANDLE *)&$1))
+%typemap(python,in) HRGN INPUT_NULLOK, HBRUSH INPUT_NULLOK, HBITMAP INPUT_NULLOK{
+	if (!PyWinObject_AsHANDLE($source, (HANDLE *)&$target))
 		return NULL;
 }
 
-%{
-	typedef int int_regiontype;
-%}
+%typedef int int_regiontype;
 // Several functions return an int containg a region type (NULLREGION,SIMPLEREGION,COMPLEXREGION) or ERROR on failure
-%typemap(except) int_regiontype{
+%typemap(python,except) int_regiontype{
 	Py_BEGIN_ALLOW_THREADS
 	$function
 	Py_END_ALLOW_THREADS
-	if ($1==ERROR){
+	if ($source==ERROR){
 		$cleanup
 		return PyWin_SetAPIError("$name");
 		}
@@ -293,7 +250,6 @@ PyDict_SetItemString(d, "g_DLGMap", g_DLGMap);
 PyDict_SetItemString(d, "UNICODE", Py_True);
 
 // hack borrowed from win32security since version of SWIG we use doesn't do keyword arguments
-/*
 for (PyMethodDef *pmd = win32guiMethods; pmd->ml_name; pmd++)
 	if	 (strcmp(pmd->ml_name, "SetLayeredWindowAttributes")==0
 		||strcmp(pmd->ml_name, "GetLayeredWindowAttributes")==0
@@ -305,7 +261,6 @@ for (PyMethodDef *pmd = win32guiMethods; pmd->ml_name; pmd++)
 		||strcmp(pmd->ml_name, "DrawTextW")==0
 		)
 		pmd->ml_flags = METH_VARARGS | METH_KEYWORDS;
-*/
 
 HMODULE hmodule = PyWin_GetOrLoadLibraryHandle("user32.dll");
 if (hmodule != NULL) {
@@ -354,11 +309,7 @@ extern "C" DECLSPEC_DLLMAIN BOOL WINAPI DllMain(HINST_ARG hInstance, DWORD dwRea
 
 // Custom 'exception handlers' for simple types that exist only to
 // manage the thread-lock.
-%{
-	typedef int int_excepthandlingtype;
-%}
-
-%typemap(except) int_excepthandlingtype {
+%typemap(python,except) int {
     Py_BEGIN_ALLOW_THREADS
     $function
     Py_END_ALLOW_THREADS
@@ -366,95 +317,89 @@ extern "C" DECLSPEC_DLLMAIN BOOL WINAPI DllMain(HINST_ARG hInstance, DWORD dwRea
 
 // Handles types with no specific PyHANDLE subclass, returned to Python as plain ints or longs
 typedef float HDC, HCURSOR, HINSTANCE, HMENU, HICON, HGDIOBJ, HIMAGELIST, HACCEL;
-%typemap(in) HDC, HCURSOR, HINSTANCE, HMENU, HICON, HGDIOBJ, HIMAGELIST, HACCEL{
-	if (!PyWinObject_AsHANDLE($input, (HANDLE *)&$1))
+%typemap(python, in) HDC, HCURSOR, HINSTANCE, HMENU, HICON, HGDIOBJ, HIMAGELIST, HACCEL{
+	if (!PyWinObject_AsHANDLE($source, (HANDLE *)&$target))
 		return NULL;
 }
-%typemap(out) HDC, HCURSOR, HINSTANCE, HMENU, HICON, HGDIOBJ, HIMAGELIST, HACCEL{
-	$result=PyWinLong_FromHANDLE($1);
-}
-
-%typemap(out) LRESULT{
-	$result=Py_BuildValue("K",$1);;
+%typemap(python, out) HDC, HCURSOR, HINSTANCE, HMENU, HICON, HGDIOBJ, HIMAGELIST, HACCEL{
+	$target=PyWinLong_FromHANDLE($source);
 }
 
 %apply COLORREF {long};
-typedef long COLORREF;
+typedef long COLORREF
 
 typedef HANDLE WPARAM;
 typedef HANDLE LPARAM;
 typedef HANDLE LRESULT;
 typedef int UINT;
 
-%{
-	typedef void *NULL_ONLY;
-%}
+%typedef void *NULL_ONLY
 
-%typemap(in) NULL_ONLY {
-	if ($input != Py_None) {
+%typemap(python,in) NULL_ONLY {
+	if ($source != Py_None) {
 		PyErr_SetString(PyExc_TypeError, "This param must be None");
 		return NULL;
 	}
-	$1 = NULL;
+	$target = NULL;
 }
 
-%typemap(ignore) MSG *OUTPUT(MSG temp)
+%typemap(python,ignore) MSG *OUTPUT(MSG temp)
 {
-  $1 = &temp;
-  memset($1, 0, sizeof(MSG));
+  $target = &temp;
+  memset($target, 0, sizeof(MSG));
 }
 
-%typemap(argout) MSG *OUTPUT{
-    PyObject *o = PyWinObject_FromMSG($1);
-    if (!$result) {
-      $result = o;
-    } else if ($result == Py_None) {
+%typemap(python,argout) MSG *OUTPUT{
+    PyObject *o = PyWinObject_FromMSG($source);
+    if (!$target) {
+      $target = o;
+    } else if ($target == Py_None) {
       Py_DECREF(Py_None);
-      $result = o;
+      $target = o;
     } else {
-      if (!PyList_Check($result)) {
-	PyObject *o2 = $result;
-	$result = PyList_New(0);
-	PyList_Append($result,o2);
+      if (!PyList_Check($target)) {
+	PyObject *o2 = $target;
+	$target = PyList_New(0);
+	PyList_Append($target,o2);
 	Py_XDECREF(o2);
       }
-      PyList_Append($result,o);
+      PyList_Append($target,o);
       Py_XDECREF(o);
     }
 }
 
-%typemap(in) MSG *INPUT {
-    $1 = (MSG *)_alloca(sizeof(MSG));
-    if (!PyWinObject_AsMSG($input, $1))
+%typemap(python,in) MSG *INPUT {
+    $target = (MSG *)_alloca(sizeof(MSG));
+    if (!PyWinObject_AsMSG($source, $target))
         return NULL;
 }
-%typemap(ignore) RECT *OUTPUT(RECT rect_output)
+%typemap(python,ignore) RECT *OUTPUT(RECT rect_output)
 {
-  $1 = &rect_output;
+  $target = &rect_output;
 }
 
-%typemap(in) RECT *INPUT(RECT rect_input)
+%typemap(python,in) RECT *INPUT(RECT rect_input)
 {
-	if (PyTuple_Check($input)) {
-		if (PyArg_ParseTuple($input, "llll", &rect_input.left, &rect_input.top, &rect_input.right, &rect_input.bottom) == 0) {
+	if (PyTuple_Check($source)) {
+		if (PyArg_ParseTuple($source, "llll", &rect_input.left, &rect_input.top, &rect_input.right, &rect_input.bottom) == 0) {
 			return PyErr_Format(PyExc_TypeError, "%s: This param must be a tuple of four integers", "$name");
 		}
-		$1 = &rect_input;
+		$target = &rect_input;
 	} else {
 		return PyErr_Format(PyExc_TypeError, "%s: This param must be a tuple of four integers", "$name");
 	}
 }
 
-%typemap(in) RECT *INPUT_NULLOK(RECT rect_input_nullok)
+%typemap(python,in) RECT *INPUT_NULLOK(RECT rect_input_nullok)
 {
-	if (PyTuple_Check($input)) {
-		if (PyArg_ParseTuple($input, "llll", &rect_input_nullok.left, &rect_input_nullok.top, &rect_input_nullok.right, &rect_input_nullok.bottom) == 0) {
+	if (PyTuple_Check($source)) {
+		if (PyArg_ParseTuple($source, "llll", &rect_input_nullok.left, &rect_input_nullok.top, &rect_input_nullok.right, &rect_input_nullok.bottom) == 0) {
 			return PyErr_Format(PyExc_TypeError, "%s: This param must be a tuple of four integers or None", "$name");
 		}
-		$1 = &rect_input_nullok;
+		$target = &rect_input_nullok;
 	} else {
-		if ($input == Py_None) {
-            $1 = NULL;
+		if ($source == Py_None) {
+            $target = NULL;
         } else {
             PyErr_SetString(PyExc_TypeError, "This param must be a tuple of four integers or None");
             return NULL;
@@ -462,81 +407,81 @@ typedef int UINT;
 	}
 }
 
-%typemap(argout) RECT *OUTPUT {
+%typemap(python,argout) RECT *OUTPUT {
     PyObject *o;
-    o = Py_BuildValue("llll", $1->left, $1->top, $1->right, $1->bottom);
-    if (!$result) {
-      $result = o;
-    } else if ($result == Py_None) {
+    o = Py_BuildValue("llll", $source->left, $source->top, $source->right, $source->bottom);
+    if (!$target) {
+      $target = o;
+    } else if ($target == Py_None) {
       Py_DECREF(Py_None);
-      $result = o;
+      $target = o;
     } else {
-      if (!PyList_Check($result)) {
-	PyObject *o2 = $result;
-	$result = PyList_New(0);
-	PyList_Append($result,o2);
+      if (!PyList_Check($target)) {
+	PyObject *o2 = $target;
+	$target = PyList_New(0);
+	PyList_Append($target,o2);
 	Py_XDECREF(o2);
       }
-      PyList_Append($result,o);
+      PyList_Append($target,o);
       Py_XDECREF(o);
     }
 }
 
-%typemap(in) RECT *BOTH = RECT *INPUT;
-%typemap(argout) RECT *BOTH = RECT *OUTPUT;
+%typemap(python,in) RECT *BOTH = RECT *INPUT;
+%typemap(python,argout) RECT *BOTH = RECT *OUTPUT;
 
-%typemap(argout) POINT *OUTPUT {
+%typemap(python,argout) POINT *OUTPUT {
     PyObject *o;
-    o = Py_BuildValue("ll", $1->x, $1->y);
-    if (!$result) {
-      $result = o;
-    } else if ($result == Py_None) {
+    o = Py_BuildValue("ll", $source->x, $source->y);
+    if (!$target) {
+      $target = o;
+    } else if ($target == Py_None) {
       Py_DECREF(Py_None);
-      $result = o;
+      $target = o;
     } else {
-      if (!PyList_Check($result)) {
-	PyObject *o2 = $result;
-	$result = PyList_New(0);
-	PyList_Append($result,o2);
+      if (!PyList_Check($target)) {
+	PyObject *o2 = $target;
+	$target = PyList_New(0);
+	PyList_Append($target,o2);
 	Py_XDECREF(o2);
       }
-      PyList_Append($result,o);
+      PyList_Append($target,o);
       Py_XDECREF(o);
     }
 }
 
-%typemap(ignore) POINT *OUTPUT(POINT point_output)
+%typemap(python,ignore) POINT *OUTPUT(POINT point_output)
 {
-  $1 = &point_output;
+  $target = &point_output;
 }
 
-%typemap(in) POINT *INPUT(POINT point_input) {
-	if (!PyWinObject_AsPOINT($input, &point_input))
+%typemap(python,in) POINT *INPUT(POINT point_input) {
+	if (!PyWinObject_AsPOINT($source, &point_input))
 		return NULL;
-	$1 = &point_input;
+	$target = &point_input;
 }
 
-%typemap(in) POINT INPUT {
-	if (!PyWinObject_AsPOINT($input, &$1))
+%typemap(python,in) POINT INPUT {
+	if (!PyWinObject_AsPOINT($source, &$target))
 		return NULL;
 }
 
 
-%typemap(in) POINT *BOTH = POINT *INPUT;
-%typemap(argout) POINT *BOTH = POINT *OUTPUT;
+%typemap(python,in) POINT *BOTH = POINT *INPUT;
+%typemap(python,argout) POINT *BOTH = POINT *OUTPUT;
 
-%typemap(in) SIZE *INPUT(SIZE size_input){
-	if (!PyWinObject_AsSIZE($input, &size_input))
+%typemap(python,in) SIZE *INPUT(SIZE size_input){
+	if (!PyWinObject_AsSIZE($source, &size_input))
 		return NULL;
-	$1 = &size_input;
+	$target = &size_input;
 }
 
 // @object PyICONINFO|Tuple describing an icon or cursor
 // @pyseeapi ICONINFO
-%typemap(in) ICONINFO *INPUT(ICONINFO iconinfo_input) {
+%typemap(python,in) ICONINFO *INPUT(ICONINFO iconinfo_input) {
 	PyObject *obmask, *obcolor;
-	if (PyTuple_Check($input)) {
-		if (!PyArg_ParseTuple($input, "lllOO",
+	if (PyTuple_Check($source)) {
+		if (!PyArg_ParseTuple($source, "lllOO",
 			&iconinfo_input.fIcon,		// @tupleitem 0|boolean|Icon|True indicates an icon, False for a cursor
 			&iconinfo_input.xHotspot,	// @tupleitem 1|int|xHotSpot|For a cursor, X coord of hotspot.  Ignored for icons
 			&iconinfo_input.yHotspot,	// @tupleitem 2|int|yHotSpot|For a cursor, Y coord of hotspot.  Ignored for icons
@@ -548,81 +493,81 @@ typedef int UINT;
 			return NULL;
 		if (!PyWinObject_AsHANDLE(obcolor, (HANDLE *)&iconinfo_input.hbmColor))
 			return NULL;
-		$1 = &iconinfo_input;
+		$target = &iconinfo_input;
     } else {
 		return PyErr_Format(PyExc_TypeError, "%s: an ICONINFO must be a tuple of (int,int,int,HANDLE,HANDLE)", "$name");
 	}
 }
 
-%typemap(argout) ICONINFO *OUTPUT {
+%typemap(python,argout) ICONINFO *OUTPUT {
     PyObject *o;
-    o = Py_BuildValue("lllNN", $1->fIcon, $1->xHotspot, $1->yHotspot,
-		PyWinObject_FromGdiHANDLE($1->hbmMask), PyWinObject_FromGdiHANDLE($1->hbmColor));
-    if (!$result) {
-      $result = o;
-    } else if ($result == Py_None) {
+    o = Py_BuildValue("lllNN", $source->fIcon, $source->xHotspot, $source->yHotspot,
+		PyWinObject_FromGdiHANDLE($source->hbmMask), PyWinObject_FromGdiHANDLE($source->hbmColor));
+    if (!$target) {
+      $target = o;
+    } else if ($target == Py_None) {
       Py_DECREF(Py_None);
-      $result = o;
+      $target = o;
     } else {
-      if (!PyList_Check($result)) {
-	PyObject *o2 = $result;
-	$result = PyList_New(0);
-	PyList_Append($result,o2);
+      if (!PyList_Check($target)) {
+	PyObject *o2 = $target;
+	$target = PyList_New(0);
+	PyList_Append($target,o2);
 	Py_XDECREF(o2);
       }
-      PyList_Append($result,o);
+      PyList_Append($target,o);
       Py_XDECREF(o);
     }
 }
 
-%typemap(ignore) ICONINFO *OUTPUT(ICONINFO temp)
+%typemap(python,ignore) ICONINFO *OUTPUT(ICONINFO temp)
 {
-  $1 = &temp;
+  $target = &temp;
 }
 
-%typemap(in) BLENDFUNCTION *INPUT(BLENDFUNCTION bf_input) {
-	if (!PyWinObject_AsBLENDFUNCTION($input, &bf_input))
+%typemap(python,in) BLENDFUNCTION *INPUT(BLENDFUNCTION bf_input) {
+	if (!PyWinObject_AsBLENDFUNCTION($source, &bf_input))
 		return NULL;
-	$1 = &bf_input;
+	$target = &bf_input;
 }
 
-%typemap(argout) PAINTSTRUCT *OUTPUT {
+%typemap(python,argout) PAINTSTRUCT *OUTPUT {
     PyObject *o;
     o = Py_BuildValue("(Nl(iiii)llN)",
-                PyWinLong_FromHANDLE($1->hdc),
-                $1->fErase,
-                $1->rcPaint.left, $1->rcPaint.top, $1->rcPaint.right, $1->rcPaint.bottom,
-                $1->fRestore,
-                $1->fIncUpdate,
-                PyBytes_FromStringAndSize((char *)$1->rgbReserved,sizeof($1->rgbReserved)));
-    if (!$result) {
-      $result = o;
-    } else if ($result == Py_None) {
+                PyWinLong_FromHANDLE($source->hdc),
+                $source->fErase,
+                $source->rcPaint.left, $source->rcPaint.top, $source->rcPaint.right, $source->rcPaint.bottom,
+                $source->fRestore,
+                $source->fIncUpdate,
+                PyBytes_FromStringAndSize((char *)$source->rgbReserved,sizeof($source->rgbReserved)));
+    if (!$target) {
+      $target = o;
+    } else if ($target == Py_None) {
       Py_DECREF(Py_None);
-      $result = o;
+      $target = o;
     } else {
-      if (!PyList_Check($result)) {
-	PyObject *o2 = $result;
-	$result = PyList_New(0);
-	PyList_Append($result,o2);
+      if (!PyList_Check($target)) {
+	PyObject *o2 = $target;
+	$target = PyList_New(0);
+	PyList_Append($target,o2);
 	Py_XDECREF(o2);
       }
-      PyList_Append($result,o);
+      PyList_Append($target,o);
       Py_XDECREF(o);
     }
 }
 
-%typemap(ignore) PAINTSTRUCT *OUTPUT(PAINTSTRUCT ps_output)
+%typemap(python,ignore) PAINTSTRUCT *OUTPUT(PAINTSTRUCT ps_output)
 {
-  $1 = &ps_output;
+  $target = &ps_output;
 }
 
-%typemap(in) PAINTSTRUCT *INPUT(PAINTSTRUCT ps_input) {
+%typemap(python,in) PAINTSTRUCT *INPUT(PAINTSTRUCT ps_input) {
     char *szReserved;
     Py_ssize_t lenReserved;
 	PyObject *obdc, *obReserved;
-	if (PyTuple_Check($input)) {
-		if (!PyArg_ParseTuple($input,
+	if (PyTuple_Check($source)) {
+		if (!PyArg_ParseTuple($source,
 			"Ol(iiii)llO",
 			&obdc,
 			&ps_input.fErase,
@@ -639,107 +584,47 @@ typedef int UINT;
             return PyErr_Format(PyExc_ValueError, "%s: last element must be string of %d bytes",
                                 "$name", sizeof(ps_input.rgbReserved));
         memcpy(&ps_input.rgbReserved, szReserved, sizeof(ps_input.rgbReserved));
-		$1 = &ps_input;
+		$target = &ps_input;
     } else {
 		return PyErr_Format(PyExc_TypeError, "%s: a PAINTSTRUCT must be a tuple", "$name");
 	}
 }
 
 // @object TRACKMOUSEEVENT|A tuple of (dwFlags, hwndTrack, dwHoverTime)
-%typemap(in) TRACKMOUSEEVENT *INPUT(TRACKMOUSEEVENT e){
+%typemap(python,in) TRACKMOUSEEVENT *INPUT(TRACKMOUSEEVENT e){
 	PyObject *obhwnd;
 	e.cbSize = sizeof e;
-	if (PyTuple_Check($input)) {
-		if (PyArg_ParseTuple($input, "lOl", &e.dwFlags, &obhwnd, &e.dwHoverTime) == 0) {
+	if (PyTuple_Check($source)) {
+		if (PyArg_ParseTuple($source, "lOl", &e.dwFlags, &obhwnd, &e.dwHoverTime) == 0) {
 			return PyErr_Format(PyExc_TypeError, "%s: a TRACKMOUSEEVENT must be a tuple of 3 integers", "$name");
 		}
 		if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&e.hwndTrack))
 			return NULL;
-		$1 = &e;
+		$target = &e;
     } else {
 		return PyErr_Format(PyExc_TypeError, "%s: a TRACKMOUSEEVENT must be a tuple of 3 integers", "$name");
 	}
 }
 
-%typemap(except) LRESULT {
+%typemap(python,except) LRESULT {
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS
 }
 
-%typemap(except) BOOL {
+%typemap(python,except) BOOL {
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS
 }
 
-%typemap(except) HWND {
+%typemap(python,except) HWND, HDC, HMENU, HICON, HBITMAP, HIMAGELIST {
       Py_BEGIN_ALLOW_THREADS
       SetLastError(0);
       $function
       Py_END_ALLOW_THREADS
       DWORD le;
-      if ($1==0 && (le=GetLastError())) {
-           $cleanup
-           return PyWin_SetAPIError("$name", le);
-      }
-}
-
-%typemap(except) HDC{
-      Py_BEGIN_ALLOW_THREADS
-      SetLastError(0);
-      $function
-      Py_END_ALLOW_THREADS
-      DWORD le;
-      if ($1==0 && (le=GetLastError())) {
-           $cleanup
-           return PyWin_SetAPIError("$name", le);
-      }
-}
-
-%typemap(except) HMENU {
-      Py_BEGIN_ALLOW_THREADS
-      SetLastError(0);
-      $function
-      Py_END_ALLOW_THREADS
-      DWORD le;
-      if ($1==0 && (le=GetLastError())) {
-           $cleanup
-           return PyWin_SetAPIError("$name", le);
-      }
-}
-
-%typemap(except) HICON {
-      Py_BEGIN_ALLOW_THREADS
-      SetLastError(0);
-      $function
-      Py_END_ALLOW_THREADS
-      DWORD le;
-      if ($1==0 && (le=GetLastError())) {
-           $cleanup
-           return PyWin_SetAPIError("$name", le);
-      }
-}
-
-%typemap(except) HBITMAP {
-      Py_BEGIN_ALLOW_THREADS
-      SetLastError(0);
-      $function
-      Py_END_ALLOW_THREADS
-      DWORD le;
-      if ($1==0 && (le=GetLastError())) {
-           $cleanup
-           return PyWin_SetAPIError("$name", le);
-      }
-}
-
-%typemap(except) HIMAGELIST {
-      Py_BEGIN_ALLOW_THREADS
-      SetLastError(0);
-      $function
-      Py_END_ALLOW_THREADS
-      DWORD le;
-      if ($1==0 && (le=GetLastError())) {
+      if ($source==0 && (le=GetLastError())) {
            $cleanup
            return PyWin_SetAPIError("$name", le);
       }
@@ -1523,11 +1408,11 @@ PyObject *set_logger(PyObject *self, PyObject *args)
 %}
 %native (set_logger) set_logger;
 
-%typemap(in) LOGFONT *{
-	if (!PyLOGFONT_Check($input))
+%typemap(python,in) LOGFONT *{
+	if (!PyLOGFONT_Check($source))
 		return PyErr_Format(PyExc_TypeError, "Must be a LOGFONT object (got %s)",
-		                    $input->ob_type->tp_name);
-	$1 = &(((PyLOGFONT *)$input)->m_LOGFONT);
+		                    $source->ob_type->tp_name);
+	$target = &(((PyLOGFONT *)$source)->m_LOGFONT);
 }
 
 // @pyswig <o PyLOGFONT>|LOGFONT|Creates a LOGFONT object.
@@ -1815,48 +1700,47 @@ static PyObject *PyGetBufferAddressAndLen(PyObject *self, PyObject *args)
 %}
 %native (PyGetBufferAddressAndLen) PyGetBufferAddressAndLen;
 
-%{
-typedef TCHAR *STRING_OR_ATOM_CW;
-typedef TCHAR *RESOURCE_ID;
-typedef TCHAR *RESOURCE_ID_NULLOK;
-%}
 
-%typemap(arginit) STRING_OR_ATOM_CW, RESOURCE_ID, RESOURCE_ID_NULLOK{
-	$1=NULL;
+%typedef TCHAR *STRING_OR_ATOM_CW
+%typedef TCHAR *RESOURCE_ID
+%typedef TCHAR *RESOURCE_ID_NULLOK
+
+%typemap(python,arginit) STRING_OR_ATOM_CW, RESOURCE_ID, RESOURCE_ID_NULLOK{
+	$target=NULL;
 }
 
-%typemap(in) RESOURCE_ID {
-	if (!PyWinObject_AsResourceId($input, &$1, FALSE))
+%typemap(python,in) RESOURCE_ID {
+	if (!PyWinObject_AsResourceId($source, &$target, FALSE))
 		return NULL;
 }
 
-%typemap(in) STRING_OR_ATOM_CW, RESOURCE_ID_NULLOK {
-	if (!PyWinObject_AsResourceId($input, &$1, TRUE))
+%typemap(python,in) STRING_OR_ATOM_CW, RESOURCE_ID_NULLOK {
+	if (!PyWinObject_AsResourceId($source, &$target, TRUE))
 		return NULL;
 }
 
 // A hack for CreateWindow - need to post-process...
-%typemap(freearg) STRING_OR_ATOM_CW {
+%typemap(python,freearg) STRING_OR_ATOM_CW {
 	// Look up the WNDCLASS object by either atom->wndclass or name->atom->wndclass to set window proc
 	PyObject *obwc=NULL;
-	if (result) {
-		if (IS_INTRESOURCE($1))
-			obwc = PyDict_GetItem(g_AtomMap, $result);
+	if (_result) {
+		if (IS_INTRESOURCE($source))
+			obwc = PyDict_GetItem(g_AtomMap, $target);
 		else{
 			// Use the name to retrieve the atom, and use it to retrieve the PyWNDCLASS
-			PyObject *obatom=PyDict_GetItem(g_AtomMap, $result);
+			PyObject *obatom=PyDict_GetItem(g_AtomMap, $target);
 			if (obatom!=NULL)
 				obwc = PyDict_GetItem(g_AtomMap, obatom);
 			}
 		// A HUGE HACK - set the class extra bytes.
 		if (obwc)
-			SetClassLongPtr(result, 0, (LONG_PTR)((PyWNDCLASS *)obwc)->m_obWndProc);
+			SetClassLongPtr(_result, 0, (LONG_PTR)((PyWNDCLASS *)obwc)->m_obWndProc);
 		}
-	PyWinObject_FreeResourceId($1);
+	PyWinObject_FreeResourceId($source);
 }
 
-%typemap(freearg) RESOURCE_ID,RESOURCE_ID_NULLOK {
-	PyWinObject_FreeResourceId($1);
+%typemap(python,freearg) RESOURCE_ID,RESOURCE_ID_NULLOK {
+	PyWinObject_FreeResourceId($source);
 }
 
 // @pyswig int|FlashWindow|The FlashWindow function flashes the specified window one time. It does not change the active state of the window.
@@ -1987,16 +1871,16 @@ static PyObject *PyCallWindowProc(PyObject *self, PyObject *args)
 %}
 %native (CallWindowProc) PyCallWindowProc;
 
-%typemap(in) WPARAM(PyWin_PARAMHolder wtemp) {
-   if (!PyWinObject_AsPARAM($input, &wtemp))
+%typemap(python,in) WPARAM(PyWin_PARAMHolder wtemp) {
+   if (!PyWinObject_AsPARAM($source, &wtemp))
        return NULL;
-    $1 = wtemp;
+    $target = wtemp;
 }
 
-%typemap(in) LPARAM(PyWin_PARAMHolder ltemp) {
-   if (!PyWinObject_AsPARAM($input, &ltemp))
+%typemap(python,in) LPARAM(PyWin_PARAMHolder ltemp) {
+   if (!PyWinObject_AsPARAM($source, &ltemp))
        return NULL;
-    $1 = ltemp;
+    $target = ltemp;
 }
 
 %{
@@ -2076,7 +1960,7 @@ static PyObject *PySendMessageTimeout(PyObject *self, PyObject *args)
 // @pyparm int|message||The ID of the message to post
 // @pyparm int|wparam|0|An integer whose value depends on the message
 // @pyparm int|lparam|0|An integer whose value depends on the message
-BOOLAPI PostMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+BOOLAPI PostMessage(HWND hwnd, UINT msg, WPARAM wParam = 0, LPARAM lParam = 0);
 
 // @pyswig |PostThreadMessage|
 // @pyparm int|threadId||The ID of the thread to post the message to.
@@ -2292,7 +2176,7 @@ static PyObject *PyDialogBox(PyObject *self, PyObject *args)
 	return PyWinLong_FromVoidPtr((void *)rc);
 }
 %}
-%rename (DialogBox) PyDialogBox;
+%native (DialogBox) PyDialogBox;
 // @pyswig int|DialogBoxParam|See <om win32gui.DialogBox>
 %native (DialogBoxParam) PyDialogBox;
 
@@ -2350,7 +2234,7 @@ static PyObject *PyDialogBoxIndirect(PyObject *self, PyObject *args)
 	return PyWinLong_FromVoidPtr((void *)rc);
 }
 %}
-%rename (DialogBoxIndirect) PyDialogBoxIndirect;
+%native (DialogBoxIndirect) PyDialogBoxIndirect;
 // @pyswig int|DialogBoxIndirectParam|See <om win32gui.DialogBoxIndirect>
 %native (DialogBoxIndirectParam) PyDialogBoxIndirect;
 
@@ -2398,7 +2282,7 @@ static PyObject *PyCreateDialogIndirect(PyObject *self, PyObject *args)
 
 }
 %}
-%rename (CreateDialogIndirect) PyCreateDialogIndirect;
+%native (CreateDialogIndirect) PyCreateDialogIndirect;
 // @pyswig int|DialogBoxIndirectParam|See <om win32gui.CreateDialogIndirect>
 %native (CreateDialogIndirectParam) PyCreateDialogIndirect;
 
@@ -3630,13 +3514,13 @@ BOOL PyObject_AsNOTIFYICONDATA(PyObject *ob, NOTIFYICONDATA *pnid)
 #define NIM_SETFOCUS NIM_SETFOCUS // Give the icon focus.
 #endif
 
-%typemap(in) NOTIFYICONDATA *{
-	if (!PyObject_AsNOTIFYICONDATA($input, $1))
+%typemap(python,in) NOTIFYICONDATA *{
+	if (!PyObject_AsNOTIFYICONDATA($source, $target))
 		return NULL;
 }
-%typemap(arginit) NOTIFYICONDATA *(NOTIFYICONDATA nid){
+%typemap(python,arginit) NOTIFYICONDATA *(NOTIFYICONDATA nid){
 	ZeroMemory(&nid, sizeof(nid));
-	$1 = &nid;
+	$target = &nid;
 }
 
 // @pyswig |Shell_NotifyIcon|Adds, removes or modifies a taskbar icon.
@@ -3761,19 +3645,19 @@ PyObject *Pylpstr(PyObject *self, PyObject *args) {
 // @pyswig int|CommDlgExtendedError|
 DWORD CommDlgExtendedError(void);
 
-%typemap (in) OPENFILENAME *INPUT (int size){
+%typemap (python, in) OPENFILENAME *INPUT (int size){
 	size = sizeof(OPENFILENAME);
-	if (!PyBytes_Check($input)) {
+	if (!PyBytes_Check($source)) {
 		PyErr_Format(PyExc_TypeError, "Argument must be a %d-byte string (got type %s)",
-		             size, $input->ob_type->tp_name);
+		             size, $source->ob_type->tp_name);
 		return NULL;
 	}
-	if (size != PyBytes_GET_SIZE($input)) {
+	if (size != PyBytes_GET_SIZE($source)) {
 		PyErr_Format(PyExc_TypeError, "Argument must be a %d-byte string (got string of %d bytes)",
-		             size, PyBytes_GET_SIZE($input));
+		             size, PyBytes_GET_SIZE($source));
 		return NULL;
 	}
-	$1 = ( OPENFILENAME *)PyBytes_AS_STRING($input);
+	$target = ( OPENFILENAME *)PyBytes_AS_STRING($source);
 }
 
 // @pyswig int|ExtractIcon|
@@ -6227,7 +6111,7 @@ PyListView_SortItems(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyCallable_Check(ob))
 		return PyErr_Format(PyExc_TypeError,
-		                    "2nd param must be callable (got type %s)", Py_TYPE(ob)->tp_name);
+		                    "2nd param must be callable (got type %s)", ob->ob_type->tp_name);
 	PySortCallback cb = {ob, obParam};
 	BOOL ok;
 	GUI_BGN_SAVE;
@@ -6261,7 +6145,7 @@ PyListView_SortItemsEx(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyCallable_Check(ob))
 		return PyErr_Format(PyExc_TypeError,
-		                    "2nd param must be callable (got type %s)", Py_TYPE(ob)->tp_name);
+		                    "2nd param must be callable (got type %s)", ob->ob_type->tp_name);
 	PySortCallback cb = {ob, obParam};
 	BOOL ok;
 	GUI_BGN_SAVE;
@@ -6277,15 +6161,15 @@ PyListView_SortItemsEx(PyObject *self, PyObject *args)
 %}
 %native (ListView_SortItemsEx) PyListView_SortItemsEx;
 
-%typemap(in) DEVMODE *INPUT
+%typemap(python,in) DEVMODE *INPUT
 {
-	if(!PyWinObject_AsDEVMODE($input, &$1, TRUE))
+	if(!PyWinObject_AsDEVMODE($source, &$target, TRUE))
 	return NULL;
 }
 
-%typemap(arginit) DEVMODE *
+%typemap(python,arginit) DEVMODE *
 {
-	$1 = NULL;
+	$target = NULL;
 }
 
 // @pyswig int|CreateDC|Creates a device context for a printer or display device

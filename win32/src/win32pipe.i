@@ -67,7 +67,7 @@ PyObject *PyPopen4(PyObject *self, PyObject  *args) {PyErr_SetString(PyExc_NotIm
 
 %native(CallNamedPipe) MyCallNamedPipe;
 
-%name(CreatePipe) MyCreatePipe;
+%name(CreatePipe)
 PyObject *MyCreatePipe(SECURITY_ATTRIBUTES *INPUT, DWORD nSize);
 PyObject *FdCreatePipe(SECURITY_ATTRIBUTES *INPUT, DWORD nSize, int mode);
 

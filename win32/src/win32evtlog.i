@@ -81,18 +81,18 @@ PyObject *PyWinObject_FromEVT_HANDLE(HANDLE h, PyObject *context=NULL)
 }
 %}
 
-%typemap(except) PyEVTLOG_HANDLE {
+%typemap(python,except) PyEVTLOG_HANDLE {
   Py_BEGIN_ALLOW_THREADS
   $function
   Py_END_ALLOW_THREADS
-  if ($1==0 || $1==INVALID_HANDLE_VALUE)  {
+  if ($source==0 || $source==INVALID_HANDLE_VALUE)  {
     $cleanup
     return PyWin_SetAPIError("$name");
   }
 }
 
-%typemap(out) PyEVTLOG_HANDLE {
-  $result = PyWinObject_FromEVTLOG_HANDLE($1);
+%typemap(python,out) PyEVTLOG_HANDLE {
+  $target = PyWinObject_FromEVTLOG_HANDLE($source);
 }
 
 typedef HANDLE PyEVTLOG_HANDLE;
@@ -405,16 +405,14 @@ cleanup:
 #define EVENTLOG_PAIRED_EVENT_INACTIVE EVENTLOG_PAIRED_EVENT_INACTIVE
 
 // @pyswig |ClearEventLog|Clears the event log
-%rename (ClearEventLog) ClearEventLogW;
-BOOLAPI
+%name (ClearEventLog) BOOLAPI
 ClearEventLogW (
     HANDLE hEventLog,	// @pyparm int|handle||Handle to the event log to clear.
     WCHAR *INPUT_NULLOK // @pyparm <o PyUnicode>|eventLogName||The name of the event log to save to, or None
     );
 
 // @pyswig |BackupEventLog|Backs up the event log
-%rename (BackupEventLog) BackupEventLogW;
-BOOLAPI
+%name (BackupEventLog) BOOLAPI
 BackupEventLogW (
     HANDLE hEventLog, // @pyparm int|handle||Handle to the event log to backup.
     WCHAR *lpBackupFileName // @pyparm <o PyUnicode>|eventLogName||The name of the event log to save to
@@ -457,15 +455,13 @@ GetOldestEventLogRecord (
     );
 
 // @pyswig <o PyEVTLOG_HANDLE>|OpenEventLog|Opens an event log.
-%rename (OpenEventLog) OpenEventLogW;
-PyEVTLOG_HANDLE OpenEventLogW (
+%name (OpenEventLog) PyEVTLOG_HANDLE OpenEventLogW (
     WCHAR *INPUT_NULLOK, // @pyparm <o PyUnicode>|serverName||The server name, or None
     WCHAR *sourceName    // @pyparm <o PyUnicode>|sourceName||specifies the name of the source that the returned handle will reference. The source name must be a subkey of a logfile entry under the EventLog key in the registry.
     );
 
 // @pyswig int|RegisterEventSource|Registers an Event Source
-%rename (RegisterEventSource) RegisterEventSourceW;
-HANDLE
+%name (RegisterEventSource) HANDLE
 RegisterEventSourceW (
     WCHAR *INPUT_NULLOK, // @pyparm <o PyUnicode>|serverName||The server name, or None
     WCHAR *sourceName  // @pyparm <o PyUnicode>|sourceName||The source name
@@ -473,8 +469,7 @@ RegisterEventSourceW (
 
 
 // @pyswig <o PyEVTLOG_HANDLE>|OpenBackupEventLog|Opens a previously saved event log.
-%rename (OpenBackupEventLog) OpenBackupEventLogW;
-HANDLE OpenBackupEventLogW (
+%name (OpenBackupEventLog) HANDLE OpenBackupEventLogW (
     WCHAR *INPUT_NULLOK, // @pyparm <o PyUnicode>|serverName||The server name, or None
     WCHAR *fileName      // @pyparm <o PyUnicode>|fileName||The filename to open
     );
@@ -482,8 +477,7 @@ HANDLE OpenBackupEventLogW (
 %native (ReadEventLog) MyReadEventLog;
 
 // @pyswig |ReportEvent|Reports an event
-%rename (ReportEvent) MyReportEvent;
-PyObject *MyReportEvent (
+%name (ReportEvent) PyObject *MyReportEvent (
      HANDLE     hEventLog,	// @pyparm <o PyHANDLE>|EventLog||Handle to an event log
      WORD       wType,		// @pyparm int|Type||win32con.EVENTLOG_* value
      WORD       wCategory,	// @pyparm int|Category||Source-specific event category
@@ -1505,7 +1499,7 @@ BOOL PyWinObject_AsEVT_RPC_LOGIN(PyObject *ob, EVT_RPC_LOGIN *erl)
 {
 	ZeroMemory(erl, sizeof(*erl));
 	if (!PyTuple_Check(ob)){
-		PyErr_Format(PyExc_TypeError, "PyEVT_RPC_LOGIN must be a tuple instead of %s", Py_TYPE(ob)->tp_name);
+		PyErr_Format(PyExc_TypeError, "PyEVT_RPC_LOGIN must be a tuple instead of %s", ob->ob_type->tp_name);
 		return FALSE;
 		}
 	PyObject *observer, *obuser=Py_None, *obdomain=Py_None, *obpassword=Py_None;
@@ -1956,7 +1950,7 @@ PyCFunction pfnPyEvtGetObjectArrayProperty = (PyCFunction) PyEvtGetObjectArrayPr
 %init %{
     if (PyType_Ready(&PyEventLogRecordType) == -1)
         PYWIN_MODULE_INIT_RETURN_ERROR;
-/*
+
     for (PyMethodDef *pmd = win32evtlogMethods;pmd->ml_name;pmd++)
         if   ((strcmp(pmd->ml_name, "EvtOpenChannelEnum")==0)
 			||(strcmp(pmd->ml_name, "EvtCreateRenderContext")==0)
@@ -1991,7 +1985,6 @@ PyCFunction pfnPyEvtGetObjectArrayProperty = (PyCFunction) PyEvtGetObjectArrayPr
 			){
 			pmd->ml_flags = METH_VARARGS | METH_KEYWORDS;
 			}
-*/
 %}
 
 // Used with EvtOpenLog

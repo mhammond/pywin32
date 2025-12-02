@@ -126,26 +126,26 @@ FARPROC loadapifunc(char *funcname, HMODULE hmodule)
 typedef long SECURITY_IMPERSONATION_LEVEL;
 %apply LARGE_INTEGER {LUID};
 typedef LARGE_INTEGER LUID;
-%typemap(ignore) LUID *OUTPUT(LUID temp)
+%typemap(python,ignore) LUID *OUTPUT(LUID temp)
 {
-  $1 = &temp;
+  $target = &temp;
 }
-%typemap(argout) LUID *OUTPUT {
+%typemap(python,argout) LUID *OUTPUT {
     PyObject *o;
-    o = PyWinObject_FromLARGE_INTEGER(*((LARGE_INTEGER *)$1));
-    if (!$result) {
-      $result = o;
-    } else if ($result == Py_None) {
+    o = PyWinObject_FromLARGE_INTEGER(*((LARGE_INTEGER *)$source));
+    if (!$target) {
+      $target = o;
+    } else if ($target == Py_None) {
       Py_DECREF(Py_None);
-      $result = o;
+      $target = o;
     } else {
-      if (!PyList_Check($result)) {
-	PyObject *o2 = $result;
-	$result = PyList_New(0);
-	PyList_Append($result,o2);
+      if (!PyList_Check($target)) {
+	PyObject *o2 = $target;
+	$target = PyList_New(0);
+	PyList_Append($target,o2);
 	Py_XDECREF(o2);
       }
-      PyList_Append($result,o);
+      PyList_Append($target,o);
       Py_XDECREF(o);
     }
 }
@@ -836,97 +836,6 @@ void PyWinObject_FreeTOKEN_PRIVILEGES(TOKEN_PRIVILEGES *pPriv)
 	PyDict_SetItemString(d, "PyCtxtHandleType", (PyObject *)&PyCtxtHandleType);
 	PyDict_SetItemString(d, "PyCredHandleType", (PyObject *)&PyCredHandleType);
 
-	/*
-
-	static PyMethodDef win32securityMethods[] = {
-		{ "MapGenericMask", PyMapGenericMask, 1 },
-		{ "CreateWellKnownSid", PyCreateWellKnownSid, 1 },
-		{ "TranslateName", PyTranslateName, 1 },
-		{ "LsaCallAuthenticationPackage", PyLsaCallAuthenticationPackage, 1 },
-		{ "QuerySecurityPackageInfo", PyQuerySecurityPackageInfo, 1 },
-		{ "AcceptSecurityContext", PyAcceptSecurityContext, 1 },
-		{ "InitializeSecurityContext", PyInitializeSecurityContext, 1 },
-		{ "AcquireCredentialsHandle", PyAcquireCredentialsHandle, 1 },
-		{ "LsaGetLogonSessionData", PyLsaGetLogonSessionData, 1 },
-		{ "LsaEnumerateLogonSessions", PyLsaEnumerateLogonSessions, 1 },
-		{ "LsaLookupAuthenticationPackage", PyLsaLookupAuthenticationPackage, 1 },
-		{ "LsaDeregisterLogonProcess", PyLsaDeregisterLogonProcess, 1 },
-		{ "LsaConnectUntrusted", PyLsaConnectUntrusted, 1 },
-		{ "LsaRegisterLogonProcess", PyLsaRegisterLogonProcess, 1 },
-		{ "CreateRestrictedToken", pfn_PyCreateRestrictedToken, 1 },
-		{ "CheckTokenMembership", PyCheckTokenMembership, 1 },
-		{ "DuplicateTokenEx", pfnPyDuplicateTokenEx, 1 },
-		{ "DuplicateToken", _wrap_DuplicateToken, 1 },
-		{ "ImpersonateSelf", _wrap_ImpersonateSelf, 1 },
-		{ "AllocateLocallyUniqueId", _wrap_AllocateLocallyUniqueId, 1 },
-		{ "EnumerateSecurityPackages", PyEnumerateSecurityPackages, 1 },
-		{ "CryptEnumProviders", PyCryptEnumProviders, 1 },
-		{ "LsaUnregisterPolicyChangeNotification", PyLsaUnregisterPolicyChangeNotification, 1 },
-		{ "LsaRegisterPolicyChangeNotification", PyLsaRegisterPolicyChangeNotification, 1 },
-		{ "LsaRetrievePrivateData", PyLsaRetrievePrivateData, 1 },
-		{ "LsaStorePrivateData", PyLsaStorePrivateData, 1 },
-		{ "ConvertStringSecurityDescriptorToSecurityDescriptor", PyConvertStringSecurityDescriptorToSecurityDescriptor, 1 },
-		{ "ConvertSecurityDescriptorToStringSecurityDescriptor", PyConvertSecurityDescriptorToStringSecurityDescriptor, 1 },
-		{ "ConvertStringSidToSid", PyConvertStringSidToSid, 1 },
-		{ "ConvertSidToStringSid", PyConvertSidToStringSid, 1 },
-		{ "LsaEnumerateAccountsWithUserRight", PyLsaEnumerateAccountsWithUserRight, 1 },
-		{ "LsaEnumerateAccountRights", PyLsaEnumerateAccountRights, 1 },
-		{ "LsaRemoveAccountRights", pfn_PyLsaRemoveAccountRights, 1 },
-		{ "LsaAddAccountRights", pfn_PyLsaAddAccountRights, 1 },
-		{ "LsaSetInformationPolicy", PyLsaSetInformationPolicy, 1 },
-		{ "LsaQueryInformationPolicy", PyLsaQueryInformationPolicy, 1 },
-		{ "LsaClose", PyLsaClose, 1 },
-		{ "LsaOpenPolicy", PyLsaOpenPolicy, 1 },
-		{ "GetPolicyHandle", PyLsaOpenPolicy, 1 },
-		{ "SetTokenInformation", PySetTokenInformation, 1 },
-		{ "SetKernelObjectSecurity", MySetKernelObjectSecurity, 1 },
-		{ "GetKernelObjectSecurity", MyGetKernelObjectSecurity, 1 },
-		{ "SetUserObjectSecurity", MySetUserObjectSecurity, 1 },
-		{ "GetUserObjectSecurity", MyGetUserObjectSecurity, 1 },
-		{ "SetFileSecurity", MySetFileSecurity, 1 },
-		{ "GetFileSecurity", MyGetFileSecurity, 1 },
-		{ "SetThreadToken", PySetThreadToken, 1 },
-		{ "OpenThreadToken", _wrap_OpenThreadToken, 1 },
-		{ "GetTokenInformation", PyGetTokenInformation, 1 },
-		{ "AdjustTokenGroups", pfn_PyAdjustTokenGroups, 1 },
-		{ "AdjustTokenPrivileges", pfn_PyAdjustTokenPrivileges, 1 },
-		{ "LookupPrivilegeDisplayName", LookupPrivilegeDisplayName, 1 },
-		{ "LookupPrivilegeName", LookupPrivilegeName, 1 },
-		{ "LookupPrivilegeValue", _wrap_LookupPrivilegeValue, 1 },
-		{ "OpenProcessToken", _wrap_OpenProcessToken, 1 },
-		{ "GetNamedSecurityInfo", PyGetNamedSecurityInfo, 1 },
-		{ "SetNamedSecurityInfo", SetNamedSecurityInfo, 1 },
-		{ "GetSecurityInfo", PyGetSecurityInfo, 1 },
-		{ "SetSecurityInfo", SetSecurityInfo, 1 },
-		{ "GetBinarySid", PyGetBinarySid, 1 },
-		{ "LookupAccountSid", LookupAccountSid, 1 },
-		{ "LookupAccountName", LookupAccountName, 1 },
-		{ "LogonUserEx", pfn_PyLogonUserEx, 1 },
-		{ "LogonUser", pfn_PyLogonUser, 1 },
-		{ "RevertToSelf", _wrap_RevertToSelf, 1 },
-		{ "IsTokenRestricted", PyIsTokenRestricted, 1 },
-		{ "ImpersonateAnonymousToken", PyImpersonateAnonymousToken, 1 },
-		{ "ImpersonateLoggedOnUser", _wrap_ImpersonateLoggedOnUser, 1 },
-		{ "ImpersonateNamedPipeClient", _wrap_ImpersonateNamedPipeClient, 1 },
-		{ "SECURITY_DESCRIPTOR", PyWinMethod_NewSECURITY_DESCRIPTOR, 1 },
-		{ "SECURITY_ATTRIBUTES", PyWinMethod_NewSECURITY_ATTRIBUTES, 1 },
-		{ "SID", PyWinMethod_NewSID, 1 },
-		{ "ACL", PyWinMethod_NewACL, 1 },
-		{ "DsListDomainsInSite", PyDsListDomainsInSite, 1 },
-		{ "DsListRoles", PyDsListRoles, 1 },
-		{ "DsListSites", PyDsListSites, 1 },
-		{ "DsListServersForDomainInSite", PyDsListServersForDomainInSite, 1 },
-		{ "DsListServersInSite", PyDsListServersInSite, 1 },
-		{ "DsListInfoForServer", PyDsListInfoForServer, 1 },
-		{ "DsCrackNames", PyDsCrackNames, 1 },
-		{ "DsGetDcName", PYDSGETDCNAME, 1 },
-		{ "DsUnBind", PyDsUnBind, 1 },
-		{ "DsBind", PyDsBind, 1 },
-		{ "DsWriteAccountSpn", PyDsWriteAccountSpn, 1 },
-		{ "DsGetSpn", PyDsGetSpn, 1 },
-		{ NULL, NULL }
-	};
-
     // Patch up any kwarg functions - SWIG doesn't like them.
     for (PyMethodDef *pmd = win32securityMethods;pmd->ml_name;pmd++)
         if   ((strcmp(pmd->ml_name, "DsGetDcName")==0)
@@ -941,7 +850,6 @@ void PyWinObject_FreeTOKEN_PRIVILEGES(TOKEN_PRIVILEGES *pPriv)
 			){
 			pmd->ml_flags = METH_VARARGS | METH_KEYWORDS;
 			}
-	*/
 %}
 
 // Autoduck for objects defined in win32security_ds.cpp
@@ -994,11 +902,7 @@ void PyWinObject_FreeTOKEN_PRIVILEGES(TOKEN_PRIVILEGES *pPriv)
 // @pyparm <o PyUnicode>|siteName|None|
 // @pyparm int|flags|0|
 
-%native (DsCrackNames) PyDsCrackNames;
-%{
-extern PyObject *PyDsCrackNames(PyObject *self, PyObject *args);
-%}
-
+%native (DsCrackNames) extern PyObject *PyDsCrackNames(PyObject *self, PyObject *args);
 // @pyswig [ (status, domain, name) ]|DsCrackNames|Converts an array of directory service object names from one format to another.
 // @pyparm <o PyDS_HANDLE>|hds||Directory service handle as returned by <om win32security.DsBind>
 // @pyparm int|flags||
@@ -1006,54 +910,31 @@ extern PyObject *PyDsCrackNames(PyObject *self, PyObject *args);
 // @pyparm int|formatDesired||
 // @pyparm [name, ...]|names||
 
-%native (DsListInfoForServer) PyDsListInfoForServer;
-%{
-extern PyObject *PyDsListInfoForServer(PyObject *self, PyObject *args);
-%}
-
+%native (DsListInfoForServer) extern PyObject *PyDsListInfoForServer(PyObject *self, PyObject *args);
 // @pyswig [ <o PyDS_NAME_RESULT_ITEM>, ...]|DsListInfoForServer|Lists miscellaneous information for a server.
 // @pyparm <o PyDS_HANDLE>|hds||Directory service handle as returned by <om win32security.DsBind>
 // @pyparm <o PyUnicode>|server||
 
-%native (DsListServersInSite) PyDsListServersInSite;
-%{
-extern PyObject *PyDsListServersInSite(PyObject *self, PyObject *args);
-%}
-
+%native (DsListServersInSite) extern PyObject *PyDsListServersInSite(PyObject *self, PyObject *args);
 // @pyswig [ <o PyDS_NAME_RESULT_ITEM>, ...]|DsListServersInSite|
 // @pyparm <o PyDS_HANDLE>|hds||Directory service handle as returned by <om win32security.DsBind>
 // @pyparm <o PyUnicode>|site||
 
-%native (DsListServersForDomainInSite) PyDsListServersForDomainInSite;
-%{
-extern PyObject *PyDsListServersForDomainInSite(PyObject *self, PyObject *args);
-%}
-
+%native (DsListServersForDomainInSite) extern PyObject *PyDsListServersForDomainInSite(PyObject *self, PyObject *args);
 // @pyswig [ <o PyDS_NAME_RESULT_ITEM>, ...]|DsListServersInSite|
 // @pyparm <o PyDS_HANDLE>|hds||Directory service handle as returned by <om win32security.DsBind>
 // @pyparm <o PyUnicode>|domain||
 // @pyparm <o PyUnicode>|site||
 
-%native (DsListSites) PyDsListSites;
-%{
-extern PyObject *PyDsListSites(PyObject *self, PyObject *args);
-%}
-
+%native (DsListSites) extern PyObject *PyDsListSites(PyObject *self, PyObject *args);
 // @pyswig [ <o PyDS_NAME_RESULT_ITEM>, ...]|DsListServersInSite|
 // @pyparm <o PyDS_HANDLE>|hds||Directory service handle as returned by <om win32security.DsBind>
 
-%native (DsListRoles) PyDsListRoles;
-%{
-extern PyObject *PyDsListRoles(PyObject *self, PyObject *args);
-%}
+%native (DsListRoles) extern PyObject *PyDsListRoles(PyObject *self, PyObject *args);
 // @pyswig [ <o PyDS_NAME_RESULT_ITEM>, ...]|DsListRoles|
 // @pyparm <o PyDS_HANDLE>|hds||Directory service handle as returned by <om win32security.DsBind>
 
-%native (DsListDomainsInSite) PyDsListDomainsInSite;
-%{
-extern PyObject *PyDsListDomainsInSite(PyObject *self, PyObject *args);
-%}
-
+%native (DsListDomainsInSite) extern PyObject *PyDsListDomainsInSite(PyObject *self, PyObject *args);
 // @pyswig [ <o PyDS_NAME_RESULT_ITEM>, ...]|DsListDomainsInSite|
 // @pyparm <o PyDS_HANDLE>|hds||Directory service handle as returned by <om win32security.DsBind>
 
@@ -2518,7 +2399,7 @@ static PyObject *PySetTokenInformation(PyObject *self, PyObject *args)
 // we used to expose this as "GetPolicyHandle".  It has been renamed
 // to "LsaOpenPolicy" to be consistent with win32, but GetPolicyHandle still
 // exists as an alias.
-%name(GetPolicyHandle) PyLsaOpenPolicy;
+%native(GetPolicyHandle) PyLsaOpenPolicy;
 
 // @pyswig <o PyLSA_HANDLE>|LsaOpenPolicy|Opens a policy handle for the specified system
 %native(LsaOpenPolicy) PyLsaOpenPolicy;

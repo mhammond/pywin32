@@ -1103,7 +1103,7 @@ PyObject *PyWinObject_FromQueuedOVERLAPPED(OVERLAPPED *p)
 	// Also check it is a valid write pointer (we don't write to it, but all
 	// PyObjects are writable, so that extra check is worthwhile)
 	// This is NOT foolproof - screw up reference counting and things may die!
-	if (Py_REFCNT(po)<=0 || Py_TYPE(po)==0 || IsBadWritePtr(po, sizeof(PyOVERLAPPED))) {
+	if (po->ob_refcnt<=0 || po->ob_type==0 || IsBadWritePtr(po, sizeof(PyOVERLAPPED))) {
 		PyErr_SetString(PyExc_RuntimeError, "This overlapped object has lost all its references so was destroyed");
 		return NULL;
 	}
@@ -1564,16 +1564,17 @@ BOOLAPI UnlockFile(
 
 %native(UnlockFileEx) MyUnlockFileEx;
 
-
 // File Handle / File Descriptor APIs.
 // @pyswig long|_get_osfhandle|Gets operating-system file handle associated with existing stream
 // @pyparm int|fd||File descriptor as returned by file.fileno()
-%name(_get_osfhandle) PyObject *myget_osfhandle( int filehandle );
+%name(_get_osfhandle)
+PyObject *myget_osfhandle( int filehandle );
 
 // @pyswig int|_open_osfhandle|Associates a C run-time file handle with a existing operating-system file handle.
 // @pyparm <o PyHANDLE>|osfhandle||An open file handle
 // @pyparm int|flags||O_APPEND,O_RDONLY, or O_TEXT
-%name(_open_osfhandle) PyObject *myopen_osfhandle ( PyHANDLE osfhandle, int flags );
+%name(_open_osfhandle)
+PyObject *myopen_osfhandle ( PyHANDLE osfhandle, int flags );
 
 
 %{
@@ -2164,8 +2165,7 @@ PyObject* MyWSAEventSelect
 %}
 
 // @pyswig |WSAEventSelect|Specifies an event object to be associated with the supplied set of FD_XXXX network events.
-%name(WSAEventSelect)
-PyObject *MyWSAEventSelect
+%name(WSAEventSelect) PyObject *MyWSAEventSelect
 (
 	SOCKET *s, // @pyparm <o PySocket>|socket||socket to attach to the event
 	PyHANDLE hEvent, // @pyparm <o PyHandle>|hEvent||Event handle for the socket to become attached to.
@@ -2287,8 +2287,7 @@ PyObject* MyWSAAsyncSelect
 %}
 
 // @pyswig |WSAAsyncSelect|Request windows message notification for the supplied set of FD_XXXX network events.
-%name(WSAAsyncSelect)
-PyObject *MyWSAAsyncSelect
+%name(WSAAsyncSelect) PyObject *MyWSAAsyncSelect
 (
 	SOCKET *s, // @pyparm <o PySocket>|socket||socket to attach to the event
 	HWND hwnd, // @pyparm <o hwnd>|hwnd||Window handle for the socket to become attached to.
@@ -2535,95 +2534,95 @@ Error:
 
 %native (DCB) PyWinMethod_NewDCB;
 
-%typemap(in) DCB *
+%typemap(python,in) DCB *
 {
-	if (!PyWinObject_AsDCB($input, &$1, TRUE))
+	if (!PyWinObject_AsDCB($source, &$target, TRUE))
 		return NULL;
 }
-%typemap(argout) DCB *OUTPUT {
+%typemap(python,argout) DCB *OUTPUT {
     PyObject *o;
-    o = PyWinObject_FromDCB($1);
-    if (!$result) {
-      $result = o;
-    } else if ($result == Py_None) {
+    o = PyWinObject_FromDCB($source);
+    if (!$target) {
+      $target = o;
+    } else if ($target == Py_None) {
       Py_DECREF(Py_None);
-      $result = o;
+      $target = o;
     } else {
-      if (!PyList_Check($result)) {
-	PyObject *o2 = $result;
-	$result = PyList_New(0);
-	PyList_Append($result,o2);
+      if (!PyList_Check($target)) {
+	PyObject *o2 = $target;
+	$target = PyList_New(0);
+	PyList_Append($target,o2);
 	Py_XDECREF(o2);
       }
-      PyList_Append($result,o);
+      PyList_Append($target,o);
       Py_XDECREF(o);
     }
 }
-%typemap(ignore) DCB *OUTPUT(DCB temp)
+%typemap(python,ignore) DCB *OUTPUT(DCB temp)
 {
-  $1 = &temp;
-  $1->DCBlength = sizeof( DCB ) ;
+  $target = &temp;
+  $target->DCBlength = sizeof( DCB ) ;
 }
 
-%typemap(in) COMSTAT *
+%typemap(python,in) COMSTAT *
 {
-	if (!PyWinObject_AsCOMSTAT($input, &$1, TRUE))
+	if (!PyWinObject_AsCOMSTAT($source, &$target, TRUE))
 		return NULL;
 }
-%typemap(argout) COMSTAT *OUTPUT {
+%typemap(python,argout) COMSTAT *OUTPUT {
     PyObject *o;
-    o = PyWinObject_FromCOMSTAT(*$1);
-    if (!$result) {
-      $result = o;
-    } else if ($result == Py_None) {
+    o = PyWinObject_FromCOMSTAT(*$source);
+    if (!$target) {
+      $target = o;
+    } else if ($target == Py_None) {
       Py_DECREF(Py_None);
-      $result = o;
+      $target = o;
     } else {
-      if (!PyList_Check($result)) {
-	PyObject *o2 = $result;
-	$result = PyList_New(0);
-	PyList_Append($result,o2);
+      if (!PyList_Check($target)) {
+	PyObject *o2 = $target;
+	$target = PyList_New(0);
+	PyList_Append($target,o2);
 	Py_XDECREF(o2);
       }
-      PyList_Append($result,o);
+      PyList_Append($target,o);
       Py_XDECREF(o);
     }
 }
-%typemap(ignore) COMSTAT *OUTPUT(COMSTAT temp)
+%typemap(python,ignore) COMSTAT *OUTPUT(COMSTAT temp)
 {
-  $1 = &temp;
+  $target = &temp;
 }
 
 
-%typemap(in) COMMTIMEOUTS *(COMMTIMEOUTS temp)
+%typemap(python,in) COMMTIMEOUTS *(COMMTIMEOUTS temp)
 {
-	$1 = &temp;
-	if (!PyWinObject_AsCOMMTIMEOUTS($input, $1))
+	$target = &temp;
+	if (!PyWinObject_AsCOMMTIMEOUTS($source, $target))
 		return NULL;
 }
 
-%typemap(argout) COMMTIMEOUTS *OUTPUT {
+%typemap(python,argout) COMMTIMEOUTS *OUTPUT {
     PyObject *o;
-    o = PyWinObject_FromCOMMTIMEOUTS($1);
-    if (!$result) {
-      $result = o;
-    } else if ($result == Py_None) {
+    o = PyWinObject_FromCOMMTIMEOUTS($source);
+    if (!$target) {
+      $target = o;
+    } else if ($target == Py_None) {
       Py_DECREF(Py_None);
-      $result = o;
+      $target = o;
     } else {
-      if (!PyList_Check($result)) {
-	PyObject *o2 = $result;
-	$result = PyList_New(0);
-	PyList_Append($result,o2);
+      if (!PyList_Check($target)) {
+	PyObject *o2 = $target;
+	$target = PyList_New(0);
+	PyList_Append($target,o2);
 	Py_XDECREF(o2);
       }
-      PyList_Append($result,o);
+      PyList_Append($target,o);
       Py_XDECREF(o);
     }
 }
-%typemap(ignore) COMMTIMEOUTS *OUTPUT(COMMTIMEOUTS temp)
+%typemap(python,ignore) COMMTIMEOUTS *OUTPUT(COMMTIMEOUTS temp)
 {
-  $1 = &temp;
+  $target = &temp;
 }
 
 
@@ -5882,151 +5881,6 @@ PyCFunction pfnpy_OpenFileById=(PyCFunction)py_OpenFileById;
 		PYWIN_MODULE_INIT_RETURN_ERROR;
 
 	PyDateTime_IMPORT;
-
-	static PyMethodDef win32fileMethods[] = {
-		{ "OpenFileById", pfnpy_OpenFileById, 1 },
-		{ "ReOpenFile", pfnpy_ReOpenFile, 1 },
-		{ "Wow64RevertWow64FsRedirection", py_Wow64RevertWow64FsRedirection, 1 },
-		{ "Wow64DisableWow64FsRedirection", py_Wow64DisableWow64FsRedirection, 1 },
-		{ "SfcIsFileProtected", py_SfcIsFileProtected, 1 },
-		{ "SfcGetNextProtectedFile", py_SfcGetNextProtectedFile, 1 },
-		{ "GetFullPathName", pfnpy_GetFullPathName, 1 },
-		{ "GetLongPathName", pfnpy_GetLongPathName, 1 },
-		{ "GetFinalPathNameByHandle", pfnpy_GetFinalPathNameByHandle, 1 },
-		{ "FindFileNames", pfnpy_FindFileNames, 1 },
-		{ "FindStreams", pfnpy_FindStreams, 1 },
-		{ "FindFilesIterator", pfnpy_FindFilesIterator, 1 },
-		{ "FindFilesW", pfnpy_FindFilesW, 1 },
-		{ "RemoveDirectory", pfnpy_RemoveDirectory, 1 },
-		{ "CreateDirectoryExW", pfnpy_CreateDirectoryExW, 1 },
-		{ "SetFileAttributesW", pfnpy_SetFileAttributesW, 1 },
-		{ "SetFileInformationByHandle", pfnpy_SetFileInformationByHandle, 1 },
-		{ "GetFileInformationByHandleEx", pfnpy_GetFileInformationByHandleEx, 1 },
-		{ "GetFileAttributesExW", pfnpy_GetFileAttributesExW, 1 },
-		{ "GetFileAttributesEx", pfnpy_GetFileAttributesEx, 1 },
-		{ "DeleteFileW", pfnpy_DeleteFileW, 1 },
-		{ "CreateFileW", pfnpy_CreateFileW, 1 },
-		{ "CloseEncryptedFileRaw", py_CloseEncryptedFileRaw, 1 },
-		{ "WriteEncryptedFileRaw", py_WriteEncryptedFileRaw, 1 },
-		{ "ReadEncryptedFileRaw", py_ReadEncryptedFileRaw, 1 },
-		{ "OpenEncryptedFileRaw", py_OpenEncryptedFileRaw, 1 },
-		{ "ReplaceFile", py_ReplaceFile, 1 },
-		{ "MoveFileWithProgress", pfnpy_MoveFileWithProgress, 1 },
-		{ "CopyFileEx", pfnpy_CopyFileEx, 1 },
-		{ "SetFileShortName", py_SetFileShortName, 1 },
-		{ "BackupWrite", py_BackupWrite, 1 },
-		{ "BackupSeek", py_BackupSeek, 1 },
-		{ "BackupRead", py_BackupRead, 1 },
-		{ "DuplicateEncryptionInfoFile", pfnpy_DuplicateEncryptionInfoFile, 1 },
-		{ "AddUsersToEncryptedFile", py_AddUsersToEncryptedFile, 1 },
-		{ "RemoveUsersFromEncryptedFile", py_RemoveUsersFromEncryptedFile, 1 },
-		{ "QueryRecoveryAgentsOnEncryptedFile", py_QueryRecoveryAgentsOnEncryptedFile, 1 },
-		{ "QueryUsersOnEncryptedFile", py_QueryUsersOnEncryptedFile, 1 },
-		{ "FileEncryptionStatus", py_FileEncryptionStatus, 1 },
-		{ "EncryptionDisable", py_EncryptionDisable, 1 },
-		{ "DecryptFile", py_DecryptFile, 1 },
-		{ "EncryptFile", py_EncryptFile, 1 },
-		{ "CreateSymbolicLink", pfnpy_CreateSymbolicLink, 1 },
-		{ "CreateHardLink", pfnpy_CreateHardLink, 1 },
-		{ "GetVolumePathNamesForVolumeName", pfnpy_GetVolumePathNamesForVolumeName, 1 },
-		{ "GetVolumePathName", pfnpy_GetVolumePathName, 1 },
-		{ "GetVolumeNameForVolumeMountPoint", pfnpy_GetVolumeNameForVolumeMountPoint, 1 },
-		{ "DeleteVolumeMountPoint", pfnpy_DeleteVolumeMountPoint, 1 },
-		{ "SetVolumeMountPoint", pfnpy_SetVolumeMountPoint, 1 },
-		{ "WaitCommEvent", MyWaitCommEvent, 1 },
-		{ "TransmitCommChar", _wrap_TransmitCommChar, 1 },
-		{ "SetupComm", _wrap_SetupComm, 1 },
-		{ "SetCommBreak", _wrap_SetCommBreak, 1 },
-		{ "PurgeComm", _wrap_PurgeComm, 1 },
-		{ "SetCommTimeouts", _wrap_SetCommTimeouts, 1 },
-		{ "GetCommTimeouts", _wrap_GetCommTimeouts, 1 },
-		{ "GetCommModemStatus", _wrap_GetCommModemStatus, 1 },
-		{ "SetCommMask", _wrap_SetCommMask, 1 },
-		{ "GetCommMask", _wrap_GetCommMask, 1 },
-		{ "ClearCommBreak", _wrap_ClearCommBreak, 1 },
-		{ "SetCommState", _wrap_SetCommState, 1 },
-		{ "GetCommState", _wrap_GetCommState, 1 },
-		{ "EscapeCommFunction", _wrap_EscapeCommFunction, 1 },
-		{ "ClearCommError", PyClearCommError, 1 },
-		{ "BuildCommDCB", _wrap_BuildCommDCB, 1 },
-		{ "DCB", PyWinMethod_NewDCB, 1 },
-		{ "WSARecv", MyWSARecv, 1 },
-		{ "WSASend", MyWSASend, 1 },
-		{ "WSAAsyncSelect", _wrap_WSAAsyncSelect, 1 },
-		{ "WSAEnumNetworkEvents", MyWSAEnumNetworkEvents, 1 },
-		{ "WSAEventSelect", _wrap_WSAEventSelect, 1 },
-		{ "CalculateSocketEndPointSize", MyCalculateSocketEndPointSize, 1 },
-		{ "GetAcceptExSockaddrs", MyGetAcceptExSockaddrs, 1 },
-		{ "AcceptEx", MyAcceptEx, 1 },
-		{ "ConnectEx", pfnpy_ConnectEx, 1 },
-		{ "TransmitFile", pfnpy_TransmitFile, 1 },
-		{ "_getmaxstdio", _wrap__getmaxstdio, 1 },
-		{ "_setmaxstdio", _wrap__setmaxstdio, 1 },
-		{ "_open_osfhandle", _wrap__open_osfhandle, 1 },
-		{ "_get_osfhandle", _wrap__get_osfhandle, 1 },
-		{ "UnlockFileEx", MyUnlockFileEx, 1 },
-		{ "UnlockFile", _wrap_UnlockFile, 1 },
-		{ "SetVolumeLabel", _wrap_SetVolumeLabel, 1 },
-		{ "SetFilePointer", MySetFilePointer, 1 },
-		{ "SetFileAttributes", _wrap_SetFileAttributes, 1 },
-		{ "SetFileApisToOEM", _wrap_SetFileApisToOEM, 1 },
-		{ "SetFileApisToANSI", _wrap_SetFileApisToANSI, 1 },
-		{ "SetEndOfFile", _wrap_SetEndOfFile, 1 },
-		{ "SetCurrentDirectory", _wrap_SetCurrentDirectory, 1 },
-		{ "FILE_NOTIFY_INFORMATION", PyFILE_NOTIFY_INFORMATION, 1 },
-		{ "ReadDirectoryChangesW", PyReadDirectoryChangesW, 1 },
-		{ "QueryDosDevice", MyQueryDosDevice, 1 },
-		{ "MoveFileExW", _wrap_MoveFileExW, 1 },
-		{ "MoveFileEx", _wrap_MoveFileEx, 1 },
-		{ "MoveFileW", _wrap_MoveFileW, 1 },
-		{ "MoveFile", _wrap_MoveFile, 1 },
-		{ "LockFileEx", MyLockFileEx, 1 },
-		{ "LockFile", _wrap_LockFile, 1 },
-		{ "GetOverlappedResult", _wrap_GetOverlappedResult, 1 },
-		{ "GetLogicalDrives", _wrap_GetLogicalDrives, 1 },
-		{ "GetFileType", _wrap_GetFileType, 1 },
-		{ "CloseHandle", MyCloseHandle, 1 },
-		{ "WriteFile", MyWriteFile, 1 },
-		{ "ReadFile", MyReadFile, 1 },
-		{ "PostQueuedCompletionStatus", myPostQueuedCompletionStatus, 1 },
-		{ "GetQueuedCompletionStatus", myGetQueuedCompletionStatus, 1 },
-		{ "AllocateReadBuffer", MyAllocateReadBuffer, 1 },
-		{ "GetFileSize", MyGetFileSize, 1 },
-		{ "GetCompressedFileSize", MyGetCompressedFileSize, 1 },
-		{ "GetFileInformationByHandle", PyGetFileInformationByHandle, 1 },
-		{ "SetFileTime", pfnPySetFileTime, 1 },
-		{ "GetFileTime", _wrap_GetFileTime, 1 },
-		{ "GetFileAttributesW", _wrap_GetFileAttributesW, 1 },
-		{ "GetFileAttributes", _wrap_GetFileAttributes, 1 },
-		{ "GetDriveTypeW", _wrap_GetDriveTypeW, 1 },
-		{ "GetDriveType", _wrap_GetDriveType, 1 },
-		{ "GetDiskFreeSpaceEx", _wrap_GetDiskFreeSpaceEx, 1 },
-		{ "GetDiskFreeSpace", _wrap_GetDiskFreeSpace, 1 },
-		{ "GetBinaryType", _wrap_GetBinaryType, 1 },
-		{ "FlushFileBuffers", _wrap_FlushFileBuffers, 1 },
-		{ "FindNextChangeNotification", _wrap_FindNextChangeNotification, 1 },
-		{ "FindFirstChangeNotification", _wrap_FindFirstChangeNotification, 1 },
-		{ "FindCloseChangeNotification", _wrap_FindCloseChangeNotification, 1 },
-		{ "FindClose", _wrap_FindClose, 1 },
-		{ "OVERLAPPED", PyWinMethod_NewOVERLAPPED, 1 },
-		{ "DeviceIoControl", pfnpy_DeviceIoControl, 1 },
-		{ "DeleteFile", _wrap_DeleteFile, 1 },
-		{ "DefineDosDeviceW", _wrap_DefineDosDeviceW, 1 },
-		{ "DefineDosDevice", _wrap_DefineDosDevice, 1 },
-		{ "SetMailslotInfo", _wrap_SetMailslotInfo, 1 },
-		{ "GetMailslotInfo", _wrap_GetMailslotInfo, 1 },
-		{ "CreateMailslot", _wrap_CreateMailslot, 1 },
-		{ "CreateIoCompletionPort", MyCreateIoCompletionPort, 1 },
-		{ "CreateFile", _wrap_CreateFile, 1 },
-		{ "CreateDirectoryEx", _wrap_CreateDirectoryEx, 1 },
-		{ "CreateDirectoryW", _wrap_CreateDirectoryW, 1 },
-		{ "CreateDirectory", _wrap_CreateDirectory, 1 },
-		{ "CopyFileW", _wrap_CopyFileW, 1 },
-		{ "CopyFile", _wrap_CopyFile, 1 },
-		{ "CancelIo", _wrap_CancelIo, 1 },
-		{ "AreFileApisANSI", _wrap_AreFileApisANSI, 1 },
-		{ NULL, NULL }
-	};
 
 	for (PyMethodDef *pmd = win32fileMethods;pmd->ml_name;pmd++)
 		if   ((strcmp(pmd->ml_name, "CreateFileW")==0)
