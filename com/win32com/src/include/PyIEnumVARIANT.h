@@ -38,7 +38,7 @@ class PyGEnumVARIANT : public PyGatewayBase, public IEnumVARIANT {
     STDMETHOD(Reset)(void);
     STDMETHOD(Clone)
     (
-        /* [out] */ IEnumVARIANT __RPC_FAR *__RPC_FAR *ppEnum);
+        /* [out] */ IEnumVARIANT __RPC_FAR * __RPC_FAR * ppEnum);
 };
 
 #endif /* __PYIENUMVARIANT_H__ */

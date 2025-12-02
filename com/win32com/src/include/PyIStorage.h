@@ -43,19 +43,19 @@ class PyGStorage : public PyGatewayBase, public IStorage {
     // IStorage
     STDMETHOD(CreateStream)
     (const OLECHAR __RPC_FAR *pwcsName, DWORD grfMode, DWORD reserved1, DWORD reserved2,
-     IStream __RPC_FAR *__RPC_FAR *ppstm);
+     IStream __RPC_FAR * __RPC_FAR * ppstm);
 
     STDMETHOD(OpenStream)
     (const OLECHAR __RPC_FAR *pwcsName, void __RPC_FAR *reserved1, DWORD grfMode, DWORD reserved2,
-     IStream __RPC_FAR *__RPC_FAR *ppstm);
+     IStream __RPC_FAR * __RPC_FAR * ppstm);
 
     STDMETHOD(CreateStorage)
     (const OLECHAR __RPC_FAR *pwcsName, DWORD grfMode, DWORD dwStgFmt, DWORD reserved2,
-     IStorage __RPC_FAR *__RPC_FAR *ppstg);
+     IStorage __RPC_FAR * __RPC_FAR * ppstg);
 
     STDMETHOD(OpenStorage)
     (const OLECHAR __RPC_FAR *pwcsName, IStorage __RPC_FAR *pstgPriority, DWORD grfMode, SNB snbExclude, DWORD reserved,
-     IStorage __RPC_FAR *__RPC_FAR *ppstg);
+     IStorage __RPC_FAR * __RPC_FAR * ppstg);
 
     STDMETHOD(CopyTo)
     (DWORD ciidExclude, const IID __RPC_FAR *rgiidExclude, SNB snbExclude, IStorage __RPC_FAR *pstgDest);
@@ -69,7 +69,7 @@ class PyGStorage : public PyGatewayBase, public IStorage {
     STDMETHOD(Revert)(void);
 
     STDMETHOD(EnumElements)
-    (DWORD reserved1, void __RPC_FAR *reserved2, DWORD reserved3, IEnumSTATSTG __RPC_FAR *__RPC_FAR *ppenum);
+    (DWORD reserved1, void __RPC_FAR *reserved2, DWORD reserved3, IEnumSTATSTG __RPC_FAR * __RPC_FAR * ppenum);
 
     STDMETHOD(DestroyElement)(const OLECHAR __RPC_FAR *pwcsName);
 

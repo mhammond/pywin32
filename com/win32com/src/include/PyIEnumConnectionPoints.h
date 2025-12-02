@@ -36,5 +36,5 @@ class PyGEnumConnectionPoints : public PyGatewayBase, public IEnumConnectionPoin
 
     STDMETHOD(Reset)(void);
 
-    STDMETHOD(Clone)(IEnumConnectionPoints __RPC_FAR *__RPC_FAR *ppEnum);
+    STDMETHOD(Clone)(IEnumConnectionPoints __RPC_FAR * __RPC_FAR * ppEnum);
 };

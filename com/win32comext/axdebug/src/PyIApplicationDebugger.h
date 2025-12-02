@@ -36,7 +36,7 @@ class PyGApplicationDebugger : public PyGatewayBase, public IApplicationDebugger
 
     STDMETHOD(CreateInstanceAtDebugger)
     (REFCLSID rclsid, IUnknown __RPC_FAR *pUnkOuter, DWORD dwClsContext, REFIID riid,
-     IUnknown __RPC_FAR *__RPC_FAR *ppvObject);
+     IUnknown __RPC_FAR * __RPC_FAR * ppvObject);
 
     STDMETHOD(onDebugOutput)(LPCOLESTR pstr);
 
