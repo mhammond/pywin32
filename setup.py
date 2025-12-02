@@ -856,14 +856,13 @@ class my_build_ext(build_ext):
                 None,  # "normal" swig file - no special win32 issues.
             )
             # Using win32 extensions to SWIG for generating COM classes.
-            """
             if interface_parent is not None:
                 # generating a class, not a module.
                 swig_cmd.append("-pythoncom")
                 if interface_parent:
                     # A class deriving from other than the default
                     swig_cmd.extend(["-com_interface_parent", interface_parent])
-            """
+            
 
             # This 'newer' check helps Python 2.2 builds, which otherwise
             # *always* regenerate the .cpp files, meaning every future
