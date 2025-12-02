@@ -48,7 +48,7 @@ public:
 
 %}
 
-%exception HTHEME {
+%typemap(except) HTHEME {
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS
@@ -63,7 +63,7 @@ public:
     $result = new PyHTHEME($1);
 }
 
-%typemap(in,numinputs=0) HTHEME *(HTHEME temp)
+%typemap(ignore) HTHEME *(HTHEME temp)
 {
   if (temp==(HTHEME)0) {
     $1 = Py_None;
@@ -87,7 +87,7 @@ typedef float HDC;
 		return NULL;
 }
 
-%typemap(in,numinputs=0) RECT *OUTPUT(RECT temp)
+%typemap(ignore) RECT *OUTPUT(RECT temp)
 {
   $1 = &temp;
 }
@@ -135,7 +135,7 @@ typedef long FLAGS;
 	Py_INCREF(Py_None);
 }
 
-%exception HRESULT {
+%typemap(except) HRESULT {
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS
