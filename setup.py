@@ -816,7 +816,6 @@ class my_build_ext(build_ext):
                 if interface_parent:
                     # A class deriving from other than the default
                     swig_cmd.extend(["-com_interface_parent", interface_parent])
-            
 
             # This 'newer' check helps Python 2.2 builds, which otherwise
             # *always* regenerate the .cpp files, meaning every future
@@ -1114,7 +1113,7 @@ for name, libraries, sources in (
 # The few that need slightly special treatment
 win32_extensions += [
     WinExt_win32(
-        "_win32evtlog",
+        "win32evtlog",
         sources="""
                 win32/src/win32evtlog_messages.mc win32/src/win32evtlog.i
                 """.split(),
@@ -1130,7 +1129,7 @@ win32_extensions += [
         delay_load_libraries="powrprof",
     ),
     WinExt_win32(
-        "_win32gui",
+        "win32gui",
         sources="""
                 win32/src/win32dynamicdialog.cpp
                 win32/src/win32gui.i
@@ -1139,7 +1138,7 @@ win32_extensions += [
         define_macros=[("WIN32GUI", None)],
     ),
     WinExt_win32(
-        "__winxptheme",
+        "_winxptheme",
         sources=["win32/src/_winxptheme.i"],
         libraries="gdi32 user32 comdlg32 comctl32 shell32 uxtheme",
     ),
