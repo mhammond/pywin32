@@ -20,8 +20,8 @@ STDMETHODIMP PyGActiveScriptSite::GetLCID(
 STDMETHODIMP PyGActiveScriptSite::GetItemInfo(
     /* [in] */ LPCOLESTR pstrName,
     /* [in] */ DWORD dwReturnMask,
-    /* [out] */ IUnknown FAR *FAR *ppiunkItem,
-    /* [out] */ ITypeInfo FAR *FAR *ppti)
+    /* [out] */ IUnknown FAR * FAR * ppiunkItem,
+    /* [out] */ ITypeInfo FAR * FAR * ppti)
 {
     PY_GATEWAY_METHOD;
     if (((dwReturnMask & SCRIPTINFO_IUNKNOWN) && ppiunkItem == NULL) ||
