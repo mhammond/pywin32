@@ -48,33 +48,33 @@ public:
 
 %}
 
-%typemap(except) HTHEME {
+%typemap(python,except) HTHEME {
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS
 }
 
 
-%typemap(out) HTHEME {
-  if ($1==(HTHEME)0) {
-    $result = Py_None;
+%typemap(python,out) HTHEME {
+  if ($source==(HTHEME)0) {
+    $target = Py_None;
     Py_INCREF(Py_None);
   } else
-    $result = new PyHTHEME($1);
+    $target = new PyHTHEME($source);
 }
 
-%typemap(ignore) HTHEME *(HTHEME temp)
+%typemap(python,ignore) HTHEME *(HTHEME temp)
 {
   if (temp==(HTHEME)0) {
-    $1 = Py_None;
+    $target = Py_None;
     Py_INCREF(Py_None);
   } else
-    $1 = new PyHTHEME(temp);
+    $target = new PyHTHEME(temp);
 }
-%typemap(in) HTHEME *(HTHEME temp)
+%typemap(python,in) HTHEME *(HTHEME temp)
 {
-    $1 = &temp;
-    if (!PyWinObject_AsHANDLE($input, $1))
+    $target = &temp;
+    if (!PyWinObject_AsHANDLE($source, $target))
         return NULL;
 }
 
@@ -82,38 +82,38 @@ public:
 typedef HANDLE HTHEME;
 
 typedef float HDC;
-%typemap(in) HDC{
-	if (!PyWinObject_AsHANDLE($input, (HANDLE *)&$1))
+%typemap(python, in) HDC{
+	if (!PyWinObject_AsHANDLE($source, (HANDLE *)&$target))
 		return NULL;
 }
 
-%typemap(ignore) RECT *OUTPUT(RECT temp)
+%typemap(python,ignore) RECT *OUTPUT(RECT temp)
 {
-  $1 = &temp;
+  $target = &temp;
 }
 
-%typemap(in) RECT *INPUT {
+%typemap(python,in) RECT *INPUT {
     RECT r;
-	if (PyTuple_Check($input)) {
-		if (PyArg_ParseTuple($input, "llll", &r.left, &r.top, &r.right, &r.bottom) == 0) {
+	if (PyTuple_Check($source)) {
+		if (PyArg_ParseTuple($source, "llll", &r.left, &r.top, &r.right, &r.bottom) == 0) {
 			return PyErr_Format(PyExc_TypeError, "%s: This param must be a tuple of four integers", "$name");
 		}
-		$1 = &r;
+		$target = &r;
 	} else {
 		return PyErr_Format(PyExc_TypeError, "%s: This param must be a tuple of four integers", "$name");
 	}
 }
 
-%typemap(in) RECT *INPUT_NULLOK {
+%typemap(python,in) RECT *INPUT_NULLOK {
     RECT r;
-	if (PyTuple_Check($input)) {
-		if (PyArg_ParseTuple($input, "llll", &r.left, &r.top, &r.right, &r.bottom) == 0) {
+	if (PyTuple_Check($source)) {
+		if (PyArg_ParseTuple($source, "llll", &r.left, &r.top, &r.right, &r.bottom) == 0) {
 			return PyErr_Format(PyExc_TypeError, "%s: This param must be a tuple of four integers or None", "$name");
 		}
-		$1 = &r;
+		$target = &r;
 	} else {
-		if ($input == Py_None) {
-            $1 = NULL;
+		if ($source == Py_None) {
+            $target = NULL;
         } else {
             PyErr_SetString(PyExc_TypeError, "This param must be a tuple of four integers or None");
             return NULL;
@@ -124,24 +124,22 @@ typedef float HDC;
 // This uses a 'hresult' API
 
 typedef long HRESULT;	// This will raise COM Exception.
-%{
-typedef long HRESULT_KEEP; // This will keep HRESULT, and return
-%}
+%typedef long HRESULT_KEEP; // This will keep HRESULT, and return
 typedef long FLAGS;
 
 
-%typemap(out) HRESULT {
-	$result = Py_None;
+%typemap(python,out) HRESULT {
+	$target = Py_None;
 	Py_INCREF(Py_None);
 }
 
-%typemap(except) HRESULT {
+%typemap(python,except) HRESULT {
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS
-      if (FAILED($1))  {
+      if (FAILED($source))  {
            $cleanup
-           return PyWin_SetAPIError("$name", $1);
+           return PyWin_SetAPIError("$name", $source);
       }
 }
 
