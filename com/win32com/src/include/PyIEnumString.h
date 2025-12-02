@@ -36,5 +36,5 @@ class PyGEnumString : public PyGatewayBase, public IEnumString {
 
     STDMETHOD(Reset)(void);
 
-    STDMETHOD(Clone)(IEnumString __RPC_FAR *__RPC_FAR *ppenum);
+    STDMETHOD(Clone)(IEnumString __RPC_FAR * __RPC_FAR * ppenum);
 };
