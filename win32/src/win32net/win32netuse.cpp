@@ -9,19 +9,13 @@
 #include "win32net.h"
 #include "stddef.h"
 
-#define UI0_ENTRY(name, t, r)                         \
-    {                                                 \
-        #name, t, offsetof(USE_INFO_0, ui0_##name), r \
-    }
+#define UI0_ENTRY(name, t, r) {#name, t, offsetof(USE_INFO_0, ui0_##name), r}
 // @object PyUSE_INFO_0|A dictionary holding the infomation in a Win32 USE_INFO_0 structure.
 static struct PyNET_STRUCT_ITEM ui0[] = {UI0_ENTRY(local, NSI_WSTR, 0),   // @prop string/<o PyUnicode>|local|
                                          UI0_ENTRY(remote, NSI_WSTR, 0),  // @prop string/<o PyUnicode>|remote|
                                          {NULL}};
 
-#define UI1_ENTRY(name, t, r)                         \
-    {                                                 \
-        #name, t, offsetof(USE_INFO_1, ui1_##name), r \
-    }
+#define UI1_ENTRY(name, t, r) {#name, t, offsetof(USE_INFO_1, ui1_##name), r}
 // @object PyUSE_INFO_1|A dictionary holding the infomation in a Win32 USE_INFO_1 structure.
 static struct PyNET_STRUCT_ITEM ui1[] = {UI1_ENTRY(local, NSI_WSTR, 0),      // @prop string/<o PyUnicode>|local|
                                          UI1_ENTRY(remote, NSI_WSTR, 0),     // @prop string/<o PyUnicode>|remote|
@@ -32,10 +26,7 @@ static struct PyNET_STRUCT_ITEM ui1[] = {UI1_ENTRY(local, NSI_WSTR, 0),      // 
                                          UI1_ENTRY(usecount, NSI_DWORD, 0),  // @prop int|usecount|
                                          {NULL}};
 
-#define UI2_ENTRY(name, t, r)                         \
-    {                                                 \
-        #name, t, offsetof(USE_INFO_2, ui2_##name), r \
-    }
+#define UI2_ENTRY(name, t, r) {#name, t, offsetof(USE_INFO_2, ui2_##name), r}
 // @object PyUSE_INFO_2|A dictionary holding the infomation in a Win32 USE_INFO_2 structure.
 static struct PyNET_STRUCT_ITEM ui2[] = {UI2_ENTRY(local, NSI_WSTR, 0),       // @prop string/<o PyUnicode>|local|
                                          UI2_ENTRY(remote, NSI_WSTR, 0),      // @prop string/<o PyUnicode>|remote|
@@ -48,10 +39,7 @@ static struct PyNET_STRUCT_ITEM ui2[] = {UI2_ENTRY(local, NSI_WSTR, 0),       //
                                          UI2_ENTRY(domainname, NSI_WSTR, 0),  // @prop string/<o PyUnicode>|domainname|
                                          {NULL}};
 
-#define UI3_ENTRY(name, t, r)                         \
-    {                                                 \
-        #name, t, offsetof(USE_INFO_3, ui3_##name), r \
-    }
+#define UI3_ENTRY(name, t, r) {#name, t, offsetof(USE_INFO_3, ui3_##name), r}
 // @object PyUSE_INFO_3|A dictionary holding the infomation in a Win32 USE_INFO_3 structure.
 static struct PyNET_STRUCT_ITEM ui3[] = {
     UI2_ENTRY(local, NSI_WSTR, 0),       // @prop string/<o PyUnicode>|local|

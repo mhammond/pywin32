@@ -219,7 +219,7 @@ STDMETHODIMP PyGatewayBase::GetTypeInfoCount(UINT FAR *pctInfo)
     return S_OK;
 }
 
-STDMETHODIMP PyGatewayBase::GetTypeInfo(UINT itinfo, LCID lcid, ITypeInfo FAR *FAR *pptInfo)
+STDMETHODIMP PyGatewayBase::GetTypeInfo(UINT itinfo, LCID lcid, ITypeInfo FAR * FAR * pptInfo)
 {
     HRESULT hr = E_FAIL;
 
@@ -251,7 +251,7 @@ STDMETHODIMP PyGatewayBase::GetTypeInfo(UINT itinfo, LCID lcid, ITypeInfo FAR *F
     return hr;
 }
 
-static HRESULT getids_setup(UINT cNames, OLECHAR FAR *FAR *rgszNames, LCID lcid, PyObject **pPyArgList,
+static HRESULT getids_setup(UINT cNames, OLECHAR FAR * FAR * rgszNames, LCID lcid, PyObject **pPyArgList,
                             PyObject **pPyLCID)
 {
     PyObject *argList = PyTuple_New(cNames);
@@ -326,7 +326,7 @@ static HRESULT getids_finish(PyObject *result, UINT cNames, DISPID FAR *rgdispid
     return hr;
 }
 
-STDMETHODIMP PyGatewayBase::GetIDsOfNames(REFIID refiid, OLECHAR FAR *FAR *rgszNames, UINT cNames, LCID lcid,
+STDMETHODIMP PyGatewayBase::GetIDsOfNames(REFIID refiid, OLECHAR FAR * FAR * rgszNames, UINT cNames, LCID lcid,
                                           DISPID FAR *rgdispid)
 {
 #ifdef DEBUG_FULL

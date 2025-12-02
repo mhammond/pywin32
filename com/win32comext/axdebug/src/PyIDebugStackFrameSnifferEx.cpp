@@ -66,11 +66,11 @@ PyComTypeObject PyIDebugStackFrameSnifferEx::type("PyIDebugStackFrameSnifferEx",
 #ifdef _WIN64
 STDMETHODIMP PyGDebugStackFrameSnifferEx::EnumStackFramesEx64(
     /* [in]  */ DWORDLONG dwSpMin,
-    /* [out] */ IEnumDebugStackFrames64 __RPC_FAR *__RPC_FAR *ppedsf)
+    /* [out] */ IEnumDebugStackFrames64 __RPC_FAR * __RPC_FAR * ppedsf)
 #else
 STDMETHODIMP PyGDebugStackFrameSnifferEx::EnumStackFramesEx(
     /* [in]  */ DWORD dwSpMin,
-    /* [out] */ IEnumDebugStackFrames __RPC_FAR *__RPC_FAR *ppedsf)
+    /* [out] */ IEnumDebugStackFrames __RPC_FAR * __RPC_FAR * ppedsf)
 #endif
 {
     PY_GATEWAY_METHOD;

@@ -191,7 +191,7 @@ STDMETHODIMP PyGDebugExpression::GetResultAsString(
 
 STDMETHODIMP PyGDebugExpression::GetResultAsDebugProperty(
     /* [out] */ HRESULT __RPC_FAR *phrResult,
-    /* [out] */ IDebugProperty __RPC_FAR *__RPC_FAR *ppdp)
+    /* [out] */ IDebugProperty __RPC_FAR * __RPC_FAR * ppdp)
 {
     PY_GATEWAY_METHOD;
     PyObject *result;

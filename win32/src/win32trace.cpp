@@ -188,17 +188,28 @@ static PyMemberDef PyTraceObject_members[] = {
 };
 
 static PyTypeObject PyTraceObjectType = {
-    PYWIN_OBJECT_HEAD "PyTraceObject", sizeof(PyTraceObject), 0,
+    PYWIN_OBJECT_HEAD "PyTraceObject",
+    sizeof(PyTraceObject),
+    0,
     // standard methods
-    PyTraceObject_dealloc, (printfunc)0,
+    PyTraceObject_dealloc,
+    (printfunc)0,
     0,  // getattr
     0,  // setattr
     0,  // cmp
     0,  // repr
     // type categories
-    0, 0, 0,
+    0,
+    0,
+    0,
     // more methods
-    (hashfunc)0, 0, 0, PyObject_GenericGetAttr, 0, 0, Py_TPFLAGS_DEFAULT,
+    (hashfunc)0,
+    0,
+    0,
+    PyObject_GenericGetAttr,
+    0,
+    0,
+    Py_TPFLAGS_DEFAULT,
     0,  // doc
     0,  // tp_traverse
     0,  // tp_clear

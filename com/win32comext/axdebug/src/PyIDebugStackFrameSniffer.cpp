@@ -49,7 +49,7 @@ PyComTypeObject PyIDebugStackFrameSniffer::type("PyIDebugStackFrameSniffer", &Py
 // Gateway Implementation
 
 STDMETHODIMP PyGDebugStackFrameSniffer::EnumStackFrames(
-    /* [out] */ IEnumDebugStackFrames __RPC_FAR *__RPC_FAR *ppedsf)
+    /* [out] */ IEnumDebugStackFrames __RPC_FAR * __RPC_FAR * ppedsf)
 {
     PY_GATEWAY_METHOD;
     if (ppedsf == NULL)

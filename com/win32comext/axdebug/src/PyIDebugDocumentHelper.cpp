@@ -700,7 +700,7 @@ STDMETHODIMP PyGDebugDocumentHelper::SetDocumentAttr(
 }
 
 STDMETHODIMP PyGDebugDocumentHelper::GetDebugApplicationNode(
-    /* [out] */ IDebugApplicationNode __RPC_FAR *__RPC_FAR *ppdan)
+    /* [out] */ IDebugApplicationNode __RPC_FAR * __RPC_FAR * ppdan)
 {
     PY_GATEWAY_METHOD;
     if (ppdan == NULL)
@@ -728,7 +728,7 @@ STDMETHODIMP PyGDebugDocumentHelper::GetScriptBlockInfo(
 #else
     /* [in] */ DWORD dwSourceContext,
 #endif
-    /* [out] */ IActiveScript __RPC_FAR *__RPC_FAR *ppasd,
+    /* [out] */ IActiveScript __RPC_FAR * __RPC_FAR * ppasd,
     /* [out] */ ULONG __RPC_FAR *piCharPos,
     /* [out] */ ULONG __RPC_FAR *pcChars)
 {
@@ -759,7 +759,7 @@ STDMETHODIMP PyGDebugDocumentHelper::GetScriptBlockInfo(
 STDMETHODIMP PyGDebugDocumentHelper::CreateDebugDocumentContext(
     /* [in] */ ULONG iCharPos,
     /* [in] */ ULONG cChars,
-    /* [out] */ IDebugDocumentContext __RPC_FAR *__RPC_FAR *ppddc)
+    /* [out] */ IDebugDocumentContext __RPC_FAR * __RPC_FAR * ppddc)
 {
     PY_GATEWAY_METHOD;
     if (ppddc == NULL)

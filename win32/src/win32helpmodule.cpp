@@ -1519,7 +1519,7 @@ PyNMHDR::PyNMHDR(const NMHDR *pNMHDR)
     memcpy(&m_NMHDR, pNMHDR, sizeof(m_NMHDR));
 }
 
-PyNMHDR::~PyNMHDR(void){};
+PyNMHDR::~PyNMHDR(void) {};
 
 /*static*/ void PyNMHDR::deallocFunc(PyObject *ob) { delete (PyNMHDR *)ob; }
 

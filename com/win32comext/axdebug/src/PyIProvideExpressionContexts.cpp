@@ -54,7 +54,7 @@ PyComTypeObject PyIProvideExpressionContexts::type("PyIProvideExpressionContexts
 // Gateway Implementation
 
 STDMETHODIMP PyGProvideExpressionContexts::EnumExpressionContexts(
-    /* [out] */ IEnumDebugExpressionContexts __RPC_FAR *__RPC_FAR *ppedsf)
+    /* [out] */ IEnumDebugExpressionContexts __RPC_FAR * __RPC_FAR * ppedsf)
 {
     PY_GATEWAY_METHOD;
     if (ppedsf == NULL)

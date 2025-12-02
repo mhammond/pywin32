@@ -181,14 +181,14 @@ STDMETHODIMP PyGDebugApplicationNode::GetDocumentClassId(GUID __RPC_FAR *pclsidD
 }
 
 // IDebugDocumentProvider
-STDMETHODIMP PyGDebugApplicationNode::GetDocument(IDebugDocument __RPC_FAR *__RPC_FAR *ppssd)
+STDMETHODIMP PyGDebugApplicationNode::GetDocument(IDebugDocument __RPC_FAR * __RPC_FAR * ppssd)
 {
     return PyGDebugDocumentProvider::GetDocument(ppssd);
 }
 
 // IDebugDocumentNode
 STDMETHODIMP PyGDebugApplicationNode::EnumChildren(
-    /* [out] */ IEnumDebugApplicationNodes __RPC_FAR *__RPC_FAR *pperddp)
+    /* [out] */ IEnumDebugApplicationNodes __RPC_FAR * __RPC_FAR * pperddp)
 {
     PY_GATEWAY_METHOD;
     if (pperddp == NULL)
@@ -212,7 +212,7 @@ STDMETHODIMP PyGDebugApplicationNode::EnumChildren(
 }
 
 STDMETHODIMP PyGDebugApplicationNode::GetParent(
-    /* [out] */ IDebugApplicationNode __RPC_FAR *__RPC_FAR *pprddp)
+    /* [out] */ IDebugApplicationNode __RPC_FAR * __RPC_FAR * pprddp)
 {
     PY_GATEWAY_METHOD;
     if (pprddp == NULL)
