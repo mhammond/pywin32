@@ -27,8 +27,14 @@ if sys.version_info.releaselevel == "beta":
 if sys.version_info.releaselevel == "candidate":
     VERSION += f"-rc{sys.version_info.serial}"  # pyright: ignore[reportConstantRedefinition]
 
-URL = f"https://www.nuget.org/api/v2/package/pythonarm64/{VERSION}"
-DEST_PATH = dest / f"pythonarm64.{VERSION}.zip"
+if sys._is_gil_enabled():
+    URL = f"https://www.nuget.org/api/v2/package/pythonarm64-freethreaded/{VERSION}"
+else:
+    URL = f"https://www.nuget.org/api/v2/package/pythonarm64/{VERSION}"
+if sys._is_gil_enabled():
+    DEST_PATH = dest / f"pythonarm64-freethreaded.{VERSION}.zip"
+else:
+    DEST_PATH = dest / f"pythonarm64.{VERSION}.zip"
 
 if DEST_PATH.is_file():
     print("Skipping download because", DEST_PATH, "exists")
