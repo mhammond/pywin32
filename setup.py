@@ -861,7 +861,6 @@ class my_build_ext(build_ext):
                 if interface_parent:
                     # A class deriving from other than the default
                     swig_cmd.extend(["-com_interface_parent", interface_parent])
-            
 
             # This 'newer' check helps Python 2.2 builds, which otherwise
             # *always* regenerate the .cpp files, meaning every future
@@ -1027,21 +1026,21 @@ for name, libraries, sources in (
         """,
     ),
     (
-        "_win32file",
+        "win32file",
         "ws2_32 mswsock",
         """
         win32/src/win32file.i
         win32/src/win32file_comm.cpp
         """,
     ),
-    ("_win32event", "user32", "win32/src/win32event.i"),
+    ("win32event", "user32", "win32/src/win32event.i"),
     (
         "win32clipboard",
         "gdi32 user32 shell32",
         "win32/src/win32clipboardmodule.cpp",
     ),
     # win32gui handled below
-    ("_win32job", "user32", "win32/src/win32job.i"),
+    ("win32job", "user32", "win32/src/win32job.i"),
     ("win32lz", "lz32", "win32/src/win32lzmodule.cpp"),
     (
         "win32net",
@@ -1057,17 +1056,17 @@ for name, libraries, sources in (
         """,
     ),
     ("win32pdh", "", "win32/src/win32pdhmodule.cpp"),
-    ("_win32pipe", "", "win32/src/win32pipe.i"),
+    ("win32pipe", "", "win32/src/win32pipe.i"),
     (
         "win32print",
         "winspool user32 gdi32",
         "win32/src/win32print/win32print.cpp",
     ),
-    ("_win32process", "advapi32 user32", "win32/src/win32process.i"),
+    ("win32process", "advapi32 user32", "win32/src/win32process.i"),
     ("win32profile", "Userenv", "win32/src/win32profilemodule.cpp"),
     ("win32ras", "rasapi32 user32", "win32/src/win32rasmodule.cpp"),
     (
-        "_win32security",
+        "win32security",
         "advapi32 user32 netapi32",
         """
         win32/src/win32security.i
@@ -1076,7 +1075,7 @@ for name, libraries, sources in (
         """,
     ),
     (
-        "_win32service",
+        "win32service",
         "advapi32 oleaut32 user32",
         """
         win32/src/win32service_messages.mc
@@ -1095,7 +1094,7 @@ for name, libraries, sources in (
     ),
     (
         "win32inet",
-        "_wininet",
+        "wininet",
         """
         win32/src/win32inet.i
         win32/src/win32inet_winhttp.cpp
@@ -1117,7 +1116,7 @@ for name, libraries, sources in (
 # The few that need slightly special treatment
 win32_extensions += [
     WinExt_win32(
-        "_win32evtlog",
+        "win32evtlog",
         sources="""
                 win32\\src\\win32evtlog_messages.mc win32\\src\\win32evtlog.i
                 """.split(),
@@ -1133,7 +1132,7 @@ win32_extensions += [
         delay_load_libraries="powrprof",
     ),
     WinExt_win32(
-        "_win32gui",
+        "win32gui",
         sources="""
                 win32/src/win32dynamicdialog.cpp
                 win32/src/win32gui.i
@@ -1143,7 +1142,7 @@ win32_extensions += [
     ),
     # winxptheme
     WinExt_win32(
-        "__winxptheme",
+        "_winxptheme",
         sources=["win32/src/_winxptheme.i"],
         libraries="gdi32 user32 comdlg32 comctl32 shell32 Uxtheme",
     ),
