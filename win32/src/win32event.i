@@ -6,35 +6,32 @@
 %include "typemaps.i"
 %include "pywin32.i"
 
+%typedef void *NULL_ONLY
 
-%{
-typedef void *NULL_ONLY;
-%}
-
-%typemap(in) NULL_ONLY {
-	if ($input != Py_None) {
+%typemap(python,in) NULL_ONLY {
+	if ($source != Py_None) {
 		PyErr_SetString(PyExc_TypeError, "This param must be None");
 		return NULL;
 	}
-	$1 = NULL;
+	$target = NULL;
 }
 
 // only seem able to make this work with an incorrect level of
 // indirection, and fixing it up inline with a temp.
-%typemap(in) PTIMERAPCROUTINE *(PTIMERAPCROUTINE temp) {
-	if ($input != Py_None) {
+%typemap(python,in) PTIMERAPCROUTINE *(PTIMERAPCROUTINE temp) {
+	if ($source != Py_None) {
 		PyErr_SetString(PyExc_TypeError, "This param must be None");
 		return NULL;
 	}
     temp = NULL;
-	$1 = &temp;
+	$target = &temp;
 }
 
 // We can get better perf from some of these functions that don't block
 // by not releasing the Python lock as part of the call.
-%typemap(except) BOOLAPI {
+%typemap(python,except) BOOLAPI {
       $function
-      if (!$1)  {
+      if (!$source)  {
            $cleanup
            return PyWin_SetAPIError("$name");
       }
@@ -93,6 +90,8 @@ typedef void *NULL_ONLY;
 
 // @pyswig |CancelWaitableTimer|Cancels a waiting timer.
 BOOLAPI CancelWaitableTimer(PyHANDLE handle);
+
+#end
 
 // @pyswig <o PyHANDLE>|CreateEvent|Creates a waitable event
 // @rdesc The result is a handle to the created object
@@ -177,9 +176,7 @@ static BOOL MakeHandleList(PyObject *handleList, HANDLE **ppBuf, DWORD *pNumEntr
 %}
 
 // @pyswig int|MsgWaitForMultipleObjects|Returns when a message arrives of an event is signalled
-%name(MsgWaitForMultipleObjects) MyMsgWaitForMultipleObjects;
-
-PyObject *MyMsgWaitForMultipleObjects(
+%name(MsgWaitForMultipleObjects) PyObject *MyMsgWaitForMultipleObjects(
     PyObject *obHandleList, // @pyparm [<o PyHANDLE>, ...]|handleList||A sequence of handles to wait on.
     BOOL bWaitAll, // @pyparm bool|bWaitAll||If true, waits for all handles in the list.
     DWORD dwMilliseconds,	// @pyparm int|milliseconds||time-out interval in milliseconds
@@ -214,9 +211,7 @@ static PyObject * MyMsgWaitForMultipleObjects(
 %}
 
 // @pyswig int|MsgWaitForMultipleObjectsEx|Returns when a message arrives of an event is signalled
-%name(MsgWaitForMultipleObjectsEx) MyMsgWaitForMultipleObjectsEx;
-
-PyObject *MyMsgWaitForMultipleObjectsEx(
+%name(MsgWaitForMultipleObjectsEx) PyObject *MyMsgWaitForMultipleObjectsEx(
     PyObject *obHandleList, // @pyparm [<o PyHANDLE>, ...]|handleList||A sequence of handles to wait on.
     DWORD dwMilliseconds,	// @pyparm int|milliseconds||time-out interval in milliseconds
     DWORD dwWakeMask, 	// @pyparm int|wakeMask||type of input events to wait for
@@ -351,8 +346,7 @@ static PyObject *MyWaitForMultipleObjects(
 
 %}
 // @pyswig int|WaitForMultipleObjects|Returns when an event is signalled
-%name(WaitForMultipleObjects) MyWaitForMultipleObjects;
-PyObject *MyWaitForMultipleObjects(
+%name(WaitForMultipleObjects) PyObject *MyWaitForMultipleObjects(
     PyObject *handleList,  // @pyparm [<o PyHANDLE>, ...]|handleList||A sequence of handles to wait on.
     BOOL bWaitAll,	// @pyparm bool|bWaitAll||wait flag
     DWORD dwMilliseconds 	// @pyparm int|milliseconds||time-out interval in milliseconds
@@ -384,22 +378,18 @@ static PyObject *MyWaitForMultipleObjectsEx(
 }
 %}
 // @pyswig int|WaitForMultipleObjectsEx|Returns when an event is signalled
-%name(WaitForMultipleObjectsEx) MyWaitForMultipleObjectsEx;
-
-PyObject *MyWaitForMultipleObjectsEx(
+%name(WaitForMultipleObjectsEx) PyObject *MyWaitForMultipleObjectsEx(
     PyObject *handleList, // @pyparm [<o PyHANDLE>, ...]|handleList||A sequence of handles to wait on.
     BOOL bWaitAll,	// @pyparm bool|bWaitAll||wait flag
     DWORD dwMilliseconds,	// @pyparm int|milliseconds||time-out interval in milliseconds
     BOOL bAlertable 	// @pyparm bool|bAlertable||alertable wait flag.
    );
-%{
-    typedef DWORD DWORD_WAITAPI;
-%}
-%typemap(except) DWORD_WAITAPI {
+%typedef DWORD DWORD_WAITAPI
+%typemap(python,except) DWORD_WAITAPI {
       Py_BEGIN_ALLOW_THREADS
       $function
       Py_END_ALLOW_THREADS
-      if ($1==WAIT_FAILED)  {
+      if ($source==WAIT_FAILED)  {
            $cleanup
            return PyWin_SetAPIError("$name");
       }
