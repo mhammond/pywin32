@@ -7,6 +7,7 @@ import os
 import subprocess
 import sys
 import tempfile
+import traceback
 import unittest
 
 import win32ui
@@ -59,6 +60,7 @@ class TestPythonwinExe(unittest.TestCase):
         try:
             rc = self.p.wait(20)
         except subprocess.TimeoutExpired:
+            traceback.print.exc()
             rc = "TIMEOUT"
         with open(self.tfn) as f:
             outs = f.read()
