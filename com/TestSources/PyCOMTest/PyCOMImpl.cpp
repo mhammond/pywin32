@@ -379,9 +379,9 @@ STDMETHODIMP CPyCOMTest::GetSafeArrays(SAFEARRAY **attrs, SAFEARRAY **attrs2, SA
     return S_OK;
 }
 
-STDMETHODIMP CPyCOMTest::GetByteArray(ULONG sizeBytes, SAFEARRAY **array)
+STDMETHODIMP CPyCOMTest::GetByteArray(long sizeBytes, SAFEARRAY **array)
 {
-    SAFEARRAYBOUND bound = {sizeBytes, 0};
+    SAFEARRAYBOUND bound = {static_cast<ULONG>(sizeBytes), 0};
     *array = SafeArrayCreate(VT_UI1, 1, &bound);
     return S_OK;
 }
