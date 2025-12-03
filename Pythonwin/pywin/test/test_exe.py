@@ -60,7 +60,7 @@ class TestPythonwinExe(unittest.TestCase):
         try:
             rc = self.p.wait(20)
         except subprocess.TimeoutExpired:
-            traceback.print_exc()
+            traceback.print.exc()
             rc = "TIMEOUT"
         with open(self.tfn) as f:
             outs = f.read()
