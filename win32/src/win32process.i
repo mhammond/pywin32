@@ -658,7 +658,7 @@ PyObject *MyCreateProcess(
 	BOOL bInheritHandles, // @pyparm int|bInheritHandles||handle inheritance flag
 	DWORD dwCreationFlags, // @pyparm int|dwCreationFlags||creation flags.  May be a combination of the following values from the win32con module:
 			// @flagh Value|Meaning
-			// @flag CREATE_BREAKAWAY_FROM_JOB|Windows 2000: The child processes of a process associated with a job are not associated with the job.
+			// @flag CREATE_BREAKAWAY_FROM_JOB|The child processes of a process associated with a job are not associated with the job.
 			// If the calling process is not associated with a job, this flag has no effect. If the calling process is associated with a job, the job must set the JOB_OBJECT_LIMIT_BREAKAWAY_OK limit or CreateProcess will fail.
 
 			// @flag CREATE_DEFAULT_ERROR_MODE|The new process does not inherit the error mode of the calling process. Instead, CreateProcess gives the new process the current default error mode. An application sets the current default error mode by calling SetErrorMode.
@@ -679,8 +679,8 @@ PyObject *MyCreateProcess(
 			// @flag DETACHED_PROCESS|For console processes, the new process does not have access to the console of the parent process. The new process can call the AllocConsole function at a later time to create a new console. This flag cannot be used with the CREATE_NEW_CONSOLE flag.
 
 
-			// @flag ABOVE_NORMAL_PRIORITY_CLASS|Windows 2000: Indicates a process that has priority higher than NORMAL_PRIORITY_CLASS but lower than HIGH_PRIORITY_CLASS.
-			// @flag BELOW_NORMAL_PRIORITY_CLASS|Windows 2000: Indicates a process that has priority higher than IDLE_PRIORITY_CLASS but lower than NORMAL_PRIORITY_CLASS.
+			// @flag ABOVE_NORMAL_PRIORITY_CLASS|Indicates a process that has priority higher than NORMAL_PRIORITY_CLASS but lower than HIGH_PRIORITY_CLASS.
+			// @flag BELOW_NORMAL_PRIORITY_CLASS|Indicates a process that has priority higher than IDLE_PRIORITY_CLASS but lower than NORMAL_PRIORITY_CLASS.
 			// @flag HIGH_PRIORITY_CLASS|Indicates a process that performs time-critical tasks. The threads of a high-priority class process preempt the threads of normal-priority or idle-priority class processes. An example is the Task List, which must respond quickly when called by the user, regardless of the load on the system. Use extreme care when using the high-priority class, because a CPU-bound application with a high-priority class can use nearly all available cycles.
 			// @flag IDLE_PRIORITY_CLASS|Indicates a process whose threads run only when the system is idle and are preempted by the threads of any process running in a higher priority class. An example is a screen saver. The idle priority class is inherited by child processes.
 			// @flag NORMAL_PRIORITY_CLASS|Indicates a normal process with no special scheduling needs.
@@ -1228,7 +1228,6 @@ done:
 %}
 
 // @pyswig (long,....)|EnumProcessModulesEx|Lists 32 or 64-bit modules load by a process
-// @comm Requires Vista or later
 %native(EnumProcessModulesEx) PyEnumProcessModulesEx;
 %{
 PyObject *PyEnumProcessModulesEx(PyObject *self, PyObject *args)
@@ -1770,8 +1769,8 @@ PyObject *PyWriteProcessMemory(PyObject *self, PyObject *args)
 
 #define DETACHED_PROCESS DETACHED_PROCESS // For console processes, the new process does not have access to the console of the parent process. The new process can call the AllocConsole function at a later time to create a new console. This flag cannot be used with the CREATE_NEW_CONSOLE flag.
 
-#define ABOVE_NORMAL_PRIORITY_CLASS ABOVE_NORMAL_PRIORITY_CLASS // Windows 2000: Indicates a process that has priority above NORMAL_PRIORITY_CLASS but below HIGH_PRIORITY_CLASS.
-#define BELOW_NORMAL_PRIORITY_CLASS BELOW_NORMAL_PRIORITY_CLASS // Windows 2000: Indicates a process that has priority above IDLE_PRIORITY_CLASS but below NORMAL_PRIORITY_CLASS.
+#define ABOVE_NORMAL_PRIORITY_CLASS ABOVE_NORMAL_PRIORITY_CLASS // Indicates a process that has priority above NORMAL_PRIORITY_CLASS but below HIGH_PRIORITY_CLASS.
+#define BELOW_NORMAL_PRIORITY_CLASS BELOW_NORMAL_PRIORITY_CLASS // Indicates a process that has priority above IDLE_PRIORITY_CLASS but below NORMAL_PRIORITY_CLASS.
 #define HIGH_PRIORITY_CLASS HIGH_PRIORITY_CLASS // Indicates a process that performs time-critical tasks that must be executed immediately for it to run correctly. The threads of a high-priority class process preempt the threads of normal-priority or idle-priority class processes. An example is the Task List, which must respond quickly when called by the user, regardless of the load on the system. Use extreme care when using the high-priority class, because a high-priority class CPU-bound application can use nearly all available cycles.
 #define IDLE_PRIORITY_CLASS IDLE_PRIORITY_CLASS // Indicates a process whose threads run only when the system is idle and are preempted by the threads of any process running in a higher priority class. An example is a screen saver. The idle priority class is inherited by child processes.
 #define NORMAL_PRIORITY_CLASS NORMAL_PRIORITY_CLASS // Indicates a normal process with no special scheduling needs.
