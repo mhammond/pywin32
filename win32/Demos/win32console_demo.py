@@ -79,7 +79,7 @@ while not breakout:
                     newbuffer.WriteConsole(
                         virtual_keys.get(
                             input_record.VirtualKeyCode,
-                            "VirtualKeyCode: %s" % input_record.VirtualKeyCode,
+                            "VirtualKeyCode: {}".format(input_record.VirtualKeyCode),
                         )
                     )
                 else:

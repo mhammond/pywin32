@@ -248,7 +248,7 @@ class RegistryValueView(docview.ListView):
             try:
                 self.SetItemsCurrentValue(item, keyVal, d.newvalue)
             except win32api.error as exc:
-                win32ui.MessageBox("Error setting value\r\n\n%s" % exc.strerror)
+                win32ui.MessageBox("Error setting value\r\n\n{}".format(exc.strerror))
             self.UpdateForRegItem(item)
 
     def GetItemsCurrentValue(self, item, valueName):

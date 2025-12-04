@@ -36,7 +36,9 @@ def SetupEnvironment():
     KEY_QUERY_VALUE = 0x1
     # Open the root key once, as this is quite slow on NT.
     try:
-        keyName = "SOFTWARE\\Python\\PythonCore\\%s\\PythonPath\\win32com" % sys.winver
+        keyName = "SOFTWARE\\Python\\PythonCore\\{}\\PythonPath\\win32com".format(
+            sys.winver
+        )
         key = win32api.RegOpenKey(HKEY_LOCAL_MACHINE, keyName, 0, KEY_QUERY_VALUE)
     except (win32api.error, AttributeError):
         key = None

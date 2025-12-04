@@ -60,7 +60,7 @@ class Extension(threaded_extension.ThreadPoolExtension):
         url = ecb.GetServerVariable("URL").decode("ascii")
         for exclude in excludes:
             if url.lower().startswith(exclude):
-                print("excluding %s" % url)
+                print("excluding {}".format(url))
                 if ecb.Version < 0x60000:
                     print("(but this is IIS5 or earlier - can't do 'excludes')")
                 else:
@@ -76,7 +76,7 @@ class Extension(threaded_extension.ThreadPoolExtension):
                     return isapicon.HSE_STATUS_PENDING
 
         new_url = proxy + url
-        print("Opening %s" % new_url)
+        print("Opening {}".format(new_url))
         fp = urlopen(new_url)
         headers = fp.info()
         # subtle breakage: str(headers) normalizes \r\n

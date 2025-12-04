@@ -188,7 +188,7 @@ def LocateWebServerPath(description):
         ]
         if description in site_attributes:
             return site.AdsPath
-    msg = "No web sites match the description '%s'" % description
+    msg = "No web sites match the description '{}'".format(description)
     raise ItemNotFound(msg)
 
 
@@ -344,7 +344,7 @@ def AssignScriptMaps(script_maps, target, update="replace"):
     try:
         script_map_func = eval(script_map_func)
     except NameError:
-        msg = "Unknown ScriptMapUpdate option '%s'" % update
+        msg = "Unknown ScriptMapUpdate option '{}'".format(update)
         raise ConfigurationError(msg)
     # use the str method to format the script maps for IIS
     script_maps = [str(s) for s in script_maps]
@@ -483,7 +483,7 @@ def _DeleteExtensionFileRecord(module, options):
     try:
         ob = GetObject(_IIS_OBJECT)
         ob.DeleteExtensionFileRecord(module)
-        log(2, "Deleted extension file record for '%s'" % module)
+        log(2, "Deleted extension file record for '{}'".format(module))
     except (pythoncom.com_error, AttributeError) as details:
         log(2, f"Failed to remove extension file '{module}': {details}")
 
@@ -557,7 +557,7 @@ def RemoveDirectory(params, options):
         rc = _GetWin32ErrorCode(details)
         if rc != winerror.ERROR_PATH_NOT_FOUND:
             raise
-        log(2, "VirtualDirectory '%s' did not exist" % params.Name)
+        log(2, "VirtualDirectory '{}' did not exist".format(params.Name))
         directory = None
     if directory is not None:
         # Be robust should IIS get upset about unloading.
@@ -806,4 +806,4 @@ def HandleCommandLine(
             traceback.print_exc()
         print(f"{details.__class__.__name__}: {details}")
     except KeyError:
-        parser.error("Invalid arg '%s'" % arg)
+        parser.error("Invalid arg '{}'".format(arg))

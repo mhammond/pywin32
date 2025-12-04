@@ -45,7 +45,7 @@ class Extension(threaded_extension.ThreadPoolExtension):
         url = ecb.GetServerVariable("URL")
 
         new_url = proxy + url
-        print("Opening %s" % new_url)
+        print("Opening {}".format(new_url))
         fp = urllib.request.urlopen(new_url)
         headers = fp.info()
         ecb.SendResponseHeaders("200 OK", str(headers) + "\r\n", False)

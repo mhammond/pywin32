@@ -297,7 +297,7 @@ class InteractivePythonApp(app.CApp):
                     dde.Exec(
                         "from pywin.framework import scriptutils\n"
                         "ed = scriptutils.GetActiveEditControl()\n"
-                        "if ed: ed.SetSel(ed.LineIndex(%s - 1))" % gotoline
+                        "if ed: ed.SetSel(ed.LineIndex({} - 1))".format(gotoline)
                     )
                 else:
                     from . import scriptutils
@@ -363,7 +363,9 @@ class InteractivePythonApp(app.CApp):
                     )
                 i += 1
             else:
-                raise ValueError("Command line argument not recognised: %s" % argType)
+                raise ValueError(
+                    "Command line argument not recognised: {}".format(argType)
+                )
 
     def LoadSystemModules(self):
         self.DoLoadModules("pywin.framework.editor,pywin.framework.stdin")
@@ -384,7 +386,7 @@ class InteractivePythonApp(app.CApp):
                 __import__(module)
             except:  # Catch em all, else the app itself dies! 'ImportError:
                 traceback.print_exc()
-                msg = 'Startup import of user module "%s" failed' % module
+                msg = 'Startup import of user module "{}" failed'.format(module)
                 print(msg)
                 win32ui.MessageBox(msg)
 
@@ -461,7 +463,9 @@ class InteractivePythonApp(app.CApp):
         lastLocateFileName = lastLocateFileName.replace(".", "\\")
         newName = scriptutils.LocatePythonFile(lastLocateFileName)
         if newName is None:
-            win32ui.MessageBox("The file '%s' can not be located" % lastLocateFileName)
+            win32ui.MessageBox(
+                "The file '{}' can not be located".format(lastLocateFileName)
+            )
         else:
             win32ui.GetApp().OpenDocumentFile(newName)
 

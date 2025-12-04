@@ -115,14 +115,14 @@ def _find_localserver_exe(mustfind):
     if not os.path.exists(exeName):
         # See if the registry has some info.
         try:
-            key = "SOFTWARE\\Python\\PythonCore\\%s\\InstallPath" % sys.winver
+            key = "SOFTWARE\\Python\\PythonCore\\{}\\InstallPath".format(sys.winver)
             path = win32api.RegQueryValue(win32con.HKEY_LOCAL_MACHINE, key)
             exeName = os.path.join(path, exeBaseName)
         except (AttributeError, win32api.error):
             pass
     if not os.path.exists(exeName):
         if mustfind:
-            raise RuntimeError("Can not locate the program '%s'" % exeBaseName)
+            raise RuntimeError("Can not locate the program '{}'".format(exeBaseName))
         return None
     return exeName
 
@@ -146,7 +146,7 @@ def _find_localserver_module():
             os.stat(pyfile)
         except OSError:
             raise RuntimeError(
-                "Can not locate the Python module 'win32com.server.%s'" % baseName
+                "Can not locate the Python module 'win32com.server.{}'".format(baseName)
             )
     return pyfile
 
@@ -198,11 +198,11 @@ def RegisterServer(
             "You must specify either the Python Class or Python Policy which implement the COM object."
         )
 
-    keyNameRoot = "CLSID\\%s" % str(clsid)
+    keyNameRoot = "CLSID\\{}".format(str(clsid))
     _set_string(keyNameRoot, desc)
 
     # Also register as an "Application" so DCOM etc all see us.
-    _set_string("AppID\\%s" % clsid, progID)
+    _set_string("AppID\\{}".format(clsid), progID)
     # Depending on contexts requested, register the specified server type.
     # Set default clsctx.
     if not clsctx:
@@ -347,7 +347,7 @@ def GetUnregisterServerKeys(clsid, progID=None, verProgID=None, customKeys=None)
     and uncondtionally deleted at unregister or uninstall time.
     """
     # remove the main CLSID registration
-    ret = [("CLSID\\%s" % str(clsid), win32con.HKEY_CLASSES_ROOT)]
+    ret = [("CLSID\\{}".format(str(clsid)), win32con.HKEY_CLASSES_ROOT)]
     # remove the versioned ProgID registration
     if verProgID:
         ret.append((verProgID, win32con.HKEY_CLASSES_ROOT))
@@ -357,7 +357,7 @@ def GetUnregisterServerKeys(clsid, progID=None, verProgID=None, customKeys=None)
     if progID:
         ret.append((progID, win32con.HKEY_CLASSES_ROOT))
     # The DCOM config tool may write settings to the AppID key for our CLSID
-    ret.append(("AppID\\%s" % str(clsid), win32con.HKEY_CLASSES_ROOT))
+    ret.append(("AppID\\{}".format(str(clsid)), win32con.HKEY_CLASSES_ROOT))
     # Any custom keys?
     if customKeys:
         ret.extend(customKeys)
@@ -588,10 +588,12 @@ def ReExecuteElevated(flags):
             print("@echo off", file=batf)
             # nothing is 'inherited' by the elevated process, including the
             # environment.  I wonder if we need to set more?
-            print("set PYTHONPATH=%s" % os.environ.get("PYTHONPATH", ""), file=batf)
+            print(
+                "set PYTHONPATH={}".format(os.environ.get("PYTHONPATH", "")), file=batf
+            )
             # may be on a different drive - select that before attempting to CD.
             print(os.path.splitdrive(cwd)[0], file=batf)
-            print('cd "%s"' % os.getcwd(), file=batf)
+            print('cd "{}"'.format(os.getcwd()), file=batf)
             print(
                 '{} {} > "{}" 2>&1'.format(
                     win32api.GetShortPathName(exe_to_run), new_params, outfile
@@ -606,7 +608,7 @@ def ReExecuteElevated(flags):
             fMask=shellcon.SEE_MASK_NOCLOSEPROCESS,
             lpVerb="runas",
             lpFile=executable,
-            lpParameters='/C "%s"' % batfile,
+            lpParameters='/C "{}"'.format(batfile),
             nShow=win32con.SW_SHOW,
         )
         hproc = rc["hProcess"]
@@ -620,7 +622,7 @@ def ReExecuteElevated(flags):
 
         if exit_code:
             # Even if quiet you get to see this message.
-            print("Error: registration failed (exit code %s)." % exit_code)
+            print("Error: registration failed (exit code {}).".format(exit_code))
         # if we are quiet then the output if likely to already be nearly
         # empty, so always print it.
         print(output, end=" ")
@@ -668,7 +670,7 @@ if not pythoncom.frozen:
     try:
         win32api.RegQueryValue(
             win32con.HKEY_CLASSES_ROOT,
-            "Component Categories\\%s" % CATID_PythonCOMServer,
+            "Component Categories\\{}".format(CATID_PythonCOMServer),
         )
     except win32api.error:
         try:

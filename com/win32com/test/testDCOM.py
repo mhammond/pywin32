@@ -40,7 +40,7 @@ def test(serverName):
             )
         )
     else:
-        print("Object created and tested OK on server '%s'" % serverName)
+        print("Object created and tested OK on server '{}'".format(serverName))
 
 
 if __name__ == "__main__":

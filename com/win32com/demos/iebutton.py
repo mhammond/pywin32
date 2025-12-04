@@ -85,7 +85,7 @@ class IEButton:
         # put stubs for non-implemented methods
         for method in self._public_methods_:
             if not hasattr(self, method):
-                print("providing default stub for %s" % method)
+                print("providing default stub for {}".format(method))
                 setattr(self, method, Stub(method))
 
     def QueryStatus(self, pguidCmdGroup, prgCmds, cmdtextf):
