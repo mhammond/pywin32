@@ -716,10 +716,8 @@ void GetScodeString(HRESULT hr, LPTSTR buf, int bufSize)
         HRESULT hr;
         LPCTSTR lpszName;
     };
-#define MAKE_HRESULT_ENTRY(hr) \
-    {                          \
-        hr, _T(#hr)            \
-    }
+#define MAKE_RANGE_ENTRY(hrRange) \
+    {hrRange##_FIRST, hrRange##_LAST, _T(#hrRange) _T("_FIRST...") _T(#hrRange) _T("_LAST")}
     static const HRESULT_ENTRY hrNameTable[] = {
         MAKE_HRESULT_ENTRY(S_OK),
         MAKE_HRESULT_ENTRY(S_FALSE),

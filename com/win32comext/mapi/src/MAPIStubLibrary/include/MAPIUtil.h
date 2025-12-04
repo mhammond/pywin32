@@ -250,7 +250,7 @@ CreateTable( LPCIID					lpInterface,
 				ULONG FAR *					rgulAccess) IPURE;			\
 	MAPIMETHOD(HrGetPropAccess)											\
 		(THIS_	LPSPropTagArray FAR *		lppPropTagArray,			\
-				ULONG FAR * FAR *			lprgulAccess) IPURE;		\
+				ULONG FAR *FAR *			lprgulAccess) IPURE;		\
 	MAPIMETHOD(HrAddObjProps)											\
 		(THIS_	LPSPropTagArray				lppPropTagArray,			\
 				LPSPropProblemArray FAR *	lprgulAccess) IPURE;
@@ -493,7 +493,7 @@ STDMETHODIMP OpenStreamOnFile(
 	__in_opt LPCTSTR	lpszPrefix,
 	LPSTREAM FAR *		lppStream);
 
-typedef HRESULT (STDMETHODCALLTYPE FAR * LPOPENSTREAMONFILE) (
+typedef HRESULT (STDMETHODCALLTYPE FAR *LPOPENSTREAMONFILE) (
 	LPALLOCATEBUFFER	lpAllocateBuffer,
 	LPFREEBUFFER		lpFreeBuffer,
 	ULONG				ulFlags,
@@ -796,7 +796,7 @@ STDAPI_(FILETIME)		FtNegFt(FILETIME ft);
 STDAPI_(SCODE)			ScCreateConversationIndex (ULONG cbParent,
 							LPBYTE lpbParent,
 							ULONG FAR *	lpcbConvIndex,
-							LPBYTE FAR * lppbConvIndex);
+							LPBYTE FAR *lppbConvIndex);
 
 /* Store support */
 
@@ -809,7 +809,7 @@ STDAPI WrapStoreEntryID (ULONG ulFlags, __in LPTSTR lpszDLLName, ULONG cbOrigEnt
 #define RTF_SYNC_BODY_CHANGED	((ULONG) 0x00000002)
 
 STDAPI_(HRESULT)
-RTFSync (LPMESSAGE lpMessage, ULONG ulFlags, __out BOOL FAR * lpfMessageUpdated);
+RTFSync (LPMESSAGE lpMessage, ULONG ulFlags, __out BOOL FAR *lpfMessageUpdated);
 
 
 /* Flags for WrapCompressedRTFStream() */
@@ -819,14 +819,14 @@ RTFSync (LPMESSAGE lpMessage, ULONG ulFlags, __out BOOL FAR * lpfMessageUpdated)
 
 STDAPI_(HRESULT)
 WrapCompressedRTFStream (__in LPSTREAM lpCompressedRTFStream,
-		ULONG ulFlags, __out LPSTREAM FAR * lpUncompressedRTFStream);
+		ULONG ulFlags, __out LPSTREAM FAR *lpUncompressedRTFStream);
 
 /* Storage on Stream */
 
 #if defined(_WIN64) || defined(_WIN32) || defined(_M_ARM)
 STDAPI_(HRESULT)
 HrIStorageFromStream (LPUNKNOWN lpUnkIn,
-	LPCIID lpInterface, ULONG ulFlags, LPSTORAGE FAR * lppStorageOut);
+	LPCIID lpInterface, ULONG ulFlags, LPSTORAGE FAR *lppStorageOut);
 #endif
 
 
@@ -866,7 +866,7 @@ STDAPI_(VOID)			DeinitMapiUtil(VOID);
 #endif
 
 typedef HRESULT (STDAPICALLTYPE DISPATCHNOTIFICATIONS)(ULONG ulFlags);
-typedef DISPATCHNOTIFICATIONS FAR * LPDISPATCHNOTIFICATIONS;
+typedef DISPATCHNOTIFICATIONS FAR *LPDISPATCHNOTIFICATIONS;
 
 #if defined (_WIN64) && defined (_AMD64_)
 #define szScCreateConversationIndex "ScCreateConversationIndex"
@@ -884,7 +884,7 @@ typedef CREATECONVERSATIONINDEX FAR *LPCREATECONVERSATIONINDEX;
 
 typedef BOOL (STDAPICALLTYPE FGETCOMPONENTPATH) (LPTSTR szComponent,
 	LPTSTR szQualifier, LPTSTR szDllPath, DWORD cchBufferSize, BOOL fInstall);
-typedef FGETCOMPONENTPATH FAR * LPFGETCOMPONENTPATH;
+typedef FGETCOMPONENTPATH FAR *LPFGETCOMPONENTPATH;
 
 #ifdef __cplusplus
 }

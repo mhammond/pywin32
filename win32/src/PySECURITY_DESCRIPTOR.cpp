@@ -6,8 +6,8 @@
 #include "PySecurityObjects.h"
 #include "structmember.h"
 
-BOOL(WINAPI *setsecuritydescriptorcontrol)(PSECURITY_DESCRIPTOR, SECURITY_DESCRIPTOR_CONTROL,
-                                           SECURITY_DESCRIPTOR_CONTROL) = NULL;
+BOOL(WINAPI *setsecuritydescriptorcontrol)
+(PSECURITY_DESCRIPTOR, SECURITY_DESCRIPTOR_CONTROL, SECURITY_DESCRIPTOR_CONTROL) = NULL;
 
 void FreeSD_DACL(PSECURITY_DESCRIPTOR psd)
 {
@@ -718,9 +718,7 @@ static PyBufferProcs PySECURITY_DESCRIPTOR_as_buffer = {
 };
 
 PYWINTYPES_EXPORT PyTypeObject PySECURITY_DESCRIPTORType = {
-    PYWIN_OBJECT_HEAD "PySECURITY_DESCRIPTOR",
-    sizeof(PySECURITY_DESCRIPTOR),
-    0,
+    PYWIN_OBJECT_HEAD "PySECURITY_DESCRIPTOR", sizeof(PySECURITY_DESCRIPTOR), 0,
     PySECURITY_DESCRIPTOR::deallocFunc, /* tp_dealloc */
     0,                                  /* tp_print */
     0,                                  /* tp_getattr */

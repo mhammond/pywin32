@@ -18,7 +18,7 @@ extern "C"
 {
 #endif
 
-typedef struct _MSGSESS		FAR * LPMSGSESS;
+typedef struct _MSGSESS		FAR *LPMSGSESS;
 
 /*	Typedef of optional callback routine to be called on last release of
  *	top-level messages opened with OpenIMsgOnIStg
@@ -139,7 +139,7 @@ typedef struct _SPropAttrArray
 {
 	ULONG	cValues;
 	ULONG	aPropAttr[MAPI_DIM];
-} SPropAttrArray, FAR * LPSPropAttrArray;
+} SPropAttrArray, FAR *LPSPropAttrArray;
 
 #define CbNewSPropAttrArray(_cattr) \
 	(offsetof(SPropAttrArray,aPropAttr) + (_cattr)*sizeof(ULONG))

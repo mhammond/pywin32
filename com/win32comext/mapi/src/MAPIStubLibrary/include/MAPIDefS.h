@@ -112,7 +112,7 @@ typedef ULONG FAR *			LPULONG;
 
 #ifndef __LHANDLE
 #define __LHANDLE
-typedef ULONG_PTR	LHANDLE, FAR * LPLHANDLE;
+typedef ULONG_PTR	LHANDLE, FAR *LPLHANDLE;
 #endif
 
 #if !defined(_WINBASE_) && !defined(_FILETIME_)
@@ -121,7 +121,7 @@ typedef struct _FILETIME
 {
 	DWORD dwLowDateTime;
 	DWORD dwHighDateTime;
-} FILETIME, FAR * LPFILETIME;
+} FILETIME, FAR *LPFILETIME;
 #endif
 
 #ifndef BEGIN_INTERFACE
@@ -217,7 +217,7 @@ typedef struct
 typedef struct _MAPIUID
 {
 	BYTE ab[16];
-} MAPIUID, FAR * LPMAPIUID;
+} MAPIUID, FAR *LPMAPIUID;
 
 /* Note:  need to include C run-times (memory.h) to use this macro */
 
@@ -378,7 +378,7 @@ typedef struct _SPropTagArray
 {
 	ULONG	cValues;
 	ULONG	aulPropTag[MAPI_DIM];
-} SPropTagArray, FAR * LPSPropTagArray;
+} SPropTagArray, FAR *LPSPropTagArray;
 
 #define CbNewSPropTagArray(_ctag) \
 	(offsetof(SPropTagArray,aulPropTag) + (_ctag)*sizeof(ULONG))
@@ -556,7 +556,7 @@ typedef struct _SPropValue
 	ULONG		ulPropTag;
 	ULONG		dwAlignPad;
 	union _PV	Value;
-} SPropValue, FAR * LPSPropValue;
+} SPropValue, FAR *LPSPropValue;
 
 
 /* --------------------------------------------- */
@@ -568,13 +568,13 @@ typedef struct _SPropProblem
 	ULONG	ulIndex;
 	ULONG	ulPropTag;
 	SCODE	scode;
-} SPropProblem, FAR * LPSPropProblem;
+} SPropProblem, FAR *LPSPropProblem;
 
 typedef struct _SPropProblemArray
 {
 	ULONG			cProblem;
 	SPropProblem	aProblem[MAPI_DIM];
-} SPropProblemArray, FAR * LPSPropProblemArray;
+} SPropProblemArray, FAR *LPSPropProblemArray;
 
 #define CbNewSPropProblemArray(_cprob) \
 	(offsetof(SPropProblemArray,aProblem) + (_cprob)*sizeof(SPropProblem))
@@ -640,13 +640,13 @@ typedef struct _ADRENTRY
 	ULONG			ulReserved1;	/* Never used */
 	ULONG			cValues;
 	LPSPropValue	rgPropVals;
-} ADRENTRY, FAR * LPADRENTRY;
+} ADRENTRY, FAR *LPADRENTRY;
 
 typedef struct _ADRLIST
 {
 	ULONG			cEntries;
 	ADRENTRY		aEntries[MAPI_DIM];
-} ADRLIST, FAR * LPADRLIST;
+} ADRLIST, FAR *LPADRLIST;
 
 #define CbNewADRLIST(_centries) \
 	(offsetof(ADRLIST,aEntries) + (_centries)*sizeof(ADRENTRY))
@@ -667,13 +667,13 @@ typedef struct _SRow
 	ULONG			ulAdrEntryPad;	/* Pad so SRow's can map to ADRENTRY's */
 	ULONG			cValues;		/* Count of property values */
 	LPSPropValue	lpProps;		/* Property value array */
-} SRow, FAR * LPSRow;
+} SRow, FAR *LPSRow;
 
 typedef struct _SRowSet
 {
 	ULONG			cRows;			/* Count of rows */
 	SRow			aRow[MAPI_DIM];	/* Array of rows */
-} SRowSet, FAR * LPSRowSet;
+} SRowSet, FAR *LPSRowSet;
 
 #define CbNewSRowSet(_crow)		(offsetof(SRowSet,aRow) + (_crow)*sizeof(SRow))
 #define CbSRowSet(_lprowset)	(offsetof(SRowSet,aRow) + \
@@ -710,12 +710,12 @@ typedef FREEBUFFER FAR *	LPFREEBUFFER;
 
 #if defined(MAPI_IF) && (!defined(__cplusplus) || defined(CINTERFACE))
 #define DECLARE_MAPI_INTERFACE(iface)                                   \
-		typedef struct iface##Vtbl iface##Vtbl, FAR * iface;			\
+		typedef struct iface##Vtbl iface##Vtbl, FAR *iface;			\
 		struct iface##Vtbl
 #define DECLARE_MAPI_INTERFACE_(iface, baseiface)                       \
 		DECLARE_MAPI_INTERFACE(iface)
 #define DECLARE_MAPI_INTERFACE_PTR(iface, piface)                       \
-		typedef struct iface##Vtbl iface##Vtbl, FAR * iface, FAR * FAR * piface;
+		typedef struct iface##Vtbl iface##Vtbl, FAR *iface, FAR *FAR *piface;
 #else
 #define DECLARE_MAPI_INTERFACE(iface)                                   \
 		DECLARE_INTERFACE(iface)
@@ -723,14 +723,14 @@ typedef FREEBUFFER FAR *	LPFREEBUFFER;
 		DECLARE_INTERFACE_(iface, baseiface)
 #ifdef __cplusplus
 #define DECLARE_MAPI_INTERFACE_PTR(iface, piface)                       \
-		interface iface; typedef iface FAR * piface
+		interface iface; typedef iface FAR *piface
 #else
 #if !MS_TARGET_APPLE
 #define DECLARE_MAPI_INTERFACE_PTR(iface, piface)                       \
-		typedef interface iface iface, FAR * piface
+		typedef interface iface iface, FAR *piface
 #else // MS_TARGET_APPLE
 #define DECLARE_MAPI_INTERFACE_PTR(iface, piface)                       \
-		typedef interface iface FAR * piface
+		typedef interface iface FAR *piface
 #endif //MS_TARGET_APPLE
 #endif
 #endif
@@ -744,7 +744,7 @@ typedef FREEBUFFER FAR *	LPFREEBUFFER;
 
 #define MAPI_IUNKNOWN_METHODS(IPURE)									\
 	MAPIMETHOD(QueryInterface)											\
-		(THIS_ REFIID riid, LPVOID FAR * ppvObj) IPURE;					\
+		(THIS_ REFIID riid, LPVOID FAR *ppvObj) IPURE;					\
 	MAPIMETHOD_(ULONG,AddRef)  (THIS) IPURE;							\
 	MAPIMETHOD_(ULONG,Release) (THIS) IPURE;							\
 
@@ -753,7 +753,7 @@ typedef FREEBUFFER FAR *	LPFREEBUFFER;
 
 /* Pointers to MAPI Interfaces --------------------------------------------- */
 
-typedef const IID FAR * LPCIID;
+typedef const IID FAR *LPCIID;
 
 DECLARE_MAPI_INTERFACE_PTR(IMsgStore,		LPMDB);
 DECLARE_MAPI_INTERFACE_PTR(IMAPIFolder,		LPMAPIFOLDER);
@@ -782,7 +782,7 @@ typedef struct _MAPIERROR
 	ULONG	ulLowLevelError;
 	ULONG	ulContext;
 
-} MAPIERROR, FAR * LPMAPIERROR;
+} MAPIERROR, FAR *LPMAPIERROR;
 
 
 /* IMAPIAdviseSink Interface ----------------------------------------------- */
@@ -903,7 +903,7 @@ typedef struct _NOTIFICATION
 		EXTENDED_NOTIFICATION		ext;
 		STATUS_OBJECT_NOTIFICATION	statobj;
 	} info;
-} NOTIFICATION, FAR * LPNOTIFICATION;
+} NOTIFICATION, FAR *LPNOTIFICATION;
 
 
 /* Interface used for registering and issuing notification callbacks. */
@@ -928,7 +928,7 @@ typedef LONG (STDAPICALLTYPE NOTIFCALLBACK) (
 	LPVOID			lpvContext,
 	ULONG			cNotification,
 	LPNOTIFICATION	lpNotifications);
-typedef NOTIFCALLBACK FAR * LPNOTIFCALLBACK;
+typedef NOTIFCALLBACK FAR *LPNOTIFCALLBACK;
 
 /*
  *	Message name for the 16-bit MAPI notififcation engine.
@@ -1037,7 +1037,7 @@ typedef struct _MAPINAMEID
 		LPWSTR 		lpwstrName;
 	} Kind;
 
-} MAPINAMEID, FAR * LPMAPINAMEID;
+} MAPINAMEID, FAR *LPMAPINAMEID;
 
 #define MAPI_IMAPIPROP_METHODS(IPURE)									\
 	MAPIMETHOD(GetLastError)											\
@@ -1090,7 +1090,7 @@ typedef struct _MAPINAMEID
 				LPGUID						lpPropSetGuid,				\
 				ULONG						ulFlags,					\
 				ULONG FAR *					lpcPropNames,				\
-				LPMAPINAMEID FAR * FAR *	lpppPropNames) IPURE;		\
+				LPMAPINAMEID FAR *FAR *	lpppPropNames) IPURE;		\
 	MAPIMETHOD(GetIDsFromNames)											\
 		(THIS_	ULONG						cPropNames,					\
 				LPMAPINAMEID FAR *			lppPropNames,				\
@@ -1145,7 +1145,7 @@ typedef struct _SSortOrder
 {
 	ULONG	ulPropTag;			/* Column to sort on */
 	ULONG	ulOrder;			/* Ascending, descending, combine to left */
-} SSortOrder, FAR * LPSSortOrder;
+} SSortOrder, FAR *LPSSortOrder;
 
 typedef struct _SSortOrderSet
 {
@@ -1154,7 +1154,7 @@ typedef struct _SSortOrderSet
 	ULONG			cExpanded;		/* 0 if no categories start expanded, */
 									/*		up to cExpanded */
 	SSortOrder		aSort[MAPI_DIM];	/* The sort orders */
-} SSortOrderSet, FAR * LPSSortOrderSet;
+} SSortOrderSet, FAR *LPSSortOrderSet;
 
 #define CbNewSSortOrderSet(_csort) \
 	(offsetof(SSortOrderSet,aSort) + (_csort)*sizeof(SSortOrder))
@@ -1188,7 +1188,7 @@ typedef ULONG_PTR 		BOOKMARK;
 
 /* Restrictions */
 
-typedef struct _SRestriction	FAR * LPSRestriction;
+typedef struct _SRestriction	FAR *LPSRestriction;
 
 /* Restriction types */
 
@@ -1665,7 +1665,7 @@ typedef struct _flaglist
 {
 	ULONG cFlags;
 	ULONG ulFlag[MAPI_DIM];
-} FlagList, FAR * LPFlagList;
+} FlagList, FAR *LPFlagList;
 
 
 /*
@@ -2420,21 +2420,21 @@ DECLARE_MAPI_INTERFACE_(IAttach, IMAPIProp)
 /*  Accelerator callback for DIALOG_SDI form of AB UI */
 typedef BOOL (STDMETHODCALLTYPE ACCELERATEABSDI)(ULONG_PTR ulUIParam,
 												LPVOID lpvmsg);
-typedef ACCELERATEABSDI FAR * LPFNABSDI;
+typedef ACCELERATEABSDI FAR *LPFNABSDI;
 
 /*  Callback to application telling it that the DIALOG_SDI form of the */
 /*  AB UI has been dismissed.  This is so that the above LPFNABSDI     */
 /*  function doesn't keep being called.                                */
 typedef void (STDMETHODCALLTYPE DISMISSMODELESS)(ULONG_PTR ulUIParam,
 												LPVOID lpvContext);
-typedef DISMISSMODELESS FAR * LPFNDISMISS;
+typedef DISMISSMODELESS FAR *LPFNDISMISS;
 
 /*
  * Prototype for the client function hooked to an optional button on
  * the address book dialog
  */
 
-typedef SCODE (STDMETHODCALLTYPE FAR * LPFNBUTTON)(
+typedef SCODE (STDMETHODCALLTYPE FAR *LPFNBUTTON)(
 	ULONG_PTR			ulUIParam,
 	LPVOID				lpvContext,
 	ULONG				cbEntryID,
@@ -2466,7 +2466,7 @@ typedef struct _ADRPARM
 	ULONG FAR *		lpulDestComps;
 	LPSRestriction	lpContRestriction;
 	LPSRestriction	lpHierRestriction;
-} ADRPARM, FAR * LPADRPARM;
+} ADRPARM, FAR *LPADRPARM;
 
 
 /* ------------ */
@@ -2564,7 +2564,7 @@ typedef struct _DTBLLABEL
 {
 	ULONG ulbLpszLabelName;
 	ULONG ulFlags;
-} DTBLLABEL, FAR * LPDTBLLABEL;
+} DTBLLABEL, FAR *LPDTBLLABEL;
 #define SizedDtblLabel(n,u) \
 struct _DTBLLABEL_ ## u \
 { \
@@ -2583,7 +2583,7 @@ typedef struct _DTBLEDIT
 	ULONG ulFlags;
 	ULONG ulNumCharsAllowed;
 	ULONG ulPropTag;
-} DTBLEDIT, FAR * LPDTBLEDIT;
+} DTBLEDIT, FAR *LPDTBLEDIT;
 #define SizedDtblEdit(n,u) \
 struct _DTBLEDIT_ ## u \
 { \
@@ -2602,7 +2602,7 @@ typedef struct _DTBLLBX
 	ULONG ulFlags;
 	ULONG ulPRSetProperty;
 	ULONG ulPRTableName;
-} DTBLLBX, FAR * LPDTBLLBX;
+} DTBLLBX, FAR *LPDTBLLBX;
 
 
 /*  Combo Box   */
@@ -2616,7 +2616,7 @@ typedef struct _DTBLCOMBOBOX
 	ULONG ulNumCharsAllowed;
 	ULONG ulPRPropertyName;
 	ULONG ulPRTableName;
-} DTBLCOMBOBOX, FAR * LPDTBLCOMBOBOX;
+} DTBLCOMBOBOX, FAR *LPDTBLCOMBOBOX;
 #define SizedDtblComboBox(n,u) \
 struct _DTBLCOMBOBOX_ ## u \
 { \
@@ -2635,7 +2635,7 @@ typedef struct _DTBLDDLBX
 	ULONG ulPRDisplayProperty;
 	ULONG ulPRSetProperty;
 	ULONG ulPRTableName;
-} DTBLDDLBX, FAR * LPDTBLDDLBX;
+} DTBLDDLBX, FAR *LPDTBLDDLBX;
 
 
 /*  Check Box   */
@@ -2647,7 +2647,7 @@ typedef struct _DTBLCHECKBOX
 	ULONG ulbLpszLabel;
 	ULONG ulFlags;
 	ULONG ulPRPropertyName;
-} DTBLCHECKBOX, FAR * LPDTBLCHECKBOX;
+} DTBLCHECKBOX, FAR *LPDTBLCHECKBOX;
 #define SizedDtblCheckBox(n,u) \
 struct _DTBLCHECKBOX_ ## u \
 { \
@@ -2665,7 +2665,7 @@ typedef struct _DTBLGROUPBOX
 {
 	ULONG ulbLpszLabel;
 	ULONG ulFlags;
-} DTBLGROUPBOX, FAR * LPDTBLGROUPBOX;
+} DTBLGROUPBOX, FAR *LPDTBLGROUPBOX;
 #define SizedDtblGroupBox(n,u) \
 struct _DTBLGROUPBOX_ ## u \
 { \
@@ -2682,7 +2682,7 @@ typedef struct _DTBLBUTTON
 	ULONG ulbLpszLabel;
 	ULONG ulFlags;
 	ULONG ulPRControl;
-} DTBLBUTTON, FAR * LPDTBLBUTTON;
+} DTBLBUTTON, FAR *LPDTBLBUTTON;
 #define SizedDtblButton(n,u) \
 struct _DTBLBUTTON_ ## u \
 { \
@@ -2700,7 +2700,7 @@ typedef struct _DTBLPAGE
 	ULONG ulFlags;
 	ULONG ulbLpszComponent;
 	ULONG ulContext;
-} DTBLPAGE, FAR * LPDTBLPAGE;
+} DTBLPAGE, FAR *LPDTBLPAGE;
 #define SizedDtblPage(n,n1,u) \
 struct _DTBLPAGE_ ## u \
 { \
@@ -2720,7 +2720,7 @@ typedef struct _DTBLRADIOBUTTON
 	ULONG ulcButtons;
 	ULONG ulPropTag;
 	LONG lReturnValue;
-} DTBLRADIOBUTTON, FAR * LPDTBLRADIOBUTTON;
+} DTBLRADIOBUTTON, FAR *LPDTBLRADIOBUTTON;
 #define SizedDtblRadioButton(n,u) \
 struct _DTBLRADIOBUTTON_ ## u \
 { \
@@ -2737,7 +2737,7 @@ typedef struct _DTBLMVLISTBOX
 {
 	ULONG ulFlags;
 	ULONG ulMVPropTag;
-} DTBLMVLISTBOX, FAR * LPDTBLMVLISTBOX;
+} DTBLMVLISTBOX, FAR *LPDTBLMVLISTBOX;
 
 
 /*  MultiValued dropdown */
@@ -2748,7 +2748,7 @@ typedef struct _DTBLMVDDLBX
 {
 	ULONG ulFlags;
 	ULONG ulMVPropTag;
-} DTBLMVDDLBX, FAR * LPDTBLMVDDLBX;
+} DTBLMVDDLBX, FAR *LPDTBLMVDDLBX;
 
 
 

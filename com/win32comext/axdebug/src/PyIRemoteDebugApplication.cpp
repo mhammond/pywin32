@@ -468,8 +468,8 @@ STDMETHODIMP PyGRemoteDebugApplication::GetRootNode(IDebugApplicationNode __RPC_
     return hr;
 }
 
-STDMETHODIMP PyGRemoteDebugApplication::EnumGlobalExpressionContexts(IEnumDebugExpressionContexts __RPC_FAR *
-                                                                     __RPC_FAR *ppedec)
+STDMETHODIMP PyGRemoteDebugApplication::EnumGlobalExpressionContexts(
+    IEnumDebugExpressionContexts __RPC_FAR *__RPC_FAR *ppede)
 {
     PY_GATEWAY_METHOD;
     if (ppedec == NULL)

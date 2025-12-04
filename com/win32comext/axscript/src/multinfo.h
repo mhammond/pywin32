@@ -347,15 +347,14 @@ void __RPC_STUB IProvideMultipleClassInfo_GetMultiTypeInfoCount_Stub(IRpcStubBuf
                                                                      IRpcChannelBuffer *_pRpcChannelBuffer,
                                                                      PRPC_MESSAGE _pRpcMessage, DWORD *_pdwStubPhase);
 
-HRESULT __stdcall IProvideMultipleClassInfo_GetInfoOfIndex_Proxy(IProvideMultipleClassInfo __RPC_FAR *This,
-                                                                 /* [in] */ ULONG iti,
-                                                                 /* [in] */ DWORD dwFlags,
-                                                                 /* [out] */ ITypeInfo __RPC_FAR *__RPC_FAR *
-                                                                     pptiCoClass,
-                                                                 /* [out] */ DWORD __RPC_FAR *pdwTIFlags,
-                                                                 /* [out] */ ULONG __RPC_FAR *pcdispidReserved,
-                                                                 /* [out] */ IID __RPC_FAR *piidPrimary,
-                                                                 /* [out] */ IID __RPC_FAR *piidSource);
+HRESULT __stdcall IProvideMultipleClassInfo_GetInfoOfIndex_Proxy(
+    IProvideMultipleClassInfo __RPC_FAR *This,
+    /* [in] */ ULONG iti,
+    /* [in] */ DWORD dwFlags,
+    /* [out] */ ITypeInfo __RPC_FAR *__RPC_FAR *pptiCoClass,
+    /* [out] */ DWORD __RPC_FAR *pdwTIFlags,
+    /* [out] */ ULONG __RPC_FAR *pcdispidReserved,
+    /* [out] */ IID __RPC_FAR *piidPrimary,
 
 void __RPC_STUB IProvideMultipleClassInfo_GetInfoOfIndex_Stub(IRpcStubBuffer *This,
                                                               IRpcChannelBuffer *_pRpcChannelBuffer,

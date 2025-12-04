@@ -223,10 +223,10 @@ BOOL WINAPI		FileTimeToSystemTime(const FILETIME FAR *, SYSTEMTIME FAR *);
 BOOL WINAPI		SystemTimeToFileTime(const SYSTEMTIME FAR *, FILETIME FAR *);
 void WINAPI		GetSystemTime(SYSTEMTIME FAR *);
 void WINAPI		GetLocalTime(SYSTEMTIME FAR *);
-BOOL WINAPI		FileTimeToDosDateTime(const FILETIME FAR * lpFileTime,
+BOOL WINAPI		FileTimeToDosDateTime(const FILETIME FAR *lpFileTime,
 			    WORD FAR *lpFatDate, WORD FAR *lpFatTime);
 BOOL WINAPI		DosDateTimeToFileTime(WORD wFatDate, WORD wFatTime,
-			    FILETIME FAR * lpFileTime);
+			    FILETIME FAR *lpFileTime);
 DWORD WINAPI	GetTimeZoneInformation(
 				LPTIME_ZONE_INFORMATION lpTimeZoneInformation);
 BOOL WINAPI		SetTimeZoneInformation(

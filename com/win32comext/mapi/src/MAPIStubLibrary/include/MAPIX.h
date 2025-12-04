@@ -104,7 +104,7 @@ typedef HRESULT (STDMETHODCALLTYPE MAPILOGONEX)(
 	/*OFFICEDEV add _opt*/ __in_opt LPTSTR lpszProfileName,
 	/*OFFICEDEV add _opt*/ __in_opt LPTSTR lpszPassword,
 	ULONG ulFlags,   /*  ulFlags takes all that SimpleMAPI does + MAPI_UNICODE */
-	LPMAPISESSION FAR * lppSession
+	LPMAPISESSION FAR *lppSession
 );
 typedef MAPILOGONEX FAR *LPMAPILOGONEX;
 
@@ -236,7 +236,7 @@ MAPIADMINPROFILES MAPIAdminProfiles;
 	MAPIMETHOD(EnumAdrTypes)											\
 		(THIS_	ULONG						ulFlags,					\
 				ULONG FAR *					lpcAdrTypes,				\
-				LPTSTR FAR * FAR *			lpppszAdrTypes) IPURE;		\
+				LPTSTR FAR *FAR *			lpppszAdrTypes) IPURE;		\
 	MAPIMETHOD(QueryIdentity)											\
 		(THIS_	ULONG FAR *					lpcbEntryID,				\
 				LPENTRYID FAR *				lppEntryID) IPURE;			\
