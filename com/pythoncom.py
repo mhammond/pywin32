@@ -1,5 +1,5 @@
 # Magic utility that "redirects" to pythoncomXX.dll
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import pywintypes
 
