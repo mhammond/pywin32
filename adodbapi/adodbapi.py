@@ -326,7 +326,7 @@ class Connection:
         try:
             self._closeAdoConnection()  # v2.1 Rose
         except Exception as e:
-            self._raiseConnectionError(sys.exc_info()[0], sys.exc_info()[1])
+            self._raiseConnectionError(type(e), e)
 
         self.connector = None  # v2.4.2.2 fix subtle timeout bug
         # per M.Hammond: "I expect the benefits of uninitializing are probably fairly small,
