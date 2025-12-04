@@ -40,5 +40,5 @@ class PyGDebugExpression : public PyGatewayBase, public IDebugExpression {
     STDMETHOD(GetResultAsString)(HRESULT __RPC_FAR *phrResult, BSTR __RPC_FAR *pbstrResult);
 
     STDMETHOD(GetResultAsDebugProperty)(HRESULT __RPC_FAR *phrResult,
-                                        IDebugProperty __RPC_FAR * __RPC_FAR * pbstrResult);
+                                        IDebugProperty __RPC_FAR *__RPC_FAR *pbstrResult);
 };

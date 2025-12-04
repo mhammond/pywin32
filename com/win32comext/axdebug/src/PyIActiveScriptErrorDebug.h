@@ -40,7 +40,7 @@ class PyGActiveScriptErrorDebug : public PyGActiveScriptError, public IActiveScr
     STDMETHOD(GetSourceLineText)(BSTR __RPC_FAR *pbstrSourceLine);
 
     // IActiveScriptErrorDebug
-    STDMETHOD(GetDocumentContext)(IDebugDocumentContext __RPC_FAR * __RPC_FAR * ppssc);
+    STDMETHOD(GetDocumentContext)(IDebugDocumentContext __RPC_FAR *__RPC_FAR *ppssc);
 
-    STDMETHOD(GetStackFrame)(IDebugStackFrame __RPC_FAR * __RPC_FAR * ppdsf);
+    STDMETHOD(GetStackFrame)(IDebugStackFrame __RPC_FAR *__RPC_FAR *ppdsf);
 };

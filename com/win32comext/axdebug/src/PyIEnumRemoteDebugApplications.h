@@ -31,11 +31,11 @@ class PyGEnumRemoteDebugApplications : public PyGatewayBase, public IEnumRemoteD
                            IID_IEnumRemoteDebugApplications)
 
     // IEnumRemoteDebugApplications
-    STDMETHOD(Next)(ULONG celt, IRemoteDebugApplication __RPC_FAR * __RPC_FAR * ppda, ULONG __RPC_FAR *pceltFetched);
+    STDMETHOD(Next)(ULONG celt, IRemoteDebugApplication __RPC_FAR *__RPC_FAR *ppda, ULONG __RPC_FAR *pceltFetched);
 
     STDMETHOD(Skip)(ULONG celt);
 
     STDMETHOD(Reset)(void);
 
-    STDMETHOD(Clone)(IEnumRemoteDebugApplications __RPC_FAR * __RPC_FAR * ppessd);
+    STDMETHOD(Clone)(IEnumRemoteDebugApplications __RPC_FAR *__RPC_FAR *ppessd);
 };

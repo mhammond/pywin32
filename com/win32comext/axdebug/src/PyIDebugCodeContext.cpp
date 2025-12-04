@@ -71,7 +71,7 @@ PyComTypeObject PyIDebugCodeContext::type("PyIDebugCodeContext", &PyIUnknown::ty
 
 // Std delegation
 STDMETHODIMP PyGDebugCodeContext::GetDocumentContext(
-    /* [out] */ IDebugDocumentContext __RPC_FAR * __RPC_FAR * ppsc)
+    /* [out] */ IDebugDocumentContext __RPC_FAR *__RPC_FAR *ppsc)
 {
     PY_GATEWAY_METHOD;
     if (ppsc == NULL)

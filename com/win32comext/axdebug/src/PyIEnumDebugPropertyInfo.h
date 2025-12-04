@@ -37,7 +37,7 @@ class PyGEnumDebugPropertyInfo : public PyGatewayBase, public IEnumDebugProperty
 
     STDMETHOD(Reset)(void);
 
-    STDMETHOD(Clone)(IEnumDebugPropertyInfo __RPC_FAR * __RPC_FAR * ppepi);
+    STDMETHOD(Clone)(IEnumDebugPropertyInfo __RPC_FAR *__RPC_FAR *ppepi);
 
     STDMETHOD(GetCount)(ULONG __RPC_FAR *pcelt);
 };

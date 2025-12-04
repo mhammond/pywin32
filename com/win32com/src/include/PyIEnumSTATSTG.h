@@ -36,5 +36,5 @@ class PyGEnumSTATSTG : public PyGatewayBase, public IEnumSTATSTG {
 
     STDMETHOD(Reset)(void);
 
-    STDMETHOD(Clone)(IEnumSTATSTG __RPC_FAR * __RPC_FAR * ppenum);
+    STDMETHOD(Clone)(IEnumSTATSTG __RPC_FAR *__RPC_FAR *ppenum);
 };
