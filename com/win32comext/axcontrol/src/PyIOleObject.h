@@ -49,7 +49,7 @@ class PyGOleObject : public PyGatewayBase, public IOleObject {
     // IOleObject
     STDMETHOD(SetClientSite)(IOleClientSite __RPC_FAR *pClientSite);
 
-    STDMETHOD(GetClientSite)(IOleClientSite __RPC_FAR *__RPC_FAR *ppClientSite);
+    STDMETHOD(GetClientSite)(IOleClientSite __RPC_FAR * __RPC_FAR * ppClientSite);
 
     STDMETHOD(SetHostNames)(LPCOLESTR szContainerApp, LPCOLESTR szContainerObj);
 
@@ -57,16 +57,16 @@ class PyGOleObject : public PyGatewayBase, public IOleObject {
 
     STDMETHOD(SetMoniker)(DWORD dwWhichMoniker, IMoniker __RPC_FAR *pmk);
 
-    STDMETHOD(GetMoniker)(DWORD dwAssign, DWORD dwWhichMoniker, IMoniker __RPC_FAR *__RPC_FAR *ppmk);
+    STDMETHOD(GetMoniker)(DWORD dwAssign, DWORD dwWhichMoniker, IMoniker __RPC_FAR * __RPC_FAR * ppmk);
 
     STDMETHOD(InitFromData)(IDataObject __RPC_FAR *pDataObject, BOOL fCreation, DWORD dwReserved);
 
-    STDMETHOD(GetClipboardData)(DWORD dwReserved, IDataObject __RPC_FAR *__RPC_FAR *ppDataObject);
+    STDMETHOD(GetClipboardData)(DWORD dwReserved, IDataObject __RPC_FAR * __RPC_FAR * ppDataObject);
 
     STDMETHOD(DoVerb)
     (LONG iVerb, LPMSG lpmsg, IOleClientSite __RPC_FAR *pActiveSite, LONG lindex, HWND hwndParent, LPCRECT lprcPosRect);
 
-    STDMETHOD(EnumVerbs)(IEnumOLEVERB __RPC_FAR *__RPC_FAR *ppEnumOleVerb);
+    STDMETHOD(EnumVerbs)(IEnumOLEVERB __RPC_FAR * __RPC_FAR * ppEnumOleVerb);
 
     STDMETHOD(Update)(void);
 
@@ -84,7 +84,7 @@ class PyGOleObject : public PyGatewayBase, public IOleObject {
 
     STDMETHOD(Unadvise)(DWORD dwConnection);
 
-    STDMETHOD(EnumAdvise)(IEnumSTATDATA __RPC_FAR *__RPC_FAR *ppenumAdvise);
+    STDMETHOD(EnumAdvise)(IEnumSTATDATA __RPC_FAR * __RPC_FAR * ppenumAdvise);
 
     STDMETHOD(GetMiscStatus)(DWORD dwAspect, DWORD __RPC_FAR *pdwStatus);
 

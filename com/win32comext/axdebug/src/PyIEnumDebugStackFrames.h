@@ -36,5 +36,5 @@ class PyGEnumDebugStackFrames : public PyGatewayBase, public IEnumDebugStackFram
 
     STDMETHOD(Reset)(void);
 
-    STDMETHOD(Clone)(IEnumDebugStackFrames __RPC_FAR *__RPC_FAR *ppedsf);
+    STDMETHOD(Clone)(IEnumDebugStackFrames __RPC_FAR * __RPC_FAR * ppedsf);
 };

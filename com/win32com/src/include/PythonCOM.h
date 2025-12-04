@@ -561,7 +561,7 @@ class PYCOM_EXPORT PyITypeInfo : public PyIUnknown {
     PyObject *GetRefTypeInfo(HREFTYPE href);
     PyObject *GetRefTypeOfImplType(int index);
     PyObject *GetFuncDesc(int pos);
-    PyObject *GetIDsOfNames(OLECHAR FAR *FAR *, int);
+    PyObject *GetIDsOfNames(OLECHAR FAR * FAR *, int);
     PyObject *GetNames(MEMBERID);
     PyObject *GetTypeAttr();
     PyObject *GetVarDesc(int pos);

@@ -117,11 +117,14 @@ static PyBufferProcs PyIID_as_buffer = {
 // objects.  However, in almost all cases, functions that expect a CLSID/IID
 // as a param will accept either a string object, or a native PyIID object.
 PYWINTYPES_EXPORT PyTypeObject PyIIDType = {
-    PYWIN_OBJECT_HEAD "PyIID", sizeof(PyIID), 0, PyIID::deallocFunc, /* tp_dealloc */
-    0,                                                               /* tp_print */
-    0,                                                               /* tp_getattr */
-    0,                                                               /* tp_setattr */
-    0,                                                               /* tp_compare */
+    PYWIN_OBJECT_HEAD "PyIID",
+    sizeof(PyIID),
+    0,
+    PyIID::deallocFunc, /* tp_dealloc */
+    0,                  /* tp_print */
+    0,                  /* tp_getattr */
+    0,                  /* tp_setattr */
+    0,                  /* tp_compare */
     // @pymeth __repr__|Used whenever a repr() is called for the object
     PyIID::reprFunc, /* tp_repr */
     0,               /* tp_as_number */
@@ -168,7 +171,7 @@ int PyIID::IsEqual(REFIID riid) { return IsEqualIID(m_iid, riid); }
 
 int PyIID::IsEqual(PyObject *ob)
 {
-    if (ob->ob_type != &PyIIDType)
+    if (Py_TYPE(ob) != &PyIIDType)
         return 0;
     return IsEqualIID(m_iid, ((PyIID *)ob)->m_iid);
 }

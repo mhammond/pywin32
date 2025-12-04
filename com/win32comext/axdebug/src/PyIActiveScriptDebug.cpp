@@ -189,7 +189,7 @@ STDMETHODIMP PyGActiveScriptDebug::EnumCodeContextsOfPosition(
 #endif
     /* [in] */ ULONG uCharacterOffset,
     /* [in] */ ULONG uNumChars,
-    /* [out] */ IEnumDebugCodeContexts __RPC_FAR *__RPC_FAR *ppescc)
+    /* [out] */ IEnumDebugCodeContexts __RPC_FAR * __RPC_FAR * ppescc)
 {
     PY_GATEWAY_METHOD;
     if (ppescc == NULL)

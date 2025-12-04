@@ -1015,7 +1015,7 @@ PyObject *PyWin_GetPythonObjectFromLong(LONG_PTR val)
         return Py_None;
     BOOL ok;
     __try {
-        ok = ret->ob_refcnt != 0;
+        ok = Py_REFCNT(ret) != 0;
         ok = ok && ret->ob_type->tp_name[0] != 0;
     }
     __except (EXCEPTION_ACCESS_VIOLATION) {
