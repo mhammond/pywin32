@@ -27,7 +27,7 @@ from . import error  # axscript.client.error
 
 def RemoveCR(text):
     # No longer just "RemoveCR" - should be renamed to
-    # FixNewlines, or something.  Idea is to fix arbitary newlines into
+    # FixNewlines, or something.  Idea is to fix arbitrary newlines into
     # something Python can compile...
     return re.sub(r"(\r\n)|\r|(\n\r)", "\n", text)
 
@@ -628,9 +628,9 @@ class COMScript:
     ]  # , axscript.IID_IActiveScriptParseProcedure]
 
     def __init__(self):
-        # Make sure we can print/trace wihout an exception!
+        # Make sure we can print/trace without an exception!
         MakeValidSysOuts()
-        # 		trace("AXScriptEngine object created", self)
+        # trace("AXScriptEngine object created", self)
         self.baseThreadId = -1
         self.debugManager = None
         self.threadState = axscript.SCRIPTTHREADSTATE_NOTINSCRIPT

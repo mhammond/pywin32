@@ -107,7 +107,6 @@ static CoSetCancelObjectfunc pfnCoSetCancelObject = NULL;
 // WinXP or later
 LPFNOBJECTFROMLRESULT pfnObjectFromLresult = NULL;
 
-// May not be available on Windows 95, although I'm not sure that's even a concern anymore
 typedef HRESULT(STDAPICALLTYPE *CoCreateInstanceExfunc)(REFCLSID, IUnknown *, DWORD, COSERVERINFO *, ULONG, MULTI_QI *);
 static CoCreateInstanceExfunc pfnCoCreateInstanceEx = NULL;
 typedef HRESULT(STDAPICALLTYPE *CoInitializeSecurityfunc)(PSECURITY_DESCRIPTOR, LONG, SOLE_AUTHENTICATION_SERVICE *,
@@ -748,7 +747,7 @@ static PyObject *pythoncom_WrapObject(PyObject *self, PyObject *args)
     // The gateway must exist (ie, we _must_ support PyGIXXX
 
     // XXX - do we need an optional arg for "base object"?
-    // XXX - If we did, we would unwrap it like thus:
+    // XXX - If we did, we would unwrap it like this:
     /****
     IUnknown *pLook = (IUnknown *)(*ppv);
     IInternalUnwrapPythonObject *pTemp;
