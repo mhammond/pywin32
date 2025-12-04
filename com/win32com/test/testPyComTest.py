@@ -15,7 +15,6 @@ import win32com.test.util
 import win32timezone
 import winerror
 from win32api import CloseHandle, GetCurrentProcessId, OpenProcess
-from win32com import universal
 from win32com.client import (
     VARIANT,
     CastTo,
@@ -25,6 +24,7 @@ from win32com.client import (
     gencache,
     register_record_class,
 )
+from win32com.universal import RegisterInterfaces
 from win32process import GetProcessMemoryInfo
 
 # This test uses a Python implemented COM server - ensure correctly registered.
@@ -45,10 +45,6 @@ except pythoncom.com_error as error:
   and build it using MS Visual C++"""
     print(f"The PyCOMTest module can not be located or generated.\n{importMsg}\n")
     raise RuntimeError(importMsg) from error
-
-# We had a bg where RegisterInterfaces would fail if gencache had
-# already been run - exercise that here
-universal.RegisterInterfaces("{6BCDCB60-5605-11D0-AE5F-CADD4C000000}", 0, 1, 1)
 
 verbose = 0
 
@@ -175,7 +171,7 @@ class RandomEventHandler:
         if not self.fireds:
             print("ERROR: Nothing was received!")
         for firedId, no in self.fireds.items():
-            progress("ID %d fired %d times" % (firedId, no))
+            progress(f"ID {firedId} fired {no} times")
 
 
 # Test everything which can be tested using both the "dynamic" and "generated"
@@ -891,34 +887,39 @@ def TestVTableMI():
         pass
 
 
-def TestQueryInterface(long_lived_server=0, iterations=5):
+def TestQueryInterface(long_lived_server=False, iterations=5):
     tester = win32com.client.Dispatch("PyCOMTest.PyCOMTest")
     if long_lived_server:
         # Create a local server
         t0 = win32com.client.Dispatch(
             "Python.Test.PyCOMTest", clsctx=pythoncom.CLSCTX_LOCAL_SERVER
         )
-    # Request custom interfaces a number of times
-    prompt = [
-        "Testing QueryInterface without long-lived local-server #%d of %d...",
-        "Testing QueryInterface with long-lived local-server #%d of %d...",
-    ]
 
+    # Request custom interfaces a number of time
     for i in range(iterations):
-        progress(prompt[long_lived_server != 0] % (i + 1, iterations))
+        progress(
+            f"Testing QueryInterface "
+            + ("with" if long_lived_server else "without")
+            + f" long-lived local-server #{i + 1} of {iterations}..."
+        )
         tester.TestQueryInterface()
 
 
 class Tester(win32com.test.util.TestCase):
-    def testVTableInProc(self):
+    def testRegisterInterfacesAfterGencache(self) -> None:
+        # We had a bug where RegisterInterfaces would fail if gencache had
+        # already been run - exercise that here
+        RegisterInterfaces("{6BCDCB60-5605-11D0-AE5F-CADD4C000000}", 0, 1, 1)
+
+    def testVTableInProc(self) -> None:
         # We used to crash running this the second time - do it a few times
         for i in range(3):
-            progress("Testing VTables in-process #%d..." % (i + 1))
+            progress(f"Testing VTables in-process #{(i + 1)}...")
             TestVTable(pythoncom.CLSCTX_INPROC_SERVER)
 
-    def testVTableLocalServer(self):
+    def testVTableLocalServer(self) -> None:
         for i in range(3):
-            progress("Testing VTables out-of-process #%d..." % (i + 1))
+            progress(f"Testing VTables out-of-process #{(i + 1)}...")
             TestVTable(pythoncom.CLSCTX_LOCAL_SERVER)
 
     def testVTable2(self):
@@ -930,15 +931,15 @@ class Tester(win32com.test.util.TestCase):
             TestVTableMI()
 
     def testMultiQueryInterface(self):
-        TestQueryInterface(0, 6)
+        TestQueryInterface(False, 6)
         # When we use the custom interface in the presence of a long-lived
         # local server, i.e. a local server that is already running when
         # we request an instance of our COM object, and remains afterwards,
         # then after repeated requests to create an instance of our object
         # the custom interface disappears -- i.e. QueryInterface fails with
         # E_NOINTERFACE. Set the upper range of the following test to 2 to
-        # pass this test, i.e. TestQueryInterface(1,2)
-        TestQueryInterface(1, 6)
+        # pass this test, i.e. TestQueryInterface(True, 2)
+        TestQueryInterface(True, 6)
 
     def testDynamic(self):
         TestDynamic()
