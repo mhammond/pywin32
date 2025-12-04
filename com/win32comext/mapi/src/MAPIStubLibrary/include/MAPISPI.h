@@ -86,7 +86,7 @@ typedef struct
 {
 	ULONG		cb;				/* How big the key is */
 	BYTE		ab[MAPI_DIM];	/* Key contents */
-} NOTIFKEY, FAR * LPNOTIFKEY;
+} NOTIFKEY, FAR *LPNOTIFKEY;
 
 #define CbNewNOTIFKEY(_cb)		(offsetof(NOTIFKEY,ab) + (_cb))
 #define CbNOTIFKEY(_lpkey)		(offsetof(NOTIFKEY,ab) + (_lpkey)->cb)
@@ -162,7 +162,7 @@ typedef HRESULT (STDMETHODCALLTYPE PREPROCESSMESSAGE)(
 					LPALLOCATEMORE AllocateMore,
 					LPFREEBUFFER FreeBuffer,
 					ULONG FAR *lpcOutbound,
-					LPMESSAGE FAR * FAR *lpppMessage,
+					LPMESSAGE FAR *FAR *lpppMessage,
 					LPADRLIST FAR *lppRecipList);
 
 /* RemovePreprocessInfo, second ordinal in RegisterPreprocessor(). */
@@ -428,7 +428,7 @@ DECLARE_MAPI_INTERFACE_PTR(IABLogon,    LPABLOGON);
 				ULONG FAR *					lpulpcbSecurity,			\
 				LPBYTE FAR *				lppbSecurity,				\
                 LPMAPIERROR FAR *			lppMAPIError,				\
-                LPABLOGON FAR *             lppABLogon) IPURE;          \
+                LPABLOGON FAR *            lppABLogon) IPURE;          \
 
 #undef       INTERFACE
 #define      INTERFACE  IABProvider
@@ -454,7 +454,7 @@ DECLARE_MAPI_INTERFACE_(IABProvider, IUnknown)
                 LPENTRYID                   lpEntryID,                  \
                 LPCIID                      lpInterface,                \
                 ULONG                       ulFlags,                    \
-                ULONG FAR *                 lpulObjType,                \
+                ULONG FAR *                lpulObjType,                \
 				LPUNKNOWN FAR *				lppUnk) IPURE;				\
     MAPIMETHOD(CompareEntryIDs)                                         \
         (THIS_  ULONG                       cbEntryID1,                 \
@@ -462,7 +462,7 @@ DECLARE_MAPI_INTERFACE_(IABProvider, IUnknown)
                 ULONG                       cbEntryID2,                 \
                 LPENTRYID                   lpEntryID2,                 \
                 ULONG                       ulFlags,                    \
-                ULONG FAR *                 lpulResult) IPURE;          \
+                ULONG FAR *                lpulResult) IPURE;          \
     MAPIMETHOD(Advise)				                                    \
         (THIS_  ULONG                       cbEntryID,                  \
                 LPENTRYID                   lpEntryID,                  \
@@ -474,19 +474,19 @@ DECLARE_MAPI_INTERFACE_(IABProvider, IUnknown)
     MAPIMETHOD(OpenStatusEntry)                                         \
         (THIS_  LPCIID                       lpInterface,                \
                 ULONG                       ulFlags,                    \
-                ULONG FAR *                 lpulObjType,                \
-                LPMAPISTATUS FAR *          lppEntry) IPURE;            \
+                ULONG FAR *                lpulObjType,                \
+                LPMAPISTATUS FAR *         lppEntry) IPURE;            \
     MAPIMETHOD(OpenTemplateID)                                          \
         (THIS_  ULONG                       cbTemplateID,               \
                 LPENTRYID                   lpTemplateID,               \
                 ULONG                       ulTemplateFlags,            \
                 LPMAPIPROP                  lpMAPIPropData,             \
                 LPCIID                       lpInterface,                \
-                LPMAPIPROP FAR *            lppMAPIPropNew,             \
+                LPMAPIPROP FAR *           lppMAPIPropNew,             \
                 LPMAPIPROP                  lpMAPIPropSibling) IPURE;   \
     MAPIMETHOD(GetOneOffTable)                                          \
         (THIS_	ULONG						ulFlags,					\
-				LPMAPITABLE FAR *           lppTable) IPURE;            \
+				LPMAPITABLE FAR *          lppTable) IPURE;            \
 	MAPIMETHOD(PrepareRecips)											\
 		(THIS_	ULONG						ulFlags,					\
 				LPSPropTagArray				lpPropTagArray,				\
@@ -645,9 +645,9 @@ typedef SCODE (STDMAPIINITCALLTYPE OPTIONCALLBACK)(
 	MAPIMETHOD(AddressTypes)											\
 		(THIS_	ULONG FAR *					lpulFlags,					\
 				ULONG FAR *					lpcAdrType,					\
-				__deref_out_ecount_full(*lpcAdrType) LPTSTR FAR * FAR *			lpppAdrTypeArray,			\
+				__deref_out_ecount_full(*lpcAdrType) LPTSTR FAR *FAR *			lpppAdrTypeArray,			\
 				ULONG FAR *					lpcMAPIUID,					\
-				LPMAPIUID FAR * FAR *		lpppUIDArray) IPURE;		\
+				LPMAPIUID FAR *FAR *		lpppUIDArray) IPURE;		\
 	MAPIMETHOD(RegisterOptions)											\
 		(THIS_	ULONG FAR *					lpulFlags,					\
 				ULONG FAR *					lpcOptions,					\
@@ -676,8 +676,8 @@ typedef SCODE (STDMAPIINITCALLTYPE OPTIONCALLBACK)(
     MAPIMETHOD(OpenStatusEntry)                                         \
         (THIS_  LPCIID                      lpInterface,                \
                 ULONG                       ulFlags,                    \
-                ULONG FAR *                 lpulObjType,                \
-                LPMAPISTATUS FAR *          lppEntry) IPURE;            \
+                ULONG FAR *                lpulObjType,                \
+                LPMAPISTATUS FAR *         lppEntry) IPURE;            \
 	MAPIMETHOD(ValidateState)											\
 		(THIS_	ULONG_PTR					ulUIParam,					\
 				ULONG						ulFlags) IPURE;				\

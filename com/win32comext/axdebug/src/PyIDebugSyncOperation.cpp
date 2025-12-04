@@ -87,7 +87,7 @@ PyComTypeObject PyIDebugSyncOperation::type("PyIDebugSyncOperation", &PyIUnknown
 // Gateway Implementation
 
 STDMETHODIMP PyGDebugSyncOperation::GetTargetThread(
-    /* [out] */ IDebugApplicationThread __RPC_FAR *__RPC_FAR *ppatTarget)
+    /* [out] */ IDebugApplicationThread __RPC_FAR * __RPC_FAR *ppatTarget)
 {
     PY_GATEWAY_METHOD;
     if (ppatTarget == NULL)
@@ -111,7 +111,7 @@ STDMETHODIMP PyGDebugSyncOperation::GetTargetThread(
 }
 
 STDMETHODIMP PyGDebugSyncOperation::Execute(
-    /* [out] */ IUnknown __RPC_FAR *__RPC_FAR *ppunkResult)
+    /* [out] */ IUnknown __RPC_FAR * __RPC_FAR *ppunkResult)
 {
     PY_GATEWAY_METHOD;
     if (ppunkResult == NULL)

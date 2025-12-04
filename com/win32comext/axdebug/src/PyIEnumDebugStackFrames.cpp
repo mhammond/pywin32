@@ -230,7 +230,7 @@ STDMETHODIMP PyGEnumDebugStackFrames::Reset(void)
 }
 
 STDMETHODIMP PyGEnumDebugStackFrames::Clone(
-    /* [out] */ IEnumDebugStackFrames __RPC_FAR *__RPC_FAR *ppEnum)
+    /* [out] */ IEnumDebugStackFrames __RPC_FAR * __RPC_FAR *ppEnum)
 {
     PY_GATEWAY_METHOD;
     PyObject *result;

@@ -226,7 +226,7 @@ void PySMALL_RECT::tp_dealloc(PyObject *ob) { delete (PySMALL_RECT *)ob; }
 
 BOOL PySMALL_RECT_check(PyObject *ob)
 {
-    if (ob->ob_type != &PySMALL_RECTType) {
+    if (Py_TYPE(ob) != &PySMALL_RECTType) {
         PyErr_SetString(PyExc_TypeError, "Object must be a PySMALL_RECT");
         return FALSE;
     }
@@ -365,7 +365,7 @@ void PyCOORD::deallocFunc(PyObject *ob) { delete (PyCOORD *)ob; }
 
 BOOL PyCOORD_Check(PyObject *ob)
 {
-    if (ob->ob_type != &PyCOORDType) {
+    if (Py_TYPE(ob) != &PyCOORDType) {
         PyErr_SetString(PyExc_TypeError, "Object must be a PyCOORD");
         return FALSE;
     }
@@ -657,7 +657,7 @@ void PyINPUT_RECORD::tp_dealloc(PyObject *self)
 
 BOOL PyINPUT_RECORD_Check(PyObject *ob)
 {
-    if (ob->ob_type != &PyINPUT_RECORDType) {
+    if (Py_TYPE(ob) != &PyINPUT_RECORDType) {
         PyErr_SetString(PyExc_TypeError, "Object must be a PyINPUT_RECORD");
         return FALSE;
     }

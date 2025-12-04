@@ -353,7 +353,7 @@ STDMETHODIMP PyGDebugDocumentText::GetPositionOfContext(
 STDMETHODIMP PyGDebugDocumentText::GetContextOfPosition(
     /* [in] */ ULONG cCharacterPosition,
     /* [in] */ ULONG cNumChars,
-    /* [out] */ IDebugDocumentContext __RPC_FAR *__RPC_FAR *ppsc)
+    /* [out] */ IDebugDocumentContext __RPC_FAR * __RPC_FAR *ppsc)
 {
     PY_GATEWAY_METHOD;
     if (ppsc == NULL)

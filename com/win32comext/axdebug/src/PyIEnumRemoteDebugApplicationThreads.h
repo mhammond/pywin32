@@ -32,11 +32,11 @@ class PyGEnumRemoteDebugApplicationThreads : public PyGatewayBase, public IEnumR
 
     // IEnumRemoteDebugApplicationThreads
     STDMETHOD(Next)
-    (ULONG celt, IRemoteDebugApplicationThread __RPC_FAR *__RPC_FAR *pprdat, ULONG __RPC_FAR *pceltFetched);
+    (ULONG celt, IRemoteDebugApplicationThread __RPC_FAR * __RPC_FAR *pprdat, ULONG __RPC_FAR *pceltFetched);
 
     STDMETHOD(Skip)(ULONG celt);
 
     STDMETHOD(Reset)(void);
 
-    STDMETHOD(Clone)(IEnumRemoteDebugApplicationThreads __RPC_FAR *__RPC_FAR *pperdat);
+    STDMETHOD(Clone)(IEnumRemoteDebugApplicationThreads __RPC_FAR * __RPC_FAR *pperdat);
 };

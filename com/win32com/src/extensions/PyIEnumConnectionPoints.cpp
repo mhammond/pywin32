@@ -208,7 +208,7 @@ STDMETHODIMP PyGEnumConnectionPoints::Reset(void)
 }
 
 STDMETHODIMP PyGEnumConnectionPoints::Clone(
-    /* [out] */ IEnumConnectionPoints __RPC_FAR *__RPC_FAR *ppEnum)
+    /* [out] */ IEnumConnectionPoints __RPC_FAR * __RPC_FAR *ppEnum)
 {
     PY_GATEWAY_METHOD;
     PyObject *result;

@@ -30,11 +30,11 @@ class PyGEnumDebugApplicationNodes : public PyGatewayBase, public IEnumDebugAppl
     PYGATEWAY_MAKE_SUPPORT(PyGEnumDebugApplicationNodes, IEnumDebugApplicationNodes, IID_IEnumDebugApplicationNodes)
 
     // IEnumDebugApplicationNodes
-    STDMETHOD(Next)(ULONG celt, IDebugApplicationNode __RPC_FAR *__RPC_FAR *pprddp, ULONG __RPC_FAR *pceltFetched);
+    STDMETHOD(Next)(ULONG celt, IDebugApplicationNode __RPC_FAR * __RPC_FAR *pprddp, ULONG __RPC_FAR *pceltFetched);
 
     STDMETHOD(Skip)(ULONG celt);
 
     STDMETHOD(Reset)(void);
 
-    STDMETHOD(Clone)(IEnumDebugApplicationNodes __RPC_FAR *__RPC_FAR *pperddp);
+    STDMETHOD(Clone)(IEnumDebugApplicationNodes __RPC_FAR * __RPC_FAR *pperddp);
 };

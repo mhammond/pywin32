@@ -207,7 +207,7 @@ STDMETHODIMP PyGEnumResources::Reset(void)
 }
 
 STDMETHODIMP PyGEnumResources::Clone(
-    /* [out] */ IEnumResources __RPC_FAR *__RPC_FAR *ppEnum)
+    /* [out] */ IEnumResources __RPC_FAR * __RPC_FAR *ppEnum)
 {
     PY_GATEWAY_METHOD;
     PyObject *result;

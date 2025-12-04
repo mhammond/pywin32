@@ -37,12 +37,12 @@ class PyGDebugApplicationNode : public PyGDebugDocumentProvider, public IDebugAp
     STDMETHOD(GetDocumentClassId)(CLSID *pclsidDocument);
 
     // IDebugDocumentProvider
-    STDMETHOD(GetDocument)(IDebugDocument __RPC_FAR *__RPC_FAR *ppssd);
+    STDMETHOD(GetDocument)(IDebugDocument __RPC_FAR * __RPC_FAR *ppssd);
 
     // IDebugApplicationNode
-    STDMETHOD(EnumChildren)(IEnumDebugApplicationNodes __RPC_FAR *__RPC_FAR *pperddp);
+    STDMETHOD(EnumChildren)(IEnumDebugApplicationNodes __RPC_FAR * __RPC_FAR *pperddp);
 
-    STDMETHOD(GetParent)(IDebugApplicationNode __RPC_FAR *__RPC_FAR *pprddp);
+    STDMETHOD(GetParent)(IDebugApplicationNode __RPC_FAR * __RPC_FAR *pprddp);
 
     STDMETHOD(SetDocumentProvider)(IDebugDocumentProvider __RPC_FAR *pddp);
 

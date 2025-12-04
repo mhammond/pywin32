@@ -58,11 +58,11 @@ DECLARE_MAPI_INTERFACE_PTR(IMAPIFormContainer, LPMAPIFORMCONTAINER);
 DECLARE_MAPI_INTERFACE_PTR(IMAPIForm, LPMAPIFORM);
 DECLARE_MAPI_INTERFACE_PTR(IMAPIFormFactory, LPMAPIFORMFACTORY);
 
-typedef const char FAR *FAR * LPPCSTR;
+typedef const char FAR *FAR *LPPCSTR;
 typedef LPMAPIFORMINFO FAR *LPPMAPIFORMINFO;
 
-STDAPI MAPIOpenFormMgr(LPMAPISESSION pSession, LPMAPIFORMMGR FAR * ppmgr);
-STDAPI MAPIOpenLocalFormContainer(LPMAPIFORMCONTAINER FAR * ppfcnt);
+STDAPI MAPIOpenFormMgr(LPMAPISESSION pSession, LPMAPIFORMMGR FAR *ppmgr);
+STDAPI MAPIOpenLocalFormContainer(LPMAPIFORMCONTAINER FAR *ppfcnt);
 
 
 /*-- GetLastError ----------------------------------------------------------*/
@@ -75,7 +75,7 @@ STDAPI MAPIOpenLocalFormContainer(LPMAPIFORMCONTAINER FAR * ppfcnt);
     MAPIMETHOD(GetLastError) (THIS_                                     \
         /*in*/  HRESULT hResult,                                        \
 	/*in*/  ULONG ulFlags,                                          \
-        /*out*/ LPMAPIERROR FAR * lppMAPIError) IPURE;                  \
+        /*out*/ LPMAPIERROR FAR *lppMAPIError) IPURE;                  \
 
 
 /*-- IPersistMessage -------------------------------------------------------*/
@@ -116,22 +116,22 @@ DECLARE_MAPI_INTERFACE_(IPersistMessage, IUnknown)
 
 #define MAPI_IMAPIMESSAGESITE_METHODS(IPURE)                            \
     MAPIMETHOD(GetSession) (THIS_                                       \
-        /*out*/ LPMAPISESSION FAR * ppSession) IPURE;                   \
+        /*out*/ LPMAPISESSION FAR *ppSession) IPURE;                   \
     MAPIMETHOD(GetStore) (THIS_                                         \
-        /*out*/ LPMDB FAR * ppStore) IPURE;                             \
+        /*out*/ LPMDB FAR *ppStore) IPURE;                             \
     MAPIMETHOD(GetFolder) (THIS_                                        \
-        /*out*/ LPMAPIFOLDER FAR * ppFolder) IPURE;                     \
+        /*out*/ LPMAPIFOLDER FAR *ppFolder) IPURE;                     \
     MAPIMETHOD(GetMessage) (THIS_                                       \
-        /*out*/ LPMESSAGE FAR * ppmsg) IPURE;                           \
+        /*out*/ LPMESSAGE FAR *ppmsg) IPURE;                           \
     MAPIMETHOD(GetFormManager) (THIS_                                   \
-        /*out*/ LPMAPIFORMMGR FAR * ppFormMgr) IPURE;                   \
+        /*out*/ LPMAPIFORMMGR FAR *ppFormMgr) IPURE;                   \
     MAPIMETHOD(NewMessage) (THIS_                                       \
         /*in*/  ULONG fComposeInFolder,                                 \
         /*in*/  LPMAPIFOLDER pFolderFocus,                              \
         /*in*/  LPPERSISTMESSAGE pPersistMessage,                       \
-        /*out*/ LPMESSAGE FAR * ppMessage,                              \
-        /*out*/ LPMAPIMESSAGESITE FAR * ppMessageSite,                  \
-        /*out*/ LPMAPIVIEWCONTEXT FAR * ppViewContext) IPURE;           \
+        /*out*/ LPMESSAGE FAR *ppMessage,                              \
+        /*out*/ LPMAPIMESSAGESITE FAR *ppMessageSite,                  \
+        /*out*/ LPMAPIVIEWCONTEXT FAR *ppViewContext) IPURE;           \
     MAPIMETHOD(CopyMessage) (THIS_                                      \
         /*in*/  LPMAPIFOLDER pFolderDestination) IPURE;                 \
     MAPIMETHOD(MoveMessage) (THIS_                                      \
@@ -168,7 +168,7 @@ DECLARE_MAPI_INTERFACE_(IMAPIMessageSite, IUnknown)
     MAPIMETHOD(SetViewContext) (THIS_                                   \
         /*in*/  LPMAPIVIEWCONTEXT pViewContext) IPURE;                  \
     MAPIMETHOD(GetViewContext) (THIS_                                   \
-        /*out*/ LPMAPIVIEWCONTEXT FAR * ppViewContext) IPURE;           \
+        /*out*/ LPMAPIVIEWCONTEXT FAR *ppViewContext) IPURE;           \
     MAPIMETHOD(ShutdownForm)(THIS_                                             \
         /*in*/  ULONG ulSaveOptions) IPURE;                             \
     MAPIMETHOD(DoVerb) (THIS_                                           \
@@ -178,7 +178,7 @@ DECLARE_MAPI_INTERFACE_(IMAPIMessageSite, IUnknown)
         /*in*/  LPCRECT lprcPosRect) IPURE;                             \
     MAPIMETHOD(Advise)(THIS_                                            \
         /*in*/  LPMAPIVIEWADVISESINK pAdvise,                           \
-        /*out*/ ULONG_PTR FAR * pdwStatus) IPURE;                           \
+        /*out*/ ULONG_PTR FAR *pdwStatus) IPURE;                           \
     MAPIMETHOD(Unadvise) (THIS_                                         \
         /*in*/  ULONG_PTR ulConnection) IPURE;                              \
 
@@ -212,7 +212,7 @@ typedef struct {
 	HGLOBAL hDevNames;
 	ULONG ulFirstPageNumber;
 	ULONG fPrintAttachments;
-} FORMPRINTSETUP, FAR * LPFORMPRINTSETUP;
+} FORMPRINTSETUP, FAR *LPFORMPRINTSETUP;
 
 /* Values for pulFormat in GetSaveStream */
 
@@ -229,11 +229,11 @@ typedef struct {
         /*in*/  LPCRECT prcPosRect) IPURE;                              \
     MAPIMETHOD(GetPrintSetup)(THIS_                                     \
         /*in*/  ULONG ulFlags,                                          \
-        /*out*/ LPFORMPRINTSETUP FAR * lppFormPrintSetup) IPURE;        \
+        /*out*/ LPFORMPRINTSETUP FAR *lppFormPrintSetup) IPURE;        \
     MAPIMETHOD(GetSaveStream)(THIS_                                     \
-        /*out*/ ULONG FAR * pulFlags,                                   \
-        /*out*/ ULONG FAR * pulFormat,                                  \
-        /*out*/ LPSTREAM FAR * ppstm) IPURE;                            \
+        /*out*/ ULONG FAR *pulFlags,                                   \
+        /*out*/ ULONG FAR *pulFormat,                                  \
+        /*out*/ LPSTREAM FAR *ppstm) IPURE;                            \
     MAPIMETHOD(GetViewStatus) (THIS_                                    \
 		/*out*/ LPULONG lpulStatus) IPURE;                              \
 
@@ -280,7 +280,7 @@ DECLARE_MAPI_INTERFACE_(IMAPIViewContext, IUnknown)
         /*in*/  LPCSTR lpszMessageClass,                                \
         /*in*/  ULONG ulMessageStatus,                                  \
         /*in*/  ULONG ulMessageFlags,                                   \
-        /*out*/ LPPERSISTMESSAGE FAR * ppPersistMessage) IPURE;         \
+        /*out*/ LPPERSISTMESSAGE FAR *ppPersistMessage) IPURE;         \
 
 #undef INTERFACE
 #define INTERFACE IMAPIFormAdviseSink
@@ -325,7 +325,7 @@ typedef struct
 {								/* fpev */
 	LPTSTR pszDisplayName;		/* carries the display string */
 	ULONG nVal;					/* the value for the above enumeration */
-} SMAPIFormPropEnumVal, FAR * LPMAPIFORMPROPENUMVAL;
+} SMAPIFormPropEnumVal, FAR *LPMAPIFORMPROPENUMVAL;
 
 /* MAPI Form property descriptor */
 
@@ -357,7 +357,7 @@ typedef struct
 			LPMAPIFORMPROPENUMVAL pfpevAvailable;
 		} s1;					/* Property String/Number association Enumeration */
 	} u;
-} SMAPIFormProp, FAR * LPMAPIFORMPROP;
+} SMAPIFormProp, FAR *LPMAPIFORMPROP;
 
 /* Array of form properties */
 
@@ -366,7 +366,7 @@ typedef struct
 	ULONG cProps;
 	ULONG ulPad;				/* Pad to 8-byte alignment for insurance */
 	SMAPIFormProp aFormProp[MAPI_DIM];
-} SMAPIFormPropArray, FAR * LPMAPIFORMPROPARRAY;
+} SMAPIFormPropArray, FAR *LPMAPIFORMPROPARRAY;
 
 #define CbMAPIFormPropArray(_c) \
          (offsetof(SMAPIFormPropArray, aFormProp) + \
@@ -381,7 +381,7 @@ typedef struct
 	DWORD fuFlags;
 	DWORD grfAttribs;
 	ULONG ulFlags;				/* Either 0 or MAPI_UNICODE */
-} SMAPIVerb, FAR * LPMAPIVERB;
+} SMAPIVerb, FAR *LPMAPIVERB;
 
 /* Structure used for returning arrays of mapi verbs */
 
@@ -389,7 +389,7 @@ typedef struct
 {
 	ULONG cMAPIVerb;			/* Number of verbs in the structure */
 	SMAPIVerb aMAPIVerb[MAPI_DIM];
-} SMAPIVerbArray, FAR * LPMAPIVERBARRAY;
+} SMAPIVerbArray, FAR *LPMAPIVERBARRAY;
 
 #define CbMAPIVerbArray(_c) \
          (offsetof(SMAPIVerbArray, aMAPIVerb) + \
@@ -398,17 +398,17 @@ typedef struct
 #define MAPI_IMAPIFORMINFO_METHODS(IPURE)                               \
     MAPIMETHOD(CalcFormPropSet)(THIS_                                   \
         /*in*/  ULONG ulFlags,                                          \
-        /*out*/ LPMAPIFORMPROPARRAY FAR * ppFormPropArray) IPURE;       \
+        /*out*/ LPMAPIFORMPROPARRAY FAR *ppFormPropArray) IPURE;       \
     MAPIMETHOD(CalcVerbSet)(THIS_                                       \
         /*in*/  ULONG ulFlags,                                          \
-        /*out*/ LPMAPIVERBARRAY FAR * ppMAPIVerbArray) IPURE;           \
+        /*out*/ LPMAPIVERBARRAY FAR *ppMAPIVerbArray) IPURE;           \
     MAPIMETHOD(MakeIconFromBinary)(THIS_                                \
         /*in*/ ULONG nPropID,                                           \
         /*out*/ HICON FAR* phicon) IPURE;                               \
     MAPIMETHOD(SaveForm)(THIS_                                          \
         /*in*/ LPCTSTR szFileName) IPURE;                               \
     MAPIMETHOD(OpenFormContainer)(THIS_                                 \
-        /*out*/ LPMAPIFORMCONTAINER FAR * ppformcontainer) IPURE;       \
+        /*out*/ LPMAPIFORMCONTAINER FAR *ppformcontainer) IPURE;       \
 
 #undef INTERFACE
 #define INTERFACE IMAPIFormInfo
@@ -437,7 +437,7 @@ typedef struct
 {
 	ULONG cValues;
 	LPCSTR aMessageClass[MAPI_DIM];
-} SMessageClassArray, FAR * LPSMESSAGECLASSARRAY;
+} SMessageClassArray, FAR *LPSMESSAGECLASSARRAY;
 
 #define CbMessageClassArray(_c) \
         (offsetof(SMessageClassArray, aMessageClass) + (_c)*sizeof(LPCSTR))
@@ -448,7 +448,7 @@ typedef struct
 {
 	ULONG cForms;
 	LPMAPIFORMINFO aFormInfo[MAPI_DIM];
-} SMAPIFormInfoArray, FAR * LPSMAPIFORMINFOARRAY;
+} SMAPIFormInfoArray, FAR *LPSMAPIFORMINFOARRAY;
 
 #define CbMAPIFormInfoArray(_c) \
          (offsetof(SMAPIFormInfoArray, aFormInfo) + \
@@ -492,7 +492,7 @@ typedef struct
         /*in*/  LPSMESSAGECLASSARRAY pMsgClasses,                       \
         /*in*/  ULONG ulFlags,                                          \
         /*in*/  LPMAPIFOLDER pFolderFocus, /* can be null */            \
-        /*out*/ LPSMAPIFORMINFOARRAY FAR * pfrminfoarray) IPURE;        \
+        /*out*/ LPSMAPIFORMINFOARRAY FAR *pfrminfoarray) IPURE;        \
     MAPIMETHOD(CalcFormPropSet)(THIS_                                   \
         /*in*/  LPSMAPIFORMINFOARRAY pfrminfoarray,                     \
         /*in*/  ULONG ulFlags,                                          \
@@ -508,22 +508,22 @@ typedef struct
         /*in*/  ULONG ulFlags,                                          \
         /*in*/  LPCTSTR pszTitle,                                       \
         /*in*/  LPMAPIFOLDER pfld,                                      \
-        /*out*/ LPMAPIFORMINFO FAR * ppfrminfoReturned) IPURE;          \
+        /*out*/ LPMAPIFORMINFO FAR *ppfrminfoReturned) IPURE;          \
     MAPIMETHOD(SelectMultipleForms)(THIS_                               \
         /*in*/  ULONG_PTR ulUIParam,                                    \
         /*in*/  ULONG ulFlags,                                          \
         /*in*/  LPCTSTR pszTitle,                                       \
         /*in*/  LPMAPIFOLDER pfld,                                      \
         /*in*/  LPSMAPIFORMINFOARRAY pfrminfoarray,                     \
-        /*out*/ LPSMAPIFORMINFOARRAY FAR * ppfrminfoarray) IPURE;       \
+        /*out*/ LPSMAPIFORMINFOARRAY FAR *ppfrminfoarray) IPURE;       \
     MAPIMETHOD(SelectFormContainer)(THIS_                               \
         /*in*/  ULONG_PTR ulUIParam,                                    \
         /*in*/  ULONG ulFlags,                                          \
-        /*out*/ LPMAPIFORMCONTAINER FAR * lppfcnt) IPURE;               \
+        /*out*/ LPMAPIFORMCONTAINER FAR *lppfcnt) IPURE;               \
     MAPIMETHOD(OpenFormContainer)(THIS_                                 \
         /*in*/  HFRMREG hfrmreg,                                        \
         /*in*/  LPUNKNOWN lpunk,                                        \
-        /*out*/ LPMAPIFORMCONTAINER FAR * lppfcnt) IPURE;               \
+        /*out*/ LPMAPIFORMCONTAINER FAR *lppfcnt) IPURE;               \
     MAPIMETHOD(PrepareForm)(THIS_                                       \
         /*in*/  ULONG_PTR ulUIParam,                                    \
         /*in*/  ULONG ulFlags,                                          \
@@ -590,17 +590,17 @@ DECLARE_MAPI_INTERFACE_(IMAPIFormMgr, IUnknown)
     MAPIMETHOD(ResolveMessageClass) (THIS_                              \
         /*in*/  LPCSTR szMessageClass,                                  \
         /*in*/  ULONG ulFlags,                                          \
-        /*out*/ LPMAPIFORMINFO FAR * pforminfo) IPURE;                  \
+        /*out*/ LPMAPIFORMINFO FAR *pforminfo) IPURE;                  \
     MAPIMETHOD(ResolveMultipleMessageClasses) (THIS_                    \
         /*in*/  LPSMESSAGECLASSARRAY pMsgClassArray,                    \
         /*in*/  ULONG ulFlags,                                          \
-        /*out*/ LPSMAPIFORMINFOARRAY FAR * ppfrminfoarray) IPURE;       \
+        /*out*/ LPSMAPIFORMINFOARRAY FAR *ppfrminfoarray) IPURE;       \
     MAPIMETHOD(CalcFormPropSet)(THIS_                                   \
         /*in*/  ULONG ulFlags,                                          \
-        /*out*/ LPMAPIFORMPROPARRAY FAR * ppResults) IPURE;             \
+        /*out*/ LPMAPIFORMPROPARRAY FAR *ppResults) IPURE;             \
     MAPIMETHOD(GetDisplay)(THIS_                                        \
         /*in*/  ULONG ulFlags,                                          \
-        /*out*/ LPTSTR FAR * pszDisplayName) IPURE;                     \
+        /*out*/ LPTSTR FAR *pszDisplayName) IPURE;                     \
 
 #undef INTERFACE
 #define INTERFACE IMAPIFormContainer
@@ -618,7 +618,7 @@ DECLARE_MAPI_INTERFACE_(IMAPIFormContainer, IUnknown)
     MAPIMETHOD(CreateClassFactory) (THIS_                               \
         /*in*/  REFCLSID clsidForm,                                     \
         /*in*/  ULONG ulFlags,                                          \
-        /*out*/ LPCLASSFACTORY FAR * lppClassFactory) IPURE;            \
+        /*out*/ LPCLASSFACTORY FAR *lppClassFactory) IPURE;            \
     MAPIMETHOD(LockServer) (THIS_                                       \
         /*in*/  ULONG ulFlags,                                          \
         /*in*/  ULONG fLockServer) IPURE;                               \

@@ -46,11 +46,11 @@ class PyGRemoteDebugApplication : public PyGatewayBase, public IRemoteDebugAppli
 
     STDMETHOD(DisconnectDebugger)(void);
 
-    STDMETHOD(GetDebugger)(IApplicationDebugger __RPC_FAR *__RPC_FAR *pad);
+    STDMETHOD(GetDebugger)(IApplicationDebugger __RPC_FAR * __RPC_FAR *pad);
 
     STDMETHOD(CreateInstanceAtApplication)
     (REFCLSID rclsid, IUnknown __RPC_FAR *pUnkOuter, DWORD dwClsContext, REFIID riid,
-     IUnknown __RPC_FAR *__RPC_FAR *ppvObject);
+     IUnknown __RPC_FAR * __RPC_FAR *ppvObject);
 
     STDMETHOD(QueryAlive)(void);
 
@@ -62,5 +62,5 @@ class PyGRemoteDebugApplication : public PyGatewayBase, public IRemoteDebugAppli
 
     STDMETHOD(EnumGlobalExpressionContexts)
     (
-        /* [out] */ IEnumDebugExpressionContexts __RPC_FAR *__RPC_FAR *ppedec);
+        /* [out] */ IEnumDebugExpressionContexts __RPC_FAR * __RPC_FAR *ppedec);
 };

@@ -40,7 +40,7 @@ extern "C" {
 
 #if !defined(_LPULONG_DEFINED) //+MS_TARGET_APPLE
 #define _LPULONG_DEFINED
-typedef ULONG FAR * LPULONG;
+typedef ULONG FAR *LPULONG;
 #endif //_LPULONG_DEFINED
 
 #if !defined(_FLAGS_DEFINED) //+MS_TARGET_APPLE
@@ -50,12 +50,12 @@ typedef ULONG FLAGS;
 
 #ifndef __LHANDLE
 #define __LHANDLE
-typedef ULONG_PTR       LHANDLE, FAR * LPLHANDLE;
+typedef ULONG_PTR       LHANDLE, FAR *LPLHANDLE;
 #endif
 
 #if !defined(_LPBYTE_DEFINED) //+MS_TARGET_APPLE
 #define _LPBYTE_DEFINED
-typedef unsigned char FAR * LPBYTE;
+typedef unsigned char FAR *LPBYTE;
 #endif //_LPBYTE_DEFINED
 
 #define    lhSessionNull    ((LHANDLE)0)
@@ -68,7 +68,7 @@ typedef struct
     LPSTR lpszPathName;          /* Full path name of attachment file       */
     LPSTR lpszFileName;          /* Original file name (optional)           */
     LPVOID lpFileType;           /* Attachment file type (can be lpMapiFileTagExt) */
-} MapiFileDesc, FAR * lpMapiFileDesc;
+} MapiFileDesc, FAR *lpMapiFileDesc;
 
 #define MAPI_OLE                0x00000001
 #define MAPI_OLE_STATIC         0x00000002
@@ -93,7 +93,7 @@ typedef struct
     LPSTR lpszAddress;          /* Recipient address (optional)             */
     ULONG ulEIDSize;            /* Count in bytes of size of pEntryID       */
     LPVOID lpEntryID;           /* System-specific recipient reference      */
-} MapiRecipDesc, FAR * lpMapiRecipDesc;
+} MapiRecipDesc, FAR *lpMapiRecipDesc;
 
 #ifndef MAPI_ORIG				/* also defined in mapix.h */
 #define MAPI_ORIG   0           /* Recipient is message originator          */
@@ -116,7 +116,7 @@ typedef struct
     lpMapiRecipDesc lpRecips;     /* Recipient descriptors                  */
     ULONG nFileCount;             /* # of file attachments                  */
     lpMapiFileDesc lpFiles;       /* Attachment descriptors                 */
-} MapiMessage, FAR * lpMapiMessage;
+} MapiMessage, FAR *lpMapiMessage;
 
 #define MAPI_UNREAD             0x00000001
 #define MAPI_RECEIPT_REQUESTED  0x00000002
@@ -362,7 +362,7 @@ STDMETHODIMP_(SCODE)
 ScMAPIXFromSMAPI(LHANDLE lhSimpleSession,
 				ULONG ulFlags,
 				LPCIID lpInterface,
-				LPMAPISESSION FAR * lppMAPISession);
+				LPMAPISESSION FAR *lppMAPISession);
 #endif /* MAPIX_H */
 
 

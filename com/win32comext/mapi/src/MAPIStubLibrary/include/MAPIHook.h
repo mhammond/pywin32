@@ -36,16 +36,16 @@ extern "C" {
         (THIS_  LPMESSAGE                   lpMessage,              \
                 LPMAPIFOLDER                lpFolder,               \
                 LPMDB                       lpMDB,                  \
-                ULONG FAR *                 lpulFlags,              \
-                ULONG FAR *                 lpcbEntryID,            \
-                LPBYTE FAR *                lppEntryID) IPURE;      \
+                ULONG FAR *                lpulFlags,              \
+                ULONG FAR *                lpcbEntryID,            \
+                LPBYTE FAR *               lppEntryID) IPURE;      \
     MAPIMETHOD(OutboundMsgHook)                                     \
         (THIS_  LPMESSAGE                   lpMessage,              \
                 LPMAPIFOLDER                lpFolder,               \
                 LPMDB                       lpMDB,                  \
-                ULONG FAR *                 lpulFlags,              \
-                ULONG FAR *                 lpcbEntryID,            \
-                LPBYTE FAR *                lppEntryID) IPURE;      \
+                ULONG FAR *                lpulFlags,              \
+                ULONG FAR *                lpcbEntryID,            \
+                LPBYTE FAR *               lppEntryID) IPURE;      \
     
 #undef       INTERFACE
 #define      INTERFACE  ISpoolerHook
@@ -71,7 +71,7 @@ typedef HRESULT (STDMAPIINITCALLTYPE HPPROVIDERINIT)(
     LPFREEBUFFER            lpFreeBuffer,
     LPMAPIUID               lpSectionUID,
     ULONG                   ulFlags,
-    LPSPOOLERHOOK FAR *     lppSpoolerHook
+    LPSPOOLERHOOK FAR *    lppSpoolerHook
 );
 
 HPPROVIDERINIT HPProviderInit;

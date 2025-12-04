@@ -24,15 +24,15 @@ class PyGDebugStackFrameSnifferEx : public PyGDebugStackFrameSniffer, public IDe
                             PyGDebugStackFrameSniffer)
 
     // IDebugStackFrameSniffer
-    STDMETHOD(EnumStackFrames)(IEnumDebugStackFrames __RPC_FAR *__RPC_FAR *ppedsf)
+    STDMETHOD(EnumStackFrames)(IEnumDebugStackFrames __RPC_FAR * __RPC_FAR *ppedsf)
     {
         return PyGDebugStackFrameSniffer::EnumStackFrames(ppedsf);
     }
 
     // IDebugStackFrameSnifferEx
 #ifdef _WIN64
-    STDMETHOD(EnumStackFramesEx64)(DWORDLONG dwSpMin, IEnumDebugStackFrames64 __RPC_FAR *__RPC_FAR *ppedsf);
+    STDMETHOD(EnumStackFramesEx64)(DWORDLONG dwSpMin, IEnumDebugStackFrames64 __RPC_FAR * __RPC_FAR *ppedsf);
 #else
-    STDMETHOD(EnumStackFramesEx)(DWORD dwSpMin, IEnumDebugStackFrames __RPC_FAR *__RPC_FAR *ppedsf);
+    STDMETHOD(EnumStackFramesEx)(DWORD dwSpMin, IEnumDebugStackFrames __RPC_FAR * __RPC_FAR *ppedsf);
 #endif
 };

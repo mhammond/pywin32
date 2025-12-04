@@ -154,7 +154,7 @@ PyComTypeObject PyIEnumDebugExpressionContexts::type("PyIEnumDebugExpressionCont
 
 STDMETHODIMP PyGEnumDebugExpressionContexts::Next(
     /* [in] */ ULONG celt,
-    /* [length_is][size_is][out] */ IDebugExpressionContext __RPC_FAR *__RPC_FAR *rgVar,
+    /* [length_is][size_is][out] */ IDebugExpressionContext __RPC_FAR * __RPC_FAR *rgVar,
     /* [out] */ ULONG __RPC_FAR *pCeltFetched)
 {
     PY_GATEWAY_METHOD;
@@ -211,7 +211,7 @@ STDMETHODIMP PyGEnumDebugExpressionContexts::Reset(void)
 }
 
 STDMETHODIMP PyGEnumDebugExpressionContexts::Clone(
-    /* [out] */ IEnumDebugExpressionContexts __RPC_FAR *__RPC_FAR *ppEnum)
+    /* [out] */ IEnumDebugExpressionContexts __RPC_FAR * __RPC_FAR *ppEnum)
 {
     PY_GATEWAY_METHOD;
     PyObject *result;
