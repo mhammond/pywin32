@@ -588,7 +588,7 @@ static BOOL PyCom_SAFEARRAYFromPyObjectBuildDimension(PyObject *obj, SAFEARRAY *
                             break;
                         default:
                             // The data is in a union - just use an
-                            // arbitary element.
+                            // arbitrary element.
                             pvData = &V_I4(&element);
                             break;
                     }

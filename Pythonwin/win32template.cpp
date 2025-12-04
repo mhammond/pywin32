@@ -351,7 +351,7 @@ PyObject *PyCDocTemplate::SetDocStrings(PyObject *self, PyObject *args)
     if (pTempl == NULL)
         return NULL;
     pTempl->m_strDocStrings = docStrings;
-    // @comm The string must be a \n seperated list of docstrings.
+    // @comm The string must be a \n separated list of docstrings.
     // The elements are:
     // @flagh elementName|Description
     // @flag windowTitle|Title used for the window (only for SDI applications)
@@ -361,7 +361,7 @@ PyObject *PyCDocTemplate::SetDocStrings(PyObject *self, PyObject *args)
     // @flag filterExt|Extension for documents of this file type.
     // @flag regFileTypeId|Internal Id of the document as registered in the registry.  Used to associate the extension
     // with the file type.
-    // @flag regFileTypeName|Name of the document, as stored in the reigstry.  This is the name presented to the user.
+    // @flag regFileTypeName|Name of the document, as stored in the registry.  This is the name presented to the user.
     RETURN_NONE;
 }
 // @pymethod |PyCDocTemplate|SetContainerInfo|Sets the resources to be used when an OLE 2 object is in-place activated.
