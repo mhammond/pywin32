@@ -29,7 +29,6 @@ This module source should run correctly in CPython 3.4 or later.
 import copy
 import decimal
 import os
-import sys
 import weakref
 from collections.abc import Mapping
 
@@ -846,7 +845,6 @@ class Cursor:
             except api.Error:
                 if verbose:
                     print("ADO Parameter Refresh failed")
-                pass
             else:
                 if len(parameters) != self.cmd.Parameters.Count - 1:
                     raise api.ProgrammingError(
