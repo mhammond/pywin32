@@ -36,5 +36,5 @@ class PyGEnumFORMATETC : public PyGatewayBase, public IEnumFORMATETC {
 
     STDMETHOD(Reset)(void);
 
-    STDMETHOD(Clone)(IEnumFORMATETC __RPC_FAR *__RPC_FAR *ppepi);
+    STDMETHOD(Clone)(IEnumFORMATETC __RPC_FAR * __RPC_FAR *ppepi);
 };

@@ -30,5 +30,5 @@ class PyGActiveScriptParseProcedure : public PyGatewayBase, public IActiveScript
     STDMETHOD(ParseProcedureText)
     (LPCOLESTR pstrCode, LPCOLESTR pstrFormalParams, LPCOLESTR pstrProcedureName, LPCOLESTR pstrItemName,
      IUnknown __RPC_FAR *punkContext, LPCOLESTR pstrDelimiter, DWORD_PTR dwSourceContextCookie,
-     ULONG ulStartingLineNumber, DWORD dwFlags, IDispatch __RPC_FAR *__RPC_FAR *ppdisp);
+     ULONG ulStartingLineNumber, DWORD dwFlags, IDispatch __RPC_FAR * __RPC_FAR *ppdisp);
 };

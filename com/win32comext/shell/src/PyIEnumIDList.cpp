@@ -204,7 +204,7 @@ STDMETHODIMP PyGEnumIDList::Reset(void)
 }
 
 STDMETHODIMP PyGEnumIDList::Clone(
-    /* [out] */ IEnumIDList __RPC_FAR *__RPC_FAR *ppEnum)
+    /* [out] */ IEnumIDList __RPC_FAR * __RPC_FAR *ppEnum)
 {
     PY_GATEWAY_METHOD;
     PyObject *result;

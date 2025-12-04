@@ -196,7 +196,7 @@ STDMETHODIMP PyGEnumString::Reset(void)
     return InvokeViaPolicy("Reset");
 }
 
-STDMETHODIMP PyGEnumString::Clone(IEnumString __RPC_FAR *__RPC_FAR *ppEnum)
+STDMETHODIMP PyGEnumString::Clone(IEnumString __RPC_FAR * __RPC_FAR *ppEnum)
 {
     PY_GATEWAY_METHOD;
     PyObject *result;

@@ -30,7 +30,7 @@ class PyGDebugExpressionContext : public PyGatewayBase, public IDebugExpressionC
     // IDebugExpressionContext
     STDMETHOD(ParseLanguageText)
     (LPCOLESTR pstrCode, UINT nRadix, LPCOLESTR pstrDelimiter, DWORD dwFlags,
-     IDebugExpression __RPC_FAR *__RPC_FAR *ppe);
+     IDebugExpression __RPC_FAR * __RPC_FAR *ppe);
 
     STDMETHOD(GetLanguageInfo)(BSTR __RPC_FAR *pbstrLanguageName, GUID __RPC_FAR *pLanguageID);
 };

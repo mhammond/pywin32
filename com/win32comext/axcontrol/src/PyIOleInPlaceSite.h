@@ -48,7 +48,7 @@ class PyGOleInPlaceSite : public PyGOleWindow, public IOleInPlaceSite {
     STDMETHOD(OnUIActivate)(void);
 
     STDMETHOD(GetWindowContext)
-    (IOleInPlaceFrame __RPC_FAR *__RPC_FAR *ppFrame, IOleInPlaceUIWindow __RPC_FAR *__RPC_FAR *ppDoc,
+    (IOleInPlaceFrame __RPC_FAR * __RPC_FAR *ppFrame, IOleInPlaceUIWindow __RPC_FAR * __RPC_FAR *ppDoc,
      LPRECT lprcPosRect, LPRECT lprcClipRect, LPOLEINPLACEFRAMEINFO lpFrameInfo);
 
     STDMETHOD(Scroll)(SIZE scrollExtant);

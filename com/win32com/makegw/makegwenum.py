@@ -203,7 +203,7 @@ def _write_enumgw_cpp(f, interface):
         converter = "if ( !PyCom_InterfaceFromPyObject(ob, IID_{enum_interface}, (void **)&rgVar[i], FALSE) )".format(
             **locals()
         )
-        argdeclare = "{enum_interface} __RPC_FAR *__RPC_FAR *rgVar".format(**locals())
+        argdeclare = "{enum_interface} __RPC_FAR * __RPC_FAR *rgVar".format(**locals())
     else:
         argdeclare = "{enumtype} __RPC_FAR *rgVar".format(**locals())
         converter = "if ( !PyCom_PyObjectAs{enumtype}(ob, &rgVar[i]) )".format(
@@ -285,7 +285,7 @@ STDMETHODIMP PyGEnum{enumtype}::Reset(void)
 }}
 
 STDMETHODIMP PyGEnum{enumtype}::Clone(
-            /* [out] */ IEnum{enumtype} __RPC_FAR *__RPC_FAR *ppEnum)
+            /* [out] */ IEnum{enumtype} __RPC_FAR * __RPC_FAR *ppEnum)
 {{
     PY_GATEWAY_METHOD;
     PyObject * result;

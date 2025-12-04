@@ -90,7 +90,7 @@ class PyGStream : public PyGatewayBase, public IStream {
 
     STDMETHOD(Clone)
     (
-        /* [out] */ IStream __RPC_FAR *__RPC_FAR *ppstm);
+        /* [out] */ IStream __RPC_FAR * __RPC_FAR *ppstm);
 };
 
 #endif  // __PYISTREAM_H__

@@ -51,7 +51,7 @@ class PyGOleInPlaceSiteWindowless : public PyGOleInPlaceSiteEx, public IOleInPla
     STDMETHOD(OnUIActivate)(void) { return PyGOleInPlaceSiteEx::OnUIActivate(); }
 
     STDMETHOD(GetWindowContext)
-    (IOleInPlaceFrame __RPC_FAR *__RPC_FAR *ppFrame, IOleInPlaceUIWindow __RPC_FAR *__RPC_FAR *ppDoc,
+    (IOleInPlaceFrame __RPC_FAR * __RPC_FAR *ppFrame, IOleInPlaceUIWindow __RPC_FAR * __RPC_FAR *ppDoc,
      LPRECT lprcPosRect, LPRECT lprcClipRect, LPOLEINPLACEFRAMEINFO lpFrameInfo)
     {
         return PyGOleInPlaceSiteEx::GetWindowContext(ppFrame, ppDoc, lprcPosRect, lprcClipRect, lpFrameInfo);

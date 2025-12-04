@@ -37,9 +37,9 @@ class PyGActiveScriptSiteDebug : public PyGatewayBase, public IActiveScriptSiteD
 #else
         DWORD dwSourceContext,
 #endif
-        ULONG uCharacterOffset, ULONG uNumChars, IDebugDocumentContext __RPC_FAR *__RPC_FAR *ppsc);
+        ULONG uCharacterOffset, ULONG uNumChars, IDebugDocumentContext __RPC_FAR * __RPC_FAR *ppsc);
 
-    STDMETHOD(GetApplication)(IDebugApplication __RPC_FAR *__RPC_FAR *ppda);
+    STDMETHOD(GetApplication)(IDebugApplication __RPC_FAR * __RPC_FAR *ppda);
 
     STDMETHOD(GetRootApplicationNode)(IDebugApplicationNode **ppdanRoot);
 

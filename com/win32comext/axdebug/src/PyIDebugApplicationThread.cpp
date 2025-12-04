@@ -165,11 +165,11 @@ STDMETHODIMP PyGDebugApplicationThread::GetSystemThreadId(DWORD __RPC_FAR *dwThr
 {
     return PyGRemoteDebugApplicationThread::GetSystemThreadId(dwThreadId);
 }
-STDMETHODIMP PyGDebugApplicationThread::GetApplication(IRemoteDebugApplication __RPC_FAR *__RPC_FAR *ppda)
+STDMETHODIMP PyGDebugApplicationThread::GetApplication(IRemoteDebugApplication __RPC_FAR * __RPC_FAR *ppda)
 {
     return PyGRemoteDebugApplicationThread::GetApplication(ppda);
 }
-STDMETHODIMP PyGDebugApplicationThread::EnumStackFrames(IEnumDebugStackFrames __RPC_FAR *__RPC_FAR *ppedsf)
+STDMETHODIMP PyGDebugApplicationThread::EnumStackFrames(IEnumDebugStackFrames __RPC_FAR * __RPC_FAR *ppedsf)
 {
     return PyGRemoteDebugApplicationThread::EnumStackFrames(ppedsf);
 }

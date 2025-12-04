@@ -165,7 +165,7 @@ params, pVarResult, pexcepinfo, puArgErr);}
  */
 STDMETHODIMP PyGEnumExplorerCommand::Next(
     /* [in] */ ULONG celt,
-    /* [length_is][size_is][out] */ IExplorerCommand __RPC_FAR *__RPC_FAR *rgVar,
+    /* [length_is][size_is][out] */ IExplorerCommand __RPC_FAR * __RPC_FAR *rgVar,
     /* [out] */ ULONG __RPC_FAR *pCeltFetched)
 {
     PY_GATEWAY_METHOD;
@@ -217,7 +217,7 @@ STDMETHODIMP PyGEnumExplorerCommand::Reset(void)
 }
 
 STDMETHODIMP PyGEnumExplorerCommand::Clone(
-    /* [out] */ IEnumExplorerCommand __RPC_FAR *__RPC_FAR *ppEnum)
+    /* [out] */ IEnumExplorerCommand __RPC_FAR * __RPC_FAR *ppEnum)
 {
     PY_GATEWAY_METHOD;
     PyObject *result;

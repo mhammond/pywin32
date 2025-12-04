@@ -31,9 +31,9 @@ class PyGProcessDebugManager : public PyGatewayBase, public IProcessDebugManager
     PYGATEWAY_MAKE_SUPPORT(PyGProcessDebugManager, IProcessDebugManager, __uuidof(IProcessDebugManager))
 
     // IProcessDebugManager
-    STDMETHOD(CreateApplication)(IDebugApplication __RPC_FAR *__RPC_FAR *ppda);
+    STDMETHOD(CreateApplication)(IDebugApplication __RPC_FAR * __RPC_FAR *ppda);
 
-    STDMETHOD(GetDefaultApplication)(IDebugApplication __RPC_FAR *__RPC_FAR *ppda);
+    STDMETHOD(GetDefaultApplication)(IDebugApplication __RPC_FAR * __RPC_FAR *ppda);
 
     STDMETHOD(AddApplication)(IDebugApplication __RPC_FAR *pda, DWORD __RPC_FAR *pdwAppCookie);
 

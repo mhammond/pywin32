@@ -166,7 +166,7 @@ STDMETHODIMP PyGOleClientSite::SaveObject(void)
 STDMETHODIMP PyGOleClientSite::GetMoniker(
     /* [in] */ DWORD dwAssign,
     /* [in] */ DWORD dwWhichMoniker,
-    /* [out] */ IMoniker __RPC_FAR *__RPC_FAR *ppmk)
+    /* [out] */ IMoniker __RPC_FAR * __RPC_FAR *ppmk)
 {
     PY_GATEWAY_METHOD;
     if (ppmk == NULL)
@@ -192,7 +192,7 @@ STDMETHODIMP PyGOleClientSite::GetMoniker(
 }
 
 STDMETHODIMP PyGOleClientSite::GetContainer(
-    /* [out] */ IOleContainer __RPC_FAR *__RPC_FAR *ppContainer)
+    /* [out] */ IOleContainer __RPC_FAR * __RPC_FAR *ppContainer)
 {
     PY_GATEWAY_METHOD;
     if (ppContainer == NULL)
