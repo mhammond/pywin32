@@ -12,7 +12,7 @@ import win32ui
 from pywin.mfc import afxres, docview
 
 from . import (
-    IDLEenvironment,  # nopycln: import # Injects fast_readline into the IDLE auto-indent extension
+    IDLEenvironment,  # Injects fast_readline into the IDLE auto-indent extension
     bindings,
     control,
     scintillacon,

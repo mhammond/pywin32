@@ -9,7 +9,7 @@ import sys
 import traceback
 
 import win32ui
-from dde import (  # nopycln: import # Re-exported for intpyapp.py
+from dde import (  # PLC0414: Re-exported for intpyapp.py
     CBF_FAIL_SELFCONNECTIONS as CBF_FAIL_SELFCONNECTIONS,  # noqa: PLC0414
     CreateConversation as CreateConversation,  # noqa: PLC0414
     CreateServer,
