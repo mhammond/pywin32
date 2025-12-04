@@ -34,9 +34,9 @@ class PyGDebugApplicationThread : public PyGRemoteDebugApplicationThread, public
     // IRemoteDebugApplicationThread
     STDMETHOD(GetSystemThreadId)(DWORD __RPC_FAR *dwThreadId);
 
-    STDMETHOD(GetApplication)(IRemoteDebugApplication __RPC_FAR *__RPC_FAR *ppda);
+    STDMETHOD(GetApplication)(IRemoteDebugApplication __RPC_FAR * __RPC_FAR * ppda);
 
-    STDMETHOD(EnumStackFrames)(IEnumDebugStackFrames __RPC_FAR *__RPC_FAR *ppedsf);
+    STDMETHOD(EnumStackFrames)(IEnumDebugStackFrames __RPC_FAR * __RPC_FAR * ppedsf);
 
     STDMETHOD(GetDescription)(BSTR __RPC_FAR *pbstrDescription, BSTR __RPC_FAR *pbstrState);
 

@@ -215,7 +215,7 @@ STDMETHODIMP PyGEnumSTATPROPSTG::Reset(void)
 }
 
 STDMETHODIMP PyGEnumSTATPROPSTG::Clone(
-    /* [out] */ IEnumSTATPROPSTG __RPC_FAR *__RPC_FAR *ppEnum)
+    /* [out] */ IEnumSTATPROPSTG __RPC_FAR * __RPC_FAR * ppEnum)
 {
     PY_GATEWAY_METHOD;
     PyObject *result;

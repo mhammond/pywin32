@@ -231,7 +231,7 @@ STDMETHODIMP PyGEnumDebugPropertyInfo::Reset(void)
 }
 
 STDMETHODIMP PyGEnumDebugPropertyInfo::Clone(
-    /* [out] */ IEnumDebugPropertyInfo __RPC_FAR *__RPC_FAR *ppEnum)
+    /* [out] */ IEnumDebugPropertyInfo __RPC_FAR * __RPC_FAR * ppEnum)
 {
     PY_GATEWAY_METHOD;
     PyObject *result;

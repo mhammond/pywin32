@@ -131,7 +131,7 @@ STDMETHODIMP PyGActiveScriptSiteDebug::GetDocumentContextFromPosition(
 #endif
     /* [in] */ ULONG uCharacterOffset,
     /* [in] */ ULONG uNumChars,
-    /* [out] */ IDebugDocumentContext __RPC_FAR *__RPC_FAR *ppsc)
+    /* [out] */ IDebugDocumentContext __RPC_FAR * __RPC_FAR * ppsc)
 {
     PY_GATEWAY_METHOD;
     if (ppsc == NULL)
@@ -155,7 +155,7 @@ STDMETHODIMP PyGActiveScriptSiteDebug::GetDocumentContextFromPosition(
 }
 
 STDMETHODIMP PyGActiveScriptSiteDebug::GetApplication(
-    /* [out] */ IDebugApplication __RPC_FAR *__RPC_FAR *ppda)
+    /* [out] */ IDebugApplication __RPC_FAR * __RPC_FAR * ppda)
 {
     PY_GATEWAY_METHOD;
     if (ppda == NULL)
@@ -178,7 +178,7 @@ STDMETHODIMP PyGActiveScriptSiteDebug::GetApplication(
 }
 
 STDMETHODIMP PyGActiveScriptSiteDebug::GetRootApplicationNode(
-    /* [out] */ IDebugApplicationNode __RPC_FAR *__RPC_FAR *ppda)
+    /* [out] */ IDebugApplicationNode __RPC_FAR * __RPC_FAR * ppda)
 {
     PY_GATEWAY_METHOD;
     if (ppda == NULL)

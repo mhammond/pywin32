@@ -29,9 +29,9 @@ class PyGDebugSyncOperation : public PyGatewayBase, public IDebugSyncOperation {
     PYGATEWAY_MAKE_SUPPORT(PyGDebugSyncOperation, IDebugSyncOperation, IID_IDebugSyncOperation)
 
     // IDebugSyncOperation
-    STDMETHOD(GetTargetThread)(IDebugApplicationThread __RPC_FAR *__RPC_FAR *ppatTarget);
+    STDMETHOD(GetTargetThread)(IDebugApplicationThread __RPC_FAR * __RPC_FAR * ppatTarget);
 
-    STDMETHOD(Execute)(IUnknown __RPC_FAR *__RPC_FAR *ppunkResult);
+    STDMETHOD(Execute)(IUnknown __RPC_FAR * __RPC_FAR * ppunkResult);
 
     STDMETHOD(InProgressAbort)(void);
 };

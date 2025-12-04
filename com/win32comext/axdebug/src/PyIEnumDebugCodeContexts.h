@@ -30,11 +30,11 @@ class PyGEnumDebugCodeContexts : public PyGatewayBase, public IEnumDebugCodeCont
     PYGATEWAY_MAKE_SUPPORT(PyGEnumDebugCodeContexts, IEnumDebugCodeContexts, IID_IEnumDebugCodeContexts)
 
     // IEnumDebugCodeContexts
-    STDMETHOD(Next)(ULONG celt, IDebugCodeContext __RPC_FAR *__RPC_FAR *pscc, ULONG __RPC_FAR *pceltFetched);
+    STDMETHOD(Next)(ULONG celt, IDebugCodeContext __RPC_FAR * __RPC_FAR * pscc, ULONG __RPC_FAR *pceltFetched);
 
     STDMETHOD(Skip)(ULONG celt);
 
     STDMETHOD(Reset)(void);
 
-    STDMETHOD(Clone)(IEnumDebugCodeContexts __RPC_FAR *__RPC_FAR *ppescc);
+    STDMETHOD(Clone)(IEnumDebugCodeContexts __RPC_FAR * __RPC_FAR * ppescc);
 };
