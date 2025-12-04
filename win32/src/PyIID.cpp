@@ -125,9 +125,6 @@ PYWINTYPES_EXPORT PyTypeObject PyIIDType = {
     // @pymeth __repr__|Used whenever a repr() is called for the object
     PyIID::reprFunc, /* tp_repr */
     0,               /* tp_as_number */
-    // @pymeth __repr__|Used whenever a repr() is called for the object
-    PyIID::reprFunc, /* tp_repr */
-    0,               /* tp_as_number */
     0,               /* tp_as_sequence */
     0,               /* tp_as_mapping */
     // @pymeth __hash__|Used when the hash value of an IID object is required
