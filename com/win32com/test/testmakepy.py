@@ -68,7 +68,7 @@ def TestBuildConcurrent(verbose=1):
     # Call EnsureModule from multiple processes concurrently.
     nprocs = 16
     with multiprocessing.Pool(nprocs) as p:
-        p.map(_TestEnsureModule, [info for i in range(nprocs)])
+        p.map(_TestEnsureModule, [info] * nprocs)
 
     return nprocs
 
