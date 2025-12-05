@@ -48,7 +48,7 @@ def TestBuildAll(verbose=1):
 
 
 def _TestEnsureModule(info):
-    # This used to fail when called concurrently from multiple processes. See issue 1923.
+    # This used to fail when called concurrently from multiple processes. See mhammond/pywin32#1923 .
     # The issue only happens when bForDemand is set as that creates a package instead of
     # a single module.
     tinfo = (info.clsid, info.lcid, int(info.major), int(info.minor))
