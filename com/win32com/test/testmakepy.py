@@ -75,7 +75,7 @@ def TestBuildConcurrent(verbose=1):
 
 def TestAll(verbose=0):
     gen_path = gencache.GetGeneratePath()
-    if os.path.exists(gen_path) and os.path.isdir(gen_path):
+    if os.path.isdir(gen_path):
         shutil.rmtree(gen_path)
 
     nprocs = TestBuildConcurrent(verbose)
