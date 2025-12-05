@@ -52,7 +52,7 @@ def _TestEnsureModule(info):
     # The issue only happens when bForDemand is set as that creates a package instead of
     # a single module.
     tinfo = (info.clsid, info.lcid, int(info.major), int(info.minor))
-    mod = gencache.EnsureModule(*tinfo, bForDemand=1)
+    mod = gencache.EnsureModule(*tinfo, bForDemand=True)
     if makepy.bForDemandDefault:
         for name in mod.NamesToIIDMap:
             makepy.GenerateChildFromTypeLibSpec(name, tinfo)
