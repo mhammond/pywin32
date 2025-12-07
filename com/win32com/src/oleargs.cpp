@@ -787,6 +787,7 @@ static BOOL PyCom_SAFEARRAYFromPyObjectEx(PyObject *obj, SAFEARRAY **ppSA, bool 
             // SAFEARRAYS of UDTs need a special treatment.
             obItemCheck = PySequence_GetItem(obj, 0);
             PyRecord *pyrec = (PyRecord *)obItemCheck;
+            Py_XDECREF(obItemCheck);
             *ppSA = SafeArrayCreateEx(vt, cDims, pBounds, pyrec->pri);
         }
         else
