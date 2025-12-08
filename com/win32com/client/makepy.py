@@ -332,7 +332,7 @@ def GenerateFromTypeLibSpec(
         finally:
             if file is None:
                 with gencache.ModuleMutex(this_name):
-                    gen.finish_writer(outputName, fileUse, worked, tempName)
+                    gen.finish_writer(outputName, fileUse, tempName, worked)
         importlib.invalidate_caches()
         if bToGenDir:
             progress.SetDescription("Importing module")

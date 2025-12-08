@@ -1016,9 +1016,8 @@ class Generator:
         temp_filename = self.get_temp_filename(filename)
         return open(temp_filename, "wt", encoding=encoding), temp_filename
 
-    def finish_writer(self, filename, f, worked, temp_filename=None):
+    def finish_writer(self, filename, f, temp_filename, worked):
         f.close()
-        temp_filename = temp_filename or self.get_temp_filename(filename)
         if worked:
             dirname = os.path.dirname(filename)
             if dirname and not os.path.exists(dirname):
@@ -1312,9 +1311,7 @@ class Generator:
                     worked = True
                 finally:
                     with gencache.ModuleMutex(self.base_mod_name.split(".")[-1]):
-                        self.finish_writer(
-                            out_name, self.file, worked, temp_filename=temp_filename
-                        )
+                        self.finish_writer(out_name, self.file, temp_filename, worked)
                     self.file = None
         finally:
             self.progress.Finished()
