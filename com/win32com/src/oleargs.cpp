@@ -764,12 +764,19 @@ static BOOL PyCom_SAFEARRAYFromPyObjectEx(PyObject *obj, SAFEARRAY **ppSA, bool 
             }
         }
     }
-    Py_XDECREF(obItemCheck);
 
     if (bAllocNewArray) {
         // OK - Finally can create the array...
         if (vt == VT_RECORD) {
             // SAFEARRAYS of UDTs need a special treatment.
+            // When the loop above has finished, we expect the 'obItemCheck' variable to reference
+            // a Record type element. We cannot accept other types or empty arrays because we need
+            // to access the IRecordInfo interface to create the SAFEARRAY.
+            if (!PyRecord_Check(obItemCheck)) {
+                PyErr_SetString(PyExc_TypeError, "Expected elements of type com_record");
+                Py_XDECREF(obItemCheck);
+                return NULL;
+            }
             PyRecord *pyrec = (PyRecord *)obItemCheck;
             *ppSA = SafeArrayCreateEx(vt, cDims, pBounds, pyrec->pri);
         }
@@ -778,9 +785,11 @@ static BOOL PyCom_SAFEARRAYFromPyObjectEx(PyObject *obj, SAFEARRAY **ppSA, bool 
         if (*ppSA == NULL) {
             delete[] pBounds;
             PyErr_SetString(PyExc_MemoryError, "CreatingSafeArray");
+            Py_XDECREF(obItemCheck);
             return FALSE;
         }
     }
+    Py_XDECREF(obItemCheck);
 
     LONG *indices = new LONG[cDims];
     // Get the data
