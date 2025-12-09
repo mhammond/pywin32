@@ -30,13 +30,12 @@ from ctypes.wintypes import (
     LPVOID,
     WORD,
 )
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal, SupportsBytes, SupportsIndex
 
 if TYPE_CHECKING:
     from ctypes import _NamedFuncPointer
 
     from _typeshed import ReadableBuffer
-    from typing_extensions import Literal, SupportsBytes, SupportsIndex
 
 kernel32 = WinDLL("kernel32", use_last_error=True)
 
