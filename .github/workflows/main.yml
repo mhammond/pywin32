@@ -15,13 +15,23 @@ concurrency:
 jobs:
   test:
     name: Build and test
-    runs-on: windows-2022
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
         python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
-        architecture: [x64, x86]
+        python-architecture: [x64, x86, arm64]
+        include:
+          - os: windows-2022
+          - python-architecture: arm64
+            os: windows-11-arm
+        exclude:
+          # actions/setup-python does not provide prebuilt arm64 Python before 3.11
+          - python-architecture: arm64
+            python-version: "3.9"
+          - python-architecture: arm64
+            python-version: "3.10"
     env:
       # TODO: We can't yet run tests with PYTHONDEVMODE=1, let's emulated it as much as we can
       # https://docs.python.org/3/library/devmode.html#effects-of-the-python-development-mode
@@ -37,7 +47,7 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
-          architecture: ${{ matrix.architecture }}
+          architecture: ${{ matrix.python-architecture }}
           check-latest: true
           allow-prereleases: true
 
@@ -81,21 +91,20 @@ jobs:
         # Upload artifacts even if tests fail
         if: ${{ always() }}
         with:
-          name: artifacts-${{ matrix.python-version }}-${{ matrix.architecture }}
+          name: artifacts-${{ matrix.python-version }}-${{ matrix.python-architecture }}
           path: dist/*.whl
           if-no-files-found: error
 
-  # We cannot build and test on ARM64, so we cross-compile.
-  # Later, when available, we can add tests using this wheel on ARM64 VMs
-  build_arm64:
-    name: Cross-compile ARM
+  # actions/setup-python does not provide prebuilt arm64 Python before 3.11, so we cross-compile.
+  cross_compile_arm64:
+    name: Cross-compile ARM64
     runs-on: windows-2022
     timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
-        # pythonarm64 NuGet's has no download for Python ~=3.9.11
-        python-version: ["3.9.10", "3.10", "3.11", "3.12", "3.13", "3.14"]
+        # pythonarm64 NuGet has no download for Python 3.8 and Python ~=3.9.11
+        python-version: ["3.9.10", "3.10"]
     steps:
       - uses: actions/checkout@v4
 
@@ -119,7 +128,7 @@ jobs:
 
   merge:
     runs-on: ubuntu-latest
-    needs: [test, build_arm64]
+    needs: [test, cross_compile_arm64]
     steps:
       - name: Merge Artifacts
         uses: actions/upload-artifact/merge@v4

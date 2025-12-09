@@ -5477,7 +5477,7 @@ static PyObject *PyApply(PyObject *self, PyObject *args)
             else {
                 // Normalize to class, instance
                 exc_value = exc_type;
-                exc_type = (PyObject *)exc_value->ob_type;
+                exc_type = (PyObject *)Py_TYPE(exc_value);
                 Py_INCREF(exc_type);
                 PyErr_SetObject(exc_type, exc_value);
             }
