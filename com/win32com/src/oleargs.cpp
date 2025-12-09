@@ -239,16 +239,16 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
         V_UNKNOWN(var) = PyIUnknown::GetI(obj);
         V_UNKNOWN(var)->AddRef();
     }
-    else if (obj->ob_type == &PyOleEmptyType) {
+    else if (Py_TYPE(obj) == &PyOleEmptyType) {
         bGoodEmpty = TRUE;
     }
     // code changed by ssc
-    else if (obj->ob_type == &PyOleNothingType) {
+    else if (Py_TYPE(obj) == &PyOleNothingType) {
         V_VT(var) = VT_DISPATCH;
         V_DISPATCH(var) = NULL;
     }
     // end code changed by ssc
-    else if (obj->ob_type == &PyOleArgNotFoundType) {
+    else if (Py_TYPE(obj) == &PyOleArgNotFoundType) {
         // use default parameter
         // Note the SDK documentation for FUNCDESC describes this behaviour
         // as correct.  However, IMAPI.Session.Logon, most DAO, etc do _not_ work
@@ -304,13 +304,13 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
         V_VT(var) = VT_RECORD;
     }
     // Decimal class from new _decimal module in Python 3.3 shows different name
-    else if (strcmp(obj->ob_type->tp_name, "Decimal") == 0 || strcmp(obj->ob_type->tp_name, "decimal.Decimal") == 0) {
+    else if (strcmp(Py_TYPE(obj)->tp_name, "Decimal") == 0 || strcmp(Py_TYPE(obj)->tp_name, "decimal.Decimal") == 0) {
         // VT_DECIMAL supports more precision here, use in error case? leave existing behavior for now
         if (!PyObject_AsCurrency(obj, &V_CY(var)))
             return FALSE;
         V_VT(var) = VT_CY;
     }
-    else if (obj->ob_type->tp_as_number) {
+    else if (Py_TYPE(obj)->tp_as_number) {
         V_VT(var) = VT_R8;
         V_R8(var) = PyFloat_AsDouble(obj);
         if (V_R8(var) == -1.0 && PyErr_Occurred())
@@ -321,10 +321,10 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
         // Must ensure we have a Python error set if we fail!
         if (!PyErr_Occurred()) {
             char *extraMessage = "";
-            if (obj->ob_type->tp_as_buffer)
+            if (Py_TYPE(obj)->tp_as_buffer)
                 extraMessage = " (but obtaining the buffer() of this object could)";
             PyErr_Format(PyExc_TypeError, "Objects of type '%s' can not be converted to a COM VARIANT%s",
-                         obj->ob_type->tp_name, extraMessage);
+                         Py_TYPE(obj)->tp_name, extraMessage);
         }
         return FALSE;
     }
@@ -528,7 +528,7 @@ static BOOL PyCom_SAFEARRAYFromPyObjectBuildDimension(PyObject *obj, SAFEARRAY *
     // See if we can take a short-cut for byte arrays - if
     // so, we can copy the entire dimension in one hit
     // (only support single segment buffers for now)
-    if (dimNo == nDims && vt == VT_UI1 && obj->ob_type->tp_as_buffer) {
+    if (dimNo == nDims && vt == VT_UI1 && Py_TYPE(obj)->tp_as_buffer) {
         void *sa_buf;
         PyWinBufferView pybuf(obj);
         if (!pybuf.ok())
@@ -1220,7 +1220,7 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
     if (m_convertDirection == POAH_CONVERT_UNKNOWN)
         m_convertDirection = POAH_CONVERT_FROM_PYOBJECT;
 
-    if (obj->ob_type == &PyOleEmptyType) {
+    if (Py_TYPE(obj) == &PyOleEmptyType) {
         // Quick exit - use default parameter
         V_VT(var) = VT_ERROR;
         V_ERROR(var) = DISP_E_PARAMNOTFOUND;

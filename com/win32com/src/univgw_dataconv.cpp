@@ -437,7 +437,7 @@ PyObject *dataconv_WriteFromOutTuple(PyObject *self, PyObject *args)
                     memcpy(pb, pbOutBuffer, cb);
                 }
                 // keep this after string check since string can act as buffers
-                else if (obOutValue->ob_type->tp_as_buffer) {
+                else if (Py_TYPE(obOutValue)->tp_as_buffer) {
                     PyWinBufferView pybuf(obOutValue);
                     if (!pybuf.ok())
                         goto Error;

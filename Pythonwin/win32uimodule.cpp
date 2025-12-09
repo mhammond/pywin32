@@ -169,7 +169,7 @@ ui_type::ui_type(const char *name, ui_type *pBase, Py_ssize_t typeSize,
     };
 
     *((PyTypeObject *)this) = type_template;
-    ((PyObject *)this)->ob_type = &PyType_Type;
+    Py_SET_TYPE(this, &PyType_Type);
     tp_methods = methodList;
     // #define funky_offsetof_weakreflist ((size_t) &((PyObject *)(ui_base_class *)0)->weakreflist)
 
@@ -260,7 +260,7 @@ ui_base_class *ui_base_class::make(ui_type &makeTypeRef)
     /* Make sure GIL is held; we are called from several places where it's not */
     CEnterLeavePython _celp;
     // Sadly this function is regularly called as objects are destructing
-    // (ie, their ob_refcnt==0.) PyObject_IsInstance dies in this case, so
+    // (ie, their Py_REFCNT()==0.) PyObject_IsInstance dies in this case, so
     // we walk tp_bases manually. This also allows us to maintain the old
     // semantics of "only look for '_obj_' when not some base of ours" as
     // a nice side-effect.
@@ -292,7 +292,7 @@ ui_base_class *ui_base_class::make(ui_type &makeTypeRef)
     // As we expect the '_obj_' attribute to be a real held reference
     // (rather than a temp or dynamic one), we simply check the refcount
     // is 'safe' for us to decrement before returning.
-    if (obattr->ob_refcnt < 2) {
+    if (Py_REFCNT(obattr) < 2) {
         PyErr_SetString(PyExc_TypeError, "The _obj_ attribute is a temp object so can't be used");
         return NULL;
     }
@@ -352,7 +352,7 @@ CString ui_base_class::repr()
 void ui_base_class::cleanup()
 {
     const char *szTyp = ob_type ? ob_type->tp_name : "<bad type!>";
-    TRACE("cleanup detected type %s, refcount = %d\n", szTyp, ob_refcnt);
+    TRACE("cleanup detected type %s, refcount = %d\n", szTyp, Py_REFCNT(this));
 }
 
 /*static*/ void ui_base_class::sui_dealloc(PyObject *ob)
@@ -381,7 +381,7 @@ void DumpAssocPyObject(CDumpContext &dc, void *object)
         {
             dc << ", Python object ";
             if (AfxIsValidAddress(py_bob, sizeof(ui_assoc_object))) {
-                dc << py_bob << " with refcounf " << py_bob->ob_refcnt;
+                dc << py_bob << " with refcounf " << Py_REFCNT(py_bob);
                 Py_XDECREF(py_bob);
             }
             else
@@ -403,7 +403,7 @@ void DumpAssocPyObject(CDumpContext &dc, void *object)
 void ui_base_class::Dump(CDumpContext &dc) const
 {
     CObject::Dump(dc);
-    dc << "Object of type " << ob_type->tp_name << ", ob_refcnt=" << ob_refcnt;
+    dc << "Object of type " << ob_type->tp_name << ", refcount " << Py_REFCNT(this);
 }
 #endif
 

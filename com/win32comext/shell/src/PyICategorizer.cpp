@@ -119,7 +119,7 @@ STDMETHODIMP PyGCategorizer::CompareCategory(
     if (FAILED(hr))
         return hr;
     if (!PyLong_Check(result)) {
-        PyErr_Format(PyExc_TypeError, "CompareCategory expects an int, got a %s", result->ob_type->tp_name);
+        PyErr_Format(PyExc_TypeError, "CompareCategory expects an int, got a %s", Py_TYPE(result)->tp_name);
         hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetCategory");
     }
     else {
