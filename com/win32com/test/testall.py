@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import getopt
 import os
+import platform
 import re
 import shutil
 import sys
@@ -40,7 +41,7 @@ verbosity = 1  # default unittest verbosity.
 def CleanGenerated() -> None:
     if os.path.isdir(win32com.__gen_path__):
         if verbosity > 1:
-            print(f"Deleting files from {win32com.__gen_path__}")
+            print(f"Deleting files from", win32com.__gen_path__)
         shutil.rmtree(win32com.__gen_path__)
 
     win32com.client.gencache.__init__()  # Reset
@@ -70,6 +71,12 @@ def ExecuteSilentlyIfOK(cmd: str, testcase: TestCase) -> str:
     return RemoveRefCountOutput(data)
 
 
+@unittest.skipIf(
+    platform.machine() == "ARM64",
+    "PyCOMTest cannot currently be run on ARM64 "
+    + "due to lacking win32com.universal implementation "
+    + "in com/win32com/src/univgw.cpp",
+)
 class PyCOMTest(TestCase):
     no_leak_tests = True  # done by the test itself
 
@@ -123,7 +130,7 @@ unittest_modules = [
         "testConversionErrors",
     ],
     # Level 2 tests - wants our demo COM objects registered.
-    # (these are strange; on github CI they get further than expected when
+    # (these are strange; on GitHub CI they get further than expected when
     # our objects are not installed, so fail to quietly fail with "can't
     # register" like they do locally. So really just a nod to CI)
     ["testAXScript", "testDictionary", "testServers", "testvb", "testMarshal"],
@@ -297,8 +304,7 @@ if __name__ == "__main__":
                 (running from python.exe will avoid these leak tests""")
             )
         print(
-            f"Executing level {test_level} tests "
-            + f"- {suite.countTestCases()} test cases will be run"
+            f"Executing level {test_level} tests - {suite.countTestCases()} test cases will be run"
         )
         if verbosity == 1 and suite.countTestCases() < 70:
             # A little row of markers so the dots show how close to finished
@@ -311,7 +317,9 @@ if __name__ == "__main__":
         for mod_name, error in import_failures:
             desc = "\n".join(traceback.format_exception_only(type(error), error))
             testResult.stream.write(f"{mod_name}: {desc}")
-        testResult.stream.writeln(f"*** {import_failures} test(s) could not be run ***")
+        testResult.stream.writeln(
+            f"*** {len(import_failures)} test(s) could not be run ***"
+        )
 
     # re-print unit-test error here so it is noticed
     if not testResult.wasSuccessful():

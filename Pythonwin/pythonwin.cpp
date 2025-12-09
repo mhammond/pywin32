@@ -109,27 +109,7 @@ BOOL CPythonWinApp::OnIdle(LONG lCount)
     return glue.OnIdle(lCount);
 }
 
-CDocument *CPythonWinApp::OpenDocumentFile(LPCTSTR lpszFileName)
-{
-#if 0  // win32s no longer supported
-	ver.dwOSVersionInfoSize = sizeof(ver);
-	GetVersionEx(&ver);
-	ver.dwOSVersionInfoSize = sizeof(ver);
-	GetVersionEx(&ver);
-	if (ver.dwPlatformId == VER_PLATFORM_WIN32s) {
-		OutputDebugString("Win32s - Searching templates!\n");
-		POSITION posTempl = m_pDocManager->GetFirstDocTemplatePosition();
-		CDocTemplate* pTemplate = m_pDocManager->GetNextDocTemplate(posTempl);
-		if (pTemplate)
-			return pTemplate->OpenDocumentFile(lpszFileName);
-		else {
-			AfxMessageBox("win32s error - There is no template to use");
-			return NULL;
-		}
-	} else
-#endif
-    return CWinApp::OpenDocumentFile(lpszFileName);
-}
+CDocument *CPythonWinApp::OpenDocumentFile(LPCTSTR lpszFileName) { return CWinApp::OpenDocumentFile(lpszFileName); }
 
 int CPythonWinApp::Run()
 {

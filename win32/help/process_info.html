@@ -61,7 +61,7 @@ corresponding ids with a COM object.
 <h2><A NAME="Introduction">Introduction</A></h2>
 <p>
 
-To get process information for both NT and W2K (but not the 9x family)
+To get process information,
 you can use the Performance Data Helper library(PDH) available in the
 SDK at microsoft's ftp site. It provides a convenient interface to
 performance information stored fundamentally in the registry. The
@@ -221,7 +221,7 @@ HRESULT getinst (map &lt; string,int &gt; & m_inst) {
 	if ( ERROR_SUCCESS != status )
 		return E_FAIL;
 
-	//it's a series of contingous NULL terminated strings, ending w/zero length string
+    // it's a series of contiguous NULL terminated strings, ending w/zero length string
 
 
 	if (szInstancesBuf){
@@ -270,7 +270,7 @@ out the basic meanings and sequences of the win32 calls without having to deal w
 </code>
 
 <p>
-Again, the C++ code is more involved and makes use of Standand C++, vector, map, and string.
+Again, the C++ code is more involved and makes use of Standard C++, vector, map, and string.
 It converts a map of process names and the number for each name, to a vector of strings each which
 has tab-delimited process id entry. Also, the process id info is returned in the format of a double, which
 is converted to a string.
@@ -364,7 +364,7 @@ The Python COM client which will call the C++ COM object and Python COM object d
 </p>
 <p>
 As far as it is concerned, there is no difference between the 2 objects. Both returns a list of processes and their
-respective id's seperated by tab.
+respective id's separated by tab.
 </p>
 
 
@@ -742,7 +742,7 @@ HRESULT getinst (map&lt;string,int&gt;& m_inst) {
 	if ( ERROR_SUCCESS != status )
 		return E_FAIL;
 
-	//it's a series of contingous NULL terminated strings, ending w/zero length string
+    // it's a series of contiguous NULL terminated strings, ending w/zero length string
 
 
 	if (szInstancesBuf){

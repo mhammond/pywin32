@@ -120,6 +120,9 @@ static inline bool SizeOfVT(VARTYPE vt, int *pitem_size, int *pstack_size)
             case VT_CY:
                 item_size = sizeof(CY);
                 break;
+            case VT_DECIMAL:
+                item_size = sizeof(DECIMAL);
+                break;
             case VT_ERROR:
                 item_size = sizeof(SCODE);
                 break;
@@ -434,7 +437,7 @@ PyObject *dataconv_WriteFromOutTuple(PyObject *self, PyObject *args)
                     memcpy(pb, pbOutBuffer, cb);
                 }
                 // keep this after string check since string can act as buffers
-                else if (obOutValue->ob_type->tp_as_buffer) {
+                else if (Py_TYPE(obOutValue)->tp_as_buffer) {
                     PyWinBufferView pybuf(obOutValue);
                     if (!pybuf.ok())
                         goto Error;
@@ -514,6 +517,12 @@ PyObject *dataconv_WriteFromOutTuple(PyObject *self, PyObject *args)
             case VT_CY | VT_BYREF: {
                 CY *pcy = *(CY **)pbArg;
                 if (!PyObject_AsCurrency(obOutValue, pcy))
+                    goto Error;
+                break;
+            }
+            case VT_DECIMAL | VT_BYREF: {
+                DECIMAL *pdec = *(DECIMAL **)pbArg;
+                if (!PyObject_AsDecimal(obOutValue, pdec))
                     goto Error;
                 break;
             }
@@ -629,6 +638,7 @@ PyObject *dataconv_ReadFromInTuple(PyObject *self, PyObject *args)
                 case VT_R4:
                 case VT_R8:
                 case VT_CY:
+                case VT_DECIMAL:
                 case VT_DATE:
                 case VT_BSTR:
                 case VT_ERROR:
