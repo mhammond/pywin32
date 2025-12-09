@@ -23,6 +23,7 @@ jobs:
       - name: Set up Python
         uses: astral-sh/setup-uv@v7
         with:
+          python-version: "3.9"
           activate-environment: true
 
       # We still need to install pywin32 because
