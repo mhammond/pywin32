@@ -3,7 +3,7 @@
 import os
 import sys
 import traceback
-from typing import Sequence
+from collections.abc import Sequence
 
 import __main__
 import commctrl
