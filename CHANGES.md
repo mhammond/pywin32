@@ -25,6 +25,9 @@ Coming in build 312, as yet unreleased
   * `win32con.FILE_ATTRIBUTE_XACTION_WRITE`
 * Removed considerations for MFC < 9 (VS 2008) (mhammond#2669, [@Avasam][Avasam])
   * This removes the unusable `PyCSliderCtrl.VerifyPos` method
+* Dropped support for Python 3.8 (mhammond#2413, [@Avasam][Avasam])
+  * Note that whilst pywin32 hasn't explicitly dropped support for Windows 7 / Windows Server 2008,
+    Python 3.8 was the last official CPython version to support it.
 
 Build 311, released 2025/07/14
 ------------------------------
