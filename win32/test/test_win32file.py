@@ -557,8 +557,7 @@ class TestFindFiles(unittest.TestCase):
     def testIter(self):
         dir = os.path.join(os.getcwd(), "*")
         files = win32file.FindFilesW(dir)
-        set1 = set()
-        set1.update(files)
+        set1 = set(files)
         set2 = set()
         for file in win32file.FindFilesIterator(dir):
             set2.add(file)
@@ -871,7 +870,7 @@ class TestTransmit(unittest.TestCase):
 
         def runner():
             s1 = socket.socket()
-            # binding fails occasionally on github CI with:
+            # binding fails occasionally on GitHub CI with:
             # OSError: [WinError 10013] An attempt was made to access a socket in a way forbidden by its access permissions
             # which probably just means the random port is already in use, so
             # let that happen a few times.

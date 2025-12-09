@@ -11,7 +11,7 @@ import os
 import sys
 import traceback
 import warnings
-from typing import TYPE_CHECKING
+from typing import Literal
 
 import regutil
 import win32api
@@ -21,9 +21,6 @@ from pywin.mfc import afxres, dialog, window
 from pywin.mfc.thread import WinApp
 
 from . import scriptutils
-
-if TYPE_CHECKING:
-    from typing_extensions import Literal
 
 
 # Helper for writing a Window position by name, and later loading it.
@@ -128,13 +125,10 @@ class CApp(WinApp):
         HookInput()
         numMRU = win32ui.GetProfileVal("Settings", "Recent File List Size", 10)
         win32ui.LoadStdProfileSettings(numMRU)
-        # 		self._obj_.InitMDIInstance()
-        if win32api.GetVersionEx()[0] < 4:
-            win32ui.SetDialogBkColor()
-            win32ui.Enable3dControls()
+        # self._obj_.InitMDIInstance()
 
         # install a "callback caller" - a manager for the callbacks
-        # 		self.oldCallbackCaller = win32ui.InstallCallbackCaller(self.CallbackManager)
+        # self.oldCallbackCaller = win32ui.InstallCallbackCaller(self.CallbackManager)
         self.LoadMainFrame()
         self.SetApplicationPaths()
 
@@ -290,7 +284,7 @@ class CApp(WinApp):
     # 		except:
     # 			# take copies of the exception values, else other (handled) exceptions may get
     # 			# copied over by the other fns called.
-    # 			win32ui.SetStatusText('An exception occured in a windows command handler.')
+    # 			win32ui.SetStatusText('An exception occurred in a windows command handler.')
     # 			t, v, tb = sys.exc_info()
     # 			traceback.print_exception(t, v, tb.tb_next)
     # 			try:
@@ -300,7 +294,7 @@ class CApp(WinApp):
 
     # Command handlers.
     def OnFileMRU(self, id, code):
-        "Called when a File 1-n message is recieved"
+        "Called when a File 1-n message is received"
         fileName = win32ui.GetRecentFileList()[id - win32ui.ID_FILE_MRU_FILE1]
         win32ui.GetApp().OpenDocumentFile(fileName)
 
@@ -355,7 +349,9 @@ class AboutBox(dialog.Dialog):
         except OSError:
             ver = None
         if not ver:
-            warnings.warn(f"Could not read pywin32's version from '{version_path}'")
+            warnings.warn(
+                f"Could not read pywin32's version from '{version_path}'", stacklevel=1
+            )
         self.SetDlgItemText(win32ui.IDC_ABOUT_VERSION, ver)
         self.HookCommand(self.OnButHomePage, win32ui.IDC_BUTTON1)
 

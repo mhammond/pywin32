@@ -1007,12 +1007,14 @@ class Generator:
         # don't step on each others' toes.
         # Could be a classmethod one day...
         temp_filename = self.get_temp_filename(filename)
-        return open(temp_filename, "wt", encoding=encoding)
+        return open(temp_filename, "wt", encoding=encoding), temp_filename
 
-    def finish_writer(self, filename, f, worked):
+    def finish_writer(self, filename, f, temp_filename, worked):
         f.close()
-        temp_filename = self.get_temp_filename(filename)
         if worked:
+            dirname = os.path.dirname(filename)
+            if dirname and not os.path.exists(dirname):
+                os.mkdir(dirname)
             os.replace(temp_filename, filename)
         else:
             try:
@@ -1292,7 +1294,7 @@ class Generator:
                 # leave a 1/2 generated mess.
                 out_name = os.path.join(dir, an_item.python_name) + ".py"
                 worked = False
-                self.file = self.open_writer(out_name)
+                self.file, temp_filename = self.open_writer(out_name)
                 try:
                     if oleitem is not None:
                         self.do_gen_child_item(oleitem)
@@ -1302,7 +1304,7 @@ class Generator:
                     worked = True
                 finally:
                     with gencache.ModuleMutex(self.base_mod_name.split(".")[-1]):
-                        self.finish_writer(out_name, self.file, worked)
+                        self.finish_writer(out_name, self.file, temp_filename, worked)
                     self.file = None
         finally:
             self.progress.Finished()
