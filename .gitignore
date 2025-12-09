@@ -71,9 +71,9 @@ ENV/
 env.bak/
 venv.bak/
 .vagrant/
+vgr.bat
 
 # other IDEs, MacOS, etc
 .idea/
 .DS_Store
-vagrant_helpers/bootstrap-salt.ps1
 .vscode/
