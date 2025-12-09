@@ -255,7 +255,7 @@ STDMETHODIMP PyGDebugDocumentHost::GetScriptTextAttributes(
 }
 
 STDMETHODIMP PyGDebugDocumentHost::OnCreateDocumentContext(
-    /* [out] */ IUnknown __RPC_FAR * __RPC_FAR *ppunkOuter)
+    /* [out] */ IUnknown __RPC_FAR *__RPC_FAR *ppunkOuter)
 {
     PY_GATEWAY_METHOD;
     if (ppunkOuter == NULL)

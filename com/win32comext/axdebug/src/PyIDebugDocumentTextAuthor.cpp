@@ -168,7 +168,7 @@ STDMETHODIMP PyGDebugDocumentTextAuthor::GetPositionOfContext(IDebugDocumentCont
     return PyGDebugDocumentText::GetPositionOfContext(psc, pcCharacterPosition, cNumChars);
 }
 STDMETHODIMP PyGDebugDocumentTextAuthor::GetContextOfPosition(ULONG cCharacterPosition, ULONG cNumChars,
-                                                              IDebugDocumentContext __RPC_FAR * __RPC_FAR *ppsc)
+                                                              IDebugDocumentContext __RPC_FAR *__RPC_FAR *ppsc)
 {
     return PyGDebugDocumentText::GetContextOfPosition(cCharacterPosition, cNumChars, ppsc);
 }

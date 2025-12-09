@@ -33,5 +33,5 @@ class PyGMachineDebugManager : public PyGatewayBase, public IMachineDebugManager
 
     STDMETHOD(RemoveApplication)(DWORD dwAppCookie);
 
-    STDMETHOD(EnumApplications)(IEnumRemoteDebugApplications __RPC_FAR * __RPC_FAR *ppeda);
+    STDMETHOD(EnumApplications)(IEnumRemoteDebugApplications __RPC_FAR *__RPC_FAR *ppeda);
 };

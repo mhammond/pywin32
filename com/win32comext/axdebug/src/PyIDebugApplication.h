@@ -55,23 +55,23 @@ class PyGDebugApplication : public PyGRemoteDebugApplication, public IDebugAppli
 
     STDMETHOD(DisconnectDebugger)(void);
 
-    STDMETHOD(GetDebugger)(IApplicationDebugger __RPC_FAR * __RPC_FAR *pad);
+    STDMETHOD(GetDebugger)(IApplicationDebugger __RPC_FAR *__RPC_FAR *pad);
 
     STDMETHOD(CreateInstanceAtApplication)
     (REFCLSID rclsid, IUnknown __RPC_FAR *pUnkOuter, DWORD dwClsContext, REFIID riid,
-     IUnknown __RPC_FAR * __RPC_FAR *ppvObject);
+     IUnknown __RPC_FAR *__RPC_FAR *ppvObject);
 
     STDMETHOD(QueryAlive)(void);
 
-    STDMETHOD(EnumThreads)(IEnumRemoteDebugApplicationThreads __RPC_FAR * __RPC_FAR *pperdat);
+    STDMETHOD(EnumThreads)(IEnumRemoteDebugApplicationThreads __RPC_FAR *__RPC_FAR *pperdat);
 
     STDMETHOD(GetName)(BSTR __RPC_FAR *pbstrName);
 
-    STDMETHOD(GetRootNode)(IDebugApplicationNode __RPC_FAR * __RPC_FAR *ppdanRoot);
+    STDMETHOD(GetRootNode)(IDebugApplicationNode __RPC_FAR *__RPC_FAR *ppdanRoot);
 
     STDMETHOD(EnumGlobalExpressionContexts)
     (
-        /* [out] */ IEnumDebugExpressionContexts __RPC_FAR * __RPC_FAR *ppedec);
+        /* [out] */ IEnumDebugExpressionContexts __RPC_FAR *__RPC_FAR *ppedec);
 
     // IDebugApplication
     STDMETHOD(SetName)(LPCOLESTR pstrName);
@@ -87,12 +87,12 @@ class PyGDebugApplication : public PyGRemoteDebugApplication, public IDebugAppli
     STDMETHOD(Close)(void);
 
     STDMETHOD(GetBreakFlags)
-    (APPBREAKFLAGS __RPC_FAR *pabf, IRemoteDebugApplicationThread __RPC_FAR * __RPC_FAR *pprdatSteppingThread);
+    (APPBREAKFLAGS __RPC_FAR *pabf, IRemoteDebugApplicationThread __RPC_FAR *__RPC_FAR *pprdatSteppingThread);
 
-    STDMETHOD(GetCurrentThread)(IDebugApplicationThread __RPC_FAR * __RPC_FAR *pat);
+    STDMETHOD(GetCurrentThread)(IDebugApplicationThread __RPC_FAR *__RPC_FAR *pat);
 
     STDMETHOD(CreateAsyncDebugOperation)
-    (IDebugSyncOperation __RPC_FAR *psdo, IDebugAsyncOperation __RPC_FAR * __RPC_FAR *ppado);
+    (IDebugSyncOperation __RPC_FAR *psdo, IDebugAsyncOperation __RPC_FAR *__RPC_FAR *ppado);
 
     STDMETHOD(AddStackFrameSniffer)(IDebugStackFrameSniffer __RPC_FAR *pdsfs, DWORD __RPC_FAR *pdwCookie);
 
@@ -108,7 +108,7 @@ class PyGDebugApplication : public PyGRemoteDebugApplication, public IDebugAppli
      DWORD dwParam1, DWORD dwParam2, DWORD dwParam3);
 #endif
 
-    STDMETHOD(CreateApplicationNode)(IDebugApplicationNode __RPC_FAR * __RPC_FAR *ppdanNew);
+    STDMETHOD(CreateApplicationNode)(IDebugApplicationNode __RPC_FAR *__RPC_FAR *ppdanNew);
 
     STDMETHOD(FireDebuggerEvent)(REFGUID riid, IUnknown *punk);
 

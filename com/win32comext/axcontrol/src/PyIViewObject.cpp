@@ -277,7 +277,7 @@ STDMETHODIMP PyGViewObject::GetColorSet(
     /* [unique][in] */ void __RPC_FAR *pvAspect,
     /* [unique][in] */ DVTARGETDEVICE __RPC_FAR *ptd,
     /* [in] */ HDC hicTargetDev,
-    /* [out] */ LOGPALETTE __RPC_FAR * __RPC_FAR *ppColorSet)
+    /* [out] */ LOGPALETTE __RPC_FAR *__RPC_FAR *ppColorSet)
 {
     return E_NOTIMPL;
     /**
@@ -344,7 +344,7 @@ STDMETHODIMP PyGViewObject::SetAdvise(
 STDMETHODIMP PyGViewObject::GetAdvise(
     /* [out] */ DWORD __RPC_FAR *pAspects,
     /* [out] */ DWORD __RPC_FAR *pAdvf,
-    /* [out] */ IAdviseSink __RPC_FAR * __RPC_FAR *ppAdvSink)
+    /* [out] */ IAdviseSink __RPC_FAR *__RPC_FAR *ppAdvSink)
 {
     PY_GATEWAY_METHOD;
     if (ppAdvSink == NULL)

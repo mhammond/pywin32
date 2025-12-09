@@ -38,9 +38,9 @@ class PyGRemoteDebugApplicationThread : public PyGatewayBase, public IRemoteDebu
     // IRemoteDebugApplicationThread
     STDMETHOD(GetSystemThreadId)(DWORD __RPC_FAR *dwThreadId);
 
-    STDMETHOD(GetApplication)(IRemoteDebugApplication __RPC_FAR * __RPC_FAR *pprda);
+    STDMETHOD(GetApplication)(IRemoteDebugApplication __RPC_FAR *__RPC_FAR *pprda);
 
-    STDMETHOD(EnumStackFrames)(IEnumDebugStackFrames __RPC_FAR * __RPC_FAR *ppedsf);
+    STDMETHOD(EnumStackFrames)(IEnumDebugStackFrames __RPC_FAR *__RPC_FAR *ppedsf);
 
     STDMETHOD(GetDescription)(BSTR __RPC_FAR *pbstrDescription, BSTR __RPC_FAR *pbstrState);
 

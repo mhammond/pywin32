@@ -32,5 +32,5 @@ class PyGDebugDocumentProvider : public PyGDebugDocumentInfo, public IDebugDocum
     STDMETHOD(GetDocumentClassId)(CLSID *pclsidDocument);
 
     // IDebugDocumentProvider
-    STDMETHOD(GetDocument)(IDebugDocument __RPC_FAR * __RPC_FAR *ppssd);
+    STDMETHOD(GetDocument)(IDebugDocument __RPC_FAR *__RPC_FAR *ppssd);
 };

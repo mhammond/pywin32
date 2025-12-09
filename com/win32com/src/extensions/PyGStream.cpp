@@ -188,7 +188,7 @@ STDMETHODIMP PyGStream::Stat(
 }
 
 STDMETHODIMP PyGStream::Clone(
-    /* [out] */ IStream __RPC_FAR * __RPC_FAR *ppstm)
+    /* [out] */ IStream __RPC_FAR *__RPC_FAR *ppstm)
 {
     PY_GATEWAY_METHOD;
     if (ppstm == NULL)

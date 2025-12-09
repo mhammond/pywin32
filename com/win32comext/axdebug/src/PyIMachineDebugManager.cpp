@@ -128,7 +128,7 @@ STDMETHODIMP PyGMachineDebugManager::RemoveApplication(
 }
 
 STDMETHODIMP PyGMachineDebugManager::EnumApplications(
-    /* [out] */ IEnumRemoteDebugApplications __RPC_FAR * __RPC_FAR *ppeda)
+    /* [out] */ IEnumRemoteDebugApplications __RPC_FAR *__RPC_FAR *ppeda)
 {
     PY_GATEWAY_METHOD;
     if (ppeda == NULL)

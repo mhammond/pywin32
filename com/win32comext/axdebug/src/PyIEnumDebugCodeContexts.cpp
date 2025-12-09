@@ -153,7 +153,7 @@ PyComTypeObject PyIEnumDebugCodeContexts::type("PyIEnumDebugCodeContexts", &PyIU
 
 STDMETHODIMP PyGEnumDebugCodeContexts::Next(
     /* [in] */ ULONG celt,
-    /* [length_is][size_is][out] */ IDebugCodeContext __RPC_FAR * __RPC_FAR *rgVar,
+    /* [length_is][size_is][out] */ IDebugCodeContext __RPC_FAR *__RPC_FAR *rgVar,
     /* [out] */ ULONG __RPC_FAR *pCeltFetched)
 {
     PY_GATEWAY_METHOD;
@@ -212,7 +212,7 @@ STDMETHODIMP PyGEnumDebugCodeContexts::Reset(void)
 }
 
 STDMETHODIMP PyGEnumDebugCodeContexts::Clone(
-    /* [out] */ IEnumDebugCodeContexts __RPC_FAR * __RPC_FAR *ppEnum)
+    /* [out] */ IEnumDebugCodeContexts __RPC_FAR *__RPC_FAR *ppEnum)
 {
     PY_GATEWAY_METHOD;
     PyObject *result;

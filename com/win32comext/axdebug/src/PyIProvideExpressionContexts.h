@@ -27,5 +27,5 @@ class PyGProvideExpressionContexts : public PyGatewayBase, public IProvideExpres
     PYGATEWAY_MAKE_SUPPORT(PyGProvideExpressionContexts, IProvideExpressionContexts, IID_IProvideExpressionContexts)
 
     // IProvideExpressionContexts
-    STDMETHOD(EnumExpressionContexts)(IEnumDebugExpressionContexts __RPC_FAR * __RPC_FAR *ppedsf);
+    STDMETHOD(EnumExpressionContexts)(IEnumDebugExpressionContexts __RPC_FAR *__RPC_FAR *ppedsf);
 };

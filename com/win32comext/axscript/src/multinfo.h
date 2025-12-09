@@ -265,16 +265,16 @@ interface IProvideMultipleClassInfo : public IProvideClassInfo2
 {
    public:
     virtual HRESULT __stdcall GetMultiTypeInfoCount(
-        /* [out] */ ULONG __RPC_FAR *pcti) = 0;
+        /* [out] */ ULONG __RPC_FAR * pcti) = 0;
 
     virtual HRESULT __stdcall GetInfoOfIndex(
         /* [in] */ ULONG iti,
         /* [in] */ DWORD dwFlags,
-        /* [out] */ ITypeInfo __RPC_FAR * __RPC_FAR *pptiCoClass,
-        /* [out] */ DWORD __RPC_FAR *pdwTIFlags,
-        /* [out] */ ULONG __RPC_FAR *pcdispidReserved,
-        /* [out] */ IID __RPC_FAR *piidPrimary,
-        /* [out] */ IID __RPC_FAR *piidSource) = 0;
+        /* [out] */ ITypeInfo __RPC_FAR * __RPC_FAR * pptiCoClass,
+        /* [out] */ DWORD __RPC_FAR * pdwTIFlags,
+        /* [out] */ ULONG __RPC_FAR * pcdispidReserved,
+        /* [out] */ IID __RPC_FAR * piidPrimary,
+        /* [out] */ IID __RPC_FAR * piidSource) = 0;
 };
 
 #else /* C style interface */
@@ -283,7 +283,7 @@ typedef struct IProvideMultipleClassInfoVtbl {
     HRESULT(__stdcall __RPC_FAR *QueryInterface)
     (IProvideMultipleClassInfo __RPC_FAR *This,
      /* [in] */ REFIID riid,
-     /* [out] */ void __RPC_FAR * __RPC_FAR *ppvObject);
+     /* [out] */ void __RPC_FAR *__RPC_FAR *ppvObject);
 
     ULONG(__stdcall __RPC_FAR *AddRef)(IProvideMultipleClassInfo __RPC_FAR *This);
 
@@ -306,7 +306,7 @@ typedef struct IProvideMultipleClassInfoVtbl {
     (IProvideMultipleClassInfo __RPC_FAR *This,
      /* [in] */ ULONG iti,
      /* [in] */ DWORD dwFlags,
-     /* [out] */ ITypeInfo __RPC_FAR * __RPC_FAR *pptiCoClass,
+     /* [out] */ ITypeInfo __RPC_FAR *__RPC_FAR *pptiCoClass,
      /* [out] */ DWORD __RPC_FAR *pdwTIFlags,
      /* [out] */ ULONG __RPC_FAR *pcdispidReserved,
      /* [out] */ IID __RPC_FAR *piidPrimary,

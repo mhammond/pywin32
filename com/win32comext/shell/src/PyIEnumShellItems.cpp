@@ -160,7 +160,7 @@ PyComEnumTypeObject PyIEnumShellItems::type("PyIEnumShellItems", &PyIUnknown::ty
 // Gateway Implementation
 STDMETHODIMP PyGEnumShellItems::Next(
     /* [in] */ ULONG celt,
-    /* [length_is][size_is][out] */ IShellItem __RPC_FAR * __RPC_FAR *rgVar,
+    /* [length_is][size_is][out] */ IShellItem __RPC_FAR *__RPC_FAR *rgVar,
     /* [out] */ ULONG __RPC_FAR *pCeltFetched)
 {
     PY_GATEWAY_METHOD;
@@ -217,7 +217,7 @@ STDMETHODIMP PyGEnumShellItems::Reset(void)
 }
 
 STDMETHODIMP PyGEnumShellItems::Clone(
-    /* [out] */ IEnumShellItems __RPC_FAR * __RPC_FAR *ppEnum)
+    /* [out] */ IEnumShellItems __RPC_FAR *__RPC_FAR *ppEnum)
 {
     PY_GATEWAY_METHOD;
     PyObject *result;

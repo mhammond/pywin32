@@ -103,8 +103,7 @@ class PYCOM_EXPORT PyGatewayBase : public IDispatchEx,  // IDispatch comes along
     // IDispatch
     STDMETHOD(GetTypeInfoCount)(UINT FAR *pctInfo);
     STDMETHOD(GetTypeInfo)(UINT itinfo, LCID lcid, ITypeInfo FAR *FAR *pptInfo);
-    STDMETHOD(GetIDsOfNames)(REFIID refiid, OLECHAR FAR *FAR *rgszNames, UINT cNames, LCID lcid,
-                             DISPID FAR *rgdispid);
+    STDMETHOD(GetIDsOfNames)(REFIID refiid, OLECHAR FAR *FAR *rgszNames, UINT cNames, LCID lcid, DISPID FAR *rgdispid);
     STDMETHOD(Invoke)
     (DISPID dispid, REFIID riid, LCID lcid, WORD wFlags, DISPPARAMS FAR *params, VARIANT FAR *pVarResult,
      EXCEPINFO FAR *pexcepinfo, UINT FAR *puArgErr);

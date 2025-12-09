@@ -36,5 +36,5 @@ class PyGEnumIDList : public PyGatewayBase, public IEnumIDList {
 
     STDMETHOD(Reset)(void);
 
-    STDMETHOD(Clone)(IEnumIDList __RPC_FAR * __RPC_FAR *ppepi);
+    STDMETHOD(Clone)(IEnumIDList __RPC_FAR *__RPC_FAR *ppepi);
 };

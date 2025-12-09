@@ -180,7 +180,7 @@ STDMETHODIMP PyGEnumGUID::Reset(void)
     return InvokeViaPolicy("Reset");
 }
 
-STDMETHODIMP PyGEnumGUID::Clone(IEnumGUID __RPC_FAR * __RPC_FAR *ppEnum)
+STDMETHODIMP PyGEnumGUID::Clone(IEnumGUID __RPC_FAR *__RPC_FAR *ppEnum)
 {
     PY_GATEWAY_METHOD;
     PyObject *result;

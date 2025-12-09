@@ -31,13 +31,13 @@ class PyGDebugStackFrame : public PyGatewayBase, public IDebugStackFrame {
     PYGATEWAY_MAKE_SUPPORT(PyGDebugStackFrame, IDebugStackFrame, IID_IDebugStackFrame)
 
     // IDebugStackFrame
-    STDMETHOD(GetCodeContext)(IDebugCodeContext __RPC_FAR * __RPC_FAR *ppcc);
+    STDMETHOD(GetCodeContext)(IDebugCodeContext __RPC_FAR *__RPC_FAR *ppcc);
 
     STDMETHOD(GetDescriptionString)(BOOL fLong, BSTR __RPC_FAR *pbstrDescription);
 
     STDMETHOD(GetLanguageString)(BOOL fLong, BSTR __RPC_FAR *pbstrLanguage);
 
-    STDMETHOD(GetThread)(IDebugApplicationThread __RPC_FAR * __RPC_FAR *ppat);
+    STDMETHOD(GetThread)(IDebugApplicationThread __RPC_FAR *__RPC_FAR *ppat);
 
-    STDMETHOD(GetDebugProperty)(IDebugProperty __RPC_FAR * __RPC_FAR *ppdp);
+    STDMETHOD(GetDebugProperty)(IDebugProperty __RPC_FAR *__RPC_FAR *ppdp);
 };

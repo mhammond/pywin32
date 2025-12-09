@@ -155,7 +155,7 @@ PyComTypeObject PyIEnumDebugApplicationNodes::type("PyIEnumDebugApplicationNodes
 
 STDMETHODIMP PyGEnumDebugApplicationNodes::Next(
     /* [in] */ ULONG celt,
-    /* [length_is][size_is][out] */ IDebugApplicationNode __RPC_FAR * __RPC_FAR *rgVar,
+    /* [length_is][size_is][out] */ IDebugApplicationNode __RPC_FAR *__RPC_FAR *rgVar,
     /* [out] */ ULONG __RPC_FAR *pCeltFetched)
 {
     PY_GATEWAY_METHOD;
@@ -214,7 +214,7 @@ STDMETHODIMP PyGEnumDebugApplicationNodes::Reset(void)
 }
 
 STDMETHODIMP PyGEnumDebugApplicationNodes::Clone(
-    /* [out] */ IEnumDebugApplicationNodes __RPC_FAR * __RPC_FAR *ppEnum)
+    /* [out] */ IEnumDebugApplicationNodes __RPC_FAR *__RPC_FAR *ppEnum)
 {
     PY_GATEWAY_METHOD;
     PyObject *result;

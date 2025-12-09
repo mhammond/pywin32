@@ -34,9 +34,9 @@ class PyGOleClientSite : public PyGatewayBase, public IOleClientSite {
     // IOleClientSite
     STDMETHOD(SaveObject)(void);
 
-    STDMETHOD(GetMoniker)(DWORD dwAssign, DWORD dwWhichMoniker, IMoniker __RPC_FAR * __RPC_FAR *ppmk);
+    STDMETHOD(GetMoniker)(DWORD dwAssign, DWORD dwWhichMoniker, IMoniker __RPC_FAR *__RPC_FAR *ppmk);
 
-    STDMETHOD(GetContainer)(IOleContainer __RPC_FAR * __RPC_FAR *ppContainer);
+    STDMETHOD(GetContainer)(IOleContainer __RPC_FAR *__RPC_FAR *ppContainer);
 
     STDMETHOD(ShowObject)(void);
 

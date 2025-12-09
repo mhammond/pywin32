@@ -40,7 +40,7 @@ class PyGDebugDocumentHost : public PyGatewayBase, public IDebugDocumentHost {
     (LPCOLESTR pstrCode, ULONG uNumCodeChars, LPCOLESTR pstrDelimiter, DWORD dwFlags,
      SOURCE_TEXT_ATTR __RPC_FAR *pattr);
 
-    STDMETHOD(OnCreateDocumentContext)(IUnknown __RPC_FAR * __RPC_FAR *ppunkOuter);
+    STDMETHOD(OnCreateDocumentContext)(IUnknown __RPC_FAR *__RPC_FAR *ppunkOuter);
 
     STDMETHOD(GetPathName)(BSTR __RPC_FAR *pbstrLongName, BOOL __RPC_FAR *pfIsOriginalFile);
 
