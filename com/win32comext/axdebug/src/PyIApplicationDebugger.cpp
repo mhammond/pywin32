@@ -267,7 +267,7 @@ STDMETHODIMP PyGApplicationDebugger::CreateInstanceAtDebugger(
 
 /*
 STDMETHODIMP PyGApplicationDebugger::onAddDocumentProvider(
-        IDebugDocumentProvider __RPC_FAR *pssdp,
+        IDebugDocumentProvider __RPC_FAR * pssdp,
         DWORD dwDocumentProviderCookie)
 {
     PY_GATEWAY_METHOD;
@@ -279,7 +279,7 @@ STDMETHODIMP PyGApplicationDebugger::onAddDocumentProvider(
 }
 
 STDMETHODIMP PyGApplicationDebugger::onRemoveDocumentProvider(
-        IDebugDocumentProvider __RPC_FAR *pssd,
+        IDebugDocumentProvider __RPC_FAR * pssd,
         DWORD dwDocumentProviderCookie)
 {
     PY_GATEWAY_METHOD;
