@@ -20,7 +20,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
         architecture: [x64, x86]
     env:
       # TODO: We can't yet run tests with PYTHONDEVMODE=1, let's emulated it as much as we can
@@ -153,20 +153,21 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           # This job only needs to target the oldest supported version
-          python-version: "3.8"
+          python-version: "3.9"
           cache: pip
           cache-dependency-path: .github/workflows/main.yml
-      - run: pip install clang-format==18.1.* pycln
+      - run: pip install --group=checkers
+
       # !cancelled(): Show issues even if the previous steps failed. But still fail the job
       - run: pycln . --config=pycln.toml --check
+
       - name: Run Ruff linter
         uses: astral-sh/ruff-action@v3
-        with:
-          version: "0.11.0"
         if: ${{ !cancelled() }}
       - name: Run Ruff formatter
         run: ruff format --check
         if: ${{ !cancelled() }}
+
       # Too many files to fit in a single command, also exclude vendored Scintilla and MAPIStubLibrary
       - run: |
           clang-format --Werror --dry-run $(git ls-files '*.cpp' ':!:com/win32comext/mapi/src/MAPIStubLibrary/')
@@ -195,14 +196,14 @@ jobs:
           cache-dependency-path: .github/workflows/main.yml
           check-latest: true
           allow-prereleases: true
-      - run: pip install types-setuptools PyOpenGL mypy==1.16.*
+      - run: pip install --group=type-checkers
 
       - run: mypy . --python-version=${{ matrix.python-version }}
 
       - uses: jakebailey/pyright-action@v2
         with:
           python-version: ${{ matrix.python-version }}
-          version: "1.1.407"
+          version: PATH
           annotate: errors
         if: ${{ !cancelled() }} # Show issues even if the previous steps failed. But still fail the job
 

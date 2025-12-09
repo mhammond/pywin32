@@ -474,7 +474,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
                 # extra attributes of win32ui objects
                 if hasattr(ob, "_obj_"):
                     try:
-                        items_dict.update(dict.fromkeys(dir(ob._obj_)))
+                        items_dict = dict.fromkeys(dir(ob._obj_))
                     except AttributeError:
                         pass  # object has no __dict__
 
@@ -644,8 +644,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
         left, right = self._GetWordSplit(pos, bAllowCalls)
         if left:  # It is an attribute lookup
             # How is this for a hack!
-            namespace = sys.modules.copy()
-            namespace.update(__main__.__dict__)
+            namespace = sys.modules | __main__.__dict__
             # Get the debugger's context.
             try:
                 from pywin.framework import interact
