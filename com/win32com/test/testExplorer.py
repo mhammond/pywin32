@@ -76,7 +76,7 @@ def TestObjectFromWindow():
     ob = pythoncom.ObjectFromLresult(result, pythoncom.IID_IDispatch, 0)
     doc = Dispatch(ob)
     # just to prove it works, set the background color of the document.
-    for color in "red green blue orange white".split():
+    for color in ("red", "green", "blue", "orange", "white"):
         doc.bgColor = color
         time.sleep(0.2)
 
