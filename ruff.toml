@@ -51,6 +51,7 @@ extend-ignore = [
 [lint.per-file-ignores]
 # TODO: Make adodbapi changes in their own PRs
 "adodbapi/*" = [
+  "C4",
   # Dropping Python 3.8 support
   "UP005",
   "UP006",
