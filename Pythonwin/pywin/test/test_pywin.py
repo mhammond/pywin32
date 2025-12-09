@@ -139,9 +139,13 @@ class T(unittest.TestCase):
         if __name__ != "__main__":
             # make T findable by browser in __main__ namespace
             setattr(__main__, __class__.__qualname__, __class__)
-        with mock.patch(
-            "pywin.mfc.dialog.GetSimpleInput", (lambda *args: __class__.__qualname__)
-        ), mock.patch("pywin.tools.browser.Browse", t_Browse):
+        with (
+            mock.patch(
+                "pywin.mfc.dialog.GetSimpleInput",
+                (lambda *args: __class__.__qualname__),
+            ),
+            mock.patch("pywin.tools.browser.Browse", t_Browse),
+        ):
             self.app.OnViewBrowse(0, 0)
         hl = o.dlg.hier_list
         self.assertGreater(len(hl.itemHandleMap), 10)
@@ -443,8 +447,9 @@ class T(unittest.TestCase):
             GUIAboutToBreak()
 
         dmod = types.ModuleType("__main__", "debugger test main")
-        with mock.patch("pywin.framework.scriptutils.__main__", dmod), mock.patch(
-            "pywin.debugger.debugger.Debugger.GUIAboutToBreak", t_brk
+        with (
+            mock.patch("pywin.framework.scriptutils.__main__", dmod),
+            mock.patch("pywin.debugger.debugger.Debugger.GUIAboutToBreak", t_brk),
         ):
             mf.SendMessage(wc.WM_COMMAND, cmGo)  # debh.OnGo(0, 0)
         self.assertFalse(cmds_brk_next, "break commands remaining")

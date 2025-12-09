@@ -1,4 +1,4 @@
-target-version = "py38" # Target the oldest supported version
+target-version = "py39" # Target the oldest supported version
 # This file is not UTF-8
 extend-exclude = ["Pythonwin/pywin/test/_dbgscript.py"]
 
@@ -46,6 +46,18 @@ extend-ignore = [
   # TODO: Still lots of manual fixes needed
   "UP031", # Use format specifiers instead of percent format
   "UP032", # Use f-string instead of format call
+]
+
+[lint.per-file-ignores]
+# TODO: Make adodbapi changes in their own PRs
+"adodbapi/*" = [
+  # Dropping Python 3.8 support
+  "UP005",
+  "UP006",
+  "UP018",
+  "UP035",
+  "UP036",
+  "YTT301",
 ]
 
 [lint.pyflakes]

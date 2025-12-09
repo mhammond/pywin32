@@ -312,12 +312,15 @@ def GenerateFromTypeLibSpec(
                     os.unlink(full_name + ".pyo")
                 except OSError:
                     pass
-                if not os.path.isdir(full_name):
-                    os.mkdir(full_name)
+                # Don't create the package folder yet, wait until the file's been generated.
+                # This avoids issues with other processes attemping to import the package
+                # and getting a namespace package before the __init__.py file is written.
+                tempName = full_name + ".__init__.py"
                 outputName = os.path.join(full_name, "__init__.py")
             else:
                 outputName = full_name + ".py"
-            fileUse = gen.open_writer(outputName)
+                tempName = outputName
+            fileUse, tempName = gen.open_writer(tempName)
             progress.LogBeginGenerate(outputName)
         else:
             fileUse = file
@@ -329,7 +332,7 @@ def GenerateFromTypeLibSpec(
         finally:
             if file is None:
                 with gencache.ModuleMutex(this_name):
-                    gen.finish_writer(outputName, fileUse, worked)
+                    gen.finish_writer(outputName, fileUse, tempName, worked)
         importlib.invalidate_caches()
         if bToGenDir:
             progress.SetDescription("Importing module")
