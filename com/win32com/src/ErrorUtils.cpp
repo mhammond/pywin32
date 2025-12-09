@@ -716,14 +716,15 @@ void GetScodeString(HRESULT hr, LPTSTR buf, int bufSize)
         HRESULT hr;
         LPCTSTR lpszName;
     };
+
 #define MAKE_HRESULT_ENTRY(hr) \
     {                          \
         hr, _T(#hr)            \
     }
+
     static const HRESULT_ENTRY hrNameTable[] = {
         MAKE_HRESULT_ENTRY(S_OK),
         MAKE_HRESULT_ENTRY(S_FALSE),
-
         MAKE_HRESULT_ENTRY(CACHE_S_FORMATETC_NOTSUPPORTED),
         MAKE_HRESULT_ENTRY(CACHE_S_SAMECACHE),
         MAKE_HRESULT_ENTRY(CACHE_S_SOMECACHES_NOTUPDATED),

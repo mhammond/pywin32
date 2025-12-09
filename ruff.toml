@@ -1,4 +1,4 @@
-target-version = "py38" # Target the oldest supported version in editors and default CLI
+target-version = "py39" # Target the oldest supported version
 # This file is not UTF-8
 extend-exclude = ["Pythonwin/pywin/test/_dbgscript.py"]
 
@@ -20,42 +20,47 @@ select = [
   # String formatting, concatenating, interpolation, ...
   "FLY", # static-join-to-f-string
   "G", # flake8-logging-format
-  # Note, we still want to allow multiline ISC
-  "UP025", # Remove unicode literals from strings
-  "UP030", # Use implicit references for positional format fields
-  # TODO: Still lots of manual fixes needed
-  # "UP031", # Use format specifiers instead of percent format
-  # "UP032", # Use f-string instead of format call
 
   # Ensure modern type annotation syntax and best practices
   # Not including those covered by type-checkers or exclusive to Python 3.11+
   "FA", # flake8-future-annotations
   "F404", # late-future-import
   "PYI", # flake8-pyi
-  "UP006", # non-pep585-annotation
-  "UP007", # non-pep604-annotation
-  "UP010", # unnecessary-future-import
-  "UP035", # deprecated-import
-  "UP037", # quoted-annotation
-  "UP043", # unnecessary-default-type-args
+
+  # Code modernization (strings, annotations, conditions, ...)
+  "UP", # pyupgrade
 
   # Helps prevent circular imports and other unneeded imports
   "TC", # flake8-type-checking
 ]
-
 extend-ignore = [
-  # TODO: Consider passing exception around to ensure methods are only ever used within exception handlers
-  "PLE0704", # misplaced-bare-raise
-
+  # We prefer explicit open mode parameter
+  "UP015", # redundant-open-modes
   # No such concerns for stdlib
   "TC003", # typing-only-standard-library-import
+  # TODO: Consider passing exception around to ensure methods are only ever used within exception handlers
+  "PLE0704", # misplaced-bare-raise
+  # TODO: Still lots of manual fixes needed
+  "UP031", # Use format specifiers instead of percent format
+  "UP032", # Use f-string instead of format call
 ]
 
 [lint.per-file-ignores]
 # Explicit re-exports is fine in __init__.py, still a code smell elsewhere.
 "__init__.py" = ["PLC0414"]
 # TODO: Make adodbapi changes in their own PRs
-"adodbapi/*" = ["C4", "YTT301", "UP031", "UP032"]
+"adodbapi/*" = [
+  "C4",
+  "UP031",
+  "UP032",
+  # Dropping Python 3.8 support
+  "UP005",
+  "UP006",
+  "UP018",
+  "UP035",
+  "UP036",
+  "YTT301",
+]
 
 [lint.isort]
 combine-as-imports = true
