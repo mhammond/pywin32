@@ -78,11 +78,7 @@ PyComTypeObject::PyComTypeObject(const char *name, PyComTypeObject *pBase, Py_ss
     // cast away const, as Python doesn't use it.
     tp_name = (char *)name;
     tp_basicsize = typeSize;
-#if PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION >= 9
     Py_SET_TYPE(this, &PyType_Type);
-#else
-    ((PyObject *)this)->ob_type = &PyType_Type;
-#endif
     tp_methods = methodList;
 
     // All interfaces are based on PyInterfaceType, so this type will inherit from it thru pBase
