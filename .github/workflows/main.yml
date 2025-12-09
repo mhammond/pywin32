@@ -77,7 +77,6 @@ jobs:
         run: python win32/scripts/pywin32_testall.py -v -skip-adodbapi
 
       - name: Run adodbapi tests
-        if: ${{ matrix.python-version != '3.8' }}
         run: python adodbapi/test/adodbapitest.py --all
 
       - name: Build wheels
@@ -210,6 +209,6 @@ jobs:
       - uses: jakebailey/pyright-action@v2
         with:
           python-version: ${{ matrix.python-version }}
-          version: "1.1.407"
+          version: PATH
           project: "pyrightconfig.adodbapi.json"
         if: ${{ !cancelled() }} # Show issues even if the previous steps failed. But still fail the job

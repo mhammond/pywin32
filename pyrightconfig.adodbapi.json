@@ -4,7 +4,7 @@
   // Keep it simple for now by allowing both mypy and pyright to use `type: ignore`
   "enableTypeIgnoreComments": true,
   "include": [
-    "adodbapi"
+    "adodbapi",
   ],
   // Packages that will be accessible globally.
   // Setting this makes pyright use the repo's code for those modules instead of typeshed or pywin32 in site-packages
@@ -14,9 +14,6 @@
   ],
   // Too many false-positives from try-finally-try nested blocks
   "reportPossiblyUnboundVariable": "none",
-  // Too many accesses on potentially-None attributes in adodbapi
-  // Use Flake8/Pycln/Ruff instead
-  "reportUnusedImport": "none",
   "executionEnvironments": [
     {
       // SQLRows subscription returning potentially None is causing many type issues
@@ -26,11 +23,6 @@
       "reportCallIssue": "none",
       "reportOptionalSubscript": "none",
       "reportAttributeAccessIssue": "none",
-    },
-    {
-      // TODO: Will be fixed by https://github.com/mhammond/pywin32/pull/2418
-      "root": "adodbapi/adodbapi.py",
-      "reportAttributeAccessIssue": "warning",
     },
   ],
 }
