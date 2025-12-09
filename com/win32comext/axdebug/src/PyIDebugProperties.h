@@ -38,7 +38,7 @@ class PyGDebugProperty : public PyGatewayBase, public IDebugProperty {
     STDMETHOD(SetValueAsString)(LPCOLESTR pszValue, UINT nRadix);
 
     STDMETHOD(EnumMembers)
-    (DWORD dwFieldSpec, UINT nRadix, REFIID refiid, IEnumDebugPropertyInfo __RPC_FAR * __RPC_FAR * ppepi);
+    (DWORD dwFieldSpec, UINT nRadix, REFIID refiid, IEnumDebugPropertyInfo __RPC_FAR *__RPC_FAR *ppepi);
 
-    STDMETHOD(GetParent)(IDebugProperty __RPC_FAR * __RPC_FAR * ppDebugProp);
+    STDMETHOD(GetParent)(IDebugProperty __RPC_FAR *__RPC_FAR *ppDebugProp);
 };

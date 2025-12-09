@@ -71,7 +71,7 @@ PyComTypeObject PyIDebugDocumentContext::type("PyIDebugDocumentContext", &PyIUnk
 // Gateway Implementation
 
 STDMETHODIMP PyGDebugDocumentContext::GetDocument(
-    /* [out] */ IDebugDocument __RPC_FAR * __RPC_FAR * ppsd)
+    /* [out] */ IDebugDocument __RPC_FAR *__RPC_FAR *ppsd)
 {
     PY_GATEWAY_METHOD;
     if (ppsd == NULL)
@@ -94,7 +94,7 @@ STDMETHODIMP PyGDebugDocumentContext::GetDocument(
 }
 
 STDMETHODIMP PyGDebugDocumentContext::EnumCodeContexts(
-    /* [out] */ IEnumDebugCodeContexts __RPC_FAR * __RPC_FAR * ppescc)
+    /* [out] */ IEnumDebugCodeContexts __RPC_FAR *__RPC_FAR *ppescc)
 {
     PY_GATEWAY_METHOD;
     if (ppescc == NULL)

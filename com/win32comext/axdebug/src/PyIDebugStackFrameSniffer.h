@@ -27,5 +27,5 @@ class PyGDebugStackFrameSniffer : public PyGatewayBase, public IDebugStackFrameS
     PYGATEWAY_MAKE_SUPPORT(PyGDebugStackFrameSniffer, IDebugStackFrameSniffer, IID_IDebugStackFrameSniffer)
 
     // IDebugStackFrameSniffer
-    STDMETHOD(EnumStackFrames)(IEnumDebugStackFrames __RPC_FAR * __RPC_FAR * ppedsf);
+    STDMETHOD(EnumStackFrames)(IEnumDebugStackFrames __RPC_FAR *__RPC_FAR *ppedsf);
 };

@@ -512,7 +512,7 @@ STDMETHODIMP PyGStorage::CreateStream(
     /* [in] */ DWORD grfMode,
     /* [in] */ DWORD reserved1,
     /* [in] */ DWORD reserved2,
-    /* [out] */ IStream __RPC_FAR * __RPC_FAR * ppstm)
+    /* [out] */ IStream __RPC_FAR *__RPC_FAR *ppstm)
 {
     PY_GATEWAY_METHOD;
     if (ppstm == NULL)
@@ -541,7 +541,7 @@ STDMETHODIMP PyGStorage::OpenStream(
     /* [unique][in] */ void __RPC_FAR *reserved1,
     /* [in] */ DWORD grfMode,
     /* [in] */ DWORD reserved2,
-    /* [out] */ IStream __RPC_FAR * __RPC_FAR * ppstm)
+    /* [out] */ IStream __RPC_FAR *__RPC_FAR *ppstm)
 {
     PY_GATEWAY_METHOD;
     if (ppstm == NULL)
@@ -570,7 +570,7 @@ STDMETHODIMP PyGStorage::CreateStorage(
     /* [in] */ DWORD grfMode,
     /* [in] */ DWORD dwStgFmt,
     /* [in] */ DWORD reserved2,
-    /* [out] */ IStorage __RPC_FAR * __RPC_FAR * ppstg)
+    /* [out] */ IStorage __RPC_FAR *__RPC_FAR *ppstg)
 {
     PY_GATEWAY_METHOD;
     if (ppstg == NULL)
@@ -600,7 +600,7 @@ STDMETHODIMP PyGStorage::OpenStorage(
     /* [in] */ DWORD grfMode,
     /* [unique][in] */ SNB snbExclude,
     /* [in] */ DWORD reserved,
-    /* [out] */ IStorage __RPC_FAR * __RPC_FAR * ppstg)
+    /* [out] */ IStorage __RPC_FAR *__RPC_FAR *ppstg)
 {
     PY_GATEWAY_METHOD;
     // *** The input argument snbExclude of type "SNB" was not processed ***
@@ -683,7 +683,7 @@ STDMETHODIMP PyGStorage::EnumElements(
     /* [in] */ DWORD reserved1,
     /* [size_is][unique][in] */ void __RPC_FAR *reserved2,
     /* [in] */ DWORD reserved3,
-    /* [out] */ IEnumSTATSTG __RPC_FAR * __RPC_FAR * ppenum)
+    /* [out] */ IEnumSTATSTG __RPC_FAR *__RPC_FAR *ppenum)
 {
     PY_GATEWAY_METHOD;
     if (ppenum == NULL)

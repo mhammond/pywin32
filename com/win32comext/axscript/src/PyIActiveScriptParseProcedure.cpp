@@ -111,7 +111,7 @@ STDMETHODIMP PyGActiveScriptParseProcedure::ParseProcedureText(
     /* [in] */ DWORD_PTR dwSourceContextCookie,
     /* [in] */ ULONG ulStartingLineNumber,
     /* [in] */ DWORD dwFlags,
-    /* [out] */ IDispatch __RPC_FAR * __RPC_FAR * ppdisp)
+    /* [out] */ IDispatch __RPC_FAR *__RPC_FAR *ppdisp)
 {
     PY_GATEWAY_METHOD;
     if (ppdisp == NULL)

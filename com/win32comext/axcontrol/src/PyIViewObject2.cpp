@@ -70,7 +70,7 @@ STDMETHODIMP PyGViewObject2::Draw(DWORD dwDrawAspect, LONG lindex, void __RPC_FA
 
 STDMETHODIMP PyGViewObject2::GetColorSet(DWORD dwDrawAspect, LONG lindex, void __RPC_FAR *pvAspect,
                                          DVTARGETDEVICE __RPC_FAR *ptd, HDC hicTargetDev,
-                                         LOGPALETTE __RPC_FAR * __RPC_FAR * ppColorSet)
+                                         LOGPALETTE __RPC_FAR *__RPC_FAR *ppColorSet)
 {
     return PyGViewObject::GetColorSet(dwDrawAspect, lindex, pvAspect, ptd, hicTargetDev, ppColorSet);
 }
@@ -89,7 +89,7 @@ STDMETHODIMP PyGViewObject2::SetAdvise(DWORD aspects, DWORD advf, IAdviseSink __
 }
 
 STDMETHODIMP PyGViewObject2::GetAdvise(DWORD __RPC_FAR *pAspects, DWORD __RPC_FAR *pAdvf,
-                                       IAdviseSink __RPC_FAR * __RPC_FAR * ppAdvSink)
+                                       IAdviseSink __RPC_FAR *__RPC_FAR *ppAdvSink)
 {
     return PyGViewObject::GetAdvise(pAspects, pAdvf, ppAdvSink);
 }

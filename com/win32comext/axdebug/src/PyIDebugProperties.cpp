@@ -395,7 +395,7 @@ STDMETHODIMP PyGDebugProperty::EnumMembers(
     /* [in] */ DWORD dwFieldSpec,
     /* [in] */ UINT nRadix,
     /* [in] */ REFIID refiid,
-    /* [out] */ IEnumDebugPropertyInfo __RPC_FAR * __RPC_FAR * ppepi)
+    /* [out] */ IEnumDebugPropertyInfo __RPC_FAR *__RPC_FAR *ppepi)
 {
     PY_GATEWAY_METHOD;
     if (ppepi == NULL)
@@ -421,7 +421,7 @@ STDMETHODIMP PyGDebugProperty::EnumMembers(
 }
 
 STDMETHODIMP PyGDebugProperty::GetParent(
-    /* [out] */ IDebugProperty __RPC_FAR * __RPC_FAR * ppDebugProp)
+    /* [out] */ IDebugProperty __RPC_FAR *__RPC_FAR *ppDebugProp)
 {
     PY_GATEWAY_METHOD;
     if (ppDebugProp == NULL)

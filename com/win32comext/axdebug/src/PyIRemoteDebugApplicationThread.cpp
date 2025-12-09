@@ -287,7 +287,7 @@ STDMETHODIMP PyGRemoteDebugApplicationThread::GetSystemThreadId(
 }
 
 STDMETHODIMP PyGRemoteDebugApplicationThread::GetApplication(
-    /* [out] */ IRemoteDebugApplication __RPC_FAR * __RPC_FAR * pprda)
+    /* [out] */ IRemoteDebugApplication __RPC_FAR *__RPC_FAR *pprda)
 {
     PY_GATEWAY_METHOD;
     if (pprda == NULL)
@@ -311,7 +311,7 @@ STDMETHODIMP PyGRemoteDebugApplicationThread::GetApplication(
 }
 
 STDMETHODIMP PyGRemoteDebugApplicationThread::EnumStackFrames(
-    /* [out] */ IEnumDebugStackFrames __RPC_FAR * __RPC_FAR * ppedsf)
+    /* [out] */ IEnumDebugStackFrames __RPC_FAR *__RPC_FAR *ppedsf)
 {
     PY_GATEWAY_METHOD;
     if (ppedsf == NULL)

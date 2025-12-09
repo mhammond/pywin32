@@ -39,7 +39,7 @@ class PyGViewObject : public PyGatewayBase, public IViewObject {
 
     STDMETHOD(GetColorSet)
     (DWORD dwDrawAspect, LONG lindex, void __RPC_FAR *pvAspect, DVTARGETDEVICE __RPC_FAR *ptd, HDC hicTargetDev,
-     LOGPALETTE __RPC_FAR * __RPC_FAR * ppColorSet);
+     LOGPALETTE __RPC_FAR *__RPC_FAR *ppColorSet);
 
     STDMETHOD(Freeze)(DWORD dwDrawAspect, LONG lindex, void __RPC_FAR *pvAspect, DWORD __RPC_FAR *pdwFreeze);
 
@@ -48,5 +48,5 @@ class PyGViewObject : public PyGatewayBase, public IViewObject {
     STDMETHOD(SetAdvise)(DWORD aspects, DWORD advf, IAdviseSink __RPC_FAR *pAdvSink);
 
     STDMETHOD(GetAdvise)
-    (DWORD __RPC_FAR *pAspects, DWORD __RPC_FAR *pAdvf, IAdviseSink __RPC_FAR * __RPC_FAR * ppAdvSink);
+    (DWORD __RPC_FAR *pAspects, DWORD __RPC_FAR *pAdvf, IAdviseSink __RPC_FAR *__RPC_FAR *ppAdvSink);
 };

@@ -28,7 +28,7 @@ class PyGDebugDocumentContext : public PyGatewayBase, public IDebugDocumentConte
     PYGATEWAY_MAKE_SUPPORT(PyGDebugDocumentContext, IDebugDocumentContext, IID_IDebugDocumentContext)
 
     // IDebugDocumentContext
-    STDMETHOD(GetDocument)(IDebugDocument __RPC_FAR * __RPC_FAR * ppsd);
+    STDMETHOD(GetDocument)(IDebugDocument __RPC_FAR *__RPC_FAR *ppsd);
 
-    STDMETHOD(EnumCodeContexts)(IEnumDebugCodeContexts __RPC_FAR * __RPC_FAR * ppescc);
+    STDMETHOD(EnumCodeContexts)(IEnumDebugCodeContexts __RPC_FAR *__RPC_FAR *ppescc);
 };
