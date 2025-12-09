@@ -188,12 +188,10 @@ static pfnGWMethod make_method(DWORD index, UINT argsize, UINT argc)
         //  0001c	83 c4 0c	 	add		 esp, 12			; 0000000cH
         0x8b, 0x4d, 0xfc, 0x51, 0x8b, 0x55, 0x08, 0x52, 0x68,
         // offset = 19 (0x13)
-        0x44, 0x33, 0x22,
-        0x11,  // replace these with <index>
+        0x44, 0x33, 0x22, 0x11,  // replace these with <index>
         0xe8,
         // offset = 24 (0x18)
-        0x00, 0x00, 0x00,
-        0x00,  // replace these with <univgw_dispatch>
+        0x00, 0x00, 0x00, 0x00,  // replace these with <univgw_dispatch>
         0x83, 0xc4, 0x0c,
 
         //; 50   : }
@@ -202,8 +200,7 @@ static pfnGWMethod make_method(DWORD index, UINT argsize, UINT argc)
         //  00022	c2 04 00		ret		 4
         0x8b, 0xe5, 0x5d, 0xc2,
         // offset = 35 (0x23)
-        0x04,
-        0x00,  // replace this with argsize
+        0x04, 0x00,  // replace this with argsize
     };
 
     // make a copy of code and plug in the appropriate values.
