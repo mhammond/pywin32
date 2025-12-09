@@ -285,7 +285,7 @@ STDMETHODIMP PyGEnum{enumtype}::Reset(void)
 }}
 
 STDMETHODIMP PyGEnum{enumtype}::Clone(
-            /* [out] */ IEnum{enumtype} __RPC_FAR * __RPC_FAR *ppEnum)
+            /* [out] */ IEnum{enumtype} __RPC_FAR *__RPC_FAR *ppEnum)
 {{
     PY_GATEWAY_METHOD;
     PyObject * result;
