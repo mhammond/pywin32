@@ -283,6 +283,7 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
         if (PyObject_Length(obj) > 0) {
             PyObject *obItemCheck = PySequence_GetItem(obj, 0);
             is_record_item = PyRecord_Check(obItemCheck);
+            Py_XDECREF(obItemCheck);
         }
         // If the sequence elements are PyRecord objects we do NOT package
         // them as VARIANT elements but put them directly into the SAFEARRAY.
@@ -786,6 +787,7 @@ static BOOL PyCom_SAFEARRAYFromPyObjectEx(PyObject *obj, SAFEARRAY **ppSA, bool 
             // SAFEARRAYS of UDTs need a special treatment.
             obItemCheck = PySequence_GetItem(obj, 0);
             PyRecord *pyrec = (PyRecord *)obItemCheck;
+            Py_XDECREF(obItemCheck);
             *ppSA = SafeArrayCreateEx(vt, cDims, pBounds, pyrec->pri);
         }
         else

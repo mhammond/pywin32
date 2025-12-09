@@ -20,7 +20,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
         architecture: [x64, x86]
     env:
       # TODO: We can't yet run tests with PYTHONDEVMODE=1, let's emulated it as much as we can
@@ -140,17 +140,15 @@ jobs:
       - uses: astral-sh/setup-uv@v7
         with:
           # This job only needs to target the oldest supported version
-          python-version: "3.8"
+          python-version: "3.9"
           activate-environment: true
-      - run: uv pip install clang-format==18.1.* pycln
+      - run: uv pip install --group=checkers
 
       # !cancelled(): Show issues even if the previous steps failed. But still fail the job
       - run: pycln . --config=pycln.toml --check
 
       - name: Run Ruff linter
         uses: astral-sh/ruff-action@v3
-        with:
-          version: "0.11.0"
         if: ${{ !cancelled() }}
       - name: Run Ruff formatter
         run: ruff format --check
@@ -181,13 +179,13 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           activate-environment: true
-      - run: uv pip install types-setuptools PyOpenGL mypy==1.16.*
+      - run: uv pip install --group=type-checkers
 
       - run: mypy . --python-version=${{ matrix.python-version }}
 
       - uses: jakebailey/pyright-action@v2
         with:
           python-version: ${{ matrix.python-version }}
-          version: "1.1.401"
+          version: PATH
           annotate: errors
         if: ${{ !cancelled() }} # Show issues even if the previous steps failed. But still fail the job
