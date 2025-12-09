@@ -155,8 +155,6 @@ jobs:
       - run: pip install --group=checkers
 
       # !cancelled(): Show issues even if the previous steps failed. But still fail the job
-      - run: pycln . --config=pycln.toml --check
-
       - name: Run Ruff linter
         uses: astral-sh/ruff-action@v3
         if: ${{ !cancelled() }}
