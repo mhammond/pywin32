@@ -878,13 +878,13 @@ typedef struct {
     char     rgchAttCountryName[MAX_COUNTRY_NAME_SIZ+COUNTRY_PAD];  // Attempted Country
     char     rgchAttPRMDId[MAX_PRMD_NAME_SIZ+PRMD_PAD_FOR_ACTIONS];	// Attempted PRMD
     BYTE     bAdditionalActions;									// 1998 additional actions
-}   TRACEENTRY, FAR *LPTRACEENTRY;
+}   TRACEENTRY, FAR * LPTRACEENTRY;
 
 typedef struct {
     ULONG       cEntries;               // Number of trace entries
 #pragma warning(suppress:4200) // zero-sized array in struct/union
     TRACEENTRY  rgtraceentry[MAPI_DIM]; // array of trace entries
-} TRACEINFO, FAR *LPTRACEINFO;
+} TRACEINFO, FAR * LPTRACEINFO;
 
 typedef struct
 {
@@ -934,14 +934,14 @@ typedef struct _ROWENTRY
 	ULONG			ulRowFlags;
 	ULONG			cValues;
 	LPSPropValue	rgPropVals;
-} ROWENTRY, FAR *LPROWENTRY;
+} ROWENTRY, FAR * LPROWENTRY;
 
 typedef struct _ROWLIST
 {
 	ULONG			cEntries;
 #pragma warning(suppress:4200) // zero-sized array in struct/union
 	ROWENTRY		aEntries[MAPI_DIM];
-} ROWLIST, FAR *LPROWLIST;
+} ROWLIST, FAR * LPROWLIST;
 
 #define EXCHANGE_IEXCHANGEMODIFYTABLE_METHODS(IPURE)					\
 	MAPIMETHOD(GetLastError)											\
@@ -1456,7 +1456,7 @@ typedef struct _action
 		// prop value for OP_TAG action
 		SPropValue		propTag;
 	};
-} ACTION, FAR *LPACTION;
+} ACTION, FAR * LPACTION;
 
 // Rules version
 #define EDK_RULES_VERSION		1

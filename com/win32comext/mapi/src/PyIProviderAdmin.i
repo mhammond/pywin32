@@ -84,7 +84,7 @@ HRESULT OpenProfileSection(
 %{
 
 // as defined in MSDN, exerything [in] except last arg is [out]
-//  HRESULT CreateProvider(LPTSTR lpszProvider,ULONG cValues,LPSPropValue lpProps,ULONG ulUIParam,ULONG ulFlags,MAPIUID FAR *lpUID);
+//  HRESULT CreateProvider(LPTSTR lpszProvider,ULONG cValues,LPSPropValue lpProps,ULONG ulUIParam,ULONG ulFlags,MAPIUID FAR * lpUID);
 // @pyswig <o PyIID>|CreateProvider|Add a service provider to a message service.
 PyObject *PyIProviderAdmin::CreateProvider(PyObject *self, PyObject *args)
 {
