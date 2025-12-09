@@ -339,7 +339,7 @@ STDMETHODIMP PyGRemoteDebugApplication::DisconnectDebugger(void)
 }
 
 STDMETHODIMP PyGRemoteDebugApplication::GetDebugger(
-    /* [out] */ IApplicationDebugger __RPC_FAR * __RPC_FAR * pad)
+    /* [out] */ IApplicationDebugger __RPC_FAR *__RPC_FAR *pad)
 {
     PY_GATEWAY_METHOD;
     if (pad == NULL)
@@ -366,7 +366,7 @@ STDMETHODIMP PyGRemoteDebugApplication::CreateInstanceAtApplication(
     /* [in] */ IUnknown __RPC_FAR *pUnkOuter,
     /* [in] */ DWORD dwClsContext,
     /* [in] */ REFIID riid,
-    /* [iid_is][out] */ IUnknown __RPC_FAR * __RPC_FAR * ppvObject)
+    /* [iid_is][out] */ IUnknown __RPC_FAR *__RPC_FAR *ppvObject)
 {
     PY_GATEWAY_METHOD;
     if (ppvObject == NULL)
@@ -395,7 +395,7 @@ STDMETHODIMP PyGRemoteDebugApplication::CreateInstanceAtApplication(
     return hr;
 }
 
-STDMETHODIMP PyGRemoteDebugApplication::EnumThreads(IEnumRemoteDebugApplicationThreads __RPC_FAR * __RPC_FAR * pperdat)
+STDMETHODIMP PyGRemoteDebugApplication::EnumThreads(IEnumRemoteDebugApplicationThreads __RPC_FAR *__RPC_FAR *pperdat)
 {
     PY_GATEWAY_METHOD;
     if (pperdat == NULL)
@@ -445,7 +445,7 @@ STDMETHODIMP PyGRemoteDebugApplication::GetName(
     return hr;
 }
 
-STDMETHODIMP PyGRemoteDebugApplication::GetRootNode(IDebugApplicationNode __RPC_FAR * __RPC_FAR * ppdanRoot)
+STDMETHODIMP PyGRemoteDebugApplication::GetRootNode(IDebugApplicationNode __RPC_FAR *__RPC_FAR *ppdanRoot)
 {
     PY_GATEWAY_METHOD;
     if (ppdanRoot == NULL)
@@ -468,8 +468,8 @@ STDMETHODIMP PyGRemoteDebugApplication::GetRootNode(IDebugApplicationNode __RPC_
     return hr;
 }
 
-STDMETHODIMP PyGRemoteDebugApplication::EnumGlobalExpressionContexts(IEnumDebugExpressionContexts __RPC_FAR *
-                                                                     __RPC_FAR * ppedec)
+STDMETHODIMP PyGRemoteDebugApplication::EnumGlobalExpressionContexts(
+    IEnumDebugExpressionContexts __RPC_FAR *__RPC_FAR *ppedec)
 {
     PY_GATEWAY_METHOD;
     if (ppedec == NULL)

@@ -56,5 +56,5 @@ class PyGDebugDocumentText : public PyGDebugDocument, public IDebugDocumentText 
     (IDebugDocumentContext __RPC_FAR *psc, ULONG __RPC_FAR *pcCharacterPosition, ULONG __RPC_FAR *cNumChars);
 
     STDMETHOD(GetContextOfPosition)
-    (ULONG cCharacterPosition, ULONG cNumChars, IDebugDocumentContext __RPC_FAR * __RPC_FAR * ppsc);
+    (ULONG cCharacterPosition, ULONG cNumChars, IDebugDocumentContext __RPC_FAR *__RPC_FAR *ppsc);
 };

@@ -44,5 +44,5 @@ class PyGActiveScriptDebug : public PyGatewayBase, public IActiveScriptDebug {
 #else
         DWORD dwSourceContext,
 #endif
-        ULONG uCharacterOffset, ULONG uNumChars, IEnumDebugCodeContexts __RPC_FAR * __RPC_FAR * ppescc);
+        ULONG uCharacterOffset, ULONG uNumChars, IEnumDebugCodeContexts __RPC_FAR *__RPC_FAR *ppescc);
 };

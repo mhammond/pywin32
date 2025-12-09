@@ -77,7 +77,7 @@ class PyGDebugDocumentHelper : public PyGatewayBase, public IDebugDocumentHelper
 
     STDMETHOD(SetDocumentAttr)(TEXT_DOC_ATTR pszAttributes);
 
-    STDMETHOD(GetDebugApplicationNode)(IDebugApplicationNode __RPC_FAR * __RPC_FAR * ppdan);
+    STDMETHOD(GetDebugApplicationNode)(IDebugApplicationNode __RPC_FAR *__RPC_FAR *ppdan);
 
     STDMETHOD(GetScriptBlockInfo)
     (
@@ -86,10 +86,10 @@ class PyGDebugDocumentHelper : public PyGatewayBase, public IDebugDocumentHelper
 #else
         DWORD dwSourceContext,
 #endif
-        IActiveScript __RPC_FAR * __RPC_FAR * ppasd, ULONG __RPC_FAR *piCharPos, ULONG __RPC_FAR *pcChars);
+        IActiveScript __RPC_FAR *__RPC_FAR *ppasd, ULONG __RPC_FAR *piCharPos, ULONG __RPC_FAR *pcChars);
 
     STDMETHOD(CreateDebugDocumentContext)
-    (ULONG iCharPos, ULONG cChars, IDebugDocumentContext __RPC_FAR * __RPC_FAR * ppddc);
+    (ULONG iCharPos, ULONG cChars, IDebugDocumentContext __RPC_FAR *__RPC_FAR *ppddc);
 
     STDMETHOD(BringDocumentToTop)(void);
 

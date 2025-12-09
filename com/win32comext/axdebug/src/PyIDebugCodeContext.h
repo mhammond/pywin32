@@ -28,7 +28,7 @@ class PyGDebugCodeContext : public PyGatewayBase, public IDebugCodeContext {
     PYGATEWAY_MAKE_SUPPORT(PyGDebugCodeContext, IDebugCodeContext, IID_IDebugCodeContext)
 
     // IDebugCodeContext
-    STDMETHOD(GetDocumentContext)(IDebugDocumentContext __RPC_FAR * __RPC_FAR * ppsc);
+    STDMETHOD(GetDocumentContext)(IDebugDocumentContext __RPC_FAR *__RPC_FAR *ppsc);
 
     STDMETHOD(SetBreakPoint)(BREAKPOINT_STATE bps);
 };

@@ -155,7 +155,7 @@ PyComTypeObject PyIEnumRemoteDebugApplications::type("PyIEnumRemoteDebugApplicat
 
 STDMETHODIMP PyGEnumRemoteDebugApplications::Next(
     /* [in] */ ULONG celt,
-    /* [length_is][size_is][out] */ IRemoteDebugApplication __RPC_FAR * __RPC_FAR * rgVar,
+    /* [length_is][size_is][out] */ IRemoteDebugApplication __RPC_FAR *__RPC_FAR *rgVar,
     /* [out] */ ULONG __RPC_FAR *pCeltFetched)
 {
     PY_GATEWAY_METHOD;
@@ -215,7 +215,7 @@ STDMETHODIMP PyGEnumRemoteDebugApplications::Reset(void)
 }
 
 STDMETHODIMP PyGEnumRemoteDebugApplications::Clone(
-    /* [out] */ IEnumRemoteDebugApplications __RPC_FAR * __RPC_FAR * ppEnum)
+    /* [out] */ IEnumRemoteDebugApplications __RPC_FAR *__RPC_FAR *ppEnum)
 {
     PY_GATEWAY_METHOD;
     PyObject *result;

@@ -283,8 +283,8 @@ STDMETHODIMP PyGOleInPlaceSite::OnUIActivate(void)
 }
 
 STDMETHODIMP PyGOleInPlaceSite::GetWindowContext(
-    /* [out] */ IOleInPlaceFrame __RPC_FAR * __RPC_FAR * ppFrame,
-    /* [out] */ IOleInPlaceUIWindow __RPC_FAR * __RPC_FAR * ppDoc,
+    /* [out] */ IOleInPlaceFrame __RPC_FAR *__RPC_FAR *ppFrame,
+    /* [out] */ IOleInPlaceUIWindow __RPC_FAR *__RPC_FAR *ppDoc,
     /* [out] */ LPRECT lprcPosRect,
     /* [out] */ LPRECT lprcClipRect,
     /* [out][in] */ LPOLEINPLACEFRAMEINFO lpFrameInfo)

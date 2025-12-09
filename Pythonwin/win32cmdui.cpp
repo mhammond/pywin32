@@ -69,8 +69,8 @@ BOOL Python_OnCmdMsg(CCmdTarget *obj, UINT nID, int nCode, void *pExtra, AFX_CMD
                 pObj->pOleEventHookList->Lookup((unsigned short)pEvent->m_dispid, (void *&)method)) {
                 if (pfnMakeOlePythonCall == NULL) {
                     pfnMakeOlePythonCall =
-                        (BOOL (*)(PyObject *, DISPPARAMS FAR *, VARIANT FAR *, EXCEPINFO FAR *, UINT FAR *,
-                                  PyObject *))GetPythonOleProcAddress("PyCom_MakeOlePythonCall");
+                        (BOOL(*)(PyObject *, DISPPARAMS FAR *, VARIANT FAR *, EXCEPINFO FAR *, UINT FAR *,
+                                 PyObject *))GetPythonOleProcAddress("PyCom_MakeOlePythonCall");
 
                     ASSERT(pfnMakeOlePythonCall);
                 }

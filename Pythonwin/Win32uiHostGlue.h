@@ -186,8 +186,9 @@ inline BOOL Win32uiHostGlue::DynamicApplicationInit(const TCHAR *cmd, const TCHA
     PyObject *(*pPyObject_GetAttrString)(PyObject *o, const char *attr_name) =
         (PyObject * (*)(PyObject * o, const char *attr_name)) GetProcAddress(hModCore, "PyObject_GetAttrString");
     CHECK_PFN(pPyObject_GetAttrString);
-    Py_ssize_t (*pPyUnicode_AsWideChar)(PyObject *unicode, wchar_t *w, Py_ssize_t size) = (Py_ssize_t (*)(
-        PyObject *unicode, wchar_t *w, Py_ssize_t size))GetProcAddress(hModCore, "PyUnicode_AsWideChar");
+    Py_ssize_t (*pPyUnicode_AsWideChar)(PyObject *unicode, wchar_t *w, Py_ssize_t size) =
+        (Py_ssize_t(*)(PyObject * unicode, wchar_t * w, Py_ssize_t size))
+            GetProcAddress(hModCore, "PyUnicode_AsWideChar");
     CHECK_PFN(pPyUnicode_AsWideChar);
 
     PyObject *win32ui = pPyImport_ImportModule("win32ui");
@@ -234,8 +235,8 @@ fail_with_error_dlg:
 }
 #else  // LINK_WITH_WIN32UI defined
 
-extern "C"
-    __declspec(dllimport) BOOL Win32uiApplicationInit(Win32uiHostGlue *pGlue, const TCHAR *cmd, const TCHAR *addnPaths);
+extern "C" __declspec(dllimport) BOOL Win32uiApplicationInit(Win32uiHostGlue *pGlue, const TCHAR *cmd,
+                                                             const TCHAR *addnPaths);
 extern "C" void initwin32ui();
 
 inline BOOL Win32uiHostGlue::ApplicationInit(const TCHAR *cmd, const TCHAR *additionalPaths)

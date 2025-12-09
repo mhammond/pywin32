@@ -207,23 +207,19 @@ static PyBufferProcs PySID_as_buffer = {
 };
 
 PYWINTYPES_EXPORT PyTypeObject PySIDType = {
-    PYWIN_OBJECT_HEAD "PySID",
-    sizeof(PySID),
-    0,
-    PySID::deallocFunc, /* tp_dealloc */
-    0,                  /* tp_print */
-    0,                  /* tp_getattr */
-    0,                  /* tp_setattr */
-    0,                  /* tp_compare */
-    0,                  /* tp_repr */
-    0,                  /* tp_as_number */
-    0,                  /* tp_as_sequence */
-    0,                  /* tp_as_mapping */
-    0,
-    0,                       /* tp_call */
-    PySID::strFunc,          /* tp_str */
-    PyObject_GenericGetAttr, /*tp_getattro*/
-    0,                       /*tp_setattro*/
+    PYWIN_OBJECT_HEAD "PySID", sizeof(PySID), 0, PySID::deallocFunc, /* tp_dealloc */
+    0,                                                               /* tp_print */
+    0,                                                               /* tp_getattr */
+    0,                                                               /* tp_setattr */
+    0,                                                               /* tp_compare */
+    0,                                                               /* tp_repr */
+    0,                                                               /* tp_as_number */
+    0,                                                               /* tp_as_sequence */
+    0,                                                               /* tp_as_mapping */
+    0, 0,                                                            /* tp_call */
+    PySID::strFunc,                                                  /* tp_str */
+    PyObject_GenericGetAttr,                                         /*tp_getattro*/
+    0,                                                               /*tp_setattro*/
     // @comm Note the PySID object supports the buffer interface.  Thus buffer(sid) can be used to obtain the raw bytes.
     &PySID_as_buffer,                         /*tp_as_buffer*/
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */

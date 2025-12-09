@@ -1064,8 +1064,10 @@ LPCTSTR GetScodeRangeString(HRESULT hr)
         HRESULT hrLast;
         LPCTSTR lpszName;
     };
-#define MAKE_RANGE_ENTRY(hrRange) \
-    {hrRange##_FIRST, hrRange##_LAST, _T(#hrRange) _T("_FIRST...") _T(#hrRange) _T("_LAST")}
+#define MAKE_RANGE_ENTRY(hrRange)                                                              \
+    {                                                                                          \
+        hrRange##_FIRST, hrRange##_LAST, _T(#hrRange) _T("_FIRST...") _T(#hrRange) _T("_LAST") \
+    }
 
     static const RANGE_ENTRY hrRangeTable[] = {
         MAKE_RANGE_ENTRY(CACHE_E),        MAKE_RANGE_ENTRY(CACHE_S),      MAKE_RANGE_ENTRY(CLASSFACTORY_E),
