@@ -204,7 +204,7 @@ STDMETHODIMP PyGEnumFORMATETC::Reset(void)
 }
 
 STDMETHODIMP PyGEnumFORMATETC::Clone(
-    /* [out] */ IEnumFORMATETC __RPC_FAR * __RPC_FAR * ppEnum)
+    /* [out] */ IEnumFORMATETC __RPC_FAR *__RPC_FAR *ppEnum)
 {
     PY_GATEWAY_METHOD;
     PyObject *result;

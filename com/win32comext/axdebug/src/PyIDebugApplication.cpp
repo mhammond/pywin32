@@ -703,7 +703,7 @@ STDMETHODIMP PyGDebugApplication::Close(void)
 
 STDMETHODIMP PyGDebugApplication::GetBreakFlags(
     /* [out] */ APPBREAKFLAGS __RPC_FAR *pabf,
-    /* [out] */ IRemoteDebugApplicationThread __RPC_FAR * __RPC_FAR * pprdatSteppingThread)
+    /* [out] */ IRemoteDebugApplicationThread __RPC_FAR *__RPC_FAR *pprdatSteppingThread)
 {
     PY_GATEWAY_METHOD;
     PyObject *result;
@@ -725,7 +725,7 @@ STDMETHODIMP PyGDebugApplication::GetBreakFlags(
 }
 
 STDMETHODIMP PyGDebugApplication::GetCurrentThread(
-    /* [out] */ IDebugApplicationThread __RPC_FAR * __RPC_FAR * pat)
+    /* [out] */ IDebugApplicationThread __RPC_FAR *__RPC_FAR *pat)
 {
     PY_GATEWAY_METHOD;
     if (pat == NULL)
@@ -749,7 +749,7 @@ STDMETHODIMP PyGDebugApplication::GetCurrentThread(
 
 STDMETHODIMP PyGDebugApplication::CreateAsyncDebugOperation(
     /* [in] */ IDebugSyncOperation __RPC_FAR *psdo,
-    /* [out] */ IDebugAsyncOperation __RPC_FAR * __RPC_FAR * ppado)
+    /* [out] */ IDebugAsyncOperation __RPC_FAR *__RPC_FAR *ppado)
 {
     PY_GATEWAY_METHOD;
     if (ppado == NULL)

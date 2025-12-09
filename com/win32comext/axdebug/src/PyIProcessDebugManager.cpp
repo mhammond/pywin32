@@ -148,7 +148,7 @@ PyComTypeObject PyIProcessDebugManager::type("PyIProcessDebugManager", &PyIUnkno
 // Gateway Implementation
 
 STDMETHODIMP PyGProcessDebugManager::CreateApplication(
-    /* [out] */ IDebugApplication __RPC_FAR * __RPC_FAR * ppda)
+    /* [out] */ IDebugApplication __RPC_FAR *__RPC_FAR *ppda)
 {
     PY_GATEWAY_METHOD;
     if (ppda == NULL)
@@ -171,7 +171,7 @@ STDMETHODIMP PyGProcessDebugManager::CreateApplication(
 }
 
 STDMETHODIMP PyGProcessDebugManager::GetDefaultApplication(
-    /* [out] */ IDebugApplication __RPC_FAR * __RPC_FAR * ppda)
+    /* [out] */ IDebugApplication __RPC_FAR *__RPC_FAR *ppda)
 {
     PY_GATEWAY_METHOD;
     if (ppda == NULL)

@@ -81,7 +81,7 @@ STDMETHODIMP PyGActiveScriptErrorDebug::GetSourceLineText(BSTR __RPC_FAR *pbstrS
 }
 
 STDMETHODIMP PyGActiveScriptErrorDebug::GetDocumentContext(
-    /* [out] */ IDebugDocumentContext __RPC_FAR * __RPC_FAR * ppssc)
+    /* [out] */ IDebugDocumentContext __RPC_FAR *__RPC_FAR *ppssc)
 {
     PY_GATEWAY_METHOD;
     if (ppssc == NULL)
@@ -104,7 +104,7 @@ STDMETHODIMP PyGActiveScriptErrorDebug::GetDocumentContext(
 }
 
 STDMETHODIMP PyGActiveScriptErrorDebug::GetStackFrame(
-    /* [out] */ IDebugStackFrame __RPC_FAR * __RPC_FAR * ppdsf)
+    /* [out] */ IDebugStackFrame __RPC_FAR *__RPC_FAR *ppdsf)
 {
     PY_GATEWAY_METHOD;
     if (ppdsf == NULL)

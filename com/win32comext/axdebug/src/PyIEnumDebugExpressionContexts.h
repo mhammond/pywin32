@@ -31,11 +31,11 @@ class PyGEnumDebugExpressionContexts : public PyGatewayBase, public IEnumDebugEx
                            IID_IEnumDebugExpressionContexts)
 
     // IEnumDebugExpressionContexts
-    STDMETHOD(Next)(ULONG celt, IDebugExpressionContext __RPC_FAR * __RPC_FAR * ppdec, ULONG __RPC_FAR *pceltFetched);
+    STDMETHOD(Next)(ULONG celt, IDebugExpressionContext __RPC_FAR *__RPC_FAR *ppdec, ULONG __RPC_FAR *pceltFetched);
 
     STDMETHOD(Skip)(ULONG celt);
 
     STDMETHOD(Reset)(void);
 
-    STDMETHOD(Clone)(IEnumDebugExpressionContexts __RPC_FAR * __RPC_FAR * ppedec);
+    STDMETHOD(Clone)(IEnumDebugExpressionContexts __RPC_FAR *__RPC_FAR *ppedec);
 };

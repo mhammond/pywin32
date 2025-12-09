@@ -233,7 +233,7 @@ STDMETHODIMP PyGApplicationDebugger::CreateInstanceAtDebugger(
     /* [in] */ IUnknown __RPC_FAR *pUnkOuter,
     /* [in] */ DWORD dwClsContext,
     /* [in] */ REFIID riid,
-    /* [iid_is][out] */ IUnknown __RPC_FAR * __RPC_FAR * ppvObject)
+    /* [iid_is][out] */ IUnknown __RPC_FAR *__RPC_FAR *ppvObject)
 {
     PY_GATEWAY_METHOD;
     if (ppvObject == NULL)

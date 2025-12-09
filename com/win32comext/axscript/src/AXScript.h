@@ -221,8 +221,8 @@ class PYAXSCRIPT_EXPORT PyGActiveScriptSite : public PyGatewayBase, public IActi
     (
         /* [in] */ LPCOLESTR pstrName,
         /* [in] */ DWORD dwReturnMask,
-        /* [out] */ IUnknown FAR * FAR * ppiunkItem,
-        /* [out] */ ITypeInfo FAR * FAR * ppti);
+        /* [out] */ IUnknown FAR *FAR *ppiunkItem,
+        /* [out] */ ITypeInfo FAR *FAR *ppti);
 
     STDMETHOD(GetDocVersionString)
     (
