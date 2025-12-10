@@ -395,8 +395,7 @@ class TestOverlapped(unittest.TestCase):
             # GetQueuedCompletionStatus will still find it.  Our check of
             # reference counting should catch that error.
             overlapped = None
-            # even if we fail, be sure to close the handle; prevents hangs
-            # on Vista 64...
+            # even if we fail, be sure to close the handle to prevents hangs
             try:
                 self.assertRaises(
                     RuntimeError, win32file.GetQueuedCompletionStatus, port, -1
@@ -750,9 +749,9 @@ class TestEncrypt(unittest.TestCase):
 
 class TestConnect(unittest.TestCase):
     def connect_thread_runner(self, expect_payload, giveup_event):
-        # As Windows 2000 doesn't do ConnectEx, we need to use a non-blocking
-        # accept, as our test connection may never come.  May as well use
-        # AcceptEx for this...
+        # Windows 2000 didn't do ConnectEx, we needed to use a non-blocking
+        # accept, as our test connection possible would never come if skipped.
+        # May as well use and test AcceptEx for this...
         listener = socket.socket()
         self.addr = ("localhost", random.randint(10000, 64000))
         listener.bind(self.addr)
@@ -801,8 +800,6 @@ class TestConnect(unittest.TestCase):
             win32file.ConnectEx(s2, self.addr, ol, b"some expected request")
         except win32file.error as exc:
             win32event.SetEvent(giveup_event)
-            if exc.winerror == 10022:  # WSAEINVAL
-                raise TestSkipped("ConnectEx is not available on this platform")
             raise  # some error error we don't expect.
         # We occasionally see ERROR_CONNECTION_REFUSED in automation
         try:
@@ -836,8 +833,6 @@ class TestConnect(unittest.TestCase):
             win32file.ConnectEx(s2, self.addr, ol)
         except win32file.error as exc:
             win32event.SetEvent(giveup_event)
-            if exc.winerror == 10022:  # WSAEINVAL
-                raise TestSkipped("ConnectEx is not available on this platform")
             raise  # some error error we don't expect.
         # We occasionally see ERROR_CONNECTION_REFUSED in automation
         try:

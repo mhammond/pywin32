@@ -129,61 +129,14 @@ static PFNSHILCreateFromPath pfnSHILCreateFromPath = NULL;
 typedef HRESULT(WINAPI *PFNAssocCreate)(CLSID, REFIID, LPVOID);
 static PFNAssocCreate pfnAssocCreate = NULL;
 
-typedef HRESULT(WINAPI *PFNAssocCreateForClasses)(const ASSOCIATIONELEMENT *, ULONG cClasses, REFIID riid, void **ppv);
-static PFNAssocCreateForClasses pfnAssocCreateForClasses = NULL;
-
 typedef LRESULT(WINAPI *PFNSHShellFolderView_Message)(HWND, UINT, LPARAM);
 static PFNSHShellFolderView_Message pfnSHShellFolderView_Message = NULL;
 
 typedef BOOL(WINAPI *PFNIsUserAnAdmin)();
 static PFNIsUserAnAdmin pfnIsUserAnAdmin = NULL;
 
-typedef BOOL(WINAPI *PFNSHGetNameFromIDList)(PCIDLIST_ABSOLUTE, SIGDN, PWSTR *);
-static PFNSHGetNameFromIDList pfnSHGetNameFromIDList = NULL;
-
 typedef BOOL(WINAPI *PFNSHCreateShellFolderView)(const SFV_CREATE *, IShellView **ppsv);
 static PFNSHCreateShellFolderView pfnSHCreateShellFolderView = NULL;
-
-typedef BOOL(WINAPI *PFNSHCreateDefaultExtractIcon)(REFIID riid, void **ppv);
-static PFNSHCreateDefaultExtractIcon pfnSHCreateDefaultExtractIcon = NULL;
-
-typedef BOOL(WINAPI *PFNSHCreateDataObject)(PCIDLIST_ABSOLUTE, UINT, PCUITEMID_CHILD_ARRAY, IDataObject *, REFIID,
-                                            void **);
-static PFNSHCreateDataObject pfnSHCreateDataObject = NULL;
-
-typedef BOOL(WINAPI *PFNSHCreateShellItemArray)(PCIDLIST_ABSOLUTE, IShellFolder *, UINT, PCUITEMID_CHILD_ARRAY,
-                                                IShellItemArray **);
-static PFNSHCreateShellItemArray pfnSHCreateShellItemArray = NULL;
-
-typedef BOOL(WINAPI *PFNSHCreateShellItemArrayFromDataObject)(IDataObject *pdo, REFIID, void **);
-static PFNSHCreateShellItemArrayFromDataObject pfnSHCreateShellItemArrayFromDataObject = NULL;
-
-typedef BOOL(WINAPI *PFNSHCreateShellItemArrayFromIDLists)(UINT, PCIDLIST_ABSOLUTE_ARRAY, IShellItemArray **);
-static PFNSHCreateShellItemArrayFromIDLists pfnSHCreateShellItemArrayFromIDLists = NULL;
-
-typedef BOOL(WINAPI *PFNSHCreateShellItemArrayFromShellItem)(IShellItem *, REFIID riid, void **);
-static PFNSHCreateShellItemArrayFromShellItem pfnSHCreateShellItemArrayFromShellItem = NULL;
-
-typedef BOOL(WINAPI *PFNSHCreateDefaultContextMenu)(const DEFCONTEXTMENU *, REFIID, void **);
-static PFNSHCreateDefaultContextMenu pfnSHCreateDefaultContextMenu = NULL;
-
-typedef HRESULT(WINAPI *PFNSHCreateItemFromIDList)(PCIDLIST_ABSOLUTE, REFIID, void **);
-static PFNSHCreateItemFromIDList pfnSHCreateItemFromIDList = NULL;
-
-typedef HRESULT(WINAPI *PFNSHCreateItemFromParsingName)(PCWSTR, IBindCtx *, REFIID, void **);
-static PFNSHCreateItemFromParsingName pfnSHCreateItemFromParsingName = NULL;
-
-typedef HRESULT(WINAPI *PFNSHCreateItemFromRelativeName)(IShellItem *, PCWSTR, IBindCtx *, REFIID, void **);
-static PFNSHCreateItemFromRelativeName pfnSHCreateItemFromRelativeName = NULL;
-
-typedef HRESULT(WINAPI *PFNSHCreateItemInKnownFolder)(REFKNOWNFOLDERID, DWORD, PCWSTR, REFIID, void **);
-static PFNSHCreateItemInKnownFolder pfnSHCreateItemInKnownFolder = NULL;
-
-typedef HRESULT(WINAPI *PFNSHCreateItemWithParent)(PCIDLIST_ABSOLUTE, IShellFolder *, PCUITEMID_CHILD, REFIID, void **);
-static PFNSHCreateItemWithParent pfnSHCreateItemWithParent = NULL;
-
-typedef HRESULT(WINAPI *PFNSHGetIDListFromObject)(IUnknown *, PIDLIST_ABSOLUTE *);
-static PFNSHGetIDListFromObject pfnSHGetIDListFromObject = NULL;
 
 typedef HRESULT(WINAPI *PFNSHCreateShellItem)(PCIDLIST_ABSOLUTE, IShellFolder *, PCUITEMID_CHILD, IShellItem **);
 static PFNSHCreateShellItem pfnSHCreateShellItem = NULL;
@@ -1422,7 +1375,6 @@ static PyObject *PySHGetFolderPath(PyObject *self, PyObject *args)
 }
 
 // @pymethod |shell|SHSetFolderPath|Sets the location of one of the special folders
-// @comm This function is only available on Windows 2000 or later
 static PyObject *PySHSetFolderPath(PyObject *self, PyObject *args)
 {
     int csidl;
@@ -2631,11 +2583,6 @@ static PyObject *PyAssocCreate(PyObject *self, PyObject *args)
 // interface.
 static PyObject *PyAssocCreateForClasses(PyObject *self, PyObject *args)
 {
-    // @comm This function is only available on Vista and later; a
-    // COM exception with E_NOTIMPL will be thrown if the function can't be located.
-    if (pfnAssocCreateForClasses == NULL)
-        return PyCom_BuildPyException(E_NOTIMPL);
-
     PyObject *ret = NULL;
     PyObject *obClasses, *obiid;
     if (!PyArg_ParseTuple(args, "OO:AssocCreateForClasses", &obClasses, &obiid))
@@ -2651,7 +2598,7 @@ static PyObject *PyAssocCreateForClasses(PyObject *self, PyObject *args)
     void *v;
     {
         PY_INTERFACE_PRECALL;
-        hr = (*pfnAssocCreateForClasses)(elts, nclasses, iid, &v);
+        hr = AssocCreateForClasses(elts, nclasses, iid, &v);
         PY_INTERFACE_POSTCALL;
     }
     if (FAILED(hr)) {
@@ -2803,18 +2750,13 @@ done: {
 // defaults can be further configured via the IDefaultExtractIconInit interface.
 static PyObject *PySHCreateDefaultExtractIcon(PyObject *self, PyObject *args)
 {
-    // @comm This function is only available on Vista and later; a
-    // COM exception with E_NOTIMPL will be thrown if the function can't be located.
-    if (pfnSHCreateDefaultExtractIcon == NULL)
-        return PyCom_BuildPyException(E_NOTIMPL);
-
     // be lazy - don't take IID as a param!
     if (!PyArg_ParseTuple(args, ":SHCreateDefaultExtractIcon"))
         return NULL;
     IDefaultExtractIconInit *ret = NULL;
     HRESULT hr;
     PY_INTERFACE_PRECALL;
-    hr = (*pfnSHCreateDefaultExtractIcon)(IID_IDefaultExtractIconInit, (void **)&ret);
+    hr = SHCreateDefaultExtractIcon(IID_IDefaultExtractIconInit, (void **)&ret);
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return PyCom_BuildPyException(hr);
@@ -2825,11 +2767,6 @@ static PyObject *PySHCreateDefaultExtractIcon(PyObject *self, PyObject *args)
 // @pymethod <o PyIUnknown>|shell|SHCreateDataObject|
 static PyObject *PySHCreateDataObject(PyObject *self, PyObject *args)
 {
-    // @comm This function is only available on Vista and later; a
-    // COM exception with E_NOTIMPL will be thrown if the function can't be located.
-    if (pfnSHCreateDataObject == NULL)
-        return PyCom_BuildPyException(E_NOTIMPL);
-
     PyObject *ret = NULL;
     PyObject *obParent;
     PyObject *obChildren;
@@ -2858,7 +2795,7 @@ static PyObject *PySHCreateDataObject(PyObject *self, PyObject *args)
     HRESULT hr;
     {
         PY_INTERFACE_PRECALL;
-        hr = (*pfnSHCreateDataObject)(parent, nchildren, children, do_inner, iid, &do_ret);
+        hr = SHCreateDataObject(parent, nchildren, children, do_inner, iid, &do_ret);
         PY_INTERFACE_POSTCALL;
     }
     if (FAILED(hr)) {
@@ -2879,11 +2816,6 @@ done:
 // @pymethod <o PyIUnknown>|shell|SHCreateDefaultContextMenu|
 static PyObject *PySHCreateDefaultContextMenu(PyObject *self, PyObject *args)
 {
-    // @comm This function is only available on Vista and later; a
-    // COM exception with E_NOTIMPL will be thrown if the function can't be located.
-    if (pfnSHCreateDefaultContextMenu == NULL)
-        return PyCom_BuildPyException(E_NOTIMPL);
-
     PyObject *ret = NULL;
     PyObject *obdcm, *obiid;
     IID iid = IID_IContextMenu;
@@ -2900,7 +2832,7 @@ static PyObject *PySHCreateDefaultContextMenu(PyObject *self, PyObject *args)
     HRESULT hr;
     {
         PY_INTERFACE_PRECALL;
-        hr = (*pfnSHCreateDefaultContextMenu)(&dcm, iid, &iret);
+        hr = SHCreateDefaultContextMenu(&dcm, iid, &iret);
         PY_INTERFACE_POSTCALL;
     }
     if (FAILED(hr)) {
@@ -2917,10 +2849,6 @@ done:
 // @pymethod str|shell|SHGetNameFromIDList|Retrieves the display name of an item from an ID list.
 static PyObject *PySHGetNameFromIDList(PyObject *self, PyObject *args)
 {
-    // @comm This function is only available on Vista and later; a
-    // COM exception with E_NOTIMPL will be thrown if the function can't be located.
-    if (pfnSHGetNameFromIDList == NULL)
-        return PyCom_BuildPyException(E_NOTIMPL);
     PyObject *ret = NULL;
     PyObject *obpidl;
     SIGDN flags;
@@ -2935,7 +2863,7 @@ static PyObject *PySHGetNameFromIDList(PyObject *self, PyObject *args)
     HRESULT hr;
     {
         PY_INTERFACE_PRECALL;
-        hr = (*pfnSHGetNameFromIDList)(pidl, flags, &name);
+        hr = SHGetNameFromIDList(pidl, flags, &name);
         PY_INTERFACE_POSTCALL;
     }
     if (FAILED(hr)) {
@@ -2954,11 +2882,6 @@ done:
 // @pymethod <o PyIShellItemArray>|shell|SHCreateShellItemArray|Creates a Shell item array object.
 static PyObject *PySHCreateShellItemArray(PyObject *self, PyObject *args)
 {
-    // @comm This function is only available on Vista and later; a
-    // COM exception with E_NOTIMPL will be thrown if the function can't be located.
-    if (pfnSHCreateShellItemArray == NULL)
-        return PyCom_BuildPyException(E_NOTIMPL);
-
     PyObject *ret = NULL;
     PyObject *obParent;
     PyObject *obChildren;
@@ -2983,7 +2906,7 @@ static PyObject *PySHCreateShellItemArray(PyObject *self, PyObject *args)
     HRESULT hr;
     {
         PY_INTERFACE_PRECALL;
-        hr = (*pfnSHCreateShellItemArray)(parent, sf, nchildren, children, &sia_ret);
+        hr = SHCreateShellItemArray(parent, sf, nchildren, children, &sia_ret);
         PY_INTERFACE_POSTCALL;
     }
     if (FAILED(hr)) {
@@ -3006,11 +2929,6 @@ done:
 //   interface that contains a list of items (eg CF_HDROP)
 static PyObject *PySHCreateShellItemArrayFromDataObject(PyObject *self, PyObject *args)
 {
-    // @comm This function is only available on Vista and later; a
-    // COM exception with E_NOTIMPL will be thrown if the function can't be located.
-    if (pfnSHCreateShellItemArrayFromDataObject == NULL)
-        return PyCom_BuildPyException(E_NOTIMPL);
-
     PyObject *ret = NULL;
     PyObject *obdo;
     PyObject *obiid = Py_None;
@@ -3028,7 +2946,7 @@ static PyObject *PySHCreateShellItemArrayFromDataObject(PyObject *self, PyObject
     HRESULT hr;
     {
         PY_INTERFACE_PRECALL;
-        hr = (*pfnSHCreateShellItemArrayFromDataObject)(ido, iid, &iret);
+        hr = SHCreateShellItemArrayFromDataObject(ido, iid, &iret);
         PY_INTERFACE_POSTCALL;
     }
     if (FAILED(hr)) {
@@ -3046,11 +2964,6 @@ done:
 // item identifiers
 static PyObject *PySHCreateShellItemArrayFromIDLists(PyObject *self, PyObject *args)
 {
-    // @comm This function is only available on Vista and later; a
-    // COM exception with E_NOTIMPL will be thrown if the function can't be located.
-    if (pfnSHCreateShellItemArrayFromIDLists == NULL)
-        return PyCom_BuildPyException(E_NOTIMPL);
-
     PyObject *ret = NULL;
     PyObject *obpidls;
     PCIDLIST_ABSOLUTE_ARRAY pidls = NULL;
@@ -3065,7 +2978,7 @@ static PyObject *PySHCreateShellItemArrayFromIDLists(PyObject *self, PyObject *a
 
     {
         PY_INTERFACE_PRECALL;
-        hr = (*pfnSHCreateShellItemArrayFromIDLists)(npidls, pidls, &iret);
+        hr = SHCreateShellItemArrayFromIDLists(npidls, pidls, &iret);
         PY_INTERFACE_POSTCALL;
     }
     if (FAILED(hr)) {
@@ -3084,11 +2997,6 @@ done:
 // item
 static PyObject *PySHCreateShellItemArrayFromShellItem(PyObject *self, PyObject *args)
 {
-    // @comm This function is only available on Vista and later; a
-    // COM exception with E_NOTIMPL will be thrown if the function can't be located.
-    if (pfnSHCreateShellItemArrayFromShellItem == NULL)
-        return PyCom_BuildPyException(E_NOTIMPL);
-
     PyObject *obsi;
     IShellItem *isi = NULL;
     IID iid = IID_IShellItemArray;
@@ -3102,7 +3010,7 @@ static PyObject *PySHCreateShellItemArrayFromShellItem(PyObject *self, PyObject 
     HRESULT hr;
     {
         PY_INTERFACE_PRECALL;
-        hr = (*pfnSHCreateShellItemArrayFromShellItem)(isi, iid, &iret);
+        hr = SHCreateShellItemArrayFromShellItem(isi, iid, &iret);
         isi->Release();
         PY_INTERFACE_POSTCALL;
     }
@@ -3116,10 +3024,6 @@ static PyObject *PySHCreateShellItemArrayFromShellItem(PyObject *self, PyObject 
 // object from a PIDL.  Can also create <o PyIShellItem2> objects.
 static PyObject *PySHCreateItemFromIDList(PyObject *self, PyObject *args)
 {
-    // @comm This function is only available on Vista and later; a
-    // COM exception with E_NOTIMPL will be thrown if the function can't be located.
-    if (pfnSHCreateItemFromIDList == NULL)
-        return PyCom_BuildPyException(E_NOTIMPL);
     PyObject *ret = NULL;
     PyObject *obpidl;
     IID iid = IID_IShellItem;
@@ -3135,7 +3039,7 @@ static PyObject *PySHCreateItemFromIDList(PyObject *self, PyObject *args)
     void *out;
     {
         PY_INTERFACE_PRECALL;
-        hr = (*pfnSHCreateItemFromIDList)(pidl, iid, &out);
+        hr = SHCreateItemFromIDList(pidl, iid, &out);
         PY_INTERFACE_POSTCALL;
     }
     if (FAILED(hr))
@@ -3151,11 +3055,6 @@ static PyObject *PySHCreateItemFromIDList(PyObject *self, PyObject *args)
 // parsing name.
 static PyObject *PySHCreateItemFromParsingName(PyObject *self, PyObject *args)
 {
-    // @comm This function is only available on Vista and later; a
-    // COM exception with E_NOTIMPL will be thrown if the function can't be located.
-    if (pfnSHCreateItemFromParsingName == NULL)
-        return PyCom_BuildPyException(E_NOTIMPL);
-
     PyObject *ret = NULL;
     PyObject *obname, *obctx, *obiid;
     // @pyparm str|name||The display name of the item to create, eg a file path
@@ -3182,7 +3081,7 @@ static PyObject *PySHCreateItemFromParsingName(PyObject *self, PyObject *args)
 
     {
         PY_INTERFACE_PRECALL;
-        hr = (*pfnSHCreateItemFromParsingName)(name, ctx, iid, &out);
+        hr = SHCreateItemFromParsingName(name, ctx, iid, &out);
         PY_INTERFACE_POSTCALL;
     }
     if (FAILED(hr)) {
@@ -3203,11 +3102,6 @@ done:
 // relative parsing name.
 static PyObject *PySHCreateItemFromRelativeName(PyObject *self, PyObject *args)
 {
-    // @comm This function is only available on Vista and later; a
-    // COM exception with E_NOTIMPL will be thrown if the function can't be located.
-    if (pfnSHCreateItemFromRelativeName == NULL)
-        return PyCom_BuildPyException(E_NOTIMPL);
-
     PyObject *ret = NULL;
     PyObject *obname, *obctx, *obiid, *obparent;
     // @pyparm <o PyIShellItem>|Parent||Shell item interface on the parent folder
@@ -3239,7 +3133,7 @@ static PyObject *PySHCreateItemFromRelativeName(PyObject *self, PyObject *args)
 
     {
         PY_INTERFACE_PRECALL;
-        hr = (*pfnSHCreateItemFromRelativeName)(parent, name, ctx, iid, &out);
+        hr = SHCreateItemFromRelativeName(parent, name, ctx, iid, &out);
         PY_INTERFACE_POSTCALL;
     }
     if (FAILED(hr)) {
@@ -3267,11 +3161,6 @@ done:
 // inside a known folder.
 static PyObject *PySHCreateItemInKnownFolder(PyObject *self, PyObject *args)
 {
-    // @comm This function is only available on Vista and later; a
-    // COM exception with E_NOTIMPL will be thrown if the function can't be located.
-    if (pfnSHCreateItemInKnownFolder == NULL)
-        return PyCom_BuildPyException(E_NOTIMPL);
-
     DWORD flags;
     PyObject *obname;
     IID riid = IID_IShellItem;
@@ -3291,7 +3180,7 @@ static PyObject *PySHCreateItemInKnownFolder(PyObject *self, PyObject *args)
         return NULL;
 
     PY_INTERFACE_PRECALL;
-    hr = (*pfnSHCreateItemInKnownFolder)(folderid, flags, name, riid, &out);
+    hr = SHCreateItemInKnownFolder(folderid, flags, name, riid, &out);
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return PyCom_BuildPyException(hr);
@@ -3302,10 +3191,6 @@ static PyObject *PySHCreateItemInKnownFolder(PyObject *self, PyObject *args)
 // ID.
 static PyObject *PySHCreateItemWithParent(PyObject *self, PyObject *args)
 {
-    // @comm This function is only available on Vista and later; a
-    // COM exception with E_NOTIMPL will be thrown if the function can't be located.
-    if (pfnSHCreateItemWithParent == NULL)
-        return PyCom_BuildPyException(E_NOTIMPL);
     PyObject *ret = NULL;
     PyObject *obpidlparent, *obsfparent, *obpidl;
     IID riid = IID_IShellItem;
@@ -3332,7 +3217,7 @@ static PyObject *PySHCreateItemWithParent(PyObject *self, PyObject *args)
     void *out;
     {
         PY_INTERFACE_PRECALL;
-        hr = (*pfnSHCreateItemWithParent)(parentpidl, sfparent, pidl, riid, &out);
+        hr = SHCreateItemWithParent(parentpidl, sfparent, pidl, riid, &out);
         PY_INTERFACE_POSTCALL;
     }
     if (FAILED(hr)) {
@@ -3352,11 +3237,6 @@ done:
 // @pymethod <o PyIDL>|shell|SHGetIDListFromObject|Retrieves the PIDL of an object.
 static PyObject *PySHGetIDListFromObject(PyObject *self, PyObject *args)
 {
-    // @comm This function is only available on Vista and later; a
-    // COM exception with E_NOTIMPL will be thrown if the function can't be located.
-    if (pfnSHGetIDListFromObject == NULL)
-        return PyCom_BuildPyException(E_NOTIMPL);
-
     PyObject *ret = NULL;
     PyObject *ob;
 
@@ -3373,7 +3253,7 @@ static PyObject *PySHGetIDListFromObject(PyObject *self, PyObject *args)
 
     {
         PY_INTERFACE_PRECALL;
-        hr = (*pfnSHGetIDListFromObject)(unk, &pidl);
+        hr = SHGetIDListFromObject(unk, &pidl);
         PY_INTERFACE_POSTCALL;
     }
     if (FAILED(hr)) {
@@ -3866,29 +3746,6 @@ PYWIN_MODULE_INIT_FUNC(shell)
             (PFNSHShellFolderView_Message)GetProcAddress(shell32, "SHShellFolderView_Message");
         pfnIsUserAnAdmin = (PFNIsUserAnAdmin)GetProcAddress(shell32, "IsUserAnAdmin");
         pfnSHCreateShellFolderView = (PFNSHCreateShellFolderView)GetProcAddress(shell32, "SHCreateShellFolderView");
-        pfnSHCreateDefaultExtractIcon =
-            (PFNSHCreateDefaultExtractIcon)GetProcAddress(shell32, "SHCreateDefaultExtractIcon");
-        pfnSHGetNameFromIDList = (PFNSHGetNameFromIDList)GetProcAddress(shell32, "SHGetNameFromIDList");
-        pfnAssocCreateForClasses = (PFNAssocCreateForClasses)GetProcAddress(shell32, "AssocCreateForClasses");
-        pfnSHCreateShellItemArray = (PFNSHCreateShellItemArray)GetProcAddress(shell32, "SHCreateShellItemArray");
-        pfnSHCreateShellItemArrayFromDataObject =
-            (PFNSHCreateShellItemArrayFromDataObject)GetProcAddress(shell32, "SHCreateShellItemArrayFromDataObject");
-        pfnSHCreateShellItemArrayFromIDLists =
-            (PFNSHCreateShellItemArrayFromIDLists)GetProcAddress(shell32, "SHCreateShellItemArrayFromIDLists");
-        pfnSHCreateShellItemArrayFromShellItem =
-            (PFNSHCreateShellItemArrayFromShellItem)GetProcAddress(shell32, "SHCreateShellItemArrayFromShellItem");
-        pfnSHCreateDefaultContextMenu =
-            (PFNSHCreateDefaultContextMenu)GetProcAddress(shell32, "SHCreateDefaultContextMenu");
-        pfnSHCreateDataObject = (PFNSHCreateDataObject)GetProcAddress(shell32, "SHCreateDataObject");
-        pfnSHCreateItemFromIDList = (PFNSHCreateItemFromIDList)GetProcAddress(shell32, "SHCreateItemFromIDList");
-        pfnSHCreateItemFromParsingName =
-            (PFNSHCreateItemFromParsingName)GetProcAddress(shell32, "SHCreateItemFromParsingName");
-        pfnSHCreateItemFromRelativeName =
-            (PFNSHCreateItemFromRelativeName)GetProcAddress(shell32, "SHCreateItemFromRelativeName");
-        pfnSHCreateItemInKnownFolder =
-            (PFNSHCreateItemInKnownFolder)GetProcAddress(shell32, "SHCreateItemInKnownFolder");
-        pfnSHCreateItemWithParent = (PFNSHCreateItemWithParent)GetProcAddress(shell32, "SHCreateItemWithParent");
-        pfnSHGetIDListFromObject = (PFNSHGetIDListFromObject)GetProcAddress(shell32, "SHGetIDListFromObject");
         pfnSHCreateShellItem = (PFNSHCreateShellItem)GetProcAddress(shell32, "SHCreateShellItem");
         pfnSHOpenFolderAndSelectItems =
             (PFNSHOpenFolderAndSelectItems)GetProcAddress(shell32, "SHOpenFolderAndSelectItems");
