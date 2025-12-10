@@ -7,8 +7,7 @@ build-backend = "setuptools.build_meta"
 [dependency-groups]
 checkers = [ # Keep these in sync with .pre-commit-config.yaml
   "clang-format ==18.1.8",
-  "pycln ==2.4.0",
-  "ruff ==0.11.0",
+  "ruff ==0.14.8",
 ]
 type-checkers = [
   "types-setuptools",
