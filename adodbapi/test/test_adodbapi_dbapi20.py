@@ -1,5 +1,7 @@
-print("This module depends on the dbapi20 compliance tests created by Stuart Bishop")
-print("(see db-sig mailing list history for info)")
+"""This module depends on the dbapi20 compliance tests created by Stuart Bishop
+(see db-sig mailing list history for info)"""
+
+print(__doc__)
 import platform
 import sys
 import unittest
