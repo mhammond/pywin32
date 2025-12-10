@@ -3,11 +3,9 @@
 import os
 import sys
 
+import pywin.framework.intpyapp  # noqa: F401 # InteractivePythonApp()
 import win32ui
 
-import pywin.framework.intpyapp  # InteractivePythonApp()
-
-assert pywin.framework.intpyapp  # not unused
 # Pretend this script doesn't exist, or pythonwin tries to edit it
 sys.argv[:] = sys.argv[1:] or [""]  # like PySys_SetArgv(Ex)
 if sys.path[0] not in ("", ".", os.getcwd()):
