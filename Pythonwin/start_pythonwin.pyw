@@ -1,11 +1,10 @@
-# A Python file that can be used to start Pythonwin, instead of using
-# pythonwin.exe
+"""A Python file that can be used to start Pythonwin, instead of using pythonwin.exe"""
+
 import os
 import sys
 
-import win32ui
-
 import pywin.framework.intpyapp  # InteractivePythonApp()
+import win32ui
 
 assert pywin.framework.intpyapp  # not unused
 # Pretend this script doesn't exist, or pythonwin tries to edit it
