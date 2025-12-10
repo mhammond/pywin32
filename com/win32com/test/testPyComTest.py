@@ -2,6 +2,7 @@
 # gateway count doesn't hit zero.  Hence the print statements!
 
 import sys
+from pathlib import Path
 
 sys.coinit_flags = 0  # Must be free-threaded!
 import datetime
@@ -27,9 +28,11 @@ from win32com.client import (
 from win32com.universal import RegisterInterfaces
 from win32process import GetProcessMemoryInfo
 
+localWin32comDirectory = Path(__file__).parent.parent
+
 # This test uses a Python implemented COM server - ensure correctly registered.
 win32com.test.util.RegisterPythonServer(
-    os.path.join(os.path.dirname(__file__), "..", "servers", "test_pycomtest.py"),
+    os.path.join(localWin32comDirectory, "servers", "test_pycomtest.py"),
     "Python.Test.PyCOMTest",
 )
 
@@ -905,6 +908,35 @@ def TestQueryInterface(long_lived_server=False, iterations=5):
         tester.TestQueryInterface()
 
 
+def TestRememberedGeneratedTypeLibraries():
+    typelib_ob = pythoncom.LoadTypeLib(
+        os.path.join(
+            localWin32comDirectory.parent, "TestSources", "PyCOMTest", "PyCOMTest.tlb"
+        )
+    )
+    # Make sure the TypeLib isn't already present, or that defeats the point of this test
+    assert typelib_ob not in gencache.demandGeneratedTypeLibraries.values()
+
+    # Test that TypeLibrary is cached
+    module = gencache.EnsureModuleForTypelibInterface(typelib_ob, bForDemand=True)
+    tla = typelib_ob.GetLibAttr()
+    guid = tla[0]
+    lcid = tla[1]
+    major = tla[3]
+    minor = tla[4]
+    info = str(guid), lcid, major, minor
+    assert gencache.demandGeneratedTypeLibraries[info] is typelib_ob
+
+    # Mock that some other code path (like `gencache.EnsureModule`) cached the module in versionRedirectMap
+    gencache.versionRedirectMap[info] = module
+    assert gencache.versionRedirectMap[info] is module
+
+    # Test that TypeLibrary and module are cleared from cache
+    gencache.ForgetAboutTypelibInterface(typelib_ob)
+    assert info not in gencache.demandGeneratedTypeLibraries
+    assert info not in gencache.versionRedirectMap
+
+
 class Tester(win32com.test.util.TestCase):
     def testRegisterInterfacesAfterGencache(self) -> None:
         # We had a bug where RegisterInterfaces would fail if gencache had
@@ -946,6 +978,9 @@ class Tester(win32com.test.util.TestCase):
 
     def testGenerated(self):
         TestGenerated()
+
+    def testRememberedGeneratedTypeLibraries(self):
+        TestRememberedGeneratedTypeLibraries()
 
 
 if __name__ == "__main__":
