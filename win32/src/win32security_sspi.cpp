@@ -407,7 +407,7 @@ PSecBuffer PySecBuffer::GetSecBuffer(void) { return &secbuffer; }
 PyObject *PySecBuffer::getattro(PyObject *self, PyObject *obname)
 {
     PSecBuffer psecbuffer = ((PySecBuffer *)self)->GetSecBuffer();
-    char *name = PYWIN_ATTR_CONVERT(obname);
+    const char *name = PyUnicode_AsUTF8(obname);
     if (name == NULL)
         return NULL;
     if (strcmp(name, "Buffer") == 0)
@@ -418,8 +418,7 @@ PyObject *PySecBuffer::getattro(PyObject *self, PyObject *obname)
 int PySecBuffer::setattro(PyObject *self, PyObject *obname, PyObject *obvalue)
 {
     PySecBuffer *This = (PySecBuffer *)self;
-    char *name;
-    name = PYWIN_ATTR_CONVERT(obname);
+    const char *name = PyUnicode_AsUTF8(obname);
     if (name == NULL)
         return -1;
     if (strcmp(name, "Buffer") == 0) {
