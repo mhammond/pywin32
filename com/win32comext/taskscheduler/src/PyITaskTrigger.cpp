@@ -182,7 +182,7 @@ PyTASK_TRIGGER::~PyTASK_TRIGGER() {}
 
 BOOL PyTASK_TRIGGER_check(PyObject *ob)
 {
-    if (ob->ob_type != &PyTASK_TRIGGERType) {
+    if (Py_TYPE(ob) != &PyTASK_TRIGGERType) {
         PyErr_SetString(PyExc_TypeError, "Object must be a PyTASK_TRIGGER");
         return FALSE;
     }

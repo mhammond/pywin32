@@ -1103,7 +1103,7 @@ PyObject *PyWinObject_FromQueuedOVERLAPPED(OVERLAPPED *p)
 	// Also check it is a valid write pointer (we don't write to it, but all
 	// PyObjects are writable, so that extra check is worthwhile)
 	// This is NOT foolproof - screw up reference counting and things may die!
-	if (po->ob_refcnt<=0 || po->ob_type==0 || IsBadWritePtr(po, sizeof(PyOVERLAPPED))) {
+    if (Py_REFCNT(po)<=0 || Py_TYPE(po)==nullptr || IsBadWritePtr(po, sizeof(PyOVERLAPPED))) {
 		PyErr_SetString(PyExc_RuntimeError, "This overlapped object has lost all its references so was destroyed");
 		return NULL;
 	}
