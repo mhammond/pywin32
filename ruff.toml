@@ -1,4 +1,10 @@
 target-version = "py39" # Target the oldest supported version
+extend-include = [
+  "*.pyw", # Will be included by default in Ruff eventually
+  "*.pys", # PythonScript (Windows Script Host)
+  # Can be uncommented to format the [Extensions] section
+  # "**/default.cfg",
+]
 # This file is not UTF-8
 extend-exclude = ["Pythonwin/pywin/test/_dbgscript.py"]
 

@@ -1,5 +1,5 @@
-# A Python file that can be used to start Pythonwin, instead of using
-# pythonwin.exe
+"""A Python file that can be used to start Pythonwin, instead of using pythonwin.exe"""
+
 import os
 import sys
 

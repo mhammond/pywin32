@@ -288,7 +288,7 @@ BOOL PyObject_AsPIDL(PyObject *ob, LPITEMIDLIST *ppidl, BOOL bNoneOK /*= FALSE*/
     }
     if (!PySequence_Check(ob) || PyBytes_Check(ob)) {
         PyErr_Format(PyExc_TypeError, "Only sequences (but not strings) are valid ITEMIDLIST objects (got %s).",
-                     ob->ob_type->tp_name);
+                     Py_TYPE(ob)->tp_name);
         return FALSE;
     }
     Py_ssize_t num_items = PySequence_Length(ob);
@@ -2185,7 +2185,7 @@ static PyObject *PyFILEGROUPDESCRIPTORAsString(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "O|i", &ob, &make_unicode))
         return NULL;
     if (!PySequence_Check(ob))
-        return PyErr_Format(PyExc_TypeError, "must be a sequence of mapping objects (got '%s')", ob->ob_type->tp_name);
+        return PyErr_Format(PyExc_TypeError, "must be a sequence of mapping objects (got '%s')", Py_TYPE(ob)->tp_name);
     int num = PySequence_Length(ob);
     if (num == -1)
         return NULL;
