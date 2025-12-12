@@ -33,48 +33,46 @@ struct PyMemberDef PySYSTEM_CPU_SET_INFORMATION::members[] = {
     // @prop int|AllocationTag|Allocation tag for affinity purposes
     {"AllocationTag", T_ULONGLONG, offsetof(PySYSTEM_CPU_SET_INFORMATION, AllocationTag), READONLY,
      "Allocation tag for affinity purposes"},
-    {NULL}
-};
+    {NULL}};
 
 PyTypeObject PySYSTEM_CPU_SET_INFORMATIONType = {
     PYWIN_OBJECT_HEAD "PySYSTEM_CPU_SET_INFORMATION",
     sizeof(PySYSTEM_CPU_SET_INFORMATION),
     0,
     PySYSTEM_CPU_SET_INFORMATION::tp_dealloc,
-    0,                                     // tp_vectorcall_offset
-    0,                                     // tp_getattr
-    0,                                     // tp_setattr
-    0,                                     // tp_as_async
-    PySYSTEM_CPU_SET_INFORMATION::tp_str,  // tp_repr
-    0,                                     // tp_as_number
-    0,                                     // tp_as_sequence
-    0,                                     // tp_as_mapping
-    0,                                     // tp_hash
-    0,                                     // tp_call
-    PySYSTEM_CPU_SET_INFORMATION::tp_str,  // tp_str
-    PySYSTEM_CPU_SET_INFORMATION::getattro, // tp_getattro
-    PyObject_GenericSetAttr,               // tp_setattro
-    0,                                     // tp_as_buffer
-    Py_TPFLAGS_DEFAULT,                    // tp_flags
+    0,                                       // tp_vectorcall_offset
+    0,                                       // tp_getattr
+    0,                                       // tp_setattr
+    0,                                       // tp_as_async
+    PySYSTEM_CPU_SET_INFORMATION::tp_str,    // tp_repr
+    0,                                       // tp_as_number
+    0,                                       // tp_as_sequence
+    0,                                       // tp_as_mapping
+    0,                                       // tp_hash
+    0,                                       // tp_call
+    PySYSTEM_CPU_SET_INFORMATION::tp_str,    // tp_str
+    PySYSTEM_CPU_SET_INFORMATION::getattro,  // tp_getattro
+    PyObject_GenericSetAttr,                 // tp_setattro
+    0,                                       // tp_as_buffer
+    Py_TPFLAGS_DEFAULT,                      // tp_flags
     "Wrapper for SYSTEM_CPU_SET_INFORMATION. Contains CPU topology info for a logical processor.",  // tp_doc
-    0,                                     // tp_traverse
-    0,                                     // tp_clear
-    0,                                     // tp_richcompare
-    0,                                     // tp_weaklistoffset
-    0,                                     // tp_iter
-    0,                                     // tp_iternext
-    0,                                     // tp_methods
+    0,                                                                                              // tp_traverse
+    0,                                                                                              // tp_clear
+    0,                                                                                              // tp_richcompare
+    0,                                                                                              // tp_weaklistoffset
+    0,                                                                                              // tp_iter
+    0,                                                                                              // tp_iternext
+    0,                                                                                              // tp_methods
     PySYSTEM_CPU_SET_INFORMATION::members,
-    0,                                     // tp_getset
-    0,                                     // tp_base
-    0,                                     // tp_dict
-    0,                                     // tp_descr_get
-    0,                                     // tp_descr_set
-    0,                                     // tp_dictoffset
-    0,                                     // tp_init
-    0,                                     // tp_alloc
-    PySYSTEM_CPU_SET_INFORMATION::tp_new
-};
+    0,  // tp_getset
+    0,  // tp_base
+    0,  // tp_dict
+    0,  // tp_descr_get
+    0,  // tp_descr_set
+    0,  // tp_dictoffset
+    0,  // tp_init
+    0,  // tp_alloc
+    PySYSTEM_CPU_SET_INFORMATION::tp_new};
 
 PySYSTEM_CPU_SET_INFORMATION::PySYSTEM_CPU_SET_INFORMATION(void)
 {
@@ -116,10 +114,9 @@ PyObject *PySYSTEM_CPU_SET_INFORMATION::tp_str(PyObject *self)
 {
     PySYSTEM_CPU_SET_INFORMATION *pThis = (PySYSTEM_CPU_SET_INFORMATION *)self;
     char buf[200];
-    int chars_printed = _snprintf(buf, 200,
-                                  "PySYSTEM_CPU_SET_INFORMATION(Id=%lu, LP=%u, Core=%u, Eff=%u, Sched=%u)",
-                                  pThis->Id, pThis->LogicalProcessorIndex, pThis->CoreIndex,
-                                  pThis->EfficiencyClass, pThis->SchedulingClass);
+    int chars_printed =
+        _snprintf(buf, 200, "PySYSTEM_CPU_SET_INFORMATION(Id=%lu, LP=%u, Core=%u, Eff=%u, Sched=%u)", pThis->Id,
+                  pThis->LogicalProcessorIndex, pThis->CoreIndex, pThis->EfficiencyClass, pThis->SchedulingClass);
     if (chars_printed < 0) {
         PyErr_SetString(PyExc_SystemError, "String representation too long for buffer");
         return NULL;
@@ -214,7 +211,7 @@ PyObject *PyGetSystemCpuSetInformation(PyObject *self, PyObject *args)
     }
 
     // walk through structure and parse out cpu set info entries
-    ULONG bytesProcessed = 0; // proxy for index into a CPU core's info in buffer
+    ULONG bytesProcessed = 0;  // proxy for index into a CPU core's info in buffer
     PSYSTEM_CPU_SET_INFORMATION current = buffer;
     while (bytesProcessed < length) {
         // skip anything with an unexpected type

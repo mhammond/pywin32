@@ -6407,8 +6407,9 @@ PYWIN_MODULE_INIT_FUNC(win32api)
         PyDict_SetItemString(dict, "PyDISPLAY_DEVICEType", (PyObject *)&PyDISPLAY_DEVICEType) == -1)
         PYWIN_MODULE_INIT_RETURN_ERROR;
 
-    if (PyType_Ready(&PySYSTEM_CPU_SET_INFORMATIONType) == -1 || 
-        PyDict_SetItemString(dict, "PySYSTEM_CPU_SET_INFORMATIONType", (PyObject *)&PySYSTEM_CPU_SET_INFORMATIONType) == -1)
+    if (PyType_Ready(&PySYSTEM_CPU_SET_INFORMATIONType) == -1 ||
+        PyDict_SetItemString(dict, "PySYSTEM_CPU_SET_INFORMATIONType", (PyObject *)&PySYSTEM_CPU_SET_INFORMATIONType) ==
+            -1)
         PYWIN_MODULE_INIT_RETURN_ERROR;
 
     PyModule_AddIntConstant(module, "NameUnknown", NameUnknown);
@@ -6479,7 +6480,8 @@ PYWIN_MODULE_INIT_FUNC(win32api)
         pfnSetDllDirectory = (SetDllDirectoryfunc)GetProcAddress(hmodule, "SetDllDirectoryW");
         pfnSetSystemPowerState = (SetSystemPowerStatefunc)GetProcAddress(hmodule, "SetSystemPowerState");
         pfnGetNativeSystemInfo = (GetNativeSystemInfofunc)GetProcAddress(hmodule, "GetNativeSystemInfo");
-        pfnGetSystemCpuSetInformation = (GetSystemCpuSetInformationfunc)GetProcAddress(hmodule, "GetSystemCpuSetInformation");
+        pfnGetSystemCpuSetInformation =
+            (GetSystemCpuSetInformationfunc)GetProcAddress(hmodule, "GetSystemCpuSetInformation");
     }
 
     hmodule = PyWin_GetOrLoadLibraryHandle("user32.dll");
