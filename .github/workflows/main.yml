@@ -100,13 +100,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-<<<<<<< HEAD
-        # pythonarm64 NuGet has no download for Python ~=3.9.11
-        python-version: ["3.9.10", "3.10"]
-=======
         # pythonarm64 NuGet's has no download for Python ~=3.9.11
         python-version: ["3.9.10", "3.10", "3.11", "3.12", "3.13", "3.14", "3.13t", "3.14t"]
->>>>>>> 5f8e42474 (Add 3.13t and 3.14t to CI)
     steps:
       - uses: actions/checkout@v4
 
