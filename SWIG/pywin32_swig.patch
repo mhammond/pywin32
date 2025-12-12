@@ -1,3 +1,5 @@
+Original patch message is as follows:
+
 This is a patch to create the customized version of SWIG used for pywin32.
 
 The patch is against SWIG-1.1p5 which can be found at:
@@ -20,15 +22,38 @@ To build the version of SWIG:
 Huge thanks to Amaury Forgeot d'Arc and Roger Upole for rescuing this!
 
 
---- SWIG1.1p5-orig\Modules\python.cxx	1998-01-03 17:17:40.000000000 +1100
-+++ SWIG1.1p5\Modules\python.cxx	2011-04-29 23:28:30.860296500 +1000
-@@ -61,6 +61,8 @@
+diff -u --recursive ../away/SWIG1.1p5/configure ./configure
+--- ../away/SWIG1.1p5/configure	1998-02-04 10:24:23.000000000 -0500
++++ ./configure	2025-12-01 19:25:19.684043200 -0500
+@@ -638,7 +638,7 @@
+ cat > conftest.$ac_ext <<EOF
+ #line 640 "configure"
+ #include "confdefs.h"
+-main(){return(0);}
++int main(){return(0);}
+ EOF
+ if { (eval echo configure:644: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
+   ac_cv_prog_cxx_works=yes
+@@ -808,7 +808,7 @@
+ cat > conftest.$ac_ext <<EOF
+ #line 810 "configure"
+ #include "confdefs.h"
+-main(){return(0);}
++int main(){return(0);}
+ EOF
+ if { (eval echo configure:814: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
+   ac_cv_prog_cc_works=yes
 
+diff -u --recursive ../away/SWIG1.1p5/Modules/python.cxx ./Modules/python.cxx
+--- ../away/SWIG1.1p5/Modules/python.cxx	1998-01-03 01:17:40.000000000 -0500
++++ ./Modules/python.cxx	2025-12-01 20:04:05.964166100 -0500
+@@ -61,6 +61,8 @@
+ 
  static   int          doc_index = 0;
  static   DocString   *doc_strings = 0;
 +static   int          PythonCom = 0;                   // Generate PyWin32 header files
 +static   char        *PythonCom_Parent = "IUnknown";
-
+ 
  static char *usage = "\
  Python Options (available with -python)\n\
 @@ -113,6 +115,14 @@
@@ -92,7 +117,7 @@ Huge thanks to Amaury Forgeot d'Arc and Roger Upole for rescuing this!
 +
 +  fclose(f_header);
  }
-
+ 
  // ---------------------------------------------------------------------
 @@ -376,6 +427,8 @@
  void PYTHON::initialize_cmodule(void)
@@ -101,12 +126,12 @@ Huge thanks to Amaury Forgeot d'Arc and Roger Upole for rescuing this!
 +  if (PythonCom)
 +    return;
    fprintf(f_header,"#define SWIG_init    init%s\n\n", module);
-   fprintf(f_header,"#define SWIG_name    \"%s\"\n", module);
-
+   fprintf(f_header,"#define SWIG_name    \"%s\"\n", module);	
+ 
 @@ -389,7 +442,13 @@
    fprintf(f_init,"extern \"C\" \n");
    fprintf(f_init,"#endif\n");
-
+ 
 +  fprintf(f_init, "#if (PY_VERSION_HEX < 0x03000000)\n");
 +  fprintf(f_init, "#define MODINIT_ERROR_RETURN\n");
    fprintf(f_init,"SWIGEXPORT(void,init%s)() {\n",module);
@@ -115,9 +140,9 @@ Huge thanks to Amaury Forgeot d'Arc and Roger Upole for rescuing this!
 +  fprintf(f_init,"SWIGEXPORT(PyObject*,  PyInit_%s)(void) {\n",module);
 +  fprintf(f_init, "#endif\n");
    fprintf(f_init,"\t PyObject *m, *d;\n");
-
+ 
    if (InitNames) {
-@@ -400,8 +459,26 @@
+@@ -400,8 +459,29 @@
      }
    }
    fprintf(f_init,"\t SWIG_globals = SWIG_newvarlink();\n");
@@ -136,16 +161,19 @@ Huge thanks to Amaury Forgeot d'Arc and Roger Upole for rescuing this!
 +    "  m = PyModule_Create(&%s_def);\n"
 +    "  if (!m)\n"
 +    "    return NULL;\n"
++    "#ifdef Py_GIL_DISABLED\n"
++    "\t PyUnstable_Module_SetGIL(m, Py_MOD_GIL_NOT_USED);\n"
++    "#endif\n"
 +    "  d = PyModule_GetDict(m);\n"
 +    "  if (!d)\n"
 +    "    return NULL;\n",
 +    module, module, module, module);
 +  fprintf(f_init, "#endif\n");
  }
-
-
-@@ -417,6 +494,9 @@
-
+ 
+ 
+@@ -417,6 +497,9 @@
+ 
    print_methods();
    close_cmodule();
 +  if (PythonCom) {
@@ -154,7 +182,7 @@ Huge thanks to Amaury Forgeot d'Arc and Roger Upole for rescuing this!
    if ((doc_entry) && (module)){
      String temp;
      temp << "Python Module : ";
-@@ -469,7 +549,13 @@
+@@ -469,7 +552,13 @@
  // --------------------------------------------------------------------
  void PYTHON::close_cmodule(void)
  {
@@ -168,8 +196,8 @@ Huge thanks to Amaury Forgeot d'Arc and Roger Upole for rescuing this!
 +  fprintf(f_init, "#endif\n");
    fprintf(f_init,"}\n");
  }
-
-@@ -598,9 +684,12 @@
+ 
+@@ -598,9 +687,12 @@
  // ----------------------------------------------------------------------
  void PYTHON::emit_function_header(WrapperFunction &emit_to, char *wname)
  {
@@ -182,9 +210,9 @@ Huge thanks to Amaury Forgeot d'Arc and Roger Upole for rescuing this!
 +  if (!PythonCom)
 +    emit_to.code << tab4 << "self = self;\n";
  }
-
+ 
  // ----------------------------------------------------------------------
-@@ -612,8 +701,13 @@
+@@ -612,8 +704,13 @@
  //
  // Returns the name of the variable to use as the self pointer
  // ----------------------------------------------------------------------
@@ -199,7 +227,7 @@ Huge thanks to Amaury Forgeot d'Arc and Roger Upole for rescuing this!
    // Default behaviour is no translation
    return "";
  }
-@@ -625,7 +719,14 @@
+@@ -625,7 +722,14 @@
  // ----------------------------------------------------------------------
  char *PYTHON::make_funcname_wrapper(char *fnName)
  {
@@ -213,11 +241,11 @@ Huge thanks to Amaury Forgeot d'Arc and Roger Upole for rescuing this!
 +    return name_wrapper(fnName,"");
 +  }
  }
-
+ 
  // ----------------------------------------------------------------------
-@@ -1629,7 +1730,13 @@
+@@ -1629,7 +1733,13 @@
  // -----------------------------------------------------------------------
-
+ 
  void PYTHON::add_native(char *name, char *funcname) {
 -  add_method(name, funcname);
 +  if (PythonCom) {
@@ -230,8 +258,11 @@ Huge thanks to Amaury Forgeot d'Arc and Roger Upole for rescuing this!
    if (shadow) {
      func << name << " = " << module << "." << name << "\n\n";
    }
---- SWIG1.1p5-orig\Modules\python.h	1997-07-25 15:18:50.000000000 +1000
-+++ SWIG1.1p5\Modules\python.h	2011-04-22 10:53:17.287056400 +1000
+Only in ./Modules: python.cxx.orig
+Only in ./Modules: python.cxx.rej
+diff -u --recursive ../away/SWIG1.1p5/Modules/python.h ./Modules/python.h
+--- ../away/SWIG1.1p5/Modules/python.h	1997-07-25 01:18:50.000000000 -0400
++++ ./Modules/python.h	2025-12-01 19:55:15.606631100 -0500
 @@ -140,6 +140,7 @@
    // Add for Python-COM support
    virtual void initialize_cmodule();
@@ -240,3 +271,54 @@ Huge thanks to Amaury Forgeot d'Arc and Roger Upole for rescuing this!
    virtual void emit_function_header(WrapperFunction &emit_to, char *wname);
    virtual char *convert_self(WrapperFunction &f);
    virtual char *make_funcname_wrapper(char *fnName);
+
+diff -u --recursive ../away/SWIG1.1p5/SWIG/parser.cxx ./SWIG/parser.cxx
+--- ../away/SWIG1.1p5/SWIG/parser.cxx	1997-11-23 10:27:52.000000000 -0500
++++ ./SWIG/parser.cxx	2025-12-01 19:35:16.409086200 -0500
+@@ -1890,9 +1890,9 @@
+      char *from;
+      int count;
+ {
+-  register char *f = from;
+-  register char *t = to;
+-  register int i = count;
++  char *f = from;
++  char *t = to;
++  int i = count;
+ 
+   while (i-- > 0)
+     *t++ = *f++;
+@@ -1905,9 +1905,9 @@
+ static void
+ __yy_memcpy (char *to, char *from, int count)
+ {
+-  register char *f = from;
+-  register char *t = to;
+-  register int i = count;
++  char *f = from;
++  char *t = to;
++  int i = count;
+ 
+   while (i-- > 0)
+     *t++ = *f++;
+@@ -1915,7 +1915,7 @@
+ 
+ #endif
+ #endif
+ #line 196 "/usr/lib/bison.simple"
+ 
+ /* The user can define YYPARSE_PARAM as the name of an argument to be passed
+@@ -1941,10 +1941,10 @@
+ yyparse(YYPARSE_PARAM_ARG)
+      YYPARSE_PARAM_DECL
+ {
+-  register int yystate;
+-  register int yyn;
+-  register short *yyssp;
+-  register YYSTYPE *yyvsp;
++  int yystate;
++  int yyn;
++  short *yyssp;
++  YYSTYPE *yyvsp;
+   int yyerrstatus;	/*  number of tokens to shift before error messages enabled */
+   int yychar1 = 0;		/*  lookahead token as an internal (translated) token number */
