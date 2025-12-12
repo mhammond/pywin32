@@ -274,7 +274,9 @@ class Misc(unittest.TestCase):
             cpus = win32api.GetSystemCpuSetInformation()
         except NotImplementedError:
             # Expected on older Windows (pre-Win10)
-            raise TestSkipped("GetSystemCpuSetInformation not available on this platform")
+            raise TestSkipped(
+                "GetSystemCpuSetInformation not available on this platform"
+            )
 
         self.assertIsInstance(cpus, list)
 
@@ -300,7 +302,9 @@ class Misc(unittest.TestCase):
         for attr in numeric_attrs:
             self.assertTrue(hasattr(cpu, attr), f"Missing attribute: {attr}")
             value = getattr(cpu, attr)
-            self.assertIsInstance(value, int, f"{attr} should be int, got {type(value)}")
+            self.assertIsInstance(
+                value, int, f"{attr} should be int, got {type(value)}"
+            )
             self.assertGreaterEqual(value, 0, f"{attr} should be non-negative")
 
         # Boolean attributes (should be bool)
@@ -308,12 +312,18 @@ class Misc(unittest.TestCase):
         for attr in bool_attrs:
             self.assertTrue(hasattr(cpu, attr), f"Missing attribute: {attr}")
             value = getattr(cpu, attr)
-            self.assertIsInstance(value, bool, f"{attr} should be bool, got {type(value)}")
+            self.assertIsInstance(
+                value, bool, f"{attr} should be bool, got {type(value)}"
+            )
 
         # Sanity checks on values
         self.assertGreater(cpu.Id, 0, "CPU Id should be positive")
-        self.assertLessEqual(cpu.EfficiencyClass, 255, "EfficiencyClass should be <= 255")
-        self.assertLessEqual(cpu.SchedulingClass, 255, "SchedulingClass should be <= 255")
+        self.assertLessEqual(
+            cpu.EfficiencyClass, 255, "EfficiencyClass should be <= 255"
+        )
+        self.assertLessEqual(
+            cpu.SchedulingClass, 255, "SchedulingClass should be <= 255"
+        )
 
         # All entries should be consistently typed
         for i, cpu in enumerate(cpus):
