@@ -169,7 +169,7 @@ PyTypeObject PyHWINSTAType =
 	PyHWINSTA::PyHWINSTA_new
 };
 
-#define PyHWINSTA_Check(ob)	((ob)->ob_type == &PyHWINSTAType)
+#define PyHWINSTA_Check(ob)	(Py_TYPE(ob) == &PyHWINSTAType)
 
 PyHWINSTA::PyHWINSTA(HWINSTA hwinsta) : PyHANDLE((HANDLE)hwinsta)
 {
@@ -272,7 +272,7 @@ PyTypeObject PyHDESKType =
 	PyHDESK::PyHDESK_new
 };
 
-#define PyHDESK_Check(ob)	((ob)->ob_type == &PyHDESKType)
+#define PyHDESK_Check(ob)	(Py_TYPE(ob) == &PyHDESKType)
 
 PyHDESK::PyHDESK(HDESK hdesk) : PyHANDLE((HANDLE)hdesk)
 {

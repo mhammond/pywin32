@@ -263,7 +263,7 @@ BOOL DictToLogFont(PyObject *font_props, LOGFONT *pLF)
     pLF->lfCharSet = DEFAULT_CHARSET;  // don't use ANSI_CHARSET to support Japanese charset.
     pLF->lfQuality = PROOF_QUALITY;    // don't scale raster fonts and force anti aliasing
     if (!PyDict_Check(font_props)) {
-        PyErr_Format(PyExc_TypeError, "LOGFONT must be a dict, not %s", font_props->ob_type->tp_name);
+        PyErr_Format(PyExc_TypeError, "LOGFONT must be a dict, not %s", Py_TYPE(font_props)->tp_name);
         return FALSE;
     }
 
@@ -1016,7 +1016,7 @@ PyObject *PyWin_GetPythonObjectFromLong(LONG_PTR val)
     BOOL ok;
     __try {
         ok = Py_REFCNT(ret) != 0;
-        ok = ok && ret->ob_type->tp_name[0] != 0;
+        ok = ok && Py_TYPE(ret)->tp_name[0] != 0;
     }
     __except (EXCEPTION_ACCESS_VIOLATION) {
         ok = FALSE;
@@ -1147,7 +1147,7 @@ CString GetReprText(PyObject *objectUse)
     s = PyObject_Repr(objectUse);
     if (s == NULL) {
         PyErr_Clear();
-        csRet.Format(_T("<type %s> (no string representation)"), objectUse->ob_type->tp_name);
+        csRet.Format(_T("<type %s> (no string representation)"), Py_TYPE(objectUse)->tp_name);
         return csRet;
     }
 
@@ -1162,8 +1162,8 @@ CString GetReprText(PyObject *objectUse)
     else if (PyBytes_Check(s))
         csRet = CString(PyBytes_AS_STRING(s));
     else
-        csRet.Format(_T("??? repr() for type %s returned type %s ???"), objectUse->ob_type->tp_name,
-                     s->ob_type->tp_name);
+        csRet.Format(_T("??? repr() for type %s returned type %s ???"), Py_TYPE(objectUse)->tp_name,
+                     Py_TYPE(s)->tp_name);
     Py_DECREF(s);
     return csRet;
 }

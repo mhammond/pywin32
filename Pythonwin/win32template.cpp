@@ -447,7 +447,7 @@ CFrameWnd *CPythonDocTemplate::CreateNewFrame(CDocument *pDoc, CFrameWnd *pOther
     if (!ok) {
         if (PyErr_Occurred())
             gui_print_error();
-        const char *typ_str = retObject ? retObject->ob_type->tp_name : "<null>";
+        const char *typ_str = retObject ? Py_TYPE(retObject)->tp_name : "<null>";
         PyErr_Format(PyExc_TypeError, "PyCTemplate::CreateNewFrame must return a PyCFrameWnd object (got %s).",
                      typ_str);
         gui_print_error();
@@ -476,7 +476,7 @@ CDocument *CPythonDocTemplate::CreateNewDocument()
     if (!ok) {
         if (PyErr_Occurred())
             gui_print_error();
-        const char *typ_str = retObject ? retObject->ob_type->tp_name : "<null>";
+        const char *typ_str = retObject ? Py_TYPE(retObject)->tp_name : "<null>";
         PyErr_Format(PyExc_TypeError, "PyCTemplate::CreateNewDocument must return a PyCDocument object (got %s).",
                      typ_str);
         TRACE0("CPythonDocTemplate::CreateNewDocument fails due to return type error\n");
@@ -506,7 +506,7 @@ CDocument *CPythonDocTemplate::OpenDocumentFile(LPCTSTR lpszPathName, BOOL bMake
     if (!ok) {
         if (PyErr_Occurred())
             gui_print_error();
-        const char *typ_str = retObject ? retObject->ob_type->tp_name : "<null>";
+        const char *typ_str = retObject ? Py_TYPE(retObject)->tp_name : "<null>";
         PyErr_Format(PyExc_TypeError, "PyCTemplate::OpenDocumentFile must return a PyCDocument object (got %s).",
                      typ_str);
         TRACE0("CPythonDocTemplate::CreateNewDocument fails due to return type error\n");
@@ -543,7 +543,7 @@ CDocTemplate::Confidence CPythonDocTemplate::MatchDocType(LPCTSTR lpszPathName, 
             rpDocMatch = pDoc;
             return yesAlreadyOpen;
         }
-        const char *typ_str = ret ? ret->ob_type->tp_name : "<null>";
+        const char *typ_str = ret ? Py_TYPE(ret)->tp_name : "<null>";
         PyErr_Format(PyExc_TypeError,
                      "PyCTemplate::MatchDocType must return an integer or PyCDocument object (got %s).", typ_str);
         gui_print_error();

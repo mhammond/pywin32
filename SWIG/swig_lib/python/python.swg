@@ -168,7 +168,7 @@ SWIG_newvarlink(void)
   swig_varlinkobject *result = 0;
   result = PyMem_NEW(swig_varlinkobject,1);
   varlinktype.ob_type = &PyType_Type;    /* Patch varlinktype into a PyType */
-  Py_TYPE(result) = &varlinktype;
+  Py_SET_TYPE(result, &varlinktype);
   /*  _Py_NewReference(result);  Does not seem to be necessary */
   result->nvars = 0;
   result->maxvars = 64;

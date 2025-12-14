@@ -1126,7 +1126,7 @@ win32_extensions += [
     WinExt_win32(
         "win32api",
         sources="""
-                win32/src/win32apimodule.cpp win32/src/win32api_display.cpp
+                win32/src/win32apimodule.cpp win32/src/win32api_display.cpp win32/src/win32api_cputopo.cpp
                 """.split(),
         libraries="user32 advapi32 shell32 version",
         delay_load_libraries="powrprof",
