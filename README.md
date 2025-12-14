@@ -207,7 +207,7 @@ the builds. Build 306 was the last released with this process.
 
 Please note that this table for convenience only. The license files in the source tree are the source of truth.[^1]. So are individual Copyright notices at the top of files.
 
-| Files | [SPDX License Expression](https://packaging.python.org/en/latest/specifications/license-expression/) | License File(s) |
+| Files | [SPDX License Expression](https://packaging.python.org/en/latest/specifications/license-expression/) | License File |
 | :-: | :-: | :-: |
 | <tr><td colspan=3 align="center">Found in both Source and Distribution</td></tr> |||
 | Root / Metadata (anything not mentioned below) | `PSF-2.0`[^1] | (see README badge and project license metadata) |
