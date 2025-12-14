@@ -1189,7 +1189,7 @@ BOOL PythonOleArgHelper::ParseTypeInformation(PyObject *reqdObjectTuple)
         rc = FALSE; \
         break;      \
     }
-#define VALID_BYREF_MISSING(obUse) (obUse == Py_None || obUse->ob_type == &PyOleEmptyType)
+#define VALID_BYREF_MISSING(obUse) (obUse == Py_None || Py_TYPE(obUse) == &PyOleEmptyType)
 
 BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject *reqdObjectTuple)
 {
