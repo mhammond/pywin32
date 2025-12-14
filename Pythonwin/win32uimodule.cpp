@@ -240,14 +240,14 @@ ui_base_class *ui_base_class::make(ui_type &makeTypeRef)
     }
 
     ui_base_class *pNew = (*makeType->ctor)();
-    pNew->ob_type = makeType;
+    Py_SET_TYPE(pNew, makeType);
     _Py_NewReference(pNew);
 #ifdef _DEBUG  // this is really only for internal errors, and they should be ironed out!
     if (!pNew->is_uiobject(makeType))
         RETURN_ERR("Internal error - created type isn't what was requested!");
 #endif
 #ifdef TRACE_LIFETIMES
-    TRACE("Constructing a '%s' at %p\n", pNew->ob_type->tp_name, pNew);
+    TRACE("Constructing a '%s' at %p\n", Py_TYPE(pNew)->tp_name, pNew);
 #endif
     return pNew;
 }
@@ -265,7 +265,7 @@ ui_base_class *ui_base_class::make(ui_type &makeTypeRef)
     // semantics of "only look for '_obj_' when not some base of ours" as
     // a nice side-effect.
     bool is_native = false;
-    PyTypeObject *thisType = o->ob_type;
+    PyTypeObject *thisType = Py_TYPE(o);
     while (thisType) {
         if (thisType == &ui_base_class::type)
             is_native = true;  // is a c++ impl object.

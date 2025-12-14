@@ -5749,7 +5749,7 @@ PyObject *PySetConsoleCtrlHandler(PyObject *self, PyObject *args)
         return Py_None;
     }
     if (!PyCallable_Check(func))
-        return PyErr_Format(PyExc_TypeError, "First argument must be callable (got %s)", func->ob_type->tp_name);
+        return PyErr_Format(PyExc_TypeError, "First argument must be callable (got %s)", Py_TYPE(func)->tp_name);
     // thread-safety provided by GIL
     if (consoleControlHandlers == NULL)
         consoleControlHandlers = PyList_New(0);
