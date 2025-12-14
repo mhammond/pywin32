@@ -14,8 +14,8 @@ To build the version of SWIG:
 
 * Unpack the swig tarball
 * Apply this patch (`git apply --ignore-space-change .../pywin32/SWIG/pywin32_swig.patch` from the root)
-* Change to the "Win" directory
-* Execute 'nmake -f makefile.vc
+* Open a Developper Command Prompt/PowerShell in the "Win" directory
+* Execute `nmake -f makefile.vc`
 * Copy the newly created swig.exe from the swig tree to the pywin32 tree.
 
 
