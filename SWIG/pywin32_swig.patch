@@ -1,4 +1,6 @@
 This is a patch to create the customized version of SWIG used for pywin32.
+It was created by running the following command on MINGW64 (in git bash):
+`diff --unified --recursive --ignore-space-change SWIG1.1p5-orig/ SWIG1.1p5/ > .../pywin32/SWIG/pywin32_swig.patch`
 
 The patch is against SWIG-1.1p5 which can be found at:
 
@@ -11,7 +13,7 @@ or
 To build the version of SWIG:
 
 * Unpack the swig tarball
-* Apply this patch (`git apply --ignore-space-change .../SWIG/pywin32_swig.patch` from the root)
+* Apply this patch (`git apply --ignore-space-change .../pywin32/SWIG/pywin32_swig.patch` from the root)
 * Change to the "Win" directory
 * Execute 'nmake -f makefile.vc
 * Copy the newly created swig.exe from the swig tree to the pywin32 tree.
@@ -19,11 +21,10 @@ To build the version of SWIG:
 
 Huge thanks to Amaury Forgeot d'Arc and Roger Upole for rescuing this!
 
-diff --git a/Modules/python.cxx b/Modules/python.cxx
-index d34cd53..7b34856 100644
---- a/Modules/python.cxx
-+++ b/Modules/python.cxx
-@@ -61,6 +61,8 @@ struct DocString {
+diff --unified --recursive --ignore-space-change SWIG1.1p5-orig/Modules/python.cxx SWIG1.1p5/Modules/python.cxx
+--- SWIG1.1p5-orig/Modules/python.cxx	1998-01-03 01:17:40.000000000 -0500
++++ SWIG1.1p5/Modules/python.cxx	2025-12-11 00:03:32.740350600 -0500
+@@ -61,6 +61,8 @@
  
  static   int          doc_index = 0;
  static   DocString   *doc_strings = 0;
@@ -32,7 +33,7 @@ index d34cd53..7b34856 100644
  
  static char *usage = "\
  Python Options (available with -python)\n\
-@@ -113,6 +115,14 @@ void PYTHON::parse_args(int argc, char *argv[]) {
+@@ -113,6 +115,14 @@
            } else if (strcmp(argv[i],"-docstring") == 0) {
  	    docstring = 1;
  	    mark_arg(i);
@@ -47,7 +48,7 @@ index d34cd53..7b34856 100644
  	  } else if (strcmp(argv[i],"-help") == 0) {
  	    fputs(usage,stderr);
  	  }
-@@ -258,6 +268,47 @@ void PYTHON::print_methods() {
+@@ -258,6 +268,47 @@
    }
    fprintf(f_wrappers,"\t { NULL, NULL }\n");
    fprintf(f_wrappers,"};\n");
@@ -95,7 +96,7 @@ index d34cd53..7b34856 100644
  }
  
  // ---------------------------------------------------------------------
-@@ -376,6 +427,8 @@ void PYTHON::initialize(void)
+@@ -376,6 +427,8 @@
  void PYTHON::initialize_cmodule(void)
  {
    int i;
@@ -104,7 +105,7 @@ index d34cd53..7b34856 100644
    fprintf(f_header,"#define SWIG_init    init%s\n\n", module);
    fprintf(f_header,"#define SWIG_name    \"%s\"\n", module);	
  
-@@ -389,7 +442,7 @@ void PYTHON::initialize_cmodule(void)
+@@ -389,7 +442,7 @@
    fprintf(f_init,"extern \"C\" \n");
    fprintf(f_init,"#endif\n");
  
@@ -113,7 +114,7 @@ index d34cd53..7b34856 100644
    fprintf(f_init,"\t PyObject *m, *d;\n");
  
    if (InitNames) {
-@@ -400,8 +453,21 @@ void PYTHON::initialize_cmodule(void)
+@@ -400,8 +453,21 @@
      }
    }
    fprintf(f_init,"\t SWIG_globals = SWIG_newvarlink();\n");
@@ -137,7 +138,7 @@ index d34cd53..7b34856 100644
  }
  
  
-@@ -417,6 +483,9 @@ void PYTHON::close(void)
+@@ -417,6 +483,9 @@
  
    print_methods();
    close_cmodule();
@@ -147,7 +148,7 @@ index d34cd53..7b34856 100644
    if ((doc_entry) && (module)){
      String temp;
      temp << "Python Module : ";
-@@ -469,7 +538,11 @@ void PYTHON::close(void)
+@@ -469,7 +538,11 @@
  // --------------------------------------------------------------------
  void PYTHON::close_cmodule(void)
  {
@@ -160,7 +161,7 @@ index d34cd53..7b34856 100644
    fprintf(f_init,"}\n");
  }
  
-@@ -598,9 +671,12 @@ void PYTHON::shadow_defargs(Parm *p, ParmList *l, int i, int pcount, int numopt,
+@@ -598,8 +671,11 @@
  // ----------------------------------------------------------------------
  void PYTHON::emit_function_header(WrapperFunction &emit_to, char *wname)
  {
@@ -169,13 +170,11 @@ index d34cd53..7b34856 100644
 +    emit_to.def << "static ";
 +  emit_to.def << "PyObject *" << wname
  	      << "(PyObject *self, PyObject *args) {";
--  emit_to.code << tab4 << "self = self;\n";
 +  if (!PythonCom)
-+    emit_to.code << tab4 << "self = self;\n";
+   emit_to.code << tab4 << "self = self;\n";
  }
  
- // ----------------------------------------------------------------------
-@@ -612,8 +688,13 @@ void PYTHON::emit_function_header(WrapperFunction &emit_to, char *wname)
+@@ -612,8 +688,13 @@
  //
  // Returns the name of the variable to use as the self pointer
  // ----------------------------------------------------------------------
@@ -190,42 +189,39 @@ index d34cd53..7b34856 100644
    // Default behaviour is no translation
    return "";
  }
-@@ -625,7 +706,14 @@ char *PYTHON::convert_self(WrapperFunction &)
+@@ -625,7 +706,14 @@
  // ----------------------------------------------------------------------
  char *PYTHON::make_funcname_wrapper(char *fnName)
  {
--  return name_wrapper(fnName,"");
 +  if (PythonCom) {
 +    String wrapper;
 +    wrapper << "Py" << module << "::" << fnName;
 +    return wrapper;
 +  }
 +  else {
-+    return name_wrapper(fnName,"");
+   return name_wrapper(fnName,"");
 +  }
  }
  
  // ----------------------------------------------------------------------
-@@ -1629,7 +1717,13 @@ char *PYTHON::usage_const(char *iname, DataType *, char *value) {
+@@ -1629,7 +1717,13 @@
  // -----------------------------------------------------------------------
  
  void PYTHON::add_native(char *name, char *funcname) {
--  add_method(name, funcname);
 +  if (PythonCom) {
 +    String method;
 +    method << "Py" << module << "::" << funcname;
 +    add_method(name, method);
 +  } else {
-+    add_method(name, funcname);
+   add_method(name, funcname);
 +  }
    if (shadow) {
      func << name << " = " << module << "." << name << "\n\n";
    }
-diff --git a/Modules/python.h b/Modules/python.h
-index 2ec4910..b53ff3c 100644
---- a/Modules/python.h
-+++ b/Modules/python.h
-@@ -140,6 +140,7 @@ protected:
+diff --unified --recursive --ignore-space-change SWIG1.1p5-orig/Modules/python.h SWIG1.1p5/Modules/python.h
+--- SWIG1.1p5-orig/Modules/python.h	1997-07-25 01:18:50.000000000 -0400
++++ SWIG1.1p5/Modules/python.h	2025-12-10 23:58:15.505195300 -0500
+@@ -140,6 +140,7 @@
    // Add for Python-COM support
    virtual void initialize_cmodule();
    virtual void close_cmodule();
