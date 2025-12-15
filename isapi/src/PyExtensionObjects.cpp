@@ -698,7 +698,7 @@ PyObject *PyECB::GetAnonymousToken(PyObject *self, PyObject *args)
         Py_END_ALLOW_THREADS
     }
     else
-        return PyErr_Format(PyExc_TypeError, "must pass a string or unicode object (got %s)", obStr->ob_type->tp_name);
+        return PyErr_Format(PyExc_TypeError, "must pass a string or unicode object (got %s)", Py_TYPE(obStr)->tp_name);
     if (!bRes)
         return SetPyECBError("ServerSupportFunction(HSE_REQ_GET_IMPERSONATION_TOKEN)");
     return PyLong_FromVoidPtr(handle);
