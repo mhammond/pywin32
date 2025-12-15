@@ -21,6 +21,33 @@ To build the version of SWIG:
 
 Huge thanks to Amaury Forgeot d'Arc and Roger Upole for rescuing this!
 
+diff --unified --recursive --ignore-space-change SWIG1.1p5-orig/Modules/makefile.msc SWIG1.1p5/Modules/makefile.msc
+--- SWIG1.1p5-orig/Modules/makefile.msc	1997-08-26 22:21:50.000000000 -0400
++++ SWIG1.1p5/Modules/makefile.msc	2025-12-15 10:46:16.208067800 -0500
+@@ -52,7 +52,7 @@
+ TARGET  = ..\swig.exe
+ #CFLAGS  = -g -O -DSWIG_LIB='"$(SWIG_LIB)"' -DSWIG_CC='"$(CC)"'  -DSTDC_HEADERS=1 -DHAVE_ALLOCA_H=1 -DHAVE_ALLOCA=1 -DSWIG_LANG=PYTHON -DSWIG_DOC=ASCII -DHAVE_LIBDL=1 
+ CFLAGS   = -Zi -nologo -DSWIG_LIB="\"$(SWIG_LIB)\"" -DSWIG_CC="\"$(CC)\""  -DMSDOS -DSTDC_HEADERS=1 -DHAVE_LIBDL=1 $(SWIG_OPTS)
+-INCLUDE = -I../Include -I../SWIG -I$(STD_INC)
++INCFLAGS = -I../Include -I../SWIG
+ LIBNAME = ..\libswig.lib
+ LIBS    = $(LIBNAME)
+ 
+@@ -60,12 +60,12 @@
+ # Rules for creation of a .obj file from .cxx
+ .SUFFIXES: .cxx
+ .cxx.obj: 
+-	$(CC) $(INCLUDE) $(CFLAGS) -c -o $*.obj $<
++	$(CC) $(INCFLAGS) $(CFLAGS) -c -o $*.obj $<
+ 
+ all:    $(TARGET) 
+ 
+ $(TARGET): $(WRAPOBJS) $(WRAPHEADERS) $(LIBNAME)
+-	$(CC)  -o $(TARGET) $(INCLUDE) $(WRAPOBJS) $(LIBS)
++	$(CC)  -o $(TARGET) $(INCFLAGS) $(WRAPOBJS) $(LIBS)
+ 
+ swigmain.obj: swigmain.cxx 
+ tcl.obj: tcl.cxx 
 diff --unified --recursive --ignore-space-change SWIG1.1p5-orig/Modules/python.cxx SWIG1.1p5/Modules/python.cxx
 --- SWIG1.1p5-orig/Modules/python.cxx	1998-01-03 01:17:40.000000000 -0500
 +++ SWIG1.1p5/Modules/python.cxx	2025-12-11 00:03:32.740350600 -0500
@@ -229,3 +256,33 @@ diff --unified --recursive --ignore-space-change SWIG1.1p5-orig/Modules/python.h
    virtual void emit_function_header(WrapperFunction &emit_to, char *wname);
    virtual char *convert_self(WrapperFunction &f);
    virtual char *make_funcname_wrapper(char *fnName);
+diff --unified --recursive --ignore-space-change SWIG1.1p5-orig/SWIG/makefile.msc SWIG1.1p5/SWIG/makefile.msc
+--- SWIG1.1p5-orig/SWIG/makefile.msc	1997-06-23 18:15:32.000000000 -0400
++++ SWIG1.1p5/SWIG/makefile.msc	2025-12-15 10:46:30.109624300 -0500
+@@ -42,7 +42,7 @@
+ 
+ LIBHEADERS = internal.h ../Include/swig.h latex.h ascii.h html.h nodoc.h
+ LIBNAME      = ..\libswig.lib
+-INCLUDE  = -I../Include -I$(STD_INC)
++INCFLAGS  = -I../Include
+ CFLAGS   = -Zi -nologo -DSWIG_LIB="\"$(SWIG_LIB)\"" -DSWIG_CC="\"$(CC)\""  -DMSDOS -DSTDC_HEADERS=1 -DHAVE_LIBDL=1 $(SWIG_OPTS)
+ LD_FLAGS    =  -VERBOSE
+ 
+@@ -51,7 +51,7 @@
+ # Rules for creation of a .obj file from .cxx
+ .SUFFIXES: .cxx
+ .cxx.obj:
+-	$(CC) $(INCLUDE) $(CFLAGS) -c -o $*.obj $<
++	$(CC) $(INCFLAGS) $(CFLAGS) -c -o $*.obj $<
+ 
+ all:    $(LIBNAME) 
+ 
+@@ -60,7 +60,7 @@
+ 	@$(LD) $(LD_FLAGS) -out:$(LIBNAME) $(LIBOBJS) parser.obj 
+ 
+ parser.obj: parser.cxx $(LIBHEADERS)
+-	$(CC) $(INCLUDE) $(CFLAGS) parser.cxx -c -o parser.obj
++	$(CC) $(INCFLAGS) $(CFLAGS) parser.cxx -c -o parser.obj
+ 
+ parser.cxx: $(PARSER)
+ 	@echo "Must rebuild the parser with yacc"
