@@ -1,5 +1,4 @@
 // @doc
-#define _WIN32_WINNT 0x501
 #include "PyWinTypes.h"
 #include "PyWinObjects.h"
 #include "structmember.h"
@@ -227,7 +226,7 @@ void PySMALL_RECT::tp_dealloc(PyObject *ob) { delete (PySMALL_RECT *)ob; }
 
 BOOL PySMALL_RECT_check(PyObject *ob)
 {
-    if (ob->ob_type != &PySMALL_RECTType) {
+    if (Py_TYPE(ob) != &PySMALL_RECTType) {
         PyErr_SetString(PyExc_TypeError, "Object must be a PySMALL_RECT");
         return FALSE;
     }
@@ -366,7 +365,7 @@ void PyCOORD::deallocFunc(PyObject *ob) { delete (PyCOORD *)ob; }
 
 BOOL PyCOORD_Check(PyObject *ob)
 {
-    if (ob->ob_type != &PyCOORDType) {
+    if (Py_TYPE(ob) != &PyCOORDType) {
         PyErr_SetString(PyExc_TypeError, "Object must be a PyCOORD");
         return FALSE;
     }
@@ -658,7 +657,7 @@ void PyINPUT_RECORD::tp_dealloc(PyObject *self)
 
 BOOL PyINPUT_RECORD_Check(PyObject *ob)
 {
-    if (ob->ob_type != &PyINPUT_RECORDType) {
+    if (Py_TYPE(ob) != &PyINPUT_RECORDType) {
         PyErr_SetString(PyExc_TypeError, "Object must be a PyINPUT_RECORD");
         return FALSE;
     }
@@ -941,11 +940,6 @@ PyObject *PyConsoleScreenBuffer::PySetConsoleMode(PyObject *self, PyObject *args
     return Py_None;
 }
 
-#ifndef _WIN32_WINNT_LONGHORN
-// 'reserved' ReadConsole param is defined as a PCONSOLE_READCONSOLE_CONTROL
-// in Vista's SDK.  If no such def exists, assume it's still 'void *'
-#define PCONSOLE_READCONSOLE_CONTROL void *
-#endif
 // @pymethod <o PyUNICODE>|PyConsoleScreenBuffer|ReadConsole|Reads characters from the console input buffer
 PyObject *PyConsoleScreenBuffer::PyReadConsole(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -1555,7 +1549,7 @@ PyTypeObject PyConsoleScreenBufferType = {
     PyConsoleScreenBuffer::tp_new         // tp_new
 };
 
-#define PyConsoleScreenBuffer_Check(ob) ((ob)->ob_type == &PyConsoleScreenBufferType)
+#define PyConsoleScreenBuffer_Check(ob) (Py_TYPE(ob) == &PyConsoleScreenBufferType)
 
 PyObject *PyWinObject_FromConsoleScreenBuffer(HANDLE h, BOOL bDuplicate)
 {

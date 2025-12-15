@@ -21,15 +21,16 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: astral-sh/setup-uv@v7
         with:
-          python-version: '3.9'
+          python-version: "3.9"
+          activate-environment: true
 
       # We still need to install pywin32 because
       # AutoDuck/py2d.py currently relies on runtime imports for introspection
       # Downloading latest release is faster than re-building
       - name: Install latest release
-        run: pip install --user --upgrade pywin32
+        run: uv pip install --upgrade pywin32
 
       - name: Generate PyWin32.chm help file
         run: python AutoDuck/make.py
@@ -57,17 +58,15 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: documentation
-
-      - name: Unpack archive
-        run: python -m zipfile -e site.zip .
+          path: site
 
       - uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: site
           commit_message: ${{ github.event.head_commit.message }}
-        # Write .nojekyll at the root, see:
-        # https://help.github.com/en/github/working-with-github-pages/about-github-pages#static-site-generators
+          # Write .nojekyll at the root, see:
+          # https://help.github.com/en/github/working-with-github-pages/about-github-pages#static-site-generators
           enable_jekyll: false
-        # Only deploy if there were changes
+          # Only deploy if there were changes
           allow_empty_commit: false

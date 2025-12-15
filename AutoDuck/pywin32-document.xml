@@ -1,13 +1,13 @@
 <document>
     <important>
-        <item name="View the change log" href="html/CHANGES.txt"/>
+        <item name="View the change log" href="html/CHANGES.md"/>
     </important>
     <links>
-        <item name="Python Web Site" href="http://www.python.org"/>
+        <item name="Python Web Site" href="https://www.python.org"/>
         <item name="Python for Win32 Extensions Site" href="https://github.com/mhammond/pywin32"/>
-        <item name="Python for Win32 mailing list" href="http://mail.python.org/mailman/listinfo/python-win32"/>
-        <item name="Tim Golden's Python pages" href="http://timgolden.me.uk/python/"/>
-        <item name="Paul Boddie's Python COM tutorial" href="http://thor.prohosting.com/~pboddie/Python/COM.html"/>
+        <item name="Python for Win32 mailing list" href="https://mail.python.org/mailman/listinfo/python-win32"/>
+        <item name="Tim Golden's Python pages" href="https://timgolden.me.uk/python/"/>
+        <item name="Paul Boddie's Python COM tutorial" href="https://web.archive.org/web/20090314180624/http://thor.prohosting.com:80/~pboddie/Python/COM.html"/>
     </links>
     <category id="win32" label="Win32 API">
         <overviews>

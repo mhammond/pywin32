@@ -3,10 +3,6 @@
 
 %module win32gui // A module which provides an interface to the native win32 GUI API.
 
-%{
-#define _WIN32_WINNT 0x0501
-
-%}
 %include "typemaps.i"
 %include "pywintypes.i"
 
@@ -820,7 +816,7 @@ public:
 	PyObject *m_obMenuName, *m_obClassName, *m_obWndProc;
 	TmpWCHAR m_MenuName, m_ClassName;
 };
-#define PyWNDCLASS_Check(ob)	((ob)->ob_type == &PyWNDCLASSType)
+#define PyWNDCLASS_Check(ob)	(Py_TYPE(ob) == &PyWNDCLASSType)
 
 // @object PyWNDCLASS|A Python object, representing an WNDCLASS structure
 // @comm Typically you create a PyWNDCLASS object, and set its properties.
@@ -1047,7 +1043,7 @@ public:
 	static struct PyMemberDef members[];
 	BITMAP m_BITMAP;
 };
-#define PyBITMAP_Check(ob)	((ob)->ob_type == &PyBITMAPType)
+#define PyBITMAP_Check(ob)	(Py_TYPE(ob) == &PyBITMAPType)
 
 // @object PyBITMAP|A Python object, representing an PyBITMAP structure
 // @comm Typically you get one of these from GetObject.  Note that currently
@@ -1184,7 +1180,7 @@ public:
 	static struct PyMemberDef members[];
 	LOGFONT m_LOGFONT;
 };
-#define PyLOGFONT_Check(ob)	((ob)->ob_type == &PyLOGFONTType)
+#define PyLOGFONT_Check(ob)	(Py_TYPE(ob) == &PyLOGFONTType)
 
 // @object PyLOGFONT|A Python object, representing an PyLOGFONT structure
 // @comm Typically you create a PyLOGFONT object, and set its properties.
@@ -1415,7 +1411,7 @@ PyObject *set_logger(PyObject *self, PyObject *args)
 %typemap(python,in) LOGFONT *{
 	if (!PyLOGFONT_Check($source))
 		return PyErr_Format(PyExc_TypeError, "Must be a LOGFONT object (got %s)",
-		                    $source->ob_type->tp_name);
+		                    Py_TYPE($source)->tp_name);
 	$target = &(((PyLOGFONT *)$source)->m_LOGFONT);
 }
 
@@ -1503,7 +1499,7 @@ static PyObject *PyGetObjectType(PyObject *self, PyObject *args)
 
 static PyObject *PyMakeBuffer(PyObject *self, PyObject *args)
 {
-	PyErr_Warn(PyExc_PendingDeprecationWarning, "PyMakeBuffer is deprecated; use PyGetMemory instead");
+	PyErr_Warn(PyExc_DeprecationWarning, "PyMakeBuffer is deprecated; use PyGetMemory instead");
 	size_t len;
 	void *addr=NULL;
 #ifdef _WIN64
@@ -2210,7 +2206,7 @@ static PyObject *PyDialogBoxIndirect(PyObject *self, PyObject *args)
 	// We unpack the object in the dlgproc - but check validity now
 	if (obParam != Py_None && !PyLong_Check(obParam) && !PyLong_Check(obParam)) {
 		return PyErr_Format(PyExc_TypeError, "optional param must be None, or an integer (got %s)",
-		                    obParam->ob_type->tp_name);
+		                    Py_TYPE(obParam)->tp_name);
 	}
 
 	HGLOBAL h = MakeResourceFromDlgList(obList);
@@ -2757,7 +2753,6 @@ static PyObject *PyTransparentBlt(PyObject *self, PyObject *args)
 
 // @pyswig |MaskBlt|Combines the color data for the source and destination
 // bitmaps using the specified mask and raster operation.
-// @comm This function is not supported on Win9x.
 // @pyseeapi MaskBlt
 static PyObject *PyMaskBlt(PyObject *self, PyObject *args)
 {
@@ -3654,7 +3649,7 @@ DWORD CommDlgExtendedError(void);
 	size = sizeof(OPENFILENAME);
 	if (!PyBytes_Check($source)) {
 		PyErr_Format(PyExc_TypeError, "Argument must be a %d-byte string (got type %s)",
-		             size, $source->ob_type->tp_name);
+		             size, Py_TYPE($source)->tp_name);
 		return NULL;
 	}
 	if (size != PyBytes_GET_SIZE($source)) {
@@ -6116,7 +6111,7 @@ PyListView_SortItems(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyCallable_Check(ob))
 		return PyErr_Format(PyExc_TypeError,
-		                    "2nd param must be callable (got type %s)", ob->ob_type->tp_name);
+		                    "2nd param must be callable (got type %s)", Py_TYPE(ob)->tp_name);
 	PySortCallback cb = {ob, obParam};
 	BOOL ok;
 	GUI_BGN_SAVE;
@@ -6150,7 +6145,7 @@ PyListView_SortItemsEx(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyCallable_Check(ob))
 		return PyErr_Format(PyExc_TypeError,
-		                    "2nd param must be callable (got type %s)", ob->ob_type->tp_name);
+		                    "2nd param must be callable (got type %s)", Py_TYPE(ob)->tp_name);
 	PySortCallback cb = {ob, obParam};
 	BOOL ok;
 	GUI_BGN_SAVE;
@@ -6457,7 +6452,7 @@ PyCFunction pfnPyGetOpenFileNameW=(PyCFunction)PyGetOpenFileNameW;
 BOOL PyObject_AsUINT(PyObject *ob, UINT *puint)
 {
 	// PyLong_AsUnsignedLong throws a bogus error in 2.3 if passed an int, and there is no PyInt_AsUnsignedLong
-	// ref: http://mail.python.org/pipermail/patches/2004-September/016060.html
+	// ref: https://mail.python.org/pipermail/patches/2004-September/016060.html
 	// And for some reason none of the Unsigned*Mask functions check for overflow ???
 
 	__int64 UINT_candidate=PyLong_AsLongLong(ob);
@@ -6976,8 +6971,8 @@ static PyObject *PySystemParametersInfo(PyObject *self, PyObject *args, PyObject
 		// @flag SPI_SETFASTTASKSWITCH|Unsupported (obsolete)
 		// @flag SPI_SETSCREENSAVERRUNNING|Unsupported (documented as internal use only)
 		// @flag SPI_SCREENSAVERRUNNING|Same as SPI_SETSCREENSAVERRUNNING
-		// @flag SPI_SETPENWINDOWS|Unsupported (only relevant for win95)
-		// @flag SPI_GETWINDOWSEXTENSION|Unsupported (only relevant for win95)
+		// @flag SPI_SETPENWINDOWS|Unsupported (only relevant for Win95)
+		// @flag SPI_GETWINDOWSEXTENSION|Unsupported (only relevant for Win95)
 		// @flag SPI_GETGRIDGRANULARITY|Unsupported (obsolete)
 		// @flag SPI_SETGRIDGRANULARITY|Unsupported (obsolete)
 		// @flag SPI_LANGDRIVER|Unsupported (use is not documented)

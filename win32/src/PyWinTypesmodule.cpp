@@ -512,7 +512,7 @@ PyLong_AsVoidPtr is unsuitable for use in many places due to the following issue
     that function and can be converted back to a usable address.
 
 From the response to this bug report:
-http://sourceforge.net/tracker/?func=detail&atid=105470&aid=1630863&group_id=5470
+https://github.com/python/cpython/issues/44430
 apparently if you want any reasonable or consistent behaviour from this function
 you're expected to perform the type checking yourself first.
 And if you have to do all that, why use the damn function at all ?
@@ -538,7 +538,7 @@ BOOL PyWinLong_AsVoidPtr(PyObject *ob, void **pptr)
     // Since Python 3.10, calling __int__ is no longer done, so we convert to an int explicitly.
     PyObject *longob = PyNumber_Long(ob);
     if (!longob && PyErr_Occurred()) {
-        PyErr_Format(PyExc_TypeError, "Unable to convert %s to pointer-sized value", ob->ob_type->tp_name);
+        PyErr_Format(PyExc_TypeError, "Unable to convert %s to pointer-sized value", Py_TYPE(ob)->tp_name);
         return FALSE;
     }
     *pptr = (void *)SIGNED_CONVERTER(longob);
@@ -547,7 +547,7 @@ BOOL PyWinLong_AsVoidPtr(PyObject *ob, void **pptr)
         *pptr = (void *)UNSIGNED_CONVERTER(longob);
         if (*pptr == (void *)-1 && PyErr_Occurred()) {
             Py_DECREF(longob);
-            PyErr_Format(PyExc_TypeError, "Unable to convert %s to pointer-sized value", ob->ob_type->tp_name);
+            PyErr_Format(PyExc_TypeError, "Unable to convert %s to pointer-sized value", Py_TYPE(ob)->tp_name);
             return FALSE;
         }
     }
@@ -627,7 +627,7 @@ BOOL PyWinObject_AsSimplePARAM(PyObject *ob, WPARAM *wparam)
         return TRUE;
     }
 
-    PyErr_Format(PyExc_TypeError, "WPARAM is simple, so must be an int object (got %s)", ob->ob_type->tp_name);
+    PyErr_Format(PyExc_TypeError, "WPARAM is simple, so must be an int object (got %s)", Py_TYPE(ob)->tp_name);
     return FALSE;
 }
 
@@ -668,7 +668,7 @@ BOOL PyWinObject_AsPARAM(PyObject *ob, PyWin_PARAMHolder *holder)
     }
 
     PyErr_Format(PyExc_TypeError, "WPARAM must be a unicode string, int, or buffer object (got %s)",
-                 ob->ob_type->tp_name);
+                 Py_TYPE(ob)->tp_name);
     return FALSE;
 }
 

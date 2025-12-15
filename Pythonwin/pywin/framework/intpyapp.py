@@ -3,13 +3,14 @@
 import os
 import sys
 import traceback
+from collections.abc import Sequence
 
 import __main__
 import commctrl
 import win32api
 import win32con
 import win32ui
-from pywin.mfc import afxres, dialog
+from pywin.mfc import afxres, dialog, docview
 
 from . import app, dbgcommands
 
@@ -27,9 +28,7 @@ def _SetupSharedMenu_(self):
     help.SetHelpMenuOtherHelp(sharedMenu)
 
 
-from pywin.mfc import docview
-
-docview.DocTemplate._SetupSharedMenu_ = _SetupSharedMenu_
+docview.DocTemplate._SetupSharedMenu_ = _SetupSharedMenu_  # type: ignore[method-assign]
 
 
 class MainFrame(app.MainFrame):
@@ -268,7 +267,7 @@ class InteractivePythonApp(app.CApp):
         if frame.GetWindowPlacement()[1] == win32con.SW_SHOWMINIMIZED:
             frame.ShowWindow(win32con.SW_RESTORE)
 
-    def ProcessArgs(self, args, dde=None):
+    def ProcessArgs(self, args: Sequence[str], dde=None):
         # If we are going to talk to a remote app via DDE, then
         # activate it!
         if (
@@ -290,7 +289,7 @@ class InteractivePythonApp(app.CApp):
                 ).lower()
                 i -= 1  #  arg is /edit's parameter
             par = i < len(args) and args[i] or "MISSING"
-            if argType in ("/nodde", "/new", "-nodde", "-new"):
+            if argType in {"/nodde", "/new"}:
                 # Already handled
                 pass
             elif argType.startswith("/goto:"):
@@ -356,7 +355,7 @@ class InteractivePythonApp(app.CApp):
                 raise RuntimeError(
                     "/app only supported for new instances of Pythonwin.exe"
                 )
-            elif argType == "/dde":  # Send arbitary command
+            elif argType == "/dde":  # Send arbitrary command
                 if dde is not None:
                     dde.Exec(par)
                 else:

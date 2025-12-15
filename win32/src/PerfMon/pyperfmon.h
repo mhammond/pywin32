@@ -90,7 +90,7 @@ class PyPERF_COUNTER_DEFINITION : public PyObject {
     DWORD m_CounterSize;
 };
 
-#define PyPERF_COUNTER_DEFINITION_Check(ob) ((ob)->ob_type == &PyPERF_COUNTER_DEFINITION::type)
+#define PyPERF_COUNTER_DEFINITION_Check(ob) (Py_TYPE(ob) == &PyPERF_COUNTER_DEFINITION::type)
 BOOL PyWinObject_AsPyPERF_COUNTER_DEFINITION(PyObject *ob, PyPERF_COUNTER_DEFINITION **ppPERF_COUNTER_DEFINITION,
                                              BOOL bNoneOK /*= TRUE*/);
 
@@ -121,5 +121,5 @@ class PyPERF_OBJECT_TYPE : public PyObject {
     PyObject *m_obPerfMonManager;
 };
 
-#define PyPERF_OBJECT_TYPE_Check(ob) ((ob)->ob_type == &PyPERF_OBJECT_TYPE::type)
+#define PyPERF_OBJECT_TYPE_Check(ob) (Py_TYPE(ob) == &PyPERF_OBJECT_TYPE::type)
 BOOL PyWinObject_AsPyPERF_OBJECT_TYPE(PyObject *ob, PyPERF_OBJECT_TYPE **ppPyPERF_OBJECT_TYPE, BOOL bNoneOK /*= TRUE*/);

@@ -688,8 +688,8 @@ PyObject *pythoncom_loadtypelib(PyObject *self, PyObject *args)
     ITypeLib *ptl;
     PY_INTERFACE_PRECALL;
     SCODE sc = LoadTypeLib(bstrName, &ptl);
-    PyWinObject_FreeBstr(bstrName);
     PY_INTERFACE_POSTCALL;
+    PyWinObject_FreeBstr(bstrName);
     if (FAILED(sc))
         return PyCom_BuildPyException(sc);
 
@@ -803,7 +803,6 @@ PyObject *pythoncom_unregistertypelib(PyObject *self, PyObject *args)
         return NULL;
 
     PY_INTERFACE_PRECALL;
-    // WARNING: Requires Win95 OSR2 or later!!!
     HRESULT hr = UnRegisterTypeLib(clsid, major, minor, lcid, syskind);
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))

@@ -15,15 +15,11 @@
 %include "pywintypes.i"
 
 %{
-#define _WIN32_WINNT 0x0501
-
 #undef PyHANDLE
 #include "pywinobjects.h"
 #include "windows.h"
 #include "Uxtheme.h"
 #include "CommCtrl.h"
-
-
 %}
 
 // @object PyHTHEME|A <o PyHANDLE> object wrapping a HTHEME.
@@ -193,7 +189,7 @@ static PyObject *MyCloseThemeData(PyObject *self, PyObject *args)
     if (!PyHANDLE_Check(obHandle))
         return PyErr_Format(PyExc_TypeError,
                             "CloseThemeData requires a PyHTHEME object - got %s",
-                            obHandle->ob_type->tp_name);
+                            Py_TYPE(obHandle)->tp_name);
     PyHANDLE *p = (PyHANDLE *)obHandle;
     if (!p->Close())
         return NULL;

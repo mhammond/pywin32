@@ -14,13 +14,6 @@ extern const GUID IID_IInternalUnwrapPythonObject = {
 extern PyObject *g_obMissing;
 
 #include <malloc.h>
-// When building with the 2003 Platform SDK 64-bit compiloer, _MSC_VER is 1400,
-// but _malloca is not defined
-// #if _MSC_VER < 1400
-#ifndef _malloca
-// _malloca is the new 'safe' one
-#define _malloca _alloca
-#endif
 
 // Internal ErrorUtil helpers we reach in for.
 // Free the strings from an excep-info.
@@ -92,7 +85,7 @@ PyGatewayBase::PyGatewayBase(PyObject *instance)
     PyCom_DLLAddRef();
 
 #ifdef DEBUG_FULL
-    PyCom_LogF(U"PyGatewayBase: created %s", m_pPyObject ? m_pPyObject->ob_type->tp_name : "<NULL>");
+    PyCom_LogF(U"PyGatewayBase: created %s", m_pPyObject ? Py_TYPE(m_pPyObject)->tp_name : "<NULL>");
 #endif
 }
 
@@ -100,7 +93,7 @@ PyGatewayBase::~PyGatewayBase()
 {
     InterlockedDecrement(&cGateways);
 #ifdef DEBUG_FULL
-    PyCom_LogF(L"PyGatewayBase: deleted %s", m_pPyObject ? m_pPyObject->ob_type->tp_name : "<NULL>");
+    PyCom_LogF(L"PyGatewayBase: deleted %s", m_pPyObject ? Py_TYPE(m_pPyObject)->tp_name : "<NULL>");
 #endif
 
     if (m_pPyObject) {
