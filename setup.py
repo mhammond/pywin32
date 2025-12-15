@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-build_id = "309.1"  # may optionally include a ".{patchno}" suffix.
+build_id = "311.1"  # may optionally include a ".{patchno}" suffix.
 
 __doc__ = """This is a distutils setup-script for the pywin32 extensions.
 
@@ -13,10 +13,10 @@ which is capable of building the version of Python you are targeting, then:
 
 For a debug (_d) version, you need a local debug build of Python, but must use
 the release version executable for the build. eg:
-  pip install . -v --config-setting=--build-option=build --config-setting=--build-option=--debug
+  pip install . -v --config-setting=--build-option="build --debug"
 
 Cross-compilation from x86 to ARM is well supported (assuming installed vs tools etc) - eg:
-  python -m build --wheel --config-setting=--build-option=build_ext --config-setting=--build-option=--plat-name=win-arm64 --config-setting=--build-option=build --config-setting=--build-option=--plat-name=win-arm64 --config-setting=--build-option=bdist_wheel --config-setting=--build-option=--plat-name=win-arm64
+  python -m build --wheel --config-setting=--build-option="build_ext --plat-name=win-arm64 build --plat-name=win-arm64 bdist_wheel --plat-name=win-arm64"
 
 Some modules require special SDKs or toolkits to build (eg, mapi/exchange),
 which often aren't available in CI. The build process treats them as optional -
@@ -33,14 +33,13 @@ import re
 import shutil
 import sys
 import winreg
-from collections.abc import MutableSequence
+from collections.abc import Iterable, MutableSequence
 from pathlib import Path
 from setuptools import Extension, setup
 from setuptools.command.build import build
-from setuptools.command.build_ext import build_ext
 from setuptools.modified import newer_group
 from tempfile import gettempdir
-from typing import TYPE_CHECKING, Iterable
+from typing import TYPE_CHECKING
 
 # We must import from distutils directly at runtime
 # But this prevents typing issues across Python 3.11-3.12
@@ -52,6 +51,21 @@ else:
     from distutils import ccompiler
     from distutils._msvccompiler import MSVCCompiler
     from distutils.command.install_data import install_data
+
+
+def my_new_compiler(**kw):
+    if "compiler" in kw and kw["compiler"] in (None, "msvc"):
+        return my_compiler()
+    return orig_new_compiler(**kw)
+
+
+# No way to cleanly wedge our compiler sub-class in.
+orig_new_compiler = ccompiler.new_compiler
+ccompiler.new_compiler = my_new_compiler  # type: ignore[assignment] # Assuming the caller will always use only kwargs
+
+
+# This import has to be delayed to AFTER the compiler hack
+from setuptools.command.build_ext import build_ext  # noqa: E402
 
 build_id_patch = build_id
 if not "." in build_id_patch:
@@ -73,6 +87,10 @@ this_file = os.path.abspath(this_file)
 # insist people manually CD there first!
 if os.path.dirname(this_file):
     os.chdir(os.path.dirname(this_file))
+
+version_file_path = Path(gettempdir(), "pywin32.version.txt")
+scintilla_licence_path = Path(gettempdir(), "Scintilla-License.txt")
+mapi_stubs_licence_path = Path(gettempdir(), "MAPIStubLibrary-License.txt")
 
 # Start address we assign base addresses from.  See comment re
 # dll_base_address later in this file...
@@ -127,9 +145,9 @@ class WinExt(Extension):
                 ("DISTUTILS_BUILD", None),
                 ("_CRT_SECURE_NO_WARNINGS", None),
                 # CRYPT_DECRYPT_MESSAGE_PARA.dwflags is in an ifdef for some unknown reason
-                # See github PR #1444 for more details...
+                # See GitHub PR #1444 for more details...
                 ("CRYPT_DECRYPT_MESSAGE_PARA_HAS_EXTRA_FIELDS", None),
-                # Minimum Windows version supported (Windows 7 / Windows Server 2008)
+                # Minimum Windows version supported (Windows 7)
                 # https://learn.microsoft.com/en-us/cpp/porting/modifying-winver-and-win32-winnt
                 ("_WIN32_WINNT", hex(0x0601)),
                 ("WINVER", hex(0x0601)),
@@ -396,23 +414,19 @@ class WinExt_pythonservice(WinExt):
 # Extensions to the distutils commands.
 
 
-# 'build' command
 class my_build(build):
-    def run(self):
-        build.run(self)
-        # write a pywin32.version.txt.
-        ver_fname = os.path.join(gettempdir(), "pywin32.version.txt")
-        try:
-            f = open(ver_fname, "w")
-            f.write("%s\n" % build_id)
-            f.close()
-        except OSError as why:
-            print(f"Failed to open '{ver_fname}': {why}")
+    def run(self) -> None:
+        super().run()
+        version_file_path.write_text(f"{build_id}\n")
+        shutil.copyfile("Pythonwin/Scintilla/License.txt", scintilla_licence_path)
+        shutil.copyfile(
+            "com/win32comext/mapi/src/MAPIStubLibrary/LICENSE", mapi_stubs_licence_path
+        )
 
 
 class my_build_ext(build_ext):
-    def finalize_options(self):
-        build_ext.finalize_options(self)
+    def finalize_options(self) -> None:
+        super().finalize_options()
 
         self.plat_dir = {
             "win-amd64": "x64",
@@ -426,8 +440,9 @@ class my_build_ext(build_ext):
         if self.mingw32:
             self.libraries.append("stdc++")
 
-        self.excluded_extensions = []  # list of (ext, why)
-        self.swig_cpp = True  # hrm - deprecated - should use swig_opts=-c++??
+        self.excluded_extensions: list[tuple[WinExt, str]] = []
+        """List of excluded extensions and their reason"""
+        self.swig_opts.append("-c++")
 
     def _why_cant_build_extension(self, ext):
         """Return None, or a reason it can't be built."""
@@ -571,6 +586,25 @@ class my_build_ext(build_ext):
                 print("-- compiler.library_dirs:", self.compiler.library_dirs)
                 print("-- ATLMFC paths likely missing (Required for win32ui)")
         return vcbase, vcverdir
+
+    def _verstamp(self, filename):
+        """
+        Stamp the version of the built target.
+        Do this externally to avoid suddenly dragging in the
+        modules needed by this process.
+        """
+        self.spawn(
+            [
+                sys.executable,
+                Path(__file__).parent / "win32" / "Lib" / "win32verstamp.py",
+                f"--version={pywin32_version}",
+                "--comments=https://github.com/mhammond/pywin32",
+                f"--original-filename={os.path.basename(filename)}",
+                "--product=PyWin32",
+                "--quiet" if "-v" not in sys.argv else "",
+                filename,
+            ]
+        )
 
     def build_extensions(self):
         # First, sanity-check the 'extensions' list
@@ -716,6 +750,8 @@ class my_build_ext(build_ext):
             build_temp=self.build_temp,
         )
 
+        self._verstamp(full_name)
+
     def build_extension(self, ext):
         # Some of these extensions are difficult to build, requiring various
         # hard-to-track libraries et (eg, exchange sdk, etc).  So we
@@ -756,6 +792,7 @@ class my_build_ext(build_ext):
 
         try:
             build_ext.build_extension(self, ext)
+            self._verstamp(self.get_ext_fullpath(ext.name))
             # Convincing distutils to create .lib files with the name we
             # need is difficult, so we just hack around it by copying from
             # the created name to the name we need.
@@ -904,64 +941,10 @@ class my_build_ext(build_ext):
         return new_sources
 
 
-def my_new_compiler(**kw):
-    if "compiler" in kw and kw["compiler"] in (None, "msvc"):
-        return my_compiler()
-    return orig_new_compiler(**kw)
-
-
-# No way to cleanly wedge our compiler sub-class in.
-orig_new_compiler = ccompiler.new_compiler
-ccompiler.new_compiler = my_new_compiler  # type: ignore[assignment] # Assuming the caller will always use only kwargs
-
-
 class my_compiler(MSVCCompiler):
-    def link(
-        self,
-        target_desc,
-        objects,
-        output_filename,
-        output_dir=None,
-        libraries=None,
-        library_dirs=None,
-        runtime_library_dirs=None,
-        export_symbols=None,
-        debug=0,
-        *args,
-        **kw,
-    ):
-        super().link(
-            target_desc,
-            objects,
-            output_filename,
-            output_dir,
-            libraries,
-            library_dirs,
-            runtime_library_dirs,
-            export_symbols,
-            debug,
-            *args,
-            **kw,
-        )
-        # Here seems a good place to stamp the version of the built
-        # target.  Do this externally to avoid suddenly dragging in the
-        # modules needed by this process, and which we will soon try and
-        # update.
-        args = [
-            sys.executable,
-            # NOTE: On Python 3.7, all args must be str
-            str(Path(__file__).parent / "win32" / "Lib" / "win32verstamp.py"),
-            f"--version={pywin32_version}",
-            "--comments=https://github.com/mhammond/pywin32",
-            f"--original-filename={os.path.basename(output_filename)}",
-            "--product=PyWin32",
-            "--quiet" if "-v" not in sys.argv else "",
-            output_filename,
-        ]
-        self.spawn(args)
-
-    # Work around bpo-36302/bpo-42009 - it sorts sources but this breaks
-    # support for building .mc files etc :(
+    # Work around python/cpython#80483 / python/cpython#86175
+    # it sorts sources but this breaks support for building .mc files etc :(
+    # See pypa/setuptools#4986 / pypa/distutils#370 for potential upstream fix.
     def compile(self, sources, **kwargs):
         # re-sort the list of source files but ensure all .mc files come first.
         def key_reverse_mc(a):
@@ -974,30 +957,13 @@ class my_compiler(MSVCCompiler):
 
     def spawn(self, cmd: MutableSequence[str]) -> None:  # type: ignore[override] # More restrictive than supertype
         is_link = cmd[0].endswith("link.exe") or cmd[0].endswith('"link.exe"')
-        is_mt = cmd[0].endswith("mt.exe") or cmd[0].endswith('"mt.exe"')
-        if is_mt:
-            # We don't want mt.exe run...
-            return
         if is_link:
             # remove /MANIFESTFILE:... and add MANIFEST:NO
             for i in range(len(cmd)):
                 if cmd[i].startswith(("/MANIFESTFILE:", "/MANIFEST:EMBED")):
                     cmd[i] = "/MANIFEST:NO"
                     break
-        if is_mt:
-            # We want mt.exe run with the original manifest
-            for i in range(len(cmd)):
-                if cmd[i] == "-manifest":
-                    cmd[i + 1] += ".orig"
-                    break
         super().spawn(cmd)  # type: ignore[arg-type] # mypy variance issue, but pyright ok
-        if is_link:
-            # We want a copy of the original manifest so we can use it later.
-            for i in range(len(cmd)):
-                if cmd[i].startswith("/MANIFESTFILE:"):
-                    mfname = cmd[i][14:]
-                    shutil.copyfile(mfname, mfname + ".orig")
-                    break
 
     # CCompiler's implementations of these methods completely replace the values
     # determined by the build environment. This seems like a design that must
@@ -1205,7 +1171,11 @@ win32_extensions += [
     ),
     WinExt_win32(
         "win32api",
-        sources=["win32/src/win32apimodule.cpp", "win32/src/win32api_display.cpp"],
+        sources=[
+            "win32/src/win32apimodule.cpp",
+            "win32/src/win32api_display.cpp",
+            "win32/src/win32api_cputopo.cpp",
+        ],
         libraries=["user32", "advapi32", "shell32", "version"],
         delay_load_libraries=["powrprof"],
     ),
@@ -1941,9 +1911,9 @@ def expand_modules(module_dir: str | os.PathLike[str]):
 
 
 # NOTE: somewhat counter-intuitively, a result list a-la:
-#  [('Lib/site-packages\\pythonwin', ('pythonwin/license.txt',)),]
-# will 'do the right thing' in terms of installing licence.txt into
-# 'Lib/site-packages/pythonwin/licence.txt'.  We exploit this to
+#  [('Lib/site-packages\\pythonwin', ('pythonwin/License.txt',)),]
+# will 'do the right thing' in terms of installing License.txt into
+# 'Lib/site-packages/pythonwin/License.txt'.  We exploit this to
 # get 'com/win32com/whatever' installed to 'win32com/whatever'
 def convert_data_files(files: Iterable[str]):
     ret: list[tuple[str, tuple[str]]] = []
@@ -1963,9 +1933,7 @@ def convert_data_files(files: Iterable[str]):
                 raise RuntimeError("No file '%s'" % file)
             files_use = (file,)
         for fname in files_use:
-            path_use = os.path.dirname(fname)
-            if path_use.startswith("com\\"):
-                path_use = path_use[4:]
+            path_use = os.path.dirname(fname).removeprefix("com\\")
             ret.append((path_use, (fname,)))
     return ret
 
@@ -2046,12 +2014,12 @@ classifiers = [
     "License :: OSI Approved :: Python Software Foundation License",
     "Development Status :: 5 - Production/Stable",
     "Operating System :: Microsoft :: Windows",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Programming Language :: Python :: Implementation :: CPython",
 ]
 
@@ -2063,8 +2031,22 @@ dist = setup(
     long_description_content_type="text/markdown",
     author="Mark Hammond (et al)",
     author_email="mhammond@skippinet.com.au",
-    url="https://github.com/mhammond/pywin32",
+    project_urls={
+        # https://docs.pypi.org/project_metadata/#general-url
+        "Homepage": "https://github.com/mhammond/pywin32",
+        "Changes": "https://github.com/mhammond/pywin32/blob/main/CHANGES.md",
+        "Docs": "https://mhammond.github.io/pywin32/",
+        "Bugs": "https://github.com/mhammond/pywin32/issues",
+        # Arbitrary URLs (icons still recognized)
+        "Support Requests": "https://github.com/mhammond/pywin32/discussions",
+        "Mailing List": "https://mail.python.org/mailman/listinfo/python-win32",
+    },
     license="PSF",
+    license_files=(
+        "**/[Ll]icense.txt",
+        "**/LICENSE*",
+        "isapi/README.txt",
+    ),
     classifiers=classifiers,
     cmdclass=cmdclass,
     # This adds the scripts under Python3XX/Scripts, but doesn't actually do much
@@ -2087,12 +2069,7 @@ dist = setup(
     },
     packages=packages,
     py_modules=py_modules,
-    data_files=[("", (os.path.join(gettempdir(), "pywin32.version.txt"),))]
-    + convert_optional_data_files(
-        [
-            "PyWin32.chm",
-        ]
-    )
+    data_files=convert_optional_data_files(["PyWin32.chm"])
     + convert_data_files(
         [
             "Pythonwin/start_pythonwin.pyw",
@@ -2100,8 +2077,6 @@ dist = setup(
             "pythonwin/pywin/Demos/*.py",
             "pythonwin/pywin/Demos/app/*.py",
             "pythonwin/pywin/Demos/ocx/*.py",
-            "pythonwin/license.txt",
-            "win32/license.txt",
             "win32/scripts/*.py",
             "win32/test/*.py",
             "win32/test/win32rcparser/test.rc",
@@ -2111,6 +2086,11 @@ dist = setup(
             "win32/Demos/*.py",
             "win32/Demos/images/*.bmp",
             "com/win32com/readme.html",
+            # Licenses
+            "com/win32comext/mapi/NOTICE.md",
+            "pythonwin/License.txt",
+            "pythonwin/pywin/idle/*.txt",
+            "win32/License.txt",
             # win32com test utility files.
             "com/win32com/test/*.idl",
             "com/win32com/test/*.js",
@@ -2139,20 +2119,21 @@ dist = setup(
             "com/win32comext/ifilter/demo/*.py",
             "com/win32comext/authorization/demos/*.py",
             "com/win32comext/bits/test/*.py",
+            # ISAPI
             "isapi/*.txt",
             "isapi/samples/*.py",
             "isapi/samples/*.txt",
             "isapi/doc/*.html",
             "isapi/test/*.py",
             "isapi/test/*.txt",
+            # adodbapi
             "adodbapi/*.txt",
             "adodbapi/test/*.py",
             "adodbapi/examples/*.py",
         ]
     )
-    +
     # The headers and .lib files
-    [
+    + [
         ("win32/include", ("win32/src/PyWinTypes.h",)),
         (
             "win32com/include",
@@ -2163,10 +2144,13 @@ dist = setup(
             ),
         ),
     ]
-    +
     # And data files convert_data_files can't handle.
-    [
+    + [
+        ("", (str(version_file_path),)),
+        ("pythonwin", (str(scintilla_licence_path),)),
+        ("win32comext/mapi", (str(mapi_stubs_licence_path),)),
         ("win32com", ("com/License.txt",)),
+        ("win32comext", ("com/License.txt",)),
         # pythoncom.py doesn't quite fit anywhere else.
         # Note we don't get an auto .pyc - but who cares?
         ("", ("com/pythoncom.py",)),
