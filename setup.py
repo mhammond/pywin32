@@ -30,12 +30,12 @@ import logging
 import os
 import platform
 import re
+import shutil
 import sys
 import winreg
 from collections.abc import Iterable, MutableSequence
 from pathlib import Path
 from setuptools import Extension, setup
-from setuptools._distutils import ccompiler
 from setuptools.command.build import build
 from setuptools.modified import newer_group
 from tempfile import gettempdir
@@ -87,6 +87,10 @@ this_file = os.path.abspath(this_file)
 # insist people manually CD there first!
 if os.path.dirname(this_file):
     os.chdir(os.path.dirname(this_file))
+
+version_file_path = Path(gettempdir(), "pywin32.version.txt")
+scintilla_licence_path = Path(gettempdir(), "Scintilla-License.txt")
+mapi_stubs_licence_path = Path(gettempdir(), "MAPIStubLibrary-License.txt")
 
 # Start address we assign base addresses from.  See comment re
 # dll_base_address later in this file...
@@ -362,18 +366,14 @@ class WinExt_pythonservice(WinExt):
 # Extensions to the distutils commands.
 
 
-# 'build' command
 class my_build(build):
-    def run(self):
-        build.run(self)
-        # write a pywin32.version.txt.
-        ver_fname = os.path.join(gettempdir(), "pywin32.version.txt")
-        try:
-            f = open(ver_fname, "w")
-            f.write("%s\n" % build_id)
-            f.close()
-        except OSError as why:
-            print(f"Failed to open '{ver_fname}': {why}")
+    def run(self) -> None:
+        super().run()
+        version_file_path.write_text(f"{build_id}\n")
+        shutil.copyfile("Pythonwin/Scintilla/License.txt", scintilla_licence_path)
+        shutil.copyfile(
+            "com/win32comext/mapi/src/MAPIStubLibrary/LICENSE", mapi_stubs_licence_path
+        )
 
 
 class my_build_ext(build_ext):
@@ -2016,6 +2016,11 @@ dist = setup(
         "Mailing List": "https://mail.python.org/mailman/listinfo/python-win32",
     },
     license="PSF",
+    license_files=(
+        "**/[Ll]icense.txt",
+        "**/LICENSE*",
+        "isapi/README.txt",
+    ),
     classifiers=classifiers,
     cmdclass=cmdclass,
     # This adds the scripts under Python3XX/Scripts, but doesn't actually do much
@@ -2038,12 +2043,7 @@ dist = setup(
     },
     packages=packages,
     py_modules=py_modules,
-    data_files=[("", (os.path.join(gettempdir(), "pywin32.version.txt"),))]
-    + convert_optional_data_files(
-        [
-            "PyWin32.chm",
-        ]
-    )
+    data_files=convert_optional_data_files(["PyWin32.chm"])
     + convert_data_files(
         [
             "Pythonwin/start_pythonwin.pyw",
@@ -2051,8 +2051,6 @@ dist = setup(
             "pythonwin/pywin/Demos/*.py",
             "pythonwin/pywin/Demos/app/*.py",
             "pythonwin/pywin/Demos/ocx/*.py",
-            "pythonwin/license.txt",
-            "win32/license.txt",
             "win32/scripts/*.py",
             "win32/test/*.py",
             "win32/test/win32rcparser/test.rc",
@@ -2062,6 +2060,11 @@ dist = setup(
             "win32/Demos/*.py",
             "win32/Demos/images/*.bmp",
             "com/win32com/readme.html",
+            # Licenses
+            "com/win32comext/mapi/NOTICE.md",
+            "pythonwin/License.txt",
+            "pythonwin/pywin/idle/*.txt",
+            "win32/License.txt",
             # win32com test utility files.
             "com/win32com/test/*.idl",
             "com/win32com/test/*.js",
@@ -2090,20 +2093,21 @@ dist = setup(
             "com/win32comext/ifilter/demo/*.py",
             "com/win32comext/authorization/demos/*.py",
             "com/win32comext/bits/test/*.py",
+            # ISAPI
             "isapi/*.txt",
             "isapi/samples/*.py",
             "isapi/samples/*.txt",
             "isapi/doc/*.html",
             "isapi/test/*.py",
             "isapi/test/*.txt",
+            # adodbapi
             "adodbapi/*.txt",
             "adodbapi/test/*.py",
             "adodbapi/examples/*.py",
         ]
     )
-    +
     # The headers and .lib files
-    [
+    + [
         ("win32/include", ("win32/src/PyWinTypes.h",)),
         (
             "win32com/include",
@@ -2114,10 +2118,13 @@ dist = setup(
             ),
         ),
     ]
-    +
     # And data files convert_data_files can't handle.
-    [
+    + [
+        ("", (str(version_file_path),)),
+        ("pythonwin", (str(scintilla_licence_path),)),
+        ("win32comext/mapi", (str(mapi_stubs_licence_path),)),
         ("win32com", ("com/License.txt",)),
+        ("win32comext", ("com/License.txt",)),
         # pythoncom.py doesn't quite fit anywhere else.
         # Note we don't get an auto .pyc - but who cares?
         ("", ("com/pythoncom.py",)),
