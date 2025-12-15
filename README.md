@@ -205,27 +205,6 @@ the builds. Build 306 was the last released with this process.
 
 ## Licenses
 
-Please note that this table for convenience only. The license files in the source tree are the source of truth.[^1]. So are individual Copyright notices at the top of files.
-
-| Files | [SPDX License Expression](https://packaging.python.org/en/latest/specifications/license-expression/) | License File |
-| :-: | :-: | :-: |
-| <tr><td colspan=3 align="center">Found in both Source and Distribution</td></tr> |||
-| Root / Metadata (anything not mentioned below) | `PSF-2.0`[^1] | (see README badge and project license metadata) |
-| `isapi/` | `PSF-2.0 OR BSD-3-Clause`[^2] | (see footnote and project license metadata) |
-| `com/` & `win32com/` & `win32comext/` & `pywin32_system32/` | `BSD-3-Clause` | [com/License.txt](./com/License.txt) |
-| `win32/`| `BSD-3-Clause` | [win32/License.txt](./win32/License.txt) |
-| `Pythonwin/` | `BSD-3-Clause` | [Pythonwin/License.txt](./Pythonwin/License.txt) |
-| `Pythonwin/pywin/idle/` | `Python-2.0.1` | [Pythonwin/pywin/idle/LICENSE.txt](./Pythonwin/pywin/idle/LICENSE.txt) |
-| `adodbapi/` | `LGPL-2.1-or-later` | [adodbapi/license.txt](./adodbapi/license.txt) |
-| <tr><td colspan=3 align="center">Only found in distribution</td></tr> |||
-| `com/win32comext/mapi/mapi.pyd` & `com/win32comext/mapi/exchange.pyd` | `MIT` | [.../MAPIStubLibrary/LICENSE](./com/win32comext/mapi/src/MAPIStubLibrary/LICENSE) |
-| `win32com/` & `win32comext/` & `pywin32_system32/` | `BSD-3-Clause` | [com/License.txt](./com/License.txt) |
-| <tr><td colspan=3 align="center">Only found in Source</td></tr> |||
-| `SWIG/swig.exe` & `SWIG/swig_lib/`  | `LicenseRef-The-University-of-Utah-and-the-Regents-of-the-University-of-California` | [SWIG/swig_lib/Copyright](./SWIG/swig_lib/Copyright) |
-| `SWIG/swig_lib/python/pythoncom.i` & `SWIG/swig_lib/python/pywin32.i` & `SWIG/swig_lib/python/pywintypes.i`  | `PSF-2.0` | (see README badge and project license metadata) |
-| `com/win32comext/mapi/src/MAPIStubLibrary` | `MIT` | [.../MAPIStubLibrary/LICENSE](./com/win32comext/mapi/src/MAPIStubLibrary/LICENSE) |
-
-This makes the overall pywin32 distribution: `PSF-2.0 AND Python-2.0.1 AND BSD-3-Clause AND LGPL-2.1-or-later`
+pywin32 contains a mix of differently licensed code. The license files in the source tree are the source of truth.[^1]. So are individual Copyright notices at the top of files. You can also find license information through the [License-File Packaging Metadata](https://packaging.python.org/en/latest/specifications/core-metadata/#license-file-multiple-use).
 
 [^1]: <https://github.com/mhammond/pywin32/issues/1127#issuecomment-393364022>
-[^2]: <https://github.com/mhammond/pywin32/issues/1744#issuecomment-917368167>
