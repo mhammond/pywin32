@@ -71,6 +71,8 @@ ENV/
 env.bak/
 venv.bak/
 .vagrant/
+# Not currently using a lock file
+uv.lock
 
 # other IDEs, MacOS, etc
 .idea/

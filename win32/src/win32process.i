@@ -92,7 +92,7 @@ protected:
 	PyObject *m_obStdIn, *m_obStdOut, *m_obStdErr;
 	PyObject *m_obDesktop, *m_obTitle;
 };
-#define PySTARTUPINFO_Check(ob)	((ob)->ob_type == &PySTARTUPINFOType)
+#define PySTARTUPINFO_Check(ob)	(Py_TYPE(ob) == &PySTARTUPINFOType)
 
 // @object PySTARTUPINFO|A Python object, representing an STARTUPINFO structure
 // @comm Typically you create a PySTARTUPINFO (via <om win32process.STARTUPINFO>) object, and set its properties.

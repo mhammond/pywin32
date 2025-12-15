@@ -107,14 +107,14 @@ int PyFILTER_VERSION::setattro(PyObject *self, PyObject *obname, PyObject *v)
         return -1;
     if (_tcscmp(name, _T("FilterVersion")) == 0) {
         if (!PyLong_Check(v)) {
-            PyErr_Format(PyExc_ValueError, "FilterVersion must be an int (got %s)", v->ob_type->tp_name);
+            PyErr_Format(PyExc_ValueError, "FilterVersion must be an int (got %s)", Py_TYPE(v)->tp_name);
             return -1;
         }
         me->m_pfv->dwFilterVersion = PyLong_AsLong(v);
     }
     else if (_tcscmp(name, _T("Flags")) == 0) {
         if (!PyLong_Check(v)) {
-            PyErr_Format(PyExc_ValueError, "Flags must be an int (got %s)", v->ob_type->tp_name);
+            PyErr_Format(PyExc_ValueError, "Flags must be an int (got %s)", Py_TYPE(v)->tp_name);
             return -1;
         }
         me->m_pfv->dwFlags = PyLong_AsLong(v);
@@ -819,7 +819,7 @@ int PyRAW_DATA::setattro(PyObject *self, PyObject *obname, PyObject *v)
         return -1;
     if (_tcscmp(name, _T("InData")) == 0) {
         if (!PyBytes_Check(v)) {
-            PyErr_Format(PyExc_TypeError, "InData must be a string (got %s)", v->ob_type->tp_name);
+            PyErr_Format(PyExc_TypeError, "InData must be a string (got %s)", Py_TYPE(v)->tp_name);
             return -1;
         }
         int cch = PyBytes_Size(v);
@@ -937,7 +937,7 @@ int PyAUTHENT::setattro(PyObject *self, PyObject *obname, PyObject *v)
         return -1;
     if (_tcscmp(name, _T("User")) == 0) {
         if (!PyBytes_Check(v)) {
-            PyErr_Format(PyExc_TypeError, "User must be a string (got %s)", v->ob_type->tp_name);
+            PyErr_Format(PyExc_TypeError, "User must be a string (got %s)", Py_TYPE(v)->tp_name);
             return -1;
         }
         DWORD cch = PyBytes_Size(v);
@@ -950,7 +950,7 @@ int PyAUTHENT::setattro(PyObject *self, PyObject *obname, PyObject *v)
     }
     if (_tcscmp(name, _T("Password")) == 0) {
         if (!PyBytes_Check(v)) {
-            PyErr_Format(PyExc_TypeError, "Password must be a string (got %s)", v->ob_type->tp_name);
+            PyErr_Format(PyExc_TypeError, "Password must be a string (got %s)", Py_TYPE(v)->tp_name);
             return -1;
         }
         DWORD cch = PyBytes_Size(v);

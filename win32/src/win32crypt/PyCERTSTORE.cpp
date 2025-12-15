@@ -103,7 +103,7 @@ BOOL PyWinObject_AsCERTSTORE(PyObject *obhcertstore, HCERTSTORE *hcertstore, BOO
         *hcertstore = NULL;
         return true;
     }
-    if (obhcertstore->ob_type != &PyCERTSTOREType) {
+    if (Py_TYPE(obhcertstore) != &PyCERTSTOREType) {
         PyErr_SetString(PyExc_TypeError, "Object must be of type PyCERTSTORE");
         return FALSE;
     }

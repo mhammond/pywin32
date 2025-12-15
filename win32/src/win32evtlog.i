@@ -1499,7 +1499,7 @@ BOOL PyWinObject_AsEVT_RPC_LOGIN(PyObject *ob, EVT_RPC_LOGIN *erl)
 {
 	ZeroMemory(erl, sizeof(*erl));
 	if (!PyTuple_Check(ob)){
-		PyErr_Format(PyExc_TypeError, "PyEVT_RPC_LOGIN must be a tuple instead of %s", ob->ob_type->tp_name);
+		PyErr_Format(PyExc_TypeError, "PyEVT_RPC_LOGIN must be a tuple instead of %s", Py_TYPE(ob)->tp_name);
 		return FALSE;
 		}
 	PyObject *observer, *obuser=Py_None, *obdomain=Py_None, *obpassword=Py_None;
