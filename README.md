@@ -169,7 +169,12 @@ Since build 307 the release process is based on the artifacts created by Github 
 
 * Send mail to python-win32
 
+<details>
+<summary>
+
 ### Older Manual Release Process
+
+</summary>
 
 This is the old process used when a local dev environment was used to create
 the builds. Build 306 was the last released with this process.
@@ -195,3 +200,11 @@ the builds. Build 306 was the last released with this process.
   `git push --tags`)
 
 * Send mail to python-win32
+
+</details>
+
+## Licenses
+
+pywin32 contains a mix of differently licensed code. The license files in the source tree are the source of truth.[^1]. So are individual Copyright notices at the top of files. You can also find license information through the [License-File Packaging Metadata](https://packaging.python.org/en/latest/specifications/core-metadata/#license-file-multiple-use).
+
+[^1]: <https://github.com/mhammond/pywin32/issues/1127#issuecomment-393364022>
