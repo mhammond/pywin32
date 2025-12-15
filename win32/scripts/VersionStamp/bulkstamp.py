@@ -33,7 +33,7 @@
 import fnmatch
 import os
 import sys
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from optparse import Values
 
 try:
@@ -51,7 +51,9 @@ g_patterns = [
 ]
 
 
-def walk(vars: Mapping[str, str], debug, descriptions, dirname, names) -> int:
+def walk(
+    vars: Mapping[str, str], debug, descriptions, dirname, names: Iterable[str]
+) -> int:
     """Returns the number of stamped files."""
     numStamped = 0
     for name in names:
@@ -60,8 +62,7 @@ def walk(vars: Mapping[str, str], debug, descriptions, dirname, names) -> int:
                 # Handle the "_d" thing.
                 pathname = os.path.join(dirname, name)
                 base, ext = os.path.splitext(name)
-                if base.endswith("_d"):
-                    name = base[:-2] + ext
+                name = base.removesuffix("_d") + ext
                 is_dll = ext.lower() != ".exe"
                 if os.path.normcase(name) in descriptions:
                     description = descriptions[os.path.normcase(name)]

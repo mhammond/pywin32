@@ -172,7 +172,7 @@ PySecBufferDesc::~PySecBufferDesc()
 
 BOOL PySecBufferDesc_Check(PyObject *ob)
 {
-    if (ob->ob_type != &PySecBufferDescType) {
+    if (Py_TYPE(ob) != &PySecBufferDescType) {
         PyErr_SetString(PyExc_TypeError, "Object must be a PySecBufferDesc");
         return FALSE;
     }
@@ -393,7 +393,7 @@ PySecBuffer::~PySecBuffer()
 
 BOOL PySecBuffer_Check(PyObject *ob)
 {
-    if (ob->ob_type != &PySecBufferType) {
+    if (Py_TYPE(ob) != &PySecBufferType) {
         PyErr_SetString(PyExc_TypeError, "Object must be a PySecBuffer");
         return FALSE;
     }
@@ -577,7 +577,7 @@ PyCtxtHandle::~PyCtxtHandle()
 
 BOOL PyCtxtHandle_Check(PyObject *ob)
 {
-    if (ob->ob_type != &PyCtxtHandleType) {
+    if (Py_TYPE(ob) != &PyCtxtHandleType) {
         PyErr_SetString(PyExc_TypeError, "Object must be a PyCtxtHandle");
         return FALSE;
     }
@@ -1095,7 +1095,7 @@ PyCredHandle::~PyCredHandle()
 
 BOOL PyCredHandle_Check(PyObject *ob)
 {
-    if (ob->ob_type != &PyCredHandleType) {
+    if (Py_TYPE(ob) != &PyCredHandleType) {
         PyErr_SetString(PyExc_TypeError, "Object must be a PyCredHandle");
         return FALSE;
     }
