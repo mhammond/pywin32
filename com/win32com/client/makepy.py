@@ -423,8 +423,8 @@ def main():
 
     if outputName is not None:
         path = os.path.dirname(outputName)
-        if path != "" and not os.path.exists(path):
-            os.makedirs(path)
+        if path != "":
+            os.makedirs(path, exist_ok=True)
         f = open(outputName, "wt", encoding="mbcs")
 
     else:

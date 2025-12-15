@@ -90,8 +90,7 @@ def main():
         # sys.argv[4:] == html_files (globbed)
         output_dir = os.path.abspath(sys.argv[3])
         html_dir = os.path.abspath(os.path.join(output_dir, "html"))
-        if not os.path.isdir(html_dir):
-            os.makedirs(html_dir)
+        os.makedirs(html_dir, exist_ok=True)
         lGlobs = sys.argv[4:]
         lDestFiles, lSrcFiles = handle_globs(lGlobs)
         # ensure HTML Help build directory exists.
