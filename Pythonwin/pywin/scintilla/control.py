@@ -424,9 +424,9 @@ class CScintillaEditInterface(ScintillaControlInterface):
 
     def SetSel(self, start=0, end=None):
         if isinstance(start, tuple):
-            assert (
-                end is None
-            ), "If you pass a point in the first param, the second must be None"
+            assert end is None, (
+                "If you pass a point in the first param, the second must be None"
+            )
             start, end = start
         elif end is None:
             end = start
@@ -453,9 +453,9 @@ class CScintillaEditInterface(ScintillaControlInterface):
     def LineFromChar(self, charPos=-1):
         if charPos == -1:
             charPos = self.GetSel()[0]
-        assert (
-            charPos >= 0 and charPos <= self.GetTextLength()
-        ), f"The charPos postion ({charPos}) is invalid (max={self.GetTextLength()})"
+        assert charPos >= 0 and charPos <= self.GetTextLength(), (
+            f"The charPos postion ({charPos}) is invalid (max={self.GetTextLength()})"
+        )
         # return self.SendScintilla(EM_EXLINEFROMCHAR, charPos)
         # EM_EXLINEFROMCHAR puts charPos in lParam, not wParam
         return self.SendScintilla(EM_EXLINEFROMCHAR, 0, charPos)
@@ -476,9 +476,9 @@ class CScintillaEditInterface(ScintillaControlInterface):
         if end == -1:
             end = self.SendScintilla(scintillacon.SCI_GETTEXTLENGTH)
         assert end >= start, "Negative index requested (%d/%d)" % (start, end)
-        assert (
-            start >= 0 and start <= self.GetTextLength()
-        ), "The start postion is invalid"
+        assert start >= 0 and start <= self.GetTextLength(), (
+            "The start postion is invalid"
+        )
         assert end >= 0 and end <= self.GetTextLength(), "The end postion is invalid"
         initer = null_byte * (end - start + 1)
         buff = array.array("b", initer)
