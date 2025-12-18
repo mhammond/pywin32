@@ -257,7 +257,7 @@ PyRecord *PyRecord::new_record(IRecordInfo *ri, PVOID data, PyRecordBuffer *owne
         PyErr_NoMemory();
         return NULL;
     }
-    return new (buf) PyRecord(ri, owner->data, owner);
+    return new (buf) PyRecord(ri, data, owner);
 }
 
 PyRecord::PyRecord(IRecordInfo *ri, PVOID data, PyRecordBuffer *buf_owner)
@@ -775,7 +775,7 @@ PyObject *PyRecord::tp_richcompare(PyObject *self, PyObject *other, int op)
     }
     int success = op == Py_EQ ? TRUE : FALSE;
 
-    if (self->ob_type != other->ob_type) {
+    if (Py_TYPE(self) != Py_TYPE(other)) {
         Py_INCREF(Py_NotImplemented);
         return Py_NotImplemented;
     }

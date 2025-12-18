@@ -169,7 +169,7 @@ ui_type::ui_type(const char *name, ui_type *pBase, Py_ssize_t typeSize,
     };
 
     *((PyTypeObject *)this) = type_template;
-    ((PyObject *)this)->ob_type = &PyType_Type;
+    Py_SET_TYPE(this, &PyType_Type);
     tp_methods = methodList;
     // #define funky_offsetof_weakreflist ((size_t) &((PyObject *)(ui_base_class *)0)->weakreflist)
 
@@ -240,14 +240,14 @@ ui_base_class *ui_base_class::make(ui_type &makeTypeRef)
     }
 
     ui_base_class *pNew = (*makeType->ctor)();
-    pNew->ob_type = makeType;
+    Py_SET_TYPE(pNew, makeType);
     _Py_NewReference(pNew);
 #ifdef _DEBUG  // this is really only for internal errors, and they should be ironed out!
     if (!pNew->is_uiobject(makeType))
         RETURN_ERR("Internal error - created type isn't what was requested!");
 #endif
 #ifdef TRACE_LIFETIMES
-    TRACE("Constructing a '%s' at %p\n", pNew->ob_type->tp_name, pNew);
+    TRACE("Constructing a '%s' at %p\n", Py_TYPE(pNew)->tp_name, pNew);
 #endif
     return pNew;
 }
@@ -260,12 +260,12 @@ ui_base_class *ui_base_class::make(ui_type &makeTypeRef)
     /* Make sure GIL is held; we are called from several places where it's not */
     CEnterLeavePython _celp;
     // Sadly this function is regularly called as objects are destructing
-    // (ie, their ob_refcnt==0.) PyObject_IsInstance dies in this case, so
+    // (ie, their Py_REFCNT()==0.) PyObject_IsInstance dies in this case, so
     // we walk tp_bases manually. This also allows us to maintain the old
     // semantics of "only look for '_obj_' when not some base of ours" as
     // a nice side-effect.
     bool is_native = false;
-    PyTypeObject *thisType = o->ob_type;
+    PyTypeObject *thisType = Py_TYPE(o);
     while (thisType) {
         if (thisType == &ui_base_class::type)
             is_native = true;  // is a c++ impl object.
@@ -292,7 +292,7 @@ ui_base_class *ui_base_class::make(ui_type &makeTypeRef)
     // As we expect the '_obj_' attribute to be a real held reference
     // (rather than a temp or dynamic one), we simply check the refcount
     // is 'safe' for us to decrement before returning.
-    if (obattr->ob_refcnt < 2) {
+    if (Py_REFCNT(obattr) < 2) {
         PyErr_SetString(PyExc_TypeError, "The _obj_ attribute is a temp object so can't be used");
         return NULL;
     }
@@ -352,7 +352,7 @@ CString ui_base_class::repr()
 void ui_base_class::cleanup()
 {
     const char *szTyp = ob_type ? ob_type->tp_name : "<bad type!>";
-    TRACE("cleanup detected type %s, refcount = %d\n", szTyp, ob_refcnt);
+    TRACE("cleanup detected type %s, refcount = %d\n", szTyp, Py_REFCNT(this));
 }
 
 /*static*/ void ui_base_class::sui_dealloc(PyObject *ob)
@@ -381,7 +381,7 @@ void DumpAssocPyObject(CDumpContext &dc, void *object)
         {
             dc << ", Python object ";
             if (AfxIsValidAddress(py_bob, sizeof(ui_assoc_object))) {
-                dc << py_bob << " with refcounf " << py_bob->ob_refcnt;
+                dc << py_bob << " with refcounf " << Py_REFCNT(py_bob);
                 Py_XDECREF(py_bob);
             }
             else
@@ -403,7 +403,7 @@ void DumpAssocPyObject(CDumpContext &dc, void *object)
 void ui_base_class::Dump(CDumpContext &dc) const
 {
     CObject::Dump(dc);
-    dc << "Object of type " << ob_type->tp_name << ", ob_refcnt=" << ob_refcnt;
+    dc << "Object of type " << ob_type->tp_name << ", refcount " << Py_REFCNT(this);
 }
 #endif
 
@@ -2559,9 +2559,9 @@ extern "C" PYW_EXPORT BOOL Win32uiApplicationInit(Win32uiHostGlue *pGlue, const 
     PyObject *argv = PySys_GetObject("argv");
     PyInit_win32ui();
     // Decide if we render sys.argv from command line.
-    // PY3.6- Py_Initialize sets sys.argv=NULL .
-    // PY3.7 Py_Initialize or intentional script triggers set sys.argv=[] .
-    // PY3.8+ Py_Initialize sets sys.argv=[''] - cannot be distinguished
+    // Python 3.6- Py_Initialize sets sys.argv=NULL .
+    // Python 3.7 Py_Initialize or intentional script triggers set sys.argv=[] .
+    // Python 3.8+ Py_Initialize sets sys.argv=[''] - cannot be distinguished
     //   from a pre-existing command line setup anymore. So we need to check
     //   another flag regarding the intended type of invokation, e.g. `cmd`
     //   (or untangle all that crossover startup + module + app init here)

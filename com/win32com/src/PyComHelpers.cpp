@@ -78,7 +78,7 @@ PYCOM_EXPORT BOOL PyObject_AsCurrency(PyObject *ob, CURRENCY *pcy)
     if (right_type == -1)
         return FALSE;
     else if (right_type == 0) {
-        PyErr_Format(PyExc_TypeError, "Currency object must be a Decimal instance (got %s).", ob->ob_type->tp_name);
+        PyErr_Format(PyExc_TypeError, "Currency object must be a Decimal instance (got %s).", Py_TYPE(ob)->tp_name);
         return FALSE;
     }
 
@@ -175,7 +175,7 @@ PYCOM_EXPORT BOOL PyObject_AsDecimal(PyObject *ob, DECIMAL *pdec)
     if (right_type == -1)
         return FALSE;
     else if (right_type == 0) {
-        PyErr_Format(PyExc_TypeError, "DECIMAL object must be a Decimal instance (got %s).", ob->ob_type->tp_name);
+        PyErr_Format(PyExc_TypeError, "DECIMAL object must be a Decimal instance (got %s).", Py_TYPE(ob)->tp_name);
         return FALSE;
     }
 
@@ -348,7 +348,7 @@ BOOL PyCom_InterfaceFromPyObject(PyObject *ob, REFIID iid, LPVOID *ppv, BOOL bNo
     }
 
     if (!PyIBase::is_object(ob, &PyIUnknown::type)) {
-        PyErr_Format(PyExc_ValueError, "argument is not a COM object (got type=%s)", ob->ob_type->tp_name);
+        PyErr_Format(PyExc_ValueError, "argument is not a COM object (got type=%s)", Py_TYPE(ob)->tp_name);
         return FALSE;
     }
     IUnknown *punk = PyIUnknown::GetI(ob);
