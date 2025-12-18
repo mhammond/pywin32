@@ -2044,8 +2044,8 @@ dist = setup(
     packages=packages,
     py_modules=py_modules,
     data_files=[
-        *convert_optional_data_files(["PyWin32.chm"]),  # type: ignore[list-item]
-        *convert_data_files(  # type: ignore[list-item]
+        *convert_optional_data_files(["PyWin32.chm"]),
+        *convert_data_files(
             [
                 "Pythonwin/start_pythonwin.pyw",
                 "pythonwin/pywin/*.cfg",
@@ -2091,20 +2091,22 @@ dist = setup(
                 "com/win32comext/ifilter/demo/*.py",
                 "com/win32comext/authorization/demos/*.py",
                 "com/win32comext/bits/test/*.py",
+                # ISAPI
                 "isapi/*.txt",
                 "isapi/samples/*.py",
                 "isapi/samples/*.txt",
                 "isapi/doc/*.html",
                 "isapi/test/*.py",
                 "isapi/test/*.txt",
+                # adodbapi
                 "adodbapi/*.txt",
                 "adodbapi/test/*.py",
                 "adodbapi/examples/*.py",
             ]
         ),
         # The headers and .lib files
-        ("win32/include", ("win32/src/PyWinTypes.h",)),  # type: ignore[list-item]
-        (  # type: ignore[list-item]
+        ("win32/include", ("win32/src/PyWinTypes.h",)),
+        (
             "win32com/include",
             (
                 "com/win32com/src/include/PythonCOM.h",
@@ -2113,15 +2115,15 @@ dist = setup(
             ),
         ),
         # And data files convert_data_files can't handle.
-        ("", (str(version_file_path),)),  # type: ignore[list-item]
-        ("pythonwin", (str(scintilla_licence_path),)),  # type: ignore[list-item]
-        ("win32comext/mapi", (str(mapi_stubs_licence_path),)),  # type: ignore[list-item]
-        ("win32com", ("com/License.txt",)),  # type: ignore[list-item]
-        ("win32comext", ("com/License.txt",)),  # type: ignore[list-item]
+        ("", (str(version_file_path),)),
+        ("pythonwin", (str(scintilla_licence_path),)),
+        ("win32comext/mapi", (str(mapi_stubs_licence_path),)),
+        ("win32com", ("com/License.txt",)),
+        ("win32comext", ("com/License.txt",)),
         # pythoncom.py doesn't quite fit anywhere else.
         # Note we don't get an auto .pyc - but who cares?
-        ("", ("com/pythoncom.py",)),  # type: ignore[list-item]
-        ("", ("pywin32.pth",)),  # type: ignore[list-item]
+        ("", ("com/pythoncom.py",)),
+        ("", ("pywin32.pth",)),
     ],
 )
 
