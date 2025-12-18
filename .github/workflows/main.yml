@@ -48,8 +48,6 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           architecture: ${{ matrix.python-architecture }}
-          cache: pip
-          cache-dependency-path: .github/workflows/main.yml
           check-latest: true
           allow-prereleases: true
 
@@ -105,29 +103,22 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # pythonarm64 NuGet has no download for Python 3.8 and Python ~=3.9.11
+        # pythonarm64 NuGet has no download for Python ~=3.9.11
         python-version: ["3.9.10", "3.10"]
     steps:
       - uses: actions/checkout@v4
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v6
+        uses: astral-sh/setup-uv@v7
         with:
           python-version: ${{ matrix.python-version }}
-          architecture: x64
-          cache: pip
-          cache-dependency-path: .github/workflows/main.yml
-          check-latest: true
-          allow-prereleases: true
-
-      - name: Install build module
-        run: pip install --upgrade build
+          activate-environment: true
 
       - name: Obtain ARM64 library files
         run: python .github\workflows\download-arm64-libs.py ./arm64libs
 
       - name: Build wheels
-        run: python -m build --wheel --config-setting=--build-option="build_ext -L./arm64libs --plat-name=win-arm64 build --plat-name=win-arm64 bdist_wheel --plat-name=win-arm64"
+        run: uv build --wheel --config-setting=--build-option="build_ext -L./arm64libs --plat-name=win-arm64 build --plat-name=win-arm64 bdist_wheel --plat-name=win-arm64"
 
       - uses: actions/upload-artifact@v4
         with:
@@ -155,13 +146,12 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v6
+      - uses: astral-sh/setup-uv@v7
         with:
           # This job only needs to target the oldest supported version
           python-version: "3.9"
-          cache: pip
-          cache-dependency-path: .github/workflows/main.yml
-      - run: pip install --group=checkers
+          activate-environment: true
+      - run: uv pip install --group=checkers
 
       # !cancelled(): Show issues even if the previous steps failed. But still fail the job
       - name: Run Ruff linter
@@ -192,14 +182,11 @@ jobs:
         python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v6
+      - uses: astral-sh/setup-uv@v7
         with:
           python-version: ${{ matrix.python-version }}
-          cache: pip
-          cache-dependency-path: .github/workflows/main.yml
-          check-latest: true
-          allow-prereleases: true
-      - run: pip install --group=type-checkers
+          activate-environment: true
+      - run: uv pip install --group=type-checkers
 
       - run: mypy . --python-version=${{ matrix.python-version }}
 
