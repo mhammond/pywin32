@@ -189,7 +189,7 @@ PyObject *dataconv_SizeOfVT(PyObject *self, PyObject *args)
     return Py_BuildValue("ii", item_size, stack_size);
 }
 
-#define VALID_BYREF_MISSING(obUse) (obUse == Py_None || obUse->ob_type == &PyOleEmptyType)
+#define VALID_BYREF_MISSING(obUse) (obUse == Py_None || Py_TYPE(obUse) == &PyOleEmptyType)
 
 PyObject *dataconv_WriteFromOutTuple(PyObject *self, PyObject *args)
 {
@@ -437,7 +437,7 @@ PyObject *dataconv_WriteFromOutTuple(PyObject *self, PyObject *args)
                     memcpy(pb, pbOutBuffer, cb);
                 }
                 // keep this after string check since string can act as buffers
-                else if (obOutValue->ob_type->tp_as_buffer) {
+                else if (Py_TYPE(obOutValue)->tp_as_buffer) {
                     PyWinBufferView pybuf(obOutValue);
                     if (!pybuf.ok())
                         goto Error;

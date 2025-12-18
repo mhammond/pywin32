@@ -47,7 +47,7 @@ STDMETHODIMP PyGEmptyVolumeCache::Initialize(
 
     if (!PyTuple_Check(result)) {
         PyErr_Format(PyExc_TypeError, "Initialize must return a tuple of (unicode, unicode, long) - got '%s'",
-                     result->ob_type->tp_name);
+                     Py_TYPE(result)->tp_name);
         bPythonIsHappy = FALSE;
     }
     if (bPythonIsHappy && !PyArg_ParseTuple(result, "OOl", &obppwszDisplayName, &obppwszDescription, &dwFlags))
@@ -89,7 +89,7 @@ STDMETHODIMP PyGEmptyVolumeCache::GetSpaceUsed(
     // Process the Python results, and convert back to the real params
 
     if (!PyWinObject_AsUPY_LONG_LONG(result, pdwlSpaceUsed)) {
-        PyErr_Format(PyExc_TypeError, "GetSpaceUsed must return a long - got '%s'", result->ob_type->tp_name);
+        PyErr_Format(PyExc_TypeError, "GetSpaceUsed must return a long - got '%s'", Py_TYPE(result)->tp_name);
         hr = PyCom_SetAndLogCOMErrorFromPyException("GetSpaceUsed", IID_IEmptyVolumeCache);
     }
     Py_DECREF(result);
@@ -136,7 +136,7 @@ STDMETHODIMP PyGEmptyVolumeCache::Deactivate(
     BOOL bPythonIsHappy = TRUE;
 
     if (!PyWinObject_AsUPY_LONG_LONG(result, pdwFlags)) {
-        PyErr_Format(PyExc_TypeError, "Deactivate must return a long - got '%s'", result->ob_type->tp_name);
+        PyErr_Format(PyExc_TypeError, "Deactivate must return a long - got '%s'", Py_TYPE(result)->tp_name);
         hr = PyCom_SetAndLogCOMErrorFromPyException("Deactivate", IID_IEmptyVolumeCache);
     }
     Py_DECREF(result);
@@ -181,7 +181,7 @@ STDMETHODIMP PyGEmptyVolumeCache2::InitializeEx(
 
     if (!PyTuple_Check(result)) {
         PyErr_Format(PyExc_TypeError, "Initialize must return a tuple of (unicode, unicode, unicode, long) - got '%s'",
-                     result->ob_type->tp_name);
+                     Py_TYPE(result)->tp_name);
         bPythonIsHappy = FALSE;
     }
     if (bPythonIsHappy &&
