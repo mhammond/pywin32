@@ -40,4 +40,4 @@ class __declspec(dllexport) PyNCB : public PyObject {
 };
 
 extern __declspec(dllexport) PyTypeObject PyNCBType;
-#define PyNCB_Check(ob) ((ob)->ob_type == &PyNCBType)
+#define PyNCB_Check(ob) (Py_TYPE(ob) == &PyNCBType)

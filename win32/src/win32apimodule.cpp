@@ -15,6 +15,7 @@ generates Windows .hlp files.
 #include "PyWinTypes.h"
 #include "PyWinObjects.h"
 #include "win32api_display.h"
+#include "win32api_cputopo.h"
 #include "malloc.h"
 
 #include "math.h"  // for some of the date stuff...
@@ -226,7 +227,6 @@ static PyObject *PyDuplicateHandle(PyObject *self, PyObject *args)
 }
 
 // @pymethod int|win32api|GetHandleInformation|Retrieves a handle's flags.
-// @comm Not available on Win98/Me
 // @rdesc Returns a combination of HANDLE_FLAG_INHERIT, HANDLE_FLAG_PROTECT_FROM_CLOSE
 static PyObject *PyGetHandleInformation(PyObject *self, PyObject *args)
 {
@@ -245,7 +245,6 @@ static PyObject *PyGetHandleInformation(PyObject *self, PyObject *args)
 }
 
 // @pymethod |win32api|SetHandleInformation|Sets a handles's flags
-// @comm Not available on Win98/Me
 static PyObject *PySetHandleInformation(PyObject *self, PyObject *args)
 {
     CHECK_PFN(SetHandleInformation);
@@ -4140,7 +4139,7 @@ static PyObject *PyRegSetValueEx(PyObject *self, PyObject *args)
     // @flag REG_QWORD_LITTLE_ENDIAN|A 64-bit number in little-endian format. This is equivalent to REG_QWORD.<nl>In
     // little-endian format, a multi-byte value is stored in memory from the lowest byte (the little end) to the highest
     // byte. For example, the value 0x12345678 is stored as (0x78 0x56 0x34 0x12) in little-endian format. Windows NT
-    // and Windows 95 are designed to run on little-endian computer architectures. A user may connect to computers that
+    // is designed to run on little-endian computer architectures. A user may connect to computers that
     // have big-endian architectures, such as some UNIX systems.
     // @flag REG_DWORD_BIG_ENDIAN|A 32-bit number in big-endian format.
     // In big-endian format, a multi-byte value is stored in memory from the highest byte (the big end) to the lowest
@@ -5479,7 +5478,7 @@ static PyObject *PyApply(PyObject *self, PyObject *args)
             else {
                 // Normalize to class, instance
                 exc_value = exc_type;
-                exc_type = (PyObject *)exc_value->ob_type;
+                exc_type = (PyObject *)Py_TYPE(exc_value);
                 Py_INCREF(exc_type);
                 PyErr_SetObject(exc_type, exc_value);
             }
@@ -5751,7 +5750,7 @@ PyObject *PySetConsoleCtrlHandler(PyObject *self, PyObject *args)
         return Py_None;
     }
     if (!PyCallable_Check(func))
-        return PyErr_Format(PyExc_TypeError, "First argument must be callable (got %s)", func->ob_type->tp_name);
+        return PyErr_Format(PyExc_TypeError, "First argument must be callable (got %s)", Py_TYPE(func)->tp_name);
     // thread-safety provided by GIL
     if (consoleControlHandlers == NULL)
         consoleControlHandlers = PyList_New(0);
@@ -6210,6 +6209,8 @@ static struct PyMethodDef win32api_functions[] = {
     {"GetNativeSystemInfo", PyGetNativeSystemInfo,
      1},  // @pymeth GetNativeSystemInfo|Retrieves information about the current system for a Wow64 process.
     {"GetSystemMetrics", PyGetSystemMetrics, 1},  // @pymeth GetSystemMetrics|Returns the specified system metrics.
+    {"GetSystemCpuSetInformation", PyGetSystemCpuSetInformation,
+     1},  // @pymeth GetSystemCpuSetInformation|Returns CPU topology information for all logical processors.
     {"GetSystemPowerStatus", PyGetSystemPowerStatus,
      METH_NOARGS},                              // @pymeth GetSystemPowerStatus|Retrieves the power status of the system
     {"GetSystemTime", PyGetSystemTime, 1},      // @pymeth GetSystemTime|Returns the current system time.
@@ -6406,6 +6407,11 @@ PYWIN_MODULE_INIT_FUNC(win32api)
         PyDict_SetItemString(dict, "PyDISPLAY_DEVICEType", (PyObject *)&PyDISPLAY_DEVICEType) == -1)
         PYWIN_MODULE_INIT_RETURN_ERROR;
 
+    if (PyType_Ready(&PySYSTEM_CPU_SET_INFORMATIONType) == -1 ||
+        PyDict_SetItemString(dict, "PySYSTEM_CPU_SET_INFORMATIONType", (PyObject *)&PySYSTEM_CPU_SET_INFORMATIONType) ==
+            -1)
+        PYWIN_MODULE_INIT_RETURN_ERROR;
+
     PyModule_AddIntConstant(module, "NameUnknown", NameUnknown);
     PyModule_AddIntConstant(module, "NameFullyQualifiedDN", NameFullyQualifiedDN);
     PyModule_AddIntConstant(module, "NameSamCompatible", NameSamCompatible);
@@ -6474,6 +6480,8 @@ PYWIN_MODULE_INIT_FUNC(win32api)
         pfnSetDllDirectory = (SetDllDirectoryfunc)GetProcAddress(hmodule, "SetDllDirectoryW");
         pfnSetSystemPowerState = (SetSystemPowerStatefunc)GetProcAddress(hmodule, "SetSystemPowerState");
         pfnGetNativeSystemInfo = (GetNativeSystemInfofunc)GetProcAddress(hmodule, "GetNativeSystemInfo");
+        pfnGetSystemCpuSetInformation =
+            (GetSystemCpuSetInformationfunc)GetProcAddress(hmodule, "GetSystemCpuSetInformation");
     }
 
     hmodule = PyWin_GetOrLoadLibraryHandle("user32.dll");
