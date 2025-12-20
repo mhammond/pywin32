@@ -556,12 +556,10 @@ class DispatchBaseClass:
     # Provide a prettier name than the CLSID
     def __repr__(self):
         # Need to get the docstring for the module for this class.
-        try:
-            module = sys.modules[self.__class__.__module__]
-            mod_name = "win32com.gen_py." + (module.__doc__ or module.__name__)
-        except KeyError:
-            mod_name = "win32com.gen_py.unknown"
-        return f"<{mod_name}.{self.__class__.__name__} instance at 0x{id(self)}>"
+        module = sys.modules.get(self.__class__.__module__)
+        mod_name = (module.__doc__ or module.__name__) if module else "unknown"
+        # Wrap mod_name in quotes to make it clear it's not a valid importable module name
+        return f"<win32com.gen_py.{mod_name!r}.{self.__class__.__name__} instance at 0x{id(self)}>"
 
     # Delegate comparison to the oleobjs, as they know how to do identity.
     def __eq__(self, other):
