@@ -34,7 +34,8 @@ class Enumerator:
 
     """
 
-    def __init__(self, enum):
+    def __init__(self, enum, resultCLSID=None):
+        self.resultCLSID = resultCLSID
         self._oleobj_ = enum  # a PyIEnumVARIANT
         self.index = -1
 
@@ -56,9 +57,8 @@ class Enumerator:
             # Index requested out of sequence.
             self._oleobj_.Reset()
             if index:
-                self._oleobj_.Skip(
-                    index
-                )  # if asked for item 1, must skip 1, Python always zero based.
+                # if asked for item 1, must skip 1, Python always zero based.
+                self._oleobj_.Skip(index)
         self.index = index
         result = self._oleobj_.Next(1)
         if len(result):
@@ -76,17 +76,13 @@ class Enumerator:
         return self._oleobj_.Reset()
 
     def Clone(self):
-        return self.__class__(self._oleobj_.Clone())
+        return self.__class__(self._oleobj_.Clone(), self.resultCLSID)
 
     def _make_retval_(self, result):
         return result
 
 
 class EnumVARIANT(Enumerator):
-    def __init__(self, enum, resultCLSID=None):
-        self.resultCLSID = resultCLSID
-        Enumerator.__init__(self, enum)
-
     def _make_retval_(self, result):
         return _get_good_object_(result, resultCLSID=self.resultCLSID)
 
