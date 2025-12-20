@@ -554,10 +554,10 @@ class DispatchBaseClass:
             pass
         return list(set(attributes))
 
-    # Provide a prettier name than the CLSID
     def __repr__(self):
         # Need to get the docstring for the module for this class.
         module = sys.modules.get(self.__class__.__module__)
+        # Provide a prettier name than the CLSID
         mod_name = (module.__doc__ or module.__name__) if module else "unknown"
         # Wrap mod_name in quotes to make it clear it's not a valid importable module name
         return f"<win32com.gen_py.{mod_name!r}.{self.__class__.__name__} instance at 0x{id(self)}>"
