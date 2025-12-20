@@ -13,8 +13,8 @@ checkers = [ # Keep these in sync with .pre-commit-config.yaml
 type-checkers = [
   "types-setuptools",
   "PyOpenGL",
-  "mypy ==1.16.*; python_version >='3.9'",
-  "pyright ==1.1.401",
+  "mypy ==1.19.*",
+  "pyright ==1.1.407",
 ]
 dev = [
   "pre-commit",
