@@ -12,6 +12,7 @@ extend-exclude = ["Pythonwin/pywin/test/_dbgscript.py"]
 line-ending = "cr-lf"
 
 [lint]
+future-annotations = true
 select = [
   "B028", # no-explicit-stacklevel
   "C4", # flake8-comprehensions
