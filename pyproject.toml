@@ -11,7 +11,7 @@ checkers = [ # Keep these in sync with .pre-commit-config.yaml
   "ruff ==0.11.0",
 ]
 type-checkers = [
-  "types-setuptools",
+  "types-setuptools >=80.9.0.20251221",
   "PyOpenGL",
   "mypy ==1.19.*",
   "pyright ==1.1.407",

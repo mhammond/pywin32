@@ -915,7 +915,7 @@ class my_compiler(MSVCCompiler):
                 if cmd[i].startswith(("/MANIFESTFILE:", "/MANIFEST:EMBED")):
                     cmd[i] = "/MANIFEST:NO"
                     break
-        super().spawn(cmd)  # type: ignore[arg-type] # mypy variance issue, but pyright ok
+        super().spawn(cmd)
 
     # CCompiler's implementations of these methods completely replace the values
     # determined by the build environment. This seems like a design that must
