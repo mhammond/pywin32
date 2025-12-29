@@ -128,12 +128,9 @@ class WinExt(Extension):
         if export_symbol_file:
             extra_link_args.append("/DEF:" + export_symbol_file)
 
-        # Some of our swigged files behave differently in distutils vs
-        # MSVC based builds.  Always define DISTUTILS_BUILD so they can tell.
         define_macros = define_macros or []
         define_macros.extend(
             (
-                ("DISTUTILS_BUILD", None),
                 ("_CRT_SECURE_NO_WARNINGS", None),
                 # CRYPT_DECRYPT_MESSAGE_PARA.dwflags is in an ifdef for some unknown reason
                 # See GitHub PR #1444 for more details...
