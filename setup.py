@@ -108,7 +108,6 @@ class WinExt(Extension):
         extra_link_args=None,
         export_symbols=None,
         export_symbol_file=None,
-        extra_swig_commands=None,
         is_regular_dll=False,  # regular Windows DLL?
         # list of headers which may not be installed forcing us to
         # skip this extension
@@ -140,7 +139,6 @@ class WinExt(Extension):
                 ("WINVER", hex(0x0601)),
             )
         )
-        self.extra_swig_commands = extra_swig_commands or []
         self.optional_headers = optional_headers
         self.is_regular_dll = is_regular_dll
         self.platforms = platforms
@@ -701,7 +699,6 @@ class my_build_ext(build_ext):
             self.excluded_extensions.append((ext, why))
             print(f"Skipping {ext.name}: {why}")
             return
-        self.current_extension = ext
 
         ext.finalize_options(self)
 
@@ -786,7 +783,7 @@ class my_build_ext(build_ext):
         os.environ["SWIG_LIB"] = lib
         return swig
 
-    def swig_sources(self, sources, ext=None):
+    def swig_sources(self, sources, ext):
         new_sources = []
         swig_sources = []
         swig_targets = {}
@@ -821,11 +818,11 @@ class my_build_ext(build_ext):
             swig_cmd = [
                 swig,
                 "-python",
-                "-c++",
                 # we never use the .doc files.
                 "-dnone",
             ]
-            swig_cmd.extend(self.current_extension.extra_swig_commands)
+            swig_cmd.extend(self.swig_opts)
+            swig_cmd.extend(ext.swig_opts)
             if platform.machine() in ("AMD64", "ARM64"):
                 swig_cmd.append("-DSWIG_PY64BIT")
             else:
