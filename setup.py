@@ -77,12 +77,7 @@ pywin32_version = "%d.%d.%s" % (
 )
 print("Building pywin32", pywin32_version)
 
-try:
-    this_file = __file__
-except NameError:
-    this_file = sys.argv[0]
-
-this_file = os.path.abspath(this_file)
+this_file = os.path.abspath(__file__)
 # We get upset if the cwd is not our source dir, but it is a PITA to
 # insist people manually CD there first!
 if os.path.dirname(this_file):
