@@ -164,8 +164,8 @@ class WinExt(Extension):
             extra_compile_args,
             extra_link_args,
             export_symbols,
+            depends=depends,
         )
-        self.depends = depends or []  # stash it here, as py22 doesn't have it.
 
     def finalize_options(self, build_ext):
         # distutils doesn't define this function for an Extension - it is
