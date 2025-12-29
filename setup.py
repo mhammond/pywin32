@@ -113,7 +113,6 @@ class WinExt(Extension):
         # skip this extension
         optional_headers=[],
         depends=None,
-        platforms=None,  # none means 'all platforms'
         implib_name=None,
         delay_load_libraries="",
     ):
@@ -141,7 +140,6 @@ class WinExt(Extension):
         )
         self.optional_headers = optional_headers
         self.is_regular_dll = is_regular_dll
-        self.platforms = platforms
         self.implib_name = implib_name
         Extension.__init__(
             self,
@@ -410,9 +408,6 @@ class my_build_ext(build_ext):
                     return "No library '%s'" % lib
                 self.found_libraries[lib.lower()] = found
             patched_libs.append(os.path.splitext(os.path.basename(found))[0])
-
-        if ext.platforms and self.plat_name not in ext.platforms:
-            return f"Only available on platforms {ext.platforms}"
 
         # We update the .libraries list with the resolved library name.
         # This is really only so "_d" works.
