@@ -108,7 +108,6 @@ class WinExt(Extension):
         extra_link_args=None,
         export_symbols=None,
         export_symbol_file=None,
-        pch_header=None,
         extra_swig_commands=None,
         is_regular_dll=False,  # regular Windows DLL?
         # list of headers which may not be installed forcing us to
@@ -141,7 +140,6 @@ class WinExt(Extension):
                 ("WINVER", hex(0x0601)),
             )
         )
-        self.pch_header = pch_header
         self.extra_swig_commands = extra_swig_commands or []
         self.optional_headers = optional_headers
         self.is_regular_dll = is_regular_dll
@@ -168,9 +166,6 @@ class WinExt(Extension):
         # distutils doesn't define this function for an Extension - it is
         # our own invention, and called just before the extension is built.
         if not build_ext.mingw32:
-            if self.pch_header:
-                self.extra_compile_args = self.extra_compile_args or []
-
             # bugger - add this to python!
             if build_ext.plat_name == "win32":
                 self.extra_link_args.append("/MACHINE:x86")
@@ -959,7 +954,6 @@ pywintypes = WinExt_system32(
     ],
     extra_compile_args=["-DBUILD_PYWINTYPES"],
     libraries="advapi32 user32 ole32 oleaut32",
-    pch_header="PyWinTypes.h",
 )
 
 win32_extensions: list[WinExt] = [pywintypes]
@@ -1245,7 +1239,6 @@ pythoncom = WinExt_system32(
     libraries="oleaut32 ole32 user32 urlmon",
     export_symbol_file="com/win32com/src/PythonCOM.def",
     extra_compile_args=["-DBUILD_PYTHONCOM"],
-    pch_header="stdafx.h",
 )
 com_extensions = [
     pythoncom,
@@ -1270,7 +1263,6 @@ com_extensions = [
     ),
     WinExt_win32com(
         "axcontrol",
-        pch_header="axcontrol_pch.h",
         sources=(
             """
                         {axcontrol}/AXControl.cpp
@@ -1311,12 +1303,10 @@ com_extensions = [
         ).split(),
         extra_compile_args=["-DPY_BUILD_AXSCRIPT"],
         implib_name="axscript",
-        pch_header="stdafx.h",
     ),
     WinExt_win32com(
         "axdebug",
         libraries="axscript",
-        pch_header="stdafx.h",
         sources=(
             """
                     {axdebug}/AXDebug.cpp
@@ -1368,7 +1358,6 @@ com_extensions = [
     ),
     WinExt_win32com(
         "internet",
-        pch_header="internet_pch.h",
         sources=(
             """
                         {internet}/internet.cpp                   {internet}/PyIDocHostUIHandler.cpp
@@ -1383,7 +1372,6 @@ com_extensions = [
     WinExt_win32com(
         "mapi",
         libraries="advapi32",
-        pch_header="PythonCOM.h",
         include_dirs=["{mapi}/MapiStubLibrary/include".format(**dirs)],
         sources=(
             """
@@ -1434,7 +1422,6 @@ com_extensions = [
     WinExt_win32com(
         "shell",
         libraries="shell32",
-        pch_header="shell_pch.h",
         sources=(
             """
                         {shell}/PyIActiveDesktop.cpp
@@ -1559,7 +1546,6 @@ com_extensions = [
     WinExt_win32com(
         "bits",
         libraries="Bits",
-        pch_header="bits_pch.h",
         sources=(
             """
                         {bits}/bits.cpp
@@ -1585,7 +1571,6 @@ com_extensions = [
     ),
     WinExt_win32com(
         "directsound",
-        pch_header="directsound_pch.h",
         sources=(
             """
                         {directsound}/directsound.cpp     {directsound}/PyDSBCAPS.cpp
@@ -1675,7 +1660,6 @@ pythonwin_extensions = [
             "Pythonwin/win32win.cpp",
         ],
         extra_compile_args=["-DBUILD_PYW"],
-        pch_header="stdafx.h",
         depends=[
             "Pythonwin/stdafx.h",
             "Pythonwin/win32uiExt.h",
@@ -1741,7 +1725,6 @@ pythonwin_extensions = [
             "Pythonwin/win32oleDlgs.h",
             "Pythonwin/win32uioledoc.h",
         ],
-        pch_header="stdafxole.h",
         optional_headers=["afxres.h"],
     ),
     WinExt_pythonwin(
@@ -1754,7 +1737,6 @@ pythonwin_extensions = [
             "Pythonwin/ddemodule.cpp",
             "Pythonwin/ddeserver.cpp",
         ],
-        pch_header="stdafxdde.h",
         depends=["win32/src/stddde.h", "pythonwin/ddemodule.h"],
         optional_headers=["afxres.h"],
     ),
@@ -1781,7 +1763,6 @@ other_extensions = [
                   PythonEng.h StdAfx.h Utils.h
                """.split()
         ],
-        pch_header="StdAfx.h",
         is_regular_dll=1,
         export_symbols="""HttpExtensionProc GetExtensionVersion
                            TerminateExtension GetFilterVersion
