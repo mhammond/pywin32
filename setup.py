@@ -223,7 +223,6 @@ class WinExt(Extension):
 class WinExt_pythonwin(WinExt):
     def __init__(self, name, **kw):
         kw.setdefault("extra_compile_args", []).extend(["-D_AFXDLL", "-D_AFXEXT"])
-
         WinExt.__init__(self, name, **kw)
 
     def get_pywin32_dir(self):
@@ -244,9 +243,6 @@ class WinExt_pythonwin_subsys_win(WinExt_pythonwin):
 
 
 class WinExt_win32(WinExt):
-    def __init__(self, name, **kw):
-        WinExt.__init__(self, name, **kw)
-
     def get_pywin32_dir(self):
         return "win32"
 
