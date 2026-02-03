@@ -18,6 +18,10 @@ As of build 305, installation .exe files have been deprecated; see
 Coming in build 312, as yet unreleased
 --------------------------------------
 
+* Resolved a handful of deprecation warnings (mhammond#2593, [@Avasam][Avasam])
+* Deprecate `pythoncom.frozen` (mhammond#2593, [@Avasam][Avasam])
+  `pythoncom.frozen` used to expose `Py_FrozenFlag` from the C API.
+  `Py_FrozenFlag` is deprecated since Python 3.12.
 * Added many missing license and copyright notice files (mhammond#2590, [@Avasam][Avasam])
 * Fixed missing version stamp on built `.dll` and `.exe` files (mhammond#2647, [@Avasam][Avasam])
 * Removed considerations for Windows 95/98/ME (mhammond#2400, [@Avasam][Avasam])
