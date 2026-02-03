@@ -921,7 +921,7 @@ PyWNDCLASS::~PyWNDCLASS(void)
 
 PyObject *PyWNDCLASS::getattro(PyObject *self, PyObject *obname)
 {
-	char *name=PYWIN_ATTR_CONVERT(obname);
+	const char *name = PyUnicode_AsUTF8(obname);
 	if (name==NULL)
 		return NULL;
 	PyWNDCLASS *pW = (PyWNDCLASS *)self;
@@ -976,7 +976,7 @@ int PyWNDCLASS::setattro(PyObject *self, PyObject *obname, PyObject *v)
 		PyErr_SetString(PyExc_AttributeError, "can't delete WNDCLASS attributes");
 		return -1;
 	}
-	char *name=PYWIN_ATTR_CONVERT(obname);
+	const char *name = PyUnicode_AsUTF8(obname);
 	if (name==NULL)
 		return -1;
 	PyWNDCLASS *pW = (PyWNDCLASS *)self;
@@ -1128,7 +1128,7 @@ PyBITMAP::~PyBITMAP(void)
 
 PyObject *PyBITMAP::getattro(PyObject *self, PyObject *obname)
 {
-	char *name=PYWIN_ATTR_CONVERT(obname);
+	const char *name = PyUnicode_AsUTF8(obname);
 	if (name==NULL)
 		return NULL;
 	PyBITMAP *pB = (PyBITMAP *)self;
@@ -1144,7 +1144,7 @@ int PyBITMAP::setattro(PyObject *self, PyObject *obname, PyObject *v)
 		PyErr_SetString(PyExc_AttributeError, "can't delete BITMAP attributes");
 		return -1;
 	}
-	char *name=PYWIN_ATTR_CONVERT(obname);
+	const char *name = PyUnicode_AsUTF8(obname);
 	if (name==NULL)
 		return -1;
 	if (strcmp("bmBits", name)==0) {
@@ -1268,7 +1268,7 @@ PyLOGFONT::~PyLOGFONT(void)
 
 PyObject *PyLOGFONT::getattro(PyObject *self, PyObject *obname)
 {
-	char *name=PYWIN_ATTR_CONVERT(obname);
+	const char *name = PyUnicode_AsUTF8(obname);
 	if (name==NULL)
 		return NULL;
 	PyLOGFONT *pL = (PyLOGFONT *)self;
@@ -1284,7 +1284,7 @@ int PyLOGFONT::setattro(PyObject *self, PyObject *obname, PyObject *v)
 		PyErr_SetString(PyExc_AttributeError, "can't delete LOGFONT attributes");
 		return -1;
 	}
-	char *name=PYWIN_ATTR_CONVERT(obname);
+	const char *name = PyUnicode_AsUTF8(obname);
 	if (name==NULL)
 		return -1;
 	if (strcmp("lfFaceName", name)==0) {

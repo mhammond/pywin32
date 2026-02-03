@@ -466,7 +466,7 @@ struct PyMemberDef PyINPUT_RECORD::members[] = {
 PyObject *PyINPUT_RECORD::tp_getattro(PyObject *self, PyObject *obname)
 {
     INPUT_RECORD *pir = &((PyINPUT_RECORD *)self)->input_record;
-    char *name = PYWIN_ATTR_CONVERT(obname);
+    const char *name = PyUnicode_AsUTF8(obname);
     if (name == NULL)
         return NULL;
     if (strcmp(name, "ControlKeyState") == 0) {
@@ -514,8 +514,7 @@ PyObject *PyINPUT_RECORD::tp_getattro(PyObject *self, PyObject *obname)
 int PyINPUT_RECORD::tp_setattro(PyObject *self, PyObject *obname, PyObject *obvalue)
 {
     INPUT_RECORD *pir = &((PyINPUT_RECORD *)self)->input_record;
-    char *name;
-    name = PYWIN_ATTR_CONVERT(obname);
+    const char *name = PyUnicode_AsUTF8(obname);
     if (name == NULL)
         return -1;
     if (obvalue == NULL) {

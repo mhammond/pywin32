@@ -110,7 +110,7 @@ PYWINTYPES_EXPORT PyTypeObject PyOVERLAPPEDType = {
     {"Offset", T_ULONG,
      OFF(m_overlapped.Offset)},  // @prop integer|Offset|Specifies a file position at which to start the transfer. The
                                  // file position is a byte offset from the start of the file. The calling process sets
-                                 // this member before calling the ReadFile or WriteFile function. This member is
+                                 // this member before calling the ReadFile or WriteFile function. This member is
                                  // ignored when reading from or writing to named pipes and communications devices.
     {"OffsetHigh", T_ULONG, OFF(m_overlapped.OffsetHigh)},  // @prop integer|OffsetHigh|Specifies the high word of the
                                                             // byte offset at which to start the transfer.
@@ -123,7 +123,7 @@ PYWINTYPES_EXPORT PyTypeObject PyOVERLAPPEDType = {
     {"hEvent", T_OBJECT, OFF(obDummy)},  // @prop <o PyHANDLE>|hEvent|Identifies an event set to the signaled state when
                                          // the transfer has been completed. The calling process sets this member before
                                          // calling the <om win32file.ReadFile>, <om win32file.WriteFile>, <om
-                                         // win32pipe.ConnectNamedPipe>, or <om win32pipe.TransactNamedPipe> function.
+                                         // win32pipe.ConnectNamedPipe>, or <om win32pipe.TransactNamedPipe> function.
     {"Internal", T_OBJECT,
      OFF(obDummy)},  // @prop integer|Internal|Reserved for operating system use. (pointer-sized value)
     {"InternalHigh", T_OBJECT,
@@ -182,7 +182,7 @@ PyObject *PyOVERLAPPED::richcompareFunc(PyObject *ob, PyObject *other, int op)
 
 PyObject *PyOVERLAPPED::getattro(PyObject *self, PyObject *obname)
 {
-    char *name = PYWIN_ATTR_CONVERT(obname);
+    const char *name = PyUnicode_AsUTF8(obname);
     if (name == NULL)
         return NULL;
     if (strcmp("hEvent", name) == 0) {
@@ -210,7 +210,7 @@ int PyOVERLAPPED::setattro(PyObject *self, PyObject *obname, PyObject *v)
         PyErr_SetString(PyExc_AttributeError, "can't delete OVERLAPPED attributes");
         return -1;
     }
-    char *name = PYWIN_ATTR_CONVERT(obname);
+    const char *name = PyUnicode_AsUTF8(obname);
     if (name == NULL)
         return NULL;
     if (strcmp("hEvent", name) == 0) {

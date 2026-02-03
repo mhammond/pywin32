@@ -127,7 +127,7 @@ PyObject *PySYSTEM_CPU_SET_INFORMATION::tp_str(PyObject *self)
 PyObject *PySYSTEM_CPU_SET_INFORMATION::getattro(PyObject *self, PyObject *obname)
 {
     PySYSTEM_CPU_SET_INFORMATION *psystem_cpu_set_info = (PySYSTEM_CPU_SET_INFORMATION *)self;
-    char *name = PYWIN_ATTR_CONVERT(obname);
+    const char *name = PyUnicode_AsUTF8(obname);
     if (name == NULL)
         return NULL;
 

@@ -135,7 +135,7 @@ PyDSCBUFFERDESC::~PyDSCBUFFERDESC() { Py_XDECREF(m_obWFX); }
 int PyDSCBUFFERDESC::setattro(PyObject *self, PyObject *obname, PyObject *obvalue)
 {
     PyDSCBUFFERDESC *obself = (PyDSCBUFFERDESC *)self;
-    char *name = PYWIN_ATTR_CONVERT(obname);
+    const char *name = PyUnicode_AsUTF8(obname);
 
     if (name == NULL)
         return -1;

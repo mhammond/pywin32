@@ -158,7 +158,7 @@ PyRASEAPUSERIDENTITY::~PyRASEAPUSERIDENTITY()
 
 PyObject *PyRASEAPUSERIDENTITY::getattro(PyObject *self, PyObject *obname)
 {
-    char *name = PYWIN_ATTR_CONVERT(obname);
+    const char *name = PyUnicode_AsUTF8(obname);
     if (name == NULL)
         return NULL;
     PyRASEAPUSERIDENTITY *py = (PyRASEAPUSERIDENTITY *)self;
@@ -268,7 +268,7 @@ PyRASDIALEXTENSIONS::~PyRASDIALEXTENSIONS() { Py_DECREF(m_pyeap); }
 
 PyObject *PyRASDIALEXTENSIONS::getattro(PyObject *self, PyObject *obname)
 {
-    char *name = PYWIN_ATTR_CONVERT(obname);
+    const char *name = PyUnicode_AsUTF8(obname);
     if (name == NULL)
         return NULL;
     PyRASDIALEXTENSIONS *py = (PyRASDIALEXTENSIONS *)self;
@@ -298,7 +298,7 @@ int PyRASDIALEXTENSIONS::setattro(PyObject *self, PyObject *obname, PyObject *va
         PyErr_SetString(PyExc_AttributeError, "can't delete OVERLAPPED attributes");
         return -1;
     }
-    char *name = PYWIN_ATTR_CONVERT(obname);
+    const char *name = PyUnicode_AsUTF8(obname);
     if (name == NULL)
         return -1;
     PyRASDIALEXTENSIONS *py = (PyRASDIALEXTENSIONS *)self;
