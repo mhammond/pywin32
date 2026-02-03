@@ -279,13 +279,7 @@ class VTableItem(build.VTableItem, WritableItem):
                 if item_num % 5 == 0:
                     print("\n\t\t\t", end=" ", file=stream)
                 defval = build.MakeDefaultArgRepr(arg)
-                if arg[3] is None:
-                    arg3_repr = None
-                else:
-                    arg3_repr = repr(arg[3])
-                print(
-                    repr((arg[0], arg[1], defval, arg3_repr)), ",", end=" ", file=stream
-                )
+                print(repr((arg[0], arg[1], defval, arg[3])), ",", end=" ", file=stream)
             print("],", end=" ", file=stream)
             print(repr(desc.funckind), ",", end=" ", file=stream)
             print(repr(desc.invkind), ",", end=" ", file=stream)
