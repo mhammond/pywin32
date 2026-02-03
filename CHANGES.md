@@ -18,6 +18,16 @@ As of build 305, installation .exe files have been deprecated; see
 Coming in build 312, as yet unreleased
 --------------------------------------
 
+* The following classes will now use the correct subclass name in `repr`: (mhammond#2570, [@Avasam][Avasam])
+  * `pywin.tools.browser.HLIPythonObject`
+  * `win32com.client.VARIANT`
+  * `win32com.client.build.MapEntry`
+  * `win32com.server.exception.COMException`
+  * `win32comext.axdebug.debugger.ModuleTreeNode`
+  * `win32comext.axscript.client.pyscript.NamedScriptAttribute`
+  * `win32comext.axscript.client.error.AXScriptException`
+  * `win32pdhquery.QueryError`
+  * `win32rcparser.StringDef`
 * Added many missing license and copyright notice files (mhammond#2590, [@Avasam][Avasam])
 * Fixed missing version stamp on built `.dll` and `.exe` files (mhammond#2647, [@Avasam][Avasam])
 * Removed considerations for Windows 95/98/ME (mhammond#2400, [@Avasam][Avasam])

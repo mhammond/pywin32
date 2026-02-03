@@ -679,7 +679,7 @@ class CoClassBaseClass:
 
 # A very simple VARIANT class.  Only to be used with poorly-implemented COM
 # objects.  If an object accepts an arg which is a simple "VARIANT", but still
-# is very pickly about the actual variant type (eg, isn't happy with a VT_I4,
+# is very picky about the actual variant type (eg, isn't happy with a VT_I4,
 # which it would get from a Python integer), you can use this to force a
 # particular VT.
 class VARIANT:
@@ -701,4 +701,4 @@ class VARIANT:
     value = property(_get_value, _set_value, _del_value)
 
     def __repr__(self):
-        return f"win32com.client.VARIANT({self.varianttype!r}, {self._value!r})"
+        return f"{self.__class__.__module__}.{self.__class__.__name__}({self.varianttype!r}, {self._value!r})"
