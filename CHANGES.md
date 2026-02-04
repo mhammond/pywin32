@@ -19,6 +19,7 @@ Coming in build 312, as yet unreleased
 --------------------------------------
 
 * Implement multidimensional SAFEARRAY(COM Record) and SAFEARRAY(double) (mhammond#2655, [@geppi][geppi])
+* Added many missing license and copyright notice files (mhammond#2590, [@Avasam][Avasam])
 * Fixed missing version stamp on built `.dll` and `.exe` files (mhammond#2647, [@Avasam][Avasam])
 * Removed considerations for Windows 95/98/ME (mhammond#2400, [@Avasam][Avasam])
   This removes the following constants:
@@ -28,6 +29,9 @@ Coming in build 312, as yet unreleased
 * Fix regression introduced by mhammond#2506 (mhammond#2640, [@geppi][geppi])
 * Removed considerations for MFC < 9 (VS 2008) (mhammond#2669, [@Avasam][Avasam])
   * This removes the unusable `PyCSliderCtrl.VerifyPos` method
+* Dropped support for Python 3.8 (mhammond#2413, [@Avasam][Avasam])
+  * Note that whilst pywin32 hasn't explicitly dropped support for Windows 7 / Windows Server 2008,
+    Python 3.8 was the last official CPython version to support it.
 
 Build 311, released 2025/07/14
 ------------------------------
