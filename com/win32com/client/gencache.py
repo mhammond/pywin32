@@ -430,19 +430,16 @@ def ForgetAboutTypelibInterface(typelib_ob):
     major = tla[3]
     minor = tla[4]
     info = str(guid), lcid, major, minor
-    try:
+    if info in demandGeneratedTypeLibraries:
         del demandGeneratedTypeLibraries[info]
-    except KeyError:
+    else:
         # Not worth raising an exception - maybe they don't know we only remember for demand generated, etc.
         print(
-            "ForgetAboutTypelibInterface:: Warning - type library with info {} is not being remembered!".format(
-                info
-            )
+            f"ForgetAboutTypelibInterface:: Warning - type library with {info=} is not being remembered!"
         )
     # and drop any version redirects to it
-    for key, val in versionRedirectMap.items():
-        if val == info:
-            del versionRedirectMap[key]
+    if info in versionRedirectMap:
+        del versionRedirectMap[info]
 
 
 def EnsureModule(
