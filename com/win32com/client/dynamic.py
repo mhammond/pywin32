@@ -389,10 +389,9 @@ class CDispatch:
         elif isinstance(ob, tuple):
             return tuple(
                 map(
-                    lambda o,
-                    s=self,
-                    oun=userName,
-                    rc=ReturnCLSID: s._get_good_single_object_(o, oun, rc),
+                    lambda o, s=self, oun=userName, rc=ReturnCLSID: (
+                        s._get_good_single_object_(o, oun, rc)
+                    ),
                     ob,
                 )
             )
