@@ -872,7 +872,7 @@ def PackDEV_BROADCAST(devicetype, rest_fmt, rest_data, extra_data=b""):
     extra_data += b"\0" * (4 - len(extra_data) % 4)
     format = "iii" + rest_fmt
     full_size = struct.calcsize(format) + len(extra_data)
-    data = (full_size, devicetype, 0) + rest_data
+    data = (full_size, devicetype, 0, *rest_data)
     return struct.pack(format, *data) + extra_data
 
 
