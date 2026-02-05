@@ -6,8 +6,9 @@ import win32api
 import win32con
 import win32ui
 
-from . import (  # nopycln: import # Injects fast_readline into the IDLE auto-indent extension
-    IDLEenvironment,
+from . import (
+    # https://github.com/astral-sh/ruff/issues/15705
+    IDLEenvironment,  # noqa: F401 # Injects fast_readline into the IDLE auto-indent extension
 )
 
 HANDLER_ARGS_GUESS = 0

@@ -97,7 +97,7 @@ Part of the adodbapi package\'s \_\_init\_\_.py looks something like
 this:
 
 ```python
-if sys.version_info < (3,0): # in Python 2, define all symbols, just like before
+if sys.version_info < (3, 0):  # in Python 2, define all symbols, just like before
     from apibase import *  # using this is bad
     from ado_consts import *  # using this is worse
 else:
@@ -109,7 +109,8 @@ else:
     from apibase import NUMBER, STRING, BINARY, DATETIME, ROWID
 
 from adodbapi import connect, Connection, __version__
-version = 'adodbapi v' + __version__
+
+version = "adodbapi v" + __version__
 ```
 
 Please, use only those last four symbols from adodbapi. All others
@@ -125,7 +126,8 @@ set name
 
 ```python
 import adodbapi
-myConn = adodbapi.connect('myDataSetName')
+
+myConn = adodbapi.connect("myDataSetName")
 ```
 
 Which will work just fine, provided you (or someone) has done all of the
@@ -138,6 +140,7 @@ Usually, life is not so simple
 
 ```python
 import adodbapi
+
 myhost = r".\SQLEXPRESS"
 mydatabase = "Northwind"
 myuser = "guest"
@@ -163,7 +166,7 @@ connStr = """Provider=SQLOLEDB.1; User ID=%(user)s;
 Password=%(password)s;\"Initial Catalog=%(database)s;
 Data Source= %(host)s"""
 
-myConn=adodbapi.connect(connStr, myuser, mypassword, myhost, mydatabase)
+myConn = adodbapi.connect(connStr, myuser, mypassword, myhost, mydatabase)
 ```
 
 Which will work.
@@ -172,7 +175,9 @@ It would be better documented, however, to use keyword, rather than
 positional arguments:
 
 ```python
-myConn = adodbapi.connect(connStr, user=myuser, password=mypassword, host=myhost, database=mydatabase)
+myConn = adodbapi.connect(
+    connStr, user=myuser, password=mypassword, host=myhost, database=mydatabase
+)
 ```
 
 In adodbapi, you may also pass keywords using a dictionary structure,
@@ -193,11 +198,13 @@ the dictionary. As an extension, I allow the first (or second)
 positional argument to be the keyword dictionary.
 
 ```python
-conn_args = {'host': r".\\SQLEXPRESS",
-    'database' : "Northwind",
-    'user': "guest",
-    'password' : "12345678"}
-conn_args['connection_string'] = """Provider=SQLOLEDB.1;
+conn_args = {
+    "host": r".\\SQLEXPRESS",
+    "database": "Northwind",
+    "user": "guest",
+    "password": "12345678",
+}
+conn_args["connection_string"] = """Provider=SQLOLEDB.1;
     User ID=%(user)s; Password=%(password)s;
     Initial Catalog=%(database)s; Data Source= %(host)s"""
 
@@ -256,9 +263,9 @@ conn_keys['connection_string'] = "Provider=%(provider)s; ... and ... more ... st
     I thought it would be handy to let others do a similar thing. so:
 
 ```python
-conn_keys['macro_getuser'] = 'database'
+conn_keys["macro_getuser"] = "database"
 
-conn_keys['connection_string'] = "...stuff...; Initial Catalog=%(database)s; ..."
+conn_keys["connection_string"] = "...stuff...; Initial Catalog=%(database)s; ..."
 ```
 
 - macro "auto_security": Build ADO security string automagically.
@@ -268,19 +275,19 @@ login security ... otherwise use SQL Server security with "user" and
 
 ```python
 if macro_name == "auto_security":
-    if not 'user' in kwargs or not bool(kwargs['user']):
-        return new_key, 'Integrated Security=SSPI'
-    return new_key, 'User ID=%(user)s; Password=%(password)s'
+    if not "user" in kwargs or not bool(kwargs["user"]):
+        return new_key, "Integrated Security=SSPI"
+    return new_key, "User ID=%(user)s; Password=%(password)s"
 
     # note that %(user) and %(password) are not substituted here,
     # they are put in place to be substituted before being sent to ADO.
 ```
 
 ```python
-conn_keys['macro_auto_security'] = ['secure']
-conn_keys['user'] = None # username here for Server Security
-conn_keys['password'] = 'xys' # ignored if "user" is blank or undefined
-conn_keys['connection_string'] = "\...stuff...; %(secure)s"
+conn_keys["macro_auto_security"] = ["secure"]
+conn_keys["user"] = None  # username here for Server Security
+conn_keys["password"] = "xys"  # ignored if "user" is blank or undefined
+conn_keys["connection_string"] = "\...stuff...; %(secure)s"
 ```
 
 \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--
@@ -553,7 +560,7 @@ parameters (as as sequence) in the correct order for the `?`s.
 
 ```python
 sql = "UPDATE cheese SET qtyonhand = ? WHERE name = ?"
-args = [0, 'MUNSTER']
+args = [0, "MUNSTER"]
 crsr.execute(sql, args)
 ```
 
@@ -566,7 +573,7 @@ correct order.
 
 ```python
 sql = "UPDATE cheese SET qtyonhand = %s WHERE name = %s"
-args = [0, 'MUNSTER']
+args = [0, "MUNSTER"]
 crsr.execute(sql, args)
 ```
 
@@ -581,7 +588,7 @@ a dozen or more parameters, it really helps.
 
 ```python
 sql = "UPDATE cheese SET qtyonhand = :qty WHERE name = :prodname"
-args = {'qty' : 0, 'prodname' : 'MUNSTER'}
+args = {"qty": 0, "prodname": "MUNSTER"}
 crsr.execute(sql, args)
 ```
 
@@ -659,7 +666,7 @@ As an extension, a Row object can also be indexed by column name:
 
 ```python
 crsr.execute("SELECT prodname, price, qtyonhand FROM cheese")
-for row in crsr:                        # note extension: using crsr as an iterator
+for row in crsr:  # note extension: using crsr as an iterator
     value = row["price"] * row["qtyonhand"]
     print("Your {:10s} is worth {:10.2f}".format(row["prodname"], value))
 ```
@@ -708,6 +715,7 @@ change several data retrieval functions:
 ```python
 import adodbapi.ado_consts as adc
 import adodbapi.apibase as api
+
 conn.variantConversions = api.variantConversions  # MAGIC: will make a copy.
 
 conn.variantConversions[(adc.adTinyInt, adc.adChar)] = myByteFunc
@@ -752,7 +760,7 @@ crsr.fetchone()
 To do this by column name, use:
 
 ```python
-crsr.conversions[crsr.columnNames['mycolumn']] = myFunc
+crsr.conversions[crsr.columnNames["mycolumn"]] = myFunc
 ```
 
 The Examples folder

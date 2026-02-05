@@ -19,14 +19,8 @@ repos:
         args: [--autofix, --indent, "2", --offset, "2", --preserve-quotes]
       - id: pretty-format-ini
         args: [--autofix]
-  - repo: https://github.com/hadialqattan/pycln
-    rev: v2.4.0
-    hooks:
-      - id: pycln
-        args: [--config=pycln.toml]
-        verbose: true
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.11.0
+    rev: v0.15.0
     hooks:
       - id: ruff # Run the linter.
         args: [--fix]

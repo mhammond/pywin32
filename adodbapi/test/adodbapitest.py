@@ -81,9 +81,8 @@ class CommonDBTests(unittest.TestCase):
             assert conn.messages[0][0] == api.ProgrammingError
 
     def testOwnErrorHandlerConnection(self):
-        mycallable = (
-            lambda connection, cursor, errorclass, errorvalue: 1
-        )  # does not raise anything
+        # does not raise anything
+        mycallable = lambda connection, cursor, errorclass, errorvalue: 1
         conn = self.getConnection()
         conn.errorhandler = mycallable
         conn.close()
@@ -112,9 +111,8 @@ class CommonDBTests(unittest.TestCase):
             assert crsr.messages[0][0] == api.DatabaseError
 
     def testOwnErrorHandlerCursor(self):
-        mycallable = (
-            lambda connection, cursor, errorclass, errorvalue: 1
-        )  # does not raise anything
+        # does not raise anything
+        mycallable = lambda connection, cursor, errorclass, errorvalue: 1
         crsr = self.getConnection().cursor()
         crsr.errorhandler = mycallable
         crsr.execute("SELECT abbtytddrf FROM dasdasd")
