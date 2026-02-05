@@ -13,6 +13,8 @@ The makepy command line etc handling is also getting large enough in its own rig
 # Then the old non-package technique should be removed.
 # There should be no b/w compat issues, and will just help clean the code.
 # This will be done once the new "demand" mechanism gets a good workout.
+from __future__ import annotations
+
 import os
 import sys
 import time
@@ -442,7 +444,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
 
     def WriteClassBody(self, generator):
         stream = generator.file
-        specialItems = {
+        specialItems: dict[str, tuple | None] = {
             "count": None,
             "item": None,
             "value": None,
