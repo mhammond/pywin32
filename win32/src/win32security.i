@@ -1000,7 +1000,6 @@ BOOLAPI RevertToSelf();
 %{
 // @pyswig <o PyHANDLE>|LogonUser|Attempts to log a user on to the local computer, that is, to the computer from which LogonUser was called. You cannot use LogonUser to log on to a remote computer.
 // @comm Accepts keyword args
-// @comm On Windows 2000 and earlier, the calling process must have SE_TCB_NAME privilege.
 PyObject *PyLogonUser(PyObject *self, PyObject *args, PyObject *kwargs)
 {
 	DWORD logontype, logonprovider;
@@ -4129,9 +4128,9 @@ static PyObject *PyMapGenericMask(PyObject *self, PyObject *args)
 
 // ACE types
 #define ACCESS_ALLOWED_ACE_TYPE ACCESS_ALLOWED_ACE_TYPE					// Access-allowed ACE that uses the ACCESS_ALLOWED_ACE structure.
-#define ACCESS_ALLOWED_OBJECT_ACE_TYPE ACCESS_ALLOWED_OBJECT_ACE_TYPE	// Windows 2000/XP: Object-specific access-allowed ACE that uses the ACCESS_ALLOWED_OBJECT_ACE structure.
+#define ACCESS_ALLOWED_OBJECT_ACE_TYPE ACCESS_ALLOWED_OBJECT_ACE_TYPE	// Object-specific access-allowed ACE that uses the ACCESS_ALLOWED_OBJECT_ACE structure.
 #define ACCESS_DENIED_ACE_TYPE ACCESS_DENIED_ACE_TYPE					// Access-denied ACE that uses the ACCESS_DENIED_ACE structure.
-#define ACCESS_DENIED_OBJECT_ACE_TYPE ACCESS_DENIED_OBJECT_ACE_TYPE		// Windows 2000/XP: Object-specific access-denied ACE that uses the ACCESS_DENIED_OBJECT_ACE structure.
+#define ACCESS_DENIED_OBJECT_ACE_TYPE ACCESS_DENIED_OBJECT_ACE_TYPE		// Object-specific access-denied ACE that uses the ACCESS_DENIED_OBJECT_ACE structure.
 #define SYSTEM_AUDIT_ACE_TYPE SYSTEM_AUDIT_ACE_TYPE						// System-audit ACE that uses the SYSTEM_AUDIT_ACE structure.
 #define SYSTEM_AUDIT_OBJECT_ACE_TYPE SYSTEM_AUDIT_OBJECT_ACE_TYPE
 

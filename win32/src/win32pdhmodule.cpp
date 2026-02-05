@@ -418,7 +418,6 @@ static PyObject *PyAddCounter(PyObject *self, PyObject *args)
 }
 
 // @pymethod int|win32pdh|AddEnglishCounter|Adds a counter to a query by its English name
-// @comm Available on Vista and later
 // @rdesc Returns a handle to the counter
 static PyObject *PyAddEnglishCounter(PyObject *self, PyObject *args)
 {
