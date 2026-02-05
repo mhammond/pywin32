@@ -224,7 +224,7 @@ class WinExt_pythonwin(WinExt):
 
         def __init__(self, *args, **kw):
             kw.setdefault("extra_compile_args", []).extend(["-D_AFXDLL", "-D_AFXEXT"])
-            super().__init__(self, *args, **kw)
+            super().__init__(*args, **kw)
 
     def get_pywin32_dir(self):
         return "pythonwin"
@@ -266,12 +266,10 @@ class WinExt_win32com(WinExt):
         delay_load_libraries: list[str] | None = None,
         **kw,
     ):
-        libraries = libraries + ["oleaut32", "ole32"]
-        WinExt.__init__(
-            self,
+        super().__init__(
             name,
             sources,
-            libraries=libraries,
+            libraries=libraries + ["oleaut32", "ole32"],
             depends=depends,
             delay_load_libraries=delay_load_libraries,
             **kw,
