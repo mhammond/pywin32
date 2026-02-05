@@ -375,7 +375,7 @@ class my_build_ext(build_ext):
         # The pywintypes library is created in the build_temp
         # directory, so we need to add this to library_dirs
         self.library_dirs.append(self.build_temp)
-        self.mingw32 = self.compiler.compiler_type == "mingw32"
+        self.mingw32 = self.compiler == "mingw32"
         if self.mingw32:
             self.libraries.append("stdc++")
 
