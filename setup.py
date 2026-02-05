@@ -359,8 +359,6 @@ class my_build(build):
 
 
 class my_build_ext(build_ext):
-    # These types are incomplete in Setuptools
-    # TODO: Complete upstream
     compiler: ccompiler.CCompiler
     extensions: list[WinExt]
 
