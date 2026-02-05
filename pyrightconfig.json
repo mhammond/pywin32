@@ -42,8 +42,6 @@
   "reportOptionalIterable": "warning",
   "reportOptionalMemberAccess": "warning",
   "reportOptionalSubscript": "warning",
-  // Too many dynamically generated modules. This will require type stubs to properly fix.
-  "reportMissingImports": "warning",
   // IDEM, but happens when pywin32 is not in site-packages but module is found from typeshed.
   // TODO: Is intended to be fixed with an editable install
   // Since we're a library, and not user code, we care less about forgetting to install a dependency,
