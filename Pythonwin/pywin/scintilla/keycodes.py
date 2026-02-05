@@ -1,11 +1,7 @@
 import win32api
 import win32con
-import win32ui
 
 MAPVK_VK_TO_CHAR = 2
-
-key_name_to_vk = {}
-key_code_to_name = {}
 
 _better_names = {
     "escape": "esc",
@@ -14,21 +10,19 @@ _better_names = {
     "next": "pgdn",
 }
 
-
-def _fillvkmap():
-    # Pull the VK_names from win32con
-    names = [entry for entry in win32con.__dict__ if entry.startswith("VK_")]
-    for name in names:
-        code = getattr(win32con, name)
-        n = name[3:].lower()
+# Pull the VK_names from win32con
+key_name_to_vk: dict[str, int] = {}
+key_code_to_name: dict[int, str] = {}
+for __name in win32con.__dict__:
+    if not __name.startswith("VK_"):
+        continue
+    code = getattr(win32con, __name)
+    n = __name[3:].lower()
+    key_name_to_vk[n] = code
+    if n in _better_names:
+        n = _better_names[n]
         key_name_to_vk[n] = code
-        if n in _better_names:
-            n = _better_names[n]
-            key_name_to_vk[n] = code
-        key_code_to_name[code] = n
-
-
-_fillvkmap()
+    key_code_to_name[code] = n
 
 
 def get_vk(chardesc):

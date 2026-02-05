@@ -5,6 +5,7 @@
 # (which is win32service.error, pywintypes.error, etc)
 # when things go wrong - eg, not enough permissions to hit the
 # registry etc.
+from __future__ import annotations
 
 import importlib.machinery
 import os
@@ -578,6 +579,9 @@ def RestartService(serviceName, args=None, waitSeconds=30, machine=None):
             win32api.Sleep(1000)
     else:
         print("Gave up waiting for the old service to stop!")
+
+
+g_debugService: ServiceFramework | None = None
 
 
 def _DebugCtrlHandler(evt):
