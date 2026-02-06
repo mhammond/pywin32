@@ -319,6 +319,7 @@ library PyCOMTestLib
         // Test struct byref as [ in, out ] parameter.
         HRESULT ModifyStruct([ in, out ] TestStruct1 * prec);
         HRESULT VerifyArrayOfStructs([in] TestStruct2 * prec, [ out, retval ] VARIANT_BOOL * is_ok);
+        HRESULT GetNestedStruct([out, retval]TestStruct3 *ret);
         HRESULT ModifyArrayOfStructs([in, out] SAFEARRAY(TestStruct3) * array_of_structs);
 	};
 
