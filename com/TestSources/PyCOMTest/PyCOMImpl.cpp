@@ -657,6 +657,36 @@ HRESULT CPyCOMTest::VerifyArrayOfStructs(TestStruct2 *prec, VARIANT_BOOL *is_ok)
     return S_OK;
 }
 
+HRESULT CPyCOMTest::GetNestedStruct(TestStruct3 *ret)
+{
+    HRESULT hr;
+    double d_next;
+    double d = 1.0;
+    double last_d = 0.0;
+    SAFEARRAYBOUND rgsabound[1] = {7, 0};
+    TestStruct3 outer;
+    outer.id = 7.0;
+    outer.a_struct_field.int_value = 33;
+    outer.a_struct_field.str_value = SysAllocString(L"Fibonacci");
+
+    outer.array_of_double = SafeArrayCreate(VT_R8, 1, rgsabound);
+    if (outer.array_of_double == NULL)
+        return E_OUTOFMEMORY;
+    long i;
+    for (i = 0; i < 7; i++) {
+        if (S_OK != (hr = SafeArrayPutElement(outer.array_of_double, &i, &d))) {
+            SafeArrayDestroy(outer.array_of_double);
+            return hr;
+        }
+        d_next = d + last_d;
+        last_d = d;
+        d = d_next;
+    }
+
+    *ret = outer;
+    return S_OK;
+}
+
 HRESULT CPyCOMTest::ModifyArrayOfStructs(SAFEARRAY **array_of_structs)
 {
     HRESULT hr;
