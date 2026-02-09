@@ -524,6 +524,40 @@ def TestArrayOfStructs(o, test_rec):
     assert o.VerifyArrayOfStructs(test_rec)
 
 
+def TestNestedStructs(o):
+    # Create an instance of a Record type with a nested Record field.
+    outer = TestStruct3()
+    # Initialize the Record fields including the fields of the nested Record.
+    outer.id = 7.0
+    outer.a_struct_field.int_value = 33
+    outer.a_struct_field.str_value = "Fibonacci"
+    outer.array_of_double = (1.0, 1.0, 2.0, 3.0, 5.0, 8.0, 13.0)
+    # We expect the representation to include the nested Record instance field values.
+    assert (
+        str(outer) == "com_struct(a_struct_field=com_struct(int_value=33, "
+        "str_value='Fibonacci'), array_of_double=(1.0, 1.0, "
+        "2.0, 3.0, 5.0, 8.0, 13.0), id=7.0)"
+    )
+    # Create a seperate instance of the nested Record type.
+    inner = TestStruct1()
+    # Initialize it with the same values as the nested instance above.
+    inner.int_value = 33
+    inner.str_value = "Fibonacci"
+    # We expect the types of this instace and the nested instance to be equal.
+    assert type(outer.a_struct_field) is TestStruct1
+    # We expect that their fields have the same values.
+    assert outer.a_struct_field == inner
+    # We expect that nevertheless they are different instance objects.
+    assert outer.a_struct_field is not inner
+    # Get a nested Record returned from a method.
+    nested = o.GetNestedStruct()
+    # We expect it to have the same field values as the 'outer' Record instance.
+    assert nested == outer
+    # Access the inner Record directly.
+    assert nested.a_struct_field.int_value == inner.int_value
+    assert nested.a_struct_field.str_value == inner.str_value
+
+
 def TestNestedArrays(o):
     # First we test the assignment of a nested sequence of Records
     # to a Record member attribute, followed by the retrieval of the
@@ -676,6 +710,8 @@ def TestGenerated():
     test_rec = ArrayOfStructsTestStruct()
     assert type(test_rec) is ArrayOfStructsTestStruct
     TestArrayOfStructs(o, test_rec)
+    progress("Testing nested Records.")
+    TestNestedStructs(o)
     progress("Testing multidimensional SAFEARRAYS of Records and double.")
     TestNestedArrays(o)
 
