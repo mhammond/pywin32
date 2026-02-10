@@ -382,6 +382,18 @@ class DispatchItem(OleItem):
         if doc and doc[1]:
             ret.append(linePrefix + "\t" + _makeDocString(doc[1]))
 
+        for i, desc in enumerate(fdesc[2]):
+            if (
+                desc[0] & pythoncom.VT_RECORD
+                and desc[1] & (pythoncom.PARAMFLAG_FOUT | pythoncom.PARAMFLAG_FIN)
+                == pythoncom.PARAMFLAG_FOUT
+                and desc[3]
+                and desc[3].__class__.__name__ == "PyIID"
+            ):
+                outVal = f"pythoncom.GetRecordFromGuids(CLSID, MajorVersion, MinorVersion, LCID, {desc[3]!r})"
+                ret.append(f"{linePrefix}\tif {names[i + 1]} == {defOutArg}:")
+                ret.append(f"{linePrefix}\t\t{names[i + 1]} = {outVal}")
+
         resclsid = entry.GetResultCLSID()
         if resclsid:
             resclsid = "'%s'" % resclsid
@@ -592,7 +604,7 @@ def _ResolveType(typerepr, itypeinfo):
                 return pythoncom.VT_UNKNOWN, clsid, retdoc
 
             elif typeKind == pythoncom.TKIND_RECORD:
-                return pythoncom.VT_RECORD, None, None
+                return pythoncom.VT_RECORD, resultAttr.iid, None
             raise NotSupportedException("Can not resolve alias or user-defined type")
     return typeSubstMap.get(typerepr, typerepr), None, None
 

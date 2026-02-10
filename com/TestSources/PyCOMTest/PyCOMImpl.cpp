@@ -626,6 +626,16 @@ HRESULT CPyCOMTest::GetStruct(TestStruct1 *ret)
     return S_OK;
 }
 
+HRESULT CPyCOMTest::GetOutStruct(TestStruct1 *pRecord)
+{
+    if (pRecord == NULL) {
+        return E_POINTER;
+    }
+    pRecord->int_value = 99;
+    pRecord->str_value = SysAllocString(L"Luftballons");
+    return S_OK;
+}
+
 HRESULT CPyCOMTest::ModifyStruct(TestStruct1 *prec)
 {
     prec->int_value = 100;
