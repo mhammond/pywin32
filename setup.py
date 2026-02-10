@@ -1356,7 +1356,6 @@ com_extensions = [
     ),
     WinExt_win32com(
         "internet",
-        pch_header="internet_pch.h",
         sources="""
             {internet}/internet.cpp                   {internet}/PyIDocHostUIHandler.cpp
             {internet}/PyIHTMLOMWindowServices.cpp    {internet}/PyIInternetBindInfo.cpp
