@@ -189,7 +189,7 @@ PyObject *dataconv_SizeOfVT(PyObject *self, PyObject *args)
     return Py_BuildValue("ii", item_size, stack_size);
 }
 
-#define VALID_BYREF_MISSING(obUse) (obUse == Py_None || obUse->ob_type == &PyOleEmptyType)
+#define VALID_BYREF_MISSING(obUse) (obUse == Py_None || Py_TYPE(obUse) == &PyOleEmptyType)
 
 PyObject *dataconv_WriteFromOutTuple(PyObject *self, PyObject *args)
 {

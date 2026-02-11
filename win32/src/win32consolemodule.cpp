@@ -1549,7 +1549,7 @@ PyTypeObject PyConsoleScreenBufferType = {
     PyConsoleScreenBuffer::tp_new         // tp_new
 };
 
-#define PyConsoleScreenBuffer_Check(ob) ((ob)->ob_type == &PyConsoleScreenBufferType)
+#define PyConsoleScreenBuffer_Check(ob) (Py_TYPE(ob) == &PyConsoleScreenBufferType)
 
 PyObject *PyWinObject_FromConsoleScreenBuffer(HANDLE h, BOOL bDuplicate)
 {
