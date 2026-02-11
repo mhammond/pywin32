@@ -2015,8 +2015,6 @@ dist = setup(
                 "pythonwin/pywin/Demos/*.py",
                 "pythonwin/pywin/Demos/app/*.py",
                 "pythonwin/pywin/Demos/ocx/*.py",
-                "pythonwin/license.txt",
-                "win32/license.txt",
                 "win32/scripts/*.py",
                 "win32/test/*.py",
                 "win32/test/win32rcparser/test.rc",
@@ -2026,6 +2024,11 @@ dist = setup(
                 "win32/Demos/*.py",
                 "win32/Demos/images/*.bmp",
                 "com/win32com/readme.html",
+                # Licenses
+                "com/win32comext/mapi/NOTICE.md",
+                "pythonwin/License.txt",
+                "pythonwin/pywin/idle/*.txt",
+                "win32/License.txt",
                 # win32com test utility files.
                 "com/win32com/test/*.idl",
                 "com/win32com/test/*.js",
