@@ -301,7 +301,7 @@ def RegisterServer(
         _remove_key(keyNameRoot + "\\PythonCOMPath")
 
     if addPyComCat is None:
-        addPyComCat = __frozen == False
+        addPyComCat = not __frozen
     if addPyComCat:
         catids = catids + [CATID_PythonCOMServer]
 
