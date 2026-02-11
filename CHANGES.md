@@ -18,6 +18,7 @@ As of build 305, installation .exe files have been deprecated; see
 Coming in build 312, as yet unreleased
 --------------------------------------
 
+* Implement COM Records as [out] method parameters (mhammond#2708, [@geppi][geppi], [@the-snork][the-snork])
 * Implement multidimensional SAFEARRAY(COM Record) and SAFEARRAY(double) (mhammond#2655, [@geppi][geppi])
 * Added many missing license and copyright notice files (mhammond#2590, [@Avasam][Avasam])
 * Fixed missing version stamp on built `.dll` and `.exe` files (mhammond#2647, [@Avasam][Avasam])
