@@ -213,9 +213,9 @@ def RegisterServer(
         clsctx = pythoncom.CLSCTX_INPROC_SERVER | pythoncom.CLSCTX_LOCAL_SERVER
     # And if we are frozen, ignore the ones that don't make sense in this context.
     if __frozen:
-        if __frozen == "dll":
+        if __frozen == "dll":  # Frozen py2exe DLL
             clsctx &= pythoncom.CLSCTX_INPROC_SERVER
-        else:
+        else:  # True | "windows_exe"
             clsctx &= pythoncom.CLSCTX_LOCAL_SERVER
     # Now setup based on the clsctx left over.
     if clsctx & pythoncom.CLSCTX_INPROC_SERVER:
