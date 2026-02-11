@@ -220,7 +220,7 @@ def RunScript(
     debuggingType: int | None = None,
 ):
     global lastScript, lastArgs, lastDebuggingType
-    _debugger_stop_frame_ = 1  # Magic variable so the debugger will hide me!
+    _debugger_stop_frame_ = True  # Magic variable so the debugger will hide me!
 
     # Get the debugger - may be None!
     debugger = GetDebugger()
@@ -461,11 +461,11 @@ def ImportFile() -> None:
             sys.path.append(newPath)
 
     if modName in sys.modules:
-        bNeedReload = 1
+        bNeedReload = True
         what = "reload"
     else:
         what = "import"
-        bNeedReload = 0
+        bNeedReload = False
 
     win32ui.SetStatusText(what.capitalize() + "ing module...", 1)
     win32ui.DoWaitCursor(1)
