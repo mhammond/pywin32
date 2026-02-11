@@ -1,11 +1,23 @@
-# Utilities for the pywin32 tests
+"""Utilities for the pywin32 tests"""
+
+from __future__ import annotations
+
 import gc
 import os
 import site
 import sys
 import unittest
+from collections import Counter
+from typing import TYPE_CHECKING
 
+import pythoncom
+import pywintypes
 import winerror
+from pythoncom import _GetGatewayCount, _GetInterfaceCount
+from win32com.shell.shell import IsUserAnAdmin
+
+if TYPE_CHECKING:
+    from _typeshed import OptExcInfo
 
 ##
 ## unittest related stuff
@@ -37,10 +49,7 @@ class LeakTestCase(unittest.TestCase):
         return self.num_test_cases
 
     def __call__(self, result=None):
-        # For the COM suite's sake, always ensure we don't leak
-        # gateways/interfaces
-        from pythoncom import _GetGatewayCount, _GetInterfaceCount
-
+        # For the COM suite's sake, always ensure we don't leak gateways/interfaces
         gc.collect()
         ni = _GetInterfaceCount()
         ng = _GetGatewayCount()
@@ -145,20 +154,17 @@ class TestLoader(unittest.TestLoader):
 
 # win32 error codes that probably mean we need to be elevated (ie, if we
 # aren't elevated, we treat these error codes as 'skipped')
-non_admin_error_codes = [
+non_admin_error_codes = {
     winerror.ERROR_ACCESS_DENIED,
     winerror.ERROR_PRIVILEGE_NOT_HELD,
-]
+}
 
-_is_admin = None
+_is_admin: bool | None = None
 
 
-def check_is_admin():
+def check_is_admin() -> bool:
     global _is_admin
     if _is_admin is None:
-        import pythoncom
-        from win32com.shell.shell import IsUserAnAdmin
-
         try:
             _is_admin = IsUserAnAdmin()
         except pythoncom.com_error as exc:
@@ -197,30 +203,19 @@ def find_test_fixture(basename, extra_dir="."):
             d = os.path.normcase(d)
             if os.path.commonprefix([this_file, d]) == d:
                 # looks like we are in an installed Python, so skip the text.
-                raise TestSkipped(f"Can't find test fixture '{fname}'")
+                raise unittest.SkipTest(f"Can't find test fixture '{fname}'")
         # Looks like we are running from source, so this is fatal.
         raise RuntimeError(f"Can't find test fixture '{fname}'")
 
 
-# If this exception is raised by a test, the test is reported as a 'skip'
-class TestSkipped(Exception):
-    pass
-
-
 # The 'TestResult' subclass that records the failures and has the special
-# handling for the TestSkipped exception.
+# handling for the unittest.SkipTest exception.
 class TestResult(unittest.TextTestResult):
-    def __init__(self, *args, **kw):
-        super().__init__(*args, **kw)
-        self.skips = {}  # count of skips for each reason.
+    def addError(self, test: unittest.TestCase, err: OptExcInfo) -> None:
+        """Called when an error has occurred.
 
-    def addError(self, test, err):
-        """Called when an error has occurred. 'err' is a tuple of values as
-        returned by sys.exc_info().
+        Translate a couple of 'well-known' exceptions into 'skipped'
         """
-        # translate a couple of 'well-known' exceptions into 'skipped'
-        import pywintypes
-
         exc_val = err[1]
         # translate ERROR_ACCESS_DENIED for non-admin users to be skipped.
         # (access denied errors for an admin user aren't expected.)
@@ -229,42 +224,27 @@ class TestResult(unittest.TextTestResult):
             and exc_val.winerror in non_admin_error_codes
             and not check_is_admin()
         ):
-            exc_val = TestSkipped(exc_val)
+            return self.addSkip(test, str(exc_val))
         # and COM errors due to objects not being registered (the com test
         # suite will attempt to catch this and handle it itself if the user
         # is admin)
-        elif isinstance(exc_val, pywintypes.com_error) and exc_val.hresult in [
+        elif isinstance(exc_val, pywintypes.com_error) and exc_val.hresult in {
             winerror.CO_E_CLASSSTRING,
             winerror.REGDB_E_CLASSNOTREG,
             winerror.TYPE_E_LIBNOTREGISTERED,
-        ]:
-            exc_val = TestSkipped(exc_val)
-        # NotImplemented generally means the platform doesn't support the
-        # functionality.
+        }:
+            return self.addSkip(test, str(exc_val))
+        # NotImplemented generally means the platform doesn't support the functionality.
         elif isinstance(exc_val, NotImplementedError):
-            exc_val = TestSkipped(NotImplementedError)
+            return self.addSkip(test, str(exc_val))
 
-        if isinstance(exc_val, TestSkipped):
-            reason = exc_val.args[0]
-            # if the reason itself is another exception, get its args.
-            try:
-                reason = tuple(reason.args)
-            except (AttributeError, TypeError):
-                pass
-            self.skips.setdefault(reason, 0)
-            self.skips[reason] += 1
-            if self.showAll:
-                self.stream.writeln(f"SKIP ({reason})")
-            elif self.dots:
-                self.stream.write("S")
-                self.stream.flush()
-            return
         super().addError(test, err)
 
-    def printErrors(self):
+    def printErrors(self) -> None:
         super().printErrors()
-        for reason, num_skipped in self.skips.items():
-            self.stream.writeln("SKIPPED: %d tests - %s" % (num_skipped, reason))
+        reasons = [reason for (_, reason) in self.skipped]
+        for reason, num_skipped in Counter(reasons).items():
+            self.stream.writeln(f"SKIPPED: {num_skipped} tests - {reason}")
 
 
 # TestRunner subclass necessary just to get our TestResult hooked up.

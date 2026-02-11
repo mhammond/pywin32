@@ -8,7 +8,7 @@ import pywintypes
 import win32api
 import win32com.directsound.directsound as ds
 import win32event
-from pywin32_testutil import TestSkipped, find_test_fixture
+from pywin32_testutil import find_test_fixture
 
 # next two lines are for for debugging:
 # import win32com
@@ -37,7 +37,7 @@ def wav_header_unpack(data):
 
     assert riff == b"RIFF", "invalid wav header"
 
-    # fmt chuck is not first chunk, directly followed by data chuck
+    # fmt chunk is not first chunk, directly followed by data chunk
     # It is nowhere required that they are, it is just very common
     assert fmtsize == 16 and fmt == b"fmt " and data == b"data", (
         "cannot understand wav header"
@@ -298,7 +298,7 @@ class DirectSoundTest(unittest.TestCase):
         except pythoncom.com_error as exc:
             if exc.hresult != ds.DSERR_NODRIVER:
                 raise
-            raise TestSkipped(exc)
+            raise unittest.SkipTest(str(exc))
 
     def testPlay(self):
         """Mesdames et Messieurs, la cour de Devin Dazzle"""
@@ -318,7 +318,7 @@ class DirectSoundTest(unittest.TestCase):
             except pythoncom.com_error as exc:
                 if exc.hresult != ds.DSERR_NODRIVER:
                     raise
-                raise TestSkipped(exc)
+                raise unittest.SkipTest(str(exc))
             d.SetCooperativeLevel(None, ds.DSSCL_PRIORITY)
 
             sdesc = ds.DSBUFFERDESC()
@@ -358,7 +358,7 @@ class DirectSoundCaptureTest(unittest.TestCase):
         except pythoncom.com_error as exc:
             if exc.hresult != ds.DSERR_NODRIVER:
                 raise
-            raise TestSkipped(exc)
+            raise unittest.SkipTest(str(exc))
 
     def testRecord(self):
         try:
@@ -366,7 +366,7 @@ class DirectSoundCaptureTest(unittest.TestCase):
         except pythoncom.com_error as exc:
             if exc.hresult != ds.DSERR_NODRIVER:
                 raise
-            raise TestSkipped(exc)
+            raise unittest.SkipTest(str(exc))
 
         sdesc = ds.DSCBUFFERDESC()
         sdesc.dwBufferBytes = 352800  # 2 seconds
