@@ -106,6 +106,7 @@ class CPyCOMTest : public IDispatchImpl<IPyCOMTest, &IID_IPyCOMTest, &LIBID_PyCO
     STDMETHOD(TestOptionals2)(double dval, BSTR strval, short sval, SAFEARRAY **pRet);
     STDMETHOD(TestOptionals3)(double dval, short sval, IPyCOMTest **outinterface2);
     STDMETHOD(GetStruct)(TestStruct1 *ret);
+    STDMETHOD(GetOutStruct)(TestStruct1 *pRecord);
     STDMETHOD(DoubleString)(BSTR inStr, BSTR *outStr);
     STDMETHOD(DoubleInOutString)(BSTR *str);
     STDMETHOD(TestMyInterface)(IUnknown *t);

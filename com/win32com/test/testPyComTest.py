@@ -657,8 +657,14 @@ def TestGenerated():
 
     # Test plain pythoncom.com_record structs.
     progress("Testing baseclass pythoncom.com_record structs.")
+    # Test pythoncom.com_record as an [out] parameter.
+    r = o.GetOutStruct()
+    assert type(r) is pythoncom.com_record
+    assert r.int_value == 99 and str(r.str_value) == "Luftballons"
+    # Test pythoncom.com_record as a retval:
     r = o.GetStruct()
     assert type(r) is pythoncom.com_record
+    assert r.int_value == 99 and str(r.str_value) == "Hello from C++"
     TestStructByref(o, r)
     test_rec = Record("TestStruct2", o)
     assert type(test_rec) is pythoncom.com_record
@@ -700,6 +706,13 @@ def TestGenerated():
     parent_struct.a_struct_field = member_struct
     retrieved_struct = parent_struct.a_struct_field
     assert retrieved_struct == member_struct
+
+    # Test a pythoncom.com_record subclass as an [out] parameter.
+    r = o.GetOutStruct()
+    # After 'TestStruct1' was registered as an instantiable subclass
+    # of pythoncom.com_record, the return value should have this type.
+    assert type(r) is TestStruct1
+    assert r.int_value == 99 and str(r.str_value) == "Luftballons"
 
     # Perform the 'Byref' and 'ArrayOfStruct tests using the registered subclasses.
     r = o.GetStruct()
