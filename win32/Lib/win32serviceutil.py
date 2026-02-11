@@ -5,11 +5,13 @@
 # (which is win32service.error, pywintypes.error, etc)
 # when things go wrong - eg, not enough permissions to hit the
 # registry etc.
+from __future__ import annotations
 
 import importlib.machinery
 import os
 import sys
 import warnings
+from typing import ClassVar
 
 import pywintypes
 import win32api
@@ -967,9 +969,9 @@ class ServiceFramework:
 
     # Optional Attributes:
     _svc_deps_ = None  # sequence of service names on which this depends
-    _exe_name_ = None  # Default to PythonService.exe
-    _exe_args_ = None  # Default to no arguments
-    _svc_description_ = (
+    _exe_name_: ClassVar[str | None] = None  # Default to PythonService.exe
+    _exe_args_: ClassVar[str | None] = None  # Default to no arguments
+    _svc_description_: ClassVar[str | None] = (
         None  # Only exists on Windows 2000 or later, ignored on windows NT
     )
 
