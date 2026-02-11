@@ -20,6 +20,7 @@ select = [
   # String formatting, concatenating, interpolation, ...
   "FLY", # static-join-to-f-string
   "G", # flake8-logging-format
+  "SIM905", # split-static-string
 
   # Ensure modern type annotation syntax and best practices
   # Not including those covered by type-checkers or exclusive to Python 3.11+
