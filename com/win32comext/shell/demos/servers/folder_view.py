@@ -5,10 +5,13 @@
 # than our own.
 # XXX - sadly, it doesn't work quite like the original sample.  Oh well,
 # another day...
+from __future__ import annotations
+
 import os
 import pickle
 import random
 import sys
+from typing import ClassVar
 
 import commctrl
 import pythoncom
@@ -39,7 +42,8 @@ def NewEnum(seq, iid):
 
 # The sample makes heavy use of "string ids" (ie, integer IDs defined in .h
 # files, loaded at runtime from a (presumably localized) DLL.  We cheat.
-_sids = {}  # strings, indexed bystring_id,
+_sids: dict[int, str] = {}
+"""strings, indexed by string_id"""
 
 
 def LoadString(sid):
@@ -301,7 +305,7 @@ class FolderViewCategorizer:
     _com_interfaces_ = [shell.IID_ICategorizer]
     _public_methods_ = shellcon.ICategorizer_Methods
 
-    description = None  # subclasses should set their own
+    description: ClassVar[str | None] = None  # subclasses should set their own
 
     def __init__(self, shell_folder):
         self.sf = shell_folder
