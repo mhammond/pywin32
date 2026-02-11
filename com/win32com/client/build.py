@@ -391,8 +391,12 @@ class DispatchItem(OleItem):
                 and desc[3].__class__.__name__ == "PyIID"
             ):
                 outVal = f"pythoncom.GetRecordFromGuids(CLSID, MajorVersion, MinorVersion, LCID, {desc[3]!r})"
-                ret.append(f"{linePrefix}\tif {names[i + 1]} == {defOutArg}:")
-                ret.append(f"{linePrefix}\t\t{names[i + 1]} = {outVal}")
+                ret.extend(
+                    (
+                        f"{linePrefix}\tif {names[i + 1]} == {defOutArg}:",
+                        f"{linePrefix}\t\t{names[i + 1]} = {outVal}",
+                    )
+                )
 
         resclsid = entry.GetResultCLSID()
         if resclsid:
