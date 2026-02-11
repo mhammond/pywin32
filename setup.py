@@ -33,7 +33,8 @@ import re
 import shutil
 import sys
 import winreg
-from collections.abc import Iterable, MutableSequence
+from abc import abstractmethod
+from collections.abc import Iterable
 from pathlib import Path
 from setuptools import Extension, setup
 from setuptools.command.build import build
@@ -86,6 +87,10 @@ if os.path.dirname(this_file):
 version_file_path = Path(gettempdir(), "pywin32.version.txt")
 scintilla_licence_path = Path(gettempdir(), "Scintilla-License.txt")
 mapi_stubs_licence_path = Path(gettempdir(), "MAPIStubLibrary-License.txt")
+
+
+def remove_manifest_flags(ldflags: list[str]):
+    ldflags[:] = [ldflag for ldflag in ldflags if not ldflag.startswith("/MANIFEST")]
 
 
 class WinExt(Extension):
@@ -219,6 +224,10 @@ class WinExt(Extension):
         self.extra_compile_args.append("-D_UNICODE")
         self.extra_compile_args.append("-DWINNT")
 
+    @abstractmethod
+    def get_pywin32_dir(self) -> str:
+        raise NotImplementedError
+
 
 class WinExt_pythonwin(WinExt):
     def __init__(self, name, **kw):
@@ -350,6 +359,9 @@ class my_build(build):
 
 
 class my_build_ext(build_ext):
+    compiler: ccompiler.CCompiler
+    extensions: list[WinExt]
+
     def finalize_options(self) -> None:
         super().finalize_options()
 
@@ -361,7 +373,7 @@ class my_build_ext(build_ext):
         # The pywintypes library is created in the build_temp
         # directory, so we need to add this to library_dirs
         self.library_dirs.append(self.build_temp)
-        self.mingw32 = self.compiler == "mingw32"
+        self.mingw32 = self.compiler == "mingw32"  # type: ignore[comparison-overlap] # compiler is a string until `run` is run
         if self.mingw32:
             self.libraries.append("stdc++")
 
@@ -561,11 +573,23 @@ class my_build_ext(build_ext):
         # 'pythonwin' etc), as distutils doesn't seem to like the concept
         # of multiple top-level directories.
         assert self.package is None
+
+        if self.compiler.compiler_type == "msvc":
+            # We provide our own manifest, so pass in "/MANIFEST:NO",
+            # then remove "/MANIFESTFILE:", "/MANIFEST:EMBED", and "/MANIFESTUAC:"
+            # to avoid LNK4075 warning spam
+            for ext in self.extensions:
+                remove_manifest_flags(ext.extra_link_args)
+                ext.extra_link_args.append("/MANIFEST:NO")
+            remove_manifest_flags(self.compiler.ldflags_exe)
+            remove_manifest_flags(self.compiler.ldflags_exe_debug)
+            remove_manifest_flags(self.compiler.ldflags_shared)
+            remove_manifest_flags(self.compiler.ldflags_shared_debug)
+
         for ext in self.extensions:
-            try:
-                self.package = ext.get_pywin32_dir()
-            except AttributeError:
+            if not isinstance(ext, WinExt):
                 raise RuntimeError("Not a win32 package!")
+            self.package = ext.get_pywin32_dir()
             self.build_extension(ext)
 
         for ext in W32_exe_files:
@@ -616,7 +640,7 @@ class my_build_ext(build_ext):
         m = re.search(r"\\VC\\Tools\\", vcbase)
         if m:
             # typical path on newer Visual Studios
-            # prefere corresponding version but accept different version
+            # prefer corresponding version but accept different version
             same_version = vcverdir is not None and os.path.isdir(
                 vcbase[: m.start()]
                 + r"\VC\Redist\MSVC\{}{}".format(vcverdir, self.plat_dir)
@@ -874,17 +898,7 @@ class my_compiler(MSVCCompiler):
             return (e, b)
 
         sources = sorted(sources, key=key_reverse_mc)
-        return MSVCCompiler.compile(self, sources, **kwargs)
-
-    def spawn(self, cmd: MutableSequence[str]) -> None:  # type: ignore[override] # More restrictive than supertype
-        is_link = cmd[0].endswith("link.exe") or cmd[0].endswith('"link.exe"')
-        if is_link:
-            # remove /MANIFESTFILE:... and add MANIFEST:NO
-            for i in range(len(cmd)):
-                if cmd[i].startswith(("/MANIFESTFILE:", "/MANIFEST:EMBED")):
-                    cmd[i] = "/MANIFEST:NO"
-                    break
-        super().spawn(cmd)
+        return super().compile(sources, **kwargs)
 
     # CCompiler's implementations of these methods completely replace the values
     # determined by the build environment. This seems like a design that must
@@ -1761,7 +1775,7 @@ other_extensions = [
     )
 ]
 
-W32_exe_files = [
+W32_exe_files: list[WinExt] = [
     WinExt_pythonservice(
         "pythonservice",
         sources=[
