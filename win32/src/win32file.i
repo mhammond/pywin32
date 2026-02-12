@@ -420,7 +420,7 @@ PyObject *py_DeviceIoControl(PyObject *self, PyObject *args, PyObject *kwargs)
 			PyErr_Clear();
 			return PyErr_Format(PyExc_TypeError,
 				"OutBuffer must be either a buffer size or writeable buffer object, not %s",
-				obOutBuffer->ob_type->tp_name);
+				Py_TYPE(obOutBuffer)->tp_name);
 			}
 		}
 
@@ -1103,7 +1103,7 @@ PyObject *PyWinObject_FromQueuedOVERLAPPED(OVERLAPPED *p)
 	// Also check it is a valid write pointer (we don't write to it, but all
 	// PyObjects are writable, so that extra check is worthwhile)
 	// This is NOT foolproof - screw up reference counting and things may die!
-	if (po->ob_refcnt<=0 || po->ob_type==0 || IsBadWritePtr(po, sizeof(PyOVERLAPPED))) {
+    if (Py_REFCNT(po)<=0 || Py_TYPE(po)==nullptr || IsBadWritePtr(po, sizeof(PyOVERLAPPED))) {
 		PyErr_SetString(PyExc_RuntimeError, "This overlapped object has lost all its references so was destroyed");
 		return NULL;
 	}
@@ -4346,7 +4346,7 @@ py_CloseEncryptedFileRaw(PyObject *self, PyObject *args)
 	// object destructs and we attempt to close it a second time, x64 crashes.
 	// So must bypass the CObject API for this.
 	if (!PyCapsule_IsValid(obctxt, NULL))
-		return PyErr_Format(PyExc_TypeError, "param must be handle to an encrypted file (got type %s)", obctxt->ob_type->tp_name);
+		return PyErr_Format(PyExc_TypeError, "param must be handle to an encrypted file (got type %s)", Py_TYPE(obctxt)->tp_name);
 	if (PyCapsule_GetDestructor(obctxt) != encryptedfilecontextdestructor)
 		return PyErr_Format(PyExc_TypeError, "param must be handle to an encrypted file (got a CObject with invalid destructor)");
 	/* PyCapsule will *not* allow you to set the pointer to NULL, so use its extra context pointer

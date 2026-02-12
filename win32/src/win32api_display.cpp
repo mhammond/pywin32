@@ -100,7 +100,7 @@ PyDISPLAY_DEVICE::~PyDISPLAY_DEVICE() {}
 
 BOOL PyDISPLAY_DEVICE_Check(PyObject *ob)
 {
-    if (ob->ob_type != &PyDISPLAY_DEVICEType) {
+    if (Py_TYPE(ob) != &PyDISPLAY_DEVICEType) {
         PyErr_SetString(PyExc_TypeError, "Object must be a PyDISPLAY_DEVICE");
         return FALSE;
     }

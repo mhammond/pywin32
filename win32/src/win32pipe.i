@@ -169,19 +169,19 @@ PyObject *MySetNamedPipeHandleState(PyObject *self, PyObject *args)
 		return NULL;
     if (obMode!=Py_None) {
         if (!PyLong_Check(obMode))
-            return PyErr_Format(PyExc_TypeError, "mode param must be None or an integer (got %s)", obMode->ob_type->tp_name);
+            return PyErr_Format(PyExc_TypeError, "mode param must be None or an integer (got %s)", Py_TYPE(obMode)->tp_name);
         Mode = PyLong_AsLong(obMode);
         pMode = &Mode;
     }
     if (obMaxCollectionCount!=Py_None) {
         if (!PyLong_Check(obMaxCollectionCount))
-            return PyErr_Format(PyExc_TypeError, "maxCollectionCount param must be None or an integer (got %s)", obMaxCollectionCount->ob_type->tp_name);
+            return PyErr_Format(PyExc_TypeError, "maxCollectionCount param must be None or an integer (got %s)", Py_TYPE(obMaxCollectionCount)->tp_name);
         MaxCollectionCount = PyLong_AsLong(obMaxCollectionCount);
         pMaxCollectionCount = &MaxCollectionCount;
     }
     if (obCollectDataTimeout!=Py_None) {
         if (!PyLong_Check(obCollectDataTimeout))
-            return PyErr_Format(PyExc_TypeError, "collectDataTimeout param must be None or an integer (got %s)", obCollectDataTimeout->ob_type->tp_name);
+            return PyErr_Format(PyExc_TypeError, "collectDataTimeout param must be None or an integer (got %s)", Py_TYPE(obCollectDataTimeout)->tp_name);
         CollectDataTimeout = PyLong_AsLong(obCollectDataTimeout);
         pCollectDataTimeout = &CollectDataTimeout;
     }

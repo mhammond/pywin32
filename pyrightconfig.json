@@ -1,5 +1,7 @@
 {
   "typeCheckingMode": "basic",
+  // Needs to be set for non-Windows CI runners
+  "pythonPlatform": "Windows",
   // Target the oldest supported version in editors and default CLI
   "pythonVersion": "3.9",
   // Keep it simple for now by allowing both mypy and pyright to use `type: ignore`
@@ -7,6 +9,7 @@
   // Exclude from scanning when running pyright
   "exclude": [
     ".git/", // Avoids scanning git branch names ending in ".py"
+    ".venv/",
     "build/",
     // Vendored
     "Pythonwin/Scintilla/",
@@ -16,6 +19,7 @@
     "**/Test/",
     "**/test/",
     "**/Demos/",
+    "**/demos/",
     "**/demo/",
   ],
   // Packages that will be accessible globally.
@@ -32,15 +36,12 @@
   "reportArgumentType": "none",
   "reportAttributeAccessIssue": "none",
   // FIXE: These all need to be fixed first and turned back to error
-  // some of the fixes need to be done in types-pywin32 from typeshed
   "reportCallIssue": "warning",
   "reportOperatorIssue": "warning",
   "reportOptionalCall": "warning",
   "reportOptionalIterable": "warning",
   "reportOptionalMemberAccess": "warning",
   "reportOptionalSubscript": "warning",
-  // Needs fixes in types-pywin32 and requires Python 3.8 to annotate ambiguous global variables
-  "reportUnnecessaryComparison": "warning",
   // Too many dynamically generated modules. This will require type stubs to properly fix.
   "reportMissingImports": "warning",
   // IDEM, but happens when pywin32 is not in site-packages but module is found from typeshed.
@@ -50,6 +51,6 @@
   "reportMissingModuleSource": "none",
   // External type stubs may not be completable, and this will require type stubs for dynamic modules.
   "reportMissingTypeStubs": "information",
-  // Use Flake8/Pycln/Ruff instead
+  // Use Pycln/Ruff instead
   "reportUnusedImport": "none",
 }

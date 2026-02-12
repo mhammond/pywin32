@@ -241,7 +241,7 @@ BOOL PyObject_AsPIDL(PyObject *ob, LPITEMIDLIST *ppidl, BOOL bNoneOK /*= FALSE*/
     }
     if (!PySequence_Check(ob) || PyBytes_Check(ob)) {
         PyErr_Format(PyExc_TypeError, "Only sequences (but not strings) are valid ITEMIDLIST objects (got %s).",
-                     ob->ob_type->tp_name);
+                     Py_TYPE(ob)->tp_name);
         return FALSE;
     }
     Py_ssize_t num_items = PySequence_Length(ob);
@@ -256,7 +256,7 @@ BOOL PyObject_AsPIDL(PyObject *ob, LPITEMIDLIST *ppidl, BOOL bNoneOK /*= FALSE*/
         if (!sub)
             return FALSE;
         if (!PyBytes_Check(sub)) {
-            PyErr_Format(PyExc_TypeError, "ITEMIDLIST sub-items must be strings (got %s)", sub->ob_type->tp_name);
+            PyErr_Format(PyExc_TypeError, "ITEMIDLIST sub-items must be strings (got %s)", Py_TYPE(sub)->tp_name);
             Py_DECREF(sub);
             return FALSE;
         }
@@ -281,7 +281,7 @@ BOOL PyObject_AsPIDL(PyObject *ob, LPITEMIDLIST *ppidl, BOOL bNoneOK /*= FALSE*/
             return FALSE;
         /* Don't need to check this again, called holding GIL so nothing can modify the sequence
         if (!PyBytes_Check(sub)) {
-            PyErr_Format(PyExc_TypeError, "ITEMIDLIST sub-items must be strings (got %s)", sub->ob_type->tp_name);
+            PyErr_Format(PyExc_TypeError, "ITEMIDLIST sub-items must be strings (got %s)", Py_TYPE(sub)->tp_name);
             Py_DECREF(sub);
             return FALSE;
         }
@@ -412,7 +412,7 @@ PyObject *PyObject_AsCIDA(PyObject *ob)
     if (!PyObject_AsPIDL(obParent, &pidlParent, FALSE, &cbParent))
         goto done;
     if (!PySequence_Check(obKids)) {
-        PyErr_Format(PyExc_ValueError, "Kids must be a sequence if PIDLs (not %s)", obKids->ob_type->tp_name);
+        PyErr_Format(PyExc_ValueError, "Kids must be a sequence if PIDLs (not %s)", Py_TYPE(obKids)->tp_name);
         goto done;
     }
     nKids = PySequence_Length(obKids);
@@ -2137,7 +2137,7 @@ static PyObject *PyFILEGROUPDESCRIPTORAsString(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "O|i", &ob, &make_unicode))
         return NULL;
     if (!PySequence_Check(ob))
-        return PyErr_Format(PyExc_TypeError, "must be a sequence of mapping objects (got '%s')", ob->ob_type->tp_name);
+        return PyErr_Format(PyExc_TypeError, "must be a sequence of mapping objects (got '%s')", Py_TYPE(ob)->tp_name);
     int num = PySequence_Length(ob);
     if (num == -1)
         return NULL;
@@ -2174,7 +2174,7 @@ static PyObject *PyFILEGROUPDESCRIPTORAsString(PyObject *self, PyObject *args)
         if (!sub)
             goto done;
         if (!PyMapping_Check(sub)) {
-            PyErr_Format(PyExc_TypeError, "sub-items must be mapping objects (got '%s')", sub->ob_type->tp_name);
+            PyErr_Format(PyExc_TypeError, "sub-items must be mapping objects (got '%s')", Py_TYPE(sub)->tp_name);
             goto loop_failed;
         }
 
