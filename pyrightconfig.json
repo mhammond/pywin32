@@ -38,7 +38,6 @@
   // FIXE: These all need to be fixed first and turned back to error
   "reportCallIssue": "warning",
   "reportOperatorIssue": "warning",
-  "reportOptionalCall": "warning",
   "reportOptionalIterable": "warning",
   "reportOptionalMemberAccess": "warning",
   "reportOptionalSubscript": "warning",
