@@ -45,7 +45,7 @@ def randomstring(length):
 
 
 class CommonDBTests(unittest.TestCase):
-    "Self contained super-simple tests in easy syntax, should work on everything between mySQL and Oracle"
+    """Self contained super-simple tests in easy syntax, should work on everything between mySQL and Oracle"""
 
     def setUp(self):
         self.engine = "unknown"
