@@ -135,66 +135,66 @@ static PyObject *PyMAPIUninitialize(PyObject *self, PyObject *args)
 %}
 
 %init %{
-	if ( PyCom_RegisterClientType(&PyIMAPISession::type, &IID_IMAPISession) != 0 ) return MODINIT_ERROR_RETURN;
+	if ( PyCom_RegisterClientType(&PyIMAPISession::type, &IID_IMAPISession) != 0 ) return NULL;
 	ADD_IID(IID_IMAPISession);
 
-	if ( PyCom_RegisterClientType(&PyIMAPIStatus::type, &IID_IMAPIStatus) != 0 ) return MODINIT_ERROR_RETURN;
+	if ( PyCom_RegisterClientType(&PyIMAPIStatus::type, &IID_IMAPIStatus) != 0 ) return NULL;
 	ADD_IID(IID_IMAPIStatus);
 
-	if ( PyCom_RegisterClientType(&PyIMAPITable::type, &IID_IMAPITable) != 0 ) return MODINIT_ERROR_RETURN;
+	if ( PyCom_RegisterClientType(&PyIMAPITable::type, &IID_IMAPITable) != 0 ) return NULL;
 	ADD_IID(IID_IMAPITable);
 
-	if ( PyCom_RegisterClientType(&PyIMAPIProp::type, &IID_IMAPIProp) != 0 ) return MODINIT_ERROR_RETURN;
+	if ( PyCom_RegisterClientType(&PyIMAPIProp::type, &IID_IMAPIProp) != 0 ) return NULL;
 	ADD_IID(IID_IMAPIProp);
 
-	if ( PyCom_RegisterClientType(&PyIMAPIFolder::type, &IID_IMAPIFolder) != 0 ) return MODINIT_ERROR_RETURN;
+	if ( PyCom_RegisterClientType(&PyIMAPIFolder::type, &IID_IMAPIFolder) != 0 ) return NULL;
 	ADD_IID(IID_IMAPIFolder);
 
-	if ( PyCom_RegisterClientType(&PyIMAPIContainer::type, &IID_IMAPIContainer) != 0 ) return MODINIT_ERROR_RETURN;
+	if ( PyCom_RegisterClientType(&PyIMAPIContainer::type, &IID_IMAPIContainer) != 0 ) return NULL;
 	ADD_IID(IID_IMAPIContainer);
 
-	if ( PyCom_RegisterClientType(&PyIMessage::type, &IID_IMessage) != 0 ) return MODINIT_ERROR_RETURN;
+	if ( PyCom_RegisterClientType(&PyIMessage::type, &IID_IMessage) != 0 ) return NULL;
 	ADD_IID(IID_IMessage);
 
-	if ( PyCom_RegisterClientType(&PyIMsgStore::type, &IID_IMsgStore) != 0 ) return MODINIT_ERROR_RETURN;
+	if ( PyCom_RegisterClientType(&PyIMsgStore::type, &IID_IMsgStore) != 0 ) return NULL;
 	ADD_IID(IID_IMsgStore);
 
-	if ( PyCom_RegisterClientType(&PyIAttach::type, &IID_IAttachment) != 0 ) return MODINIT_ERROR_RETURN;
+	if ( PyCom_RegisterClientType(&PyIAttach::type, &IID_IAttachment) != 0 ) return NULL;
 	ADD_IID(IID_IAttachment);
 
-	if ( PyCom_RegisterClientType(&PyIProfAdmin::type, &IID_IProfAdmin) != 0 ) return MODINIT_ERROR_RETURN;
+	if ( PyCom_RegisterClientType(&PyIProfAdmin::type, &IID_IProfAdmin) != 0 ) return NULL;
 	ADD_IID(IID_IProfAdmin);
 
-	if ( PyCom_RegisterClientType(&PyIAddrBook::type, &IID_IAddrBook) != 0 ) return MODINIT_ERROR_RETURN;
+	if ( PyCom_RegisterClientType(&PyIAddrBook::type, &IID_IAddrBook) != 0 ) return NULL;
 	ADD_IID(IID_IAddrBook);
 
-	if ( PyCom_RegisterClientType(&PyIDistList::type, &IID_IDistList) != 0 ) return MODINIT_ERROR_RETURN;
+	if ( PyCom_RegisterClientType(&PyIDistList::type, &IID_IDistList) != 0 ) return NULL;
 	ADD_IID(IID_IDistList);
 
-	if ( PyCom_RegisterClientType(&PyIMailUser::type, &IID_IMailUser) != 0 ) return MODINIT_ERROR_RETURN;
+	if ( PyCom_RegisterClientType(&PyIMailUser::type, &IID_IMailUser) != 0 ) return NULL;
 	ADD_IID(IID_IMailUser);
 
-	if ( PyCom_RegisterClientType(&PyIABContainer::type, &IID_IABContainer) != 0 ) return MODINIT_ERROR_RETURN;
+	if ( PyCom_RegisterClientType(&PyIABContainer::type, &IID_IABContainer) != 0 ) return NULL;
 	ADD_IID(IID_IABContainer);
 
-	if ( PyCom_RegisterClientType(&PyIProfSect::type, &IID_IProfSect) != 0 ) return MODINIT_ERROR_RETURN;
+	if ( PyCom_RegisterClientType(&PyIProfSect::type, &IID_IProfSect) != 0 ) return NULL;
 	ADD_IID(IID_IProfSect);
 
-	if ( PyCom_RegisterClientType(&PyIMsgServiceAdmin::type, &IID_IMsgServiceAdmin) != 0 ) return MODINIT_ERROR_RETURN;
+	if ( PyCom_RegisterClientType(&PyIMsgServiceAdmin::type, &IID_IMsgServiceAdmin) != 0 ) return NULL;
 	ADD_IID(IID_IMsgServiceAdmin);
 
-	if ( PyCom_RegisterClientType(&PyIMsgServiceAdmin2::type, &IID_IMsgServiceAdmin2) != 0 ) return MODINIT_ERROR_RETURN;
+	if ( PyCom_RegisterClientType(&PyIMsgServiceAdmin2::type, &IID_IMsgServiceAdmin2) != 0 ) return NULL;
 	ADD_IID(IID_IMsgServiceAdmin2);
 
-	if ( PyCom_RegisterClientType(&PyIProviderAdmin::type, &IID_IProviderAdmin) != 0 ) return MODINIT_ERROR_RETURN;
+	if ( PyCom_RegisterClientType(&PyIProviderAdmin::type, &IID_IProviderAdmin) != 0 ) return NULL;
 	ADD_IID(IID_IProviderAdmin);
 
-	if ( PyCom_RegisterClientType(&PyIMAPIAdviseSink::type, &IID_IMAPIAdviseSink) != 0 ) return MODINIT_ERROR_RETURN;
+	if ( PyCom_RegisterClientType(&PyIMAPIAdviseSink::type, &IID_IMAPIAdviseSink) != 0 ) return NULL;
 	ADD_IID(IID_IMAPIAdviseSink);
-        if ( PyCom_RegisterGatewayObject(IID_IMAPIAdviseSink, GET_PYGATEWAY_CTOR(PyGMAPIAdviseSink), "IMAPIAdviseSink") != 0) return MODINIT_ERROR_RETURN;
+        if ( PyCom_RegisterGatewayObject(IID_IMAPIAdviseSink, GET_PYGATEWAY_CTOR(PyGMAPIAdviseSink), "IMAPIAdviseSink") != 0) return NULL;
 	ADD_IID(IID_IMAPIAdviseSink);
 
-	if ( PyCom_RegisterClientType(&PyIConverterSession::type, &IID_IConverterSession) != 0 ) return MODINIT_ERROR_RETURN;
+	if ( PyCom_RegisterClientType(&PyIConverterSession::type, &IID_IConverterSession) != 0 ) return NULL;
 	{
 		ADD_IID(IID_IConverterSession);
 		ADD_IID(CLSID_IConverterSession);

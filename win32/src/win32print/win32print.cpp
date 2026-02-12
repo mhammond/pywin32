@@ -1672,7 +1672,7 @@ BOOL PyWinObject_AsRECTL(PyObject *obrectl, RECTL *rectl)
 {
     static char *rectl_keys[] = {"left", "top", "right", "bottom", 0};
     static char *err_msg = "RECTL must be a dictionary containing {left:int, top:int, right:int, bottom:int}";
-    if (obrectl->ob_type != &PyDict_Type) {
+    if (Py_TYPE(obrectl) != &PyDict_Type) {
         PyErr_SetString(PyExc_TypeError, err_msg);
         return FALSE;
     }
@@ -1689,7 +1689,7 @@ BOOL PyWinObject_AsSIZEL(PyObject *obsizel, SIZEL *sizel)
 {
     static char *sizel_keys[] = {"cx", "cy", 0};
     static char *err_msg = "SIZEL must be a dictionary containing {cx:int, cy:int}";
-    if (obsizel->ob_type != &PyDict_Type) {
+    if (Py_TYPE(obsizel) != &PyDict_Type) {
         PyErr_SetString(PyExc_TypeError, err_msg);
         return FALSE;
     }
@@ -1713,7 +1713,7 @@ BOOL PyWinObject_AsFORM_INFO_1(PyObject *obform, FORM_INFO_1W *fi1, TmpWCHAR *pt
     static char *form_keys[] = {"Flags", "Name", "Size", "ImageableArea", 0};
     static char *err_msg =
         "FORM_INFO_1 must be a dictionary containing {Flags:int, Name:unicode, Size:dict, ImageableArea:dict}";
-    if (obform->ob_type != &PyDict_Type) {
+    if (Py_TYPE(obform) != &PyDict_Type) {
         PyErr_SetString(PyExc_TypeError, err_msg);
         return FALSE;
     }
