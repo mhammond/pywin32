@@ -495,7 +495,6 @@ PyObject *MyPeekNamedPipe(PyObject *self, PyObject *args)
 
 %{
 // @pyswig int|GetNamedPipeClientProcessId|Returns the process id of client that is connected to a named pipe
-// @comm Requires Vista or later
 PyObject *MyGetNamedPipeClientProcessId(PyObject *self, PyObject *args)
 {
 	CHECK_PFN(GetNamedPipeClientProcessId);
@@ -513,7 +512,6 @@ PyObject *MyGetNamedPipeClientProcessId(PyObject *self, PyObject *args)
 }
 
 // @pyswig int|GetNamedPipeServerProcessId|Returns pid of server process that created a named pipe
-// @comm Requires Vista or later
 PyObject *MyGetNamedPipeServerProcessId(PyObject *self, PyObject *args)
 {
 	CHECK_PFN(GetNamedPipeServerProcessId);
@@ -531,7 +529,6 @@ PyObject *MyGetNamedPipeServerProcessId(PyObject *self, PyObject *args)
 }
 
 // @pyswig int|GetNamedPipeClientSessionId|Returns the session id of client that is connected to a named pipe
-// @comm Requires Vista or later
 PyObject *MyGetNamedPipeClientSessionId(PyObject *self, PyObject *args)
 {
 	CHECK_PFN(GetNamedPipeClientSessionId);
@@ -549,7 +546,6 @@ PyObject *MyGetNamedPipeClientSessionId(PyObject *self, PyObject *args)
 }
 
 // @pyswig int|GetNamedPipeServerSessionId|Returns session id of server process that created a named pipe
-// @comm Requires Vista or later
 PyObject *MyGetNamedPipeServerSessionId(PyObject *self, PyObject *args)
 {
 	CHECK_PFN(GetNamedPipeServerSessionId);
