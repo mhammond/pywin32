@@ -441,7 +441,6 @@ def ImportFile() -> None:
     # If already imported, don't look for package
     path, modName = os.path.split(pathName)
     modName, modExt = os.path.splitext(modName)
-    newPath = None
     # note that some packages (*cough* email *cough*) use "lazy importers"
     # meaning sys.modules can change as a side-effect of looking at
     # module.__file__ - so we must take a copy (ie, list(items()))
