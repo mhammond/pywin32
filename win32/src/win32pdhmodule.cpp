@@ -527,7 +527,7 @@ static PyObject *PyCloseQuery(PyObject *self, PyObject *args)
     return Py_None;
 }
 
-// @pymethod |win32pdh|MakeCounterPath|Makes a fully resolved counter path
+// @pymethod str|win32pdh|MakeCounterPath|Makes a fully resolved counter path
 static PyObject *PyMakeCounterPath(PyObject *self, PyObject *args)
 {
     CHECK_PDH_PTR(pPdhMakeCounterPath);
