@@ -2,10 +2,6 @@
 // $Id$
 
 // Implements wrappers for the Property System functions and interfaces.
-// These interfaces are present on Windows Vista and later, but can also
-// be installed on XP with Desktop Search 3.
-// However, this module doeen't dynamically load any libraries or functions,
-// so it will fail to import if the components are not installed.
 
 // This source file contains autoduck documentation.
 // @doc
@@ -37,13 +33,6 @@
 #include "delayimp.h"
 #include "propvarutil.h"
 #include "Shobjidl.h"
-
-#define CHECK_PFN(fname)    \
-    if (pfn##fname == NULL) \
-        return PyErr_Format(PyExc_NotImplementedError, "%s is not available on this platform", #fname);
-// Not available on Vista or earlier
-typedef HRESULT(WINAPI *PFNSHGetPropertyStoreForWindow)(HWND, REFIID, void **);
-static PFNSHGetPropertyStoreForWindow pfnSHGetPropertyStoreForWindow = NULL;
 
 // @object PyPROPERTYKEY|A tuple of a fmtid and property id (IID, int) that uniquely identifies a property
 BOOL PyWinObject_AsPROPERTYKEY(PyObject *obkey, PROPERTYKEY *pkey)
@@ -390,12 +379,10 @@ static PyObject *PyPSLookupPropertyHandlerCLSID(PyObject *self, PyObject *args)
 };
 
 // @pymethod <o PyIPropertyStore>|propsys|SHGetPropertyStoreForWindow|Retrieves a collection of a window's properties
-// @comm Requires Windows 7 or later.
 // @rdesc The returned store can be used to set the System.AppUserModel.ID property that determines how windows
 //	are grouped on the taskbar
 static PyObject *PySHGetPropertyStoreForWindow(PyObject *self, PyObject *args)
 {
-    CHECK_PFN(SHGetPropertyStoreForWindow);
     HWND hwnd;
     IID riid = IID_IPropertyStore;
     void *ret;
@@ -407,7 +394,7 @@ static PyObject *PySHGetPropertyStoreForWindow(PyObject *self, PyObject *args)
 
     HRESULT hr;
     PY_INTERFACE_PRECALL;
-    hr = (*pfnSHGetPropertyStoreForWindow)(hwnd, riid, &ret);
+    hr = SHGetPropertyStoreForWindow(hwnd, riid, &ret);
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
         return PyCom_BuildPyException(hr);
@@ -546,7 +533,7 @@ static PyObject *PySHSetDefaultProperties(PyObject *self, PyObject *args)
 }
 
 /* List of module functions */
-// @module propsys|A module, encapsulating the Vista Property System interfaces
+// @module propsys|A module, encapsulating the Property System interfaces
 static struct PyMethodDef propsys_methods[] = {
     //	{ "SHGetPropertyStoreFromIDList", PySHGetPropertyStoreFromIDList, 1 }, // @pymeth
     // SHGetPropertyStoreFromIDList|Retrieves the property store from an absolute ID list
@@ -618,10 +605,7 @@ static const PyCom_InterfaceSupportInfo g_interfaceSupportData[] = {
 /* Module initialisation */
 PYWIN_MODULE_INIT_FUNC(propsys)
 {
-    PYWIN_MODULE_INIT_PREPARE(propsys, propsys_methods,
-                              "A module, encapsulating the Property System interfaces."
-                              "Available on Windows Vista and later, but can also be used"
-                              "on XP if Desktop Search 3 is installed.");
+    PYWIN_MODULE_INIT_PREPARE(propsys, propsys_methods, "A module, encapsulating the Property System interfaces.");
 
     if (PyDict_SetItemString(dict, "error", PyWinExc_COMError) == -1)
         PYWIN_MODULE_INIT_RETURN_ERROR;
@@ -635,11 +619,6 @@ PYWIN_MODULE_INIT_FUNC(propsys)
     if (PyCom_RegisterExtensionSupport(dict, g_interfaceSupportData,
                                        sizeof(g_interfaceSupportData) / sizeof(PyCom_InterfaceSupportInfo)) != 0)
         PYWIN_MODULE_INIT_RETURN_ERROR;
-
-    HMODULE hmod = GetModuleHandle(L"shell32.dll");
-    if (hmod)
-        pfnSHGetPropertyStoreForWindow =
-            (PFNSHGetPropertyStoreForWindow)GetProcAddress(hmod, "SHGetPropertyStoreForWindow");
 
     PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }

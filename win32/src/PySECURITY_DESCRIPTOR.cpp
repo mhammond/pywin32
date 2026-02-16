@@ -633,7 +633,6 @@ PyObject *PySECURITY_DESCRIPTOR::GetSecurityDescriptorControl(PyObject *self, Py
 
 // @pymethod |PySECURITY_DESCRIPTOR|SetSecurityDescriptorControl|Sets the control bit flags related to inheritance for a
 // security descriptor
-// @comm Only exists on Windows 2000 or later
 PyObject *PySECURITY_DESCRIPTOR::SetSecurityDescriptorControl(PyObject *self, PyObject *args)
 {
     SECURITY_DESCRIPTOR_CONTROL ControlBitsOfInterest, ControlBitsToSet;

@@ -7212,7 +7212,6 @@ PyCFunction pfnPyGetLayeredWindowAttributes=(PyCFunction)PyGetLayeredWindowAttri
 %}
 
 // @pyswig |UpdateLayeredWindow|Updates the position, size, shape, content, and translucency of a layered window.
-// @comm This function is only available on Windows 2000 and later
 // @comm Accepts keyword arguments.
 %{
 PyObject *PyUpdateLayeredWindow(PyObject *self, PyObject *args, PyObject *kwargs)

@@ -1095,8 +1095,6 @@ PyObject *PyACL::PyGetEffectiveRightsFromAcl(PyObject *self, PyObject *args)
 
 // @pymethod (SuccessfulAuditedRights,FailedAuditRights)|PyACL|GetAuditedPermissionsFromAcl|Return types of access for
 // which ACL will generate an audit event for specified trustee
-// @comm This function is known to return the success and failure access masks in the the wrong order
-//       on Windows 2000 service pack 4.  Problem has been reported to Microsoft.
 PyObject *PyACL::PyGetAuditedPermissionsFromAcl(PyObject *self, PyObject *args)
 {
     DWORD err = 0;
@@ -1110,7 +1108,6 @@ PyObject *PyACL::PyGetAuditedPermissionsFromAcl(PyObject *self, PyObject *args)
         return NULL;
     if (!PyWinObject_AsTRUSTEE(obTrustee, &trustee))
         return NULL;
-    // ???? SDK docs say the success mask is first, but on Win2k sp4 they're returned in the opposite order ????
     err = GetAuditedPermissionsFromAclW(This->GetACL(), &trustee, &success_mask, &fail_mask);
     if (err != ERROR_SUCCESS)
         PyWin_SetAPIError("GetAuditedPermissionsFromAcl", err);
