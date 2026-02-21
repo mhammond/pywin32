@@ -1,7 +1,5 @@
 """a clumsy attempt at a macro language to let the programmer execute code on the server (ex: determine 64bit)"""
 
-from . import is64bit
-
 
 def macro_call(macro_name, args, kwargs):
     """allow the programmer to perform limited processing on the server by passing macro names and args
@@ -13,13 +11,14 @@ def macro_call(macro_name, args, kwargs):
     :kwargs - the connection keyword dictionary. ??key has been removed
     --> the value to put in for kwargs['name'] = value
     """
-    if isinstance(args, (str, str)):
-        args = [
-            args
-        ]  # the user forgot to pass a sequence, so make a string into args[0]
+    if isinstance(args, str):
+        # the user forgot to pass a sequence, so make a string into args[0]
+        args = [args]
     new_key = args[0]
     try:
         if macro_name == "is64bit":
+            from . import is64bit
+
             if is64bit.Python():  # if on 64 bit Python
                 return new_key, args[1]  # return first argument
             else:
@@ -28,15 +27,15 @@ def macro_call(macro_name, args, kwargs):
                 except IndexError:
                     return new_key, ""  # else return blank
 
-        elif (
-            macro_name == "getuser"
-        ):  # get the name of the user the server is logged in under
-            if not new_key in kwargs:
-                import getpass
+        # get the name of the user the server is logged in under
+        elif macro_name == "getuser":
+            import getpass
 
+            if not new_key in kwargs:
                 return new_key, getpass.getuser()
 
-        elif macro_name == "getnode":  # get the name of the computer running the server
+        # get the name of the computer running the server
+        elif macro_name == "getnode":
             import platform
 
             try:
@@ -44,7 +43,8 @@ def macro_call(macro_name, args, kwargs):
             except IndexError:
                 return new_key, platform.node()
 
-        elif macro_name == "getenv":  # expand the server's environment variable args[1]
+        # expand the server's environment variable args[1]
+        elif macro_name == "getenv":
             import os
 
             try:
@@ -54,15 +54,13 @@ def macro_call(macro_name, args, kwargs):
             return new_key, os.environ.get(args[1], dflt)
 
         elif macro_name == "auto_security":
-            if (
-                not "user" in kwargs or not kwargs["user"]
-            ):  # missing, blank, or Null username
+            if not "user" in kwargs or not kwargs["user"]:
+                # missing, blank, or Null username
                 return new_key, "Integrated Security=SSPI"
             return new_key, "User ID=%(user)s; Password=%(password)s" % kwargs
 
-        elif (
-            macro_name == "find_temp_test_path"
-        ):  # helper function for testing ado operation -- undocumented
+        # helper function for testing ado operation -- undocumented
+        elif macro_name == "find_temp_test_path":
             import os
             import tempfile
 
