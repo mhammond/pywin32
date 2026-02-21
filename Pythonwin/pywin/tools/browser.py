@@ -5,8 +5,11 @@
 # >>> browser.Browse()
 # or
 # >>> browser.Browse(your_module)
+from __future__ import annotations
+
 import sys
 import types
+from typing import TYPE_CHECKING, Any, Dict, Generic, List, Tuple, TypeVar
 
 import __main__
 import win32ui
@@ -14,13 +17,25 @@ from pywin.mfc import dialog
 
 from . import hierlist
 
+if TYPE_CHECKING:
+    from _typeshed import SupportsLenAndGetItem
+
+_T = TypeVar("_T")
+_KT = TypeVar("_KT")
+_VT = TypeVar("_VT")
+_SequenceT = TypeVar("_SequenceT", bound="SupportsLenAndGetItem[Any]")
+
 special_names = ["__doc__", "__name__", "__self__"]
 
 
 #
 # HierList items
-class HLIPythonObject(hierlist.HierListItem):
-    def __init__(self, myobject=None, name=None):
+class HLIPythonObject(hierlist.HierListItem, Generic[_T]):
+    def __init__(
+        self,
+        myobject: _T = None,  # type: ignore[assignment] # False-positive, None is part of the bound type
+        name=None,
+    ):
         hierlist.HierListItem.__init__(self)
         self.myobject = myobject
         self.knownExpandable = None
@@ -129,7 +144,7 @@ class HLIPythonObject(hierlist.HierListItem):
         ShowObject(self.myobject, self.name)
 
 
-class HLIDocString(HLIPythonObject):
+class HLIDocString(HLIPythonObject[str]):
     def GetHLIType(self):
         return "DocString"
 
@@ -143,22 +158,22 @@ class HLIDocString(HLIPythonObject):
         return 6
 
 
-class HLIModule(HLIPythonObject):
+class HLIModule(HLIPythonObject[types.ModuleType]):
     def GetHLIType(self):
         return "Module"
 
 
-class HLIFrame(HLIPythonObject):
+class HLIFrame(HLIPythonObject[types.FrameType]):
     def GetHLIType(self):
         return "Stack Frame"
 
 
-class HLITraceback(HLIPythonObject):
+class HLITraceback(HLIPythonObject[types.TracebackType]):
     def GetHLIType(self):
         return "Traceback"
 
 
-class HLIClass(HLIPythonObject):
+class HLIClass(HLIPythonObject[type]):
     def GetHLIType(self):
         return "Class"
 
@@ -170,7 +185,7 @@ class HLIClass(HLIPythonObject):
         return ret
 
 
-class HLIMethod(HLIPythonObject):
+class HLIMethod(HLIPythonObject[str]):
     # myobject is just a string for methods.
     def GetHLIType(self):
         return "Method"
@@ -179,7 +194,7 @@ class HLIMethod(HLIPythonObject):
         return "Method: " + self.myobject + "()"
 
 
-class HLICode(HLIPythonObject):
+class HLICode(HLIPythonObject[types.CodeType]):
     def GetHLIType(self):
         return "Code"
 
@@ -197,7 +212,7 @@ class HLICode(HLIPythonObject):
         return ret
 
 
-class HLIInstance(HLIPythonObject):
+class HLIInstance(HLIPythonObject[_T]):
     def GetHLIType(self):
         return "Instance"
 
@@ -219,12 +234,12 @@ class HLIInstance(HLIPythonObject):
         return ret
 
 
-class HLIBuiltinFunction(HLIPythonObject):
+class HLIBuiltinFunction(HLIPythonObject[types.BuiltinFunctionType]):
     def GetHLIType(self):
         return "Builtin Function"
 
 
-class HLIFunction(HLIPythonObject):
+class HLIFunction(HLIPythonObject[types.FunctionType]):
     def GetHLIType(self):
         return "Function"
 
@@ -240,7 +255,7 @@ class HLIFunction(HLIPythonObject):
         return ret
 
 
-class HLISeq(HLIPythonObject):
+class HLISeq(HLIPythonObject[_SequenceT]):
     def GetHLIType(self):
         return "Sequence (abstract!)"
 
@@ -257,17 +272,17 @@ class HLISeq(HLIPythonObject):
         return ret
 
 
-class HLIList(HLISeq):
+class HLIList(HLISeq[List[_T]]):
     def GetHLIType(self):
         return "List"
 
 
-class HLITuple(HLISeq):
+class HLITuple(HLISeq[Tuple[_T]]):
     def GetHLIType(self):
         return "Tuple"
 
 
-class HLIDict(HLIPythonObject):
+class HLIDict(HLIPythonObject[Dict[_KT, _VT]]):
     def GetHLIType(self):
         return "Dict"
 
@@ -285,7 +300,7 @@ class HLIDict(HLIPythonObject):
 
 
 # strings and Unicode have builtin methods, but we don't really want to see these
-class HLIString(HLIPythonObject):
+class HLIString(HLIPythonObject[str]):
     def IsExpandable(self):
         return 0
 

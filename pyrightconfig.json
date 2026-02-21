@@ -39,7 +39,6 @@
   "reportCallIssue": "warning",
   "reportOperatorIssue": "warning",
   "reportOptionalCall": "warning",
-  "reportOptionalIterable": "warning",
   "reportOptionalMemberAccess": "warning",
   "reportOptionalSubscript": "warning",
   // Too many dynamically generated modules. This will require type stubs to properly fix.

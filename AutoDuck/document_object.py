@@ -73,6 +73,8 @@ def GetDocument(fname="pywin32-document.xml"):
     handler = categoryHandler()
     parser.setContentHandler(handler)
     parser.parse(fname)
+    if handler.document is None:
+        raise RuntimeError("document was not set by parser")
     return handler.document
 
 
