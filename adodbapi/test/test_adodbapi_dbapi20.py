@@ -29,6 +29,11 @@ if "--verbose" in sys.argv:
 print(adodbapi.version)
 print("Tested with dbapi20 %s" % dbapi20.__version__)
 
+try:
+    onWindows = bool(sys.getwindowsversion())  # seems to work on all versions of Python
+except:
+    onWindows = False
+
 node = platform.node()
 
 conn_kws = {}
@@ -51,7 +56,7 @@ conn_kws["provider"] = (
 )
 connStr = "%(provider)s; %(security)s; Initial Catalog=%(name)s;Data Source=%(host)s"
 
-if sys.platform == "win32" and node != "z-PC":
+if onWindows and node != "z-PC":
     pass  # default should make a local SQL Server connection
 elif node == "xxx":  # try Postgres database
     _computername = "25.223.161.222"
@@ -135,8 +140,9 @@ class test_adodbapi(dbapi20.DatabaseAPI20Test):
         dbapi20.DatabaseAPI20Test.tearDown(self)
 
     def help_nextset_setUp(self, cur):
-        "Should create a procedure called deleteme"
-        'that returns two result sets, first the number of rows in booze then "name from booze"'
+        """Should create a procedure called deleteme
+        that returns two result sets, first the number of rows in booze then "name from booze"
+        """
         sql = """
             create procedure deleteme as
             begin
@@ -150,7 +156,7 @@ class test_adodbapi(dbapi20.DatabaseAPI20Test):
         cur.execute(sql)
 
     def help_nextset_tearDown(self, cur):
-        "If cleaning up is needed after nextSetTest"
+        """If cleaning up is needed after nextSetTest"""
         try:
             cur.execute("drop procedure deleteme")
         except:

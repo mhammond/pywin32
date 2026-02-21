@@ -113,35 +113,35 @@ class FetchFailedError(OperationalError):
 
 
 # def Date(year,month,day):
-#     "This function constructs an object holding a date value. "
+#     """This function constructs an object holding a date value."""
 #     return dateconverter.date(year,month,day)  #dateconverter.Date(year,month,day)
 #
 # def Time(hour,minute,second):
-#     "This function constructs an object holding a time value. "
+#     """This function constructs an object holding a time value."""
 #     return dateconverter.time(hour, minute, second) # dateconverter.Time(hour,minute,second)
 #
 # def Timestamp(year,month,day,hour,minute,second):
-#     "This function constructs an object holding a time stamp value. "
+#     """This function constructs an object holding a time stamp value."""
 #     return dateconverter.datetime(year,month,day,hour,minute,second)
 #
 # def DateFromTicks(ticks):
 #     """This function constructs an object holding a date value from the given ticks value
-#     (number of seconds since the epoch; see the documentation of the standard Python time module for details). """
+#     (number of seconds since the epoch; see the documentation of the standard Python time module for details)."""
 #     return Date(*time.gmtime(ticks)[:3])
 #
 # def TimeFromTicks(ticks):
 #     """This function constructs an object holding a time value from the given ticks value
-#     (number of seconds since the epoch; see the documentation of the standard Python time module for details). """
+#     (number of seconds since the epoch; see the documentation of the standard Python time module for details)."""
 #     return Time(*time.gmtime(ticks)[3:6])
 #
 # def TimestampFromTicks(ticks):
 #     """This function constructs an object holding a time stamp value from the given
 #     ticks value (number of seconds since the epoch;
-#     see the documentation of the standard Python time module for details). """
+#     see the documentation of the standard Python time module for details)."""
 #     return Timestamp(*time.gmtime(ticks)[:6])
 #
 # def Binary(aString):
-#     """This function constructs an object capable of holding a binary (long) string value. """
+#     """This function constructs an object capable of holding a binary (long) string value."""
 #     b = bytes(aString)
 #     return b
 # -----     Time converters ----------------------------------------------
@@ -183,24 +183,24 @@ class TimeConverter:  # this is a generic time converter skeleton
         return integerPart + fractPart
 
     def DateObjectFromCOMDate(self, comDate):
-        "Returns an object of the wanted type from a ComDate"
+        """Returns an object of the wanted type from a ComDate"""
         raise NotImplementedError  # "Abstract class"
 
     def Date(self, year, month, day):
-        "This function constructs an object holding a date value."
+        """This function constructs an object holding a date value."""
         raise NotImplementedError  # "Abstract class"
 
     def Time(self, hour, minute, second):
-        "This function constructs an object holding a time value."
+        """This function constructs an object holding a time value."""
         raise NotImplementedError  # "Abstract class"
 
     def Timestamp(self, year, month, day, hour, minute, second):
-        "This function constructs an object holding a time stamp value."
+        """This function constructs an object holding a time stamp value."""
         raise NotImplementedError  # "Abstract class"
         # all purpose date to ISO format converter
 
     def DateObjectToIsoFormatString(self, obj):
-        "This function should return a string in the format 'YYYY-MM-dd HH:MM:SS:ms' (ms optional)"
+        """This function should return a string in the format 'YYYY-MM-dd HH:MM:SS:ms' (ms optional)"""
         try:  # most likely, a datetime.datetime
             s = obj.isoformat(" ")
         except (TypeError, AttributeError):
@@ -248,12 +248,12 @@ class pythonDateTimeConverter(TimeConverter):  # standard since Python 2.3
 
 
 class pythonTimeConverter(TimeConverter):  # the old, ?nix type date and time
-    def __init__(self):  # caution: this Class gets confused by timezones and DST
+    def __init__(self):  # caution: this Class gets confised by timezones and DST
         TimeConverter.__init__(self)
         self.types.add(time.struct_time)
 
     def DateObjectFromCOMDate(self, comDate):
-        "Returns ticks since 1970"
+        """Returns ticks since 1970"""
         if isinstance(comDate, datetime.datetime):
             return comDate.timetuple()
         else:
@@ -343,22 +343,22 @@ class DBAPITypeObject:
         return other not in self.values
 
 
-"""This type object is used to describe columns in a database that are string-based (e.g. CHAR). """
 STRING = DBAPITypeObject(adoStringTypes)
+"""This type object is used to describe columns in a database that are string-based (e.g. CHAR)."""
 
-"""This type object is used to describe (long) binary columns in a database (e.g. LONG, RAW, BLOBs). """
 BINARY = DBAPITypeObject(adoBinaryTypes)
+"""This type object is used to describe (long) binary columns in a database (e.g. LONG, RAW, BLOBs)."""
 
-"""This type object is used to describe numeric columns in a database. """
 NUMBER = DBAPITypeObject(
     adoIntegerTypes + adoLongTypes + adoExactNumericTypes + adoApproximateNumericTypes
 )
-
-"""This type object is used to describe date/time columns in a database. """
+"""This type object is used to describe numeric columns in a database."""
 
 DATETIME = DBAPITypeObject(adoDateTimeTypes)
-"""This type object is used to describe the "Row ID" column in a database. """
+"""This type object is used to describe date/time columns in a database."""
+
 ROWID = DBAPITypeObject(adoRowIdTypes)
+"""This type object is used to describe the "Row ID" column in a database."""
 
 OTHER = DBAPITypeObject(adoRemainingTypes)
 
@@ -469,6 +469,7 @@ class MultiMap(dict[int, Callable[[object], object]]):
     """A dictionary of ado.type : function
     -- but you can set multiple items by passing an iterable of keys"""
 
+    # builds a dictionary from {(iterable,of,keys) : function}
     # useful for defining conversion functions for groups of similar data types.
     def __init__(self, aDict: Mapping[Iterable[int] | int, Callable[[object], object]]):
         for k, v in aDict.items():
@@ -477,7 +478,7 @@ class MultiMap(dict[int, Callable[[object], object]]):
     def __setitem__(
         self, adoType: Iterable[int] | int, cvtFn: Callable[[object], object]
     ):
-        "set a single item, or a whole iterable of items"
+        """set a single item, or a whole iterable of items"""
         if isinstance(adoType, Iterable):
             # user passed us an iterable, set them individually
             for type in adoType:
