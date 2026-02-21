@@ -116,8 +116,8 @@ def main():
             pprint(fields)
 
         print(
-            "Result of %r validation is %d: %s"
-            % (arg, status, win32api.FormatMessage(status).strip())
+            f"Result of {arg!r} validation is {status}:",
+            win32api.FormatMessage(status).strip(),
         )
 
     return 0

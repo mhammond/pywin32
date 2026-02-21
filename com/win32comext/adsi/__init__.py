@@ -43,7 +43,7 @@ def _get_good_ret(
     if hasattr(ob, "Invoke"):
         import win32com.client.dynamic
 
-        name = "Dispatch wrapper around %r" % ob
+        name = f"Dispatch wrapper around {ob!r}"
         return win32com.client.dynamic.Dispatch(ob, name, ADSIDispatch)
     return ob
 
