@@ -11,8 +11,10 @@ select = [
   "C4", # flake8-comprehensions
   "F811", # redefined-while-unused
   "I", # isort
+  "PIE800", # unnecessary-spread
   "PLC", # Pylint Convention
   "PLE", # Pylint Error
+  "RUF005", # collection-literal-concatenation
   "RSE", # flake8-raise
   "W", # pycodestyle Warning
   "YTT", # flake8-2020
@@ -51,8 +53,7 @@ extend-ignore = [
 # TODO: Make adodbapi changes in their own PRs
 "adodbapi/*" = [
   "C4",
-  "UP031",
-  "UP032",
+  "RUF005",
   # Dropping Python 3.8 support
   "UP005",
   "UP006",
