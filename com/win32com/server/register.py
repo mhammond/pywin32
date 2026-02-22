@@ -543,7 +543,7 @@ def UnregisterInfoClasses(*classes, **flags):
 # Attempt to 're-execute' our current process with elevation.
 def ReExecuteElevated(flags):
     import win32console
-    import win32event  # we've already checked we are running XP above
+    import win32event
     import win32process
     from win32com.shell import shellcon
     from win32com.shell.shell import ShellExecuteEx

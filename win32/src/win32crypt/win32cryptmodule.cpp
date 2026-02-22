@@ -255,8 +255,6 @@ static PyObject *PyCryptEnumProviders(PyObject *self, PyObject *args)
 // @pymethod [(<o PyUnicode>,int),...]|win32crypt|CryptEnumProviderTypes|Lists available local cryptographic provider
 // types
 // @rdesc Returns a sequence of tuples containing name and identifier of provider types
-// @comm Windows XP sp3 has a bug that causes this function to always fail with ERROR_MORE_DATA (234)
-// See KB959160 for a hotfix
 static PyObject *PyCryptEnumProviderTypes(PyObject *self, PyObject *args)
 {
     DWORD dwFlags = 0, dwIndex = 0, dwReserved = NULL, dwProvType = 0, cbTypeName = 0;

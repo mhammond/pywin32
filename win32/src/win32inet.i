@@ -627,7 +627,7 @@ PyObject *PyInternetCanonicalizeUrl(PyObject *self, PyObject *args)
     // canonicalization. This can be one of the following values:
     // @flag ICU_BROWSER_MODE|Does not encode or decode characters after "#" or "?", and does not remove trailing white space after "?". If this value is not specified, the entire URL is encoded and trailing white space is removed.
     // @flag ICU_DECODE|Converts all %XX sequences to characters, including escape sequences, before the URL is parsed.
-    // @flag ICU_ENCODE_PERCENT|Encodes any percent signs encountered. By default, percent signs are not encoded. This value is available in Microsoft® Internet Explorer 5 and later versions of the Win32® Internet functions.
+    // @flag ICU_ENCODE_PERCENT|Encodes any percent signs encountered. By default, percent signs are not encoded.
     // @flag ICU_ENCODE_SPACES_ONLY|Encodes spaces only.
     // @flag ICU_NO_ENCODE|Does not convert unsafe characters to escape sequences.
     // @flag ICU_NO_META|Does not remove meta sequences (such as "." and "..") from the URL.
@@ -1927,7 +1927,7 @@ PyCFunction pfnPySetUrlCacheGroupAttribute = (PyCFunction)PySetUrlCacheGroupAttr
 BOOLAPI DeleteUrlCacheEntry(TCHAR *lpszUrlName);
 
 %{
-extern void init_win32inetstuff();
+extern void init_winhttp_stuff();
 extern PyObject *PyWinHttpGetIEProxyConfigForCurrentUser(PyObject *, PyObject *);
 extern PyObject *PyWinHttpGetDefaultProxyConfiguration(PyObject *, PyObject *);
 extern PyObject *PyWinHttpGetProxyForUrl(PyObject *, PyObject *);
@@ -1943,9 +1943,7 @@ extern PyObject *PyWinHttpOpen(PyObject *, PyObject *);
 	PyDict_SetItemString(d,	"error", PyWinExc_ApiError);
 	HMODULE	hmod = PyWin_GetOrLoadLibraryHandle("wininet.dll");
 	assert(hmod);
-	PyWin_RegisterErrorMessageModule(INTERNET_ERROR_BASE,
-									 INTERNET_ERROR_LAST,
-									 hmod);
+	PyWin_RegisterErrorMessageModule(INTERNET_ERROR_BASE, INTERNET_ERROR_LAST, hmod);
 	for	(PyMethodDef *pmd =	win32inetMethods;pmd->ml_name;pmd++)
 		if	 ((strcmp(pmd->ml_name,	"InternetOpenUrl")==0)
 			||(strcmp(pmd->ml_name,	"FtpOpenFile")==0)
@@ -1969,5 +1967,5 @@ extern PyObject *PyWinHttpOpen(PyObject *, PyObject *);
 			){
 			pmd->ml_flags =	METH_VARARGS | METH_KEYWORDS;
 			}
-	init_win32inetstuff();
+	init_winhttp_stuff();
 %}

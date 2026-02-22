@@ -150,8 +150,6 @@ extern "C" __declspec(dllexport) BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD 
     return TRUE;  // ok
 }
 
-typedef HRESULT(WINAPI *PFNCoInitializeEx)(LPVOID pvReserved, DWORD dwCoInit);
-
 // Some clients or COM extensions (notably MAPI) are _very_
 // particular about the order of shutdown - in MAPI's case, you MUST
 // do the CoUninit _before_ the MAPIUninit.
@@ -165,17 +163,8 @@ HRESULT PyCom_CoInitializeEx(LPVOID reserved, DWORD dwInit)
     CEnterLeaveFramework _celf;
     if (g_bCoInitThreadHasInit && g_dwCoInitThread == GetCurrentThreadId())
         return S_OK;
-    HMODULE hMod = GetModuleHandle(_T("ole32.dll"));
-    if (hMod == 0)
-        return E_HANDLE;
-    FARPROC fp = GetProcAddress(hMod, "CoInitializeEx");
-    if (fp == NULL)
-        return E_NOTIMPL;
 
-    PFNCoInitializeEx mypfn;
-    mypfn = (PFNCoInitializeEx)fp;
-
-    HRESULT hr = (*mypfn)(reserved, dwInit);
+    HRESULT hr = CoInitializeEx(reserved, dwInit);
 
     // Unlike PyCom_CoInitialize, we return _all_ errors including
     // RPC_E_CHANGED_MODE

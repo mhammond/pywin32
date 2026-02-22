@@ -14,37 +14,22 @@ generates Windows .hlp files.
 
 #include "PyWinTypes.h"
 #include "Pyperfmon.h"
-#include "tchar.h"
+#include "loadperf.h"
 
 extern PyObject *PerfmonMethod_NewPERF_COUNTER_DEFINITION(PyObject *self, PyObject *args);
 extern PyObject *PerfmonMethod_NewPERF_OBJECT_TYPE(PyObject *self, PyObject *args);
 extern PyObject *PerfmonMethod_NewPerfMonManager(PyObject *self, PyObject *args);
-
-// Note we avoid the import of loadperf.dll each time we are used.
 
 // @pymethod |perfmon|LoadPerfCounterTextStrings|
 PyObject *PyLoadPerfCounterTextStrings(PyObject *self, PyObject *args)
 {
     BOOL bQuiet = 1;
     char *cmdLine;
-    LONG(__stdcall * pfnLoadPerfCounterTextStringsA)(LPSTR lpAnsiCommandLine, BOOL bQuietModeArg);
 
     if (!PyArg_ParseTuple(args, "s|i:LoadPerfCounterTextStrings", &cmdLine, &bQuiet))
         return NULL;
 
-    HMODULE hMod = LoadLibrary(_T("loadperf.dll"));
-    if (hMod == NULL)
-        return PyWin_SetAPIError("LoadLibrary('loadperf.dll')");
-
-    FARPROC fp = GetProcAddress(hMod, "LoadPerfCounterTextStringsA");
-    if (fp == NULL) {
-        PyErr_SetString(PyExc_RuntimeError, "LoadPerfCounterTextStringsA was not found in the DLL");
-        FreeLibrary(hMod);
-        return NULL;
-    }
-    pfnLoadPerfCounterTextStringsA = (LONG(__stdcall *)(LPSTR lpAnsiCommandLine, BOOL bQuietModeArg))fp;
-    LONG rc = (*pfnLoadPerfCounterTextStringsA)(cmdLine, 1);
-    FreeLibrary(hMod);
+    LONG rc = LoadPerfCounterTextStringsA(cmdLine, 1);
     if (rc != ERROR_SUCCESS)
         return PyWin_SetAPIError("LoadPerfCounterTextStrings", rc);
     Py_INCREF(Py_None);
@@ -56,24 +41,10 @@ PyObject *PyUnloadPerfCounterTextStrings(PyObject *self, PyObject *args)
 {
     BOOL bQuiet = 1;
     char *cmdLine;
-    LONG(__stdcall * pfnUnloadPerfCounterTextStringsA)(LPSTR lpServiceName, BOOL bQuietModeArg);
     if (!PyArg_ParseTuple(args, "s|i:UnloadPerfCounterTextStrings", &cmdLine, &bQuiet))
         return NULL;
 
-    HMODULE hMod = LoadLibrary(_T("loadperf.dll"));
-    if (hMod == NULL)
-        return PyWin_SetAPIError("LoadLibrary('loadperf.dll')");
-
-    FARPROC fp = GetProcAddress(hMod, "UnloadPerfCounterTextStringsA");
-    if (fp == NULL) {
-        PyErr_SetString(PyExc_RuntimeError, "UnloadPerfCounterTextStringsA was not found in the DLL");
-        FreeLibrary(hMod);
-        return NULL;
-    }
-    pfnUnloadPerfCounterTextStringsA = (LONG(__stdcall *)(LPSTR, BOOL bQuietModeArg))fp;
-    LONG rc = (*pfnUnloadPerfCounterTextStringsA)(cmdLine, 1);
-
-    FreeLibrary(hMod);
+    LONG rc = UnloadPerfCounterTextStringsA(cmdLine, 1);
     if (rc != ERROR_SUCCESS)
         return PyWin_SetAPIError("UnloadPerfCounterTextStrings", rc);
     Py_INCREF(Py_None);

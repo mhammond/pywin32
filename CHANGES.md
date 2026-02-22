@@ -18,23 +18,23 @@ As of build 305, installation .exe files have been deprecated; see
 Coming in build 312, as yet unreleased
 --------------------------------------
 
-* Implement COM Records as [out] method parameters (mhammond#2708, [@geppi][geppi], [@the-snork][the-snork])
-* Implement multidimensional SAFEARRAY(COM Record) and SAFEARRAY(double) (mhammond#2655, [@geppi][geppi])
+* Implement COM Records as `[out]` method parameters (mhammond#2708, [@geppi][geppi], [@the-snork][the-snork])
+* Implement multidimensional `SAFEARRAY(COM Record)` and `SAFEARRAY(double)` (mhammond#2655, [@geppi][geppi])
 * Added many missing license and copyright notice files (mhammond#2590, [@Avasam][Avasam])
 * Fixed missing version stamp on built `.dll` and `.exe` files (mhammond#2647, [@Avasam][Avasam])
-* Removed considerations for Windows 2000 and Windows Vista (mhammond#2667, [@Avasam][Avasam])
-  * This mostly updates obsolete documentation and tests
-* Removed considerations for Windows 95/98/ME (mhammond#2400, [@Avasam][Avasam])
-  This removes the following constants:
-  * `win32con.FILE_ATTRIBUTE_ATOMIC_WRITE`
-  * `win32con.FILE_ATTRIBUTE_XACTION_WRITE`
 * Bugfix for COM Record instance creation (mhammond#2641, [@geppi][geppi])
 * Fix regression introduced by mhammond#2506 (mhammond#2640, [@geppi][geppi])
+* Removed considerations for unsupported Windows Versions (95/98/ME/2000/2k/Vista, most of XP) (mhammond#2711, mhammond#2667, mhammond#2400, [@Avasam][Avasam])
+  * Updated a lot of dynamic function loading at runtime to instead use static build linking
+  * Updated a lot of documentation
+  * This removes the following constants:
+    * `win32con.FILE_ATTRIBUTE_ATOMIC_WRITE`
+    * `win32con.FILE_ATTRIBUTE_XACTION_WRITE`
 * Removed considerations for MFC < 9 (VS 2008) (mhammond#2669, mhammond#2716, [@Avasam][Avasam])
   * This removes the unusable `PyCSliderCtrl.VerifyPos` method
 * Dropped support for Python 3.8 (mhammond#2413, [@Avasam][Avasam])
-  * Note that whilst pywin32 hasn't explicitly dropped support for Windows 7 / Windows Server 2008,
-    Python 3.8 was the last official CPython version to support it.
+  * Note that whilst pywin32 hasn't explicitly dropped support for Windows 7 / 8 / Server 2008,
+    Python 3.8 was the last official CPython version to support those versions (Python 3.9 installer requires at least Windows 8.1 / Server 2012).
 
 Build 311, released 2025/07/14
 ------------------------------

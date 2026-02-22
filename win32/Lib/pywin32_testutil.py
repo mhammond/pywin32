@@ -6,6 +6,7 @@ import sys
 import unittest
 
 import winerror
+from win32com.shell.shell import IsUserAnAdmin
 
 ##
 ## unittest related stuff
@@ -150,24 +151,6 @@ non_admin_error_codes = [
     winerror.ERROR_PRIVILEGE_NOT_HELD,
 ]
 
-_is_admin = None
-
-
-def check_is_admin():
-    global _is_admin
-    if _is_admin is None:
-        import pythoncom
-        from win32com.shell.shell import IsUserAnAdmin
-
-        try:
-            _is_admin = IsUserAnAdmin()
-        except pythoncom.com_error as exc:
-            if exc.hresult != winerror.E_NOTIMPL:
-                raise
-            # not impl on this platform - must be old - assume is admin
-            _is_admin = True
-    return _is_admin
-
 
 # Find a test "fixture" (eg, binary test file) expected to be very close to
 # the test being run.
@@ -227,7 +210,7 @@ class TestResult(unittest.TextTestResult):
         if (
             isinstance(exc_val, pywintypes.error)
             and exc_val.winerror in non_admin_error_codes
-            and not check_is_admin()
+            and not IsUserAnAdmin()
         ):
             exc_val = TestSkipped(exc_val)
         # and COM errors due to objects not being registered (the com test

@@ -114,12 +114,7 @@ BOOL CInProcApp::InitInstance()
 // Check that we have a valid CWinApp object to use.
 bool CheckGoodWinApp()
 {
-    // shouldn't need special symbols now that we delay the creation.
-    // If the host exports a special symbol, then
-    // don't create a host app.
-    //	HMODULE hModule = GetModuleHandle(NULL);
-    //	BOOL hasSymbol = (GetProcAddress(hModule, "NoCreateWinApp") != NULL);
-    if (AfxGetApp() == NULL) {  // && !hasSymbol) {
+    if (AfxGetApp() == NULL) {
         // shared initialization
         pCreatedApp = new CInProcApp(_T("win32ui module"));
 
