@@ -31,7 +31,9 @@ import os
 import platform
 import re
 import shutil
+import subprocess
 import sys
+import sysconfig
 import winreg
 from abc import abstractmethod
 from collections.abc import Iterable
@@ -485,6 +487,59 @@ class my_build_ext(build_ext):
             os.path.join(self.build_lib, "pythonwin"),
         )
 
+    def _build_helpfile(self) -> None:
+        """
+        Since AutoDuck/py2d.py relies on import,
+        this must be done after all extensions are built,
+        and we can't build a helpfile when cross-compiling.
+
+        We can't just add to sys.path to point to the build folder,
+        because this uses subprocesses,
+        so we create a temporary .pth file instead.
+        """
+        if self.plat_name != sysconfig.get_platform():
+            return
+
+        build_lib_absolute = os.path.abspath(self.build_lib)
+        tmp_pywin32_build_pth = (
+            Path(sysconfig.get_paths()["platlib"]) / "tmp_pywin32_build.pth"
+        )
+
+        # Delete the previous helpfile to ensure that this build worked
+        Path("PyWin32.chm").unlink(missing_ok=True)
+
+        # Create the temporary .pth file
+        with open("pywin32.pth") as path_file:
+            # Copy paths from pywin32.pth and expand them to absolute paths
+            paths = [
+                (
+                    path.strip()
+                    # support the "import pywin32_bootstrap" hack
+                    if path.startswith("import ")
+                    else os.path.join(build_lib_absolute, path.strip())
+                )
+                for path in path_file.readlines()
+                if not path.startswith("#")
+            ] + [
+                # Add the build folder to python path
+                build_lib_absolute,
+                # For pythoncom.py, since it doesn't get added to the build folder
+                os.path.abspath("com"),
+            ]
+            print("paths:", paths)
+            print("build_lib_absolute:", build_lib_absolute)
+            print("tmp_pywin32_build_pth:", tmp_pywin32_build_pth)
+        (Path(build_lib_absolute) / "tmp_pywin32_build.pth").write_text(
+            "\n".join(paths)
+        )
+        tmp_pywin32_build_pth.write_text("\n".join(paths))
+
+        # Actually generate the helpfile
+        subprocess.run((sys.executable, "AutoDuck/make.py"), check=True)
+
+        # Cleanup
+        tmp_pywin32_build_pth.unlink()
+
     # find the VC base path corresponding to distutils paths, and
     # potentially upgrade for extra include / lib paths (MFC)
     def _check_vc(self):
@@ -659,6 +714,8 @@ class my_build_ext(build_ext):
         target_dir = os.path.join(self.build_lib, win32ui_ext.get_pywin32_dir())
         for mfc_content in mfc_contents:
             self.copy_file(mfc_content, target_dir)
+
+        self._build_helpfile()
 
     def build_exefile(self, ext):
         suffix = "_d" if self.debug else ""
@@ -1875,20 +1932,6 @@ def convert_data_files(files: Iterable[str]):
     return ret
 
 
-def convert_optional_data_files(files):
-    ret = []
-    for file in files:
-        try:
-            temp = convert_data_files([file])
-        except RuntimeError as details:
-            if not str(details.args[0]).startswith("No file"):
-                raise
-            logging.info("NOTE: Optional file %s not found - skipping", file)
-        else:
-            ret.append(temp[0])
-    return ret
-
-
 ################################################################
 if len(sys.argv) == 1:
     # distutils will print usage - print our docstring first.
@@ -1960,6 +2003,12 @@ classifiers = [
     "Programming Language :: Python :: Implementation :: CPython",
 ]
 
+is_cross_compiling = any(
+    not argument.endswith(sysconfig.get_platform())
+    for argument in sys.argv
+    if argument.startswith("--plat-name=")
+)
+
 dist = setup(
     name="pywin32",
     version=build_id,
@@ -2006,8 +2055,7 @@ dist = setup(
     },
     packages=packages,
     py_modules=py_modules,
-    data_files=convert_optional_data_files(["PyWin32.chm"])
-    + convert_data_files(
+    data_files=convert_data_files(
         [
             "Pythonwin/start_pythonwin.pyw",
             "pythonwin/pywin/*.cfg",
@@ -2092,7 +2140,10 @@ dist = setup(
         # Note we don't get an auto .pyc - but who cares?
         ("", ("com/pythoncom.py",)),
         ("", ("pywin32.pth",)),
-    ],
+    ]
+    + [("", ("PyWin32.chm",))]
+    if not is_cross_compiling
+    else [],
 )
 
 # If we did any extension building, and report if we skipped any.

@@ -9,9 +9,6 @@ on:
   push:
     branches:
       - main
-  pull_request: # Temporary just for test
-    branches:
-      - main
 
 jobs:
   generate:
@@ -26,17 +23,16 @@ jobs:
           python-version: "3.9"
           activate-environment: true
 
-      # We still need to install pywin32 because
-      # AutoDuck/py2d.py currently relies on runtime imports for introspection
-      # Downloading latest release is faster than re-building
+      # We install pywin32's latest release just to avoid re-building
+      # We could instead try to use a GitHub artifact
       - name: Install latest release
         run: uv pip install --upgrade pywin32
 
-      - name: Generate PyWin32.chm help file
-        run: python AutoDuck/make.py
+      - name: Set Python user site directory
+        run: python -c "import os,site; open(os.environ['GITHUB_ENV'], 'a').write(f'USER_DIR={site.USER_SITE}\n')"
 
-      - name: Decompile help file into HTML
-        run: hh -decompile site PyWin32.chm
+      - name: Decompile shipped help file into HTML
+        run: hh -decompile site ${env:USER_DIR}\PyWin32.chm
 
       - name: Rename root HTML file
         run: mv site\PyWin32.HTML site\index.html
