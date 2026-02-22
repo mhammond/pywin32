@@ -11,16 +11,6 @@
 #include "PyWinObjects.h"
 #include "Dbt.h" // for device events
 
-typedef BOOL (WINAPI *QueryServiceStatusExfunc)(SC_HANDLE,SC_STATUS_TYPE,LPBYTE,DWORD,LPDWORD);
-QueryServiceStatusExfunc fpQueryServiceStatusEx=NULL;
-typedef BOOL (WINAPI *ChangeServiceConfig2func)(SC_HANDLE,DWORD,LPVOID);
-ChangeServiceConfig2func fpChangeServiceConfig2=NULL;
-typedef BOOL (WINAPI *QueryServiceConfig2func)(SC_HANDLE,DWORD,LPBYTE,DWORD,LPDWORD);
-QueryServiceConfig2func fpQueryServiceConfig2=NULL;
-typedef BOOL (WINAPI *EnumServicesStatusExfunc)(SC_HANDLE,SC_ENUM_TYPE,DWORD,DWORD,
-	LPBYTE,DWORD,LPDWORD,LPDWORD,LPDWORD,LPCTSTR);
-EnumServicesStatusExfunc fpEnumServicesStatusEx=NULL;
-
 // according to msdn, 256 is limit for service names and service display names
 #define MAX_SERVICE_NAME_LEN 256
 
@@ -36,22 +26,6 @@ EnumServicesStatusExfunc fpEnumServicesStatusEx=NULL;
 	PyDict_SetItemString(d, "error", PyWinExc_ApiError);
 	PyDict_SetItemString(d, "HWINSTAType", (PyObject *)&PyHWINSTAType);
 	PyDict_SetItemString(d, "HDESKType", (PyObject *)&PyHDESKType);
-	FARPROC fp;
-	HMODULE hmod = PyWin_GetOrLoadLibraryHandle("advapi32.dll");
-	if (hmod != NULL) {
-		fp=GetProcAddress(hmod,"QueryServiceStatusEx");
-		if (fp!=NULL)
-			fpQueryServiceStatusEx=(QueryServiceStatusExfunc)fp;
-		fp=GetProcAddress(hmod,"ChangeServiceConfig2W");
-		if (fp!=NULL)
-			fpChangeServiceConfig2=(ChangeServiceConfig2func)fp;
-		fp=GetProcAddress(hmod,"QueryServiceConfig2W");
-		if (fp!=NULL)
-			fpQueryServiceConfig2=(QueryServiceConfig2func)fp;
-		fp=GetProcAddress(hmod,"EnumServicesStatusExW");
-		if (fp!=NULL)
-			fpEnumServicesStatusEx=(EnumServicesStatusExfunc)fp;
-	}
 %}
 
 %{
@@ -918,10 +892,6 @@ static PyObject *MyEnumServicesStatusEx(PyObject *self, PyObject *args)
 	DWORD resume_handle =0, err=0;
 	BOOL bsuccess;
 
-	if (fpEnumServicesStatusEx == NULL){
-		PyErr_SetString(PyExc_NotImplementedError, "EnumServicesStatusEx does not exist on this platform");
-		return NULL;
-		}
 	if (!PyArg_ParseTuple(args, "O&|kkOk:EnumServicesStatusEx",
 		PyWinObject_AsHANDLE, &hscm,
 		&service_type, &service_state,
@@ -938,7 +908,7 @@ static PyObject *MyEnumServicesStatusEx(PyObject *self, PyObject *args)
 		return NULL;
 	while (true){
 		Py_BEGIN_ALLOW_THREADS
-		bsuccess = (*fpEnumServicesStatusEx)(hscm, (SC_ENUM_TYPE)lvl, service_type, service_state,
+		bsuccess = EnumServicesStatusExW(hscm, (SC_ENUM_TYPE)lvl, service_type, service_state,
 			buf, buf_size, &buf_needed, &nbr_returned, &resume_handle, grp);
 		Py_END_ALLOW_THREADS
 		if (!bsuccess){
@@ -1238,10 +1208,6 @@ BOOLAPI QueryServiceStatus(SC_HANDLE handle, SERVICE_STATUS *outServiceStatus);
 %{
 PyObject *MyQueryServiceStatusEx(PyObject *self, PyObject *args)
 {
-	if (fpQueryServiceStatusEx==NULL){
-		PyErr_SetString(PyExc_NotImplementedError,"QueryServiceStatusEx does not exist on this platform");
-		return NULL;
-		}
 	SC_HANDLE hService;
 	PyObject *obhService;
 	SC_STATUS_TYPE InfoLevel=SC_STATUS_PROCESS_INFO;  // only existing info level
@@ -1254,7 +1220,7 @@ PyObject *MyQueryServiceStatusEx(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsHANDLE(obhService, (HANDLE *)&hService))
 		return NULL;
 
-	if (!(*fpQueryServiceStatusEx)(hService,InfoLevel,(BYTE *)&info,bufsize,&reqdbufsize))
+	if (!QueryServiceStatusEx(hService,InfoLevel,(BYTE *)&info,bufsize,&reqdbufsize))
 		return PyWin_SetAPIError("QueryServiceStatusEx", GetLastError());
 	return Py_BuildValue("{s:l,s:l,s:l,s:l,s:l,s:l,s:l,s:l,s:l}",
 		"ServiceType", info.dwServiceType,
@@ -1627,10 +1593,6 @@ PyObject *PyWinObject_FromSERVICE_FAILURE_ACTIONS(LPSERVICE_FAILURE_ACTIONSW psf
 %{
 PyObject *PyChangeServiceConfig2(PyObject *self, PyObject *args)
 {
-	if (fpChangeServiceConfig2==NULL){
-		PyErr_SetString(PyExc_NotImplementedError,"ChangeServiceConfig2 is not available on this operating system");
-		return NULL;
-		}
 	SC_HANDLE hService;
 	PyObject *obhService;
 	DWORD level;
@@ -1652,7 +1614,7 @@ PyObject *PyChangeServiceConfig2(PyObject *self, PyObject *args)
 			SERVICE_DESCRIPTIONW buf;
 			if (!PyWinObject_AsWCHAR(obinfo, &buf.lpDescription, TRUE))
 				return NULL;
-			bsuccess=(*fpChangeServiceConfig2)(hService, level, (LPVOID)&buf);
+			bsuccess=ChangeServiceConfig2(hService, level, (LPVOID)&buf);
 			PyWinObject_FreeWCHAR(buf.lpDescription);
 			break;
 			}
@@ -1661,7 +1623,7 @@ PyObject *PyChangeServiceConfig2(PyObject *self, PyObject *args)
 			SERVICE_FAILURE_ACTIONSW buf;
 			if (!PyWinObject_AsSERVICE_FAILURE_ACTIONS(obinfo, &buf))
 				return NULL;
-			bsuccess=(*fpChangeServiceConfig2)(hService, level, (LPVOID)&buf);
+			bsuccess=ChangeServiceConfig2(hService, level, (LPVOID)&buf);
 			PyWinObject_FreeSERVICE_FAILURE_ACTIONS(&buf);
 			break;
 			}
@@ -1669,14 +1631,14 @@ PyObject *PyChangeServiceConfig2(PyObject *self, PyObject *args)
 		case SERVICE_CONFIG_DELAYED_AUTO_START_INFO:{
 			SERVICE_DELAYED_AUTO_START_INFO buf;
 			buf.fDelayedAutostart=PyObject_IsTrue(obinfo);
-			bsuccess=(*fpChangeServiceConfig2)(hService,level, (LPVOID)&buf);
+			bsuccess=ChangeServiceConfig2(hService,level, (LPVOID)&buf);
 			break;
 			}
 		// @flag SERVICE_CONFIG_FAILURE_ACTIONS_FLAG|Boolean
 		case SERVICE_CONFIG_FAILURE_ACTIONS_FLAG:{
 			SERVICE_FAILURE_ACTIONS_FLAG buf;
 			buf.fFailureActionsOnNonCrashFailures=PyObject_IsTrue(obinfo);
-			bsuccess=(*fpChangeServiceConfig2)(hService,level, (LPVOID)&buf);
+			bsuccess=ChangeServiceConfig2(hService,level, (LPVOID)&buf);
 			break;
 			}
 		// @flag SERVICE_CONFIG_PRESHUTDOWN_INFO|int (shutdown timeout in milliseconds)
@@ -1685,7 +1647,7 @@ PyObject *PyChangeServiceConfig2(PyObject *self, PyObject *args)
 			buf.dwPreshutdownTimeout = PyLong_AsUnsignedLong(obinfo);
 			if (buf.dwPreshutdownTimeout==(DWORD)-1 && PyErr_Occurred())
 				return NULL;
-			bsuccess=(*fpChangeServiceConfig2)(hService, level, (LPVOID)&buf);
+			bsuccess=ChangeServiceConfig2(hService, level, (LPVOID)&buf);
 			break;
 			}
 		// @flag SERVICE_CONFIG_SERVICE_SID_INFO|int (SERVICE_SID_TYPE_*)
@@ -1694,7 +1656,7 @@ PyObject *PyChangeServiceConfig2(PyObject *self, PyObject *args)
 			buf.dwServiceSidType=PyLong_AsUnsignedLong(obinfo);
 			if (buf.dwServiceSidType==(DWORD)-1 && PyErr_Occurred())
 				return NULL;
-			bsuccess=(*fpChangeServiceConfig2)(hService, level, (LPVOID)&buf);
+			bsuccess=ChangeServiceConfig2(hService, level, (LPVOID)&buf);
 			break;
 			}
 		// @flag SERVICE_CONFIG_REQUIRED_PRIVILEGES_INFO|Sequence of unicode strings
@@ -1702,7 +1664,7 @@ PyObject *PyChangeServiceConfig2(PyObject *self, PyObject *args)
 			SERVICE_REQUIRED_PRIVILEGES_INFO buf;
 			if (!PyWinObject_AsMultipleString(obinfo, &buf.pmszRequiredPrivileges))
 				return NULL;
-			bsuccess=(*fpChangeServiceConfig2)(hService, level, (LPVOID)&buf);
+			bsuccess=ChangeServiceConfig2(hService, level, (LPVOID)&buf);
 			PyWinObject_FreeMultipleString(buf.pmszRequiredPrivileges);
 			break;
 			}
@@ -1723,10 +1685,6 @@ PyObject *PyChangeServiceConfig2(PyObject *self, PyObject *args)
 %{
 PyObject *PyQueryServiceConfig2(PyObject *self, PyObject *args)
 {
-	if (fpQueryServiceConfig2==NULL){
-		PyErr_SetString(PyExc_NotImplementedError,"QueryServiceConfig2 is not available on this operating system");
-		return NULL;
-		}
 	SC_HANDLE hService;
 	PyObject *obhService;
 	DWORD level, bytes_needed=0, bufsize=0;
@@ -1738,7 +1696,7 @@ PyObject *PyQueryServiceConfig2(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhService, (HANDLE *)&hService))
 		return NULL;
-	(*fpQueryServiceConfig2)(hService, level, buf, bufsize, &bytes_needed);
+	QueryServiceConfig2(hService, level, buf, bufsize, &bytes_needed);
 	if (bytes_needed==0){
 		PyWin_SetAPIError("QueryServiceConfig2");
 		return NULL;
@@ -1748,7 +1706,7 @@ PyObject *PyQueryServiceConfig2(PyObject *self, PyObject *args)
 		return PyErr_Format(PyExc_MemoryError,"QueryServiceConfig2: Unable to allocate buffer of %d bytes",bytes_needed);
 	bufsize=bytes_needed;
 
-	if ((*fpQueryServiceConfig2)(hService, level, buf, bufsize, &bytes_needed))
+	if (QueryServiceConfig2(hService, level, buf, bufsize, &bytes_needed))
 		switch(level){
 			// @flagh InfoLevel|Type of value returned
 			// @flag SERVICE_CONFIG_DESCRIPTION|Unicode string

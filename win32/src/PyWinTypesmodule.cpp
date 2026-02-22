@@ -979,43 +979,6 @@ PYWIN_MODULE_INIT_FUNC(pywintypes)
 
 extern "C" __declspec(dllexport) BOOL WINAPI DllMain(HANDLE hInstance, DWORD dwReason, LPVOID lpReserved)
 {
-    FARPROC fp;
-    // dll usually will already be loaded
-    HMODULE hmodule = PyWin_GetOrLoadLibraryHandle("advapi32.dll");
-    if (hmodule != NULL) {
-        fp = GetProcAddress(hmodule, "AddAccessAllowedAce");
-        if (fp)
-            addaccessallowedace = (addacefunc)(fp);
-        fp = GetProcAddress(hmodule, "AddAccessDeniedAce");
-        if (fp)
-            addaccessdeniedace = (addacefunc)(fp);
-        fp = GetProcAddress(hmodule, "AddAccessAllowedAceEx");
-        if (fp)
-            addaccessallowedaceex = (addaceexfunc)(fp);
-        fp = GetProcAddress(hmodule, "AddMandatoryAce");
-        if (fp)
-            addmandatoryace = (addaceexfunc)(fp);
-        fp = GetProcAddress(hmodule, "AddAccessAllowedObjectAce");
-        if (fp)
-            addaccessallowedobjectace = (addobjectacefunc)(fp);
-        fp = GetProcAddress(hmodule, "AddAccessDeniedAceEx");
-        if (fp)
-            addaccessdeniedaceex = (addaceexfunc)(fp);
-        fp = GetProcAddress(hmodule, "AddAccessDeniedObjectAce");
-        if (fp)
-            addaccessdeniedobjectace = (addobjectacefunc)(fp);
-        fp = GetProcAddress(hmodule, "AddAuditAccessAceEx");
-        if (fp)
-            addauditaccessaceex = (BOOL(WINAPI *)(PACL, DWORD, DWORD, DWORD, PSID, BOOL, BOOL))(fp);
-        fp = GetProcAddress(hmodule, "AddAuditAccessObjectAce");
-        if (fp)
-            addauditaccessobjectace = (BOOL(WINAPI *)(PACL, DWORD, DWORD, DWORD, GUID *, GUID *, PSID, BOOL, BOOL))(fp);
-        fp = GetProcAddress(hmodule, "SetSecurityDescriptorControl");
-        if (fp)
-            setsecuritydescriptorcontrol =
-                (BOOL(WINAPI *)(PSECURITY_DESCRIPTOR, SECURITY_DESCRIPTOR_CONTROL, SECURITY_DESCRIPTOR_CONTROL))(fp);
-    }
-
     switch (dwReason) {
         case DLL_PROCESS_ATTACH: {
             /*

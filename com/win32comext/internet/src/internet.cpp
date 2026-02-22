@@ -28,41 +28,6 @@ generates Windows .hlp files.
 #include "PyIInternetBindInfo.h"
 #include "PyIInternetSecurityManager.h"
 
-// Check a function pointer that is supplied by a specific IE version (ie,
-// we require an IE version later than what is installed)
-#define CHECK_IE_PFN(fname)                                                                                       \
-    if (pfn##fname == NULL)                                                                                       \
-        return PyErr_Format(PyExc_NotImplementedError, "%s is not available with this Internet Explorer version", \
-                            #fname);
-
-typedef HRESULT(WINAPI *CoInternetSetFeatureEnabled_func)(INTERNETFEATURELIST FeatureEntry, DWORD dwFlags,
-                                                          BOOL fEnable);
-static CoInternetSetFeatureEnabled_func pfnCoInternetSetFeatureEnabled = NULL;
-
-typedef HRESULT(WINAPI *CoInternetIsFeatureEnabled_func)(INTERNETFEATURELIST FeatureEntry, DWORD dwFlags);
-static CoInternetIsFeatureEnabled_func pfnCoInternetIsFeatureEnabled = NULL;
-
-typedef HRESULT(WINAPI *CoInternetCreateSecurityManager_func)(IServiceProvider *pSP, IInternetSecurityManager **ppSM,
-                                                              DWORD dwReserved);
-static CoInternetCreateSecurityManager_func pfnCoInternetCreateSecurityManager = NULL;
-
-// STDAPI CoInternetCreateZoneManager(IServiceProvider *pSP, IInternetZoneManager **ppZM, DWORD dwReserved);
-
-HMODULE loadmodule(TCHAR *dllname)
-{
-    HMODULE hmodule = GetModuleHandle(dllname);
-    if (hmodule == NULL)
-        hmodule = LoadLibrary(dllname);
-    return hmodule;
-}
-
-FARPROC loadapifunc(char *funcname, HMODULE hmodule)
-{
-    if (hmodule == NULL)
-        return NULL;
-    return GetProcAddress(hmodule, funcname);
-}
-
 //////////////////////////////////////////////////////////////
 //
 // PROTOCOLDATA support
@@ -158,13 +123,12 @@ PyObject *PyObject_FromBINDINFO(BINDINFO *pPD)
 // raises a com_error.
 static PyObject *PyCoInternetIsFeatureEnabled(PyObject *self, PyObject *args)
 {
-    CHECK_IE_PFN(CoInternetIsFeatureEnabled);
     int featureEntry, flags;
     if (!PyArg_ParseTuple(args, "ii",
                           &featureEntry,  // &pyparm int|featureEntry||
                           &flags))        // @pyparm int|flags||
         return NULL;
-    HRESULT hr = (*pfnCoInternetIsFeatureEnabled)((INTERNETFEATURELIST)featureEntry, flags);
+    HRESULT hr = CoInternetIsFeatureEnabled((INTERNETFEATURELIST)featureEntry, flags);
     if (FAILED(hr))
         return PyCom_BuildPyException(hr);
     PyObject *rc = (hr == S_OK) ? Py_True : Py_False;
@@ -175,14 +139,13 @@ static PyObject *PyCoInternetIsFeatureEnabled(PyObject *self, PyObject *args)
 // @pymethod int|internet|CoInternetSetFeatureEnabled|
 static PyObject *PyCoInternetSetFeatureEnabled(PyObject *self, PyObject *args)
 {
-    CHECK_IE_PFN(CoInternetSetFeatureEnabled);
     int featureEntry, flags, enable;
     if (!PyArg_ParseTuple(args, "iii",
                           &featureEntry,  // &pyparm int|featureEntry||
                           &flags,         // @pyparm int|flags||
                           &enable))       // @pyparm bool|enable||
         return NULL;
-    HRESULT hr = (*pfnCoInternetSetFeatureEnabled)((INTERNETFEATURELIST)featureEntry, flags, enable);
+    HRESULT hr = CoInternetSetFeatureEnabled((INTERNETFEATURELIST)featureEntry, flags, enable);
     if (FAILED(hr))
         return PyCom_BuildPyException(hr);
     return PyLong_FromLong(hr);
@@ -191,7 +154,6 @@ static PyObject *PyCoInternetSetFeatureEnabled(PyObject *self, PyObject *args)
 // @pymethod <o PyIInternetSecurityManager>|internet|CoInternetCreateSecurityManager|
 static PyObject *PyCoInternetCreateSecurityManager(PyObject *self, PyObject *args)
 {
-    CHECK_IE_PFN(CoInternetCreateSecurityManager);
     PyObject *obprov;
     DWORD reserved;
     if (!PyArg_ParseTuple(args, "Oi",
@@ -204,7 +166,7 @@ static PyObject *PyCoInternetCreateSecurityManager(PyObject *self, PyObject *arg
     HRESULT hr;
     IInternetSecurityManager *sm = 0;
     PY_INTERFACE_PRECALL;
-    hr = (*pfnCoInternetCreateSecurityManager)(prov, &sm, reserved);
+    hr = CoInternetCreateSecurityManager(prov, &sm, reserved);
     prov->Release();
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
@@ -251,16 +213,6 @@ PYWIN_MODULE_INIT_FUNC(internet)
     // Register all of our interfaces, gateways and IIDs.
     PyCom_RegisterExtensionSupport(dict, g_interfaceSupportData,
                                    sizeof(g_interfaceSupportData) / sizeof(PyCom_InterfaceSupportInfo));
-
-    // load up our function pointers for stuff we can't rely on being
-    // there at runtime
-    HMODULE urlmon_dll = loadmodule(_T("urlmon.dll"));
-    pfnCoInternetSetFeatureEnabled =
-        (CoInternetSetFeatureEnabled_func)loadapifunc("CoInternetSetFeatureEnabled", urlmon_dll);
-    pfnCoInternetIsFeatureEnabled =
-        (CoInternetIsFeatureEnabled_func)loadapifunc("CoInternetIsFeatureEnabled", urlmon_dll);
-    pfnCoInternetCreateSecurityManager =
-        (CoInternetCreateSecurityManager_func)loadapifunc("CoInternetCreateSecurityManager", urlmon_dll);
 
     ADD_CONSTANT(FEATURE_OBJECT_CACHING);                  // @const internet|FEATURE_OBJECT_CACHING|
     ADD_CONSTANT(FEATURE_ZONE_ELEVATION);                  // @const internet|FEATURE_ZONE_ELEVATION|

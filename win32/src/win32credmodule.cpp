@@ -1104,7 +1104,6 @@ done:
 }
 
 // @module win32cred|Interface to credentials management functions.
-// The functions in this module are only available on Windows XP and later.<nl>
 // Functions operate only on the credential set of the calling user.<nl>
 // User's profile must be loaded for stored credentials to be accessible.<nl>
 // Each credential is uniquely identified by its TargetName and Type.<nl>

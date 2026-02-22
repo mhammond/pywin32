@@ -12,45 +12,9 @@ generates Windows .hlp files.
 
 ******************************************************************/
 
-#ifndef UNICODE
-#error "no ANSI builds anymore - otherwise tweaks are needed here"
-#endif
 #include "PyWinTypes.h"
 #include "PyWinObjects.h"
 #include <stdarg.h>
-
-#define CHECK_PFN(fname)    \
-    if (pfn##fname == NULL) \
-        return PyErr_Format(PyExc_NotImplementedError, "%s is not available on this platform", #fname);
-
-typedef BOOL(WINAPI *EnumFormsfunc)(HANDLE, DWORD, LPBYTE, DWORD, LPDWORD, LPDWORD);
-static EnumFormsfunc pfnEnumForms = NULL;
-typedef BOOL(WINAPI *AddFormfunc)(HANDLE, DWORD, LPBYTE);
-static AddFormfunc pfnAddForm = NULL;
-typedef BOOL(WINAPI *DeleteFormfunc)(HANDLE, LPWSTR);
-static DeleteFormfunc pfnDeleteForm = NULL;
-typedef BOOL(WINAPI *GetFormfunc)(HANDLE, LPWSTR, DWORD, LPBYTE, DWORD, LPDWORD);
-static GetFormfunc pfnGetForm = NULL;
-typedef BOOL(WINAPI *SetFormfunc)(HANDLE, LPWSTR, DWORD, LPBYTE);
-static SetFormfunc pfnSetForm = NULL;
-typedef BOOL(WINAPI *AddJobfunc)(HANDLE, DWORD, LPBYTE, DWORD, LPDWORD);
-static AddJobfunc pfnAddJob = NULL;
-typedef BOOL(WINAPI *ScheduleJobfunc)(HANDLE, DWORD);
-static ScheduleJobfunc pfnScheduleJob = NULL;
-typedef BOOL(WINAPI *EnumPortsfunc)(LPWSTR, DWORD, LPBYTE, DWORD, LPDWORD, LPDWORD);
-static EnumPortsfunc pfnEnumPorts = NULL;
-static EnumPortsfunc pfnEnumMonitors = NULL;  // same args as EnumPorts
-typedef BOOL(WINAPI *GetPrintProcessorDirectoryfunc)(LPWSTR, LPWSTR, DWORD, LPBYTE, DWORD, LPDWORD);
-static GetPrintProcessorDirectoryfunc pfnGetPrintProcessorDirectory = NULL;
-static GetPrintProcessorDirectoryfunc pfnGetPrinterDriverDirectory = NULL;  // same as GetPrintProcessorDirectory
-typedef BOOL(WINAPI *DeletePrinterDriverExfunc)(LPWSTR, LPWSTR, LPWSTR, DWORD, DWORD);
-static DeletePrinterDriverExfunc pfnDeletePrinterDriverEx = NULL;
-typedef BOOL(WINAPI *FlushPrinterfunc)(HANDLE, LPVOID, DWORD, LPDWORD, DWORD);
-static FlushPrinterfunc pfnFlushPrinter = NULL;
-typedef BOOL(WINAPI *GetDefaultPrinterfunc)(LPWSTR, LPDWORD);
-static GetDefaultPrinterfunc pfnGetDefaultPrinter = NULL;
-typedef BOOL(WINAPI *SetDefaultPrinterfunc)(LPWSTR);
-static SetDefaultPrinterfunc pfnSetDefaultPrinter = NULL;
 
 static PyObject *dummy_tuple = NULL;
 
@@ -589,7 +553,6 @@ static PyObject *PyGetDefaultPrinter(PyObject *self, PyObject *args)
 // @comm Unlike <om win32print.GetDefaultPrinter>, this method calls the GetDefaultPrinter API function.
 static PyObject *PyGetDefaultPrinterW(PyObject *self, PyObject *args)
 {
-    CHECK_PFN(GetDefaultPrinter);
     WCHAR *printer = NULL;
     DWORD err, printer_size = 100;
     PyObject *ret = NULL;
@@ -597,7 +560,7 @@ static PyObject *PyGetDefaultPrinterW(PyObject *self, PyObject *args)
     printer = (WCHAR *)malloc(printer_size * sizeof(WCHAR));
     if (printer == NULL)
         return PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", printer_size * sizeof(WCHAR));
-    if (!(*pfnGetDefaultPrinter)(printer, &printer_size)) {
+    if (!GetDefaultPrinter(printer, &printer_size)) {
         err = GetLastError();
         if (err != ERROR_INSUFFICIENT_BUFFER) {
             PyWin_SetAPIError("GetDefaultPrinter");
@@ -607,7 +570,7 @@ static PyObject *PyGetDefaultPrinterW(PyObject *self, PyObject *args)
         printer = (WCHAR *)malloc(printer_size * sizeof(WCHAR));
         if (printer == NULL)
             return PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", printer_size * sizeof(WCHAR));
-        if (!(*pfnGetDefaultPrinter)(printer, &printer_size)) {
+        if (!GetDefaultPrinter(printer, &printer_size)) {
             PyWin_SetAPIError("GetDefaultPrinter");
             goto done;
         }
@@ -661,7 +624,6 @@ static PyObject *PySetDefaultPrinter(PyObject *self, PyObject *args)
 // @comm Unlike <om win32print.SetDefaultPrinter>, this method calls the SetDefaultPrinter API function.
 static PyObject *PySetDefaultPrinterW(PyObject *self, PyObject *args)
 {
-    CHECK_PFN(SetDefaultPrinter);
     WCHAR *printer = NULL;
     PyObject *obprinter, *ret = NULL;
     // @pyparm <o PyUnicode>|Printer||Name of printer, can be None to use first available printer
@@ -669,7 +631,7 @@ static PyObject *PySetDefaultPrinterW(PyObject *self, PyObject *args)
         return NULL;
     if (!PyWinObject_AsWCHAR(obprinter, &printer, TRUE))
         return NULL;
-    if (!(*pfnSetDefaultPrinter)(printer))
+    if (!SetDefaultPrinter(printer))
         PyWin_SetAPIError("SetDefaultPrinter");
     else {
         Py_INCREF(Py_None);
@@ -1629,11 +1591,10 @@ static PyObject *PyEnumForms(PyObject *self, PyObject *args)
     DWORD level = 1, bufsize = 0, bytes_needed = 0, return_cnt, buf_ind;
     FORM_INFO_1W *fi1;
     LPBYTE buf = NULL;
-    CHECK_PFN(EnumForms);
 
     if (!PyArg_ParseTuple(args, "O&:EnumForms", PyWinObject_AsPrinterHANDLE, &hprinter))
         return NULL;
-    (*pfnEnumForms)(hprinter, level, buf, bufsize, &bytes_needed, &return_cnt);
+    EnumForms(hprinter, level, buf, bufsize, &bytes_needed, &return_cnt);
     if (bytes_needed == 0) {
         PyWin_SetAPIError("EnumForms");
         goto done;
@@ -1644,7 +1605,7 @@ static PyObject *PyEnumForms(PyObject *self, PyObject *args)
         goto done;
     }
     bufsize = bytes_needed;
-    if (!(*pfnEnumForms)(hprinter, level, buf, bufsize, &bytes_needed, &return_cnt)) {
+    if (!EnumForms(hprinter, level, buf, bufsize, &bytes_needed, &return_cnt)) {
         PyWin_SetAPIError("EnumForms");
         goto done;
     }
@@ -1730,14 +1691,13 @@ static PyObject *PyAddForm(PyObject *self, PyObject *args)
     // @rdesc Returns None on success, throws an exception otherwise
     FORM_INFO_1W fi1;
     HANDLE hprinter;
-    CHECK_PFN(AddForm);
 
     PyObject *py_form1;
     TmpWCHAR tmpw_shelve[1];
     if (!PyArg_ParseTuple(args, "O&O:AddForm", PyWinObject_AsPrinterHANDLE, &hprinter, &py_form1) ||
         !PyWinObject_AsFORM_INFO_1(py_form1, &fi1, tmpw_shelve))
         return NULL;
-    if (!(*pfnAddForm)(hprinter, 1, (LPBYTE)&fi1))
+    if (!AddForm(hprinter, 1, (LPBYTE)&fi1))
         return PyWin_SetAPIError("AddForm");
     Py_INCREF(Py_None);
     return Py_None;
@@ -1751,12 +1711,11 @@ static PyObject *PyDeleteForm(PyObject *self, PyObject *args)
     // @rdesc Returns None on success, throws an exception otherwise
     HANDLE hprinter;
     TmpWCHAR formname;
-    CHECK_PFN(DeleteForm);
 
     if (!PyArg_ParseTuple(args, "O&U:DeleteForm", PyWinObject_AsPrinterHANDLE, &hprinter, &formname.u) ||
         !formname.u2w())
         return NULL;
-    if (!(*pfnDeleteForm)(hprinter, formname))
+    if (!DeleteForm(hprinter, formname))
         return PyWin_SetAPIError("DeleteForm");
     Py_INCREF(Py_None);
     return Py_None;
@@ -1773,18 +1732,17 @@ static PyObject *PyGetForm(PyObject *self, PyObject *args)
     FORM_INFO_1W *fi1 = NULL;
     LPBYTE buf = NULL;
     PyObject *ret = NULL;
-    CHECK_PFN(GetForm);
 
     if (!PyArg_ParseTuple(args, "O&U:GetForm", PyWinObject_AsPrinterHANDLE, &hprinter, &formname.u) || !formname.u2w())
         return NULL;
-    (*pfnGetForm)(hprinter, formname, level, buf, bufsize, &bytes_needed);
+    GetForm(hprinter, formname, level, buf, bufsize, &bytes_needed);
     if (bytes_needed == 0)
         return PyWin_SetAPIError("GetForm");
     buf = (LPBYTE)malloc(bytes_needed);
     if (buf == NULL)
         return PyErr_Format(PyExc_MemoryError, "GetForm: Unable to allocate %d bytes", bytes_needed);
     bufsize = bytes_needed;
-    if (!(*pfnGetForm)(hprinter, formname, level, buf, bufsize, &bytes_needed))
+    if (!GetForm(hprinter, formname, level, buf, bufsize, &bytes_needed))
         PyWin_SetAPIError("GetForm");
     else {
         fi1 = (FORM_INFO_1W *)buf;
@@ -1806,12 +1764,11 @@ static PyObject *PySetForm(PyObject *self, PyObject *args)
     TmpWCHAR formname;
     PyObject *py_form1;
     TmpWCHAR tmpw_shelve[1];
-    CHECK_PFN(SetForm);
 
     if (!PyArg_ParseTuple(args, "O&UO:SetForm", PyWinObject_AsPrinterHANDLE, &hprinter, &formname.u, &py_form1) ||
         !formname.u2w() || !PyWinObject_AsFORM_INFO_1(py_form1, &fi1, tmpw_shelve))
         return NULL;
-    if (!(*pfnSetForm)(hprinter, formname, 1, (LPBYTE)&fi1))
+    if (!SetForm(hprinter, formname, 1, (LPBYTE)&fi1))
         return PyWin_SetAPIError("SetForm");
     Py_INCREF(Py_None);
     return Py_None;
@@ -1826,8 +1783,6 @@ static PyObject *PyAddJob(PyObject *self, PyObject *args)
     DWORD level = 1, bufsize, bytes_needed;
     LPBYTE buf = NULL;
     PyObject *ret = NULL;
-    BOOL bsuccess;
-    CHECK_PFN(AddJob);
 
     if (!PyArg_ParseTuple(args, "O&:AddJob", PyWinObject_AsPrinterHANDLE, &hprinter))
         return NULL;
@@ -1835,7 +1790,7 @@ static PyObject *PyAddJob(PyObject *self, PyObject *args)
     buf = (LPBYTE)malloc(bufsize);
     if (buf == NULL)
         return PyErr_Format(PyExc_MemoryError, "AddJob: unable to allocate %d bytes", bufsize);
-    bsuccess = (*pfnAddJob)(hprinter, level, buf, bufsize, &bytes_needed);
+    BOOL bsuccess = AddJob(hprinter, level, buf, bufsize, &bytes_needed);
     if (!bsuccess)
         if (bytes_needed > bufsize) {
             free(buf);
@@ -1843,7 +1798,7 @@ static PyObject *PyAddJob(PyObject *self, PyObject *args)
             if (buf == NULL)
                 return PyErr_Format(PyExc_MemoryError, "AddJob: unable to allocate %d bytes", bytes_needed);
             bufsize = bytes_needed;
-            bsuccess = (*pfnAddJob)(hprinter, level, buf, bufsize, &bytes_needed);
+            bsuccess = AddJob(hprinter, level, buf, bufsize, &bytes_needed);
         }
     if (!bsuccess)
         PyWin_SetAPIError("AddJob");
@@ -1861,11 +1816,10 @@ static PyObject *PyScheduleJob(PyObject *self, PyObject *args)
     // @pyparm int|JobId||Job Id as returned by <om win32print.AddJob>
     HANDLE hprinter;
     DWORD jobid;
-    CHECK_PFN(ScheduleJob);
 
     if (!PyArg_ParseTuple(args, "O&k:ScheduleJob", PyWinObject_AsPrinterHANDLE, &hprinter, &jobid))
         return NULL;
-    if (!(*pfnScheduleJob)(hprinter, jobid)) {
+    if (!ScheduleJob(hprinter, jobid)) {
         PyWin_SetAPIError("ScheduleJob");
         return NULL;
     }
@@ -2159,13 +2113,12 @@ static PyObject *PyEnumMonitors(PyObject *self, PyObject *args)
     WCHAR *server_name = NULL;
     DWORD level, bufsize = 0, bytes_needed = 0, return_cnt, buf_ind;
     LPBYTE buf = NULL;
-    CHECK_PFN(EnumMonitors);
 
     if (!PyArg_ParseTuple(args, "Ok:EnumMonitors", &observer_name, &level))
         return NULL;
     if (!PyWinObject_AsWCHAR(observer_name, &server_name, TRUE))
         return NULL;
-    (*pfnEnumMonitors)(server_name, level, buf, bufsize, &bytes_needed, &return_cnt);
+    EnumMonitors(server_name, level, buf, bufsize, &bytes_needed, &return_cnt);
     if (bytes_needed == 0) {
         PyWin_SetAPIError("EnumMonitors");
         goto done;
@@ -2176,7 +2129,7 @@ static PyObject *PyEnumMonitors(PyObject *self, PyObject *args)
         goto done;
     }
     bufsize = bytes_needed;
-    if (!(*pfnEnumMonitors)(server_name, level, buf, bufsize, &bytes_needed, &return_cnt)) {
+    if (!EnumMonitors(server_name, level, buf, bufsize, &bytes_needed, &return_cnt)) {
         PyWin_SetAPIError("EnumMonitors");
         goto done;
     }
@@ -2236,13 +2189,12 @@ static PyObject *PyEnumPorts(PyObject *self, PyObject *args)
     WCHAR *server_name = NULL;
     DWORD level, bufsize = 0, bytes_needed = 0, return_cnt, buf_ind;
     LPBYTE buf = NULL;
-    CHECK_PFN(EnumPorts);
 
     if (!PyArg_ParseTuple(args, "Ok:EnumPorts", &observer_name, &level))
         return NULL;
     if (!PyWinObject_AsWCHAR(observer_name, &server_name, TRUE))
         return NULL;
-    (*pfnEnumPorts)(server_name, level, buf, bufsize, &bytes_needed, &return_cnt);
+    EnumPorts(server_name, level, buf, bufsize, &bytes_needed, &return_cnt);
     if (bytes_needed == 0) {
         PyWin_SetAPIError("EnumPorts");
         goto done;
@@ -2253,7 +2205,7 @@ static PyObject *PyEnumPorts(PyObject *self, PyObject *args)
         goto done;
     }
     bufsize = bytes_needed;
-    if (!(*pfnEnumPorts)(server_name, level, buf, bufsize, &bytes_needed, &return_cnt)) {
+    if (!EnumPorts(server_name, level, buf, bufsize, &bytes_needed, &return_cnt)) {
         PyWin_SetAPIError("EnumPorts");
         goto done;
     }
@@ -2315,7 +2267,6 @@ static PyObject *PyGetPrintProcessorDirectory(PyObject *self, PyObject *args)
     WCHAR *server_name = NULL, *environment = NULL;
     DWORD level = 1, bufsize = 0, bytes_needed = 0, bytes_returned = 0;
     LPBYTE buf = NULL;
-    CHECK_PFN(GetPrintProcessorDirectory);
 
     if (!PyArg_ParseTuple(args, "|OO:GetPrintProcessorDirectory", &observer_name, &obenvironment))
         return NULL;
@@ -2324,7 +2275,7 @@ static PyObject *PyGetPrintProcessorDirectory(PyObject *self, PyObject *args)
     if (!PyWinObject_AsWCHAR(obenvironment, &environment, TRUE))
         return NULL;
 
-    (*pfnGetPrintProcessorDirectory)(server_name, environment, level, buf, bufsize, &bytes_needed);
+    GetPrintProcessorDirectory(server_name, environment, level, buf, bufsize, &bytes_needed);
     if (bytes_needed == 0) {
         PyWin_SetAPIError("GetPrintProcessorDirectory");
         goto done;
@@ -2336,7 +2287,7 @@ static PyObject *PyGetPrintProcessorDirectory(PyObject *self, PyObject *args)
         goto done;
     }
     bufsize = bytes_needed;
-    if (!(*pfnGetPrintProcessorDirectory)(server_name, environment, level, buf, bufsize, &bytes_needed))
+    if (!GetPrintProcessorDirectory(server_name, environment, level, buf, bufsize, &bytes_needed))
         PyWin_SetAPIError("GetPrintProcessorDirectory");
     else
         ret = PyWinObject_FromWCHAR((WCHAR *)buf);
@@ -2361,7 +2312,6 @@ static PyObject *PyGetPrinterDriverDirectory(PyObject *self, PyObject *args)
     WCHAR *server_name = NULL, *environment = NULL;
     DWORD level = 1, bufsize = 0, bytes_needed = 0, bytes_returned = 0;
     LPBYTE buf = NULL;
-    CHECK_PFN(GetPrinterDriverDirectory);
 
     if (!PyArg_ParseTuple(args, "|OO:GetPrinterDriverDirectory", &observer_name, &obenvironment))
         return NULL;
@@ -2370,7 +2320,7 @@ static PyObject *PyGetPrinterDriverDirectory(PyObject *self, PyObject *args)
     if (!PyWinObject_AsWCHAR(obenvironment, &environment, TRUE))
         return NULL;
 
-    (*pfnGetPrinterDriverDirectory)(server_name, environment, level, buf, bufsize, &bytes_needed);
+    GetPrinterDriverDirectory(server_name, environment, level, buf, bufsize, &bytes_needed);
     if (bytes_needed == 0) {
         PyWin_SetAPIError("GetPrinterDriverDirectory");
         goto done;
@@ -2382,7 +2332,7 @@ static PyObject *PyGetPrinterDriverDirectory(PyObject *self, PyObject *args)
         goto done;
     }
     bufsize = bytes_needed;
-    if (!(*pfnGetPrinterDriverDirectory)(server_name, environment, level, buf, bufsize, &bytes_needed))
+    if (!GetPrinterDriverDirectory(server_name, environment, level, buf, bufsize, &bytes_needed))
         PyWin_SetAPIError("GetPrinterDriverDirectory");
     else
         ret = PyWinObject_FromWCHAR((WCHAR *)buf);
@@ -2485,7 +2435,6 @@ static PyObject *PyDeletePrinterDriverEx(PyObject *self, PyObject *args)
     PyObject *observername, *obenvironment, *obdrivername;
     WCHAR *servername = NULL, *environment = NULL, *drivername = NULL;
     DWORD deleteflag, versionflag;
-    CHECK_PFN(DeletePrinterDriverEx);
     // @pyparm string/<o PyUnicode>|Server||Name of print server, use None for local machine
     // @pyparm string/<o PyUnicode>|Environment||Environment - eg 'Windows NT x86' - use None for current client
     // environment
@@ -2498,7 +2447,7 @@ static PyObject *PyDeletePrinterDriverEx(PyObject *self, PyObject *args)
         PyWinObject_AsWCHAR(observername, &servername, TRUE) &&
         PyWinObject_AsWCHAR(obenvironment, &environment, TRUE) &&
         PyWinObject_AsWCHAR(obdrivername, &drivername, FALSE)) {
-        if ((*pfnDeletePrinterDriverEx)(servername, environment, drivername, deleteflag, versionflag)) {
+        if (DeletePrinterDriverEx(servername, environment, drivername, deleteflag, versionflag)) {
             Py_INCREF(Py_None);
             ret = Py_None;
         }
@@ -2519,7 +2468,6 @@ static PyObject *PyDeletePrinterDriverEx(PyObject *self, PyObject *args)
 // @rdesc Returns the number of bytes actually written to the printer
 static PyObject *PyFlushPrinter(PyObject *self, PyObject *args)
 {
-    CHECK_PFN(FlushPrinter);
     HANDLE hprinter;
     PyObject *obbuf;
     void *buf;
@@ -2532,7 +2480,7 @@ static PyObject *PyFlushPrinter(PyObject *self, PyObject *args)
         return NULL;
     if (PyBytes_AsStringAndSize(obbuf, (char **)&buf, &bufsize) == -1)
         return NULL;
-    if (!(*pfnFlushPrinter)(hprinter, buf, PyWin_SAFE_DOWNCAST(bufsize, Py_ssize_t, DWORD), &bytes_written, sleep_ms))
+    if (!FlushPrinter(hprinter, buf, PyWin_SAFE_DOWNCAST(bufsize, Py_ssize_t, DWORD), &bytes_written, sleep_ms))
         return PyWin_SetAPIError("FlushPrinter");
     return PyLong_FromUnsignedLong(bytes_written);
 }
@@ -2778,26 +2726,6 @@ PYWIN_MODULE_INIT_FUNC(win32print)
     AddConstant(dict, "PORT_STATUS_TYPE_WARNING", PORT_STATUS_TYPE_WARNING);
     AddConstant(dict, "PORT_STATUS_TYPE_INFO", PORT_STATUS_TYPE_INFO);
 
-    HMODULE hmodule = LoadLibrary(TEXT("winspool.drv"));
-    if (hmodule != NULL) {
-        pfnEnumForms = (EnumFormsfunc)GetProcAddress(hmodule, "EnumFormsW");
-        pfnAddForm = (AddFormfunc)GetProcAddress(hmodule, "AddFormW");
-        pfnDeleteForm = (DeleteFormfunc)GetProcAddress(hmodule, "DeleteFormW");
-        pfnGetForm = (GetFormfunc)GetProcAddress(hmodule, "GetFormW");
-        pfnSetForm = (SetFormfunc)GetProcAddress(hmodule, "SetFormW");
-        pfnAddJob = (AddJobfunc)GetProcAddress(hmodule, "AddJobW");
-        pfnScheduleJob = (ScheduleJobfunc)GetProcAddress(hmodule, "ScheduleJob");
-        pfnEnumPorts = (EnumPortsfunc)GetProcAddress(hmodule, "EnumPortsW");
-        pfnEnumMonitors = (EnumPortsfunc)GetProcAddress(hmodule, "EnumMonitorsW");
-        pfnGetPrintProcessorDirectory =
-            (GetPrintProcessorDirectoryfunc)GetProcAddress(hmodule, "GetPrintProcessorDirectoryW");
-        pfnGetPrinterDriverDirectory =
-            (GetPrintProcessorDirectoryfunc)GetProcAddress(hmodule, "GetPrinterDriverDirectoryW");
-        pfnDeletePrinterDriverEx = (DeletePrinterDriverExfunc)GetProcAddress(hmodule, "DeletePrinterDriverExW");
-        pfnFlushPrinter = (FlushPrinterfunc)GetProcAddress(hmodule, "FlushPrinter");
-        pfnGetDefaultPrinter = (GetDefaultPrinterfunc)GetProcAddress(hmodule, "GetDefaultPrinterW");
-        pfnSetDefaultPrinter = (SetDefaultPrinterfunc)GetProcAddress(hmodule, "SetDefaultPrinterW");
-    }
     dummy_tuple = PyTuple_New(0);
 
     PYWIN_MODULE_INIT_RETURN_SUCCESS;

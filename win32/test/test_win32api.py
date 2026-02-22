@@ -272,11 +272,12 @@ class Misc(unittest.TestCase):
         # Basic smoke test - function should not crash and return a list
         try:
             cpus = win32api.GetSystemCpuSetInformation()
-        except NotImplementedError:
-            # Expected on older Windows (pre-Win10)
-            raise TestSkipped(
-                "GetSystemCpuSetInformation not available on this platform"
-            )
+        except NotImplementedError as e:
+            msg = str(e)
+            # Expected on older than Windows 10
+            if msg == "GetSystemCpuSetInformation is not available on this platform":
+                raise TestSkipped(msg) from e
+            raise
 
         self.assertIsInstance(cpus, list)
 

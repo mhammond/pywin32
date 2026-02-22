@@ -139,6 +139,7 @@ class WinExt(Extension):
                 ("CRYPT_DECRYPT_MESSAGE_PARA_HAS_EXTRA_FIELDS", None),
                 # Minimum Windows version supported (Windows 7)
                 # https://learn.microsoft.com/en-us/cpp/porting/modifying-winver-and-win32-winnt
+                # Technically official Python 3.9 builds require at least Windows 8.1, but we had no reason to bump this
                 ("_WIN32_WINNT", hex(0x0601)),
                 ("WINVER", hex(0x0601)),
             )
@@ -982,7 +983,7 @@ for name, libraries, sources in (
     ("odbc", "odbc32 odbccp32", "win32/src/odbc.cpp"),
     (
         "perfmon",
-        "",
+        "loadperf",
         """
         win32/src/PerfMon/MappingManager.cpp
         win32/src/PerfMon/PerfCounterDefn.cpp
@@ -1009,7 +1010,7 @@ for name, libraries, sources in (
     ),
     (
         "win32file",
-        "ws2_32 mswsock",
+        "ws2_32 mswsock sfc advapi32",
         """
         win32/src/win32file.i
         win32/src/win32file_comm.cpp
@@ -1037,7 +1038,7 @@ for name, libraries, sources in (
         win32/src/win32net/win32netuser.cpp
         """,
     ),
-    ("win32pdh", "", "win32/src/win32pdhmodule.cpp"),
+    ("win32pdh", "pdh", "win32/src/win32pdhmodule.cpp"),
     ("win32pipe", "", "win32/src/win32pipe.i"),
     (
         "win32print",
@@ -1049,7 +1050,7 @@ for name, libraries, sources in (
     ("win32ras", "rasapi32 user32", "win32/src/win32rasmodule.cpp"),
     (
         "win32security",
-        "advapi32 user32 netapi32",
+        "advapi32 user32 netapi32 secur32 ntdsapi",
         """
         win32/src/win32security.i
         win32/src/win32security_sspi.cpp
@@ -1076,7 +1077,7 @@ for name, libraries, sources in (
     ),
     (
         "win32inet",
-        "wininet",
+        "wininet winhttp",
         """
         win32/src/win32inet.i
         win32/src/win32inet_winhttp.cpp
@@ -1085,7 +1086,7 @@ for name, libraries, sources in (
     ("win32console", "kernel32", "win32/src/win32consolemodule.cpp"),
     ("win32ts", "WtsApi32", "win32/src/win32tsmodule.cpp"),
     ("_win32sysloader", "", "win32/src/_win32sysloader.cpp"),
-    ("win32transaction", "kernel32", "win32/src/win32transactionmodule.cpp"),
+    ("win32transaction", "kernel32 ktmw32", "win32/src/win32transactionmodule.cpp"),
 ):
     ext = WinExt_win32(
         name,
@@ -1110,7 +1111,7 @@ win32_extensions += [
         sources="""
                 win32/src/win32apimodule.cpp win32/src/win32api_display.cpp win32/src/win32api_cputopo.cpp
                 """.split(),
-        libraries="user32 advapi32 shell32 version",
+        libraries="user32 advapi32 shell32 version secur32",
         delay_load_libraries="powrprof",
     ),
     WinExt_win32(
@@ -1119,10 +1120,9 @@ win32_extensions += [
                 win32/src/win32dynamicdialog.cpp
                 win32/src/win32gui.i
                """.split(),
-        libraries="gdi32 user32 comdlg32 comctl32 shell32",
+        libraries="gdi32 user32 comdlg32 comctl32 shell32 msimg32",
         define_macros=[("WIN32GUI", None)],
     ),
-    # winxptheme
     WinExt_win32(
         "_winxptheme",
         sources=["win32/src/_winxptheme.i"],
@@ -1238,7 +1238,7 @@ pythoncom = WinExt_system32(
                         {win32com}/include\\PyIServerSecurity.h
                         """.format(**dirs)
     ).split(),
-    libraries="oleaut32 ole32 user32 urlmon",
+    libraries="oleaut32 ole32 user32 urlmon oleacc",
     export_symbol_file="com/win32com/src/PythonCOM.def",
     extra_compile_args=["-DBUILD_PYTHONCOM"],
 )
@@ -1360,6 +1360,7 @@ com_extensions = [
     ),
     WinExt_win32com(
         "internet",
+        libraries="urlmon",
         sources=(
             """
                         {internet}/internet.cpp                   {internet}/PyIDocHostUIHandler.cpp
@@ -1423,7 +1424,7 @@ com_extensions = [
     ),
     WinExt_win32com(
         "shell",
-        libraries="shell32",
+        libraries="shell32 shlwapi",
         sources=(
             """
                         {shell}/PyIActiveDesktop.cpp
@@ -1963,7 +1964,7 @@ classifiers = [
 dist = setup(
     name="pywin32",
     version=build_id,
-    description="Python for Window Extensions",
+    description="Python for Windows Extensions",
     long_description=(Path(__file__).parent / "README.md").read_text(),
     long_description_content_type="text/markdown",
     author="Mark Hammond (et al)",
