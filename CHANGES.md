@@ -30,7 +30,7 @@ Coming in build 312, as yet unreleased
   * `win32con.FILE_ATTRIBUTE_XACTION_WRITE`
 * Bugfix for COM Record instance creation (mhammond#2641, [@geppi][geppi])
 * Fix regression introduced by mhammond#2506 (mhammond#2640, [@geppi][geppi])
-* Removed considerations for MFC < 9 (VS 2008) (mhammond#2669, [@Avasam][Avasam])
+* Removed considerations for MFC < 9 (VS 2008) (mhammond#2669, mhammond#2716, [@Avasam][Avasam])
   * This removes the unusable `PyCSliderCtrl.VerifyPos` method
 * Dropped support for Python 3.8 (mhammond#2413, [@Avasam][Avasam])
   * Note that whilst pywin32 hasn't explicitly dropped support for Windows 7 / Windows Server 2008,

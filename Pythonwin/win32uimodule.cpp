@@ -916,12 +916,7 @@ static PyObject *ui_enable_3d_controls(PyObject *self, PyObject *args)
     if (!pApp)
         return NULL;
     GUI_BGN_SAVE;
-#ifdef _AFX_NO_CTL3D_SUPPORT
-    // This is defined for _WIN64 in earlier SDKs.
-    int rc = 0;
-#else
     int rc = pApp->Enable3dControls();
-#endif
     GUI_END_SAVE;
 
     return Py_BuildValue("i", rc);
