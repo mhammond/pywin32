@@ -52,12 +52,7 @@ def RegisterPythonServer(filename, progids=None, verbose=0):
                 % (sys.version_info.major, sys.version_info.minor),
             ]
             if os.path.basename(dll) not in ok_files:
-                why_not = (
-                    "{!r} is registered against a different Python version ({})".format(
-                        progid,
-                        dll,
-                    )
-                )
+                why_not = f"{progid!r} is registered against a different Python version ({dll})"
                 break
         else:
             # print(f"Skipping registration of '{filename}' - already registered")

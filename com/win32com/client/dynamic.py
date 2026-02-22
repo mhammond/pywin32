@@ -535,9 +535,7 @@ class CDispatch:
 
     def __AttrToID__(self, attr):
         debug_attr_print(
-            "Calling GetIDsOfNames for property {} in Dispatch container {}".format(
-                attr, self._username_
-            )
+            f"Calling GetIDsOfNames for property {attr} in Dispatch container {self._username_}"
         )
         return self._oleobj_.GetIDsOfNames(0, attr)
 
@@ -689,9 +687,7 @@ class CDispatch:
                     self._oleobj_.Invoke(entry.dispid, 0, invoke_type, 0, value)
                     self._olerepr_.propMap[attr] = entry
                     debug_attr_print(
-                        "__setattr__ property {} (id=0x{:x}) in Dispatch container {}".format(
-                            attr, entry.dispid, self._username_
-                        )
+                        f"__setattr__ property {attr} (id=0x{entry.dispid:x}) in Dispatch container {self._username_}"
                     )
                     return
                 except pythoncom.com_error:
