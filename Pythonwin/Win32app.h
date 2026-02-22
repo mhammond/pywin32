@@ -53,10 +53,7 @@ class PYW_EXPORT CProtectedWinApp : public CWinApp {
     CDocument *FindOpenDocument(const TCHAR *lpszFileName);
 // warning C4996: 'xxx' was declared deprecated
 #pragma warning(disable : 4996)
-#ifndef _AFX_NO_CTL3D_SUPPORT
-    // Not available on early SDK _Win64 builds.
     BOOL Enable3dControls() { return CWinApp::Enable3dControls(); }
-#endif
     void SetDialogBkColor(COLORREF clrCtlBk, COLORREF clrCtlText) { CWinApp::SetDialogBkColor(clrCtlBk, clrCtlText); }
 #pragma warning(default : 4996)
     BOOL HaveLoadStdProfileSettings() { return m_pRecentFileList != NULL; }
