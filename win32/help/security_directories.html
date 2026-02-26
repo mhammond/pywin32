@@ -481,7 +481,7 @@ else:
         if os.path.isdir(args[0]):
             print("walking thru",args[0])
             get_perm_base(args[0])
-            os.path.walk(args[0],get_perms,opts['-d'])
+            os.walk(args[0],get_perms,opts['-d'])
         else:
             print("Directory",args[0],"does not exist")
             sys.exit(0)
