@@ -3,7 +3,7 @@ if "%1"=="" goto skip_arg
 set PYTHON=%1
 goto skip_python:
 :skip_arg
-set PYTHON=py -2.7
+set PYTHON=python
 :skip_python
 Echo on
 echo .
