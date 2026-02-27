@@ -1445,8 +1445,8 @@ static void parseInfo(connectionObject *conn, const TCHAR *c)
     TCHAR pwd[MAX_STR];
     size_t connectionStringLength;
 
-    firstEqualsSign = _tcschr(c, _T('='));
-    firstSlash = _tcschr(c, _T('/'));
+    firstEqualsSign = wcschr(c, _T('='));
+    firstSlash = wcschr(c, _T('/'));
 
     if (!firstEqualsSign || (firstSlash && firstSlash < firstEqualsSign)) {
         _tcsncpy(buf, c, sizeof(buf) / sizeof(TCHAR));

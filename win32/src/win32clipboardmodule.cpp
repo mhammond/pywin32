@@ -1133,7 +1133,5 @@ PYWIN_MODULE_INIT_FUNC(win32clipboard)
         PYWIN_MODULE_INIT_RETURN_ERROR;
     if (PyDict_SetItemString(dict, "error", PyWinExc_ApiError) == -1)
         PYWIN_MODULE_INIT_RETURN_ERROR;
-    if (PyDict_SetItemString(dict, "UNICODE", Py_True) == -1)
-        PYWIN_MODULE_INIT_RETURN_ERROR;
     PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }

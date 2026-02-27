@@ -18,6 +18,7 @@ As of build 305, installation .exe files have been deprecated; see
 Coming in build 312, as yet unreleased
 --------------------------------------
 
+* Removed more leftover obsolete `UNICODE` constants since dropping Python 2 support in `win32ui`, `win32gui` and `win32clipboard` (mhammond#2717, [@Avasam][Avasam])
 * Implement COM Records as [out] method parameters (mhammond#2708, [@geppi][geppi], [@the-snork][the-snork])
 * Implement multidimensional SAFEARRAY(COM Record) and SAFEARRAY(double) (mhammond#2655, [@geppi][geppi])
 * Added many missing license and copyright notice files (mhammond#2590, [@Avasam][Avasam])
