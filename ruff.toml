@@ -50,9 +50,6 @@ extend-ignore = [
 "__init__.py" = ["PLC0414"]
 # TODO: Make adodbapi changes in their own PRs
 "adodbapi/*" = [
-  "C4",
-  "UP031",
-  "UP032",
   # Dropping Python 3.8 support
   "UP005",
   "UP006",
