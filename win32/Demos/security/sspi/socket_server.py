@@ -122,7 +122,7 @@ def sspi_client():
         data = _get_msg(c.sock)
     print("Auth dance complete - sending a few encryted messages")
     # Assume out data is sensitive - encrypt the message.
-    for data in "Hello from the client".split():
+    for data in ["Hello", "from", "the", "client"]:
         blob, key = ca.encrypt(data)
         _send_msg(c.sock, blob)
         _send_msg(c.sock, key)

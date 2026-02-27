@@ -24,10 +24,12 @@ RS_DEBUGGER_PM = (
     3  # Don't run under debugger, but do post-mortem analysis on exception.
 )
 
-debugging_options = """No debugging
-Step-through in the debugger
-Run in the debugger
-Post-Mortem of unhandled exceptions""".split("\n")
+debugging_options = [
+    "No debugging",
+    "Step-through in the debugger",
+    "Run in the debugger",
+    "Post-Mortem of unhandled exceptions",
+]
 
 byte_cr = b"\r"
 byte_lf = b"\n"

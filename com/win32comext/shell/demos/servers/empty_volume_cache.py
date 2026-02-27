@@ -14,10 +14,15 @@ from win32com.server.exception import COMException
 from win32com.shell import shell, shellcon
 
 # Our shell extension.
-IEmptyVolumeCache_Methods = (
-    "Initialize GetSpaceUsed Purge ShowProperties Deactivate".split()
-)
-IEmptyVolumeCache2_Methods = "InitializeEx".split()
+IEmptyVolumeCache_Methods = [
+    "Initialize",
+    "GetSpaceUsed",
+    "Purge",
+    "ShowProperties",
+    "Deactivate",
+]
+
+IEmptyVolumeCache2_Methods = ["InitializeEx"]
 
 ico = os.path.join(sys.prefix, "py.ico")
 if not os.path.isfile(ico):
