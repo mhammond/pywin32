@@ -37,6 +37,8 @@ from .apibase import (
     threadsafety as threadsafety,
 )
 
+version = "adodbapi v" + __version__
+
 
 def Binary(aString):
     """This function constructs an object capable of holding a binary (long) string value."""
@@ -44,17 +46,17 @@ def Binary(aString):
 
 
 def Date(year, month, day):
-    "This function constructs an object holding a date value."
+    """This function constructs an object holding a date value."""
     return dateconverter.Date(year, month, day)
 
 
 def Time(hour, minute, second):
-    "This function constructs an object holding a time value."
+    """This function constructs an object holding a time value."""
     return dateconverter.Time(hour, minute, second)
 
 
 def Timestamp(year, month, day, hour, minute, second):
-    "This function constructs an object holding a time stamp value."
+    """This function constructs an object holding a time stamp value."""
     return dateconverter.Timestamp(year, month, day, hour, minute, second)
 
 
@@ -77,6 +79,3 @@ def TimestampFromTicks(ticks):
     ticks value (number of seconds since the epoch;
     see the documentation of the standard Python time module for details)."""
     return Timestamp(*time.gmtime(ticks)[:6])
-
-
-version = "adodbapi v" + __version__

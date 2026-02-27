@@ -157,7 +157,6 @@ def format_parameters(ADOparameters, show_value=False):
 
 def _configure_parameter(p, value, adotype, settings_known):
     """Configure the given ADO Parameter 'p' with the Python 'value'."""
-
     if adotype in api.adoBinaryTypes:
         p.Size = len(value)
         p.AppendChunk(value)
@@ -227,7 +226,7 @@ class Connection:
 
     @property
     def dbapi(self):  # a proposed db-api version 3 extension.
-        "Return a reference to the DBAPI module for this Connection."
+        """Return a reference to the DBAPI module for this Connection."""
         return api
 
     def __init__(self):  # now define the instance attributes
@@ -439,18 +438,18 @@ class Connection:
             )
 
     def cursor(self):
-        "Return a new Cursor Object using the connection."
+        """Return a new Cursor Object using the connection."""
         self.messages = []
         c = Cursor(self)
         return c
 
     def _i_am_here(self, crsr):
-        "message from a new cursor proclaiming its existence"
+        """message from a new cursor proclaiming its existence"""
         oid = id(crsr)
         self.cursors[oid] = crsr
 
     def _i_am_closing(self, crsr):
-        "message from a cursor giving connection a chance to clean up"
+        """message from a cursor giving connection a chance to clean up"""
         try:
             del self.cursors[id(crsr)]
         except:
@@ -580,11 +579,11 @@ class Cursor:
         raise StopIteration
 
     def __enter__(self):
-        "Allow database cursors to be used with context managers."
+        """Allow database cursors to be used with context managers."""
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        "Allow database cursors to be used with context managers."
+        """Allow database cursors to be used with context managers."""
         self.close()
 
     def _raiseCursorError(self, errorclass, errorvalue):
@@ -771,7 +770,6 @@ class Cursor:
         """with some providers, returned parameters and the .return_value are not available until
         after the last recordset has been read.  In that case, you must coll nextset() until it
         returns None, then call this method to get your returned information."""
-
         # store procedures may return altered parameters, including an added "return value" item
         retLst = []
         for p in tuple(self.cmd.Parameters):
