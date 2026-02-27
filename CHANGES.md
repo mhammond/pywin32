@@ -409,9 +409,9 @@ Build 300, released 2020-11-14
   (ie, not when normal params were passed) For example:
 
   ```python
-      arg1 = VARIANT(pythoncom.VT_R4 | pythoncom.VT_BYREF, 2.0)
-      arg2 = VARIANT(pythoncom.VT_BOOL | pythoncom.VT_BYREF, True)
-      object.SomeFunction(arg1, arg2)
+  arg1 = VARIANT(pythoncom.VT_R4 | pythoncom.VT_BYREF, 2.0)
+  arg2 = VARIANT(pythoncom.VT_BOOL | pythoncom.VT_BYREF, True)
+  object.SomeFunction(arg1, arg2)
   ```
 
   after this call, `arg1.value` was actually the value for `arg2`, and

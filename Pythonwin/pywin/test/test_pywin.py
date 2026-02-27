@@ -289,7 +289,7 @@ class T(unittest.TestCase):
 
         w = PaintWnd()
         w.Create("Test Paint MDI Child")
-        self.addCleanup(lambda: (o.cnt_ondestroy or w.DestroyWindow()))
+        self.addCleanup(lambda: o.cnt_ondestroy or w.DestroyWindow())
         win32gui.PumpWaitingMessages()
         dc = w.GetDC()
         self.assertGreater(
@@ -379,7 +379,7 @@ class T(unittest.TestCase):
     def test_docedit(self):
         import tempfile
 
-        import pywin.scintilla.IDLEenvironment  # nopycln: import # Injects fast_readline into the IDLE auto-indent extension
+        import pywin.scintilla.IDLEenvironment  # Injects fast_readline into the IDLE auto-indent extension
 
         ##doc = pywin.framework.editor.editorTemplate.OpenDocumentFile(None)
         def t_print(*args):
