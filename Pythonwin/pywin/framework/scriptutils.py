@@ -2,6 +2,8 @@
 Various utilities for running/importing a script
 """
 
+from __future__ import annotations
+
 import bdb
 import linecache
 import os
@@ -211,9 +213,14 @@ lastArgs = ""
 lastDebuggingType = RS_DEBUGGER_NONE
 
 
-def RunScript(defName=None, defArgs=None, bShowDialog=1, debuggingType=None):
+def RunScript(
+    defName: str | None = None,
+    defArgs: str | None = None,
+    bShowDialog: bool = True,
+    debuggingType: int | None = None,
+):
     global lastScript, lastArgs, lastDebuggingType
-    _debugger_stop_frame_ = 1  # Magic variable so the debugger will hide me!
+    _debugger_stop_frame_ = True  # Magic variable so the debugger will hide me!
 
     # Get the debugger - may be None!
     debugger = GetDebugger()
@@ -309,7 +316,7 @@ def RunScript(defName=None, defArgs=None, bShowDialog=1, debuggingType=None):
         f = open(script, "rb")
     except OSError as exc:
         win32ui.MessageBox(
-            "The file could not be opened - %s (%d)" % (exc.strerror, exc.errno)
+            f"The file could not be opened - {exc.strerror} ({exc.errno})"
         )
         return
 
@@ -408,7 +415,7 @@ def RunScript(defName=None, defArgs=None, bShowDialog=1, debuggingType=None):
     win32ui.DoWaitCursor(0)
 
 
-def ImportFile():
+def ImportFile() -> None:
     """This code looks for the current window, and determines if it can be imported.  If not,
     it will prompt for a file name, and allow it to be imported."""
     try:
@@ -427,20 +434,19 @@ def ImportFile():
         )
         dlg.SetOFNTitle("Import Script")
         if dlg.DoModal() != win32con.IDOK:
-            return 0
+            return
 
         pathName = dlg.GetPathName()
 
     # If already imported, don't look for package
     path, modName = os.path.split(pathName)
     modName, modExt = os.path.splitext(modName)
-    newPath = None
     # note that some packages (*cough* email *cough*) use "lazy importers"
     # meaning sys.modules can change as a side-effect of looking at
     # module.__file__ - so we must take a copy (ie, list(items()))
-    for key, mod in sys.modules.items():
-        if getattr(mod, "__file__", None):
-            fname = mod.__file__
+    for key, mod in list(sys.modules.items()):
+        fname = getattr(mod, "__file__", None)
+        if fname:
             base, ext = os.path.splitext(fname)
             if ext.lower() in (".pyo", ".pyc"):
                 ext = ".py"
@@ -454,15 +460,15 @@ def ImportFile():
             sys.path.append(newPath)
 
     if modName in sys.modules:
-        bNeedReload = 1
+        bNeedReload = True
         what = "reload"
     else:
         what = "import"
-        bNeedReload = 0
+        bNeedReload = False
 
     win32ui.SetStatusText(what.capitalize() + "ing module...", 1)
     win32ui.DoWaitCursor(1)
-    # 	win32ui.GetMainFrame().BeginWaitCursor()
+    # win32ui.GetMainFrame().BeginWaitCursor()
 
     try:
         # always do an import, as it is cheap if it's already loaded.  This ensures
