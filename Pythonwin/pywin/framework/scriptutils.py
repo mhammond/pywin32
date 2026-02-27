@@ -284,10 +284,9 @@ def RunScript(defName=None, defArgs=None, bShowDialog=1, debuggingType=None):
     # If no path specified, try and locate the file
     path, fnameonly = os.path.split(script)
     if len(path) == 0:
-        try:
-            os.stat(fnameonly)  # See if it is OK as is...
+        if os.path.exists(fnameonly):  # See if it is OK as is...
             script = fnameonly
-        except OSError:
+        else:
             fullScript = LocatePythonFile(script)
             if fullScript is None:
                 win32ui.MessageBox("The file '%s' can not be located" % script)
@@ -637,9 +636,7 @@ def FindTabNanny():
         print("          The file '%s' can not be located" % (filename))
         return None
     fname = os.path.join(path, "Tools\\Scripts\\%s" % filename)
-    try:
-        os.stat(fname)
-    except OSError:
+    if not os.path.exists(fname):
         print(f"WARNING - The file '{filename}' can not be located in path '{path}'")
         return None
 
