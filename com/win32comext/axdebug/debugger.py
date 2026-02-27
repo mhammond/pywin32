@@ -151,11 +151,8 @@ class AXDebugger:
         self.pydebugger.AttachApp(self.app, contProvider)
 
     def Break(self):
-        # Get the frame we start debugging from - this is the frame 1 level up
-        try:
-            1 + ""
-        except:
-            frame = sys.exc_info()[2].tb_frame.f_back
+        # Get the frame we start debugging from
+        frame = traceback.tb_frame if (traceback := sys.exc_info()[2]) else None
 
         # Get/create the debugger, and tell it to break.
         self.app.StartDebugSession()
