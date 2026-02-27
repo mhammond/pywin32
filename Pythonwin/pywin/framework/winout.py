@@ -380,7 +380,7 @@ class WindowOutput(docview.DocTemplate):
             self.iniSizeSection = None
             self.defSize = defSize
         self.currentView = None
-        self.outputQueue = queue.Queue(-1)
+        self.outputQueue: queue.Queue[str] = queue.Queue(-1)
         self.mainThreadId = win32api.GetCurrentThreadId()
         self.idleHandlerSet = 0
         self.SetIdleHandler()
@@ -520,7 +520,7 @@ class WindowOutput(docview.DocTemplate):
             self.currentView.dowrite("".join(items))
         return rc
 
-    def HandleOutput(self, message):
+    def HandleOutput(self, message: str):
         # 		debug("QueueOutput on thread %d, flags %d with '%s'...\n" % (win32api.GetCurrentThreadId(), self.writeQueueing, message ))
         self.outputQueue.put(message)
         if win32api.GetCurrentThreadId() != self.mainThreadId:
