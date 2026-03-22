@@ -106,12 +106,8 @@ class Adb(bdb.Bdb, gateways.RemoteDebugApplicationEvents):
 
     def stop_here(self, frame):
         traceenter("stop_here", _dumpf(frame), _dumpf(self.stopframe))
-        # As per bdb.stop_here, except for logicalbotframe
-        # if self.stopframe is None:
-        #     return 1
         if frame is self.stopframe:
             return 1
-
         tracev("stop_here said 'No'!")
         return 0
 
@@ -146,7 +142,11 @@ class Adb(bdb.Bdb, gateways.RemoteDebugApplicationEvents):
             tracev("dispatch_return resetting sys.trace")
             sys.settrace(None)
             return
-        # self.bSetTrace = 0
+        # When stepping over (set_next), stopframe is the current function's
+        # frame. When that function returns, promote stopframe to the caller
+        # so dispatch_line stops at the next line in the caller.
+        if self.stopframe is frame and frame.f_back is not None:
+            self.stopframe = frame.f_back
         self.currentframe = frame.f_back
         return bdb.Bdb.dispatch_return(self, frame, arg)
 
