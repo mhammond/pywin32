@@ -102,9 +102,9 @@ PyObject *PyIActiveScriptDebug::EnumCodeContextsOfPosition(PyObject *self, PyObj
     IActiveScriptDebug *pIASD = GetI(self);
     if (pIASD == NULL)
         return NULL;
-    // @pyparm int|dwSourceContext||Description for dwSourceContext
-    // @pyparm int|uCharacterOffset||Description for uCharacterOffset
-    // @pyparm int|uNumChars||Description for uNumChars
+        // @pyparm int|dwSourceContext||Description for dwSourceContext
+        // @pyparm int|uCharacterOffset||Description for uCharacterOffset
+        // @pyparm int|uNumChars||Description for uNumChars
 #ifdef _WIN64
     DWORDLONG dwSourceContext;
     ULONG uCharacterOffset;
