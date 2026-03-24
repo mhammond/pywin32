@@ -60,11 +60,16 @@ class EnumDebugStackFrames(gateways.EnumDebugStackFrames):
     #     return 0
     def _wrap(self, obj):
         # This enum returns a tuple, with 2 com objects in it.
-        obFrame, min, lim, fFinal, obFinal = obj
+        obFrame, mn, lm, fFinal, obFinal = obj
         obFrame = _wrap(obFrame, axdebug.IID_IDebugStackFrame)
         if obFinal:
             obFinal = _wrap(obFinal, pythoncom.IID_IUnknown)
-        return obFrame, min, lim, fFinal, obFinal
+        # Clamp addresses to 31-bit: the C++ gateway PyGEnumDebugStackFrames::Next
+        # uses PyArg_ParseTuple "i" (signed 32-bit) for dwMin/dwLim fields.
+        # On 64-bit, stack addresses from GetStackAddress() exceed this range.
+        mn = mn & 0x7FFFFFFF
+        lm = lm & 0x7FFFFFFF
+        return obFrame, mn, lm, fFinal, obFinal
 
 
 class DebugStackFrame(gateways.DebugStackFrame):

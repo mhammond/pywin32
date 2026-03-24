@@ -105,10 +105,17 @@ PyObject *PyIActiveScriptDebug::EnumCodeContextsOfPosition(PyObject *self, PyObj
     // @pyparm int|dwSourceContext||Description for dwSourceContext
     // @pyparm int|uCharacterOffset||Description for uCharacterOffset
     // @pyparm int|uNumChars||Description for uNumChars
+#ifdef _WIN64
+    DWORDLONG dwSourceContext;
+    ULONG uCharacterOffset;
+    ULONG uNumChars;
+    if (!PyArg_ParseTuple(args, "Kii:EnumCodeContextsOfPosition", &dwSourceContext, &uCharacterOffset, &uNumChars))
+#else
     DWORD dwSourceContext;
     ULONG uCharacterOffset;
     ULONG uNumChars;
     if (!PyArg_ParseTuple(args, "iii:EnumCodeContextsOfPosition", &dwSourceContext, &uCharacterOffset, &uNumChars))
+#endif
         return NULL;
     IEnumDebugCodeContexts *ppescc;
     PY_INTERFACE_PRECALL;
@@ -196,7 +203,11 @@ STDMETHODIMP PyGActiveScriptDebug::EnumCodeContextsOfPosition(
         return E_POINTER;
     PyObject *result;
     HRESULT hr =
+#ifdef _WIN64
+        InvokeViaPolicy("EnumCodeContextsOfPosition", &result, "Kii", dwSourceContext, uCharacterOffset, uNumChars);
+#else
         InvokeViaPolicy("EnumCodeContextsOfPosition", &result, "iii", dwSourceContext, uCharacterOffset, uNumChars);
+#endif
     if (FAILED(hr))
         return hr;
     // Process the Python results, and convert back to the real params
