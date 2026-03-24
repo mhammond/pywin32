@@ -406,10 +406,10 @@ PyObject *PyIDebugDocumentHelper::GetScriptBlockInfo(PyObject *self, PyObject *a
 {
     PY_INTERFACE_METHOD;
     IDebugDocumentHelper *pIDDH = GetI(self);
-    if (pIDDH == NULL)
+    if (pIDDH == NULL) {
         return NULL;
-
-        // @pyparm int|dwSourceContext||Description for dwSourceContext
+    }
+    // @pyparm int|dwSourceContext||Description for dwSourceContext
 #ifdef _WIN64
     DWORDLONG dwSourceContext;
     IActiveScript *ppasd;
@@ -635,10 +635,10 @@ STDMETHODIMP PyGDebugDocumentHelper::DefineScriptBlock(
     PyObject *result;
     HRESULT hr = InvokeViaPolicy("DefineScriptBlock", &result, "iiOi", ulCharOffset, cChars, obpas, fScriptlet);
     Py_XDECREF(obpas);
-    if (FAILED(hr))
+    if (FAILED(hr)) {
         return hr;
-        // Process the Python results, and convert back to the real params
-
+    }
+    // Process the Python results, and convert back to the real params
 #ifdef _WIN64
     if (!PyArg_Parse(result, "K", pdwSourceContext))
 #else

@@ -23,12 +23,12 @@ PyObject *PyIActiveScriptSiteDebug::GetDocumentContextFromPosition(PyObject *sel
 {
     PY_INTERFACE_METHOD;
     IActiveScriptSiteDebug *pIASSD = GetI(self);
-    if (pIASSD == NULL)
+    if (pIASSD == NULL) {
         return NULL;
-
-        // @pyparm int|dwSourceContext||Description for dwSourceContext
-        // @pyparm int|uCharacterOffset||Description for uCharacterOffset
-        // @pyparm int|uNumChars||Description for uNumChars
+    }
+    // @pyparm int|dwSourceContext||Description for dwSourceContext
+    // @pyparm int|uCharacterOffset||Description for uCharacterOffset
+    // @pyparm int|uNumChars||Description for uNumChars
 #ifdef _WIN64
     DWORDLONG dwSourceContext;
     ULONG uCharacterOffset;
