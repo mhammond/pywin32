@@ -218,7 +218,13 @@ class Adb(bdb.Bdb, gateways.RemoteDebugApplicationEvents):
         if frame.f_lineno != 0:
             breakReason = self.breakReason
             if breakReason is None:
-                breakReason = axdebug.BREAKREASON_STEP
+                # stop_here triggered (stopframe match) — tell the debugger
+                # this is a definitive stop, not an intermediate step event.
+                # BREAKREASON_STEP would let VS auto-resume during step-out.
+                if frame is self.stopframe:
+                    breakReason = axdebug.BREAKREASON_BREAKPOINT
+                else:
+                    breakReason = axdebug.BREAKREASON_STEP
             self._HandleBreakPoint(frame, None, breakReason)
 
     def user_return(self, frame, return_value):
