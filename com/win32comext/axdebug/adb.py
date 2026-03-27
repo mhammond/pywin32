@@ -106,18 +106,21 @@ class Adb(bdb.Bdb, gateways.RemoteDebugApplicationEvents):
 
     def stop_here(self, frame):
         traceenter("stop_here", _dumpf(frame), _dumpf(self.stopframe))
-        # As per bdb.stop_here, except for logicalbotframe
-        # if self.stopframe is None:
-        #     return 1
         if frame is self.stopframe:
             return 1
-
         tracev("stop_here said 'No'!")
         return 0
 
     def break_here(self, frame):
         traceenter("break_here", self.breakFlags, _dumpf(frame))
         self.breakReason = None
+        # During step-out, bdb's set_return() controls stopping via
+        # stop_here/dispatch_return.  Don't let break flags override that
+        # — only stop here for actual bdb breakpoints.
+        if self.returnframe is not None:
+            if bdb.Bdb.break_here(self, frame):
+                self.breakReason = axdebug.BREAKREASON_BREAKPOINT
+            return self.breakReason is not None
         if self.breakFlags == axdebug.APPBREAKFLAG_DEBUGGER_HALT:
             self.breakReason = axdebug.BREAKREASON_DEBUGGER_HALT
         elif self.breakFlags == axdebug.APPBREAKFLAG_DEBUGGER_BLOCK:
@@ -146,7 +149,11 @@ class Adb(bdb.Bdb, gateways.RemoteDebugApplicationEvents):
             tracev("dispatch_return resetting sys.trace")
             sys.settrace(None)
             return
-        # self.bSetTrace = 0
+        # When stepping over (set_next), stopframe is the current function's
+        # frame. When that function returns, promote stopframe to the caller
+        # so dispatch_line stops at the next line in the caller.
+        if self.stopframe is frame and frame.f_back is not None:
+            self.stopframe = frame.f_back
         self.currentframe = frame.f_back
         return bdb.Bdb.dispatch_return(self, frame, arg)
 
@@ -211,7 +218,13 @@ class Adb(bdb.Bdb, gateways.RemoteDebugApplicationEvents):
         if frame.f_lineno != 0:
             breakReason = self.breakReason
             if breakReason is None:
-                breakReason = axdebug.BREAKREASON_STEP
+                # stop_here triggered (stopframe match) — tell the debugger
+                # this is a definitive stop, not an intermediate step event.
+                # BREAKREASON_STEP would let VS auto-resume during step-out.
+                if frame is self.stopframe:
+                    breakReason = axdebug.BREAKREASON_BREAKPOINT
+                else:
+                    breakReason = axdebug.BREAKREASON_STEP
             self._HandleBreakPoint(frame, None, breakReason)
 
     def user_return(self, frame, return_value):

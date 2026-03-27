@@ -1056,21 +1056,7 @@ done:
     representation of a SID. This function returns NULL
     if it fails. If the SID can be constructed successfully,
     a valid binary SID is returned.
-
-    This function requires tchar.h and the C runtime library.
-
-    The following are macros defined in tchar.h that allow this
-    function to be compiled with or without UNICODE defined. To
-    replace these macros with direct calls to their corresponding
-    ANSI functions first make sure this module is not compiled
-    with UNICODE (or _UNICODE) defined.
-
-      TCHAR           ANSI
-     _stscanf() ->   sscanf()
-     _tcschr()  ->   strchr()
-
 */
-
 PSID GetBinarySid(
     LPTSTR TextualSid  // Buffer for Textual representation of SID.
     )
@@ -1097,7 +1083,7 @@ PSID GetBinarySid(
     // S-SID_REVISION- + identifierauthority- + subauthorities- + NULL
 
     // Skip S
-    if (!(ptr = _tcschr(buffer, _T('-'))))
+    if (!(ptr = wcschr(buffer, _T('-'))))
     {
         return pSid;
     }
@@ -1106,7 +1092,7 @@ PSID GetBinarySid(
     ptr++;
 
     // Skip SID_REVISION
-    if (!(ptr = _tcschr(ptr, _T('-'))))
+    if (!(ptr = wcschr(ptr, _T('-'))))
     {
         return pSid;
     }
@@ -1115,7 +1101,7 @@ PSID GetBinarySid(
     ptr++;
 
     // Skip identifierauthority
-    if (!(ptr1 = _tcschr(ptr, _T('-'))))
+    if (!(ptr1 = wcschr(ptr, _T('-'))))
     {
         return pSid;
     }
@@ -1123,7 +1109,7 @@ PSID GetBinarySid(
 
     if ((*ptr == '0') && (*(ptr+1) == 'x'))
     {
-        _stscanf(ptr, _T("0x%02hx%02hx%02hx%02hx%02hx%02hx"),
+        swscanf(ptr, _T("0x%02hx%02hx%02hx%02hx%02hx%02hx"),
             &identAuthority.Value[0],
             &identAuthority.Value[1],
             &identAuthority.Value[2],
@@ -1135,7 +1121,7 @@ PSID GetBinarySid(
     {
         DWORD value;
 
-        _stscanf(ptr, _T("%lu"), &value);
+        swscanf(ptr, _T("%lu"), &value);
 
         identAuthority.Value[5] = (BYTE)(value & 0x000000FF);
         identAuthority.Value[4] = (BYTE)(value & 0x0000FF00) >> 8;
@@ -1151,7 +1137,7 @@ PSID GetBinarySid(
     for (i = 0; i < 8; i++)
     {
         // get subauthority
-        if (!(ptr = _tcschr(ptr, '-')))
+        if (!(ptr = wcschr(ptr, '-')))
         {
             break;
         }
@@ -1163,7 +1149,7 @@ PSID GetBinarySid(
     for (i = 0; i < nByteAuthorityCount; i++)
     {
         // Get subauthority.
-        _stscanf(ptr1, _T("%lu"), &dwSubAuthority[i]);
+        swscanf(ptr1, _T("%lu"), &dwSubAuthority[i]);
         ptr1 += lstrlen(ptr1) + 1;
     }
 

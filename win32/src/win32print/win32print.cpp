@@ -539,7 +539,7 @@ static PyObject *PyGetDefaultPrinter(PyObject *self, PyObject *args)
         PyErr_SetString(PyExc_RuntimeError, "The default printer was not found.");
         return NULL;
     }
-    if (NULL == (s = _tcschr(printer, TEXT(',')))) {
+    if (NULL == (s = wcschr(printer, TEXT(',')))) {
         PyErr_SetString(PyExc_RuntimeError, "The returned printer is malformed.");
         return NULL;
     }

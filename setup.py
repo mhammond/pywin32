@@ -384,12 +384,6 @@ class my_build_ext(build_ext):
 
     def _why_cant_build_extension(self, ext):
         """Return None, or a reason it can't be built."""
-        # axdebug fails to build on 3.11 due to Python "frame" objects changing.
-        # This could be fixed, but is almost certainly not in use any more, so
-        # just skip it.
-        if ext.name == "axdebug" and sys.version_info >= (3, 11):
-            return "AXDebug no longer builds on 3.11 and up"
-
         include_dirs = self.compiler.include_dirs + os.environ.get("INCLUDE", "").split(
             os.pathsep
         )
@@ -2054,7 +2048,7 @@ dist = setup(
             "com/win32comext/shell/demos/servers/*.py",
             "com/win32comext/shell/demos/*.py",
             "com/win32comext/taskscheduler/test/*.py",
-            "com/win32comext/ifilter/demo/*.py",
+            "com/win32comext/ifilter/demos/*.py",
             "com/win32comext/authorization/demos/*.py",
             "com/win32comext/bits/test/*.py",
             # ISAPI
