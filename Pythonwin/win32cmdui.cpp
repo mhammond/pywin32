@@ -48,7 +48,6 @@ BOOL Python_OnCmdMsg(CCmdTarget *obj, UINT nID, int nCode, void *pExtra, AFX_CMD
     if (nCode == CN_UPDATE_COMMAND_UI && nID == ID_FILE_MRU_FILE1)
         return FALSE;
 
-#ifndef _AFX_NO_OCC_SUPPORT
     // OLE control events are a special case
     if (nCode == CN_EVENT) {
         AFX_EVENT *pEvent = (AFX_EVENT *)pExtra;
@@ -91,7 +90,6 @@ BOOL Python_OnCmdMsg(CCmdTarget *obj, UINT nID, int nCode, void *pExtra, AFX_CMD
             Py_XDECREF(pObj);
         }
     }
-#endif  // !_AFX_NO_OCC_SUPPORT
 
     CEnterLeavePython _celp;
     PyCCmdTarget *pObj = (PyCCmdTarget *)ui_assoc_CObject::GetAssocObject(obj);

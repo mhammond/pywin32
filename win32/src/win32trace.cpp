@@ -69,7 +69,7 @@ BOOL use_global_namespace = FALSE;
 static const TCHAR *FixupObjectName(const TCHAR *global_name)
 {
     if (!use_global_namespace)
-        return _tcschr(global_name, '\\') + 1;
+        return wcschr(global_name, '\\') + 1;
     // global prefix is ok.
     return global_name;
 }

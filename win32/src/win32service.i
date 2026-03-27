@@ -169,7 +169,7 @@ PyTypeObject PyHWINSTAType =
 	PyHWINSTA::PyHWINSTA_new
 };
 
-#define PyHWINSTA_Check(ob)	((ob)->ob_type == &PyHWINSTAType)
+#define PyHWINSTA_Check(ob)	(Py_TYPE(ob) == &PyHWINSTAType)
 
 PyHWINSTA::PyHWINSTA(HWINSTA hwinsta) : PyHANDLE((HANDLE)hwinsta)
 {
@@ -272,7 +272,7 @@ PyTypeObject PyHDESKType =
 	PyHDESK::PyHDESK_new
 };
 
-#define PyHDESK_Check(ob)	((ob)->ob_type == &PyHDESKType)
+#define PyHDESK_Check(ob)	(Py_TYPE(ob) == &PyHDESKType)
 
 PyHDESK::PyHDESK(HDESK hdesk) : PyHANDLE((HANDLE)hdesk)
 {
@@ -1946,7 +1946,6 @@ PyObject *PyQueryServiceConfig2(PyObject *self, PyObject *args)
 // Types of info used with QueryServiceConfig2
 #define SERVICE_CONFIG_DESCRIPTION SERVICE_CONFIG_DESCRIPTION
 #define SERVICE_CONFIG_FAILURE_ACTIONS SERVICE_CONFIG_FAILURE_ACTIONS
-// These require Vista or above
 #define SERVICE_CONFIG_DELAYED_AUTO_START_INFO SERVICE_CONFIG_DELAYED_AUTO_START_INFO
 #define SERVICE_CONFIG_FAILURE_ACTIONS_FLAG SERVICE_CONFIG_FAILURE_ACTIONS_FLAG
 #define SERVICE_CONFIG_PRESHUTDOWN_INFO SERVICE_CONFIG_PRESHUTDOWN_INFO

@@ -35,7 +35,7 @@ PyObject *PyObject_FromFORMATETC(FORMATETC *petc)
 BOOL PyObject_AsPySTGMEDIUM(PyObject *obmedium, PySTGMEDIUM **pp)
 {
     if (!PySTGMEDIUM_Check(obmedium)) {
-        PyErr_Format(PyExc_TypeError, "Object must be a PySTGMEDIUM (not a '%s')", obmedium->ob_type->tp_name);
+        PyErr_Format(PyExc_TypeError, "Object must be a PySTGMEDIUM (not a '%s')", Py_TYPE(obmedium)->tp_name);
         return FALSE;
     }
     *pp = (PySTGMEDIUM *)obmedium;

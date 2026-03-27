@@ -3,6 +3,7 @@
 import os
 import sys
 import traceback
+from collections.abc import Sequence
 
 import __main__
 import commctrl
@@ -266,7 +267,7 @@ class InteractivePythonApp(app.CApp):
         if frame.GetWindowPlacement()[1] == win32con.SW_SHOWMINIMIZED:
             frame.ShowWindow(win32con.SW_RESTORE)
 
-    def ProcessArgs(self, args, dde=None):
+    def ProcessArgs(self, args: Sequence[str], dde=None):
         # If we are going to talk to a remote app via DDE, then
         # activate it!
         if (
@@ -288,7 +289,7 @@ class InteractivePythonApp(app.CApp):
                 ).lower()
                 i -= 1  #  arg is /edit's parameter
             par = i < len(args) and args[i] or "MISSING"
-            if argType in ("/nodde", "/new", "-nodde", "-new"):
+            if argType in {"/nodde", "/new"}:
                 # Already handled
                 pass
             elif argType.startswith("/goto:"):

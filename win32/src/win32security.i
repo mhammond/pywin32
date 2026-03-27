@@ -1000,7 +1000,6 @@ BOOLAPI RevertToSelf();
 %{
 // @pyswig <o PyHANDLE>|LogonUser|Attempts to log a user on to the local computer, that is, to the computer from which LogonUser was called. You cannot use LogonUser to log on to a remote computer.
 // @comm Accepts keyword args
-// @comm On Windows 2000 and earlier, the calling process must have SE_TCB_NAME privilege.
 PyObject *PyLogonUser(PyObject *self, PyObject *args, PyObject *kwargs)
 {
 	DWORD logontype, logonprovider;
@@ -1230,21 +1229,7 @@ done:
     representation of a SID. This function returns NULL
     if it fails. If the SID can be constructed successfully,
     a valid binary SID is returned.
-
-    This function requires tchar.h and the C runtime library.
-
-    The following are macros defined in tchar.h that allow this
-    function to be compiled with or without UNICODE defined. To
-    replace these macros with direct calls to their corresponding
-    ANSI functions first make sure this module is not compiled
-    with UNICODE (or _UNICODE) defined.
-
-      TCHAR           ANSI
-     _stscanf() ->   sscanf()
-     _tcschr()  ->   strchr()
-
 */
-
 PSID GetBinarySid(
     LPTSTR TextualSid  // Buffer for Textual representation of SID.
     )
@@ -1271,7 +1256,7 @@ PSID GetBinarySid(
     // S-SID_REVISION- + identifierauthority- + subauthorities- + NULL
 
     // Skip S
-    if (!(ptr = _tcschr(buffer, _T('-'))))
+    if (!(ptr = wcschr(buffer, _T('-'))))
     {
         return pSid;
     }
@@ -1280,7 +1265,7 @@ PSID GetBinarySid(
     ptr++;
 
     // Skip SID_REVISION
-    if (!(ptr = _tcschr(ptr, _T('-'))))
+    if (!(ptr = wcschr(ptr, _T('-'))))
     {
         return pSid;
     }
@@ -1289,7 +1274,7 @@ PSID GetBinarySid(
     ptr++;
 
     // Skip identifierauthority
-    if (!(ptr1 = _tcschr(ptr, _T('-'))))
+    if (!(ptr1 = wcschr(ptr, _T('-'))))
     {
         return pSid;
     }
@@ -1297,7 +1282,7 @@ PSID GetBinarySid(
 
     if ((*ptr == '0') && (*(ptr+1) == 'x'))
     {
-        _stscanf(ptr, _T("0x%02hx%02hx%02hx%02hx%02hx%02hx"),
+        swscanf(ptr, _T("0x%02hx%02hx%02hx%02hx%02hx%02hx"),
             &identAuthority.Value[0],
             &identAuthority.Value[1],
             &identAuthority.Value[2],
@@ -1309,7 +1294,7 @@ PSID GetBinarySid(
     {
         DWORD value;
 
-        _stscanf(ptr, _T("%lu"), &value);
+        swscanf(ptr, _T("%lu"), &value);
 
         identAuthority.Value[5] = (BYTE)(value & 0x000000FF);
         identAuthority.Value[4] = (BYTE)(value & 0x0000FF00) >> 8;
@@ -1325,7 +1310,7 @@ PSID GetBinarySid(
     for (i = 0; i < 8; i++)
     {
         // get subauthority
-        if (!(ptr = _tcschr(ptr, '-')))
+        if (!(ptr = wcschr(ptr, '-')))
         {
             break;
         }
@@ -1337,7 +1322,7 @@ PSID GetBinarySid(
     for (i = 0; i < nByteAuthorityCount; i++)
     {
         // Get subauthority.
-        _stscanf(ptr1, _T("%lu"), &dwSubAuthority[i]);
+        swscanf(ptr1, _T("%lu"), &dwSubAuthority[i]);
         ptr1 += lstrlen(ptr1) + 1;
     }
 
@@ -4129,9 +4114,9 @@ static PyObject *PyMapGenericMask(PyObject *self, PyObject *args)
 
 // ACE types
 #define ACCESS_ALLOWED_ACE_TYPE ACCESS_ALLOWED_ACE_TYPE					// Access-allowed ACE that uses the ACCESS_ALLOWED_ACE structure.
-#define ACCESS_ALLOWED_OBJECT_ACE_TYPE ACCESS_ALLOWED_OBJECT_ACE_TYPE	// Windows 2000/XP: Object-specific access-allowed ACE that uses the ACCESS_ALLOWED_OBJECT_ACE structure.
+#define ACCESS_ALLOWED_OBJECT_ACE_TYPE ACCESS_ALLOWED_OBJECT_ACE_TYPE	// Object-specific access-allowed ACE that uses the ACCESS_ALLOWED_OBJECT_ACE structure.
 #define ACCESS_DENIED_ACE_TYPE ACCESS_DENIED_ACE_TYPE					// Access-denied ACE that uses the ACCESS_DENIED_ACE structure.
-#define ACCESS_DENIED_OBJECT_ACE_TYPE ACCESS_DENIED_OBJECT_ACE_TYPE		// Windows 2000/XP: Object-specific access-denied ACE that uses the ACCESS_DENIED_OBJECT_ACE structure.
+#define ACCESS_DENIED_OBJECT_ACE_TYPE ACCESS_DENIED_OBJECT_ACE_TYPE		// Object-specific access-denied ACE that uses the ACCESS_DENIED_OBJECT_ACE structure.
 #define SYSTEM_AUDIT_ACE_TYPE SYSTEM_AUDIT_ACE_TYPE						// System-audit ACE that uses the SYSTEM_AUDIT_ACE structure.
 #define SYSTEM_AUDIT_OBJECT_ACE_TYPE SYSTEM_AUDIT_OBJECT_ACE_TYPE
 
