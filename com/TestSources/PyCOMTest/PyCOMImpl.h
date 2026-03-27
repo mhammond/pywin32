@@ -21,6 +21,10 @@ class CPyCOMTest : public IDispatchImpl<IPyCOMTest, &IID_IPyCOMTest, &LIBID_PyCO
     {
         memset(m_rsArray, 0, nMaxSessions * sizeof(PyCOMTestSessionData));
         m_cy.int64 = 0;
+        m_dec.sign = 0;
+        m_dec.scale = 0;
+        m_dec.Hi32 = 0;
+        m_dec.Lo64 = 0;
         m_long = 0;
     }
     ~CPyCOMTest();
@@ -80,6 +84,7 @@ class CPyCOMTest : public IDispatchImpl<IPyCOMTest, &IID_IPyCOMTest, &LIBID_PyCO
     STDMETHOD(SetDoubleSafeArray)(SAFEARRAY *vars, int *retSize);
     STDMETHOD(SetFloatSafeArray)(SAFEARRAY *vars, int *retSize);
     STDMETHOD(GetSafeArrays)(SAFEARRAY **attrs, SAFEARRAY **attrs2, SAFEARRAY **ints);
+    STDMETHOD(GetByteArray)(long sizeBytes, SAFEARRAY **array);
     STDMETHOD(GetSimpleSafeArray)(SAFEARRAY **ints);
     STDMETHOD(ChangeDoubleSafeArray)(SAFEARRAY **vals);
     STDMETHOD(GetSimpleCounter)(ISimpleCounter **counter);
@@ -90,6 +95,9 @@ class CPyCOMTest : public IDispatchImpl<IPyCOMTest, &IID_IPyCOMTest, &LIBID_PyCO
     STDMETHOD(DoubleCurrency)(CY, CY *);
     STDMETHOD(DoubleCurrencyByVal)(CY *);
     STDMETHOD(AddCurrencies)(CY v1, CY v2, CY *);
+    STDMETHOD(DoubleDecimal)(DECIMAL, DECIMAL *);
+    STDMETHOD(DoubleDecimalByVal)(DECIMAL *);
+    STDMETHOD(AddDecimals)(DECIMAL v1, DECIMAL v2, DECIMAL *);
 
     // method to broadcast a call on the current connections
     STDMETHOD(Fire)(long nID);
@@ -98,6 +106,7 @@ class CPyCOMTest : public IDispatchImpl<IPyCOMTest, &IID_IPyCOMTest, &LIBID_PyCO
     STDMETHOD(TestOptionals2)(double dval, BSTR strval, short sval, SAFEARRAY **pRet);
     STDMETHOD(TestOptionals3)(double dval, short sval, IPyCOMTest **outinterface2);
     STDMETHOD(GetStruct)(TestStruct1 *ret);
+    STDMETHOD(GetOutStruct)(TestStruct1 *pRecord);
     STDMETHOD(DoubleString)(BSTR inStr, BSTR *outStr);
     STDMETHOD(DoubleInOutString)(BSTR *str);
     STDMETHOD(TestMyInterface)(IUnknown *t);
@@ -113,6 +122,8 @@ class CPyCOMTest : public IDispatchImpl<IPyCOMTest, &IID_IPyCOMTest, &LIBID_PyCO
     STDMETHOD(put_IntProp)(int val);
     STDMETHOD(get_CurrencyProp)(CY *ret);
     STDMETHOD(put_CurrencyProp)(CY val);
+    STDMETHOD(get_DecimalProp)(DECIMAL *ret);
+    STDMETHOD(put_DecimalProp)(DECIMAL val);
     STDMETHOD(get_ParamProp)(int which, int *ret2);
     STDMETHOD(put_ParamProp)(int which, int val);
 
@@ -121,6 +132,8 @@ class CPyCOMTest : public IDispatchImpl<IPyCOMTest, &IID_IPyCOMTest, &LIBID_PyCO
 
     STDMETHOD(ModifyStruct)(TestStruct1 *prec);
     STDMETHOD(VerifyArrayOfStructs)(TestStruct2 *prec, VARIANT_BOOL *is_ok);
+    STDMETHOD(GetNestedStruct)(TestStruct3 *ret);
+    STDMETHOD(ModifyArrayOfStructs)(SAFEARRAY **array_of_structs);
 
     // info associated to each session
     struct PyCOMTestSessionData {
@@ -139,6 +152,7 @@ class CPyCOMTest : public IDispatchImpl<IPyCOMTest, &IID_IPyCOMTest, &LIBID_PyCO
     long m_long;
     unsigned long m_ulong;
     CY m_cy;
+    DECIMAL m_dec;
     int m_paramprop1, m_paramprop2;
 };
 

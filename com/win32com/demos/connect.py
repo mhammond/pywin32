@@ -6,11 +6,12 @@
 # is cheated on - so this is still working as a fully-fledged server.
 
 import pythoncom
+import pywintypes
 import win32com.server.connect
 import win32com.server.util
 
 # This is the IID of the Events interface both Client and Server support.
-IID_IConnectDemoEvents = pythoncom.MakeIID("{A4988850-49C3-11d0-AE5D-52342E000000}")
+IID_IConnectDemoEvents = pywintypes.IID("{A4988850-49C3-11d0-AE5D-52342E000000}")
 
 # The server which implements
 # Create a connectable class, that has a single public method

@@ -545,7 +545,7 @@ BOOL _Make_ATTR_INFO(PyObject *ob, ADS_ATTR_INFO *pBase, DWORD index)
         return FALSE;
     if (!PySequence_Check(obValues)) {
         PyErr_Format(PyExc_TypeError, "4th item in an ATTR_INFO structure must be a sequence (got %s)",
-                     obValues->ob_type->tp_name);
+                     Py_TYPE(obValues)->tp_name);
         return FALSE;
     }
     DWORD nValues = PySequence_Length(obValues);

@@ -32,7 +32,7 @@ class Style:
     """Represents a single format"""
 
     def __init__(self, name, format, background=CLR_INVALID):
-        self.name = name  # Name the format representes eg, "String", "Class"
+        self.name = name  # Name the format represents eg, "String", "Class"
         # Default background for each style is only used when there are no
         # saved settings (generally on first startup)
         self.background = self.default_background = background
@@ -47,7 +47,7 @@ class Style:
     def IsBasedOnDefault(self):
         return len(self.format) == 5
 
-    # If the currently extended font defintion matches the
+    # If the currently extended font definition matches the
     # default format, restore the format to the "simple" format.
     def NormalizeAgainstDefault(self, defaultFormat):
         if self.IsBasedOnDefault():

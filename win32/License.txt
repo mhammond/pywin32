@@ -1,4 +1,4 @@
-Unless stated in the specfic source file, this work is
+Unless stated in the specific source file, this work is
 Copyright (c) 1994-2008, Mark Hammond
 All rights reserved.
 

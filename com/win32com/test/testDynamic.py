@@ -1,10 +1,11 @@
 # Test dynamic policy, and running object table.
 
 import pythoncom
+import pywintypes
 import winerror
 from win32com.server.exception import COMException
 
-iid = pythoncom.MakeIID("{b48969a0-784b-11d0-ae71-d23f56000000}")
+iid = pywintypes.IID("{b48969a0-784b-11d0-ae71-d23f56000000}")
 
 
 class VeryPermissive:
@@ -63,9 +64,9 @@ def Test():
 
         v = ["Hello", "From", "Python", 1.4]
         client.TestSequence = v
-        assert v == list(
-            client.TestSequence
-        ), f"Dynamic sequences not working! {v!r}/{client.testSequence!r}"
+        assert v == list(client.TestSequence), (
+            f"Dynamic sequences not working! {v!r}/{client.testSequence!r}"
+        )
 
         client.write("This", "output", "has", "come", "via", "testDynamic.py")
         # Check our new "_FlagAsMethod" works (kinda!)

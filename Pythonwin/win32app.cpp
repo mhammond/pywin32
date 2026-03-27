@@ -141,7 +141,7 @@ static PyObject *ui_app_add_doc_template(PyObject *self, PyObject *args)
 // @pymethod |PyCWinApp|RemoveDocTemplate|Removes a template to the application list.
 static PyObject *ui_app_remove_doc_template(PyObject *self, PyObject *args)
 {
-    // @comm Note that MFC does not provide an equivilent function.
+    // @comm Note that MFC does not provide an equivalent function.
     PyObject *obTemplate;
     if (!PyArg_ParseTuple(args, "O:RemoveDocTemplate",
                           &obTemplate))  // @pyparm <o PyCDocTemplate>|template||The template to be removed.  Must have

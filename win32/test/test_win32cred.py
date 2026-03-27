@@ -1,7 +1,9 @@
 import copy
 import unittest
 
+import pywintypes
 import win32cred
+import winerror
 
 
 class TestCredFunctions(unittest.TestCase):
@@ -14,24 +16,28 @@ class TestCredFunctions(unittest.TestCase):
         }
 
     def create_dummy_cred(self):
-        cred = copy.deepcopy(self.dummy_cred)
-        cred.update(
-            {
-                "Persist": win32cred.CRED_PERSIST_SESSION,
-            }
-        )
+        cred = copy.deepcopy(self.dummy_cred) | {
+            "Persist": win32cred.CRED_PERSIST_SESSION,
+        }
+
         try:
             win32cred.CredWrite(cred, self.flags)
         except Exception as e:
             print(e)
 
     def is_dummy_cred(self):
+        try:
+            credentials = win32cred.CredEnumerate()
+        except pywintypes.error as exc:
+            if exc.winerror != winerror.ERROR_NOT_FOUND:  # Element not found.
+                raise
+            return False
         return (
             len(
                 [
-                    e
-                    for e in win32cred.CredEnumerate()
-                    if e["TargetName"] == self.dummy_cred["TargetName"]
+                    True
+                    for cred in credentials
+                    if cred["TargetName"] == self.dummy_cred["TargetName"]
                 ]
             )
             == 1

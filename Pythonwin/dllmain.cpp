@@ -191,7 +191,7 @@ extern "C" __declspec(dllexport) int __stdcall DllMainwin32ui(HINSTANCE hInstanc
         // insert into resource chain.
         pDLL = new CDynLinkLibrary(extensionDLL);
 
-#else  // Frozen .EXE that embedds win32ui is initializing
+#else  // Frozen .EXE that embeds win32ui is initializing
         TRACE("win32ui in frozen %s initializing.\n", path);
 #endif
     }

@@ -369,7 +369,7 @@ PyObject *PyIDispatch::InvokeTypes(PyObject *self, PyObject *args)
     // See how many _real_ entries - count until end or
     // first param marked as Missing.
     for (numArgs = 0; numArgs < argc - 5; numArgs++) {
-        if (PyTuple_GET_ITEM(args, numArgs + 5)->ob_type == &PyOleMissingType) {
+        if (Py_TYPE(PyTuple_GET_ITEM(args, numArgs + 5)) == &PyOleMissingType) {
             break;
         }
     }
@@ -517,7 +517,12 @@ PyObject *PyIDispatch::InvokeTypes(PyObject *self, PyObject *args)
 
 error:
     if (dispparams.rgvarg) {
-        for (i = dispparams.cArgs; i--;) VariantClear(&dispparams.rgvarg[i]);
+        for (i = dispparams.cArgs; i--;) {
+            if ((V_VT(&dispparams.rgvarg[i]) & ~VT_TYPEMASK) == (VT_BYREF | VT_ARRAY)) {
+                SafeArrayDestroy(*V_ARRAYREF(&dispparams.rgvarg[i]));
+            }
+            VariantClear(&dispparams.rgvarg[i]);
+        }
         delete[] dispparams.rgvarg;
     }
     delete[] ArgHelpers;

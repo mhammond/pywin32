@@ -22,7 +22,7 @@ from pywin.mfc import dialog, object
 from win32api import RGB
 
 
-# helper to get the text of an arbitary item
+# helper to get the text of an arbitrary item
 def GetItemText(item):
     if isinstance(item, (tuple, list)):
         use = item[0]
@@ -97,10 +97,10 @@ class HierList(object.Object):
         else:
             self.listControl = listControl
             lbid = listControl.GetDlgCtrlID()
-            assert (
-                self.listBoxId is None or self.listBoxId == lbid
-            ), "An invalid listbox control ID has been specified (specified as {}, but exists as {})".format(
-                self.listBoxId, lbid
+            assert self.listBoxId is None or self.listBoxId == lbid, (
+                "An invalid listbox control ID has been specified (specified as {}, but exists as {})".format(
+                    self.listBoxId, lbid
+                )
             )
             self.listBoxId = lbid
         self.listControl.SetImageList(self.imageList, commctrl.LVSIL_NORMAL)
@@ -280,7 +280,7 @@ class HierList(object.Object):
 
 ##########################################################################
 #
-# Classes for use with seperate HierListItems.
+# Classes for use with separate HierListItems.
 #
 #
 class HierListWithItems(HierList):

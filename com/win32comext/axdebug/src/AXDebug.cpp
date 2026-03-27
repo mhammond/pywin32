@@ -56,8 +56,10 @@ generates Windows .hlp files.
 #include "PyIEnumDebugPropertyInfo.h"
 
 // Headers needed for the f_trace hacks.
+#if PY_VERSION_HEX < 0x030b0000  // < 3.11
 #include "compile.h"
 #include "frameobject.h"
+#endif
 
 static PyObject *axdebug_Error; /* 'Python level' errors */
 
@@ -171,6 +173,7 @@ static PyObject *GetThreadStateHandle(PyObject *self, PyObject *args)
     PyThreadState_Swap(myState);
     return PyWinLong_FromVoidPtr(myState);
 }
+// clang-format off
 static PyObject *SetThreadStateTrace(PyObject *self, PyObject *args)
 {
     PyObject *obhandle;
@@ -180,21 +183,33 @@ static PyObject *SetThreadStateTrace(PyObject *self, PyObject *args)
     PyThreadState *state;
     if (!PyWinLong_AsVoidPtr(obhandle, (void **)&state))
         return NULL;
-#if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION >= 2) || PY_MAJOR_VERSION > 2
-#pragma message("XXXXXXXXX - upgrade this for new tracing features.")
-/***
-        XXX - maybe use PyEval_SetTrace ????
-    Py_XDECREF(state->c_tracefunc);
-    state->c_tracefunc = func;
-    state->tracing = TRUE;
-***/
-#else
-    Py_XDECREF(state->sys_tracefunc);
-    state->sys_tracefunc = func;
-    Py_INCREF(func);
-#endif
+
     // Loop back over all frames, setting each frame back to our
     // first script block frame with the tracer.
+#if PY_VERSION_HEX >= 0x030b0000  // >= 3.11: PyFrameObject is opaque
+    PyFrameObject *frame = state ? PyThreadState_GetFrame(state) : NULL;
+    bool bFoundFirstScriptBlock = false;
+    while (frame) {
+        PyCodeObject *code = PyFrame_GetCode(frame);
+        PyObject *filename = PyObject_GetAttrString((PyObject *)code, "co_filename");
+        Py_DECREF(code);
+        const char *filename_str = filename ? PyUnicode_AsUTF8(filename) : NULL;
+        bool isScriptBlock = filename_str && strncmp(filename_str, "<Script ", 8) == 0;
+        Py_XDECREF(filename);
+        if (isScriptBlock)
+            bFoundFirstScriptBlock = true;
+        else {
+            if (bFoundFirstScriptBlock) {
+                Py_DECREF(frame);
+                break;
+            }
+        }
+        PyObject_SetAttrString((PyObject *)frame, "f_trace", func);
+        PyFrameObject *prev_frame = frame;
+        frame = PyFrame_GetBack(frame);
+        Py_DECREF(prev_frame);
+    }
+#else  // < 3.11: direct struct access
     PyFrameObject *frame = state ? state->frame : NULL;
     bool bFoundFirstScriptBlock = false;
     while (frame) {
@@ -209,9 +224,10 @@ static PyObject *SetThreadStateTrace(PyObject *self, PyObject *args)
         Py_INCREF(func);
         frame = frame->f_back;
     }
-    Py_INCREF(Py_None);
-    return Py_None;
+#endif
+    Py_RETURN_NONE;
 }
+// clang-format on
 /* List of module functions */
 // @module axdebug|A module, encapsulating the ActiveX Debugging interfaces
 static struct PyMethodDef axdebug_methods[] = {{"GetStackAddress", GetStackAddress, 1},

@@ -283,14 +283,8 @@ BOOL PySECURITY_DESCRIPTOR::SetSD(PSECURITY_DESCRIPTOR psd)
     // replace security descriptor in object, always in relative format
     if (this->m_psd)
         free(this->m_psd);
-    DWORD sdsize = GetSecurityDescriptorLength(psd);
-    if (sdsize == 0) {
-        // GetSecurityDescriptorLength returns 0 on Win9x where the
-        // SECURITY_DESCRIPTOR stuff is not supported.
-        this->m_psd = NULL;
-        return TRUE;
-    }
-    else if (_IsSelfRelative(psd)) {
+    if (_IsSelfRelative(psd)) {
+        DWORD sdsize = GetSecurityDescriptorLength(psd);
         this->m_psd = malloc(sdsize);
         memcpy(this->m_psd, psd, sdsize);
         return TRUE;
@@ -639,7 +633,6 @@ PyObject *PySECURITY_DESCRIPTOR::GetSecurityDescriptorControl(PyObject *self, Py
 
 // @pymethod |PySECURITY_DESCRIPTOR|SetSecurityDescriptorControl|Sets the control bit flags related to inheritance for a
 // security descriptor
-// @comm Only exists on Windows 2000 or later
 PyObject *PySECURITY_DESCRIPTOR::SetSecurityDescriptorControl(PyObject *self, PyObject *args)
 {
     SECURITY_DESCRIPTOR_CONTROL ControlBitsOfInterest, ControlBitsToSet;

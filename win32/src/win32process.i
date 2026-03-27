@@ -92,7 +92,7 @@ protected:
 	PyObject *m_obStdIn, *m_obStdOut, *m_obStdErr;
 	PyObject *m_obDesktop, *m_obTitle;
 };
-#define PySTARTUPINFO_Check(ob)	((ob)->ob_type == &PySTARTUPINFOType)
+#define PySTARTUPINFO_Check(ob)	(Py_TYPE(ob) == &PySTARTUPINFOType)
 
 // @object PySTARTUPINFO|A Python object, representing an STARTUPINFO structure
 // @comm Typically you create a PySTARTUPINFO (via <om win32process.STARTUPINFO>) object, and set its properties.
@@ -658,7 +658,7 @@ PyObject *MyCreateProcess(
 	BOOL bInheritHandles, // @pyparm int|bInheritHandles||handle inheritance flag
 	DWORD dwCreationFlags, // @pyparm int|dwCreationFlags||creation flags.  May be a combination of the following values from the win32con module:
 			// @flagh Value|Meaning
-			// @flag CREATE_BREAKAWAY_FROM_JOB|Windows 2000: The child processes of a process associated with a job are not associated with the job.
+			// @flag CREATE_BREAKAWAY_FROM_JOB|The child processes of a process associated with a job are not associated with the job.
 			// If the calling process is not associated with a job, this flag has no effect. If the calling process is associated with a job, the job must set the JOB_OBJECT_LIMIT_BREAKAWAY_OK limit or CreateProcess will fail.
 
 			// @flag CREATE_DEFAULT_ERROR_MODE|The new process does not inherit the error mode of the calling process. Instead, CreateProcess gives the new process the current default error mode. An application sets the current default error mode by calling SetErrorMode.
@@ -675,13 +675,12 @@ PyObject *MyCreateProcess(
 			// @flag CREATE_UNICODE_ENVIRONMENT|Indicates the format of the lpEnvironment parameter. If this flag is set, the environment block pointed to by lpEnvironment uses Unicode characters. Otherwise, the environment block uses ANSI characters.
 			// @flag DEBUG_PROCESS|If this flag is set, the calling process is treated as a debugger, and the new process is debugged. The system notifies the debugger of all debug events that occur in the process being debugged.
 			// If you create a process with this flag set, only the calling thread (the thread that called CreateProcess) can call the WaitForDebugEvent function.
-			// Windows 95/98: This flag is not valid if the new process is a 16-bit application.
 			// @flag DEBUG_ONLY_THIS_PROCESS|If this flag is not set and the calling process is being debugged, the new process becomes another process being debugged by the calling process's debugger. If the calling process is not a process being debugged, no debugging-related actions occur.
 			// @flag DETACHED_PROCESS|For console processes, the new process does not have access to the console of the parent process. The new process can call the AllocConsole function at a later time to create a new console. This flag cannot be used with the CREATE_NEW_CONSOLE flag.
 
 
-			// @flag ABOVE_NORMAL_PRIORITY_CLASS|Windows 2000: Indicates a process that has priority higher than NORMAL_PRIORITY_CLASS but lower than HIGH_PRIORITY_CLASS.
-			// @flag BELOW_NORMAL_PRIORITY_CLASS|Windows 2000: Indicates a process that has priority higher than IDLE_PRIORITY_CLASS but lower than NORMAL_PRIORITY_CLASS.
+			// @flag ABOVE_NORMAL_PRIORITY_CLASS|Indicates a process that has priority higher than NORMAL_PRIORITY_CLASS but lower than HIGH_PRIORITY_CLASS.
+			// @flag BELOW_NORMAL_PRIORITY_CLASS|Indicates a process that has priority higher than IDLE_PRIORITY_CLASS but lower than NORMAL_PRIORITY_CLASS.
 			// @flag HIGH_PRIORITY_CLASS|Indicates a process that performs time-critical tasks. The threads of a high-priority class process preempt the threads of normal-priority or idle-priority class processes. An example is the Task List, which must respond quickly when called by the user, regardless of the load on the system. Use extreme care when using the high-priority class, because a CPU-bound application with a high-priority class can use nearly all available cycles.
 			// @flag IDLE_PRIORITY_CLASS|Indicates a process whose threads run only when the system is idle and are preempted by the threads of any process running in a higher priority class. An example is a screen saver. The idle priority class is inherited by child processes.
 			// @flag NORMAL_PRIORITY_CLASS|Indicates a normal process with no special scheduling needs.
@@ -751,7 +750,7 @@ PyObject *MyCreateProcessAsUser(
 	SECURITY_ATTRIBUTES *INPUT_NULLOK, // @pyparm <o PySECURITY_ATTRIBUTES>|threadAttributes||thread security attributes, or None
 	BOOL bInheritHandles, // @pyparm int|bInheritHandles||handle inheritance flag
 	DWORD dwCreationFlags, // @pyparm int|dwCreationFlags||creation flags
-	PyObject *env, // @pyparm None|newEnvironment||A dictionary of stringor Unicode pairs to define the environment for the process, or None to inherit the current environment.
+	PyObject *env, // @pyparm None|newEnvironment||A dictionary of string or Unicode pairs to define the environment for the process, or None to inherit the current environment.
 	TCHAR *INPUT_NULLOK, // @pyparm string|currentDirectory||current directory name, or None
 	STARTUPINFO *lpStartupInfo // @pyparm <o PySTARTUPINFO>|startupinfo||a STARTUPINFO object that specifies how the main window for the new process should appear.
 );
@@ -1229,7 +1228,6 @@ done:
 %}
 
 // @pyswig (long,....)|EnumProcessModulesEx|Lists 32 or 64-bit modules load by a process
-// @comm Requires Vista or later
 %native(EnumProcessModulesEx) PyEnumProcessModulesEx;
 %{
 PyObject *PyEnumProcessModulesEx(PyObject *self, PyObject *args)
@@ -1763,17 +1761,16 @@ PyObject *PyWriteProcessMemory(PyObject *self, PyObject *args)
 #define CREATE_PRESERVE_CODE_AUTHZ_LEVEL CREATE_PRESERVE_CODE_AUTHZ_LEVEL
 #define CREATE_NO_WINDOW CREATE_NO_WINDOW
 
-
-#define DEBUG_PROCESS DEBUG_PROCESS // If this flag is set, the calling process is treated as a debugger, and the new process is a process being debugged. The system notifies the debugger of all debug events that occur in the process being debugged.
+// If this flag is set, the calling process is treated as a debugger, and the new process is a process being debugged. The system notifies the debugger of all debug events that occur in the process being debugged.
 // If you create a process with this flag set, only the calling thread (the thread that called CreateProcess) can call the WaitForDebugEvent function.
-// Windows 95 and Windows 98: This flag is not valid if the new process is a 16-bit application.
+#define DEBUG_PROCESS DEBUG_PROCESS
 
 #define DEBUG_ONLY_THIS_PROCESS DEBUG_ONLY_THIS_PROCESS // If not set and the calling process is being debugged, the new process becomes another process being debugged by the calling process's debugger. If the calling process is not a process being debugged, no debugging-related actions occur.
 
 #define DETACHED_PROCESS DETACHED_PROCESS // For console processes, the new process does not have access to the console of the parent process. The new process can call the AllocConsole function at a later time to create a new console. This flag cannot be used with the CREATE_NEW_CONSOLE flag.
 
-#define ABOVE_NORMAL_PRIORITY_CLASS ABOVE_NORMAL_PRIORITY_CLASS // Windows 2000: Indicates a process that has priority above NORMAL_PRIORITY_CLASS but below HIGH_PRIORITY_CLASS.
-#define BELOW_NORMAL_PRIORITY_CLASS BELOW_NORMAL_PRIORITY_CLASS // Windows 2000: Indicates a process that has priority above IDLE_PRIORITY_CLASS but below NORMAL_PRIORITY_CLASS.
+#define ABOVE_NORMAL_PRIORITY_CLASS ABOVE_NORMAL_PRIORITY_CLASS // Indicates a process that has priority above NORMAL_PRIORITY_CLASS but below HIGH_PRIORITY_CLASS.
+#define BELOW_NORMAL_PRIORITY_CLASS BELOW_NORMAL_PRIORITY_CLASS // Indicates a process that has priority above IDLE_PRIORITY_CLASS but below NORMAL_PRIORITY_CLASS.
 #define HIGH_PRIORITY_CLASS HIGH_PRIORITY_CLASS // Indicates a process that performs time-critical tasks that must be executed immediately for it to run correctly. The threads of a high-priority class process preempt the threads of normal-priority or idle-priority class processes. An example is the Task List, which must respond quickly when called by the user, regardless of the load on the system. Use extreme care when using the high-priority class, because a high-priority class CPU-bound application can use nearly all available cycles.
 #define IDLE_PRIORITY_CLASS IDLE_PRIORITY_CLASS // Indicates a process whose threads run only when the system is idle and are preempted by the threads of any process running in a higher priority class. An example is a screen saver. The idle priority class is inherited by child processes.
 #define NORMAL_PRIORITY_CLASS NORMAL_PRIORITY_CLASS // Indicates a normal process with no special scheduling needs.

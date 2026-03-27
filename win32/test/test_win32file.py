@@ -395,8 +395,7 @@ class TestOverlapped(unittest.TestCase):
             # GetQueuedCompletionStatus will still find it.  Our check of
             # reference counting should catch that error.
             overlapped = None
-            # even if we fail, be sure to close the handle; prevents hangs
-            # on Vista 64...
+            # even if we fail, be sure to close the handle to prevents hangs
             try:
                 self.assertRaises(
                     RuntimeError, win32file.GetQueuedCompletionStatus, port, -1
@@ -436,9 +435,10 @@ class TestOverlapped(unittest.TestCase):
         win32file.CreateIoCompletionPort(handle, port, 1, 0)
 
         t = threading.Thread(
-            target=self._IOCPServerThread, args=(handle, port, test_overlapped_death)
+            target=self._IOCPServerThread,
+            args=(handle, port, test_overlapped_death),
+            daemon=True,  # avoid hanging entire test suite on failure.
         )
-        t.setDaemon(True)  # avoid hanging entire test suite on failure.
         t.start()
         try:
             time.sleep(0.1)  # let thread do its thing.
@@ -530,7 +530,7 @@ class TestSocketExtensions(unittest.TestCase):
         t = threading.Thread(target=self.acceptWorker, args=(port, running, stopped))
         t.start()
         running.wait(2)
-        if not running.isSet():
+        if not running.is_set():
             self.fail("AcceptEx Worker thread failed to start")
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect(("127.0.0.1", port))
@@ -548,7 +548,7 @@ class TestSocketExtensions(unittest.TestCase):
         self.assertEqual(got, b"hello")
         # thread should have stopped
         stopped.wait(2)
-        if not stopped.isSet():
+        if not stopped.is_set():
             self.fail("AcceptEx Worker thread failed to successfully stop")
 
 
@@ -556,8 +556,7 @@ class TestFindFiles(unittest.TestCase):
     def testIter(self):
         dir = os.path.join(os.getcwd(), "*")
         files = win32file.FindFilesW(dir)
-        set1 = set()
-        set1.update(files)
+        set1 = set(files)
         set2 = set()
         for file in win32file.FindFilesIterator(dir):
             set2.add(file)
@@ -750,9 +749,9 @@ class TestEncrypt(unittest.TestCase):
 
 class TestConnect(unittest.TestCase):
     def connect_thread_runner(self, expect_payload, giveup_event):
-        # As Windows 2000 doesn't do ConnectEx, we need to use a non-blocking
-        # accept, as our test connection may never come.  May as well use
-        # AcceptEx for this...
+        # Windows 2000 didn't do ConnectEx, we needed to use a non-blocking
+        # accept, as our test connection possible would never come if skipped.
+        # May as well use and test AcceptEx for this...
         listener = socket.socket()
         self.addr = ("localhost", random.randint(10000, 64000))
         listener.bind(self.addr)
@@ -801,8 +800,6 @@ class TestConnect(unittest.TestCase):
             win32file.ConnectEx(s2, self.addr, ol, b"some expected request")
         except win32file.error as exc:
             win32event.SetEvent(giveup_event)
-            if exc.winerror == 10022:  # WSAEINVAL
-                raise unittest.SkipTest("ConnectEx is not available on this platform")
             raise  # some error error we don't expect.
         # We occasionally see ERROR_CONNECTION_REFUSED in automation
         try:
@@ -838,8 +835,6 @@ class TestConnect(unittest.TestCase):
             win32file.ConnectEx(s2, self.addr, ol)
         except win32file.error as exc:
             win32event.SetEvent(giveup_event)
-            if exc.winerror == 10022:  # WSAEINVAL
-                raise unittest.SkipTest("ConnectEx is not available on this platform")
             raise  # some error error we don't expect.
         # We occasionally see ERROR_CONNECTION_REFUSED in automation
         try:
@@ -874,7 +869,7 @@ class TestTransmit(unittest.TestCase):
 
         def runner():
             s1 = socket.socket()
-            # binding fails occasionally on github CI with:
+            # binding fails occasionally on GitHub CI with:
             # OSError: [WinError 10013] An attempt was made to access a socket in a way forbidden by its access permissions
             # which probably just means the random port is already in use, so
             # let that happen a few times.

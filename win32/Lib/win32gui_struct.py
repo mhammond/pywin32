@@ -115,14 +115,18 @@ def PackMENUITEMINFO(
     # memory is used) for the lifetime of the INFO item.
     extras = []
     # ack - dwItemData and dwTypeData were confused for a while...
-    assert (
-        dwItemData is None or dwTypeData is None
-    ), "sorry - these were confused - you probably want dwItemData"
+    assert dwItemData is None or dwTypeData is None, (
+        "sorry - these were confused - you probably want dwItemData"
+    )
     # if we are a long way past 209, then we can nuke the above...
     if dwTypeData is not None:
         import warnings
 
-        warnings.warn("PackMENUITEMINFO: please use dwItemData instead of dwTypeData")
+        warnings.warn(
+            "PackMENUITEMINFO: please use dwItemData instead of dwTypeData",
+            DeprecationWarning,
+            stacklevel=2,
+        )
     if dwItemData is None:
         dwItemData = dwTypeData or 0
 
@@ -254,8 +258,9 @@ def EmptyMENUITEMINFO(mask=None, text_buf_size=512):
             | win32con.MIIM_STATE
             | win32con.MIIM_STRING
             | win32con.MIIM_SUBMENU
+            # Note: No MIIM_TYPE - this used to screw win2k/98.
+            # We don't know the impact now and whether it could/should be added to the mask.
         )
-        # Note: No MIIM_TYPE - this screws win2k/98.
 
     if mask & win32con.MIIM_STRING:
         text_buffer = _make_empty_text_buffer(text_buf_size)

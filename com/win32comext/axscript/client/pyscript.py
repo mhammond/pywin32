@@ -109,7 +109,7 @@ class NamedScriptAttribute:
         self.__dict__["_scriptItem_"] = scriptItem
 
     def __repr__(self):
-        return f"<NamedItemAttribute{self._scriptItem_!r}>"
+        return f"{self.__class__.__name__}({self._scriptItem_!r})"
 
     def __getattr__(self, attr):
         # If a known subitem, return it.
@@ -158,7 +158,7 @@ class ScriptItem(framework.ScriptItem):
         self.attributeObject = NamedScriptAttribute(self)
         if self.dispatch:
             # Need to avoid the new Python "lazy" dispatch behaviour.
-            olerepr, clsid = None
+            olerepr = clsid = None
             try:
                 engine = self.GetEngine()
                 typeinfo = self.dispatch.GetTypeInfo()

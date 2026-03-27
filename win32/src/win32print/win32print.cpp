@@ -12,9 +12,6 @@ generates Windows .hlp files.
 
 ******************************************************************/
 
-#ifndef UNICODE
-#error "no ANSI builds anymore - otherwise tweaks are needed here"
-#endif
 #include "PyWinTypes.h"
 #include "PyWinObjects.h"
 #include <stdarg.h>
@@ -575,7 +572,7 @@ static PyObject *PyGetDefaultPrinter(PyObject *self, PyObject *args)
         PyErr_SetString(PyExc_RuntimeError, "The default printer was not found.");
         return NULL;
     }
-    if (NULL == (s = _tcschr(printer, TEXT(',')))) {
+    if (NULL == (s = wcschr(printer, TEXT(',')))) {
         PyErr_SetString(PyExc_RuntimeError, "The returned printer is malformed.");
         return NULL;
     }
@@ -1672,7 +1669,7 @@ BOOL PyWinObject_AsRECTL(PyObject *obrectl, RECTL *rectl)
 {
     static char *rectl_keys[] = {"left", "top", "right", "bottom", 0};
     static char *err_msg = "RECTL must be a dictionary containing {left:int, top:int, right:int, bottom:int}";
-    if (obrectl->ob_type != &PyDict_Type) {
+    if (Py_TYPE(obrectl) != &PyDict_Type) {
         PyErr_SetString(PyExc_TypeError, err_msg);
         return FALSE;
     }
@@ -1689,7 +1686,7 @@ BOOL PyWinObject_AsSIZEL(PyObject *obsizel, SIZEL *sizel)
 {
     static char *sizel_keys[] = {"cx", "cy", 0};
     static char *err_msg = "SIZEL must be a dictionary containing {cx:int, cy:int}";
-    if (obsizel->ob_type != &PyDict_Type) {
+    if (Py_TYPE(obsizel) != &PyDict_Type) {
         PyErr_SetString(PyExc_TypeError, err_msg);
         return FALSE;
     }
@@ -1713,7 +1710,7 @@ BOOL PyWinObject_AsFORM_INFO_1(PyObject *obform, FORM_INFO_1W *fi1, TmpWCHAR *pt
     static char *form_keys[] = {"Flags", "Name", "Size", "ImageableArea", 0};
     static char *err_msg =
         "FORM_INFO_1 must be a dictionary containing {Flags:int, Name:unicode, Size:dict, ImageableArea:dict}";
-    if (obform->ob_type != &PyDict_Type) {
+    if (Py_TYPE(obform) != &PyDict_Type) {
         PyErr_SetString(PyExc_TypeError, err_msg);
         return FALSE;
     }
@@ -1909,13 +1906,11 @@ static PyObject *PyDeviceCapabilities(PyObject *self, PyObject *args)
     // @flagh Capability|Returned value
     switch (capability) {
         // none of these use the output pointer, just the returned DWORD
-        case DC_BINADJUST:
         case DC_COLLATE:
         case DC_COPIES:
         case DC_COLORDEVICE:
         case DC_DUPLEX:
         case DC_DRIVER:
-        case DC_EMF_COMPLIANT:
         case DC_EXTRA:
         case DC_FIELDS:
         case DC_ORIENTATION:
@@ -2111,8 +2106,11 @@ static PyObject *PyDeviceCapabilities(PyObject *self, PyObject *args)
             }
             break;
         }
-        // last 3 are 95/98/Me only
+        // https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/winddiui/nf-winddiui-drvdevicecapabilities
+        // Not used for NT-based operating systems.
+        case DC_BINADJUST:
         case DC_DATATYPE_PRODUCED:
+        case DC_EMF_COMPLIANT:
         case DC_MANUFACTURER:
         case DC_MODEL:
         default:

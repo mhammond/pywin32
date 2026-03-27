@@ -9,6 +9,7 @@ construct the necessary Python object, and dispatch COM events.
 
 import os
 import sys
+import tempfile
 
 import pythoncom
 import win32api
@@ -210,9 +211,9 @@ def RegisterServer(
     # And if we are frozen, ignore the ones that don't make sense in this
     # context.
     if pythoncom.frozen:
-        assert (
-            sys.frozen
-        ), "pythoncom is frozen, but sys.frozen is not set - don't know the context!"
+        assert sys.frozen, (
+            "pythoncom is frozen, but sys.frozen is not set - don't know the context!"
+        )
         if sys.frozen == "dll":
             clsctx &= pythoncom.CLSCTX_INPROC_SERVER
         else:
@@ -541,8 +542,6 @@ def UnregisterInfoClasses(*classes, **flags):
 
 # Attempt to 're-execute' our current process with elevation.
 def ReExecuteElevated(flags):
-    import tempfile
-
     import win32console
     import win32event  # we've already checked we are running XP above
     import win32process
@@ -646,14 +645,9 @@ def UseCommandLine(*classes, **flags):
         else:
             RegisterClasses(*classes, **flags)
     except win32api.error as exc:
-        # If we are on xp+ and have "access denied", retry using
-        # ShellExecuteEx with 'runas' verb to force elevation (vista) and/or
-        # admin login dialog (vista/xp)
-        if (
-            flags["unattended"]
-            or exc.winerror != winerror.ERROR_ACCESS_DENIED
-            or sys.getwindowsversion()[0] < 5
-        ):
+        # If we have "access denied", retry using
+        # ShellExecuteEx with 'runas' verb to force elevation
+        if flags["unattended"] or exc.winerror != winerror.ERROR_ACCESS_DENIED:
             raise
         ReExecuteElevated(flags)
 

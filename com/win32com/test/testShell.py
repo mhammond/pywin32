@@ -151,7 +151,7 @@ class FILEGROUPDESCRIPTORTester(win32com.test.util.TestCase):
         self._testSimple(True)
 
     def testComplex(self):
-        clsid = pythoncom.MakeIID("{CD637886-DB8B-4b04-98B5-25731E1495BE}")
+        clsid = pywintypes.IID("{CD637886-DB8B-4b04-98B5-25731E1495BE}")
         ctime, atime, wtime = self._getTestTimes()
         d = {
             "cFileName": "foo.txt",

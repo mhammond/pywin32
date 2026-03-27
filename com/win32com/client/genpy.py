@@ -931,9 +931,9 @@ class Generator:
                 if clsid not in vtableItems and refAttr[11] & pythoncom.TYPEFLAG_FDUAL:
                     refType = refType.GetRefTypeInfo(refType.GetRefTypeOfImplType(-1))
                     refAttr = refType.GetTypeAttr()
-                    assert (
-                        refAttr.typekind == pythoncom.TKIND_INTERFACE
-                    ), "must be interface bynow!"
+                    assert refAttr.typekind == pythoncom.TKIND_INTERFACE, (
+                        "must be interface bynow!"
+                    )
                     vtableItem = VTableItem(refType, refAttr, doc)
                     vtableItems[clsid] = vtableItem
         coclass.sources = list(sources.values())
@@ -965,7 +965,9 @@ class Generator:
         return oleItem, vtableItem
 
     def BuildOleItemsFromType(self):
-        assert self.bBuildHidden, "This code doesn't look at the hidden flag - I thought everyone set it true!?!?!"
+        assert self.bBuildHidden, (
+            "This code doesn't look at the hidden flag - I thought everyone set it true!?!?!"
+        )
         oleItems = {}
         enumItems = {}
         recordItems = {}
@@ -1012,12 +1014,14 @@ class Generator:
         # don't step on each others' toes.
         # Could be a classmethod one day...
         temp_filename = self.get_temp_filename(filename)
-        return open(temp_filename, "wt", encoding=encoding)
+        return open(temp_filename, "wt", encoding=encoding), temp_filename
 
-    def finish_writer(self, filename, f, worked):
+    def finish_writer(self, filename, f, temp_filename, worked):
         f.close()
-        temp_filename = self.get_temp_filename(filename)
         if worked:
+            dirname = os.path.dirname(filename)
+            if dirname and not os.path.exists(dirname):
+                os.mkdir(dirname)
             os.replace(temp_filename, filename)
         else:
             try:
@@ -1274,9 +1278,9 @@ class Generator:
                             if vtableItem is not None:
                                 vtableItems[clsid] = vtableItem
 
-            assert (
-                found
-            ), f"Can't find the '{child}' interface in the CoClasses, or the interfaces"
+            assert found, (
+                f"Can't find the '{child}' interface in the CoClasses, or the interfaces"
+            )
             # Make a map of iid: dispitem, vtableitem)
             items = {}
             for key, value in oleItems.items():
@@ -1297,7 +1301,7 @@ class Generator:
                 # leave a 1/2 generated mess.
                 out_name = os.path.join(dir, an_item.python_name) + ".py"
                 worked = False
-                self.file = self.open_writer(out_name)
+                self.file, temp_filename = self.open_writer(out_name)
                 try:
                     if oleitem is not None:
                         self.do_gen_child_item(oleitem)
@@ -1307,7 +1311,7 @@ class Generator:
                     worked = True
                 finally:
                     with gencache.ModuleMutex(self.base_mod_name.split(".")[-1]):
-                        self.finish_writer(out_name, self.file, worked)
+                        self.finish_writer(out_name, self.file, temp_filename, worked)
                     self.file = None
         finally:
             self.progress.Finished()

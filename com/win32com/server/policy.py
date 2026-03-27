@@ -176,10 +176,10 @@ class BasicWrapPolicy:
     _invokeex_ -- Very similar to _invoke_, except slightly different arguments are used.
         And the result is just the _real_ result (rather than the (hresult, argErr, realResult)
         tuple that _invoke_ uses.
-        This is the new, prefered handler (the default _invoke_ handler simply called _invokeex_)
+        This is the new, preferred handler (the default _invoke_ handler simply called _invokeex_)
     _getdispid_ -- Very similar to _getidsofnames_, except slightly different arguments are used,
         and only 1 property at a time can be fetched (which is all we support in getidsofnames anyway!)
-        This is the new, prefered handler (the default _invoke_ handler simply called _invokeex_)
+        This is the new, preferred handler (the default _invoke_ handler simply called _invokeex_)
     _getnextdispid_- uses self._name_to_dispid_ to enumerate the DISPIDs
     """
 
@@ -257,7 +257,7 @@ class BasicWrapPolicy:
                     if i[0] != "{":
                         i = pythoncom.InterfaceNames[i]
                     else:
-                        i = pythoncom.MakeIID(i)
+                        i = pywintypes.IID(i)
                 self._com_interfaces_.append(i)
         else:
             self._com_interfaces_ = []

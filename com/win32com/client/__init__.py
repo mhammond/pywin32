@@ -524,20 +524,20 @@ class DispatchBaseClass:
     def __init__(self, oobj=None):
         if oobj is None:
             oobj = pythoncom.new(self.CLSID)
-        elif isinstance(oobj, DispatchBaseClass):
+        elif isinstance(oobj, (DispatchBaseClass, _PyIDispatchType)):
             try:
-                oobj = oobj._oleobj_.QueryInterface(
-                    self.CLSID, pythoncom.IID_IDispatch
-                )  # Must be a valid COM instance
+                oobj = oobj._oleobj_ if isinstance(oobj, DispatchBaseClass) else oobj
+                oobj = oobj.QueryInterface(self.CLSID, pythoncom.IID_IDispatch)
             except pythoncom.com_error as details:
-                import winerror
+                if not isinstance(oobj, _PyIDispatchType):
+                    import winerror
 
-                # Some stupid objects fail here, even tho it is _already_ IDispatch!!??
-                # Eg, Lotus notes.
-                # So just let it use the existing object if E_NOINTERFACE
-                if details.hresult != winerror.E_NOINTERFACE:
-                    raise
-                oobj = oobj._oleobj_
+                    # Some stupid objects fail here, even tho it is _already_ IDispatch!!??
+                    # Eg, Lotus notes.
+                    # So just let it use the existing object if E_NOINTERFACE
+                    if details.hresult != winerror.E_NOINTERFACE:
+                        raise
+
         self.__dict__["_oleobj_"] = oobj  # so we don't call __setattr__
 
     def __dir__(self):

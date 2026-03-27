@@ -92,7 +92,6 @@ extern LONG _PyCom_GetGatewayCount(void);
 typedef HRESULT(STDAPICALLTYPE *CreateURLMonikerExfunc)(LPMONIKER, LPCWSTR, LPMONIKER *, DWORD);
 static CreateURLMonikerExfunc pfnCreateURLMonikerEx = NULL;
 
-// Win2k or later
 typedef HRESULT(STDAPICALLTYPE *CoWaitForMultipleHandlesfunc)(DWORD dwFlags, DWORD dwTimeout, ULONG cHandles,
                                                               LPHANDLE pHandles, LPDWORD lpdwindex);
 static CoWaitForMultipleHandlesfunc pfnCoWaitForMultipleHandles = NULL;
@@ -104,10 +103,8 @@ typedef HRESULT(STDAPICALLTYPE *CoSetCancelObjectfunc)(IUnknown *);
 static CoSetCancelObjectfunc pfnCoSetCancelObject = NULL;
 
 // typedefs for the function pointers are in OleAcc.h
-// WinXP or later
 LPFNOBJECTFROMLRESULT pfnObjectFromLresult = NULL;
 
-// May not be available on Windows 95, although I'm not sure that's even a concern anymore
 typedef HRESULT(STDAPICALLTYPE *CoCreateInstanceExfunc)(REFCLSID, IUnknown *, DWORD, COSERVERINFO *, ULONG, MULTI_QI *);
 static CoCreateInstanceExfunc pfnCoCreateInstanceEx = NULL;
 typedef HRESULT(STDAPICALLTYPE *CoInitializeSecurityfunc)(PSECURITY_DESCRIPTOR, LONG, SOLE_AUTHENTICATION_SERVICE *,
@@ -748,7 +745,7 @@ static PyObject *pythoncom_WrapObject(PyObject *self, PyObject *args)
     // The gateway must exist (ie, we _must_ support PyGIXXX
 
     // XXX - do we need an optional arg for "base object"?
-    // XXX - If we did, we would unwrap it like thus:
+    // XXX - If we did, we would unwrap it like this:
     /****
     IUnknown *pLook = (IUnknown *)(*ppv);
     IInternalUnwrapPythonObject *pTemp;
@@ -777,14 +774,14 @@ static PyObject *pythoncom_WrapObject(PyObject *self, PyObject *args)
 
 static PyObject *pythoncom_MakeIID(PyObject *self, PyObject *args)
 {
-    PyErr_Warn(PyExc_PendingDeprecationWarning, "MakeIID is deprecated - please use pywintypes.IID() instead.");
+    PyErr_Warn(PyExc_DeprecationWarning, "MakeIID is deprecated - please use pywintypes.IID() instead.");
     return PyWinMethod_NewIID(self, args);
 }
 
 // no autoduck - this is deprecated.
 static PyObject *pythoncom_MakeTime(PyObject *self, PyObject *args)
 {
-    PyErr_Warn(PyExc_PendingDeprecationWarning, "MakeTime is deprecated - please use pywintypes.Time() instead.");
+    PyErr_Warn(PyExc_DeprecationWarning, "MakeTime is deprecated - please use pywintypes.Time() instead.");
     return PyWinMethod_NewTime(self, args);
 }
 

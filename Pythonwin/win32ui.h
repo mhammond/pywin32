@@ -161,7 +161,7 @@ class PYW_EXPORT ui_type_CObject : public ui_type {
    public:
     CRuntimeClass *pCObjectClass;
     // A map of CRuntimeClass to these objects.  Populated by the ctor.
-    // Allows us to convert from an arbitary CObject to the best Python type.
+    // Allows us to convert from an arbitrary CObject to the best Python type.
     typedef CMap<CRuntimeClass *, CRuntimeClass *, ui_type_CObject *, ui_type_CObject *> CRuntimeClassTypeMap;
     static CRuntimeClassTypeMap *typemap;
 };

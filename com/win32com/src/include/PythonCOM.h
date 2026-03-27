@@ -92,7 +92,6 @@
 
 #ifdef __MINGW32__
 // Special Mingw32 considerations.
-#define NO_PYCOM_ENUMSTATPROPSTG
 #define __try try
 #define __except catch
 #include <olectl.h>
@@ -213,7 +212,7 @@ PYCOM_EXPORT BOOL PyCom_InterfaceFromPyObject(PyObject *ob, REFIID iid, LPVOID *
 // As above, but allows instance with "_oleobj_" attribute.
 PYCOM_EXPORT BOOL PyCom_InterfaceFromPyInstanceOrObject(PyObject *ob, REFIID iid, LPVOID *ppv, BOOL bNoneOK = TRUE);
 
-// Release an arbitary COM pointer.
+// Release an arbitrary COM pointer.
 // NOTE: the PRECALL/POSTCALL stuff is probably not strictly necessary
 // since the PyGILSTATE stuff has been in place (and even then, it only
 // mattered when it was the last Release() on a Python implemented object)
@@ -255,15 +254,17 @@ PYCOM_EXPORT PyObject *PyCom_PyObjectFromSTATSTG(STATSTG *pStat);
 PYCOM_EXPORT BOOL PyCom_PyObjectAsSTATSTG(PyObject *ob, STATSTG *pStat, DWORD flags = 0);
 PYCOM_EXPORT BOOL PyCom_SAFEARRAYFromPyObject(PyObject *obj, SAFEARRAY **ppSA, VARENUM vt = VT_VARIANT);
 PYCOM_EXPORT PyObject *PyCom_PyObjectFromSAFEARRAY(SAFEARRAY *psa, VARENUM vt = VT_VARIANT);
-#ifndef NO_PYCOM_STGOPTIONS
 PYCOM_EXPORT BOOL PyCom_PyObjectAsSTGOPTIONS(PyObject *obstgoptions, STGOPTIONS **ppstgoptions, TmpWCHAR *tmpw_shelve);
-#endif
 PYCOM_EXPORT PyObject *PyCom_PyObjectFromSTATPROPSETSTG(STATPROPSETSTG *pStat);
 PYCOM_EXPORT BOOL PyCom_PyObjectAsSTATPROPSETSTG(PyObject *, STATPROPSETSTG *);
 
 // Currency support.
 PYCOM_EXPORT PyObject *PyObject_FromCurrency(CURRENCY &cy);
 PYCOM_EXPORT BOOL PyObject_AsCurrency(PyObject *ob, CURRENCY *pcy);
+
+// Decimal support.
+PYCOM_EXPORT PyObject *PyObject_FromDecimal(DECIMAL &dec);
+PYCOM_EXPORT BOOL PyObject_AsDecimal(PyObject *ob, DECIMAL *pdec);
 
 // OLEMENUGROUPWIDTHS are used by axcontrol, shell, etc
 PYCOM_EXPORT BOOL PyObject_AsOLEMENUGROUPWIDTHS(PyObject *oblpMenuWidths, OLEMENUGROUPWIDTHS *pWidths);
@@ -692,6 +693,7 @@ class PYCOM_EXPORT PythonOleArgHelper {
         VARIANT *m_varBuf;
         DATE m_dateBuf;
         CY m_cyBuf;
+        DECIMAL m_decBuf;
     };
 };
 
