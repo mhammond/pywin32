@@ -247,8 +247,6 @@ PyDict_SetItemString(d, "g_HWNDMap", g_HWNDMap);
 PyDict_SetItemString(d, "g_DLGMap", g_DLGMap);
 #endif
 
-PyDict_SetItemString(d, "UNICODE", Py_True);
-
 // hack borrowed from win32security since version of SWIG we use doesn't do keyword arguments
 for (PyMethodDef *pmd = win32guiMethods; pmd->ml_name; pmd++)
 	if	 (strcmp(pmd->ml_name, "SetLayeredWindowAttributes")==0
@@ -7212,7 +7210,6 @@ PyCFunction pfnPyGetLayeredWindowAttributes=(PyCFunction)PyGetLayeredWindowAttri
 %}
 
 // @pyswig |UpdateLayeredWindow|Updates the position, size, shape, content, and translucency of a layered window.
-// @comm This function is only available on Windows 2000 and later
 // @comm Accepts keyword arguments.
 %{
 PyObject *PyUpdateLayeredWindow(PyObject *self, PyObject *args, PyObject *kwargs)

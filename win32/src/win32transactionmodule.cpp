@@ -209,7 +209,6 @@ static PyObject *PyOpenTransaction(PyObject *self, PyObject *args, PyObject *kwa
 
 // @module win32transaction|Module wrapping Kernal Transaction Manager functions, as used with
 //	transacted NTFS and transacted registry functions.
-// @comm These functions are only available on Vista and later.
 // @comm All functions accept keyword arguments.
 static PyMethodDef win32transaction_functions[] = {
     // @pymeth CreateTransaction|Creates a transaction
