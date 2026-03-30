@@ -179,7 +179,7 @@ BOOL PyCom_ExcepInfoFromPyObject(PyObject *v, EXCEPINFO *pExcepInfo, HRESULT *ph
 
     // New handling for 1.5 exceptions.
     if (!PyErr_GivenExceptionMatches(v, PyWinExc_COMError)) {
-        PyErr_Format(PyExc_TypeError, "Must be a COM exception object (not '%s')", v->ob_type->tp_name);
+        PyErr_Format(PyExc_TypeError, "Must be a COM exception object (not '%s')", Py_TYPE(v)->tp_name);
         return FALSE;
     }
 
@@ -188,7 +188,7 @@ BOOL PyCom_ExcepInfoFromPyObject(PyObject *v, EXCEPINFO *pExcepInfo, HRESULT *ph
     // Note that with class based exceptions, a simple pointer check fails.
     // Any class sub-classed from the client is considered a server error,
     // so we need to check the class explicitly.
-    if ((PyObject *)v->ob_type == PyWinExc_COMError) {
+    if (reinterpret_cast<PyObject *>(Py_TYPE(v)) == PyWinExc_COMError) {
         // Client side error
         // Clear the state of the excep info.
         // use abstract API to get at details.
@@ -716,14 +716,15 @@ void GetScodeString(HRESULT hr, LPTSTR buf, int bufSize)
         HRESULT hr;
         LPCTSTR lpszName;
     };
+
 #define MAKE_HRESULT_ENTRY(hr) \
     {                          \
         hr, _T(#hr)            \
     }
+
     static const HRESULT_ENTRY hrNameTable[] = {
         MAKE_HRESULT_ENTRY(S_OK),
         MAKE_HRESULT_ENTRY(S_FALSE),
-
         MAKE_HRESULT_ENTRY(CACHE_S_FORMATETC_NOTSUPPORTED),
         MAKE_HRESULT_ENTRY(CACHE_S_SAMECACHE),
         MAKE_HRESULT_ENTRY(CACHE_S_SOMECACHES_NOTUPDATED),

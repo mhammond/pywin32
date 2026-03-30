@@ -1,8 +1,23 @@
 [build-system]
-# setuptools==77.0.3 made PEP-639 license deprecations introduced by 77.0.0 into warnings rather than errors
-# setuptools==75.4 dropped support for Python 3.8
 requires = [
-  "setuptools >=77.0.3; python_version >='3.9'",
-  "setuptools <76.1; python_version <'3.9'",
+  "setuptools >=77.0.3" # made PEP-639 license deprecations introduced by 77.0.0 into warnings rather than errors
 ]
 build-backend = "setuptools.build_meta"
+
+[dependency-groups]
+checkers = [ # Keep these in sync with .pre-commit-config.yaml
+  "clang-format ==18.1.8",
+  "pycln ==2.4.0",
+  "ruff ==0.11.0",
+]
+type-checkers = [
+  "types-setuptools",
+  "PyOpenGL",
+  "mypy ==1.16.*; python_version >='3.9'",
+  "pyright ==1.1.401",
+]
+dev = [
+  "pre-commit",
+  { include-group = "checkers" },
+  { include-group = "type-checkers" },
+]

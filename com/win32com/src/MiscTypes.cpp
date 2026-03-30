@@ -78,7 +78,7 @@ PyComTypeObject::PyComTypeObject(const char *name, PyComTypeObject *pBase, Py_ss
     // cast away const, as Python doesn't use it.
     tp_name = (char *)name;
     tp_basicsize = typeSize;
-    ((PyObject *)this)->ob_type = &PyType_Type;
+    Py_SET_TYPE(this, &PyType_Type);
     tp_methods = methodList;
 
     // All interfaces are based on PyInterfaceType, so this type will inherit from it thru pBase
@@ -159,7 +159,7 @@ PyObject *PyComEnumProviderTypeObject::iter(PyObject *self)
     PyObject *result = ((PyIBase *)self)->iter();
     if (result || PyErr_Occurred())
         return result;
-    PyComEnumProviderTypeObject *t = (PyComEnumProviderTypeObject *)self->ob_type;
+    PyComEnumProviderTypeObject *t = (PyComEnumProviderTypeObject *)Py_TYPE(self);
     PyObject *method = PyObject_GetAttrString(self, (char *)t->enum_method_name);
     if (!method)
         return NULL;

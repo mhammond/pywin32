@@ -15,6 +15,7 @@ generates Windows .hlp files.
 #include "PyWinTypes.h"
 #include "PyWinObjects.h"
 #include "win32api_display.h"
+#include "win32api_cputopo.h"
 #include "malloc.h"
 
 #include "math.h"  // for some of the date stuff...
@@ -2903,7 +2904,6 @@ static PyObject *PyRegConnectRegistry(PyObject *self, PyObject *args)
 
 // @pymethod |win32api|RegCopyTree|Copies an entire registry key to another location
 // @comm Accepts keyword args.
-// @comm Requires Vista or later.
 static PyObject *PyRegCopyTree(PyObject *self, PyObject *args, PyObject *kwargs)
 {
     CHECK_PFN(RegCopyTree);
@@ -2967,7 +2967,7 @@ static PyObject *PyRegCreateKey(PyObject *self, PyObject *args)
 // REG_OPENED_EXISTING_KEY)
 // @pyseeapi RegCreateKeyEx
 // @comm Implemented only as Unicode (RegCreateKeyExW).  Accepts keyword arguments.
-// @comm If a transaction handle is passed in, RegCreateKeyTransacted will be called (requires Vista or later)
+// @comm If a transaction handle is passed in, RegCreateKeyTransacted will be called
 // @pyseeapi RegCreateKeyTransacted
 static PyObject *PyRegCreateKeyEx(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -3053,7 +3053,6 @@ static PyObject *PyRegDeleteKey(PyObject *self, PyObject *args)
 // @pymethod |win32api|RegDeleteKeyEx|Deletes a registry key from 32 or 64 bit registry view
 // @pyseeapi RegDeleteKeyEx
 // @comm Accepts keyword args.
-// @comm Requires 64-bit XP, Vista, or later.
 // @comm Key to be deleted cannot contain subkeys
 // @comm If a transaction handle is specified, RegDeleteKeyTransacted is called
 // @pyseeapi RegDeleteKeyTransacted
@@ -3105,7 +3104,6 @@ static PyObject *PyRegDeleteKeyEx(PyObject *self, PyObject *args, PyObject *kwar
 
 // @pymethod |win32api|RegDeleteTree|Recursively deletes a key's subkeys and values
 // @comm Accepts keyword args.
-// @comm Requires Vista or later.
 static PyObject *PyRegDeleteTree(PyObject *self, PyObject *args, PyObject *kwargs)
 {
     CHECK_PFN(RegDeleteTree);
@@ -3696,7 +3694,6 @@ static PyObject *PyRegOpenKey(PyObject *self, PyObject *args)
 // @rdesc Returns a transacted registry handle.  Note that operations on subkeys are not automatically transacted.
 // @pyseeapi RegOpenKeyTransacted
 // @comm Accepts keyword arguments.
-// @comm Requires Vista or later.
 static PyObject *PyRegOpenKeyTransacted(PyObject *self, PyObject *args, PyObject *kwargs)
 {
     CHECK_PFN(RegOpenKeyTransacted);
@@ -3736,7 +3733,6 @@ static PyObject *PyRegOpenKeyTransacted(PyObject *self, PyObject *args, PyObject
 
 // @pymethod |win32api|RegOverridePredefKey|Redirects one of the predefined keys to different key
 // @pyseeapi RegOverridePredefKey
-// @comm Requires Windows 2000 or later.
 static PyObject *PyRegOverridePredefKey(PyObject *self, PyObject *args, PyObject *kwargs)
 {
     CHECK_PFN(RegOverridePredefKey);
@@ -5477,7 +5473,7 @@ static PyObject *PyApply(PyObject *self, PyObject *args)
             else {
                 // Normalize to class, instance
                 exc_value = exc_type;
-                exc_type = (PyObject *)exc_value->ob_type;
+                exc_type = (PyObject *)Py_TYPE(exc_value);
                 Py_INCREF(exc_type);
                 PyErr_SetObject(exc_type, exc_value);
             }
@@ -5749,7 +5745,7 @@ PyObject *PySetConsoleCtrlHandler(PyObject *self, PyObject *args)
         return Py_None;
     }
     if (!PyCallable_Check(func))
-        return PyErr_Format(PyExc_TypeError, "First argument must be callable (got %s)", func->ob_type->tp_name);
+        return PyErr_Format(PyExc_TypeError, "First argument must be callable (got %s)", Py_TYPE(func)->tp_name);
     // thread-safety provided by GIL
     if (consoleControlHandlers == NULL)
         consoleControlHandlers = PyList_New(0);
@@ -6208,6 +6204,8 @@ static struct PyMethodDef win32api_functions[] = {
     {"GetNativeSystemInfo", PyGetNativeSystemInfo,
      1},  // @pymeth GetNativeSystemInfo|Retrieves information about the current system for a Wow64 process.
     {"GetSystemMetrics", PyGetSystemMetrics, 1},  // @pymeth GetSystemMetrics|Returns the specified system metrics.
+    {"GetSystemCpuSetInformation", PyGetSystemCpuSetInformation,
+     1},  // @pymeth GetSystemCpuSetInformation|Returns CPU topology information for all logical processors.
     {"GetSystemPowerStatus", PyGetSystemPowerStatus,
      METH_NOARGS},                              // @pymeth GetSystemPowerStatus|Retrieves the power status of the system
     {"GetSystemTime", PyGetSystemTime, 1},      // @pymeth GetSystemTime|Returns the current system time.
@@ -6404,6 +6402,11 @@ PYWIN_MODULE_INIT_FUNC(win32api)
         PyDict_SetItemString(dict, "PyDISPLAY_DEVICEType", (PyObject *)&PyDISPLAY_DEVICEType) == -1)
         PYWIN_MODULE_INIT_RETURN_ERROR;
 
+    if (PyType_Ready(&PySYSTEM_CPU_SET_INFORMATIONType) == -1 ||
+        PyDict_SetItemString(dict, "PySYSTEM_CPU_SET_INFORMATIONType", (PyObject *)&PySYSTEM_CPU_SET_INFORMATIONType) ==
+            -1)
+        PYWIN_MODULE_INIT_RETURN_ERROR;
+
     PyModule_AddIntConstant(module, "NameUnknown", NameUnknown);
     PyModule_AddIntConstant(module, "NameFullyQualifiedDN", NameFullyQualifiedDN);
     PyModule_AddIntConstant(module, "NameSamCompatible", NameSamCompatible);
@@ -6472,6 +6475,8 @@ PYWIN_MODULE_INIT_FUNC(win32api)
         pfnSetDllDirectory = (SetDllDirectoryfunc)GetProcAddress(hmodule, "SetDllDirectoryW");
         pfnSetSystemPowerState = (SetSystemPowerStatefunc)GetProcAddress(hmodule, "SetSystemPowerState");
         pfnGetNativeSystemInfo = (GetNativeSystemInfofunc)GetProcAddress(hmodule, "GetNativeSystemInfo");
+        pfnGetSystemCpuSetInformation =
+            (GetSystemCpuSetInformationfunc)GetProcAddress(hmodule, "GetSystemCpuSetInformation");
     }
 
     hmodule = PyWin_GetOrLoadLibraryHandle("user32.dll");

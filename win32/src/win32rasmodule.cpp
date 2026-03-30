@@ -75,7 +75,7 @@ class PyRASEAPUSERIDENTITY : public PyObject {
     RASEAPUSERIDENTITY *m_identity;
 };
 
-#define PyRASEAPUSERIDENTITY_Check(ob) ((ob)->ob_type == &PyRASEAPUSERIDENTITY::type)
+#define PyRASEAPUSERIDENTITY_Check(ob) (Py_TYPE(ob) == &PyRASEAPUSERIDENTITY::type)
 
 BOOL PyWinObject_AsRASEAPUSERIDENTITY(PyObject *ob, RASEAPUSERIDENTITY **ppRASEAPUSERIDENTITY, BOOL bNoneOK = TRUE)
 {
@@ -190,7 +190,7 @@ class PyRASDIALEXTENSIONS : public PyObject {
     PyObject *m_pyeap;
 };
 
-#define PyRASDIALEXTENSIONS_Check(ob) ((ob)->ob_type == &PyRASDIALEXTENSIONS::type)
+#define PyRASDIALEXTENSIONS_Check(ob) (Py_TYPE(ob) == &PyRASDIALEXTENSIONS::type)
 
 // @object RASDIALEXTENSIONS|An object that describes a Win32 RASDIALEXTENSIONS structure
 BOOL PyWinObject_AsRASDIALEXTENSIONS(PyObject *ob, RASDIALEXTENSIONS **ppRASDIALEXTENSIONS, BOOL bNoneOK /*= TRUE*/)

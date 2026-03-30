@@ -194,8 +194,7 @@ def SetInfo(userName=None):
         userName = win32api.GetUserName()
     oldData = win32net.NetUserGetInfo(server, userName, 3)
     try:
-        d = oldData.copy()
-        d["usr_comment"] = "Test comment"
+        d = oldData | {"usr_comment": "Test comment"}
         win32net.NetUserSetInfo(server, userName, 3, d)
         new = win32net.NetUserGetInfo(server, userName, 3)["usr_comment"]
         if str(new) != "Test comment":

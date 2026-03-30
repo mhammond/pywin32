@@ -319,14 +319,14 @@ PyObject *ui_assoc_object::GetGoodRet()
     if (ret) {
         if (!ret->is_uiobject(&makeType)) {
             PyErr_Format(ui_module_error, "Internal error - existing object has type '%s', but '%s' was requested.",
-                         ret->ob_type->tp_name, makeType.tp_name);
+                         Py_TYPE(ret)->tp_name, makeType.tp_name);
             return NULL;
         }
         return ret;
     }
     ret = (ui_assoc_object *)ui_base_class::make(makeType);  // may fail if unknown class.
     if (ret) {
-        ASSERT(ret->ob_type == &makeType);  // Created object must be of the type we expect.
+        ASSERT(Py_TYPE(ret) == &makeType);  // Created object must be of the type we expect.
                                             // do NOT keep a reference to the Python object, or it will
                                             // remain forever.  The destructor must remove itself from the map.
 #ifdef TRACE_ASSOC

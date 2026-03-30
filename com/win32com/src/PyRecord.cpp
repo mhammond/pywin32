@@ -53,25 +53,33 @@ BOOL PyObject_AsVARIANTRecordInfo(PyObject *ob, VARIANT *pv)
     return TRUE;
 }
 
-PyObject *PyObject_FromSAFEARRAYRecordInfo(SAFEARRAY *psa)
+PyObject *PyObject_FromSAFEARRAYRecordInfo(SAFEARRAY *psa, long *arrayIndices)
 {
     PyObject *ret = NULL, *ret_tuple = NULL;
     IRecordInfo *info = NULL;
     BYTE *source_data = NULL, *this_dest_data = NULL;
+    UINT dimNo = 0;
     long lbound, ubound, nelems, i;
     ULONG cb_elem;
     PyRecordBuffer *owner = NULL;
-    HRESULT hr = SafeArrayGetRecordInfo(psa, &info);
+    HRESULT hr;
+    dimNo = SafeArrayGetDim(psa);
+    if (dimNo == 0) {
+        hr = E_UNEXPECTED;
+        goto exit;
+    }
+    long *pMyArrayIndex = arrayIndices + (dimNo - 1);
+    hr = SafeArrayGetRecordInfo(psa, &info);
     if (FAILED(hr))
         goto exit;
-    hr = SafeArrayAccessData(psa, (void **)&source_data);
+    hr = SafeArrayLock(psa);
     if (FAILED(hr))
         goto exit;
     // Allocate a new chunk of memory
-    hr = SafeArrayGetUBound(psa, 1, &ubound);
+    hr = SafeArrayGetUBound(psa, dimNo, &ubound);
     if (FAILED(hr))
         goto exit;
-    hr = SafeArrayGetLBound(psa, 1, &lbound);
+    hr = SafeArrayGetLBound(psa, dimNo, &lbound);
     if (FAILED(hr))
         goto exit;
     nelems = ubound - lbound + 1;
@@ -86,11 +94,13 @@ PyObject *PyObject_FromSAFEARRAYRecordInfo(SAFEARRAY *psa)
     if (ret_tuple == NULL)
         goto exit;
     this_dest_data = (BYTE *)owner->data;
-    for (i = 0; i < nelems; i++) {
+    for (i = 0; i < nelems; (*pMyArrayIndex)++, i++) {
         hr = info->RecordInit(this_dest_data);
         if (FAILED(hr))
             goto exit;
-
+        hr = SafeArrayPtrOfIndex(psa, arrayIndices, (void **)&source_data);
+        if (FAILED(hr))
+            goto exit;
         hr = info->RecordCopy(source_data, this_dest_data);
         if (FAILED(hr))
             goto exit;
@@ -99,7 +109,6 @@ PyObject *PyObject_FromSAFEARRAYRecordInfo(SAFEARRAY *psa)
             goto exit;
         PyTuple_SET_ITEM(ret_tuple, i, rec);
         this_dest_data += cb_elem;
-        source_data += cb_elem;
     }
     ret = ret_tuple;
     Py_INCREF(ret);  // for decref on cleanup.
@@ -118,7 +127,7 @@ exit:
     if (info)
         info->Release();
     if (source_data != NULL)
-        SafeArrayUnaccessData(psa);
+        SafeArrayUnlock(psa);
     return ret;
 }
 // Creates a new Record by TAKING A COPY of the passed record.
@@ -675,66 +684,20 @@ PyObject *PyRecord::getattro(PyObject *self, PyObject *obname)
         return PyCom_BuildPyException(hr, pyrec->pri, IID_IRecordInfo);
     }
 
-    // Short-circuit sub-structs and arrays here, so we don't allocate a new chunk
-    // of memory and copy it - we need sub-structs to persist.
+    // Short-circuit sub-structs here.
     if (V_VT(&vret) == (VT_BYREF | VT_RECORD))
         return PyRecord::new_record(V_RECORDINFO(&vret), V_RECORD(&vret), pyrec->owner);
-    else if (V_VT(&vret) == (VT_BYREF | VT_ARRAY | VT_RECORD)) {
-        SAFEARRAY *psa = *V_ARRAYREF(&vret);
-        if (SafeArrayGetDim(psa) != 1)
-            return PyErr_Format(PyExc_TypeError, "Only support single dimensional arrays of records");
-        IRecordInfo *sub = NULL;
-        long ubound, lbound, nelems;
-        int i;
-        BYTE *this_data;
-        PyObject *ret_tuple = NULL;
-        ULONG element_size = 0;
-        hr = SafeArrayGetUBound(psa, 1, &ubound);
-        if (FAILED(hr))
-            goto array_end;
-        hr = SafeArrayGetLBound(psa, 1, &lbound);
-        if (FAILED(hr))
-            goto array_end;
-        hr = SafeArrayGetRecordInfo(psa, &sub);
-        if (FAILED(hr))
-            goto array_end;
-        hr = sub->GetSize(&element_size);
-        if (FAILED(hr))
-            goto array_end;
-        nelems = ubound - lbound + 1;
-        ret_tuple = PyTuple_New(nelems);
-        if (ret_tuple == NULL)
-            goto array_end;
-        // We're dealing here with a Record field that is a SAFEARRAY of Records.
-        // Therefore the VARIANT that was returned by the call to 'pyrec->pri->GetFieldNoCopy'
-        // does contain a reference to the SAFEARRAY of Records, i.e. the actual data of the
-        // Record elements of this SAFEARRAY is referenced by the 'pvData' field of the SAFEARRAY.
-        // In this particular case the implementation of 'GetFieldNoCopy' returns a NULL pointer
-        // in the last parameter, i.e. 'sub_data == NULL'.
-        this_data = (BYTE *)psa->pvData;
-        for (i = 0; i < nelems; i++) {
-            PyRecord *rec = PyRecord::new_record(sub, this_data, pyrec->owner);
-            if (rec == NULL) {
-                Py_DECREF(ret_tuple);
-                ret_tuple = NULL;
-                goto array_end;
-            }
-            PyTuple_SET_ITEM(ret_tuple, i, rec);
-            this_data += element_size;
-        }
-    array_end:
-        if (sub)
-            sub->Release();
-        if (FAILED(hr))
-            return PyCom_BuildPyException(hr, pyrec->pri, IID_IRecordInfo);
-        return ret_tuple;
-    }
 
-    // This default conversion we use is a little slow (but it will do!)
-    // For arrays, the pparray->pvData member is *not* set, since the actual data
-    // pointer from the record is returned in sub_data, so set it here.
-    if (V_ISARRAY(&vret) && V_ISBYREF(&vret))
-        (*V_ARRAYREF(&vret))->pvData = sub_data;
+    // The following old comment seems to be invalid because the 'pparray->pvData' member
+    // does indeed contain a reference to the actual data of the SAFEARRAY and the
+    // last parameter 'sub_data' contains a NULL pointer afer the call to 'GetFieldNoCopy'.
+    // Leaving the old comment here for reference in any case:
+    /*
+     * Invalid * For arrays, the pparray->pvData member is *not* set, since the actual data
+     * Invalid * pointer from the record is returned in sub_data, so set it here.
+     * Invalid * if (V_ISARRAY(&vret) && V_ISBYREF(&vret))
+     * Invalid *     (*V_ARRAYREF(&vret))->pvData = sub_data;
+     */
     PyObject *ret = PyCom_PyObjectFromVariant(&vret);
 
     //	VariantClear(&vret);
@@ -743,27 +706,112 @@ PyObject *PyRecord::getattro(PyObject *self, PyObject *obname)
 
 int PyRecord::setattro(PyObject *self, PyObject *obname, PyObject *v)
 {
+    int ret = 0;
     VARIANT val;
     VariantInit(&val);
     PyRecord *pyrec = (PyRecord *)self;
-
-    if (!PyCom_VariantFromPyObject(v, &val))
-        return -1;
-
+    ITypeInfo *pti = NULL;
+    TYPEATTR *pta = NULL;
+    MEMBERID mem_id;
+    VARDESC *pVarDesc = NULL;
+    HRESULT hr;
     WCHAR *wname;
+    VARTYPE vt;
+
     if (!PyWinObject_AsWCHAR(obname, &wname, FALSE))
         return -1;
+    // We need to create a VARIANT from the PyObject to set
+    // the new Record field value. Before we can do this, we
+    // need to retrieve the information about the required
+    // VARIANT type from ITypeInfo.
+    hr = pyrec->pri->GetTypeInfo(&pti);
+    if (FAILED(hr) || pti == NULL) {
+        PyCom_BuildPyException(hr, pyrec->pri, IID_IRecordInfo);
+        ret = -1;
+        goto done;
+    }
+    // Unfortunately there is no method in ITypeInfo to dirctly
+    // map a field name to the variable description of the field.
+    // Field names are mapped to a member ID but 'GetVarDesc'
+    // uses an 'index' to identify the field and the 'index' is
+    // not the member ID. :-(
+    // We need to take a small detour and loop over all variable
+    // descriptions for this Record type to find the one with a
+    // matching member ID.
+    hr = pti->GetTypeAttr(&pta);
+    if (FAILED(hr) || pta == NULL) {
+        PyCom_BuildPyException(hr);
+        ret = -1;
+        goto done;
+    }
+    hr = pti->GetIDsOfNames(&wname, 1, &mem_id);
+    if (FAILED(hr)) {
+        PyCom_BuildPyException(hr);
+        ret = -1;
+        goto done;
+    }
+    int idx;
+    for (idx = 0; idx < pta->cVars; idx++) {
+        hr = pti->GetVarDesc(idx, &pVarDesc);
+        if (FAILED(hr)) {
+            PyCom_BuildPyException(hr);
+            ret = -1;
+            goto done;
+        }
+        if ((pVarDesc)->memid == mem_id)
+            break;
+        pti->ReleaseVarDesc(pVarDesc);
+    }
+    vt = (pVarDesc)->elemdescVar.tdesc.vt;
+    // The documentation for the TYPEDESC structure (oaidl.h) states:
+    // "If the variable is VT_SAFEARRAY or VT_PTR, the union portion
+    //  of the TYPEDESC contains a pointer to a TYPEDESC that specifies
+    //  the element type."
+    if (vt == VT_SAFEARRAY) {
+        vt = (pVarDesc)->elemdescVar.tdesc.lpadesc->tdescElem.vt;
+        // The struct definitions of COM Records in an IDL file are
+        // translated to an element type of 'VT_USERDEFINED'.
+        if (vt == VT_USERDEFINED) {
+            vt = VT_RECORD;
+        }
+        if (!PyCom_SAFEARRAYFromPyObject(v, &V_ARRAY(&val), (VARENUM)vt)) {
+            ret = -1;
+            goto done;
+        }
+        V_VT(&val) = VT_ARRAY | vt;
+    }
+    else {
+        PythonOleArgHelper helper;
+        // The struct definitions of COM Records in an IDL file are
+        // translated to an element type of 'VT_USERDEFINED'.
+        if (vt == VT_USERDEFINED) {
+            vt = VT_RECORD;
+        }
+        helper.m_reqdType = vt;
+        if (!helper.MakeObjToVariant(v, &val)) {
+            ret = -1;
+            goto done;
+        }
+    }
 
     PY_INTERFACE_PRECALL;
-    HRESULT hr = pyrec->pri->PutField(INVOKE_PROPERTYPUT, pyrec->pdata, wname, &val);
+    hr = pyrec->pri->PutField(INVOKE_PROPERTYPUT, pyrec->pdata, wname, &val);
     PY_INTERFACE_POSTCALL;
-    PyWinObject_FreeWCHAR(wname);
+
     VariantClear(&val);
     if (FAILED(hr)) {
         PyCom_BuildPyException(hr, pyrec->pri, IID_IRecordInfo);
-        return -1;
+        ret = -1;
     }
-    return 0;
+done:
+    PyWinObject_FreeWCHAR(wname);
+    if (pta && pti)
+        pti->ReleaseTypeAttr(pta);
+    if (pVarDesc && pti)
+        pti->ReleaseVarDesc(pVarDesc);
+    if (pti)
+        pti->Release();
+    return ret;
 }
 
 PyObject *PyRecord::tp_richcompare(PyObject *self, PyObject *other, int op)
@@ -775,7 +823,7 @@ PyObject *PyRecord::tp_richcompare(PyObject *self, PyObject *other, int op)
     }
     int success = op == Py_EQ ? TRUE : FALSE;
 
-    if (self->ob_type != other->ob_type) {
+    if (Py_TYPE(self) != Py_TYPE(other)) {
         Py_INCREF(Py_NotImplemented);
         return Py_NotImplemented;
     }

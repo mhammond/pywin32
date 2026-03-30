@@ -92,7 +92,6 @@ extern LONG _PyCom_GetGatewayCount(void);
 typedef HRESULT(STDAPICALLTYPE *CreateURLMonikerExfunc)(LPMONIKER, LPCWSTR, LPMONIKER *, DWORD);
 static CreateURLMonikerExfunc pfnCreateURLMonikerEx = NULL;
 
-// Win2k or later
 typedef HRESULT(STDAPICALLTYPE *CoWaitForMultipleHandlesfunc)(DWORD dwFlags, DWORD dwTimeout, ULONG cHandles,
                                                               LPHANDLE pHandles, LPDWORD lpdwindex);
 static CoWaitForMultipleHandlesfunc pfnCoWaitForMultipleHandles = NULL;
@@ -104,7 +103,6 @@ typedef HRESULT(STDAPICALLTYPE *CoSetCancelObjectfunc)(IUnknown *);
 static CoSetCancelObjectfunc pfnCoSetCancelObject = NULL;
 
 // typedefs for the function pointers are in OleAcc.h
-// WinXP or later
 LPFNOBJECTFROMLRESULT pfnObjectFromLresult = NULL;
 
 typedef HRESULT(STDAPICALLTYPE *CoCreateInstanceExfunc)(REFCLSID, IUnknown *, DWORD, COSERVERINFO *, ULONG, MULTI_QI *);
