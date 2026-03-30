@@ -1734,32 +1734,26 @@ other_extensions = [
     WinExt_ISAPI(
         "PyISAPI_loader",
         sources=[
-            os.path.join("isapi", "src", s)
-            for s in (
-                "PyExtensionObjects.cpp",
-                "PyFilterObjects.cpp",
-                "pyISAPI.cpp",
-                "pyISAPI_messages.mc",
-                "PythonEng.cpp",
-                "StdAfx.cpp",
-                "Utils.cpp",
-            )
+            "isapi/src/PyExtensionObjects.cpp",
+            "isapi/src/PyFilterObjects.cpp",
+            "isapi/src/pyISAPI.cpp",
+            "isapi/src/pyISAPI_messages.mc",
+            "isapi/src/PythonEng.cpp",
+            "isapi/src/StdAfx.cpp",
+            "isapi/src/Utils.cpp",
         ],
         # We keep pyISAPI_messages.h out of the depends list, as it is
         # generated and we aren't smart enough to say *only* the .cpp etc
         # depend on it - so the generated .h says the .mc needs to be
         # rebuilt, which re-creates the .h...
         depends=[
-            os.path.join("isapi", "src", s)
-            for s in (
-                "ControlBlock.h",
-                "FilterContext.h",
-                "PyExtensionObjects.h",
-                "PyFilterObjects.h",
-                "pyISAPI.h",
-                "PythonEng.h",
-                "StdAfx.h Utils.h",
-            )
+            "isapi/src/ControlBlock.h",
+            "isapi/src/FilterContext.h",
+            "isapi/src/PyExtensionObjects.h",
+            "isapi/src/PyFilterObjects.h",
+            "isapi/src/pyISAPI.h",
+            "isapi/src/PythonEng.h",
+            "isapi/src/StdAfx.h Utils.h",
         ],
         is_regular_dll=1,
         export_symbols=[
@@ -1779,10 +1773,7 @@ other_extensions = [
 W32_exe_files: list[WinExt] = [
     WinExt_pythonservice(
         "pythonservice",
-        sources=[
-            os.path.join("win32", "src", s)
-            for s in ("PythonService.cpp", "PythonService.rc")
-        ],
+        sources=["win32/src/PythonService.cpp", "win32/src/PythonService.rc"],
         libraries=["user32", "advapi32", "ole32", "shell32"],
     ),
     WinExt_pythonwin_subsys_win(
@@ -1838,8 +1829,8 @@ swig_interface_parents = {
     "PyIADs": "IDispatch",
 }
 
-# .i files that are #included, and hence are not part of the build.  Our .dsp
-# parser isn't smart enough to differentiate these.
+# .i files that are #included, and hence are not part of the build.
+# Our .dsp parser isn't smart enough to differentiate these.
 swig_include_files = ("mapilib", "adsilib")
 
 
