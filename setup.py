@@ -33,7 +33,8 @@ import re
 import shutil
 import sys
 import winreg
-from collections.abc import Iterable, MutableSequence
+from abc import abstractmethod
+from collections.abc import Iterable
 from pathlib import Path
 from setuptools import Extension, setup
 from setuptools.command.build import build
@@ -88,6 +89,10 @@ scintilla_licence_path = Path(gettempdir(), "Scintilla-License.txt")
 mapi_stubs_licence_path = Path(gettempdir(), "MAPIStubLibrary-License.txt")
 
 
+def remove_manifest_flags(ldflags: list[str]):
+    ldflags[:] = [ldflag for ldflag in ldflags if not ldflag.startswith("/MANIFEST")]
+
+
 class WinExt(Extension):
     # Base class for all win32 extensions, with some predefined
     # library and include dirs, and predefined windows libraries.
@@ -133,6 +138,7 @@ class WinExt(Extension):
                 ("CRYPT_DECRYPT_MESSAGE_PARA_HAS_EXTRA_FIELDS", None),
                 # Minimum Windows version supported (Windows 7)
                 # https://learn.microsoft.com/en-us/cpp/porting/modifying-winver-and-win32-winnt
+                # Technically official Python 3.9 builds require at least Windows 8.1, but we had no reason to bump this
                 ("_WIN32_WINNT", hex(0x0601)),
                 ("WINVER", hex(0x0601)),
             )
@@ -217,6 +223,10 @@ class WinExt(Extension):
         self.extra_compile_args.append("-DUNICODE")
         self.extra_compile_args.append("-D_UNICODE")
         self.extra_compile_args.append("-DWINNT")
+
+    @abstractmethod
+    def get_pywin32_dir(self) -> str:
+        raise NotImplementedError
 
 
 class WinExt_pythonwin(WinExt):
@@ -374,6 +384,9 @@ class my_build(build):
 
 
 class my_build_ext(build_ext):
+    compiler: ccompiler.CCompiler
+    extensions: list[WinExt]
+
     def finalize_options(self) -> None:
         super().finalize_options()
 
@@ -385,7 +398,7 @@ class my_build_ext(build_ext):
         # The pywintypes library is created in the build_temp
         # directory, so we need to add this to library_dirs
         self.library_dirs.append(self.build_temp)
-        self.mingw32 = self.compiler == "mingw32"
+        self.mingw32 = self.compiler == "mingw32"  # type: ignore[comparison-overlap] # compiler is a string until `run` is run
         if self.mingw32:
             self.libraries.append("stdc++")
 
@@ -395,12 +408,6 @@ class my_build_ext(build_ext):
 
     def _why_cant_build_extension(self, ext):
         """Return None, or a reason it can't be built."""
-        # axdebug fails to build on 3.11 due to Python "frame" objects changing.
-        # This could be fixed, but is almost certainly not in use any more, so
-        # just skip it.
-        if ext.name == "axdebug" and sys.version_info >= (3, 11):
-            return "AXDebug no longer builds on 3.11 and up"
-
         include_dirs = self.compiler.include_dirs + os.environ.get("INCLUDE", "").split(
             os.pathsep
         )
@@ -585,11 +592,23 @@ class my_build_ext(build_ext):
         # 'pythonwin' etc), as distutils doesn't seem to like the concept
         # of multiple top-level directories.
         assert self.package is None
+
+        if self.compiler.compiler_type == "msvc":
+            # We provide our own manifest, so pass in "/MANIFEST:NO",
+            # then remove "/MANIFESTFILE:", "/MANIFEST:EMBED", and "/MANIFESTUAC:"
+            # to avoid LNK4075 warning spam
+            for ext in self.extensions:
+                remove_manifest_flags(ext.extra_link_args)
+                ext.extra_link_args.append("/MANIFEST:NO")
+            remove_manifest_flags(self.compiler.ldflags_exe)
+            remove_manifest_flags(self.compiler.ldflags_exe_debug)
+            remove_manifest_flags(self.compiler.ldflags_shared)
+            remove_manifest_flags(self.compiler.ldflags_shared_debug)
+
         for ext in self.extensions:
-            try:
-                self.package = ext.get_pywin32_dir()
-            except AttributeError:
+            if not isinstance(ext, WinExt):
                 raise RuntimeError("Not a win32 package!")
+            self.package = ext.get_pywin32_dir()
             self.build_extension(ext)
 
         for ext in W32_exe_files:
@@ -640,7 +659,7 @@ class my_build_ext(build_ext):
         m = re.search(r"\\VC\\Tools\\", vcbase)
         if m:
             # typical path on newer Visual Studios
-            # prefere corresponding version but accept different version
+            # prefer corresponding version but accept different version
             same_version = vcverdir is not None and os.path.isdir(
                 vcbase[: m.start()]
                 + r"\VC\Redist\MSVC\{}{}".format(vcverdir, self.plat_dir)
@@ -898,17 +917,7 @@ class my_compiler(MSVCCompiler):
             return (e, b)
 
         sources = sorted(sources, key=key_reverse_mc)
-        return MSVCCompiler.compile(self, sources, **kwargs)
-
-    def spawn(self, cmd: MutableSequence[str]) -> None:  # type: ignore[override] # More restrictive than supertype
-        is_link = cmd[0].endswith("link.exe") or cmd[0].endswith('"link.exe"')
-        if is_link:
-            # remove /MANIFESTFILE:... and add MANIFEST:NO
-            for i in range(len(cmd)):
-                if cmd[i].startswith(("/MANIFESTFILE:", "/MANIFEST:EMBED")):
-                    cmd[i] = "/MANIFEST:NO"
-                    break
-        super().spawn(cmd)
+        return super().compile(sources, **kwargs)
 
     # CCompiler's implementations of these methods completely replace the values
     # determined by the build environment. This seems like a design that must
@@ -992,7 +1001,7 @@ for name, libraries, sources in (
     ("odbc", ["odbc32", "odbccp32"], ["win32/src/odbc.cpp"]),
     (
         "perfmon",
-        [],
+        ["loadperf"],
         [
             "win32/src/PerfMon/MappingManager.cpp",
             "win32/src/PerfMon/PerfCounterDefn.cpp",
@@ -1019,7 +1028,7 @@ for name, libraries, sources in (
     ),
     (
         "win32file",
-        ["ws2_32", "mswsock"],
+        ["ws2_32", "mswsock", "sfc", "advapi32"],
         [
             "win32/src/win32file.i",
             "win32/src/win32file_comm.cpp",
@@ -1047,7 +1056,7 @@ for name, libraries, sources in (
             "win32/src/win32net/win32netuser.cpp",
         ],
     ),
-    ("win32pdh", [], ["win32/src/win32pdhmodule.cpp"]),
+    ("win32pdh", ["pdh"], ["win32/src/win32pdhmodule.cpp"]),
     ("win32pipe", [], ["win32/src/win32pipe.i"]),
     (
         "win32print",
@@ -1059,7 +1068,7 @@ for name, libraries, sources in (
     ("win32ras", ["rasapi32", "user32"], ["win32/src/win32rasmodule.cpp"]),
     (
         "win32security",
-        ["advapi32", "user32", "netapi32"],
+        ["advapi32", "user32", "netapi32", "secur32", "ntdsapi"],
         [
             "win32/src/win32security.i",
             "win32/src/win32security_sspi.cpp",
@@ -1086,7 +1095,7 @@ for name, libraries, sources in (
     ),
     (
         "win32inet",
-        ["wininet"],
+        ["wininet", "winhttp"],
         [
             "win32/src/win32inet.i",
             "win32/src/win32inet_winhttp.cpp",
@@ -1095,7 +1104,7 @@ for name, libraries, sources in (
     ("win32console", ["kernel32"], ["win32/src/win32consolemodule.cpp"]),
     ("win32ts", ["WtsApi32"], ["win32/src/win32tsmodule.cpp"]),
     ("_win32sysloader", [], ["win32/src/_win32sysloader.cpp"]),
-    ("win32transaction", ["kernel32"], ["win32/src/win32transactionmodule.cpp"]),
+    ("win32transaction", ["kernel32", "ktmw32"], ["win32/src/win32transactionmodule.cpp"]),
 ):
     ext = WinExt_win32(
         name,
@@ -1120,16 +1129,15 @@ win32_extensions += [
             "win32/src/win32api_display.cpp",
             "win32/src/win32api_cputopo.cpp",
         ],
-        libraries=["user32", "advapi32", "shell32", "version"],
+        libraries=["user32", "advapi32", "shell32", "version", "secur32"],
         delay_load_libraries=["powrprof"],
     ),
     WinExt_win32(
         "win32gui",
         sources=["win32/src/win32dynamicdialog.cpp", "win32/src/win32gui.i"],
-        libraries=["gdi32", "user32", "comdlg32", "comctl32", "shell32"],
+        libraries=["gdi32", "user32", "comdlg32", "comctl32", "shell32", "msimg32"],
         define_macros=[("WIN32GUI", None)],
     ),
-    # winxptheme
     WinExt_win32(
         "_winxptheme",
         sources=["win32/src/_winxptheme.i"],
@@ -1241,7 +1249,7 @@ pythoncom = WinExt_system32(
         {win32com}/include\\PyIEnumContextProps.h   {win32com}/include\\PyIClientSecurity.h
         {win32com}/include\\PyIServerSecurity.h
     """.format(**dirs).split(),
-    libraries=["oleaut32", "ole32", "user32", "urlmon"],
+    libraries=["oleaut32", "ole32", "user32", "urlmon", "oleacc"],
     export_symbol_file="com/win32com/src/PythonCOM.def",
     extra_compile_args=["-DBUILD_PYTHONCOM"],
 )
@@ -1356,6 +1364,7 @@ com_extensions = [
     ),
     WinExt_win32com(
         "internet",
+        libraries=["urlmon"],
         sources="""
             {internet}/internet.cpp                   {internet}/PyIDocHostUIHandler.cpp
             {internet}/PyIHTMLOMWindowServices.cpp    {internet}/PyIInternetBindInfo.cpp
@@ -1413,7 +1422,7 @@ com_extensions = [
     ),
     WinExt_win32com(
         "shell",
-        libraries=["shell32"],
+        libraries=["shell32", "shlwapi"],
         sources="""
             {shell}/PyIActiveDesktop.cpp
             {shell}/PyIApplicationDestinations.cpp
@@ -1763,7 +1772,7 @@ other_extensions = [
     )
 ]
 
-W32_exe_files = [
+W32_exe_files: list[WinExt] = [
     WinExt_pythonservice(
         "pythonservice",
         sources=[
@@ -1951,11 +1960,12 @@ classifiers = [
 dist = setup(
     name="pywin32",
     version=build_id,
-    description="Python for Window Extensions",
+    description="Python for Windows Extensions",
     long_description=(Path(__file__).parent / "README.md").read_text(),
     long_description_content_type="text/markdown",
     author="Mark Hammond (et al)",
     author_email="mhammond@skippinet.com.au",
+    python_requires=">=3.9",
     project_urls={
         # https://docs.pypi.org/project_metadata/#general-url
         "Homepage": "https://github.com/mhammond/pywin32",
@@ -2041,7 +2051,7 @@ dist = setup(
             "com/win32comext/shell/demos/servers/*.py",
             "com/win32comext/shell/demos/*.py",
             "com/win32comext/taskscheduler/test/*.py",
-            "com/win32comext/ifilter/demo/*.py",
+            "com/win32comext/ifilter/demos/*.py",
             "com/win32comext/authorization/demos/*.py",
             "com/win32comext/bits/test/*.py",
             # ISAPI

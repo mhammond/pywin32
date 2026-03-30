@@ -16,7 +16,7 @@ jobs:
   test:
     name: Build and test
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 30
+    timeout-minutes: &timeout-minutes 25
     strategy:
       fail-fast: false
       matrix:
@@ -72,9 +72,6 @@ jobs:
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v2
 
-      - name: Install missing Visual Studio components
-        run: python .github\workflows\install-vs-components.py
-
       - name: Build and register the PyCOMTest server dll
         # Pass Silent flag to regsvr32 to avoid hanging on confirmation window
         run: com/TestSources/PyCOMTest/buildAndRegister.bat /s
@@ -99,7 +96,7 @@ jobs:
   cross_compile_arm64:
     name: Cross-compile ARM64
     runs-on: windows-2022
-    timeout-minutes: 30
+    timeout-minutes: *timeout-minutes
     strategy:
       fail-fast: false
       matrix:
@@ -143,7 +140,7 @@ jobs:
   # This job can be run locally by running `pre-commit run`
   checkers:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: *timeout-minutes
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v7
@@ -177,7 +174,7 @@ jobs:
 
   type-checkers:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: *timeout-minutes
     strategy:
       fail-fast: false
       matrix:

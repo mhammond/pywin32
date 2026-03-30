@@ -60,11 +60,11 @@ class EnumDebugStackFrames(gateways.EnumDebugStackFrames):
     #     return 0
     def _wrap(self, obj):
         # This enum returns a tuple, with 2 com objects in it.
-        obFrame, min, lim, fFinal, obFinal = obj
+        obFrame, mn, lm, fFinal, obFinal = obj
         obFrame = _wrap(obFrame, axdebug.IID_IDebugStackFrame)
         if obFinal:
             obFinal = _wrap(obFinal, pythoncom.IID_IUnknown)
-        return obFrame, min, lim, fFinal, obFinal
+        return obFrame, mn, lm, fFinal, obFinal
 
 
 class DebugStackFrame(gateways.DebugStackFrame):
