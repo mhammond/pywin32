@@ -1,57 +1,12 @@
 // @doc
 #include "PyWinTypes.h"
 #include "PyWinObjects.h"
-
-#define CHECK_PFN(fname)    \
-    if (pfn##fname == NULL) \
-        return PyErr_Format(PyExc_NotImplementedError, "%s is not available on this platform", #fname);
-typedef HANDLE(WINAPI *CreateTransactionfunc)(LPSECURITY_ATTRIBUTES, LPGUID, DWORD, DWORD, DWORD, DWORD, LPWSTR);
-static CreateTransactionfunc pfnCreateTransaction = NULL;
-typedef BOOL(WINAPI *RollbackTransactionfunc)(HANDLE);
-static RollbackTransactionfunc pfnRollbackTransaction = NULL;
-typedef BOOL(WINAPI *RollbackTransactionAsyncfunc)(HANDLE);
-static RollbackTransactionAsyncfunc pfnRollbackTransactionAsync = NULL;
-typedef BOOL(WINAPI *CommitTransactionfunc)(HANDLE);
-static CommitTransactionfunc pfnCommitTransaction = NULL;
-typedef BOOL(WINAPI *CommitTransactionAsyncfunc)(HANDLE);
-static CommitTransactionAsyncfunc pfnCommitTransactionAsync = NULL;
-typedef BOOL(WINAPI *GetTransactionIdfunc)(HANDLE, LPGUID);
-static GetTransactionIdfunc pfnGetTransactionId = NULL;
-typedef HANDLE(WINAPI *OpenTransactionfunc)(DWORD, LPGUID);
-static OpenTransactionfunc pfnOpenTransaction = NULL;
-
-typedef BOOL(WINAPI *GetTransactionInformationfunc)(HANDLE, PDWORD, PDWORD, PDWORD, PDWORD, DWORD, LPWSTR);
-static GetTransactionInformationfunc pfnGetTransactionInformation = NULL;
-typedef BOOL(WINAPI *SetTransactionInformationfunc)(HANDLE, DWORD, DWORD, DWORD, LPWSTR);
-static SetTransactionInformationfunc pfnSetTransactionInformation = NULL;
-// static char *keywords[]={"TransactionHandle","IsolationLevel","IsolationFlags","Timeout","Description", NULL};
-typedef HANDLE(WINAPI *OpenResourceManagerfunc)(DWORD, HANDLE, LPGUID);
-static OpenResourceManagerfunc pfnOpenResourceManager = NULL;
-// static char *keywords[]={"DesiredAccess","TmHandle","RmGuid", NULL};
-typedef HANDLE(WINAPI *CreateTransactionManagerfunc)(LPSECURITY_ATTRIBUTES, LPWSTR, ULONG, ULONG);
-static CreateTransactionManagerfunc pfnCreateTransactionManager = NULL;
-// static char *keywords[]={"TransactionAttributes","LogFileName","CreateOptions","CommitStrength", NULL};
-typedef HANDLE(WINAPI *CreateResourceManagerfunc)(LPSECURITY_ATTRIBUTES, LPGUID, DWORD, HANDLE, LPWSTR);
-static CreateResourceManagerfunc pfnCreateResourceManager = NULL;
-// static char *keywords[]={"ResourceManagerAttributes","ResourceManagerID","CreateOptions","TmHandle","Description",
-// NULL};
-typedef HANDLE(WINAPI *OpenEnlistmentfunc)(DWORD, HANDLE, LPGUID);
-static OpenEnlistmentfunc pfnOpenEnlistment = NULL;
-// static char *keywords[]={"DesiredAccess","ResourceManagerHandle","EnlistmentId", NULL};
-typedef HANDLE(WINAPI *CreateEnlistmentfunc)(LPSECURITY_ATTRIBUTES, HANDLE, HANDLE, DWORD, DWORD, PVOID);
-static CreateEnlistmentfunc pfnCreateEnlistment = NULL;
-// static char
-// *keywords[]={"EnlistmentrAttributes","ResourceManagerHandle","TransactionHandle","NotificationMask","CreateOptions","EnlistmentKey",
-// NULL};
-typedef HANDLE(WINAPI *OpenTransactionManagerfunc)(LPWSTR, ACCESS_MASK, ULONG);
-static OpenTransactionManagerfunc pfnOpenTransactionManager = NULL;
-// static char *keywords[]={"LogFileName","DesiredAccess","OpenOptions", NULL};
+#include "ktmw32.h"
 
 // @pymethod <o PyHANDLE>|win32transaction|CreateTransaction|Creates a transaction
 // @pyseeapi CreateTransaction
 static PyObject *PyCreateTransaction(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-    CHECK_PFN(CreateTransaction);
     WCHAR *description = NULL;
     PyObject *obsa = Py_None, *obuow = Py_None, *obdescription = Py_None;
     DWORD createoptions = 0, isolationlevel = 0, isolationflags = 0, timeout = 0;
@@ -81,7 +36,7 @@ static PyObject *PyCreateTransaction(PyObject *self, PyObject *args, PyObject *k
     if (!PyWinObject_AsWCHAR(obdescription, &description, TRUE))
         return NULL;
     Py_BEGIN_ALLOW_THREADS hret =
-        (*pfnCreateTransaction)(psa, uow, createoptions, isolationlevel, isolationflags, timeout, description);
+        CreateTransaction(psa, uow, createoptions, isolationlevel, isolationflags, timeout, description);
     Py_END_ALLOW_THREADS PyWinObject_FreeWCHAR(description);
     if (hret == INVALID_HANDLE_VALUE)
         return PyWin_SetAPIError("CreateTransaction");
@@ -92,7 +47,6 @@ static PyObject *PyCreateTransaction(PyObject *self, PyObject *args, PyObject *k
 // @pyseeapi RollbackTransaction
 static PyObject *PyRollbackTransaction(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-    CHECK_PFN(RollbackTransaction);
     PyObject *obtrans;
     HANDLE htrans;
     BOOL ret;
@@ -102,7 +56,7 @@ static PyObject *PyRollbackTransaction(PyObject *self, PyObject *args, PyObject 
         return NULL;
     if (!PyWinObject_AsHANDLE(obtrans, &htrans))
         return NULL;
-    Py_BEGIN_ALLOW_THREADS ret = (*pfnRollbackTransaction)(htrans);
+    Py_BEGIN_ALLOW_THREADS ret = RollbackTransaction(htrans);
     Py_END_ALLOW_THREADS if (!ret) return PyWin_SetAPIError("RollbackTransaction");
     Py_INCREF(Py_None);
     return Py_None;
@@ -112,7 +66,6 @@ static PyObject *PyRollbackTransaction(PyObject *self, PyObject *args, PyObject 
 // @pyseeapi RollbackTransactionAsync
 static PyObject *PyRollbackTransactionAsync(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-    CHECK_PFN(RollbackTransactionAsync);
     PyObject *obtrans;
     HANDLE htrans;
     BOOL ret;
@@ -122,7 +75,7 @@ static PyObject *PyRollbackTransactionAsync(PyObject *self, PyObject *args, PyOb
         return NULL;
     if (!PyWinObject_AsHANDLE(obtrans, &htrans))
         return NULL;
-    Py_BEGIN_ALLOW_THREADS ret = (*pfnRollbackTransactionAsync)(htrans);
+    Py_BEGIN_ALLOW_THREADS ret = RollbackTransactionAsync(htrans);
     Py_END_ALLOW_THREADS if (!ret) return PyWin_SetAPIError("RollbackTransactionAsync");
     Py_INCREF(Py_None);
     return Py_None;
@@ -132,7 +85,6 @@ static PyObject *PyRollbackTransactionAsync(PyObject *self, PyObject *args, PyOb
 // @pyseeapi CommitTransaction
 static PyObject *PyCommitTransaction(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-    CHECK_PFN(CommitTransaction);
     PyObject *obtrans;
     HANDLE htrans;
     BOOL ret;
@@ -142,7 +94,7 @@ static PyObject *PyCommitTransaction(PyObject *self, PyObject *args, PyObject *k
         return NULL;
     if (!PyWinObject_AsHANDLE(obtrans, &htrans))
         return NULL;
-    Py_BEGIN_ALLOW_THREADS ret = (*pfnCommitTransaction)(htrans);
+    Py_BEGIN_ALLOW_THREADS ret = CommitTransaction(htrans);
     Py_END_ALLOW_THREADS if (!ret) return PyWin_SetAPIError("CommitTransaction");
     Py_INCREF(Py_None);
     return Py_None;
@@ -152,7 +104,6 @@ static PyObject *PyCommitTransaction(PyObject *self, PyObject *args, PyObject *k
 // @pyseeapi CommitTransactionAsync
 static PyObject *PyCommitTransactionAsync(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-    CHECK_PFN(CommitTransactionAsync);
     PyObject *obtrans;
     HANDLE htrans;
     BOOL ret;
@@ -162,7 +113,7 @@ static PyObject *PyCommitTransactionAsync(PyObject *self, PyObject *args, PyObje
         return NULL;
     if (!PyWinObject_AsHANDLE(obtrans, &htrans))
         return NULL;
-    Py_BEGIN_ALLOW_THREADS ret = (*pfnCommitTransactionAsync)(htrans);
+    Py_BEGIN_ALLOW_THREADS ret = CommitTransactionAsync(htrans);
     Py_END_ALLOW_THREADS if (!ret) return PyWin_SetAPIError("CommitTransactionAsync");
     Py_INCREF(Py_None);
     return Py_None;
@@ -171,7 +122,6 @@ static PyObject *PyCommitTransactionAsync(PyObject *self, PyObject *args, PyObje
 // @pymethod <o PyIID>|win32transaction|GetTransactionId|Returns the transaction's GUID
 static PyObject *PyGetTransactionId(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-    CHECK_PFN(GetTransactionId);
     PyObject *obtrans;
     HANDLE htrans;
     BOOL ret;
@@ -182,7 +132,7 @@ static PyObject *PyGetTransactionId(PyObject *self, PyObject *args, PyObject *kw
         return NULL;
     if (!PyWinObject_AsHANDLE(obtrans, &htrans))
         return NULL;
-    Py_BEGIN_ALLOW_THREADS ret = (*pfnGetTransactionId)(htrans, &guid);
+    Py_BEGIN_ALLOW_THREADS ret = GetTransactionId(htrans, &guid);
     Py_END_ALLOW_THREADS if (!ret) return PyWin_SetAPIError("GetTransactionId");
     return PyWinObject_FromIID(guid);
 }
@@ -190,7 +140,6 @@ static PyObject *PyGetTransactionId(PyObject *self, PyObject *args, PyObject *kw
 // @pymethod <o PyHANDLE>|win32transaction|OpenTransaction|Creates a handle to an existing transaction
 static PyObject *PyOpenTransaction(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-    CHECK_PFN(OpenTransaction);
     PyObject *obguid;
     HANDLE htrans;
     DWORD access;
@@ -202,7 +151,7 @@ static PyObject *PyOpenTransaction(PyObject *self, PyObject *args, PyObject *kwa
         return NULL;
     if (!PyWinObject_AsIID(obguid, &guid))
         return NULL;
-    Py_BEGIN_ALLOW_THREADS htrans = (*pfnOpenTransaction)(access, &guid);
+    Py_BEGIN_ALLOW_THREADS htrans = OpenTransaction(access, &guid);
     Py_END_ALLOW_THREADS if (htrans == INVALID_HANDLE_VALUE) return PyWin_SetAPIError("OpenTransaction");
     return PyWinObject_FromHANDLE(htrans);
 }
@@ -232,28 +181,6 @@ PYWIN_MODULE_INIT_FUNC(win32transaction)
     PYWIN_MODULE_INIT_PREPARE(win32transaction, win32transaction_functions,
                               "Module wrapping Kernal Transaction Manager functions, as used with"
                               " transacted NTFS and transacted registry functions.");
-
-    // Load dll and function pointers to avoid dependency on newer libraries and headers
-    HMODULE hmodule = PyWin_GetOrLoadLibraryHandle("ktmw32.dll");
-    if (hmodule != NULL) {
-        pfnCreateTransaction = (CreateTransactionfunc)GetProcAddress(hmodule, "CreateTransaction");
-        pfnRollbackTransaction = (RollbackTransactionfunc)GetProcAddress(hmodule, "RollbackTransaction");
-        pfnRollbackTransactionAsync = (RollbackTransactionAsyncfunc)GetProcAddress(hmodule, "RollbackTransactionAsync");
-        pfnCommitTransaction = (CommitTransactionfunc)GetProcAddress(hmodule, "CommitTransaction");
-        pfnCommitTransactionAsync = (CommitTransactionAsyncfunc)GetProcAddress(hmodule, "CommitTransactionAsync");
-        pfnGetTransactionId = (GetTransactionIdfunc)GetProcAddress(hmodule, "GetTransactionId");
-        pfnGetTransactionInformation =
-            (GetTransactionInformationfunc)GetProcAddress(hmodule, "GetTransactionInformation");
-        pfnSetTransactionInformation =
-            (SetTransactionInformationfunc)GetProcAddress(hmodule, "SetTransactionInformation");
-        pfnOpenTransaction = (OpenTransactionfunc)GetProcAddress(hmodule, "OpenTransaction");
-        pfnOpenResourceManager = (OpenResourceManagerfunc)GetProcAddress(hmodule, "OpenResourceManager");
-        pfnCreateTransactionManager = (CreateTransactionManagerfunc)GetProcAddress(hmodule, "CreateTransactionManager");
-        pfnCreateResourceManager = (CreateResourceManagerfunc)GetProcAddress(hmodule, "CreateResourceManager");
-        pfnOpenEnlistment = (OpenEnlistmentfunc)GetProcAddress(hmodule, "OpenEnlistment");
-        pfnCreateEnlistment = (CreateEnlistmentfunc)GetProcAddress(hmodule, "CreateEnlistment");
-        pfnOpenTransactionManager = (OpenTransactionManagerfunc)GetProcAddress(hmodule, "OpenTransactionManager");
-    }
 
     Py_INCREF(PyWinExc_ApiError);
     PyDict_SetItemString(dict, "error", PyWinExc_ApiError);

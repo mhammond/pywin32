@@ -4,16 +4,6 @@
 #include "PyWinObjects.h"
 #include "win32api_display.h"
 
-// from user32.dll, loaded in win32api's init function
-ChangeDisplaySettingsExfunc pfnChangeDisplaySettingsEx = NULL;
-EnumDisplayDevicesfunc pfnEnumDisplayDevices = NULL;
-EnumDisplayMonitorsfunc pfnEnumDisplayMonitors = NULL;
-EnumDisplaySettingsExfunc pfnEnumDisplaySettingsEx = NULL;
-GetMonitorInfofunc pfnGetMonitorInfo = NULL;
-MonitorFromPointfunc pfnMonitorFromPoint = NULL;
-MonitorFromRectfunc pfnMonitorFromRect = NULL;
-MonitorFromWindowfunc pfnMonitorFromWindow = NULL;
-
 // @object PyDISPLAY_DEVICE|Python object wrapping a DISPLAY_DEVICE structure
 struct PyMethodDef PyDISPLAY_DEVICE::methods[] = {
     {"Clear", PyDISPLAY_DEVICE::Clear, 1},  // @pymeth Clear|Resets all members of the structure
@@ -307,14 +297,12 @@ PyObject *PyChangeDisplaySettings(PyObject *self, PyObject *args)
 PyObject *PyChangeDisplaySettingsEx(PyObject *self, PyObject *args, PyObject *kwargs)
 {
     // for now there's no hwnd param parsing (required to be NULL anyway), and no lParam
-    CHECK_PFN(ChangeDisplaySettingsEx);
     static char *keywords[] = {"DeviceName", "DevMode", "Flags", NULL};
 
     DWORD Flags = 0;
     TCHAR *DeviceName = NULL;
     PDEVMODE pdevmode;
     PyObject *obDeviceName = Py_None, *obdevmode = Py_None;
-    long ret;
 
     if (!PyArg_ParseTupleAndKeywords(
             args, kwargs, "|OOk:ChangeDisplaySettingsEx", keywords,
@@ -330,7 +318,7 @@ PyObject *PyChangeDisplaySettingsEx(PyObject *self, PyObject *args, PyObject *kw
     if (!PyWinObject_AsTCHAR(obDeviceName, &DeviceName, TRUE))
         return NULL;
     // DISP_CHANGE_* errors don't translate as win32 error codes, just return it
-    ret = (*pfnChangeDisplaySettingsEx)(DeviceName, pdevmode, (HWND)NULL, Flags, (LPVOID)NULL);
+    long ret = ChangeDisplaySettingsEx(DeviceName, pdevmode, (HWND)NULL, Flags, (LPVOID)NULL);
     PyWinObject_FreeTCHAR(DeviceName);
     return PyLong_FromLong(ret);
 }
@@ -339,7 +327,6 @@ PyObject *PyChangeDisplaySettingsEx(PyObject *self, PyObject *args, PyObject *kw
 // @comm Accepts keyword arguments
 PyObject *PyEnumDisplayDevices(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-    CHECK_PFN(EnumDisplayDevices);
     static char *keywords[] = {"Device", "DevNum", "Flags", NULL};
     TCHAR *Device = NULL;
     PyObject *obDevice = Py_None, *ret = NULL;
@@ -357,7 +344,7 @@ PyObject *PyEnumDisplayDevices(PyObject *self, PyObject *args, PyObject *kwargs)
         return NULL;
     ZeroMemory(&display_device, sizeof(DISPLAY_DEVICE));
     display_device.cb = sizeof(DISPLAY_DEVICE);
-    if (!(*pfnEnumDisplayDevices)(Device, DevNum, &display_device, Flags))
+    if (!EnumDisplayDevices(Device, DevNum, &display_device, Flags))
         PyWin_SetAPIError("EnumDisplayDevices");
     else
         ret = PyWinObject_FromDISPLAY_DEVICE(&display_device);
@@ -400,7 +387,6 @@ PyObject *PyEnumDisplaySettings(PyObject *self, PyObject *args, PyObject *kwargs
 // @comm Accepts keyword arguments
 PyObject *PyEnumDisplaySettingsEx(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-    CHECK_PFN(EnumDisplaySettingsEx);
     static char *keywords[] = {"DeviceName", "ModeNum", "Flags", NULL};
     TCHAR *DeviceName = NULL;
     PyObject *obDeviceName = Py_None, *ret = NULL;
@@ -419,7 +405,7 @@ PyObject *PyEnumDisplaySettingsEx(PyObject *self, PyObject *args, PyObject *kwar
         return NULL;
     ZeroMemory(&devmode, sizeof(DEVMODE));
     devmode.dmSize = sizeof(DEVMODE);
-    if (!(*pfnEnumDisplaySettingsEx)(DeviceName, ModeNum, &devmode, Flags))
+    if (!EnumDisplaySettingsEx(DeviceName, ModeNum, &devmode, Flags))
         PyWin_SetAPIError("EnumDisplaySettingsEx");
     else
         ret = PyWinObject_FromDEVMODE(&devmode);
@@ -447,7 +433,6 @@ BOOL CALLBACK EnumDisplayMonitors_Callback(HMONITOR hMonitor, HDC hdcMonitor, LP
 // @comm Accepts keyword arguments
 PyObject *PyEnumDisplayMonitors(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-    CHECK_PFN(EnumDisplayMonitors);
     static char *keywords[] = {"hdc", "rcClip", NULL};
     HDC hdc = NULL;
     RECT rect;
@@ -471,7 +456,7 @@ PyObject *PyEnumDisplayMonitors(PyObject *self, PyObject *args, PyObject *kwargs
     PyObject *ret = PyList_New(0);
     if (ret == NULL)
         return NULL;
-    if (!(*pfnEnumDisplayMonitors)(hdc, prect, EnumDisplayMonitors_Callback, (LPARAM)ret)) {
+    if (!EnumDisplayMonitors(hdc, prect, EnumDisplayMonitors_Callback, (LPARAM)ret)) {
         Py_DECREF(ret);
         return NULL;
     }
@@ -483,7 +468,6 @@ PyObject *PyEnumDisplayMonitors(PyObject *self, PyObject *args, PyObject *kwargs
 // @comm Accepts keyword args
 PyObject *PyGetMonitorInfo(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-    CHECK_PFN(GetMonitorInfo);
     static char *keywords[] = {"hMonitor", NULL};
     PyObject *obhMonitor;
     HMONITOR hMonitor;
@@ -495,7 +479,7 @@ PyObject *PyGetMonitorInfo(PyObject *self, PyObject *args, PyObject *kwargs)
         return NULL;
     ZeroMemory(&mi, sizeof(mi));
     mi.cbSize = sizeof(mi);
-    if (!(*pfnGetMonitorInfo)(hMonitor, &mi)) {
+    if (!GetMonitorInfo(hMonitor, &mi)) {
         PyWin_SetAPIError("GetMonitorInfo");
         return NULL;
     }
@@ -509,10 +493,8 @@ PyObject *PyGetMonitorInfo(PyObject *self, PyObject *args, PyObject *kwargs)
 // @rdesc Returns None if no monitor was found
 PyObject *PyMonitorFromPoint(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-    CHECK_PFN(MonitorFromPoint);
     static char *keywords[] = {"pt", "Flags", NULL};
     DWORD Flags = 0;
-    HMONITOR hmonitor;
     PyObject *obpoint;
     POINT point;
 
@@ -524,7 +506,7 @@ PyObject *PyMonitorFromPoint(PyObject *self, PyObject *args, PyObject *kwargs)
         return NULL;
     if (!PyWinObject_AsPOINT(obpoint, &point))
         return NULL;
-    hmonitor = (*pfnMonitorFromPoint)(point, Flags);
+    HMONITOR hmonitor = MonitorFromPoint(point, Flags);
     if (hmonitor == NULL) {
         Py_INCREF(Py_None);
         return Py_None;
@@ -537,11 +519,9 @@ PyObject *PyMonitorFromPoint(PyObject *self, PyObject *args, PyObject *kwargs)
 // @rdesc Returns None if no monitor was found
 PyObject *PyMonitorFromRect(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-    CHECK_PFN(MonitorFromRect);
     static char *keywords[] = {"rc", "Flags", NULL};
     DWORD Flags = 0;
     RECT rect;
-    HMONITOR hmonitor;
     PyObject *obrect;
 
     if (!PyArg_ParseTupleAndKeywords(
@@ -552,7 +532,7 @@ PyObject *PyMonitorFromRect(PyObject *self, PyObject *args, PyObject *kwargs)
         return NULL;
     if (!PyWinObject_AsRECT(obrect, &rect))
         return NULL;
-    hmonitor = (*pfnMonitorFromRect)(&rect, Flags);
+    HMONITOR hmonitor = MonitorFromRect(&rect, Flags);
     if (hmonitor == NULL) {
         Py_INCREF(Py_None);
         return Py_None;
@@ -565,11 +545,9 @@ PyObject *PyMonitorFromRect(PyObject *self, PyObject *args, PyObject *kwargs)
 // @rdesc Returns None if no monitor was found
 PyObject *PyMonitorFromWindow(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-    CHECK_PFN(MonitorFromWindow);
     static char *keywords[] = {"hwnd", "Flags", NULL};
     DWORD Flags = 0;
     HWND hwnd;
-    HMONITOR hmonitor;
     PyObject *obhwnd;
 
     if (!PyArg_ParseTupleAndKeywords(
@@ -580,7 +558,7 @@ PyObject *PyMonitorFromWindow(PyObject *self, PyObject *args, PyObject *kwargs)
         return NULL;
     if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
         return NULL;
-    hmonitor = (*pfnMonitorFromWindow)(hwnd, Flags);
+    HMONITOR hmonitor = MonitorFromWindow(hwnd, Flags);
     if (hmonitor == NULL) {
         Py_INCREF(Py_None);
         return Py_None;

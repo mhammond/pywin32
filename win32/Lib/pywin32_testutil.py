@@ -10,7 +10,6 @@ import unittest
 from collections import Counter
 from typing import TYPE_CHECKING
 
-import pythoncom
 import pywintypes
 import winerror
 from pythoncom import _GetGatewayCount, _GetInterfaceCount
@@ -159,21 +158,6 @@ non_admin_error_codes = {
     winerror.ERROR_PRIVILEGE_NOT_HELD,
 }
 
-_is_admin: bool | None = None
-
-
-def check_is_admin() -> bool:
-    global _is_admin
-    if _is_admin is None:
-        try:
-            _is_admin = IsUserAnAdmin()
-        except pythoncom.com_error as exc:
-            if exc.hresult != winerror.E_NOTIMPL:
-                raise
-            # not impl on this platform - must be old - assume is admin
-            _is_admin = True
-    return _is_admin
-
 
 # Find a test "fixture" (eg, binary test file) expected to be very close to
 # the test being run.
@@ -222,7 +206,7 @@ class TestResult(unittest.TextTestResult):
         if (
             isinstance(exc_val, pywintypes.error)
             and exc_val.winerror in non_admin_error_codes
-            and not check_is_admin()
+            and not IsUserAnAdmin()
         ):
             return self.addSkip(test, str(exc_val))
         # and COM errors due to objects not being registered (the com test
