@@ -114,12 +114,7 @@ BOOL CInProcApp::InitInstance()
 // Check that we have a valid CWinApp object to use.
 bool CheckGoodWinApp()
 {
-    // shouldn't need special symbols now that we delay the creation.
-    // If the host exports a special symbol, then
-    // don't create a host app.
-    //	HMODULE hModule = GetModuleHandle(NULL);
-    //	BOOL hasSymbol = (GetProcAddress(hModule, "NoCreateWinApp") != NULL);
-    if (AfxGetApp() == NULL) {  // && !hasSymbol) {
+    if (AfxGetApp() == NULL) {
         // shared initialization
         pCreatedApp = new CInProcApp(_T("win32ui module"));
 
@@ -191,7 +186,7 @@ extern "C" __declspec(dllexport) int __stdcall DllMainwin32ui(HINSTANCE hInstanc
         // insert into resource chain.
         pDLL = new CDynLinkLibrary(extensionDLL);
 
-#else  // Frozen .EXE that embedds win32ui is initializing
+#else  // Frozen .EXE that embeds win32ui is initializing
         TRACE("win32ui in frozen %s initializing.\n", path);
 #endif
     }

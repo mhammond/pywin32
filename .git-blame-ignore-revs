@@ -16,3 +16,7 @@
 
 # 2024-10-14 formatted Python source with Ruff format
 2b5191d8fc6f1d1fbde01481b49278c1957ef8f1
+b74bfdca97238735adbd1b20d7245cca7070900f
+
+# 2025-11-25 renormalized line endings in adodbapi
+d8f97a8c8f72263d336fc4050f83e007ac6e770d

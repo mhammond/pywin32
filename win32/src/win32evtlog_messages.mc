@@ -23,7 +23,7 @@ MessageIdTypedef=DWORD
 ; type cast is generated. It is the programmer's responsibility to
 ; specify a typedef statement in the application source code to define
 ; the type. The type used in the typedef must be large enough to
-; accomodate the entire 32-bit message code.
+; accommodate the entire 32-bit message code.
 ;
 ;
 

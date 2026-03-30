@@ -524,9 +524,9 @@ static PyObject *ui_view_set_scroll_sizes(PyObject *self, PyObject *args)
                           &map_mode,             // @pyparm int|mapMode||The mapping mode for this view.
                           &total.cx, &total.cy,  // @pyparm (x,y)|sizeTotal||The total size of the view.  Sizes are in
                                                  // logical units.  Both x and y must be greater than zero.
-                          &page.cx, &page.cy,    // @pyparm (x,y)|sizePage|win32ui.rectDefault|The number of untils to
+                          &page.cx, &page.cy,    // @pyparm (x,y)|sizePage|win32ui.rectDefault|The number of units to
                                                  // scroll in response to a page-down command.
-                          &line.cx, &line.cy))   // @pyparm (x,y)|sizePage|win32ui.rectDefault|The number of untils to
+                          &line.cx, &line.cy))   // @pyparm (x,y)|sizePage|win32ui.rectDefault|The number of units to
                                                  // scroll in response to a line-down command.
         return NULL;
 
@@ -652,7 +652,7 @@ PyObject *PyCCtrlView_on_command(PyObject *self, PyObject *args)
     return DoBaseOnCommand(CPythonCtrlView, &PyCCtrlView::type, self, args);
 }
 
-// @object PyCCtrlView|A class which implementes a CCtrlView (ie, a view based on a dialog resource.
+// @object PyCCtrlView|A class which implements a CCtrlView (ie, a view based on a dialog resource.
 static struct PyMethodDef PyCCtrlView_methods[] = {
     {"OnCommand", PyCCtrlView_on_command,
      1},  // @pymeth OnCommand|Calls the standard Python framework OnCommand handler
@@ -879,7 +879,7 @@ PyObject *PyCEditView_on_command(PyObject *self, PyObject *args)
 // inherited from view
 //
 ///////////////////////////////////////
-// @object PyCEditView|A class which implementes a CView of a text file.  Derived from <o PyCView> and <o PyCEdit>
+// @object PyCEditView|A class which implements a CView of a text file.  Derived from <o PyCView> and <o PyCEdit>
 // objects.
 static struct PyMethodDef ui_edit_window_methods[] = {
     {"IsModified", ui_edit_window_is_modified, 1},  // @pymeth IsModified|Indicates if the view's document is modified.
@@ -962,7 +962,7 @@ PyObject *PyCListView_on_command(PyObject *self, PyObject *args)
 }
 
 ///////////////////////////////////////
-// @object PyCListView|A class which implementes a CListView.  Derived from <o PyCView> and <o PyCListCtrl> objects.
+// @object PyCListView|A class which implements a CListView.  Derived from <o PyCView> and <o PyCListCtrl> objects.
 static struct PyMethodDef ui_list_view_methods[] = {
     {"PreCreateWindow", PyCListView_pre_create_window,
      1},  // @pymeth PreCreateWindow|Calls the underlying MFC PreCreateWindow method.
@@ -1038,7 +1038,7 @@ PyObject *PyCTreeView_on_command(PyObject *self, PyObject *args)
 }
 
 ///////////////////////////////////////
-// @object PyCTreeView|A class which implementes a CTreeView.  Derived from <o PyCView> and <o PyCTreeCtrl> objects.
+// @object PyCTreeView|A class which implements a CTreeView.  Derived from <o PyCView> and <o PyCTreeCtrl> objects.
 static struct PyMethodDef ui_tree_view_methods[] = {
     {"PreCreateWindow", PyCTreeView_pre_create_window,
      1},  // @pymeth PreCreateWindow|Calls the underlying MFC PreCreateWindow method.
@@ -1097,7 +1097,7 @@ PyObject *PyCFormView_on_command(PyObject *self, PyObject *args)
     return DoBaseOnCommand(CPythonFormView, &PyCFormView::type, self, args);
 }
 
-// @object PyCFormView|A class which implementes a CFormView (ie, a view based on a dialog resource.
+// @object PyCFormView|A class which implements a CFormView (ie, a view based on a dialog resource.
 static struct PyMethodDef PyCFormView_methods[] = {
     {"OnCommand", PyCFormView_on_command,
      1},  // @pymeth OnCommand|Calls the standard Python framework OnCommand handler

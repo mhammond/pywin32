@@ -314,7 +314,7 @@ class CommonDBTests(unittest.TestCase):
         self.helpTestDataType("real", "NUMBER", 3.45, compareAlmostEqual=True)
         self.helpTestDataType("float", "NUMBER", 1.79e37, compareAlmostEqual=True)
 
-    def testDataTypeDecmal(self):
+    def testDataTypeDecimal(self):
         self.helpTestDataType(
             "decimal(18,2)",
             "NUMBER",

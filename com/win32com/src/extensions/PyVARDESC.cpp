@@ -25,7 +25,7 @@ struct PyMethodDef PyVARDESC::methods[] = {{NULL}};
 
 BOOL PyObject_AsVARDESC(PyObject *ob, VARDESC *v, void *pMore)
 {
-    if (ob->ob_type != &PyVARDESC::Type) {
+    if (Py_TYPE(ob) != &PyVARDESC::Type) {
         PyErr_SetString(PyExc_TypeError, "Object is not a VARDESC.");
         return FALSE;
     }

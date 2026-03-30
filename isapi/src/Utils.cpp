@@ -44,7 +44,7 @@ const char *PyISAPIString_AsBytes(PyObject *ob, DWORD *psize /* = NULL */)
     }
     // These 'PyString_' calls are all mapped to the bytes API in py3k...
     if (!PyBytes_Check(ob)) {
-        PyErr_Format(PyExc_ValueError, "Expected a string object (got %s)", ob->ob_type->tp_name);
+        PyErr_Format(PyExc_ValueError, "Expected a string object (got %s)", Py_TYPE(ob)->tp_name);
         return NULL;
     }
     if (psize)
@@ -104,7 +104,7 @@ char *HTMLErrorResp(const char *msg)
 {
     const char *htmlBody =
         "<html><head><title>Python ISAPI Error</title></head>"
-        "<body><h2>An Error occured while processing your request</h2>"
+        "<body><h2>An Error occurred while processing your request</h2>"
         "<font color=\"Red\"> %s </font></body></html>";
     // should not need the "+1" as the "%s" will be consumed, but...
     int newLen = strlen(htmlBody) + strlen(msg) + 1;

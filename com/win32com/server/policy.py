@@ -176,10 +176,10 @@ class BasicWrapPolicy:
     _invokeex_ -- Very similar to _invoke_, except slightly different arguments are used.
         And the result is just the _real_ result (rather than the (hresult, argErr, realResult)
         tuple that _invoke_ uses.
-        This is the new, prefered handler (the default _invoke_ handler simply called _invokeex_)
+        This is the new, preferred handler (the default _invoke_ handler simply called _invokeex_)
     _getdispid_ -- Very similar to _getidsofnames_, except slightly different arguments are used,
         and only 1 property at a time can be fetched (which is all we support in getidsofnames anyway!)
-        This is the new, prefered handler (the default _invoke_ handler simply called _invokeex_)
+        This is the new, preferred handler (the default _invoke_ handler simply called _invokeex_)
     _getnextdispid_- uses self._name_to_dispid_ to enumerate the DISPIDs
     """
 

@@ -34,11 +34,11 @@ you need some way to tell the server that the following is code. Since
 python is not used by default, you need to set your page to use
 it. You can do that by having the first line say: \<%@ LANGUAGE
 =Python%\>.  Then after that point, anything between '\<%' and '%\>'
-delimeters will run as python code. Everything else will be treated as
+delimeter will run as python code. Everything else will be treated as
 HTML. It is important to note that a python loop ends in the python
 block -- they don't extend past intervening html to the next block. For
 me that normally isn't an issue, since I do not like mixing code and
-html. Prefering a clean split of code and html, I generally
+html. Preferring a clean split of code and html, I generally
 generate webpages using templates all in python w/HTMLgen. Take a look
 at: https://wiki.python.org/moin/WebBrowserProgramming and
 https://wiki.python.org/moin/Asking%20for%20Help/How%20to%20run%20python%20from%20HTML
@@ -70,7 +70,7 @@ for i in query_database():
 
 #notice no raw HTML at all.  We instead use a template html file
 #generated however you want (perhaps frontpage) that substitutes
-#anything delimeted by {} for output from our python.  In this case
+#anything delimited by {} for output from our python.  In this case
 #text {mid} in the template is substituted for results.
 
 import HTMLgen

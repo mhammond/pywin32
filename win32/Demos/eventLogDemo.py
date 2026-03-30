@@ -72,11 +72,6 @@ def usage():
 
 
 def test():
-    # check if running on Windows NT, if not, display notice and terminate
-    if win32api.GetVersion() & 0x80000000:
-        print("This sample only runs on NT")
-        return
-
     import getopt
     import sys
 

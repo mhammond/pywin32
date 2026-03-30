@@ -42,10 +42,6 @@ if "--help" in sys.argv:
     """
     )
     exit()
-try:
-    onWindows = bool(sys.getwindowsversion())  # seems to work on all versions of Python
-except:
-    onWindows = False
 
 # create a random name for temporary table names
 _alphabet = (
@@ -89,7 +85,7 @@ doAccessTest = not ("--nojet" in sys.argv)
 doSqlServerTest = "--mssql" in sys.argv or doAllTests
 doMySqlTest = "--mysql" in sys.argv or doAllTests
 doPostgresTest = "--pg" in sys.argv or doAllTests
-doTimeTest = ("--time" in sys.argv or doAllTests) and onWindows
+doTimeTest = ("--time" in sys.argv or doAllTests) and sys.platform == "win32"
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # # start your environment setup here v v v

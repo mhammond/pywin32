@@ -529,13 +529,14 @@ class DispatchBaseClass:
                 oobj = oobj._oleobj_ if isinstance(oobj, DispatchBaseClass) else oobj
                 oobj = oobj.QueryInterface(self.CLSID, pythoncom.IID_IDispatch)
             except pythoncom.com_error as details:
-                import winerror
+                if not isinstance(oobj, _PyIDispatchType):
+                    import winerror
 
-                # Some stupid objects fail here, even tho it is _already_ IDispatch!!??
-                # Eg, Lotus notes.
-                # So just let it use the existing object if E_NOINTERFACE
-                if details.hresult != winerror.E_NOINTERFACE:
-                    raise
+                    # Some stupid objects fail here, even tho it is _already_ IDispatch!!??
+                    # Eg, Lotus notes.
+                    # So just let it use the existing object if E_NOINTERFACE
+                    if details.hresult != winerror.E_NOINTERFACE:
+                        raise
 
         self.__dict__["_oleobj_"] = oobj  # so we don't call __setattr__
 

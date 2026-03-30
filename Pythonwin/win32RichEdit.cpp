@@ -156,7 +156,7 @@ static PyObject *PyCRichEditView_wrap_changed(PyObject *self, PyObject *args)
 }
 
 // @pymethod None|PyCRichEditView|SaveTextFile|Saves the contents of the control as a test file
-// @comm Theere is no equivilent MFC method.  This is implemented in this module for performance reasons.
+// @comm There is no equivalent MFC method.  This is implemented in this module for performance reasons.
 static PyObject *PyCRichEditView_save_text_file(PyObject *self, PyObject *args)
 {
     // Ported from Python code!
@@ -212,7 +212,7 @@ static PyObject *PyCRichEditView_save_text_file(PyObject *self, PyObject *args)
     RETURN_NONE;
 }
 
-// @object PyCRichEditView|A class which implementes a CRichEditView.  Derived from <o PyCRichEditView> and <o
+// @object PyCRichEditView|A class which implements a CRichEditView.  Derived from <o PyCRichEditView> and <o
 // PyCRichEditCtrl>.
 static struct PyMethodDef PyCRichEditView_methods[] = {
     {"GetRichEditCtrl", PyCRichEditView_get_rich_edit_ctrl,

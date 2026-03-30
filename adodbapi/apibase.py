@@ -248,7 +248,7 @@ class pythonDateTimeConverter(TimeConverter):  # standard since Python 2.3
 
 
 class pythonTimeConverter(TimeConverter):  # the old, ?nix type date and time
-    def __init__(self):  # caution: this Class gets confised by timezones and DST
+    def __init__(self):  # caution: this Class gets confused by timezones and DST
         TimeConverter.__init__(self)
         self.types.add(time.struct_time)
 

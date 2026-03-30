@@ -228,8 +228,8 @@ static bool IsPreProcLine(Sci_Position line, LexAccessor &styler) {
 		if (ch == '#' && style == SCE_BAAN_PREPROCESSOR) {
 			if (styler.Match(i, "#elif") || styler.Match(i, "#else") || styler.Match(i, "#endif")
 				|| styler.Match(i, "#if") || styler.Match(i, "#ifdef") || styler.Match(i, "#ifndef"))
-				// Above PreProcessors has a seperate fold mechanism.
-				return false;
+                // Above PreProcessors has a separate fold mechanism.
+                return false;
 			else
 				return true;
 		}
@@ -906,7 +906,7 @@ void SCI_METHOD LexerBaan::Fold(Sci_PositionU startPos, Sci_Position length, int
 		// Section Foldings.
 		// One way of implementing Section Foldings, as there is no END markings of sections.
 		// first section ends on the previous line of next section.
-		// Re-written whole folding to accomodate this.
+		// Re-written whole folding to accommodate this.
 		if (options.baanFoldSections && atEOL) {
 			currLineStyle = mainOrSubSectionLine(lineCurrent, styler);
 			nextLineStyle = mainOrSubSectionLine(lineCurrent + 1, styler);

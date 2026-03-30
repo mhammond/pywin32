@@ -6,29 +6,6 @@
 #include "malloc.h"
 #include "Userenv.h"
 
-#define CHECK_PFN(fname)    \
-    if (pfn##fname == NULL) \
-        return PyErr_Format(PyExc_NotImplementedError, "%s is not available on this platform", #fname);
-typedef BOOL(WINAPI *DeleteProfilefunc)(WCHAR *, WCHAR *, WCHAR *);
-static DeleteProfilefunc pfnDeleteProfile = NULL;
-typedef BOOL(WINAPI *GetAllUsersProfileDirectoryfunc)(WCHAR *, DWORD *);
-static GetAllUsersProfileDirectoryfunc pfnGetAllUsersProfileDirectory = NULL;
-typedef BOOL(WINAPI *GetDefaultUserProfileDirectoryfunc)(WCHAR *, DWORD *);
-static GetDefaultUserProfileDirectoryfunc pfnGetDefaultUserProfileDirectory = NULL;
-typedef BOOL(WINAPI *GetProfilesDirectoryfunc)(WCHAR *, DWORD *);
-static GetProfilesDirectoryfunc pfnGetProfilesDirectory = NULL;
-typedef BOOL(WINAPI *GetProfileTypefunc)(DWORD *);
-static GetProfileTypefunc pfnGetProfileType = NULL;
-typedef BOOL(WINAPI *GetUserProfileDirectoryfunc)(HANDLE, WCHAR *, DWORD *);
-static GetUserProfileDirectoryfunc pfnGetUserProfileDirectory = NULL;
-typedef BOOL(WINAPI *LoadUserProfilefunc)(HANDLE, LPPROFILEINFOW);
-static LoadUserProfilefunc pfnLoadUserProfile = NULL;
-typedef BOOL(WINAPI *UnloadUserProfilefunc)(HANDLE, HANDLE);
-static UnloadUserProfilefunc pfnUnloadUserProfile = NULL;
-
-typedef BOOL(WINAPI *ExpandEnvironmentStringsForUserfunc)(HANDLE, LPWSTR, LPWSTR, DWORD);
-static ExpandEnvironmentStringsForUserfunc pfnExpandEnvironmentStringsForUser = NULL;
-
 /* Takes an environment block and returns a dict suitable for passing to CreateProcess
     or CreateProcessAsUser.  Length is not known, so you have to depend on the block being correctly formatted.
     There are also several other pieces of code handling these types of strings:
@@ -140,7 +117,6 @@ BOOL PyWinObject_AsPROFILEINFO(PyObject *ob, LPPROFILEINFO pi)
 PyObject *PyLoadUserProfile(PyObject *self, PyObject *args, PyObject *kwargs)
 {
     static char *keywords[] = {"Token", "ProfileInfo", NULL};
-    CHECK_PFN(LoadUserProfile)
     PyObject *obhToken, *obPROFILEINFO, *ret = NULL;
     HANDLE hToken;
     DWORD dwFlags = 0;
@@ -157,7 +133,7 @@ PyObject *PyLoadUserProfile(PyObject *self, PyObject *args, PyObject *kwargs)
         return NULL;
     if (!PyWinObject_AsPROFILEINFO(obPROFILEINFO, &profileinfo))
         return NULL;
-    if (!(*pfnLoadUserProfile)(hToken, &profileinfo))
+    if (!LoadUserProfile(hToken, &profileinfo))
         PyWin_SetAPIError("LoadUserProfile");
     else
         ret = new PyHKEY(profileinfo.hProfile);
@@ -169,7 +145,6 @@ PyObject *PyLoadUserProfile(PyObject *self, PyObject *args, PyObject *kwargs)
 PyObject *PyUnloadUserProfile(PyObject *self, PyObject *args, PyObject *kwargs)
 {
     static char *keywords[] = {"Token", "Profile", NULL};
-    CHECK_PFN(UnloadUserProfile);
     PyObject *obhToken = NULL, *obhProfile = NULL;
     HANDLE hToken, hProfile;
 
@@ -184,7 +159,7 @@ PyObject *PyUnloadUserProfile(PyObject *self, PyObject *args, PyObject *kwargs)
         return NULL;
     if (!PyWinObject_AsHANDLE(obhProfile, &hProfile))
         return NULL;
-    if (!(*pfnUnloadUserProfile)(hToken, hProfile)) {
+    if (!UnloadUserProfile(hToken, hProfile)) {
         PyWin_SetAPIError("UnloadUserProfile");
         return NULL;
     }
@@ -196,13 +171,12 @@ PyObject *PyUnloadUserProfile(PyObject *self, PyObject *args, PyObject *kwargs)
 static PyObject *PyGetProfilesDirectory(PyObject *self, PyObject *args, PyObject *kwargs)
 {
     static char *keywords[] = {NULL};
-    CHECK_PFN(GetProfilesDirectory);
     WCHAR *profile_path = NULL;
     DWORD bufsize = 0, err = 0;
     PyObject *ret = NULL;
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, ":GetProfilesDirectory", keywords))
         return (NULL);
-    (*pfnGetProfilesDirectory)(profile_path, &bufsize);
+    GetProfilesDirectory(profile_path, &bufsize);
     if (bufsize == 0)
         return PyWin_SetAPIError("GetProfilesDirectory");
     profile_path = (WCHAR *)malloc(bufsize * sizeof(WCHAR));
@@ -210,7 +184,7 @@ static PyObject *PyGetProfilesDirectory(PyObject *self, PyObject *args, PyObject
         PyErr_Format(PyExc_MemoryError, "Unable to allocate %d characters", bufsize);
         return NULL;
     }
-    if (!(*pfnGetProfilesDirectory)(profile_path, &bufsize))
+    if (!GetProfilesDirectory(profile_path, &bufsize))
         PyWin_SetAPIError("GetProfilesDirectory");
     else
         ret = PyWinObject_FromWCHAR(profile_path);
@@ -222,13 +196,12 @@ static PyObject *PyGetProfilesDirectory(PyObject *self, PyObject *args, PyObject
 static PyObject *PyGetAllUsersProfileDirectory(PyObject *self, PyObject *args, PyObject *kwargs)
 {
     static char *keywords[] = {NULL};
-    CHECK_PFN(GetAllUsersProfileDirectory);
     WCHAR *profile_path = NULL;
     DWORD bufsize = 0, err = 0;
     PyObject *ret = NULL;
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, ":GetAllUsersProfileDirectory", keywords))
         return (NULL);
-    (*pfnGetAllUsersProfileDirectory)(profile_path, &bufsize);
+    GetAllUsersProfileDirectory(profile_path, &bufsize);
     if (bufsize == 0)
         return PyWin_SetAPIError("GetAllUsersProfileDirectory");
     profile_path = (WCHAR *)malloc(bufsize * sizeof(WCHAR));
@@ -236,7 +209,7 @@ static PyObject *PyGetAllUsersProfileDirectory(PyObject *self, PyObject *args, P
         PyErr_Format(PyExc_MemoryError, "Unable to allocate %d characters", bufsize);
         return NULL;
     }
-    if (!(*pfnGetAllUsersProfileDirectory)(profile_path, &bufsize))
+    if (!GetAllUsersProfileDirectory(profile_path, &bufsize))
         PyWin_SetAPIError("GetAllUsersProfileDirectory");
     else
         ret = PyWinObject_FromWCHAR(profile_path);
@@ -248,13 +221,12 @@ static PyObject *PyGetAllUsersProfileDirectory(PyObject *self, PyObject *args, P
 static PyObject *PyGetDefaultUserProfileDirectory(PyObject *self, PyObject *args, PyObject *kwargs)
 {
     static char *keywords[] = {NULL};
-    CHECK_PFN(GetDefaultUserProfileDirectory);
     WCHAR *profile_path = NULL;
     DWORD bufsize = 0, err = 0;
     PyObject *ret = NULL;
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, ":GetDefaultUserProfileDirectory", keywords))
         return (NULL);
-    (*pfnGetDefaultUserProfileDirectory)(profile_path, &bufsize);
+    GetDefaultUserProfileDirectory(profile_path, &bufsize);
     if (bufsize == 0)
         return PyWin_SetAPIError("GetDefaultUserProfileDirectory");
     profile_path = (WCHAR *)malloc(bufsize * sizeof(WCHAR));
@@ -262,7 +234,7 @@ static PyObject *PyGetDefaultUserProfileDirectory(PyObject *self, PyObject *args
         PyErr_SetString(PyExc_MemoryError, "GetDefaultUserProfileDirectory unable to allocate unicode buffer");
         return NULL;
     }
-    if (!(*pfnGetDefaultUserProfileDirectory)(profile_path, &bufsize))
+    if (!GetDefaultUserProfileDirectory(profile_path, &bufsize))
         PyWin_SetAPIError("GetDefaultUserProfileDirectory");
     else
         ret = PyWinObject_FromWCHAR(profile_path);
@@ -274,7 +246,6 @@ static PyObject *PyGetDefaultUserProfileDirectory(PyObject *self, PyObject *args
 PyObject *PyGetUserProfileDirectory(PyObject *self, PyObject *args, PyObject *kwargs)
 {
     static char *keywords[] = {"Token", NULL};
-    CHECK_PFN(GetUserProfileDirectory);
     HANDLE hToken;
     WCHAR *profile_path = NULL;
     DWORD bufsize = 0;
@@ -285,7 +256,7 @@ PyObject *PyGetUserProfileDirectory(PyObject *self, PyObject *args, PyObject *kw
         return NULL;
     if (!PyWinObject_AsHANDLE(obhToken, &hToken))
         return NULL;
-    (*pfnGetUserProfileDirectory)(hToken, profile_path, &bufsize);
+    GetUserProfileDirectory(hToken, profile_path, &bufsize);
     if (bufsize == 0)
         return PyWin_SetAPIError("GetUserProfileDirectory");
     profile_path = (WCHAR *)malloc(bufsize * sizeof(WCHAR));
@@ -293,7 +264,7 @@ PyObject *PyGetUserProfileDirectory(PyObject *self, PyObject *args, PyObject *kw
         PyErr_Format(PyExc_MemoryError, "Unable to allocate %d characters", bufsize);
         return NULL;
     }
-    if (!(*pfnGetUserProfileDirectory)(hToken, profile_path, &bufsize))
+    if (!GetUserProfileDirectory(hToken, profile_path, &bufsize))
         PyWin_SetAPIError("GetUserProfileDirectory");
     else
         ret = PyWinObject_FromWCHAR(profile_path);
@@ -305,7 +276,6 @@ PyObject *PyGetUserProfileDirectory(PyObject *self, PyObject *args, PyObject *kw
 PyObject *PyDeleteProfile(PyObject *self, PyObject *args, PyObject *kwargs)
 {
     static char *keywords[] = {"SidString", "ProfilePath", "ComputerName", NULL};
-    CHECK_PFN(DeleteProfile);
     PyObject *obstrsid = Py_None, *obprofile_path = Py_None, *obmachine = Py_None, *ret = NULL;
     WCHAR *strsid = NULL, *profile_path = NULL, *machine = NULL;
 
@@ -319,7 +289,7 @@ PyObject *PyDeleteProfile(PyObject *self, PyObject *args, PyObject *kwargs)
         return NULL;
     if (PyWinObject_AsWCHAR(obstrsid, &strsid, FALSE) && PyWinObject_AsWCHAR(obprofile_path, &profile_path, TRUE) &&
         PyWinObject_AsWCHAR(obmachine, &machine, TRUE)) {
-        if ((*pfnDeleteProfile)(strsid, profile_path, machine)) {
+        if (DeleteProfile(strsid, profile_path, machine)) {
             Py_INCREF(Py_None);
             ret = Py_None;
         }
@@ -337,12 +307,11 @@ PyObject *PyDeleteProfile(PyObject *self, PyObject *args, PyObject *kwargs)
 PyObject *PyGetProfileType(PyObject *self, PyObject *args, PyObject *kwargs)
 {
     static char *keywords[] = {NULL};
-    CHECK_PFN(GetProfileType);
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, ":GetProfileType", keywords))
         return NULL;
 
     DWORD ptype = 0;
-    if (!(*pfnGetProfileType)(&ptype)) {
+    if (!GetProfileType(&ptype)) {
         PyWin_SetAPIError("GetProfileType");
         return NULL;
     }
@@ -398,7 +367,6 @@ PyObject *PyGetEnvironmentStrings(PyObject *self, PyObject *args, PyObject *kwar
 PyObject *PyExpandEnvironmentStringsForUser(PyObject *self, PyObject *args, PyObject *kwargs)
 {
     static char *keywords[] = {"Token", "Src", NULL};
-    CHECK_PFN(ExpandEnvironmentStringsForUser);
     PyObject *obtoken, *obsrc, *ret = NULL;
     HANDLE htoken;
     WCHAR *src = NULL, *dst = NULL;
@@ -424,7 +392,7 @@ PyObject *PyExpandEnvironmentStringsForUser(PyObject *self, PyObject *args, PyOb
             PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", bufsize);
             break;
         }
-        if ((*pfnExpandEnvironmentStringsForUser)(htoken, src, dst, bufsize)) {
+        if (ExpandEnvironmentStringsForUser(htoken, src, dst, bufsize)) {
             ret = PyWinObject_FromWCHAR(dst);
             break;
         }
@@ -489,20 +457,5 @@ PYWIN_MODULE_INIT_FUNC(win32profile)
     PyModule_AddIntConstant(module, "PT_ROAMING", PT_ROAMING);
     PyModule_AddIntConstant(module, "PT_TEMPORARY", PT_TEMPORARY);
 
-    HMODULE hmodule = PyWin_GetOrLoadLibraryHandle("userenv.dll");
-    if (hmodule != NULL) {
-        pfnDeleteProfile = (DeleteProfilefunc)GetProcAddress(hmodule, "DeleteProfileW");
-        pfnExpandEnvironmentStringsForUser =
-            (ExpandEnvironmentStringsForUserfunc)GetProcAddress(hmodule, "ExpandEnvironmentStringsForUserW");
-        pfnGetAllUsersProfileDirectory =
-            (GetAllUsersProfileDirectoryfunc)GetProcAddress(hmodule, "GetAllUsersProfileDirectoryW");
-        pfnGetDefaultUserProfileDirectory =
-            (GetDefaultUserProfileDirectoryfunc)GetProcAddress(hmodule, "GetDefaultUserProfileDirectoryW");
-        pfnGetProfilesDirectory = (GetProfilesDirectoryfunc)GetProcAddress(hmodule, "GetProfilesDirectoryW");
-        pfnGetProfileType = (GetProfileTypefunc)GetProcAddress(hmodule, "GetProfileType");
-        pfnGetUserProfileDirectory = (GetUserProfileDirectoryfunc)GetProcAddress(hmodule, "GetUserProfileDirectoryW");
-        pfnLoadUserProfile = (LoadUserProfilefunc)GetProcAddress(hmodule, "LoadUserProfileW");
-        pfnUnloadUserProfile = (UnloadUserProfilefunc)GetProcAddress(hmodule, "UnloadUserProfile");
-    }
     PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }

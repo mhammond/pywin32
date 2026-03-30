@@ -2,3 +2,8 @@
 AutoDuck/*.fmt          text eol=crlf
 *.dsp                   text eol=crlf
 *.dsw                   text eol=crlf
+*.py                    text eol=crlf
+
+# Files that can't be in UTF-8 encoding
+com/TestSources/PyCOMTest/PyCOMTest.idl working-tree-encoding=latin1
+Pythonwin/pywin/test/_dbgscript.py      working-tree-encoding=latin1

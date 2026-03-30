@@ -1855,25 +1855,6 @@ static PyObject *PyCSliderCtrl_clear_sel(PyObject *self, PyObject *args)
     RETURN_NONE;
 }
 
-// @pymethod int|PyCSliderCtrl|VerifyPos|Verify the position is between configured min and max
-static PyObject *PyCSliderCtrl_verify_pos(PyObject *self, PyObject *args)
-{
-    CHECK_NO_ARGS(args);
-    CSliderCtrl *pSC = GetSliderCtrl(self);
-    if (!pSC)
-        return NULL;
-#if _MFC_VER >= 0x0710
-    // This just vanished in VS7
-    PyErr_SetString(PyExc_NotImplementedError, "VerifyPos does not appear in this version of MFC");
-    return NULL;
-#else
-    GUI_BGN_SAVE;
-    pSC->VerifyPos();
-    GUI_END_SAVE;
-#endif
-    RETURN_NONE;
-}
-
 // @pymethod int|PyCSliderCtrl|ClearTics|Clear the control's tic marks
 static PyObject *PyCSliderCtrl_clear_tics(PyObject *self, PyObject *args)
 {
@@ -1919,7 +1900,6 @@ static struct PyMethodDef PyCSliderCtrl_methods[] = {
     {"SetTic", PyCSliderCtrl_set_tic, 1},           // @pymeth SetTic|Set a tick at the position
     {"SetTicFreq", PyCSliderCtrl_set_tic_freq, 1},  // @pymeth SetTicFreq|Set the tic mark frequency
     {"ClearSel", PyCSliderCtrl_clear_sel, 1},       // @pymeth ClearSel|Clear any control selection
-    {"VerifyPos", PyCSliderCtrl_verify_pos, 1},     // @pymeth VerifyPos|Verify the positon between min and max
     {"ClearTics", PyCSliderCtrl_clear_tics, 1},     // @pymeth ClearTics|Clear any tic marks from the control
     {NULL, NULL}};
 

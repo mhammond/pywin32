@@ -75,7 +75,7 @@ class PyRASEAPUSERIDENTITY : public PyObject {
     RASEAPUSERIDENTITY *m_identity;
 };
 
-#define PyRASEAPUSERIDENTITY_Check(ob) ((ob)->ob_type == &PyRASEAPUSERIDENTITY::type)
+#define PyRASEAPUSERIDENTITY_Check(ob) (Py_TYPE(ob) == &PyRASEAPUSERIDENTITY::type)
 
 BOOL PyWinObject_AsRASEAPUSERIDENTITY(PyObject *ob, RASEAPUSERIDENTITY **ppRASEAPUSERIDENTITY, BOOL bNoneOK = TRUE)
 {
@@ -190,7 +190,7 @@ class PyRASDIALEXTENSIONS : public PyObject {
     PyObject *m_pyeap;
 };
 
-#define PyRASDIALEXTENSIONS_Check(ob) ((ob)->ob_type == &PyRASDIALEXTENSIONS::type)
+#define PyRASDIALEXTENSIONS_Check(ob) (Py_TYPE(ob) == &PyRASDIALEXTENSIONS::type)
 
 // @object RASDIALEXTENSIONS|An object that describes a Win32 RASDIALEXTENSIONS structure
 BOOL PyWinObject_AsRASDIALEXTENSIONS(PyObject *ob, RASDIALEXTENSIONS **ppRASDIALEXTENSIONS, BOOL bNoneOK /*= TRUE*/)
@@ -523,11 +523,10 @@ static PyObject *PyRasDial(PyObject *self, PyObject *args)
             args, "OzOO:Dial",
             &obExtensions,  // @pyparm <o PyRASDIALEXTENSIONS>|dialExtensions||An object providing the RASDIALEXTENSIONS
                             // information, or None
-            &fileName,  // @pyparm string|fileName||Specifies the filename of the phonebook entry, or None.  Ignored on
-                        // Win95.
-            &obParams,  // @pyparm <o RASDIALPARAMS>|RasDialParams||A tuple describing a RASDIALPARAMS structure.
-            &obCallback))  // @pyparm method or hwnd|callback||The method to be called when RAS events occur, or None.
-                           // If not None, the function must have the signature of <om win32ras.RasDialFunc1>
+            &fileName,      // @pyparm string|fileName||Specifies the filename of the phonebook entry, or None.
+            &obParams,      // @pyparm <o RASDIALPARAMS>|RasDialParams||A tuple describing a RASDIALPARAMS structure.
+            &obCallback))   // @pyparm method or hwnd|callback||The method to be called when RAS events occur, or None.
+                            // If not None, the function must have the signature of <om win32ras.RasDialFunc1>
         return NULL;
     if (!PyObjectToRasDialParams(obParams, &dialParams))
         return NULL;
