@@ -637,7 +637,7 @@ class PythonSourceFormatter(Formatter):
 
 
 # These taken from the SciTE properties file.
-source_formatter_extensions = [
+source_formatter_extensions: list[tuple[tuple[str, ...], int]] = [
     ((".py", ".pys", ".pyw"), scintillacon.SCLEX_PYTHON),
     ((".html", ".htm", ".asp", ".shtml"), scintillacon.SCLEX_HTML),
     (
@@ -664,8 +664,8 @@ source_formatter_extensions = [
     ((".sql", ".spec", ".body", ".sps", ".spb", ".sf", ".sp"), scintillacon.SCLEX_SQL),
     ((".tex", ".sty"), scintillacon.SCLEX_LATEX),
     ((".xml", ".xul"), scintillacon.SCLEX_XML),
-    ((".err"), scintillacon.SCLEX_ERRORLIST),
-    ((".mak"), scintillacon.SCLEX_MAKEFILE),
+    ((".err",), scintillacon.SCLEX_ERRORLIST),
+    ((".mak",), scintillacon.SCLEX_MAKEFILE),
     ((".bat", ".cmd"), scintillacon.SCLEX_BATCH),
 ]
 
