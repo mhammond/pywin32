@@ -29,7 +29,7 @@ PyObject *PyLoadPerfCounterTextStrings(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "s|i:LoadPerfCounterTextStrings", &cmdLine, &bQuiet))
         return NULL;
 
-    LONG rc = LoadPerfCounterTextStringsA(cmdLine, 1);
+    LONG rc = LoadPerfCounterTextStringsA(cmdLine, bQuiet);
     if (rc != ERROR_SUCCESS)
         return PyWin_SetAPIError("LoadPerfCounterTextStrings", rc);
     Py_INCREF(Py_None);
@@ -44,7 +44,7 @@ PyObject *PyUnloadPerfCounterTextStrings(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "s|i:UnloadPerfCounterTextStrings", &cmdLine, &bQuiet))
         return NULL;
 
-    LONG rc = UnloadPerfCounterTextStringsA(cmdLine, 1);
+    LONG rc = UnloadPerfCounterTextStringsA(cmdLine, bQuiet);
     if (rc != ERROR_SUCCESS)
         return PyWin_SetAPIError("UnloadPerfCounterTextStrings", rc);
     Py_INCREF(Py_None);
