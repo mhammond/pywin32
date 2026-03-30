@@ -8,17 +8,9 @@ import winerror
 from win32com.server.exception import COMException
 from win32com.server.util import NewEnum, wrap
 
-IDataObject_Methods = [
-    "GetData",
-    "GetDataHere",
-    "QueryGetData",
-    "GetCanonicalFormatEtc",
-    "SetData",
-    "EnumFormatEtc",
-    "DAdvise",
-    "DUnadvise",
-    "EnumDAdvise",
-]
+IDataObject_Methods = """GetData GetDataHere QueryGetData
+                         GetCanonicalFormatEtc SetData EnumFormatEtc
+                         DAdvise DUnadvise EnumDAdvise""".split()
 
 # A COM object implementing IDataObject used for basic testing.
 num_do_objects = 0

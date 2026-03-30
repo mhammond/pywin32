@@ -1104,7 +1104,11 @@ for name, libraries, sources in (
     ("win32console", ["kernel32"], ["win32/src/win32consolemodule.cpp"]),
     ("win32ts", ["WtsApi32"], ["win32/src/win32tsmodule.cpp"]),
     ("_win32sysloader", [], ["win32/src/_win32sysloader.cpp"]),
-    ("win32transaction", ["kernel32", "ktmw32"], ["win32/src/win32transactionmodule.cpp"]),
+    (
+        "win32transaction",
+        ["kernel32", "ktmw32"],
+        ["win32/src/win32transactionmodule.cpp"],
+    ),
 ):
     ext = WinExt_win32(
         name,

@@ -22,7 +22,7 @@ class TestParser(unittest.TestCase):
             self.assertEqual(got, expected)
 
     def testStandardIds(self):
-        for idc in ("IDOK", "IDCANCEL"):
+        for idc in "IDOK IDCANCEL".split():
             correct = getattr(win32con, idc)
             self.assertEqual(self.resources.names[correct], idc)
             self.assertEqual(self.resources.ids[idc], correct)

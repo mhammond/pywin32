@@ -1,30 +1,11 @@
 import pythoncom
 import win32con
 
-formats = (
-    "CF_TEXT",
-    "CF_BITMAP",
-    "CF_METAFILEPICT",
-    "CF_SYLK",
-    "CF_DIF",
-    "CF_TIFF",
-    "CF_OEMTEXT",
-    "CF_DIB",
-    "CF_PALETTE",
-    "CF_PENDATA",
-    "CF_RIFF",
-    "CF_WAVE",
-    "CF_UNICODETEXT",
-    "CF_ENHMETAFILE",
-    "CF_HDROP",
-    "CF_LOCALE",
-    "CF_MAX",
-    "CF_OWNERDISPLAY",
-    "CF_DSPTEXT",
-    "CF_DSPBITMAP",
-    "CF_DSPMETAFILEPICT",
-    "CF_DSPENHMETAFILE",
-)
+formats = """CF_TEXT CF_BITMAP CF_METAFILEPICT CF_SYLK CF_DIF CF_TIFF
+            CF_OEMTEXT CF_DIB CF_PALETTE CF_PENDATA CF_RIFF CF_WAVE
+            CF_UNICODETEXT CF_ENHMETAFILE CF_HDROP CF_LOCALE CF_MAX
+            CF_OWNERDISPLAY CF_DSPTEXT CF_DSPBITMAP CF_DSPMETAFILEPICT
+            CF_DSPENHMETAFILE""".split()
 format_name_map = {getattr(win32con, f): f for f in formats}
 
 tymeds = [attr for attr in pythoncom.__dict__ if attr.startswith("TYMED_")]

@@ -49,6 +49,10 @@ extend-ignore = [
 [lint.per-file-ignores]
 # Explicit re-exports is fine in __init__.py, still a code smell elsewhere.
 "__init__.py" = ["PLC0414"]
+# Acceptable in tests and demos
+"**/{[Dd]emos,test}/*" = [
+  "SIM905", # split-static-string
+]
 # TODO: Make adodbapi changes in their own PRs
 "adodbapi/*" = [
   "C4",

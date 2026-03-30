@@ -110,10 +110,10 @@ class PippoTest(TestCase):
 
 
 # This is a list of "win32com.test.???" module names, optionally with a
-# function in that module if the module isn't unitest based...
+# function in that module if the module isn't unittest based...
 unittest_modules = (
     # Level 1 tests - fast and few dependencies - good for CI!
-    (
+    [
         "testIterators",
         "testvbscript_regexp",
         "testStorage",
@@ -128,39 +128,39 @@ unittest_modules = (
         "testArrays",
         "testClipboard",
         "testConversionErrors",
-    ),
+    ],
     # Level 2 tests - wants our demo COM objects registered.
     # (these are strange; on GitHub CI they get further than expected when
     # our objects are not installed, so fail to quietly fail with "can't
     # register" like they do locally. So really just a nod to CI)
-    ("testAXScript", "testDictionary", "testServers", "testvb", "testMarshal"),
+    ["testAXScript", "testDictionary", "testServers", "testvb", "testMarshal"],
     # Level 3 tests - Requires Office or other non-free stuff.
-    (
+    [
         "testMSOffice.TestAll",
         "testMSOfficeEvents.test",
         "testAccess.test",
         "testExplorer.TestAll",
         "testExchange.test",
-    ),
+    ],
     # Level 4 tests - we try and run `makepy` over every typelib installed!
-    ("testmakepy.TestAll",),
+    ["testmakepy.TestAll"],
 )
 
 # A list of other unittest modules we use - these are fully qualified module
 # names and the module is assumed to be unittest based.
 unittest_other_modules = (
     # Level 1 tests.
-    ("win32com.directsound.test.ds_test",),
+    ["win32com.directsound.test.ds_test"],
     # Level 2 tests.
-    (),
+    [],
     # Level 3 tests.
-    (),
+    [],
     # Level 4 tests.
-    (),
+    [],
 )
 
 
-output_checked_programs = [
+output_checked_programs = (
     # Level 1 tests.
     [],
     # Level 2 tests.
@@ -175,9 +175,9 @@ output_checked_programs = [
     [],
     # Level 4 tests.
     [],
-]
+)
 
-custom_test_cases = [
+custom_test_cases = (
     # Level 1 tests.
     [
         PyCOMTest,
@@ -190,7 +190,7 @@ custom_test_cases = [
     [],
     # Level 4 tests.
     [],
-]
+)
 
 
 def get_test_mod_and_func(

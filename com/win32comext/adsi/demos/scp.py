@@ -494,20 +494,14 @@ def main():
         if args:
             parser.error("Can't specify args with --test")
 
-        args = (
-            "ScpDelete",
-            "ScpCreate",
-            "SpnCreate",
-            "SpnRegister",
-            "SpnUnregister",
-            "ScpDelete",
-        )
-        log(1, "--test - pretending args are:\n %s", " ".join(args))
+        args = "ScpDelete ScpCreate SpnCreate SpnRegister SpnUnregister ScpDelete"
+        log(1, "--test - pretending args are:\n %s", args)
+        args = args.split()
         if not options.service_class:
             options.service_class = "PythonScpTest"
             log(2, "--test: --service-class=%s", options.service_class)
         if not options.keywords:
-            options.keywords = ["Python", "Powered"]
+            options.keywords = "Python Powered".split()
             log(2, "--test: --keyword=%s", options.keywords)
         if not options.binding_string:
             options.binding_string = "test binding string"
