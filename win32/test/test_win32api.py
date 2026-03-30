@@ -11,7 +11,6 @@ import win32api
 import win32con
 import win32event
 import winerror
-from pywin32_testutil import TestSkipped
 
 
 class TestError(Exception):
@@ -23,7 +22,7 @@ class CurrentUserTestCase(unittest.TestCase):
         domain = win32api.GetDomainName()
         if domain == "NT AUTHORITY":
             # Running as a service account, so the comparison will fail
-            raise TestSkipped("running as service account")
+            raise unittest.SkipTest("running as service account")
         name = f"{domain}\\{win32api.GetUserName()}"
         self.assertEqual(name, win32api.GetUserNameEx(win32api.NameSamCompatible))
 

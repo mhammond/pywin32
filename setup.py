@@ -1963,6 +1963,7 @@ dist = setup(
     long_description_content_type="text/markdown",
     author="Mark Hammond (et al)",
     author_email="mhammond@skippinet.com.au",
+    python_requires=">=3.9",
     project_urls={
         # https://docs.pypi.org/project_metadata/#general-url
         "Homepage": "https://github.com/mhammond/pywin32",
