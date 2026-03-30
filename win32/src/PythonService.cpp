@@ -59,22 +59,6 @@ static void CheckRegisterEventSourceFile();
 
 #define MAX_SERVICES 10
 
-// 2K/XP support newer service registration functions that enable multiple
-// service support, but NT does not.  Depending on the run time environment,
-// we adjust the number of services we can support as well as which
-// registration and service control functions to use.  We leave a hard
-// reference to the older function to ensure that we can at least fall back
-// to that if something goes wrong with the dynamic identification.
-
-// If we can locate the newer registration function on startup, this will be
-// increased to MAX_SERVICES
-DWORD g_maxServices = 1;
-
-typedef SERVICE_STATUS_HANDLE(WINAPI *REGSVC_EX_FN)(LPCTSTR lpServiceName, LPHANDLER_FUNCTION_EX lpHandlerProc,
-                                                    LPVOID lpContext);
-
-REGSVC_EX_FN g_RegisterServiceCtrlHandlerEx = NULL;
-
 typedef struct {
     PyObject *klass;                        // The Python class we instantiate as the service.
     SERVICE_STATUS_HANDLE sshStatusHandle;  // the handle for this service.
@@ -330,14 +314,7 @@ static PyObject *PyRegisterServiceCtrlHandler(PyObject *self, PyObject *args)
         Py_INCREF(Py_None);
         return Py_None;
     }
-    if (g_RegisterServiceCtrlHandlerEx) {
-        // Use 2K/XP extended registration if available
-        pe->sshStatusHandle = g_RegisterServiceCtrlHandlerEx(szName, service_ctrl_ex, pe);
-    }
-    else {
-        // Otherwise fall back to NT
-        pe->sshStatusHandle = RegisterServiceCtrlHandler(szName, service_ctrl);
-    }
+    pe->sshStatusHandle = RegisterServiceCtrlHandlerExW(szName, service_ctrl_ex, pe);
     PyWinObject_FreeWCHAR(szName);
     PyObject *rc;
     if (pe->sshStatusHandle == 0) {
@@ -538,7 +515,6 @@ PYWIN_MODULE_INIT_FUNC(servicemanager)
 {
     PYWIN_MODULE_INIT_PREPARE(servicemanager, servicemanager_functions,
                               "A module that interfaces with the Windows Service Control Manager.");
-    HMODULE advapi32_module;
     servicemanager_startup_error = PyErr_NewException("servicemanager.startup_error", NULL, NULL);
     if (servicemanager_startup_error == NULL)
         PYWIN_MODULE_INIT_RETURN_ERROR;
@@ -560,20 +536,6 @@ PYWIN_MODULE_INIT_FUNC(servicemanager)
     ADD_CONSTANT(EVENTLOG_WARNING_TYPE);
     ADD_CONSTANT(EVENTLOG_AUDIT_SUCCESS);
     ADD_CONSTANT(EVENTLOG_AUDIT_FAILURE);
-
-    // Check if we can use the newer control handler registration function
-    // which permits us to support multiple services.  This should be available
-    // on 2K/XP systems.
-
-    // We already have a hard dependency on advapi32, so it shouldn't
-    // be possible for us not to load it, but we'll play it safe.
-    if ((advapi32_module = LoadLibrary(_T("advapi32"))) != NULL) {
-        g_RegisterServiceCtrlHandlerEx = (REGSVC_EX_FN)GetProcAddress(advapi32_module, "RegisterServiceCtrlHandlerExW");
-        // If we found it, go ahead and increase our number of services supported
-        if (g_RegisterServiceCtrlHandlerEx != NULL) {
-            g_maxServices = MAX_SERVICES;
-        }
-    }
 
     PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }
@@ -726,13 +688,13 @@ BOOL PythonService_PrepareToHostMultiple(const TCHAR *service_name, PyObject *kl
     else if (g_serviceProcessFlags != SERVICE_WIN32_SHARE_PROCESS)
         return FALSE;
     UINT i;
-    for (i = 0; i < g_maxServices; i++) {
+    for (i = 0; i < MAX_SERVICES; i++) {
         if (DispatchTable[i].lpServiceName == NULL)
             break;
         if (_tcscmp(service_name, DispatchTable[i].lpServiceName) == 0)
             return FALSE;
     }
-    if (i >= g_maxServices)
+    if (i >= MAX_SERVICES)
         return FALSE;
 
     DispatchTable[i].lpServiceName = _tcsdup(service_name);
@@ -855,14 +817,7 @@ void WINAPI service_main(DWORD dwArgc, LPTSTR *lpszArgv)
             ReportPythonError(E_PYS_NOT_CONTROL_HANDLER);
         // else no instance - an error has already been reported.
         if (!bServiceDebug) {
-            if (g_RegisterServiceCtrlHandlerEx) {
-                // Use 2K/XP extended registration if available
-                pe->sshStatusHandle = g_RegisterServiceCtrlHandlerEx(lpszArgv[0], service_ctrl_ex, pe);
-            }
-            else {
-                // Otherwise fall back to NT
-                pe->sshStatusHandle = RegisterServiceCtrlHandler(lpszArgv[0], service_ctrl);
-            }
+            pe->sshStatusHandle = RegisterServiceCtrlHandlerExW(lpszArgv[0], service_ctrl_ex, pe);
         }
     }
     // No instance - we can't start.

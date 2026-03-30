@@ -106,6 +106,7 @@ class CPyCOMTest : public IDispatchImpl<IPyCOMTest, &IID_IPyCOMTest, &LIBID_PyCO
     STDMETHOD(TestOptionals2)(double dval, BSTR strval, short sval, SAFEARRAY **pRet);
     STDMETHOD(TestOptionals3)(double dval, short sval, IPyCOMTest **outinterface2);
     STDMETHOD(GetStruct)(TestStruct1 *ret);
+    STDMETHOD(GetOutStruct)(TestStruct1 *pRecord);
     STDMETHOD(DoubleString)(BSTR inStr, BSTR *outStr);
     STDMETHOD(DoubleInOutString)(BSTR *str);
     STDMETHOD(TestMyInterface)(IUnknown *t);
@@ -131,6 +132,8 @@ class CPyCOMTest : public IDispatchImpl<IPyCOMTest, &IID_IPyCOMTest, &LIBID_PyCO
 
     STDMETHOD(ModifyStruct)(TestStruct1 *prec);
     STDMETHOD(VerifyArrayOfStructs)(TestStruct2 *prec, VARIANT_BOOL *is_ok);
+    STDMETHOD(GetNestedStruct)(TestStruct3 *ret);
+    STDMETHOD(ModifyArrayOfStructs)(SAFEARRAY **array_of_structs);
 
     // info associated to each session
     struct PyCOMTestSessionData {

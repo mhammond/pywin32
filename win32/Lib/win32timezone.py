@@ -100,7 +100,9 @@ True
 >>> estdt.strftime('%Y-%m-%d %H:%M:%S')
 '2007-06-13 01:00:00'
 
-Microsoft now has a patch for handling time zones in 2007 (see
+The following two tests are kept for coverage and historical reasons.
+
+Microsoft released a patch for handling time zones in 2007 (see
 https://learn.microsoft.com/en-us/troubleshoot/windows-client/system-management-components/daylight-saving-time-help-support)
 
 As a result, patched systems will give an incorrect result for
@@ -244,16 +246,13 @@ import operator
 import re
 import struct
 import winreg
+from collections.abc import Generator, Iterable, Mapping
 from itertools import count
 from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
     ClassVar,
-    Dict,
-    Generator,
-    Iterable,
-    Mapping,
     TypeVar,
     overload,
 )
@@ -908,7 +907,7 @@ class TimeZoneInfo(datetime.tzinfo):
         return zones
 
 
-class _RegKeyDict(Dict[str, str]):
+class _RegKeyDict(dict[str, str]):
     def __init__(self, key: winreg._KeyType):
         dict.__init__(self)
         self.key = key
@@ -1027,8 +1026,7 @@ def resolveMUITimeZone(spec: str) -> str | None:
 
     >>> import sys
     >>> result = resolveMUITimeZone('@tzres.dll,-110')
-    >>> expectedResultType = [type(None),str][sys.getwindowsversion() >= (6,)]
-    >>> type(result) is expectedResultType
+    >>> type(result) is str
     True
     """
     pattern = re.compile(r"@(?P<dllname>.*),-(?P<index>\d+)(?:;(?P<comment>.*))?")
@@ -1045,7 +1043,7 @@ def resolveMUITimeZone(spec: str) -> str | None:
 
 
 # from jaraco.collections 5.1
-class RangeMap(Dict[_RangeMapKT, _VT]):
+class RangeMap(dict[_RangeMapKT, _VT]):
     """
     A dictionary-like object that uses the keys as bounds for a range.
     Inclusion of the value for that range is determined by the

@@ -246,12 +246,9 @@ def InstallService(
             password,
         )
         if description is not None:
-            try:
-                win32service.ChangeServiceConfig2(
-                    hs, win32service.SERVICE_CONFIG_DESCRIPTION, description
-                )
-            except NotImplementedError:
-                pass  ## ChangeServiceConfig2 and description do not exist on NT
+            win32service.ChangeServiceConfig2(
+                hs, win32service.SERVICE_CONFIG_DESCRIPTION, description
+            )
         if delayedstart is not None:
             try:
                 win32service.ChangeServiceConfig2(
@@ -259,11 +256,11 @@ def InstallService(
                     win32service.SERVICE_CONFIG_DELAYED_AUTO_START_INFO,
                     delayedstart,
                 )
-            except (win32service.error, NotImplementedError):
-                ## delayed start only exists on Vista and later - warn only when trying to set delayed to True
-                warnings.warn(
-                    "Delayed Start not available on this system", stacklevel=2
-                )
+            except win32service.error as exc:
+                # Changing Delayed Auto-Start config may be restricted
+                # Warn only if trying to set delayed to True
+                if delayedstart:
+                    warnings.warn(exc.strerror, stacklevel=2)
         win32service.CloseServiceHandle(hs)
     finally:
         win32service.CloseServiceHandle(hscm)
@@ -329,12 +326,9 @@ def ChangeServiceConfig(
                 displayName,
             )
             if description is not None:
-                try:
-                    win32service.ChangeServiceConfig2(
-                        hs, win32service.SERVICE_CONFIG_DESCRIPTION, description
-                    )
-                except NotImplementedError:
-                    pass  ## ChangeServiceConfig2 and description do not exist on NT
+                win32service.ChangeServiceConfig2(
+                    hs, win32service.SERVICE_CONFIG_DESCRIPTION, description
+                )
             if delayedstart is not None:
                 try:
                     win32service.ChangeServiceConfig2(
@@ -342,14 +336,11 @@ def ChangeServiceConfig(
                         win32service.SERVICE_CONFIG_DELAYED_AUTO_START_INFO,
                         delayedstart,
                     )
-                except (win32service.error, NotImplementedError):
-                    ## Delayed start only exists on Vista and later.  On Nt, will raise NotImplementedError since ChangeServiceConfig2
-                    ## doensn't exist.  On Win2k and XP, will fail with ERROR_INVALID_LEVEL
-                    ## Warn only if trying to set delayed to True
+                except win32service.error as exc:
+                    # Changing Delayed Auto-Start config may be restricted
+                    # Warn only if trying to set delayed to True
                     if delayedstart:
-                        warnings.warn(
-                            "Delayed Start not available on this system", stacklevel=2
-                        )
+                        warnings.warn(exc.strerror, stacklevel=2)
         finally:
             win32service.CloseServiceHandle(hs)
     finally:
@@ -969,9 +960,7 @@ class ServiceFramework:
     _svc_deps_ = None  # sequence of service names on which this depends
     _exe_name_ = None  # Default to PythonService.exe
     _exe_args_ = None  # Default to no arguments
-    _svc_description_ = (
-        None  # Only exists on Windows 2000 or later, ignored on windows NT
-    )
+    _svc_description_ = None
 
     def __init__(self, args):
         import servicemanager

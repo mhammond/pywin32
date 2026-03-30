@@ -369,7 +369,7 @@ PyObject *PyIDispatch::InvokeTypes(PyObject *self, PyObject *args)
     // See how many _real_ entries - count until end or
     // first param marked as Missing.
     for (numArgs = 0; numArgs < argc - 5; numArgs++) {
-        if (PyTuple_GET_ITEM(args, numArgs + 5)->ob_type == &PyOleMissingType) {
+        if (Py_TYPE(PyTuple_GET_ITEM(args, numArgs + 5)) == &PyOleMissingType) {
             break;
         }
     }

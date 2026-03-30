@@ -65,7 +65,7 @@ BOOL PyWinObject_AsHCRYPTHASH(PyObject *obhcrypthash, HCRYPTHASH *hcrypthash, BO
         *hcrypthash = NULL;
         return true;
     }
-    if (obhcrypthash->ob_type != &PyCRYPTHASHType) {
+    if (Py_TYPE(obhcrypthash) != &PyCRYPTHASHType) {
         PyErr_SetString(PyExc_TypeError, "Object must be of type PyCRYPTHASH");
         return FALSE;
     }

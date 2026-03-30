@@ -15,46 +15,6 @@
 #include "Dbt.h" // device notification
 #include "malloc.h"
 
-#define CHECK_PFN(fname)if (pfn##fname==NULL) return PyErr_Format(PyExc_NotImplementedError,"%s is not available on this platform", #fname);
-typedef BOOL (WINAPI *SetLayeredWindowAttributesfunc)(HWND, COLORREF, BYTE,DWORD);
-static SetLayeredWindowAttributesfunc pfnSetLayeredWindowAttributes=NULL;
-typedef BOOL (WINAPI *GetLayeredWindowAttributesfunc)(HWND, COLORREF *, BYTE *, DWORD *);
-static GetLayeredWindowAttributesfunc pfnGetLayeredWindowAttributes=NULL;
-typedef BOOL (WINAPI *UpdateLayeredWindowfunc)(HWND,HDC,POINT *,SIZE *,HDC,POINT *,COLORREF,BLENDFUNCTION *,DWORD);
-static UpdateLayeredWindowfunc pfnUpdateLayeredWindow=NULL;
-typedef BOOL (WINAPI *AngleArcfunc)(HDC, int, int, DWORD, FLOAT, FLOAT);
-static AngleArcfunc pfnAngleArc=NULL;
-typedef BOOL (WINAPI *PlgBltfunc)(HDC,CONST POINT *,HDC,int,int,int,int,HBITMAP,int,int);
-static PlgBltfunc pfnPlgBlt=NULL;
-typedef BOOL (WINAPI *GetWorldTransformfunc)(HDC,XFORM *);
-static GetWorldTransformfunc pfnGetWorldTransform=NULL;
-typedef BOOL (WINAPI *SetWorldTransformfunc)(HDC,XFORM *);
-static SetWorldTransformfunc pfnSetWorldTransform=NULL;
-typedef BOOL (WINAPI *ModifyWorldTransformfunc)(HDC,XFORM *,DWORD);
-static ModifyWorldTransformfunc pfnModifyWorldTransform=NULL;
-typedef BOOL (WINAPI *CombineTransformfunc)(LPXFORM,CONST XFORM *,CONST XFORM *);
-static CombineTransformfunc pfnCombineTransform=NULL;
-typedef BOOL (WINAPI *GradientFillfunc)(HDC,PTRIVERTEX,ULONG,PVOID,ULONG,ULONG);
-static GradientFillfunc pfnGradientFill=NULL;
-typedef BOOL (WINAPI *TransparentBltfunc)(HDC,int,int,int,int,HDC,int,int,int,int,UINT);
-static TransparentBltfunc pfnTransparentBlt=NULL;
-typedef BOOL (WINAPI *MaskBltfunc)(HDC,int,int,int,int,HDC,int,int,HBITMAP,int,int,DWORD);
-static MaskBltfunc pfnMaskBlt=NULL;
-typedef BOOL (WINAPI *AlphaBlendfunc)(HDC,int,int,int,int,HDC,int,int,int,int,BLENDFUNCTION);
-static AlphaBlendfunc pfnAlphaBlend=NULL;
-typedef BOOL (WINAPI *AnimateWindowfunc)(HWND,DWORD,DWORD);
-static AnimateWindowfunc pfnAnimateWindow=NULL;
-typedef BOOL (WINAPI *GetMenuInfofunc)(HMENU, LPCMENUINFO);
-static GetMenuInfofunc pfnGetMenuInfo=NULL;
-typedef BOOL (WINAPI *SetMenuInfofunc)(HMENU, LPCMENUINFO);
-static GetMenuInfofunc pfnSetMenuInfo=NULL;
-typedef DWORD (WINAPI *GetLayoutfunc)(HDC);
-static GetLayoutfunc pfnGetLayout=NULL;
-typedef DWORD (WINAPI *SetLayoutfunc)(HDC, DWORD);
-static SetLayoutfunc pfnSetLayout=NULL;
-typedef int (WINAPI *DrawTextWfunc)(HDC,LPWSTR,int,LPRECT,UINT);
-static DrawTextWfunc pfnDrawTextW = NULL;
-
 static PyObject *g_AtomMap = NULL; // Mapping class atoms to Python WNDPROC
 static PyObject *g_HWNDMap = NULL; // Mapping HWND to Python WNDPROC
 static PyObject *g_DLGMap = NULL;  // Mapping Dialog HWND to Python WNDPROC
@@ -247,8 +207,6 @@ PyDict_SetItemString(d, "g_HWNDMap", g_HWNDMap);
 PyDict_SetItemString(d, "g_DLGMap", g_DLGMap);
 #endif
 
-PyDict_SetItemString(d, "UNICODE", Py_True);
-
 // hack borrowed from win32security since version of SWIG we use doesn't do keyword arguments
 for (PyMethodDef *pmd = win32guiMethods; pmd->ml_name; pmd++)
 	if	 (strcmp(pmd->ml_name, "SetLayeredWindowAttributes")==0
@@ -261,37 +219,6 @@ for (PyMethodDef *pmd = win32guiMethods; pmd->ml_name; pmd++)
 		||strcmp(pmd->ml_name, "DrawTextW")==0
 		)
 		pmd->ml_flags = METH_VARARGS | METH_KEYWORDS;
-
-HMODULE hmodule = PyWin_GetOrLoadLibraryHandle("user32.dll");
-if (hmodule != NULL) {
-    pfnSetLayeredWindowAttributes = (SetLayeredWindowAttributesfunc)GetProcAddress(hmodule,"SetLayeredWindowAttributes");
-    pfnGetLayeredWindowAttributes = (GetLayeredWindowAttributesfunc)GetProcAddress(hmodule,"GetLayeredWindowAttributes");
-    pfnUpdateLayeredWindow = (UpdateLayeredWindowfunc)GetProcAddress(hmodule,"UpdateLayeredWindow");
-    pfnAnimateWindow = (AnimateWindowfunc)GetProcAddress(hmodule,"AnimateWindow");
-    pfnGetMenuInfo = (GetMenuInfofunc)GetProcAddress(hmodule,"GetMenuInfo");
-    pfnSetMenuInfo = (SetMenuInfofunc)GetProcAddress(hmodule,"SetMenuInfo");
-    pfnDrawTextW = (DrawTextWfunc)GetProcAddress(hmodule, "DrawTextW");
-}
-
-hmodule = PyWin_GetOrLoadLibraryHandle("gdi32.dll");
-if (hmodule != NULL) {
-    pfnAngleArc = (AngleArcfunc)GetProcAddress(hmodule,"AngleArc");
-    pfnPlgBlt = (PlgBltfunc)GetProcAddress(hmodule,"PlgBlt");
-    pfnGetWorldTransform = (GetWorldTransformfunc)GetProcAddress(hmodule,"GetWorldTransform");
-    pfnSetWorldTransform = (SetWorldTransformfunc)GetProcAddress(hmodule,"SetWorldTransform");
-    pfnModifyWorldTransform = (ModifyWorldTransformfunc)GetProcAddress(hmodule,"ModifyWorldTransform");
-    pfnCombineTransform = (CombineTransformfunc)GetProcAddress(hmodule,"CombineTransform");
-    pfnMaskBlt = (MaskBltfunc)GetProcAddress(hmodule,"MaskBlt");
-    pfnGetLayout = (GetLayoutfunc)GetProcAddress(hmodule,"GetLayout");
-    pfnSetLayout = (SetLayoutfunc)GetProcAddress(hmodule,"SetLayout");
-}
-
-hmodule = PyWin_GetOrLoadLibraryHandle("msimg32.dll");
-if (hmodule != NULL) {
-    pfnGradientFill = (GradientFillfunc)GetProcAddress(hmodule,"GradientFill");
-    pfnTransparentBlt = (TransparentBltfunc)GetProcAddress(hmodule,"TransparentBlt");
-    pfnAlphaBlend = (AlphaBlendfunc)GetProcAddress(hmodule,"AlphaBlend");
-}
 %}
 
 %{
@@ -816,7 +743,7 @@ public:
 	PyObject *m_obMenuName, *m_obClassName, *m_obWndProc;
 	TmpWCHAR m_MenuName, m_ClassName;
 };
-#define PyWNDCLASS_Check(ob)	((ob)->ob_type == &PyWNDCLASSType)
+#define PyWNDCLASS_Check(ob)	(Py_TYPE(ob) == &PyWNDCLASSType)
 
 // @object PyWNDCLASS|A Python object, representing an WNDCLASS structure
 // @comm Typically you create a PyWNDCLASS object, and set its properties.
@@ -1043,7 +970,7 @@ public:
 	static struct PyMemberDef members[];
 	BITMAP m_BITMAP;
 };
-#define PyBITMAP_Check(ob)	((ob)->ob_type == &PyBITMAPType)
+#define PyBITMAP_Check(ob)	(Py_TYPE(ob) == &PyBITMAPType)
 
 // @object PyBITMAP|A Python object, representing an PyBITMAP structure
 // @comm Typically you get one of these from GetObject.  Note that currently
@@ -1180,7 +1107,7 @@ public:
 	static struct PyMemberDef members[];
 	LOGFONT m_LOGFONT;
 };
-#define PyLOGFONT_Check(ob)	((ob)->ob_type == &PyLOGFONTType)
+#define PyLOGFONT_Check(ob)	(Py_TYPE(ob) == &PyLOGFONTType)
 
 // @object PyLOGFONT|A Python object, representing an PyLOGFONT structure
 // @comm Typically you create a PyLOGFONT object, and set its properties.
@@ -1411,7 +1338,7 @@ PyObject *set_logger(PyObject *self, PyObject *args)
 %typemap(python,in) LOGFONT *{
 	if (!PyLOGFONT_Check($source))
 		return PyErr_Format(PyExc_TypeError, "Must be a LOGFONT object (got %s)",
-		                    $source->ob_type->tp_name);
+		                    Py_TYPE($source)->tp_name);
 	$target = &(((PyLOGFONT *)$source)->m_LOGFONT);
 }
 
@@ -1764,16 +1691,8 @@ PyObject *PyFlashWindowEx(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&f.hwnd))
 		return NULL;
-    // not on NT
-	HMODULE hmod = GetModuleHandle(_T("user32"));
-    BOOL (WINAPI *pfnFW)(PFLASHWINFO) = NULL;
-    if (hmod)
-        pfnFW = (BOOL (WINAPI *)(PFLASHWINFO))GetProcAddress(hmod, "FlashWindowEx");
-    if (pfnFW==NULL)
-        return PyErr_Format(PyExc_NotImplementedError,
-                            "FlashWindowsEx is not supported on this version of windows");
 	Py_BEGIN_ALLOW_THREADS
-	rc = (*pfnFW)(&f);
+	rc = FlashWindowEx(&f);
 	Py_END_ALLOW_THREADS
 	ret = rc ? Py_True : Py_False;
 	Py_INCREF(ret);
@@ -2206,7 +2125,7 @@ static PyObject *PyDialogBoxIndirect(PyObject *self, PyObject *args)
 	// We unpack the object in the dlgproc - but check validity now
 	if (obParam != Py_None && !PyLong_Check(obParam) && !PyLong_Check(obParam)) {
 		return PyErr_Format(PyExc_TypeError, "optional param must be None, or an integer (got %s)",
-		                    obParam->ob_type->tp_name);
+		                    Py_TYPE(obParam)->tp_name);
 	}
 
 	HGLOBAL h = MakeResourceFromDlgList(obList);
@@ -2715,7 +2634,6 @@ int GetStretchBltMode(HDC hdc);	// @pyparm <o PyHANDLE>|hdc||Handle to a device 
 // @pyswig |TransparentBlt|Transfers color from one DC to another, with one color treated as transparent
 static PyObject *PyTransparentBlt(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(TransparentBlt);
 	PyObject *obsrc, *obdst;
 	HDC src, dst;
 	int src_x, src_y, src_width, src_height;
@@ -2740,7 +2658,7 @@ static PyObject *PyTransparentBlt(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsHANDLE(obsrc, (HANDLE *)&src))
 		return NULL;
 	Py_BEGIN_ALLOW_THREADS
-	ret=(*pfnTransparentBlt)(
+	ret=TransparentBlt(
 		dst, dst_x, dst_y, dst_width, dst_height,
 		src, src_x, src_y, src_width, src_height,
 		transparent);
@@ -2756,7 +2674,6 @@ static PyObject *PyTransparentBlt(PyObject *self, PyObject *args)
 // @pyseeapi MaskBlt
 static PyObject *PyMaskBlt(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(MaskBlt);
 	PyObject *obsrc, *obdst, *obmask;
 	HDC src, dst;
 	HBITMAP mask;
@@ -2784,7 +2701,7 @@ static PyObject *PyMaskBlt(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obmask, (HANDLE *)&mask))
 		return NULL;
-	if (!(*pfnMaskBlt)(
+	if (!MaskBlt(
 		dst, dst_x, dst_y, dst_width, dst_height,
 		src, src_x, src_y,
 		mask, mask_x, mask_y, rop))
@@ -2796,7 +2713,6 @@ static PyObject *PyMaskBlt(PyObject *self, PyObject *args)
 // @pyswig |AlphaBlend|Transfers color information using alpha blending
 static PyObject *PyAlphaBlend(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(AlphaBlend);
 	PyObject *obsrc, *obdst, *obbl;
 	HDC src, dst;
 	int src_x, src_y, src_width, src_height;
@@ -2821,7 +2737,7 @@ static PyObject *PyAlphaBlend(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinObject_AsBLENDFUNCTION(obbl, &bl))
 		return NULL;
-	if (!(*pfnAlphaBlend)(
+	if (!AlphaBlend(
 		dst, dst_x, dst_y, dst_width, dst_height,
 		src, src_x, src_y, src_width, src_height,
 		bl))
@@ -3649,7 +3565,7 @@ DWORD CommDlgExtendedError(void);
 	size = sizeof(OPENFILENAME);
 	if (!PyBytes_Check($source)) {
 		PyErr_Format(PyExc_TypeError, "Argument must be a %d-byte string (got type %s)",
-		             size, $source->ob_type->tp_name);
+		             size, Py_TYPE($source)->tp_name);
 		return NULL;
 	}
 	if (size != PyBytes_GET_SIZE($source)) {
@@ -4002,16 +3918,14 @@ static PyObject *PySetGraphicsMode(PyObject *self, PyObject *args)
 // @rdesc Returns one of win32con.LAYOUT_*
 static PyObject *PyGetLayout(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(GetLayout);
 	HDC hdc;
 	PyObject *obdc;
-	DWORD prevlayout;
 	if (!PyArg_ParseTuple(args, "O:GetLayout",
 		&obdc))			// @pyparm <o PyHANDLE>|hdc||Handle to a device context
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc))
 		return NULL;
-	prevlayout=(*pfnGetLayout)(hdc);
+	DWORD prevlayout=GetLayout(hdc);
 	if (prevlayout==GDI_ERROR)
 		return PyWin_SetAPIError("GetLayout");
 	return PyLong_FromUnsignedLong(prevlayout);
@@ -4021,7 +3935,6 @@ static PyObject *PyGetLayout(PyObject *self, PyObject *args)
 // @rdesc Returns the previous layout mode
 static PyObject *PySetLayout(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(SetLayout);
 	HDC hdc;
 	PyObject *obdc;
 	DWORD newlayout, prevlayout;
@@ -4031,7 +3944,7 @@ static PyObject *PySetLayout(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc))
 		return NULL;
-	prevlayout=(*pfnSetLayout)(hdc, newlayout);
+	prevlayout=SetLayout(hdc, newlayout);
 	if (prevlayout==GDI_ERROR)
 		return PyWin_SetAPIError("SetLayout");
 	return PyLong_FromUnsignedLong(prevlayout);
@@ -4131,7 +4044,6 @@ PyObject *PyWinObject_FromXFORM(XFORM *pxform)
 // @comm DC's mode must be set to GM_ADVANCED.  See <om win32gui.SetGraphicsMode>.
 static PyObject *PyGetWorldTransform(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(GetWorldTransform);
 	PyObject *obdc;
 	HDC hdc;
 	XFORM xform;
@@ -4140,7 +4052,7 @@ static PyObject *PyGetWorldTransform(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc))
 		return NULL;
-	if (!(*pfnGetWorldTransform)(hdc, &xform))
+	if (!GetWorldTransform(hdc, &xform))
 		return PyWin_SetAPIError("GetWorldTransform");
 	return PyWinObject_FromXFORM(&xform);
 }
@@ -4149,7 +4061,6 @@ static PyObject *PyGetWorldTransform(PyObject *self, PyObject *args)
 // @comm DC's mode must be set to GM_ADVANCED.  See <om win32gui.SetGraphicsMode>.
 static PyObject *PySetWorldTransform(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(SetWorldTransform);
 	PyObject *obdc, *obxform;
 	HDC hdc;
 	XFORM xform;
@@ -4161,7 +4072,7 @@ static PyObject *PySetWorldTransform(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinObject_AsXFORM(obxform, &xform))
 		return NULL;
-	if (!(*pfnSetWorldTransform)(hdc, &xform))
+	if (!SetWorldTransform(hdc, &xform))
 		return PyWin_SetAPIError("SetWorldTransform");
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -4171,7 +4082,6 @@ static PyObject *PySetWorldTransform(PyObject *self, PyObject *args)
 // @comm DC's mode must be set to GM_ADVANCED.  See <om win32gui.SetGraphicsMode>.
 static PyObject *PyModifyWorldTransform(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(ModifyWorldTransform);
 	PyObject *obdc, *obxform;
 	HDC hdc;
 	XFORM xform;
@@ -4185,7 +4095,7 @@ static PyObject *PyModifyWorldTransform(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinObject_AsXFORM(obxform, &xform))
 		return NULL;
-	if (!(*pfnModifyWorldTransform)(hdc, &xform, mode))
+	if (!ModifyWorldTransform(hdc, &xform, mode))
 		return PyWin_SetAPIError("ModifyWorldTransform");
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -4194,7 +4104,6 @@ static PyObject *PyModifyWorldTransform(PyObject *self, PyObject *args)
 // @pyswig <o PyXFORM>|CombineTransform|Combines two coordinate space transformations
 static PyObject *PyCombineTransform(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(CombineTransform);
 	PyObject *obxform1, *obxform2;
 	XFORM xform1, xform2, ret_xform;
 	if (!PyArg_ParseTuple(args, "OO:CombineTransform",
@@ -4206,7 +4115,7 @@ static PyObject *PyCombineTransform(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsXFORM(obxform2, &xform2))
 		return NULL;
 
-	if (!(*pfnCombineTransform)(&ret_xform, &xform1, &xform2))
+	if (!CombineTransform(&ret_xform, &xform1, &xform2))
 		return PyWin_SetAPIError("CombineTransform");
 	return PyWinObject_FromXFORM(&ret_xform);
 }
@@ -4456,7 +4365,6 @@ BOOL PyWinObject_AsMeshArray(PyObject *obmesh, ULONG mode, void **pmesh, DWORD *
 // @pyswig |GradientFill|Shades triangles or rectangles by interpolating between vertex colors
 static PyObject *PyGradientFill(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(GradientFill);
 	HDC hdc;
 	PTRIVERTEX ptv=NULL;
 	ULONG tv_cnt, mesh_cnt, mode;
@@ -4476,7 +4384,7 @@ static PyObject *PyGradientFill(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsMeshArray(obmesh, mode, &pmesh, &mesh_cnt))
 		goto cleanup;
 	Py_BEGIN_ALLOW_THREADS
-	bres=(*pfnGradientFill)(hdc, ptv, tv_cnt, pmesh, mesh_cnt, mode);
+	bres=GradientFill(hdc, ptv, tv_cnt, pmesh, mesh_cnt, mode);
 	Py_END_ALLOW_THREADS
 	if (!bres)
 		PyWin_SetAPIError("GradientFill");
@@ -4720,7 +4628,6 @@ BOOLAPI CheckMenuRadioItem(
 %{
 PyObject *PySetMenuInfo(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(SetMenuInfo);
 	PyObject *obMenu, *obInfo;
 	HMENU hmenu;
 	BOOL result;
@@ -4739,7 +4646,7 @@ PyObject *PySetMenuInfo(PyObject *self, PyObject *args)
 		return PyErr_Format(PyExc_TypeError, "Argument must be a %d byte string/buffer (got %d bytes)", sizeof(MENUINFO), pybuf.len());
 
 	Py_BEGIN_ALLOW_THREADS
-	result = (*pfnSetMenuInfo)(hmenu, (MENUINFO*)pybuf.ptr());
+	result = SetMenuInfo(hmenu, (MENUINFO*)pybuf.ptr());
 	Py_END_ALLOW_THREADS
 	if (!result)
 		return PyWin_SetAPIError("SetMenuInfo");
@@ -4756,7 +4663,6 @@ PyObject *PySetMenuInfo(PyObject *self, PyObject *args)
 %{
 PyObject *PyGetMenuInfo(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(GetMenuInfo);
 	PyObject *obMenu, *obInfo;
 	HMENU hmenu;
 	BOOL result;
@@ -4775,7 +4681,7 @@ PyObject *PyGetMenuInfo(PyObject *self, PyObject *args)
 		return PyErr_Format(PyExc_TypeError, "Argument must be a %d byte buffer (got %d bytes)", sizeof(MENUINFO), pybuf.len());
 
 	Py_BEGIN_ALLOW_THREADS
-	result = (*pfnGetMenuInfo)(hmenu, (MENUINFO*)pybuf.ptr());
+	result = GetMenuInfo(hmenu, (MENUINFO*)pybuf.ptr());
 	Py_END_ALLOW_THREADS
 	if (!result)
 		return PyWin_SetAPIError("GetMenuInfo");
@@ -4855,7 +4761,6 @@ BOOLAPI ArcTo(
 // @pyswig |AngleArc|Draws a line from current pos and a section of a circle's arc
 static PyObject *PyAngleArc(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(AngleArc);
 	HDC hdc;
 	int x,y;
 	DWORD radius;
@@ -4871,7 +4776,7 @@ static PyObject *PyAngleArc(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obdc, (HANDLE *)&hdc))
 		return NULL;
-	if (!(*pfnAngleArc)(hdc, x, y, radius, startangle, sweepangle))
+	if (!AngleArc(hdc, x, y, radius, startangle, sweepangle))
 		return PyWin_SetAPIError("AngleArc");
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -5190,7 +5095,6 @@ static PyObject *PyPolyBezierTo(PyObject *self, PyObject *args)
 // @pyswig |PlgBlt|Copies color from a rectangle into a parallelogram
 static PyObject *PyPlgBlt(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(PlgBlt);
 	HDC srcdc, dstdc;
 	POINT *points=NULL;
 	int x, y, width, height, xmask=0, ymask=0;
@@ -5219,7 +5123,7 @@ static PyObject *PyPlgBlt(PyObject *self, PyObject *args)
 		return NULL;
 	if (point_cnt!=3)
 		PyErr_SetString(PyExc_ValueError, "Points must contain exactly 3 points.");
-	else if (!(*pfnPlgBlt)(dstdc, points, srcdc, x, y, width, height, mask, xmask, ymask))
+	else if (!PlgBlt(dstdc, points, srcdc, x, y, width, height, mask, xmask, ymask))
 		PyWin_SetAPIError("PlgBlt");
 	else{
 		Py_INCREF(Py_None);
@@ -6111,7 +6015,7 @@ PyListView_SortItems(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyCallable_Check(ob))
 		return PyErr_Format(PyExc_TypeError,
-		                    "2nd param must be callable (got type %s)", ob->ob_type->tp_name);
+		                    "2nd param must be callable (got type %s)", Py_TYPE(ob)->tp_name);
 	PySortCallback cb = {ob, obParam};
 	BOOL ok;
 	GUI_BGN_SAVE;
@@ -6145,7 +6049,7 @@ PyListView_SortItemsEx(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyCallable_Check(ob))
 		return PyErr_Format(PyExc_TypeError,
-		                    "2nd param must be callable (got type %s)", ob->ob_type->tp_name);
+		                    "2nd param must be callable (got type %s)", Py_TYPE(ob)->tp_name);
 	PySortCallback cb = {ob, obParam};
 	BOOL ok;
 	GUI_BGN_SAVE;
@@ -7157,11 +7061,9 @@ PyCFunction pfnPySystemParametersInfo=(PyCFunction)PySystemParametersInfo;
 %native (SetLayeredWindowAttributes) pfnPySetLayeredWindowAttributes;
 %{
 // @pyswig |SetLayeredWindowAttributes|Sets the opacity and transparency color key of a layered window.
-// @comm This function only exists on Win2k and later
 // @comm Accepts keyword arguments
 PyObject *PySetLayeredWindowAttributes(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-	CHECK_PFN(SetLayeredWindowAttributes);
 	static char *keywords[]={"hwnd", "Key", "Alpha", "Flags",  NULL};
 	HWND hwnd;
 	COLORREF Key;
@@ -7176,7 +7078,7 @@ PyObject *PySetLayeredWindowAttributes(PyObject *self, PyObject *args, PyObject 
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
-	if (!(*pfnSetLayeredWindowAttributes)(hwnd,Key,Alpha,Flags))
+	if (!SetLayeredWindowAttributes(hwnd,Key,Alpha,Flags))
 		return PyWin_SetAPIError("SetLayeredWindowAttributes");
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -7187,12 +7089,10 @@ PyCFunction pfnPySetLayeredWindowAttributes=(PyCFunction)PySetLayeredWindowAttri
 %native (GetLayeredWindowAttributes) pfnPyGetLayeredWindowAttributes;
 %{
 // @pyswig (int,int,int)|GetLayeredWindowAttributes|Retrieves the layering parameters of a window with the WS_EX_LAYERED extended style
-// @comm This function only exists on WinXP and later.
 // @comm Accepts keyword arguments.
 // @rdesc Returns a tuple of (color key, alpha, flags)
 PyObject *PyGetLayeredWindowAttributes(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-	CHECK_PFN(GetLayeredWindowAttributes);
 	static char *keywords[]={"hwnd",  NULL};
 	HWND hwnd;
 	COLORREF Key;
@@ -7204,7 +7104,7 @@ PyObject *PyGetLayeredWindowAttributes(PyObject *self, PyObject *args, PyObject 
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
 		return NULL;
-	if (!(*pfnGetLayeredWindowAttributes)(hwnd, &Key, &Alpha, &Flags))
+	if (!GetLayeredWindowAttributes(hwnd, &Key, &Alpha, &Flags))
 		return PyWin_SetAPIError("GetLayeredWindowAttributes");
 	return Py_BuildValue("kbk", Key, Alpha, Flags);
 }
@@ -7212,12 +7112,10 @@ PyCFunction pfnPyGetLayeredWindowAttributes=(PyCFunction)PyGetLayeredWindowAttri
 %}
 
 // @pyswig |UpdateLayeredWindow|Updates the position, size, shape, content, and translucency of a layered window.
-// @comm This function is only available on Windows 2000 and later
 // @comm Accepts keyword arguments.
 %{
 PyObject *PyUpdateLayeredWindow(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-	CHECK_PFN(UpdateLayeredWindow);
 	static char *keywords[]={"hwnd","hdcDst","ptDst","size","hdcSrc",
 		"ptSrc","Key","blend","Flags", NULL};
 	HWND hwnd;
@@ -7269,7 +7167,7 @@ PyObject *PyUpdateLayeredWindow(PyObject *self, PyObject *args, PyObject *kwargs
 
 	BOOL ret;
 	Py_BEGIN_ALLOW_THREADS
-	ret=(*pfnUpdateLayeredWindow)(hwnd, hdcDst, pptDst, psize, hdcSrc, pptSrc, crKey, &blend, Flags);
+	ret=UpdateLayeredWindow(hwnd, hdcDst, pptDst, psize, hdcSrc, pptSrc, crKey, &blend, Flags);
 	Py_END_ALLOW_THREADS
 	if (!ret)
 		return PyWin_SetAPIError("UpdateLayeredWindow");
@@ -7282,11 +7180,9 @@ PyCFunction pfnPyUpdateLayeredWindow=(PyCFunction)PyUpdateLayeredWindow;
 
 %{
 // @pyswig |AnimateWindow|Enables you to produce special effects when showing or hiding windows. There are three types of animation: roll, slide, and alpha-blended fade.
-// @comm This function is available on Win2k and later
 // @comm Accepts keyword args
 PyObject *PyAnimateWindow(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-	CHECK_PFN(AnimateWindow);
 	static char *keywords[]={"hwnd","Time","Flags", NULL};
 	PyObject *obhwnd;
 	HWND hwnd;
@@ -7300,7 +7196,7 @@ PyObject *PyAnimateWindow(PyObject *self, PyObject *args, PyObject *kwargs)
 		return NULL;
 	BOOL ret;
 	Py_BEGIN_ALLOW_THREADS
-	ret=(*pfnAnimateWindow)(hwnd, duration, flags);
+	ret=AnimateWindow(hwnd, duration, flags);
 	Py_END_ALLOW_THREADS
 	if (!ret)
 		return PyWin_SetAPIError("AnimateWindow");
@@ -7387,7 +7283,6 @@ static PyObject *PyExtCreatePen(PyObject *self, PyObject *args)
 %{
 PyObject *PyDrawTextW(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-	CHECK_PFN(DrawTextW);
 	static char *keywords[]={"hDC","String","Count","Rect","Format", NULL};
 	HDC hdc;
 	WCHAR *input_text;
@@ -7410,7 +7305,7 @@ PyObject *PyDrawTextW(PyObject *self, PyObject *args, PyObject *kwargs)
 	if (!PyWinObject_AsWCHAR(obtxt, &input_text, FALSE))
 		return NULL;
 
-	height=(*pfnDrawTextW)(hdc, input_text, len, &rc, fmt);
+	height=DrawTextW(hdc, input_text, len, &rc, fmt);
 	PyWinObject_FreeWCHAR(input_text);
 	if (!height)
 		return PyWin_SetAPIError("DrawTextW");

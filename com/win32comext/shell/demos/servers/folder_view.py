@@ -10,7 +10,8 @@ from __future__ import annotations
 import os
 import pickle
 import random
-import sys
+import struct
+import winreg
 from typing import ClassVar
 
 import commctrl
@@ -800,12 +801,6 @@ def get_schema_fname():
 
 
 def DllRegisterServer():
-    import winreg
-
-    if sys.getwindowsversion()[0] < 6:
-        print("This sample only works on Vista")
-        sys.exit(1)
-
     key = winreg.CreateKey(
         winreg.HKEY_LOCAL_MACHINE,
         "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\"
@@ -820,7 +815,6 @@ def DllRegisterServer():
     attr = (
         shellcon.SFGAO_FOLDER | shellcon.SFGAO_HASSUBFOLDER | shellcon.SFGAO_BROWSABLE
     )
-    import struct
 
     s = struct.pack("i", attr)
     winreg.SetValueEx(key, "Attributes", 0, winreg.REG_BINARY, s)
@@ -836,8 +830,6 @@ def DllRegisterServer():
 
 
 def DllUnregisterServer():
-    import winreg
-
     paths = [
         "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Desktop\\Namespace\\"
         + ShellFolder._reg_clsid_,
