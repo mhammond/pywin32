@@ -667,8 +667,8 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
         if pos == -1:
             pos = self.GetSel()[0] - 1  # Character before current one
         limit = self.GetTextLength()
-        before = []
-        after = []
+        before: list[str] = []
+        after: list[str] = []
         index = pos - 1
         wordbreaks_use = wordbreaks
         if bAllowCalls:
