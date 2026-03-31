@@ -184,13 +184,15 @@ In adodbapi, you may also pass keywords using a dictionary structure,
 which also allows us to pass additional arguments:
 
 ```python
-conn_args = {'host' : r".\\SQLEXPRESS\",
-    'database': "Northwind",
-    'user': "guest",
-    'password': "12345678",
-    'timeout': 60}
+conn_args = {
+    "host": r".\\SQLEXPRESS",
+    "database": "Northwind",
+    "user": "guest",
+    "password": "12345678",
+    "timeout": 60,
+}
 
-myConn = adodbapi.connect(connStr,[],**conn_args)
+myConn = adodbapi.connect(connStr, [], **conn_args)
 ```
 
 Which works, but is ugly. So let\'s also put the connection string into
@@ -250,10 +252,13 @@ The result of the macro operation will be the value of the new key.
 return argument\[2\]. Example:
 
 ```python
-conn_keys['macro_is64bit'] = ['provider',
-   'Microsoft.ACE.OLEDB.12.0', "Microsoft.Jet.OLEDB.4.0"]
+conn_keys["macro_is64bit"] = [
+    "provider",
+    "Microsoft.ACE.OLEDB.12.0",
+    "Microsoft.Jet.OLEDB.4.0",
+]
 
-conn_keys['connection_string'] = "Provider=%(provider)s; ... and ... more ... stuff\"
+conn_keys["connection_string"] = "Provider=%(provider)s; ... and ... more ... stuff"
 ```
 
 - macro "getuser": Retrieve the proxy server logged-in-user's username
