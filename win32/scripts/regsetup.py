@@ -15,7 +15,7 @@ def FileExists(fname):
     try:
         os.stat(fname)
         return 1
-    except OSError as details:
+    except OSError:
         return 0
 
 
@@ -518,7 +518,7 @@ for that module.
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] in ["/?", "-?", "-help", "-h"]:
         print(usage)
-    elif len(sys.argv) == 1 or not sys.argv[1][0] in ["/", "-"]:
+    elif len(sys.argv) == 1 or sys.argv[1][0] not in ["/", "-"]:
         # No args, or useful args.
         searchPath = sys.path[:]
         for arg in sys.argv[1:]:

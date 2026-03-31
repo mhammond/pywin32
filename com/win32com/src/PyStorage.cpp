@@ -5,7 +5,6 @@
 #include "stdafx.h"
 #include "PythonCOM.h"
 #include "PythonCOMServer.h"
-static HMODULE ole32 = NULL;
 // @doc
 
 // @pymethod <o PyIID>|pythoncom|ReadClassStg|Reads a CLSID from a storage object.
@@ -300,25 +299,10 @@ PyObject *pythoncom_StgOpenStorage(PyObject *self, PyObject *args)
     return PyCom_PyObjectFromIUnknown(pResult, IID_IStorage, FALSE);
 }
 
-// @pymethod <o PyIStorage>|pythoncom|StgOpenStorageEx|Advanced version of StgOpenStorage, win2k or better
-// @comm Requires Win2k or later
+// @pymethod <o PyIStorage>|pythoncom|StgOpenStorageEx|Advanced version of StgOpenStorage
 // @comm Accepts keyword args
 PyObject *pythoncom_StgOpenStorageEx(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-    typedef HRESULT(WINAPI * PFNStgOpenStorageEx)(WCHAR *, DWORD, DWORD, DWORD, STGOPTIONS *, void *, REFIID, void **);
-    static PFNStgOpenStorageEx myStgOpenStorageEx = NULL;
-    if (myStgOpenStorageEx == NULL) {  // Haven't tried to fetch it yet.
-        myStgOpenStorageEx = (PFNStgOpenStorageEx)-1;
-        if (ole32 == NULL)
-            ole32 = GetModuleHandle(_T("Ole32.dll"));
-        if (ole32 != NULL) {
-            FARPROC fp = GetProcAddress(ole32, "StgOpenStorageEx");
-            if (fp != NULL)
-                myStgOpenStorageEx = (PFNStgOpenStorageEx)fp;
-        }
-    }
-    if (myStgOpenStorageEx == (PFNStgOpenStorageEx)-1)
-        return PyErr_Format(PyExc_NotImplementedError, "StgOpenStorageEx not supported by this version of Windows");
     PyObject *obfname, *obstgoptions = Py_None;
     TmpWCHAR fname;
     DWORD mode, attrs, stgfmt;
@@ -347,7 +331,7 @@ PyObject *pythoncom_StgOpenStorageEx(PyObject *self, PyObject *args, PyObject *k
         return NULL;
 
     PY_INTERFACE_PRECALL;
-    hr = (*myStgOpenStorageEx)(fname, mode, stgfmt, attrs, pstgoptions, reserved, riid, &ret);
+    hr = StgOpenStorageEx(fname, mode, stgfmt, attrs, pstgoptions, reserved, riid, &ret);
     PY_INTERFACE_POSTCALL;
     if (pstgoptions)
         delete (pstgoptions);
@@ -357,34 +341,15 @@ PyObject *pythoncom_StgOpenStorageEx(PyObject *self, PyObject *args, PyObject *k
 }
 
 // @pymethod <o PyIStorage>|pythoncom|StgCreateStorageEx|Creates a new structured storage file or property set
-// @comm Requires Win2k or later
 // @comm Accepts keyword args
 PyObject *pythoncom_StgCreateStorageEx(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-    // MSDN mistakenly shows the security descriptor as PSECURITY_DESCRIPTOR *
-    typedef HRESULT(WINAPI * PFNStgCreateStorageEx)(WCHAR *, DWORD, DWORD, DWORD, STGOPTIONS *, PSECURITY_DESCRIPTOR,
-                                                    REFIID, void **);
-    static PFNStgCreateStorageEx myStgCreateStorageEx = NULL;
-    if (myStgCreateStorageEx == NULL) {  // Haven't tried to fetch it yet.
-        myStgCreateStorageEx = (PFNStgCreateStorageEx)-1;
-        if (ole32 == NULL)
-            ole32 = GetModuleHandle(_T("Ole32.dll"));
-        if (ole32 != NULL) {
-            FARPROC fp = GetProcAddress(ole32, "StgCreateStorageEx");
-            if (fp != NULL)
-                myStgCreateStorageEx = (PFNStgCreateStorageEx)fp;
-        }
-    }
-    if (myStgCreateStorageEx == (PFNStgCreateStorageEx)-1)
-        return PyErr_Format(PyExc_NotImplementedError, "StgCreateStorageEx not supported by this version of Windows");
-
     PyObject *obfname, *obstgoptions = Py_None, *obsd = Py_None;
     TmpWCHAR fname;
     DWORD mode, attrs, stgfmt;
     IID riid;
     STGOPTIONS *pstgoptions = NULL;
     PSECURITY_DESCRIPTOR psd = NULL;
-    HRESULT hr;
     void *ret;
     static char *keywords[] = {"Name", "Mode", "stgfmt", "Attrs", "riid", "StgOptions", "SecurityDescriptor", NULL};
     if (!PyArg_ParseTupleAndKeywords(
@@ -410,8 +375,7 @@ PyObject *pythoncom_StgCreateStorageEx(PyObject *self, PyObject *args, PyObject 
         return NULL;
 
     PY_INTERFACE_PRECALL;
-    hr = (*myStgCreateStorageEx)(fname, mode, stgfmt, attrs, pstgoptions, psd, riid, &ret);
-    // hr = StgCreateStorageEx(fname, mode, stgfmt, attrs, pstgoptions, psd, riid, &ret);
+    HRESULT hr = StgCreateStorageEx(fname, mode, stgfmt, attrs, pstgoptions, psd, riid, &ret);
     PY_INTERFACE_POSTCALL;
     if (pstgoptions)
         delete (pstgoptions);
@@ -424,23 +388,9 @@ PyObject *pythoncom_StgCreateStorageEx(PyObject *self, PyObject *args, PyObject 
 PyObject *pythoncom_FmtIdToPropStgName(PyObject *self, PyObject *args)
 {
     // @pyparm <o PyIID>|fmtid||Format id - a property storage GUID (FMTID_* IIDs)
-    HRESULT err;
     WCHAR oszName[CCH_MAX_PROPSTG_NAME];
     FMTID fmtid;
     PyObject *obfmtid = NULL;
-
-    typedef HRESULT(WINAPI * PFNFmtIdToPropStgName)(const FMTID *, LPOLESTR);
-    static PFNFmtIdToPropStgName pfnFmtIdToPropStgName = NULL;
-    static BOOL pfnchecked = FALSE;
-    if (!pfnchecked) {
-        if (ole32 == NULL)
-            ole32 = GetModuleHandle(_T("Ole32.dll"));
-        if (ole32 != NULL)
-            pfnFmtIdToPropStgName = (PFNFmtIdToPropStgName)GetProcAddress(ole32, "FmtIdToPropStgName");
-        pfnchecked = TRUE;
-    }
-    if (pfnFmtIdToPropStgName == NULL)
-        return PyErr_Format(PyExc_NotImplementedError, "FmtIdToPropStgName is not available on this platform");
 
     if (!PyArg_ParseTuple(args, "O:FmtIdToPropStgName", &obfmtid))
         return NULL;
@@ -448,7 +398,7 @@ PyObject *pythoncom_FmtIdToPropStgName(PyObject *self, PyObject *args)
         return NULL;
 
     PY_INTERFACE_PRECALL;
-    err = (*pfnFmtIdToPropStgName)(&fmtid, oszName);
+    HRESULT err = FmtIdToPropStgName(&fmtid, oszName);
     PY_INTERFACE_POSTCALL;
 
     if (err != S_OK)
@@ -462,21 +412,7 @@ PyObject *pythoncom_PropStgNameToFmtId(PyObject *self, PyObject *args)
     // @pyparm string/unicode|Name||Storage stream name
     FMTID fmtid;
     WCHAR *oszName = NULL;
-    HRESULT err;
     PyObject *obName = NULL;
-
-    typedef HRESULT(WINAPI * PFNPropStgNameToFmtId)(const LPOLESTR, FMTID *);
-    static PFNPropStgNameToFmtId pfnPropStgNameToFmtId = NULL;
-    static BOOL pfnchecked = FALSE;
-    if (!pfnchecked) {
-        if (ole32 == NULL)
-            ole32 = GetModuleHandle(_T("Ole32.dll"));
-        if (ole32 != NULL)
-            pfnPropStgNameToFmtId = (PFNPropStgNameToFmtId)GetProcAddress(ole32, "PropStgNameToFmtId");
-        pfnchecked = TRUE;
-    }
-    if (pfnPropStgNameToFmtId == NULL)
-        return PyErr_Format(PyExc_NotImplementedError, "PropStgNameToFmtId is not available on this platform");
 
     if (!PyArg_ParseTuple(args, "O:PropStgNameToFmtId", &obName))
         return NULL;
@@ -484,7 +420,7 @@ PyObject *pythoncom_PropStgNameToFmtId(PyObject *self, PyObject *args)
         return NULL;
 
     PY_INTERFACE_PRECALL;
-    err = (*pfnPropStgNameToFmtId)(oszName, &fmtid);
+    HRESULT err = PropStgNameToFmtId(oszName, &fmtid);
     PY_INTERFACE_POSTCALL;
 
     PyWinObject_FreeWCHAR(oszName);

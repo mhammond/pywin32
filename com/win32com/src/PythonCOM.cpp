@@ -83,49 +83,6 @@ LPCTSTR GetFacilityString(SCODE sc);
 extern LONG _PyCom_GetInterfaceCount(void);
 extern LONG _PyCom_GetGatewayCount(void);
 
-// Function pointers we load at runtime.
-#define CHECK_PFN(fname)    \
-    if (pfn##fname == NULL) \
-        return PyCom_BuildPyException(E_NOTIMPL);
-
-// Requires IE 5.5 or later
-typedef HRESULT(STDAPICALLTYPE *CreateURLMonikerExfunc)(LPMONIKER, LPCWSTR, LPMONIKER *, DWORD);
-static CreateURLMonikerExfunc pfnCreateURLMonikerEx = NULL;
-
-typedef HRESULT(STDAPICALLTYPE *CoWaitForMultipleHandlesfunc)(DWORD dwFlags, DWORD dwTimeout, ULONG cHandles,
-                                                              LPHANDLE pHandles, LPDWORD lpdwindex);
-static CoWaitForMultipleHandlesfunc pfnCoWaitForMultipleHandles = NULL;
-typedef HRESULT(STDAPICALLTYPE *CoGetObjectContextfunc)(REFIID, void **);
-static CoGetObjectContextfunc pfnCoGetObjectContext = NULL;
-typedef HRESULT(STDAPICALLTYPE *CoGetCancelObjectfunc)(DWORD, REFIID, void **);
-static CoGetCancelObjectfunc pfnCoGetCancelObject = NULL;
-typedef HRESULT(STDAPICALLTYPE *CoSetCancelObjectfunc)(IUnknown *);
-static CoSetCancelObjectfunc pfnCoSetCancelObject = NULL;
-
-// typedefs for the function pointers are in OleAcc.h
-LPFNOBJECTFROMLRESULT pfnObjectFromLresult = NULL;
-
-typedef HRESULT(STDAPICALLTYPE *CoCreateInstanceExfunc)(REFCLSID, IUnknown *, DWORD, COSERVERINFO *, ULONG, MULTI_QI *);
-static CoCreateInstanceExfunc pfnCoCreateInstanceEx = NULL;
-typedef HRESULT(STDAPICALLTYPE *CoInitializeSecurityfunc)(PSECURITY_DESCRIPTOR, LONG, SOLE_AUTHENTICATION_SERVICE *,
-                                                          void *, DWORD, DWORD, void *, DWORD, void *);
-static CoInitializeSecurityfunc pfnCoInitializeSecurity = NULL;
-
-BOOL PyCom_HasDCom()
-{
-    static BOOL bHaveDCOM = -1;
-    if (bHaveDCOM == -1) {
-        HMODULE hMod = GetModuleHandle(_T("ole32.dll"));
-        if (hMod) {
-            FARPROC fp = GetProcAddress(hMod, "CoInitializeEx");
-            bHaveDCOM = (fp != NULL);
-        }
-        else
-            bHaveDCOM = FALSE;  // not much we can do!
-    }
-    return bHaveDCOM;
-}
-
 #ifdef _MSC_VER
 #pragma optimize("y", off)
 #endif  // _MSC_VER
@@ -177,7 +134,6 @@ static PyObject *pythoncom_CoCreateInstance(PyObject *self, PyObject *args)
 // remote machine.
 static PyObject *pythoncom_CoCreateInstanceEx(PyObject *self, PyObject *args)
 {
-    CHECK_PFN(CoCreateInstanceEx);
     PyObject *obCLSID;
     PyObject *obUnk;
     PyObject *obCoServer;
@@ -241,7 +197,7 @@ static PyObject *pythoncom_CoCreateInstanceEx(PyObject *self, PyObject *args)
 
     {  // scoping
         PY_INTERFACE_PRECALL;
-        HRESULT hr = (*pfnCoCreateInstanceEx)(clsid, punk, dwClsContext, pServerInfo, numIIDs, mqi);
+        HRESULT hr = CoCreateInstanceEx(clsid, punk, dwClsContext, pServerInfo, numIIDs, mqi);
         PY_INTERFACE_POSTCALL;
         if (FAILED(hr)) {
             PyCom_BuildPyException(hr);
@@ -286,7 +242,6 @@ done:
 // @pymethod |pythoncom|CoInitializeSecurity|Registers security and sets the default security values.
 static PyObject *pythoncom_CoInitializeSecurity(PyObject *self, PyObject *args)
 {
-    CHECK_PFN(CoInitializeSecurity);
     DWORD cAuthSvc;
     SOLE_AUTHENTICATION_SERVICE *pAS = NULL;
     DWORD dwAuthnLevel;
@@ -361,8 +316,7 @@ static PyObject *pythoncom_CoInitializeSecurity(PyObject *self, PyObject *args)
     }
 
     PY_INTERFACE_PRECALL;
-    HRESULT hr =
-        (*pfnCoInitializeSecurity)(pSD, cAuthSvc, pAS, NULL, dwAuthnLevel, dwImpLevel, NULL, dwCapabilities, NULL);
+    HRESULT hr = CoInitializeSecurity(pSD, cAuthSvc, pAS, NULL, dwAuthnLevel, dwImpLevel, NULL, dwCapabilities, NULL);
     if (pIAC)
         pIAC->Release();
     PY_INTERFACE_POSTCALL;
@@ -583,9 +537,8 @@ static PyObject *pythoncom_new(PyObject *self, PyObject *args)
     // @comm This is just a wrapper for the CoCreateInstance method.
     // Specifically, this call is identical to:
     // <nl>pythoncom.CoCreateInstance(cls, None, pythoncom.CLSCTX_SERVER, pythoncom.IID_IDispatch)
-    int clsctx = PyCom_HasDCom() ? CLSCTX_SERVER : CLSCTX_INPROC_SERVER | CLSCTX_LOCAL_SERVER;
     PyObject *obIID = PyWinObject_FromIID(IID_IDispatch);
-    PyObject *newArgs = Py_BuildValue("OOiO", progid, Py_None, clsctx, obIID);
+    PyObject *newArgs = Py_BuildValue("OOiO", progid, Py_None, CLSCTX_SERVER, obIID);
     Py_DECREF(obIID);
     PyObject *rc = pythoncom_CoCreateInstance(self, newArgs);
     Py_DECREF(newArgs);
@@ -928,9 +881,7 @@ static PyObject *pythoncom_CreateURLMonikerEx(PyObject *self, PyObject *args)
     WCHAR *url = NULL;
     PyObject *obbase, *oburl, *ret = NULL;
     IMoniker *base_moniker = NULL, *output_moniker = NULL;
-    HRESULT hr;
     DWORD flags = URL_MK_UNIFORM;
-    CHECK_PFN(CreateURLMonikerEx);
 
     if (!PyArg_ParseTuple(args, "OO|k:CreateURLMonikerEx",
                           &obbase,  // @pyparm <o PyIMoniker>|Context||An IMoniker interface to be used as a base with a
@@ -943,7 +894,7 @@ static PyObject *pythoncom_CreateURLMonikerEx(PyObject *self, PyObject *args)
         return NULL;
     if (PyCom_InterfaceFromPyObject(obbase, IID_IMoniker, (LPVOID *)&base_moniker, TRUE)) {
         PY_INTERFACE_PRECALL;
-        hr = (*pfnCreateURLMonikerEx)(base_moniker, url, &output_moniker, flags);
+        HRESULT hr = CreateURLMonikerEx(base_moniker, url, &output_moniker, flags);
         if (base_moniker)
             base_moniker->Release();
         PY_INTERFACE_POSTCALL;
@@ -1558,7 +1509,6 @@ static PyObject *pythoncom_CoWaitForMultipleHandles(PyObject *self, PyObject *ar
     PyObject *obHandles;
     DWORD numItems;
     HANDLE *pItems = NULL;
-    CHECK_PFN(CoWaitForMultipleHandles);
 
     if (!PyArg_ParseTuple(args, "iiO:CoWaitForMultipleHandles",
                           &flags,       // @pyparm int|Flags||Combination of pythoncom.COWAIT_* values
@@ -1570,7 +1520,7 @@ static PyObject *pythoncom_CoWaitForMultipleHandles(PyObject *self, PyObject *ar
     DWORD index;
     PyObject *rc = NULL;
     HRESULT hr;
-    Py_BEGIN_ALLOW_THREADS hr = (*pfnCoWaitForMultipleHandles)(flags, timeout, numItems, pItems, &index);
+    Py_BEGIN_ALLOW_THREADS hr = CoWaitForMultipleHandles(flags, timeout, numItems, pItems, &index);
     Py_END_ALLOW_THREADS if (FAILED(hr)) { PyCom_BuildPyException(hr); }
     else rc = PyLong_FromLong(index);
     free(pItems);
@@ -1776,18 +1726,9 @@ static PyObject *pythoncom_ObjectFromLresult(PyObject *self, PyObject *args)
     if (obIID && !PyWinObject_AsIID(obIID, &iid))
         return NULL;
 
-    // GIL protects us from races here.
-    if (pfnObjectFromLresult == NULL) {
-        HMODULE hmod = LoadLibrary(_T("oleacc.dll"));
-        if (hmod)
-            pfnObjectFromLresult = (LPFNOBJECTFROMLRESULT)GetProcAddress(hmod, "ObjectFromLresult");
-    }
-    if (pfnObjectFromLresult == NULL)
-        return PyErr_Format(PyExc_NotImplementedError, "Not available on this platform");
-
     HRESULT hr;
     void *ret = 0;
-    Py_BEGIN_ALLOW_THREADS hr = (*pfnObjectFromLresult)(lresult, iid, wparam, &ret);
+    Py_BEGIN_ALLOW_THREADS hr = ObjectFromLresult(lresult, iid, wparam, &ret);
     Py_END_ALLOW_THREADS if (FAILED(hr))
     {
         PyCom_BuildPyException(hr);
@@ -1862,28 +1803,24 @@ static PyObject *pythoncom_CoGetCallContext(PyObject *self, PyObject *args)
 
 // @pymethod <o PyIContext>|pythoncom|CoGetObjectContext|Creates an interface to interact with the context of the
 // current object
-// @comm Requires Win2k or later
 // @comm COM applications can use this function to create IComThreadingInfo, IContext, or IContextCallback
 //	COM+ applications may also create IObjectContext, IObjectContextInfo, IObjectContextActivity, or IContextState
 static PyObject *pythoncom_CoGetObjectContext(PyObject *self, PyObject *args)
 {
-    CHECK_PFN(CoGetObjectContext);
     // @pyparm <o PyIID>|riid|IID_IContext|The interface to return
     IID riid = IID_IContext;
     void *ret;
     if (!PyArg_ParseTuple(args, "|O&:CoGetObjectContext", PyWinObject_AsIID, &riid))
         return NULL;
     HRESULT hr;
-    Py_BEGIN_ALLOW_THREADS hr = (*pfnCoGetObjectContext)(riid, &ret);
+    Py_BEGIN_ALLOW_THREADS hr = CoGetObjectContext(riid, &ret);
     Py_END_ALLOW_THREADS if (FAILED(hr)) return PyCom_BuildPyException(hr);
     return PyCom_PyObjectFromIUnknown((IUnknown *)ret, riid, FALSE);
 }
 
 // @pymethod <o PyICancelMethodCalls>|pythoncom|CoGetCancelObject|Retrieves an interface used to cancel a pending call
-// @comm Requires Win2k or later
 static PyObject *pythoncom_CoGetCancelObject(PyObject *self, PyObject *args)
 {
-    CHECK_PFN(CoGetCancelObject);
     // @pyparm int|ThreadID|0|Id of thread with pending call, or 0 for current thread
     // @pyparm <o PyIID>|riid|IID_ICancelMethodCalls|The interface to return
     DWORD tid = 0;
@@ -1892,17 +1829,15 @@ static PyObject *pythoncom_CoGetCancelObject(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "|kO&:CoGetCancelObject", &tid, PyWinObject_AsIID, &riid))
         return NULL;
     HRESULT hr;
-    Py_BEGIN_ALLOW_THREADS hr = (*pfnCoGetCancelObject)(tid, riid, &ret);
+    Py_BEGIN_ALLOW_THREADS hr = CoGetCancelObject(tid, riid, &ret);
     Py_END_ALLOW_THREADS if (FAILED(hr)) return PyCom_BuildPyException(hr);
     return PyCom_PyObjectFromIUnknown((IUnknown *)ret, riid, FALSE);
 }
 
 // @pymethod |pythoncom|CoSetCancelObject|Sets or removes a <o PyICancelMethodCalls> interface to be used on the current
 // thread
-// @comm Requires Win2k or later
 static PyObject *pythoncom_CoSetCancelObject(PyObject *self, PyObject *args)
 {
-    CHECK_PFN(CoSetCancelObject);
     // @pyparm <o PyIUnknown>|Unk||An interface that support ICancelMethodCalls, can be None to unregister current
     // cancel object
     IUnknown *pUnk;
@@ -1913,7 +1848,7 @@ static PyObject *pythoncom_CoSetCancelObject(PyObject *self, PyObject *args)
         return NULL;
 
     HRESULT hr;
-    Py_BEGIN_ALLOW_THREADS hr = (*pfnCoSetCancelObject)(pUnk);
+    Py_BEGIN_ALLOW_THREADS hr = CoSetCancelObject(pUnk);
     Py_END_ALLOW_THREADS if (FAILED(hr)) return PyCom_BuildPyException(hr);
     Py_INCREF(Py_None);
     return Py_None;
@@ -2261,23 +2196,6 @@ PYWIN_MODULE_INIT_FUNC(pythoncom)
     if (!initunivgw(dict))
         PYWIN_MODULE_INIT_RETURN_ERROR;
 
-    // Load function pointers.
-    HMODULE hModOle32 = GetModuleHandle(_T("ole32.dll"));
-    if (hModOle32) {
-        pfnCoWaitForMultipleHandles =
-            (CoWaitForMultipleHandlesfunc)GetProcAddress(hModOle32, "CoWaitForMultipleHandles");
-        pfnCoGetObjectContext = (CoGetObjectContextfunc)GetProcAddress(hModOle32, "CoGetObjectContext");
-        pfnCoGetCancelObject = (CoGetCancelObjectfunc)GetProcAddress(hModOle32, "CoGetCancelObject");
-        pfnCoCreateInstanceEx = (CoCreateInstanceExfunc)GetProcAddress(hModOle32, "CoCreateInstanceEx");
-        pfnCoInitializeSecurity = (CoInitializeSecurityfunc)GetProcAddress(hModOle32, "CoInitializeSecurity");
-    }
-
-    HMODULE hModurlmon = GetModuleHandle(_T("urlmon.dll"));
-    if (hModurlmon == NULL)
-        hModurlmon = LoadLibrary(_T("urlmon.dll"));
-    if (hModurlmon)
-        pfnCreateURLMonikerEx = (CreateURLMonikerExfunc)GetProcAddress(hModurlmon, "CreateURLMonikerEx");
-
     // Symbolic constants.
     ADD_CONSTANT(ACTIVEOBJECT_STRONG);
     ADD_CONSTANT(ACTIVEOBJECT_WEAK);
@@ -2410,7 +2328,7 @@ PYWIN_MODULE_INIT_FUNC(pythoncom)
     // RPC
     // Authentication Level used with CoInitializeSecurity
     ADD_CONSTANT(RPC_C_AUTHN_LEVEL_DEFAULT);  // RPC_C_AUTHN_LEVEL_DEFAULT|Lets DCOM negotiate the authentication level
-                                              // automatically. (Win2k or later)
+                                              // automatically.
     ADD_CONSTANT(RPC_C_AUTHN_LEVEL_NONE);     // RPC_C_AUTHN_LEVEL_NONE|Performs no authentication.
     ADD_CONSTANT(RPC_C_AUTHN_LEVEL_CONNECT);  // RPC_C_AUTHN_LEVEL_CONNECT|Authenticates only when the client
                                               // establishes a relationship with the server. Datagram transports always
@@ -2427,7 +2345,7 @@ PYWIN_MODULE_INIT_FUNC(pythoncom)
                                                   // encrypts the argument value of each remote procedure call.
 
     // Impersonation level used with CoInitializeSecurity
-    ADD_CONSTANT(RPC_C_IMP_LEVEL_DEFAULT);  // RPC_C_IMP_LEVEL_DEFAULT|Use default impersonation level (Win2k or later)
+    ADD_CONSTANT(RPC_C_IMP_LEVEL_DEFAULT);  // RPC_C_IMP_LEVEL_DEFAULT|Use default impersonation level
     ADD_CONSTANT(
         RPC_C_IMP_LEVEL_ANONYMOUS);  // RPC_C_IMP_LEVEL_ANONYMOUS|(Not supported in this release.) The client is
                                      // anonymous to the server. The server process cannot obtain identification
@@ -2638,25 +2556,9 @@ PYWIN_MODULE_INIT_FUNC(pythoncom)
     // @prop int|frozen|1 if the host is a frozen program, else 0
     AddConstant(dict, "frozen", Py_FrozenFlag);
 
-    // And finally some gross hacks relating to DCOM
-    // I'm really not sure what a better option is!
-    //
-    // If these #error pragma's fire it means this needs revisiting for
-    // an upgrade to the MSVC header files!
-    if (PyCom_HasDCom()) {
-#if ((CLSCTX_ALL != (CLSCTX_INPROC_SERVER | CLSCTX_INPROC_HANDLER | CLSCTX_LOCAL_SERVER | CLSCTX_REMOTE_SERVER)) || \
-     (CLSCTX_SERVER != (CLSCTX_INPROC_SERVER | CLSCTX_LOCAL_SERVER | CLSCTX_REMOTE_SERVER)))
-#error DCOM constants are not in synch.
-#endif
-        ADD_CONSTANT(CLSCTX_ALL);
-        ADD_CONSTANT(CLSCTX_SERVER);
-        AddConstant(dict, "dcom", 1);
-    }
-    else {
-        AddConstant(dict, "CLSCTX_ALL", CLSCTX_INPROC_SERVER | CLSCTX_INPROC_HANDLER | CLSCTX_LOCAL_SERVER);
-        AddConstant(dict, "CLSCTX_SERVER", CLSCTX_INPROC_SERVER | CLSCTX_LOCAL_SERVER);
-        AddConstant(dict, "dcom", 0);
-    }
+    ADD_CONSTANT(CLSCTX_ALL);
+    ADD_CONSTANT(CLSCTX_SERVER);
+    AddConstant(dict, "dcom", 1);
 
     PyObject *obfmtid = NULL;
     obfmtid = PyWinObject_FromIID(FMTID_DocSummaryInformation);

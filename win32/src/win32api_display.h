@@ -1,7 +1,3 @@
-#define CHECK_PFN(fname)    \
-    if (pfn##fname == NULL) \
-        return PyErr_Format(PyExc_NotImplementedError, "%s is not available on this platform", #fname);
-
 PyObject *PyChangeDisplaySettings(PyObject *self, PyObject *args);
 PyObject *PyChangeDisplaySettingsEx(PyObject *self, PyObject *args, PyObject *kwargs);
 PyObject *PyEnumDisplayDevices(PyObject *self, PyObject *args, PyObject *kwargs);
@@ -12,24 +8,6 @@ PyObject *PyGetMonitorInfo(PyObject *self, PyObject *args, PyObject *kwargs);
 PyObject *PyMonitorFromPoint(PyObject *self, PyObject *args, PyObject *kwargs);
 PyObject *PyMonitorFromRect(PyObject *self, PyObject *args, PyObject *kwargs);
 PyObject *PyMonitorFromWindow(PyObject *self, PyObject *args, PyObject *kwargs);
-
-// from user32.dll
-typedef LONG(WINAPI *ChangeDisplaySettingsExfunc)(LPCTSTR, LPDEVMODE, HWND, DWORD, LPVOID);
-extern ChangeDisplaySettingsExfunc pfnChangeDisplaySettingsEx;
-typedef BOOL(WINAPI *EnumDisplayDevicesfunc)(LPCTSTR, DWORD, PDISPLAY_DEVICE, DWORD);
-extern EnumDisplayDevicesfunc pfnEnumDisplayDevices;
-typedef BOOL(WINAPI *EnumDisplayMonitorsfunc)(HDC, LPCRECT, MONITORENUMPROC, LPARAM);
-extern EnumDisplayMonitorsfunc pfnEnumDisplayMonitors;
-typedef HMONITOR(WINAPI *MonitorFromWindowfunc)(HWND, DWORD);
-extern MonitorFromWindowfunc pfnMonitorFromWindow;
-typedef HMONITOR(WINAPI *MonitorFromRectfunc)(LPCRECT, DWORD);
-extern MonitorFromRectfunc pfnMonitorFromRect;
-typedef HMONITOR(WINAPI *MonitorFromPointfunc)(POINT, DWORD);
-extern MonitorFromPointfunc pfnMonitorFromPoint;
-typedef BOOL(WINAPI *GetMonitorInfofunc)(HMONITOR, LPMONITORINFOEX);
-extern GetMonitorInfofunc pfnGetMonitorInfo;
-typedef BOOL(WINAPI *EnumDisplaySettingsExfunc)(LPCTSTR, DWORD, LPDEVMODE, DWORD);
-extern EnumDisplaySettingsExfunc pfnEnumDisplaySettingsEx;
 
 extern __declspec(dllexport) PyTypeObject PyDISPLAY_DEVICEType;
 extern PyObject *PyWinObject_FromDISPLAY_DEVICE(PDISPLAY_DEVICE);

@@ -12,26 +12,10 @@
 %include "typemaps.i"
 %include "pywin32.i"
 
-%{
-#define CHECK_PFN(fname)if (pfn##fname==NULL) return PyErr_Format(PyExc_NotImplementedError,"%s is not available on this platform", #fname);
-typedef	BOOL (WINAPI *GetNamedPipeClientProcessIdfunc)(HANDLE, PULONG);
-static GetNamedPipeClientProcessIdfunc pfnGetNamedPipeClientProcessId = NULL;
-static GetNamedPipeClientProcessIdfunc pfnGetNamedPipeServerProcessId = NULL;
-static GetNamedPipeClientProcessIdfunc pfnGetNamedPipeClientSessionId = NULL;
-static GetNamedPipeClientProcessIdfunc pfnGetNamedPipeServerSessionId = NULL;
-%}
 
 %init %{
 	// All errors raised by this module are of this type.
 	PyDict_SetItemString(d, "error", PyWinExc_ApiError);
-
-	HMODULE hmod = PyWin_GetOrLoadLibraryHandle("kernel32.dll");
-	if (hmod != NULL) {
-		pfnGetNamedPipeClientProcessId = (GetNamedPipeClientProcessIdfunc)GetProcAddress(hmod, "GetNamedPipeClientProcessId");
-		pfnGetNamedPipeServerProcessId = (GetNamedPipeClientProcessIdfunc)GetProcAddress(hmod, "GetNamedPipeServerProcessId");
-		pfnGetNamedPipeClientSessionId = (GetNamedPipeClientProcessIdfunc)GetProcAddress(hmod, "GetNamedPipeClientSessionId");
-		pfnGetNamedPipeServerSessionId = (GetNamedPipeClientProcessIdfunc)GetProcAddress(hmod, "GetNamedPipeServerSessionId");
-	}
 %}
 
 %{
@@ -497,7 +481,6 @@ PyObject *MyPeekNamedPipe(PyObject *self, PyObject *args)
 // @pyswig int|GetNamedPipeClientProcessId|Returns the process id of client that is connected to a named pipe
 PyObject *MyGetNamedPipeClientProcessId(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(GetNamedPipeClientProcessId);
 	HANDLE hNamedPipe;
 	DWORD pid;
 	PyObject *obhNamedPipe;
@@ -506,7 +489,7 @@ PyObject *MyGetNamedPipeClientProcessId(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhNamedPipe, &hNamedPipe))
 		return NULL;
-	if (!(*pfnGetNamedPipeClientProcessId)(hNamedPipe, &pid))
+	if (!GetNamedPipeClientProcessId(hNamedPipe, &pid))
 		return PyWin_SetAPIError("GetNamedPipeClientProcessId");
 	return PyLong_FromUnsignedLong(pid);
 }
@@ -514,7 +497,6 @@ PyObject *MyGetNamedPipeClientProcessId(PyObject *self, PyObject *args)
 // @pyswig int|GetNamedPipeServerProcessId|Returns pid of server process that created a named pipe
 PyObject *MyGetNamedPipeServerProcessId(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(GetNamedPipeServerProcessId);
 	HANDLE hNamedPipe;
 	DWORD pid;
 	PyObject *obhNamedPipe;
@@ -523,7 +505,7 @@ PyObject *MyGetNamedPipeServerProcessId(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhNamedPipe, &hNamedPipe))
 		return NULL;
-	if (!(*pfnGetNamedPipeServerProcessId)(hNamedPipe, &pid))
+	if (!GetNamedPipeServerProcessId(hNamedPipe, &pid))
 		return PyWin_SetAPIError("GetNamedPipeServerProcessId");
 	return PyLong_FromUnsignedLong(pid);
 }
@@ -531,7 +513,6 @@ PyObject *MyGetNamedPipeServerProcessId(PyObject *self, PyObject *args)
 // @pyswig int|GetNamedPipeClientSessionId|Returns the session id of client that is connected to a named pipe
 PyObject *MyGetNamedPipeClientSessionId(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(GetNamedPipeClientSessionId);
 	HANDLE hNamedPipe;
 	DWORD pid;
 	PyObject *obhNamedPipe;
@@ -540,7 +521,7 @@ PyObject *MyGetNamedPipeClientSessionId(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhNamedPipe, &hNamedPipe))
 		return NULL;
-	if (!(*pfnGetNamedPipeClientSessionId)(hNamedPipe, &pid))
+	if (!GetNamedPipeClientSessionId(hNamedPipe, &pid))
 		return PyWin_SetAPIError("GetNamedPipeClientSessionId");
 	return PyLong_FromUnsignedLong(pid);
 }
@@ -548,7 +529,6 @@ PyObject *MyGetNamedPipeClientSessionId(PyObject *self, PyObject *args)
 // @pyswig int|GetNamedPipeServerSessionId|Returns session id of server process that created a named pipe
 PyObject *MyGetNamedPipeServerSessionId(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(GetNamedPipeServerSessionId);
 	HANDLE hNamedPipe;
 	DWORD pid;
 	PyObject *obhNamedPipe;
@@ -557,7 +537,7 @@ PyObject *MyGetNamedPipeServerSessionId(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhNamedPipe, &hNamedPipe))
 		return NULL;
-	if (!(*pfnGetNamedPipeServerSessionId)(hNamedPipe, &pid))
+	if (!GetNamedPipeServerSessionId(hNamedPipe, &pid))
 		return PyWin_SetAPIError("GetNamedPipeServerSessionId");
 	return PyLong_FromUnsignedLong(pid);
 }

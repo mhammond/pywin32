@@ -42,6 +42,8 @@ select = [
   "TC", # flake8-type-checking
 ]
 extend-ignore = [
+  # Lots of lazy or side-effect imports
+  "PLC0415", # import-outside-top-level
   # We prefer explicit open mode parameter
   "UP015", # redundant-open-modes
   # No such concerns for stdlib
