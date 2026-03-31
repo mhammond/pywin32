@@ -12,9 +12,6 @@ generates Windows .hlp files.
 
 ******************************************************************/
 
-#ifndef UNICODE
-#error "no ANSI builds anymore - otherwise tweaks are needed here"
-#endif
 #include "PyWinTypes.h"
 #include "PyWinObjects.h"
 #include <stdarg.h>
@@ -575,7 +572,7 @@ static PyObject *PyGetDefaultPrinter(PyObject *self, PyObject *args)
         PyErr_SetString(PyExc_RuntimeError, "The default printer was not found.");
         return NULL;
     }
-    if (NULL == (s = _tcschr(printer, TEXT(',')))) {
+    if (NULL == (s = wcschr(printer, TEXT(',')))) {
         PyErr_SetString(PyExc_RuntimeError, "The returned printer is malformed.");
         return NULL;
     }
