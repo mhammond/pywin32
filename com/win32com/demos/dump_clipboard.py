@@ -6,10 +6,7 @@ formats = """CF_TEXT CF_BITMAP CF_METAFILEPICT CF_SYLK CF_DIF CF_TIFF
             CF_UNICODETEXT CF_ENHMETAFILE CF_HDROP CF_LOCALE CF_MAX
             CF_OWNERDISPLAY CF_DSPTEXT CF_DSPBITMAP CF_DSPMETAFILEPICT
             CF_DSPENHMETAFILE""".split()
-format_name_map = {}
-for f in formats:
-    val = getattr(win32con, f)
-    format_name_map[val] = f
+format_name_map = {getattr(win32con, f): f for f in formats}
 
 tymeds = [attr for attr in pythoncom.__dict__ if attr.startswith("TYMED_")]
 
