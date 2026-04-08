@@ -119,7 +119,8 @@ class EmptyVolumeCache:
         total = [0]  # See _WalkCallback above
         try:
             for d in self._GetDirectories():
-                os.walk(d, self._WalkCallback, (callback, total))
+                for directory, dirnames, filenames in os.walk(d):
+                    self._WalkCallback((callback, total), directory, filenames)
                 print("After looking in", d, "we have", total[0], "bytes")
         except pythoncom.error as exc:
             # This will be raised by the callback when the user selects 'cancel'.
@@ -134,7 +135,8 @@ class EmptyVolumeCache:
         # GetSpaceUsed
         try:
             for d in self._GetDirectories():
-                os.walk(d, self._WalkCallback, (callback, None))
+                for directory, dirnames, filenames in os.walk(d):
+                    self._WalkCallback((callback, None), directory, filenames)
         except pythoncom.error as exc:
             # This will be raised by the callback when the user selects 'cancel'.
             if exc.hresult != winerror.E_ABORT:
