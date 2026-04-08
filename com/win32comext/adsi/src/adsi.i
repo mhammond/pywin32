@@ -12,11 +12,6 @@
 // smarter integration with Python IDispatch support, so offers a more
 // convenient technique.
 
-//%{
-//#define UNICODE
-//%}
-
-
 %include "typemaps.i"
 %include "pywin32.i"
 %include "pythoncom.i"
