@@ -30,65 +30,6 @@ generates Windows .hlp files.
 #define PyW32_END_ALLOW_THREADS PyEval_RestoreThread(_save)
 #define PyW32_BLOCK_THREADS Py_BLOCK_THREADS
 
-// from kernel32.dll
-typedef BOOL(WINAPI *GetComputerNameExfunc)(COMPUTER_NAME_FORMAT, LPWSTR, PULONG);
-static GetComputerNameExfunc pfnGetComputerNameEx = NULL;
-typedef DWORD(WINAPI *GetLongPathNameAfunc)(LPCSTR, LPSTR, DWORD);
-static GetLongPathNameAfunc pfnGetLongPathNameA = NULL;
-typedef DWORD(WINAPI *GetLongPathNameWfunc)(LPCWSTR, LPWSTR, DWORD);
-static GetLongPathNameWfunc pfnGetLongPathNameW = NULL;
-typedef BOOL(WINAPI *GetHandleInformationfunc)(HANDLE, LPDWORD);
-static GetHandleInformationfunc pfnGetHandleInformation = NULL;
-typedef BOOL(WINAPI *SetHandleInformationfunc)(HANDLE, DWORD, DWORD);
-static SetHandleInformationfunc pfnSetHandleInformation = NULL;
-typedef BOOL(WINAPI *GlobalMemoryStatusExfunc)(LPMEMORYSTATUSEX);
-static GlobalMemoryStatusExfunc pfnGlobalMemoryStatusEx = NULL;
-typedef BOOL(WINAPI *GetSystemFileCacheSizefunc)(PSIZE_T, PSIZE_T, PDWORD);
-static GetSystemFileCacheSizefunc pfnGetSystemFileCacheSize = NULL;
-typedef BOOL(WINAPI *SetSystemFileCacheSizefunc)(SIZE_T, SIZE_T, DWORD);
-static SetSystemFileCacheSizefunc pfnSetSystemFileCacheSize = NULL;
-typedef DWORD(WINAPI *GetDllDirectoryfunc)(DWORD, LPWSTR);
-static GetDllDirectoryfunc pfnGetDllDirectory = NULL;
-typedef BOOL(WINAPI *SetDllDirectoryfunc)(LPCWSTR);
-static SetDllDirectoryfunc pfnSetDllDirectory = NULL;
-typedef BOOL(WINAPI *SetSystemPowerStatefunc)(BOOL, BOOL);
-static SetSystemPowerStatefunc pfnSetSystemPowerState = NULL;
-typedef BOOL(WINAPI *GetNativeSystemInfofunc)(LPSYSTEM_INFO);
-static GetNativeSystemInfofunc pfnGetNativeSystemInfo = NULL;
-
-// from secur32.dll
-typedef BOOLEAN(WINAPI *GetUserNameExfunc)(EXTENDED_NAME_FORMAT, LPWSTR, PULONG);
-static GetUserNameExfunc pfnGetUserNameEx = NULL;
-static GetUserNameExfunc pfnGetComputerObjectName = NULL;
-
-// from Advapi32.dll
-typedef LONG(WINAPI *RegRestoreKeyfunc)(HKEY, LPCWSTR, DWORD);
-static RegRestoreKeyfunc pfnRegRestoreKey = NULL;
-typedef LONG(WINAPI *RegSaveKeyExfunc)(HKEY, LPCWSTR, LPSECURITY_ATTRIBUTES, DWORD);
-static RegSaveKeyExfunc pfnRegSaveKeyEx = NULL;
-
-typedef LONG(WINAPI *RegCreateKeyTransactedfunc)(HKEY, LPWSTR, DWORD, LPWSTR, DWORD, REGSAM, LPSECURITY_ATTRIBUTES,
-                                                 PHKEY, LPDWORD, HANDLE, PVOID);
-static RegCreateKeyTransactedfunc pfnRegCreateKeyTransacted = NULL;
-typedef LONG(WINAPI *RegDeleteKeyExfunc)(HKEY, LPWSTR, REGSAM, DWORD);
-static RegDeleteKeyExfunc pfnRegDeleteKeyEx = NULL;
-typedef LONG(WINAPI *RegDeleteKeyTransactedfunc)(HKEY, LPWSTR, REGSAM, DWORD, HANDLE, PVOID);
-static RegDeleteKeyTransactedfunc pfnRegDeleteKeyTransacted = NULL;
-typedef LONG(WINAPI *RegOpenKeyTransactedfunc)(HKEY, LPWSTR, DWORD, REGSAM, PHKEY, HANDLE, PVOID);
-static RegOpenKeyTransactedfunc pfnRegOpenKeyTransacted = NULL;
-typedef LONG(WINAPI *RegCopyTreefunc)(HKEY, LPWSTR, HKEY);
-static RegCopyTreefunc pfnRegCopyTree = NULL;
-typedef LONG(WINAPI *RegDeleteTreefunc)(HKEY, LPWSTR);
-static RegDeleteTreefunc pfnRegDeleteTree = NULL;
-typedef LONG(WINAPI *RegOpenCurrentUserfunc)(REGSAM, PHKEY);
-static RegOpenCurrentUserfunc pfnRegOpenCurrentUser = NULL;
-typedef LONG(WINAPI *RegOverridePredefKeyfunc)(HKEY, HKEY);
-static RegOverridePredefKeyfunc pfnRegOverridePredefKey = NULL;
-
-// from user32.dll
-typedef BOOL(WINAPI *GetLastInputInfofunc)(PLASTINPUTINFO);
-static GetLastInputInfofunc pfnGetLastInputInfo = NULL;
-
 /* error helper */
 PyObject *ReturnError(char *msg, char *fnName = NULL)
 {
@@ -230,7 +171,6 @@ static PyObject *PyDuplicateHandle(PyObject *self, PyObject *args)
 // @rdesc Returns a combination of HANDLE_FLAG_INHERIT, HANDLE_FLAG_PROTECT_FROM_CLOSE
 static PyObject *PyGetHandleInformation(PyObject *self, PyObject *args)
 {
-    CHECK_PFN(GetHandleInformation);
     PyObject *obObject;
     HANDLE h;
     DWORD Flags;
@@ -239,7 +179,7 @@ static PyObject *PyGetHandleInformation(PyObject *self, PyObject *args)
         return NULL;
     if (!PyWinObject_AsHANDLE(obObject, &h))
         return NULL;
-    if (!(*pfnGetHandleInformation)(h, &Flags))
+    if (!GetHandleInformation(h, &Flags))
         return PyWin_SetAPIError("GetHandleInformation");
     return PyLong_FromUnsignedLong(Flags);
 }
@@ -247,7 +187,6 @@ static PyObject *PyGetHandleInformation(PyObject *self, PyObject *args)
 // @pymethod |win32api|SetHandleInformation|Sets a handles's flags
 static PyObject *PySetHandleInformation(PyObject *self, PyObject *args)
 {
-    CHECK_PFN(SetHandleInformation);
     PyObject *obObject;
     HANDLE h;
     DWORD Mask, Flags;
@@ -259,7 +198,7 @@ static PyObject *PySetHandleInformation(PyObject *self, PyObject *args)
         return NULL;
     if (!PyWinObject_AsHANDLE(obObject, &h))
         return NULL;
-    if (!(*pfnSetHandleInformation)(h, Mask, Flags))
+    if (!SetHandleInformation(h, Mask, Flags))
         return PyWin_SetAPIError("SetHandleInformation");
     Py_INCREF(Py_None);
     return Py_None;
@@ -915,12 +854,10 @@ static PyObject *PyGetComputerName(PyObject *self, PyObject *args)
 // @pymethod string|win32api|GetComputerNameEx|Retrieves a NetBIOS or DNS name associated with the local computer
 static PyObject *PyGetComputerNameEx(PyObject *self, PyObject *args)
 {
-    CHECK_PFN(GetComputerNameEx);
     WCHAR *formattedname = NULL;
     COMPUTER_NAME_FORMAT fmt;
     PyObject *ret = NULL;
     ULONG nSize = 0;
-    BOOL ok;
     // @pyseeapi GetComputerNameEx
     if (!PyArg_ParseTuple(args, "i:GetComputerNameEx",
                           &fmt))  // @pyparm int|NameType||Value from COMPUTER_NAME_FORMAT enum, win32con.ComputerName*
@@ -928,14 +865,14 @@ static PyObject *PyGetComputerNameEx(PyObject *self, PyObject *args)
 
     // We always get into trouble with WinXP vs 2k error codes.
     // Simply assume that if we have a size, the function gave us the correct one.
-    (*pfnGetComputerNameEx)(fmt, formattedname, &nSize);
+    GetComputerNameEx(fmt, formattedname, &nSize);
     if (!nSize)
         return PyWin_SetAPIError("GetComputerNameExW");
     formattedname = (WCHAR *)malloc(nSize * sizeof(WCHAR));
     if (!formattedname)
         return PyErr_NoMemory();
     PyW32_BEGIN_ALLOW_THREADS;
-    ok = (*pfnGetComputerNameEx)(fmt, formattedname, &nSize);
+    BOOL ok = GetComputerNameEx(fmt, formattedname, &nSize);
     PyW32_END_ALLOW_THREADS;
     if (!ok) {
         PyWin_SetAPIError("GetComputerNameEx");
@@ -951,12 +888,10 @@ done:
 // @pymethod string|win32api|GetComputerObjectName|Retrieves the local computer's name in a specified format.
 static PyObject *PyGetComputerObjectName(PyObject *self, PyObject *args)
 {
-    CHECK_PFN(GetComputerObjectName);
     WCHAR *formattedname = NULL;
     EXTENDED_NAME_FORMAT fmt;
     PyObject *ret = NULL;
     ULONG nSize = 0;
-    BOOL ok;
     // @pyseeapi GetComputerObjectName
     if (!PyArg_ParseTuple(args, "i:GetComputerObjectName",
                           &fmt))  // @pyparm int|NameFormat||EXTENDED_NAME_FORMAT value, win32con.Name*
@@ -964,14 +899,14 @@ static PyObject *PyGetComputerObjectName(PyObject *self, PyObject *args)
 
     // We always get into trouble with WinXP vs 2k error codes.
     // Simply assume that if we have a size, the function gave us the correct one.
-    (*pfnGetComputerObjectName)(fmt, formattedname, &nSize);
+    GetComputerObjectName(fmt, formattedname, &nSize);
     if (!nSize)
         return PyWin_SetAPIError("GetComputerObjectName");
     formattedname = (WCHAR *)malloc(nSize * sizeof(WCHAR));
     if (!formattedname)
         return PyErr_NoMemory();
     PyW32_BEGIN_ALLOW_THREADS;
-    ok = (*pfnGetComputerObjectName)(fmt, formattedname, &nSize);
+    BOOL ok = GetComputerObjectName(fmt, formattedname, &nSize);
     PyW32_END_ALLOW_THREADS;
 
     if (!ok) {
@@ -1002,12 +937,10 @@ static PyObject *PyGetUserName(PyObject *self, PyObject *args)
 // @pymethod string|win32api|GetUserNameEx|Returns the current user name in format from EXTENDED_NAME_FORMAT enum
 static PyObject *PyGetUserNameEx(PyObject *self, PyObject *args)
 {
-    CHECK_PFN(GetUserNameEx);
     WCHAR *formattedname = NULL;
     EXTENDED_NAME_FORMAT fmt;
     PyObject *ret = NULL;
     ULONG nSize = 0;
-    BOOL ok;
     // @pyseeapi GetUserNameEx
     if (!PyArg_ParseTuple(args, "i:GetUserNameEx",
                           &fmt))  // @pyparm int|NameFormat||EXTENDED_NAME_FORMAT value, win32con.Name*
@@ -1015,14 +948,14 @@ static PyObject *PyGetUserNameEx(PyObject *self, PyObject *args)
 
     // We always get into trouble with WinXP vs 2k error codes.
     // Simply assume that if we have a size, the function gave us the correct one.
-    (*pfnGetUserNameEx)(fmt, formattedname, &nSize);
+    GetUserNameEx(fmt, formattedname, &nSize);
     if (!nSize)
         return PyWin_SetAPIError("GetUserNameExW");
     formattedname = (WCHAR *)malloc(nSize * sizeof(WCHAR));
     if (!formattedname)
         return PyErr_NoMemory();
     PyW32_BEGIN_ALLOW_THREADS;
-    ok = (*pfnGetUserNameEx)(fmt, formattedname, &nSize);
+    BOOL ok = GetUserNameEx(fmt, formattedname, &nSize);
     PyW32_END_ALLOW_THREADS;
     if (!ok) {
         PyWin_SetAPIError("GetUserNameEx");
@@ -1538,10 +1471,9 @@ static PyObject *PySetLastError(PyObject *self, PyObject *args)
 // @pyseeapi GetLastInputInfo
 static PyObject *PyGetLastInputInfo(PyObject *self, PyObject *args)
 {
-    CHECK_PFN(GetLastInputInfo);
     LASTINPUTINFO lii;
     lii.cbSize = sizeof(lii);
-    if (!(*pfnGetLastInputInfo)(&lii))
+    if (!GetLastInputInfo(&lii))
         return PyWin_SetAPIError("GetLastInputInfo");
     return PyLong_FromUnsignedLong(lii.dwTime);
 }
@@ -1861,7 +1793,6 @@ static PyObject *PyGetProcAddress(PyObject *self, PyObject *args)
 // @pyseeapi GetDllDirectory
 static PyObject *PyGetDllDirectory(PyObject *self, PyObject *args)
 {
-    CHECK_PFN(GetDllDirectory);
     WCHAR *dirs = NULL;
     DWORD bufsize = 0, reqdsize = 256;
     PyObject *ret = NULL;
@@ -1874,7 +1805,7 @@ static PyObject *PyGetDllDirectory(PyObject *self, PyObject *args)
             break;
         }
         bufsize = reqdsize;
-        reqdsize = (*pfnGetDllDirectory)(bufsize, dirs);
+        reqdsize = GetDllDirectory(bufsize, dirs);
         if (reqdsize == 0) {
             PyWin_SetAPIError("GetDllDirectory");
             break;
@@ -1893,7 +1824,6 @@ static PyObject *PyGetDllDirectory(PyObject *self, PyObject *args)
 // @pyseeapi SetDllDirectory
 static PyObject *PySetDllDirectory(PyObject *self, PyObject *args)
 {
-    CHECK_PFN(SetDllDirectory);
     PyObject *obdirname;
     WCHAR *dirname;
 
@@ -1902,7 +1832,7 @@ static PyObject *PySetDllDirectory(PyObject *self, PyObject *args)
         return NULL;
     if (!PyWinObject_AsWCHAR(obdirname, &dirname, TRUE))
         return NULL;
-    BOOL bsuccess = (*pfnSetDllDirectory)(dirname);
+    BOOL bsuccess = SetDllDirectory(dirname);
     PyWinObject_FreeWCHAR(dirname);
     if (!bsuccess)
         return PyWin_SetAPIError("SetDllDirectory");
@@ -2089,12 +2019,11 @@ static PyObject *PyGetSystemInfo(PyObject *self, PyObject *args)
 // @pymethod tuple|win32api|GetNativeSystemInfo|Retrieves information about the current system for a Wow64 process.
 static PyObject *PyGetNativeSystemInfo(PyObject *self, PyObject *args)
 {
-    CHECK_PFN(GetNativeSystemInfo);
     if (!PyArg_ParseTuple(args, ":GetNativeSystemInfo"))
         return NULL;
     // @pyseeapi GetNativeSystemInfo
     SYSTEM_INFO info;
-    (*pfnGetNativeSystemInfo)(&info);
+    GetNativeSystemInfo(&info);
     return Py_BuildValue("iiNNNiii(HH)", info.wProcessorArchitecture, info.dwPageSize,
                          PyWinLong_FromVoidPtr(info.lpMinimumApplicationAddress),
                          PyWinLong_FromVoidPtr(info.lpMaximumApplicationAddress),
@@ -2170,7 +2099,6 @@ static PyObject *PyGetLongPathNameW(PyObject *self, PyObject *args)
 {
     // @comm This function may raise a NotImplementedError exception if the version
     // of Windows does not support this function.
-    CHECK_PFN(GetLongPathNameW);
 
     WCHAR pathBuf[MAX_PATH];
     WCHAR *fileName;
@@ -2183,7 +2111,7 @@ static PyObject *PyGetLongPathNameW(PyObject *self, PyObject *args)
     if (!PyWinObject_AsWCHAR(obFileName, &fileName))
         return NULL;
     PyW32_BEGIN_ALLOW_THREADS;
-    DWORD length = (*pfnGetLongPathNameW)(fileName, pathBuf, sizeof(pathBuf) / sizeof(pathBuf[0]));
+    DWORD length = GetLongPathNameW(fileName, pathBuf, sizeof(pathBuf) / sizeof(pathBuf[0]));
     PyW32_END_ALLOW_THREADS;
     if (length) {
         if (length < sizeof(pathBuf) / sizeof(pathBuf[0]))
@@ -2195,7 +2123,7 @@ static PyObject *PyGetLongPathNameW(PyObject *self, PyObject *args)
             // The length is the buffer needed, which includes the NULL.
             // PyUnicode_FromWideChar adds one.
             PyW32_BEGIN_ALLOW_THREADS;
-            DWORD length2 = (*pfnGetLongPathNameW)(fileName, buf, length);
+            DWORD length2 = GetLongPathNameW(fileName, buf, length);
             PyW32_END_ALLOW_THREADS;
             if (length2)
                 obLongPathNameW = PyUnicode_FromWideChar(buf, -1);
@@ -2551,10 +2479,9 @@ static PyObject *PyGetSystemDirectory(PyObject *self, PyObject *args)
 // @pymethod tuple|win32api|GetSystemFileCacheSize|Returns the amount of memory reserved for file cache
 static PyObject *PyGetSystemFileCacheSize(PyObject *self, PyObject *args)
 {
-    CHECK_PFN(GetSystemFileCacheSize);
     SIZE_T minsize, maxsize;
     DWORD flags;
-    if (!(*pfnGetSystemFileCacheSize)(&minsize, &maxsize, &flags))
+    if (!GetSystemFileCacheSize(&minsize, &maxsize, &flags))
         return PyWin_SetAPIError("GetSystemFileCacheSize");
     // @rdesc Returns a tuple containing the minimum and maximum cache sizes, and flags (combination of
     // win32con.MM_WORKING_SET_* flags)
@@ -2568,21 +2495,16 @@ static PyObject *PyGetSystemFileCacheSize(PyObject *self, PyObject *args)
 // @comm Accepts keyword args.
 static PyObject *PySetSystemFileCacheSize(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-    CHECK_PFN(SetSystemFileCacheSize);
     SIZE_T minsize, maxsize;
     DWORD flags = 0;
-#ifdef _WIN64
     static char *input_fmt = "kk|k:SetSystemFileCacheSize";
-#else
-    static char *input_fmt = "KK|k:SetSystemFileCacheSize";
-#endif
     static char *keywords[] = {"MinimumFileCacheSize", "MaximumFileCacheSize", "Flags", NULL};
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, input_fmt, keywords,
                                      &minsize,  // @pyparm long|MinimumFileCacheSize||Minimum size in bytes.
                                      &maxsize,  // @pyparm long|MaximumFileCacheSize||Maximum size in bytes.
                                      &flags))   // @pyparm int|Flags|0|Combination of win32con.MM_WORKING_SET_* flags
         return NULL;
-    if (!(*pfnSetSystemFileCacheSize)(minsize, maxsize, flags))
+    if (!SetSystemFileCacheSize(minsize, maxsize, flags))
         return PyWin_SetAPIError("SetSystemFileCacheSize");
     Py_INCREF(Py_None);
     return Py_None;
@@ -2906,12 +2828,10 @@ static PyObject *PyRegConnectRegistry(PyObject *self, PyObject *args)
 // @comm Accepts keyword args.
 static PyObject *PyRegCopyTree(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-    CHECK_PFN(RegCopyTree);
     static char *keywords[] = {"KeySrc", "SubKey", "KeyDest", NULL};
     HKEY src, dst;
     PyObject *obsrc, *obsubkey, *obdst, *ret = NULL;
     WCHAR *subkey = NULL;
-    long rc;
 
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOO:RegCopyTree", keywords,
                                      &obsrc,     // @pyparm <o PyHKEY>|KeySrc||Registry key to be copied
@@ -2920,7 +2840,7 @@ static PyObject *PyRegCopyTree(PyObject *self, PyObject *args, PyObject *kwargs)
         return NULL;
     if (PyWinObject_AsHKEY(obsrc, &src) && PyWinObject_AsWCHAR(obsubkey, &subkey, TRUE) &&
         PyWinObject_AsHKEY(obdst, &dst)) {
-        rc = (*pfnRegCopyTree)(src, subkey, dst);
+        long rc = RegCopyTree(src, subkey, dst);
         if (rc != ERROR_SUCCESS)
             PyWin_SetAPIError("RegCopyTree", rc);
         else {
@@ -2999,14 +2919,12 @@ static PyObject *PyRegCreateKeyEx(PyObject *self, PyObject *args, PyObject *kwar
         return NULL;
     if (!PyWinObject_AsHANDLE(obtrans, &htrans))
         return NULL;
-    if (htrans != NULL)
-        CHECK_PFN(RegCreateKeyTransacted);
 
     if (PyWinObject_AsHKEY(obKey, &hKey) && PyWinObject_AsWCHAR(obsubKey, &subKey, TRUE) &&
         PyWinObject_AsWCHAR(obclass, &class_name, TRUE) && PyWinObject_AsSECURITY_ATTRIBUTES(obsa, &psa, TRUE)) {
         if (htrans != NULL)
-            rc = (*pfnRegCreateKeyTransacted)(hKey, subKey, reserved, class_name, options, access, psa, &retKey, &disp,
-                                              htrans, extparam);
+            rc = RegCreateKeyTransacted(hKey, subKey, reserved, class_name, options, access, psa, &retKey, &disp,
+                                        htrans, extparam);
         else
             rc = RegCreateKeyExW(hKey, subKey, reserved, class_name, options, access, psa, &retKey, &disp);
         if (rc != ERROR_SUCCESS)
@@ -3080,17 +2998,11 @@ static PyObject *PyRegDeleteKeyEx(PyObject *self, PyObject *args, PyObject *kwar
 
     if (!PyWinObject_AsHANDLE(obtrans, &htrans))
         return NULL;
-    if (htrans != NULL) {
-        CHECK_PFN(RegDeleteKeyTransacted);
-    }
-    else {
-        CHECK_PFN(RegDeleteKeyEx);
-    }
     if (PyWinObject_AsHKEY(obKey, &hKey) && PyWinObject_AsWCHAR(obsubKey, &subKey, FALSE)) {
         if (htrans != NULL)
-            rc = (*pfnRegDeleteKeyTransacted)(hKey, subKey, access, reserved, htrans, extparam);
+            rc = RegDeleteKeyTransacted(hKey, subKey, access, reserved, htrans, extparam);
         else
-            rc = (*pfnRegDeleteKeyEx)(hKey, subKey, access, reserved);
+            rc = RegDeleteKeyEx(hKey, subKey, access, reserved);
         if (rc != ERROR_SUCCESS)
             PyWin_SetAPIError("RegDeleteKeyEx", rc);
         else {
@@ -3106,11 +3018,9 @@ static PyObject *PyRegDeleteKeyEx(PyObject *self, PyObject *args, PyObject *kwar
 // @comm Accepts keyword args.
 static PyObject *PyRegDeleteTree(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-    CHECK_PFN(RegDeleteTree);
     HKEY hKey;
     PyObject *obKey, *obsubKey, *ret = NULL;
     WCHAR *subKey = NULL;
-    long rc;
     static char *keywords[] = {"Key", "SubKey", NULL};
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OO:RegDeleteTree", keywords,
                                      &obKey,      // @pyparm <o PyHKEY>|Key||Handle to a registry key
@@ -3119,7 +3029,7 @@ static PyObject *PyRegDeleteTree(PyObject *self, PyObject *args, PyObject *kwarg
         return NULL;
 
     if (PyWinObject_AsHKEY(obKey, &hKey) && PyWinObject_AsWCHAR(obsubKey, &subKey, TRUE)) {
-        rc = (*pfnRegDeleteTree)(hKey, subKey);
+        long rc = RegDeleteTree(hKey, subKey);
         if (rc != ERROR_SUCCESS)
             PyWin_SetAPIError("RegDeleteTree", rc);
         else {
@@ -3633,15 +3543,13 @@ static PyObject *PyRegUnLoadKey(PyObject *self, PyObject *args)
 // @pyseeapi RegOpenCurrentUser
 static PyObject *PyRegOpenCurrentUser(PyObject *self, PyObject *args)
 {
-    CHECK_PFN(RegOpenCurrentUser);
-    long rc;
     HKEY retKey;
     REGSAM sam = MAXIMUM_ALLOWED;
     // @pyparm int|samDesired|MAXIMUM_ALLOWED|Desired access, combination of win32con.KEY_*
     if (!PyArg_ParseTuple(args, "|k:RegOpenCurrentUser", &sam))
         return NULL;
     PyW32_BEGIN_ALLOW_THREADS;
-    rc = (*pfnRegOpenCurrentUser)(sam, &retKey);
+    long rc = RegOpenCurrentUser(sam, &retKey);
     PyW32_END_ALLOW_THREADS;
     if (rc != ERROR_SUCCESS)
         return ReturnAPIError("RegOpenCurrentUser", rc);
@@ -3696,7 +3604,6 @@ static PyObject *PyRegOpenKey(PyObject *self, PyObject *args)
 // @comm Accepts keyword arguments.
 static PyObject *PyRegOpenKeyTransacted(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-    CHECK_PFN(RegOpenKeyTransacted);
     HKEY hKey;
     PyObject *obKey, *obsubKey, *obtrans, *ret = NULL;
     WCHAR *subKey = NULL;
@@ -3705,7 +3612,6 @@ static PyObject *PyRegOpenKeyTransacted(PyObject *self, PyObject *args, PyObject
     PVOID extparam = NULL;  // Reserved, not accepted as arg for now
     HKEY retKey;
     HANDLE htrans;
-    long rc;
     static char *keywords[] = {"Key", "SubKey", "samDesired", "Transaction", "Options", NULL};
 
     if (!PyArg_ParseTupleAndKeywords(
@@ -3721,7 +3627,7 @@ static PyObject *PyRegOpenKeyTransacted(PyObject *self, PyObject *args, PyObject
         return NULL;
     if (PyWinObject_AsHKEY(obKey, &hKey) && PyWinObject_AsWCHAR(obsubKey, &subKey, TRUE) &&
         PyWinObject_AsHANDLE(obtrans, &htrans)) {
-        rc = (*pfnRegOpenKeyTransacted)(hKey, subKey, options, access, &retKey, htrans, extparam);
+        long rc = RegOpenKeyTransacted(hKey, subKey, options, access, &retKey, htrans, extparam);
         if (rc != ERROR_SUCCESS)
             PyWin_SetAPIError("RegOpenKeyTransacted", rc);
         else
@@ -3735,10 +3641,8 @@ static PyObject *PyRegOpenKeyTransacted(PyObject *self, PyObject *args, PyObject
 // @pyseeapi RegOverridePredefKey
 static PyObject *PyRegOverridePredefKey(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-    CHECK_PFN(RegOverridePredefKey);
     HKEY predef_key, new_key;
     PyObject *obpredef_key, *obnew_key;
-    long rc;
     static char *keywords[] = {"Key", "NewKey", NULL};
 
     if (!PyArg_ParseTupleAndKeywords(
@@ -3751,7 +3655,7 @@ static PyObject *PyRegOverridePredefKey(PyObject *self, PyObject *args, PyObject
         return NULL;
     if (!PyWinObject_AsHKEY(obnew_key, &new_key))
         return NULL;
-    rc = (*pfnRegOverridePredefKey)(predef_key, new_key);
+    long rc = RegOverridePredefKey(predef_key, new_key);
     if (rc != ERROR_SUCCESS)
         return PyWin_SetAPIError("RegOverridePredefKey", rc);
     Py_INCREF(Py_None);
@@ -3947,7 +3851,6 @@ static PyObject *PyRegQueryValueEx(PyObject *self, PyObject *args)
 static PyObject *PyRegRestoreKey(PyObject *self, PyObject *args, PyObject *kwargs)
 {
     static char *keywords[] = {"Key", "File", "Flags", NULL};
-    CHECK_PFN(RegRestoreKey);
     HKEY hKey;
     DWORD flags = 0;
     PyObject *obKey, *obfilename, *ret = NULL;
@@ -3962,7 +3865,7 @@ static PyObject *PyRegRestoreKey(PyObject *self, PyObject *args, PyObject *kwarg
                           // REG_FORCE_RESTORE,REG_NO_LAZY_FLUSH,REG_REFRESH_HIVE,REG_WHOLE_HIVE_VOLATILE (from winnt)
         return NULL;
     if (PyWinObject_AsHKEY(obKey, &hKey) && PyWinObject_AsWCHAR(obfilename, &filename, FALSE)) {
-        LONG rc = (*pfnRegRestoreKey)(hKey, filename, flags);
+        LONG rc = RegRestoreKey(hKey, filename, flags);
         if (rc != ERROR_SUCCESS)
             PyWin_SetAPIError("RegRestoreKey", rc);
         else {
@@ -4020,7 +3923,6 @@ static PyObject *PyRegSaveKey(PyObject *self, PyObject *args)
 static PyObject *PyRegSaveKeyEx(PyObject *self, PyObject *args, PyObject *kwargs)
 {
     static char *keywords[] = {"Key", "File", "SecurityAttributes", "Flags", NULL};
-    CHECK_PFN(RegSaveKeyEx);
     HKEY hKey;
     DWORD flags = REG_LATEST_FORMAT;
     PyObject *obKey, *obfilename, *obsa = Py_None, *ret = NULL;
@@ -4040,7 +3942,7 @@ static PyObject *PyRegSaveKeyEx(PyObject *self, PyObject *args, PyObject *kwargs
         return NULL;
     if (PyWinObject_AsHKEY(obKey, &hKey) && PyWinObject_AsWCHAR(obfilename, &filename, FALSE) &&
         PyWinObject_AsSECURITY_ATTRIBUTES(obsa, &psa, TRUE)) {
-        LONG rc = (*pfnRegSaveKeyEx)(hKey, filename, psa, flags);
+        LONG rc = RegSaveKeyEx(hKey, filename, psa, flags);
         if (rc != ERROR_SUCCESS)
             PyWin_SetAPIError("RegSaveKeyEx", rc);
         else {
@@ -5936,14 +5838,12 @@ PyObject *PyGlobalMemoryStatus(PyObject *self, PyObject *args)
 
 // @pymethod dict|win32api|GlobalMemoryStatusEx|Returns physical and virtual memory usage
 // @rdesc Returns a dictionary representing a MEMORYSTATUSEX structure
-// @comm Only available on Win2k and later.
 PyObject *PyGlobalMemoryStatusEx(PyObject *self, PyObject *args)
 {
-    CHECK_PFN(GlobalMemoryStatusEx);
     static char *fmt = "{s:k,s:k,s:K,s:K,s:K,s:K,s:K,s:K,s:K}";
     MEMORYSTATUSEX ms;
     ms.dwLength = sizeof(ms);
-    if (!(*pfnGlobalMemoryStatusEx)(&ms))
+    if (!GlobalMemoryStatusEx(&ms))
         return PyWin_SetAPIError("GlobalMemoryStatusEx");
     return Py_BuildValue(fmt, "Length", ms.dwLength, "MemoryLoad", ms.dwMemoryLoad, "TotalPhys", ms.ullTotalPhys,
                          "AvailPhys", ms.ullAvailPhys, "TotalPageFile", ms.ullTotalPageFile, "AvailPageFile",
@@ -5953,11 +5853,9 @@ PyObject *PyGlobalMemoryStatusEx(PyObject *self, PyObject *args)
 
 // @pymethod |win32api|SetSystemPowerState|Initiates low power mode to make system sleep or hibernate
 // @pyseeapi SetSystemPowerState
-// @comm Requires Win2k or later.
 // @comm SE_SHUTDOWN_NAME privilege must be enabled.
 PyObject *PySetSystemPowerState(PyObject *self, PyObject *args)
 {
-    CHECK_PFN(SetSystemPowerState);
     PyObject *obSuspend, *obForce;
     BOOL bSuspend, bForce, bsuccess;
     if (!PyArg_ParseTuple(
@@ -5968,7 +5866,7 @@ PyObject *PySetSystemPowerState(PyObject *self, PyObject *args)
         return NULL;
     bSuspend = PyObject_IsTrue(obSuspend);
     bForce = PyObject_IsTrue(obForce);
-    Py_BEGIN_ALLOW_THREADS bsuccess = (*pfnSetSystemPowerState)(bSuspend, bForce);
+    Py_BEGIN_ALLOW_THREADS bsuccess = SetSystemPowerState(bSuspend, bForce);
     Py_END_ALLOW_THREADS if (!bsuccess) return PyWin_SetAPIError("SetSystemPowerState");
     Py_INCREF(Py_None);
     return Py_None;
@@ -5982,7 +5880,6 @@ PyObject *PyWinObject_FromBATTERY_REPORTING_SCALE(PBATTERY_REPORTING_SCALE pbrs)
 
 // @pymethod dict|win32api|GetPwrCapabilities|Retrieves system's power capabilities
 // @pyseeapi GetPwrCapabilities
-// @comm Requires Win2k or later.
 // @rdesc Returns a dict representing a SYSTEM_POWER_CAPABILITIES struct
 PyObject *PyGetPwrCapabilities(PyObject *self, PyObject *args)
 {
@@ -6016,7 +5913,6 @@ PyObject *PyGetPwrCapabilities(PyObject *self, PyObject *args)
 
 // @pymethod dict|win32api|GetSystemPowerStatus|Retrieves the power status of the system
 // @pyseeapi GetSystemPowerStatus
-// @comm Requires Winxp or later.
 // @rdesc Returns a dict representing a SYSTEM_POWER_STATUS struct
 PyObject *PyGetSystemPowerStatus(PyObject *self, PyObject *args)
 {
@@ -6455,56 +6351,10 @@ PYWIN_MODULE_INIT_FUNC(win32api)
     PyModule_AddIntConstant(module, "VS_FF_PRIVATEBUILD", VS_FF_PRIVATEBUILD);
     PyModule_AddIntConstant(module, "VS_FF_SPECIALBUILD", VS_FF_SPECIALBUILD);
 
-    HMODULE hmodule = PyWin_GetOrLoadLibraryHandle("secur32.dll");
-    if (hmodule != NULL) {
-        pfnGetUserNameEx = (GetUserNameExfunc)GetProcAddress(hmodule, "GetUserNameExW");
-        pfnGetComputerObjectName = (GetUserNameExfunc)GetProcAddress(hmodule, "GetComputerObjectNameW");
-    }
-
-    hmodule = PyWin_GetOrLoadLibraryHandle("kernel32.dll");
-    if (hmodule != NULL) {
-        pfnGetComputerNameEx = (GetComputerNameExfunc)GetProcAddress(hmodule, "GetComputerNameExW");
-        pfnGetLongPathNameA = (GetLongPathNameAfunc)GetProcAddress(hmodule, "GetLongPathNameA");
-        pfnGetLongPathNameW = (GetLongPathNameWfunc)GetProcAddress(hmodule, "GetLongPathNameW");
-        pfnGetHandleInformation = (GetHandleInformationfunc)GetProcAddress(hmodule, "GetHandleInformation");
-        pfnSetHandleInformation = (SetHandleInformationfunc)GetProcAddress(hmodule, "SetHandleInformation");
-        pfnGlobalMemoryStatusEx = (GlobalMemoryStatusExfunc)GetProcAddress(hmodule, "GlobalMemoryStatusEx");
-        pfnGetSystemFileCacheSize = (GetSystemFileCacheSizefunc)GetProcAddress(hmodule, "GetSystemFileCacheSize");
-        pfnSetSystemFileCacheSize = (SetSystemFileCacheSizefunc)GetProcAddress(hmodule, "SetSystemFileCacheSize");
-        pfnGetDllDirectory = (GetDllDirectoryfunc)GetProcAddress(hmodule, "GetDllDirectoryW");
-        pfnSetDllDirectory = (SetDllDirectoryfunc)GetProcAddress(hmodule, "SetDllDirectoryW");
-        pfnSetSystemPowerState = (SetSystemPowerStatefunc)GetProcAddress(hmodule, "SetSystemPowerState");
-        pfnGetNativeSystemInfo = (GetNativeSystemInfofunc)GetProcAddress(hmodule, "GetNativeSystemInfo");
-        pfnGetSystemCpuSetInformation =
-            (GetSystemCpuSetInformationfunc)GetProcAddress(hmodule, "GetSystemCpuSetInformation");
-    }
-
-    hmodule = PyWin_GetOrLoadLibraryHandle("user32.dll");
-    if (hmodule != NULL) {
-        pfnEnumDisplayMonitors = (EnumDisplayMonitorsfunc)GetProcAddress(hmodule, "EnumDisplayMonitors");
-        pfnEnumDisplayDevices = (EnumDisplayDevicesfunc)GetProcAddress(hmodule, "EnumDisplayDevicesW");
-        pfnChangeDisplaySettingsEx = (ChangeDisplaySettingsExfunc)GetProcAddress(hmodule, "ChangeDisplaySettingsExW");
-        pfnMonitorFromWindow = (MonitorFromWindowfunc)GetProcAddress(hmodule, "MonitorFromWindow");
-        pfnMonitorFromRect = (MonitorFromRectfunc)GetProcAddress(hmodule, "MonitorFromRect");
-        pfnMonitorFromPoint = (MonitorFromPointfunc)GetProcAddress(hmodule, "MonitorFromPoint");
-        pfnGetMonitorInfo = (GetMonitorInfofunc)GetProcAddress(hmodule, "GetMonitorInfoW");
-        pfnEnumDisplaySettingsEx = (EnumDisplaySettingsExfunc)GetProcAddress(hmodule, "EnumDisplaySettingsExW");
-        pfnGetLastInputInfo = (GetLastInputInfofunc)GetProcAddress(hmodule, "GetLastInputInfo");
-    }
-
-    hmodule = PyWin_GetOrLoadLibraryHandle("advapi32.dll");
-    if (hmodule != NULL) {
-        pfnRegRestoreKey = (RegRestoreKeyfunc)GetProcAddress(hmodule, "RegRestoreKeyW");
-        pfnRegSaveKeyEx = (RegSaveKeyExfunc)GetProcAddress(hmodule, "RegSaveKeyExW");
-        pfnRegCreateKeyTransacted = (RegCreateKeyTransactedfunc)GetProcAddress(hmodule, "RegCreateKeyTransactedW");
-        pfnRegOpenKeyTransacted = (RegOpenKeyTransactedfunc)GetProcAddress(hmodule, "RegOpenKeyTransactedW");
-        pfnRegDeleteKeyEx = (RegDeleteKeyExfunc)GetProcAddress(hmodule, "RegDeleteKeyExW");
-        pfnRegDeleteKeyTransacted = (RegDeleteKeyTransactedfunc)GetProcAddress(hmodule, "RegDeleteKeyTransactedW");
-        pfnRegCopyTree = (RegCopyTreefunc)GetProcAddress(hmodule, "RegCopyTreeW");
-        pfnRegDeleteTree = (RegDeleteTreefunc)GetProcAddress(hmodule, "RegDeleteTreeW");
-        pfnRegOpenCurrentUser = (RegOpenCurrentUserfunc)GetProcAddress(hmodule, "RegOpenCurrentUser");
-        pfnRegOverridePredefKey = (RegOverridePredefKeyfunc)GetProcAddress(hmodule, "RegOverridePredefKey");
-    }
+    HMODULE hmodule = PyWin_GetOrLoadLibraryHandle("kernel32.dll");
+    assert(hmodule);
+    pfnGetSystemCpuSetInformation =
+        (GetSystemCpuSetInformationfunc)GetProcAddress(hmodule, "GetSystemCpuSetInformation");
 
     PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }

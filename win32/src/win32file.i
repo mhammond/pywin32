@@ -2797,145 +2797,6 @@ static PyObject *MyWaitCommEvent(PyObject *self, PyObject *args)
 
 // Some Win2k specific volume mounting functions, thanks to Roger Upole
 %{
-#define CHECK_PFN(fname) if (pfn##fname==NULL) return PyErr_Format(PyExc_NotImplementedError,"%s is not available on this platform", #fname);
-
-typedef BOOL (WINAPI *GetVolumeNameForVolumeMountPointfunc)(LPCWSTR, LPCWSTR, DWORD);
-static GetVolumeNameForVolumeMountPointfunc pfnGetVolumeNameForVolumeMountPoint = NULL;
-typedef BOOL (WINAPI *SetVolumeMountPointfunc)(LPCWSTR, LPCWSTR);
-static SetVolumeMountPointfunc pfnSetVolumeMountPoint = NULL;
-typedef BOOL (WINAPI *DeleteVolumeMountPointfunc)(LPCWSTR);
-static DeleteVolumeMountPointfunc pfnDeleteVolumeMountPoint = NULL;
-typedef BOOL (WINAPI *GetVolumePathNamefunc)(WCHAR *, WCHAR *, DWORD);
-static GetVolumePathNamefunc pfnGetVolumePathName=NULL;
-typedef BOOL (WINAPI *GetVolumePathNamesForVolumeNamefunc)(LPCWSTR,LPWSTR,DWORD,PDWORD);
-static GetVolumePathNamesForVolumeNamefunc pfnGetVolumePathNamesForVolumeName = NULL;
-
-typedef BOOL (WINAPI *EncryptFilefunc)(WCHAR *);
-static EncryptFilefunc pfnEncryptFile=NULL;
-typedef BOOL (WINAPI *DecryptFilefunc)(WCHAR *, DWORD);
-static DecryptFilefunc pfnDecryptFile=NULL;
-typedef BOOL (WINAPI *EncryptionDisablefunc)(WCHAR *, BOOL);
-static EncryptionDisablefunc pfnEncryptionDisable=NULL;
-typedef BOOL (WINAPI *FileEncryptionStatusfunc)(WCHAR *, LPDWORD);
-static FileEncryptionStatusfunc pfnFileEncryptionStatus=NULL;
-typedef DWORD (WINAPI *QueryUsersOnEncryptedFilefunc)(WCHAR *, PENCRYPTION_CERTIFICATE_HASH_LIST *);
-static QueryUsersOnEncryptedFilefunc pfnQueryUsersOnEncryptedFile=NULL;
-typedef BOOL (WINAPI *FreeEncryptionCertificateHashListfunc)(PENCRYPTION_CERTIFICATE_HASH_LIST);
-static FreeEncryptionCertificateHashListfunc pfnFreeEncryptionCertificateHashList=NULL;
-typedef DWORD (WINAPI *QueryRecoveryAgentsOnEncryptedFilefunc)(WCHAR *, PENCRYPTION_CERTIFICATE_HASH_LIST *);
-static QueryRecoveryAgentsOnEncryptedFilefunc pfnQueryRecoveryAgentsOnEncryptedFile=NULL;
-typedef DWORD (WINAPI *RemoveUsersFromEncryptedFilefunc)(WCHAR *, PENCRYPTION_CERTIFICATE_HASH_LIST);
-static RemoveUsersFromEncryptedFilefunc pfnRemoveUsersFromEncryptedFile=NULL;
-typedef DWORD (WINAPI *AddUsersToEncryptedFilefunc)(WCHAR *, PENCRYPTION_CERTIFICATE_LIST);
-static AddUsersToEncryptedFilefunc pfnAddUsersToEncryptedFile=NULL;
-typedef DWORD (WINAPI *DuplicateEncryptionInfoFilefunc)(LPWSTR,LPWSTR,DWORD,DWORD,LPSECURITY_ATTRIBUTES);
-static DuplicateEncryptionInfoFilefunc pfnDuplicateEncryptionInfoFile = NULL;
-
-typedef BOOL (WINAPI *CreateHardLinkfunc)(LPWSTR, LPWSTR, LPSECURITY_ATTRIBUTES);
-static CreateHardLinkfunc pfnCreateHardLink=NULL;
-typedef BOOL (WINAPI *CreateHardLinkTransactedfunc)(LPWSTR, LPWSTR, LPSECURITY_ATTRIBUTES, HANDLE);
-static CreateHardLinkTransactedfunc pfnCreateHardLinkTransacted=NULL;
-typedef BOOLEAN (WINAPI *CreateSymbolicLinkfunc)(LPWSTR,LPWSTR,DWORD);
-static CreateSymbolicLinkfunc pfnCreateSymbolicLink=NULL;
-typedef BOOLEAN (WINAPI *CreateSymbolicLinkTransactedfunc)(LPCWSTR,LPCWSTR,DWORD,HANDLE);
-static CreateSymbolicLinkTransactedfunc pfnCreateSymbolicLinkTransacted=NULL;
-
-typedef BOOL (WINAPI *BackupReadfunc)(HANDLE, LPBYTE, DWORD, LPDWORD, BOOL, BOOL, LPVOID*);
-static BackupReadfunc pfnBackupRead=NULL;
-typedef BOOL (WINAPI *BackupSeekfunc)(HANDLE, DWORD, DWORD, LPDWORD, LPDWORD, LPVOID*);
-static BackupSeekfunc pfnBackupSeek=NULL;
-typedef BOOL (WINAPI *BackupWritefunc)(HANDLE, LPBYTE, DWORD, LPDWORD, BOOL, BOOL, LPVOID*);
-static BackupWritefunc pfnBackupWrite=NULL;
-
-typedef BOOL (WINAPI *SetFileShortNamefunc)(HANDLE, LPCWSTR);
-static SetFileShortNamefunc pfnSetFileShortName=NULL;
-typedef BOOL (WINAPI *CopyFileExfunc)(LPWSTR,LPWSTR,LPPROGRESS_ROUTINE,LPVOID,LPBOOL,DWORD);
-static CopyFileExfunc pfnCopyFileEx=NULL;
-typedef BOOL (WINAPI *MoveFileWithProgressfunc)(LPWSTR,LPWSTR,LPPROGRESS_ROUTINE,LPVOID,DWORD);
-static MoveFileWithProgressfunc pfnMoveFileWithProgress=NULL;
-typedef BOOL (WINAPI *ReplaceFilefunc)(LPCWSTR,LPCWSTR,LPCWSTR,DWORD,LPVOID,LPVOID);
-static ReplaceFilefunc pfnReplaceFile=NULL;
-
-typedef DWORD (WINAPI *OpenEncryptedFileRawfunc)(LPCWSTR,ULONG,PVOID *);
-static OpenEncryptedFileRawfunc pfnOpenEncryptedFileRaw=NULL;
-typedef DWORD (WINAPI *ReadEncryptedFileRawfunc)(PFE_EXPORT_FUNC,PVOID,PVOID);
-static ReadEncryptedFileRawfunc pfnReadEncryptedFileRaw=NULL;
-typedef DWORD (WINAPI *WriteEncryptedFileRawfunc)(PFE_IMPORT_FUNC,PVOID,PVOID);
-static WriteEncryptedFileRawfunc pfnWriteEncryptedFileRaw=NULL;
-typedef void (WINAPI *CloseEncryptedFileRawfunc)(PVOID);
-static CloseEncryptedFileRawfunc pfnCloseEncryptedFileRaw=NULL;
-
-// Transactional NTFS functions
-typedef HANDLE (WINAPI *CreateFileTransactedfunc)(LPWSTR,DWORD,DWORD,LPSECURITY_ATTRIBUTES,DWORD,DWORD,HANDLE,HANDLE,PUSHORT,PVOID);
-static CreateFileTransactedfunc pfnCreateFileTransacted=NULL;
-typedef BOOL (WINAPI *DeleteFileTransactedfunc)(LPWSTR,HANDLE);
-static DeleteFileTransactedfunc pfnDeleteFileTransacted=NULL;
-typedef BOOL (WINAPI *MoveFileTransactedfunc)(LPWSTR,LPWSTR,LPPROGRESS_ROUTINE,LPVOID,DWORD,HANDLE);
-static MoveFileTransactedfunc pfnMoveFileTransacted=NULL;
-typedef BOOL (WINAPI *CopyFileTransactedfunc)(LPWSTR,LPWSTR,LPPROGRESS_ROUTINE,LPVOID,LPBOOL,DWORD,HANDLE);
-static CopyFileTransactedfunc pfnCopyFileTransacted=NULL;
-
-typedef DWORD (WINAPI *GetFileAttributesTransactedAfunc)(LPSTR,GET_FILEEX_INFO_LEVELS,LPVOID,HANDLE);
-static GetFileAttributesTransactedAfunc pfnGetFileAttributesTransactedA=NULL;
-typedef DWORD (WINAPI *GetFileAttributesTransactedWfunc)(LPWSTR,GET_FILEEX_INFO_LEVELS,LPVOID,HANDLE);
-static GetFileAttributesTransactedWfunc pfnGetFileAttributesTransactedW=NULL;
-
-typedef BOOL (WINAPI *SetFileAttributesTransactedfunc)(LPWSTR,DWORD,HANDLE);
-static SetFileAttributesTransactedfunc pfnSetFileAttributesTransacted=NULL;
-typedef BOOL (WINAPI *CreateDirectoryTransactedfunc)(LPWSTR,LPWSTR,LPSECURITY_ATTRIBUTES,HANDLE);
-static CreateDirectoryTransactedfunc pfnCreateDirectoryTransacted=NULL;
-typedef BOOL (WINAPI *RemoveDirectoryTransactedfunc)(LPWSTR,HANDLE);
-static RemoveDirectoryTransactedfunc pfnRemoveDirectoryTransacted=NULL;
-typedef HANDLE (WINAPI *FindFirstFileTransactedfunc)(LPWSTR,FINDEX_INFO_LEVELS,LPVOID,FINDEX_SEARCH_OPS,LPVOID,DWORD,HANDLE);
-static FindFirstFileTransactedfunc pfnFindFirstFileTransacted=NULL;
-
-typedef HANDLE (WINAPI *FindFirstStreamfunc)(LPWSTR, STREAM_INFO_LEVELS, LPVOID, DWORD);
-static FindFirstStreamfunc pfnFindFirstStream=NULL;
-typedef BOOL (WINAPI *FindNextStreamfunc)(HANDLE, LPVOID);
-static FindNextStreamfunc pfnFindNextStream=NULL;
-typedef HANDLE (WINAPI *FindFirstStreamTransactedfunc)(LPWSTR, STREAM_INFO_LEVELS, LPVOID, DWORD, HANDLE);
-static FindFirstStreamTransactedfunc pfnFindFirstStreamTransacted=NULL;
-typedef HANDLE (WINAPI *FindFirstFileNamefunc)(LPCWSTR,DWORD,LPDWORD,PWCHAR);
-static FindFirstFileNamefunc pfnFindFirstFileName = NULL;
-typedef HANDLE (WINAPI *FindFirstFileNameTransactedfunc)(LPCWSTR,DWORD,LPDWORD,PWCHAR,HANDLE);
-static FindFirstFileNameTransactedfunc pfnFindFirstFileNameTransacted = NULL;
-typedef BOOL (WINAPI *FindNextFileNamefunc)(HANDLE,LPDWORD,PWCHAR);
-static FindNextFileNamefunc pfnFindNextFileName = NULL;
-typedef DWORD (WINAPI *GetFinalPathNameByHandlefunc)(HANDLE,LPWSTR,DWORD,DWORD);
-static GetFinalPathNameByHandlefunc pfnGetFinalPathNameByHandle = NULL;
-typedef DWORD (WINAPI *GetLongPathNamefunc)(LPCWSTR,LPWSTR,DWORD);
-static GetLongPathNamefunc pfnGetLongPathName = NULL;
-typedef DWORD (WINAPI *GetLongPathNameTransactedfunc)(LPCWSTR,LPWSTR,DWORD,HANDLE);
-static GetLongPathNameTransactedfunc pfnGetLongPathNameTransacted = NULL;
-typedef DWORD (WINAPI *GetFullPathNameTransactedWfunc)(LPCWSTR,DWORD,LPWSTR,LPWSTR*,HANDLE);
-static GetFullPathNameTransactedWfunc pfnGetFullPathNameTransactedW = NULL;
-typedef DWORD (WINAPI *GetFullPathNameTransactedAfunc)(LPCSTR,DWORD,LPSTR,LPSTR*,HANDLE);
-static GetFullPathNameTransactedAfunc pfnGetFullPathNameTransactedA = NULL;
-
-typedef BOOL (WINAPI *Wow64DisableWow64FsRedirectionfunc)(PVOID*);
-static Wow64DisableWow64FsRedirectionfunc pfnWow64DisableWow64FsRedirection = NULL;
-typedef BOOL (WINAPI *Wow64RevertWow64FsRedirectionfunc)(PVOID);
-static Wow64RevertWow64FsRedirectionfunc pfnWow64RevertWow64FsRedirection = NULL;
-
-typedef BOOL (WINAPI *GetFileInformationByHandleExfunc)(HANDLE,FILE_INFO_BY_HANDLE_CLASS,LPVOID,DWORD);
-static GetFileInformationByHandleExfunc pfnGetFileInformationByHandleEx = NULL;
-typedef BOOL (WINAPI *SetFileInformationByHandlefunc)(HANDLE,FILE_INFO_BY_HANDLE_CLASS,LPVOID,DWORD);
-static SetFileInformationByHandlefunc pfnSetFileInformationByHandle = NULL;
-
-typedef HANDLE (WINAPI *ReOpenFilefunc)(HANDLE, DWORD, DWORD, DWORD);
-static ReOpenFilefunc pfnReOpenFile = NULL;
-
-typedef HANDLE (WINAPI *OpenFileByIdfunc)(HANDLE, LPFILE_ID_DESCRIPTOR, DWORD, DWORD,
-	LPSECURITY_ATTRIBUTES, DWORD);
-static OpenFileByIdfunc pfnOpenFileById = NULL;
-
-// From sfc.dll
-typedef BOOL (WINAPI *SfcGetNextProtectedFilefunc)(HANDLE,PPROTECTED_FILE_DATA);
-static SfcGetNextProtectedFilefunc pfnSfcGetNextProtectedFile = NULL;
-typedef BOOL (WINAPI *SfcIsFileProtectedfunc)(HANDLE,LPCWSTR);
-static SfcIsFileProtectedfunc pfnSfcIsFileProtected = NULL;
-
-
 // @pyswig string|SetVolumeMountPoint|Mounts the specified volume at the specified volume mount point.
 // @comm Accepts keyword args.
 static PyObject*
@@ -2944,8 +2805,6 @@ py_SetVolumeMountPoint(PyObject	*self, PyObject	*args, PyObject *kwargs)
 	// @ex Usage|SetVolumeMountPoint('h:\tmp\','c:\')
 	// @comm Note that both	parameters must	have trailing backslashes.
 	// @rdesc The result is	the	GUID of	the	volume mounted,	as a string.
-	CHECK_PFN(GetVolumeNameForVolumeMountPoint);
-	CHECK_PFN(SetVolumeMountPoint);
 	PyObject *ret=NULL;
 	PyObject *volume_obj = NULL, *mount_point_obj =	NULL;
 	WCHAR *volume =	NULL;
@@ -2959,9 +2818,9 @@ py_SetVolumeMountPoint(PyObject	*self, PyObject	*args, PyObject *kwargs)
 
 	if (PyWinObject_AsWCHAR(mount_point_obj, &mount_point, false)
 		&&PyWinObject_AsWCHAR(volume_obj, &volume, false)){
-		if (!(*pfnGetVolumeNameForVolumeMountPoint)(volume,volume_name,sizeof(volume_name)/sizeof(volume_name[0])))
+		if (!GetVolumeNameForVolumeMountPoint(volume,volume_name,sizeof(volume_name)/sizeof(volume_name[0])))
 			PyWin_SetAPIError("GetVolumeNameForVolumeMountPoint");
-		else if (!(*pfnSetVolumeMountPoint)(mount_point, volume_name))
+		else if (!SetVolumeMountPoint(mount_point, volume_name))
 			PyWin_SetAPIError("SetVolumeMountPoint");
 		else
 			ret=PyWinObject_FromWCHAR(volume_name);
@@ -2980,7 +2839,6 @@ py_DeleteVolumeMountPoint(PyObject *self, PyObject *args, PyObject *kwargs)
 	// @ex Usage|DeleteVolumeMountPoint('h:\tmp\')
 	// @comm Throws	an error if	it is not a	valid mount	point, returns None	on success.
 	// <nl>Use carefully - will	remove drive letter	assignment if no directory specified
-	CHECK_PFN(DeleteVolumeMountPoint);
 	PyObject *ret=NULL;
 	PyObject *mount_point_obj =	NULL;
 	WCHAR *mount_point = NULL;
@@ -2991,7 +2849,7 @@ py_DeleteVolumeMountPoint(PyObject *self, PyObject *args, PyObject *kwargs)
 	if (!PyWinObject_AsWCHAR(mount_point_obj, &mount_point,	FALSE))
 		return NULL;
 
-	if (!(*pfnDeleteVolumeMountPoint)(mount_point))
+	if (!DeleteVolumeMountPoint(mount_point))
 		PyWin_SetAPIError("DeleteVolumeMountPoint");
 	else{
 		Py_INCREF(Py_None);
@@ -3003,7 +2861,6 @@ py_DeleteVolumeMountPoint(PyObject *self, PyObject *args, PyObject *kwargs)
 PyCFunction pfnpy_DeleteVolumeMountPoint=(PyCFunction)py_DeleteVolumeMountPoint;
 
 // @pyswig string|GetVolumeNameForVolumeMountPoint|Returns unique volume name.
-// @comm Requires Win2K or later.
 // @comm Accepts keyword args.
 static PyObject *py_GetVolumeNameForVolumeMountPoint(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -3012,7 +2869,6 @@ static PyObject *py_GetVolumeNameForVolumeMountPoint(PyObject *self, PyObject *a
 
 	WCHAR *mount_point = NULL;
 	WCHAR volume_name[50];
-	CHECK_PFN(GetVolumeNameForVolumeMountPoint);
 	static char *keywords[]={"VolumeMountPoint", NULL};
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O:GetVolumeNameForVolumeMountPoint", keywords,
@@ -3020,7 +2876,7 @@ static PyObject *py_GetVolumeNameForVolumeMountPoint(PyObject *self, PyObject *a
 		return NULL;
 	if (!PyWinObject_AsWCHAR(obmount_point, &mount_point, false))
 		return NULL;
-	if (!(*pfnGetVolumeNameForVolumeMountPoint)(mount_point, volume_name, sizeof(volume_name)/sizeof(volume_name[0])))
+	if (!GetVolumeNameForVolumeMountPoint(mount_point, volume_name, sizeof(volume_name)/sizeof(volume_name[0])))
 		PyWin_SetAPIError("GetVolumeNameForVolumeMountPoint");
 	else
 		ret=PyWinObject_FromWCHAR(volume_name);
@@ -3041,7 +2897,6 @@ static PyObject *py_GetVolumePathName(PyObject *self, PyObject *args, PyObject *
 	PyObject *obpath = NULL;
 	WCHAR *path=NULL, *mount_point=NULL;
 	DWORD pathlen, bufsize=0;
-	CHECK_PFN(GetVolumePathName);
 	static char *keywords[]={"FileName","BufferLength", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|l:GetVolumePathName", keywords,
 		&obpath,	// @pyparm string|FileName||File/dir for which to return volume mount point
@@ -3059,7 +2914,7 @@ static PyObject *py_GetVolumePathName(PyObject *self, PyObject *args, PyObject *
 	if (mount_point==NULL)
 		PyErr_SetString(PyExc_MemoryError,"GetVolumePathName: Unable to allocate return buffer");
 	else
-		if (!(*pfnGetVolumePathName)(path, mount_point, bufsize))
+		if (!GetVolumePathName(path, mount_point, bufsize))
 			PyWin_SetAPIError("GetVolumePathName");
 		else
 			ret=PyWinObject_FromWCHAR(mount_point);
@@ -3072,7 +2927,6 @@ static PyObject *py_GetVolumePathName(PyObject *self, PyObject *args, PyObject *
 PyCFunction pfnpy_GetVolumePathName=(PyCFunction)py_GetVolumePathName;
 
 // @pyswig [string,...]|GetVolumePathNamesForVolumeName|Returns mounted paths for a volume
-// @comm Requires WinXP or later
 // @comm Accepts keyword args
 static PyObject *py_GetVolumePathNamesForVolumeName(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -3081,7 +2935,6 @@ static PyObject *py_GetVolumePathNamesForVolumeName(PyObject *self, PyObject *ar
 	// Preallocate for most common case: 'x:\\' + 2 nulls
 	DWORD buf_len=5, reqd_len=0, err;
 	static char *keywords[]={"VolumeName", NULL};
-	CHECK_PFN(GetVolumePathNamesForVolumeName);
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O:GetVolumePathNamesForVolumeName", keywords,
 		&obvolume))		// @pyparm string|VolumeName||Name of a volume as returned by <om win32file.GetVolumeNameForVolumeMountPoint>
 		return NULL;
@@ -3096,7 +2949,7 @@ static PyObject *py_GetVolumePathNamesForVolumeName(PyObject *self, PyObject *ar
 			PyErr_Format(PyExc_MemoryError,"Unable to allocate %d characters", buf_len);
 			break;
 			}
-		if ((*pfnGetVolumePathNamesForVolumeName)(volume, paths, buf_len, &reqd_len)){
+		if (GetVolumePathNamesForVolumeName(volume, paths, buf_len, &reqd_len)){
 			ret=PyWinObject_FromMultipleString(paths);
 			break;
 			}
@@ -3147,18 +3000,16 @@ py_CreateHardLink(PyObject *self, PyObject *args, PyObject *kwargs)
 	if (!PyWinObject_AsSECURITY_ATTRIBUTES(sa_obj, &sa, TRUE))
 		return NULL;
 	if (htrans){
-		CHECK_PFN(CreateHardLinkTransacted);
 		}
 	else{
-		CHECK_PFN(CreateHardLink);
 		}
 	if (PyWinObject_AsWCHAR(new_file_obj, &new_file, FALSE)
 		&&PyWinObject_AsWCHAR(existing_file_obj, &existing_file, FALSE)){
 		BOOL bsuccess;
 		if (htrans)
-			bsuccess=(*pfnCreateHardLinkTransacted)(new_file, existing_file, sa, htrans);
+			bsuccess=CreateHardLinkTransacted(new_file, existing_file, sa, htrans);
 		else
-			bsuccess=(*pfnCreateHardLink)(new_file, existing_file, sa);
+			bsuccess=CreateHardLink(new_file, existing_file, sa);
 		if (!bsuccess)
 			PyWin_SetAPIError("CreateHardLink");
 		else{
@@ -3192,19 +3043,13 @@ static PyObject *py_CreateSymbolicLink(PyObject *self, PyObject *args, PyObject 
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obtrans, &htrans))
 			return NULL;
-	if (htrans){
-		CHECK_PFN(CreateSymbolicLinkTransacted);
-		}
-	else{
-		CHECK_PFN(CreateSymbolicLink);
-		}
 
 	if (PyWinObject_AsWCHAR(oblinkname, &linkname, FALSE) && PyWinObject_AsWCHAR(obtargetname, &targetname, FALSE)){
 		BOOLEAN bsuccess;
 		if (htrans)
-			bsuccess=(*pfnCreateSymbolicLinkTransacted)(linkname, targetname, flags, htrans);
+			bsuccess=CreateSymbolicLinkTransacted(linkname, targetname, flags, htrans);
 		else
-			bsuccess=(*pfnCreateSymbolicLink)(linkname, targetname, flags);
+			bsuccess=CreateSymbolicLink(linkname, targetname, flags);
 		if (!bsuccess)
 			PyWin_SetAPIError("CreateSymbolicLink");
 		else{
@@ -3222,7 +3067,6 @@ PyCFunction pfnpy_CreateSymbolicLink=(PyCFunction)py_CreateSymbolicLink;
 static PyObject*
 py_EncryptFile(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(EncryptFile);
 	// @pyparm string|filename||File to encrypt
 	PyObject *ret=NULL, *obfname=NULL;
 	WCHAR *fname = NULL;
@@ -3231,7 +3075,7 @@ py_EncryptFile(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinObject_AsWCHAR(obfname, &fname, FALSE))
 		return NULL;
-	if (!(*pfnEncryptFile)(fname))
+	if (!EncryptFile(fname))
 		PyWin_SetAPIError("EncryptFile");
 	else
 		ret=Py_None;
@@ -3244,7 +3088,6 @@ py_EncryptFile(PyObject *self, PyObject *args)
 static PyObject*
 py_DecryptFile(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(DecryptFile);
 	// @pyparm string|filename||File to decrypt
 	PyObject *ret=NULL, *obfname=NULL;
 	WCHAR *fname = NULL;
@@ -3254,7 +3097,7 @@ py_DecryptFile(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinObject_AsWCHAR(obfname, &fname, FALSE))
 		return NULL;
-	if (!(*pfnDecryptFile)(fname,reserved))
+	if (!DecryptFile(fname,reserved))
 		PyWin_SetAPIError("DecryptFile");
 	else
 		ret=Py_None;
@@ -3267,7 +3110,6 @@ py_DecryptFile(PyObject *self, PyObject *args)
 static PyObject*
 py_EncryptionDisable(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(EncryptionDisable);
 	// @pyparm string|DirName||Directory to enable or disable
 	// @pyparm boolean|Disable||Set to False to enable encryption
 	PyObject *ret=NULL, *obfname=NULL;
@@ -3278,7 +3120,7 @@ py_EncryptionDisable(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinObject_AsWCHAR(obfname, &fname, FALSE))
 		return NULL;
-	if (!(*pfnEncryptionDisable)(fname,Disable))
+	if (!EncryptionDisable(fname,Disable))
 		PyWin_SetAPIError("EncryptionDisable");
 	else
 		ret=Py_None;
@@ -3295,7 +3137,6 @@ py_EncryptionDisable(PyObject *self, PyObject *args)
 static PyObject*
 py_FileEncryptionStatus(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(FileEncryptionStatus);
 	// @pyparm string|FileName||file to query
 	PyObject *ret=NULL, *obfname=NULL;
 	WCHAR *fname = NULL;
@@ -3305,7 +3146,7 @@ py_FileEncryptionStatus(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinObject_AsWCHAR(obfname, &fname, FALSE))
 		return NULL;
-	if (!(*pfnFileEncryptionStatus)(fname, &Status))
+	if (!FileEncryptionStatus(fname, &Status))
 		PyWin_SetAPIError("FileEncryptionStatus");
 	else
 		ret=Py_BuildValue("i",Status);
@@ -3587,11 +3428,9 @@ BOOL PyWinObject_AsPENCRYPTION_CERTIFICATE_HASH_LIST(PyObject *obhash_list, PENC
 static PyObject*
 py_QueryUsersOnEncryptedFile(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(QueryUsersOnEncryptedFile);
 	// @pyparm string|FileName||file to query
 	PyObject *ret=NULL, *obfname=NULL, *ret_item=NULL;
 	WCHAR *fname=NULL;
-	DWORD err=0;
 	PyObject *obsid=NULL, *obDisplayInformation=NULL;
 	PENCRYPTION_CERTIFICATE_HASH_LIST pechl=NULL;
 
@@ -3600,7 +3439,7 @@ py_QueryUsersOnEncryptedFile(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsWCHAR(obfname, &fname, FALSE))
 		return NULL;
 
-	err=(*pfnQueryUsersOnEncryptedFile)(fname, &pechl);
+	DWORD err=QueryUsersOnEncryptedFile(fname, &pechl);
 	if (err != ERROR_SUCCESS)
 		PyWin_SetAPIError("QueryUsersOnEncryptedFile",err);
 	else
@@ -3609,7 +3448,7 @@ py_QueryUsersOnEncryptedFile(PyObject *self, PyObject *args)
 	if (fname!=NULL)
 		PyWinObject_FreeWCHAR(fname);
 	if (pechl!=NULL)
-		(*pfnFreeEncryptionCertificateHashList)(pechl);
+		FreeEncryptionCertificateHashList(pechl);
 	return ret;
 }
 
@@ -3618,11 +3457,9 @@ py_QueryUsersOnEncryptedFile(PyObject *self, PyObject *args)
 static PyObject*
 py_QueryRecoveryAgentsOnEncryptedFile(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(QueryRecoveryAgentsOnEncryptedFile);
 	// @pyparm string|FileName||file to query
 	PyObject *ret=NULL, *obfname=NULL, *ret_item=NULL;
 	WCHAR *fname=NULL;
-	DWORD user_cnt=0, err=0;
 	PyObject *obsid=NULL, *obDisplayInformation=NULL;
 	PENCRYPTION_CERTIFICATE_HASH_LIST pechl=NULL;
 	PENCRYPTION_CERTIFICATE_HASH *user_item=NULL;
@@ -3631,7 +3468,7 @@ py_QueryRecoveryAgentsOnEncryptedFile(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsWCHAR(obfname, &fname, FALSE))
 		return NULL;
 
-	err=(*pfnQueryRecoveryAgentsOnEncryptedFile)(fname, &pechl);
+	DWORD err=QueryRecoveryAgentsOnEncryptedFile(fname, &pechl);
 	if (err != ERROR_SUCCESS)
 		PyWin_SetAPIError("QueryRecoveryAgentsOnEncryptedFile",err);
 	else
@@ -3640,7 +3477,7 @@ py_QueryRecoveryAgentsOnEncryptedFile(PyObject *self, PyObject *args)
 	if (fname!=NULL)
 		PyWinObject_FreeWCHAR(fname);
 	if (pechl!=NULL)
-		(*pfnFreeEncryptionCertificateHashList)(pechl);
+		FreeEncryptionCertificateHashList(pechl);
 	return ret;
 }
 
@@ -3648,12 +3485,10 @@ py_QueryRecoveryAgentsOnEncryptedFile(PyObject *self, PyObject *args)
 static PyObject*
 py_RemoveUsersFromEncryptedFile(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(RemoveUsersFromEncryptedFile);
 	// @pyparm string|FileName||File from which to remove users
 	// @pyparm ((<o PySID>,bytes,string),...)|pHashes||Sequence representing an ENCRYPTION_CERTIFICATE_HASH_LIST structure, as returned by QueryUsersOnEncryptedFile
 	PyObject *ret=NULL, *obfname=NULL, *obechl=NULL;
 	WCHAR *fname=NULL;
-	DWORD err=0;
 	ENCRYPTION_CERTIFICATE_HASH_LIST echl;
 	ZeroMemory(&echl,sizeof(ENCRYPTION_CERTIFICATE_HASH_LIST));
 	if (!PyArg_ParseTuple(args,"OO:RemoveUsersFromEncryptedFile", &obfname, &obechl))
@@ -3663,7 +3498,7 @@ py_RemoveUsersFromEncryptedFile(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsPENCRYPTION_CERTIFICATE_HASH_LIST(obechl,&echl))
 		goto done;
 
-	err=(*pfnRemoveUsersFromEncryptedFile)(fname, &echl);
+	DWORD err=RemoveUsersFromEncryptedFile(fname, &echl);
 	if (err != ERROR_SUCCESS)
 		PyWin_SetAPIError("RemoveUsersFromEncryptedFile",err);
 	else
@@ -3680,7 +3515,6 @@ py_RemoveUsersFromEncryptedFile(PyObject *self, PyObject *args)
 static PyObject*
 py_AddUsersToEncryptedFile(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(AddUsersToEncryptedFile);
 	// @pyparm string|FileName||File that additional users will be allowed to decrypt
 	// @pyparm ((<o PySID>,string,int),...)|pUsers||Sequence representing
 	// ENCRYPTION_CERTIFICATE_LIST - elements are sequences consisting of
@@ -3688,7 +3522,6 @@ py_AddUsersToEncryptedFile(PyObject *self, PyObject *args)
 	// this data), and encoding type (usually 1 for X509_ASN_ENCODING)
 	PyObject *ret=NULL, *obfname=NULL, *obecl=NULL;
 	WCHAR *fname=NULL;
-	DWORD err=0;
 	ENCRYPTION_CERTIFICATE_LIST ecl;
 	ZeroMemory(&ecl,sizeof(ENCRYPTION_CERTIFICATE_LIST));
 	if (!PyArg_ParseTuple(args,"OO:AddUsersToEncryptedFile", &obfname, &obecl))
@@ -3698,7 +3531,7 @@ py_AddUsersToEncryptedFile(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsPENCRYPTION_CERTIFICATE_LIST(obecl,&ecl))
 		return NULL;
 
-	err=(*pfnAddUsersToEncryptedFile)(fname, &ecl);
+	DWORD err=AddUsersToEncryptedFile(fname, &ecl);
 	if (err != ERROR_SUCCESS)
 		PyWin_SetAPIError("AddUsersToEncryptedFile",err);
 	else
@@ -3712,11 +3545,9 @@ py_AddUsersToEncryptedFile(PyObject *self, PyObject *args)
 
 // @pyswig |DuplicateEncryptionInfoFile|Duplicates EFS encryption from one file to another
 // @pyseeapi DuplicateEncryptionInfoFile
-// @comm Requires Windows XP or later
 // @comm Accepts keyword arguments.
 static PyObject *py_DuplicateEncryptionInfoFile(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-	CHECK_PFN(DuplicateEncryptionInfoFile);
 	WCHAR *src=NULL, *dst=NULL;
 	PSECURITY_ATTRIBUTES psa;
 	PyObject *obsrc, *obdst, *obsa=Py_None, *ret=NULL;
@@ -3734,7 +3565,7 @@ static PyObject *py_DuplicateEncryptionInfoFile(PyObject *self, PyObject *args, 
 	if (PyWinObject_AsWCHAR(obsrc, &src, FALSE)
 		&&PyWinObject_AsWCHAR(obdst, &dst, FALSE)
 		&&PyWinObject_AsSECURITY_ATTRIBUTES(obsa, &psa, TRUE)){
-		DWORD err=(*pfnDuplicateEncryptionInfoFile)(src, dst, disp, attr, psa);
+		DWORD err=DuplicateEncryptionInfoFile(src, dst, disp, attr, psa);
 		if (err==ERROR_SUCCESS){
 			Py_INCREF(Py_None);
 			ret=Py_None;
@@ -3756,7 +3587,6 @@ PyCFunction pfnpy_DuplicateEncryptionInfoFile=(PyCFunction)py_DuplicateEncryptio
 static PyObject*
 py_BackupRead(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(BackupRead);
 	// @pyparm <o PyHANDLE>|hFile||File handle opened by CreateFile
 	// @pyparm int|NumberOfBytesToRead||Number of bytes to be read from file
 	// @pyparm buffer|Buffer||Writeable buffer object that receives data read
@@ -3793,7 +3623,7 @@ py_BackupRead(PyObject *self, PyObject *args)
 			return PyErr_Format(PyExc_ValueError,"Buffer size (%d) less than requested read size (%d)", pybuf.len(), bytes_requested);
 		Py_INCREF(obbufout);
 		}
-	if (!(*pfnBackupRead)(h, (PBYTE)pybuf.ptr(), bytes_requested, &bytes_read, bAbort, bProcessSecurity, &ctxt)){
+	if (!BackupRead(h, (PBYTE)pybuf.ptr(), bytes_requested, &bytes_read, bAbort, bProcessSecurity, &ctxt)){
 		PyWin_SetAPIError("BackupRead");
 		Py_DECREF(obbufout);
 		return NULL;
@@ -3808,7 +3638,6 @@ py_BackupRead(PyObject *self, PyObject *args)
 static PyObject*
 py_BackupSeek(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(BackupSeek);
 	// @pyparm <o PyHANDLE>|hFile||File handle used by a BackupRead operation
 	// @pyparm long|NumberOfBytesToSeek||Number of bytes to move forward in current stream
 	// @pyparm int|lpContext||Context pointer returned from a BackupRead operation
@@ -3826,7 +3655,7 @@ py_BackupSeek(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsULARGE_INTEGER(obbytes_to_seek, &bytes_to_seek))
 		return NULL;
 	bytes_moved.QuadPart=0;
-	if (!(*pfnBackupSeek)(h, bytes_to_seek.LowPart, bytes_to_seek.HighPart,
+	if (!BackupSeek(h, bytes_to_seek.LowPart, bytes_to_seek.HighPart,
 	                   &bytes_moved.LowPart, &bytes_moved.HighPart,
 	                   &ctxt)){
 	    // function returns false if you attempt to seek past end of current stream, but file pointer
@@ -3844,7 +3673,6 @@ py_BackupSeek(PyObject *self, PyObject *args)
 static PyObject*
 py_BackupWrite(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(BackupWrite);
 	// @pyparm <o PyHANDLE>|hFile||File handle opened by CreateFile
 	// @pyparm int|NumberOfBytesToWrite||Length of data to be written to file
 	// @pyparm string|Buffer||A string or buffer object that contains the data to be written
@@ -3869,7 +3697,7 @@ py_BackupWrite(PyObject *self, PyObject *args)
 	if (pybuf.len() < bytes_to_write)
 		return PyErr_Format(PyExc_ValueError,"Buffer size (%d) less than requested write size (%d)", pybuf.len(), bytes_to_write);
 
-	if (!(*pfnBackupWrite)(h, (BYTE*)pybuf.ptr(), bytes_to_write, &bytes_written, bAbort, bProcessSecurity, &ctxt)){
+	if (!BackupWrite(h, (BYTE*)pybuf.ptr(), bytes_to_write, &bytes_written, bAbort, bProcessSecurity, &ctxt)){
 		PyWin_SetAPIError("BackupWrite");
 		return NULL;
 		}
@@ -3877,12 +3705,9 @@ py_BackupWrite(PyObject *self, PyObject *args)
 }
 
 // @pyswig |SetFileShortName|Set the 8.3 name of a file
-// @comm This function is only available on WinXP and later
 // @comm File handle must be opened with FILE_FLAG_BACKUP_SEMANTICS, and SE_RESTORE_NAME privilege must be enabled
-static PyObject*
-py_SetFileShortName(PyObject *self, PyObject *args)
+static PyObject* py_SetFileShortName(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(SetFileShortName);
 	HANDLE h;
 	WCHAR *shortname=NULL;
 	PyObject *obh, *obshortname;
@@ -3896,7 +3721,7 @@ py_SetFileShortName(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsWCHAR(obshortname, &shortname, FALSE))
 		return NULL;
 	Py_BEGIN_ALLOW_THREADS
-	bsuccess=(*pfnSetFileShortName)(h, (LPCWSTR)shortname);
+	bsuccess=SetFileShortName(h, (LPCWSTR)shortname);
 	Py_END_ALLOW_THREADS
 	PyWinObject_FreeWCHAR(shortname);
 	if (bsuccess){
@@ -3988,12 +3813,6 @@ py_CopyFileEx(PyObject *self, PyObject *args, PyObject *kwargs)
 
 	if (!PyWinObject_AsHANDLE(obtrans, &htrans))
 		return NULL;
-	if (htrans){
-		CHECK_PFN(CopyFileTransacted);
-		}
-	else{
-		CHECK_PFN(CopyFileEx);
-		}
 
 	if (obcallback!=Py_None){
 		if (!PyCallable_Check(obcallback)){
@@ -4009,9 +3828,9 @@ py_CopyFileEx(PyObject *self, PyObject *args, PyObject *kwargs)
 	if (PyWinObject_AsWCHAR(obsrc, &src, FALSE) && PyWinObject_AsWCHAR(obdst, &dst, FALSE)){
 		Py_BEGIN_ALLOW_THREADS
 		if (htrans)
-			bsuccess=(*pfnCopyFileTransacted)(src, dst, callback, callback_data, &bcancel, flags, htrans);
+			bsuccess=CopyFileTransacted(src, dst, callback, callback_data, &bcancel, flags, htrans);
 		else
-			bsuccess=(*pfnCopyFileEx)(src, dst, callback, callback_data, &bcancel, flags);
+			bsuccess=CopyFileEx(src, dst, callback, callback_data, &bcancel, flags);
 		Py_END_ALLOW_THREADS
 		if (!bsuccess){
 			// progress routine may have already thrown an exception
@@ -4057,12 +3876,6 @@ py_MoveFileWithProgress(PyObject *self, PyObject *args, PyObject *kwargs)
 
 	if (!PyWinObject_AsHANDLE(obtrans, &htrans))
 		return NULL;
-	if (htrans){
-		CHECK_PFN(MoveFileTransacted);
-		}
-	else{
-		CHECK_PFN(MoveFileWithProgress);
-		}
 
 	if (obcallback!=Py_None){
 		if (!PyCallable_Check(obcallback)){
@@ -4078,9 +3891,9 @@ py_MoveFileWithProgress(PyObject *self, PyObject *args, PyObject *kwargs)
 	if (PyWinObject_AsWCHAR(obsrc, &src, FALSE) && PyWinObject_AsWCHAR(obdst, &dst, TRUE)){
 		Py_BEGIN_ALLOW_THREADS
 		if (htrans)
-			bsuccess=(*pfnMoveFileTransacted)(src, dst, callback, callback_data, flags, htrans);
+			bsuccess=MoveFileTransacted(src, dst, callback, callback_data, flags, htrans);
 		else
-			bsuccess=(*pfnMoveFileWithProgress)(src, dst, callback, callback_data, flags);
+			bsuccess=MoveFileWithProgress(src, dst, callback, callback_data, flags);
 		Py_END_ALLOW_THREADS
 		if (!bsuccess){
 			// progress routine may have already thrown an exception
@@ -4102,7 +3915,6 @@ PyCFunction pfnpy_MoveFileWithProgress=(PyCFunction)py_MoveFileWithProgress;
 static PyObject*
 py_ReplaceFile(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(ReplaceFile);
 	PyObject *obsrc, *obdst, *obbackup=Py_None, *obExclude=Py_None, *obReserved=Py_None, *ret=NULL;
 	WCHAR *src=NULL, *dst=NULL, *backup=NULL;
 	LPVOID Exclude=NULL, Reserved=NULL;
@@ -4125,7 +3937,7 @@ py_ReplaceFile(PyObject *self, PyObject *args)
 		&&PyWinObject_AsWCHAR(obdst, &src, FALSE)
 		&&PyWinObject_AsWCHAR(obbackup, &backup, TRUE)){
 		Py_BEGIN_ALLOW_THREADS
-		bsuccess=(*pfnReplaceFile)(dst, src, backup, flags, Exclude, Reserved);
+		bsuccess=ReplaceFile(dst, src, backup, flags, Exclude, Reserved);
 		Py_END_ALLOW_THREADS
 		if (bsuccess){
 			Py_INCREF(Py_None);
@@ -4149,8 +3961,7 @@ void encryptedfilecontextdestructor(PyObject *obctxt){
 	if (PyCapsule_GetContext(obctxt) == INVALID_HANDLE_VALUE)
 		return;
 	void *ctxt = PyCapsule_GetPointer(obctxt, NULL);
-	if (pfnCloseEncryptedFileRaw)
-		(*pfnCloseEncryptedFileRaw)(ctxt);
+	CloseEncryptedFileRaw(ctxt);
 }
 
 
@@ -4161,8 +3972,6 @@ void encryptedfilecontextdestructor(PyObject *obctxt){
 static PyObject*
 py_OpenEncryptedFileRaw(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(OpenEncryptedFileRaw);
-	CHECK_PFN(CloseEncryptedFileRaw);
 	PyObject *obfname, *ret=NULL;
 	DWORD flags, err;
 	WCHAR *fname=NULL;
@@ -4174,14 +3983,14 @@ py_OpenEncryptedFileRaw(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsWCHAR(obfname, &fname, FALSE))
 		return NULL;
 	Py_BEGIN_ALLOW_THREADS
-	err=(*pfnOpenEncryptedFileRaw)(fname, flags, &ctxt),
+	err=OpenEncryptedFileRaw(fname, flags, &ctxt),
 	Py_END_ALLOW_THREADS
 	if (err!=ERROR_SUCCESS)
 		PyWin_SetAPIError("OpenEncryptedFileRaw", err);
 	else{
 		ret=PyCapsule_New(ctxt, NULL, encryptedfilecontextdestructor);
 		if (ret==NULL)
-			(*pfnCloseEncryptedFileRaw)(ctxt);
+			CloseEncryptedFileRaw(ctxt);
 		}
 	PyWinObject_FreeWCHAR(fname);
 	return ret;
@@ -4224,7 +4033,6 @@ DWORD WINAPI PyExportCallback(PBYTE file_data, PVOID callback_data, ULONG length
 static PyObject*
 py_ReadEncryptedFileRaw(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(ReadEncryptedFileRaw);
 	PyObject *obcallback, *obcallback_data, *obctxt;
 	PVOID ctxt;
 	PyObject *callback_objects[2];
@@ -4245,7 +4053,7 @@ py_ReadEncryptedFileRaw(PyObject *self, PyObject *args)
 	callback_objects[1]=obcallback_data;
 
 	Py_BEGIN_ALLOW_THREADS
-	retcode=(*pfnReadEncryptedFileRaw)(PyExportCallback, callback_objects, ctxt);
+	retcode=ReadEncryptedFileRaw(PyExportCallback, callback_objects, ctxt);
 	Py_END_ALLOW_THREADS
 	if (retcode==ERROR_SUCCESS){
 		Py_INCREF(Py_None);
@@ -4300,7 +4108,6 @@ DWORD WINAPI PyImportCallback(PBYTE file_data, PVOID callback_data, PULONG pleng
 static PyObject*
 py_WriteEncryptedFileRaw(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(WriteEncryptedFileRaw);
 	PyObject *obcallback, *obcallback_data, *obctxt;
 	PVOID ctxt;
 	PyObject *callback_objects[2];
@@ -4321,7 +4128,7 @@ py_WriteEncryptedFileRaw(PyObject *self, PyObject *args)
 	callback_objects[1]=obcallback_data;
 
 	Py_BEGIN_ALLOW_THREADS
-	retcode=(*pfnWriteEncryptedFileRaw)(PyImportCallback, callback_objects, ctxt);
+	retcode=WriteEncryptedFileRaw(PyImportCallback, callback_objects, ctxt);
 	Py_END_ALLOW_THREADS
 	if (retcode==ERROR_SUCCESS){
 		Py_INCREF(Py_None);
@@ -4337,7 +4144,6 @@ py_WriteEncryptedFileRaw(PyObject *self, PyObject *args)
 static PyObject*
 py_CloseEncryptedFileRaw(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(CloseEncryptedFileRaw);
 	PyObject *obctxt;
 	if (!PyArg_ParseTuple(args, "O:CloseEncryptedFileRaw",
 		&obctxt))	// @pyparm PyCObject|Context||Context object returned from <om win32file.OpenEncryptedFileRaw>
@@ -4356,7 +4162,7 @@ py_CloseEncryptedFileRaw(PyObject *self, PyObject *args)
 	if (PyCapsule_GetContext(obctxt) == INVALID_HANDLE_VALUE)
 		return PyErr_Format(PyExc_ValueError, "This handle has already been closed");
 	void *ctxt = PyCapsule_GetPointer(obctxt, NULL);
-	(*pfnCloseEncryptedFileRaw)(ctxt);
+	CloseEncryptedFileRaw(ctxt);
 	PyCapsule_SetContext(obctxt, INVALID_HANDLE_VALUE);
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -4395,8 +4201,6 @@ static PyObject *py_CreateFileW(PyObject *self, PyObject *args, PyObject *kwargs
 
 	if (!PyWinObject_AsHANDLE(obhtransaction, &htransaction))
 		return NULL;
-	if (htransaction)
-		CHECK_PFN(CreateFileTransacted);
 
 	if (!PyWinObject_AsSECURITY_ATTRIBUTES(obsa, &psa, TRUE))
 		return NULL;
@@ -4424,7 +4228,7 @@ static PyObject *py_CreateFileW(PyObject *self, PyObject *args, PyObject *kwargs
 
 	Py_BEGIN_ALLOW_THREADS
 	if (htransaction)
-		hret=(*pfnCreateFileTransacted)(filename, desiredaccess, sharemode, psa, creationdisposition,
+		hret=CreateFileTransacted(filename, desiredaccess, sharemode, psa, creationdisposition,
 			flags, htemplate, htransaction, pminiversion, extendedparameter);
 	else
 		hret=CreateFileW(filename, desiredaccess, sharemode, psa, creationdisposition,
@@ -4456,15 +4260,13 @@ static PyObject *py_DeleteFileW(PyObject *self, PyObject *args, PyObject *kwargs
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhtransaction, &htransaction))
 		return NULL;
-	if (htransaction)
-		CHECK_PFN(DeleteFileTransacted);
 	if (!PyWinObject_AsWCHAR(obfilename, &filename, FALSE))
 		return NULL;
 
 	BOOL ret;
 	Py_BEGIN_ALLOW_THREADS
 	if (htransaction)
-		ret=(*pfnDeleteFileTransacted)(filename, htransaction);
+		ret=DeleteFileTransacted(filename, htransaction);
 	else
 		ret=DeleteFileW(filename);
 	Py_END_ALLOW_THREADS
@@ -4551,14 +4353,6 @@ static PyObject *py_GetFileAttributesEx(PyObject *self, PyObject *args, PyObject
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obtrans, &htrans))
 		return NULL;
-	if (htrans){
-		if (bUnicode){
-			CHECK_PFN(GetFileAttributesTransactedW);
-			}
-		else{
-			CHECK_PFN(GetFileAttributesTransactedA);
-			}
-		}
 
 	if (bUnicode)
 		ok = PyWinObject_AsWCHAR(obfname, &wname, FALSE);
@@ -4587,9 +4381,9 @@ static PyObject *py_GetFileAttributesEx(PyObject *self, PyObject *args, PyObject
 	// MSDN docs say this returns a DWORD containing the attributes, but it actually acts as a boolean
 	if (htrans){
 		if (bUnicode)
-			ok=(*pfnGetFileAttributesTransactedW)(wname, lvl, buf, htrans);
+			ok=GetFileAttributesTransactedW(wname, lvl, buf, htrans);
 		else
-			ok=(*pfnGetFileAttributesTransactedA)(cname, lvl, buf, htrans);
+			ok=GetFileAttributesTransactedA(cname, lvl, buf, htrans);
 		}
 	else{
 		if (bUnicode)
@@ -4644,14 +4438,12 @@ static PyObject *py_SetFileAttributesW(PyObject *self, PyObject *args, PyObject 
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obtrans, &htrans))
 		return NULL;
-	if (htrans)
-		CHECK_PFN(SetFileAttributesTransacted);
 	if (!PyWinObject_AsWCHAR(obfname, &fname, FALSE))
 		return NULL;
 
 	BOOL ret;
 	if (htrans)
-		ret=(*pfnSetFileAttributesTransacted)(fname, attrs, htrans);
+		ret=SetFileAttributesTransacted(fname, attrs, htrans);
 	else
 		ret=SetFileAttributesW(fname, attrs);
 
@@ -4684,8 +4476,6 @@ static PyObject *py_CreateDirectoryExW(PyObject *self, PyObject *args, PyObject 
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obtrans, &htrans))
 		return NULL;
-	if (htrans)
-		CHECK_PFN(CreateDirectoryTransacted);
 	if (!PyWinObject_AsSECURITY_ATTRIBUTES(obsa, &psa, TRUE))
 		return NULL;
 
@@ -4693,7 +4483,7 @@ static PyObject *py_CreateDirectoryExW(PyObject *self, PyObject *args, PyObject 
 	if (PyWinObject_AsWCHAR(obdirname, &dirname, FALSE)
 		&& PyWinObject_AsWCHAR(obtemplatedir, &templatedir, TRUE)){
 		if (htrans)
-			bsuccess=(*pfnCreateDirectoryTransacted)(templatedir, dirname, psa, htrans);
+			bsuccess=CreateDirectoryTransacted(templatedir, dirname, psa, htrans);
 		else
 			bsuccess=CreateDirectoryExW(templatedir, dirname, psa);
 		if (!bsuccess)
@@ -4727,14 +4517,12 @@ static PyObject *py_RemoveDirectory(PyObject *self, PyObject *args, PyObject *kw
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obtrans, &htrans))
 		return NULL;
-	if (htrans)
-		CHECK_PFN(RemoveDirectoryTransacted);
 	if (!PyWinObject_AsWCHAR(obdirname, &dirname, FALSE))
 		return NULL;
 
 	BOOL bsuccess;
 	if (htrans)
-		bsuccess=(*pfnRemoveDirectoryTransacted)(dirname, htrans);
+		bsuccess=RemoveDirectoryTransacted(dirname, htrans);
 	else
 		bsuccess=RemoveDirectoryW(dirname);
 	if (!bsuccess)
@@ -4765,8 +4553,6 @@ static PyObject *py_FindFilesW(PyObject *self, PyObject *args, PyObject *kwargs)
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obtrans, &htrans))
 		return NULL;
-	if (htrans!=NULL)
-		CHECK_PFN(FindFirstFileTransacted);
 	if (!PyWinObject_AsWCHAR(obfileSpec,&fileSpec,FALSE))
 		return NULL;
 	WIN32_FIND_DATAW findData;
@@ -4776,7 +4562,7 @@ static PyObject *py_FindFilesW(PyObject *self, PyObject *args, PyObject *kwargs)
 
 	memset(&findData, 0, sizeof(findData));
 	if (htrans!=NULL)
-		hFind=(*pfnFindFirstFileTransacted)(fileSpec, FindExInfoStandard, &findData,
+		hFind=FindFirstFileTransacted(fileSpec, FindExInfoStandard, &findData,
 			FindExSearchNameMatch, NULL, 0, htrans);
 	else
 		hFind =  ::FindFirstFileW(fileSpec, &findData);
@@ -4837,8 +4623,6 @@ static PyObject *py_FindFilesIterator(PyObject *self, PyObject *args, PyObject *
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obtrans, &htrans))
 		return NULL;
-	if (htrans!=NULL)
-		CHECK_PFN(FindFirstFileTransacted);
 	if (!PyWinObject_AsWCHAR(obfileSpec,&fileSpec,FALSE))
 		return NULL;
 
@@ -4854,7 +4638,7 @@ static PyObject *py_FindFilesIterator(PyObject *self, PyObject *args, PyObject *
 
 	Py_BEGIN_ALLOW_THREADS
 	if (htrans!=NULL)
-		it->hFind=(*pfnFindFirstFileTransacted)(fileSpec, FindExInfoStandard, &it->buffer,
+		it->hFind=FindFirstFileTransacted(fileSpec, FindExInfoStandard, &it->buffer,
 			FindExSearchNameMatch, NULL, 0, htrans);
 	else
 		it->hFind =  ::FindFirstFileW(fileSpec, &it->buffer);
@@ -4877,11 +4661,9 @@ PyCFunction pfnpy_FindFilesIterator=(PyCFunction)py_FindFilesIterator;
 // @pyswig [(long, string),...]|FindStreams|List the data streams for a file
 // @rdesc Returns a list of tuples containing each stream's size and name
 // @comm This uses the API functions FindFirstStreamW, FindNextStreamW and FindClose
-// @comm If the Transaction arg is not None, FindFirstStreamTransacted will be called in place of FindFirstStreamW
+// @comm If the Transaction arg is not None, FindFirstStreamTransactedW will be called in place of FindFirstStreamW
 static PyObject *py_FindStreams(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-	CHECK_PFN(FindFirstStream);
-	CHECK_PFN(FindNextStream);
 
 	PyObject *obfname, *obtrans=Py_None, *ret=NULL, *ret_item;
 	WCHAR *fname=NULL;
@@ -4897,15 +4679,13 @@ static PyObject *py_FindStreams(PyObject *self, PyObject *args, PyObject *kwargs
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obtrans, &htrans))
 		return NULL;
-	if (htrans!=NULL)
-		CHECK_PFN(FindFirstStreamTransacted);
 	if (!PyWinObject_AsWCHAR(obfname, &fname, FALSE))
 		return NULL;
 
 	if (htrans!=NULL)
-		hfind=(*pfnFindFirstStreamTransacted)(fname, lvl, &fsd, flags, htrans);
+		hfind=FindFirstStreamTransactedW(fname, lvl, &fsd, flags, htrans);
 	else
-		hfind=(*pfnFindFirstStream)(fname, lvl, &fsd, flags);
+		hfind=FindFirstStreamW(fname, lvl, &fsd, flags);
 	PyWinObject_FreeWCHAR(fname);
 	if (hfind==INVALID_HANDLE_VALUE)
 		return PyWin_SetAPIError("FindFirstStreamW");
@@ -4920,12 +4700,12 @@ static PyObject *py_FindStreams(PyObject *self, PyObject *args, PyObject *kwargs
 				break;
 				}
 			Py_DECREF(ret_item);
-			if (!(*pfnFindNextStream)(hfind, &fsd)){
+			if (!FindNextStreamW(hfind, &fsd)){
 				err=GetLastError();
 				if (err!=ERROR_HANDLE_EOF){
 					Py_DECREF(ret);
 					ret=NULL;
-					PyWin_SetAPIError("FindNextStream",err);
+					PyWin_SetAPIError("FindNextStreamW",err);
 					}
 				break;
 				}
@@ -4938,11 +4718,9 @@ PyCFunction pfnpy_FindStreams=(PyCFunction)py_FindStreams;
 
 // @pyswig [string,...]|FindFileNames|Enumerates hard links that point to specified file
 // @comm This uses the API functions FindFirstFileNameW, FindNextFileNameW and FindClose
-// @comm If Transaction is specified, a transacted search is performed using FindFirstFileNameTransacted
+// @comm If Transaction is specified, a transacted search is performed using FindFirstFileNameTransactedW
 static PyObject *py_FindFileNames(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-	CHECK_PFN(FindFirstFileName);
-	CHECK_PFN(FindNextFileName);
 
 	PyObject *obfname, *obtrans=Py_None, *ret=NULL, *ret_item;
 	WCHAR *fname=NULL, *linkname=NULL;
@@ -4961,8 +4739,6 @@ static PyObject *py_FindFileNames(PyObject *self, PyObject *args, PyObject *kwar
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obtrans, &htrans))
 		return NULL;
-	if (htrans!=NULL)
-		CHECK_PFN(FindFirstFileNameTransacted);
 	if (!PyWinObject_AsWCHAR(obfname, &fname, FALSE))
 		return NULL;
 
@@ -4978,9 +4754,9 @@ static PyObject *py_FindFileNames(PyObject *self, PyObject *args, PyObject *kwar
 			}
 		if (bfindfirst){
 			if (htrans!=NULL)
-				hfind=(*pfnFindFirstFileNameTransacted)(fname, flags, &ret_size, linkname, htrans);
+				hfind=FindFirstFileNameTransactedW(fname, flags, &ret_size, linkname, htrans);
 			else
-				hfind=(*pfnFindFirstFileName)(fname, flags, &ret_size, linkname);
+				hfind=FindFirstFileNameW(fname, flags, &ret_size, linkname);
 			bsuccess=(hfind!=INVALID_HANDLE_VALUE);
 			if (bsuccess){
 				bfindfirst=FALSE;
@@ -4992,7 +4768,7 @@ static PyObject *py_FindFileNames(PyObject *self, PyObject *args, PyObject *kwar
 				}
 			}
 		else
-			bsuccess=(*pfnFindNextFileName)(hfind, &ret_size, linkname);
+			bsuccess=FindNextFileNameW(hfind, &ret_size, linkname);
 		if (bsuccess){
 			// There seems to be some confusion around ret_size - the MS docs
 			// don't say whether this includes the trailing \0 or not. #1511
@@ -5011,11 +4787,11 @@ static PyObject *py_FindFileNames(PyObject *self, PyObject *args, PyObject *kwar
 		else{
 			err=GetLastError();
 			if (err==ERROR_MORE_DATA){
-				/* FindNextFileName leaks memory when it fails due to insufficient buffer !
+				/* FindNextFileNameW leaks memory when it fails due to insufficient buffer !
 				if (!bfindfirst)
 					for (int x=0; x<10000; x++){
 						alloc_size=3;
-						(*pfnFindNextFileName)(hfind, &alloc_size, linkname);
+						FindNextFileNameW(hfind, &alloc_size, linkname);
 					}
 				*/
 				free(linkname);
@@ -5050,7 +4826,6 @@ PyCFunction pfnpy_FindFileNames=(PyCFunction)py_FindFileNames;
 // @comm Accepts keyword arguments.
 static PyObject *py_GetFinalPathNameByHandle(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-	CHECK_PFN(GetFinalPathNameByHandle);
 	WCHAR *path=NULL;
 	DWORD path_len=0, reqd_len, flags;
 	HANDLE hfile;
@@ -5064,14 +4839,14 @@ static PyObject *py_GetFinalPathNameByHandle(PyObject *self, PyObject *args, PyO
 	if (!PyWinObject_AsHANDLE(obhfile, &hfile))
 		return NULL;
 
-	reqd_len=(*pfnGetFinalPathNameByHandle)(hfile, path, path_len, flags);
+	reqd_len=GetFinalPathNameByHandle(hfile, path, path_len, flags);
 	if (reqd_len==0)
 		return PyWin_SetAPIError("GetFinalPathNameByHandle");
 	path_len=reqd_len+1;  // returned valued doesn't include NULL terminator
 	path=(WCHAR *)malloc(path_len*sizeof(WCHAR));
 	if (path==NULL)
 		return PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", path_len*sizeof(WCHAR));
-	reqd_len=(*pfnGetFinalPathNameByHandle)(hfile, path, path_len, flags);
+	reqd_len=GetFinalPathNameByHandle(hfile, path, path_len, flags);
 	if (reqd_len==0)
 		PyWin_SetAPIError("GetFinalPathNameByHandle");
 	else if (reqd_len > path_len)	// should not happen
@@ -5087,7 +4862,6 @@ PyCFunction pfnpy_GetFinalPathNameByHandle=(PyCFunction)py_GetFinalPathNameByHan
 // @pyseeapi SfcGetNextProtectedFile
 static PyObject *py_SfcGetNextProtectedFile(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(SfcGetNextProtectedFile);
 	PROTECTED_FILE_DATA pfd;
 	DWORD err=0;
 	HANDLE rpchandle=NULL; // reserved
@@ -5100,7 +4874,7 @@ static PyObject *py_SfcGetNextProtectedFile(PyObject *self, PyObject *args)
 		return NULL;
 	pfd.FileNumber=0;
 
-	while ((*pfnSfcGetNextProtectedFile)(rpchandle, &pfd)){
+	while (SfcGetNextProtectedFile(rpchandle, &pfd)){
 		ret_item=PyWinObject_FromWCHAR(pfd.FileName);
 		if (ret_item==NULL || PyList_Append(ret, ret_item)==-1){
 			Py_XDECREF(ret_item);
@@ -5119,11 +4893,9 @@ static PyObject *py_SfcGetNextProtectedFile(PyObject *self, PyObject *args)
 // @pyswig boolean|SfcIsFileProtected|Checks if a file is protected
 static PyObject *py_SfcIsFileProtected(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(SfcIsFileProtected);
 	PyObject *obfname;
 	WCHAR *fname;
 	HANDLE rpchandle=NULL; // reserved
-	BOOL ret;
 
 	if (!PyArg_ParseTuple(args, "O:SfcIsFileProtected",
 		&obfname))	// @pyparm string|ProtFileName||Name of file to be checked
@@ -5131,7 +4903,7 @@ static PyObject *py_SfcIsFileProtected(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsWCHAR(obfname, &fname, FALSE))
 		return NULL;
 
-	ret=(*pfnSfcIsFileProtected)(rpchandle, fname);
+	BOOL ret=SfcIsFileProtected(rpchandle, fname);
 	PyWinObject_FreeWCHAR(fname);
 	if (!ret){
 		DWORD err=GetLastError();
@@ -5161,12 +4933,6 @@ static PyObject *py_GetLongPathName(PyObject *self, PyObject *args, PyObject *kw
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obtrans, &htrans))
 		return NULL;
-	if (htrans){
-		CHECK_PFN(GetLongPathNameTransacted);
-		}
-	else{
-		CHECK_PFN(GetLongPathName);
-		}
 	if (!PyWinObject_AsWCHAR(obfname, &short_path, FALSE))
 		return NULL;
 
@@ -5185,9 +4951,9 @@ static PyObject *py_GetLongPathName(PyObject *self, PyObject *args, PyObject *kw
 			}
 		Py_BEGIN_ALLOW_THREADS
 		if (htrans)
-			retlen=(*pfnGetLongPathNameTransacted)(short_path, long_path, pathlen, htrans);
+			retlen=GetLongPathNameTransacted(short_path, long_path, pathlen, htrans);
 		else
-			retlen=(*pfnGetLongPathName)(short_path, long_path, pathlen);
+			retlen=GetLongPathName(short_path, long_path, pathlen);
 		Py_END_ALLOW_THREADS
 		if (retlen==0){
 			PyWin_SetAPIError("GetLongPathName");
@@ -5229,8 +4995,6 @@ static PyObject *py_GetFullPathName(PyObject *self, PyObject *args, PyObject *kw
 		return NULL;
 
 	if (TmpWCHAR wpathin=obpathin) {
-		if (htrans)
-			CHECK_PFN(GetFullPathNameTransactedW);
 		WCHAR *wpathret=NULL, *wfilepart, *wpathsave=NULL;
 		while (1){
 			if (wpathret){
@@ -5247,7 +5011,7 @@ static PyObject *py_GetFullPathName(PyObject *self, PyObject *args, PyObject *kw
 				}
 			Py_BEGIN_ALLOW_THREADS
 			if (htrans)
-				retlen=(*pfnGetFullPathNameTransactedW)(wpathin, pathlen, wpathret, &wfilepart, htrans);
+				retlen=GetFullPathNameTransactedW(wpathin, pathlen, wpathret, &wfilepart, htrans);
 			else
 				retlen=GetFullPathNameW(wpathin, pathlen, wpathret, &wfilepart);
 			Py_END_ALLOW_THREADS
@@ -5268,8 +5032,6 @@ static PyObject *py_GetFullPathName(PyObject *self, PyObject *args, PyObject *kw
 	PyErr_Clear();
 	char *cpathin;
 	if (cpathin=PyBytes_AsString(obpathin)){
-		if (htrans)
-			CHECK_PFN(GetFullPathNameTransactedA);
 		char *cpathret=NULL, *cfilepart, *cpathsave=NULL;
 		while (1){
 			if (cpathret){
@@ -5286,7 +5048,7 @@ static PyObject *py_GetFullPathName(PyObject *self, PyObject *args, PyObject *kw
 				}
 			Py_BEGIN_ALLOW_THREADS
 			if (htrans)
-				retlen=(*pfnGetFullPathNameTransactedA)(cpathin, pathlen, cpathret, &cfilepart, htrans);
+				retlen=GetFullPathNameTransactedA(cpathin, pathlen, cpathret, &cfilepart, htrans);
 			else
 				retlen=GetFullPathNameA(cpathin, pathlen, cpathret, &cfilepart);
 			Py_END_ALLOW_THREADS
@@ -5308,28 +5070,24 @@ PyCFunction pfnpy_GetFullPathName=(PyCFunction)py_GetFullPathName;
 
 // @pyswig int|Wow64DisableWow64FsRedirection|Disables file system redirection for 32-bit processes running on a 64-bit system
 // @rdesc Returns a state value to be passed to <om win32file.Wow64RevertWow64FsRedirection>
-// @comm Requires 64-bit XP or later
 static PyObject *py_Wow64DisableWow64FsRedirection(PyObject *self, PyObject *args)
 {
 	VOID *state;
-	CHECK_PFN(Wow64DisableWow64FsRedirection);
 	if (!PyArg_ParseTuple(args, ":Wow64DisableWow64FsRedirection"))
 		return NULL;
-	if (!(*pfnWow64DisableWow64FsRedirection)(&state))
+	if (!Wow64DisableWow64FsRedirection(&state))
 		return PyWin_SetAPIError("Wow64DisableWow64FsRedirection");
 	return PyWinLong_FromVoidPtr(state);
 }
 
 // @pyswig |Wow64RevertWow64FsRedirection|Reenables file system redirection for 32-bit processes running on a 64-bit system
-// @comm Requires 64-bit XP or later
 static PyObject *py_Wow64RevertWow64FsRedirection(PyObject *self, PyObject *args)
 {
 	VOID *state;
-	CHECK_PFN(Wow64RevertWow64FsRedirection);
 	// @pyparm int|OldValue||State returned from Wow64DisableWow64FsRedirection
 	if (!PyArg_ParseTuple(args, "O&:Wow64RevertWow64FsRedirection", PyWinLong_AsVoidPtr, &state))
 		return NULL;
-	if (!(*pfnWow64RevertWow64FsRedirection)(state))
+	if (!Wow64RevertWow64FsRedirection(state))
 		return PyWin_SetAPIError("Wow64RevertWow64FsRedirection");
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -5351,9 +5109,6 @@ static PyObject *py_Wow64RevertWow64FsRedirection(PyObject *self, PyObject *args
 // @flag FileStreamInfo|Sequence of dicts representing FILE_STREAM_INFO structs
 static PyObject *py_GetFileInformationByHandleEx(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-	// According to MSDN, this function is in kernel32.lib in Vista or later, but I can't get it to link
-	//	with either Vista or Windows 7 sdks.
-	CHECK_PFN(GetFileInformationByHandleEx);
 	static char *keywords[] = {"File", "FileInformationClass", NULL};
 	HANDLE handle;
 	FILE_INFO_BY_HANDLE_CLASS info_class;
@@ -5409,8 +5164,7 @@ static PyObject *py_GetFileInformationByHandleEx(PyObject *self, PyObject *args,
 			return NULL;
 			}
 		Py_BEGIN_ALLOW_THREADS
-		rc = (*pfnGetFileInformationByHandleEx)(handle, info_class, buf, buflen);
-		// rc = GetFileInformationByHandleEx(handle, info_class, buf, buflen);
+		rc = GetFileInformationByHandleEx(handle, info_class, buf, buflen);
 		Py_END_ALLOW_THREADS
 		if (rc)
 			break;
@@ -5566,7 +5320,6 @@ PyCFunction pfnpy_GetFileInformationByHandleEx=(PyCFunction)py_GetFileInformatio
 // @comm Accepts keyword args.
 static PyObject *py_SetFileInformationByHandle(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-	CHECK_PFN(SetFileInformationByHandle);
 	static char *keywords[] = {"File", "FileInformationClass", "Information", NULL};
 	HANDLE handle;
 	FILE_INFO_BY_HANDLE_CLASS info_class;
@@ -5700,8 +5453,7 @@ static PyObject *py_SetFileInformationByHandle(PyObject *self, PyObject *args, P
 		}
 
 	Py_BEGIN_ALLOW_THREADS
-	rc = (*pfnSetFileInformationByHandle)(handle, info_class, buf, buflen);
-	// rc = SetFileInformationByHandle(handle, info_class, buf, buflen);
+	rc = SetFileInformationByHandle(handle, info_class, buf, buflen);
 	Py_END_ALLOW_THREADS
 	free(buf);
 	if (rc){
@@ -5718,7 +5470,6 @@ PyCFunction pfnpy_SetFileInformationByHandle=(PyCFunction)py_SetFileInformationB
 // @comm Accepts keyword args.
 static PyObject *py_ReOpenFile(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-	CHECK_PFN(ReOpenFile);
 	static char *keywords[] = {"OriginalFile", "DesiredAccess", "ShareMode", "Flags", NULL};
 	HANDLE horig, hret;
 	DWORD DesiredAccess, ShareMode, Flags;
@@ -5731,8 +5482,7 @@ static PyObject *py_ReOpenFile(PyObject *self, PyObject *args, PyObject *kwargs)
 		return NULL;
 
 	Py_BEGIN_ALLOW_THREADS
-	hret = (*pfnReOpenFile)(horig, DesiredAccess, ShareMode, Flags);
-	// hret = ReOpenFile(horig, DesiredAccess, ShareMode, Flags);
+	hret = ReOpenFile(horig, DesiredAccess, ShareMode, Flags);
 	Py_END_ALLOW_THREADS
 	if (hret == INVALID_HANDLE_VALUE)
 		return PyWin_SetAPIError("ReOpenFile");
@@ -5746,7 +5496,6 @@ PyCFunction pfnpy_ReOpenFile=(PyCFunction)py_ReOpenFile;
 // @comm Accepts keyword args.
 static PyObject *py_OpenFileById(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-	CHECK_PFN(OpenFileById);
 	static char *keywords[] = {"File", "FileID", "DesiredAccess", "ShareMode",
 		"Flags", "SecurityAttributes", NULL};
 	HANDLE hvol, hret;
@@ -5780,8 +5529,7 @@ static PyObject *py_OpenFileById(PyObject *self, PyObject *args, PyObject *kwarg
 		}
 
 	Py_BEGIN_ALLOW_THREADS
-	hret = (*pfnOpenFileById)(hvol, &fileid, DesiredAccess, ShareMode, sa, Flags);
-	// hret = OpenFileById(hvol, &fileid, DesiredAccess, ShareMode, sa, Flags);
+	hret = OpenFileById(hvol, &fileid, DesiredAccess, ShareMode, sa, Flags);
 	Py_END_ALLOW_THREADS
 	if (hret == INVALID_HANDLE_VALUE)
 		return PyWin_SetAPIError("OpenFileById");
@@ -5897,80 +5645,6 @@ PyCFunction pfnpy_OpenFileById=(PyCFunction)py_OpenFileById;
 			||(strcmp(pmd->ml_name, "SetFileTime")==0)
 			)
 			pmd->ml_flags = METH_VARARGS | METH_KEYWORDS;
-
-	HMODULE hmodule = PyWin_GetOrLoadLibraryHandle("advapi32.dll");
-	if (hmodule != NULL) {
-		pfnEncryptFile=(EncryptFilefunc)GetProcAddress(hmodule, "EncryptFileW");
-		pfnDecryptFile=(DecryptFilefunc)GetProcAddress(hmodule, "DecryptFileW");
-		pfnEncryptionDisable=(EncryptionDisablefunc)GetProcAddress(hmodule, "EncryptionDisable");
-		pfnFileEncryptionStatus=(FileEncryptionStatusfunc)GetProcAddress(hmodule, "FileEncryptionStatusW");
-		pfnQueryUsersOnEncryptedFile=(QueryUsersOnEncryptedFilefunc)GetProcAddress(hmodule, "QueryUsersOnEncryptedFile");
-		pfnFreeEncryptionCertificateHashList=(FreeEncryptionCertificateHashListfunc)GetProcAddress(hmodule, "FreeEncryptionCertificateHashList");
-		pfnQueryRecoveryAgentsOnEncryptedFile=(QueryRecoveryAgentsOnEncryptedFilefunc)GetProcAddress(hmodule, "QueryRecoveryAgentsOnEncryptedFile");
-		pfnRemoveUsersFromEncryptedFile=(RemoveUsersFromEncryptedFilefunc)GetProcAddress(hmodule, "RemoveUsersFromEncryptedFile");
-		pfnAddUsersToEncryptedFile=(AddUsersToEncryptedFilefunc)GetProcAddress(hmodule, "AddUsersToEncryptedFile");
-		pfnDuplicateEncryptionInfoFile=(DuplicateEncryptionInfoFilefunc)GetProcAddress(hmodule, "DuplicateEncryptionInfoFile");
-
-		pfnOpenEncryptedFileRaw=(OpenEncryptedFileRawfunc)GetProcAddress(hmodule, "OpenEncryptedFileRawW");
-		pfnReadEncryptedFileRaw=(ReadEncryptedFileRawfunc)GetProcAddress(hmodule, "ReadEncryptedFileRaw");
-		pfnWriteEncryptedFileRaw=(WriteEncryptedFileRawfunc)GetProcAddress(hmodule, "WriteEncryptedFileRaw");
-		pfnCloseEncryptedFileRaw=(CloseEncryptedFileRawfunc)GetProcAddress(hmodule, "CloseEncryptedFileRaw");
-	}
-
-	hmodule = PyWin_GetOrLoadLibraryHandle("kernel32.dll");
-	if (hmodule != NULL) {
-		pfnSetVolumeMountPoint=(SetVolumeMountPointfunc)GetProcAddress(hmodule, "SetVolumeMountPointW");
-		pfnDeleteVolumeMountPoint=(DeleteVolumeMountPointfunc)GetProcAddress(hmodule, "DeleteVolumeMountPointW");
-		pfnGetVolumeNameForVolumeMountPoint=(GetVolumeNameForVolumeMountPointfunc)GetProcAddress(hmodule, "GetVolumeNameForVolumeMountPointW");
-		pfnGetVolumePathName=(GetVolumePathNamefunc)GetProcAddress(hmodule, "GetVolumePathNameW");
-		pfnGetVolumePathNamesForVolumeName=(GetVolumePathNamesForVolumeNamefunc)GetProcAddress(hmodule, "GetVolumePathNamesForVolumeNameW");
-
-		pfnCreateHardLink=(CreateHardLinkfunc)GetProcAddress(hmodule, "CreateHardLinkW");
-		pfnCreateHardLinkTransacted=(CreateHardLinkTransactedfunc)GetProcAddress(hmodule, "CreateHardLinkTransactedW");
-		pfnCreateSymbolicLink=(CreateSymbolicLinkfunc)GetProcAddress(hmodule, "CreateSymbolicLinkW");
-		pfnCreateSymbolicLinkTransacted=(CreateSymbolicLinkTransactedfunc)GetProcAddress(hmodule, "CreateSymbolicLinkTransactedW");
-		pfnBackupRead=(BackupReadfunc)GetProcAddress(hmodule,"BackupRead");
-		pfnBackupSeek=(BackupSeekfunc)GetProcAddress(hmodule,"BackupSeek");
-		pfnBackupWrite=(BackupWritefunc)GetProcAddress(hmodule,"BackupWrite");
-		pfnSetFileShortName=(SetFileShortNamefunc)GetProcAddress(hmodule,"SetFileShortNameW");
-		pfnCopyFileEx=(CopyFileExfunc)GetProcAddress(hmodule,"CopyFileExW");
-		pfnCopyFileTransacted=(CopyFileTransactedfunc)GetProcAddress(hmodule, "CopyFileTransactedW");
-		pfnMoveFileWithProgress=(MoveFileWithProgressfunc)GetProcAddress(hmodule,"MoveFileWithProgressW");
-		pfnMoveFileTransacted=(MoveFileTransactedfunc)GetProcAddress(hmodule, "MoveFileTransactedW");
-		pfnReplaceFile=(ReplaceFilefunc)GetProcAddress(hmodule,"ReplaceFileW");
-		pfnCreateFileTransacted=(CreateFileTransactedfunc)GetProcAddress(hmodule, "CreateFileTransactedW");
-		pfnDeleteFileTransacted=(DeleteFileTransactedfunc)GetProcAddress(hmodule, "DeleteFileTransactedW");
-		pfnGetFileAttributesTransactedA=(GetFileAttributesTransactedAfunc)GetProcAddress(hmodule, "GetFileAttributesTransactedA");
-		pfnGetFileAttributesTransactedW=(GetFileAttributesTransactedWfunc)GetProcAddress(hmodule, "GetFileAttributesTransactedW");
-		pfnSetFileAttributesTransacted=(SetFileAttributesTransactedfunc)GetProcAddress(hmodule, "SetFileAttributesTransactedW");
-		pfnCreateDirectoryTransacted=(CreateDirectoryTransactedfunc)GetProcAddress(hmodule, "CreateDirectoryTransactedW");
-		pfnRemoveDirectoryTransacted=(RemoveDirectoryTransactedfunc)GetProcAddress(hmodule, "RemoveDirectoryTransactedW");
-		pfnFindFirstStream=(FindFirstStreamfunc)GetProcAddress(hmodule, "FindFirstStreamW");
-		pfnFindNextStream=(FindNextStreamfunc)GetProcAddress(hmodule, "FindNextStreamW");
-		pfnFindFirstStreamTransacted=(FindFirstStreamTransactedfunc)GetProcAddress(hmodule, "FindFirstStreamTransactedW");
-		pfnFindFirstFileTransacted=(FindFirstFileTransactedfunc)GetProcAddress(hmodule, "FindFirstFileTransactedW");
-		pfnFindFirstFileName=(FindFirstFileNamefunc)GetProcAddress(hmodule, "FindFirstFileNameW");
-		pfnFindFirstFileNameTransacted=(FindFirstFileNameTransactedfunc)GetProcAddress(hmodule, "FindFirstFileNameTransactedW");
-		pfnFindNextFileName=(FindNextFileNamefunc)GetProcAddress(hmodule, "FindNextFileNameW");
-		pfnGetFinalPathNameByHandle=(GetFinalPathNameByHandlefunc)GetProcAddress(hmodule, "GetFinalPathNameByHandleW");
-		pfnGetLongPathName=(GetLongPathNamefunc)GetProcAddress(hmodule, "GetLongPathNameW");
-		pfnGetLongPathNameTransacted=(GetLongPathNameTransactedfunc)GetProcAddress(hmodule, "GetLongPathNameTransactedW");
-		pfnGetFullPathNameTransactedW=(GetFullPathNameTransactedWfunc)GetProcAddress(hmodule, "GetFullPathNameTransactedW");
-		pfnGetFullPathNameTransactedA=(GetFullPathNameTransactedAfunc)GetProcAddress(hmodule, "GetFullPathNameTransactedA");
-		pfnGetFileInformationByHandleEx=(GetFileInformationByHandleExfunc)GetProcAddress(hmodule, "GetFileInformationByHandleEx");
-		pfnSetFileInformationByHandle=(SetFileInformationByHandlefunc)GetProcAddress(hmodule, "SetFileInformationByHandle");
-		pfnWow64DisableWow64FsRedirection=(Wow64DisableWow64FsRedirectionfunc)GetProcAddress(hmodule, "Wow64DisableWow64FsRedirection");
-		pfnWow64RevertWow64FsRedirection=(Wow64RevertWow64FsRedirectionfunc)GetProcAddress(hmodule, "Wow64RevertWow64FsRedirection");
-		pfnReOpenFile=(ReOpenFilefunc)GetProcAddress(hmodule, "ReOpenFile");
-		pfnOpenFileById=(OpenFileByIdfunc)GetProcAddress(hmodule, "OpenFileById");
-	}
-
-	hmodule = PyWin_GetOrLoadLibraryHandle("sfc.dll");
-	if (hmodule != NULL) {
-		pfnSfcGetNextProtectedFile=(SfcGetNextProtectedFilefunc)GetProcAddress(hmodule, "SfcGetNextProtectedFile");
-		pfnSfcIsFileProtected=(SfcIsFileProtectedfunc)GetProcAddress(hmodule, "SfcIsFileProtected");
-	}
-
 %}
 
 #define EV_BREAK EV_BREAK // A break was detected on input.

@@ -16,59 +16,6 @@
 %{
 #include "structmember.h"
 
-#define CHECK_PFN(fname)if (pfn##fname==NULL) return PyErr_Format(PyExc_NotImplementedError,"%s is not available on this platform", #fname);
-
-typedef BOOL (WINAPI *EnumProcessesfunc)(DWORD *, DWORD, DWORD *);
-static EnumProcessesfunc pfnEnumProcesses = NULL;
-typedef BOOL (WINAPI *EnumProcessModulesfunc)(HANDLE, HMODULE *, DWORD, LPDWORD);
-static EnumProcessModulesfunc pfnEnumProcessModules = NULL;
-typedef DWORD (WINAPI *GetModuleFileNameExfunc)(HANDLE, HMODULE, WCHAR *, DWORD);
-typedef BOOL (WINAPI *EnumProcessModulesExfunc)(HANDLE, HMODULE*, DWORD, LPDWORD, DWORD);
-static EnumProcessModulesExfunc pfnEnumProcessModulesEx = NULL;
-static GetModuleFileNameExfunc pfnGetModuleFileNameEx = NULL;
-typedef DWORD (WINAPI *GetProcessIdfunc)(HANDLE);
-static GetProcessIdfunc pfnGetProcessId = NULL;
-
-typedef BOOL (WINAPI *GetProcessMemoryInfofunc)(HANDLE, PPROCESS_MEMORY_COUNTERS, DWORD);
-static GetProcessMemoryInfofunc pfnGetProcessMemoryInfo=NULL;
-typedef BOOL (WINAPI *GetProcessTimesfunc)(HANDLE, LPFILETIME, LPFILETIME, LPFILETIME, LPFILETIME);
-static GetProcessTimesfunc pfnGetProcessTimes = NULL;
-typedef BOOL (WINAPI *GetProcessIoCountersfunc)(HANDLE, PIO_COUNTERS);
-static GetProcessIoCountersfunc pfnGetProcessIoCounters = NULL;
-typedef BOOL (WINAPI *GetProcessShutdownParametersfunc)(LPDWORD, LPDWORD);
-static GetProcessShutdownParametersfunc pfnGetProcessShutdownParameters = NULL;
-typedef BOOL (WINAPI *SetProcessShutdownParametersfunc)(DWORD, DWORD);
-static SetProcessShutdownParametersfunc pfnSetProcessShutdownParameters = NULL;
-typedef BOOL (WINAPI *GetProcessWorkingSetSizefunc)(HANDLE, PSIZE_T, PSIZE_T);
-static GetProcessWorkingSetSizefunc pfnGetProcessWorkingSetSize = NULL;
-typedef BOOL (WINAPI *SetProcessWorkingSetSizefunc)(HANDLE, SIZE_T, SIZE_T);
-static SetProcessWorkingSetSizefunc pfnSetProcessWorkingSetSize = NULL;
-
-typedef HWINSTA (WINAPI *GetProcessWindowStationfunc)(void);
-static GetProcessWindowStationfunc pfnGetProcessWindowStation = NULL;
-typedef DWORD (WINAPI *GetGuiResourcesfunc)(HANDLE,DWORD);
-static GetGuiResourcesfunc pfnGetGuiResources = NULL;
-typedef BOOL (WINAPI *GetProcessPriorityBoostfunc)(HANDLE,PBOOL);
-static GetProcessPriorityBoostfunc pfnGetProcessPriorityBoost = NULL;
-typedef BOOL (WINAPI *SetProcessPriorityBoostfunc)(HANDLE,BOOL);
-static SetProcessPriorityBoostfunc pfnSetProcessPriorityBoost = NULL;
-typedef BOOL (WINAPI *GetThreadPriorityBoostfunc)(HANDLE,PBOOL);
-static GetThreadPriorityBoostfunc pfnGetThreadPriorityBoost = NULL;
-typedef BOOL (WINAPI *SetThreadPriorityBoostfunc)(HANDLE,BOOL);
-static SetThreadPriorityBoostfunc pfnSetThreadPriorityBoost = NULL;
-typedef BOOL (WINAPI *GetThreadIOPendingFlagfunc)(HANDLE,PBOOL);
-static GetThreadIOPendingFlagfunc pfnGetThreadIOPendingFlag = NULL;
-typedef BOOL (WINAPI *GetThreadTimesfunc)(HANDLE,LPFILETIME,LPFILETIME,LPFILETIME,LPFILETIME);
-static GetThreadTimesfunc pfnGetThreadTimes =  NULL;
-typedef	HANDLE (WINAPI *CreateRemoteThreadfunc)(HANDLE, LPSECURITY_ATTRIBUTES, SIZE_T, LPTHREAD_START_ROUTINE, LPVOID, DWORD, LPDWORD);
-static CreateRemoteThreadfunc pfnCreateRemoteThread=NULL;
-typedef DWORD (WINAPI *SetThreadIdealProcessorfunc)(HANDLE, DWORD);
-static SetThreadIdealProcessorfunc pfnSetThreadIdealProcessor = NULL;
-typedef DWORD (WINAPI *SetProcessAffinityMaskfunc)(HANDLE, DWORD_PTR);
-static SetProcessAffinityMaskfunc pfnSetProcessAffinityMask = NULL;
-typedef BOOL (WINAPI *IsWow64Processfunc)(HANDLE, PBOOL);
-static IsWow64Processfunc pfnIsWow64Process = NULL;
-
 // Support for a STARTUPINFO object.
 class PySTARTUPINFO : public PyObject
 {
@@ -419,7 +366,6 @@ static PyObject *mybeginthreadex(PyObject *self, PyObject *args)
 // the virtual address space of another process.
 static PyObject *myCreateRemoteThread(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(CreateRemoteThread);
 	static char *fmt="OOnOOk:CreateRemoteThread";
 	PyObject *obhprocess, *obFunc, *obParameter, *obSA;
 	SIZE_T stackSize;
@@ -447,7 +393,7 @@ static PyObject *myCreateRemoteThread(PyObject *self, PyObject *args)
 
 	HANDLE handle;
 	DWORD tid;
-	handle = (*pfnCreateRemoteThread)(hprocess, pSA, stackSize,
+	handle = CreateRemoteThread(hprocess, pSA, stackSize,
 	                                  Func, Parameter,
 	                                  flags, &tid);
 	if (handle==INVALID_HANDLE_VALUE || handle==NULL) {
@@ -820,7 +766,6 @@ DWORD GetThreadPriority(
 // @pyswig bool|GetProcessPriorityBoost|Determines if dynamic priority adjustment is enabled for a process
 static PyObject *PyGetProcessPriorityBoost(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(GetProcessPriorityBoost);
 	PyObject *obth;
 	HANDLE th;
 	BOOL ret;
@@ -829,7 +774,7 @@ static PyObject *PyGetProcessPriorityBoost(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obth, &th))
 		return NULL;
-	if (!(*pfnGetProcessPriorityBoost)(th, &ret))
+	if (!GetProcessPriorityBoost(th, &ret))
 		return PyWin_SetAPIError("GetProcessPriorityBoost");
 	return PyBool_FromLong(ret);
 }
@@ -837,7 +782,6 @@ static PyObject *PyGetProcessPriorityBoost(PyObject *self, PyObject *args)
 // @pyswig |SetProcessPriorityBoost|Enables or disables dynamic priority adjustment for a process
 static PyObject *PySetProcessPriorityBoost(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(SetProcessPriorityBoost);
 	PyObject *obth;
 	HANDLE th;
 	BOOL disable;
@@ -847,7 +791,7 @@ static PyObject *PySetProcessPriorityBoost(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obth, &th))
 		return NULL;
-	if (!(*pfnSetProcessPriorityBoost)(th, disable))
+	if (!SetProcessPriorityBoost(th, disable))
 		return PyWin_SetAPIError("SetProcessPriorityBoost");
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -856,7 +800,6 @@ static PyObject *PySetProcessPriorityBoost(PyObject *self, PyObject *args)
 // @pyswig bool|GetThreadPriorityBoost|Determines if dynamic priority adjustment is enabled for a thread
 static PyObject *PyGetThreadPriorityBoost(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(GetThreadPriorityBoost);
 	PyObject *obth;
 	HANDLE th;
 	BOOL ret;
@@ -865,7 +808,7 @@ static PyObject *PyGetThreadPriorityBoost(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obth, &th))
 		return NULL;
-	if (!(*pfnGetThreadPriorityBoost)(th, &ret))
+	if (!GetThreadPriorityBoost(th, &ret))
 		return PyWin_SetAPIError("GetThreadPriorityBoost");
 	return PyBool_FromLong(ret);
 }
@@ -873,7 +816,6 @@ static PyObject *PyGetThreadPriorityBoost(PyObject *self, PyObject *args)
 // @pyswig |SetThreadPriorityBoost|Enables or disables dynamic priority adjustment for a thread
 static PyObject *PySetThreadPriorityBoost(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(SetThreadPriorityBoost);
 	PyObject *obth;
 	HANDLE th;
 	BOOL disable;
@@ -883,7 +825,7 @@ static PyObject *PySetThreadPriorityBoost(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obth, &th))
 		return NULL;
-	if (!(*pfnSetThreadPriorityBoost)(th, disable))
+	if (!SetThreadPriorityBoost(th, disable))
 		return PyWin_SetAPIError("SetThreadPriorityBoost");
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -892,7 +834,6 @@ static PyObject *PySetThreadPriorityBoost(PyObject *self, PyObject *args)
 // @pyswig bool|GetThreadIOPendingFlag|Determines if thread has any outstanding IO requests
 static PyObject *PyGetThreadIOPendingFlag(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(GetThreadIOPendingFlag);
 	PyObject *obth;
 	HANDLE th;
 	BOOL ret;
@@ -901,7 +842,7 @@ static PyObject *PyGetThreadIOPendingFlag(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obth, &th))
 		return NULL;
-	if (!(*pfnGetThreadPriorityBoost)(th, &ret))
+	if (!GetThreadPriorityBoost(th, &ret))
 		return PyWin_SetAPIError("GetThreadIOPendingFlag");
 	return PyBool_FromLong(ret);
 }
@@ -909,7 +850,6 @@ static PyObject *PyGetThreadIOPendingFlag(PyObject *self, PyObject *args)
 // @pyswig dict|GetThreadTimes|Returns a thread's time statistics
 static PyObject *PyGetThreadTimes(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(GetThreadTimes);
 	PyObject *obth;
 	HANDLE th;
 	FILETIME ft[4];
@@ -918,7 +858,7 @@ static PyObject *PyGetThreadTimes(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obth, &th))
 		return NULL;
-	if (!(*pfnGetThreadTimes)(th, &ft[0], &ft[1], &ft[2], &ft[3]))
+	if (!GetThreadTimes(th, &ft[0], &ft[1], &ft[2], &ft[3]))
 		return PyWin_SetAPIError("GetThreadTimes");
 
 	// UserTime and KernelTime are elapsed times, return as ints
@@ -937,7 +877,6 @@ static PyObject *PyGetThreadTimes(PyObject *self, PyObject *args)
 // @pyswig int|GetProcessId|Returns the Pid for a process handle
 static PyObject *PyGetProcessId(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(GetProcessId);
 	PyObject *obhprocess;
 	HANDLE hprocess;
 	DWORD pid;
@@ -946,7 +885,7 @@ static PyObject *PyGetProcessId(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhprocess, &hprocess))
 		return NULL;
-	pid=(*pfnGetProcessId)(hprocess);
+	pid=GetProcessId(hprocess);
 	if (pid==0)
 		return PyWin_SetAPIError("GetProcessId");
 	return PyLong_FromUnsignedLong(pid);
@@ -977,8 +916,7 @@ BOOLAPI AttachThreadInput(
 // This function does not exist on all platforms.
 static PyObject *MySetThreadIdealProcessor( HANDLE hThread, DWORD dwIdealProc )
 {
-	CHECK_PFN(SetThreadIdealProcessor);
-	DWORD rc = (*pfnSetThreadIdealProcessor)(hThread, dwIdealProc);
+	DWORD rc = SetThreadIdealProcessor(hThread, dwIdealProc);
 	if (rc==-1)
 		return PyWin_SetAPIError("SetThreadIdealProcessor");
 	return PyLong_FromLong(rc);
@@ -1018,7 +956,6 @@ static PyObject *MyGetProcessAffinityMask(PyObject *self, PyObject *args)
 // @comm This function does not exist on all platforms.
 static PyObject *MySetProcessAffinityMask(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(SetProcessAffinityMask);
 	DWORD_PTR dwMask;
 	HANDLE hProcess;
 	PyObject *obhProcess;
@@ -1034,7 +971,7 @@ static PyObject *MySetProcessAffinityMask(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhProcess, &hProcess))
 		return NULL;
-	if (!(*pfnSetProcessAffinityMask)(hProcess, dwMask))
+	if (!SetProcessAffinityMask(hProcess, dwMask))
 		return PyWin_SetAPIError("SetProcessAffinityMask");
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -1118,7 +1055,6 @@ void ExitProcess(
 %{
 PyObject *PyEnumProcesses(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(EnumProcesses);
 	DWORD *pids=NULL, *pid=NULL;
 	DWORD nbr_pids_allocated=100, nbr_pids_returned=0, tuple_ind=0;
 	DWORD bytes_allocated=0,bytes_returned=0;
@@ -1138,7 +1074,7 @@ PyObject *PyEnumProcesses(PyObject *self, PyObject *args)
 			PyErr_SetString(PyExc_MemoryError,"EnumProcesses: unable to allocate Pid list");
 			return NULL;
 			}
-		if (!(*pfnEnumProcesses)(pids, bytes_allocated, &bytes_returned)){
+		if (!EnumProcesses(pids, bytes_allocated, &bytes_returned)){
 			PyWin_SetAPIError("EnumProcesses",GetLastError());
 			goto done;
 			}
@@ -1174,7 +1110,6 @@ done:
 %{
 PyObject *PyEnumProcessModules(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(EnumProcessModules);
 	HMODULE *hmods=NULL, *hmod=NULL;
 	HANDLE hprocess=NULL;
 	DWORD nbr_hmods_allocated=100, nbr_hmods_returned=0, tuple_ind=0;
@@ -1196,7 +1131,7 @@ PyObject *PyEnumProcessModules(PyObject *self, PyObject *args)
 			PyErr_SetString(PyExc_MemoryError,"EnumProcessModules: unable to allocate HMODULE list");
 			return NULL;
 			}
-		if (!(*pfnEnumProcessModules)(hprocess, hmods, bytes_allocated, &bytes_needed)){
+		if (!EnumProcessModules(hprocess, hmods, bytes_allocated, &bytes_needed)){
 			PyWin_SetAPIError("EnumProcessModules",GetLastError());
 			goto done;
 			}
@@ -1232,7 +1167,6 @@ done:
 %{
 PyObject *PyEnumProcessModulesEx(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(EnumProcessModulesEx);
 	HMODULE *hmods=NULL, *hmod=NULL;
 	HANDLE hprocess=NULL;
 	DWORD nbr_hmods_allocated=100, nbr_hmods_returned=0, tuple_ind=0;
@@ -1256,7 +1190,7 @@ PyObject *PyEnumProcessModulesEx(PyObject *self, PyObject *args)
 			PyErr_SetString(PyExc_MemoryError,"EnumProcessModulesEx: unable to allocate HMODULE list");
 			return NULL;
 			}
-		if (!(*pfnEnumProcessModulesEx)(hprocess, hmods, bytes_allocated, &bytes_needed, FilterFlag)){
+		if (!EnumProcessModulesEx(hprocess, hmods, bytes_allocated, &bytes_needed, FilterFlag)){
 			PyWin_SetAPIError("EnumProcessModulesEx",GetLastError());
 			goto done;
 			}
@@ -1290,7 +1224,6 @@ done:
 %{
 PyObject *PyGetModuleFileNameEx(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(GetModuleFileNameEx);
 	WCHAR *fname=NULL;
 	DWORD chars_allocated=256, chars_returned=0;
 	// chars_allocated=5; // test allocation loop
@@ -1316,7 +1249,7 @@ PyObject *PyGetModuleFileNameEx(PyObject *self, PyObject *args)
 			PyErr_SetString(PyExc_MemoryError,"GetModuleFileNameEx: unable to allocate WCHAR buffer");
 			return NULL;
 			}
-		chars_returned=(*pfnGetModuleFileNameEx)(hprocess, hmod, fname, chars_allocated);
+		chars_returned=GetModuleFileNameEx(hprocess, hmod, fname, chars_allocated);
 		if (!chars_returned){
 			PyWin_SetAPIError("GetModuleFileNameEx",GetLastError());
 			goto done;
@@ -1337,7 +1270,6 @@ done:
 %{
 PyObject *PyGetProcessMemoryInfo(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(GetProcessMemoryInfo);
 	HANDLE hProcess;
 	PyObject *obhProcess;
 	PROCESS_MEMORY_COUNTERS pmc;
@@ -1350,7 +1282,7 @@ PyObject *PyGetProcessMemoryInfo(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsHANDLE(obhProcess, &hProcess))
 		return NULL;
 
-	if (!(*pfnGetProcessMemoryInfo)(hProcess, &pmc, cb)){
+	if (!GetProcessMemoryInfo(hProcess, &pmc, cb)){
 		PyWin_SetAPIError("GetProcessMemoryInfo",GetLastError());
 		return NULL;
 		}
@@ -1372,7 +1304,6 @@ PyObject *PyGetProcessMemoryInfo(PyObject *self, PyObject *args)
 %{
 PyObject *PyGetProcessTimes(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(GetProcessTimes);
 	HANDLE hProcess;
 	PyObject *obhProcess;
 	FILETIME CreationTime, ExitTime, KernelTime, UserTime;
@@ -1383,7 +1314,7 @@ PyObject *PyGetProcessTimes(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsHANDLE(obhProcess, &hProcess))
 		return NULL;
 
-	if (!(*pfnGetProcessTimes)(hProcess, &CreationTime, &ExitTime, &KernelTime, &UserTime)){
+	if (!GetProcessTimes(hProcess, &CreationTime, &ExitTime, &KernelTime, &UserTime)){
 		PyWin_SetAPIError("GetProcessTimes",GetLastError());
 		return NULL;
 		}
@@ -1402,7 +1333,6 @@ PyObject *PyGetProcessTimes(PyObject *self, PyObject *args)
 %{
 PyObject *PyGetProcessIoCounters(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(GetProcessIoCounters);
 	HANDLE hProcess;
 	PyObject *obhProcess;
 	IO_COUNTERS ioc;
@@ -1411,7 +1341,7 @@ PyObject *PyGetProcessIoCounters(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhProcess, &hProcess))
 		return NULL;
-	if (!(*pfnGetProcessIoCounters)(hProcess, &ioc)){
+	if (!GetProcessIoCounters(hProcess, &ioc)){
 		PyWin_SetAPIError("GetProcessIoCounters",GetLastError());
 		return NULL;
 		}
@@ -1424,10 +1354,9 @@ PyObject *PyGetProcessIoCounters(PyObject *self, PyObject *args)
 %{
 PyObject *PyGetProcessWindowStation(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(GetProcessWindowStation);
 	if (!PyArg_ParseTuple(args, ":GetProcessWindowStation"))
 		return NULL;
-	HWINSTA hwinsta=(*pfnGetProcessWindowStation)();
+	HWINSTA hwinsta=GetProcessWindowStation();
 	return PyWinObject_FromHANDLE(hwinsta);
 }
 %}
@@ -1437,7 +1366,6 @@ PyObject *PyGetProcessWindowStation(PyObject *self, PyObject *args)
 %{
 PyObject *PyGetProcessWorkingSetSize(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(GetProcessWorkingSetSize);
 	SIZE_T MinimumWorkingSetSize=0,MaximumWorkingSetSize=0;
 	HANDLE hProcess;
 	PyObject *obhProcess;
@@ -1446,7 +1374,7 @@ PyObject *PyGetProcessWorkingSetSize(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhProcess, &hProcess))
 		return NULL;
-	if (!(*pfnGetProcessWorkingSetSize)(hProcess, &MinimumWorkingSetSize, &MaximumWorkingSetSize)){
+	if (!GetProcessWorkingSetSize(hProcess, &MinimumWorkingSetSize, &MaximumWorkingSetSize)){
 		PyWin_SetAPIError("GetProcessWorkingSetSize",GetLastError());
 		return NULL;
 		}
@@ -1463,7 +1391,6 @@ PyObject *PyGetProcessWorkingSetSize(PyObject *self, PyObject *args)
 %{
 PyObject *PySetProcessWorkingSetSize(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(SetProcessWorkingSetSize);
 	SIZE_T MinimumWorkingSetSize=0,MaximumWorkingSetSize=0;
 	HANDLE hProcess;
 	PyObject *obhProcess;
@@ -1476,7 +1403,7 @@ PyObject *PySetProcessWorkingSetSize(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhProcess, &hProcess))
 		return NULL;
-	if (!(*pfnSetProcessWorkingSetSize)(hProcess, MinimumWorkingSetSize, MaximumWorkingSetSize))
+	if (!SetProcessWorkingSetSize(hProcess, MinimumWorkingSetSize, MaximumWorkingSetSize))
 		return PyWin_SetAPIError("SetProcessWorkingSetSize");
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -1489,11 +1416,10 @@ PyObject *PySetProcessWorkingSetSize(PyObject *self, PyObject *args)
 %{
 PyObject *PyGetProcessShutdownParameters(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(GetProcessShutdownParameters);
 	DWORD Level=0, Flags=0;
 	if (!PyArg_ParseTuple(args, ":GetProcessShutdownParameters"))
 		return NULL;
-	if (!(*pfnGetProcessShutdownParameters)(&Level, &Flags)){
+	if (!GetProcessShutdownParameters(&Level, &Flags)){
 		PyWin_SetAPIError("GetProcessShutdownParameters",GetLastError());
 		return NULL;
 		}
@@ -1507,13 +1433,12 @@ PyObject *PyGetProcessShutdownParameters(PyObject *self, PyObject *args)
 %{
 PyObject *PySetProcessShutdownParameters(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(SetProcessShutdownParameters);
 	DWORD Level=0, Flags=0;
 	// @pyparm int|Level||Priority, higher means earlier
 	// @pyparm int|Flags||Currently only SHUTDOWN_NORETRY valid
 	if (!PyArg_ParseTuple(args, "ll:SetProcessShutdownParameters", &Level, &Flags))
 		return NULL;
-	if (!(*pfnSetProcessShutdownParameters)(Level, Flags)){
+	if (!SetProcessShutdownParameters(Level, Flags)){
 		PyWin_SetAPIError("SetProcessShutdownParameters",GetLastError());
 		return NULL;
 		}
@@ -1523,12 +1448,10 @@ PyObject *PySetProcessShutdownParameters(PyObject *self, PyObject *args)
 %}
 
 // @pyswig int|GetGuiResources|Returns the number of GDI or user object handles held by a process
-// @comm Available on Win2k and up
 %native(GetGuiResources) PyGetGuiResources;
 %{
 PyObject *PyGetGuiResources(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(GetGuiResources);
 	HANDLE hprocess;
 	DWORD flags, handle_cnt;
 	PyObject *obhprocess;
@@ -1538,7 +1461,7 @@ PyObject *PyGetGuiResources(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhprocess, &hprocess))
 		return NULL;
-	handle_cnt=(*pfnGetGuiResources)(hprocess, flags);
+	handle_cnt=GetGuiResources(hprocess, flags);
 	// can return 0 for a non-GUI process with no error occurring
 	if ((handle_cnt==0)	&& (GetLastError()!=0))
 		return PyWin_SetAPIError("GetGuiResources");
@@ -1555,8 +1478,6 @@ PyObject *PyGetGuiResources(PyObject *self, PyObject *args)
 %{
 PyObject *PyIsWow64Process(PyObject *self, PyObject *args)
 {
-	if (pfnIsWow64Process==NULL)
-		return PyBool_FromLong(FALSE);
 	PyObject *obhprocess = Py_None;
 	HANDLE hprocess;
 	// @pyparm <o PyHANDLE>|Process|None|Handle to a process as returned by
@@ -1569,7 +1490,7 @@ PyObject *PyIsWow64Process(PyObject *self, PyObject *args)
 		hprocess = ::GetCurrentProcess();
 	else if (!PyWinObject_AsHANDLE(obhprocess, &hprocess))
 		return NULL;
-	BOOL ok = (*pfnIsWow64Process)(hprocess, &ret);
+	BOOL ok = IsWow64Process(hprocess, &ret);
 	if (!ok)
 		return PyWin_SetAPIError("IsWow64Process");
 	return PyBool_FromLong(ret);
@@ -1683,43 +1604,6 @@ PyObject *PyWriteProcessMemory(PyObject *self, PyObject *args)
 
 	if (PyType_Ready(&PySTARTUPINFOType) == -1)
 		return NULL;
-
-	FARPROC fp = NULL;
-	HMODULE hmodule = PyWin_GetOrLoadLibraryHandle("psapi.dll");
-	if (hmodule != NULL) {
-		pfnEnumProcesses = (EnumProcessesfunc)GetProcAddress(hmodule, "EnumProcesses");
-		pfnEnumProcessModules = (EnumProcessModulesfunc)GetProcAddress(hmodule, "EnumProcessModules");
-		pfnEnumProcessModulesEx = (EnumProcessModulesExfunc)GetProcAddress(hmodule, "EnumProcessModulesEx");
-		pfnGetModuleFileNameEx = (GetModuleFileNameExfunc)GetProcAddress(hmodule, "GetModuleFileNameExW");
-		pfnGetProcessMemoryInfo = (GetProcessMemoryInfofunc)GetProcAddress(hmodule, "GetProcessMemoryInfo");
-	}
-
-	hmodule = PyWin_GetOrLoadLibraryHandle("kernel32.dll");
-	if (hmodule != NULL) {
-		pfnGetProcessTimes=(GetProcessTimesfunc)GetProcAddress(hmodule,"GetProcessTimes");
-		pfnGetProcessIoCounters=(GetProcessIoCountersfunc)GetProcAddress(hmodule,"GetProcessIoCounters");
-		pfnGetProcessShutdownParameters=(GetProcessShutdownParametersfunc)GetProcAddress(hmodule,"GetProcessShutdownParameters");
-		pfnSetProcessShutdownParameters=(SetProcessShutdownParametersfunc)GetProcAddress(hmodule,"SetProcessShutdownParameters");
-		pfnGetProcessWorkingSetSize=(GetProcessWorkingSetSizefunc)GetProcAddress(hmodule,"GetProcessWorkingSetSize");
-		pfnSetProcessWorkingSetSize=(SetProcessWorkingSetSizefunc)GetProcAddress(hmodule,"SetProcessWorkingSetSize");
-		pfnGetProcessPriorityBoost=(GetProcessPriorityBoostfunc)GetProcAddress(hmodule,"GetProcessPriorityBoost");
-		pfnSetProcessPriorityBoost=(SetProcessPriorityBoostfunc)GetProcAddress(hmodule,"SetProcessPriorityBoost");
-		pfnGetThreadPriorityBoost=(GetThreadPriorityBoostfunc)GetProcAddress(hmodule,"GetThreadPriorityBoost");
-		pfnSetThreadPriorityBoost=(SetThreadPriorityBoostfunc)GetProcAddress(hmodule,"SetThreadPriorityBoost");
-		pfnGetThreadIOPendingFlag=(GetThreadIOPendingFlagfunc)GetProcAddress(hmodule,"GetThreadIOPendingFlag");
-		pfnGetThreadTimes=(GetThreadTimesfunc)GetProcAddress(hmodule,"GetThreadTimes");
-		pfnCreateRemoteThread=(CreateRemoteThreadfunc)GetProcAddress(hmodule,"CreateRemoteThread");
-		pfnSetThreadIdealProcessor=(SetThreadIdealProcessorfunc)GetProcAddress(hmodule,"SetThreadIdealProcessor");
-		pfnSetProcessAffinityMask=(SetProcessAffinityMaskfunc)GetProcAddress(hmodule,"SetProcessAffinityMask");
-		pfnGetProcessId=(GetProcessIdfunc)GetProcAddress(hmodule, "GetProcessId");
-		pfnIsWow64Process=(IsWow64Processfunc)GetProcAddress(hmodule, "IsWow64Process");
-	}
-
-	hmodule = PyWin_GetOrLoadLibraryHandle("user32.dll");
-	if (hmodule != NULL) {
-		pfnGetProcessWindowStation=(GetProcessWindowStationfunc)GetProcAddress(hmodule,"GetProcessWindowStation");
-		pfnGetGuiResources=(GetGuiResourcesfunc)GetProcAddress(hmodule,"GetGuiResources");
-	}
 
 // *sob* - these symbols don't exist in the platform sdk needed to build
 // using Python 2.3
