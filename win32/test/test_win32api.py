@@ -11,7 +11,6 @@ import win32api
 import win32con
 import win32event
 import winerror
-from pywin32_testutil import TestSkipped
 
 
 class TestError(Exception):
@@ -23,7 +22,7 @@ class CurrentUserTestCase(unittest.TestCase):
         domain = win32api.GetDomainName()
         if domain == "NT AUTHORITY":
             # Running as a service account, so the comparison will fail
-            raise TestSkipped("running as service account")
+            raise unittest.SkipTest("running as service account")
         name = f"{domain}\\{win32api.GetUserName()}"
         self.assertEqual(name, win32api.GetUserNameEx(win32api.NameSamCompatible))
 
@@ -272,11 +271,12 @@ class Misc(unittest.TestCase):
         # Basic smoke test - function should not crash and return a list
         try:
             cpus = win32api.GetSystemCpuSetInformation()
-        except NotImplementedError:
-            # Expected on older Windows (pre-Win10)
-            raise TestSkipped(
-                "GetSystemCpuSetInformation not available on this platform"
-            )
+        except NotImplementedError as e:
+            msg = str(e)
+            # Expected on older than Windows 10
+            if msg == "GetSystemCpuSetInformation is not available on this platform":
+                raise TestSkipped(msg) from e
+            raise
 
         self.assertIsInstance(cpus, list)
 

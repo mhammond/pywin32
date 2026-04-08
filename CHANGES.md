@@ -22,20 +22,26 @@ Coming in build 312, as yet unreleased
 * Deprecate `pythoncom.frozen` (mhammond#2593, [@Avasam][Avasam])
   `pythoncom.frozen` used to expose `Py_FrozenFlag` from the C API.
   `Py_FrozenFlag` is deprecated since Python 3.12.
-* Implement multidimensional SAFEARRAY(COM Record) and SAFEARRAY(double) (mhammond#2655, [@geppi][geppi])
+* Fixed `axdebug` build on Python 3.11+ using CPython's new opaque frame APIs, fixed 64-bit overflow in sourceContext and stack addresses, fixed incorrect step-over and step-out behavior, and fixed `ListEnumeratorGateway.Next()` returning lazy `map` iterator incompatible with C++ COM gateways that require a sequence (mhammond#2723, mhammond#2724, mhammond#2725, [@wxinix-2022][wxinix-2022])
+* Removed more leftover obsolete `UNICODE` constants since dropping Python 2 support in `win32ui`, `win32gui` and `win32clipboard` (mhammond#2717, [@Avasam][Avasam])
+* Implement COM Records as `[out]` method parameters (mhammond#2708, [@geppi][geppi], [@the-snork][the-snork])
+* Implement multidimensional `SAFEARRAY(COM Record)` and `SAFEARRAY(double)` (mhammond#2655, [@geppi][geppi])
 * Added many missing license and copyright notice files (mhammond#2590, [@Avasam][Avasam])
 * Fixed missing version stamp on built `.dll` and `.exe` files (mhammond#2647, [@Avasam][Avasam])
-* Removed considerations for Windows 95/98/ME (mhammond#2400, [@Avasam][Avasam])
-  This removes the following constants:
-  * `win32con.FILE_ATTRIBUTE_ATOMIC_WRITE`
-  * `win32con.FILE_ATTRIBUTE_XACTION_WRITE`
 * Bugfix for COM Record instance creation (mhammond#2641, [@geppi][geppi])
 * Fix regression introduced by mhammond#2506 (mhammond#2640, [@geppi][geppi])
-* Removed considerations for MFC < 9 (VS 2008) (mhammond#2669, [@Avasam][Avasam])
+* Fixed `LoadPerfCounterTextStrings` and `UnloadPerfCounterTextStrings`'s `bQuiet` param being unused and hardcoded to `True` (mhammond#2711, [@Avasam][Avasam])
+* Removed considerations for unsupported Windows Versions (95/98/ME/2000/2k/Vista, most of XP) (mhammond#2711, mhammond#2667, mhammond#2400, [@Avasam][Avasam])
+  * Updated a lot of dynamic function loading at runtime to instead use static build linking
+  * Updated a lot of documentation
+  * This removes the following constants:
+    * `win32con.FILE_ATTRIBUTE_ATOMIC_WRITE`
+    * `win32con.FILE_ATTRIBUTE_XACTION_WRITE`
+* Removed considerations for MFC < 9 (VS 2008) (mhammond#2669, mhammond#2716, [@Avasam][Avasam])
   * This removes the unusable `PyCSliderCtrl.VerifyPos` method
 * Dropped support for Python 3.8 (mhammond#2413, [@Avasam][Avasam])
-  * Note that whilst pywin32 hasn't explicitly dropped support for Windows 7 / Windows Server 2008,
-    Python 3.8 was the last official CPython version to support it.
+  * Note that whilst pywin32 hasn't explicitly dropped support for Windows 7 / 8 / Server 2008,
+    Python 3.8 was the last official CPython version to support those versions (Python 3.9 installer requires at least Windows 8.1 / Server 2012).
 
 Build 311, released 2025/07/14
 ------------------------------

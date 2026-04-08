@@ -13,33 +13,6 @@
 #define CHECK_PFN(fname)    \
     if (pfn##fname == NULL) \
         return PyErr_Format(PyExc_NotImplementedError, "%s is not available on this platform", #fname);
-HMODULE kernel32_dll;
-typedef DWORD(WINAPI *GetConsoleProcessListfunc)(LPDWORD, DWORD);
-static GetConsoleProcessListfunc pfnGetConsoleProcessList = NULL;
-typedef BOOL(WINAPI *GetConsoleDisplayModefunc)(LPDWORD);
-static GetConsoleDisplayModefunc pfnGetConsoleDisplayMode = NULL;
-typedef BOOL(WINAPI *SetConsoleDisplayModefunc)(HANDLE, DWORD, PCOORD);
-static SetConsoleDisplayModefunc pfnSetConsoleDisplayMode;
-typedef BOOL(WINAPI *AttachConsolefunc)(DWORD);
-static AttachConsolefunc pfnAttachConsole = NULL;
-typedef BOOL(WINAPI *AddConsoleAliasfunc)(LPWSTR, LPWSTR, LPWSTR);
-static AddConsoleAliasfunc pfnAddConsoleAlias = NULL;
-typedef DWORD(WINAPI *GetConsoleAliasesLengthfunc)(LPWSTR);
-static GetConsoleAliasesLengthfunc pfnGetConsoleAliasesLength = NULL;
-typedef DWORD(WINAPI *GetConsoleAliasesfunc)(LPWSTR, DWORD, LPTSTR);
-static GetConsoleAliasesfunc pfnGetConsoleAliases = NULL;
-typedef DWORD(WINAPI *GetConsoleAliasExesfunc)(LPWSTR, DWORD);
-static GetConsoleAliasExesfunc pfnGetConsoleAliasExes = NULL;
-typedef DWORD(WINAPI *GetConsoleAliasExesLengthfunc)(VOID);
-static GetConsoleAliasExesLengthfunc pfnGetConsoleAliasExesLength = NULL;
-typedef HWND(WINAPI *GetConsoleWindowfunc)(void);
-static GetConsoleWindowfunc pfnGetConsoleWindow = NULL;
-typedef BOOL(WINAPI *GetCurrentConsoleFontfunc)(HANDLE, BOOL, PCONSOLE_FONT_INFO);
-static GetCurrentConsoleFontfunc pfnGetCurrentConsoleFont;
-typedef COORD(WINAPI *GetConsoleFontSizefunc)(HANDLE, DWORD);
-static GetConsoleFontSizefunc pfnGetConsoleFontSize = NULL;
-typedef BOOL(WINAPI *GetConsoleSelectionInfofunc)(PCONSOLE_SELECTION_INFO);
-static GetConsoleSelectionInfofunc pfnGetConsoleSelectionInfo = NULL;
 typedef DWORD(WINAPI *GetNumberOfConsoleFontsfunc)(VOID);
 static GetNumberOfConsoleFontsfunc pfnGetNumberOfConsoleFonts = NULL;
 typedef BOOL(WINAPI *SetConsoleFontfunc)(HANDLE, DWORD);
@@ -1300,7 +1273,6 @@ PyObject *PyConsoleScreenBuffer::PyScrollConsoleScreenBuffer(PyObject *self, PyO
 
 // @pymethod (int, <o PyCOORD>)|PyConsoleScreenBuffer|GetCurrentConsoleFont|Returns currently displayed font
 // @rdesc Returns the index of current font and window size
-// @comm Only exists on XP or later.<nl>
 // MSDN docs claim the returned COORD is the font size, but it's actually the window size.<nl>
 // Use <om PyConsoleScreenBuffer.GetConsoleFontSize> for the font size.
 PyObject *PyConsoleScreenBuffer::PyGetCurrentConsoleFont(PyObject *self, PyObject *args, PyObject *kwargs)
@@ -1308,40 +1280,37 @@ PyObject *PyConsoleScreenBuffer::PyGetCurrentConsoleFont(PyObject *self, PyObjec
     static char *keywords[] = {"MaximumWindow", NULL};
     CONSOLE_FONT_INFO cfi;
     BOOL bmax = FALSE;
-    CHECK_PFN(GetCurrentConsoleFont);
     if (!PyArg_ParseTupleAndKeywords(
             args, kwargs, "|l:GetCurrentConsoleFont", keywords,
             &bmax))  // @pyparm boolean|MaximumWindow|False|If True, retrieves font size for maximum window size
         return NULL;
-    if (!(*pfnGetCurrentConsoleFont)(((PyConsoleScreenBuffer *)self)->m_handle, bmax, &cfi))
+    if (!GetCurrentConsoleFont(((PyConsoleScreenBuffer *)self)->m_handle, bmax, &cfi))
         return PyWin_SetAPIError("GetCurrentConsoleFont");
     return Py_BuildValue("lO", cfi.nFont, PyWinObject_FromCOORD(&cfi.dwFontSize));
 }
 
 // @pymethod <o PyCOORD>|PyConsoleScreenBuffer|GetConsoleFontSize|Returns size of specified font for the console
-// @comm Only exists on XP or later.
 PyObject *PyConsoleScreenBuffer::PyGetConsoleFontSize(PyObject *self, PyObject *args, PyObject *kwargs)
 {
     static char *keywords[] = {"Font", NULL};
     DWORD font;
     COORD fontsize;
-    CHECK_PFN(GetConsoleFontSize);
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "l:GetConsoleFontSize", keywords,
                                      &font))  // @pyparm int|Font||Index of font as returned by GetCurrentConsoleFont
         return NULL;
-    fontsize = (*pfnGetConsoleFontSize)(((PyConsoleScreenBuffer *)self)->m_handle, font);
+    fontsize = GetConsoleFontSize(((PyConsoleScreenBuffer *)self)->m_handle, font);
     if (fontsize.X == 0 && fontsize.Y == 0)
         return PyWin_SetAPIError("GetConsoleFontSize");
     return PyWinObject_FromCOORD(&fontsize);
 }
 
 // @pymethod |PyConsoleScreenBuffer|SetConsoleFont|Changes the font used by the screen buffer
-// @comm Function is not documented on MSDN
+// @comm Function is not documented on MSDN and removed in Windows 10.0.1607
 PyObject *PyConsoleScreenBuffer::PySetConsoleFont(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+    CHECK_PFN(SetConsoleFont);
     static char *keywords[] = {"Font", NULL};
     DWORD font;
-    CHECK_PFN(SetConsoleFont);
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "l:SetConsoleFont", keywords,
                                      &font))  // @pyparm int|Font||The number of the font to be set
         return NULL;
@@ -1369,7 +1338,6 @@ PyObject *PyConsoleScreenBuffer::PySetStdHandle(PyObject *self, PyObject *args, 
 // @pymethod |PyConsoleScreenBuffer|SetConsoleDisplayMode|Sets the display mode of the console buffer
 PyObject *PyConsoleScreenBuffer::PySetConsoleDisplayMode(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-    CHECK_PFN(SetConsoleDisplayMode);
     static char *keywords[] = {"Flags", "NewScreenBufferDimensions", NULL};
     DWORD flags;
     PCOORD dim;
@@ -1381,7 +1349,7 @@ PyObject *PyConsoleScreenBuffer::PySetConsoleDisplayMode(PyObject *self, PyObjec
         return NULL;
     if (!PyWinObject_AsCOORD(obdim, &dim, FALSE))
         return NULL;
-    if (!(*pfnSetConsoleDisplayMode)(((PyConsoleScreenBuffer *)self)->m_handle, flags, dim))
+    if (!SetConsoleDisplayMode(((PyConsoleScreenBuffer *)self)->m_handle, flags, dim))
         return PyWin_SetAPIError("SetConsoleDisplayMode");
     Py_INCREF(Py_None);
     return Py_None;
@@ -1633,15 +1601,13 @@ static PyObject *PyCreateConsoleScreenBuffer(PyObject *self, PyObject *args, PyO
 }
 
 // @pymethod int|win32console|GetConsoleDisplayMode|Returns the current console's display mode
-// @comm Only exists on Wix XP and later
 // @rdesc CONSOLE_FULLSCREEN,CONSOLE_FULLSCREEN_HARDWARE
 static PyObject *PyGetConsoleDisplayMode(PyObject *self, PyObject *args)
 {
     DWORD mode;
     if (!PyArg_ParseTuple(args, ":GetConsoleDisplayMode"))
         return NULL;
-    CHECK_PFN(GetConsoleDisplayMode);
-    if (!(*pfnGetConsoleDisplayMode)(&mode))
+    if (!GetConsoleDisplayMode(&mode))
         return PyWin_SetAPIError("GetConsoleDisplayMode");
     return PyLong_FromLong(mode);
 }
@@ -1654,8 +1620,7 @@ static PyObject *PyAttachConsole(PyObject *self, PyObject *args, PyObject *kwarg
     DWORD pid;  // @pyparm int|ProcessId||Pid of another process, or ATTACH_PARENT_PROCESS
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "l", keywords, &pid))
         return NULL;
-    CHECK_PFN(AttachConsole);
-    if (!(*pfnAttachConsole)(pid))
+    if (!AttachConsole(pid))
         return PyWin_SetAPIError("AttachConsole");
     Py_INCREF(Py_None);
     return Py_None;
@@ -1692,7 +1657,6 @@ static PyObject *PyGetConsoleProcessList(PyObject *self, PyObject *args)
     PyObject *ret = NULL, *ret_item;
     if (!PyArg_ParseTuple(args, ":GetConsoleProcessList"))
         return NULL;
-    CHECK_PFN(GetConsoleProcessList);
     // if return count is greater than count passed in, buffer is too small
     do {
         if (pids != NULL) {
@@ -1702,7 +1666,7 @@ static PyObject *PyGetConsoleProcessList(PyObject *self, PyObject *args)
         pids = (DWORD *)malloc(pids_allocated * sizeof(DWORD));
         if (pids == NULL)
             return PyErr_Format(PyExc_MemoryError, "Unable to allocate %d pids", pids_allocated);
-        pids_returned = (*pfnGetConsoleProcessList)(pids, pids_allocated);
+        pids_returned = GetConsoleProcessList(pids, pids_allocated);
     } while (pids_returned > pids_allocated);
     // returns 0 if it fails for any other reason
     if (pids_returned == 0)
@@ -1783,8 +1747,7 @@ static PyObject *PyGetConsoleSelectionInfo(PyObject *self, PyObject *args)
     CONSOLE_SELECTION_INFO csi;
     if (!PyArg_ParseTuple(args, ":GetConsoleSelectionInfo"))
         return NULL;
-    CHECK_PFN(GetConsoleSelectionInfo);
-    if (!(*pfnGetConsoleSelectionInfo)(&csi))
+    if (!GetConsoleSelectionInfo(&csi))
         return PyWin_SetAPIError("GetConsoleSelectionInfo");
     return Py_BuildValue("{s:l,s:N,s:N}", "Flags", csi.dwFlags, "SelectionAnchor",
                          PyWinObject_FromCOORD(&csi.dwSelectionAnchor), "Selection",
@@ -1803,10 +1766,9 @@ static PyObject *PyAddConsoleAlias(PyObject *self, PyObject *args, PyObject *kwa
             &obtarget,  // @pyparm <o PyUNICODE>|Target||String to be substituted for Source.  If None, alias is removed
             &obexename))  // @pyparm <o PyUNICODE>|ExeName||Name of executable that will use alias
         return NULL;
-    CHECK_PFN(AddConsoleAlias);
     if (PyWinObject_AsWCHAR(obsource, &source, FALSE) && PyWinObject_AsWCHAR(obtarget, &target, TRUE) &&
         PyWinObject_AsWCHAR(obexename, &exename, FALSE)) {
-        if (!(*pfnAddConsoleAlias)(source, target, exename)) {
+        if (!AddConsoleAlias(source, target, exename)) {
             PyWin_SetAPIError("AddConsoleAlias");
         }
         else {
@@ -1833,17 +1795,15 @@ static PyObject *PyGetConsoleAliases(PyObject *self, PyObject *args, PyObject *k
             args, kwargs, "O:GetConsoleAliases", keywords,
             &obexename))  // @pyparm <o PyUNICODE>|ExeName||Name of executable for which to return aliases
         return NULL;
-    CHECK_PFN(GetConsoleAliases);
-    CHECK_PFN(GetConsoleAliasesLength);
     if (PyWinObject_AsWCHAR(obexename, &exename, FALSE)) {
-        buflen = (*pfnGetConsoleAliasesLength)(exename);
+        buflen = GetConsoleAliasesLength(exename);
         if (buflen == 0)
             ret = PyWinObject_FromWCHAR(L"");
         else {
             buf = (LPWSTR)malloc(buflen);
             if (buf == NULL)
                 PyErr_Format(PyExc_MemoryError, "GetConsoleAliases: Unable to allocate %d bytes", buflen);
-            else if ((*pfnGetConsoleAliases)(buf, buflen, exename) == 0)
+            else if (GetConsoleAliases(buf, buflen, exename) == 0)
                 PyWin_SetAPIError("GetConsoleAliases");
             else
                 ret = PyWinObject_FromWCHAR(buf, buflen / sizeof(WCHAR));
@@ -1864,16 +1824,14 @@ static PyObject *PyGetConsoleAliasExes(PyObject *self, PyObject *args)
     DWORD buflen;
     if (!PyArg_ParseTuple(args, ":GetConsoleAliasExes"))
         return NULL;
-    CHECK_PFN(GetConsoleAliasExes);
-    CHECK_PFN(GetConsoleAliasExesLength);
-    buflen = (*pfnGetConsoleAliasExesLength)();
+    buflen = GetConsoleAliasExesLength();
     if (buflen == 0)
         ret = PyWinObject_FromWCHAR(L"");
     else {
         buf = (LPWSTR)malloc(buflen);
         if (buf == NULL)
             PyErr_Format(PyExc_MemoryError, "GetConsoleAliasExes: Unable to allocate %d bytes", buflen);
-        else if ((*pfnGetConsoleAliasExes)(buf, buflen) == 0)
+        else if (GetConsoleAliasExes(buf, buflen) == 0)
             PyWin_SetAPIError("GetConsoleAliasExes");
         else
             ret = PyWinObject_FromWCHAR(buf, buflen / sizeof(WCHAR));
@@ -1891,23 +1849,20 @@ static PyObject *PyGetConsoleAliasExes(PyObject *self, PyObject *args)
 static PyObject *PyGetConsoleWindow(PyObject *self, PyObject *args)
 {
     HWND h;
-    CHECK_PFN(GetConsoleWindow);
     if (!PyArg_ParseTuple(args, ":GetConsoleWindow"))
         return NULL;
-    h = (*pfnGetConsoleWindow)();
+    h = GetConsoleWindow();
     return PyWinLong_FromHANDLE(h);
 }
 
 // @pymethod int|win32console|GetNumberOfConsoleFonts|Returns the number of fonts available to the console
-// @comm Function is not documented in MSDN
+// @comm Function is not documented in MSDN and may not be supported starting Windows 10
 PyObject *PyGetNumberOfConsoleFonts(PyObject *self, PyObject *args)
 {
-    DWORD nbroffonts;
     CHECK_PFN(GetNumberOfConsoleFonts);
     if (!PyArg_ParseTuple(args, ":GetNumberOfConsoleFonts"))
         return NULL;
-    nbroffonts = (*pfnGetNumberOfConsoleFonts)();
-    return PyLong_FromLong(nbroffonts);
+    return PyLong_FromLong((*pfnGetNumberOfConsoleFonts)());
 }
 
 // @pymethod |win32console|SetConsoleTitle|Sets the title of the console window
@@ -2073,28 +2028,10 @@ PYWIN_MODULE_INIT_FUNC(win32console)
     PyDict_SetItemString(dict, "error", PyWinExc_ApiError);
 
     // load function pointers
-    kernel32_dll = PyWin_GetOrLoadLibraryHandle("kernel32.dll");
-    if (kernel32_dll != NULL) {
-        pfnGetConsoleProcessList = (GetConsoleProcessListfunc)GetProcAddress(kernel32_dll, "GetConsoleProcessList");
-        pfnGetConsoleDisplayMode = (GetConsoleDisplayModefunc)GetProcAddress(kernel32_dll, "GetConsoleDisplayMode");
-        pfnSetConsoleDisplayMode = (SetConsoleDisplayModefunc)GetProcAddress(kernel32_dll, "SetConsoleDisplayMode");
-        pfnAttachConsole = (AttachConsolefunc)GetProcAddress(kernel32_dll, "AttachConsole");
-        pfnAddConsoleAlias = (AddConsoleAliasfunc)GetProcAddress(kernel32_dll, "AddConsoleAliasW");
-        pfnGetConsoleAliases = (GetConsoleAliasesfunc)GetProcAddress(kernel32_dll, "GetConsoleAliasesW");
-        pfnGetConsoleAliasesLength =
-            (GetConsoleAliasesLengthfunc)GetProcAddress(kernel32_dll, "GetConsoleAliasesLengthW");
-        pfnGetConsoleAliasExes = (GetConsoleAliasExesfunc)GetProcAddress(kernel32_dll, "GetConsoleAliasExesW");
-        pfnGetConsoleAliasExesLength =
-            (GetConsoleAliasExesLengthfunc)GetProcAddress(kernel32_dll, "GetConsoleAliasExesLengthW");
-        pfnGetConsoleWindow = (GetConsoleWindowfunc)GetProcAddress(kernel32_dll, "GetConsoleWindow");
-        pfnGetCurrentConsoleFont = (GetCurrentConsoleFontfunc)GetProcAddress(kernel32_dll, "GetCurrentConsoleFont");
-        pfnGetConsoleFontSize = (GetConsoleFontSizefunc)GetProcAddress(kernel32_dll, "GetConsoleFontSize");
-        pfnGetConsoleSelectionInfo =
-            (GetConsoleSelectionInfofunc)GetProcAddress(kernel32_dll, "GetConsoleSelectionInfo");
-        pfnGetNumberOfConsoleFonts =
-            (GetNumberOfConsoleFontsfunc)GetProcAddress(kernel32_dll, "GetNumberOfConsoleFonts");
-        pfnSetConsoleFont = (SetConsoleFontfunc)GetProcAddress(kernel32_dll, "SetConsoleFont");
-    }
+    HMODULE kernel32_dll = PyWin_GetOrLoadLibraryHandle("kernel32.dll");
+    assert(kernel32_dll);
+    pfnGetNumberOfConsoleFonts = (GetNumberOfConsoleFontsfunc)GetProcAddress(kernel32_dll, "GetNumberOfConsoleFonts");
+    pfnSetConsoleFont = (SetConsoleFontfunc)GetProcAddress(kernel32_dll, "SetConsoleFont");
 
     if (PyType_Ready(&PyConsoleScreenBufferType) == -1)
         PYWIN_MODULE_INIT_RETURN_ERROR;

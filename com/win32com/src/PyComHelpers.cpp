@@ -481,7 +481,6 @@ BOOL PyCom_PyObjectAsSTATSTG(PyObject *ob, STATSTG *pStat, DWORD flags /* = 0 */
     return TRUE;
 }
 
-#ifndef NO_PYCOM_STGOPTIONS
 BOOL PyCom_PyObjectAsSTGOPTIONS(PyObject *obstgoptions, STGOPTIONS **ppstgoptions, TmpWCHAR *ptw)
 {
     static char *stgmembers[] = {"Version", "reserved", "SectorSize", "TemplateFile", 0};
@@ -522,7 +521,6 @@ BOOL PyCom_PyObjectAsSTGOPTIONS(PyObject *obstgoptions, STGOPTIONS **ppstgoption
     }
     return ret;
 }
-#endif  // NO_PYCOM_STGOPTIONS
 
 PyObject *PyCom_PyObjectFromSTATPROPSETSTG(STATPROPSETSTG *pStg)
 {

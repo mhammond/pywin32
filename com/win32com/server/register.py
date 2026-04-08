@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import os
 import sys
+import tempfile
 
 import pythoncom
 import win32api
@@ -540,10 +541,8 @@ def UnregisterInfoClasses(*classes, **flags):
 
 # Attempt to 're-execute' our current process with elevation.
 def ReExecuteElevated(flags):
-    import tempfile
-
     import win32console
-    import win32event  # we've already checked we are running XP above
+    import win32event
     import win32process
     from win32com.shell import shellcon
     from win32com.shell.shell import ShellExecuteEx
@@ -645,14 +644,9 @@ def UseCommandLine(*classes, **flags):
         else:
             RegisterClasses(*classes, **flags)
     except win32api.error as exc:
-        # If we are on xp+ and have "access denied", retry using
-        # ShellExecuteEx with 'runas' verb to force elevation (vista) and/or
-        # admin login dialog (vista/xp)
-        if (
-            flags["unattended"]
-            or exc.winerror != winerror.ERROR_ACCESS_DENIED
-            or sys.getwindowsversion()[0] < 5
-        ):
+        # If we have "access denied", retry using
+        # ShellExecuteEx with 'runas' verb to force elevation
+        if flags["unattended"] or exc.winerror != winerror.ERROR_ACCESS_DENIED:
             raise
         ReExecuteElevated(flags)
 

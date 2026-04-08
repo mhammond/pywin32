@@ -1,6 +1,8 @@
 # See https://github.com/actions/runner-images/issues/9701
 # Adapted from https://github.com/actions/runner-images/issues/9873#issuecomment-2139288682
 
+# NOTE: This isn't currently needed, but script is kept in case Microsoft breaks GitHub-hosted runners for us again
+
 import os
 import platform
 from itertools import chain
