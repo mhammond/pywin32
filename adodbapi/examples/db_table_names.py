@@ -1,4 +1,4 @@
-"""a simple demo for ADO database table listing."""
+"""A simple demo for ADO database table listing."""
 
 import sys
 
