@@ -12,7 +12,7 @@ checkers = [ # Keep these in sync with .pre-commit-config.yaml
 type-checkers = [
   "types-setuptools",
   "PyOpenGL",
-  "numpy >= 1.20", # First py.typed version
+  "numpy >=1.20", # First py.typed version
   "mypy ==1.16.*; python_version >='3.9'",
   "pyright ==1.1.401",
 ]
