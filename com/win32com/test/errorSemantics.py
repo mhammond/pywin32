@@ -10,8 +10,12 @@
 #   reflected in the exception tuple)
 # * In all cases, the description etc end up in the exception tuple
 # * "Normal" Python exceptions resolve to an E_FAIL "internal error"
+from __future__ import annotations
+
+import logging
 
 import pythoncom
+import win32com
 import winerror
 from win32com.client import Dispatch
 from win32com.server.exception import COMException
@@ -172,71 +176,63 @@ def test():
         )
 
 
-try:
-    import logging
-except ImportError:
-    logging = None
-if logging is not None:
-    import win32com
+class TestLogHandler(logging.Handler):
+    def __init__(self):
+        self.reset()
+        logging.Handler.__init__(self)
 
-    class TestLogHandler(logging.Handler):
-        def __init__(self):
-            self.reset()
-            logging.Handler.__init__(self)
+    def reset(self):
+        self.num_emits = 0
+        self.last_record = None
 
-        def reset(self):
-            self.num_emits = 0
-            self.last_record = None
+    def emit(self, record):
+        self.num_emits += 1
+        self.last_record = self.format(record)
+        return
+        print("--- record start")
+        print(self.last_record)
+        print("--- record end")
 
-        def emit(self, record):
-            self.num_emits += 1
-            self.last_record = self.format(record)
-            return
-            print("--- record start")
-            print(self.last_record)
-            print("--- record end")
+def testLogger():
+    assert not hasattr(win32com, "logger")
+    handler = TestLogHandler()
+    formatter = logging.Formatter("%(message)s")
+    handler.setFormatter(formatter)
+    log = logging.getLogger("win32com_test")
+    log.addHandler(handler)
+    win32com.logger = log
+    # Now throw some exceptions!
+    # Native interfaces
+    com_server = wrap(TestServer(), pythoncom.IID_IStream)
+    try:
+        com_server.Commit(0)
+        raise AssertionError("should have failed")
+    except pythoncom.error as exc:
+        # `excepinfo` is a tuple with elt 2 being the traceback we captured.
+        message = exc.excepinfo[2]
+        assert message.endswith("Exception: \U0001f600\n")
+    assert handler.num_emits == 1, handler.num_emits
+    assert handler.last_record.startswith(
+        "pythoncom error: Unexpected exception in gateway method 'Commit'"
+    )
+    handler.reset()
 
-    def testLogger():
-        assert not hasattr(win32com, "logger")
-        handler = TestLogHandler()
-        formatter = logging.Formatter("%(message)s")
-        handler.setFormatter(formatter)
-        log = logging.getLogger("win32com_test")
-        log.addHandler(handler)
-        win32com.logger = log
-        # Now throw some exceptions!
-        # Native interfaces
-        com_server = wrap(TestServer(), pythoncom.IID_IStream)
-        try:
-            com_server.Commit(0)
-            raise AssertionError("should have failed")
-        except pythoncom.error as exc:
-            # `excepinfo` is a tuple with elt 2 being the traceback we captured.
-            message = exc.excepinfo[2]
-            assert message.endswith("Exception: \U0001f600\n")
-        assert handler.num_emits == 1, handler.num_emits
-        assert handler.last_record.startswith(
-            "pythoncom error: Unexpected exception in gateway method 'Commit'"
-        )
-        handler.reset()
-
-        # IDispatch
-        com_server = Dispatch(wrap(TestServer()))
-        try:
-            com_server.Commit(0)
-            raise AssertionError("should have failed")
-        except pythoncom.error as exc:
-            # `excepinfo` is a tuple with elt 2 being the traceback we captured.
-            message = exc.excepinfo[2]
-            assert message.endswith("Exception: \U0001f600\n")
-        assert handler.num_emits == 1, handler.num_emits
-        handler.reset()
+    # IDispatch
+    com_server = Dispatch(wrap(TestServer()))
+    try:
+        com_server.Commit(0)
+        raise AssertionError("should have failed")
+    except pythoncom.error as exc:
+        # `excepinfo` is a tuple with elt 2 being the traceback we captured.
+        message = exc.excepinfo[2]
+        assert message.endswith("Exception: \U0001f600\n")
+    assert handler.num_emits == 1, handler.num_emits
+    handler.reset()
 
 
 if __name__ == "__main__":
     test()
-    if logging is not None:
-        testLogger()
+    testLogger()
     from win32com.test.util import CheckClean
 
     CheckClean()
