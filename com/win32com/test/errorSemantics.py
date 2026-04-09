@@ -193,6 +193,7 @@ class TestLogHandler(logging.Handler):
         print(self.last_record)
         print("--- record end")
 
+
 def testLogger():
     assert not hasattr(win32com, "logger")
     handler = TestLogHandler()
