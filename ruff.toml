@@ -1,4 +1,10 @@
 target-version = "py39" # Target the oldest supported version
+extend-include = [
+  "*.pyw", # Will be included by default in Ruff eventually
+  "*.pys", # PythonScript (Windows Script Host)
+  # Can be uncommented to format the [Extensions] section
+  # "**/default.cfg",
+]
 # This file is not UTF-8
 extend-exclude = ["Pythonwin/pywin/test/_dbgscript.py"]
 
@@ -6,6 +12,7 @@ extend-exclude = ["Pythonwin/pywin/test/_dbgscript.py"]
 line-ending = "cr-lf"
 
 [lint]
+future-annotations = true
 select = [
   "B028", # no-explicit-stacklevel
   "C4", # flake8-comprehensions
@@ -41,6 +48,8 @@ extend-ignore = [
   "UP015", # redundant-open-modes
   # No such concerns for stdlib
   "TC003", # typing-only-standard-library-import
+  # Lots of lazy or side-effect imports
+  "PLC0415", # import-outside-top-level
   # TODO: Consider passing exception around to ensure methods are only ever used within exception handlers
   "PLE0704", # misplaced-bare-raise
   # TODO: Still lots of manual fixes needed
@@ -49,13 +58,9 @@ extend-ignore = [
 ]
 
 [lint.per-file-ignores]
-# Explicit re-exports is fine in __init__.py, still a code smell elsewhere.
-"__init__.py" = ["PLC0414"]
 # TODO: Make adodbapi changes in their own PRs
 "adodbapi/*" = [
   "C4",
-  "UP031",
-  "UP032",
   # Dropping Python 3.8 support
   "UP005",
   "UP006",
