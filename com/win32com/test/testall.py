@@ -258,7 +258,7 @@ def make_test_suite(
     return suite, import_failures
 
 
-def usage(why: str) -> NoReturn:
+def usage(why: str | getopt.error) -> NoReturn:
     print(f"""\
 {why}
 
