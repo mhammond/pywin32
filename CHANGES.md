@@ -18,6 +18,10 @@ As of build 305, installation .exe files have been deprecated; see
 Coming in build 312, as yet unreleased
 --------------------------------------
 
+* Resolved a handful of deprecation warnings (mhammond#2593, [@Avasam][Avasam])
+* Deprecate `pythoncom.frozen` (mhammond#2593, [@Avasam][Avasam])
+  `pythoncom.frozen` used to expose `Py_FrozenFlag` from the C API.
+  `Py_FrozenFlag` is deprecated since Python 3.12.
 * Fixed `axdebug` build on Python 3.11+ using CPython's new opaque frame APIs, fixed 64-bit overflow in sourceContext and stack addresses, fixed incorrect step-over and step-out behavior, and fixed `ListEnumeratorGateway.Next()` returning lazy `map` iterator incompatible with C++ COM gateways that require a sequence (mhammond#2723, mhammond#2724, mhammond#2725, [@wxinix-2022][wxinix-2022])
 * Removed more leftover obsolete `UNICODE` constants since dropping Python 2 support in `win32ui`, `win32gui` and `win32clipboard` (mhammond#2717, [@Avasam][Avasam])
 * Implement COM Records as `[out]` method parameters (mhammond#2708, [@geppi][geppi], [@the-snork][the-snork])
