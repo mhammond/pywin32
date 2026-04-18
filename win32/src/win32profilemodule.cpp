@@ -133,10 +133,10 @@ PyObject *PyLoadUserProfile(PyObject *self, PyObject *args, PyObject *kwargs)
         return NULL;
     if (!PyWinObject_AsPROFILEINFO(obPROFILEINFO, &profileinfo))
         return NULL;
-    if (!LoadUserProfile(hToken, &profileinfo))
-        PyWin_SetAPIError("LoadUserProfile");
-    else
-        ret = new PyHKEY(profileinfo.hProfile);
+    BOOL ok;
+    Py_BEGIN_ALLOW_THREADS ok = LoadUserProfile(hToken, &profileinfo);
+    Py_END_ALLOW_THREADS if (!ok) PyWin_SetAPIError("LoadUserProfile");
+    else ret = new PyHKEY(profileinfo.hProfile);
     PyWinObject_FreePROFILEINFO(&profileinfo);
     return ret;
 }
@@ -159,7 +159,10 @@ PyObject *PyUnloadUserProfile(PyObject *self, PyObject *args, PyObject *kwargs)
         return NULL;
     if (!PyWinObject_AsHANDLE(obhProfile, &hProfile))
         return NULL;
-    if (!UnloadUserProfile(hToken, hProfile)) {
+    BOOL ok;
+    Py_BEGIN_ALLOW_THREADS ok = UnloadUserProfile(hToken, hProfile);
+    Py_END_ALLOW_THREADS if (!ok)
+    {
         PyWin_SetAPIError("UnloadUserProfile");
         return NULL;
     }
@@ -335,9 +338,11 @@ PyObject *PyCreateEnvironmentBlock(PyObject *self, PyObject *args, PyObject *kwa
         return NULL;
     if (!PyWinObject_AsHANDLE(obhToken, &hToken))
         return NULL;
-    if (!CreateEnvironmentBlock(&env, hToken, inherit))
-        PyWin_SetAPIError("CreateEnvironmentBlock");
-    else {
+    BOOL ok;
+    Py_BEGIN_ALLOW_THREADS ok = CreateEnvironmentBlock(&env, hToken, inherit);
+    Py_END_ALLOW_THREADS if (!ok) PyWin_SetAPIError("CreateEnvironmentBlock");
+    else
+    {
         ret = PyWinObject_FromEnvironmentBlock((WCHAR *)env);
         DestroyEnvironmentBlock(env);
     }

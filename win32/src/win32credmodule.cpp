@@ -722,9 +722,11 @@ PyObject *PyCredWrite(PyObject *self, PyObject *args, PyObject *kwargs)
         return NULL;
     if (!PyWinObject_AsCREDENTIAL(obcred, &cred))
         return NULL;
-    if (!CredWrite(&cred, flags))
-        PyWin_SetAPIError("CredWrite");
-    else {
+    BOOL ok;
+    Py_BEGIN_ALLOW_THREADS ok = CredWrite(&cred, flags);
+    Py_END_ALLOW_THREADS if (!ok) PyWin_SetAPIError("CredWrite");
+    else
+    {
         Py_INCREF(Py_None);
         ret = Py_None;
     }
