@@ -851,11 +851,16 @@ PyObject *PyLogonUser(PyObject *self, PyObject *args, PyObject *kwargs)
 		&&PyWinObject_AsWCHAR(obdomain, &domain, TRUE)
 		&&PyWinObject_AsWCHAR(obpassword, &password, FALSE)){
 		BOOL ok;
+		DWORD err;
 		Py_BEGIN_ALLOW_THREADS
 		ok = LogonUser(username, domain, password, logontype, logonprovider, &htoken);
+		// Capture error before Py_END_ALLOW_THREADS reacquires the GIL,
+		// which may call Win32 functions that overwrite GetLastError().
+		if (!ok)
+			err = GetLastError();
 		Py_END_ALLOW_THREADS
 		if (!ok)
-			PyWin_SetAPIError("LogonUser");
+			PyWin_SetAPIError("LogonUser", err);
 		else
 			ret=PyWinObject_FromHANDLE(htoken);
 		}
@@ -986,11 +991,14 @@ PyObject *LookupAccountName(PyObject *self, PyObject *args)
 	pSid = (PSID)malloc(sidSize);
 
 	BOOL bLookup;
+	DWORD err;
 	Py_BEGIN_ALLOW_THREADS
 	bLookup = LookupAccountName(szSystemName, szAcctName, pSid, &sidSize, refDomain, &refDomainSize, &sidType);
+	if (!bLookup)
+		err = GetLastError();
 	Py_END_ALLOW_THREADS
 	if (!bLookup) {
-		PyWin_SetAPIError("LookupAccountName");
+		PyWin_SetAPIError("LookupAccountName", err);
 		goto done;
 	}
 	obDomain = PyWinObject_FromTCHAR(refDomain);
@@ -2717,11 +2725,14 @@ static PyObject *PyConvertSidToStringSid(PyObject *self, PyObject *args)
     if (!PyWinObject_AsSID(obsid, &psid))
         return NULL;
     BOOL bConvert;
+    DWORD err;
     Py_BEGIN_ALLOW_THREADS
     bConvert = ConvertSidToStringSid(psid,&stringsid);
+    if (!bConvert)
+        err = GetLastError();
     Py_END_ALLOW_THREADS
     if (!bConvert)
-        PyWin_SetAPIError("ConvertSidToStringSid");
+        PyWin_SetAPIError("ConvertSidToStringSid", err);
     else
         ret=PyWinObject_FromWCHAR(stringsid);
     if (stringsid!=NULL)

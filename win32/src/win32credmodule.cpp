@@ -723,11 +723,16 @@ PyObject *PyCredWrite(PyObject *self, PyObject *args, PyObject *kwargs)
     if (!PyWinObject_AsCREDENTIAL(obcred, &cred))
         return NULL;
     BOOL ok;
+    DWORD err;
     Py_BEGIN_ALLOW_THREADS;
     ok = CredWrite(&cred, flags);
+    // Capture error before Py_END_ALLOW_THREADS reacquires the GIL,
+    // which may call Win32 functions that overwrite GetLastError().
+    if (!ok)
+        err = GetLastError();
     Py_END_ALLOW_THREADS;
     if (!ok)
-        PyWin_SetAPIError("CredWrite");
+        PyWin_SetAPIError("CredWrite", err);
     else {
         Py_INCREF(Py_None);
         ret = Py_None;
