@@ -20,3 +20,6 @@ b74bfdca97238735adbd1b20d7245cca7070900f
 
 # 2025-11-25 renormalized line endings in adodbapi
 d8f97a8c8f72263d336fc4050f83e007ac6e770d
+
+# 2026-04-20 reformatted Py_*_ALLOW_THREADS with clang-format MacroBlock
+81ea73b0c3227536cb1bf54e37e78dc849977c99

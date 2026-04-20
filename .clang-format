@@ -18,3 +18,7 @@ SpaceBeforeParens: ControlStatements
 SpacesInParentheses: false
 TabWidth: 4
 UseTab: Never
+
+# https://clang.llvm.org/docs/ClangFormatStyleOptions.html#macroblockbegin
+MacroBlockBegin: Py_BEGIN_ALLOW_THREADS
+MacroBlockEnd: Py_END_ALLOW_THREADS
