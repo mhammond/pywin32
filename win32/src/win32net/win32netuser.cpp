@@ -373,10 +373,10 @@ PyObject *PyNetUserEnum(PyObject *self, PyObject *args)
     if (!FindNET_STRUCT(level, user_infos, &pInfo))
         goto done;
 
-    Py_BEGIN_ALLOW_THREADS err =
-        NetUserEnum(szServer, level, filter, &buf, dwPrefLen, &numRead, &totalEntries, &resumeHandle);
-    Py_END_ALLOW_THREADS if (err != 0 && err != ERROR_MORE_DATA)
-    {
+    Py_BEGIN_ALLOW_THREADS;
+    err = NetUserEnum(szServer, level, filter, &buf, dwPrefLen, &numRead, &totalEntries, &resumeHandle);
+    Py_END_ALLOW_THREADS;
+    if (err != 0 && err != ERROR_MORE_DATA) {
         ReturnNetError("NetUserEnum", err);  // @pyseeapi NetUserEnum
         goto done;
     }
