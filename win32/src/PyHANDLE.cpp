@@ -192,41 +192,40 @@ BOOL PyHANDLE::Close(void)
     if (m_handle) {
         Py_BEGIN_ALLOW_THREADS
 #ifdef Py_DEBUG
-            __try
-        {
+            __try {
 #endif  // Py_DEBUG
-            rc = CloseHandle(m_handle);
+                rc = CloseHandle(m_handle);
 #ifdef Py_DEBUG
-        }
-        __except (1)
-        {
-            // according to the docs on CloseHandle(), this
-            // can happen when run under the debugger.  This is a
-            // PITA, as it makes it hard to debug whatever we are here
-            // for (unless we are here to debug this!).  So we break into
-            // the debugger, which gives the developer the option of continuing
-            static bool is_first_exception = true;
-            static bool break_on_exception = true;
-            // It *seems* that handles that raise an exception under
-            // the debugger actually *succeed* calling Close running normally.
-            static bool raise_python_exception = false;
-            if (break_on_exception) {
-                if (is_first_exception)
-                    break_on_exception = false;
-                DebugBreak();
-                // reset 'break_on_exception' to true if you want to
-                // continue breaking on every invalid handle exception
+            }
+            __except (1) {
+                // according to the docs on CloseHandle(), this
+                // can happen when run under the debugger.  This is a
+                // PITA, as it makes it hard to debug whatever we are here
+                // for (unless we are here to debug this!).  So we break into
+                // the debugger, which gives the developer the option of continuing
+                static bool is_first_exception = true;
+                static bool break_on_exception = true;
+                // It *seems* that handles that raise an exception under
+                // the debugger actually *succeed* calling Close running normally.
+                static bool raise_python_exception = false;
+                if (break_on_exception) {
+                    if (is_first_exception)
+                        break_on_exception = false;
+                    DebugBreak();
+                    // reset 'break_on_exception' to true if you want to
+                    // continue breaking on every invalid handle exception
 
-                // set 'raise_python_exception' to true to send the exception to Python.
+                    // set 'raise_python_exception' to true to send the exception to Python.
+                }
+                is_first_exception = false;
+                if (raise_python_exception) {
+                    rc = FALSE;
+                    ::SetLastError(ERROR_INVALID_HANDLE);
+                }
             }
-            is_first_exception = false;
-            if (raise_python_exception) {
-                rc = FALSE;
-                ::SetLastError(ERROR_INVALID_HANDLE);
-            }
-        }
 #endif  // Py_DEBUG
-        Py_END_ALLOW_THREADS m_handle = 0;
+        Py_END_ALLOW_THREADS
+        m_handle = 0;
     }
     if (!rc)
         PyWin_SetAPIError("CloseHandle");

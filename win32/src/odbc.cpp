@@ -238,10 +238,11 @@ static int doConnect(connectionObject *conn)
 {
     RETCODE rc;
     short connectionStringLength;
-    Py_BEGIN_ALLOW_THREADS rc = SQLDriverConnect(conn->hdbc, NULL, (SQLTCHAR *)conn->connectionString, SQL_NTS, NULL, 0,
-                                                 &connectionStringLength, SQL_DRIVER_NOPROMPT);
-    Py_END_ALLOW_THREADS if (unsuccessful(rc))
-    {
+    Py_BEGIN_ALLOW_THREADS
+        rc = SQLDriverConnect(conn->hdbc, NULL, (SQLTCHAR *)conn->connectionString, SQL_NTS, NULL, 0,
+                              &connectionStringLength, SQL_DRIVER_NOPROMPT);
+    Py_END_ALLOW_THREADS
+    if (unsuccessful(rc)) {
         odbcPrintError(Env, conn, SQL_NULL_HSTMT, _T("LOGIN"));
         return 1;
     }
@@ -308,14 +309,14 @@ static PyObject *odbcSetAutoCommit(PyObject *self, PyObject *args)
 static PyObject *odbcCommit(PyObject *self, PyObject *args)
 {
     RETCODE rc;
-    Py_BEGIN_ALLOW_THREADS rc = SQLTransact(Env, connection(self)->hdbc, SQL_COMMIT);
-    Py_END_ALLOW_THREADS if (unsuccessful(rc))
-    {
+    Py_BEGIN_ALLOW_THREADS
+        rc = SQLTransact(Env, connection(self)->hdbc, SQL_COMMIT);
+    Py_END_ALLOW_THREADS
+    if (unsuccessful(rc)) {
         connectionError(connection(self), _T("COMMIT"));
         return 0;
     }
-    else
-    {
+    else {
         Py_INCREF(Py_None);
         return Py_None;
     }
@@ -325,14 +326,14 @@ static PyObject *odbcCommit(PyObject *self, PyObject *args)
 static PyObject *odbcRollback(PyObject *self, PyObject *args)
 {
     RETCODE rc;
-    Py_BEGIN_ALLOW_THREADS rc = SQLTransact(Env, connection(self)->hdbc, SQL_ROLLBACK);
-    Py_END_ALLOW_THREADS if (unsuccessful(rc))
-    {
+    Py_BEGIN_ALLOW_THREADS
+        rc = SQLTransact(Env, connection(self)->hdbc, SQL_ROLLBACK);
+    Py_END_ALLOW_THREADS
+    if (unsuccessful(rc)) {
         connectionError(connection(self), _T("ROLLBACK"));
         return 0;
     }
-    else
-    {
+    else {
         Py_INCREF(Py_None);
         return Py_None;
     }
@@ -1054,44 +1055,45 @@ static RETCODE sendSQLInputData(cursorObject *cur)
     RETCODE rc = SQL_SUCCESS;
     char *pIndx;
 
-    Py_BEGIN_ALLOW_THREADS rc = SQLParamData(cur->hstmt, (void **)&pIndx);
-    while (rc == SQL_NEED_DATA) {
-        InputBinding *pInputBinding = cur->inputVars;
-
-        /* find the input to put */
-        while (pInputBinding) {
-            if (pIndx != pInputBinding->bind_area) {
-                pInputBinding = pInputBinding->next;
-            }
-            else {
-                break;
-            }
-        }
-
-        if (pInputBinding) {
-            size_t putTimes = pInputBinding->len / 1024;
-            size_t remainder = pInputBinding->len % 1024;
-            rc = SQL_SUCCESS;
-
-            if (!putTimes && !remainder) {
-                rc = SQLPutData(cur->hstmt, pInputBinding->bind_area, 0);
-            }
-            size_t i;
-            for (i = 0; i < putTimes && rc == SQL_SUCCESS; i++) {
-                rc = SQLPutData(cur->hstmt, (void *)(&pInputBinding->bind_area[i * 1024]), 1024);
-            }
-
-            if (remainder && rc == SQL_SUCCESS) {
-                rc = SQLPutData(cur->hstmt, (void *)(&pInputBinding->bind_area[i * 1024]), remainder);
-            }
-        }
-
-        /* see if additional data is needed. */
+    Py_BEGIN_ALLOW_THREADS
         rc = SQLParamData(cur->hstmt, (void **)&pIndx);
-    }
+        while (rc == SQL_NEED_DATA) {
+            InputBinding *pInputBinding = cur->inputVars;
+
+            /* find the input to put */
+            while (pInputBinding) {
+                if (pIndx != pInputBinding->bind_area) {
+                    pInputBinding = pInputBinding->next;
+                }
+                else {
+                    break;
+                }
+            }
+
+            if (pInputBinding) {
+                size_t putTimes = pInputBinding->len / 1024;
+                size_t remainder = pInputBinding->len % 1024;
+                rc = SQL_SUCCESS;
+
+                if (!putTimes && !remainder) {
+                    rc = SQLPutData(cur->hstmt, pInputBinding->bind_area, 0);
+                }
+                size_t i;
+                for (i = 0; i < putTimes && rc == SQL_SUCCESS; i++) {
+                    rc = SQLPutData(cur->hstmt, (void *)(&pInputBinding->bind_area[i * 1024]), 1024);
+                }
+
+                if (remainder && rc == SQL_SUCCESS) {
+                    rc = SQLPutData(cur->hstmt, (void *)(&pInputBinding->bind_area[i * 1024]), remainder);
+                }
+            }
+
+            /* see if additional data is needed. */
+            rc = SQLParamData(cur->hstmt, (void **)&pIndx);
+        }
     Py_END_ALLOW_THREADS
 
-        return rc;
+    return rc;
 }
 
 /* @pymethod int|cursor|execute|Execute some SQL */
@@ -1164,9 +1166,10 @@ static PyObject *odbcCurExec(PyObject *self, PyObject *args)
     SQLFreeStmt(cur->hstmt, SQL_CLOSE); /* ignore errors here */
     RETCODE rc = SQL_SUCCESS;
     n_columns = rewriteQuery(sqlbuf, sql);
-    Py_BEGIN_ALLOW_THREADS rc = SQLPrepare(cur->hstmt, (SQLTCHAR *)sqlbuf, SQL_NTS);
-    Py_END_ALLOW_THREADS if (unsuccessful(rc))
-    {
+    Py_BEGIN_ALLOW_THREADS
+        rc = SQLPrepare(cur->hstmt, (SQLTCHAR *)sqlbuf, SQL_NTS);
+    Py_END_ALLOW_THREADS
+    if (unsuccessful(rc)) {
         cursorError(cur, _T("EXEC"));
         goto Error;
     }
@@ -1187,11 +1190,11 @@ static PyObject *odbcCurExec(PyObject *self, PyObject *args)
             if (!bindInput(cur, inputvars, n_columns)) {
                 goto Error;
             }
-            Py_BEGIN_ALLOW_THREADS rc = SQLExecDirect(cur->hstmt, (SQLTCHAR *)sqlbuf, SQL_NTS);
+            Py_BEGIN_ALLOW_THREADS
+                rc = SQLExecDirect(cur->hstmt, (SQLTCHAR *)sqlbuf, SQL_NTS);
             Py_END_ALLOW_THREADS
-                /* move data here. */
-                if (rc == SQL_NEED_DATA)
-            {
+            /* move data here. */
+            if (rc == SQL_NEED_DATA) {
                 rc = sendSQLInputData(cur);
             }
             if (unsuccessful(rc)) {
@@ -1200,8 +1203,10 @@ static PyObject *odbcCurExec(PyObject *self, PyObject *args)
             }
             /* Success! */
             /* Note: multiple result sets aren't supported here, just bulk inserts... */
-            Py_BEGIN_ALLOW_THREADS SQLRowCount(cur->hstmt, &t);
-            Py_END_ALLOW_THREADS n_rows += t;
+            Py_BEGIN_ALLOW_THREADS
+                SQLRowCount(cur->hstmt, &t);
+            Py_END_ALLOW_THREADS
+            n_rows += t;
             deleteBinding(cur);
             Py_DECREF(inputvars);
             inputvars = NULL;
@@ -1211,8 +1216,12 @@ static PyObject *odbcCurExec(PyObject *self, PyObject *args)
         if (!bindInput(cur, inputvars, n_columns)) {
             goto Error;
         }
-        Py_BEGIN_ALLOW_THREADS rc = SQLExecDirect(cur->hstmt, (SQLTCHAR *)sqlbuf, SQL_NTS);
-        Py_END_ALLOW_THREADS if (rc == SQL_NEED_DATA) { rc = sendSQLInputData(cur); }
+        Py_BEGIN_ALLOW_THREADS
+            rc = SQLExecDirect(cur->hstmt, (SQLTCHAR *)sqlbuf, SQL_NTS);
+        Py_END_ALLOW_THREADS
+        if (rc == SQL_NEED_DATA) {
+            rc = sendSQLInputData(cur);
+        }
         if (unsuccessful(rc)) {
             cursorError(cur, _T("EXEC"));
             goto Error;
@@ -1272,9 +1281,10 @@ static PyObject *processOutput(cursorObject *cur)
                     ob->vsize += cur->max_width;
                     /* Some BLOBs can be huge, be paranoid about allowing
                        other threads to run. */
-                    Py_BEGIN_ALLOW_THREADS ob->bind_area = realloc(ob->bind_area, ob->vsize);
-                    Py_END_ALLOW_THREADS if (ob->bind_area == NULL)
-                    {
+                    Py_BEGIN_ALLOW_THREADS
+                        ob->bind_area = realloc(ob->bind_area, ob->vsize);
+                    Py_END_ALLOW_THREADS
+                    if (ob->bind_area == NULL) {
                         PyErr_NoMemory();
                         ob->vsize -= cur->max_width;
                         ob->bind_area = pTemp;
@@ -1283,10 +1293,11 @@ static PyObject *processOutput(cursorObject *cur)
                     }
                 }
 
-                Py_BEGIN_ALLOW_THREADS rc = SQLGetData(cur->hstmt, ob->pos, ob->vtype, (char *)ob->bind_area + cbRead,
-                                                       ob->vsize - cbRead, &ob->rcode);
-                Py_END_ALLOW_THREADS if (unsuccessful(rc))
-                {
+                Py_BEGIN_ALLOW_THREADS
+                    rc = SQLGetData(cur->hstmt, ob->pos, ob->vtype, (char *)ob->bind_area + cbRead, ob->vsize - cbRead,
+                                    &ob->rcode);
+                Py_END_ALLOW_THREADS
+                if (unsuccessful(rc)) {
                     Py_DECREF(row);
                     cursorError(cur, _T("SQLGetData"));
                     return NULL;
@@ -1342,14 +1353,14 @@ static PyObject *processOutput(cursorObject *cur)
 static PyObject *fetchOne(cursorObject *cur)
 {
     RETCODE rc;
-    Py_BEGIN_ALLOW_THREADS rc = SQLFetch(cur->hstmt);
-    Py_END_ALLOW_THREADS if (rc == SQL_NO_DATA_FOUND)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        rc = SQLFetch(cur->hstmt);
+    Py_END_ALLOW_THREADS
+    if (rc == SQL_NO_DATA_FOUND) {
         Py_INCREF(Py_None);
         return Py_None;
     }
-    else if (unsuccessful(rc))
-    {
+    else if (unsuccessful(rc)) {
         cursorError(cur, _T("FETCH"));
         return 0;
     }
@@ -1556,21 +1567,21 @@ static PyObject *odbcSQLDataSources(PyObject *self, PyObject *args)
     SQLSMALLINT svr_size = sizeof(svr) / sizeof(svr[0]);
     SQLSMALLINT desc_size = sizeof(desc) / sizeof(desc[0]);
     RETCODE rc;
-    Py_BEGIN_ALLOW_THREADS rc = SQLDataSources(Env, direction, svr, svr_size, &svr_size, desc, desc_size, &desc_size);
+    Py_BEGIN_ALLOW_THREADS
+        rc = SQLDataSources(Env, direction, svr, svr_size, &svr_size, desc, desc_size, &desc_size);
     Py_END_ALLOW_THREADS
 
-        if (rc == SQL_NO_DATA)
-    {
+    if (rc == SQL_NO_DATA) {
         ret = Py_None;
         Py_INCREF(Py_None);
     }
-    else if (unsuccessful(rc))
-    {
+    else if (unsuccessful(rc)) {
         connectionError(NULL, _T("SQLDataSources"));
         ret = NULL;
     }
-    else ret = Py_BuildValue("NN", PyWinObject_FromTCHAR((TCHAR *)svr, svr_size),
-                             PyWinObject_FromTCHAR((TCHAR *)desc, desc_size));
+    else
+        ret = Py_BuildValue("NN", PyWinObject_FromTCHAR((TCHAR *)svr, svr_size),
+                            PyWinObject_FromTCHAR((TCHAR *)desc, desc_size));
     return ret;
 }
 

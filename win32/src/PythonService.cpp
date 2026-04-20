@@ -152,8 +152,9 @@ static PyObject *DoLogMessage(WORD errorType, PyObject *obMsg)
     DWORD errorCode = errorType == EVENTLOG_ERROR_TYPE ? PYS_E_GENERIC_ERROR : PYS_E_GENERIC_WARNING;
     LPCTSTR inserts[] = {msg, NULL};
     BOOL ok;
-    Py_BEGIN_ALLOW_THREADS;
-    ok = ReportError(errorCode, inserts, errorType);
+    Py_BEGIN_ALLOW_THREADS
+        ;
+        ok = ReportError(errorCode, inserts, errorType);
     Py_END_ALLOW_THREADS;
     PyWinObject_FreeWCHAR(msg);  // free msg before potentially raising error
     if (!ok)
@@ -205,13 +206,15 @@ static PyObject *PyLogMsg(PyObject *self, PyObject *args)
         PyErr_SetString(PyExc_TypeError, "strings must be None or a sequence");
         goto cleanup;
     }
-    Py_BEGIN_ALLOW_THREADS ok = ReportError(code, pStrings, errorType);
-    Py_END_ALLOW_THREADS if (ok)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        ok = ReportError(code, pStrings, errorType);
+    Py_END_ALLOW_THREADS
+    if (ok) {
         Py_INCREF(Py_None);
         rc = Py_None;
     }
-    else PyWin_SetAPIError("RegisterEventSource/ReportEvent");
+    else
+        PyWin_SetAPIError("RegisterEventSource/ReportEvent");
 
 cleanup:
     if (pStrings) {
@@ -385,24 +388,28 @@ static PyObject *PyPumpWaitingMessages(PyObject *self, PyObject *args)
     long result = 0;
     // Read all of the messages in this next loop,
     // removing each message as we read it.
-    Py_BEGIN_ALLOW_THREADS while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
-    {
-        // If it's a quit message, we're out of here.
-        if (msg.message == WM_QUIT) {
-            result = 1;
-            break;
-        }
-        // Otherwise, dispatch the message.
-        DispatchMessage(&msg);
-    }  // End of PeekMessage while loop
-    Py_END_ALLOW_THREADS return PyLong_FromLong(result);
+    Py_BEGIN_ALLOW_THREADS
+        while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
+            // If it's a quit message, we're out of here.
+            if (msg.message == WM_QUIT) {
+                result = 1;
+                break;
+            }
+            // Otherwise, dispatch the message.
+            DispatchMessage(&msg);
+        }  // End of PeekMessage while loop
+    Py_END_ALLOW_THREADS
+    return PyLong_FromLong(result);
 }
 
 static PyObject *PyStartServiceCtrlDispatcher(PyObject *self)
 {
     BOOL ok;
-    Py_BEGIN_ALLOW_THREADS ok = PythonService_StartServiceCtrlDispatcher();
-    Py_END_ALLOW_THREADS if (!ok) return PyWin_SetAPIError("StartServiceCtrlDispatcher");
+    Py_BEGIN_ALLOW_THREADS
+        ok = PythonService_StartServiceCtrlDispatcher();
+    Py_END_ALLOW_THREADS
+    if (!ok)
+        return PyWin_SetAPIError("StartServiceCtrlDispatcher");
     Py_INCREF(Py_None);
     return Py_None;
 }

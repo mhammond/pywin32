@@ -95,9 +95,13 @@ static PyObject *PyOpenPrinter(PyObject *self, PyObject *args)
     }
     if (PyWinObject_AsTCHAR(obprinter, &printer, TRUE)) {
         BOOL bsuccess;
-        Py_BEGIN_ALLOW_THREADS bsuccess = OpenPrinter(printer, &handle, pprinter_defaults);
-        Py_END_ALLOW_THREADS if (bsuccess) ret = PyWinObject_FromPrinterHANDLE(handle);
-        else PyWin_SetAPIError("OpenPrinter");
+        Py_BEGIN_ALLOW_THREADS
+            bsuccess = OpenPrinter(printer, &handle, pprinter_defaults);
+        Py_END_ALLOW_THREADS
+        if (bsuccess)
+            ret = PyWinObject_FromPrinterHANDLE(handle);
+        else
+            PyWin_SetAPIError("OpenPrinter");
     }
     PyWinObject_FreePRINTER_DEFAULTS(&printer_defaults);
     PyWinObject_FreeTCHAR(printer);
@@ -753,9 +757,13 @@ static PyObject *PyStartDocPrinter(PyObject *self, PyObject *args)
         info.pDocName = pDocName;
         info.pOutputFile = pOutputFile;
         info.pDatatype = pDatatype;
-        Py_BEGIN_ALLOW_THREADS JobID = StartDocPrinter(hprinter, level, (LPBYTE)&info);
-        Py_END_ALLOW_THREADS if (0 == JobID) PyWin_SetAPIError("StartDocPrinter");
-        else ret = PyLong_FromUnsignedLong(JobID);
+        Py_BEGIN_ALLOW_THREADS
+            JobID = StartDocPrinter(hprinter, level, (LPBYTE)&info);
+        Py_END_ALLOW_THREADS
+        if (0 == JobID)
+            PyWin_SetAPIError("StartDocPrinter");
+        else
+            ret = PyLong_FromUnsignedLong(JobID);
     }
     PyWinObject_FreeTCHAR(pDocName);
     PyWinObject_FreeTCHAR(pOutputFile);
