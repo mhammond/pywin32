@@ -850,8 +850,17 @@ PyObject *PyLogonUser(PyObject *self, PyObject *args, PyObject *kwargs)
 	if (PyWinObject_AsWCHAR(obusername, &username, FALSE)
 		&&PyWinObject_AsWCHAR(obdomain, &domain, TRUE)
 		&&PyWinObject_AsWCHAR(obpassword, &password, FALSE)){
-		if (!LogonUser(username, domain, password, logontype, logonprovider, &htoken))
-			PyWin_SetAPIError("LogonUser");
+		BOOL ok;
+		DWORD err;
+		Py_BEGIN_ALLOW_THREADS
+		ok = LogonUser(username, domain, password, logontype, logonprovider, &htoken);
+		// Capture error before Py_END_ALLOW_THREADS reacquires the GIL,
+		// which may call Win32 functions that overwrite GetLastError().
+		if (!ok)
+			err = GetLastError();
+		Py_END_ALLOW_THREADS
+		if (!ok)
+			PyWin_SetAPIError("LogonUser", err);
 		else
 			ret=PyWinObject_FromHANDLE(htoken);
 		}
@@ -981,8 +990,15 @@ PyObject *LookupAccountName(PyObject *self, PyObject *args)
 
 	pSid = (PSID)malloc(sidSize);
 
-	if (!LookupAccountName(szSystemName, szAcctName, pSid, &sidSize, refDomain, &refDomainSize, &sidType)) {
-		PyWin_SetAPIError("LookupAccountName");
+	BOOL bLookup;
+	DWORD err;
+	Py_BEGIN_ALLOW_THREADS
+	bLookup = LookupAccountName(szSystemName, szAcctName, pSid, &sidSize, refDomain, &refDomainSize, &sidType);
+	if (!bLookup)
+		err = GetLastError();
+	Py_END_ALLOW_THREADS
+	if (!bLookup) {
+		PyWin_SetAPIError("LookupAccountName", err);
 		goto done;
 	}
 	obDomain = PyWinObject_FromTCHAR(refDomain);
@@ -1322,7 +1338,9 @@ PyObject *SetNamedSecurityInfo(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsWCHAR(obObjectName, &ObjectName, FALSE ))
 		return NULL;
 
+	Py_BEGIN_ALLOW_THREADS
 	err=SetNamedSecurityInfo(ObjectName, ObjectType, info, pSidOwner, pSidGroup, pDacl, pSacl);
+	Py_END_ALLOW_THREADS
 	if (err==ERROR_SUCCESS){
 		Py_INCREF(Py_None);
 		ret=Py_None;
@@ -1356,7 +1374,9 @@ static PyObject *PyGetNamedSecurityInfo(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsWCHAR(obObjectName, &ObjectName, FALSE))
 		return NULL;
 
+	Py_BEGIN_ALLOW_THREADS
 	err=GetNamedSecurityInfoW(ObjectName, object_type, required_info, NULL, NULL, NULL, NULL, &pSD);
+	Py_END_ALLOW_THREADS
 	if (err==ERROR_SUCCESS){
 		// When retrieving security for an administrative share (C$, D$, etc) the returned security descriptor
 		//	may be NULL even though the return code indicates success.
@@ -2234,7 +2254,9 @@ static PyObject *PyLsaOpenPolicy(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsLSA_UNICODE_STRING(obsystem_name, &system_name, TRUE))
 		return NULL;
 
+	Py_BEGIN_ALLOW_THREADS
 	ntsResult = LsaOpenPolicy(&system_name, &ObjectAttributes, access_mask, &lsahPolicyHandle);
+	Py_END_ALLOW_THREADS
 	if (ntsResult != STATUS_SUCCESS)
 		PyWin_SetAPIError("LsaOpenPolicy",LsaNtStatusToWinError(ntsResult));
 	else
@@ -2495,7 +2517,9 @@ static PyObject *PyLsaAddAccountRights(PyObject *self, PyObject *args, PyObject 
 			goto done;
 		plsau++;
 		}
+	Py_BEGIN_ALLOW_THREADS
 	err=LsaAddAccountRights(hpolicy, psid, plsau_start, priv_cnt);
+	Py_END_ALLOW_THREADS
 	if (err != STATUS_SUCCESS){
 		PyWin_SetAPIError("LsaAddAccountRights",LsaNtStatusToWinError(err));
 		goto done;
@@ -2700,8 +2724,15 @@ static PyObject *PyConvertSidToStringSid(PyObject *self, PyObject *args)
         return NULL;
     if (!PyWinObject_AsSID(obsid, &psid))
         return NULL;
-    if (!ConvertSidToStringSid(psid,&stringsid))
-        PyWin_SetAPIError("ConvertSidToStringSid");
+    BOOL bConvert;
+    DWORD err;
+    Py_BEGIN_ALLOW_THREADS
+    bConvert = ConvertSidToStringSid(psid,&stringsid);
+    if (!bConvert)
+        err = GetLastError();
+    Py_END_ALLOW_THREADS
+    if (!bConvert)
+        PyWin_SetAPIError("ConvertSidToStringSid", err);
     else
         ret=PyWinObject_FromWCHAR(stringsid);
     if (stringsid!=NULL)
