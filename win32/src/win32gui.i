@@ -1338,11 +1338,7 @@ PyObject *set_logger(PyObject *self, PyObject *args)
 %typemap(python,in) LOGFONT *{
 	if (!PyLOGFONT_Check($source))
 		return PyErr_Format(PyExc_TypeError, "Must be a LOGFONT object (got %s)",
-<<<<<<< HEAD
 		                    Py_TYPE($source)->tp_name);
-=======
-		                    $source->ob_type->tp_name);
->>>>>>> ce4c81a17 (Restore all SWIG files in win32/src)
 	$target = &(((PyLOGFONT *)$source)->m_LOGFONT);
 }
 
@@ -3569,11 +3565,7 @@ DWORD CommDlgExtendedError(void);
 	size = sizeof(OPENFILENAME);
 	if (!PyBytes_Check($source)) {
 		PyErr_Format(PyExc_TypeError, "Argument must be a %d-byte string (got type %s)",
-<<<<<<< HEAD
 		             size, Py_TYPE($source)->tp_name);
-=======
-		             size, $source->ob_type->tp_name);
->>>>>>> ce4c81a17 (Restore all SWIG files in win32/src)
 		return NULL;
 	}
 	if (size != PyBytes_GET_SIZE($source)) {
