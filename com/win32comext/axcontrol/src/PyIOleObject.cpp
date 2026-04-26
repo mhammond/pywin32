@@ -605,7 +605,7 @@ STDMETHODIMP PyGOleObject::SetClientSite(
 }
 
 STDMETHODIMP PyGOleObject::GetClientSite(
-    /* [out] */ IOleClientSite __RPC_FAR *__RPC_FAR *ppClientSite)
+    /* [out] */ IOleClientSite __RPC_FAR * __RPC_FAR * ppClientSite)
 {
     PY_GATEWAY_METHOD;
     if (ppClientSite == NULL)
@@ -666,7 +666,7 @@ STDMETHODIMP PyGOleObject::SetMoniker(
 STDMETHODIMP PyGOleObject::GetMoniker(
     /* [in] */ DWORD dwAssign,
     /* [in] */ DWORD dwWhichMoniker,
-    /* [out] */ IMoniker __RPC_FAR *__RPC_FAR *ppmk)
+    /* [out] */ IMoniker __RPC_FAR * __RPC_FAR * ppmk)
 {
     PY_GATEWAY_METHOD;
     if (ppmk == NULL)
@@ -703,7 +703,7 @@ STDMETHODIMP PyGOleObject::InitFromData(
 
 STDMETHODIMP PyGOleObject::GetClipboardData(
     /* [in] */ DWORD dwReserved,
-    /* [out] */ IDataObject __RPC_FAR *__RPC_FAR *ppDataObject)
+    /* [out] */ IDataObject __RPC_FAR * __RPC_FAR * ppDataObject)
 {
     PY_GATEWAY_METHOD;
     if (ppDataObject == NULL)
@@ -741,7 +741,7 @@ STDMETHODIMP PyGOleObject::DoVerb(
 }
 
 STDMETHODIMP PyGOleObject::EnumVerbs(
-    /* [out] */ IEnumOLEVERB __RPC_FAR *__RPC_FAR *ppEnumOleVerb)
+    /* [out] */ IEnumOLEVERB __RPC_FAR * __RPC_FAR * ppEnumOleVerb)
 {
     PY_GATEWAY_METHOD;
     if (ppEnumOleVerb == NULL)
@@ -877,7 +877,7 @@ STDMETHODIMP PyGOleObject::Unadvise(
 }
 
 STDMETHODIMP PyGOleObject::EnumAdvise(
-    /* [out] */ IEnumSTATDATA __RPC_FAR *__RPC_FAR *ppenumAdvise)
+    /* [out] */ IEnumSTATDATA __RPC_FAR * __RPC_FAR * ppenumAdvise)
 {
     PY_GATEWAY_METHOD;
     if (ppenumAdvise == NULL)
