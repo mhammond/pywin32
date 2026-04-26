@@ -288,7 +288,11 @@ Py_hash_t PyHANDLE::hashFunc(PyObject *ob) { return ((PyHANDLE *)ob)->hash(); }
 Py_hash_t PyHANDLE::hash(void)
 {
     // Just use the address.
+#if PY_VERSION_HEX >= 0x030d0000 // 3.13+
+    return Py_HashPointer(this);
+#else
     return _Py_HashPointer(this);
+#endif
 }
 
 int PyHANDLE::print(FILE *fp, int flags)

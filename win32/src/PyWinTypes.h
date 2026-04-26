@@ -71,7 +71,7 @@
     documented, but is used extensively in the Python codebase itself,
     so it's reasonable to assume it won't disappear anytime soon.
 */
-#define PYWIN_ATTR_CONVERT (char *)_PyUnicode_AsString
+#define PYWIN_ATTR_CONVERT (char *)PyUnicode_AsUTF8
 
 typedef Py_ssize_t Py_hash_t;
 

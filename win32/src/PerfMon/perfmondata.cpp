@@ -119,7 +119,7 @@ BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
                 szStart = szStart + 1;  // skip the slash
 
             TCHAR *szEnd = _tcsrchr(szFullModulePath, _T('.'));
-            UINT numBytes = szEnd - szStart;
+            UINT numBytes = (UINT)(szEnd - szStart);
             _tcsncpy(szModuleName, szStart, numBytes);
             szModuleName[numBytes] = _T('\0');
 
