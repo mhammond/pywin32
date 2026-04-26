@@ -15,7 +15,7 @@
 
 #define PY_SSIZE_T_CLEAN  // this should be Py_ssize_t clean!
 
-#include "pywintypes.h"
+#include "PyWinTypes.h"
 
 #define CHECK_NO_ARGS2(args, fnName)              \
     do {                                          \

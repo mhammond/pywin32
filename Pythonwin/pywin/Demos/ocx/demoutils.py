@@ -24,7 +24,7 @@ This demo program is a 'Pythonwin Application'.
 It is more demo code than an example of Pythonwin's capabilities.
 
 To run it, you must execute the command:
-pythonwin.exe /app "%s"
+Pythonwin.exe /app "%s"
 
 Would you like to execute it now?
 """
@@ -53,7 +53,7 @@ def NeedApp():
         try:
             parent = win32ui.GetMainFrame().GetSafeHwnd()
             win32api.ShellExecute(
-                parent, None, "pythonwin.exe", '/app "%s"' % sys.argv[0], None, 1
+                parent, None, "Pythonwin.exe", '/app "%s"' % sys.argv[0], None, 1
             )
         except win32api.error as details:
             win32ui.MessageBox("Error executing command - %s" % (details), "Demos")

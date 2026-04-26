@@ -788,7 +788,7 @@ class my_build_ext(build_ext):
             swig = os.environ["SWIG"]
         else:
             # We know where our swig is
-            swig = os.path.abspath("swig\\swig.exe")
+            swig = os.path.abspath("SWIG/swig.exe")
         lib = os.path.join(os.path.dirname(swig), "swig_lib")
         os.environ["SWIG_LIB"] = lib
         return swig
@@ -986,10 +986,10 @@ for name, libraries, sources in (
         """,
     ),
     ("timer", "user32", "win32/src/timermodule.cpp"),
-    ("win32cred", "AdvAPI32 credui", "win32/src/win32credmodule.cpp"),
+    ("win32cred", "advapi32 credui", "win32/src/win32credmodule.cpp"),
     (
         "win32crypt",
-        "Crypt32 Advapi32",
+        "crypt32 advapi32",
         """
         win32/src/win32crypt/win32cryptmodule.cpp
         win32/src/win32crypt/win32crypt_structs.cpp
@@ -1040,7 +1040,7 @@ for name, libraries, sources in (
         "win32/src/win32print/win32print.cpp",
     ),
     ("win32process", "advapi32 user32", "win32/src/win32process.i"),
-    ("win32profile", "Userenv", "win32/src/win32profilemodule.cpp"),
+    ("win32profile", "userenv", "win32/src/win32profilemodule.cpp"),
     ("win32ras", "rasapi32 user32", "win32/src/win32rasmodule.cpp"),
     (
         "win32security",
@@ -1078,7 +1078,7 @@ for name, libraries, sources in (
         """,
     ),
     ("win32console", "kernel32", "win32/src/win32consolemodule.cpp"),
-    ("win32ts", "WtsApi32", "win32/src/win32tsmodule.cpp"),
+    ("win32ts", "wtsapi32", "win32/src/win32tsmodule.cpp"),
     ("_win32sysloader", "", "win32/src/_win32sysloader.cpp"),
     ("win32transaction", "kernel32 ktmw32", "win32/src/win32transactionmodule.cpp"),
 ):
@@ -1120,7 +1120,7 @@ win32_extensions += [
     WinExt_win32(
         "_winxptheme",
         sources=["win32/src/_winxptheme.i"],
-        libraries="gdi32 user32 comdlg32 comctl32 shell32 Uxtheme",
+        libraries="gdi32 user32 comdlg32 comctl32 shell32 uxtheme",
     ),
 ]
 win32_extensions += [
@@ -2039,10 +2039,10 @@ dist = setup(
             "com/win32comext/axscript/test/*.py",
             "com/win32comext/axscript/test/*.pys",
             "com/win32comext/axscript/test/*.vbs",
-            "com/win32comext/axscript/Demos/*.pys",
-            "com/win32comext/axscript/Demos/*.htm*",
-            "com/win32comext/axscript/Demos/*.gif",
-            "com/win32comext/axscript/Demos/*.asp",
+            "com/win32comext/axscript/demos/*.pys",
+            "com/win32comext/axscript/demos/*.htm*",
+            "com/win32comext/axscript/demos/*.gif",
+            "com/win32comext/axscript/demos/*.asp",
             "com/win32comext/mapi/demos/*.py",
             "com/win32comext/propsys/test/*.py",
             "com/win32comext/shell/test/*.py",

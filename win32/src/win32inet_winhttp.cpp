@@ -6,8 +6,8 @@
 // The intent is to only wrap stuff which isn't otherwise doable from
 // Python, such as the proxy stuff.
 
-#include "pywintypes.h"
-#include "pywinobjects.h"
+#include "PyWinTypes.h"
+#include "PyWinObjects.h"
 #include "winhttp.h"
 
 // @doc

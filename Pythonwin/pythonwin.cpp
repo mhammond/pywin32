@@ -3,7 +3,7 @@
 
 #include "stdafxpw.h"
 #include "pythonwin.h"
-#include "win32uiHostGlue.h"
+#include "Win32uiHostGlue.h"
 
 #ifdef _DEBUG
 #undef THIS_FILE

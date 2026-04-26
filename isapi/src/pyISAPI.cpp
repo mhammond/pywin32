@@ -28,8 +28,8 @@
 
 #include "stdafx.h"
 #include "pyISAPI.h"
-#include "pyExtensionObjects.h"
-#include "pyFilterObjects.h"
+#include "PyExtensionObjects.h"
+#include "PyFilterObjects.h"
 
 static const char *name_ext_factory = "__ExtensionFactory__";
 static const char *name_ext_init = "GetExtensionVersion";

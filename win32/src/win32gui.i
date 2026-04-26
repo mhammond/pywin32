@@ -8,11 +8,11 @@
 
 %{
 #undef PyHANDLE
-#include "pywinobjects.h"
+#include "PyWinObjects.h"
 #include "winuser.h"
-#include "CommCtrl.h"
+#include "commctrl.h"
 #include "windowsx.h" // For edit control hacks.
-#include "Dbt.h" // device notification
+#include "dbt.h" // device notification
 #include "malloc.h"
 
 static PyObject *g_AtomMap = NULL; // Mapping class atoms to Python WNDPROC

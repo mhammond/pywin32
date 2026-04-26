@@ -71,7 +71,7 @@ PyObject *PyBuffer_FromMemory(void *buf, Py_ssize_t size)
     return PyMemoryView_FromBuffer(&info);
 }
 
-// See comments in pywintypes.h for why we need this!
+// See comments in PyWinTypes.h for why we need this!
 void PyWin_MakePendingCalls()
 {
     while (1) {
@@ -633,7 +633,7 @@ BOOL PyWinObject_AsSimplePARAM(PyObject *ob, WPARAM *wparam)
 
 // Converts for WPARAM and LPARAM: int or str (WCHAR*) or buffer (pointer to its locked memory)
 // (WPARAM is defined as UINT_PTR, and LPARAM is defined as LONG_PTR - see
-// pywintypes.h for inline functions to resolve this)
+// PyWinTypes.h for inline functions to resolve this)
 BOOL PyWinObject_AsPARAM(PyObject *ob, PyWin_PARAMHolder *holder)
 {
     assert(!PyErr_Occurred());  // lingering exception?

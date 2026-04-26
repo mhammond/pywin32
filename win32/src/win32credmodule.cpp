@@ -1,7 +1,7 @@
 // @doc
 #include "PyWinTypes.h"
 #include "PyWinObjects.h"
-#include "WinCred.h"
+#include "wincred.h"
 
 // @object PyCREDENTIAL_ATTRIBUTE|A dictionary containing information for a CREDENTIAL_ATTRIBUTE struct
 // @pyseeapi CREDENTIAL_ATTRIBUTE

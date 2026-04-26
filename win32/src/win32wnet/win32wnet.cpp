@@ -38,8 +38,8 @@
 
 #include "PyWinTypes.h"
 #include "PyWinObjects.h"  // for the PyHANDLE impl.
-#include "netres.h"        // NETRESOURCE Type
-#include "pyncb.h"
+#include "Netres.h"        // NETRESOURCE Type
+#include "PyNCB.h"
 
 /****************************************************************************
         HELPER FUNCTIONS

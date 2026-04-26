@@ -5,8 +5,8 @@
 ## A nice, small 'hello world' Pythonwin application.
 ## NOT an MDI application - just a single, normal, top-level window.
 ##
-## MUST be run with the command line "pythonwin.exe /app helloapp.py"
-## (or if you are really keen, rename "pythonwin.exe" to something else, then
+## MUST be run with the command line "Pythonwin.exe /app helloapp.py"
+## (or if you are really keen, rename "Pythonwin.exe" to something else, then
 ## using MSVC or similar, edit the string section in the .EXE to name this file)
 ##
 ## Originally by Willy Heineman <wheineman@uconect.net>

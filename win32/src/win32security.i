@@ -14,7 +14,7 @@
 #include "PySecurityObjects.h"
 #include "accctrl.h"
 #include "aclapi.h"
-#include "Ntsecapi.h"
+#include "ntsecapi.h"
 #include "lmshare.h"
 #include "sddl.h"
 #include <stddef.h>
