@@ -136,14 +136,18 @@ static PyNumberMethods PyHANDLE_NumberMethods = {
 // @pymeth __int__|Used when an integer representation of the handle object is required.
 
 PYWINTYPES_EXPORT PyTypeObject PyHANDLEType = {
-    PYWIN_OBJECT_HEAD "PyHANDLE", sizeof(PyHANDLE), 0, PyHANDLE::deallocFunc, /* tp_dealloc */
-    0, 0,                                                                     /* tp_getattr */
-    0,                                                                        /* tp_setattr */
-    0,                                                                        /* tp_compare */
-    PyHANDLE::strFunc,                                                        /* tp_repr */
-    &PyHANDLE_NumberMethods,                                                  /* tp_as_number */
-    0,                                                                        /* tp_as_sequence */
-    0,                                                                        /* tp_as_mapping */
+    PYWIN_OBJECT_HEAD "PyHANDLE",
+    sizeof(PyHANDLE),
+    0,
+    PyHANDLE::deallocFunc, /* tp_dealloc */
+    0,
+    0,                       /* tp_getattr */
+    0,                       /* tp_setattr */
+    0,                       /* tp_compare */
+    PyHANDLE::strFunc,       /* tp_repr */
+    &PyHANDLE_NumberMethods, /* tp_as_number */
+    0,                       /* tp_as_sequence */
+    0,                       /* tp_as_mapping */
     // @pymeth __hash__|Used when the hash value of an object is required
     PyHANDLE::hashFunc, /* tp_hash */
     0,                  /* tp_call */
@@ -288,7 +292,7 @@ Py_hash_t PyHANDLE::hashFunc(PyObject *ob) { return ((PyHANDLE *)ob)->hash(); }
 Py_hash_t PyHANDLE::hash(void)
 {
     // Just use the address.
-#if PY_VERSION_HEX >= 0x030d0000 // 3.13+
+#if PY_VERSION_HEX >= 0x030d0000  // 3.13+
     return Py_HashPointer(this);
 #else
     return _Py_HashPointer(this);
