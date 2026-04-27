@@ -1,0 +1,28 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/pyright/main/packages/vscode-pyright/schemas/pyrightconfig.schema.json",
+  "typeCheckingMode": "standard",
+  // Keep it simple for now by allowing both mypy and pyright to use `type: ignore`
+  "enableTypeIgnoreComments": true,
+  "include": [
+    "adodbapi",
+  ],
+  // Packages that will be accessible globally.
+  // Setting this makes pyright use the repo's code for those modules instead of typeshed or pywin32 in site-packages
+  "extraPaths": [
+    "com",
+    "win32/Lib",
+  ],
+  // Too many false-positives from try-finally-try nested blocks
+  "reportPossiblyUnboundVariable": "none",
+  "executionEnvironments": [
+    {
+      // SQLRows subscription returning potentially None is causing many type issues
+      // But these are tests anyway, let it fail.
+      "root": "adodbapi/test/dbapi20.py",
+      "reportArgumentType": "none",
+      "reportCallIssue": "none",
+      "reportOptionalSubscript": "none",
+      "reportAttributeAccessIssue": "none",
+    },
+  ],
+}
