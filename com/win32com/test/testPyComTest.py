@@ -31,6 +31,7 @@ from win32process import GetProcessMemoryInfo
 win32com.test.util.RegisterPythonServer(
     os.path.join(os.path.dirname(__file__), "..", "servers", "test_pycomtest.py"),
     "Python.Test.PyCOMTest",
+    True
 )
 
 try:
@@ -632,6 +633,9 @@ def TestNestedArrays(o):
 
 
 def TestGenerated():
+    import platform
+    import sysconfig
+
     # Create an instance of the server.
     from win32com.client.gencache import EnsureDispatch
 
@@ -777,6 +781,13 @@ def TestGenerated():
     TestApplyResult(o.SetULongLongSafeArray, (ll,), len(ll))
 
     # check freeing of safe arrays
+    # Warm up Python's allocator first so its internal pages are pre-committed.
+    # On free-threaded Python the allocator holds freed large blocks resident, so
+    # a cold first call inflates WorkingSetSize even after the buffer is freed.
+    # The second (measured) call reuses those pages, making the SAFEARRAY leak the
+    # only source of growth — exactly what we want to detect.
+    if sysconfig.get_config_var("Py_GIL_DISABLED") and platform.machine() == "AMD64":
+        o.GetByteArray(50 * 1024 * 1024)
     mem_before = GetMemoryUsage()
     o.GetByteArray(50 * 1024 * 1024)
     mem_after = GetMemoryUsage()
