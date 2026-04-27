@@ -103,7 +103,7 @@ def _find_localserver_exe(mustfind):
     # Free-threaded installs ship pythonw3.14t.exe, not pythonw.exe.
     exe_no_ext = os.path.splitext(os.path.basename(sys.executable))[0]
     if exe_no_ext.lower().startswith("python"):
-        exeBaseName = "pythonw" + exe_no_ext[len("python"):] + ".exe"
+        exeBaseName = "pythonw" + exe_no_ext[len("python") :] + ".exe"
     elif os.path.splitext(os.path.basename(pythoncom.__file__))[0].endswith("_d"):
         exeBaseName = "pythonw_d.exe"
     else:
