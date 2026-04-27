@@ -31,7 +31,7 @@ from win32process import GetProcessMemoryInfo
 win32com.test.util.RegisterPythonServer(
     os.path.join(os.path.dirname(__file__), "..", "servers", "test_pycomtest.py"),
     "Python.Test.PyCOMTest",
-    True
+    True,
 )
 
 try:

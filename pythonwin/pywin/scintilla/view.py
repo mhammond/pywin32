@@ -192,9 +192,8 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
 
         # Hook commands that do nothing other than send Scintilla messages.
         for command, reflection in command_reflectors:
-            handler = (
-                lambda id, code, ss=self.SendScintilla, tosend=reflection: ss(tosend)
-                and 0
+            handler = lambda id, code, ss=self.SendScintilla, tosend=reflection: (
+                ss(tosend) and 0
             )
             self.HookCommand(handler, command)
 
