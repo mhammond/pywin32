@@ -13,7 +13,7 @@
 
 // The Pythonwin stuff
 #include "oleauto.h"
-#include "pywintypes.h"
+#include "PyWinTypes.h"
 #include "win32ui.h"
 #include "win32assoc.h"
 

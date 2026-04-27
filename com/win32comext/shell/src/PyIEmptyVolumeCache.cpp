@@ -1,7 +1,7 @@
 // This file implements the IEmptyVolumeCache Gateway for Python.
 
 #include "shell_pch.h"
-#include "EmptyVC.h"
+#include "emptyvc.h"
 #include "PyIEmptyVolumeCache.h"
 
 // @doc - This file contains autoduck documentation

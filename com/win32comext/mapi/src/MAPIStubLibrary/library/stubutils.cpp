@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <iterator>
 #include <MAPIX.h>
-#include <Msi.h>
+#include <msi.h>
 
 // clang-format off
 #pragma warning(disable : 26426) // Warning C26426 Global initializer calls a non-constexpr (i.22)

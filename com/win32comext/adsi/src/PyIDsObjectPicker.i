@@ -7,7 +7,7 @@
 
 %{
 
-#include "Objsel.h"
+#include "objsel.h"
 #include "PyIDsObjectPicker.h"
 
 extern BOOL PyObject_AsDSOP_SCOPE_INIT_INFOs(PyObject *ob, DSOP_SCOPE_INIT_INFO**p, ULONG *n);

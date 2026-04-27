@@ -16,7 +16,7 @@ generates Windows .hlp files.
 #define PY_SSIZE_T_CLEAN
 
 #include "shell_pch.h"
-#include "EmptyVC.h"
+#include "emptyvc.h"
 #include "PyIShellLink.h"
 #include "PyICategorizer.h"
 #include "PyICategoryProvider.h"

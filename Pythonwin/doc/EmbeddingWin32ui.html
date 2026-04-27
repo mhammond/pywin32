@@ -23,8 +23,11 @@
 <P>You must instantiate a Win32uiHostGlue class. This class is used as a glue between win32ui.pyd and the host .exe, and is defined in Win32uiHostGlue.h </P>
 <P>Currently, this consists of about 5 methods that must be called by your application. The principle is that the Application must hook certain handlers, and delegate them to the HostGlue class. This will ensure the appropriate Win32ui internals are called. </P>
 <H2>Embedding win32ui Architecture </H2>
-<H3>win32uihostglue.h</H3>
-<P>The win32uihostglue.h module defines a class which makes interfacing fairly simple. This Win32uiHostGlue class is used as a glue between win32ui.pyd and the host .exe. In the most simple case, you need to instantiate one of the classes, and at certain key points in your CWinApp derived class, call the appropriate methods. You may choose to provide your own glue class derived from Win32uiHostGlue in certain cases. </P>
+<H3>Win32uiHostGlue.h</H3>
+<P>The Win32uiHostGlue.h module defines a class which makes interfacing fairly simple. This Win32uiHostGlue class is
+  used as a glue between win32ui.pyd and the host .exe. In the most simple case, you need to instantiate one of the
+  classes, and at certain key points in your CWinApp derived class, call the appropriate methods. You may choose to
+  provide your own glue class derived from Win32uiHostGlue in certain cases. </P>
 <P>Below is an example class, which overrides the "SetStatusText" method, so that status information displays in the applications status bar (this is only necessary if your application has a "non standard" status bar - normally you could omit this.). </P>
 <PRE>GameApp NEAR theApp; // My existing CWinApp derived class.
 // HostGlue class.

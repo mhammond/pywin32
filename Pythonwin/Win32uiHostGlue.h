@@ -5,7 +5,7 @@
 // be in synch!  Use a version number to check this.
 #define WIN32UIHOSTGLUE_VERSION 3
 
-#include "pywintypes.h"
+#include "PyWinTypes.h"
 
 class Win32uiHostGlue : public CObject {
    public:
@@ -119,8 +119,8 @@ inline BOOL Win32uiHostGlue::DynamicApplicationInit(const TCHAR *cmd, const TCHA
     HMODULE hModCore = NULL;
     HMODULE hModWin32ui = NULL;
     // There are 2 cases we care about:
-    // * pythonwin.exe next to win32ui, in lib\site-packages\pythonwin
-    // * pythonwin.exe next to python.exe, in sys.home - this is for
+    // * Pythonwin.exe next to win32ui, in lib\site-packages\pythonwin
+    // * Pythonwin.exe next to python.exe, in sys.home - this is for
     //   older style installs and for custom layouts.
     // * a kind-of sub-case - handle the PCBuild directory
     TCHAR *py_dll_candidates[] = {

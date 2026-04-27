@@ -3,7 +3,7 @@
 #include "stdafx.h"
 #include "afxdllx.h"
 
-#include "win32uiHostGlue.h"
+#include "Win32uiHostGlue.h"
 
 static HWND GetConsoleHwnd(void);
 

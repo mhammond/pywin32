@@ -13,7 +13,7 @@ generates Windows .hlp files.
 ******************************************************************/
 
 #include "PyWinTypes.h"
-#include "Pyperfmon.h"
+#include "pyperfmon.h"
 #include "loadperf.h"
 
 extern PyObject *PerfmonMethod_NewPERF_COUNTER_DEFINITION(PyObject *self, PyObject *args);

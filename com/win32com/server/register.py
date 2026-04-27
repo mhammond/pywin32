@@ -573,7 +573,7 @@ def ReExecuteElevated(flags):
     #  pythonwin will just open script for editting
     current_exe = os.path.split(sys.executable)[1].lower()
     exe_to_run = None
-    if current_exe == "pythonwin.exe":
+    if current_exe == "Pythonwin.exe":
         exe_to_run = os.path.join(sys.prefix, "python.exe")
     elif current_exe == "pythonwin_d.exe":
         exe_to_run = os.path.join(sys.prefix, "python_d.exe")

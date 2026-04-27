@@ -2,8 +2,8 @@
 
 #include "win32dlg.h"
 #include "win32oleDlgs.h"
-#include "pythoncom.h"
-#include "pywintypes.h"
+#include "PythonCOM.h"
+#include "PyWinTypes.h"
 // @doc
 
 // XXX - is this actually used?????????

@@ -4,7 +4,7 @@
 #include "PyWinObjects.h"
 
 #include "malloc.h"
-#include "Userenv.h"
+#include "userenv.h"
 
 /* Takes an environment block and returns a dict suitable for passing to CreateProcess
     or CreateProcessAsUser.  Length is not known, so you have to depend on the block being correctly formatted.

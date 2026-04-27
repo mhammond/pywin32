@@ -1116,7 +1116,7 @@ LPCTSTR GetFacilityString(HRESULT hr)
         _T("FACILITY_0x06"),
         _T("FACILITY_WIN32"),
         _T("FACILITY_WINDOWS"),
-        _T("FACILITY_SSPI/FACILITY_MQ"),  // SSPI from AdsErr.h, MQ from mq.h
+        _T("FACILITY_SSPI/FACILITY_MQ"),  // SSPI from adserr.h, MQ from mq.h
         _T("FACILITY_CONTROL"),
         _T("FACILITY_EDK"),
         _T("FACILITY_INTERNET"),

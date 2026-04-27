@@ -12,7 +12,7 @@ generates Windows .hlp files.
 */
 #include "stdafx.h"
 #include <commdlg.h>
-#include "win32uiHostGlue.h"
+#include "Win32uiHostGlue.h"
 #include "win32win.h"
 #include "win32control.h"
 #include "win32doc.h"
@@ -705,7 +705,7 @@ PyObject *Python_do_callback(PyObject *themeth, PyObject *thearglst)
     return result;
 }
 
-// Copied from PyRecord.cpp, should move into pywintypes.h
+// Copied from PyRecord.cpp, should move into PyWinTypes.h
 // Unicode versions of '_Concat' etc have different sigs.  Make them the
 // same here...
 void PyWinCoreString_Concat(register PyObject **pv, register PyObject *w)
