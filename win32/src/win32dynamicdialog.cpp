@@ -47,7 +47,7 @@
 #endif
 
 #else  // else being compiled from WIN32UI
-#include "../../Pythonwin/stdafx.h"
+#include "../../pythonwin/stdafx.h"
 #endif
 
 #include "win32dynamicdialog.h"
