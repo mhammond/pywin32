@@ -129,9 +129,8 @@ static PyNumberMethods PyHANDLE_NumberMethods = {
     PyHANDLE::binaryFailureFunc, /* nb_xor */
     PyHANDLE::binaryFailureFunc, /* nb_or */
     PyHANDLE::intFunc,           /* nb_int */
-    PyHANDLE::longFunc,          /* nb_long */
+    Py_None,                     /* nb_reserved, used to be nb_long */
     PyHANDLE::unaryFailureFunc,  /* nb_float */
-                                 // These removed in 3.0
 };
 // @pymeth __int__|Used when an integer representation of the handle object is required.
 
@@ -266,10 +265,6 @@ PyObject *PyHANDLE::richcompare(PyObject *other, int op)
 // @pymethod |PyHANDLE|__int__|Used when the handle as an integer is required.
 // @comm To get the underling win32 handle from a PyHANDLE object, use int(handleObject)
 PyObject *PyHANDLE::intFunc(PyObject *ob) { return PyWinLong_FromHANDLE(((PyHANDLE *)ob)->m_handle); }
-
-// @pymethod |PyHANDLE|__long__|Used when the handle as an integer is required.
-// @comm To get the underling win32 handle from a PyHANDLE object, use long(handleObject)
-PyObject *PyHANDLE::longFunc(PyObject *ob) { return PyWinLong_FromHANDLE(((PyHANDLE *)ob)->m_handle); }
 
 // @pymethod |PyHANDLE|__print__|Used when the HANDLE object is printed.
 int PyHANDLE::printFunc(PyObject *ob, FILE *fp, int flags) { return ((PyHANDLE *)ob)->print(fp, flags); }
