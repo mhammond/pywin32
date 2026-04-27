@@ -145,6 +145,8 @@ inline BOOL Win32uiHostGlue::DynamicApplicationInit(const TCHAR *cmd, const TCHA
     TCHAR py_dll[20];
 #ifdef _DEBUG
     wsprintf(py_dll, _T("Python%d%d_d.dll"), PY_MAJOR_VERSION, PY_MINOR_VERSION);
+#elif Py_GIL_DISABLED
+    wsprintf(py_dll, _T("Python%d%dt.dll"), PY_MAJOR_VERSION, PY_MINOR_VERSION);
 #else
     wsprintf(py_dll, _T("Python%d%d.dll"), PY_MAJOR_VERSION, PY_MINOR_VERSION);
 #endif
