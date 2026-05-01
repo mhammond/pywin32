@@ -48,7 +48,7 @@ if TYPE_CHECKING:
     from setuptools._distutils import ccompiler
     from setuptools._distutils._msvccompiler import MSVCCompiler
     from setuptools._distutils.command.install_data import install_data
-    from setuptools._distutils.compilers.C.cygwin import (
+    from setuptools._distutils.compilers.C.cygwin import (  # type: ignore[import-not-found] # TODO: Fix in typeshed
         Compiler as CygwinCompiler,
         MinGW32Compiler,
     )
@@ -63,6 +63,7 @@ else:
     from distutils.errors import DistutilsExecError
 
 is_mingw = "MSC" not in sys.version
+
 
 def my_new_compiler(**kw):
     if is_mingw:
