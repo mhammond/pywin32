@@ -93,7 +93,7 @@
 #ifdef __MINGW32__
 // Special Mingw32 considerations.
 #define __try try
-#define __except catch
+#define __except(filter) catch (...)
 #include <olectl.h>
 
 #endif  // __MINGW32__
@@ -101,19 +101,6 @@
 #include <PyWinTypes.h>  // Standard Win32 Types
 
 #include <dispex.h>  // New header for IDispatchEx interface.
-
-#if defined(MAINWIN)
-// Mainwin seems to have 1/2 the VT_RECORD infrastructure in place
-#if !defined(VT_RECORD)
-#define VT_RECORD 36
-#define V_RECORDINFO(X) ((X)->brecVal.pRecInfo)
-#define V_RECORD(X) ((X)->brecVal.pvRecord)
-#else
-#pragma message(                                       \
-    "MAINWIN appears to have grown correct VT_RECORD " \
-    "support. Please update PythonCOM.h accordingly")
-#endif  // VT_RECORD
-#endif  // MAINWIN
 
 class PyIUnknown;
 // To make life interesting/complicated, I use C++ classes for
