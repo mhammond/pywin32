@@ -1240,7 +1240,7 @@ com_extensions = [
     pythoncom,
     WinExt_win32com(
         "adsi",
-        libraries="ACTIVEDS ADSIID user32 advapi32",
+        libraries="activeds adsiid user32 advapi32",
         sources=(
             """
                         {adsi}/adsi.i                 {adsi}/adsi.cpp
@@ -1279,7 +1279,7 @@ com_extensions = [
         sources=(
             """
                         {axscript}/AXScript.cpp
-                        {axscript}/GUIDS.cpp                   {axscript}/PyGActiveScript.cpp
+                        {axscript}/GUIDs.cpp                   {axscript}/PyGActiveScript.cpp
                         {axscript}/PyGActiveScriptError.cpp    {axscript}/PyGActiveScriptParse.cpp
                         {axscript}/PyGActiveScriptSite.cpp     {axscript}/PyGObjectSafety.cpp
                         {axscript}/PyIActiveScript.cpp         {axscript}/PyIActiveScriptError.cpp
@@ -1369,7 +1369,7 @@ com_extensions = [
     WinExt_win32com(
         "mapi",
         libraries="advapi32",
-        include_dirs=["{mapi}/MapiStubLibrary/include".format(**dirs)],
+        include_dirs=["{mapi}/MAPIStubLibrary/include".format(**dirs)],
         sources=(
             """
                         {mapi}/mapi.i                 {mapi}/mapi.cpp
@@ -1403,7 +1403,7 @@ com_extensions = [
     WinExt_win32com_mapi(
         "exchange",
         libraries="advapi32 legacy_stdio_definitions",
-        include_dirs=["{mapi}/MapiStubLibrary/include".format(**dirs)],
+        include_dirs=["{mapi}/MAPIStubLibrary/include".format(**dirs)],
         sources=(
             """
                                   {mapi}/exchange.i         {mapi}/exchange.cpp
@@ -1542,7 +1542,7 @@ com_extensions = [
     ),
     WinExt_win32com(
         "bits",
-        libraries="Bits",
+        libraries="bits",
         sources=(
             """
                         {bits}/bits.cpp

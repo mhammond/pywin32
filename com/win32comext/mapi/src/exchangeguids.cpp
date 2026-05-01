@@ -24,5 +24,5 @@ up by the MAPI module */
 
 #endif /* BUILD_FREEZE */
 #include "windows.h"
-#include "mapiguid.h"
-#include "edkguid.h"
+#include "MAPIGuid.h"
+#include "EdkGuid.h"
