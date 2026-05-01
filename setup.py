@@ -48,15 +48,27 @@ if TYPE_CHECKING:
     from setuptools._distutils import ccompiler
     from setuptools._distutils._msvccompiler import MSVCCompiler
     from setuptools._distutils.command.install_data import install_data
+    from setuptools._distutils.compilers.C.cygwin import (
+        Compiler as CygwinCompiler,
+        MinGW32Compiler,
+    )
+    from setuptools._distutils.compilers.C.errors import CompileError
+    from setuptools._distutils.errors import DistutilsExecError
 else:
     from distutils import ccompiler
     from distutils._msvccompiler import MSVCCompiler
     from distutils.command.install_data import install_data
+    from distutils.compilers.C.cygwin import Compiler as CygwinCompiler, MinGW32Compiler
+    from distutils.compilers.C.errors import CompileError
+    from distutils.errors import DistutilsExecError
 
+is_mingw = "MSC" not in sys.version
 
 def my_new_compiler(**kw):
+    if is_mingw:
+        return MyCygwinCompiler()
     if "compiler" in kw and kw["compiler"] in (None, "msvc"):
-        return my_compiler()
+        return MyMSVCCompiler()
     return orig_new_compiler(**kw)
 
 
@@ -167,7 +179,7 @@ class WinExt(Extension):
     def finalize_options(self, build_ext):
         # distutils doesn't define this function for an Extension - it is
         # our own invention, and called just before the extension is built.
-        if not build_ext.mingw32:
+        if not is_mingw:
             # bugger - add this to python!
             if build_ext.plat_name == "win32":
                 self.extra_link_args.append("/MACHINE:x86")
@@ -243,7 +255,7 @@ class WinExt_pythonwin_subsys_win(WinExt_pythonwin):
     def finalize_options(self, build_ext):
         WinExt_pythonwin.finalize_options(self, build_ext)
 
-        if build_ext.mingw32:
+        if is_mingw:
             self.extra_link_args.append("-mwindows")
         else:
             self.extra_link_args.append("/SUBSYSTEM:WINDOWS")
@@ -333,7 +345,7 @@ class WinExt_pythonservice(WinExt):
     def finalize_options(self, build_ext):
         WinExt.finalize_options(self, build_ext)
 
-        if build_ext.mingw32:
+        if is_mingw:
             self.extra_link_args.append("-mconsole")
             self.extra_link_args.append("-municode")
         else:
@@ -374,8 +386,7 @@ class my_build_ext(build_ext):
         # The pywintypes library is created in the build_temp
         # directory, so we need to add this to library_dirs
         self.library_dirs.append(self.build_temp)
-        self.mingw32 = self.compiler == "mingw32"  # type: ignore[comparison-overlap] # compiler is a string until `run` is run
-        if self.mingw32:
+        if is_mingw:
             self.libraries.append("stdc++")
 
         self.excluded_extensions: list[tuple[WinExt, str]] = []
@@ -494,7 +505,7 @@ class my_build_ext(build_ext):
             if m:
                 atlmfc_found = True  # ATLMFC libs/includes already found by distutils
 
-        if not vcbase and not self.mingw32:
+        if not vcbase and not is_mingw:
             print("-- compiler.library_dirs:", self.compiler.library_dirs)
             # Error or warn? last hope would be a non-standard build environment
             print("-- Visual C base path not found !?")
@@ -881,18 +892,67 @@ class my_build_ext(build_ext):
         return new_sources
 
 
-class my_compiler(MSVCCompiler):
+BaseCygwinCompiler = CygwinCompiler if sys.platform == "cygwin" else MinGW32Compiler
+
+
+class MyCygwinCompiler(BaseCygwinCompiler):
+    # Workaround until pypa/distutils#399 is fixed
+    BaseCygwinCompiler.initialize = lambda *_: None
+
     # Work around python/cpython#80483 / python/cpython#86175
     # it sorts sources but this breaks support for building .mc files etc :(
     # See pypa/setuptools#4986 / pypa/distutils#370 for potential upstream fix.
     def compile(self, sources, **kwargs):
-        # re-sort the list of source files but ensure all .mc files come first.
-        def key_reverse_mc(a):
-            b, e = os.path.splitext(a)
-            e = "" if e == ".mc" else e
-            return (e, b)
+        # Move .mc files to the start of the list, otherwise keep the same order
+        sources = sorted(sources, key=lambda source: Path(source).suffix != ".mc")
+        return super().compile(sources, **kwargs)
 
-        sources = sorted(sources, key=key_reverse_mc)
+    # Work around missing .mc support in CygwinCompiler+MinGW32Compiler pypa/distutils#405
+    src_extensions = BaseCygwinCompiler.src_extensions + [".mc"]
+
+    def _compile(
+        self,
+        obj: str | os.PathLike[str],
+        src: str | os.PathLike[str],
+        ext: str,
+        cc_args: list[str],
+        extra_postargs: list[str],
+        pp_opts: object,
+    ) -> None:
+        """Compiles the source by spawning GCC and windres, and/or windmc if needed."""
+        try:
+            if ext == ".mc":
+                h_dir = os.path.dirname(src)
+                rc_dir = os.path.dirname(obj)
+                # first compile .mc to .rc and .h file
+                self.spawn(
+                    [os.environ.get("WINDMC", "windmc"), "-h", h_dir, "-r", rc_dir, src]
+                )
+                # then compile .rc to .res file
+                base, _ = os.path.splitext(os.path.basename(src))
+                src = os.path.join(rc_dir, base + ".rc")
+            if ext in (".rc", ".res", ".mc"):
+                # gcc needs '.res' and '.rc' compiled to object files !!!
+                self.spawn([os.environ.get("WINDRES", "windres"), "-i", src, "-o", obj])
+            else:  # for other files use the C-compiler
+                if self.detect_language(src) == "c++":
+                    compiler_so = self.compiler_so_cxx
+                else:
+                    compiler_so = self.compiler_so
+                self.spawn(compiler_so + cc_args + [src, "-o", obj] + extra_postargs)
+        except DistutilsExecError as msg:
+            raise CompileError(msg)
+
+
+class MyMSVCCompiler(MSVCCompiler):
+    # Work around python/cpython#80483 / python/cpython#86175
+    # it sorts sources but this breaks support for building .mc files etc :(
+    # See pypa/setuptools#4986 / pypa/distutils#370 for potential upstream fix.
+    def compile(self, sources, **kwargs):
+        # Move .mc files to the start of the list, otherwise keep the same order
+        sources = sorted(
+            sources, key=lambda source: Path(source).suffix not in self._mc_extensions
+        )
         return super().compile(sources, **kwargs)
 
     # CCompiler's implementations of these methods completely replace the values
