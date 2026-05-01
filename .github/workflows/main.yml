@@ -54,13 +54,6 @@ jobs:
       - name: Build and install
         run: pip install . -v --user
 
-      # This needs to happen *after* installing pywin32 since
-      # AutoDuck/py2d.py currently relies on runtime imports for introspection
-      # This isn't included in the wheel (TODO: could we?)
-      # and only serves as a PR test for the docs.yaml workflow
-      - name: Generate PyWin32.chm help file
-        run: python AutoDuck/make.py
-
       # Smokescreen test to validate postinstall doesn't crash, dlls can be found, and both pathless invocation methods work
       - name: Run postinstall install/remove
         run: |
