@@ -32,6 +32,24 @@ repos:
         # Supports a lot more filetypes, but only tagging those we use
         # https://github.com/pre-commit/mirrors-clang-format/blob/main/.pre-commit-hooks.yaml#L6
         types: [c++]
+  # Requires having clang-format pre-installed and available on PATH
+  - repo: https://github.com/Avasam/clang-format-swig
+    rev: v0.0.1
+    hooks:
+      - id: clang-format-swig
+        exclude: SWIG/swig_lib/
+  # Somehow pre-commit installs the Windows Wheel on Linux: TODO: Raise upstream
+  # - repo: local
+  #   hooks:
+  #     - id: clang-format-swig
+  #       name: clang-format SWIG files
+  #       language: python
+  #       entry: clang-format-swig
+  #       files: \.i$
+  #       exclude: SWIG/swig_lib/
+  #       additional_dependencies:
+  #         - clang-format-swig==0.0.1
+  #         - clang-format==18.1.8
 
 # Vendored
 exclude: ^(com/win32comext/mapi/src/MAPIStubLibrary/|Pythonwin/Scintilla/).*$

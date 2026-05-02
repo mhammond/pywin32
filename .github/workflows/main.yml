@@ -169,6 +169,9 @@ jobs:
           if ($LastExitCode -ne 0) { exit $LastExitCode }
         shell: pwsh
         if: ${{ !cancelled() }}
+      - run: clang-format-swig --check $(git ls-files '*.i' ':!:SWIG/swig_lib/')
+        shell: pwsh
+        if: ${{ !cancelled() }}
 
   type-checkers:
     runs-on: ubuntu-latest

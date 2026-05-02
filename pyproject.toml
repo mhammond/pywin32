@@ -7,6 +7,7 @@ build-backend = "setuptools.build_meta"
 [dependency-groups]
 checkers = [ # Keep these in sync with .pre-commit-config.yaml
   "clang-format ==18.1.8",
+  "clang-format-swig ==0.0.1",
   "ruff ==0.14.14",
 ]
 type-checkers = [
