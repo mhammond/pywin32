@@ -54,8 +54,6 @@ if TYPE_CHECKING:
     )
     from setuptools._distutils.compilers.C.errors import CompileError
     from setuptools._distutils.errors import DistutilsExecError
-
-    from typing_extensions import TypeAlias
 else:
     from distutils import ccompiler
     from distutils._msvccompiler import MSVCCompiler
@@ -895,9 +893,10 @@ class my_build_ext(build_ext):
         return new_sources
 
 
-BaseCygwinCompiler: TypeAlias = (
-    CygwinCompiler if sys.platform == "cygwin" else MinGW32Compiler
-)
+if sys.platform == "cygwin":
+    BaseCygwinCompiler = CygwinCompiler
+else:
+    BaseCygwinCompiler = MinGW32Compiler
 
 
 class MyCygwinCompiler(BaseCygwinCompiler):
