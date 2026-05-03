@@ -48,17 +48,10 @@ if TYPE_CHECKING:
     from setuptools._distutils import ccompiler
     from setuptools._distutils._msvccompiler import MSVCCompiler
     from setuptools._distutils.command.install_data import install_data
-
-    if sys.version_info >= (3, 10):
-        from setuptools._distutils.compilers.C.cygwin import (
-            Compiler as CygwinCompiler,
-            MinGW32Compiler,
-        )
-    else:
-        from setuptools._distutils.compilers.C.cygwin import (  # type: ignore[import-not-found]
-            Compiler as CygwinCompiler,
-            MinGW32Compiler,
-        )
+    from setuptools._distutils.compilers.C.cygwin import (  # type: ignore[import-not-found, unused-ignore] # Diff type from types-setuptools on Python 3.9
+        Compiler as CygwinCompiler,
+        MinGW32Compiler,
+    )
     from setuptools._distutils.compilers.C.errors import CompileError
     from setuptools._distutils.errors import DistutilsExecError
 
@@ -944,11 +937,11 @@ class MyCygwinCompiler(BaseCygwinCompiler):
                 # then compile .rc to .res file
                 base, _ = os.path.splitext(os.path.basename(src))
                 src = os.path.join(rc_dir, base + ".rc")
-            if ext in (".rc", ".res", ".mc"):
+            if ext in {".rc", ".res", ".mc"}:
                 # gcc needs '.res' and '.rc' compiled to object files !!!
                 self.spawn([os.environ.get("WINDRES", "windres"), "-i", src, "-o", obj])
             else:  # for other files use the C-compiler
-                if self.detect_language(src) == "c++":  # type: ignore[arg-type]
+                if self.detect_language(src) == "c++":  # type: ignore[arg-type, unused-ignore] # Diff type from types-setuptools on Python 3.9
                     compiler_so = self.compiler_so_cxx
                 else:
                     compiler_so = self.compiler_so
