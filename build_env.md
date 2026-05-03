@@ -76,6 +76,8 @@ way to build pywin32 - it's build process should find these tools automatically.
 ## For Visual Studio 2022
 
 - Install the [Visual Studio 2022](https://visualstudio.microsoft.com/downloads/) (`VisualStudioSetup.exe` ~ 4.22 MB)
+  Note that `17.6` is the last version that supports Windows 8.1. See [Evergreen bootstrappers](https://learn.microsoft.com/en-us/visualstudio/releases/2022/release-history#evergreen-bootstrappers).
+  Direct link for [Build Tools 17.6](https://aka.ms/vs/17/release.ltsc.17.6/vs_buildtools.exe).
 
 - Maybe stop your virus scanner
 - In `Visual Studio Installer`:

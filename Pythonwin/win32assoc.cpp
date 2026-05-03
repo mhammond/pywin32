@@ -70,15 +70,26 @@ void CAssocManager::RemoveAssoc(void *handle)
     // nuke any existing items.
     PyObject *weakref;
     if (map.Lookup(handle, (void *&)weakref)) {
-        PyObject *ob = PyWeakref_GetObject(weakref);
         map.RemoveKey(handle);
+#if PY_VERSION_HEX >= 0x030d0000  // Python 3.13+
+        PyObject *ob = NULL;
+        PyWeakref_GetRef(weakref, &ob);  // strong reference
+        if (ob != NULL)
+#else
+        PyObject *ob = PyWeakref_GetObject(weakref);  // borrowed reference
         if (ob != Py_None)
+#endif
+        {
             // The object isn't necessarily dead (ie, its refcount may
             // not be about to hit zero), but it's 'dead' from our POV, so
             // let it free any MFC etc resources the object owns.
             // XXX - this kinda sucks - just relying on the object
             // destructor *should* be OK...
             ((ui_assoc_object *)ob)->cleanup();
+#if PY_VERSION_HEX >= 0x030d0000  // Python 3.13+
+            Py_DECREF(ob);
+#endif
+        }
         Py_DECREF(weakref);
     }
     lastObjectWeakRef = 0;
@@ -140,11 +151,19 @@ ui_assoc_object *CAssocManager::GetAssocObject(void *handle)
         lastLookup = handle;
         lastObjectWeakRef = weakref;
     }
-    if (weakref == NULL)
+    if (weakref == NULL) {
         return NULL;
+    }
     // convert the weakref object into a real object.
-    PyObject *ob = PyWeakref_GetObject(weakref);
-    if (ob == NULL) {
+#if PY_VERSION_HEX >= 0x030d0000  // Python 3.13+
+    PyObject *ob = NULL;
+    int rc = PyWeakref_GetRef(weakref, &ob);  // strong reference
+    if (rc < 0)
+#else
+    PyObject *ob = PyWeakref_GetObject(weakref);  // borrowed reference
+    if (ob == NULL)
+#endif
+    {
         // an error - but a NULL return from us just means "no assoc"
         // so print the error and ignore it, treating it as if the
         // weak-ref target has died.
@@ -152,7 +171,12 @@ ui_assoc_object *CAssocManager::GetAssocObject(void *handle)
         ob = Py_None;
     }
     ui_assoc_object *ret;
-    if (ob == Py_None) {
+#if PY_VERSION_HEX >= 0x030d0000  // Python 3.13+
+    if (rc <= 0)
+#else
+    if (ob == Py_None)
+#endif
+    {
         // weak-ref target has died.  Remove it from the map.
         Assoc(handle, NULL);
         ret = NULL;
@@ -160,6 +184,9 @@ ui_assoc_object *CAssocManager::GetAssocObject(void *handle)
     else {
         ret = (ui_assoc_object *)ob;
         Py_INCREF(ret);
+#if PY_VERSION_HEX >= 0x030d0000  // Python 3.13+
+        Py_DECREF(ob);
+#endif
     }
     return ret;
 }

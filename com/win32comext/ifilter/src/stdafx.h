@@ -10,8 +10,8 @@
 
 // PythonCOM.h pulls in Python.h and windows.h.
 #include <PythonCOM.h>
-#include <Filter.h>
-#include <Filterr.h>
+#include <filter.h>
+#include <filterr.h>
 
 #define MISSING_PROPSTG
 #ifdef MISSING_PROPSTG

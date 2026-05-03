@@ -30,7 +30,7 @@
 
 // don't need all of these for all, but it can't hurt (and keep the speed up!)
 
-#include "pywintypes.h"
+#include "PyWinTypes.h"
 #include "win32ui.h"
 #include "win32assoc.h"
 #include "win32cmd.h"

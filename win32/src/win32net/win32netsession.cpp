@@ -4,7 +4,7 @@
 #include "assert.h"
 #include "PyWinTypes.h"
 #include "lm.h"
-#include "WinUser.h"
+#include "winuser.h"
 #include "win32net.h"
 
 // @pymethod (dict,...)|win32net|NetSessionEnum|Returns network sessions for a server, limited to single client and/or

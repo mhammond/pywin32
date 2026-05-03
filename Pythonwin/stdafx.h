@@ -35,7 +35,7 @@ programmers who forget to use the new names. */
 #include "pythonrun.h"
 #include "import.h"  // Python: for dynamicattach routines.
 
-#include "pywintypes.h"
+#include "PyWinTypes.h"
 // don't need all of these for all, but it can't hurt (and keep the speed up!)
 
 #include "win32ui.h"

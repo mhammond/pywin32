@@ -29,8 +29,8 @@
 #include "stdafx.h"
 #include "Utils.h"
 #include "PythonEng.h"
-#include "pyExtensionObjects.h"
-#include "pyFilterObjects.h"
+#include "PyExtensionObjects.h"
+#include "PyFilterObjects.h"
 #include "pyISAPI_messages.h"
 
 extern HINSTANCE g_hInstance;

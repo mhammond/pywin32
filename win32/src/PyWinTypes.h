@@ -4,7 +4,7 @@
 
 // If building under a GCC, tweak what we need.
 #if defined(__GNUC__) && defined(_POSIX_C_SOURCE)
-// python.h complains if _POSIX_C_SOURCE is already defined
+// Python.h complains if _POSIX_C_SOURCE is already defined
 #undef _POSIX_C_SOURCE
 #endif
 

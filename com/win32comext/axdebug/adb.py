@@ -114,6 +114,13 @@ class Adb(bdb.Bdb, gateways.RemoteDebugApplicationEvents):
     def break_here(self, frame):
         traceenter("break_here", self.breakFlags, _dumpf(frame))
         self.breakReason = None
+        # During step-out, bdb's set_return() controls stopping via
+        # stop_here/dispatch_return.  Don't let break flags override that
+        # — only stop here for actual bdb breakpoints.
+        if self.returnframe is not None:
+            if bdb.Bdb.break_here(self, frame):
+                self.breakReason = axdebug.BREAKREASON_BREAKPOINT
+            return self.breakReason is not None
         if self.breakFlags == axdebug.APPBREAKFLAG_DEBUGGER_HALT:
             self.breakReason = axdebug.BREAKREASON_DEBUGGER_HALT
         elif self.breakFlags == axdebug.APPBREAKFLAG_DEBUGGER_BLOCK:
@@ -211,7 +218,13 @@ class Adb(bdb.Bdb, gateways.RemoteDebugApplicationEvents):
         if frame.f_lineno != 0:
             breakReason = self.breakReason
             if breakReason is None:
-                breakReason = axdebug.BREAKREASON_STEP
+                # stop_here triggered (stopframe match) — tell the debugger
+                # this is a definitive stop, not an intermediate step event.
+                # BREAKREASON_STEP would let VS auto-resume during step-out.
+                if frame is self.stopframe:
+                    breakReason = axdebug.BREAKREASON_BREAKPOINT
+                else:
+                    breakReason = axdebug.BREAKREASON_STEP
             self._HandleBreakPoint(frame, None, breakReason)
 
     def user_return(self, frame, return_value):

@@ -7,7 +7,7 @@
 #define PY_SSIZE_T_CLEAN
 #include "PyWinTypes.h"
 #include "PythonCOM.h"
-#include "Objsel.h"
+#include "objsel.h"
 
 // DS_SELECTION_LIST helpers
 PyObject *PyStringAsDS_SELECTION_LIST(PyObject *self, PyObject *args)

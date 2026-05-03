@@ -38,7 +38,7 @@ class TestPythonwinExe(unittest.TestCase):
             # install w symlink. This works only when cwd is set to the dir of
             # python.exe / exec_prefix.
 
-            # XXX Pythonwin.exe / win32uihostglue.h could be improved to search
+            # XXX Pythonwin.exe / Win32uiHostGlue.h could be improved to search
             # the Python DLL itself via registry when local / relative search fails.
 
             pydll = f"Python{sys.version_info.major}{sys.version_info.minor}.dll"  # same for 32bit

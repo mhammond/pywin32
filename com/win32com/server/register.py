@@ -543,7 +543,7 @@ def UnregisterInfoClasses(*classes, **flags):
 # Attempt to 're-execute' our current process with elevation.
 def ReExecuteElevated(flags):
     import win32console
-    import win32event  # we've already checked we are running XP above
+    import win32event
     import win32process
     from win32com.shell import shellcon
     from win32com.shell.shell import ShellExecuteEx
@@ -573,7 +573,7 @@ def ReExecuteElevated(flags):
     #  pythonwin will just open script for editting
     current_exe = os.path.split(sys.executable)[1].lower()
     exe_to_run = None
-    if current_exe == "pythonwin.exe":
+    if current_exe == "Pythonwin.exe":
         exe_to_run = os.path.join(sys.prefix, "python.exe")
     elif current_exe == "pythonwin_d.exe":
         exe_to_run = os.path.join(sys.prefix, "python_d.exe")

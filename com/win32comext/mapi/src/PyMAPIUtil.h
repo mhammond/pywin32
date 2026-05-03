@@ -1,4 +1,4 @@
-// PyMapiUtil.h
+// PyMAPIUtil.h
 
 #include "mapix.h"
 
