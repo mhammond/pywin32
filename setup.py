@@ -18,8 +18,8 @@ the release version executable for the build. eg:
 Cross-compilation from x86 to ARM is well supported (assuming installed vs tools etc) - eg:
   python -m build --wheel --config-setting=--build-option="build_ext --plat-name=win-arm64 build --plat-name=win-arm64 bdist_wheel --plat-name=win-arm64"
 
-Some modules require special SDKs or toolkits to build (eg, mapi/exchange),
-which often aren't available in CI. The build process treats them as optional -
+Some modules require special SDKs or toolkits to build (eg, ATL/MFC), which
+often aren't available in all environments. The build process treats them as optional -
 instead of a failing, it will report what was skipped, and why. See also
 build_env.md, which is getting out of date but might help getting everything
 required for an official build - see README.md for that process.
@@ -32,7 +32,6 @@ import platform
 import re
 import shutil
 import sys
-import winreg
 from abc import abstractmethod
 from collections.abc import Iterable
 from pathlib import Path
@@ -273,48 +272,15 @@ class WinExt_win32com(WinExt):
         return "win32comext/" + self.name
 
 
-# Exchange extensions get special treatment:
-# * Look for the Exchange SDK in the registry.
-# * Output directory is different than the module's basename.
-# * Require use of the Exchange 2000 SDK - this works for both VC6 and 7
-# NOTE: sadly the old Exchange SDK does *not* include MAPI files - these used
-# to be bundled with the Windows SDKs and/or Visual Studio, but no longer are.
 class WinExt_win32com_mapi(WinExt_win32com):
     def __init__(self, name, **kw):
-        # The Exchange 2000 SDK seems to install itself without updating
-        # LIB or INCLUDE environment variables.  It does register the core
-        # directory in the registry tho - look it up
-        sdk_install_dir = None
         libs = kw.get("libraries", "")
-        keyname = r"SOFTWARE\Microsoft\Exchange\SDK"
-        flags = winreg.KEY_READ
-        try:
-            flags |= winreg.KEY_WOW64_32KEY
-        except AttributeError:
-            pass  # this version doesn't support 64 bits, so must already be using 32bit key.
-        for root in winreg.HKEY_LOCAL_MACHINE, winreg.HKEY_CURRENT_USER:
-            try:
-                keyob = winreg.OpenKey(root, keyname, 0, flags)
-                value, type_id = winreg.QueryValueEx(keyob, "INSTALLDIR")
-                if type_id == winreg.REG_SZ:
-                    sdk_install_dir = value
-                    break
-            except OSError:
-                pass
-        if sdk_install_dir is not None:
-            d = os.path.join(sdk_install_dir, "SDK", "Include")
-            if os.path.isdir(d):
-                kw.setdefault("include_dirs", []).insert(0, d)
-            d = os.path.join(sdk_install_dir, "SDK", "Lib")
-            if os.path.isdir(d):
-                kw.setdefault("library_dirs", []).insert(0, d)
-
         # The stand-alone exchange SDK has these libs
         # Additional utility functions are only available for 32-bit builds.
         if not platform.machine() in ("AMD64", "ARM64"):
             libs += " version user32 advapi32 Ex2KSdk sadapi netapi32"
-        kw["libraries"] = libs
-        WinExt_win32com.__init__(self, name, **kw)
+        kw["libraries"] = kw.get("libraries", "")
+        super().__init__(name, **kw)
 
     def get_pywin32_dir(self):
         # 'win32com.mapi.exchange' is currently the only
@@ -695,7 +661,7 @@ class my_build_ext(build_ext):
 
     def build_extension(self, ext):
         # Some of these extensions are difficult to build, requiring various
-        # hard-to-track libraries et (eg, exchange sdk, etc).  So we
+        # hard-to-track libraries (eg, ATL/MFC, etc).  So we
         # check the extension list for the extra libraries explicitly
         # listed.  We then search for this library the same way the C
         # compiler would - if we can't find a library, we exclude the
@@ -861,6 +827,7 @@ class my_build_ext(build_ext):
             )
 
             # can remove once edklib is no longer used for 32-bit builds
+            # (see edk-related includes in that file)
             if source == "com/win32comext/mapi/src/exchange.i":
                 rebuild = True
 
@@ -2099,9 +2066,9 @@ if "build_ext" in dist.command_obj:
     # Print the list of extension modules we skipped building.
     excluded_extensions = dist.command_obj["build_ext"].excluded_extensions
     if excluded_extensions:
-        skip_whitelist = {"exchange", "axdebug"}
+        skip_whitelist = {"axdebug"}
         skipped_ex = []
-        print("*** NOTE: The following extensions were NOT %s:" % what_string)
+        print(f"*** NOTE: The following extensions were NOT {what_string}:")
         for ext, why in excluded_extensions:
             print(f" {ext.name}: {why}")
             if ext.name not in skip_whitelist:
@@ -2110,8 +2077,7 @@ if "build_ext" in dist.command_obj:
         print("please execute this script with no arguments (or see the docstring)")
         if skipped_ex:
             print(
-                "*** Non-zero exit status. Missing for complete release build: %s"
-                % skipped_ex
+                f"*** Non-zero exit status. Missing for complete release build: {skipped_ex}"
             )
             sys.exit(1000 + len(skipped_ex))
     else:
