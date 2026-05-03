@@ -14,7 +14,7 @@ generates Windows .hlp files.
 
 #define PY_SSIZE_T_CLEAN
 #include "internet_pch.h"
-#include "MsHtmHst.h"
+#include "mshtmhst.h"
 #include "stddef.h"             // for offsetof
 #include "PythonCOMRegister.h"  // For simpler registration of IIDs etc.
 

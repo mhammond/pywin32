@@ -22,7 +22,7 @@
 #include <memory>
 #include <mutex>
 
-// Want to use std::min and std::max so don't want Windows.h version of min and max
+// Want to use std::min and std::max so don't want windows.h version of min and max
 #if !defined(NOMINMAX)
 #define NOMINMAX
 #endif

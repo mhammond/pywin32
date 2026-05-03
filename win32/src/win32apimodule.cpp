@@ -22,7 +22,7 @@ generates Windows .hlp files.
 
 #define SECURITY_WIN32  // required by below
 #include "security.h"   // for GetUserNameEx
-#include "PowrProf.h"
+#include "powrprof.h"
 
 // Identical to PyW32_BEGIN_ALLOW_THREADS except no script "{" !!!
 // means variables can be declared between the blocks

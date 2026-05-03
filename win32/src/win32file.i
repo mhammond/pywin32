@@ -38,11 +38,11 @@
 #define WIN32_LEAN_AND_MEAN
 #include "windows.h"
 #include "ole2.h"
-#include "Winefs.h"
+#include "winefs.h"
 
 #include "winsock2.h"
 #include "mswsock.h"
-#include "pywintypes.h"
+#include "PyWinTypes.h"
 #include "winbase.h"
 #include "assert.h"
 #include <stddef.h>
@@ -52,8 +52,8 @@
 #ifdef socklen_t
 #	undef socklen_t
 #endif
-#include "Ws2tcpip.h"
-#include "Wspiapi.h" // for WspiapiGetAddrInfo/WspiapiFreeAddrInfo
+#include "ws2tcpip.h"
+#include "wspiapi.h" // for WspiapiGetAddrInfo/WspiapiFreeAddrInfo
 
 #define NEED_PYWINOBJECTS_H
 #include "win32file_comm.h"

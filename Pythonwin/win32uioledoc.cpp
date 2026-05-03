@@ -2,7 +2,7 @@
 #include "win32app.h"
 #include "win32uioledoc.h"
 #include "win32template.h"
-#include "pywintypes.h"
+#include "PyWinTypes.h"
 //
 // OLE Document Object
 //
