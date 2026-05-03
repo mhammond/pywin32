@@ -48,12 +48,21 @@ if TYPE_CHECKING:
     from setuptools._distutils import ccompiler
     from setuptools._distutils._msvccompiler import MSVCCompiler
     from setuptools._distutils.command.install_data import install_data
-    from setuptools._distutils.compilers.C.cygwin import (  # type: ignore[import-not-found] # TODO: Fix in typeshed
-        Compiler as CygwinCompiler,
-        MinGW32Compiler,
-    )
+
+    if sys.version_info >= (3, 10):
+        from setuptools._distutils.compilers.C.cygwin import (
+            Compiler as CygwinCompiler,
+            MinGW32Compiler,
+        )
+    else:
+        from setuptools._distutils.compilers.C.cygwin import (  # type: ignore[import-not-found]
+            Compiler as CygwinCompiler,
+            MinGW32Compiler,
+        )
     from setuptools._distutils.compilers.C.errors import CompileError
     from setuptools._distutils.errors import DistutilsExecError
+
+    from typing_extensions import TypeAlias
 else:
     from distutils import ccompiler
     from distutils._msvccompiler import MSVCCompiler
@@ -894,9 +903,9 @@ class my_build_ext(build_ext):
 
 
 if sys.platform == "cygwin":
-    BaseCygwinCompiler = CygwinCompiler
+    BaseCygwinCompiler: TypeAlias = CygwinCompiler
 else:
-    BaseCygwinCompiler = MinGW32Compiler
+    BaseCygwinCompiler: TypeAlias = MinGW32Compiler
 
 
 class MyCygwinCompiler(BaseCygwinCompiler):
@@ -939,7 +948,7 @@ class MyCygwinCompiler(BaseCygwinCompiler):
                 # gcc needs '.res' and '.rc' compiled to object files !!!
                 self.spawn([os.environ.get("WINDRES", "windres"), "-i", src, "-o", obj])
             else:  # for other files use the C-compiler
-                if self.detect_language(src) == "c++":
+                if self.detect_language(src) == "c++":  # type: ignore[arg-type]
                     compiler_so = self.compiler_so_cxx
                 else:
                     compiler_so = self.compiler_so
