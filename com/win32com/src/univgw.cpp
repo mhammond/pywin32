@@ -261,8 +261,7 @@ static pfnGWMethod make_method(DWORD index, UINT argsize, UINT argc)
         PyErr_SetString(PyExc_RuntimeError, "failed to set memory attributes to executable");
         return NULL;
     }
-#else  // other arches
-    /* The MAINWIN toolkit allows us to build this on Linux!!! */
+#else  // other architectures
 #pragma message("XXXXXXXXX - win32com.universal won't work on this platform - need make_method")
     PyErr_SetString(PyExc_NotImplementedError, "not implemented on this platform");
     code = NULL;
