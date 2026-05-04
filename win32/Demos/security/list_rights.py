@@ -1,5 +1,7 @@
-import win32security, win32file, win32api, ntsecuritycon, win32con
-from security_enums import TRUSTEE_TYPE, TRUSTEE_FORM, ACE_FLAGS, ACCESS_MODE
+import ntsecuritycon
+import win32api
+import win32con
+import win32security
 
 new_privs = (
     (

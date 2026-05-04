@@ -1,6 +1,10 @@
-import win32gui, win32con, win32api, time, os, glob
+import glob
+import os
+import time
 
-## some of these tests will fail for systems prior to XP
+import win32api
+import win32con
+import win32gui
 
 for pname in (
     ## Set actions all take an unsigned int in pvParam
@@ -18,10 +22,7 @@ for pname in (
     "SPI_GETMOUSEHOVERTIME",
     "SPI_GETSCREENSAVETIMEOUT",
     "SPI_GETMENUSHOWDELAY",
-    "SPI_GETLOWPOWERTIMEOUT",
-    "SPI_GETPOWEROFFTIMEOUT",
     "SPI_GETBORDER",
-    ## below are winxp only:
     "SPI_GETFONTSMOOTHINGCONTRAST",
     "SPI_GETFONTSMOOTHINGTYPE",
     "SPI_GETFOCUSBORDERHEIGHT",
@@ -33,21 +34,23 @@ for pname in (
     cset = getattr(win32con, pname.replace("_GET", "_SET"))
     orig_value = win32gui.SystemParametersInfo(cget)
     print("\toriginal setting:", orig_value)
-    win32gui.SystemParametersInfo(cset, orig_value + 1)
+    # Some values are clamped to an upper bound
+    # (like SPI_SETKEYBOARDDELAY, SPI_SETKEYBOARDSPEED, SPI_SETMOUSESPEED)
+    # SPI_SETMOUSESPEED specifically ranges [0-3]
+    # https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-systemparametersinfoa#SPI_SETKEYBOARDDELAY
+    # Some values won't accept 0
+    new_value = orig_value + (1 if orig_value < 2 else -1)
+    win32gui.SystemParametersInfo(cset, new_value)
     new_value = win32gui.SystemParametersInfo(cget)
     print("\tnew value:", new_value)
-    # On Vista, some of these values seem to be ignored.  So only "fail" if
-    # the new value isn't what we set or the original
-    if new_value != orig_value + 1:
-        assert new_value == orig_value
-        print("Strange - setting %s seems to have been ignored" % (pname,))
+    assert new_value != orig_value
     win32gui.SystemParametersInfo(cset, orig_value)
     assert win32gui.SystemParametersInfo(cget) == orig_value
 
 
-# these take a boolean value in pvParam
 # change to opposite, check that it was changed and change back
 for pname in (
+    # these take a boolean value in pvParam
     "SPI_GETFLATMENU",
     "SPI_GETDROPSHADOW",
     "SPI_GETKEYBOARDCUES",
@@ -64,6 +67,19 @@ for pname in (
     "SPI_GETUIEFFECTS",
     "SPI_GETACTIVEWINDOWTRACKING",
     "SPI_GETACTIVEWNDTRKZORDER",
+    # these take a boolean in uiParam
+    "SPI_GETFONTSMOOTHING",
+    "SPI_GETICONTITLEWRAP",
+    "SPI_GETBEEP",
+    "SPI_GETBLOCKSENDINPUTRESETS",
+    "SPI_GETKEYBOARDPREF",
+    "SPI_GETMENUDROPALIGNMENT",
+    "SPI_GETDRAGFULLWINDOWS",
+    "SPI_GETSHOWIMEUI",
+    # Can be changed, but will always return True,
+    # so don't include in demo since we can't know the value to revert
+    # https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-systemparametersinfoa#SPI_GETSCREENSAVEACTIVE
+    # "SPI_GETSCREENSAVEACTIVE",
 ):
     print(pname)
     cget = getattr(win32con, pname)
@@ -74,34 +90,6 @@ for pname in (
     new_value = win32gui.SystemParametersInfo(cget)
     print(new_value)
     assert orig_value != new_value
-    win32gui.SystemParametersInfo(cset, orig_value)
-    assert win32gui.SystemParametersInfo(cget) == orig_value
-
-
-# these take a boolean in uiParam
-#  could combine with above section now that SystemParametersInfo only takes a single parameter
-for pname in (
-    "SPI_GETFONTSMOOTHING",
-    "SPI_GETICONTITLEWRAP",
-    "SPI_GETBEEP",
-    "SPI_GETBLOCKSENDINPUTRESETS",
-    "SPI_GETKEYBOARDPREF",
-    "SPI_GETSCREENSAVEACTIVE",
-    "SPI_GETMENUDROPALIGNMENT",
-    "SPI_GETDRAGFULLWINDOWS",
-    "SPI_GETSHOWIMEUI",
-):
-    cget = getattr(win32con, pname)
-    cset = getattr(win32con, pname.replace("_GET", "_SET"))
-    orig_value = win32gui.SystemParametersInfo(cget)
-    win32gui.SystemParametersInfo(cset, not orig_value)
-    new_value = win32gui.SystemParametersInfo(cget)
-    # Some of these also can't be changed (eg, SPI_GETSCREENSAVEACTIVE) so
-    # don't actually get upset.
-    if orig_value != new_value:
-        print("successfully toggled", pname, "from", orig_value, "to", new_value)
-    else:
-        print("couldn't toggle", pname, "from", orig_value)
     win32gui.SystemParametersInfo(cset, orig_value)
     assert win32gui.SystemParametersInfo(cget) == orig_value
 

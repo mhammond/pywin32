@@ -1,11 +1,12 @@
 # A demo of the win32rcparser module and using win32gui
 
-import win32gui
+import os
+
+import commctrl
 import win32api
 import win32con
+import win32gui
 import win32rcparser
-import commctrl
-import sys, os
 
 this_dir = os.path.abspath(os.path.dirname(__file__))
 g_rcname = os.path.abspath(
@@ -13,7 +14,7 @@ g_rcname = os.path.abspath(
 )
 
 if not os.path.isfile(g_rcname):
-    raise RuntimeError("Can't locate test.rc (should be at '%s')" % (g_rcname,))
+    raise RuntimeError(f"Can't locate test.rc (should be at '{g_rcname}')")
 
 
 class DemoWindow:
@@ -72,7 +73,7 @@ def DemoModal():
 
 if __name__ == "__main__":
     flags = 0
-    for flag in """ICC_DATE_CLASSES ICC_ANIMATE_CLASS ICC_ANIMATE_CLASS 
+    for flag in """ICC_DATE_CLASSES ICC_ANIMATE_CLASS ICC_ANIMATE_CLASS
                    ICC_BAR_CLASSES ICC_COOL_CLASSES ICC_DATE_CLASSES
                    ICC_HOTKEY_CLASS ICC_INTERNET_CLASSES ICC_LISTVIEW_CLASSES
                    ICC_PAGESCROLLER_CLASS ICC_PROGRESS_CLASS ICC_TAB_CLASSES

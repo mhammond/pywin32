@@ -1,8 +1,8 @@
-import sys, string
 import traceback
+
+import pythoncom
 from win32com.axdebug import axdebug
 from win32com.client.util import Enumerator
-import pythoncom
 
 
 def DumpDebugApplicationNode(node, level=0):
@@ -18,7 +18,7 @@ def DumpDebugApplicationNode(node, level=0):
             info = node.GetName(attr)
         except pythoncom.com_error:
             info = "<N/A>"
-        print("%s%s: %s" % (spacer, desc, info))
+        print(f"{spacer}{desc}: {info}")
     try:
         doc = node.GetDocument()
     except pythoncom.com_error:
@@ -26,13 +26,11 @@ def DumpDebugApplicationNode(node, level=0):
     if doc:
         doctext = doc.QueryInterface(axdebug.IID_IDebugDocumentText)
         numLines, numChars = doctext.GetSize()
-        #                       text, attr = doctext.GetText(0, 20, 1)
+        # text, attr = doctext.GetText(0, 20, 1)
         text, attr = doctext.GetText(0, numChars, 1)
-        print(
-            "%sText is %s, %d bytes long" % (spacer, repr(text[:40] + "..."), len(text))
-        )
+        print(f"{spacer}Text is '{text[:40] + '...'}', {len(text)} bytes long")
     else:
-        print("%s%s" % (spacer, "<No document available>"))
+        print(f"{spacer * 2}<No document available>")
 
     for child in Enumerator(node.EnumChildren()):
         DumpDebugApplicationNode(child, level + 1)
@@ -47,10 +45,8 @@ def dumpall():
     )
     e = Enumerator(dm.EnumApplications())
     for app in e:
-        print("Application: %s" % app.GetName())
-        node = (
-            app.GetRootNode()
-        )  # of type PyIDebugApplicationNode->PyIDebugDocumentProvider->PyIDebugDocumentInfo
+        print(f"Application: {app.GetName()}")
+        node = app.GetRootNode()  # of type PyIDebugApplicationNode->PyIDebugDocumentProvider->PyIDebugDocumentInfo
         DumpDebugApplicationNode(node)
 
 

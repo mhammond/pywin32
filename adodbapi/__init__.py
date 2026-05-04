@@ -1,30 +1,40 @@
 """adodbapi - A python DB API 2.0 (PEP 249) interface to Microsoft ADO
 
 Copyright (C) 2002 Henrik Ekelund, version 2.1 by Vernon Cole
-* http://sourceforge.net/projects/adodbapi
+* https://sourceforge.net/projects/adodbapi
 """
-import sys
+
 import time
 
-from .apibase import apilevel, threadsafety, paramstyle
-from .apibase import (
-    Warning,
-    Error,
-    InterfaceError,
-    DatabaseError,
-    DataError,
-    OperationalError,
-    IntegrityError,
+# Re-exports to keep backward compatibility with existing code
+from .adodbapi import (
+    Connection as Connection,
+    Cursor as Cursor,
+    __version__,
+    connect as connect,
+    dateconverter,
 )
 from .apibase import (
-    InternalError,
-    ProgrammingError,
-    NotSupportedError,
-    FetchFailedError,
+    BINARY as BINARY,
+    DATETIME as DATETIME,
+    NUMBER as NUMBER,
+    ROWID as ROWID,
+    STRING as STRING,
+    DatabaseError as DatabaseError,
+    DataError as DataError,
+    Error as Error,
+    FetchFailedError as FetchFailedError,
+    IntegrityError as IntegrityError,
+    InterfaceError as InterfaceError,
+    InternalError as InternalError,
+    NotSupportedError as NotSupportedError,
+    OperationalError as OperationalError,
+    ProgrammingError as ProgrammingError,
+    Warning as Warning,
+    apilevel as apilevel,
+    paramstyle as paramstyle,
+    threadsafety as threadsafety,
 )
-from .apibase import NUMBER, STRING, BINARY, DATETIME, ROWID
-
-from .adodbapi import connect, Connection, __version__, dateconverter, Cursor
 
 
 def Binary(aString):
@@ -49,13 +59,15 @@ def Timestamp(year, month, day, hour, minute, second):
 
 def DateFromTicks(ticks):
     """This function constructs an object holding a date value from the given ticks value
-    (number of seconds since the epoch; see the documentation of the standard Python time module for details)."""
+    (number of seconds since the epoch; see the documentation of the standard Python time module for details).
+    """
     return Date(*time.gmtime(ticks)[:3])
 
 
 def TimeFromTicks(ticks):
     """This function constructs an object holding a time value from the given ticks value
-    (number of seconds since the epoch; see the documentation of the standard Python time module for details)."""
+    (number of seconds since the epoch; see the documentation of the standard Python time module for details).
+    """
     return Time(*time.gmtime(ticks)[3:6])
 
 

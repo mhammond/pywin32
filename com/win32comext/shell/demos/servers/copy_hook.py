@@ -1,16 +1,16 @@
 # A sample shell copy hook.
 
-# To demostrate:
+# To demonstrate:
 # * Execute this script to register the context menu.
 # * Open Windows Explorer
 # * Attempt to move or copy a directory.
 # * Note our hook's dialog is displayed.
-import sys, os
+
 import pythoncom
-from win32com.shell import shell, shellcon
-import win32gui
 import win32con
-import winerror
+import win32gui
+from win32com.shell import shell
+
 
 # Our shell extension.
 class ShellExtension:
@@ -55,7 +55,7 @@ def DllUnregisterServer():
             winreg.HKEY_CLASSES_ROOT,
             "directory\\shellex\\CopyHookHandlers\\" + ShellExtension._reg_desc_,
         )
-    except WindowsError as details:
+    except OSError as details:
         import errno
 
         if details.errno != errno.ENOENT:
@@ -65,7 +65,7 @@ def DllUnregisterServer():
             winreg.HKEY_CLASSES_ROOT,
             "*\\shellex\\CopyHookHandlers\\" + ShellExtension._reg_desc_,
         )
-    except WindowsError as details:
+    except OSError as details:
         import errno
 
         if details.errno != errno.ENOENT:

@@ -38,7 +38,7 @@ STDMETHODIMP_(ULONG) CPyFactory::Release(void)
 {
     LONG cRef = InterlockedDecrement(&m_cRef);
     if (cRef == 0)
-        delete this;
+        operator delete(this);
     return cRef;
 }
 
@@ -77,7 +77,7 @@ STDMETHODIMP CPyFactory::CreateInstance(IUnknown *punkOuter, REFIID riid, void *
                 hr = E_FAIL;
             }
         }
-        Py_XDECREF(pNewInstance);  // Dont need it any more.
+        Py_XDECREF(pNewInstance);  // Don't need it any more.
     }
     PyCom_DLLReleaseRef();
     return hr;

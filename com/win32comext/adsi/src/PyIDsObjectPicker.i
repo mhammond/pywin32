@@ -7,7 +7,7 @@
 
 %{
 
-#include "Objsel.h"
+#include "objsel.h"
 #include "PyIDsObjectPicker.h"
 
 extern BOOL PyObject_AsDSOP_SCOPE_INIT_INFOs(PyObject *ob, DSOP_SCOPE_INIT_INFO**p, ULONG *n);
@@ -40,7 +40,7 @@ PyObject *PyIDsObjectPicker::Initialize(PyObject *self, PyObject *args)
 	if ((_swig_self=GetI(self))==NULL) return NULL;
     PyObject *obAttributeNames = Py_None;
     DSOP_INIT_INFO ii;
-    memset(&ii, sizeof(ii), 0);
+    memset(&ii, 0, sizeof(ii));
     ii.cbSize = sizeof(ii);
 	if (!PyArg_ParseTuple(args, "OO|lO:Initialize",
                                      &obTargetComputer, // @pyparm <o PyUnicode>|targetComputer||

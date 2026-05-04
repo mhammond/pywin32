@@ -18,19 +18,24 @@ Example:
   the easiest way is often to simply use PerfMon to find out the names.
 """
 
-import win32pdh, time
+from __future__ import annotations
 
-error = win32pdh.error
+import time
+
+import win32pdh
+
+error = win32pdh.error  # Re-exported alias
 
 # Handle some localization issues.
-# see http://support.microsoft.com/default.aspx?scid=http://support.microsoft.com:80/support/kb/articles/Q287/1/59.asp&NoWebContent=1
+# see https://www.betaarchive.com/wiki/index.php?title=Microsoft_KB_Archive/287159
 # Build a map of english_counter_name: counter_id
-counter_english_map = {}
+counter_english_map: dict[str, int] = {}
 
 
 def find_pdh_counter_localized_name(english_name, machine_name=None):
     if not counter_english_map:
-        import win32api, win32con
+        import win32api
+        import win32con
 
         counter_reg_value = win32api.RegQueryValueEx(
             win32con.HKEY_PERFORMANCE_DATA, "Counter 009"
@@ -55,8 +60,8 @@ def GetPerformanceAttributes(
     # thread's CPU usage is either 0 or 100).  To read counters like this,
     # you should copy this function, but keep the counter open, and call
     # CollectQueryData() each time you need to know.
-    # See http://support.microsoft.com/default.aspx?scid=kb;EN-US;q262938
-    # and http://msdn.microsoft.com/library/en-us/dnperfmo/html/perfmonpt2.asp
+    # See https://www.betaarchive.com/wiki/index.php?title=Microsoft_KB_Archive/262938
+    # and https://web.archive.org/web/20040926105842/http://msdn.microsoft.com:80/library/en-us/dnperfmo/html/perfmonpt2.asp
     # My older explanation for this was that the "AddCounter" process forced
     # the CPU to 100%, but the above makes more sense :)
     path = win32pdh.MakeCounterPath((machine, object, instance, None, inum, counter))
@@ -98,7 +103,7 @@ def FindPerformanceAttributesByName(
     instance_dict = {}
     for instance in instances:
         try:
-            instance_dict[instance] = instance_dict[instance] + 1
+            instance_dict[instance] += 1
         except KeyError:
             instance_dict[instance] = 0
 
@@ -123,7 +128,7 @@ def ShowAllProcesses():
     instance_dict = {}
     for instance in instances:
         try:
-            instance_dict[instance] = instance_dict[instance] + 1
+            instance_dict[instance] += 1
         except KeyError:
             instance_dict[instance] = 0
 
@@ -140,8 +145,8 @@ def ShowAllProcesses():
                 )
                 hcs.append(win32pdh.AddCounter(hq, path))
             win32pdh.CollectQueryData(hq)
-            # as per http://support.microsoft.com/default.aspx?scid=kb;EN-US;q262938, some "%" based
-            # counters need two collections
+            # as per https://www.betaarchive.com/wiki/index.php?title=Microsoft_KB_Archive/262938
+            # some "%" based  counters need two collections
             time.sleep(0.01)
             win32pdh.CollectQueryData(hq)
             print("%-15s\t" % (instance[:15]), end=" ")

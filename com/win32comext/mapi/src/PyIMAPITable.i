@@ -37,22 +37,22 @@ PyObject *PyIMAPITable::GetLastError(PyObject *self, PyObject *args)
 	HRESULT hr, hRes;
 	ULONG flags = 0;
 	MAPIERROR *me = NULL;
-	
+
 	IMAPITable *_swig_self;
 	if ((_swig_self=GetI(self))==NULL) return NULL;
-	
+
     if(!PyArg_ParseTuple(args,"l|l:GetLastError",
 		&hr, // @pyparm int|hr||Contains the error code generated in the previous method call.
 		&flags)) // @pyparm int|flags||Indicates for format for the output.
         return NULL;
-		
+
 	Py_BEGIN_ALLOW_THREADS
 	hRes = _swig_self->GetLastError(hr, flags, &me);
 	Py_END_ALLOW_THREADS
 
 	if (FAILED(hRes))
 		return OleSetOleError(hRes);
-	
+
 	if (me == NULL)
 	{
 		Py_INCREF(Py_None);
@@ -62,10 +62,10 @@ PyObject *PyIMAPITable::GetLastError(PyObject *self, PyObject *args)
 }
 %}
 
-// @pyswig int|Advise|Registers to receive notification of specified events affecting the table. 
+// @pyswig int|Advise|Registers to receive notification of specified events affecting the table.
 HRESULT Advise(
 	unsigned long ulEventMask, // @pyparm int|eventMask||
-	IMAPIAdviseSink *INPUT,	   // @pyparm <o PyIMAPIAdviseSink>|adviseSink||	
+	IMAPIAdviseSink *INPUT,	   // @pyparm <o PyIMAPIAdviseSink>|adviseSink||
 	ULONG_PTR *OUTPUT );
 
 // @pyswig int|SeekRow|Moves the cursor to a specific position in the table.
@@ -76,24 +76,24 @@ HRESULT SeekRow(
 // @rdesc The result is the number of rows processed.
 );
 
-// @pyswig |SeekRowApprox|Moves the cursor to an approximate fractional position in the table. 
+// @pyswig |SeekRowApprox|Moves the cursor to an approximate fractional position in the table.
 HRESULT SeekRowApprox(
 	unsigned long ulNumerator, // @pyparm int|numerator||The numerator of the fraction representing the table position
 	unsigned long ulDenominator // @pyparm int|denominator||The denominator of the fraction representing the table position. This must not be zero.
 );
 
 
-// @pyswig int|GetRowCount|Returns the total number of rows in the table. 
+// @pyswig int|GetRowCount|Returns the total number of rows in the table.
 HRESULT GetRowCount(
 	unsigned long ulFlags, // @pyparm int|flags||Reserved - must be zero
 	unsigned long *OUTPUT
 );
 
 // @pyswig <o SRowSet>|QueryRows|Returns one or more rows from a table, beginning at the current cursor position.
-HRESULT QueryRows( 
+HRESULT QueryRows(
 	long rowCount, // @pyparm int|rowCount||Number of rows to retrieve
 	ULONG ulFlags, // @pyparm int|flags||Flags.
-	SRowSet **OUTPUT); 
+	SRowSet **OUTPUT);
 
 // @pyswig |SetColumns|Defines the particular properties and order of properties to appear as columns in the table.
 HRESULT SetColumns(
@@ -101,14 +101,14 @@ HRESULT SetColumns(
 	unsigned long lFlags // @pyparm int|flags||
 );
 
-// @pyswig |GetStatus|Returns the table's status and type. 
+// @pyswig |GetStatus|Returns the table's status and type.
 // @rdesc Result is a tuple of (tableStatus, tableType)
 HRESULT GetStatus(
 	unsigned long *OUTPUT,
 	unsigned long *OUTPUT
-); 
+);
 
-// @pyswig |QueryPosition|Retrieves the current table row position of the cursor, based on a fractional value. 
+// @pyswig |QueryPosition|Retrieves the current table row position of the cursor, based on a fractional value.
 // @rdesc Result is a tuple of (row, numerator, denominator)
 HRESULT QueryPosition(
 	unsigned long *OUTPUT,
@@ -116,61 +116,61 @@ HRESULT QueryPosition(
 	unsigned long *OUTPUT
 );
 
-// @pyswig <o SPropTagArray>|QueryColumns|Returns a list of columns for the table. 
+// @pyswig <o SPropTagArray>|QueryColumns|Returns a list of columns for the table.
 HRESULT QueryColumns(
 	unsigned long lFlags, // @pyparm int|flags||
 	SPropTagArray **OUTPUT
 );
 
-// @pyswig |Abort|Stops any asynchronous operations currently in progress for the table. 
+// @pyswig |Abort|Stops any asynchronous operations currently in progress for the table.
 HRESULT Abort();
 
-// @pyswig |FreeBookmark|Releases the memory associated with a bookmark. 
+// @pyswig |FreeBookmark|Releases the memory associated with a bookmark.
 HRESULT FreeBookmark(
 	unsigned long bm // @pyparm int|bookmark||
 );
 
-// @pyswig int|CreateBookmark|Marks the table's current position. 
+// @pyswig int|CreateBookmark|Marks the table's current position.
 HRESULT CreateBookmark(
 	ULONG_PTR *OUTPUT
 );
 
-// @pyswig |Restrict|Applies a filter to a table, reducing the row set to only those rows matching the specified criteria. 
+// @pyswig |Restrict|Applies a filter to a table, reducing the row set to only those rows matching the specified criteria.
 HRESULT Restrict(
 	SRestriction *INPUT, // @pyparm <o PySRestriction>|restriction||
 	unsigned long ulFlags // @pyparm int|flags||
 );
 
-// @pyswig |FindRow|Finds the next row in a table that matches specific search criteria. 
+// @pyswig |FindRow|Finds the next row in a table that matches specific search criteria.
 HRESULT FindRow(
 	SRestriction *INPUT, // @pyparm <o PySRestriction>|restriction||
 	BOOKMARK bkOrigin, // @pyparm int|bookmarkOrigin||
 	unsigned long ulFlags // @pyparm int|flags||
 );
 
-// @pyswig |SortTable|Orders the rows of the table based on sort criteria. 
+// @pyswig |SortTable|Orders the rows of the table based on sort criteria.
 HRESULT SortTable(
 	SSortOrderSet *INPUT, // @pyparm <o PySSortOrderSet>|sortOrderSet||
 	unsigned long flags // @pyparm int|flags||
 );
 
-// @pyswig |Unadvise|Cancels the sending of notifications previously set up with a call to the IMAPITable::Advise method. 
+// @pyswig |Unadvise|Cancels the sending of notifications previously set up with a call to the IMAPITable::Advise method.
 HRESULT Unadvise(
 	unsigned long handle); // @pyparm int|handle||Handle returned from <om PyIMAPITable.Advise>
 
 
 /*
 
-QuerySortOrder|Retrieves the current sort order for a table. 
+QuerySortOrder|Retrieves the current sort order for a table.
 
 
-ExpandRow|Expands a collapsed table category, adding the leaf rows belonging to the category to the table view. 
+ExpandRow|Expands a collapsed table category, adding the leaf rows belonging to the category to the table view.
 
-CollapseRow|Collapses an expanded table category, removing the leaf rows belonging to the category from the table view. 
+CollapseRow|Collapses an expanded table category, removing the leaf rows belonging to the category from the table view.
 
-WaitForCompletion|Suspends processing until one or more asynchronous operations in progress on the table have completed. 
+WaitForCompletion|Suspends processing until one or more asynchronous operations in progress on the table have completed.
 
-GetCollapseState|Returns the data necessary to rebuild the current collapsed or expanded state of a categorized table. 
+GetCollapseState|Returns the data necessary to rebuild the current collapsed or expanded state of a categorized table.
 
-SetCollapseState|Rebuilds the current expanded or collapsed state of a categorized table using data that was saved by a prior call to the IMAPITable::GetCollapseState method. 
+SetCollapseState|Rebuilds the current expanded or collapsed state of a categorized table using data that was saved by a prior call to the IMAPITable::GetCollapseState method.
 */

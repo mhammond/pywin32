@@ -2,7 +2,7 @@
 
 Uses standard COM marshalling to pass objects between threads.  Even
 though Python generally seems to work when you just pass COM objects
-between threads, it shouldnt.
+between threads, it shouldn't.
 
 This shows the "correct" way to do it.
 
@@ -21,11 +21,13 @@ this is a pain in the but!
 
 """
 
-import threading, traceback
-import win32com.client
-import win32event, win32api
-import pythoncom
+import threading
 import unittest
+
+import pythoncom
+import win32api
+import win32com.client
+import win32event
 
 from .testServers import InterpCase
 
@@ -50,7 +52,7 @@ class ThreadInterpCase(InterpCase):
             interp = win32com.client.Dispatch(interp)
 
         interp.Exec("import win32api")
-        # print "The test thread id is %d, Python.Interpreter's thread ID is %d" % (myThread, interp.Eval("win32api.GetCurrentThreadId()"))
+        # print(f"The test thread id is {myThread}, Python.Interpreter's thread ID is {interp.Eval('win32api.GetCurrentThreadId()')}")
         pythoncom.CoUninitialize()
 
     def BeginThreadsSimpleMarshal(self, numThreads):
@@ -70,16 +72,17 @@ class ThreadInterpCase(InterpCase):
                 pythoncom.IID_IDispatch, interp._oleobj_
             )
             t = threading.Thread(
-                target=self._testInterpInThread, args=(hEvent, interpStream)
+                target=self._testInterpInThread,
+                args=(hEvent, interpStream),
+                daemon=True,  # so errors don't cause shutdown hang
             )
-            t.setDaemon(1)  # so errors dont cause shutdown hang
             t.start()
             threads.append(t)
         interp = None
         return threads, events
 
     #
-    # NOTE - this doesnt quite work - Im not even sure it should, but Greg reckons
+    # NOTE - this doesn't quite work - I'm not even sure it should, but Greg reckons
     # you should be able to avoid the marshal per thread!
     # I think that refers to CoMarshalInterface though...
     def BeginThreadsFastMarshal(self, numThreads):
@@ -98,15 +101,18 @@ class ThreadInterpCase(InterpCase):
         threads = []
         for i in range(numThreads):
             hEvent = win32event.CreateEvent(None, 0, 0, None)
-            t = threading.Thread(target=self._testInterpInThread, args=(hEvent, interp))
-            t.setDaemon(1)  # so errors dont cause shutdown hang
+            t = threading.Thread(
+                target=self._testInterpInThread,
+                args=(hEvent, interp),
+                daemon=True,  # so errors don't cause shutdown hang
+            )
             t.start()
             events.append(hEvent)
             threads.append(t)
         return threads, events
 
     def _DoTestMarshal(self, fn, bCoWait=0):
-        # print "The main thread is %d" % (win32api.GetCurrentThreadId())
+        # print(f"The main thread is {win32api.GetCurrentThreadId()}")
         threads, events = fn(2)
         numFinished = 0
         while 1:
@@ -123,7 +129,7 @@ class ThreadInterpCase(InterpCase):
                     rc >= win32event.WAIT_OBJECT_0
                     and rc < win32event.WAIT_OBJECT_0 + len(events)
                 ):
-                    numFinished = numFinished + 1
+                    numFinished += 1
                     if numFinished >= len(events):
                         break
                 elif rc == win32event.WAIT_OBJECT_0 + len(events):  # a message

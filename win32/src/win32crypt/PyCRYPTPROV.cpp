@@ -79,7 +79,7 @@ BOOL PyWinObject_AsHCRYPTPROV(PyObject *obhcryptprov, HCRYPTPROV *hcryptprov, BO
         *hcryptprov = NULL;
         return true;
     }
-    if (obhcryptprov->ob_type != &PyCRYPTPROVType) {
+    if (Py_TYPE(obhcryptprov) != &PyCRYPTPROVType) {
         PyErr_SetString(PyExc_TypeError, "Object must be of type PyCRYPTPROV");
         return FALSE;
     }
@@ -326,12 +326,13 @@ PyObject *PyCRYPTPROV::PyCryptGenRandom(PyObject *self, PyObject *args, PyObject
 {
     static char *keywords[] = {"Len", "SeedData", NULL};
     PyObject *ret = NULL;
-    Py_ssize_t dwLen = 0, seedlen = 0;
+    unsigned long dwLen = 0;
+    Py_ssize_t seedlen = 0;
     BYTE *pbBuffer = NULL;
     HCRYPTPROV hcryptprov = ((PyCRYPTPROV *)self)->GetHCRYPTPROV();
     char *seeddata = NULL;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "n|z#", keywords,
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "k|z#", keywords,
                                      &dwLen,                // @pyparm int|Len||Number of bytes to generate
                                      &seeddata, &seedlen))  // @pyparm string|SeedData|None|Random seed data
         return NULL;
@@ -400,7 +401,7 @@ PyObject *PyCRYPTPROV::PyCryptImportKey(PyObject *self, PyObject *args, PyObject
     if (!pybuf.ok())
         return NULL;
 
-    if (!CryptImportKey(hcryptprov, (BYTE*)pybuf.ptr(), pybuf.len(), pubkey, flags, &retkey))
+    if (!CryptImportKey(hcryptprov, (BYTE *)pybuf.ptr(), pybuf.len(), pubkey, flags, &retkey))
         return PyWin_SetAPIError("PyCRYPTPROV::CryptImportKey");
     return new PyCRYPTKEY(retkey, self);
 }

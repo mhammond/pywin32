@@ -59,27 +59,6 @@ static void CheckRegisterEventSourceFile();
 
 #define MAX_SERVICES 10
 
-// 2K/XP support newer service registration functions that enable multiple
-// service support, but NT does not.  Depending on the run time environment,
-// we adjust the number of services we can support as well as which
-// registration and service control functions to use.  We leave a hard
-// reference to the older function to ensure that we can at least fall back
-// to that if something goes wrong with the dynamic identification.
-
-// If we can locate the newer registration function on startup, this will be
-// increased to MAX_SERVICES
-DWORD g_maxServices = 1;
-
-#if (WINVER < 0x0500)
-// SDK probably doesn't define LPHANDLER_FUNCTION_EX, so do it ourselves.
-typedef DWORD(WINAPI *LPHANDLER_FUNCTION_EX)(DWORD dwControl, DWORD dwEventType, LPVOID lpEventData, LPVOID lpContext);
-#endif
-
-typedef SERVICE_STATUS_HANDLE(WINAPI *REGSVC_EX_FN)(LPCTSTR lpServiceName, LPHANDLER_FUNCTION_EX lpHandlerProc,
-                                                    LPVOID lpContext);
-
-REGSVC_EX_FN g_RegisterServiceCtrlHandlerEx = NULL;
-
 typedef struct {
     PyObject *klass;                        // The Python class we instantiate as the service.
     SERVICE_STATUS_HANDLE sshStatusHandle;  // the handle for this service.
@@ -92,7 +71,7 @@ typedef struct {
 DWORD g_serviceProcessFlags = 0;
 
 // The global SCM dispatch table.  A trailing NULL indicates to the SCM
-// how many are used, so we allocate one extra for this sentinal
+// how many are used, so we allocate one extra for this sentinel
 static SERVICE_TABLE_ENTRY DispatchTable[MAX_SERVICES + 1] = {{NULL, NULL}};
 // A parallel array of Python information for the service.
 static PY_SERVICE_TABLE_ENTRY PythonServiceTable[MAX_SERVICES];
@@ -146,13 +125,13 @@ SERVICE_STATUS stoppedStatus = {SERVICE_WIN32_OWN_PROCESS,
 
 SERVICE_STATUS stoppedErrorStatus = {SERVICE_WIN32_OWN_PROCESS,
                                      SERVICE_STOPPED,
-                                     0,                            // dwControlsAccepted
-                                     ERROR_SERVICE_SPECIFIC_ERROR, // dwWin32ExitCode
-                                     0x20000001,                   // dwServiceSpecificExitCode
-                                     0,                            // dwCheckPoint
+                                     0,                             // dwControlsAccepted
+                                     ERROR_SERVICE_SPECIFIC_ERROR,  // dwWin32ExitCode
+                                     0x20000001,                    // dwServiceSpecificExitCode
+                                     0,                             // dwCheckPoint
                                      0};
 // The Service Control Manager/Event Log seems to interpret dwServiceSpecificExitCode as a Win32 Error code
-// (https://docs.microsoft.com/en-us/windows/win32/debug/system-error-codes)
+// (https://learn.microsoft.com/en-us/windows/win32/debug/system-error-codes)
 // So stoppedErrorStatus has dwServiceSpecificExitCode with bit 29 set to indicate an application-defined error code.
 
 ///////////////////////////////////////////////////////////////////////
@@ -173,9 +152,12 @@ static PyObject *DoLogMessage(WORD errorType, PyObject *obMsg)
     DWORD errorCode = errorType == EVENTLOG_ERROR_TYPE ? PYS_E_GENERIC_ERROR : PYS_E_GENERIC_WARNING;
     LPCTSTR inserts[] = {msg, NULL};
     BOOL ok;
-    Py_BEGIN_ALLOW_THREADS ok = ReportError(errorCode, inserts, errorType);
-    PyWinObject_FreeWCHAR(msg);
-    Py_END_ALLOW_THREADS if (!ok) return PyWin_SetAPIError("RegisterEventSource/ReportEvent");
+    Py_BEGIN_ALLOW_THREADS;
+    ok = ReportError(errorCode, inserts, errorType);
+    Py_END_ALLOW_THREADS;
+    PyWinObject_FreeWCHAR(msg);  // free msg before potentially raising error
+    if (!ok)
+        return PyWin_SetAPIError("RegisterEventSource/ReportEvent");
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -332,14 +314,7 @@ static PyObject *PyRegisterServiceCtrlHandler(PyObject *self, PyObject *args)
         Py_INCREF(Py_None);
         return Py_None;
     }
-    if (g_RegisterServiceCtrlHandlerEx) {
-        // Use 2K/XP extended registration if available
-        pe->sshStatusHandle = g_RegisterServiceCtrlHandlerEx(szName, service_ctrl_ex, pe);
-    }
-    else {
-        // Otherwise fall back to NT
-        pe->sshStatusHandle = RegisterServiceCtrlHandler(szName, service_ctrl);
-    }
+    pe->sshStatusHandle = RegisterServiceCtrlHandlerExW(szName, service_ctrl_ex, pe);
     PyWinObject_FreeWCHAR(szName);
     PyObject *rc;
     if (pe->sshStatusHandle == 0) {
@@ -540,7 +515,6 @@ PYWIN_MODULE_INIT_FUNC(servicemanager)
 {
     PYWIN_MODULE_INIT_PREPARE(servicemanager, servicemanager_functions,
                               "A module that interfaces with the Windows Service Control Manager.");
-    HMODULE advapi32_module;
     servicemanager_startup_error = PyErr_NewException("servicemanager.startup_error", NULL, NULL);
     if (servicemanager_startup_error == NULL)
         PYWIN_MODULE_INIT_RETURN_ERROR;
@@ -562,20 +536,6 @@ PYWIN_MODULE_INIT_FUNC(servicemanager)
     ADD_CONSTANT(EVENTLOG_WARNING_TYPE);
     ADD_CONSTANT(EVENTLOG_AUDIT_SUCCESS);
     ADD_CONSTANT(EVENTLOG_AUDIT_FAILURE);
-
-    // Check if we can use the newer control handler registration function
-    // which permits us to support multiple services.  This should be available
-    // on 2K/XP systems.
-
-    // We already have a hard dependency on advapi32, so it shouldn't
-    // be possible for us not to load it, but we'll play it safe.
-    if ((advapi32_module = LoadLibrary(_T("advapi32"))) != NULL) {
-        g_RegisterServiceCtrlHandlerEx = (REGSVC_EX_FN)GetProcAddress(advapi32_module, "RegisterServiceCtrlHandlerExW");
-        // If we found it, go ahead and increase our number of services supported
-        if (g_RegisterServiceCtrlHandlerEx != NULL) {
-            g_maxServices = MAX_SERVICES;
-        }
-    }
 
     PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }
@@ -599,7 +559,7 @@ static void PyService_InitPython()
     have_init = TRUE;
     // Often for a service, __argv[0] will be just "ExeName", rather
     // than "c:\path\to\ExeName.exe"
-    // This, however, shouldnt be a problem, as Python itself
+    // This, however, shouldn't be a problem, as Python itself
     // knows how to get the .EXE name when it needs.
     int pyargc;
     WCHAR **pyargv = CommandLineToArgvW(GetCommandLineW(), &pyargc);
@@ -613,8 +573,6 @@ static void PyService_InitPython()
 #ifdef BUILD_FREEZE
     PyWinFreeze_ExeInit();
 #endif
-    // Ensure we are set for threading.
-    PyEval_InitThreads();
     // Notes about argv: When debugging a service, the argv is currently
     // the *full* args, including the "-debug servicename" args.  This
     // isn't ideal, but has been this way for a few builds, and a good
@@ -730,13 +688,13 @@ BOOL PythonService_PrepareToHostMultiple(const TCHAR *service_name, PyObject *kl
     else if (g_serviceProcessFlags != SERVICE_WIN32_SHARE_PROCESS)
         return FALSE;
     UINT i;
-    for (i = 0; i < g_maxServices; i++) {
+    for (i = 0; i < MAX_SERVICES; i++) {
         if (DispatchTable[i].lpServiceName == NULL)
             break;
         if (_tcscmp(service_name, DispatchTable[i].lpServiceName) == 0)
             return FALSE;
     }
-    if (i >= g_maxServices)
+    if (i >= MAX_SERVICES)
         return FALSE;
 
     DispatchTable[i].lpServiceName = _tcsdup(service_name);
@@ -846,7 +804,7 @@ void WINAPI service_main(DWORD dwArgc, LPTSTR *lpszArgv)
         instance = LoadPythonServiceInstance(pe->klass, dwArgc, lpszArgv);
     // If Python has not yet registered the service control handler, then
     // we are in serious trouble - it is likely the service will enter a
-    // zombie state, where it wont do anything, but you can not start
+    // zombie state, where it won't do anything, but you can not start
     // another.  Therefore, we still create register the handler, thereby
     // getting a handle, so we can immediately tell Windows the service
     // is rooted (that is a technical term!)
@@ -858,15 +816,9 @@ void WINAPI service_main(DWORD dwArgc, LPTSTR *lpszArgv)
         if (instance)
             ReportPythonError(E_PYS_NOT_CONTROL_HANDLER);
         // else no instance - an error has already been reported.
-        if (!bServiceDebug)
-            if (g_RegisterServiceCtrlHandlerEx) {
-                // Use 2K/XP extended registration if available
-                pe->sshStatusHandle = g_RegisterServiceCtrlHandlerEx(lpszArgv[0], service_ctrl_ex, pe);
-            }
-            else {
-                // Otherwise fall back to NT
-                pe->sshStatusHandle = RegisterServiceCtrlHandler(lpszArgv[0], service_ctrl);
-            }
+        if (!bServiceDebug) {
+            pe->sshStatusHandle = RegisterServiceCtrlHandlerExW(lpszArgv[0], service_ctrl_ex, pe);
+        }
     }
     // No instance - we can't start.
     if (!instance) {
@@ -900,7 +852,7 @@ cleanup:
     // try to report the stopped status to the service control manager.
     Py_XDECREF(start);
     Py_XDECREF(instance);
-    if (pe && pe->sshStatusHandle) {  // Wont be true if debugging.
+    if (pe && pe->sshStatusHandle) {  // Won't be true if debugging.
         if (!SetServiceStatus(pe->sshStatusHandle, (stopWithError ? &stoppedErrorStatus : &stoppedStatus)))
             ReportAPIError(PYS_E_API_CANT_SET_STOPPED);
     }
@@ -1451,7 +1403,6 @@ int _tmain(int argc, TCHAR **argv)
         // do not free `program` since Py_SetProgramName does not copy it.
     }
     Py_Initialize();
-    PyEval_InitThreads();
     module = PyImport_ImportModule("servicemanager");
     if (!module)
         goto failed;
@@ -1463,8 +1414,9 @@ int _tmain(int argc, TCHAR **argv)
     // now get the handle to the DLL, and call the main function.
     if (PyBytes_Check(f))
         hmod = GetModuleHandleA(PyBytes_AsString(f));
-    else if (PyUnicode_Check(f))
-        hmod = GetModuleHandleW(PyUnicode_AsUnicode(f));
+    else if (TmpWCHAR tw = f) {
+        hmod = GetModuleHandleW(tw);
+    }
     else {
         PyErr_SetString(PyExc_TypeError, "servicemanager.__file__ is not a string or unicode !");
         goto failed;

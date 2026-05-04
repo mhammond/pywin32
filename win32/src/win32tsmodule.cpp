@@ -1,29 +1,10 @@
 // @doc
-#define _WIN32_WINNT 0x501
 #include "PyWinTypes.h"
 #include "PyWinObjects.h"
 #include "structmember.h"
 
-#include "WtsApi32.h"
+#include "wtsapi32.h"
 #include "malloc.h"
-
-#define CHECK_PFN(fname)    \
-    if (pfn##fname == NULL) \
-        return PyErr_Format(PyExc_NotImplementedError, "%s is not available on this platform", #fname);
-typedef DWORD(WINAPI *WTSGetActiveConsoleSessionIdfunc)(VOID);
-static WTSGetActiveConsoleSessionIdfunc pfnWTSGetActiveConsoleSessionId = NULL;
-typedef BOOL(WINAPI *WTSQueryUserTokenfunc)(ULONG, PHANDLE);
-static WTSQueryUserTokenfunc pfnWTSQueryUserToken = NULL;
-typedef BOOL(WINAPI *WTSRegisterSessionNotificationfunc)(HWND, DWORD);
-static WTSRegisterSessionNotificationfunc pfnWTSRegisterSessionNotification = NULL;
-typedef BOOL(WINAPI *WTSUnRegisterSessionNotificationfunc)(HWND);
-static WTSUnRegisterSessionNotificationfunc pfnWTSUnRegisterSessionNotification = NULL;
-
-typedef BOOL(WINAPI *ProcessIdToSessionIdfunc)(DWORD, DWORD *);
-static ProcessIdToSessionIdfunc pfnProcessIdToSessionId = NULL;
-
-typedef BOOL(WINAPI *WTSVirtualChannelQueryfunc)(HANDLE, WTS_VIRTUAL_CLASS, PVOID *, DWORD *);
-static WTSVirtualChannelQueryfunc pfnWTSVirtualChannelQuery = NULL;
 
 // @object PyTS_HANDLE|Handle to a Terminal Server
 class PyTS_HANDLE : public PyHANDLE {
@@ -95,10 +76,10 @@ static PyObject *PyWTSQueryUserConfig(PyObject *self, PyObject *args, PyObject *
             &obUserName,       // @pyparm <o PyUnicode>|UserName||Name of user
             &WTSConfigClass))  // @pyparm int|ConfigClass||Type of information to be returned, win32ts.WTSUserConfig*
         return NULL;
-    if (PyWinObject_AsWCHAR(obServerName, &ServerName, TRUE) && PyWinObject_AsWCHAR(obUserName, &UserName, FALSE))
+    if (PyWinObject_AsWCHAR(obServerName, &ServerName, TRUE) && PyWinObject_AsWCHAR(obUserName, &UserName, FALSE)) {
         if (!WTSQueryUserConfig(ServerName, UserName, WTSConfigClass, &buf, &bufsize))
             PyWin_SetAPIError("WTSQueryUserConfig");
-        else
+        else {
             switch (WTSConfigClass) {
                 // @flagh ConfigClass|Returned value
                 case WTSUserConfigInitialProgram:    // @flag WTSUserConfigInitialProgram|Unicode string, program to be
@@ -137,6 +118,8 @@ static PyObject *PyWTSQueryUserConfig(PyObject *self, PyObject *args, PyObject *
                 default:
                     PyErr_SetString(PyExc_NotImplementedError, "Config class not supported yet");
             }
+        }
+    }
 
     PyWinObject_FreeWCHAR(ServerName);
     PyWinObject_FreeWCHAR(UserName);
@@ -407,16 +390,17 @@ static PyObject *PyWTSQuerySessionInformation(PyObject *self, PyObject *args, Py
         case WTSConnectState:  // @flag WTSConnectState|Int, from WTS_CONNECTSTATE_CLASS
             ret = PyLong_FromLong(*(INT *)buf);
             break;
+        case WTSIsRemoteSession:  // @flag WTSIsRemoteSession|Boolean
+            ret = PyBool_FromLong(*(BYTE *)buf);
+            break;
         case WTSClientDisplay: {  // @flag WTSClientDisplay|Dict containing client's display settings
             WTS_CLIENT_DISPLAY *wcd = (WTS_CLIENT_DISPLAY *)buf;
             ret = Py_BuildValue("{s:k, s:k, s:k}", "HorizontalResolution", wcd->HorizontalResolution,
                                 "VerticalResolution", wcd->VerticalResolution, "ColorDepth", wcd->ColorDepth);
             break;
         }
-        case WTSClientAddress: {  // @flag WTSClientAddress|Dict containing type and value of client's IP address (None
-                                  // if console session) IPV6 addresses may not be returned correctly on Windows
-                                  // versions earlier than Windows Server 2012 (see
-                                  // http://sourceforge.net/p/pywin32/bugs/664/ for details)
+        case WTSClientAddress: {  // @flag WTSClientAddress|Dict containing type and value of client's IP address
+                                  // (None if console session)
             PyObject *obaddress;
             size_t address_cnt, address_ind;
             WTS_CLIENT_ADDRESS *wca = (WTS_CLIENT_ADDRESS *)buf;
@@ -496,14 +480,13 @@ static PyObject *PyWTSEnumerateProcesses(PyObject *self, PyObject *args, PyObjec
 // @comm This function is intended only for use by trusted processes that have SE_TCB_PRIVILEGE enabled
 static PyObject *PyWTSQueryUserToken(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-    CHECK_PFN(WTSQueryUserToken);
     static char *keywords[] = {"SessionId", NULL};
     HANDLE h;
     ULONG SessionId;
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "k:WTSQueryUserToken", keywords,
                                      &SessionId))  // @pyparm int|SessionId||Terminal services session id
         return NULL;
-    if (!(*pfnWTSQueryUserToken)(SessionId, &h))
+    if (!WTSQueryUserToken(SessionId, &h))
         return PyWin_SetAPIError("WTSQueryUserToken");
     return PyWinObject_FromHANDLE(h);
 }
@@ -551,14 +534,13 @@ static PyObject *PyWTSTerminateProcess(PyObject *self, PyObject *args, PyObject 
 // @pymethod int|win32ts|ProcessIdToSessionId|Finds the session under which a process is running
 static PyObject *PyProcessIdToSessionId(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-    CHECK_PFN(ProcessIdToSessionId);
     static char *keywords[] = {"ProcessId", NULL};
     DWORD ProcessId, SessionId;
     if (!PyArg_ParseTupleAndKeywords(
             args, kwargs, "k:ProcessIdToSessionId", keywords,
             &ProcessId))  // @pyparm int|ProcessId||Id of a process as returned by <om win32ts.WTSEnumerateProcesses>
         return NULL;
-    if (!(*pfnProcessIdToSessionId)(ProcessId, &SessionId))
+    if (!ProcessIdToSessionId(ProcessId, &SessionId))
         return PyWin_SetAPIError("ProcessIdToSessionId");
     return PyLong_FromUnsignedLong(SessionId);
 }
@@ -567,18 +549,16 @@ static PyObject *PyProcessIdToSessionId(PyObject *self, PyObject *args, PyObject
 // @comm Returns 0xffffffff if no active console session exists
 static PyObject *PyWTSGetActiveConsoleSessionId(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-    CHECK_PFN(WTSGetActiveConsoleSessionId);
     static char *keywords[] = {NULL};
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, ":WTSGetActiveConsoleSessionId", keywords))
         return NULL;
-    DWORD SessionId = (*pfnWTSGetActiveConsoleSessionId)();
+    DWORD SessionId = WTSGetActiveConsoleSessionId();
     return PyLong_FromUnsignedLong(SessionId);
 }
 
 // @pymethod |win32ts|WTSRegisterSessionNotification|Registers a window to receive terminal service notifications
 static PyObject *PyWTSRegisterSessionNotification(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-    CHECK_PFN(WTSRegisterSessionNotification);
     static char *keywords[] = {"Wnd", "Flags", NULL};
     PyObject *obhwnd;
     HWND hwnd;
@@ -590,7 +570,7 @@ static PyObject *PyWTSRegisterSessionNotification(PyObject *self, PyObject *args
         return NULL;
     if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
         return NULL;
-    if (!(*pfnWTSRegisterSessionNotification)(hwnd, flags))
+    if (!WTSRegisterSessionNotification(hwnd, flags))
         PyWin_SetAPIError("WTSRegisterSessionNotification");
     Py_INCREF(Py_None);
     return Py_None;
@@ -599,7 +579,6 @@ static PyObject *PyWTSRegisterSessionNotification(PyObject *self, PyObject *args
 // @pymethod |win32ts|WTSUnRegisterSessionNotification|Disables terminal service window messages
 static PyObject *PyWTSUnRegisterSessionNotification(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-    CHECK_PFN(WTSUnRegisterSessionNotification);
     static char *keywords[] = {"Wnd", NULL};
     PyObject *obhwnd;
     HWND hwnd;
@@ -609,7 +588,7 @@ static PyObject *PyWTSUnRegisterSessionNotification(PyObject *self, PyObject *ar
         return NULL;
     if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
         return NULL;
-    if (!(*pfnWTSUnRegisterSessionNotification)(hwnd))
+    if (!WTSUnRegisterSessionNotification(hwnd))
         PyWin_SetAPIError("WTSUnRegisterSessionNotification");
     Py_INCREF(Py_None);
     return Py_None;
@@ -766,6 +745,7 @@ PYWIN_MODULE_INIT_FUNC(win32ts)
     PyModule_AddIntConstant(module, "WTSClientAddress", WTSClientAddress);
     PyModule_AddIntConstant(module, "WTSClientDisplay", WTSClientDisplay);
     PyModule_AddIntConstant(module, "WTSClientProtocolType", WTSClientProtocolType);
+    PyModule_AddIntConstant(module, "WTSIsRemoteSession", WTSIsRemoteSession);
 
     // WTS_CONFIG_CLASS
     PyModule_AddIntConstant(module, "WTSUserConfigInitialProgram", WTSUserConfigInitialProgram);
@@ -829,26 +809,6 @@ PYWIN_MODULE_INIT_FUNC(win32ts)
     // Session notification constants
     PyModule_AddIntConstant(module, "NOTIFY_FOR_THIS_SESSION", NOTIFY_FOR_THIS_SESSION);
     PyModule_AddIntConstant(module, "NOTIFY_FOR_ALL_SESSIONS", NOTIFY_FOR_ALL_SESSIONS);
-
-    HMODULE h = GetModuleHandle(L"wtsapi32.dll");
-    if (h == NULL)
-        h = LoadLibrary(L"wtsapi32.dll");
-    if (h) {
-        pfnWTSQueryUserToken = (WTSQueryUserTokenfunc)GetProcAddress(h, "WTSQueryUserToken");
-        pfnWTSRegisterSessionNotification =
-            (WTSRegisterSessionNotificationfunc)GetProcAddress(h, "WTSRegisterSessionNotification");
-        pfnWTSUnRegisterSessionNotification =
-            (WTSUnRegisterSessionNotificationfunc)GetProcAddress(h, "WTSUnRegisterSessionNotification");
-    }
-
-    h = GetModuleHandle(L"kernel32.dll");
-    if (h == NULL)
-        h = LoadLibrary(L"kernel32.dll");
-    if (h) {
-        pfnProcessIdToSessionId = (ProcessIdToSessionIdfunc)GetProcAddress(h, "ProcessIdToSessionId");
-        pfnWTSGetActiveConsoleSessionId =
-            (WTSGetActiveConsoleSessionIdfunc)GetProcAddress(h, "WTSGetActiveConsoleSessionId");
-    }
 
     PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }

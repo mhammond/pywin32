@@ -1,6 +1,11 @@
 # Contributed by Kelly Kranabetter.
-import os, sys
-import win32security, ntsecuritycon, pywintypes, winerror
+import os
+import sys
+
+import ntsecuritycon
+import pywintypes
+import win32security
+import winerror
 
 # get security information
 # name=r"c:\autoexec.bat"
@@ -40,7 +45,7 @@ except pywintypes.error as exc:
 # get ACEs
 sd = win32security.GetFileSecurity(name, win32security.DACL_SECURITY_INFORMATION)
 dacl = sd.GetSecurityDescriptorDacl()
-if dacl == None:
+if dacl is None:
     print("No Discretionary ACL")
 else:
     for ace_no in range(0, dacl.GetAceCount()):
@@ -126,7 +131,7 @@ else:
         calc_mask = 0  # calculate the mask so we can see if we are printing all of the permissions
         for i in permissions:
             if getattr(ntsecuritycon, i) & ace[1] == getattr(ntsecuritycon, i):
-                calc_mask = calc_mask | getattr(ntsecuritycon, i)
+                calc_mask |= getattr(ntsecuritycon, i)
                 print("    ", i)
         print("  ", "Calculated Check Mask=", hex(calc_mask))
         print("  -SID\n    ", win32security.LookupAccountSid(None, ace[2]))

@@ -1,7 +1,8 @@
 import unittest
-from win32com.client.gencache import EnsureDispatch
-from win32com.client.dynamic import DumbDispatch
+
 import win32com.test.util
+from win32com.client.dynamic import DumbDispatch
+from win32com.client.gencache import EnsureDispatch
 
 
 class RegexTest(win32com.test.util.TestCase):
@@ -12,8 +13,8 @@ class RegexTest(win32com.test.util.TestCase):
         self.assertEqual(list(found), list(expected))
 
     def _TestVBScriptRegex(self, re):
-        StringToSearch = "Python python pYthon Python"
-        re.Pattern = "Python"
+        StringToSearch = r"Python python pYthon Python"
+        re.Pattern = r"Python"
         re.Global = True
 
         re.IgnoreCase = True

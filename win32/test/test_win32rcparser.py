@@ -1,8 +1,9 @@
-import sys, os
-import unittest
-import win32rcparser
-import win32con
+import os
 import tempfile
+import unittest
+
+import win32con
+import win32rcparser
 
 
 class TestParser(unittest.TestCase):
@@ -11,12 +12,12 @@ class TestParser(unittest.TestCase):
         self.resources = win32rcparser.Parse(rc_file)
 
     def testStrings(self):
-        for sid, expected in [
+        for sid, expected in (
             ("IDS_TEST_STRING4", "Test 'single quoted' string"),
             ("IDS_TEST_STRING1", 'Test "quoted" string'),
             ("IDS_TEST_STRING3", 'String with single " quote'),
             ("IDS_TEST_STRING2", "Test string"),
-        ]:
+        ):
             got = self.resources.stringTable[sid].value
             self.assertEqual(got, expected)
 
@@ -34,7 +35,7 @@ class TestParser(unittest.TestCase):
         notabstop_ids = [self.resources.ids[name] for name in notabstop_names]
         num_ok = 0
         for cdef in d[1:]:  # skip dlgdef
-            # print cdef
+            # print(cdef)
             cid = cdef[2]
             style = cdef[-2]
             styleex = cdef[-1]

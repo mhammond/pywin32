@@ -161,46 +161,22 @@ SORT_GERMAN_PHONE_BOOK = 1
 
 
 def PRIMARYLANGID(lgid):
-    return (WORD)(lgid) & 1023
+    return (lgid) & 1023
 
 
 def SUBLANGID(lgid):
-    return (WORD)(lgid) >> 10
+    return (lgid) >> 10
 
 
 NLS_VALID_LOCALE_MASK = 1048575
 
 
 def LANGIDFROMLCID(lcid):
-    return (WORD)(lcid)
+    return lcid
 
 
 def SORTIDFROMLCID(lcid):
-    return (WORD)((((DWORD)(lcid)) & NLS_VALID_LOCALE_MASK) >> 16)
-
-
-def UNREFERENCED_PARAMETER(P):
-    return P
-
-
-def DBG_UNREFERENCED_PARAMETER(P):
-    return P
-
-
-def DBG_UNREFERENCED_LOCAL_VARIABLE(V):
-    return V
-
-
-def UNREFERENCED_PARAMETER(P):
-    return
-
-
-def DBG_UNREFERENCED_PARAMETER(P):
-    return
-
-
-def DBG_UNREFERENCED_LOCAL_VARIABLE(V):
-    return
+    return ((lcid) & NLS_VALID_LOCALE_MASK) >> 16
 
 
 MAXIMUM_WAIT_OBJECTS = 64
@@ -929,11 +905,11 @@ IMAGE_SIZEOF_ARCHIVE_MEMBER_HDR = 60
 IMAGE_ORDINAL_FLAG = -2147483648
 
 
-def IMAGE_SNAP_BY_ORDINAL(Ordina):
+def IMAGE_SNAP_BY_ORDINAL(Ordinal):
     return (Ordinal & IMAGE_ORDINAL_FLAG) != 0
 
 
-def IMAGE_ORDINAL(Ordina):
+def IMAGE_ORDINAL(Ordinal):
     return Ordinal & 65535
 
 

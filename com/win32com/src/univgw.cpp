@@ -98,7 +98,7 @@ static HRESULT univgw_dispatch(DWORD index, gw_object *_this, va_list argPtr)
     PyTuple_SET_ITEM(obArgs, 2, obArgPtr);
 
     // call the provided method
-    PyObject *result = PyEval_CallObjectWithKeywords(vtbl->dispatcher, obArgs, NULL);
+    PyObject *result = PyObject_CallObject(vtbl->dispatcher, obArgs);
 
     // done with the arguments and the contained objects
     Py_DECREF(obArgs);
@@ -125,9 +125,9 @@ static HRESULT univgw_dispatch(DWORD index, gw_object *_this, va_list argPtr)
     Py_DECREF(result);
 
     // ### Greg> what to do for non-HRESULT return values?
-    // ### Bill> If its not a float/double then
+    // ### Bill> If it's not a float/double then
     // ###       then they'll see a 32bit sign-extended value.
-    // ###       If its a float/double they're currently out of luck.
+    // ###       If it's a float/double they're currently out of luck.
     // ###       The smart ones only declare int, HRESULT, or void
     // ###       functions in any event...
     // ### on X86s __stdcall return values go into:
@@ -146,7 +146,7 @@ static HRESULT univgw_dispatch(DWORD index, gw_object *_this, va_list argPtr)
     return hr;
 }
 
-//#define COMPILE_MOCKUP
+// #define COMPILE_MOCKUP
 #ifdef COMPILE_MOCKUP
 
 STDMETHODIMP mockup(gw_object *_this)
@@ -261,9 +261,8 @@ static pfnGWMethod make_method(DWORD index, UINT argsize, UINT argc)
         PyErr_SetString(PyExc_RuntimeError, "failed to set memory attributes to executable");
         return NULL;
     }
-#else  // other arches
-    /* The MAINWIN toolkit allows us to build this on Linux!!! */
-#pragma message("XXXXXXXXX - win32com.universal wont work on this platform - need make_method")
+#else  // other architectures
+#pragma message("XXXXXXXXX - win32com.universal won't work on this platform - need make_method")
     PyErr_SetString(PyExc_NotImplementedError, "not implemented on this platform");
     code = NULL;
 #endif
@@ -393,11 +392,12 @@ static PyObject *univgw_CreateVTable(PyObject *self, PyObject *args)
     if (methods == NULL)
         return NULL;
 
-    int count = PyObject_Length(methods);
+    Py_ssize_t count = PyObject_Length(methods);
     if (count == -1) {
         Py_DECREF(methods);
         return NULL;
     }
+    PYWIN_CHECK_SSIZE_DWORD(count, NULL);
     PyObject *methodsArgc = PyObject_CallMethod(obDef, "vtbl_argcounts", NULL);
     if (methodsArgc == NULL)
         return NULL;
@@ -424,7 +424,7 @@ static PyObject *univgw_CreateVTable(PyObject *self, PyObject *args)
 
     vtbl->magic = GW_VTBL_MAGIC;
     vtbl->iid = iid;
-    vtbl->cMethod = count;
+    vtbl->cMethod = (UINT)count;
     vtbl->cReservedMethods = numReservedVtables;
 
     vtbl->dispatcher = PyObject_GetAttrString(obDef, "dispatch");

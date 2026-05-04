@@ -10,7 +10,7 @@
 
 CSimpleCounter::CSimpleCounter()
 {
-    m_minIndex = 1;  // have 1 based index, just cos Python doesnt!
+    m_minIndex = 1;  // have 1 based index, just cos Python doesn't!
     m_maxIndex = 10;
 }
 STDMETHODIMP CSimpleCounter::get_Count(long *retval)

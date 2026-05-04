@@ -1,10 +1,12 @@
 # OfficeEvents - test/demonstrate events with Word and Excel.
-from win32com.client import DispatchWithEvents, Dispatch
-import msvcrt, pythoncom
-import time, sys
+import msvcrt
+import sys
+import threading
+import time
 import types
 
-import threading
+import pythoncom
+from win32com.client import DispatchWithEvents
 
 stopEvent = threading.Event()
 
@@ -12,16 +14,18 @@ stopEvent = threading.Event()
 def TestExcel():
     class ExcelEvents:
         def OnNewWorkbook(self, wb):
-            if type(wb) != types.InstanceType:
+            if not isinstance(wb, types.InstanceType):
                 raise RuntimeError(
-                    "The transformer doesnt appear to have translated this for us!"
+                    "The transformer doesn't appear to have translated this for us!"
                 )
             self.seen_events["OnNewWorkbook"] = None
 
         def OnWindowActivate(self, wb, wn):
-            if type(wb) != types.InstanceType or type(wn) != types.InstanceType:
+            if not isinstance(wb, types.InstanceType) or not isinstance(
+                wn, types.InstanceType
+            ):
                 raise RuntimeError(
-                    "The transformer doesnt appear to have translated this for us!"
+                    "The transformer doesn't appear to have translated this for us!"
                 )
             self.seen_events["OnWindowActivate"] = None
 
@@ -53,8 +57,8 @@ def TestExcel():
     book = e.Workbooks.Add()
     book = DispatchWithEvents(book, WorkbookEvents)
     print("Have book", book)
-    #    sheet = e.Worksheets(1)
-    #    sheet = DispatchWithEvents(sheet, WorksheetEvents)
+    # sheet = e.Worksheets(1)
+    # sheet = DispatchWithEvents(sheet, WorksheetEvents)
 
     print("Double-click in a few of the Excel cells...")
     print("Press any key when finished with Excel, or wait 10 seconds...")
@@ -95,7 +99,7 @@ def _WaitForFinish(ob, timeout):
             break
         pythoncom.PumpWaitingMessages()
         stopEvent.wait(0.2)
-        if stopEvent.isSet():
+        if stopEvent.is_set():
             stopEvent.clear()
             break
         try:

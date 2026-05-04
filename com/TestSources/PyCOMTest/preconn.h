@@ -2,7 +2,6 @@
 //      or project specific include files that are used frequently,
 //      but are changed infrequently
 
-#define _WIN32_WINNT 0x0403
 #define _WIN32_DCOM
 
 #include <atlbase.h>

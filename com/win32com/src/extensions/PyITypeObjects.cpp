@@ -229,7 +229,7 @@ BOOL PyObject_AsELEMDESCArray(PyObject *ob, ELEMDESC **ppDesc, short *pNum, void
         PyErr_SetString(PyExc_TypeError, "ELEMDESCArray must be a sequence of ELEMDESCs");
         return FALSE;
     }
-    *pNum = PySequence_Length(ob);
+    *pNum = (short)PySequence_Length(ob);
     *ppDesc = (ELEMDESC *)AllocMore(pMore, sizeof(ELEMDESC) * *pNum);
     if (*ppDesc == NULL)
         return NULL;

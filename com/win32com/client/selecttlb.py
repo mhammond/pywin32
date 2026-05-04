@@ -1,7 +1,8 @@
-"""Utilities for selecting and enumerating the Type Libraries installed on the system
-"""
+"""Utilities for selecting and enumerating the Type Libraries installed on the system"""
 
-import win32api, win32con, pythoncom
+import pythoncom
+import win32api
+import win32con
 
 
 class TypelibSpec:
@@ -23,9 +24,9 @@ class TypelibSpec:
     def __getitem__(self, item):
         if item == 0:
             return self.ver_desc
-        raise IndexError("Cant index me!")
+        raise IndexError("Can't index me!")
 
-    def __lt__(self, other):  # rich-cmp/py3k-friendly version
+    def __lt__(self, other):
         me = (
             (self.ver_desc or "").lower(),
             (self.desc or "").lower(),
@@ -40,7 +41,7 @@ class TypelibSpec:
         )
         return me < them
 
-    def __eq__(self, other):  # rich-cmp/py3k-friendly version
+    def __eq__(self, other):
         return (
             (self.ver_desc or "").lower() == (other.ver_desc or "").lower()
             and (self.desc or "").lower() == (other.desc or "").lower()
@@ -81,7 +82,7 @@ def EnumKeys(root):
             val = ""  # code using this assumes a string.
 
         ret.append((item, val))
-        index = index + 1
+        index += 1
     return ret
 
 
@@ -112,8 +113,8 @@ def EnumTlbs(excludeFlags=0):
             # The Resolve() method on the TypelibSpec does this.
             # For this reason, keep the version numbers as strings - that
             # way we can't be wrong!  Let code that really needs an int to work
-            # out what to do.  FWIW, http://support.microsoft.com/kb/816970 is
-            # pretty clear that they *should* be hex.
+            # out what to do.  FWIW, https://www.betaarchive.com/wiki/index.php?title=Microsoft_KB_Archive/816970
+            # is pretty clear that they *should* be hex.
             major = major_minor[0]
             minor = major_minor[1]
             key3 = win32api.RegOpenKey(key2, str(version))
@@ -130,10 +131,10 @@ def EnumTlbs(excludeFlags=0):
                         continue
                     # Check for both "{lcid}\win32" and "{lcid}\win64" keys.
                     try:
-                        key4 = win32api.RegOpenKey(key3, "%s\\win32" % (lcid,))
+                        key4 = win32api.RegOpenKey(key3, f"{lcid}\\win32")
                     except win32api.error:
                         try:
-                            key4 = win32api.RegOpenKey(key3, "%s\\win64" % (lcid,))
+                            key4 = win32api.RegOpenKey(key3, f"{lcid}\\win64")
                         except win32api.error:
                             continue
                     try:

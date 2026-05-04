@@ -11,14 +11,14 @@ generates Windows .hlp files.
 
 #include "stdafx.h"
 #include <objbase.h>
-#include <ComSvcs.h>
+#include <comsvcs.h>
 #include "PythonCOM.h"
 #include "PythonCOMServer.h"
 #include "PyFactory.h"
 #include "PyRecord.h"
 #include "PyComTypeObjects.h"
-#include "OleAcc.h"    // for ObjectFromLresult proto...
-#include "IAccess.h"   // for IAccessControl
+#include "oleacc.h"    // for ObjectFromLresult proto...
+#include "iaccess.h"   // for IAccessControl
 #include "pyerrors.h"  // for PyErr_Warn in 2.5 and earlier...
 
 extern int PyCom_RegisterCoreIIDs(PyObject *dict);
@@ -30,6 +30,7 @@ extern PyObject *pythoncom_IsGatewayRegistered(PyObject *self, PyObject *args);
 extern PyObject *g_obPyCom_MapIIDToType;
 extern PyObject *g_obPyCom_MapGatewayIIDToName;
 extern PyObject *g_obPyCom_MapInterfaceNameToIID;
+extern PyObject *g_obPyCom_MapRecordGUIDToRecordClass;
 
 PyObject *g_obEmpty = NULL;
 PyObject *g_obMissing = NULL;
@@ -44,9 +45,7 @@ extern PyObject *pythoncom_StgCreateStorageEx(PyObject *self, PyObject *args, Py
 extern PyObject *pythoncom_FmtIdToPropStgName(PyObject *self, PyObject *args);
 extern PyObject *pythoncom_PropStgNameToFmtId(PyObject *self, PyObject *args);
 
-#ifndef MS_WINCE
 extern PyObject *pythoncom_StgIsStorageFile(PyObject *self, PyObject *args);
-#endif  // MS_WINCE
 extern PyObject *pythoncom_StgCreateDocfile(PyObject *self, PyObject *args);
 extern PyObject *pythoncom_StgCreateDocfileOnILockBytes(PyObject *self, PyObject *args);
 extern PyObject *pythoncom_StgOpenStorageOnILockBytes(PyObject *self, PyObject *args);
@@ -67,9 +66,7 @@ extern PyObject *pythoncom_loadtypelib(PyObject *self, PyObject *args);
 extern PyObject *pythoncom_loadregtypelib(PyObject *self, PyObject *args);
 extern PyObject *pythoncom_registertypelib(PyObject *self, PyObject *args);
 extern PyObject *pythoncom_unregistertypelib(PyObject *self, PyObject *args);
-#ifndef MS_WINCE
 extern PyObject *pythoncom_querypathofregtypelib(PyObject *self, PyObject *args);
-#endif  // MS_WINCE
 
 // Type object helpers
 PyObject *Py_NewFUNCDESC(PyObject *self, PyObject *args);
@@ -85,56 +82,6 @@ LPCTSTR GetFacilityString(SCODE sc);
 /* Debug/Test helpers */
 extern LONG _PyCom_GetInterfaceCount(void);
 extern LONG _PyCom_GetGatewayCount(void);
-
-// Function pointers we load at runtime.
-#define CHECK_PFN(fname)    \
-    if (pfn##fname == NULL) \
-        return PyCom_BuildPyException(E_NOTIMPL);
-
-// Requires IE 5.5 or later
-typedef HRESULT(STDAPICALLTYPE *CreateURLMonikerExfunc)(LPMONIKER, LPCWSTR, LPMONIKER *, DWORD);
-static CreateURLMonikerExfunc pfnCreateURLMonikerEx = NULL;
-
-// Win2k or later
-typedef HRESULT(STDAPICALLTYPE *CoWaitForMultipleHandlesfunc)(DWORD dwFlags, DWORD dwTimeout, ULONG cHandles,
-                                                              LPHANDLE pHandles, LPDWORD lpdwindex);
-static CoWaitForMultipleHandlesfunc pfnCoWaitForMultipleHandles = NULL;
-typedef HRESULT(STDAPICALLTYPE *CoGetObjectContextfunc)(REFIID, void **);
-static CoGetObjectContextfunc pfnCoGetObjectContext = NULL;
-typedef HRESULT(STDAPICALLTYPE *CoGetCancelObjectfunc)(DWORD, REFIID, void **);
-static CoGetCancelObjectfunc pfnCoGetCancelObject = NULL;
-typedef HRESULT(STDAPICALLTYPE *CoSetCancelObjectfunc)(IUnknown *);
-static CoSetCancelObjectfunc pfnCoSetCancelObject = NULL;
-
-// typedefs for the function pointers are in OleAcc.h
-// WinXP or later
-LPFNOBJECTFROMLRESULT pfnObjectFromLresult = NULL;
-
-// May not be available on Windows 95, although I'm not sure that's even a concern anymore
-typedef HRESULT(STDAPICALLTYPE *CoCreateInstanceExfunc)(REFCLSID, IUnknown *, DWORD, COSERVERINFO *, ULONG, MULTI_QI *);
-static CoCreateInstanceExfunc pfnCoCreateInstanceEx = NULL;
-typedef HRESULT(STDAPICALLTYPE *CoInitializeSecurityfunc)(PSECURITY_DESCRIPTOR, LONG, SOLE_AUTHENTICATION_SERVICE *,
-                                                          void *, DWORD, DWORD, void *, DWORD, void *);
-static CoInitializeSecurityfunc pfnCoInitializeSecurity = NULL;
-
-BOOL PyCom_HasDCom()
-{
-#ifndef MS_WINCE
-    static BOOL bHaveDCOM = -1;
-    if (bHaveDCOM == -1) {
-        HMODULE hMod = GetModuleHandle(_T("ole32.dll"));
-        if (hMod) {
-            FARPROC fp = GetProcAddress(hMod, "CoInitializeEx");
-            bHaveDCOM = (fp != NULL);
-        }
-        else
-            bHaveDCOM = FALSE;  // not much we can do!
-    }
-    return bHaveDCOM;
-#else  // no DCOM on WinCE.
-    return FALSE;
-#endif
-}
 
 #ifdef _MSC_VER
 #pragma optimize("y", off)
@@ -180,7 +127,6 @@ static PyObject *pythoncom_CoCreateInstance(PyObject *self, PyObject *args)
 #pragma optimize("", on)
 #endif  // _MSC_VER
 
-#ifndef MS_WINCE
 #ifdef _MSC_VER
 #pragma optimize("", off)
 #endif  // _MSC_VER
@@ -188,7 +134,6 @@ static PyObject *pythoncom_CoCreateInstance(PyObject *self, PyObject *args)
 // remote machine.
 static PyObject *pythoncom_CoCreateInstanceEx(PyObject *self, PyObject *args)
 {
-    CHECK_PFN(CoCreateInstanceEx);
     PyObject *obCLSID;
     PyObject *obUnk;
     PyObject *obCoServer;
@@ -252,7 +197,7 @@ static PyObject *pythoncom_CoCreateInstanceEx(PyObject *self, PyObject *args)
 
     {  // scoping
         PY_INTERFACE_PRECALL;
-        HRESULT hr = (*pfnCoCreateInstanceEx)(clsid, punk, dwClsContext, pServerInfo, numIIDs, mqi);
+        HRESULT hr = CoCreateInstanceEx(clsid, punk, dwClsContext, pServerInfo, numIIDs, mqi);
         PY_INTERFACE_POSTCALL;
         if (FAILED(hr)) {
             PyCom_BuildPyException(hr);
@@ -297,7 +242,6 @@ done:
 // @pymethod |pythoncom|CoInitializeSecurity|Registers security and sets the default security values.
 static PyObject *pythoncom_CoInitializeSecurity(PyObject *self, PyObject *args)
 {
-    CHECK_PFN(CoInitializeSecurity);
     DWORD cAuthSvc;
     SOLE_AUTHENTICATION_SERVICE *pAS = NULL;
     DWORD dwAuthnLevel;
@@ -372,8 +316,7 @@ static PyObject *pythoncom_CoInitializeSecurity(PyObject *self, PyObject *args)
     }
 
     PY_INTERFACE_PRECALL;
-    HRESULT hr =
-        (*pfnCoInitializeSecurity)(pSD, cAuthSvc, pAS, NULL, dwAuthnLevel, dwImpLevel, NULL, dwCapabilities, NULL);
+    HRESULT hr = CoInitializeSecurity(pSD, cAuthSvc, pAS, NULL, dwAuthnLevel, dwImpLevel, NULL, dwCapabilities, NULL);
     if (pIAC)
         pIAC->Release();
     PY_INTERFACE_POSTCALL;
@@ -484,7 +427,6 @@ static PyObject *pythoncom_CoTreatAsClass(PyObject *self, PyObject *args)
     Py_INCREF(Py_None);
     return Py_None;
 }
-#endif  // MS_WINCE
 
 // @pymethod <o PyIClassFactory>|pythoncom|MakePyFactory|Creates a new <o PyIClassFactory> object wrapping a PythonCOM
 // Class Factory object.
@@ -528,7 +470,6 @@ static PyObject *pythoncom_GetGatewayCount(PyObject *self, PyObject *args)
     return PyLong_FromLong(_PyCom_GetGatewayCount());
 }
 
-#ifndef MS_WINCE
 // @pymethod <o PyIUnknown>|pythoncom|GetActiveObject|Retrieves an object representing a running object registered with
 // OLE
 static PyObject *pythoncom_GetActiveObject(PyObject *self, PyObject *args)
@@ -583,7 +524,6 @@ static PyObject *pythoncom_connect(PyObject *self, PyObject *args)
     // @comm This function is equivalent to <om pythoncom.GetActiveObject>(clsid).<om
     // pythoncom.QueryInterace>(pythoncom.IID_IDispatch)
 }
-#endif  // MS_WINCE
 
 // @pymethod <o PyIDispatch>|pythoncom|new|Create a new instance of an OLE automation server.
 static PyObject *pythoncom_new(PyObject *self, PyObject *args)
@@ -597,16 +537,14 @@ static PyObject *pythoncom_new(PyObject *self, PyObject *args)
     // @comm This is just a wrapper for the CoCreateInstance method.
     // Specifically, this call is identical to:
     // <nl>pythoncom.CoCreateInstance(cls, None, pythoncom.CLSCTX_SERVER, pythoncom.IID_IDispatch)
-    int clsctx = PyCom_HasDCom() ? CLSCTX_SERVER : CLSCTX_INPROC_SERVER | CLSCTX_LOCAL_SERVER;
     PyObject *obIID = PyWinObject_FromIID(IID_IDispatch);
-    PyObject *newArgs = Py_BuildValue("OOiO", progid, Py_None, clsctx, obIID);
+    PyObject *newArgs = Py_BuildValue("OOiO", progid, Py_None, CLSCTX_SERVER, obIID);
     Py_DECREF(obIID);
     PyObject *rc = pythoncom_CoCreateInstance(self, newArgs);
     Py_DECREF(newArgs);
     return rc;
 }
 
-#ifndef MS_WINCE
 // @pymethod <o PyIID>|pythoncom|CreateGuid|Creates a new, unique GUIID.
 static PyObject *pythoncom_createguid(PyObject *self, PyObject *args)
 {
@@ -647,7 +585,6 @@ static PyObject *pythoncom_progidfromclsid(PyObject *self, PyObject *args)
     CoTaskMemFree(progid);
     return ob;
 }
-#endif  // MS_WINCE
 
 // @pymethod string|pythoncom|GetScodeString|Returns the string for an OLE scode (HRESULT)
 static PyObject *pythoncom_GetScodeString(PyObject *self, PyObject *args)
@@ -761,12 +698,12 @@ static PyObject *pythoncom_WrapObject(PyObject *self, PyObject *args)
     // The gateway must exist (ie, we _must_ support PyGIXXX
 
     // XXX - do we need an optional arg for "base object"?
-    // XXX - If we did, we would unwrap it like thus:
+    // XXX - If we did, we would unwrap it like this:
     /****
     IUnknown *pLook = (IUnknown *)(*ppv);
     IInternalUnwrapPythonObject *pTemp;
     if (pLook->QueryInterface(IID_IInternalUnwrapPythonObject, (void **)&pTemp)==S_OK) {
-        // One of our objects, so set the base object if it doesnt already have one
+        // One of our objects, so set the base object if it doesn't already have one
         PyGatewayBase *pG = (PyGatewayBase *)pTemp;
         // Eeek - just these few next lines need to be thread-safe :-(
         PyWin_AcquireGlobalLock();
@@ -790,18 +727,17 @@ static PyObject *pythoncom_WrapObject(PyObject *self, PyObject *args)
 
 static PyObject *pythoncom_MakeIID(PyObject *self, PyObject *args)
 {
-    PyErr_Warn(PyExc_PendingDeprecationWarning, "MakeIID is deprecated - please use pywintypes.IID() instead.");
+    PyErr_Warn(PyExc_DeprecationWarning, "MakeIID is deprecated - please use pywintypes.IID() instead.");
     return PyWinMethod_NewIID(self, args);
 }
 
 // no autoduck - this is deprecated.
 static PyObject *pythoncom_MakeTime(PyObject *self, PyObject *args)
 {
-    PyErr_Warn(PyExc_PendingDeprecationWarning, "MakeTime is deprecated - please use pywintypes.Time() instead.");
+    PyErr_Warn(PyExc_DeprecationWarning, "MakeTime is deprecated - please use pywintypes.Time() instead.");
     return PyWinMethod_NewTime(self, args);
 }
 
-#ifndef MS_WINCE
 // @pymethod <o PyIMoniker>,int,<o PyIBindCtx>|pythoncom|MkParseDisplayName|Parses a moniker display name into a moniker
 // object. The inverse of <om PyIMoniker.GetDisplayName>
 static PyObject *pythoncom_MkParseDisplayName(PyObject *self, PyObject *args)
@@ -945,9 +881,7 @@ static PyObject *pythoncom_CreateURLMonikerEx(PyObject *self, PyObject *args)
     WCHAR *url = NULL;
     PyObject *obbase, *oburl, *ret = NULL;
     IMoniker *base_moniker = NULL, *output_moniker = NULL;
-    HRESULT hr;
     DWORD flags = URL_MK_UNIFORM;
-    CHECK_PFN(CreateURLMonikerEx);
 
     if (!PyArg_ParseTuple(args, "OO|k:CreateURLMonikerEx",
                           &obbase,  // @pyparm <o PyIMoniker>|Context||An IMoniker interface to be used as a base with a
@@ -960,7 +894,7 @@ static PyObject *pythoncom_CreateURLMonikerEx(PyObject *self, PyObject *args)
         return NULL;
     if (PyCom_InterfaceFromPyObject(obbase, IID_IMoniker, (LPVOID *)&base_moniker, TRUE)) {
         PY_INTERFACE_PRECALL;
-        hr = (*pfnCreateURLMonikerEx)(base_moniker, url, &output_moniker, flags);
+        HRESULT hr = CreateURLMonikerEx(base_moniker, url, &output_moniker, flags);
         if (base_moniker)
             base_moniker->Release();
         PY_INTERFACE_POSTCALL;
@@ -992,7 +926,6 @@ static PyObject *pythoncom_GetClassFile(PyObject *self, PyObject *args)
         return PyCom_BuildPyException(hr);
     return PyWinObject_FromIID(clsid);
 }
-#endif  // MS_WINCE
 
 // @pymethod |pythoncom|CoInitialize|Initialize the COM libraries for the calling thread.
 static PyObject *pythoncom_CoInitialize(PyObject *self, PyObject *args)
@@ -1072,7 +1005,6 @@ static PyObject *pythoncom_CoFreeUnusedLibraries(PyObject *self, PyObject *args)
     return Py_None;
 }
 
-#ifndef MS_WINCE
 // @pymethod <o PyIRunningObjectTable>|pythoncom|GetRunningObjectTable|Creates a new <o PyIRunningObjectTable> object.
 static PyObject *pythoncom_GetRunningObjectTable(PyObject *self, PyObject *args)
 {
@@ -1315,8 +1247,6 @@ static PyObject *pythoncom_CoReleaseMarshalData(PyObject *self, PyObject *args)
     Py_INCREF(Py_None);
     return Py_None;
 }
-
-#endif  // MS_WINCE
 
 // @pymethod <o PyIUnknown>|pythoncom|CoGetObject|Converts a display name into a moniker that identifies the object
 // named, and then binds to the object identified by the moniker.
@@ -1579,7 +1509,6 @@ static PyObject *pythoncom_CoWaitForMultipleHandles(PyObject *self, PyObject *ar
     PyObject *obHandles;
     DWORD numItems;
     HANDLE *pItems = NULL;
-    CHECK_PFN(CoWaitForMultipleHandles);
 
     if (!PyArg_ParseTuple(args, "iiO:CoWaitForMultipleHandles",
                           &flags,       // @pyparm int|Flags||Combination of pythoncom.COWAIT_* values
@@ -1591,7 +1520,7 @@ static PyObject *pythoncom_CoWaitForMultipleHandles(PyObject *self, PyObject *ar
     DWORD index;
     PyObject *rc = NULL;
     HRESULT hr;
-    Py_BEGIN_ALLOW_THREADS hr = (*pfnCoWaitForMultipleHandles)(flags, timeout, numItems, pItems, &index);
+    Py_BEGIN_ALLOW_THREADS hr = CoWaitForMultipleHandles(flags, timeout, numItems, pItems, &index);
     Py_END_ALLOW_THREADS if (FAILED(hr)) { PyCom_BuildPyException(hr); }
     else rc = PyLong_FromLong(index);
     free(pItems);
@@ -1797,18 +1726,9 @@ static PyObject *pythoncom_ObjectFromLresult(PyObject *self, PyObject *args)
     if (obIID && !PyWinObject_AsIID(obIID, &iid))
         return NULL;
 
-    // GIL protects us from races here.
-    if (pfnObjectFromLresult == NULL) {
-        HMODULE hmod = LoadLibrary(_T("oleacc.dll"));
-        if (hmod)
-            pfnObjectFromLresult = (LPFNOBJECTFROMLRESULT)GetProcAddress(hmod, "ObjectFromLresult");
-    }
-    if (pfnObjectFromLresult == NULL)
-        return PyErr_Format(PyExc_NotImplementedError, "Not available on this platform");
-
     HRESULT hr;
     void *ret = 0;
-    Py_BEGIN_ALLOW_THREADS hr = (*pfnObjectFromLresult)(lresult, iid, wparam, &ret);
+    Py_BEGIN_ALLOW_THREADS hr = ObjectFromLresult(lresult, iid, wparam, &ret);
     Py_END_ALLOW_THREADS if (FAILED(hr))
     {
         PyCom_BuildPyException(hr);
@@ -1883,28 +1803,24 @@ static PyObject *pythoncom_CoGetCallContext(PyObject *self, PyObject *args)
 
 // @pymethod <o PyIContext>|pythoncom|CoGetObjectContext|Creates an interface to interact with the context of the
 // current object
-// @comm Requires Win2k or later
 // @comm COM applications can use this function to create IComThreadingInfo, IContext, or IContextCallback
 //	COM+ applications may also create IObjectContext, IObjectContextInfo, IObjectContextActivity, or IContextState
 static PyObject *pythoncom_CoGetObjectContext(PyObject *self, PyObject *args)
 {
-    CHECK_PFN(CoGetObjectContext);
     // @pyparm <o PyIID>|riid|IID_IContext|The interface to return
     IID riid = IID_IContext;
     void *ret;
     if (!PyArg_ParseTuple(args, "|O&:CoGetObjectContext", PyWinObject_AsIID, &riid))
         return NULL;
     HRESULT hr;
-    Py_BEGIN_ALLOW_THREADS hr = (*pfnCoGetObjectContext)(riid, &ret);
+    Py_BEGIN_ALLOW_THREADS hr = CoGetObjectContext(riid, &ret);
     Py_END_ALLOW_THREADS if (FAILED(hr)) return PyCom_BuildPyException(hr);
     return PyCom_PyObjectFromIUnknown((IUnknown *)ret, riid, FALSE);
 }
 
 // @pymethod <o PyICancelMethodCalls>|pythoncom|CoGetCancelObject|Retrieves an interface used to cancel a pending call
-// @comm Requires Win2k or later
 static PyObject *pythoncom_CoGetCancelObject(PyObject *self, PyObject *args)
 {
-    CHECK_PFN(CoGetCancelObject);
     // @pyparm int|ThreadID|0|Id of thread with pending call, or 0 for current thread
     // @pyparm <o PyIID>|riid|IID_ICancelMethodCalls|The interface to return
     DWORD tid = 0;
@@ -1913,17 +1829,15 @@ static PyObject *pythoncom_CoGetCancelObject(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "|kO&:CoGetCancelObject", &tid, PyWinObject_AsIID, &riid))
         return NULL;
     HRESULT hr;
-    Py_BEGIN_ALLOW_THREADS hr = (*pfnCoGetCancelObject)(tid, riid, &ret);
+    Py_BEGIN_ALLOW_THREADS hr = CoGetCancelObject(tid, riid, &ret);
     Py_END_ALLOW_THREADS if (FAILED(hr)) return PyCom_BuildPyException(hr);
     return PyCom_PyObjectFromIUnknown((IUnknown *)ret, riid, FALSE);
 }
 
 // @pymethod |pythoncom|CoSetCancelObject|Sets or removes a <o PyICancelMethodCalls> interface to be used on the current
 // thread
-// @comm Requires Win2k or later
 static PyObject *pythoncom_CoSetCancelObject(PyObject *self, PyObject *args)
 {
-    CHECK_PFN(CoSetCancelObject);
     // @pyparm <o PyIUnknown>|Unk||An interface that support ICancelMethodCalls, can be None to unregister current
     // cancel object
     IUnknown *pUnk;
@@ -1934,7 +1848,7 @@ static PyObject *pythoncom_CoSetCancelObject(PyObject *self, PyObject *args)
         return NULL;
 
     HRESULT hr;
-    Py_BEGIN_ALLOW_THREADS hr = (*pfnCoSetCancelObject)(pUnk);
+    Py_BEGIN_ALLOW_THREADS hr = CoSetCancelObject(pUnk);
     Py_END_ALLOW_THREADS if (FAILED(hr)) return PyCom_BuildPyException(hr);
     Py_INCREF(Py_None);
     return Py_None;
@@ -1969,13 +1883,11 @@ static struct PyMethodDef pythoncom_methods[] = {
      1},  // @pymeth _GetInterfaceCount|Retrieves the number of interface objects currently in existance
     {"_GetGatewayCount", pythoncom_GetGatewayCount,
      1},  // @pymeth _GetInterfaceCount|Retrieves the number of gateway objects currently in existance
-#ifndef MS_WINCE
     {"CoCreateFreeThreadedMarshaler", pythoncom_CoCreateFreeThreadedMarshaler,
      1},  // @pymeth CoCreateFreeThreadedMarshaler|Creates an aggregatable object capable of context-dependent
           // marshaling.
     {"CoCreateInstanceEx", pythoncom_CoCreateInstanceEx,
      1},  // @pymeth CoCreateInstanceEx|Create a new instance of an OLE automation server possibly on a remote machine.
-#endif    // MS_WINCE
     {"CoCreateInstance", pythoncom_CoCreateInstance,
      1},  // @pymeth CoCreateInstance|Create a new instance of an OLE automation server.
     {"CoFreeUnusedLibraries", pythoncom_CoFreeUnusedLibraries,
@@ -1985,7 +1897,6 @@ static struct PyMethodDef pythoncom_methods[] = {
      1},  // @pymeth CoInitialize|Initialize the COM libraries for the calling thread.
     {"CoInitializeEx", pythoncom_CoInitializeEx,
      1},  // @pymeth CoInitializeEx|Initialize the COM libraries for the calling thread.
-#ifndef MS_WINCE
     {"CoInitializeSecurity", pythoncom_CoInitializeSecurity,
      1},  // @pymeth CoInitializeSecurity|Registers security and sets the default security values.
     {"CoGetInterfaceAndReleaseStream", pythoncom_CoGetInterfaceAndReleaseStream,
@@ -2000,12 +1911,10 @@ static struct PyMethodDef pythoncom_methods[] = {
      1},  // @pymeth CoUnmarshalInterface|Unmarshals an interface
     {"CoReleaseMarshalData", pythoncom_CoReleaseMarshalData,
      1},  // @pymeth CoReleaseMarshalData|Frees resources used by a marshalled interface
-#endif    // MS_WINCE
     {"CoGetObject", pythoncom_CoGetObject,
      1},  // @pymeth CoGetObject|Converts a display name into a moniker that identifies the object named, and then binds
           // to the object identified by the moniker.
     {"CoUninitialize", pythoncom_CoUninitialize, 1},  // @pymeth CoUninitialize|Uninitialize the COM libraries.
-#ifndef MS_WINCE
     {"CoRegisterClassObject", pythoncom_CoRegisterClassObject,
      1},  // @pymeth CoRegisterClassObject|Registers an EXE class object with OLE so other applications can connect to
           // it.
@@ -2040,7 +1949,6 @@ static struct PyMethodDef pythoncom_methods[] = {
      1},  // @pymeth CreateTypeLib|Provides access to a new object instance that supports the ICreateTypeLib interface.
     {"CreateTypeLib2", pythoncom_CreateTypeLib2, 1},  // @pymeth CreateTypeLib2|Provides access to a new object instance
                                                       // that supports the ICreateTypeLib2 interface.
-#endif                                                // MS_WINCE
     {"CreateStreamOnHGlobal", pythoncom_CreateStreamOnHGlobal,
      1},  // @pymeth CreateStreamOnHGlobal|Creates an in-memory stream storage object
     {"CreateILockBytesOnHGlobal", pythoncom_CreateILockBytesOnHGlobal,
@@ -2049,22 +1957,18 @@ static struct PyMethodDef pythoncom_methods[] = {
     {"EnableQuitMessage", pythoncom_EnableQuitMessage,
      1},  // @pymeth EnableQuitMessage|Indicates the thread PythonCOM should post a WM_QUIT message to.
     {"FUNCDESC", Py_NewFUNCDESC, 1},  // @pymeth FUNCDESC|Returns a new <o FUNCDESC> object.
-#ifndef MS_WINCE
     {"GetActiveObject", pythoncom_GetActiveObject,
      1},  // @pymeth GetActiveObject|Retrieves an object representing a running object registered with OLE
     {"GetClassFile", pythoncom_GetClassFile,
      1},  // @pymeth GetClassFile|Supplies the CLSID associated with the given filename.
-#endif    // MS_WINCE
     {"GetFacilityString", pythoncom_GetFacilityString,
      1},  // @pymeth GetFacilityString|Returns the facility string, given an OLE scode.
     {"GetRecordFromGuids", pythoncom_GetRecordFromGuids,
      1},  // @pymeth GetRecordFromGuids|Creates a new record object from the given GUIDs
     {"GetRecordFromTypeInfo", pythoncom_GetRecordFromTypeInfo,
      1},  // @pymeth GetRecordFromTypeInfo|Creates a <o PyRecord> object from a <o PyITypeInfo> interface
-#ifndef MS_WINCE
     {"GetRunningObjectTable", pythoncom_GetRunningObjectTable,
      1},  // @pymeth GetRunningObjectTable|Obtains a <o PyIRunningObjectTable> object.
-#endif    // MS_WINCE
     {"GetScodeString", pythoncom_GetScodeString, 1},  // @pymeth GetScodeString|Returns the string for an OLE scode.
     {"GetScodeRangeString", pythoncom_GetScodeRangeString,
      1},  // @pymeth GetScodeRangeString|Returns the scode range string, given an OLE scode.
@@ -2078,11 +1982,9 @@ static struct PyMethodDef pythoncom_methods[] = {
     {"MakeTime", pythoncom_MakeTime, 1},
     {"MakePyFactory", pythoncom_MakePyFactory,
      1},  // @pymeth MakePyFactory|Creates a new <o PyIClassFactory> object wrapping a PythonCOM Class Factory object.
-#ifndef MS_WINCE
     {"MkParseDisplayName", pythoncom_MkParseDisplayName,
      1},  // @pymeth MkParseDisplayName|Parses a moniker display name into a moniker object. The inverse of
           // IMoniker::GetDisplayName.
-#endif    // MS_WINCE
     {"new", pythoncom_new, 1},
     {"New", pythoncom_new, 1},  // @pymeth New|Create a new instance of an OLE automation server.
     {"ObjectFromAddress", pythoncom_ObjectFromAddress,
@@ -2106,24 +2008,19 @@ static struct PyMethodDef pythoncom_methods[] = {
     {"OleSaveToStream", pythoncom_OleSaveToStream, 1},      // @pymeth OleSaveToStream|Save an object to an IStream.
     {"OleLoad", pythoncom_OleLoad,
      1},  // @pymeth OleLoad|Loads into memory an object nested within a specified storage object.
-#ifndef MS_WINCE
     {"ProgIDFromCLSID", pythoncom_progidfromclsid, 1},  // @pymeth ProgIDFromCLSID|Converts a CLSID string to a progID.
-#endif                                                  // MS_WINCE
     {"PumpWaitingMessages", pythoncom_PumpWaitingMessages,
      1},  // @pymeth PumpWaitingMessages|Pumps all waiting messages for the current thread.
     {"PumpMessages", pythoncom_PumpMessages,
      1},  // @pymeth PumpMessages|Pumps all messages for the current thread until a WM_QUIT message.
-#ifndef MS_WINCE
     {"QueryPathOfRegTypeLib", pythoncom_querypathofregtypelib,
      1},  // @pymeth QueryPathOfRegTypeLib|Retrieves the path of a registered type library
-#endif    // MS_WINCE
     {"ReadClassStg", pythoncom_ReadClassStg, 1},  // @pymeth ReadClassStg|Reads a CLSID from a storage object
     {"ReadClassStm", pythoncom_ReadClassStm, 1},  // @pymeth ReadClassStm|Reads a CLSID from a <o PyIStream> object
     {"RegisterTypeLib", pythoncom_registertypelib,
      1},  // @pymeth RegisterTypeLib|Adds information about a type library to the system registry.
     {"UnRegisterTypeLib", pythoncom_unregistertypelib,
      1},  // @pymeth UnRegisterTypeLib|Removes a type library from the system registry.
-#ifndef MS_WINCE
     {"RegisterActiveObject", pythoncom_RegisterActiveObject,
      1},  // @pymeth RegisterActiveObject|Register an object as the active object for its class
     {"RevokeActiveObject", pythoncom_RevokeActiveObject,
@@ -2134,7 +2031,6 @@ static struct PyMethodDef pythoncom_methods[] = {
     {"RevokeDragDrop", pythoncom_RevokeDragDrop,
      1},  // @pymeth RevokeDragDrop|Revokes the specified window as the target of an OLE drag-and-drop operation.
     {"DoDragDrop", pythoncom_DoDragDrop, 1},  // @pymeth DoDragDrop|Carries out an OLE drag and drop operation.
-#endif                                        // MS_WINCE
     {"StgCreateDocfile", pythoncom_StgCreateDocfile,
      1},  // @pymeth StgCreateDocfile|Creates a new compound file storage object using the OLE-provided compound file
           // implementation for the <o PyIStorage> interface.
@@ -2144,10 +2040,8 @@ static struct PyMethodDef pythoncom_methods[] = {
     {"StgOpenStorageOnILockBytes", pythoncom_StgOpenStorageOnILockBytes,
      1},  // @pymeth StgOpenStorageOnILockBytes|Open an existing storage object that does not reside in a disk file, but
           // instead has an underlying <o PyILockBytes> byte array provided by the caller.
-#ifndef MS_WINCE
     {"StgIsStorageFile", pythoncom_StgIsStorageFile,
      1},  // @pymeth StgIsStorageFile|Indicates whether a particular disk file contains a storage object.
-#endif    // MS_WINCE
     {"STGMEDIUM", Py_NewSTGMEDIUM,
      1},  // @pymeth STGMEDIUM|Creates a new <o PySTGMEDIUM> object suitable for the <o PyIDataObject> interface.
     {"StgOpenStorage", pythoncom_StgOpenStorage,
@@ -2224,7 +2118,7 @@ PYWIN_MODULE_INIT_FUNC(pythoncom)
     HRESULT hr = PyCom_CoInitializeEx(NULL, coinit_flags);
     if (hr == E_NOTIMPL)  // Special return val from PyCom_Co.. indicates not DCOM.
         hr = PyCom_CoInitialize(NULL);
-    // If HR fails, we really dont care - the import should work.  User can
+    // If HR fails, we really don't care - the import should work.  User can
     // manually CoInit() to see!
 
     PYWIN_MODULE_INIT_PREPARE(pythoncom, pythoncom_methods, "A module, encapsulating the OLE automation API");
@@ -2234,15 +2128,20 @@ PYWIN_MODULE_INIT_FUNC(pythoncom)
         PYWIN_MODULE_INIT_RETURN_ERROR;
     }
 
+    // Initialize the dictionary for registering com_record subclasses.
+    g_obPyCom_MapRecordGUIDToRecordClass = PyDict_New();
+    if (g_obPyCom_MapRecordGUIDToRecordClass == NULL) {
+        PYWIN_MODULE_INIT_RETURN_ERROR;
+    }
+    PyDict_SetItemString(dict, "RecordClasses", g_obPyCom_MapRecordGUIDToRecordClass);
+
     // XXX - more error checking?
     PyDict_SetItemString(dict, "TypeIIDs", g_obPyCom_MapIIDToType);
     PyDict_SetItemString(dict, "ServerInterfaces", g_obPyCom_MapGatewayIIDToName);
     PyDict_SetItemString(dict, "InterfaceNames", g_obPyCom_MapInterfaceNameToIID);
 
-    if (PyType_Ready(&PyOleEmptyType) == -1 ||
-        PyType_Ready(&PyOleMissingType) == -1 ||
-        PyType_Ready(&PyOleArgNotFoundType) == -1 ||
-        PyType_Ready(&PyOleNothingType) == -1)
+    if (PyType_Ready(&PyOleEmptyType) == -1 || PyType_Ready(&PyOleMissingType) == -1 ||
+        PyType_Ready(&PyOleArgNotFoundType) == -1 || PyType_Ready(&PyOleNothingType) == -1)
         PYWIN_MODULE_INIT_RETURN_ERROR;
     g_obEmpty = new PyOleEmpty;
     PyDict_SetItemString(dict, "Empty", g_obEmpty);
@@ -2289,26 +2188,13 @@ PYWIN_MODULE_INIT_FUNC(pythoncom)
         PyType_Ready(&PyRecord::Type) == -1)
         PYWIN_MODULE_INIT_RETURN_ERROR;
 
+    // Add the PyRecord type as a module attribute
+    if (PyModule_AddObject(module, "com_record", (PyObject *)&PyRecord::Type) != 0)
+        PYWIN_MODULE_INIT_RETURN_ERROR;
+
     // Setup our sub-modules
     if (!initunivgw(dict))
         PYWIN_MODULE_INIT_RETURN_ERROR;
-
-    // Load function pointers.
-    HMODULE hModOle32 = GetModuleHandle(_T("ole32.dll"));
-    if (hModOle32) {
-        pfnCoWaitForMultipleHandles =
-            (CoWaitForMultipleHandlesfunc)GetProcAddress(hModOle32, "CoWaitForMultipleHandles");
-        pfnCoGetObjectContext = (CoGetObjectContextfunc)GetProcAddress(hModOle32, "CoGetObjectContext");
-        pfnCoGetCancelObject = (CoGetCancelObjectfunc)GetProcAddress(hModOle32, "CoGetCancelObject");
-        pfnCoCreateInstanceEx = (CoCreateInstanceExfunc)GetProcAddress(hModOle32, "CoCreateInstanceEx");
-        pfnCoInitializeSecurity = (CoInitializeSecurityfunc)GetProcAddress(hModOle32, "CoInitializeSecurity");
-    }
-
-    HMODULE hModurlmon = GetModuleHandle(_T("urlmon.dll"));
-    if (hModurlmon == NULL)
-        hModurlmon = LoadLibrary(_T("urlmon.dll"));
-    if (hModurlmon)
-        pfnCreateURLMonikerEx = (CreateURLMonikerExfunc)GetProcAddress(hModurlmon, "CreateURLMonikerEx");
 
     // Symbolic constants.
     ADD_CONSTANT(ACTIVEOBJECT_STRONG);
@@ -2361,10 +2247,8 @@ PYWIN_MODULE_INIT_FUNC(pythoncom)
     ADD_CONSTANT(DISPID_PROPERTYPUT);
     ADD_CONSTANT(DISPID_NEWENUM);
     ADD_CONSTANT(DISPID_EVALUATE);
-#ifndef NO_PYCOM_IDISPATCHEX
     ADD_CONSTANT(DISPID_STARTENUM);
     ADD_CONSTANT(DISPID_UNKNOWN);
-#endif
 #ifdef DISPID_THIS
     ADD_CONSTANT(DISPID_THIS);
 #endif
@@ -2444,7 +2328,7 @@ PYWIN_MODULE_INIT_FUNC(pythoncom)
     // RPC
     // Authentication Level used with CoInitializeSecurity
     ADD_CONSTANT(RPC_C_AUTHN_LEVEL_DEFAULT);  // RPC_C_AUTHN_LEVEL_DEFAULT|Lets DCOM negotiate the authentication level
-                                              // automatically. (Win2k or later)
+                                              // automatically.
     ADD_CONSTANT(RPC_C_AUTHN_LEVEL_NONE);     // RPC_C_AUTHN_LEVEL_NONE|Performs no authentication.
     ADD_CONSTANT(RPC_C_AUTHN_LEVEL_CONNECT);  // RPC_C_AUTHN_LEVEL_CONNECT|Authenticates only when the client
                                               // establishes a relationship with the server. Datagram transports always
@@ -2461,7 +2345,7 @@ PYWIN_MODULE_INIT_FUNC(pythoncom)
                                                   // encrypts the argument value of each remote procedure call.
 
     // Impersonation level used with CoInitializeSecurity
-    ADD_CONSTANT(RPC_C_IMP_LEVEL_DEFAULT);  // RPC_C_IMP_LEVEL_DEFAULT|Use default impersonation level (Win2k or later)
+    ADD_CONSTANT(RPC_C_IMP_LEVEL_DEFAULT);  // RPC_C_IMP_LEVEL_DEFAULT|Use default impersonation level
     ADD_CONSTANT(
         RPC_C_IMP_LEVEL_ANONYMOUS);  // RPC_C_IMP_LEVEL_ANONYMOUS|(Not supported in this release.) The client is
                                      // anonymous to the server. The server process cannot obtain identification
@@ -2641,7 +2525,6 @@ PYWIN_MODULE_INIT_FUNC(pythoncom)
     ADD_CONSTANT(COWAIT_WAITALL);
     ADD_CONSTANT(COWAIT_ALERTABLE);
 
-#ifndef NO_PYCOM_IDISPATCHEX
     ADD_CONSTANT(fdexNameCaseSensitive);  // Request that the name lookup be done in a case-sensitive manner. May be
                                           // ignored by object that does not support case-sensitive lookup.
     ADD_CONSTANT(fdexNameEnsure);    // Request that the member be created if it does not already exist. The new member
@@ -2666,33 +2549,16 @@ PYWIN_MODULE_INIT_FUNC(pythoncom)
     ADD_CONSTANT(fdexPropCannotConstruct);  // The member cannot be called as a constructor using DISPATCH_CONSTRUCT.
     ADD_CONSTANT(fdexPropCanSourceEvents);  // The member can fire events.
     ADD_CONSTANT(fdexPropCannotSourceEvents);  // The member cannot fire events.
-#endif                                         // NO_PYCOM_IDISPATCHEX
 
     ADD_CONSTANT(DESCKIND_FUNCDESC);
     ADD_CONSTANT(DESCKIND_VARDESC);
-    // Expose the frozen flag, as Python itself doesnt!!
+    // Expose the frozen flag, as Python itself doesn't!!
     // @prop int|frozen|1 if the host is a frozen program, else 0
     AddConstant(dict, "frozen", Py_FrozenFlag);
 
-    // And finally some gross hacks relating to DCOM
-    // Im really not sure what a better option is!
-    //
-    // If these #error pragma's fire it means this needs revisiting for
-    // an upgrade to the MSVC header files!
-    if (PyCom_HasDCom()) {
-#if ((CLSCTX_ALL != (CLSCTX_INPROC_SERVER | CLSCTX_INPROC_HANDLER | CLSCTX_LOCAL_SERVER | CLSCTX_REMOTE_SERVER)) || \
-     (CLSCTX_SERVER != (CLSCTX_INPROC_SERVER | CLSCTX_LOCAL_SERVER | CLSCTX_REMOTE_SERVER)))
-#error DCOM constants are not in synch.
-#endif
-        ADD_CONSTANT(CLSCTX_ALL);
-        ADD_CONSTANT(CLSCTX_SERVER);
-        AddConstant(dict, "dcom", 1);
-    }
-    else {
-        AddConstant(dict, "CLSCTX_ALL", CLSCTX_INPROC_SERVER | CLSCTX_INPROC_HANDLER | CLSCTX_LOCAL_SERVER);
-        AddConstant(dict, "CLSCTX_SERVER", CLSCTX_INPROC_SERVER | CLSCTX_LOCAL_SERVER);
-        AddConstant(dict, "dcom", 0);
-    }
+    ADD_CONSTANT(CLSCTX_ALL);
+    ADD_CONSTANT(CLSCTX_SERVER);
+    AddConstant(dict, "dcom", 1);
 
     PyObject *obfmtid = NULL;
     obfmtid = PyWinObject_FromIID(FMTID_DocSummaryInformation);

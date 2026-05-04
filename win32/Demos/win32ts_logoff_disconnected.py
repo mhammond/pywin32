@@ -1,6 +1,7 @@
-""" Finds any disconnected terminal service sessions and logs them off"""
-import win32ts
+"""Finds any disconnected terminal service sessions and logs them off"""
+
 import pywintypes
+import win32ts
 import winerror
 
 sessions = win32ts.WTSEnumerateSessions(win32ts.WTS_CURRENT_SERVER_HANDLE)

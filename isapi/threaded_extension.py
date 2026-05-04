@@ -1,22 +1,24 @@
 """An ISAPI extension base class implemented using a thread-pool."""
+
 # $Id$
 
 import sys
+import threading
 import time
-from isapi import isapicon, ExtensionError
-import isapi.simple
+import traceback
+
+from pywintypes import OVERLAPPED
+from win32event import INFINITE
 from win32file import (
-    GetQueuedCompletionStatus,
-    CreateIoCompletionPort,
-    PostQueuedCompletionStatus,
     CloseHandle,
+    CreateIoCompletionPort,
+    GetQueuedCompletionStatus,
+    PostQueuedCompletionStatus,
 )
 from win32security import SetThreadToken
-from win32event import INFINITE
-from pywintypes import OVERLAPPED
 
-import threading
-import traceback
+import isapi.simple
+from isapi import ExtensionError, isapicon
 
 ISAPI_REQUEST = 1
 ISAPI_SHUTDOWN = 2
@@ -27,10 +29,12 @@ class WorkerThread(threading.Thread):
         self.running = False
         self.io_req_port = io_req_port
         self.extension = extension
-        threading.Thread.__init__(self)
-        # We wait 15 seconds for a thread to terminate, but if it fails to,
-        # we don't want the process to hang at exit waiting for it...
-        self.setDaemon(True)
+        threading.Thread.__init__(
+            self,
+            # We wait 15 seconds for a thread to terminate, but if it fails to,
+            # we don't want the process to hang at exit waiting for it...
+            daemon=True,
+        )
 
     def run(self):
         self.running = True
@@ -44,7 +48,7 @@ class WorkerThread(threading.Thread):
             # Let the parent extension handle the command.
             dispatcher = self.extension.dispatch_map.get(key)
             if dispatcher is None:
-                raise RuntimeError("Bad request '%s'" % (key,))
+                raise RuntimeError(f"Bad request '{key}'")
 
             dispatcher(errCode, bytes, key, overlapped)
 
@@ -58,6 +62,7 @@ class WorkerThread(threading.Thread):
 # fully asynch extension.
 class ThreadPoolExtension(isapi.simple.SimpleExtension):
     "Base class for an ISAPI extension based around a thread-pool"
+
     max_workers = 20
     worker_shutdown_wait = 15000  # 15 seconds for workers to quit...
 
@@ -154,7 +159,7 @@ class ThreadPoolExtension(isapi.simple.SimpleExtension):
         limit = None
         try:
             try:
-                import cgi
+                import html
 
                 ecb.SendResponseHeaders(
                     "200 OK", "Content-type: text/html\r\n\r\n", False
@@ -164,17 +169,17 @@ class ThreadPoolExtension(isapi.simple.SimpleExtension):
                 list = traceback.format_tb(
                     exc_tb, limit
                 ) + traceback.format_exception_only(exc_typ, exc_val)
+                bold = list.pop()
                 print(
-                    "<PRE>%s<B>%s</B></PRE>"
-                    % (
-                        cgi.escape("".join(list[:-1])),
-                        cgi.escape(list[-1]),
+                    "<PRE>{}<B>{}</B></PRE>".format(
+                        html.escape("".join(list)),
+                        html.escape(bold),
                     ),
                     file=ecb,
                 )
             except ExtensionError:
                 # The client disconnected without reading the error body -
-                # its probably not a real browser at the other end, ignore it.
+                # it's probably not a real browser at the other end, ignore it.
                 pass
             except:
                 print("FAILED to render the error message!")

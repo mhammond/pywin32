@@ -1,18 +1,21 @@
-from win32com.server.util import wrap
-import pythoncom, sys, os, time, win32api, win32event, tempfile
+import os
+import tempfile
+
+import pythoncom
+import win32api
+import win32event
 from win32com.bits import bits
+from win32com.server.util import wrap
 
 TIMEOUT = 200  # ms
 StopEvent = win32event.CreateEvent(None, 0, 0, None)
 
 job_name = "bits-pywin32-test"
-states = dict(
-    [
-        (val, (name[13:]))
-        for name, val in vars(bits).items()
-        if name.startswith("BG_JOB_STATE_")
-    ]
-)
+states = {
+    val: (name[13:])
+    for name, val in vars(bits).items()
+    if name.startswith("BG_JOB_STATE_")
+}
 
 bcm = pythoncom.CoCreateInstance(
     bits.CLSID_BackgroundCopyManager,
@@ -41,7 +44,7 @@ class BackgroundJobCallback:
         if f.GetRemoteName().endswith("missing-favicon.ico"):
             print("Changing to point to correct file")
             f2 = f.QueryInterface(bits.IID_IBackgroundCopyFile2)
-            favicon = "http://www.python.org/favicon.ico"
+            favicon = "https://www.python.org/favicon.ico"
             print("Changing RemoteName from", f2.GetRemoteName(), "to", favicon)
             f2.SetRemoteName(favicon)
             job.Resume()
@@ -54,7 +57,7 @@ class BackgroundJobCallback:
             hresult_msg = win32api.FormatMessage(hresult)
         except win32api.error:
             hresult_msg = ""
-        print("Context=0x%x, hresult=0x%x (%s)" % (ctx, hresult, hresult_msg))
+        print(f"Context=0x{ctx:x}, hresult=0x{hresult:x} ({hresult_msg})")
         print(err.GetErrorDescription())
 
     def JobModification(self, job, reserved):
@@ -90,11 +93,11 @@ job.SetNotifyFlags(
 # servers, an invalid hostname will *always* be resolved (they
 # redirect you to a search page), so be careful when testing.
 job.AddFile(
-    "http://www.python.org/favicon.ico",
+    "https://www.python.org/favicon.ico",
     os.path.join(tempfile.gettempdir(), "bits-favicon.ico"),
 )
 job.AddFile(
-    "http://www.python.org/missing-favicon.ico",
+    "https://www.python.org/missing-favicon.ico",
     os.path.join(tempfile.gettempdir(), "bits-missing-favicon.ico"),
 )
 

@@ -6,13 +6,19 @@
 # Eg: pipeTestServiceClient.py -s server_name Hi There
 # Should work.
 
-from win32pipe import *
-from win32file import *
-from win32event import *
+import os
+import sys
+import traceback
+
 import pywintypes
 import win32api
 import winerror
-import sys, os, traceback
+
+# # Use "import *" to keep this looking as much as a "normal" service
+# as possible.  Real code shouldn't do this.
+from win32event import *
+from win32file import *
+from win32pipe import *
 
 verbose = 0
 
@@ -35,7 +41,7 @@ def CallPipe(fn, args):
     ret = None
     retryCount = 0
     while retryCount < 8:  # Keep looping until user cancels.
-        retryCount = retryCount + 1
+        retryCount += 1
         try:
             return fn(*args)
         except win32api.error as exc:
@@ -107,7 +113,7 @@ def stressTestClient(server, numThreads, numMessages):
 
 
 def main():
-    import sys, getopt
+    import getopt
 
     server = "."
     thread_count = 0

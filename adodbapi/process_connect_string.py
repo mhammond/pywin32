@@ -1,5 +1,6 @@
-""" a clumsy attempt at a macro language to let the programmer execute code on the server (ex: determine 64bit)"""
-from . import is64bit as is64bit
+"""a clumsy attempt at a macro language to let the programmer execute code on the server (ex: determine 64bit)"""
+
+from . import is64bit
 
 
 def macro_call(macro_name, args, kwargs):
@@ -44,6 +45,8 @@ def macro_call(macro_name, args, kwargs):
                 return new_key, platform.node()
 
         elif macro_name == "getenv":  # expand the server's environment variable args[1]
+            import os
+
             try:
                 dflt = args[2]  # if not found, default from args[2]
             except IndexError:  # or blank
@@ -60,15 +63,16 @@ def macro_call(macro_name, args, kwargs):
         elif (
             macro_name == "find_temp_test_path"
         ):  # helper function for testing ado operation -- undocumented
-            import tempfile, os
+            import os
+            import tempfile
 
             return new_key, os.path.join(
                 tempfile.gettempdir(), "adodbapi_test", args[1]
             )
 
-        raise ValueError("Unknown connect string macro=%s" % macro_name)
+        raise ValueError(f"Unknown connect string macro={macro_name}")
     except:
-        raise ValueError("Error in macro processing %s %s" % (macro_name, repr(args)))
+        raise ValueError(f"Error in macro processing {macro_name} {args!r}")
 
 
 def process(
@@ -84,13 +88,11 @@ def process(
         dsn = args[0]
     except IndexError:
         dsn = None
-    if isinstance(
-        dsn, dict
-    ):  # as a convenience the first argument may be django settings
+    # as a convenience the first argument may be django settings
+    if isinstance(dsn, dict):
         kwargs.update(dsn)
-    elif (
-        dsn
-    ):  # the connection string is passed to the connection as part of the keyword dictionary
+    # the connection string is passed to the connection as part of the keyword dictionary
+    elif dsn:
         kwargs["connection_string"] = dsn
     try:
         a1 = args[1]
@@ -132,12 +134,4 @@ def process(
                     macro_name, macro_code, kwargs
                 )  # run the code in the local context
                 kwargs[new_key] = rslt  # put the result back in the keywords dict
-    # special processing for PyRO IPv6 host address
-    try:
-        s = kwargs["proxy_host"]
-        if ":" in s:  # it is an IPv6 address
-            if s[0] != "[":  # is not surrounded by brackets
-                kwargs["proxy_host"] = s.join(("[", "]"))  # put it in brackets
-    except KeyError:
-        pass
     return kwargs

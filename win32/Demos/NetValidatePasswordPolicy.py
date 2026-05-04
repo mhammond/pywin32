@@ -24,12 +24,13 @@ which always (with and without '-m') seems to return:
 > Result of 'auth' validation is 2701: Password must change at next logon
 """
 
-import sys
-import win32api
-import win32net, win32netcon
-
 import optparse
+import sys
 from pprint import pprint
+
+import win32api
+import win32net
+import win32netcon
 
 
 def main():
@@ -42,7 +43,7 @@ def main():
         "-u",
         "--username",
         action="store",
-        help="The username to pass to the function (only for the " "change command",
+        help="The username to pass to the function (only for the 'change' command)",
     )
 
     parser.add_option(
@@ -103,9 +104,6 @@ def main():
             fields, status = win32net.NetValidatePasswordPolicy(
                 options.server, None, val_type, input
             )
-        except NotImplementedError:
-            print("NetValidatePasswordPolicy not implemented on this platform.")
-            return 1
         except win32net.error as exc:
             print("NetValidatePasswordPolicy failed: ", exc)
             return 1
@@ -115,8 +113,8 @@ def main():
             pprint(fields)
 
         print(
-            "Result of %r validation is %d: %s"
-            % (arg, status, win32api.FormatMessage(status).strip())
+            f"Result of {arg!r} validation is {status}:",
+            win32api.FormatMessage(status).strip(),
         )
 
     return 0

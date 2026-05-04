@@ -157,10 +157,10 @@ STDMETHODIMP PyGEnumString::Next(ULONG celt, LPOLESTR __RPC_FAR *rgVar, ULONG __
     // Caller is expected to allocate array of string pointers, server allocates strings themselves
     ZeroMemory(rgVar, celt * sizeof(LPOLESTR));
     result_tuple = PySequence_Tuple(result);
-    if (result_tuple == NULL)
+    if (result_tuple == NULL || PyTuple_GET_SIZE(result_tuple) > ULONG_MAX)
         return PyCom_SetCOMErrorFromPyException(IID_IEnumString);
     hr = S_OK;
-    *pCeltFetched = PyTuple_GET_SIZE(result_tuple);
+    *pCeltFetched = (ULONG)PyTuple_GET_SIZE(result_tuple);
     if (*pCeltFetched > celt) {
         PyErr_Format(PyExc_ValueError, "Received %d items , but only %d items requested", *pCeltFetched, celt);
         hr = PyCom_SetCOMErrorFromPyException(IID_IEnumString);

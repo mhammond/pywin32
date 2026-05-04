@@ -3,19 +3,19 @@
 #  Using Shell Column Handlers for Detailed File Information,
 #  Raymond Chen, Microsoft Corporation, February 2000
 #
-# To demostrate:
+# To demonstrate:
 # * Execute this script to register the namespace.
 # * Open Windows Explorer
 # * Right-click an explorer column header - select "More"
 # * Locate column 'pyc size' or 'pyo size', and add it to the view.
 # This handler is providing that column data.
-import sys, os, stat
-import pythoncom
-from win32com.shell import shell, shellcon
+import os
+import stat
+
 import commctrl
-import winerror
-from win32com.server.util import wrap
+import pythoncom
 from pywintypes import IID
+from win32com.shell import shell, shellcon
 
 IPersist_Methods = ["GetClassID"]
 IColumnProvider_Methods = IPersist_Methods + [
@@ -34,6 +34,7 @@ class ColumnProvider:
         shell.IID_IColumnProvider,
     ]
     _public_methods_ = IColumnProvider_Methods
+
     # IPersist
     def GetClassID(self):
         return self._reg_clsid_
@@ -106,7 +107,7 @@ def DllUnregisterServer():
             winreg.HKEY_CLASSES_ROOT,
             "Folder\\ShellEx\\ColumnHandlers\\" + str(ColumnProvider._reg_clsid_),
         )
-    except WindowsError as details:
+    except OSError as details:
         import errno
 
         if details.errno != errno.ENOENT:

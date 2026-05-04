@@ -26,7 +26,7 @@
 
 //
 // String names for some standard DDE strings not
-// defined in DDEML.H
+// defined in ddeml.h
 //
 
 #define SZ_READY "Ready"
@@ -56,8 +56,8 @@ class CDDEAllocator {
         LPBYTE p = (LPBYTE)(const TCHAR *)cs;
         DWORD cb = (cs.GetLength() + 1) * sizeof(TCHAR);
 
-        if(m_wFmt == CF_TEXT) {
-            p = (LPBYTE)(const char*)CT2CA(cs);
+        if (m_wFmt == CF_TEXT) {
+            p = (LPBYTE)(const char *)CT2CA(cs);
             cb = (cs.GetLength() + 1) * sizeof(const char);
         }
 

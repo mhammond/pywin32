@@ -9,7 +9,7 @@ See pywintypes.py for more information.
 
 ********************************************************************/
 #include "windows.h"
-// Windows rpc.h defines "small" as "char" and Python 3.x's accu.h uses
+// Windows rpc.h defines "small" as "char" and Python 3's accu.h uses
 // "small" as a structure element causing compilation errors :(
 #ifdef small
 #undef small
@@ -26,8 +26,9 @@ static PyObject *PyGetModuleFilename(PyObject *self, PyObject *args)
     TCHAR *modName = PyUnicode_AsWideCharString(nameobj, NULL);
     if (!modName)
         return NULL;
-    
+
     HINSTANCE hinst = GetModuleHandle(modName);
+    PyMem_Free(modName);
     if (hinst == NULL) {
         Py_INCREF(Py_None);
         return Py_None;
@@ -38,7 +39,7 @@ static PyObject *PyGetModuleFilename(PyObject *self, PyObject *args)
         return Py_None;
     }
 
-    return PyUnicode_FromUnicode(buf, wcslen(buf));
+    return PyUnicode_FromWideChar(buf, wcslen(buf));
 }
 
 static PyObject *PyLoadModule(PyObject *self, PyObject *args)
@@ -51,16 +52,8 @@ static PyObject *PyLoadModule(PyObject *self, PyObject *args)
     if (!modName)
         return NULL;
 
-    // Python 3.7 vs 3.8 use different flags for LoadLibraryEx and we match them.
-    // See github issue 1787.
-#if (PY_VERSION_HEX < 0x03080000)
-    HINSTANCE hinst = LoadLibraryEx(modName, NULL,
-                                    LOAD_WITH_ALTERED_SEARCH_PATH);
-#else
-    HINSTANCE hinst = LoadLibraryEx(modName, NULL,
-                                    LOAD_LIBRARY_SEARCH_DEFAULT_DIRS |
-                                    LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR);
-#endif
+    HINSTANCE hinst = LoadLibraryEx(modName, NULL, LOAD_LIBRARY_SEARCH_DEFAULT_DIRS | LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR);
+    PyMem_Free(modName);
     if (hinst == NULL) {
         Py_INCREF(Py_None);
         return Py_None;
@@ -71,7 +64,7 @@ static PyObject *PyLoadModule(PyObject *self, PyObject *args)
         return Py_None;
     }
 
-    return PyUnicode_FromUnicode(buf, wcslen(buf));
+    return PyUnicode_FromWideChar(buf, wcslen(buf));
 }
 
 static struct PyMethodDef functions[] = {

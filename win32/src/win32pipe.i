@@ -12,28 +12,10 @@
 %include "typemaps.i"
 %include "pywin32.i"
 
-%{
-#define CHECK_PFN(fname)if (pfn##fname==NULL) return PyErr_Format(PyExc_NotImplementedError,"%s is not available on this platform", #fname);
-typedef	BOOL (WINAPI *GetNamedPipeClientProcessIdfunc)(HANDLE, PULONG);
-static GetNamedPipeClientProcessIdfunc pfnGetNamedPipeClientProcessId = NULL;
-static GetNamedPipeClientProcessIdfunc pfnGetNamedPipeServerProcessId = NULL;
-static GetNamedPipeClientProcessIdfunc pfnGetNamedPipeClientSessionId = NULL;
-static GetNamedPipeClientProcessIdfunc pfnGetNamedPipeServerSessionId = NULL;
-%}
 
 %init %{
 	// All errors raised by this module are of this type.
 	PyDict_SetItemString(d, "error", PyWinExc_ApiError);
-
-	HMODULE hmod=GetModuleHandle(_T("Kernel32.dll"));
-	if (!hmod)
-		hmod=LoadLibrary(_T("Kernel32.dll"));
-	if (hmod){
-		pfnGetNamedPipeClientProcessId = (GetNamedPipeClientProcessIdfunc)GetProcAddress(hmod, "GetNamedPipeClientProcessId");
-		pfnGetNamedPipeServerProcessId = (GetNamedPipeClientProcessIdfunc)GetProcAddress(hmod, "GetNamedPipeServerProcessId");
-		pfnGetNamedPipeClientSessionId = (GetNamedPipeClientProcessIdfunc)GetProcAddress(hmod, "GetNamedPipeClientSessionId");
-		pfnGetNamedPipeServerSessionId = (GetNamedPipeClientProcessIdfunc)GetProcAddress(hmod, "GetNamedPipeServerSessionId");
-		}
 %}
 
 %{
@@ -87,6 +69,9 @@ PyObject *FdCreatePipe(SECURITY_ATTRIBUTES *INPUT, DWORD nSize, int mode);
 #define NMPWAIT_WAIT_FOREVER NMPWAIT_WAIT_FOREVER
 #define NMPWAIT_USE_DEFAULT_WAIT NMPWAIT_USE_DEFAULT_WAIT
 #define PIPE_UNLIMITED_INSTANCES PIPE_UNLIMITED_INSTANCES
+#define PIPE_ACCEPT_REMOTE_CLIENTS PIPE_ACCEPT_REMOTE_CLIENTS
+#define PIPE_REJECT_REMOTE_CLIENTS PIPE_REJECT_REMOTE_CLIENTS
+#define FILE_FLAG_FIRST_PIPE_INSTANCE FILE_FLAG_FIRST_PIPE_INSTANCE
 
 %{
 // @pyswig (int, int, int/None, int/None, <o PyUnicode>|GetNamedPipeHandleState|Determines the state of the named pipe.
@@ -104,21 +89,28 @@ PyObject *MyGetNamedPipeHandleState(PyObject *self, PyObject *args)
 	PyObject *obCollectDataTimeout;
 
 	BOOL getCollectData = FALSE;
+	BOOL getUserName = FALSE;
 	// @pyparm <o PyHANDLE>|hPipe||The handle to the pipe.
-	// @pyparm int|bGetCollectionData|0|Determines of the collection data should be returned.  If not, None is returned in their place.
+	// @pyparm int|bGetCollectionData|0|Determines if the collection data should be retrieved.  If not, None is returned in their place.
+	// @pyparm int|bGetUserName|0|Determines if the username should be retrieved. Works only for a server handle and if the client opened the pipe with SECURITY_IMPERSONATION access.
 
-	if (!PyArg_ParseTuple(args, "O|i:GetNamedPipeHandleState", &obhNamedPipe, &getCollectData))
+	if (!PyArg_ParseTuple(args, "O|ii:GetNamedPipeHandleState", &obhNamedPipe, &getCollectData, &getUserName))
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhNamedPipe, &hNamedPipe))
 		return NULL;
-	TCHAR buf[512];
+	TCHAR buf[512] = L"";
 	if (getCollectData) {
 		pMaxCollectionCount = &MaxCollectionCount;
 		pCollectDataTimeout = &CollectDataTimeout;
 	} else
 		pMaxCollectionCount = pCollectDataTimeout = NULL;
 
-	if (!GetNamedPipeHandleState(hNamedPipe, &State, &CurInstances, pMaxCollectionCount, pCollectDataTimeout, buf, 512))
+	BOOL ok;
+	Py_BEGIN_ALLOW_THREADS
+	ok = GetNamedPipeHandleState(hNamedPipe, &State, &CurInstances, pMaxCollectionCount, pCollectDataTimeout,
+								  getUserName ? buf : NULL, 512);
+	Py_END_ALLOW_THREADS
+	if (!ok)
 		return PyWin_SetAPIError("GetNamedPipeHandleState");
 	PyObject *obName = PyWinObject_FromTCHAR(buf);
 	if (getCollectData) {
@@ -153,33 +145,33 @@ PyObject *MySetNamedPipeHandleState(PyObject *self, PyObject *args)
 	// @pyparm int/None|MaxCollectionCount||Maximum bytes collected before transmission to the server.
 	// @pyparm int/None|CollectDataTimeout||Maximum time to wait, in milliseconds, before transmission to server.
 
-	if (!PyArg_ParseTuple(args, "OOOO:SetNamedPipeHandleState", 
-			      &obhNamedPipe, &obMode, 
+	if (!PyArg_ParseTuple(args, "OOOO:SetNamedPipeHandleState",
+			      &obhNamedPipe, &obMode,
 			      &obMaxCollectionCount, &obCollectDataTimeout))
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhNamedPipe, &hNamedPipe))
 		return NULL;
     if (obMode!=Py_None) {
         if (!PyLong_Check(obMode))
-            return PyErr_Format(PyExc_TypeError, "mode param must be None or an integer (got %s)", obMode->ob_type->tp_name);
+            return PyErr_Format(PyExc_TypeError, "mode param must be None or an integer (got %s)", Py_TYPE(obMode)->tp_name);
         Mode = PyLong_AsLong(obMode);
         pMode = &Mode;
     }
     if (obMaxCollectionCount!=Py_None) {
         if (!PyLong_Check(obMaxCollectionCount))
-            return PyErr_Format(PyExc_TypeError, "maxCollectionCount param must be None or an integer (got %s)", obMaxCollectionCount->ob_type->tp_name);
+            return PyErr_Format(PyExc_TypeError, "maxCollectionCount param must be None or an integer (got %s)", Py_TYPE(obMaxCollectionCount)->tp_name);
         MaxCollectionCount = PyLong_AsLong(obMaxCollectionCount);
         pMaxCollectionCount = &MaxCollectionCount;
     }
     if (obCollectDataTimeout!=Py_None) {
         if (!PyLong_Check(obCollectDataTimeout))
-            return PyErr_Format(PyExc_TypeError, "collectDataTimeout param must be None or an integer (got %s)", obCollectDataTimeout->ob_type->tp_name);
+            return PyErr_Format(PyExc_TypeError, "collectDataTimeout param must be None or an integer (got %s)", Py_TYPE(obCollectDataTimeout)->tp_name);
         CollectDataTimeout = PyLong_AsLong(obCollectDataTimeout);
         pCollectDataTimeout = &CollectDataTimeout;
     }
 
 	if (!SetNamedPipeHandleState(hNamedPipe, pMode, pMaxCollectionCount,
-				     pCollectDataTimeout)) 
+				     pCollectDataTimeout))
 		return PyWin_SetAPIError("SetNamedPipeHandleState");
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -234,7 +226,7 @@ PyObject *MyTransactNamedPipe(PyObject *self, PyObject *args)
 	DWORD cbReadData;
 	HANDLE handle;
 	OVERLAPPED *pOverlapped = NULL;
-	if (!PyArg_ParseTuple(args, "OOO|O:TransactNamedPipe", 
+	if (!PyArg_ParseTuple(args, "OOO|O:TransactNamedPipe",
 		&obHandle,	// @pyparm <o PyUNICODE>|pipeName||The name of the pipe.
 		&obWriteData,   // @pyparm string/buffer|writeData||The data to write to the pipe.
 		// @pyparm <o PyOVERLAPPEDReadBuffer>/int|buffer/bufSize||Size of the buffer to create for the result,
@@ -260,7 +252,7 @@ PyObject *MyTransactNamedPipe(PyObject *self, PyObject *args)
 	// process the tricky read buffer.
 	cbReadData = PyLong_AsLong(obReadData);
 	if ((cbReadData!=(DWORD)-1) || !PyErr_Occurred()){
-		if (pOverlapped){	// guaranteed to be NULL on CE
+		if (pOverlapped){
 			obRet = PyBuffer_New(cbReadData);
 			if (obRet==NULL)
 				return NULL;
@@ -322,15 +314,15 @@ PyObject *MyCallNamedPipe(PyObject *self, PyObject *args)
 	DWORD timeOut;
 	DWORD readBufSize;
 	TCHAR *szPipeName;
-	if (!PyArg_ParseTuple(args, "OOil:CallNamedPipe", 
+	if (!PyArg_ParseTuple(args, "OOil:CallNamedPipe",
 		&obPipeName,	// @pyparm <o PyUNICODE>|pipeName||The name of the pipe.
 		&obdata,		// @pyparm string|data||The data to write.
 		&readBufSize,	// @pyparm int|bufSize||The size of the result buffer to allocate for the read.
 		&timeOut))		// @pyparm int|timeOut||Specifies the number of milliseconds to wait for the named pipe to be available. In addition to numeric values, the following special values can be specified.
-		// @flagh Value|Meaning 
-		// @flag win32pipe.NMPWAIT_NOWAIT|Does not wait for the named pipe. If the named pipe is not available, the function returns an error. 
-		// @flag win32pipe.NMPWAIT_WAIT_FOREVER|Waits indefinitely. 
-		// @flag win32pipe.NMPWAIT_USE_DEFAULT_WAIT|Uses the default time-out specified in a call to the CreateNamedPipe function. 
+		// @flagh Value|Meaning
+		// @flag win32pipe.NMPWAIT_NOWAIT|Does not wait for the named pipe. If the named pipe is not available, the function returns an error.
+		// @flag win32pipe.NMPWAIT_WAIT_FOREVER|Waits indefinitely.
+		// @flag win32pipe.NMPWAIT_USE_DEFAULT_WAIT|Uses the default time-out specified in a call to the CreateNamedPipe function.
 		return NULL;
 	PyWinBufferView pybuf(obdata);
 	if (!pybuf.ok())
@@ -364,8 +356,8 @@ PyObject *MyCreatePipe(
 		       DWORD nSize // @pyparm int|nSize||
 		       )
 {
-  HANDLE hReadPipe;		// variable for read handle 
-  HANDLE hWritePipe;		// variable for write handle 
+  HANDLE hReadPipe;		// variable for read handle
+  HANDLE hWritePipe;		// variable for write handle
   BOOL   ok;			// did CreatePipe work?
 
   ok = CreatePipe(&hReadPipe, &hWritePipe, INPUT, nSize);
@@ -386,8 +378,8 @@ PyObject *FdCreatePipe(
 	DWORD nSize,				// @pyparm int|nSize||Buffer size for pipe.  Use 0 for default size.
 	int mode)					// @pyparm int|mode||O_TEXT or O_BINARY
 {
-  HANDLE hReadPipe;		// variable for read handle 
-  HANDLE hWritePipe;		// variable for write handle 
+  HANDLE hReadPipe;		// variable for read handle
+  HANDLE hWritePipe;		// variable for write handle
   BOOL   ok;			// did CreatePipe work?
   if (mode != _O_TEXT && mode != _O_BINARY)
     {
@@ -408,7 +400,7 @@ PyObject *FdCreatePipe(
 %}
 
 // @pyswig <o PyHANDLE>|CreateNamedPipe|Creates an instance of a named pipe and returns a handle for subsequent pipe operations
-PyHANDLE CreateNamedPipe( 
+PyHANDLE CreateNamedPipe(
 	TCHAR *lpName,	// @pyparm <o PyUnicode>|pipeName||The name of the pipe
 	unsigned long dwOpenMode, // @pyparm int|openMode||OpenMode of the pipe
 	unsigned long dwPipeMode, // @pyparm int|pipeMode||
@@ -418,7 +410,7 @@ PyHANDLE CreateNamedPipe(
 	unsigned long nDefaultTimeOut, // @pyparm int|nDefaultTimeOut||
 	SECURITY_ATTRIBUTES *INPUT // @pyparm <o PySECURITY_ATTRIBUTES>|sa||
 );
-// @pyswig |DisconnectNamedPipe|Disconnects the server end of a named pipe instance from a client process. 
+// @pyswig |DisconnectNamedPipe|Disconnects the server end of a named pipe instance from a client process.
 BOOLAPI DisconnectNamedPipe(
 	PyHANDLE hFile // @pyparm <o PyHANDLE>|hFile||The handle to the pipe to disconnect.
 );
@@ -432,14 +424,14 @@ BOOLAPI GetOverlappedResult(
 	BOOL bWait	// @pyparm int|bWait||Indicates if the function should wait for data to become available.
 );
 
-// @pyswig |WaitNamedPipe|Waits until either a time-out interval elapses or an instance of the specified named pipe is available to be connected to (that is, the pipe's server process has a pending <om win32pipe.ConnectNamedPipe> operation on the pipe). 
-BOOLAPI WaitNamedPipe( 
+// @pyswig |WaitNamedPipe|Waits until either a time-out interval elapses or an instance of the specified named pipe is available to be connected to (that is, the pipe's server process has a pending <om win32pipe.ConnectNamedPipe> operation on the pipe).
+BOOLAPI WaitNamedPipe(
 	TCHAR *pipeName, // @pyparm <o PyUnicode>|pipeName||The name of the pipe
 	unsigned long timeout); // @pyparm int|timeout||The number of milliseconds the function will wait.
 	// instead of a literal value, you can specify one of the following values for the timeout:
-	// @flagh Value|Meaning 
-	// @flag NMPWAIT_USE_DEFAULT_WAIT|The time-out interval is the default value specified by the server process in the CreateNamedPipe function. 
-	// @flag NMPWAIT_WAIT_FOREVER|The function does not return until an instance of the named pipe is available 
+	// @flagh Value|Meaning
+	// @flag NMPWAIT_USE_DEFAULT_WAIT|The time-out interval is the default value specified by the server process in the CreateNamedPipe function.
+	// @flag NMPWAIT_WAIT_FOREVER|The function does not return until an instance of the named pipe is available
 
 // @pyswig (int, int, int, int)|GetNamedPipeInfo|Returns pipe's flags, buffer sizes, and max instances
 BOOLAPI GetNamedPipeInfo(
@@ -473,7 +465,7 @@ PyObject *MyPeekNamedPipe(PyObject *self, PyObject *args)
 	}
 	PyObject *rc = NULL;
 	if (PeekNamedPipe(hNamedPipe, buf, size, &bytesRead, &totalAvail, &bytesLeft)) {
-		rc = Py_BuildValue("Nii", 
+		rc = Py_BuildValue("Nii",
 			PyBytes_FromStringAndSize((char *)buf, bytesRead),
 			totalAvail, bytesLeft);
 	} else
@@ -487,10 +479,8 @@ PyObject *MyPeekNamedPipe(PyObject *self, PyObject *args)
 
 %{
 // @pyswig int|GetNamedPipeClientProcessId|Returns the process id of client that is connected to a named pipe
-// @comm Requires Vista or later
 PyObject *MyGetNamedPipeClientProcessId(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(GetNamedPipeClientProcessId);
 	HANDLE hNamedPipe;
 	DWORD pid;
 	PyObject *obhNamedPipe;
@@ -499,16 +489,14 @@ PyObject *MyGetNamedPipeClientProcessId(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhNamedPipe, &hNamedPipe))
 		return NULL;
-	if (!(*pfnGetNamedPipeClientProcessId)(hNamedPipe, &pid))
+	if (!GetNamedPipeClientProcessId(hNamedPipe, &pid))
 		return PyWin_SetAPIError("GetNamedPipeClientProcessId");
 	return PyLong_FromUnsignedLong(pid);
 }
 
 // @pyswig int|GetNamedPipeServerProcessId|Returns pid of server process that created a named pipe
-// @comm Requires Vista or later
 PyObject *MyGetNamedPipeServerProcessId(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(GetNamedPipeServerProcessId);
 	HANDLE hNamedPipe;
 	DWORD pid;
 	PyObject *obhNamedPipe;
@@ -517,16 +505,14 @@ PyObject *MyGetNamedPipeServerProcessId(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhNamedPipe, &hNamedPipe))
 		return NULL;
-	if (!(*pfnGetNamedPipeServerProcessId)(hNamedPipe, &pid))
+	if (!GetNamedPipeServerProcessId(hNamedPipe, &pid))
 		return PyWin_SetAPIError("GetNamedPipeServerProcessId");
 	return PyLong_FromUnsignedLong(pid);
 }
 
 // @pyswig int|GetNamedPipeClientSessionId|Returns the session id of client that is connected to a named pipe
-// @comm Requires Vista or later
 PyObject *MyGetNamedPipeClientSessionId(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(GetNamedPipeClientSessionId);
 	HANDLE hNamedPipe;
 	DWORD pid;
 	PyObject *obhNamedPipe;
@@ -535,16 +521,14 @@ PyObject *MyGetNamedPipeClientSessionId(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhNamedPipe, &hNamedPipe))
 		return NULL;
-	if (!(*pfnGetNamedPipeClientSessionId)(hNamedPipe, &pid))
+	if (!GetNamedPipeClientSessionId(hNamedPipe, &pid))
 		return PyWin_SetAPIError("GetNamedPipeClientSessionId");
 	return PyLong_FromUnsignedLong(pid);
 }
 
 // @pyswig int|GetNamedPipeServerSessionId|Returns session id of server process that created a named pipe
-// @comm Requires Vista or later
 PyObject *MyGetNamedPipeServerSessionId(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(GetNamedPipeServerSessionId);
 	HANDLE hNamedPipe;
 	DWORD pid;
 	PyObject *obhNamedPipe;
@@ -553,7 +537,7 @@ PyObject *MyGetNamedPipeServerSessionId(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyWinObject_AsHANDLE(obhNamedPipe, &hNamedPipe))
 		return NULL;
-	if (!(*pfnGetNamedPipeServerSessionId)(hNamedPipe, &pid))
+	if (!GetNamedPipeServerSessionId(hNamedPipe, &pid))
 		return PyWin_SetAPIError("GetNamedPipeServerSessionId");
 	return PyLong_FromUnsignedLong(pid);
 }

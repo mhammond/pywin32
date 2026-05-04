@@ -74,8 +74,7 @@ tested on Python 1.5.1.</font></p>
 
 <p><strong>win32wnet.py</strong> is the Python extension
 providing access to the WNetXXX Win32APIs. This module is fully
-compilable for both Ascii and Unicode and contains conditional,
-if untested as of this writing, compiles for Windows CE. This
+compilable for both Ascii and Unicode. This
 module has been tested with Python 1.5.1 and Windows NT
 workstation 4.0 SP3.</p>
 
@@ -110,15 +109,9 @@ workstation 4.0 SP3.</p>
                 object that is being constructed for the Win32API
                 call. UserName and Password are obvious. Passing
                 None for UserName and Password will attempt a
-                NULL session connection. NOTE: when compiled for
-                Windows CE, this function is conditionally
-                compiled to call the <strong>WNetAddConnection3</strong>
-                API interface with a NULL hwnd parameter, making
-                it functionally equivalent to WNetAddConnection2.
-                WNetAddConnection3 is the only interface
-                supported by Windows CE.</dd>
+                NULL session connection.</dd>
             <dd>Note that this function has since been updated to optionally
-                accept a NETRESOURCE object making its signature almost 
+                accept a NETRESOURCE object making its signature almost
                 identical to the win32 version - see the pywin32 help for
                 more information.  Also note that WNetAddConnection3
                 is also implemented, which is similar to this function but

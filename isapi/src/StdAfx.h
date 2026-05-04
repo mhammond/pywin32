@@ -46,7 +46,7 @@
 #undef WRITE_RESTRICTED
 
 // ***** py3k support *****
-// Note that when built for py3k, 'UNICODE' is defined, which conveniently
+// Note that since building for py3k, 'UNICODE' is defined, which conveniently
 // means TCHAR is the same size as the native unicode object in all versions.
 // Note however that ISAPI is always an ANSI API - so even when UNICODE is
 // defined, most strings passed and received from ISAPI itself remain 'char *'
@@ -54,7 +54,7 @@
 
 // Macros to handle PyObject layout changes in Py3k
 #define PYISAPI_OBJECT_HEAD PyVarObject_HEAD_INIT(NULL, 0)
-#define PYISAPI_ATTR_CONVERT PyUnicode_AsUnicode
+////#define PYISAPI_ATTR_CONVERT PyUnicode_AsUnicode  // removed in Py3.12+
 
 // A helper that on py3k takes a str or unicode as input and returns a
 // string - exactly how the 's#' PyArg_ParseTuple format string does...

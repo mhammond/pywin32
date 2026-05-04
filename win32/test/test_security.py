@@ -1,10 +1,13 @@
 # Tests for the win32security module.
-import sys, os
 import unittest
-import winerror
-from pywin32_testutil import testmain, TestSkipped, ob2memory
 
-import win32api, win32con, win32security, ntsecuritycon, pywintypes
+import ntsecuritycon
+import pywintypes
+import win32api
+import win32con
+import win32security
+import winerror
+from pywin32_testutil import testmain
 
 
 class SecurityTests(unittest.TestCase):
@@ -24,7 +27,7 @@ class SecurityTests(unittest.TestCase):
 
     def testEqual(self):
         if self.admin_sid is None:
-            raise TestSkipped("No 'Administrator' account is available")
+            raise unittest.SkipTest("No 'Administrator' account is available")
         self.assertEqual(
             win32security.LookupAccountName("", "Administrator")[0],
             win32security.LookupAccountName("", "Administrator")[0],
@@ -36,22 +39,22 @@ class SecurityTests(unittest.TestCase):
             self.assertTrue(self.pwr_sid != self.admin_sid)
 
     def testNEOther(self):
-        self.assertTrue(self.pwr_sid != None)
+        self.assertTrue(self.pwr_sid is not None)
         self.assertTrue(None != self.pwr_sid)
-        self.assertFalse(self.pwr_sid == None)
+        self.assertFalse(self.pwr_sid is None)
         self.assertFalse(None == self.pwr_sid)
         self.assertNotEqual(None, self.pwr_sid)
 
     def testSIDInDict(self):
-        d = dict(foo=self.pwr_sid)
+        d = {"foo": self.pwr_sid}
         self.assertEqual(d["foo"], self.pwr_sid)
 
     def testBuffer(self):
         if self.admin_sid is None:
-            raise TestSkipped("No 'Administrator' account is available")
+            raise unittest.SkipTest("No 'Administrator' account is available")
         self.assertEqual(
-            ob2memory(win32security.LookupAccountName("", "Administrator")[0]),
-            ob2memory(win32security.LookupAccountName("", "Administrator")[0]),
+            memoryview(win32security.LookupAccountName("", "Administrator")[0]),
+            memoryview(win32security.LookupAccountName("", "Administrator")[0]),
         )
 
     def testMemory(self):
@@ -94,7 +97,7 @@ class DomainTests(unittest.TestCase):
         except win32security.error as exc:
             if exc.winerror != winerror.ERROR_NO_SUCH_DOMAIN:
                 raise
-            raise TestSkipped(exc)
+            raise unittest.SkipTest(str(exc))
 
     def tearDown(self):
         if self.ds_handle is not None:
@@ -110,10 +113,10 @@ class TestDS(DomainTests):
     def testDsListServerInfo(self):
         # again, not checking much, just exercising the code.
         h = win32security.DsBind()
-        for (status, ignore, site) in win32security.DsListSites(h):
-            for (status, ignore, server) in win32security.DsListServersInSite(h, site):
+        for status, ignore, site in win32security.DsListSites(h):
+            for status, ignore, server in win32security.DsListServersInSite(h, site):
                 info = win32security.DsListInfoForServer(h, server)
-            for (status, ignore, domain) in win32security.DsListDomainsInSite(h, site):
+            for status, ignore, domain in win32security.DsListDomainsInSite(h, site):
                 pass
 
     def testDsCrackNames(self):

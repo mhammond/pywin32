@@ -1,8 +1,12 @@
 ## demonstrates using BackupSeek to enumerate data streams for a file
-import win32file, win32api, win32con
+import struct
+
+import pythoncom
+import pywintypes
+import win32api
+import win32con
+import win32file
 from win32com import storagecon
-import pythoncom, pywintypes
-import struct, traceback
 
 stream_types = {
     win32con.BACKUP_DATA: "Standard data",

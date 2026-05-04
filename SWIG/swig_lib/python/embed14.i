@@ -24,7 +24,7 @@ present in your current Python executable (including any special
 purpose modules you have enabled such as tkinter).   Thus, you
 may need to provide additional link libraries when compiling.
 
-This library file only works with Python 1.4.  A version 
+This library file only works with Python 1.4.  A version
 compatible with Python 1.3 is available as embed13.i.  As far
 as I know, this module is C++ safe (well, it works for me).
 %}
@@ -60,7 +60,7 @@ extern "C" {
 /* Now define our own version of it.
    Hopefully someone does not have more than 1000 built-in modules */
 
-struct _inittab inittab[1000];       
+struct _inittab inittab[1000];
 
 static int  swig_num_modules = 0;
 
@@ -73,7 +73,7 @@ static void swig_add_module(char *name, void (*initfunc)()) {
 	swig_num_modules++;
 	inittab[swig_num_modules].name = (char *) 0;
 	inittab[swig_num_modules].initfunc = 0;
-}				
+}
 
 /* Function to add all of Python's build in modules to our interpreter */
 
@@ -84,7 +84,7 @@ static void swig_add_builtin() {
 		i++;
  	}
 #ifdef SWIGMODINIT
-	SWIGMODINIT	
+	SWIGMODINIT
 #endif
 	/* Add SWIG builtin function */
 	swig_add_module(SWIG_name, SWIG_init);
@@ -195,7 +195,7 @@ main(int argc, char **argv) {
 			strcat(command, "\n");
 			break;
 		}
-		
+
 		switch (c) {
 
 		case 'd':
@@ -249,7 +249,7 @@ main(int argc, char **argv) {
 	    command == NULL && filename == NULL && isatty((int)fileno(fp)))
 		fprintf(stderr, "Python %s\n%s\n",
 			Py_GetVersion(), Py_GetCopyright());
-	
+
 	if (filename != NULL) {
 		if ((fp = fopen(filename, "r")) == NULL) {
 			fprintf(stderr, "%s: can't open file '%s'\n",
@@ -257,7 +257,7 @@ main(int argc, char **argv) {
 			exit(2);
 		}
 	}
-	
+
 	Py_Initialize();
 	if (command != NULL) {
 		/* Backup optind and force sys.argv[0] = '-c' */
@@ -336,7 +336,3 @@ extern "C" {
 #endif
 
 %}
-
-
-  
-

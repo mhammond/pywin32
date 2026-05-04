@@ -19,7 +19,7 @@ PyIStorage::~PyIStorage() {}
 /* static */ IStorage *PyIStorage::GetI(PyObject *self) { return (IStorage *)PyIUnknown::GetI(self); }
 
 // @pymethod <o PyIStream>|PyIStorage|CreateStream|Creates and opens a stream object with the specified name contained
-// in this storage object. All elements within a storage object — both streams and other storage objects — are kept in
+// in this storage object. All elements within a storage object, both streams and other storage objects, are kept in
 // the same name space.
 PyObject *PyIStorage::CreateStream(PyObject *self, PyObject *args)
 {
@@ -354,12 +354,12 @@ PyObject *PyIStorage::SetElementTimes(PyObject *self, PyObject *args)
         return NULL;
     // @pyparm str|name||The name of the storage object element whose times are to be modified. If NULL, the time is set
     // on the root storage rather than one of its elements.
-    // @pyparm <o PyDateTime>|ctime||Either the new creation time for the element or None if the creation time is not to be
-    // modified.
+    // @pyparm <o PyDateTime>|ctime||Either the new creation time for the element or None if the creation time is not to
+    // be modified.
     // @pyparm <o PyDateTime>|atime||Either the new access time for the element or None if the access time is not to be
     // modified.
-    // @pyparm <o PyDateTime>|mtime||Either the new modification time for the element or None if the modification time is
-    // not to be modified.
+    // @pyparm <o PyDateTime>|mtime||Either the new modification time for the element or None if the modification time
+    // is not to be modified.
     PyObject *obName;
     PyObject *obpctime;
     PyObject *obpatime;

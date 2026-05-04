@@ -110,7 +110,7 @@ PyObject *PyIDispatch::GetIDsOfNames(PyObject *self, PyObject *args)
     // @pyparm string|name||A name to query for
     // @pyparmalt1 [string, ...]|[name, ...]||A sequence of string names to query
     // @comm Currently the LCID can not be specified, and  LOCALE_SYSTEM_DEFAULT is used.
-    int argc = PyTuple_GET_SIZE(args);
+    int argc = (int)PyTuple_GET_SIZE(args);
     if (argc < 1)
         return PyErr_Format(PyExc_TypeError, "At least one argument must be supplied");
 
@@ -189,7 +189,7 @@ PyObject *PyIDispatch::GetIDsOfNames(PyObject *self, PyObject *args)
 static BOOL PyCom_MakeUntypedDISPPARAMS(PyObject *args, int numArgs, WORD wFlags, DISPPARAMS *pParm,
                                         PythonOleArgHelper **ppHelpers)
 {
-    int argc = PyObject_Length(args);
+    int argc = (int)PyObject_Length(args);
     DISPID dispidNamed = DISPID_PROPERTYPUT;
     // Clean initialize
     pParm->rgvarg = NULL;
@@ -261,7 +261,7 @@ PyObject *PyIDispatch::Invoke(PyObject *self, PyObject *args)
 #else
     PyErr_Clear();
 #endif
-    int argc = PyObject_Length(args);
+    int argc = (int)PyObject_Length(args);
     if (argc == -1)
         return NULL;
     if (argc < 4)
@@ -339,7 +339,7 @@ PyObject *PyIDispatch::InvokeTypes(PyObject *self, PyObject *args)
 {
     /* InvokeType(dispid, lcid, wflags, ELEMDESC resultType, ELEMDESC[] argTypes, arg1, arg2...) */
     PyErr_Clear();
-    int argc = PyObject_Length(args);
+    int argc = (int)PyObject_Length(args);
     if (argc == -1)
         return NULL;
     if (argc < 5)
@@ -362,14 +362,14 @@ PyObject *PyIDispatch::InvokeTypes(PyObject *self, PyObject *args)
     if (PyErr_Occurred())
         return NULL;
     int numArgs;
-    int argTypesLen = PyObject_Length(argsElemDescArray);
+    int argTypesLen = (int)PyObject_Length(argsElemDescArray);
     if (!PyTuple_Check(argsElemDescArray) || argTypesLen < argc - 5)
         return PyErr_Format(PyExc_TypeError,
                             "The array of argument types must be a tuple whose size is <= to the number of arguments.");
     // See how many _real_ entries - count until end or
     // first param marked as Missing.
     for (numArgs = 0; numArgs < argc - 5; numArgs++) {
-        if (PyTuple_GET_ITEM(args, numArgs + 5)->ob_type == &PyOleMissingType) {
+        if (Py_TYPE(PyTuple_GET_ITEM(args, numArgs + 5)) == &PyOleMissingType) {
             break;
         }
     }
@@ -517,7 +517,12 @@ PyObject *PyIDispatch::InvokeTypes(PyObject *self, PyObject *args)
 
 error:
     if (dispparams.rgvarg) {
-        for (i = dispparams.cArgs; i--;) VariantClear(&dispparams.rgvarg[i]);
+        for (i = dispparams.cArgs; i--;) {
+            if ((V_VT(&dispparams.rgvarg[i]) & ~VT_TYPEMASK) == (VT_BYREF | VT_ARRAY)) {
+                SafeArrayDestroy(*V_ARRAYREF(&dispparams.rgvarg[i]));
+            }
+            VariantClear(&dispparams.rgvarg[i]);
+        }
         delete[] dispparams.rgvarg;
     }
     delete[] ArgHelpers;
@@ -600,8 +605,6 @@ PyComTypeObject PyIDispatch::type("PyIDispatch",
                                   &PyIUnknown::type,  // @base PyIDispatch|PyIUnknown
                                   sizeof(PyIDispatch), PyIDispatch_methods, GET_PYCOM_CTOR(PyIDispatch));
 
-#ifndef NO_PYCOM_IDISPATCHEX
-
 //////////////////////////////////////////////////////////////////
 //
 // PyIDispatchEx
@@ -668,7 +671,7 @@ PyObject *PyIDispatchEx::InvokeEx(PyObject *self, PyObject *args)
     }
 
     // TODO - We do not yet support the Type Description here
-    // (Im not even sure if we need it!)
+    // (I'm not even sure if we need it!)
     if (types != Py_None || obReturnDesc != Py_None) {
         PyErr_SetString(PyExc_TypeError, "Type descriptions are not yet supported.");
         return NULL;
@@ -687,7 +690,7 @@ PyObject *PyIDispatchEx::InvokeEx(PyObject *self, PyObject *args)
 
     DISPPARAMS dispparams;
     PythonOleArgHelper *helpers;
-    if (!PyCom_MakeUntypedDISPPARAMS(invokeArgs, PyObject_Length(invokeArgs), flags, &dispparams, &helpers))
+    if (!PyCom_MakeUntypedDISPPARAMS(invokeArgs, (int)PyObject_Length(invokeArgs), flags, &dispparams, &helpers))
         return NULL;
 
     VARIANT varResult;
@@ -845,5 +848,3 @@ static struct PyMethodDef PyIDispatchEx_methods[] = {
 PyComTypeObject PyIDispatchEx::type("PyIDispatchEx",
                                     &PyIDispatch::type,  // @base PyIDispatchEx|PyIDispatch
                                     sizeof(PyIDispatchEx), PyIDispatchEx_methods, GET_PYCOM_CTOR(PyIDispatchEx));
-
-#endif  // NO_PYCOM_IDISPATCHEX

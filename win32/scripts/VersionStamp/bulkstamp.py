@@ -30,13 +30,18 @@
 # Any line beginning with "#" will be ignored. Empty lines are okay.
 #
 
-import sys
-import os
-import verstamp
 import fnmatch
-import win32api
+import os
+import sys
+from collections.abc import Iterable, Mapping
+from optparse import Values
 
-numStamped = 0
+try:
+    import win32verstamp
+except ModuleNotFoundError:
+    # If run with pywin32 not already installed
+    sys.path.append(os.path.abspath(__file__ + "/../../../Lib"))
+    import win32verstamp
 
 g_patterns = [
     "*.dll",
@@ -46,24 +51,28 @@ g_patterns = [
 ]
 
 
-def walk(arg, dirname, names):
-    global numStamped
-    vars, debug, descriptions = arg
+def walk(
+    vars: Mapping[str, str], debug, descriptions, dirname, names: Iterable[str]
+) -> int:
+    """Returns the number of stamped files."""
+    numStamped = 0
     for name in names:
         for pat in g_patterns:
             if fnmatch.fnmatch(name, pat):
                 # Handle the "_d" thing.
                 pathname = os.path.join(dirname, name)
                 base, ext = os.path.splitext(name)
-                if base[-2:] == "_d":
-                    name = base[:-2] + ext
+                name = base.removesuffix("_d") + ext
                 is_dll = ext.lower() != ".exe"
                 if os.path.normcase(name) in descriptions:
-                    desc = descriptions[os.path.normcase(name)]
+                    description = descriptions[os.path.normcase(name)]
                     try:
-                        verstamp.stamp(vars, pathname, desc, is_dll=is_dll)
-                        numStamped = numStamped + 1
-                    except win32api.error as exc:
+                        options = Values(
+                            {**vars, "description": description, "dll": is_dll}
+                        )
+                        win32verstamp.stamp(pathname, options)
+                        numStamped += 1
+                    except OSError as exc:
                         print(
                             "Could not stamp",
                             pathname,
@@ -75,13 +84,14 @@ def walk(arg, dirname, names):
                 else:
                     print("WARNING: description not provided for:", name)
                     # skip branding this - assume already branded or handled elsewhere
+    return numStamped
 
 
-#        print "Stamped", pathname
+# print("Stamped", pathname)
 
 
 def load_descriptions(fname, vars):
-    retvars = {}
+    retvars: dict[str, str] = {}
     descriptions = {}
 
     lines = open(fname, "r").readlines()
@@ -117,9 +127,7 @@ def load_descriptions(fname, vars):
     return retvars, descriptions
 
 
-def scan(build, root, desc, **custom_vars):
-    global numStamped
-    numStamped = 0
+def scan(build, root: str, desc, **custom_vars):
     try:
         build = int(build)
     except ValueError:
@@ -134,10 +142,11 @@ def scan(build, root, desc, **custom_vars):
     vars["build"] = build
     vars.update(custom_vars)
 
-    arg = vars, debug, descriptions
-    os.path.walk(root, walk, arg)
+    numStamped = 0
+    for directory, dirnames, filenames in os.walk(root):
+        numStamped += walk(vars, debug, descriptions, directory, filenames)
 
-    print("Stamped %d files." % (numStamped))
+    print(f"Stamped {numStamped} files.")
 
 
 if __name__ == "__main__":
@@ -145,4 +154,4 @@ if __name__ == "__main__":
         print("ERROR: incorrect invocation. See script's header comments.")
         sys.exit(1)
 
-    scan(*tuple(sys.argv[1:]))
+    scan(*sys.argv[1:])

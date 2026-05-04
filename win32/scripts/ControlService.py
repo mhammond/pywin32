@@ -27,14 +27,13 @@
 # Right now, we always try to get all the rights and fail when we can't
 
 
-from pywin.mfc import dialog
-import win32ui
 import win32con
 import win32service
+import win32ui
+from pywin.mfc import dialog
 
 
 class StartupDlg(dialog.Dialog):
-
     IDC_LABEL = 127
     IDC_DEVICE = 128
     IDC_BOOT = 129
@@ -242,7 +241,6 @@ class StartupDlg(dialog.Dialog):
 
 
 class ServiceDlg(dialog.Dialog):
-
     IDC_LIST = 128
     IDC_START = 129
     IDC_STOP = 130
@@ -317,7 +315,7 @@ class ServiceDlg(dialog.Dialog):
                     svc[0],
                 )
             )
-            i = i + 1
+            i += 1
 
             if service and service[1] == svc[0]:
                 self.listCtrl.SetCurSel(pos)

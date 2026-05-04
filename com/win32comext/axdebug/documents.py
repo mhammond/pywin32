@@ -1,17 +1,14 @@
-""" Management of documents for AXDebugging.
-"""
+"""Management of documents for AXDebugging."""
 
-import axdebug, gateways
 import pythoncom
-from .util import _wrap, _wrap_remove, RaiseNotImpl, trace
+import win32api
 from win32com.server.util import unwrap
-from . import codecontainer
-from . import contexts
-from win32com.server.exception import Exception
-import win32api, winerror, os, string, sys
+
+from . import axdebug, gateways
+from .util import _wrap, trace
 
 # def trace(*args):
-#       pass
+#     pass
 
 
 def GetGoodFileName(fname):
@@ -34,9 +31,7 @@ class DebugDocumentProvider(gateways.DebugDocumentProvider):
         return self.doc
 
 
-class DebugDocumentText(
-    gateways.DebugDocumentInfo, gateways.DebugDocumentText, gateways.DebugDocument
-):
+class DebugDocumentText(gateways.DebugDocumentText):
     _com_interfaces_ = (
         gateways.DebugDocumentInfo._com_interfaces_
         + gateways.DebugDocumentText._com_interfaces_
@@ -47,6 +42,7 @@ class DebugDocumentText(
         + gateways.DebugDocumentText._public_methods_
         + gateways.DebugDocument._public_methods_
     )
+
     # A class which implements a DebugDocumentText, using the functionality
     # provided by a codeContainer
     def __init__(self, codeContainer):
@@ -57,7 +53,7 @@ class DebugDocumentText(
 
     def _Close(self):
         self.docContexts = None
-        #               self.codeContainer._Close()
+        # self.codeContainer._Close()
         self.codeContainer = None
 
     # IDebugDocumentInfo
@@ -73,7 +69,7 @@ class DebugDocumentText(
     # IDebugDocumentText methods.
     # def GetDocumentAttributes
     def GetSize(self):
-        #               trace("GetSize")
+        # trace("GetSize")
         return self.codeContainer.GetNumLines(), self.codeContainer.GetNumChars()
 
     def GetPositionOfLine(self, cLineNumber):
@@ -85,7 +81,7 @@ class DebugDocumentText(
     def GetText(self, charPos, maxChars, wantAttr):
         # Get all the attributes, else the tokenizer will get upset.
         # XXX - not yet!
-        #               trace("GetText", charPos, maxChars, wantAttr)
+        # trace("GetText", charPos, maxChars, wantAttr)
         cont = self.codeContainer
         attr = cont.GetSyntaxColorAttributes()
         return cont.GetText(), attr
@@ -109,7 +105,7 @@ class CodeContainerProvider:
     Given a Python file name (as the debugger knows it by) this will
     return a CodeContainer interface suitable for use.
 
-    This provides a simple base imlpementation that simply supports
+    This provides a simple base implementation that simply supports
     a dictionary of nodes and providers.
     """
 
@@ -122,8 +118,8 @@ class CodeContainerProvider:
 
     def FromFileName(self, fname):
         cc, node = self.ccsAndNodes.get(GetGoodFileName(fname), (None, None))
-        #               if cc is None:
-        #                       print "FromFileName for %s returning None" % fname
+        # if cc is None:
+        #     print(f"FromFileName for {fname} returning None")
         return cc
 
     def Close(self):

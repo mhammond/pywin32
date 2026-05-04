@@ -332,7 +332,9 @@ static PyObject *typeinfo_getidsofnames(PyObject *self, PyObject *args)
     if (pti == NULL)
         return NULL;
     UINT i;
-    int argc = PyTuple_GET_SIZE(args);
+    Py_ssize_t argc = PyTuple_GET_SIZE(args);
+    PYWIN_CHECK_SSIZE_DWORD(argc, NULL);
+
     if (argc < 1) {
         PyErr_SetString(PyExc_TypeError, "At least one argument must be supplied");
         return NULL;
@@ -350,7 +352,7 @@ static PyObject *typeinfo_getidsofnames(PyObject *self, PyObject *args)
             offset = 1;
     }
 
-    UINT cNames = argc - offset;
+    UINT cNames = (UINT)argc - offset;
     OLECHAR FAR *FAR *rgszNames = new LPOLESTR[cNames];
 
     for (i = 0; i < cNames; ++i) {
@@ -686,8 +688,8 @@ PyObject *pythoncom_loadtypelib(PyObject *self, PyObject *args)
     ITypeLib *ptl;
     PY_INTERFACE_PRECALL;
     SCODE sc = LoadTypeLib(bstrName, &ptl);
-    PyWinObject_FreeBstr(bstrName);
     PY_INTERFACE_POSTCALL;
+    PyWinObject_FreeBstr(bstrName);
     if (FAILED(sc))
         return PyCom_BuildPyException(sc);
 
@@ -801,7 +803,6 @@ PyObject *pythoncom_unregistertypelib(PyObject *self, PyObject *args)
         return NULL;
 
     PY_INTERFACE_PRECALL;
-    // WARNING: Requires Win95 OSR2 or later!!!
     HRESULT hr = UnRegisterTypeLib(clsid, major, minor, lcid, syskind);
     PY_INTERFACE_POSTCALL;
     if (FAILED(hr))
@@ -813,7 +814,6 @@ PyObject *pythoncom_unregistertypelib(PyObject *self, PyObject *args)
     // In-process objects typically call this API from DllUnregisterServer.
 }
 
-#ifndef MS_WINCE
 // @pymethod <o PyUnicode>|pythoncom|QueryPathOfRegTypeLib|Retrieves the path of a registered type library.
 PyObject *pythoncom_querypathofregtypelib(PyObject *self, PyObject *args)
 {
@@ -839,7 +839,6 @@ PyObject *pythoncom_querypathofregtypelib(PyObject *self, PyObject *args)
         return PyCom_BuildPyException(hr);
     return PyWinObject_FromBstr(result, TRUE);
 }
-#endif
 /////////////////////////////////////////////////////////////////////////////
 // class PyITypeComp
 
@@ -898,10 +897,7 @@ static PyObject *ITypeCompBind(ITypeComp *pTC, OLECHAR *S, unsigned short w)
     PyObject *ret;
     unsigned long hashval = 0;
     PY_INTERFACE_PRECALL;
-#ifndef MS_WINCE
-    // appears in the headers for CE, but wont link!?
     hashval = LHashValOfNameSys(SYS_WIN32, LOCALE_USER_DEFAULT, S);
-#endif
     SCODE sc = pTC->Bind(S, hashval, w, &pI, &DK, &BP);
     PY_INTERFACE_POSTCALL;
     if (FAILED(sc))
@@ -960,10 +956,7 @@ PyObject *PyITypeComp::BindType(OLECHAR *s)
     unsigned long hashval = 0;
     ITypeComp *pTC = GetI(this);
     PY_INTERFACE_PRECALL;
-#ifndef MS_WINCE
-    // appears in the headers for CE, but wont link!?
     hashval = LHashValOfNameSys(SYS_WIN32, LOCALE_USER_DEFAULT, s);
-#endif
     SCODE sc = pTC->BindType(s, hashval, &pI, &pC);
     PY_INTERFACE_POSTCALL;
     if (FAILED(sc))

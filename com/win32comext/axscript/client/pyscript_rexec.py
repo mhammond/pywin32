@@ -5,11 +5,11 @@
 # As of Python 2.2, rexec is simply not available - thus, if you use this,
 # a HTML page can do almost *anything* at all on your machine.
 
-# You almost certainly do NOT want to use thus!
+# You almost certainly do NOT want to use this!
 
 import pythoncom
 from win32com.axscript import axscript
-import winerror
+
 from . import pyscript
 
 INTERFACE_USES_DISPEX = 0x00000004  # Object knows to use IDispatchEx
@@ -31,7 +31,12 @@ class PyScriptRExec(pyscript.PyScript):
     _reg_threading_ = "Apartment"
 
     def _GetSupportedInterfaceSafetyOptions(self):
-        # print "**** calling", pyscript.PyScript._GetSupportedInterfaceSafetyOptions, "**->", pyscript.PyScript._GetSupportedInterfaceSafetyOptions(self)
+        # print(
+        #     "**** calling",
+        #     pyscript.PyScript._GetSupportedInterfaceSafetyOptions,
+        #     "**->",
+        #     pyscript.PyScript._GetSupportedInterfaceSafetyOptions(self),
+        # )
         return (
             INTERFACE_USES_DISPEX
             | INTERFACE_USES_SECURITY_MANAGER

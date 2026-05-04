@@ -46,13 +46,11 @@
 # OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 
-from win32com import universal
-from win32com.server.exception import COMException
-from win32com.client import gencache, DispatchWithEvents
-import winerror
-import pythoncom
-from win32com.client import constants, Dispatch
 import sys
+
+import pythoncom
+from win32com import universal
+from win32com.client import DispatchWithEvents, constants, gencache
 
 # Support for COM objects we use.
 gencache.EnsureModule(
@@ -70,8 +68,8 @@ universal.RegisterInterfaces(
 
 class ButtonEvent:
     def OnClick(self, button, cancel):
-        import win32ui  # Possible, but not necessary, to use a Pythonwin GUI
-        import win32con
+        import win32con  # Possible, but not necessary, to use a Pythonwin GUI
+        import win32ui
 
         win32ui.MessageBox("Hello from Python", "Python Test", win32con.MB_OKCANCEL)
         return cancel
@@ -157,7 +155,7 @@ def UnregisterAddin(klass):
             winreg.HKEY_CURRENT_USER,
             "Software\\Microsoft\\Office\\Excel\\Addins\\" + klass._reg_progid_,
         )
-    except WindowsError:
+    except OSError:
         pass
 
 

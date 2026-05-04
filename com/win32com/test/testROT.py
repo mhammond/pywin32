@@ -1,5 +1,6 @@
-import pythoncom
 import unittest
+
+import pythoncom
 import win32com.test.util
 import winerror
 
@@ -21,7 +22,7 @@ class TestROT(win32com.test.util.TestCase):
                     raise
 
         # if num < 2:
-        #    print "Only", num, "objects in the ROT - this is unusual"
+        #     print("Only", num, "objects in the ROT - this is unusual")
 
 
 if __name__ == "__main__":

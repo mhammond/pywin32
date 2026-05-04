@@ -15,7 +15,7 @@
 
 #define PY_SSIZE_T_CLEAN  // this should be Py_ssize_t clean!
 
-#include "pywintypes.h"
+#include "PyWinTypes.h"
 
 #define CHECK_NO_ARGS2(args, fnName)              \
     do {                                          \
@@ -555,23 +555,8 @@ static PyObject *py_get_clipboard_sequence_number(PyObject *self, PyObject *args
     CHECK_NO_ARGS2(args, "GetClipboardSequenceNumber");
 
     DWORD rc;
-    typedef HRESULT(WINAPI * PFNGetClipboardSequenceNumber)();
-
-    // @comm This method is not available on some early Windows (eg 95) machines.
-    HMODULE hmod = LoadLibrary(TEXT("user32.dll"));
-    PFNGetClipboardSequenceNumber pfnGetClipboardSequenceNumber = NULL;
-    if (hmod)
-        pfnGetClipboardSequenceNumber =
-            (PFNGetClipboardSequenceNumber)GetProcAddress(hmod, "GetClipboardSequenceNumber");
-    if (pfnGetClipboardSequenceNumber == NULL) {
-        if (hmod)
-            FreeLibrary(hmod);
-        return PyErr_Format(PyExc_RuntimeError, "This version of Windows does not support this function");
-    }
     Py_BEGIN_ALLOW_THREADS;
-    rc = (*pfnGetClipboardSequenceNumber)();
-    if (hmod)
-        FreeLibrary(hmod);
+    rc = GetClipboardSequenceNumber();
     Py_END_ALLOW_THREADS;
 
     return (Py_BuildValue("i", (int)rc));
@@ -805,6 +790,11 @@ static PyObject *py_register_clipboard_format(PyObject *self, PyObject *args)
     // info.
 }
 
+static bool isTextFormat(int format)
+{
+    return ((format == CF_TEXT) || (format == CF_UNICODETEXT) || (format == CF_OEMTEXT));
+}
+
 //*****************************************************************************
 //
 // @pymethod int|win32clipboard|SetClipboardData|The SetClipboardData function
@@ -840,20 +830,25 @@ static PyObject *py_set_clipboard_data(PyObject *self, PyObject *args)
         PyErr_Clear();
 
         const void *buf = NULL;
+        TmpWCHAR tmpw;
         Py_ssize_t bufSize = 0;
         PyWinBufferView pybuf;
         // In py3k, unicode no longer supports buffer interface
         if (PyUnicode_Check(obhandle)) {
-            bufSize = PyUnicode_GET_DATA_SIZE(obhandle) + sizeof(Py_UNICODE);
-            buf = (void *)PyUnicode_AS_UNICODE(obhandle);
+            buf = tmpw = obhandle;
+            if (!tmpw)
+                return NULL;
+            bufSize = tmpw.length * sizeof(WCHAR);
+            if (isTextFormat(format))
+                bufSize += sizeof(WCHAR);
         }
         else {
             if (!pybuf.init(obhandle))
                 return NULL;
             buf = pybuf.ptr();
             bufSize = pybuf.len();
-            if (PyBytes_Check(obhandle))
-                bufSize++;  // size doesnt include nulls!
+            if ((PyBytes_Check(obhandle)) && (isTextFormat(format)))
+                bufSize++;  // size doesn't include nulls!
                             // else assume buffer needs no terminator...
         }
         handle = GlobalAlloc(GHND, bufSize);
@@ -1137,8 +1132,6 @@ PYWIN_MODULE_INIT_FUNC(win32clipboard)
     if (AddConstants(module) != 0)
         PYWIN_MODULE_INIT_RETURN_ERROR;
     if (PyDict_SetItemString(dict, "error", PyWinExc_ApiError) == -1)
-        PYWIN_MODULE_INIT_RETURN_ERROR;
-    if (PyDict_SetItemString(dict, "UNICODE", Py_True) == -1)
         PYWIN_MODULE_INIT_RETURN_ERROR;
     PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }

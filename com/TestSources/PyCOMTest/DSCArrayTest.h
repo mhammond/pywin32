@@ -3,7 +3,7 @@
 #ifndef __ARRAYTEST_H_
 #define __ARRAYTEST_H_
 
-//#include "resource.h"       // main symbols
+// #include "resource.h"       // main symbols
 
 /////////////////////////////////////////////////////////////////////////////
 // DSCArrayTest

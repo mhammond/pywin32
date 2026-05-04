@@ -4,12 +4,13 @@
 # This module, and the timer.pyd core timer support, were written by
 # Sam Rushing (rushing@nightmare.com)
 
-import timer
 import time
 
 # Timers are based on Windows messages.  So we need
 # to do the event-loop thing!
-import win32event, win32gui
+import timer
+import win32event
+import win32gui
 
 # glork holds a simple counter for us.
 
@@ -25,7 +26,7 @@ class glork:
 
     def increment(self, id, time):
         print("x = %d" % self.x)
-        self.x = self.x + 1
+        self.x += 1
         # if we've reached the max count,
         # kill off the timer.
         if self.x > self.max:

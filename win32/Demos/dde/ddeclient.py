@@ -1,6 +1,6 @@
 # 'Request' example added jjk  11/20/98
 
-import win32ui
+import win32ui  # isort: skip # Must be imported before dde !
 import dde
 
 server = dde.CreateServer()
@@ -15,4 +15,4 @@ conversation.Exec("DoSomethingElse")
 conversation.ConnectTo("RunAny", "ComputeStringLength")
 s = "abcdefghi"
 sl = conversation.Request(s)
-print('length of "%s" is %s' % (s, sl))
+print(f'length of "{s}" is {sl}')

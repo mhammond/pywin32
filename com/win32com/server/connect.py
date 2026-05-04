@@ -1,12 +1,14 @@
 """Utilities for Server Side connections.
 
-  A collection of helpers for server side connection points.
+A collection of helpers for server side connection points.
 """
+
 import pythoncom
-from .exception import Exception
+import win32com.server.util
 import winerror
 from win32com import olectl
-import win32com.server.util
+
+from .exception import COMException
 
 # Methods implemented by the interfaces.
 IConnectionPointContainer_methods = ["EnumConnectionPoints", "FindConnectionPoint"]
@@ -25,6 +27,7 @@ class ConnectableServer:
         pythoncom.IID_IConnectionPoint,
         pythoncom.IID_IConnectionPointContainer,
     ]
+
     # Clients must set _connect_interfaces_ = [...]
     def __init__(self):
         self.cookieNo = 0
@@ -32,10 +35,10 @@ class ConnectableServer:
 
     # IConnectionPoint interfaces
     def EnumConnections(self):
-        raise Exception(winerror.E_NOTIMPL)
+        raise COMException(winerror.E_NOTIMPL)
 
     def GetConnectionInterface(self):
-        raise Exception(winerror.E_NOTIMPL)
+        raise COMException(winerror.E_NOTIMPL)
 
     def GetConnectionPointContainer(self):
         return win32com.server.util.wrap(self)
@@ -48,8 +51,8 @@ class ConnectableServer:
                 self._connect_interfaces_[0], pythoncom.IID_IDispatch
             )
         except pythoncom.com_error:
-            raise Exception(scode=olectl.CONNECT_E_NOCONNECTION)
-        self.cookieNo = self.cookieNo + 1
+            raise COMException(scode=olectl.CONNECT_E_NOCONNECTION)
+        self.cookieNo += 1
         self.connections[self.cookieNo] = interface
         return self.cookieNo
 
@@ -58,11 +61,11 @@ class ConnectableServer:
         try:
             del self.connections[cookie]
         except KeyError:
-            raise Exception(scode=winerror.E_UNEXPECTED)
+            raise COMException(scode=winerror.E_UNEXPECTED)
 
     # IConnectionPointContainer interfaces
     def EnumConnectionPoints(self):
-        raise Exception(winerror.E_NOTIMPL)
+        raise COMException(winerror.E_NOTIMPL)
 
     def FindConnectionPoint(self, iid):
         # Find a connection we support.  Only support the single event interface.
@@ -79,4 +82,4 @@ class ConnectableServer:
                 self._OnNotifyFail(interface, details)
 
     def _OnNotifyFail(self, interface, details):
-        print("Ignoring COM error to connection - %s" % (repr(details)))
+        print(f"Ignoring COM error to connection - {details!r}")

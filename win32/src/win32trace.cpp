@@ -43,7 +43,7 @@ const TCHAR *EVENT_EMPTY_OBJECT_NAME = _T("Global\\PythonTraceOutputEmptyEvent")
 // Global\\ etc goodness:
 // On NT4/9x, 'Global\\' is not understood and will fail.
 // On 2k/XP, anyone can create 'global' objects.
-// On Vista, you need elavated perms to create global objects - however, once
+// On Vista, you need elevated perms to create global objects - however, once
 // it has been created and permissions adjusted, a user with normal
 // permissions can open these global objects.
 // As a service generally will be able to create global objects, we want a
@@ -69,7 +69,7 @@ BOOL use_global_namespace = FALSE;
 static const TCHAR *FixupObjectName(const TCHAR *global_name)
 {
     if (!use_global_namespace)
-        return _tcschr(global_name, '\\') + 1;
+        return wcschr(global_name, '\\') + 1;
     // global prefix is ok.
     return global_name;
 }

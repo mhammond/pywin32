@@ -63,7 +63,7 @@ class CPythonHandler {
     PyObject *DoCallback(HANDLER_TYPE typ, PyObject *args);
 
     bool LoadHandler(bool reload);
-    bool CPythonHandler::CheckCallback(const char *cbname, PyObject **cb);
+    bool CheckCallback(const char *cbname, PyObject **cb);
     const char *m_namefactory;
     const char *m_nameinit;
     const char *m_namedo;
@@ -79,6 +79,7 @@ class CPythonHandler {
 void ExtensionError(CControlBlock *pcb, const char *errmsg);
 void FilterError(CFilterContext *pfc, const char *errmsg);
 
+#ifndef __PYWINTYPES_H__
 class CEnterLeavePython {
    public:
     CEnterLeavePython() : state(PyGILState_Ensure()) { ; }
@@ -87,5 +88,6 @@ class CEnterLeavePython {
    protected:
     PyGILState_STATE state;
 };
+#endif
 
 #endif  // __PythonEngine_H

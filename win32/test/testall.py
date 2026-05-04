@@ -1,7 +1,9 @@
-import sys, os
+import os
 import re
-import unittest
+import sys
 import traceback
+import unittest
+
 import pywin32_testutil
 
 # A list of demos that depend on user-interface of *any* kind.  Tests listed
@@ -13,12 +15,11 @@ ui_demos = """GetSaveFileName print_desktop win32cred_demo win32gui_demo
               win32gui_devicenotify
               NetValidatePasswordPolicy""".split()
 # Other demos known as 'bad' (or at least highly unlikely to work)
-# cerapi: no CE module is built (CE via pywin32 appears dead)
 # desktopmanager: hangs (well, hangs for 60secs or so...)
 # EvtSubscribe_*: must be run together:
 # SystemParametersInfo: a couple of the params cause markh to hang, and there's
 # no great reason to adjust (twice!) all those system settings!
-bad_demos = """cerapi desktopmanager win32comport_demo
+bad_demos = """desktopmanager win32comport_demo
                EvtSubscribe_pull EvtSubscribe_push
                SystemParametersInfo
             """.split()
@@ -30,7 +31,7 @@ argvs = {
 no_user_interaction = True
 
 # re to pull apart an exception line into the exception type and the args.
-re_exception = re.compile("([a-zA-Z0-9_.]*): (.*)$")
+re_exception = re.compile(r"([a-zA-Z0-9_.]*): (.*)$")
 
 
 def find_exception_in_output(data):
@@ -83,7 +84,7 @@ def find_exception_in_output(data):
 class TestRunner:
     def __init__(self, argv):
         self.argv = argv
-        self.__name__ = "Test Runner for cmdline {}".format(argv)
+        self.__name__ = f"Test Runner for cmdline {argv}"
 
     def __call__(self):
         import subprocess
@@ -98,16 +99,13 @@ class TestRunner:
             base = os.path.basename(self.argv[1])
             # See if we can detect and reconstruct an exception in the output.
             reconstituted = find_exception_in_output(output)
-            if reconstituted is not None:
-                raise reconstituted
-            raise AssertionError(
-                "%s failed with exit code %s.  Output is:\n%s" % (base, rc, output)
+            assert reconstituted is not None, (
+                f"{base} failed with exit code {rc}.  Output is:\n{output}"
             )
+            raise reconstituted
 
 
 def get_demo_tests():
-    import win32api
-
     ret = []
     demo_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "Demos"))
     assert os.path.isdir(demo_dir), demo_dir
@@ -140,7 +138,7 @@ def import_all():
 
     dir = os.path.dirname(win32api.__file__)
     num = 0
-    is_debug = os.path.basename(win32api.__file__).endswith("_d")
+    is_debug = os.path.splitext(os.path.basename(win32api.__file__))[0].endswith("_d")
     for name in os.listdir(dir):
         base, ext = os.path.splitext(name)
         # handle `modname.cp310-win_amd64.pyd` etc
@@ -148,12 +146,7 @@ def import_all():
         if (
             (ext == ".pyd")
             and name != "_winxptheme.pyd"
-            and (
-                is_debug
-                and base.endswith("_d")
-                or not is_debug
-                and not base.endswith("_d")
-            )
+            and is_debug == base.endswith("_d")
         ):
             try:
                 __import__(base)

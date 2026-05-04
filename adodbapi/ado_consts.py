@@ -1,5 +1,6 @@
 # ADO enumerated constants documented on MSDN:
-# http://msdn.microsoft.com/en-us/library/ms678353(VS.85).aspx
+# https://learn.microsoft.com/en-us/sql/ado/reference/ado-api/ado-enumerated-constants
+# TODO: Update to https://learn.microsoft.com/en-us/sql/ado/reference/ado-api/ado-enumerated-constants
 
 # IsolationLevelEnum
 adXactUnspecified = -1
@@ -47,7 +48,7 @@ def ado_direction_name(ado_dir):
     try:
         return "adParam" + directions[ado_dir]
     except:
-        return "unknown direction (" + str(ado_dir) + ")"
+        return f"unknown direction ({ado_dir})"
 
 
 # ObjectStateEnum
@@ -79,6 +80,7 @@ ado_error_TIMEOUT = -2147217871
 
 # DataTypeEnum - ADO Data types documented at:
 # http://msdn2.microsoft.com/en-us/library/ms675318.aspx
+# TODO: Update to https://learn.microsoft.com/en-us/sql/ado/reference/ado-api/datatypeenum
 adArray = 0x2000
 adEmpty = 0x0
 adBSTR = 0x8
@@ -166,7 +168,7 @@ adTypeNames = {
 
 
 def ado_type_name(ado_type):
-    return adTypeNames.get(ado_type, "unknown type (" + str(ado_type) + ")")
+    return adTypeNames.get(ado_type, f"unknown type ({ado_type})")
 
 
 # here in decimal, sorted by value

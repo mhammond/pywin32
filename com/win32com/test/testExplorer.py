@@ -1,21 +1,20 @@
 # testExplorer -
 
-import sys
 import os
-import win32com.client.dynamic
-from win32com.client import Dispatch
-import win32api
-import win32gui
-import win32con
-import winerror
-import glob
-import pythoncom
 import time
+
+import pythoncom
+import win32api
+import win32com.client.dynamic
+import win32con
+import win32gui
+import winerror
+from win32com.client import Dispatch
 from win32com.test.util import CheckClean
 
 bVisibleEventFired = 0
 
-# These are errors we might see when this is run in automation (eg, on github)
+# These are errors we might see when this is run in automation (eg, on GitHub)
 # Not sure exactly what -2125463506 is, but google shows it's a common error
 # possibly related to how IE is configured WRT site permissions etc.
 HRESULTS_IN_AUTOMATION = [-2125463506, winerror.MK_E_UNAVAILABLE]
@@ -43,8 +42,7 @@ def TestExplorerEvents():
         return
 
     iexplore.Visible = 1
-    if not bVisibleEventFired:
-        raise RuntimeError("The IE event did not appear to fire!")
+    assert bVisibleEventFired, "The IE event did not appear to fire!"
     iexplore.Quit()
     iexplore = None
 
@@ -52,8 +50,7 @@ def TestExplorerEvents():
     ie = win32com.client.Dispatch("InternetExplorer.Application")
     ie_events = win32com.client.DispatchWithEvents(ie, ExplorerEvents)
     ie.Visible = 1
-    if not bVisibleEventFired:
-        raise RuntimeError("The IE event did not appear to fire!")
+    assert bVisibleEventFired, "The IE event did not appear to fire!"
     ie.Quit()
     ie = None
     print("IE Event tests worked.")
@@ -61,20 +58,16 @@ def TestExplorerEvents():
 
 def TestObjectFromWindow():
     # Check we can use ObjectFromLresult to get the COM object from the
-    # HWND - see KB Q249232
-    # Locating the HWND is different than the KB says...
     hwnd = win32gui.FindWindow("IEFrame", None)
-    for child_class in [
+    # Thanks https://stackoverflow.com/a/10154498/18450412 for the child stack on IE8+
+    for child_class in (
+        "Frame Tab",
         "TabWindowClass",
         "Shell DocObject View",
         "Internet Explorer_Server",
-    ]:
+    ):
         hwnd = win32gui.FindWindowEx(hwnd, 0, child_class, None)
-        # ack - not working for markh on vista with IE8 (or maybe it is the
-        # lack of the 'accessibility' components mentioned in Q249232)
-        # either way - not working!
-        return
-    # But here is the point - once you have an 'Internet Explorer_Server',
+    # Once you have an 'Internet Explorer_Server',
     # you can send a message and use ObjectFromLresult to get it back.
     msg = win32gui.RegisterWindowMessage("WM_HTML_GETOBJECT")
     rc, result = win32gui.SendMessageTimeout(

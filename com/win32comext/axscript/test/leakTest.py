@@ -1,10 +1,10 @@
 import sys
-from win32com.axscript.server.error import Exception
+
+import pythoncom
+import pywintypes
 from win32com.axscript import axscript
 from win32com.axscript.server import axsite
-import pythoncom
-from win32com.server import util, connect
-import win32com.server.policy
+from win32com.server import connect, util
 
 
 class MySite(axsite.AXSite):
@@ -51,14 +51,15 @@ class Test:
 #    self._connect_server_.Broadcast(last)
 
 
-#### Connections currently wont work, as there is no way for the engine to
+#### Connections currently won't work, as there is no way for the engine to
 #### know what events we support.  We need typeinfo support.
 
-IID_ITestEvents = pythoncom.MakeIID("{8EB72F90-0D44-11d1-9C4B-00AA00125A98}")
+IID_ITestEvents = pywintypes.IID("{8EB72F90-0D44-11d1-9C4B-00AA00125A98}")
 
 
 class TestConnectServer(connect.ConnectableServer):
     _connect_interfaces_ = [IID_ITestEvents]
+
     # The single public method that the client can call on us
     # (ie, as a normal COM server, this exposes just this single method.
     def __init__(self, object):
@@ -78,7 +79,7 @@ prop = "Property Value"
 sub hello(arg1)
    test.echo arg1
 end sub
-  
+
 sub testcollection
    test.verbose = 1
    for each item in test.collection
@@ -86,16 +87,15 @@ sub testcollection
    next
 end sub
 """
-if sys.version_info < (3,):
-    PyScript = """print "PyScript is being parsed..."\n"""
-else:
-    PyScript = """print("PyScript is being parsed...")\n"""
-PyScript += """\
+
+PyScript = """\
+print("PyScript is being parsed...")\n
+
 prop = "Property Value"
 def hello(arg1):
    test.echo(arg1)
    pass
-   
+
 def testcollection():
    test.verbose = 1
 #   test.collection[1] = "New one"
@@ -145,10 +145,10 @@ def doTestEngine(engine, echoer):
         print("***** Calling 'hello' failed", exc)
         return
     if echoer.last != "Goober":
-        print("***** Function call didnt set value correctly", repr(echoer.last))
+        print(f"***** Function call didnt set value correctly {echoer.last!r}")
 
     if str(ob.prop) != "Property Value":
-        print("***** Property Value not correct - ", repr(ob.prop))
+        print(f"***** Property Value not correct - {ob.prop!r}")
 
     ob.testcollection()
 
@@ -166,11 +166,11 @@ def dotestall():
         print(sys.gettotalrefcount())
 
 
-##  print "Testing Exceptions"
-##  try:
-##    TestEngine("Python", ErrScript, 0)
-##  except pythoncom.com_error:
-##    pass
+# print("Testing Exceptions")
+# try:
+#     TestEngine("Python", ErrScript, 0)
+# except pythoncom.com_error:
+#     pass
 
 
 def testall():

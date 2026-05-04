@@ -1,9 +1,7 @@
-# -*- coding: latin-1 -*-
-
 # PyWin32 Internet Explorer Toolbar
 #
 # written by Leonard Ritter (paniq@gmx.net)
-# and Robert Förtsch (info@robert-foertsch.com)
+# and Robert FÃ¶rtsch (info@robert-foertsch.com)
 
 
 """
@@ -15,33 +13,26 @@ It also demonstrates how to hijack the parent window
 to catch WM_COMMAND messages.
 """
 
+import array
+import struct
+
 # imports section
-import sys, os
-from win32com import universal
-from win32com.client import gencache, DispatchWithEvents, Dispatch
-from win32com.client import constants, getevents
-import win32com
-import pythoncom
+import sys
 import winreg
 
-from win32com.shell import shell
-from win32com.shell.shellcon import *
-from win32com.axcontrol import axcontrol
-
-try:
-    # try to get styles (winxp)
-    import winxpgui as win32gui
-except:
-    # import default module (win2k and lower)
-    import win32gui
-import win32ui
-import win32con
 import commctrl
-
-import array, struct
+import pythoncom
+import win32com
+import win32con
+import win32gui
+import win32ui
+from win32com.axcontrol import axcontrol
+from win32com.client import Dispatch, gencache
+from win32com.shell import shell
+from win32com.shell.shellcon import DBIMF_VARIABLEHEIGHT
 
 # ensure we know the ms internet controls typelib so we have access to IWebBrowser2 later on
-win32com.client.gencache.EnsureModule("{EAB22AC0-30C1-11CF-A7EB-0000C05BAE0B}", 0, 1, 1)
+gencache.EnsureModule("{EAB22AC0-30C1-11CF-A7EB-0000C05BAE0B}", 0, 1, 1)
 
 #
 IDeskBand_methods = ["GetBandInfo"]
@@ -226,7 +217,7 @@ class IEToolbar:
 
     def on_first_button(self):
         print("first!")
-        self.webbrowser.Navigate2("http://starship.python.net/crew/mhammond/")
+        self.webbrowser.Navigate2("https://github.com/mhammond/pywin32")
 
     def on_second_button(self):
         print("second!")
@@ -251,7 +242,7 @@ class IEToolbar:
             # then travel over to a service provider
             serviceprovider = cmdtarget.QueryInterface(pythoncom.IID_IServiceProvider)
             # finally ask for the internet explorer application, returned as a dispatch object
-            self.webbrowser = win32com.client.Dispatch(
+            self.webbrowser = Dispatch(
                 serviceprovider.QueryService(
                     "{0002DF05-0000-0000-C000-000000000046}", pythoncom.IID_IDispatch
                 )
@@ -325,9 +316,9 @@ def DllRegisterServer():
             winreg.HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Internet Explorer\\Toolbar"
         )
         subKey = winreg.SetValueEx(
-            hkey, comclass._reg_clsid_, 0, winreg.REG_BINARY, "\0"
+            hkey, comclass._reg_clsid_, 0, winreg.REG_BINARY, b"\0"
         )
-    except WindowsError:
+    except OSError:
         print(
             "Couldn't set registry value.\nhkey: %d\tCLSID: %s\n"
             % (hkey, comclass._reg_clsid_)
@@ -350,7 +341,7 @@ def DllUnregisterServer():
             winreg.HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Internet Explorer\\Toolbar"
         )
         winreg.DeleteValue(hkey, comclass._reg_clsid_)
-    except WindowsError:
+    except OSError:
         print(
             "Couldn't delete registry value.\nhkey: %d\tCLSID: %s\n"
             % (hkey, comclass._reg_clsid_)

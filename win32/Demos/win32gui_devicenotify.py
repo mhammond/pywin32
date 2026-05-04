@@ -1,13 +1,19 @@
 # Demo RegisterDeviceNotification etc.  Creates a hidden window to receive
 # notifications.  See serviceEvents.py for an example of a service doing
 # that.
-import sys, time
-import win32gui, win32con, win32api, win32file
-import win32gui_struct, winnt
+import sys
+import time
+
+import win32con
+import win32file
+import win32gui
+import win32gui_struct
+import winnt
 
 # These device GUIDs are from Ioevent.h in the Windows SDK.  Ideally they
 # could be collected somewhere for pywin32...
 GUID_DEVINTERFACE_USB_DEVICE = "{A5DCBF10-6530-11D2-901F-00C04FB951ED}"
+
 
 # WM_DEVICECHANGE message handler.
 def OnDeviceChange(hwnd, msg, wp, lp):

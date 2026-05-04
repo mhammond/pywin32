@@ -1,6 +1,5 @@
 // shell_pch.h : header file for PCH generation for the shell COM extension
 
-#define _WIN32_IE _WIN32_IE_IE70
 #include <PythonCOM.h>
 #include <PythonCOMServer.h>
 #include <oleauto.h>
@@ -57,7 +56,6 @@ BOOL PyObject_AsFOLDERSETTINGS(PyObject *ob, FOLDERSETTINGS *pf);
 BOOL PyWinObject_AsSHELL_ITEM_RESOURCE(PyObject *ob, SHELL_ITEM_RESOURCE *psir);
 PyObject *PyWinObject_FromSHELL_ITEM_RESOURCE(const SHELL_ITEM_RESOURCE *psir);
 
-// Vista has new spellings for PIDL.
 inline BOOL PyObject_AsPCUIDLIST_RELATIVE(PyObject *ob, PCUIDLIST_RELATIVE *ppidl, BOOL bNoneOK = FALSE,
                                           UINT *pcb = NULL)
 {

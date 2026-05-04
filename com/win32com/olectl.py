@@ -1,6 +1,6 @@
 """Constants used by COM Controls
 
-  Hand created version of OLECTL.H constants.
+Hand created version of olectl.h constants.
 """
 
 import winerror
@@ -9,7 +9,7 @@ FACILITY_CONTROL = 0xA
 
 
 def MAKE_SCODE(sev, fac, code):
-    return int((int(-sev) << 31) | ((fac) << 16) | ((code)))
+    return int((int(-sev) << 31) | ((fac) << 16) | (code))
 
 
 def STD_CTL_SCODE(n):

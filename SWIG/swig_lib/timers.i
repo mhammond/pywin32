@@ -2,14 +2,14 @@
 // $Header$
 //
 // timers.i
-// A SWIG file for adding various timing functions. 
+// A SWIG file for adding various timing functions.
 // Really, this is modeled after the timers in the CMMD
 // message passing library for the CM-5.
-// 
+//
 // Dave Beazley
 // April 2, 1996
 //
-/* Revision history 
+/* Revision history
  * $Log$
  * Revision 1.1  1996/05/22 17:27:01  beazley
  * Initial revision
@@ -95,7 +95,7 @@ SWIG_timer_elapsed(int i)
 %include timers.i
 
 This module provides a collection of timing functions designed for
-performance analysis and benchmarking of different code fragments. 
+performance analysis and benchmarking of different code fragments.
 
 A total of 64 different timers are available.   Each timer can be
 managed independently using four functions :
@@ -134,8 +134,8 @@ performance.   To use a timer, simply use code like this :
       timer_start(0)
       ... a bunch of Python code ...
       timer_stop(0)
-      print timer_elapsed(0)," seconds of CPU time"
-%}      
+      print(timer_elapsed(0), " seconds of CPU time")
+%}
 #endif
 
 %text %{
@@ -150,18 +150,14 @@ computationally intensive operations.
 %}
 
 
-%name(timer_clear)   void SWIG_timer_clear(int n);   
+%name(timer_clear)   void SWIG_timer_clear(int n);
 /* Clears timer n. */
 
-%name(timer_start)   void SWIG_timer_start(int n);   
+%name(timer_start)   void SWIG_timer_start(int n);
 /* Starts timer n. */
 
-%name(timer_stop)    void SWIG_timer_stop(int n);    
+%name(timer_stop)    void SWIG_timer_stop(int n);
 /* Stops timer n. */
 
-%name(timer_elapsed) double SWIG_timer_elapsed(int n); 
+%name(timer_elapsed) double SWIG_timer_elapsed(int n);
 /* Return the elapsed time (in seconds) of timer n */
-
-
-
-

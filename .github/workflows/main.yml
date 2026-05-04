@@ -2,107 +2,194 @@ name: CI
 
 on:
   push:
+    branches:
+      - main
   pull_request:
     branches:
-    - main
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
 
 jobs:
   test:
-    runs-on: windows-2019
+    name: Build and test
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: &timeout-minutes 25
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.6', '3.7', '3.8', '3.9', '3.10', '3.11-dev']
-        architecture: ['x64', 'x86']
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
+        python-architecture: [x64, x86, arm64]
+        include:
+          - os: windows-2022
+          - python-architecture: arm64
+            os: windows-11-arm
+        exclude:
+          # actions/setup-python does not provide prebuilt arm64 Python before 3.11
+          - python-architecture: arm64
+            python-version: "3.9"
+          - python-architecture: arm64
+            python-version: "3.10"
+    env:
+      # TODO: We can't yet run tests with PYTHONDEVMODE=1, let's emulated it as much as we can
+      # https://docs.python.org/3/library/devmode.html#effects-of-the-python-development-mode
+      PYTHONMALLOC: debug
+      PYTHONASYNCIODEBUG: 1
+      PYTHONWARNINGS: always
+      # PYTHONFAULTHANDLER: 1 # This causes our tests to fail
 
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python-version }}
-        architecture: ${{ matrix.architecture }}
-
-    - name: Setup environment
-      run: |
-        python --version
-        pip --version
-        # XXX With setuptools 63.4.3 .. 64.0.0 the scintilla nmake won't compile (
-        # setuptools.msvc._msvc14_get_vc_env() won't get the VC\INCLUDE into os.environ)
-        # Lets see if this will be fixed again in higher versions
-        pip install --upgrade setuptools<=63.2.0 wheel
-
-    - name: Build and install
-      run: |
-        python setup.py --skip-verstamp install --user
-
-    - name: Run tests
-      # Run the tests directly from the source dir so support files (eg, .wav files etc)
-      # can be found - they aren't installed into the Python tree.
-      run: python pywin32_testall.py -v -skip-adodbapi
-
-    - name: Build wheels
-      run: |
-        python setup.py bdist_wheel --skip-build
-
-    # 3.10 dropped support for bdist_wininst. If we had both 3.9 and 3.10 available in a single
-    # environment we could also build the .exe for 3.10+ - but for now, we can't.
-    - if: matrix.python-version != '3.10' && matrix.python-version != '3.11-dev'
-      name: Build installers
-      run: |
-        python setup.py bdist_wininst --skip-build --target-version=${{ matrix.python-version }}
-
-    - uses: actions/upload-artifact@v2
-      if: ${{ always() }}
-      with:
-        name: artifacts
-        path: |
-          dist/*.whl
-          dist/*.exe
-
-  # We cannot build and test on ARM64, so we cross-compile.
-  # Later, when available, we can add tests using this wheel on ARM64 VMs
-  build_arm64:
-    runs-on: windows-2019
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ['3.10', '3.11-dev']
-
-    steps:
-    - uses: actions/checkout@v2
-
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python-version }}
-        architecture: 'x64'
-
-    - name: Setup Environment
-      run: |
-        python --version
-        pip --version
-        pip install --upgrade setuptools<=63.2.0 wheel
-
-    - name: Obtain ARM64 library files
-      run: |
-        python .github\workflows\download-arm64-libs.py .\arm64libs
-
-    - name: Build wheels
-      run: python setup.py --skip-verstamp build_ext -L .\arm64libs --plat-name win-arm64 build --plat-name win-arm64 bdist_wheel --plat-name win-arm64
-
-    - uses: actions/upload-artifact@v2
-      if: ${{ always() }}
-      with:
-        name: artifacts
-        path: |
-          dist/*.whl
-
-  black:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: psf/black@stable
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v6
         with:
-          options: "--fast --check --diff --verbose"
+          python-version: ${{ matrix.python-version }}
+          architecture: ${{ matrix.python-architecture }}
+          check-latest: true
+          allow-prereleases: true
+
+      - name: Build and install
+        run: pip install . -v --user
+
+      # This needs to happen *after* installing pywin32 since
+      # AutoDuck/py2d.py currently relies on runtime imports for introspection
+      # This isn't included in the wheel (TODO: could we?)
+      # and only serves as a PR test for the docs.yaml workflow
+      - name: Generate PyWin32.chm help file
+        run: python AutoDuck/make.py
+
+      # Smokescreen test to validate postinstall doesn't crash, dlls can be found, and both pathless invocation methods work
+      - name: Run postinstall install/remove
+        run: |
+          $UserSite = "$(python -m site --user-site)"
+          python -m win32.scripts.pywin32_postinstall -install -destination "$UserSite"
+          pywin32_postinstall -remove -destination "$UserSite"
+
+      # Compilation and registration of the PyCOMTest server dll
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Build and register the PyCOMTest server dll
+        # Pass Silent flag to regsvr32 to avoid hanging on confirmation window
+        run: com/TestSources/PyCOMTest/buildAndRegister.bat /s
+
+      - name: Run tests
+        # Run the tests directly from the source dir so support files (eg, .wav files etc)
+        # can be found - they aren't installed into the Python tree.
+        run: python win32/scripts/pywin32_testall.py -v -skip-adodbapi
+
+      - name: Build wheels
+        run: pip wheel . -v --wheel-dir=dist
+
+      - uses: actions/upload-artifact@v4
+        # Upload artifacts even if tests fail
+        if: ${{ always() }}
+        with:
+          name: artifacts-${{ matrix.python-version }}-${{ matrix.python-architecture }}
+          path: dist/*.whl
+          if-no-files-found: error
+
+  # actions/setup-python does not provide prebuilt arm64 Python before 3.11, so we cross-compile.
+  cross_compile_arm64:
+    name: Cross-compile ARM64
+    runs-on: windows-2022
+    timeout-minutes: *timeout-minutes
+    strategy:
+      fail-fast: false
+      matrix:
+        # pythonarm64 NuGet has no download for Python ~=3.9.11
+        python-version: ["3.9.10", "3.10"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+          activate-environment: true
+
+      - name: Obtain ARM64 library files
+        run: python .github\workflows\download-arm64-libs.py ./arm64libs
+
+      - name: Build wheels
+        run: uv build --wheel --config-setting=--build-option="build_ext -L./arm64libs --plat-name=win-arm64 build --plat-name=win-arm64 bdist_wheel --plat-name=win-arm64"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: artifacts-${{ matrix.python-version }}-arm64
+          path: dist/*.whl
+          if-no-files-found: error
+
+  merge:
+    runs-on: ubuntu-latest
+    needs: [test, cross_compile_arm64]
+    steps:
+      - name: Merge Artifacts
+        uses: actions/upload-artifact/merge@v4
+        with:
+          name: artifacts
+          pattern: artifacts-*
+      - name: Delete standalone Artifacts
+        uses: geekyeggo/delete-artifact@v5
+        with:
+          name: artifacts-*
+
+  # This job can be run locally by running `pre-commit run`
+  checkers:
+    runs-on: ubuntu-latest
+    timeout-minutes: *timeout-minutes
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v7
+        with:
+          # This job only needs to target the oldest supported version
+          python-version: "3.9"
+          activate-environment: true
+      - run: uv pip install --group=checkers
+
+      # !cancelled(): Show issues even if the previous steps failed. But still fail the job
+      - name: Run Ruff linter
+        uses: astral-sh/ruff-action@v3
+        if: ${{ !cancelled() }}
+      - name: Run Ruff formatter
+        run: ruff format --check
+        if: ${{ !cancelled() }}
+
+      # Too many files to fit in a single command, also exclude vendored Scintilla and MAPIStubLibrary
+      - run: |
+          clang-format --Werror --dry-run $(git ls-files '*.cpp' ':!:com/win32comext/mapi/src/MAPIStubLibrary/')
+          if ($LastExitCode -ne 0) { exit $LastExitCode }
+        shell: pwsh
+        if: ${{ !cancelled() }}
+      - run: |
+          clang-format --Werror --dry-run $(git ls-files '*.h' ':!:pythonwin/Scintilla/' ':!:com/win32comext/mapi/src/MAPIStubLibrary/')
+          if ($LastExitCode -ne 0) { exit $LastExitCode }
+        shell: pwsh
+        if: ${{ !cancelled() }}
+
+  type-checkers:
+    runs-on: ubuntu-latest
+    timeout-minutes: *timeout-minutes
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+          activate-environment: true
+      - run: uv pip install --group=type-checkers
+
+      - run: mypy . --python-version=${{ matrix.python-version }}
+
+      - uses: jakebailey/pyright-action@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+          version: PATH
+          annotate: errors
+        if: ${{ !cancelled() }} # Show issues even if the previous steps failed. But still fail the job

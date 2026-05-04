@@ -26,6 +26,17 @@ extern PyObject *PyWinMethod_NewHKEY(PyObject *self, PyObject *args);
 extern BOOL _PyWinDateTime_Init();
 extern BOOL _PyWinDateTime_PrepareModuleDict(PyObject *dict);
 
+HMODULE PyWin_GetOrLoadLibraryHandle(const char *name)
+{
+    DWORD lastErr = GetLastError();
+    HMODULE hmodule = GetModuleHandleA(name);
+    if (hmodule == NULL)
+        hmodule = LoadLibraryA(name);
+    if (hmodule != NULL)
+        SetLastError(lastErr);
+    return hmodule;
+}
+
 // XXX - Needs py3k modernization!
 // For py3k, a function that returns new memoryview object instead of buffer.
 // ??? Byte array object is mutable, maybe just use that directly as a substitute ???
@@ -60,7 +71,7 @@ PyObject *PyBuffer_FromMemory(void *buf, Py_ssize_t size)
     return PyMemoryView_FromBuffer(&info);
 }
 
-// See comments in pywintypes.h for why we need this!
+// See comments in PyWinTypes.h for why we need this!
 void PyWin_MakePendingCalls()
 {
     while (1) {
@@ -275,9 +286,9 @@ HINSTANCE PyWin_GetErrorMessageModule(DWORD err)
 }
 
 /* error helper - GetLastError() is provided, but this is for exceptions */
-PyObject *PyWin_SetAPIError(char *fnName, long err /*= 0*/)
+PyObject *PyWin_SetAPIError(char *fnName, long err /*= ERROR_SUCCESS*/)
 {
-    DWORD errorCode = err == 0 ? GetLastError() : err;
+    DWORD errorCode = err == ERROR_SUCCESS ? GetLastError() : err;
     DWORD flags = FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS;
     // try and find the hmodule providing this error.
     HMODULE hmodule = PyWin_GetErrorMessageModule(errorCode);
@@ -308,6 +319,15 @@ PyObject *PyWin_SetAPIError(char *fnName, long err /*= 0*/)
     return NULL;
 }
 
+/* error helper - like PyWin_SetAPIError, but returns None on success */
+PyObject *PyWin_SetAPIErrorOrReturnNone(char *fnName, long err /*= ERROR_SUCCESS*/)
+{
+    DWORD errorCode = err == ERROR_SUCCESS ? GetLastError() : err;
+    if (errorCode == ERROR_SUCCESS)
+        Py_RETURN_NONE;
+    return PyWin_SetAPIError(fnName, errorCode);
+}
+
 // This function sets a basic COM error - it is a valid COM
 // error, but may not contain rich error text about the error.
 // Designed to be used before pythoncom has been loaded.
@@ -334,16 +354,6 @@ PyObject *PyWin_SetBasicCOMError(HRESULT hr)
     return NULL;
 }
 
-// @pymethod string|pywintypes|Unicode|Creates a new Unicode object
-PYWINTYPES_EXPORT PyObject *PyWin_NewUnicode(PyObject *self, PyObject *args)
-{
-    char *string;
-    int slen;
-    if (!PyArg_ParseTuple(args, "t#", &string, &slen))
-        return NULL;
-    return PyUnicode_DecodeMBCS(string, slen, NULL);
-}
-
 // @pymethod string|pywintypes|UnicodeFromRaw|Creates a new Unicode object from raw binary data
 static PyObject *PyWin_NewUnicodeFromRaw(PyObject *self, PyObject *args)
 {
@@ -357,8 +367,6 @@ static PyObject *PyWin_NewUnicodeFromRaw(PyObject *self, PyObject *args)
         return NULL;
     return PyWinObject_FromWCHAR((WCHAR *)pybuf.ptr(), pybuf.len() / sizeof(OLECHAR));
 }
-
-#ifndef MS_WINCE /* This code is not available on Windows CE */
 
 // @pymethod int, int|pywintypes|IsTextUnicode|Determines whether a buffer probably contains a form of Unicode text.
 static PyObject *PyWin_IsTextUnicode(PyObject *self, PyObject *args)
@@ -405,7 +413,6 @@ static PyObject *PyWin_DosDateTimeToTime(PyObject *self, PyObject *args)
         return PyWin_SetAPIError("DosDateTimeToFileTime");
     return PyWinObject_FromFILETIME(fd);
 }
-#endif /* MS_WINCE */
 
 PyObject *PyObject_FromWIN32_FIND_DATAW(WIN32_FIND_DATAW *pData)
 {
@@ -465,7 +472,7 @@ BOOL PyWinObject_AsDWORDArray(PyObject *obdwords, DWORD **pdwords, DWORD *item_c
         for (tuple_index = 0; tuple_index < *item_cnt; tuple_index++) {
             tuple_item = PyTuple_GET_ITEM(dwords_tuple, tuple_index);
             // Doesn't check for overflow, but will accept a python long
-            //  greater than INT_MAX (even on python 2.3).  Also accepts
+            //  greater than INT_MAX (even on Python 2.3).  Also accepts
             //  negatives and converts to the correct hex representation
             (*pdwords)[tuple_index] = PyLong_AsUnsignedLongMask(tuple_item);
             if (((*pdwords)[tuple_index] == -1) && PyErr_Occurred()) {
@@ -505,7 +512,7 @@ PyLong_AsVoidPtr is unsuitable for use in many places due to the following issue
     that function and can be converted back to a usable address.
 
 From the response to this bug report:
-http://sourceforge.net/tracker/?func=detail&atid=105470&aid=1630863&group_id=5470
+https://github.com/python/cpython/issues/44430
 apparently if you want any reasonable or consistent behaviour from this function
 you're expected to perform the type checking yourself first.
 And if you have to do all that, why use the damn function at all ?
@@ -531,7 +538,7 @@ BOOL PyWinLong_AsVoidPtr(PyObject *ob, void **pptr)
     // Since Python 3.10, calling __int__ is no longer done, so we convert to an int explicitly.
     PyObject *longob = PyNumber_Long(ob);
     if (!longob && PyErr_Occurred()) {
-        PyErr_Format(PyExc_TypeError, "Unable to convert %s to pointer-sized value", ob->ob_type->tp_name);
+        PyErr_Format(PyExc_TypeError, "Unable to convert %s to pointer-sized value", Py_TYPE(ob)->tp_name);
         return FALSE;
     }
     *pptr = (void *)SIGNED_CONVERTER(longob);
@@ -540,7 +547,7 @@ BOOL PyWinLong_AsVoidPtr(PyObject *ob, void **pptr)
         *pptr = (void *)UNSIGNED_CONVERTER(longob);
         if (*pptr == (void *)-1 && PyErr_Occurred()) {
             Py_DECREF(longob);
-            PyErr_Format(PyExc_TypeError, "Unable to convert %s to pointer-sized value", ob->ob_type->tp_name);
+            PyErr_Format(PyExc_TypeError, "Unable to convert %s to pointer-sized value", Py_TYPE(ob)->tp_name);
             return FALSE;
         }
     }
@@ -602,35 +609,66 @@ void PyWinObject_FreeResourceId(WCHAR *resource_id)
         PyWinObject_FreeWCHAR(resource_id);
 }
 
-// Conversion for WPARAM and LPARAM
+// Conversion for WPARAM and LPARAM from a simple integer value. Used when we
+// can't guarantee memory pointed at will remain valid as long as necessary.
+// In that scenario, the caller is responsible for arranging memory safety.
+BOOL PyWinObject_AsSimplePARAM(PyObject *ob, WPARAM *wparam)
+{
+    // convert simple integers directly
+    void *simple = PyLong_AsVoidPtr(ob);
+    if (simple || !PyErr_Occurred()) {
+        *wparam = (WPARAM)simple;
+        return TRUE;
+    }
+    PyErr_Clear();
+
+    // unlikely - convert any object providing .__int__() for backward compatibility
+    if (PyWinLong_AsVoidPtr(ob, (void **)wparam)) {
+        return TRUE;
+    }
+
+    PyErr_Format(PyExc_TypeError, "WPARAM is simple, so must be an int object (got %s)", Py_TYPE(ob)->tp_name);
+    return FALSE;
+}
+
+// Converts for WPARAM and LPARAM: int or str (WCHAR*) or buffer (pointer to its locked memory)
 // (WPARAM is defined as UINT_PTR, and LPARAM is defined as LONG_PTR - see
-// pywintypes.h for inline functions to resolve this)
-BOOL PyWinObject_AsPARAM(PyObject *ob, WPARAM *pparam)
+// PyWinTypes.h for inline functions to resolve this)
+BOOL PyWinObject_AsPARAM(PyObject *ob, PyWin_PARAMHolder *holder)
 {
     assert(!PyErr_Occurred());  // lingering exception?
     if (ob == NULL || ob == Py_None) {
-        *pparam = NULL;
+        *holder = (WPARAM)0;
         return TRUE;
     }
+
+    // fast-track - most frequent by far are simple integers
+    void *simple = PyLong_AsVoidPtr(ob);
+    if (simple || !PyErr_Occurred()) {
+        *holder = (WPARAM)simple;
+        return TRUE;
+    }
+    PyErr_Clear();
 
     if (PyUnicode_Check(ob)) {
-        *pparam = (WPARAM)PyUnicode_AS_UNICODE(ob);
-        return TRUE;
-    }
-    PyWinBufferView pybuf(ob);
-    if (pybuf.ok()) {
-        // note: this might be unsafe, as we give away the buffer pointer to a
-        // client outside of the scope where our RAII object 'pybuf' resides.
-        *pparam = (WPARAM)pybuf.ptr();
-        return TRUE;
+        return holder->set_allocated(PyUnicode_AsWideCharString(ob, NULL)) != NULL;
     }
 
-    PyErr_Clear();
-    if (PyWinLong_AsVoidPtr(ob, (void **)pparam))
+    if (holder->init_buffer(ob)) {
         return TRUE;
+    }
+    PyErr_Clear();
+
+    // Finally try to convert any object providing .__int__() . That's undocumented
+    // and probably not used from inside pywin32. But existing for long time and won't impact
+    // speed here at the end of the game.
+    if (PyWinLong_AsVoidPtr(ob, &simple)) {
+        *holder = (WPARAM)simple;
+        return TRUE;
+    }
 
     PyErr_Format(PyExc_TypeError, "WPARAM must be a unicode string, int, or buffer object (got %s)",
-                 ob->ob_type->tp_name);
+                 Py_TYPE(ob)->tp_name);
     return FALSE;
 }
 
@@ -654,68 +692,33 @@ PyObject *PyWinObject_FromRECT(LPRECT prect)
     return Py_BuildValue("llll", prect->left, prect->top, prect->right, prect->bottom);
 }
 
-// replacement for PyWinObject_AsReadBuffer and PyWinObject_AsWriteBuffer
-PyWinBufferView::PyWinBufferView()
-{
-    memset(&m_view, 0, sizeof(m_view));
-}
-
+// When init() fails, an appropriate Python error has been set too
 bool PyWinBufferView::init(PyObject *ob, bool bWrite, bool bNoneOk)
 {
     release();
-    memset(&m_view, 0, sizeof(m_view));
     if (ob == Py_None) {
         if (bNoneOk) {
-            // using Py_None as sentinel, leaving m_view's buf and len equal to 0
+            // using Py_None as sentinel, for handling a "valid" NULL buffer pointer
             m_view.obj = Py_None;
-        } else
+            m_view.buf = NULL;
+            m_view.len = 0;
+        }
+        else
             PyErr_SetString(PyExc_TypeError, "Buffer cannot be None");
-    } else if (ob != NULL) {
+    }
+    else if (ob != NULL) {
         PyObject_GetBuffer(ob, &m_view, bWrite ? PyBUF_WRITABLE : PyBUF_SIMPLE);
 
 #ifdef _WIN64
-        if (m_view.len > MAXDWORD) {
-            PyBuffer_Release(&m_view);
-            memset(&m_view, 0, sizeof(m_view));
+        if (m_view.obj && m_view.len > MAXDWORD) {
+            PyBuffer_Release(&m_view);  // already sets view->obj = NULL
             PyErr_Format(PyExc_ValueError, "Buffer length can be at most %d characters", MAXDWORD);
         }
 #endif
     }
+    else  // ob == NULL handled as not ok
+        m_view.obj = NULL;
     return ok();
-}
-
-PyWinBufferView::PyWinBufferView(PyObject *ob, bool bWrite, bool bNoneOk)
-{
-    memset(&m_view, 0, sizeof(m_view));
-    init(ob, bWrite, bNoneOk);
-}
-
-void PyWinBufferView::release()
-{
-    // don't call PyBuffer_Release on NULL or Py_None
-    if (m_view.obj != NULL && m_view.obj != Py_None) {
-        PyBuffer_Release(&m_view);
-    }
-}
-
-PyWinBufferView::~PyWinBufferView()
-{
-    release();
-}
-
-bool PyWinBufferView::ok()
-{
-    return m_view.obj != NULL;
-}
-
-void* PyWinBufferView::ptr()
-{
-    return m_view.buf;
-}
-
-DWORD PyWinBufferView::len()
-{
-    return static_cast<DWORD>(m_view.len);
 }
 
 // Converts sequence into a tuple and verifies that length fits in length variable
@@ -749,8 +752,8 @@ BOOL PyWinObject_AsMSG(PyObject *ob, MSG *pMsg)
                                         // coordinates, when the message was posted.
                           &pMsg->pt.y))
         return FALSE;
-    return PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&pMsg->hwnd) && PyWinObject_AsPARAM(obwParam, &pMsg->wParam) &&
-           PyWinObject_AsPARAM(oblParam, &pMsg->lParam);
+    return PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&pMsg->hwnd) && PyWinObject_AsSimplePARAM(obwParam, &pMsg->wParam) &&
+           PyWinObject_AsSimplePARAM(oblParam, &pMsg->lParam);
 }
 
 PyObject *PyWinObject_FromMSG(const MSG *pMsg)
@@ -763,11 +766,8 @@ PyObject *PyWinObject_FromMSG(const MSG *pMsg)
 /* List of functions exported by this module */
 // @module pywintypes|A module which supports common Windows types.
 static struct PyMethodDef pywintypes_functions[] = {
-#ifndef MS_WINCE
     {"DosDateTimeToTime", PyWin_DosDateTimeToTime,
      1},  // @pymeth DosDateTimeToTime|Converts an MS-DOS Date/Time to a standard Time object
-#endif
-    {"Unicode", PyWin_NewUnicode, 1},  // @pymeth Unicode|Creates a new string object
     {"UnicodeFromRaw", PyWin_NewUnicodeFromRaw,
      1},  // @pymeth UnicodeFromRaw|Creates a new string object from raw binary data
     {"IsTextUnicode", PyWin_IsTextUnicode,
@@ -778,15 +778,13 @@ static struct PyMethodDef pywintypes_functions[] = {
 #endif
     {"Time", PyWinMethod_NewTime, 1},            // @pymeth Time|Makes a <o PyDateTime> object from the argument.
     {"TimeStamp", PyWinMethod_NewTimeStamp, 1},  // @pymeth Time|Makes a <o PyDateTime> object from the argument.
-    {"CreateGuid", PyWin_CreateGuid, 1},  // @pymeth CreateGuid|Creates a new, unique GUIID.
-#ifndef NO_PYWINTYPES_SECURITY
-    {"ACL", PyWinMethod_NewACL, 1},  // @pymeth ACL|Creates a new <o PyACL> object.
-    {"SID", PyWinMethod_NewSID, 1},  // @pymeth SID|Creates a new <o PySID> object.
+    {"CreateGuid", PyWin_CreateGuid, 1},         // @pymeth CreateGuid|Creates a new, unique GUIID.
+    {"ACL", PyWinMethod_NewACL, 1},              // @pymeth ACL|Creates a new <o PyACL> object.
+    {"SID", PyWinMethod_NewSID, 1},              // @pymeth SID|Creates a new <o PySID> object.
     {"SECURITY_ATTRIBUTES", PyWinMethod_NewSECURITY_ATTRIBUTES,
      1},  // @pymeth SECURITY_ATTRIBUTES|Creates a new <o PySECURITY_ATTRIBUTES> object.
     {"SECURITY_DESCRIPTOR", PyWinMethod_NewSECURITY_DESCRIPTOR,
      1},  // @pymeth SECURITY_DESCRIPTOR|Creates a new <o PySECURITY_DESCRIPTOR> object.
-#endif    // NO_PYWINTYPES_SECURITY
     {"HANDLE", PyWinMethod_NewHANDLE, 1},  // @pymeth HANDLE|Creates a new <o PyHANDLE> object.
     {"HKEY", PyWinMethod_NewHKEY, 1},      // @pymeth HKEY|Creates a new <o PyHKEY> object.
 #ifdef TRACE_THREADSTATE
@@ -797,7 +795,6 @@ static struct PyMethodDef pywintypes_functions[] = {
 
 int PyWinGlobals_Ensure()
 {
-    PyEval_InitThreads();
     PyWinInterpreterState_Ensure();
     if (PyWinExc_ApiError == NULL) {
         // Setup our exception objects so they have attributes.
@@ -815,8 +812,7 @@ int PyWinGlobals_Ensure()
         PyDict_SetItemString(d, "Exception", PyExc_Exception);
         PyDict_SetItemString(d, "__name__", name);
         Py_DECREF(name);
-        PyObject *bimod = PyImport_ImportModule(
-            "builtins");
+        PyObject *bimod = PyImport_ImportModule("builtins");
         if ((bimod == NULL) || PyDict_SetItemString(d, "__builtins__", bimod) == -1) {
             Py_XDECREF(bimod);
             return -1;
@@ -886,22 +882,18 @@ int PyWinGlobals_Ensure()
         // @tupleitem 3|None/int|argerror|The index of the argument in error, or (usually) None or -1
     }
 
-    /* PyType_Ready *needs* to be called anytime pywintypesxx.dll is loaded, since
+    /* PyType_Ready *needs* to be called anytime pywintypesXX.dll is loaded, since
         other extension modules can use types defined here without pywintypes itself
         having been imported.
         ??? All extension modules that call this need to be changed to check the exit code ???
     */
     if (PyType_Ready(&PyHANDLEType) == -1 || PyType_Ready(&PyOVERLAPPEDType) == -1 ||
-        PyType_Ready(&PyDEVMODEWType) == -1 ||
-        PyType_Ready(&PyWAVEFORMATEXType) == -1
+        PyType_Ready(&PyDEVMODEWType) == -1 || PyType_Ready(&PyWAVEFORMATEXType) == -1
 #ifndef NO_PYWINTYPES_IID
         || PyType_Ready(&PyIIDType) == -1
 #endif  // NO_PYWINTYPES_IID
-#ifndef NO_PYWINTYPES_SECURITY
         || PyType_Ready(&PySECURITY_DESCRIPTORType) == -1 || PyType_Ready(&PySECURITY_ATTRIBUTESType) == -1 ||
-        PyType_Ready(&PySIDType) == -1 || PyType_Ready(&PyACLType) == -1
-#endif
-    )
+        PyType_Ready(&PySIDType) == -1 || PyType_Ready(&PyACLType) == -1)
         return -1;
 
     if (!_PyWinDateTime_Init())
@@ -965,21 +957,15 @@ PYWIN_MODULE_INIT_FUNC(pywintypes)
         PYWIN_MODULE_INIT_RETURN_ERROR;
     ADD_CONSTANT(WAVE_FORMAT_PCM);
 
-    // Add a few types.
-    if (PyDict_SetItemString(dict, "UnicodeType", (PyObject *)&PyUnicode_Type) == -1)
-        PYWIN_MODULE_INIT_RETURN_ERROR;
-
     if (!_PyWinDateTime_PrepareModuleDict(dict))
         PYWIN_MODULE_INIT_RETURN_ERROR;
 #ifndef NO_PYWINTYPES_IID
     ADD_TYPE(IIDType);
 #endif  // NO_PYWINTYPES_IID
-#ifndef NO_PYWINTYPES_SECURITY
     ADD_TYPE(SECURITY_DESCRIPTORType);
     ADD_TYPE(SECURITY_ATTRIBUTESType);
     ADD_TYPE(SIDType);
     ADD_TYPE(ACLType);
-#endif
     ADD_TYPE(HANDLEType);
     ADD_TYPE(OVERLAPPEDType);
     ADD_TYPE(DEVMODEWType);
@@ -991,52 +977,8 @@ PYWIN_MODULE_INIT_FUNC(pywintypes)
     PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }
 
-#ifndef MS_WINCE
-extern "C" __declspec(dllexport)
-#endif
-    BOOL WINAPI DllMain(HANDLE hInstance, DWORD dwReason, LPVOID lpReserved)
+extern "C" __declspec(dllexport) BOOL WINAPI DllMain(HANDLE hInstance, DWORD dwReason, LPVOID lpReserved)
 {
-#ifndef NO_PYWINTYPES_SECURITY
-    FARPROC fp;
-    // dll usually will already be loaded
-    HMODULE hmodule = GetModuleHandle(_T("AdvAPI32.dll"));
-    if (hmodule == NULL)
-        hmodule = LoadLibrary(_T("AdvAPI32.dll"));
-    if (hmodule) {
-        fp = GetProcAddress(hmodule, "AddAccessAllowedAce");
-        if (fp)
-            addaccessallowedace = (addacefunc)(fp);
-        fp = GetProcAddress(hmodule, "AddAccessDeniedAce");
-        if (fp)
-            addaccessdeniedace = (addacefunc)(fp);
-        fp = GetProcAddress(hmodule, "AddAccessAllowedAceEx");
-        if (fp)
-            addaccessallowedaceex = (addaceexfunc)(fp);
-        fp = GetProcAddress(hmodule, "AddMandatoryAce");
-        if (fp)
-            addmandatoryace = (addaceexfunc)(fp);
-        fp = GetProcAddress(hmodule, "AddAccessAllowedObjectAce");
-        if (fp)
-            addaccessallowedobjectace = (addobjectacefunc)(fp);
-        fp = GetProcAddress(hmodule, "AddAccessDeniedAceEx");
-        if (fp)
-            addaccessdeniedaceex = (addaceexfunc)(fp);
-        fp = GetProcAddress(hmodule, "AddAccessDeniedObjectAce");
-        if (fp)
-            addaccessdeniedobjectace = (addobjectacefunc)(fp);
-        fp = GetProcAddress(hmodule, "AddAuditAccessAceEx");
-        if (fp)
-            addauditaccessaceex = (BOOL(WINAPI *)(PACL, DWORD, DWORD, DWORD, PSID, BOOL, BOOL))(fp);
-        fp = GetProcAddress(hmodule, "AddAuditAccessObjectAce");
-        if (fp)
-            addauditaccessobjectace = (BOOL(WINAPI *)(PACL, DWORD, DWORD, DWORD, GUID *, GUID *, PSID, BOOL, BOOL))(fp);
-        fp = GetProcAddress(hmodule, "SetSecurityDescriptorControl");
-        if (fp)
-            setsecuritydescriptorcontrol =
-                (BOOL(WINAPI *)(PSECURITY_DESCRIPTOR, SECURITY_DESCRIPTOR_CONTROL, SECURITY_DESCRIPTOR_CONTROL))(fp);
-    }
-
-#endif  // NO_PYWINTYPES_SECURITY
     switch (dwReason) {
         case DLL_PROCESS_ATTACH: {
             /*
@@ -1092,10 +1034,10 @@ extern "C" __declspec(dllexport)
 }
 
 // Function to format a python traceback into a character string.
-#define GPEM_ERROR(what)                                     \
-    {                                                        \
-        errorMsg = L"<Error getting traceback - "##what##">"; \
-        goto done;                                           \
+#define GPEM_ERROR(what)                                    \
+    {                                                       \
+        errorMsg = L"<Error getting traceback - " what ">"; \
+        goto done;                                          \
     }
 PYWINTYPES_EXPORT WCHAR *GetPythonTraceback(PyObject *exc_type, PyObject *exc_value, PyObject *exc_tb)
 {
@@ -1109,20 +1051,24 @@ PYWINTYPES_EXPORT WCHAR *GetPythonTraceback(PyObject *exc_type, PyObject *exc_va
     PyObject *argsTB = NULL;
     PyObject *obResult = NULL;
     TmpWCHAR resultPtr;
+    // Py3k has added an undocumented 'chain' argument which defaults to True
+    // and causes all kinds of exceptions while trying to print a traceback!
+    // This *could* be useful thought if we can tame it - later!
+    int chain = 0;
 
     // cStringIO is in "io"
     modStringIO = PyImport_ImportModule("io");
 
     if (modStringIO == NULL)
-        GPEM_ERROR("cant import cStringIO");
+        GPEM_ERROR("can't import cStringIO");
     modTB = PyImport_ImportModule("traceback");
     if (modTB == NULL)
-        GPEM_ERROR("cant import traceback");
+        GPEM_ERROR("can't import traceback");
 
     /* Construct a cStringIO object */
     obFuncStringIO = PyObject_GetAttrString(modStringIO, "StringIO");
     if (obFuncStringIO == NULL)
-        GPEM_ERROR("cant find cStringIO.StringIO");
+        GPEM_ERROR("can't find cStringIO.StringIO");
     obStringIO = PyObject_CallObject(obFuncStringIO, NULL);
     if (obStringIO == NULL)
         GPEM_ERROR("cStringIO.StringIO() failed");
@@ -1130,21 +1076,14 @@ PYWINTYPES_EXPORT WCHAR *GetPythonTraceback(PyObject *exc_type, PyObject *exc_va
     /* Get the traceback.print_exception function, and call it. */
     obFuncTB = PyObject_GetAttrString(modTB, "print_exception");
     if (obFuncTB == NULL)
-        GPEM_ERROR("cant find traceback.print_exception");
-    // Py3k has added an undocumented 'chain' argument which defaults to True
-    // and causes all kinds of exceptions while trying to print a traceback!
-    // This *could* be useful thought if we can tame it - later!
-    int chain = 0;
+        GPEM_ERROR("can't find traceback.print_exception");
 
-    argsTB = Py_BuildValue(
-        "OOOOOi",
-        exc_type ? exc_type : Py_None, exc_value ? exc_value : Py_None, exc_tb ? exc_tb : Py_None,
-        Py_None,  // limit
-        obStringIO,
-        chain
-    );
+    argsTB = Py_BuildValue("OOOOOi", exc_type ? exc_type : Py_None, exc_value ? exc_value : Py_None,
+                           exc_tb ? exc_tb : Py_None,
+                           Py_None,  // limit
+                           obStringIO, chain);
     if (argsTB == NULL)
-        GPEM_ERROR("cant make print_exception arguments");
+        GPEM_ERROR("can't make print_exception arguments");
 
     obResult = PyObject_CallObject(obFuncTB, argsTB);
     if (obResult == NULL) {
@@ -1160,7 +1099,7 @@ PYWINTYPES_EXPORT WCHAR *GetPythonTraceback(PyObject *exc_type, PyObject *exc_va
     Py_DECREF(obFuncStringIO);
     obFuncStringIO = PyObject_GetAttrString(obStringIO, "getvalue");
     if (obFuncStringIO == NULL)
-        GPEM_ERROR("cant find getvalue function");
+        GPEM_ERROR("can't find getvalue function");
     Py_DECREF(obResult);
     obResult = PyObject_CallObject(obFuncStringIO, NULL);
     if (obResult == NULL)

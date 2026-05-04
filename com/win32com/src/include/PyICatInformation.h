@@ -1,6 +1,5 @@
 /////////////////////////////////////////////////////////////////////////////
 // class PyICatInformation
-#ifndef NO_PYCOM_ICATINFORMATION
 class PyICatInformation : public PyIUnknown {
    public:
     MAKE_PYCOM_CTOR(PyICatInformation);
@@ -15,4 +14,3 @@ class PyICatInformation : public PyIUnknown {
     PyICatInformation(IUnknown *);
     ~PyICatInformation();
 };
-#endif  // NO_PYCOM_ICATINFORMATION

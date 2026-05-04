@@ -17,7 +17,7 @@ cleanad:
     $(PYTHON) fixHelpCompression.py "$(GENDIR)\$(TARGET).hpj"
     cd "$(GENDIR)"
     $(HC) $(TARGET).hpj
-    if exist "..\..\..\$(TARGET).hlp" del "..\..\..\$(TARGET).hlp" 
+    if exist "..\..\..\$(TARGET).hlp" del "..\..\..\$(TARGET).hlp"
     move "$(TARGET).hlp" "..\..\..\$(TARGET).hlp"
     cd $(MYDIR_FROM_GENDIR)
 
@@ -42,7 +42,7 @@ cleanad:
 "$(GENDIR)\$(TARGET).hhp" : BuildHHP.py $(DOCUMENT_FILE) $(HTML_FILES)
 	$(PYTHON) BuildHHP.py "$(GENDIR)\$(TARGET)" "$(TARGET)" "$(GENDIR)" $(HTML_FILES)
 
-"$(GENDIR)\$(TARGET).html" "$(GENDIR)\$(TARGET).dump" "$(GENDIR)\$(TARGET).idx" : $(SOURCE) pyhtml.fmt "$(GENDIR)\$(TARGET).hhlog" InsertExternalOverviews.py $(DOCUMENT_FILE) 
+"$(GENDIR)\$(TARGET).html" "$(GENDIR)\$(TARGET).dump" "$(GENDIR)\$(TARGET).idx" : $(SOURCE) pyhtml.fmt "$(GENDIR)\$(TARGET).hhlog" InsertExternalOverviews.py $(DOCUMENT_FILE)
 	@echo Running autoduck for the .html
 	@$(ADHTMLFMT) $(ADHTML) /t$(ADTAB) $(SOURCE)
 	$(PYTHON) InsertExternalOverviews.py "$(GENDIR)\$(TARGET).html"
@@ -57,5 +57,3 @@ cleanad:
 	-$(HHC) "$(GENDIR)\$(TARGET).hhp"
 	if exist "..\$(TARGET).chm" del "..\$(TARGET).chm"
 	move "$(GENDIR)\$(TARGET).chm" "..\$(TARGET).chm"
-
-

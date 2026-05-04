@@ -4,9 +4,6 @@
 #include "stdafx.h"
 #include "PythonCOM.h"
 #include "PythonCOMServer.h"
-
-#ifndef NO_PYCOM_ENUMSTATPROPSETSTG
-
 #include "PyIEnumSTATPROPSETSTG.h"
 
 // @doc - This file contains autoduck documentation
@@ -159,24 +156,23 @@ STDMETHODIMP PyGEnumSTATPROPSETSTG::Next(
 {
     PY_GATEWAY_METHOD;
     PyObject *result;
+    Py_ssize_t len;
     HRESULT hr = InvokeViaPolicy("Next", &result, "i", celt);
     if (FAILED(hr))
         return hr;
 
     if (!PySequence_Check(result))
         goto error;
-    int len;
     len = PyObject_Length(result);
-    if (len == -1)
+    if (len == -1 || !PyWin_is_ssize_dword(len))
         goto error;
-    if (len > (int)celt)
+    if (len > celt)
         len = celt;
 
     if (pCeltFetched)
-        *pCeltFetched = len;
+        *pCeltFetched = (ULONG)len;
 
-    int i;
-    for (i = 0; i < len; ++i) {
+    for (int i = 0; i < len; ++i) {
         TmpPyObject ob = PySequence_GetItem(result, i);
         if (ob == NULL)
             goto error;
@@ -251,5 +247,3 @@ STDMETHODIMP PyGEnumSTATPROPSETSTG::Clone(
 
     return PyCom_CheckIEnumNextResult(hr, IID_IEnumSTATPROPSETSTG);
 }
-
-#endif  // NO_PYCOM_ENUMSTATPROPSETSTG

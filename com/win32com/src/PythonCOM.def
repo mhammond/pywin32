@@ -12,4 +12,3 @@ EXPORTS
 	PyCom_CoInitializeEx
 	PyCom_CoInitialize
 	PyCom_CoUninitialize
-

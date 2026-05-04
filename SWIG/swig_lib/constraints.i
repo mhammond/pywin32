@@ -1,9 +1,9 @@
-// 
+//
 // SWIG constraint library
 // Dave Beazley
 // May 4, 1997
 //
-// This library file contains typemaps for implementing various kinds of 
+// This library file contains typemaps for implementing various kinds of
 // constraints.  Depends upon the SWIG exception library for generating
 // errors in a language-independent manner.
 
@@ -34,7 +34,7 @@ directive.   For example :
 
   %apply Number NONNEGATIVE { double nonneg };
   double sqrt(double nonneg);         // Name of argument must match
-  
+
   %apply Pointer NONNULL { void *ptr };
   void *malloc(int POSITIVE);       // May return a NULL pointer
   void free(void *ptr);             // May not accept a NULL pointer
@@ -45,12 +45,12 @@ be specified as follows :
 
   %apply Pointer NONNULL { void *, Vector *, List *, double *};
 
-In this case, all of the types listed would be checked for non-NULL 
+In this case, all of the types listed would be checked for non-NULL
 pointers.
 
 The common datatypes of int, short, long, unsigned int, unsigned long,
 unsigned short, unsigned char, signed char, float, and double can be
-checked without using the %apply directive by simply using the 
+checked without using the %apply directive by simply using the
 constraint name as the parameter name. For example :
 
   double sqrt(double NONNEGATIVE);
@@ -162,7 +162,7 @@ If you have used typedef to change type-names, you can also do this :
     SWIG_exception(SWIG_ValueError,"Expected a non-positive value.");
   }
 }
-                
+
 // Non-NULL pointer
 
 %typemap(check) void *            NONNULL,
@@ -204,5 +204,3 @@ If you have used typedef to change type-names, you can also do this :
      SWIG_exception(SWIG_ValueError,"Pointer must be 2-byte aligned.");
    }
 }
-
-

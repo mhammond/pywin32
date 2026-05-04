@@ -1,14 +1,24 @@
 import unittest
-import win32event
+
 import pywintypes
-import time
-import os
-import sys
+import win32event
 
 
 class TestWaitableTimer(unittest.TestCase):
     def testWaitableFire(self):
         h = win32event.CreateWaitableTimer(None, 0, None)
+        dt = -160  # 160 ns.
+        win32event.SetWaitableTimer(h, dt, 0, None, None, 0)
+        rc = win32event.WaitForSingleObject(h, 1000)
+        self.assertEqual(rc, win32event.WAIT_OBJECT_0)
+
+    def testCreateWaitableTimerEx(self):
+        h = win32event.CreateWaitableTimerEx(
+            None,
+            None,
+            win32event.CREATE_WAITABLE_TIMER_HIGH_RESOLUTION,
+            win32event.TIMER_ALL_ACCESS,
+        )
         dt = -160  # 160 ns.
         win32event.SetWaitableTimer(h, dt, 0, None, None, 0)
         rc = win32event.WaitForSingleObject(h, 1000)

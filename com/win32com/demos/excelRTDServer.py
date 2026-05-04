@@ -3,7 +3,7 @@
 This module is a functional example of how to implement the IRTDServer interface
 in python, using the pywin32 extensions. Further details, about this interface
 and it can be found at:
-     http://msdn.microsoft.com/library/default.asp?url=/library/en-us/dnexcl2k2/html/odc_xlrtdfaq.asp
+     https://learn.microsoft.com/en-us/previous-versions/office/developer/office-xp/aa140060(v=office.10)
 """
 
 # Copyright (c) 2003-2004 by Chris Nilsson <chris@slort.org>
@@ -30,14 +30,14 @@ and it can be found at:
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
 # OF THIS SOFTWARE.
 
+import datetime  # For the example classes...
+import threading
+
 import pythoncom
 import win32com.client
 from win32com import universal
 from win32com.client import gencache
 from win32com.server.exception import COMException
-
-import threading
-import datetime  # For the example classes...
 
 # Typelib info for version 10 - aka Excel XP.
 # This is the minimum version of excel that we can work with as this is when
@@ -69,7 +69,7 @@ universal.RegisterInterfaces(
 )
 
 
-class ExcelRTDServer(object):
+class ExcelRTDServer:
     """Base RTDServer class.
 
     Provides most of the features needed to implement the IRtdServer interface.
@@ -132,7 +132,7 @@ class ExcelRTDServer(object):
 
     def __init__(self):
         """Constructor"""
-        super(ExcelRTDServer, self).__init__()
+        super().__init__()
         self.IsAlive = self.ALIVE
         self.__callback = None
         self.topics = {}
@@ -260,13 +260,13 @@ class ExcelRTDServer(object):
         pass
 
 
-class RTDTopic(object):
+class RTDTopic:
     """Base RTD Topic.
     Only method required by our RTDServer implementation is GetValue().
     The others are more for convenience."""
 
     def __init__(self, TopicStrings):
-        super(RTDTopic, self).__init__()
+        super().__init__()
         self.TopicStrings = TopicStrings
         self.__currentValue = None
         self.__dirty = False
@@ -332,7 +332,7 @@ class TimeServer(ExcelRTDServer):
     INTERVAL = 0.5  # secs. Threaded timer will wake us up at this interval.
 
     def __init__(self):
-        super(TimeServer, self).__init__()
+        super().__init__()
 
         # Simply timer thread to ensure we get to update our topics, and
         # tell excel about any changes. This is a pretty basic and dirty way to
@@ -346,7 +346,7 @@ class TimeServer(ExcelRTDServer):
         self.ticker.start()
 
     def OnServerTerminate(self):
-        if not self.ticker.finished.isSet():
+        if not self.ticker.finished.is_set():
             self.ticker.cancel()  # Cancel our wake-up thread. Excel has killed us.
 
     def Update(self):
@@ -384,7 +384,7 @@ class TimeTopic(RTDTopic):
     """
 
     def __init__(self, TopicStrings):
-        super(TimeTopic, self).__init__(TopicStrings)
+        super().__init__(TopicStrings)
         try:
             self.cmd, self.delay = self.TopicStrings
         except Exception as E:

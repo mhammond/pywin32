@@ -1,8 +1,0 @@
-This is a copy of Scintilla 1.77 used for Pythonwin.
-
-Scintilla's home is www.scintilla.org
-
-Only the sources relevant to Scintilla under Pythonwin are
-included (plus the Scintilla licence and readme).  For the
-full set of Scintilla sources, including its documentation and
-companion editor Scite, see www.scintilla.org.

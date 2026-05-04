@@ -25,7 +25,7 @@ BOOL PyWinObject_AsLARGE_INTEGER(PyObject *ob, LARGE_INTEGER *pResult)
         return !(pResult->QuadPart == -1 && PyErr_Occurred());
     }
     else {
-        PyErr_Warn(PyExc_PendingDeprecationWarning,
+        PyErr_Warn(PyExc_DeprecationWarning,
                    "Support for passing 2 integers to create a 64bit value is deprecated - pass a long instead");
         long hiVal, loVal;
         if (!PyArg_ParseTuple(ob, "ll", &hiVal, &loVal)) {
@@ -50,7 +50,7 @@ BOOL PyWinObject_AsULARGE_INTEGER(PyObject *ob, ULARGE_INTEGER *pResult)
         PyErr_SetString(PyExc_TypeError, "ULARGE_INTEGER must be 'int', or '(int, int)'");
         return FALSE;
     }
-    PyErr_Warn(PyExc_PendingDeprecationWarning,
+    PyErr_Warn(PyExc_DeprecationWarning,
                "Support for passing 2 integers to create a 64bit value is deprecated - pass a long instead");
     pResult->QuadPart = (((__int64)hiVal) << 32) | loVal;
     return TRUE;

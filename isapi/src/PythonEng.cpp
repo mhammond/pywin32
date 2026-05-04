@@ -26,11 +26,11 @@
 // NOTE: This code used to host the thread-pool used by dispatch to Python
 // Some of the methods etc made alot more sense then.
 
-#include "stdafx.h"
+#include "StdAfx.h"
 #include "Utils.h"
 #include "PythonEng.h"
-#include "pyExtensionObjects.h"
-#include "pyFilterObjects.h"
+#include "PyExtensionObjects.h"
+#include "PyFilterObjects.h"
 #include "pyISAPI_messages.h"
 
 extern HINSTANCE g_hInstance;
@@ -58,13 +58,14 @@ bool CPythonEngine::InitMainInterp(void)
     CSLock l(m_initLock);
     if (!m_haveInit) {
         PyGILState_STATE old_state;
-        if (Py_IsInitialized())
+        bool has_old_state = false;
+        if (Py_IsInitialized()) {
             old_state = PyGILState_Ensure();
+            has_old_state = true;
+        }
         else {
             Py_Initialize();
-            old_state = PyGILState_UNLOCKED;
         }
-        PyEval_InitThreads();
 
         if (!g_IsFrozen) {
             TCHAR *dll_path = GetModulePath();
@@ -88,7 +89,10 @@ bool CPythonEngine::InitMainInterp(void)
         InitExtensionTypes();
         InitFilterTypes();
 
-        PyGILState_Release(old_state);
+        if (has_old_state)
+            PyGILState_Release(old_state);
+        else
+            PyEval_SaveThread();
         FindModuleName();
         m_haveInit = true;
     }

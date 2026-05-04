@@ -1,10 +1,12 @@
+import getopt
 import sys
+import traceback
+from collections.abc import Callable
+
 import win32api
 import win32net
 import win32netcon
 import win32security
-import getopt
-import traceback
 
 verbose_level = 0
 
@@ -57,7 +59,7 @@ def UserEnum():
         )
         for user in data:
             verbose("Found user %s" % user["name"])
-            nuser = nuser + 1
+            nuser += 1
         if not resume:
             break
     assert nuser, "Could not find any users!"
@@ -70,22 +72,22 @@ def GroupEnum():
     resume = 0
     while 1:
         data, total, resume = win32net.NetGroupEnum(server, 1, resume)
-        #               print "Call to NetGroupEnum obtained %d entries of %d total" % (len(data), total)
+        # print(f"Call to NetGroupEnum obtained {len(data)} entries of {total} total")
         for group in data:
-            verbose("Found group %(name)s:%(comment)s " % group)
+            verbose("Found group {name}:{comment} ".format(**group))
             memberresume = 0
             while 1:
                 memberdata, total, memberresume = win32net.NetGroupGetUsers(
                     server, group["name"], 0, resume
                 )
                 for member in memberdata:
-                    verbose(" Member %(name)s" % member)
-                    nmembers = nmembers + 1
+                    verbose(" Member {name}".format(**member))
+                    nmembers += 1
                 if memberresume == 0:
                     break
         if not resume:
             break
-    assert nmembers, "Couldnt find a single member in a single group!"
+    assert nmembers, "Couldn't find a single member in a single group!"
     print("Enumerated all the groups")
 
 
@@ -96,7 +98,7 @@ def LocalGroupEnum():
     while 1:
         data, total, resume = win32net.NetLocalGroupEnum(server, 1, resume)
         for group in data:
-            verbose("Found group %(name)s:%(comment)s " % group)
+            verbose("Found group {name}:{comment} ".format(**group))
             memberresume = 0
             while 1:
                 memberdata, total, memberresume = win32net.NetLocalGroupGetMembers(
@@ -107,13 +109,13 @@ def LocalGroupEnum():
                     username, domain, type = win32security.LookupAccountSid(
                         server, member["sid"]
                     )
-                    nmembers = nmembers + 1
-                    verbose(" Member %s (%s)" % (username, member["domainandname"]))
+                    nmembers += 1
+                    verbose(" Member {} ({})".format(username, member["domainandname"]))
                 if memberresume == 0:
                     break
         if not resume:
             break
-    assert nmembers, "Couldnt find a single member in a single group!"
+    assert nmembers, "Couldn't find a single member in a single group!"
     print("Enumerated all the local groups")
 
 
@@ -166,7 +168,7 @@ def LocalGroup(uname=None):
         mem, tot, res = win32net.NetLocalGroupGetMembers(server, group, level)
         print("members are", mem)
         if mem[0]["domainandname"] != uname:
-            print("ERROR: LocalGroup just added %s, but members are %r" % (uname, mem))
+            print(f"ERROR: LocalGroup just added {uname}, but members are {mem!r}")
         # Convert the list of dicts to a list of strings.
         win32net.NetLocalGroupDelMembers(
             server, group, [m["domainandname"] for m in mem]
@@ -182,8 +184,8 @@ def GetInfo(userName=None):
         userName = win32api.GetUserName()
     print("Dumping level 3 information about user")
     info = win32net.NetUserGetInfo(server, userName, 3)
-    for key, val in list(info.items()):
-        verbose("%s=%s" % (key, val))
+    for key, val in info.items():
+        verbose(f"{key}={val}")
 
 
 def SetInfo(userName=None):
@@ -192,8 +194,7 @@ def SetInfo(userName=None):
         userName = win32api.GetUserName()
     oldData = win32net.NetUserGetInfo(server, userName, 3)
     try:
-        d = oldData.copy()
-        d["usr_comment"] = "Test comment"
+        d = oldData | {"usr_comment": "Test comment"}
         win32net.NetUserSetInfo(server, userName, 3, d)
         new = win32net.NetUserGetInfo(server, userName, 3)["usr_comment"]
         if str(new) != "Test comment":
@@ -204,7 +205,7 @@ def SetInfo(userName=None):
 
 
 def SetComputerInfo():
-    "Doesnt actually change anything, just make sure we could ;-)"
+    "Doesn't actually change anything, just make sure we could ;-)"
     info = win32net.NetWkstaGetInfo(None, 502)
     # *sob* - but we can't!  Why not!!!
     # win32net.NetWkstaSetInfo(None, 502, info)
@@ -226,10 +227,7 @@ def usage(tests):
 
 
 def main():
-    tests = []
-    for ob in list(globals().values()):
-        if type(ob) == type(main) and ob.__doc__:
-            tests.append(ob)
+    tests = [ob for ob in globals().values() if isinstance(ob, Callable) and ob.__doc__]
     opts, args = getopt.getopt(sys.argv[1:], "s:hvc")
     create_user = False
     for opt, val in opts:
@@ -240,7 +238,7 @@ def main():
             usage(tests)
         if opt == "-v":
             global verbose_level
-            verbose_level = verbose_level + 1
+            verbose_level += 1
         if opt == "-c":
             create_user = True
 
@@ -258,7 +256,7 @@ def main():
                     break
             else:
                 print("Test '%s' unknown - skipping" % arg)
-    if not len(dotests):
+    if not dotests:
         print("Nothing to do!")
         usage(tests)
     for test in dotests:

@@ -4,7 +4,7 @@
 
 // If building under a GCC, tweak what we need.
 #if defined(__GNUC__) && defined(_POSIX_C_SOURCE)
-// python.h complains if _POSIX_C_SOURCE is already defined
+// Python.h complains if _POSIX_C_SOURCE is already defined
 #undef _POSIX_C_SOURCE
 #endif
 
@@ -32,10 +32,10 @@
 #define PYWIN_MODULE_INIT_FUNC(module_name) extern "C" __declspec(dllexport) PyObject *PyInit_##module_name(void)
 
 // If the module needs to early-exit on an error condition.
-#define PYWIN_MODULE_INIT_RETURN_ERROR return NULL;
+#define PYWIN_MODULE_INIT_RETURN_ERROR return NULL
 
 // When the module has successfully initialized.
-#define PYWIN_MODULE_INIT_RETURN_SUCCESS return module;
+#define PYWIN_MODULE_INIT_RETURN_SUCCESS return module
 
 // To setup the module object itself and the module's dictionary.
 #define PYWIN_MODULE_INIT_PREPARE(module_name, functions, docstring)                                        \
@@ -69,10 +69,10 @@ typedef Py_ssize_t Py_hash_t;
 #include "mmsystem.h"
 
 #ifdef BUILD_PYWINTYPES
-/* We are building pywintypesxx.dll */
+/* We are building pywintypesXX.dll */
 #define PYWINTYPES_EXPORT __declspec(dllexport)
 #else
-/* This module uses pywintypesxx.dll */
+/* This module uses pywintypesXX.dll */
 #define PYWINTYPES_EXPORT __declspec(dllimport)
 #if defined(_MSC_VER)
 #if defined(DEBUG) || defined(_DEBUG)
@@ -82,6 +82,8 @@ typedef Py_ssize_t Py_hash_t;
 #endif  // DEBUG/_DEBUG
 #endif  // _MSC_VER
 #endif  // BUILD_PYWINTYPES
+
+extern PYWINTYPES_EXPORT HMODULE PyWin_GetOrLoadLibraryHandle(const char *name);
 
 // Py3k uses memoryview object in place of buffer, and we don't yet.
 extern PYWINTYPES_EXPORT PyObject *PyBuffer_New(Py_ssize_t size);
@@ -101,7 +103,10 @@ extern PYWINTYPES_EXPORT BOOL PyWin_RegisterErrorMessageModule(DWORD first, DWOR
 extern PYWINTYPES_EXPORT HINSTANCE PyWin_GetErrorMessageModule(DWORD err);
 
 /* A global function that sets an API style error (ie, (code, fn, errTest)) */
-PYWINTYPES_EXPORT PyObject *PyWin_SetAPIError(char *fnName, long err = 0);
+PYWINTYPES_EXPORT PyObject *PyWin_SetAPIError(char *fnName, long err = ERROR_SUCCESS);
+
+// A PyWin_SetAPIError variant that returns None (Py_None) on success.
+PYWINTYPES_EXPORT PyObject *PyWin_SetAPIErrorOrReturnNone(char *fnName, long err = ERROR_SUCCESS);
 
 /* Basic COM Exception handling.  The main COM exception object
    is actually defined here.  However, the most useful functions
@@ -116,21 +121,20 @@ PYWINTYPES_EXPORT PyObject *PyWin_SetBasicCOMError(HRESULT hr);
 // *************
 // strings, which are a bit of a mess!
 //
-// This has gone from 2.x ascii-only, to 2.x+3.x ascii-or-unicode, to 3.x unicode-only,
+// This has gone from Python 2 ascii-only, to Py2+Py3k ascii-or-unicode, to Python 3 unicode-only,
 // - this baggage means some strange APIs which convert to and from "char *" in various ways.
 //
 // A sizes/lengths are reported as a `DWORD` rather than a `Py_ssize_t`, that's what the callers
 // need. `Py_ssize_t` used as the "in" type.
+// (We also use this for UINT and ULONG, all of which are 32bit unsigned ints.)
 
 // Sometimes we need to downcast from a ssize_t to a DWORD
-inline bool PyWin_is_ssize_dword(Py_ssize_t val) {
-    return val <= MAXDWORD;
-}
+inline bool PyWin_is_ssize_dword(Py_ssize_t val) { return val <= MAXDWORD; }
 
-#define PYWIN_CHECK_SSIZE_DWORD(val, failResult) \
-    if (!PyWin_is_ssize_dword(val)) { \
+#define PYWIN_CHECK_SSIZE_DWORD(val, failResult)                           \
+    if (!PyWin_is_ssize_dword(val)) {                                      \
         PyErr_SetString(PyExc_ValueError, "value is larger than a DWORD"); \
-        return failResult; \
+        return failResult;                                                 \
     }
 
 // Almost all of these are roughly identical! But start with BSTR
@@ -167,19 +171,44 @@ PYWINTYPES_EXPORT void PyWinObject_FreeChars(char *pResult);
 // Automatically freed WCHAR that can be used anywhere WCHAR * is required
 class TmpWCHAR {
    public:
-    WCHAR *tmp;
+    WCHAR *tmp;         // (NULL after conversion error)
+    Py_ssize_t length;  // only set after successful auto-conversion; w/o trailing \0
+    PyObject *u;        // auxiliary slot for u2w()
+
     TmpWCHAR() { tmp = NULL; }
     TmpWCHAR(WCHAR *t) { tmp = t; }
+    TmpWCHAR(PyObject *ob) : tmp(NULL) { *this = ob; }
+    WCHAR *u2w() { return *this = u; }
+    WCHAR *operator=(PyObject *ob)
+    {
+        if (tmp)
+            PyMem_Free(tmp);
+        if (ob == NULL)
+            tmp = NULL;  // (exception already has been set in this case)
+        else
+            tmp = PyUnicode_AsWideCharString(ob, &length);
+        return tmp;
+    }
     WCHAR *operator=(WCHAR *t)
     {
-        PyWinObject_FreeWCHAR(tmp);
+        if (tmp)
+            PyMem_Free(tmp);
         tmp = t;
         return t;
     }
     WCHAR **operator&() { return &tmp; }
     boolean operator==(WCHAR *t) { return tmp == t; }
     operator WCHAR *() { return tmp; }
-    ~TmpWCHAR() { PyWinObject_FreeWCHAR(tmp); }
+    ~TmpWCHAR()
+    {
+        if (tmp)
+            PyMem_Free(tmp);
+    }
+
+   private:
+    // Block unwanted copy construction
+    TmpWCHAR(const TmpWCHAR &o);                   // = delete;
+    const TmpWCHAR &operator=(const TmpWCHAR &o);  // = delete;
 };
 
 // More string helpers - how many do we need?
@@ -228,26 +257,34 @@ PYWINTYPES_EXPORT BOOL PyWinObject_AsCharArray(PyObject *str_seq, char ***pchars
 
 // Bytes/Buffer helpers.
 // replacement for PyWinObject_AsReadBuffer and PyWinObject_AsWriteBuffer
-class PYWINTYPES_EXPORT PyWinBufferView
-{
-public:
-    PyWinBufferView();
-    PyWinBufferView(PyObject *ob, bool bWrite = false, bool bNoneOk = false);
-    ~PyWinBufferView();
+class PYWINTYPES_EXPORT PyWinBufferView {
+   public:
+    PyWinBufferView() { m_view.obj = NULL; }
+    PyWinBufferView(PyObject *ob, bool bWrite = false, bool bNoneOk = false)
+    {
+        m_view.obj = NULL;
+        init(ob, bWrite, bNoneOk);
+    }
+    ~PyWinBufferView() { release(); }
     bool init(PyObject *ob, bool bWrite = false, bool bNoneOk = false);
-    void release();
-    bool ok();
-    void* ptr();
-    DWORD len();
-private:
+    void release()
+    {
+        if (m_view.obj != NULL && m_view.obj != Py_None) {
+            PyBuffer_Release(&m_view);  // sets view->obj = NULL
+        }
+    }
+    bool ok() { return m_view.obj != NULL; }
+    void *ptr() { return m_view.buf; }
+    DWORD len() { return static_cast<DWORD>(m_view.len); }
+
+   private:
     Py_buffer m_view;
 
     // don't copy objects and don't use C++ >= 11 -> not implemented private
     // copy ctor and assignment operator
-    PyWinBufferView(const PyWinBufferView& src);
-    PyWinBufferView& operator=(PyWinBufferView const &);
+    PyWinBufferView(const PyWinBufferView &src);
+    PyWinBufferView &operator=(PyWinBufferView const &);
 };
-
 
 // For 64-bit python compatibility, convert sequence to tuple and check length fits in a DWORD
 PYWINTYPES_EXPORT PyObject *PyWinSequence_Tuple(PyObject *obseq, DWORD *len);
@@ -287,7 +324,7 @@ inline BOOL PyWinLong_AsDWORD_PTR(PyObject *ob, DWORD_PTR *r) { return PyWinLong
 */
 class PyOVERLAPPED;                                      // forward declare
 extern PYWINTYPES_EXPORT PyTypeObject PyOVERLAPPEDType;  // the Type for PyOVERLAPPED
-#define PyOVERLAPPED_Check(ob) ((ob)->ob_type == &PyOVERLAPPEDType)
+#define PyOVERLAPPED_Check(ob) (Py_TYPE(ob) == &PyOVERLAPPEDType)
 PYWINTYPES_EXPORT BOOL PyWinObject_AsOVERLAPPED(PyObject *ob, OVERLAPPED **ppOverlapped, BOOL bNoneOK = TRUE);
 PYWINTYPES_EXPORT BOOL PyWinObject_AsPyOVERLAPPED(PyObject *ob, PyOVERLAPPED **ppOverlapped, BOOL bNoneOK = TRUE);
 PYWINTYPES_EXPORT PyObject *PyWinObject_FromOVERLAPPED(const OVERLAPPED *pOverlapped);
@@ -301,7 +338,7 @@ PYWINTYPES_EXPORT PyObject *PyWinMethod_NewOVERLAPPED(PyObject *self, PyObject *
 */
 
 extern PYWINTYPES_EXPORT PyTypeObject PyIIDType;  // the Type for PyIID
-#define PyIID_Check(ob) ((ob)->ob_type == &PyIIDType)
+#define PyIID_Check(ob) (Py_TYPE(ob) == &PyIIDType)
 
 // Given an object repring a CLSID (either PyIID or string), fill the CLSID.
 PYWINTYPES_EXPORT BOOL PyWinObject_AsIID(PyObject *obCLSID, CLSID *clsid);
@@ -364,11 +401,62 @@ PYWINTYPES_EXPORT void PyWinObject_FreeResourceIdA(char *resource_id);
 PYWINTYPES_EXPORT BOOL PyWinObject_AsResourceId(PyObject *ob, WCHAR **presource_id, BOOL bNoneOK = FALSE);
 PYWINTYPES_EXPORT void PyWinObject_FreeResourceId(WCHAR *resource_id);
 
-// WPARAM and LPARAM conversion
-PYWINTYPES_EXPORT BOOL PyWinObject_AsPARAM(PyObject *ob, WPARAM *pparam);
+// WPARAM and LPARAM conversion.
+// Auto-freed WPARAM / LPARAM which ensure any memory referenced remains valid when a String or
+// Buffer object is used. Make sure the destructor is called with the GIL held.
+class PyWin_PARAMHolder {
+   protected:
+    WPARAM _pa;
+    // Holds *either* a PyWinBufferView (which will auto-free) *or* a "void *" that we
+    // will auto-free.
+    void *_pymem;
+    void _free()
+    {
+        if (_pymem) {
+            PyMem_Free(_pymem);
+            _pymem = NULL;
+        }
+    }
+
+   public:
+    PyWinBufferView bufferView;
+
+    PyWin_PARAMHolder(WPARAM t = 0) : _pa(t), _pymem(NULL) {}
+    ~PyWin_PARAMHolder() { _free(); }
+    WCHAR *set_allocated(WCHAR *t)
+    {
+        assert(!bufferView.ok());  // should be one or the other.
+        _free();
+        _pymem = t;
+        _pa = (WPARAM)t;
+        return t;
+    }
+    // When init_buffer() fails, an appropriate Python error has been set too
+    bool init_buffer(PyObject *ob)
+    {
+        assert(!_pymem);  // should be one or the other!
+        _free();
+        if (!bufferView.init(ob)) {
+            return false;
+        }
+        _pa = (WPARAM)bufferView.ptr();
+        return true;
+    }
+
+    WPARAM operator=(WPARAM t) { return _pa = t; }
+    operator WPARAM() { return _pa; }
+    operator LPARAM() { return (LPARAM)_pa; }
+};
+
+PYWINTYPES_EXPORT BOOL PyWinObject_AsPARAM(PyObject *ob, PyWin_PARAMHolder *pparam);
 inline PyObject *PyWinObject_FromPARAM(WPARAM param) { return PyWinObject_FromULONG_PTR(param); }
-inline BOOL PyWinObject_AsPARAM(PyObject *ob, LPARAM *pparam) { return PyWinObject_AsPARAM(ob, (WPARAM *)pparam); }
 inline PyObject *PyWinObject_FromPARAM(LPARAM param) { return PyWinObject_FromULONG_PTR(param); }
+
+PYWINTYPES_EXPORT BOOL PyWinObject_AsSimplePARAM(PyObject *ob, WPARAM *pparam);
+inline BOOL PyWinObject_AsSimplePARAM(PyObject *ob, LPARAM *pparam)
+{
+    return PyWinObject_AsSimplePARAM(ob, (WPARAM *)pparam);
+}
 
 // RECT conversions
 // @object PyRECT|Tuple of 4 ints defining a rectangle: (left, top, right, bottom)
@@ -379,7 +467,7 @@ PYWINTYPES_EXPORT PyObject *PyWinObject_FromRECT(LPRECT prect);
 ** SECURITY_ATTRIBUTES support
 */
 extern PYWINTYPES_EXPORT PyTypeObject PySECURITY_ATTRIBUTESType;
-#define PySECURITY_ATTRIBUTES_Check(ob) ((ob)->ob_type == &PySECURITY_ATTRIBUTESType)
+#define PySECURITY_ATTRIBUTES_Check(ob) (Py_TYPE(ob) == &PySECURITY_ATTRIBUTESType)
 extern PYWINTYPES_EXPORT PyTypeObject PyDEVMODEWType;
 
 PYWINTYPES_EXPORT PyObject *PyWinMethod_NewSECURITY_ATTRIBUTES(PyObject *self, PyObject *args);
@@ -397,13 +485,13 @@ PYWINTYPES_EXPORT PyObject *PyWinMethod_NewWAVEFORMATEX(PyObject *self, PyObject
 PYWINTYPES_EXPORT PyObject *PyWinObject_FromWAVEFROMATEX(const WAVEFORMATEX &wfx);
 PYWINTYPES_EXPORT BOOL PyWinObject_AsWAVEFORMATEX(PyObject *ob, WAVEFORMATEX **ppWAVEFORMATEX, BOOL bNoneOK = TRUE);
 extern PYWINTYPES_EXPORT PyTypeObject PyWAVEFORMATEXType;
-#define PyWAVEFORMATEX_Check(ob) ((ob)->ob_type == &PyWAVEFORMATEXType)
+#define PyWAVEFORMATEX_Check(ob) (Py_TYPE(ob) == &PyWAVEFORMATEXType)
 
 /*
 ** SECURITY_DESCRIPTOR support
 */
 extern PYWINTYPES_EXPORT PyTypeObject PySECURITY_DESCRIPTORType;
-#define PySECURITY_DESCRIPTOR_Check(ob) ((ob)->ob_type == &PySECURITY_DESCRIPTORType)
+#define PySECURITY_DESCRIPTOR_Check(ob) (Py_TYPE(ob) == &PySECURITY_DESCRIPTORType)
 
 PYWINTYPES_EXPORT PyObject *PyWinMethod_NewSECURITY_DESCRIPTOR(PyObject *self, PyObject *args);
 PYWINTYPES_EXPORT BOOL PyWinObject_AsSECURITY_DESCRIPTOR(PyObject *ob, PSECURITY_DESCRIPTOR *ppSECURITY_DESCRIPTOR,
@@ -417,7 +505,7 @@ PYWINTYPES_EXPORT void FreeAbsoluteSD(PSECURITY_DESCRIPTOR psd);
 ** SID support
 */
 extern PYWINTYPES_EXPORT PyTypeObject PySIDType;
-#define PySID_Check(ob) ((ob)->ob_type == &PySIDType)
+#define PySID_Check(ob) (Py_TYPE(ob) == &PySIDType)
 
 PYWINTYPES_EXPORT PyObject *PyWinMethod_NewSID(PyObject *self, PyObject *args);
 PYWINTYPES_EXPORT BOOL PyWinObject_AsSID(PyObject *ob, PSID *ppSID, BOOL bNoneOK = FALSE);
@@ -427,7 +515,7 @@ PYWINTYPES_EXPORT PyObject *PyWinObject_FromSID(PSID pSID);
 ** ACL support
 */
 extern PYWINTYPES_EXPORT PyTypeObject PyACLType;
-#define PyACL_Check(ob) ((ob)->ob_type == &PyACLType)
+#define PyACL_Check(ob) (Py_TYPE(ob) == &PyACLType)
 
 PYWINTYPES_EXPORT PyObject *PyWinMethod_NewACL(PyObject *self, PyObject *args);
 PYWINTYPES_EXPORT BOOL PyWinObject_AsACL(PyObject *ob, PACL *ppACL, BOOL bNoneOK = FALSE);
@@ -436,7 +524,7 @@ PYWINTYPES_EXPORT BOOL PyWinObject_AsACL(PyObject *ob, PACL *ppACL, BOOL bNoneOK
 ** Win32 HANDLE wrapper - any handle closable by "CloseHandle()"
 */
 extern PYWINTYPES_EXPORT PyTypeObject PyHANDLEType;  // the Type for PyHANDLE
-#define PyHANDLE_Check(ob) ((ob)->ob_type == &PyHANDLEType)
+#define PyHANDLE_Check(ob) (Py_TYPE(ob) == &PyHANDLEType)
 
 // Convert an object to a HANDLE - None is always OK, as are ints, etc.
 PYWINTYPES_EXPORT BOOL PyWinObject_AsHANDLE(PyObject *ob, HANDLE *pRes);
@@ -451,7 +539,7 @@ PYWINTYPES_EXPORT PyObject *PyWinMethod_NewHANDLE(PyObject *self, PyObject *args
 
 // A global function that does the right thing wrt closing a "handle".
 // The object can be either a PyHANDLE or an integer.
-// If result is FALSE, a Python error is all setup (cf PyHANDLE::Close(), which doesnt set the Python error)
+// If result is FALSE, a Python error is all setup (cf PyHANDLE::Close(), which doesn't set the Python error)
 PYWINTYPES_EXPORT BOOL PyWinObject_CloseHANDLE(PyObject *obHandle);
 
 PYWINTYPES_EXPORT BOOL PyWinObject_AsHKEY(PyObject *ob, HKEY *pRes);
@@ -615,17 +703,13 @@ class CEnterLeavePython {
 };
 
 // A helper for simple exception handling.
-// try/__try
-#if defined(__MINGW32__) || defined(MAINWIN)
+#if defined(__MINGW32__)
+#define __try try
+#define __except(filter) catch (...)
 #define PYWINTYPES_TRY try
-#else
-#define PYWINTYPES_TRY __try
-#endif /* MAINWIN */
-
-// catch/__except
-#if defined(__MINGW32__) || defined(MAINWIN)
 #define PYWINTYPES_EXCEPT catch (...)
 #else
+#define PYWINTYPES_TRY __try
 #define PYWINTYPES_EXCEPT __except (EXCEPTION_EXECUTE_HANDLER)
 #endif
 // End of exception helper macros.

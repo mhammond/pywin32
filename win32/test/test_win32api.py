@@ -1,12 +1,20 @@
 # General test module for win32api - please add some :)
 
-import unittest
-from pywin32_testutil import str2bytes, TestSkipped
-
-import win32api, win32con, win32event, winerror
-import sys, os
-import tempfile
 import datetime
+import os
+import sys
+import tempfile
+import time
+import unittest
+
+import win32api
+import win32con
+import win32event
+import winerror
+
+
+class TestError(Exception):
+    pass
 
 
 class CurrentUserTestCase(unittest.TestCase):
@@ -14,9 +22,9 @@ class CurrentUserTestCase(unittest.TestCase):
         domain = win32api.GetDomainName()
         if domain == "NT AUTHORITY":
             # Running as a service account, so the comparison will fail
-            raise TestSkipped("running as service account")
-        name = "%s\\%s" % (domain, win32api.GetUserName())
-        self.assertEquals(name, win32api.GetUserNameEx(win32api.NameSamCompatible))
+            raise unittest.SkipTest("running as service account")
+        name = f"{domain}\\{win32api.GetUserName()}"
+        self.assertEqual(name, win32api.GetUserNameEx(win32api.NameSamCompatible))
 
 
 class TestTime(unittest.TestCase):
@@ -58,7 +66,7 @@ class Registry(unittest.TestCase):
         # This used to leave a stale exception behind.
         def reg_operation():
             hkey = win32api.RegCreateKey(win32con.HKEY_CURRENT_USER, self.key_name)
-            x = 3 / 0  # or a statement like: raise 'error'
+            raise TestError
 
         # do the test
         try:
@@ -66,10 +74,10 @@ class Registry(unittest.TestCase):
                 try:
                     reg_operation()
                 except:
-                    1 / 0  # Force exception
+                    raise TestError  # Force a TestError
             finally:
                 win32api.RegDeleteKey(win32con.HKEY_CURRENT_USER, self.key_name)
-        except ZeroDivisionError:
+        except TestError:
             pass
 
     def testValues(self):
@@ -92,7 +100,7 @@ class Registry(unittest.TestCase):
             (
                 "REG_BINARY",
                 win32con.REG_BINARY,
-                str2bytes("\x00\x01\x02\x03\x04\x05\x06\x07\x08\x01\x00"),
+                b"\x00\x01\x02\x03\x04\x05\x06\x07\x08\x01\x00",
             ),
         )
 
@@ -145,17 +153,17 @@ class FileNames(unittest.TestCase):
         long_name = win32api.GetLongPathName(short_name).lower()
         self.assertTrue(
             long_name == fname,
-            "Expected long name ('%s') to be original name ('%s')" % (long_name, fname),
+            f"Expected long name ('{long_name}') to be original name ('{fname}')",
         )
         self.assertEqual(long_name, win32api.GetLongPathNameW(short_name).lower())
         long_name = win32api.GetLongPathNameW(short_name).lower()
         self.assertTrue(
-            type(long_name) == str,
-            "GetLongPathNameW returned type '%s'" % (type(long_name),),
+            isinstance(long_name, str),
+            f"GetLongPathNameW returned type '{type(long_name)}'",
         )
         self.assertTrue(
             long_name == fname,
-            "Expected long name ('%s') to be original name ('%s')" % (long_name, fname),
+            f"Expected long name ('{long_name}') to be original name ('{fname}')",
         )
 
     def testShortUnicodeNames(self):
@@ -170,17 +178,17 @@ class FileNames(unittest.TestCase):
         long_name = win32api.GetLongPathName(short_name).lower()
         self.assertTrue(
             long_name == fname,
-            "Expected long name ('%s') to be original name ('%s')" % (long_name, fname),
+            f"Expected long name ('{long_name}') to be original name ('{fname}')",
         )
         self.assertEqual(long_name, win32api.GetLongPathNameW(short_name).lower())
         long_name = win32api.GetLongPathNameW(short_name).lower()
         self.assertTrue(
-            type(long_name) == str,
-            "GetLongPathNameW returned type '%s'" % (type(long_name),),
+            isinstance(long_name, str),
+            f"GetLongPathNameW returned type '{type(long_name)}'",
         )
         self.assertTrue(
             long_name == fname,
-            "Expected long name ('%s') to be original name ('%s')" % (long_name, fname),
+            f"Expected long name ('{long_name}') to be original name ('{fname}')",
         )
 
     def testLongLongPathNames(self):
@@ -244,6 +252,86 @@ class Misc(unittest.TestCase):
     def testVkKeyScanEx(self):
         # hopefully ' ' doesn't depend on the locale!
         self.assertEqual(win32api.VkKeyScanEx(" ", 0), 32)
+
+    def testGetSystemPowerStatus(self):
+        # Dummy
+        sps = win32api.GetSystemPowerStatus()
+        self.assertIsInstance(sps, dict)
+        test_keys = (
+            "ACLineStatus",
+            "BatteryFlag",
+            "BatteryLifePercent",
+            "SystemStatusFlag",
+            "BatteryLifeTime",
+            "BatteryFullLifeTime",
+        )
+        self.assertEqual(set(test_keys), set(sps))
+
+    def testGetSystemCpuSetInformation(self):
+        # Basic smoke test - function should not crash and return a list
+        try:
+            cpus = win32api.GetSystemCpuSetInformation()
+        except NotImplementedError as e:
+            msg = str(e)
+            # Expected on older than Windows 10
+            if msg == "GetSystemCpuSetInformation is not available on this platform":
+                raise TestSkipped(msg) from e
+            raise
+
+        self.assertIsInstance(cpus, list)
+
+        if not cpus:
+            # Empty list is valid (though unusual)
+            return
+
+        # Check first CPU entry has all expected attributes with correct types
+        cpu = cpus[0]
+
+        # Numeric attributes (should be integers)
+        numeric_attrs = (
+            "Id",
+            "Group",
+            "LogicalProcessorIndex",
+            "CoreIndex",
+            "LastLevelCacheIndex",
+            "NumaNodeIndex",
+            "EfficiencyClass",
+            "SchedulingClass",
+            "AllocationTag",
+        )
+        for attr in numeric_attrs:
+            self.assertTrue(hasattr(cpu, attr), f"Missing attribute: {attr}")
+            value = getattr(cpu, attr)
+            self.assertIsInstance(
+                value, int, f"{attr} should be int, got {type(value)}"
+            )
+            self.assertGreaterEqual(value, 0, f"{attr} should be non-negative")
+
+        # Boolean attributes (should be bool)
+        bool_attrs = ("Parked", "Allocated", "AllocatedToTargetProcess", "RealTime")
+        for attr in bool_attrs:
+            self.assertTrue(hasattr(cpu, attr), f"Missing attribute: {attr}")
+            value = getattr(cpu, attr)
+            self.assertIsInstance(
+                value, bool, f"{attr} should be bool, got {type(value)}"
+            )
+
+        # Sanity checks on values
+        self.assertGreater(cpu.Id, 0, "CPU Id should be positive")
+        self.assertLessEqual(
+            cpu.EfficiencyClass, 255, "EfficiencyClass should be <= 255"
+        )
+        self.assertLessEqual(
+            cpu.SchedulingClass, 255, "SchedulingClass should be <= 255"
+        )
+
+        # All entries should be consistently typed
+        for i, cpu in enumerate(cpus):
+            self.assertIsInstance(cpu.Id, int, f"CPU {i}: Id should be int")
+            self.assertIsInstance(cpu.Parked, bool, f"CPU {i}: Parked should be bool")
+
+        # str() should not crash
+        str(cpus[0])
 
 
 if __name__ == "__main__":
