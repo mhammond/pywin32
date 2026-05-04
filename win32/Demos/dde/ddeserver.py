@@ -1,8 +1,8 @@
 # 'Request' example added jjk  11/20/98
 
-import win32ui
-from pywin.mfc import object
+import win32ui  # isort: skip # Must be imported before dde !
 import dde
+from pywin.mfc import object
 
 
 class MySystemTopic(object.Object):

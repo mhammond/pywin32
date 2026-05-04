@@ -485,7 +485,7 @@ STDMETHODIMP PyGShellItem2::GetProperty(
     PyObject *result;
     /* ??? Something strange with the format:
         If passing only a single object, and it's a tuple,
-        and you don't explicitely add the parens,
+        and you don't explicitly add the parens,
         the tuple gets unpacked and passed as separate args ???
     */
     HRESULT hr = InvokeViaPolicy("GetProperty", &result, "(N)", PyObject_FromSHCOLUMNID(&key));

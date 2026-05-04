@@ -1,9 +1,7 @@
 import unittest
-import win32event
+
 import pywintypes
-import time
-import os
-import sys
+import win32event
 
 
 class TestWaitableTimer(unittest.TestCase):

@@ -1,9 +1,9 @@
 # A sample distutils script to show to build your own
 # extension module which extends pywintypes or pythoncom.
 #
-# Use 'python setup.py build' to build this extension.
+# Use 'python -m build' to build this extension.
 import os
-from distutils.core import setup, Extension
+from setuptools import Extension, setup
 from sysconfig import get_paths
 
 sources = ["win32_extension.cpp"]

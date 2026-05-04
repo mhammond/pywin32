@@ -39,16 +39,12 @@ PyObject *PyWinMethod_NewIID(PyObject *self, PyObject *args)
 
     HRESULT hr = CLSIDFromString(bstrIID, &iid);
     if (FAILED(hr)) {
-#ifndef MS_WINCE
         hr = CLSIDFromProgID(bstrIID, &iid);
         if (FAILED(hr)) {
-#endif
             PyWinObject_FreeWCHAR(bstrIID);
             PyWin_SetBasicCOMError(hr);
             return NULL;
-#ifndef MS_WINCE
         }
-#endif
     }
     PyWinObject_FreeWCHAR(bstrIID);
     /* iid -> PyObject */
@@ -58,13 +54,9 @@ PyObject *PyWinMethod_NewIID(PyObject *self, PyObject *args)
 static HRESULT myCLSIDFromString(OLECHAR *str, CLSID *clsid)
 {
     HRESULT hr = CLSIDFromString(str, clsid);
-#ifdef MS_WINCE
-    return hr;
-#else
     if (SUCCEEDED(hr))
         return hr;
     return CLSIDFromProgID(str, clsid);
-#endif
 }
 
 BOOL PyWinObject_AsIID(PyObject *obCLSID, CLSID *clsid)
@@ -176,7 +168,7 @@ int PyIID::IsEqual(REFIID riid) { return IsEqualIID(m_iid, riid); }
 
 int PyIID::IsEqual(PyObject *ob)
 {
-    if (ob->ob_type != &PyIIDType)
+    if (Py_TYPE(ob) != &PyIIDType)
         return 0;
     return IsEqualIID(m_iid, ((PyIID *)ob)->m_iid);
 }

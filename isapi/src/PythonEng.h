@@ -63,7 +63,7 @@ class CPythonHandler {
     PyObject *DoCallback(HANDLER_TYPE typ, PyObject *args);
 
     bool LoadHandler(bool reload);
-    bool CPythonHandler::CheckCallback(const char *cbname, PyObject **cb);
+    bool CheckCallback(const char *cbname, PyObject **cb);
     const char *m_namefactory;
     const char *m_nameinit;
     const char *m_namedo;

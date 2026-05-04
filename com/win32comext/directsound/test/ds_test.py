@@ -1,13 +1,14 @@
-import unittest
+import os
 import struct
 import sys
-import os
-import pywintypes
-import win32event, win32api
-import os
-from pywin32_testutil import TestSkipped, find_test_fixture
-import win32com.directsound.directsound as ds
+import unittest
+
 import pythoncom
+import pywintypes
+import win32api
+import win32com.directsound.directsound as ds
+import win32event
+from pywin32_testutil import find_test_fixture
 
 # next two lines are for for debugging:
 # import win32com
@@ -34,13 +35,13 @@ def wav_header_unpack(data):
         datalength,
     ) = struct.unpack("<4sl4s4slhhllhh4sl", data)
 
-    if riff != b"RIFF":
-        raise ValueError("invalid wav header")
+    assert riff == b"RIFF", "invalid wav header"
 
-    if fmtsize != 16 or fmt != b"fmt " or data != b"data":
-        # fmt chuck is not first chunk, directly followed by data chuck
-        # It is nowhere required that they are, it is just very common
-        raise ValueError("cannot understand wav header")
+    # fmt chunk is not first chunk, directly followed by data chunk
+    # It is nowhere required that they are, it is just very common
+    assert fmtsize == 16 and fmt == b"fmt " and data == b"data", (
+        "cannot understand wav header"
+    )
 
     wfx = pywintypes.WAVEFORMATEX()
     wfx.wFormatTag = format
@@ -76,7 +77,7 @@ class WAVEFORMATTest(unittest.TestCase):
     def test_1_Type(self):
         "WAVEFORMATEX type"
         w = pywintypes.WAVEFORMATEX()
-        self.assertTrue(type(w) == pywintypes.WAVEFORMATEXType)
+        self.assertTrue(isinstance(w, pywintypes.WAVEFORMATEXType))
 
     def test_2_Attr(self):
         "WAVEFORMATEX attribute access"
@@ -101,7 +102,7 @@ class DSCAPSTest(unittest.TestCase):
     def test_1_Type(self):
         "DSCAPS type"
         c = ds.DSCAPS()
-        self.assertTrue(type(c) == ds.DSCAPSType)
+        self.assertTrue(isinstance(c, ds.DSCAPSType))
 
     def test_2_Attr(self):
         "DSCAPS attribute access"
@@ -155,7 +156,7 @@ class DSBCAPSTest(unittest.TestCase):
     def test_1_Type(self):
         "DSBCAPS type"
         c = ds.DSBCAPS()
-        self.assertTrue(type(c) == ds.DSBCAPSType)
+        self.assertTrue(isinstance(c, ds.DSBCAPSType))
 
     def test_2_Attr(self):
         "DSBCAPS attribute access"
@@ -175,7 +176,7 @@ class DSCCAPSTest(unittest.TestCase):
     def test_1_Type(self):
         "DSCCAPS type"
         c = ds.DSCCAPS()
-        self.assertTrue(type(c) == ds.DSCCAPSType)
+        self.assertTrue(isinstance(c, ds.DSCCAPSType))
 
     def test_2_Attr(self):
         "DSCCAPS attribute access"
@@ -193,7 +194,7 @@ class DSCBCAPSTest(unittest.TestCase):
     def test_1_Type(self):
         "DSCBCAPS type"
         c = ds.DSCBCAPS()
-        self.assertTrue(type(c) == ds.DSCBCAPSType)
+        self.assertTrue(isinstance(c, ds.DSCBCAPSType))
 
     def test_2_Attr(self):
         "DSCBCAPS attribute access"
@@ -209,7 +210,7 @@ class DSBUFFERDESCTest(unittest.TestCase):
     def test_1_Type(self):
         "DSBUFFERDESC type"
         c = ds.DSBUFFERDESC()
-        self.assertTrue(type(c) == ds.DSBUFFERDESCType)
+        self.assertTrue(isinstance(c, ds.DSBUFFERDESCType))
 
     def test_2_Attr(self):
         "DSBUFFERDESC attribute access"
@@ -246,7 +247,7 @@ class DSCBUFFERDESCTest(unittest.TestCase):
     def test_1_Type(self):
         "DSCBUFFERDESC type"
         c = ds.DSCBUFFERDESC()
-        self.assertTrue(type(c) == ds.DSCBUFFERDESCType)
+        self.assertTrue(isinstance(c, ds.DSCBUFFERDESCType))
 
     def test_2_Attr(self):
         "DSCBUFFERDESC attribute access"
@@ -297,7 +298,7 @@ class DirectSoundTest(unittest.TestCase):
         except pythoncom.com_error as exc:
             if exc.hresult != ds.DSERR_NODRIVER:
                 raise
-            raise TestSkipped(exc)
+            raise unittest.SkipTest(str(exc))
 
     def testPlay(self):
         """Mesdames et Messieurs, la cour de Devin Dazzle"""
@@ -317,7 +318,7 @@ class DirectSoundTest(unittest.TestCase):
             except pythoncom.com_error as exc:
                 if exc.hresult != ds.DSERR_NODRIVER:
                     raise
-                raise TestSkipped(exc)
+                raise unittest.SkipTest(str(exc))
             d.SetCooperativeLevel(None, ds.DSSCL_PRIORITY)
 
             sdesc = ds.DSBUFFERDESC()
@@ -351,13 +352,13 @@ class DirectSoundCaptureTest(unittest.TestCase):
         self.assertTrue(len(devices[0]) == 3)
 
     def testCreate(self):
-        """DirectSoundCreate()"""
+        """DirectSoundCaptureCreate()"""
         try:
             d = ds.DirectSoundCaptureCreate(None, None)
         except pythoncom.com_error as exc:
             if exc.hresult != ds.DSERR_NODRIVER:
                 raise
-            raise TestSkipped(exc)
+            raise unittest.SkipTest(str(exc))
 
     def testRecord(self):
         try:
@@ -365,7 +366,7 @@ class DirectSoundCaptureTest(unittest.TestCase):
         except pythoncom.com_error as exc:
             if exc.hresult != ds.DSERR_NODRIVER:
                 raise
-            raise TestSkipped(exc)
+            raise unittest.SkipTest(str(exc))
 
         sdesc = ds.DSCBUFFERDESC()
         sdesc.dwBufferBytes = 352800  # 2 seconds

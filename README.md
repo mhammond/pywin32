@@ -8,17 +8,21 @@
 
 -----
 
-This is the readme for the Python for Win32 (pywin32) extensions, which provides access to many of the Windows APIs from Python.
+This is the readme for the Python for Win32 (pywin32) extensions, which provides access to many of the Windows APIs from Python, including COM support.
 
-See [CHANGES.txt](https://github.com/mhammond/pywin32/blob/master/CHANGES.txt) for recent notable changes.
+See [CHANGES.md](https://github.com/mhammond/pywin32/blob/main/CHANGES.md) for recent notable changes.
 
-Only Python 3 is supported. If you want Python 2 support, you want build `228`.
+adodbapi's documentation can be found in: [adodbapi/readme.txt](https://github.com/mhammond/pywin32/blob/main/adodbapi/readme.txt)
+
+isapi's documentation can be found in: [isapi/README.txt](https://github.com/mhammond/pywin32/blob/main/isapi/README.txt)
 
 ## Docs
 
 The docs are a long and sad story, but [there's now an online version](https://mhammond.github.io/pywin32/)
-of the helpfile that ships with the installers (thanks [@ofek](https://github.com/mhammond/pywin32/pull/1774)!).
+of the `PyWin32.chm` helpfile (thanks [@ofek](https://github.com/mhammond/pywin32/pull/1774)!).
 Lots of that is very old, but some is auto-generated and current. Would love help untangling the docs!
+
+You can get type hints, signatures and annotations from [`types-pywin32`](https://pypi.org/project/types-pywin32/).
 
 ## Support
 
@@ -26,103 +30,185 @@ Feel free to [open issues](https://github.com/mhammond/pywin32/issues) for
 all bugs (or suspected bugs) in pywin32. [pull-requests](https://github.com/mhammond/pywin32/pulls)
 for all bugs or features are also welcome.
 
-However, please **do not open github issues for general support requests**, or
-for problems or questions using the modules in this package - they will be
-closed. For such issues, please email the
-[python-win32 mailing list](http://mail.python.org/mailman/listinfo/python-win32) -
-note that you must be subscribed to the list before posting.
+However, please **do not open GitHub issues for general support requests**, or for problems or questions using the modules in this package.  
+For pywin32 support requests, please start a [discussion](https://github.com/mhammond/pywin32/discussions) under the [Q&A category](https://github.com/mhammond/pywin32/discussions/new?category=q-a). All non bug related issues will be converted into a discussion anyhow.  
+The [python-win32 mailing list](https://mail.python.org/mailman/listinfo/python-win32) is still available for general Python on Windows help requests.
+
+Type stubs currently live in [typeshed](<https://github.com/python/typeshed/tree/main/stubs/pywin32>).
+Any issue or request related to static type-checking and IntelliSense should be raised there.
 
 ## Binaries
-[Binary releases are deprecated.](https://mhammond.github.io/pywin32_installers.html)
-While they are still provided, [find them here](https://github.com/mhammond/pywin32/releases)
+
+[Binary releases are no longer supported.](https://mhammond.github.io/pywin32_installers.html)
+
+Build 306 was the last with .exe installers. You really shouldn't use them, but if you really need them,
+[find them here](https://github.com/mhammond/pywin32/releases/tag/b306)
 
 ## Installing via PIP
 
 You should install pywin32 via pip - eg,
-> python -m pip install --upgrade pywin32
 
-If you encounter any problems when upgrading (eg, "module not found" errors or similar), you
-should execute:
+```shell
+python -m pip install --upgrade pywin32
+```
 
-> python Scripts/pywin32_postinstall.py -install
+There is a post-install script (see below) which should *not* be run inside virtual environments;
+it should only be run in "global" installs.
 
-This will make some small attempts to cleanup older conflicting installs.
+For unreleased changes, you can download builds made by [GitHub actions](https://github.com/mhammond/pywin32/actions/) -
+choose any "workflow" from the `main` branch and download its "artifacts"
 
-Note that if you want to use pywin32 for "system wide" features, such as
-registering COM objects or implementing Windows Services, then you must run
-that command from an elevated (ie, "Run as Administrator) command prompt.
+### Installing globally
 
-For unreleased changes, you can download builds made by [github actions](https://github.com/mhammond/pywin32/actions/) -
-choose any "workflow" from the `main` branch and download its "artifacts")
+Outside of a virtual environment you might want to install COM objects, services, etc. You can do
+this by executing:
 
-### `The specified procedure could not be found` / `Entry-point not found` Errors?
-A very common report is that people install pywin32, but many imports fail with errors
-similar to the above.
+```shell
+python -m pywin32_postinstall -install
+```
 
-In almost all cases, this tends to mean there are other pywin32 DLLs installed in your system,
-but in a different location than the new ones. This sometimes happens in environments that
-come with pywin32 pre-shipped (eg, anaconda?).
+or (shorter but you don't have control over which python environment is used)
 
-The possible solutions are:
+```shell
+pywin32_postinstall -install
+```
 
-* Run the "post_install" script documented above.
+If you do this with normal permissions it will be global for your user (a few files will be
+copied to the root of your Python install and some changes made to HKCU). If you execute this from
+an elevated process, it will be global for the machine (files will be copied to System32, HKLM
+will be changed, etc)
 
-* Otherwise, find and remove all other copies of `pywintypesXX.dll` and `pythoncomXX.dll`
-  (where `XX` is the Python version - eg, "39")
+### Installing for MingGW/msys2
+
+The folks at <https://github.com/msys2/MINGW-packages/tree/master/mingw-w64-python-pywin32> are graciously keeping an updated set of patches to install pywin32 for MingGW/msys2.
+
+We'd suggest installing from <https://packages.msys2.org/base/mingw-w64-python-pywin32> `pacman -S mingw-w64-python-pywin32`.
+
+We're open to seeing these patches be upstreamed in pywin32 if they can be tested automatically on the CI.
 
 ### Running as a Windows Service
 
-Modern Python installers do not, by default, install Python in a way that is suitable for
-running as a service, particularly for other users.
+To run as a service, you probably want to install pywin32 globally from an elevated
+command prompt - see above.
 
-* Ensure Python is installed in a location where the user running the service has
-  access to the installation and is able to load `pywintypesXX.dll` and `pythonXX.dll`.
+You also need to ensure Python is installed in a location where the user running
+the service has access to the installation and is able to load `pywintypesXX.dll` and `pythonXX.dll`.
+In particular, the `LocalSystem` account typically will not have access to your local `%USER%` directory structure.
 
-* Manually copy `pythonservice.exe` from the `site-packages/win32` directory to
-  the same place as these DLLs.
+## Troubleshooting
+
+If you encounter any problems when upgrading like the following:
+
+```text
+The specified procedure could not be found
+Entry-point not found
+```
+
+It usually means one of 2 things:
+
+* You've upgraded an install where the post-install script was previously run.
+So you should run it again:
+
+    ```shell
+    python -m pywin32_postinstall -install
+    ```
+
+    or (shorter but you don't have control over which python environment is used)
+
+    ```shell
+    pywin32_postinstall -install
+    ```
+
+    This will make some small attempts to cleanup older conflicting installs.
+
+* There are other pywin32 DLLs installed in your system,
+but in a different location than the new ones. This sometimes happens in environments that
+come with pywin32 pre-shipped (eg, anaconda?).
+
+  The possible solutions here are:
+
+  * Run the "post_install" script documented above.
+  * Otherwise, find and remove all other copies of `pywintypesXX.dll` and `pythoncomXX.dll`
+  (where `XX` is the Python version - eg, "39")
 
 ## Building from source
 
-Building from source has been simplified recently - you just need Visual Studio
-and the Windows 10 SDK installed (the free compilers probably work too, but
-haven't been tested - let me know your experiences!)
+Install Visual Studio 2019 (later probably works, but options might be different),
+follow the instructions in [Build environment](/build_env.md#build-environment)
+for the version you install.
 
-`setup.py` is a standard distutils build script.  You probably want:
-
-> python setup.py install
-
-or
-
-> python setup.py --help
-
-You can run `setup.py` without any arguments to see
-specific information about dependencies.  A vanilla MSVC installation should
-be able to build most extensions and list any extensions that could not be
-built due to missing libraries - if the build actually fails with your
-configuration, please [open an issue](https://github.com/mhammond/pywin32/issues).
+Then follow the [Build](/build_env.md#build) instructions for the build itself (including ARM64 cross-compilation).
 
 ## Release process
 
 The following steps are performed when making a new release - this is mainly
-to form a checklist so mhammond doesn't forget what to do :)
+to form a checklist so @mhammond doesn't forget what to do :)
 
-* Ensure CHANGES.txt has everything worth noting, commit it.
+Since build 307 the release process is based on the artifacts created by Github actions.
 
-* Update setup.py with the new build number.
+* Ensure CHANGES.md has everything worth noting. Update the header to reflect
+  the about-to-be released build and date, commit it.
 
-* Execute build.bat, wait forever, test the artifacts.
+* Update setup.py with the new build number. Update CHANGES.md to have a new heading
+  section for the next unreleased version. (ie, a new, empty "Coming in build XXX, as yet unreleased"
+  section)
 
-* Upload .whl artifacts to pypi - we do this before pushing the tag because they might be
-  rejected for an invalid `README.md`. Done via `py -3.5 -m twine upload dist/*XXX*.whl`.
+* Push these changes to GitHub, wait for the actions to complete, then
+  download the artifacts from that run.
 
-* Commit setup.py (so the new build number is in the repo), create a new git tag
+* Upload `.whl` artifacts to pypi - we do this before pushing the tag because they might be
+  rejected for an invalid `README.md`. Done via `py -3.? -m twine upload dist/*XXX*.whl`.
 
-* Upload the .exe installers to github.
+* Create a new git tag for the release.
 
 * Update setup.py with the new build number + ".1" (eg, 123.1), to ensure
   future test builds aren't mistaken for the real release.
 
-* Make sure everything is pushed to github, including the tag (ie,
+* Make sure everything is pushed to GitHub, including the tag (ie,
   `git push --tags`)
 
 * Send mail to python-win32
+
+<details>
+<summary>
+
+### Older Manual Release Process
+
+</summary>
+
+This is the old process used when a local dev environment was used to create
+the builds. Build 306 was the last released with this process.
+
+* Ensure CHANGES.md has everything worth noting. Update the header to reflect
+  the about-to-be released build and date, commit it.
+
+* Update setup.py with the new build number.
+
+* Execute `make_all.bat`, wait forever, test the artifacts.
+
+* Upload .whl artifacts to pypi - we do this before pushing the tag because they might be
+  rejected for an invalid `README.md`. Done via `py -3.? -m twine upload dist/*XXX*.whl`.
+
+* Commit setup.py (so the new build number is in the repo), create a new git tag
+
+* Upload the .exe installers to GitHub.
+
+* Update setup.py with the new build number + ".1" (eg, 123.1), to ensure
+  future test builds aren't mistaken for the real release.
+
+* Make sure everything is pushed to GitHub, including the tag (ie,
+  `git push --tags`)
+
+* Send mail to python-win32
+
+</details>
+
+## Versioning
+
+pywin32 uses a simple incremental version numbering scheme. Any increase in the version number may correspond to a breaking interface change. It is recommended that projects using pywin32 pin the dependency to a specific version.
+
+## Licenses
+
+pywin32 contains a mix of differently licensed code. The license files in the source tree are the source of truth.[^1]. So are individual Copyright notices at the top of files. You can also find license information through the [License-File Packaging Metadata](https://packaging.python.org/en/latest/specifications/core-metadata/#license-file-multiple-use).
+
+[^1]: <https://github.com/mhammond/pywin32/issues/1127#issuecomment-393364022>

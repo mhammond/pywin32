@@ -39,22 +39,22 @@ PyObject *PyIMAPIFolder::GetLastError(PyObject *self, PyObject *args)
 	HRESULT hr, hRes;
 	ULONG flags = 0;
 	MAPIERROR *me = NULL;
-	
+
 	IMAPIFolder *_swig_self;
 	if ((_swig_self=GetI(self))==NULL) return NULL;
-	
+
     if(!PyArg_ParseTuple(args,"l|l:GetLastError",
 		&hr, // @pyparm int|hr||Contains the error code generated in the previous method call.
 		&flags)) // @pyparm int|flags||Indicates for format for the output.
         return NULL;
-		
+
 	Py_BEGIN_ALLOW_THREADS
 	hRes = _swig_self->GetLastError(hr, flags, &me);
 	Py_END_ALLOW_THREADS
 
 	if (FAILED(hRes))
 		return OleSetOleError(hRes);
-	
+
 	if (me == NULL)
 	{
 		Py_INCREF(Py_None);
@@ -81,10 +81,10 @@ PyObject *PyIMAPIFolder::CreateFolder(PyObject *self, PyObject *args)
 	LPIID lpInterface = NULL;
 	ULONG ulFlags = 0;
 	LPMAPIFOLDER lpFolder = NULL;
-	
+
 	IMAPIFolder *_swig_self;
 	if ((_swig_self=GetI(self))==NULL) return NULL;
-	
+
 	if (!PyArg_ParseTuple(args, "lO|OOl",
 		&ulFolderType, // @pyparm int|folderType||The type of folder to create
 		&obFolderName, // @pyparm string|folderName||The name of the folder.
@@ -103,11 +103,11 @@ PyObject *PyIMAPIFolder::CreateFolder(PyObject *self, PyObject *args)
 		if (!PyWinObject_AsIID(obInterface, lpInterface))
 			goto done;
 	}
-	
+
 	Py_BEGIN_ALLOW_THREADS
 	hRes = _swig_self->CreateFolder(ulFolderType, lpszFolderName, lpszFolderComment, lpInterface, ulFlags, &lpFolder);
 	Py_END_ALLOW_THREADS
-	
+
 	if (FAILED(hRes))
 		result = OleSetOleError(hRes);
 	else
@@ -116,13 +116,13 @@ PyObject *PyIMAPIFolder::CreateFolder(PyObject *self, PyObject *args)
 done:
 	PyWinObject_FreeMAPIStr(lpszFolderName, ulFlags & MAPI_UNICODE);
 	PyWinObject_FreeMAPIStr(lpszFolderComment, ulFlags & MAPI_UNICODE);
-	
+
 	return result;
 }
 %}
 
 // @pyswig <o PyIMessage>|CreateMessage|Creates a message in a folder
-HRESULT CreateMessage( 
+HRESULT CreateMessage(
 	IID *INPUT_NULLOK,    // @pyparm <o PyIID>|iid||The IID of the object to return.  Should usually be None.
 	ULONG ulFlags,	// @pyparm int|flags||
 	IMessage **OUTPUT);
@@ -136,14 +136,14 @@ HRESULT_KEEP_INFO CopyMessages(
 	IMAPIProgress *INPUT_NULLOK, // @pyparm <o PyIMAPIProgress>|progress||A progress object, or None
 	unsigned long ulFlags); // @pyparm int|flags||A bitmask of
 	// @flagh Mask|Description
-	// @flag MAPI_DECLINE_OK|Informs the message store provider to immediately return MAPI_E_DECLINE_COPY if it implements CopyMessage by calling the support object's IMAPISupport::DoCopyTo or IMAPISupport::DoCopyProps method. 
-	// @flag MESSAGE_DIALOG |Displays a progress indicator as the operation proceeds. 
-	// @flag MESSAGE_MOVE|The message or messages are to be moved rather than copied. If MESSAGE_MOVE is not set, the messages are copied. 
+	// @flag MAPI_DECLINE_OK|Informs the message store provider to immediately return MAPI_E_DECLINE_COPY if it implements CopyMessage by calling the support object's IMAPISupport::DoCopyTo or IMAPISupport::DoCopyProps method.
+	// @flag MESSAGE_DIALOG |Displays a progress indicator as the operation proceeds.
+	// @flag MESSAGE_MOVE|The message or messages are to be moved rather than copied. If MESSAGE_MOVE is not set, the messages are copied.
 
 // @pyswig |DeleteFolder|Deletes a subfolder.
 %native(DeleteFolder) DeleteFolder;
 %{
-PyObject *PyIMAPIFolder::DeleteFolder(PyObject *self, PyObject *args) 
+PyObject *PyIMAPIFolder::DeleteFolder(PyObject *self, PyObject *args)
 {
 	HRESULT hRes;
 	PyObject *obEntryId, *obUIParam, *obProgress;
@@ -152,15 +152,15 @@ PyObject *PyIMAPIFolder::DeleteFolder(PyObject *self, PyObject *args)
 	ULONG_PTR ulUIParam;
 	LPMAPIPROGRESS lpProgress;
 	ULONG flags = 0;
-	
+
 	IMAPIFolder *_swig_self;
 	if ((_swig_self=GetI(self))==NULL) return NULL;
-	
+
     if(!PyArg_ParseTuple(args,"OOO|l:DeleteFolder",
 		&obEntryId, // @pyparm string|entryId||The EntryID of the subfolder to delete.
 		&obUIParam, // @pyparm long|uiParam||Handle of the parent window of the progress indicator.
 		&obProgress, // @pyparm <o PyIMAPIProgress>|progress||A progress object, or None
-		&flags)) 
+		&flags))
         return NULL;
 	if (PyBytes_Check(obEntryId)) {
 		eid = (LPENTRYID)PyBytes_AsString(obEntryId);
@@ -177,10 +177,10 @@ PyObject *PyIMAPIFolder::DeleteFolder(PyObject *self, PyObject *args)
 	PY_INTERFACE_PRECALL;
 	hRes = (HRESULT)_swig_self->DeleteFolder(cbEID, eid, ulUIParam, lpProgress, flags);
 	PY_INTERFACE_POSTCALL;
-	
+
 	if (lpProgress)
 		lpProgress->Release();
-	
+
 	if (FAILED(hRes))
 		return OleSetOleError(hRes);
 
@@ -200,8 +200,8 @@ HRESULT_KEEP_INFO EmptyFolder(
 	ULONG ulUIParam, // @pyparm int|uiParam||A HWND for the progress
 	IMAPIProgress *INPUT_NULLOK, // @pyparm <o PyIMAPIProgress>|progress||A progress object, or None
 	ULONG ulFlags // @pyparm int|flags||
-); 
- 
+);
+
 // @pyswig |SetReadFlags|Sets or clears the MSGFLAG_READ flag in the PR_MESSAGE_FLAGS (PidTagMessageFlags) property of one or more of the folder's messages, and manages the sending of read reports.
 HRESULT_KEEP_INFO SetReadFlags(
 	SBinaryArray *INPUT, // @pyparm <o PySBinaryArray>|msgs||

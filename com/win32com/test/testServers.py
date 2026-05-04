@@ -1,7 +1,9 @@
-import pythoncom, win32com.client.dynamic, sys
-import winerror
-import win32com.test.util
 import unittest
+
+import pythoncom
+import win32com.client.dynamic
+import win32com.test.util
+import winerror
 
 
 def TestConnections():
@@ -13,10 +15,9 @@ def TestConnections():
 class InterpCase(win32com.test.util.TestCase):
     def setUp(self):
         # Ensure the correct version registered.
-        from win32com.test.util import RegisterPythonServer
         from win32com.servers import interp
 
-        RegisterPythonServer(interp.__file__, "Python.Interpreter")
+        win32com.test.util.RegisterPythonServer(interp.__file__, "Python.Interpreter")
 
     def _testInterp(self, interp):
         self.assertEqual(interp.Eval("1+1"), 2)

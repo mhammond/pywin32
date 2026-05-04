@@ -217,14 +217,14 @@ PyObject *PyIShellFolder::CompareIDs(PyObject *self, PyObject *args)
             PyCom_BuildPyException(hr, pISF, IID_IShellFolder);
         else  // special handling of hresult
             if ((short)HRESULT_CODE(hr) < 0)
-            /* pidl1 comes first */
-            ret = PyLong_FromLong(-1);
-        else if ((short)HRESULT_CODE(hr) > 0)
-            /* pidl2 comes first */
-            ret = PyLong_FromLong(1);
-        else
-            /* the two pidls are equal */
-            ret = PyLong_FromLong(0);
+                /* pidl1 comes first */
+                ret = PyLong_FromLong(-1);
+            else if ((short)HRESULT_CODE(hr) > 0)
+                /* pidl2 comes first */
+                ret = PyLong_FromLong(1);
+            else
+                /* the two pidls are equal */
+                ret = PyLong_FromLong(0);
     }
     PyObject_FreePIDL(pidl1);
     PyObject_FreePIDL(pidl2);
@@ -469,7 +469,7 @@ STDMETHODIMP PyGShellFolder::ParseDisplayName(
     BOOL bPythonIsHappy = TRUE;
     if (!PyTuple_Check(result)) {
         PyErr_Format(PyExc_TypeError, "ParseDisplayName must return a tuple of (int, pidl, attr) - got '%s'",
-                     result->ob_type->tp_name);
+                     Py_TYPE(result)->tp_name);
         bPythonIsHappy = FALSE;
     }
     if (bPythonIsHappy && !PyArg_ParseTuple(result, "lOl", &chEaten, &obppidl, &dwAttributes))

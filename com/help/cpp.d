@@ -20,7 +20,7 @@ python and C++.
 //C++ interfaces
 class IFlintstone
 {
-public: 
+public:
   virtual TellWilma(long when)=0;
 };
 
@@ -30,8 +30,8 @@ public:
   virtual AskBetty(long when)=0;
 };
 
-#Abtract Base classes for python
-#not as formal as C++'s
+# Abstract Base classes for python
+# not as formal as C++'s
 class IFlintstone:
   def TellWilma(self,when=0):
     raise RuntimeError, 'virtual function'
@@ -56,8 +56,8 @@ inheritance. You create class that inherits whatever interfaces
 (abstract base classes), you want to expose.  The only disadvantage to
 this is that it means that the interfaces can't have the same function
 names. These interfaces need to be defined using IDL to allow for
-proxies, resove any ambiguities C++ may have, and generate type
-libraries.  A very simple IDL interface wouuld look like:
+proxies, resolve any ambiguities C++ may have, and generate type
+libraries.  A very simple IDL interface would look like:
 
 <nl><nl>IDL interface: |
 import "unknwn.idl"
@@ -75,8 +75,8 @@ interface IRubble : IUnknown
 file created by MIDL and then inherit this just as with the class
 examples above. Then you define every method for each interface which
 includes IUnknown, as well as IFlintstone and IRubble. At this point,
-I'm ommitting some details like the metaclass which implements
-IClassFactory that creates Bedrock and errorhandeling , but from this
+I'm omitting some details like the metaclass which implements
+IClassFactory that creates Bedrock and error handling , but from this
 class you can see the basic functions you'll have to write.
 
 <nl><nl>C++ definition: |
@@ -85,7 +85,7 @@ class BedRock : public IFlintstone, public IRubble {
     LONG m_references;
 
 public:
-   BedRock() : m_references(0){ } // constructor  
+   BedRock() : m_references(0){ } // constructor
    ~BedRock(void) { } //destructor
 
    // IUnknown Methods not shown in their entirety
@@ -131,7 +131,7 @@ similar in spirit to the above.
 
 <nl><nl>Basic python COM code |
 
-##Abtract Base classes for python
+# Abstract Base classes for python
 class IFlintstone:
   def TellWilma(self,when=0):
     raise RuntimeError, 'virtual function'
@@ -143,9 +143,9 @@ class BedRock(IFlintstone, IRubble): #no need to use MIDL for these
     _public_methods_ = ['TellWilma', 'AskBetty']
     _reg_progid_ = "Python.Bedrock"
     _reg_clsid_ = "{12345678-1234-5678-1234-567812345678}"
-    def __init__(self): #constructur
-	pass #not doing anthing w/it 
-             #no need to keep track of reference counts
+    def __init__(self): # constructor
+	    pass # not doing anything w/it
+        # no need to keep track of reference counts
     def __del__(self): #destructor
 	pass #not much going on here either
     def TellWilma(self,when=0):
@@ -158,7 +158,7 @@ if __name__=='__main__':
 
 
 @ex Have a great time with programming with python!
-<nl>|John Nielsen   nielsenjf@my-deja.com       
+<nl>|John Nielsen   nielsenjf@my-deja.com
 
 
 */

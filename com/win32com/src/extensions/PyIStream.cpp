@@ -38,7 +38,7 @@ PyObject *PyIStream::Read(PyObject *self, PyObject *args)
         result = PyCom_BuildPyException(hr, pMy, IID_IStream);
     else
         result = PyBytes_FromStringAndSize(buffer, read);
-    delete buffer;
+    delete[] buffer;
     // @rdesc The result is a string containing binary data.
     return result;
 }

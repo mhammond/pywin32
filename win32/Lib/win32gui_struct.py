@@ -27,30 +27,25 @@
 # win32gui (ie, the Pack* functions) - but doesn't make as much sense for
 # the Unpack* functions, where the aim is user convenience.
 
-import sys
-import win32gui
-import win32con
-import struct
 import array
+import struct
+import sys
+from collections import namedtuple
+
 import commctrl
 import pywintypes
+import win32con
+import win32gui
+
+
+def _MakeResult(names_str, values):
+    names = names_str.split()
+    # TODO: Dynamic namedtuple. This could be made static, also exposing the types
+    nt = namedtuple(names[0], names[1:])  # noqa: PYI024
+    return nt(*values)
+
 
 is64bit = "64 bit" in sys.version
-
-try:
-    from collections import namedtuple
-
-    def _MakeResult(names_str, values):
-        names = names_str.split()
-        nt = namedtuple(names[0], names[1:])
-        return nt(*values)
-
-except ImportError:
-    # no namedtuple support - just return the values as a normal tuple.
-    def _MakeResult(names_str, values):
-        return values
-
-
 _nmhdr_fmt = "PPi"
 if is64bit:
     # When the item past the NMHDR gets aligned (eg, when it is a struct)
@@ -59,48 +54,18 @@ if is64bit:
 else:
     _nmhdr_align_padding = ""
 
+
 # Encode a string suitable for passing in a win32gui related structure
-# If win32gui is built with UNICODE defined (ie, py3k), then functions
-# like InsertMenuItem are actually calling InsertMenuItemW etc, so all
-# strings will need to be unicode.
-if win32gui.UNICODE:
-
-    def _make_text_buffer(text):
-        # XXX - at this stage win32gui.UNICODE is only True in py3k,
-        # and in py3k is makes sense to reject bytes.
-        if not isinstance(text, str):
-            raise TypeError("MENUITEMINFO text must be unicode")
-        data = (text + "\0").encode("utf-16le")
-        return array.array("b", data)
-
-else:
-
-    def _make_text_buffer(text):
-        if isinstance(text, str):
-            text = text.encode("mbcs")
-        return array.array("b", text + "\0")
+def _make_text_buffer(text):
+    if not isinstance(text, str):
+        raise TypeError("MENUITEMINFO text must be unicode")
+    data = (text + "\0").encode("utf-16le")
+    return array.array("b", data)
 
 
 # make an 'empty' buffer, ready for filling with cch characters.
 def _make_empty_text_buffer(cch):
     return _make_text_buffer("\0" * cch)
-
-
-if sys.version_info < (3, 0):
-
-    def _make_memory(ob):
-        return str(buffer(ob))
-
-    def _make_bytes(sval):
-        return sval
-
-else:
-
-    def _make_memory(ob):
-        return bytes(memoryview(ob))
-
-    def _make_bytes(sval):
-        return sval.encode("ascii")
 
 
 # Generic WM_NOTIFY unpacking
@@ -115,9 +80,9 @@ def UnpackNMITEMACTIVATE(lparam):
     if is64bit:
         # the struct module doesn't handle this correctly as some of the items
         # are actually structs in structs, which get individually aligned.
-        format = format + "iiiiiiixxxxP"
+        format += "iiiiiiixxxxP"
     else:
-        format = format + "iiiiiiiP"
+        format += "iiiiiiiP"
     buf = win32gui.PyMakeBuffer(struct.calcsize(format), lparam)
     return _MakeResult(
         "NMITEMACTIVATE hwndFrom idFrom code iItem iSubItem uNewState uOldState uChanged actionx actiony lParam",
@@ -126,7 +91,7 @@ def UnpackNMITEMACTIVATE(lparam):
 
 
 # MENUITEMINFO struct
-# http://msdn.microsoft.com/library/default.asp?url=/library/en-us/winui/WinUI/WindowsUserInterface/Resources/Menus/MenuReference/MenuStructures/MENUITEMINFO.asp
+# https://learn.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-menuiteminfow
 # We use the struct module to pack and unpack strings as MENUITEMINFO
 # structures.  We also have special handling for the 'fMask' item in that
 # structure to avoid the caller needing to explicitly check validity
@@ -150,14 +115,18 @@ def PackMENUITEMINFO(
     # memory is used) for the lifetime of the INFO item.
     extras = []
     # ack - dwItemData and dwTypeData were confused for a while...
-    assert (
-        dwItemData is None or dwTypeData is None
-    ), "sorry - these were confused - you probably want dwItemData"
+    assert dwItemData is None or dwTypeData is None, (
+        "sorry - these were confused - you probably want dwItemData"
+    )
     # if we are a long way past 209, then we can nuke the above...
     if dwTypeData is not None:
         import warnings
 
-        warnings.warn("PackMENUITEMINFO: please use dwItemData instead of dwTypeData")
+        warnings.warn(
+            "PackMENUITEMINFO: please use dwItemData instead of dwTypeData",
+            DeprecationWarning,
+            stacklevel=2,
+        )
     if dwItemData is None:
         dwItemData = dwTypeData or 0
 
@@ -289,8 +258,9 @@ def EmptyMENUITEMINFO(mask=None, text_buf_size=512):
             | win32con.MIIM_STATE
             | win32con.MIIM_STRING
             | win32con.MIIM_SUBMENU
+            # Note: No MIIM_TYPE - this used to screw win2k/98.
+            # We don't know the impact now and whether it could/should be added to the mask.
         )
-        # Note: No MIIM_TYPE - this screws win2k/98.
 
     if mask & win32con.MIIM_STRING:
         text_buffer = _make_empty_text_buffer(text_buf_size)
@@ -420,6 +390,8 @@ def EmptyMENUINFO(mask=None):
 # XXX - intend checking them later - but having them is better than not at all!
 
 _tvitem_fmt = "iPiiPiiiiP"
+
+
 # Helpers for the ugly win32 structure packing/unpacking
 # XXX - Note that functions using _GetMaskAndVal run 3x faster if they are
 # 'inlined' into the function - see PackLVITEM.  If the profiler points at
@@ -496,7 +468,7 @@ def EmptyTVITEM(hitem, mask=None, text_buf_size=512):
     else:
         text_addr = text_buf_size = 0
     buf = struct.pack(
-        _tvitem_fmt, mask, hitem, 0, 0, text_addr, text_buf_size, 0, 0, 0, 0  # text
+        _tvitem_fmt, mask, hitem, 0, 0, text_addr, text_buf_size, 0, 0, 0, 0
     )
     return array.array("b", buf), extra
 
@@ -555,10 +527,10 @@ def UnpackTVNOTIFY(lparam):
     item_size = struct.calcsize(_tvitem_fmt)
     format = _nmhdr_fmt + _nmhdr_align_padding
     if is64bit:
-        format = format + "ixxxx"
+        format += "ixxxx"
     else:
-        format = format + "i"
-    format = format + "%ds%ds" % (item_size, item_size)
+        format += "i"
+    format += "%ds%ds" % (item_size, item_size)
     buf = win32gui.PyGetMemory(lparam, struct.calcsize(format))
     hwndFrom, id, code, action, buf_old, buf_new = struct.unpack(format, buf)
     item_old = UnpackTVITEM(buf_old)
@@ -703,8 +675,8 @@ def UnpackLVDISPINFO(lparam):
 def UnpackLVNOTIFY(lparam):
     format = _nmhdr_fmt + _nmhdr_align_padding + "7i"
     if is64bit:
-        format = format + "xxxx"  # point needs padding.
-    format = format + "P"
+        format += "xxxx"  # point needs padding.
+    format += "P"
     buf = win32gui.PyGetMemory(lparam, struct.calcsize(format))
     (
         hwndFrom,
@@ -791,7 +763,7 @@ def PackLVCOLUMN(fmt=None, cx=None, text=None, subItem=None, image=None, order=N
         text_addr, _ = text_buffer.buffer_info()
         text_len = len(text)
     buf = struct.pack(
-        _lvcolumn_fmt, mask, fmt, cx, text_addr, text_len, subItem, image, order  # text
+        _lvcolumn_fmt, mask, fmt, cx, text_addr, text_len, subItem, image, order
     )
     return array.array("b", buf), extra
 
@@ -841,9 +813,7 @@ def EmptyLVCOLUMN(mask=None, text_buf_size=512):
         text_addr, _ = text_buffer.buffer_info()
     else:
         text_addr = text_buf_size = 0
-    buf = struct.pack(
-        _lvcolumn_fmt, mask, 0, 0, text_addr, text_buf_size, 0, 0, 0  # text
-    )
+    buf = struct.pack(_lvcolumn_fmt, mask, 0, 0, text_addr, text_buf_size, 0, 0, 0)
     return array.array("b", buf), extra
 
 
@@ -892,13 +862,14 @@ def PackHDITEM(
 
 # Device notification stuff
 
+
 # Generic function for packing a DEV_BROADCAST_* structure - generally used
 # by the other PackDEV_BROADCAST_* functions in this module.
-def PackDEV_BROADCAST(devicetype, rest_fmt, rest_data, extra_data=_make_bytes("")):
+def PackDEV_BROADCAST(devicetype, rest_fmt, rest_data, extra_data=b""):
     # It seems a requirement is 4 byte alignment, even for the 'BYTE data[1]'
     # field (eg, that would make DEV_BROADCAST_HANDLE 41 bytes, but we must
     # be 44.
-    extra_data += _make_bytes("\0" * (4 - len(extra_data) % 4))
+    extra_data += b"\0" * (4 - len(extra_data) % 4)
     format = "iii" + rest_fmt
     full_size = struct.calcsize(format) + len(extra_data)
     data = (full_size, devicetype, 0) + rest_data
@@ -908,14 +879,14 @@ def PackDEV_BROADCAST(devicetype, rest_fmt, rest_data, extra_data=_make_bytes(""
 def PackDEV_BROADCAST_HANDLE(
     handle,
     hdevnotify=0,
-    guid=_make_bytes("\0" * 16),
+    guid=b"\0" * 16,
     name_offset=0,
-    data=_make_bytes("\0"),
+    data=b"\0",
 ):
     return PackDEV_BROADCAST(
         win32con.DBT_DEVTYP_HANDLE,
         "PP16sl",
-        (int(handle), int(hdevnotify), _make_memory(guid), name_offset),
+        (int(handle), int(hdevnotify), bytes(memoryview(guid)), name_offset),
         data,
     )
 
@@ -925,20 +896,14 @@ def PackDEV_BROADCAST_VOLUME(unitmask, flags):
 
 
 def PackDEV_BROADCAST_DEVICEINTERFACE(classguid, name=""):
-    if win32gui.UNICODE:
-        # This really means "is py3k?" - so not accepting bytes is OK
-        if not isinstance(name, str):
-            raise TypeError("Must provide unicode for the name")
-        name = name.encode("utf-16le")
-    else:
-        # py2k was passed a unicode object - encode as mbcs.
-        if isinstance(name, str):
-            name = name.encode("mbcs")
+    if not isinstance(name, str):
+        raise TypeError("Must provide unicode for the name")
+    name = name.encode("utf-16le")
 
     # 16 bytes for the IID followed by \0 term'd string.
     rest_fmt = "16s%ds" % len(name)
-    # _make_memory(iid) hoops necessary to get the raw IID bytes.
-    rest_data = (_make_memory(pywintypes.IID(classguid)), name)
+    # bytes(memoryview(iid)) hoops necessary to get the raw IID bytes.
+    rest_data = (bytes(memoryview(pywintypes.IID(classguid))), name)
     return PackDEV_BROADCAST(win32con.DBT_DEVTYP_DEVICEINTERFACE, rest_fmt, rest_data)
 
 
@@ -990,6 +955,8 @@ def UnpackDEV_BROADCAST(lparam):
         _, _, _, x["unitmask"], x["flags"] = struct.unpack(
             fmt, buf[: struct.calcsize(fmt)]
         )
+    elif devtype == win32con.DBT_DEVTYP_PORT:
+        x["name"] = win32gui.PyGetString(lparam + struct.calcsize(hdr_format))
     else:
         raise NotImplementedError("unknown device type %d" % (devtype,))
     return DEV_BROADCAST_INFO(devtype, **extra)

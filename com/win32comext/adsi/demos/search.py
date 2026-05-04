@@ -1,7 +1,7 @@
-from win32com.adsi import adsi
+import pythoncom
+import pywintypes
+from win32com.adsi import adsi, adsicon
 from win32com.adsi.adsicon import *
-from win32com.adsi import adsicon
-import pythoncom, pywintypes, win32security
 
 options = None  # set to optparse options object
 
@@ -58,9 +58,9 @@ def print_attribute(col_data):
         value = [converters.get(prop_name, _null_converter)(v[0]) for v in values]
         if len(value) == 1:
             value = value[0]
-        print(" %s=%r" % (prop_name, value))
+        print(f" {prop_name}={value!r}")
     else:
-        print(" %s is None" % (prop_name,))
+        print(f" {prop_name} is None")
 
 
 def search():

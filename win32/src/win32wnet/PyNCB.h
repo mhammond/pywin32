@@ -16,8 +16,6 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  ******************************************************************/
 
-#ifndef _WIN32_WCE  // exclude this code under WindowsCE...not supported by CE
-
 #include "structmember.h"
 
 class __declspec(dllexport) PyNCB : public PyObject {
@@ -42,6 +40,4 @@ class __declspec(dllexport) PyNCB : public PyObject {
 };
 
 extern __declspec(dllexport) PyTypeObject PyNCBType;
-#define PyNCB_Check(ob) ((ob)->ob_type == &PyNCBType)
-
-#endif  // end of _WIN32_WCE exclude
+#define PyNCB_Check(ob) (Py_TYPE(ob) == &PyNCBType)

@@ -1,6 +1,4 @@
-import sys
-
-from xml.sax import make_parser, handler
+from xml.sax import handler, make_parser
 
 
 class categoryHandler(handler.ContentHandler):
@@ -15,9 +13,9 @@ class categoryHandler(handler.ContentHandler):
             self.document.categories.append(Category(attrs))
         elif name == "overviews":
             category = self.document.categories[-1]
-            assert (
-                category.overviewItems is None
-            ), "category %r already has overviews" % (category,)
+            assert category.overviewItems is None, (
+                f"category {category!r} already has overviews"
+            )
             category.overviewItems = OverviewItems(attrs)
         elif name == "item":
             item = Item(attrs)

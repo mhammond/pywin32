@@ -1,4 +1,6 @@
-import win32security, win32api, win32con, win32process
+import win32api
+import win32con
+import win32security
 
 ## You need SE_RESTORE_NAME to be able to set the owner of a security descriptor to anybody
 ## other than yourself or your primary group.  Most admin logins don't have it by default, so
@@ -109,9 +111,9 @@ win32security.SetKernelObjectSecurity(ph, all_info, sd)
 new_sd = win32security.GetKernelObjectSecurity(ph, all_info)
 
 if new_sd.GetSecurityDescriptorDacl().GetAceCount() != dacl_ace_cnt + 1:
-    print("New dacl doesn" "t contain extra ace ????")
+    print("New dacl doesn't contain extra ace ????")
 if new_sd.GetSecurityDescriptorSacl().GetAceCount() != sacl_ace_cnt + 1:
-    print("New Sacl doesn" "t contain extra ace ????")
+    print("New Sacl doesn't contain extra ace ????")
 if (
     win32security.LookupAccountSid("", new_sd.GetSecurityDescriptorOwner())[0]
     != "Power Users"

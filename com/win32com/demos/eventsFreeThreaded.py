@@ -3,13 +3,13 @@
 # This sample demonstrates how to use COM events in a free-threaded world.
 # In this world, there is no need to marshall calls across threads, so
 # no message loops are needed at all.  This means regular cross-thread
-# sychronization can be used.  In this sample we just wait on win32 event
+# synchronization can be used.  In this sample we just wait on win32 event
 # objects.
 
 # See also ieEventsApartmentThreaded.py for how to do this in an
 # aparment-threaded world, where thread-marshalling complicates things.
 
-# NOTE: This example uses Internet Explorer, but it should not be considerd
+# NOTE: This example uses Internet Explorer, but it should not be considered
 # a "best-practices" for writing against IE events, but for working with
 # events in general. For example:
 # * The first OnDocumentComplete event is not a reliable indicator that the
@@ -22,12 +22,12 @@ import sys
 
 sys.coinit_flags = 0  # specify free threading
 
-import os
-import win32api
-import win32event
-import win32com.client
+
 import pythoncom
-import time
+import win32api
+import win32com.client
+import win32event
+
 
 # The print statements indicate that COM has actually started another thread
 # and will deliver the events to that thread (ie, the events do not actually

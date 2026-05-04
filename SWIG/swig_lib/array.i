@@ -52,7 +52,7 @@ performed so use at your own peril.
 %subsection "Integer Arrays"
 %text %{
 The following functions provide access to integer arrays (mapped
-onto the C 'int' datatype. 
+onto the C 'int' datatype.
 %}
 
 %{
@@ -89,9 +89,9 @@ onto the C 'int' datatype.
       return INT_MIN;
     }
   }
-   
+
   /* Set an element */
-  
+
   static int int_set(int *array, int index, int value) {
     if (array) {
       return (array[index] = value);
@@ -158,9 +158,9 @@ int int_set(int *array, int index, int value);
       return FLT_MIN;
     }
   }
-   
+
   /* Set an element */
-  
+
   static float float_set(float *array, int index, float value) {
     if (array) {
       return (array[index] = value);
@@ -200,9 +200,9 @@ int int_set(int *array, int index, int value);
       return FLT_MIN;
     }
   }
-   
+
   /* Set an element */
-  
+
   static double double_set(double *array, int index, double value) {
     if (array) {
       return (array[index] = value);
@@ -278,7 +278,7 @@ can be used :
     foreach $arg (@list) {
         string_set($args,$i,$arg);
         $i++;
-    }   
+    }
     string_set($args,$i,"");
 
 (of course, there is always more than one way to do it)
@@ -326,22 +326,22 @@ static void string_destroy(char **array) {
             free(array[i]);
 #endif
             i++;
-      }          	
+      }
 #ifdef __cplusplus
      delete array;
 #else
      free(array);
 #endif
-   }      
+   }
 }
 
 /* Get an element */
 
 static char *string_get(char **array_string, int index) {
-  if (array_string) 
+  if (array_string)
     if (array_string[index]) return (array_string[index]);
     else return "";
-  else 
+  else
     return "";
 }
 
@@ -355,7 +355,7 @@ static char *string_set(char **array_string, int index, char * val) {
 #else
         free(array_string[index]);
 #endif
-    }	
+    }
     if (strlen(val) > 0) {
 #ifdef __cplusplus
       array_string[index] = new char[strlen(val)+1];
@@ -398,4 +398,3 @@ char *string_set(char **array, int index, char *value);
 
 %typemap(check) int *, double *, float *, char **, short *, long * = PREVIOUS;
 %typemap(out) int *, double *, float *, char **, short *, long * = PREVIOUS;
-

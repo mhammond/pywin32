@@ -14,7 +14,7 @@ class Tools:
         return "no reload performed."
 
     def adddir(self, dir):
-        if type(dir) == type(""):
+        if isinstance(dir, str):
             sys.path.append(dir)
         return str(sys.path)
 

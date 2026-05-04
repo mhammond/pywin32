@@ -49,7 +49,7 @@ class __declspec(dllexport) PyNETRESOURCE : public PyObject {
 };
 
 extern __declspec(dllexport) PyTypeObject PyNETRESOURCEType;
-#define PyNETRESOURCE_Check(ob) ((ob)->ob_type == &PyNETRESOURCEType)
+#define PyNETRESOURCE_Check(ob) (Py_TYPE(ob) == &PyNETRESOURCEType)
 
 __declspec(dllexport) BOOL PyWinObject_AsNETRESOURCE(PyObject *ob, NETRESOURCE **ppNetresource, BOOL bNoneOK = TRUE);
 __declspec(dllexport) PyObject *PyWinObject_FromNETRESOURCE(const NETRESOURCE *pNetresource);

@@ -1,8 +1,9 @@
-""" General Server side utilities 
-"""
+"""General Server side utilities"""
+
 import pythoncom
-from . import policy
 import winerror
+
+from . import policy
 from .exception import COMException
 
 
@@ -102,7 +103,7 @@ class ListEnumeratorGateway(ListEnumerator):
     def Next(self, count):
         result = self._list_[self.index : self.index + count]
         self.Skip(count)
-        return map(self._wrap, result)
+        return list(map(self._wrap, result))
 
 
 def NewEnum(
@@ -143,7 +144,7 @@ class Collection:
             self._public_methods_ = ["Item", "Count"]
 
     # This method is also used as the "default" method.
-    # Thus "print ob" will cause this to be called with zero
+    # Thus "print(ob)" will cause this to be called with zero
     # params.  Handle this slightly more elegantly here.
     # Ideally the  policy should handle this.
     def Item(self, *args):

@@ -24,7 +24,7 @@
 //             LOG_DEBUG = Minimum Debugging
 //             LOG_VERBOSE = Maximum Debugging
 
-//#define  LOG_NONE     0
+// #define  LOG_NONE     0
 #define LOG_USER 1
 #define LOG_DEBUG 2
 #define LOG_VERBOSE 3
@@ -150,13 +150,8 @@ DWORD APIENTRY OpenPerformanceData(LPWSTR lpDeviceNames)
     TCHAR registryKeyName[MAX_PATH];
     TCHAR szFileMapping[MAX_PATH + 10] = _T("");
 
-    // Use a TerminalServices friendly "Global\\" prefix if supported.
-    OSVERSIONINFO info;
-    info.dwOSVersionInfoSize = sizeof(info);
-    GetVersionEx(&info);
-    if (info.dwMajorVersion > 4)
-        // 2000 or later - "Global\\" prefix OK.
-        _tcscpy(szFileMapping, _T("Global\\"));
+    // Use a TerminalServices friendly "Global\\" prefix.
+    _tcscpy(szFileMapping, _T("Global\\"));
     _tcscat(szFileMapping, szModuleName);
 
     //
@@ -171,7 +166,7 @@ DWORD APIENTRY OpenPerformanceData(LPWSTR lpDeviceNames)
     if (!dwOpenCount) {  // open Eventlog interface
                          // The memmapped file name is derived from the DLL name.
                          // Later we may offer to look up a string resource, but not now!
-                         // NOTE - We dont open the event log yet, as we may wish to open it with a custom name
+                         // NOTE - We don't open the event log yet, as we may wish to open it with a custom name
         // open shared memory used by application to pass performance values
         hSharedMemory = OpenFileMapping(FILE_MAP_READ, FALSE, szFileMapping);
 
@@ -414,7 +409,7 @@ HANDLE MonOpenEventLog(const TCHAR *szSourceName)
 --*/
 {
     HKEY hAppKey;
-    TCHAR LogLevelKeyName[] = _T("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Perflib");
+    TCHAR LogLevelKeyName[] = _T("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Perflib");
 
     TCHAR LogLevelValueName[] = _T("EventLogLevel");
     LONG lStatus;

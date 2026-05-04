@@ -1,7 +1,6 @@
 
 /////////////////////////////////////////////////////////////////////////////
 // class PyIServiceProvider
-#ifndef NO_PYCOM_ISERVICEPROVIDER
 class PYCOM_EXPORT PyIServiceProvider : public PyIUnknown {
    public:
     MAKE_PYCOM_CTOR(PyIServiceProvider);
@@ -22,4 +21,3 @@ class PyGServiceProvider : public PyGatewayBase, public IServiceProvider {
 
     STDMETHOD(QueryService)(REFGUID guidService, REFIID riid, void **ppv);
 };
-#endif  // NO_PYCOM_ISERVICEPROVIDER

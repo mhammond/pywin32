@@ -14,9 +14,15 @@ This code is free for any purpose, with no warranty of any kind.
 -- John B. Dell'Aquila <jbd@alum.mit.edu>
 """
 
-import win32api, win32process, win32security
-import win32event, win32con, msvcrt, win32gui
+import msvcrt
 import os
+
+import win32api
+import win32con
+import win32event
+import win32gui
+import win32process
+import win32security
 
 
 def logonUser(loginString):
@@ -173,12 +179,11 @@ def run(cmd, mSec=None, stdin=None, stdout=None, stderr=None, **kw):
     child = Process(cmd, **kw)
     if child.wait(mSec) != win32event.WAIT_OBJECT_0:
         child.kill()
-        raise WindowsError("process timeout exceeded")
+        raise OSError("process timeout exceeded")
     return child.exitCode()
 
 
 if __name__ == "__main__":
-
     # Pipe commands to a shell and display the output in notepad
     print("Testing winprocess.py...")
 
@@ -221,5 +226,5 @@ _this_is_a_test_of_stderr_\r
         for n in (cmd_name, out_name):
             try:
                 os.unlink(cmd_name)
-            except os.error:
+            except OSError:
                 pass

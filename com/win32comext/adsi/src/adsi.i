@@ -1,21 +1,16 @@
 /* File : adsi.i */
 
-/* 
+/*
    This is designed to be an interface to the ADSI API
 
 */
 
 %module adsi // A COM interface to ADSI
 
-// @ comm Generally you will not use this module (win32com.adsi.adsi) 
+// @ comm Generally you will not use this module (win32com.adsi.adsi)
 // directly, but use win32com.adsi - this top-level interface does
 // smarter integration with Python IDispatch support, so offers a more
 // convenient technique.
-
-//%{
-//#define UNICODE
-//%}
-
 
 %include "typemaps.i"
 %include "pywin32.i"
@@ -34,7 +29,7 @@
 #include "PyIADsUser.h"
 #include "PyIADsDeleteOps.h"
 #include "PyIDsObjectPicker.h"
-#include "ADSIID.h"
+#include "adsiid.h"
 
 extern PyTypeObject PyDSOP_SCOPE_INIT_INFOsType;
 extern PyObject* PyIADs_getattro(PyObject *ob, PyObject *obname);
@@ -135,7 +130,7 @@ class PyIADsEnumVARIANT : public PyIEnumVARIANT {
 	virtual ~PyIADsEnumVARIANT() {
 		if (m_obj) {
 			ADsFreeEnumerator((IEnumVARIANT *)m_obj);
-			m_obj = NULL; // so base dtor doesnt "Release"
+			m_obj = NULL; // so base dtor doesn't "Release"
 		}
 	}
 };
@@ -263,7 +258,7 @@ extern PyObject *PyStringAsDS_SELECTION_LIST(PyObject *self, PyObject *args);
 	// @pyswig <o DSOP_SCOPE_INIT_INFOs>|DSOP_SCOPE_INIT_INFOs|The type object for <o PyDSOP_SCOPE_INIT_INFOs> objects.
 	// @pyparm int|size||The number of <o PyDSOP_SCOPE_INIT_INFO> objects to create in the array.
 	if (PyType_Ready(&PyDSOP_SCOPE_INIT_INFOsType) != 0)
-		return MODINIT_ERROR_RETURN;
+		return NULL;
 	PyDict_SetItemString(d, "DSOP_SCOPE_INIT_INFOs", (PyObject *)&PyDSOP_SCOPE_INIT_INFOsType);
 
 	AddIID(d, "LIBID_ADs", LIBID_ADs);
@@ -310,28 +305,28 @@ extern PyObject *PyStringAsDS_SELECTION_LIST(PyObject *self, PyObject *args);
 	AddIID(d, "DBGUID_LDAPDialect", DBGUID_LDAPDialect);
 	AddIID(d, "DBPROPSET_ADSISEARCH", DBPROPSET_ADSISEARCH);
 
-	if ( PyCom_RegisterClientType(&PyIADs::type, &IID_IADs) != 0 ) return MODINIT_ERROR_RETURN;
+	if ( PyCom_RegisterClientType(&PyIADs::type, &IID_IADs) != 0 ) return NULL;
 	ADD_IID(IID_IADs);
 	// Patch up getattro for all types deriving from IADs
 	PyIADs::type.tp_getattro = PyIADs_getattro;
 	PyIADsUser::type.tp_getattro = PyIADsUser_getattro;
 
 
-	if ( PyCom_RegisterClientType(&PyIDirectoryObject::type, &IID_IDirectoryObject) != 0 ) return MODINIT_ERROR_RETURN;
+	if ( PyCom_RegisterClientType(&PyIDirectoryObject::type, &IID_IDirectoryObject) != 0 ) return NULL;
 	ADD_IID(IID_IDirectoryObject);
 
-	if ( PyCom_RegisterClientType(&PyIDirectorySearch::type, &IID_IDirectorySearch) != 0 ) return MODINIT_ERROR_RETURN;
+	if ( PyCom_RegisterClientType(&PyIDirectorySearch::type, &IID_IDirectorySearch) != 0 ) return NULL;
 	ADD_IID(IID_IDirectorySearch);
 
-	if ( PyCom_RegisterClientType(&PyIADsUser::type, &IID_IADsUser) != 0 ) return MODINIT_ERROR_RETURN;
+	if ( PyCom_RegisterClientType(&PyIADsUser::type, &IID_IADsUser) != 0 ) return NULL;
 	ADD_IID(IID_IADsUser);
 
-	if ( PyCom_RegisterClientType(&PyIADsContainer::type, &IID_IADsContainer) != 0 ) return MODINIT_ERROR_RETURN;
+	if ( PyCom_RegisterClientType(&PyIADsContainer::type, &IID_IADsContainer) != 0 ) return NULL;
 	ADD_IID(IID_IADsContainer);
 
-	if ( PyCom_RegisterClientType(&PyIDsObjectPicker::type, &IID_IDsObjectPicker) != 0 ) return MODINIT_ERROR_RETURN;
+	if ( PyCom_RegisterClientType(&PyIDsObjectPicker::type, &IID_IDsObjectPicker) != 0 ) return NULL;
 	ADD_IID(IID_IDsObjectPicker);
 
-	if ( PyCom_RegisterClientType(&PyIADsDeleteOps::type, &IID_IADsDeleteOps) != 0 ) return MODINIT_ERROR_RETURN;
+	if ( PyCom_RegisterClientType(&PyIADsDeleteOps::type, &IID_IADsDeleteOps) != 0 ) return NULL;
 	ADD_IID(IID_IADsDeleteOps);
 %}

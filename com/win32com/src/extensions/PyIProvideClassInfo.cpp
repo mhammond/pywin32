@@ -4,8 +4,6 @@
 #include "stdafx.h"
 #include "PythonCOM.h"
 
-#ifndef NO_PYCOM_IPROVIDECLASSINFO
-
 PyIProvideClassInfo::PyIProvideClassInfo(IUnknown *pDisp) : PyIUnknown(pDisp) { ob_type = &type; }
 
 PyIProvideClassInfo::~PyIProvideClassInfo() {}
@@ -86,5 +84,3 @@ PyComTypeObject PyIProvideClassInfo2::type(
     "PyIProvideClassInfo2",
     &PyIProvideClassInfo::type,  // @base PyIProvideClassInfo2|PyIProvideClassInfo
     sizeof(PyIProvideClassInfo2), PyIProvideClassInfo2_methods, GET_PYCOM_CTOR(PyIProvideClassInfo2));
-
-#endif  // NO_PYCOM_IPROVIDECLASSINFO

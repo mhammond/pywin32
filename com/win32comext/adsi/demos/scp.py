@@ -34,14 +34,18 @@ which will:
 Executing with --test will create and remove one of everything.
 """
 
-from win32com.adsi.adsicon import *
-from win32com.adsi import adsi
-import win32api, win32con, winerror
-from win32com.client import Dispatch
-import ntsecuritycon as dscon
-import win32security
-import optparse, textwrap
+import optparse
+import textwrap
 import traceback
+
+import ntsecuritycon as dscon
+import win32api
+import win32con
+import win32security
+import winerror
+from win32com.adsi import adsi
+from win32com.adsi.adsicon import *
+from win32com.client import Dispatch
 
 verbose = 1
 g_createdSCP = None
@@ -53,6 +57,7 @@ import logging
 logger = logging  # use logging module global methods for now.
 
 # still a bit confused about log(n, ...) vs logger.info/debug()
+
 
 # Returns distinguished name of SCP.
 def ScpCreate(
@@ -149,7 +154,6 @@ def AllowAccessToScpProperties(
         "{b7b1311c-b82e-11d0-afee-0000f80367c1}",  # serviceBindingInformation
     ),
 ):
-
     # If no service account is specified, service runs under LocalSystem.
     # So allow access to the computer account of the service's host.
     if accountSAM:
@@ -195,7 +199,7 @@ def AllowAccessToScpProperties(
     setattr(scpObject, attribute, sd)
     # SetInfo updates the SCP object in the directory.
     scpObject.SetInfo()
-    logger.info("Set security on object for account '%s'" % (trustee,))
+    logger.info("Set security on object for account %r", trustee)
 
 
 # Service Principal Names functions from the same sample.
@@ -215,7 +219,7 @@ def SpnRegister(
     spns,  # List of SPNs to register
     operation,  # Add, replace, or delete SPNs
 ):
-    assert type(spns) not in [str, str] and hasattr(spns, "__iter__"), (
+    assert not isinstance(spns, str) and hasattr(spns, "__iter__"), (
         "spns must be a sequence of strings (got %r)" % spns
     )
     # Bind to a domain controller.
@@ -387,7 +391,7 @@ def main():
     arg_descs = []
     for arg, func in handlers:
         this_desc = "\n".join(textwrap.wrap(func.__doc__, subsequent_indent=" " * 8))
-        arg_descs.append("  %s: %s" % (arg, this_desc))
+        arg_descs.append(f"  {arg}: {this_desc}")
         _handlers_dict[arg.lower()] = func
 
     description = __doc__ + "\ncommands:\n" + "\n".join(arg_descs) + "\n"
@@ -415,7 +419,7 @@ def main():
         "--test",
         action="store_true",
         help="Execute a mini-test suite, providing defaults for most options and args",
-    ),
+    )
 
     parser.add_option(
         "",

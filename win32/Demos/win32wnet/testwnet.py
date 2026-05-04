@@ -1,8 +1,8 @@
+import os
+
 import win32api
 import win32wnet
-import sys
 from winnetwk import *
-import os
 
 possible_shares = []
 
@@ -85,14 +85,12 @@ def TestConnection():
             fname = os.path.join(localName + "\\", os.listdir(localName + "\\")[0])
             try:
                 print(
-                    "Universal name of '%s' is '%s'"
-                    % (fname, win32wnet.WNetGetUniversalName(fname))
+                    "Universal name of '{}' is '{}'".format(
+                        fname, win32wnet.WNetGetUniversalName(fname)
+                    )
                 )
             except win32wnet.error as details:
-                print(
-                    "Couldn't get universal name of '%s': %s"
-                    % (fname, details.strerror)
-                )
+                print(f"Couldn't get universal name of '{fname}': {details.strerror}")
             print("User name for this connection is", win32wnet.WNetGetUser(localName))
         finally:
             win32wnet.WNetCancelConnection2(localName, 0, 0)
@@ -115,9 +113,9 @@ def TestConnection():
 
 def TestGetUser():
     u = win32wnet.WNetGetUser()
-    print("Current global user is", repr(u))
+    print(f"Current global user is {u!r}")
     if u != win32wnet.WNetGetUser(None):
-        raise RuntimeError("Default value didnt seem to work!")
+        raise RuntimeError("Default value didn't seem to work!")
 
 
 TestGetUser()

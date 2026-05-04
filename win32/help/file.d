@@ -15,7 +15,7 @@ not give you is the ability to switch between blocking/non-blocking
 (it fails immediately -- does not block) To do that, you need to use
 LockfileEx -- which can even lock a specific part of a file.
 
-<nl>The basic procedure for doing this is to first call Createfile to 
+<nl>The basic procedure for doing this is to first call Createfile to
 give you a filehandle. Then call LockfileEx with the filehandle.
 Do whatever to the file. Call UnlockfileEx. Then close the filehandle.
 (Some of you may want to close the filehandle to kill the locks, it
@@ -23,39 +23,39 @@ doesn't work that way with win32, at least according to the msdn)
 
 Below is a class called Flock, which gives you exclusive/shared
 locking with non-blocking/blocking abilities. If you can think of any
-optimizations or changes, be sure to let me know. 
+optimizations or changes, be sure to let me know.
 
 CreateFile provides many options. It can be used for
 files,directories,mailslots,sockets, etc. In this case, we're only
-interested in standard files. 
+interested in standard files.
 
 The C++ call looks like this:
 
 HANDLE CreateFile(
-  LPCTSTR lpFileName,          
-  DWORD dwDesiredAccess,       
-  DWORD dwShareMode,           
+  LPCTSTR lpFileName,
+  DWORD dwDesiredAccess,
+  DWORD dwShareMode,
   LPSECURITY_ATTRIBUTES lpSecurityAttributes,
-  DWORD dwCreationDisposition,  
-  DWORD dwFlagsAndAttributes,   
-  HANDLE hTemplateFile          
+  DWORD dwCreationDisposition,
+  DWORD dwFlagsAndAttributes,
+  HANDLE hTemplateFile
 );
- 
+
 The python call is virtually the same with:
 
-PyHANDLE = CreateFile( 
-	fileName, 
-	desiredAccess , 
-	shareMode , 
-	attributes , 
-	creationDisposition , 
-	flagsAndAttributes , 
-	hTemplateFile 
+PyHANDLE = CreateFile(
+	fileName,
+	desiredAccess ,
+	shareMode ,
+	attributes ,
+	creationDisposition ,
+	flagsAndAttributes ,
+	hTemplateFile
 	)
 
 The module win32con in python is invaluable for setting most of these
 attributes.  Besides win32con, you need win32security to create a
-security attribute. 
+security attribute.
 
 @ex Here is a basic example of the raw program: |
 
@@ -115,7 +115,7 @@ class Flock:
 		secur_att = win32security.SECURITY_ATTRIBUTES()
 		secur_att.Initialize()
 		self.highbits=0xffff0000 #high-order 32 bits of byte range to lock
-		#make a handel with read/write and open or create if doesn't exist
+		# make a handle with read/write and open or create if doesn't exist
 		self.hfile=win32file.CreateFile( self.file,\
 					win32con.GENERIC_READ|win32con.GENERIC_WRITE,\
 					win32con.FILE_SHARE_READ|win32con.FILE_SHARE_WRITE,\
@@ -130,9 +130,9 @@ class Flock:
 				lock_flags=win32con.LOCKFILE_EXCLUSIVE_LOCK
 		else: #shared locking
 			if self.type['LOCK_NB']: #don't wait, non-blocking
-				lock_flags=win32con.LOCKFILE_FAIL_IMMEDIATELY 
+				lock_flags=win32con.LOCKFILE_FAIL_IMMEDIATELY
 			else:#shared lock wait for lock to free
-				lock_flags=0 
+				lock_flags=0
 		self.ov=pywintypes.OVERLAPPED() #used to indicate starting region to lock
 		win32file.LockFileEx(self.hfile,lock_flags,0,self.highbits,self.ov)
 	def unlock(self):
@@ -143,16 +143,16 @@ l=Flock("c:\\a3.txt")
 l.type['LOCK_EX']=0
 l.type['LOCK_NB']=0
 
-print 'calling lock'
+print("calling lock")
 l.lock()
-print 'now locked '
+print("now locked")
 
 win32api.Sleep(1000)
 l.unlock()
-print 'now unlocked'
+print("now unlocked")
 
 @ex Have a great time with programming with python!
-<nl>|John Nielsen   nielsenjf@my-deja.com       
+<nl>|John Nielsen   nielsenjf@my-deja.com
 
 
 @topic Recursive directory deletes and special files |Python's win32 access for file properties to enable deletes
@@ -166,10 +166,10 @@ SetFileAttributes to be a normal file.
 
 The C++ call looks like this:
 
-BOOL SetFileAttributes(  
-  LPCTSTR lpFileName,     
-  DWORD dwFileAttributes   
-); 
+BOOL SetFileAttributes(
+  LPCTSTR lpFileName,
+  DWORD dwFileAttributes
+);
 
 You provide it 2 arguments the filename and the specific attributes
 and it returns whether or not it succeeded.
@@ -198,7 +198,7 @@ def del_dir(self,path):
 	for file in os.listdir(path):
 		file_or_dir = os.path.join(path,file)
 		if os.path.isdir(file_or_dir) and not os.path.islink(file_or_dir):
-			del_dir(file_or_dir) #it's a directory reucursive call to function again
+			del_dir(file_or_dir) # it's a directory recursive call to function again
 		else:
 			try:
 				os.remove(file_or_dir) #it's a file, delete it
@@ -209,15 +209,7 @@ def del_dir(self,path):
 		os.rmdir(path) #delete the directory here
 
 @ex Have a great time with programming with python!
-<nl>|John Nielsen   nielsenjf@my-deja.com       
+<nl>|John Nielsen   nielsenjf@my-deja.com
 
 
 */
-
-
-
-
-
-
-
-

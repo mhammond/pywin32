@@ -1,6 +1,12 @@
 fname = "h:\\tmp.reg"
 
-import win32api, win32con, win32security, ntsecuritycon, pywintypes, os
+import os
+
+import ntsecuritycon
+import pywintypes
+import win32api
+import win32con
+import win32security
 
 ## regsave will not overwrite a file
 if os.path.isfile(fname):

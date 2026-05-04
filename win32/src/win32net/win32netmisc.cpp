@@ -10,28 +10,19 @@
 #include "win32net.h"
 #include "stddef.h"
 
-#define SI0_ENTRY(name, t, r)                            \
-    {                                                    \
-#name, t, offsetof(SHARE_INFO_0, shi0_##name), r \
-    }
+#define SI0_ENTRY(name, t, r) {#name, t, offsetof(SHARE_INFO_0, shi0_##name), r}
 // @object PySHARE_INFO_0|A dictionary holding the infomation in a Win32 SHARE_INFO_0 structure.
 static struct PyNET_STRUCT_ITEM si0[] = {SI0_ENTRY(netname, NSI_WSTR, 0),  // @prop string/<o PyUnicode>|netname|
                                          {NULL}};
 
-#define SI1_ENTRY(name, t, r)                            \
-    {                                                    \
-#name, t, offsetof(SHARE_INFO_1, shi1_##name), r \
-    }
+#define SI1_ENTRY(name, t, r) {#name, t, offsetof(SHARE_INFO_1, shi1_##name), r}
 // @object PySHARE_INFO_1|A dictionary holding the infomation in a Win32 SHARE_INFO_1 structure.
 static struct PyNET_STRUCT_ITEM si1[] = {SI1_ENTRY(netname, NSI_WSTR, 0),  // @prop string/<o PyUnicode>|netname|
                                          SI1_ENTRY(type, NSI_DWORD, 0),    // @prop int|type|
                                          SI1_ENTRY(remark, NSI_WSTR, 0),   // @prop string/<o PyUnicode>|remark|
                                          {NULL}};
 
-#define SI2_ENTRY(name, t, r)                            \
-    {                                                    \
-#name, t, offsetof(SHARE_INFO_2, shi2_##name), r \
-    }
+#define SI2_ENTRY(name, t, r) {#name, t, offsetof(SHARE_INFO_2, shi2_##name), r}
 // @object PySHARE_INFO_2|A dictionary holding the infomation in a Win32 SHARE_INFO_2 structure.
 static struct PyNET_STRUCT_ITEM si2[] = {SI2_ENTRY(netname, NSI_WSTR, 0),        // @prop string/<o PyUnicode>|netname|
                                          SI2_ENTRY(type, NSI_DWORD, 0),          // @prop int|type|
@@ -43,10 +34,7 @@ static struct PyNET_STRUCT_ITEM si2[] = {SI2_ENTRY(netname, NSI_WSTR, 0),       
                                          SI2_ENTRY(passwd, NSI_WSTR, 0),         // @prop string/<o PyUnicode>|passwd|
                                          {NULL}};
 
-#define SI501_ENTRY(name, t, r)                              \
-    {                                                        \
-#name, t, offsetof(SHARE_INFO_501, shi501_##name), r \
-    }
+#define SI501_ENTRY(name, t, r) {#name, t, offsetof(SHARE_INFO_501, shi501_##name), r}
 // @object PySHARE_INFO_501|A dictionary holding the infomation in a Win32 SHARE_INFO_501 structure.
 static struct PyNET_STRUCT_ITEM si501[] = {SI501_ENTRY(netname, NSI_WSTR, 0),  // @prop string/<o PyUnicode>|netname|
                                            SI501_ENTRY(type, NSI_DWORD, 0),    // @prop int|type|
@@ -54,10 +42,7 @@ static struct PyNET_STRUCT_ITEM si501[] = {SI501_ENTRY(netname, NSI_WSTR, 0),  /
                                            SI501_ENTRY(flags, NSI_DWORD, 0),   // @prop int|flags|
                                            {NULL}};
 
-#define SI502_ENTRY(name, t, r)                              \
-    {                                                        \
-#name, t, offsetof(SHARE_INFO_502, shi502_##name), r \
-    }
+#define SI502_ENTRY(name, t, r) {#name, t, offsetof(SHARE_INFO_502, shi502_##name), r}
 // @object PySHARE_INFO_502|A dictionary holding the infomation in a Win32 SHARE_INFO_502 structure.
 static struct PyNET_STRUCT_ITEM si502[] = {SI502_ENTRY(netname, NSI_WSTR, 0),  // @prop string/<o PyUnicode>|netname|
                                            SI502_ENTRY(type, NSI_DWORD, 0),    // @prop int|type|
@@ -81,10 +66,7 @@ static struct PyNET_STRUCT share_infos[] = {  // @flagh Level|Data
     {502, si502, sizeof(SHARE_INFO_502)},     // @flag 502|<o PySHARE_INFO_502>
     {0, NULL, 0}};
 
-#define WKI100_ENTRY(name, t, r)                             \
-    {                                                        \
-#name, t, offsetof(WKSTA_INFO_100, wki100_##name), r \
-    }
+#define WKI100_ENTRY(name, t, r) {#name, t, offsetof(WKSTA_INFO_100, wki100_##name), r}
 // @object PyWKSTA_INFO_100|A dictionary holding the infomation in a Win32 WKSTA_INFO_100 structure.
 static struct PyNET_STRUCT_ITEM wki100[] = {
     WKI100_ENTRY(platform_id, NSI_DWORD,
@@ -98,10 +80,7 @@ static struct PyNET_STRUCT_ITEM wki100[] = {
                  0),  // @prop int|ver_minor|Minor version number of operating system running on the computer
     {NULL}};
 
-#define WKI101_ENTRY(name, t, r)                             \
-    {                                                        \
-#name, t, offsetof(WKSTA_INFO_101, wki101_##name), r \
-    }
+#define WKI101_ENTRY(name, t, r) {#name, t, offsetof(WKSTA_INFO_101, wki101_##name), r}
 // @object PyWKSTA_INFO_101|A dictionary holding the infomation in a Win32 WKSTA_INFO_101 structure.
 static struct PyNET_STRUCT_ITEM wki101[] = {
     WKI101_ENTRY(platform_id, NSI_DWORD,
@@ -116,10 +95,7 @@ static struct PyNET_STRUCT_ITEM wki101[] = {
     WKI101_ENTRY(lanroot, NSI_WSTR, 0),  // @prop string/<o PyUnicode>|lanroot|Path to the LANMAN directory
     {NULL}};
 
-#define WKI102_ENTRY(name, t, r)                             \
-    {                                                        \
-#name, t, offsetof(WKSTA_INFO_102, wki102_##name), r \
-    }
+#define WKI102_ENTRY(name, t, r) {#name, t, offsetof(WKSTA_INFO_102, wki102_##name), r}
 // @object PyWKSTA_INFO_102|A dictionary holding the infomation in a Win32 WKSTA_INFO_102 structure.
 static struct PyNET_STRUCT_ITEM wki102[] = {
     WKI102_ENTRY(platform_id, NSI_DWORD,
@@ -136,10 +112,7 @@ static struct PyNET_STRUCT_ITEM wki102[] = {
                  0),  // @prop int|logged_on_users|Number of users who are logged on to the local computer
     {NULL}};
 
-#define WKI302_ENTRY(name, t, r)                             \
-    {                                                        \
-#name, t, offsetof(WKSTA_INFO_302, wki302_##name), r \
-    }
+#define WKI302_ENTRY(name, t, r) {#name, t, offsetof(WKSTA_INFO_302, wki302_##name), r}
 // @object PyWKSTA_INFO_302|A dictionary holding the infomation in a Win32 WKSTA_INFO_302 structure.
 static struct PyNET_STRUCT_ITEM wki302[] = {
     WKI302_ENTRY(
@@ -193,10 +166,7 @@ static struct PyNET_STRUCT_ITEM wki302[] = {
                  0),  // @prop int|num_dgram_buf|Specifies the number of buffers to allocate for receiving datagrams.
     {NULL}};
 
-#define WKI402_ENTRY(name, t, r)                             \
-    {                                                        \
-#name, t, offsetof(WKSTA_INFO_402, wki402_##name), r \
-    }
+#define WKI402_ENTRY(name, t, r) {#name, t, offsetof(WKSTA_INFO_402, wki402_##name), r}
 // @object PyWKSTA_INFO_402|A dictionary holding the infomation in a Win32 WKSTA_INFO_402 structure.
 static struct PyNET_STRUCT_ITEM wki402[] = {
     WKI402_ENTRY(
@@ -235,10 +205,7 @@ static struct PyNET_STRUCT_ITEM wki402[] = {
                  0),  // @prop int|max_threads|Number of threads the computer can dedicate to the network
     {NULL}};
 
-#define WKI502_ENTRY(name, t, r)                             \
-    {                                                        \
-#name, t, offsetof(WKSTA_INFO_502, wki502_##name), r \
-    }
+#define WKI502_ENTRY(name, t, r) {#name, t, offsetof(WKSTA_INFO_502, wki502_##name), r}
 // @object PyWKSTA_INFO_502|A dictionary holding the infomation in a Win32 WKSTA_INFO_502 structure.
 static struct PyNET_STRUCT_ITEM wki502[] = {
     WKI502_ENTRY(
@@ -309,20 +276,14 @@ static struct PyNET_STRUCT wksta_infos[] = {  // @flagh Level|Data
     {502, wki502, sizeof(WKSTA_INFO_502)},    // @flag 502,|<o PyWKSTA_INFO_502>
     {0, NULL, 0}};
 
-#define WKUI0_ENTRY(name, t, r)                                \
-    {                                                          \
-#name, t, offsetof(WKSTA_USER_INFO_0, wkui0_##name), r \
-    }
+#define WKUI0_ENTRY(name, t, r) {#name, t, offsetof(WKSTA_USER_INFO_0, wkui0_##name), r}
 // @object PyWKSTA_USER_INFO_0|A dictionary holding the infomation in a Win32 WKSTA_USER_INFO_0 structure.
 static struct PyNET_STRUCT_ITEM wkui0[] = {
     WKUI0_ENTRY(username, NSI_WSTR,
                 0),  // @prop string/<o PyUnicode>|username|Name of user currently logged on to the workstation
     {NULL}};
 
-#define WKUI1_ENTRY(name, t, r)                                \
-    {                                                          \
-#name, t, offsetof(WKSTA_USER_INFO_1, wkui1_##name), r \
-    }
+#define WKUI1_ENTRY(name, t, r) {#name, t, offsetof(WKSTA_USER_INFO_1, wkui1_##name), r}
 // @object PyWKSTA_USER_INFO_1|A dictionary holding the infomation in a Win32 WKSTA_USER_INFO_1 structure.
 static struct PyNET_STRUCT_ITEM wkui1[] = {
     WKUI1_ENTRY(username, NSI_WSTR,
@@ -343,10 +304,7 @@ static struct PyNET_STRUCT wktau_infos[] = {  // @flagh Level|Data
     {1, wkui1, sizeof(WKSTA_USER_INFO_1)},    // @flag 1,| <o PyWKSTA_USER_INFO_1>
     {0, NULL, 0}};
 
-#define WKTI0_ENTRY(name, t, r)                                     \
-    {                                                               \
-#name, t, offsetof(WKSTA_TRANSPORT_INFO_0, wkti0_##name), r \
-    }
+#define WKTI0_ENTRY(name, t, r) {#name, t, offsetof(WKSTA_TRANSPORT_INFO_0, wkti0_##name), r}
 // @object PyWKSTA_TRANSPORT_INFO_0|A dictionary holding the infomation in a Win32 WKSTA_TRANSPORT_INFO_0 structure.
 static struct PyNET_STRUCT_ITEM wkti0[] = {
     WKTI0_ENTRY(quality_of_service, NSI_DWORD,
@@ -415,11 +373,11 @@ static PyObject *PyNetShareEnum1(WCHAR *szServerName)
                         return NULL;
                     }
 
-                    p_nr++;  // next object (its a ++ because it is a typed pointer)
+                    p_nr++;  // next object (it's a ++ because it is a typed pointer)
                     dwCount--;
                 } while (dwCount);
             };  // if dwCount
-        }       // if Errno == NERR_Sucess
+        }  // if Errno == NERR_Sucess
         else
         {
             Py_DECREF(pRetlist);
@@ -576,18 +534,12 @@ done:
     // @pyseeapi NetShareCheck
 }
 
-#define SV100_ENTRY(name, t, r)                              \
-    {                                                        \
-#name, t, offsetof(SERVER_INFO_100, sv100_##name), r \
-    }
+#define SV100_ENTRY(name, t, r) {#name, t, offsetof(SERVER_INFO_100, sv100_##name), r}
 // @object PySERVER_INFO_100|A dictionary holding the information in a Win32 SERVER_INFO_100 structure.
 static struct PyNET_STRUCT_ITEM sv100[] = {SV100_ENTRY(platform_id, NSI_DWORD, 0),  // @prop int|platform_id|
                                            SV100_ENTRY(name, NSI_WSTR, 0),          // @prop string/<o PyUnicode>|name|
                                            {NULL}};
-#define SV101_ENTRY(name, t, r)                              \
-    {                                                        \
-#name, t, offsetof(SERVER_INFO_101, sv101_##name), r \
-    }
+#define SV101_ENTRY(name, t, r) {#name, t, offsetof(SERVER_INFO_101, sv101_##name), r}
 // @object PySERVER_INFO_101|A dictionary holding the information in a Win32 SERVER_INFO_101 structure.
 static struct PyNET_STRUCT_ITEM sv101[] = {
     SV101_ENTRY(platform_id, NSI_DWORD, 0),    // @prop int|platform_id|
@@ -598,10 +550,7 @@ static struct PyNET_STRUCT_ITEM sv101[] = {
     SV101_ENTRY(comment, NSI_WSTR, 0),         // @prop string/<o PyUnicode>|comment|
     {NULL}};
 
-#define SV102_ENTRY(name, t, r)                              \
-    {                                                        \
-#name, t, offsetof(SERVER_INFO_102, sv102_##name), r \
-    }
+#define SV102_ENTRY(name, t, r) {#name, t, offsetof(SERVER_INFO_102, sv102_##name), r}
 // @object PySERVER_INFO_102|A dictionary holding the information in a Win32 SERVER_INFO_102 structure.
 static struct PyNET_STRUCT_ITEM sv102[] = {
     SV102_ENTRY(platform_id, NSI_DWORD, 0),    // @prop int|platform_id|
@@ -618,10 +567,7 @@ static struct PyNET_STRUCT_ITEM sv102[] = {
     SV102_ENTRY(userpath, NSI_WSTR, 0),        // @prop string/<o PyUnicode>|userpath|
     {NULL}};
 
-#define SV402_ENTRY(name, t, r)                              \
-    {                                                        \
-#name, t, offsetof(SERVER_INFO_402, sv402_##name), r \
-    }
+#define SV402_ENTRY(name, t, r) {#name, t, offsetof(SERVER_INFO_402, sv402_##name), r}
 // @object PySERVER_INFO_402|A dictionary holding the information in a Win32 SERVER_INFO_402 structure.
 static struct PyNET_STRUCT_ITEM sv402[] = {
     SV402_ENTRY(ulist_mtime, NSI_DWORD, 0),   // @prop int|ulist_mtime|
@@ -656,10 +602,7 @@ static struct PyNET_STRUCT_ITEM sv402[] = {
     SV402_ENTRY(srvheuristics, NSI_WSTR, 0),  // @prop string/<o PyUnicode>|srvheuristics|
     {NULL}};
 
-#define SV403_ENTRY(name, t, r)                              \
-    {                                                        \
-#name, t, offsetof(SERVER_INFO_403, sv403_##name), r \
-    }
+#define SV403_ENTRY(name, t, r) {#name, t, offsetof(SERVER_INFO_403, sv403_##name), r}
 // @object PySERVER_INFO_403|A dictionary holding the information in a Win32 SERVER_INFO_403 structure.
 static struct PyNET_STRUCT_ITEM sv403[] = {
     SV403_ENTRY(ulist_mtime, NSI_DWORD, 0),    // @prop int|ulist_mtime|
@@ -697,10 +640,7 @@ static struct PyNET_STRUCT_ITEM sv403[] = {
     SV403_ENTRY(autopath, NSI_WSTR, 0),        // @prop string/<o PyUnicode>|autopath|
     {NULL}};
 
-#define SV502_ENTRY(name, t)                                 \
-    {                                                        \
-#name, t, offsetof(SERVER_INFO_502, sv502_##name), 0 \
-    }
+#define SV502_ENTRY(name, t) {#name, t, offsetof(SERVER_INFO_502, sv502_##name), 0}
 // @object PySERVER_INFO_502|A dictionary holding the information in a Win32 SERVER_INFO_502 structure.
 static struct PyNET_STRUCT_ITEM sv502[] = {
     SV502_ENTRY(sessopens, NSI_DWORD),               // @prop int|sessopens|
@@ -722,10 +662,7 @@ static struct PyNET_STRUCT_ITEM sv502[] = {
     SV502_ENTRY(lmannounce, NSI_BOOL),               // @prop bool|lmannounce|
     {NULL}};
 
-#define SV503_ENTRY(name, t)                                 \
-    {                                                        \
-#name, t, offsetof(SERVER_INFO_503, sv503_##name), 0 \
-    }
+#define SV503_ENTRY(name, t) {#name, t, offsetof(SERVER_INFO_503, sv503_##name), 0}
 // @object PySERVER_INFO_503|A dictionary holding the information in a Win32 SERVER_INFO_503 structure.
 static struct PyNET_STRUCT_ITEM sv503[] = {
     SV503_ENTRY(sessopens, NSI_DWORD),                // @prop int|sessopens|
@@ -1416,13 +1353,9 @@ PyObject *PyNetServerComputerNameDel(PyObject *self, PyObject *args)
     return ret;
 }
 
-#if WINVER >= 0x0500
-
-extern "C" NetValidateNamefunc pfnNetValidateName = NULL;
 // @pymethod |win32net|NetValidateName|Checks that domain/machine/workgroup name is valid for given context
 // @rdesc Returns none if valid, exception if not
 // @comm If Account and Password aren't passed, current logon credentials are used
-// @comm Will raise NotImplementedError if not available on this platform.
 PyObject *PyNetValidateName(PyObject *self, PyObject *args)
 {
     // @pyparm string/<o PyUnicode>|Server||Name of server on which to execute (None or blank uses local)
@@ -1433,17 +1366,12 @@ PyObject *PyNetValidateName(PyObject *self, PyObject *args)
     // @pyparm string/<o PyUnicode>|Password|None|Password for Account
     PyObject *obServer, *obName, *obAccount = Py_None, *obPassword = Py_None, *ret = NULL;
     WCHAR *Server = NULL, *Name = NULL, *Account = NULL, *Password = NULL;
-    NET_API_STATUS err;
     NETSETUP_NAME_TYPE NameType;
-    if (pfnNetValidateName == NULL) {
-        PyErr_SetString(PyExc_NotImplementedError, "NetValidateName does not exist on this platform");
-        return NULL;
-    }
     if (!PyArg_ParseTuple(args, "OOl|OO", &obServer, &obName, &NameType, &obAccount, &obPassword))
         return NULL;
     if (PyWinObject_AsWCHAR(obServer, &Server, TRUE) && PyWinObject_AsWCHAR(obName, &Name, FALSE) &&
         PyWinObject_AsWCHAR(obAccount, &Account, TRUE) && PyWinObject_AsWCHAR(obPassword, &Password, TRUE)) {
-        err = (*pfnNetValidateName)(Server, Name, Account, Password, NameType);
+        NET_API_STATUS err = NetValidateName(Server, Name, Account, Password, NameType);
         if (err == NERR_Success)
             ret = Py_None;
         else
@@ -1460,9 +1388,6 @@ PyObject *PyNetValidateName(PyObject *self, PyObject *args)
     Py_XINCREF(ret);
     return ret;
 }
-
-extern "C" NetValidatePasswordPolicyfunc pfnNetValidatePasswordPolicy = NULL;
-extern "C" NetValidatePasswordPolicyFreefunc pfnNetValidatePasswordPolicyFree = NULL;
 
 static void PyObject_CleanupAUTH_INPUT(NET_VALIDATE_AUTHENTICATION_INPUT_ARG *p)
 {
@@ -1484,10 +1409,12 @@ static BOOL PyObject_AsAUTH_INPUT(PyObject *ob, NET_VALIDATE_AUTHENTICATION_INPU
         kw = ob;
         args = PyTuple_New(0);
         BOOL decref_args = (args != 0);
-    } else if (PyTuple_Check(ob)) {
+    }
+    else if (PyTuple_Check(ob)) {
         kw = NULL;
         args = ob;
-    } else {
+    }
+    else {
         PyErr_SetString(PyExc_TypeError, "Must be tuple or dict");
         return FALSE;
     }
@@ -1536,10 +1463,12 @@ static BOOL PyObject_AsCHANGE_INPUT(PyObject *ob, NET_VALIDATE_PASSWORD_CHANGE_I
         kw = ob;
         args = PyTuple_New(0);
         BOOL decref_args = (args != 0);
-    } else if (PyTuple_Check(ob)) {
+    }
+    else if (PyTuple_Check(ob)) {
         kw = NULL;
         args = ob;
-    } else {
+    }
+    else {
         PyErr_SetString(PyExc_TypeError, "Must be tuple or dict");
         return FALSE;
     }
@@ -1554,7 +1483,8 @@ static BOOL PyObject_AsCHANGE_INPUT(PyObject *ob, NET_VALIDATE_PASSWORD_CHANGE_I
         &Length,
         &p->PasswordMatch);  // @pyparm int|PasswordMatch|0|Note MSDN incorrectly documents this member as
                              // PasswordMatched
-    if (rc) p->HashedPassword.Length = Length;
+    if (rc)
+        p->HashedPassword.Length = Length;
 
     if (decref_args)
         Py_DECREF(args);
@@ -1629,8 +1559,7 @@ static PyObject *PyObject_FromNET_VALIDATE_PERSISTED_FIELDS(NET_VALIDATE_PERSIST
 // history reuse requirements of a password policy.
 // @rdesc Returns a tuple of (<o PyNET_VALIDATE_PERSISTED_FIELDS>, int) with
 // the integer being the ValidationResult.
-// @comm Will raise NotImplementedError if not available on this platform, or
-// raise win32net.error if the function fails.
+// @comm Will raise win32net.error if the function fails.
 PyObject *PyNetValidatePasswordPolicy(PyObject *self, PyObject *args)
 {
     // @pyparm string/<o PyUnicode>|Server||Name of server on which to execute (None or blank uses local)
@@ -1655,10 +1584,6 @@ PyObject *PyNetValidatePasswordPolicy(PyObject *self, PyObject *args)
     ALL_INS in_arg;
     memset(&in_arg, 0, sizeof(in_arg));
 
-    if (pfnNetValidateName == NULL || pfnNetValidatePasswordPolicyFree == NULL) {
-        PyErr_SetString(PyExc_NotImplementedError, "NetValidatePasswordPolicy does not exist on this platform");
-        return NULL;
-    }
     if (!PyArg_ParseTuple(args, "OOiO", &obServer, &obQualifier, &valType, &obArg))
         return NULL;
     if (obQualifier != Py_None)
@@ -1683,7 +1608,7 @@ PyObject *PyNetValidatePasswordPolicy(PyObject *self, PyObject *args)
             goto done;
     }
     Py_BEGIN_ALLOW_THREADS err =
-        (*pfnNetValidatePasswordPolicy)(Server, NULL, (NET_VALIDATE_PASSWORD_TYPE)valType, &in_arg, (void **)&out_arg);
+        NetValidatePasswordPolicy(Server, NULL, (NET_VALIDATE_PASSWORD_TYPE)valType, &in_arg, (void **)&out_arg);
     Py_END_ALLOW_THREADS if (NERR_Success != err)
     {
         ReturnNetError("NetValidatePasswordPolicy", err);
@@ -1707,8 +1632,6 @@ done:
             break;
     }
     if (out_arg)
-        (*pfnNetValidatePasswordPolicyFree)((void **)&out_arg);
+        NetValidatePasswordPolicyFree((void **)&out_arg);
     return ret;
 }
-
-#endif  // WINVER

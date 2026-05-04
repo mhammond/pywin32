@@ -4,14 +4,15 @@ start a process with three inherited pipes.
 Try to write to and read from those.
 """
 
-import win32api
-import win32pipe
-import win32file
-import win32process
-import win32security
-import win32con
 import msvcrt
 import os
+
+import win32api
+import win32con
+import win32file
+import win32pipe
+import win32process
+import win32security
 
 
 class Process:
@@ -99,10 +100,10 @@ class Process:
         self.stdin.close()
 
         self.stdout = os.fdopen(msvcrt.open_osfhandle(self.hStdout_r, 0), "rb")
-        print("Read on stdout: ", repr(self.stdout.read()))
+        print(f"Read on stdout: {self.stdout.read()!r}")
 
         self.stderr = os.fdopen(msvcrt.open_osfhandle(self.hStderr_r, 0), "rb")
-        print("Read on stderr: ", repr(self.stderr.read()))
+        print(f"Read on stderr: {self.stderr.read()!r}")
 
 
 if __name__ == "__main__":

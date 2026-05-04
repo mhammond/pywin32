@@ -1,15 +1,15 @@
-""" Lists various types of information about current user's access token,
-    including UAC status on Vista
-"""
+"""Lists various types of information about current user's access token,
+including UAC status."""
 
-import pywintypes, win32api, win32security
-import win32con, winerror
+import win32api
+import win32con
+import win32security
 from security_enums import (
+    SECURITY_IMPERSONATION_LEVEL,
+    TOKEN_ELEVATION_TYPE,
     TOKEN_GROUP_ATTRIBUTES,
     TOKEN_PRIVILEGE_ATTRIBUTES,
-    SECURITY_IMPERSONATION_LEVEL,
     TOKEN_TYPE,
-    TOKEN_ELEVATION_TYPE,
 )
 
 
@@ -37,7 +37,7 @@ def dump_token(th):
         flag_names, unk = TOKEN_PRIVILEGE_ATTRIBUTES.lookup_flags(priv_flags)
         flag_desc = " ".join(flag_names)
         if unk:
-            flag_desc += "(" + str(unk) + ")"
+            flag_desc += f"({unk})"
 
         priv_name = win32security.LookupPrivilegeName("", priv_luid)
         priv_desc = win32security.LookupPrivilegeDisplayName("", priv_name)
@@ -49,23 +49,17 @@ def dump_token(th):
         flag_names, unk = TOKEN_GROUP_ATTRIBUTES.lookup_flags(group_attr)
         flag_desc = " ".join(flag_names)
         if unk:
-            flag_desc += "(" + str(unk) + ")"
+            flag_desc += f"({unk})"
         if group_attr & TOKEN_GROUP_ATTRIBUTES.SE_GROUP_LOGON_ID:
             sid_desc = "Logon sid"
         else:
             sid_desc = win32security.LookupAccountSid("", group_sid)
         print("\t", group_sid, sid_desc, group_attr, flag_desc)
 
-    ## Vista token information types, will throw (87, 'GetTokenInformation', 'The parameter is incorrect.') on earier OS
-    try:
-        is_elevated = win32security.GetTokenInformation(
-            th, win32security.TokenElevation
-        )
-        print("TokenElevation:", is_elevated)
-    except pywintypes.error as details:
-        if details.winerror != winerror.ERROR_INVALID_PARAMETER:
-            raise
-        return None
+    print(
+        "TokenElevation:",
+        win32security.GetTokenInformation(th, win32security.TokenElevation),
+    )
     print(
         "TokenHasRestrictions:",
         win32security.GetTokenInformation(th, win32security.TokenHasRestrictions),

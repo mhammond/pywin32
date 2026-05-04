@@ -1,14 +1,10 @@
-import win32com.server.util
-import win32com.client
-import pythoncom
-import winerror
-import win32com.test.util
-
 import unittest
 
-
-class Error(Exception):
-    pass
+import pythoncom
+import win32com.client
+import win32com.server.util
+import win32com.test.util
+import winerror
 
 
 # An object representing a list of numbers
@@ -48,9 +44,9 @@ def DispExTest(ob):
     #       assert ob.GetMemberName(10, 0)=="add", "Policy did not give me the correct function for the dispid"
     assert ob.GetDispID("Remove", 0) == 11, "Policy did not honour the dispid"
     assert ob.GetDispID("In", 0) == 1000, "Allocated dispid unexpected value"
-    assert (
-        ob.GetDispID("_NewEnum", 0) == pythoncom.DISPID_NEWENUM
-    ), "_NewEnum() got unexpected DISPID"
+    assert ob.GetDispID("_NewEnum", 0) == pythoncom.DISPID_NEWENUM, (
+        "_NewEnum() got unexpected DISPID"
+    )
     dispids = []
     dispid = -1
     while 1:
@@ -62,8 +58,13 @@ def DispExTest(ob):
             assert hr == winerror.S_FALSE, "Bad result at end of enum"
             break
     dispids.sort()
-    if dispids != [pythoncom.DISPID_EVALUATE, pythoncom.DISPID_NEWENUM, 10, 11, 1000]:
-        raise Error("Got back the wrong dispids: %s" % dispids)
+    assert dispids == [
+        pythoncom.DISPID_EVALUATE,
+        pythoncom.DISPID_NEWENUM,
+        10,
+        11,
+        1000,
+    ], f"Got back the wrong dispids: {dispids}"
 
 
 def SemanticTest(ob):
@@ -72,8 +73,7 @@ def SemanticTest(ob):
     ob.Add(2)
     ob.Add(3)
     # invoke _value_
-    if ob() != (1, 2, 3):
-        raise Error("Bad result - got %s" % (repr(ob())))
+    assert ob() == (1, 2, 3), f"Bad result - got {ob()!r}"
 
     dispob = ob._oleobj_
 
@@ -83,8 +83,7 @@ def SemanticTest(ob):
         pythoncom.DISPATCH_METHOD | pythoncom.DISPATCH_PROPERTYGET,
         1,
     )
-    if rc != 6:
-        raise Error("Evaluate returned %d" % rc)
+    assert rc == 6, f"Evaluate returned {rc}"
 
 
 class Tester(win32com.test.util.TestCase):

@@ -3,15 +3,17 @@
 # You should use the Outlook object model, or
 # the win32com.mapi examples for a low-level interface.
 
-from win32com.client import gencache, constants
-import pythoncom
 import os
+
+import pythoncom
+from win32com.client import gencache
 
 ammodule = None  # was the generated module!
 
 
 def GetDefaultProfileName():
-    import win32api, win32con
+    import win32api
+    import win32con
 
     try:
         key = win32api.RegOpenKey(
@@ -73,8 +75,8 @@ if ammodule:
 
 
 def TestAddress(session):
-    #       entry = session.GetAddressEntry("Skip")
-    #       print entry
+    # entry = session.GetAddressEntry("Skip")
+    # print(entry)
     pass
 
 
@@ -84,16 +86,11 @@ def TestUser(session):
     print("User has %d fields" % len(fields))
     for f in range(len(fields)):
         field = fields[f + 1]
-        try:
-            id = PropTagsById[field.ID]
-        except KeyError:
-            id = field.ID
-        print("%s/%s=%s" % (field.Name, id, field.Value))
+        id = PropTagsById.get(field.ID, field.ID)
+        print(f"{field.Name}/{id}={field.Value}")
 
 
 def test():
-    import win32com.client
-
     oldcwd = os.getcwd()
     try:
         session = gencache.EnsureDispatch("MAPI.Session")

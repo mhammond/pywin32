@@ -1,4 +1,6 @@
-import win32security, win32api, win32con, win32process
+import win32con
+import win32process
+import win32security
 
 new_privs = (
     (
@@ -87,9 +89,9 @@ sd.SetSecurityDescriptorOwner(pwr_sid, 0)
 
 win32security.SetUserObjectSecurity(h, info, sd)
 new_sd = win32security.GetUserObjectSecurity(h, info)
-assert (
-    new_sd.GetSecurityDescriptorDacl().GetAceCount() == ace_cnt + 1
-), "Did not add an ace to the Dacl !!!!!!"
+assert new_sd.GetSecurityDescriptorDacl().GetAceCount() == ace_cnt + 1, (
+    "Did not add an ace to the Dacl !!!!!!"
+)
 assert (
     win32security.LookupAccountSid("", new_sd.GetSecurityDescriptorOwner())[0]
     == "Power Users"

@@ -7,26 +7,23 @@ either double-click on it, or run "python.exe pyscript.py" from the
 command line.
 """
 
-import winerror
-import win32com
-import win32api
-import pythoncom
-import sys
-import traceback
 import re
-import win32com.client.dynamic
-from win32com.axscript.client import framework, scriptdispatch
-from win32com.axscript import axscript
-import win32com.server.register
+import types
 
+import pythoncom
+import win32com
+import win32com.client.dynamic
+import win32com.server.register
+import winerror
+from win32com.axscript import axscript
+from win32com.axscript.client import framework, scriptdispatch
 from win32com.axscript.client.framework import (
-    RaiseAssert,
-    trace,
-    Exception,
     SCRIPTTEXT_FORCEEXECUTION,
     SCRIPTTEXT_ISEXPRESSION,
     SCRIPTTEXT_ISPERSISTENT,
+    trace,
 )
+from win32com.server.exception import COMException
 
 PyScript_CLSID = "{DF630910-1C1D-11d0-AE36-8C0F5E000000}"
 
@@ -39,11 +36,11 @@ def debug_attr_print(*args):
 
 
 def ExpandTabs(text):
-    return re.sub("\t", "    ", text)
+    return re.sub(r"\t", "    ", text)
 
 
 def AddCR(text):
-    return re.sub("\n", "\r\n", text)
+    return re.sub(r"\n", "\r\n", text)
 
 
 class AXScriptCodeBlock(framework.AXScriptCodeBlock):
@@ -102,7 +99,8 @@ class AXScriptAttribute:
 
 
 class NamedScriptAttribute:
-    "An explicitely named object in an objects namespace"
+    "An explicitly named object in an objects namespace"
+
     # Each named object holds a reference to one of these.
     # Whenever a sub-item appears in a namespace, it is really one of these
     # objects.  Has a circular reference back to the item itself, which is
@@ -111,7 +109,7 @@ class NamedScriptAttribute:
         self.__dict__["_scriptItem_"] = scriptItem
 
     def __repr__(self):
-        return "<NamedItemAttribute" + repr(self._scriptItem_) + ">"
+        return f"{self.__class__.__name__}({self._scriptItem_!r})"
 
     def __getattr__(self, attr):
         # If a known subitem, return it.
@@ -160,15 +158,12 @@ class ScriptItem(framework.ScriptItem):
         self.attributeObject = NamedScriptAttribute(self)
         if self.dispatch:
             # Need to avoid the new Python "lazy" dispatch behaviour.
+            olerepr = clsid = None
             try:
                 engine = self.GetEngine()
-                olerepr = clsid = None
                 typeinfo = self.dispatch.GetTypeInfo()
                 clsid = typeinfo.GetTypeAttr()[0]
-                try:
-                    olerepr = engine.mapKnownCOMTypes[clsid]
-                except KeyError:
-                    pass
+                olerepr = engine.mapKnownCOMTypes.get(clsid)
             except pythoncom.com_error:
                 typeinfo = None
             if olerepr is None:
@@ -211,10 +206,9 @@ class PyScript(framework.COMScript):
 
     def InitNew(self):
         framework.COMScript.InitNew(self)
-        import imp
 
         self.scriptDispatch = None
-        self.globalNameSpaceModule = imp.new_module("__ax_main__")
+        self.globalNameSpaceModule = types.ModuleType("__ax_main__")
         self.globalNameSpaceModule.__dict__["ax"] = AXScriptAttribute(self)
 
         self.codeBlocks = []
@@ -239,7 +233,7 @@ class PyScript(framework.COMScript):
         return framework.COMScript.Reset(self)
 
     def _GetNextCodeBlockNumber(self):
-        self.codeBlockCounter = self.codeBlockCounter + 1
+        self.codeBlockCounter += 1
         return self.codeBlockCounter
 
     def RegisterNamedItem(self, item):
@@ -253,9 +247,9 @@ class PyScript(framework.COMScript):
             if item.IsGlobal():
                 # Global items means sub-items are also added...
                 for subitem in item.subItems.values():
-                    self.globalNameSpaceModule.__dict__[
-                        subitem.name
-                    ] = subitem.attributeObject
+                    self.globalNameSpaceModule.__dict__[subitem.name] = (
+                        subitem.attributeObject
+                    )
                 # Also add all methods
                 for name, entry in item.dispatchContainer._olerepr_.mapFuncs.items():
                     if not entry.hidden:
@@ -334,7 +328,7 @@ class PyScript(framework.COMScript):
         codeBlock = function = None
         try:
             function = item.scriptlets[funcName]
-            if type(function) == type(self):  # ie, is a CodeBlock instance
+            if isinstance(function, PyScript):  # ie, is a CodeBlock instance
                 codeBlock = function
                 function = None
         except KeyError:
@@ -342,8 +336,8 @@ class PyScript(framework.COMScript):
         if codeBlock is not None:
             realCode = "def %s():\n" % funcName
             for line in framework.RemoveCR(codeBlock.codeText).split("\n"):
-                realCode = realCode + "\t" + line + "\n"
-            realCode = realCode + "\n"
+                realCode += "\t" + line + "\n"
+            realCode += "\n"
             if not self.CompileInScriptedSection(codeBlock, "exec", realCode):
                 return
             dict = {}
@@ -360,14 +354,14 @@ class PyScript(framework.COMScript):
             except KeyError:
                 # Not there _exactly_ - do case ins search.
                 funcNameLook = funcName.lower()
-                for attr in self.globalNameSpaceModule.__dict__.keys():
+                for attr in self.globalNameSpaceModule.__dict__:
                     if funcNameLook == attr.lower():
                         function = self.globalNameSpaceModule.__dict__[attr]
                         # cache back in scriptlets, to avoid this overhead next time
                         item.scriptlets[funcName] = function
 
         if function is None:
-            raise Exception(scode=winerror.DISP_E_MEMBERNOTFOUND)
+            raise COMException(scode=winerror.DISP_E_MEMBERNOTFOUND)
         return self.ApplyInScriptedSection(codeBlock, function, args)
 
     def DoParseScriptText(
@@ -383,7 +377,7 @@ class PyScript(framework.COMScript):
         num = self._GetNextCodeBlockNumber()
         if num == 1:
             num = ""
-        name = "%s %s" % (name, num)
+        name += f" {num}"
         codeBlock = AXScriptCodeBlock(
             name, code, sourceContextCookie, startLineNumber, flags
         )
@@ -434,8 +428,6 @@ def DllRegisterServer():
 
 
 def Register(klass=PyScript):
-    import sys
-
     ret = win32com.server.register.UseCommandLine(
         klass, finalize_register=DllRegisterServer
     )

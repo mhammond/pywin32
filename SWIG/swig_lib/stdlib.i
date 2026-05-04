@@ -34,4 +34,3 @@ int    system(const char *s);
 char  *getenv(const char *name);
 int    abs(int n);
 long   labs(long n);
-

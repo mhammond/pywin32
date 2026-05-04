@@ -1,32 +1,31 @@
 # rastest.py - test/demonstrate the win32ras module.
 # Much of the code here contributed by Jethro Wright.
 
-import sys
 import os
+import sys
+
+import win32event
 import win32ras
 
 # Build a little dictionary of RAS states to decent strings.
 # eg win32ras.RASCS_OpenPort -> "OpenPort"
-stateMap = {}
-for name, val in list(win32ras.__dict__.items()):
-    if name[:6] == "RASCS_":
-        stateMap[val] = name[6:]
+stateMap = {
+    val: name[6:] for name, val in win32ras.__dict__.items() if name[:6] == "RASCS_"
+}
 
 # Use a lock so the callback can tell the main thread when it is finished.
-import win32event
-
 callbackEvent = win32event.CreateEvent(None, 0, 0, None)
 
 
 def Callback(hras, msg, state, error, exterror):
-    #       print "Callback called with ", hras, msg, state, error, exterror
+    # print("Callback called with ", hras, msg, state, error, exterror)
     stateName = stateMap.get(state, "Unknown state?")
     print("Status is %s (%04lx), error code is %d" % (stateName, state, error))
     finished = state in [win32ras.RASCS_Connected]
     if finished:
         win32event.SetEvent(callbackEvent)
     if error != 0 or int(state) == win32ras.RASCS_Disconnected:
-        #       we know for sure this is a good place to hangup....
+        # we know for sure this is a good place to hangup....
         print("Detected call failure: %s" % win32ras.GetErrorString(error))
         HangUp(hras)
         win32event.SetEvent(callbackEvent)
@@ -64,8 +63,9 @@ def Connect(entryName, bUseCallback):
         win32event.ResetEvent(callbackEvent)
     else:
         theCallback = None
-    #       in order to *use* the username/password of a particular dun entry, one must
-    #       explicitly get those params under win95....
+    # In order to *use* the username/password of a particular dun entry,
+    # one must explicitly get those params under Win95 ...
+    # It's unclear whether that's even still necessary.
     try:
         dp, b = win32ras.GetEntryDialParams(None, entryName)
     except:
@@ -74,23 +74,24 @@ def Connect(entryName, bUseCallback):
         hras, rc = win32ras.Dial(
             None, None, (entryName, "", "", dp[3], dp[4], ""), theCallback
         )
-        #       hras, rc = win32ras.Dial(None, None, (entryName, ),theCallback)
-        #       print hras, rc
+        # hras, rc = win32ras.Dial(None, None, (entryName, ),theCallback)
+        # print(hras, rc)
         if not bUseCallback and rc != 0:
             print("Could not dial the RAS connection:", win32ras.GetErrorString(rc))
             hras = HangUp(hras)
-        #       don't wait here if there's no need to....
+        # don't wait here if there's no need to....
         elif (
             bUseCallback
             and win32event.WaitForSingleObject(callbackEvent, 60000)
             != win32event.WAIT_OBJECT_0
         ):
             print("Gave up waiting for the process to complete!")
-            #       sdk docs state one must explcitly hangup, even if there's an error....
+            # sdk docs state one must explicitly hangup, even if there's an error....
+            # https://learn.microsoft.com/en-us/windows/win32/api/ras/nf-ras-rasdialw#remarks
             try:
                 cs = win32ras.GetConnectStatus(hras)
             except:
-                #       on error, attempt a hang up anyway....
+                # on error, attempt a hang up anyway....
                 hras = HangUp(hras)
             else:
                 if int(cs[0]) == win32ras.RASCS_Disconnected:
@@ -155,8 +156,8 @@ def main():
             ShowConnections()
         if opt == "-c":
             hras, rc = Connect(val, bCallback)
-            if hras != None:
-                print("hras: 0x%8lx, rc: 0x%04x" % (hras, rc))
+            if hras is not None:
+                print(f"hras: 0x{hras:8x}, rc: 0x{rc:04x}")
         if opt == "-d":
             Disconnect(val)
         if opt == "-e":

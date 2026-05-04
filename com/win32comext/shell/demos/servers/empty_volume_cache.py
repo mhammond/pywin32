@@ -1,15 +1,17 @@
 # A sample implementation of IEmptyVolumeCache - see
-# http://msdn2.microsoft.com/en-us/library/aa969271.aspx for an overview.
+# https://learn.microsoft.com/en-ca/windows/win32/lwef/disk-cleanup for an overview.
 #
 # * Execute this script to register the handler
 # * Start the "disk cleanup" tool - look for "pywin32 compiled files"
-import sys, os, stat, time
+import os
+import stat
+import sys
+
 import pythoncom
-from win32com.shell import shell, shellcon
-from win32com.server.exception import COMException
 import win32gui
-import win32con
 import winerror
+from win32com.server.exception import COMException
+from win32com.shell import shell, shellcon
 
 # Our shell extension.
 IEmptyVolumeCache_Methods = (
@@ -34,8 +36,6 @@ class EmptyVolumeCache:
     _public_methods_ = IEmptyVolumeCache_Methods + IEmptyVolumeCache2_Methods
 
     def Initialize(self, hkey, volume, flags):
-        # This should never be called, except on win98.
-        print("Unless we are on 98, Initialize call is unexpected!")
         raise COMException(hresult=winerror.E_NOTIMPL)
 
     def InitializeEx(self, hkey, volume, key_name, flags):
@@ -85,14 +85,14 @@ class EmptyVolumeCache:
         ]
 
     def _WalkCallback(self, arg, directory, files):
-        # callback function for os.path.walk - no need to be member, but its
+        # callback function for os.walk - no need to be member, but it's
         # close to the callers :)
         callback, total_list = arg
         for file in files:
             fqn = os.path.join(directory, file).lower()
             if file.endswith(".pyc") or file.endswith(".pyo"):
-                # See below - total_list == None means delete files,
-                # otherwise it is a list where the result is stored. Its a
+                # See below - total_list is None means delete files,
+                # otherwise it is a list where the result is stored. It's a
                 # list simply due to the way os.walk works - only [0] is
                 # referenced
                 if total_list is None:
@@ -107,8 +107,8 @@ class EmptyVolumeCache:
                         # we take longer than we need to...
                         # ACK - for some bizarre reason this screws up the XP
                         # cleanup manager - clues welcome!! :)
-                        ## print "Looking in", directory, ", but waiting a while..."
-                        ## time.sleep(3)
+                        # # print("Looking in", directory, ", but waiting a while...")
+                        # # time.sleep(3)
                         # now do it
                         used = total_list[0]
                         callback.ScanProgress(used, 0, "Looking at " + fqn)
@@ -117,7 +117,7 @@ class EmptyVolumeCache:
         total = [0]  # See _WalkCallback above
         try:
             for d in self._GetDirectories():
-                os.path.walk(d, self._WalkCallback, (callback, total))
+                os.walk(d, self._WalkCallback, (callback, total))
                 print("After looking in", d, "we have", total[0], "bytes")
         except pythoncom.error as exc:
             # This will be raised by the callback when the user selects 'cancel'.
@@ -132,7 +132,7 @@ class EmptyVolumeCache:
         # GetSpaceUsed
         try:
             for d in self._GetDirectories():
-                os.path.walk(d, self._WalkCallback, (callback, None))
+                os.walk(d, self._WalkCallback, (callback, None))
         except pythoncom.error as exc:
             # This will be raised by the callback when the user selects 'cancel'.
             if exc.hresult != winerror.E_ABORT:
@@ -153,7 +153,7 @@ def DllRegisterServer():
     # See link at top of file.
     import winreg
 
-    kn = r"Software\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\%s" % (
+    kn = r"Software\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\{}".format(
         EmptyVolumeCache._reg_desc_,
     )
     key = winreg.CreateKey(winreg.HKEY_LOCAL_MACHINE, kn)
@@ -163,12 +163,12 @@ def DllRegisterServer():
 def DllUnregisterServer():
     import winreg
 
-    kn = r"Software\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\%s" % (
+    kn = r"Software\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\{}".format(
         EmptyVolumeCache._reg_desc_,
     )
     try:
         key = winreg.DeleteKey(winreg.HKEY_LOCAL_MACHINE, kn)
-    except WindowsError as details:
+    except OSError as details:
         import errno
 
         if details.errno != errno.ENOENT:

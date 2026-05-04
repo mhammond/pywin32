@@ -6,8 +6,6 @@
 #include "PyWinObjects.h"
 #include "PySecurityObjects.h"
 
-#ifndef NO_PYWINTYPES_SECURITY
-
 // @pymethod <o PySID>|pywintypes|SID|Creates a new SID object
 PyObject *PyWinMethod_NewSID(PyObject *self, PyObject *args)
 {
@@ -55,7 +53,7 @@ PyObject *PyWinMethod_NewSID(PyObject *self, PyObject *args)
             return new PySID(pNew);
         }
     }
-     if (bufSize > INT_MAX) {
+    if (bufSize > INT_MAX) {
         PyErr_SetString(PyExc_ValueError, "SID buffer size beyond INT_MAX");
         return NULL;
     }
@@ -388,36 +386,3 @@ BOOL GetTextualSid(
     free(buf);
     return ret;
 }
-#else /* NO_PYWINTYPES_SECURITY */
-
-BOOL PyWinObject_AsSID(PyObject *ob, PSID *ppSID, BOOL bNoneOK /*= TRUE*/)
-{
-    if (bNoneOK && ob == Py_None) {
-        *ppSID = NULL;
-    }
-    else {
-        if (bNoneOK)
-            PyErr_SetString(PyExc_TypeError,
-                            "This build of pywintypes only supports None as "
-                            "a SID");
-        else
-            PyErr_SetString(PyExc_TypeError,
-                            "This function can not work in this build, as "
-                            "only None may be used as a SID");
-        return FALSE;
-    }
-    return TRUE;
-}
-PyObject *PyWinObject_FromSID(PSID psid)
-{
-    if (psid == NULL) {
-        Py_INCREF(Py_None);
-        return Py_None;
-    }
-    PyErr_SetString(PyExc_RuntimeError,
-                    "A non-NULL SID was passed, but security "
-                    "descriptors are disabled from this build");
-    return NULL;
-}
-
-#endif /* NO_PYWINTYPES_SECURITY */

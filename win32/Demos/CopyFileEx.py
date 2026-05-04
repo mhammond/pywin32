@@ -1,5 +1,5 @@
-import win32file, win32api
-import os
+import win32api
+import win32file
 
 
 def ProgressRoutine(

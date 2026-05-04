@@ -1,7 +1,7 @@
-import win32ui
-import win32con
 import commctrl
 import pythoncom
+import win32con
+import win32ui
 from pywin.mfc import dialog
 
 
@@ -9,7 +9,7 @@ class TLBrowserException(Exception):
     "TypeLib browser internal error"
 
 
-error = TLBrowserException
+error = TLBrowserException  # Re-exported alias
 
 FRAMEDLG_STD = win32con.WS_CAPTION | win32con.WS_SYSMENU
 SS_STD = win32con.WS_CHILD | win32con.WS_VISIBLE
@@ -154,13 +154,11 @@ class TypeBrowseDialog(TypeBrowseDialog_Parent):
             typeFlags = attr[11]
 
             desc = doc[0]
-            desc = desc + ", Flags=0x%x, typeKind=0x%x, typeFlags=0x%x" % (
-                flags,
-                typeKind,
-                typeFlags,
+            desc += ", Flags=0x{:x}, typeKind=0x{:x}, typeFlags=0x{:x}".format(
+                flags, typeKind, typeFlags
             )
             if flags & pythoncom.IMPLTYPEFLAG_FSOURCE:
-                desc = desc + "(Source)"
+                desc += "(Source)"
             infos.append(("Implements", desc))
 
         return infos

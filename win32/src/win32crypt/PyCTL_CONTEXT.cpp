@@ -64,7 +64,7 @@ BOOL PyWinObject_AsCTL_CONTEXT(PyObject *ob, PCCTL_CONTEXT *ppctl_context, BOOL 
         *ppctl_context = NULL;
         return true;
     }
-    if (ob->ob_type != &PyCTL_CONTEXTType) {
+    if (Py_TYPE(ob) != &PyCTL_CONTEXTType) {
         PyErr_SetString(PyExc_TypeError, "Object must be of type PyCTL_CONTEXT");
         return FALSE;
     }
@@ -84,13 +84,13 @@ PyObject *PyWinObject_FromCTL_CONTEXT(PCCTL_CONTEXT pcc)
     return ret;
 }
 
-#define CHECK_CTL_CONTEXT(p) \
-    if (p == NULL) { \
+#define CHECK_CTL_CONTEXT(p)                                                                \
+    if (p == NULL) {                                                                        \
         PyErr_SetString(PyExc_ValueError, "The certificate trust context has been closed"); \
-        return NULL; \
+        return NULL;                                                                        \
     }
 
-#define GET_CTL_CONTEXT(varname) \
+#define GET_CTL_CONTEXT(varname)                                       \
     PCCTL_CONTEXT varname = ((PyCTL_CONTEXT *)self)->GetCTL_CONTEXT(); \
     CHECK_CTL_CONTEXT(varname);
 

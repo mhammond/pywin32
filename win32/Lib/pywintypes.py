@@ -1,5 +1,9 @@
-# Magic utility that "redirects" to pywintypesxx.dll
-import importlib.util, importlib.machinery, sys, os
+# Magic utility that "redirects" to pywintypesXX.dll
+import importlib.machinery
+import importlib.util
+import os
+import sys
+from typing import TYPE_CHECKING, Any
 
 
 def __import_pywin32_system_module__(modname, globs):
@@ -23,12 +27,12 @@ def __import_pywin32_system_module__(modname, globs):
     suffix = "_d" if "_d.pyd" in importlib.machinery.EXTENSION_SUFFIXES else ""
     filename = "%s%d%d%s.dll" % (
         modname,
-        sys.version_info[0],
-        sys.version_info[1],
+        sys.version_info.major,
+        sys.version_info.minor,
         suffix,
     )
     if hasattr(sys, "frozen"):
-        # If we are running from a frozen program (py2exe, McMillan, freeze)
+        # If we are running from a frozen program (py2exe, McMillan, freeze, PyInstaller)
         # then we try and load the DLL from our sys.path
         # XXX - This path may also benefit from _win32sysloader?  However,
         # MarkH has never seen the DLL load problem with py2exe programs...
@@ -41,9 +45,7 @@ def __import_pywin32_system_module__(modname, globs):
             if os.path.isfile(found):
                 break
         else:
-            raise ImportError(
-                "Module '%s' isn't in frozen sys.path %s" % (modname, sys.path)
-            )
+            raise ImportError(f"Module '{modname}' isn't in frozen sys.path {sys.path}")
     else:
         # First see if it already in our process - if so, we must use that.
         import _win32sysloader
@@ -55,7 +57,7 @@ def __import_pywin32_system_module__(modname, globs):
             # first (which is how we are here) or if, eg, win32api was imported
             # first thereby implicitly loading the DLL.
 
-            # Sadly though, it doesn't quite work - if pywintypesxx.dll
+            # Sadly though, it doesn't quite work - if pywintypesXX.dll
             # is in system32 *and* the executable's directory, on XP SP2, an
             # import of win32api will cause Windows to load pywintypes
             # from system32, where LoadLibrary for that name will
@@ -82,7 +84,7 @@ def __import_pywin32_system_module__(modname, globs):
 
         # There are 2 site-packages directories - one "global" and one "user".
         # We could be in either, or both (but with different versions!). Factors include
-        # virtualenvs, post-install script being run or not, `setup.py install` flags, etc.
+        # virtualenvs, post-install script being run or not, `pip install` flags, etc.
 
         # In a worst-case, it means, say 'python -c "import win32api"'
         # will not work but 'python -c "import pywintypes, win32api"' will,
@@ -102,7 +104,7 @@ def __import_pywin32_system_module__(modname, globs):
 
         if found is None:
             # give up in disgust.
-            raise ImportError("No system module '%s' (%s)" % (modname, filename))
+            raise ImportError(f"No system module '{modname}' ({filename})")
     # After importing the module, sys.modules is updated to the DLL we just
     # loaded - which isn't what we want. So we update sys.modules to refer to
     # this module, and update our globals from it.
@@ -121,3 +123,10 @@ def __import_pywin32_system_module__(modname, globs):
 
 
 __import_pywin32_system_module__("pywintypes", globals())
+
+# This module dynamically re-exports from a C-Extension.
+# Prevent attribute access issues with checkers and language servers (IDEs)
+# External usage should still prefer typeshed stubs
+if TYPE_CHECKING:
+
+    def __getattr__(name: str) -> Any: ...

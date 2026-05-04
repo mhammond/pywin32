@@ -112,7 +112,7 @@ PYWINTYPES_EXPORT PyTypeObject PyWAVEFORMATEXType = {
                                                        // nBlockAlign should be equal to the product of nChannels and
                                                        // wBitsPerSample divided by 8 (bits per byte). For non-PCM
                                                        // formats, this member must be computed according to the
-                                                       // manufacturer’s specification of the format tag.
+                                                       // manufacturer's specification of the format tag.
     {"wBitsPerSample", T_SHORT, OFF(m_wfx.wBitsPerSample), 0,
      "Bits per sample for the wFormatTag format type. If wFormatTag is WAVE_FORMAT_PCM, then wBitsPerSample should be "
      "equal to 8 or 16."},  // @prop integer|wBitsPerSample|Bits per sample for the wFormatTag format type. If

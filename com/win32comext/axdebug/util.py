@@ -1,18 +1,18 @@
 # Utility function for wrapping objects.  Centralising allows me to turn
 # debugging on and off for the entire package in a single spot.
 
-import sys
-import win32com.server.util
-from win32com.server.exception import Exception
-import winerror
-import win32api
 import os
+import sys
+import traceback
 
-try:
-    os.environ["DEBUG_AXDEBUG"]
-    debugging = 1
-except KeyError:
-    debugging = 0
+import win32api
+import win32com.server.dispatcher
+import win32com.server.policy
+import win32com.server.util
+import winerror
+from win32com.server.exception import COMException
+
+debugging = "DEBUG_AXDEBUG" in os.environ
 
 
 def trace(*args):
@@ -33,75 +33,35 @@ def trace(*args):
 # (Now this is only true for Document objects, and Python
 # now does ensure this.
 
-all_wrapped = {}
 
-
-def _wrap_nodebug(object, iid):
-    return win32com.server.util.wrap(object, iid)
-
-
-def _wrap_debug(object, iid):
-    import win32com.server.policy
-
-    dispatcher = win32com.server.policy.DispatcherWin32trace
-    return win32com.server.util.wrap(object, iid, useDispatcher=dispatcher)
-
-
-if debugging:
-    _wrap = _wrap_debug
-else:
-    _wrap = _wrap_nodebug
-
-
-def _wrap_remove(object, iid=None):
-    # Old - no longer used or necessary!
-    return
-
-
-def _dump_wrapped():
-    from win32com.server.util import unwrap
-
-    print("Wrapped items:")
-    for key, items in all_wrapped.items():
-        print(key, end=" ")
-        try:
-            ob = unwrap(key)
-            print(ob, sys.getrefcount(ob))
-        except:
-            print("<error>")
+def _wrap(object, iid):
+    useDispatcher = win32com.server.policy.DispatcherWin32trace if debugging else None
+    return win32com.server.util.wrap(object, iid, useDispatcher=useDispatcher)
 
 
 def RaiseNotImpl(who=None):
     if who is not None:
-        print("********* Function %s Raising E_NOTIMPL  ************" % (who))
+        print(f"********* Function {who} Raising E_NOTIMPL  ************")
 
     # Print a sort-of "traceback", dumping all the frames leading to here.
-    try:
-        1 / 0
-    except:
-        frame = sys.exc_info()[2].tb_frame
-    while frame:
-        print("File: %s, Line: %d" % (frame.f_code.co_filename, frame.f_lineno))
-        frame = frame.f_back
+    for frame, i in traceback.walk_stack(sys._getframe()):
+        print(f"File: {frame.f_code.co_filename}, Line: {frame.f_lineno}")
 
     # and raise the exception for COM
-    raise Exception(scode=winerror.E_NOTIMPL)
+    raise COMException(scode=winerror.E_NOTIMPL)
 
 
-import win32com.server.policy
-
-
-class Dispatcher(win32com.server.policy.DispatcherWin32trace):
+class Dispatcher(win32com.server.dispatcher.DispatcherWin32trace):
     def __init__(self, policyClass, object):
-        win32com.server.policy.DispatcherTrace.__init__(self, policyClass, object)
+        win32com.server.dispatcher.DispatcherTrace.__init__(self, policyClass, object)
         import win32traceutil  # Sets up everything.
 
-    #               print "Object with win32trace dispatcher created (object=%s)" % `object`
+    # print(f"Object with win32trace dispatcher created ({object})")
 
     def _QueryInterface_(self, iid):
         rc = win32com.server.policy.DispatcherBase._QueryInterface_(self, iid)
-        #               if not rc:
-        #                       self._trace_("in _QueryInterface_ with unsupported IID %s (%s)\n" % (IIDToInterfaceName(iid),iid))
+        # if not rc:
+        #     self._trace_(f"in _QueryInterface_ with unsupported IID {IIDToInterfaceName(iid)} ({iid})\n")
         return rc
 
     def _Invoke_(self, dispid, lcid, wFlags, args):
@@ -118,21 +78,19 @@ class Dispatcher(win32com.server.policy.DispatcherWin32trace):
             rc = win32com.server.policy.DispatcherBase._Invoke_(
                 self, dispid, lcid, wFlags, args
             )
-            #                       print "Invoke of", dispid, "returning", rc
+            # print("Invoke of", dispid, "returning", rc)
             return rc
-        except Exception:
+        except COMException:
             t, v, tb = sys.exc_info()
             tb = None  # A cycle
             scode = v.scode
             try:
-                desc = " (" + str(v.description) + ")"
+                desc = f" ({v.description})"
             except AttributeError:
                 desc = ""
-            print(
-                "*** Invoke of %s raised COM exception 0x%x%s" % (dispid, scode, desc)
-            )
+            print(f"*** Invoke of {dispid} raised COM exception 0x{scode:x}{desc}")
         except:
-            print("*** Invoke of %s failed:" % dispid)
+            print(f"*** Invoke of {dispid} failed:")
             typ, val, tb = sys.exc_info()
             import traceback
 

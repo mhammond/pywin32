@@ -1,23 +1,15 @@
-import traceback, sys, string
-
-import win32com.server.util
-from win32com.util import IIDToInterfaceName
-from win32com.client.util import Enumerator
-from win32com.server.exception import COMException
-import pythoncom
-from .framework import trace
-from win32com.axdebug import axdebug, gateways, contexts, stackframe, documents, adb
-from win32com.axdebug.codecontainer import SourceCodeContainer
-from win32com.axdebug.util import _wrap, _wrap_remove
-import win32com.client.connect
-import win32api, winerror
 import os
+import sys
 
-try:
-    os.environ["DEBUG_AXDEBUG"]
-    debuggingTrace = 1  # Should we print "trace" output?
-except KeyError:
-    debuggingTrace = 0
+import pythoncom
+import win32api
+import winerror
+from win32com.axdebug import adb, axdebug, documents, gateways
+from win32com.axdebug.codecontainer import SourceCodeContainer
+from win32com.axdebug.util import _wrap
+from win32com.server.exception import COMException
+
+debuggingTrace = "DEBUG_AXDEBUG" in os.environ  # Should we print "trace" output?
 
 
 def trace(*args):
@@ -62,7 +54,7 @@ class DebugManager:
 
         if self.debugApplication is None:
             # Try to get/create the default one
-            # NOTE - Dont catch exceptions here - let the parent do it,
+            # NOTE - Don't catch exceptions here - let the parent do it,
             # so it knows debug support is available.
             pdm = pythoncom.CoCreateInstance(
                 axdebug.CLSID_ProcessDebugManager,
@@ -73,9 +65,9 @@ class DebugManager:
             self.debugApplication = pdm.GetDefaultApplication()
             self.rootNode = self.debugApplication.GetRootNode()
 
-        assert (
-            self.debugApplication is not None
-        ), "Need to have a DebugApplication object by now!"
+        assert self.debugApplication is not None, (
+            "Need to have a DebugApplication object by now!"
+        )
         self.activeScriptDebug = None
 
         if self.debugApplication is not None:
@@ -87,9 +79,7 @@ class DebugManager:
 
     def Close(self):
         # Called by the language engine when it receives a close request
-        if self.activeScriptDebug is not None:
-            _wrap_remove(self.activeScriptDebug)
-            self.activeScriptDebug = None
+        self.activeScriptDebug = None
         self.scriptEngine = None
         self.rootNode = None
         self.debugApplication = None
@@ -102,7 +92,7 @@ class DebugManager:
             self.adb.CloseApp()
             self.adb = None
 
-    # 		print "Close complete"
+    # print("Close complete")
 
     def IsAnyHost(self):
         "Do we have _any_ debugging interfaces installed?"
@@ -135,19 +125,14 @@ class DebugManager:
 
     def OnEnterScript(self):
         trace("OnEnterScript")
-        try:
-            1 / 0
-        except:
-            # Bit of a hack - reach into engine.
-            baseFrame = sys.exc_info()[2].tb_frame.f_back
-        self.adb.SetupAXDebugging(baseFrame)
+        self.adb.SetupAXDebugging(sys._getframe().f_back)
 
     def OnLeaveScript(self):
         trace("OnLeaveScript")
         self.adb.ResetAXDebugging()
 
     def AddScriptBlock(self, codeBlock):
-        # If we dont have debugging support, dont bother.
+        # If we don't have debugging support, don't bother.
         cc = DebugCodeBlockContainer(codeBlock, self.scriptSiteDebug)
         if self.IsSimpleHost():
             document = documents.DebugDocumentText(cc)

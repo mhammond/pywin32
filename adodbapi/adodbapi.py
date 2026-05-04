@@ -1,9 +1,9 @@
 """adodbapi - A python DB API 2.0 (PEP 249) interface to Microsoft ADO
 
 Copyright (C) 2002 Henrik Ekelund, versions 2.1 and later by Vernon Cole
-* http://sourceforge.net/projects/pywin32
+* https://sourceforge.net/projects/pywin32
 * https://github.com/mhammond/pywin32
-* http://sourceforge.net/projects/adodbapi
+* https://sourceforge.net/projects/adodbapi
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -21,25 +21,22 @@ Copyright (C) 2002 Henrik Ekelund, versions 2.1 and later by Vernon Cole
 
     django adaptations and refactoring by Adam Vandenberg
 
-DB-API 2.0 specification: http://www.python.org/dev/peps/pep-0249/
+DB-API 2.0 specification: https://peps.python.org/pep-0249/
 
 This module source should run correctly in CPython versions 2.7 and later,
-or IronPython version 2.7 and later,
-or, after running through 2to3.py, CPython 3.4 or later.
+or CPython 3.4 or later.
 """
 
 __version__ = "2.6.2.0"
 version = "adodbapi v" + __version__
 
-import sys
 import copy
 import decimal
 import os
+import sys
 import weakref
 
-from . import process_connect_string
-from . import ado_consts as adc
-from . import apibase as api
+from . import ado_consts as adc, apibase as api, process_connect_string
 
 try:
     verbose = int(os.environ["ADODBAPI_VERBOSE"])
@@ -48,56 +45,28 @@ except:
 if verbose:
     print(version)
 
-# --- define objects to smooth out IronPython <-> CPython differences
-onWin32 = False  # assume the worst
-if api.onIronPython:
-    from System import Activator, Type, DBNull, DateTime, Array, Byte
-    from System import Decimal as SystemDecimal
-    from clr import Reference
+try:
+    import pythoncom
+    import pywintypes
+    from win32com.client import Dispatch
+except ImportError:
+    import warnings
 
-    def Dispatch(dispatch):
-        type = Type.GetTypeFromProgID(dispatch)
-        return Activator.CreateInstance(type)
+    warnings.warn("pywin32 package required for adodbapi.", ImportWarning, stacklevel=2)
 
-    def getIndexedValue(obj, index):
-        return obj.Item[index]
 
-else:  # try pywin32
-    try:
-        import win32com.client
-        import pythoncom
-        import pywintypes
-
-        onWin32 = True
-
-        def Dispatch(dispatch):
-            return win32com.client.Dispatch(dispatch)
-
-    except ImportError:
-        import warnings
-
-        warnings.warn(
-            "pywin32 package (or IronPython) required for adodbapi.", ImportWarning
-        )
-
-    def getIndexedValue(obj, index):
-        return obj(index)
+def getIndexedValue(obj, index):
+    return obj(index)
 
 
 from collections.abc import Mapping
 
-# --- define objects to smooth out Python3000 <-> Python 2.x differences
-unicodeType = str
-longType = int
-StringTypes = str
-maxint = sys.maxsize
 
 # -----------------  The .connect method -----------------
 def make_COM_connecter():
     try:
-        if onWin32:
-            pythoncom.CoInitialize()  # v2.1 Paj
-        c = Dispatch("ADODB.Connection")  # connect _after_ CoIninialize v2.1.1 adamvan
+        pythoncom.CoInitialize()  # v2.1 Paj
+        c = Dispatch("ADODB.Connection")  # connect _after_ CoInitialize v2.1.1 adamvan
     except:
         raise api.InterfaceError(
             "Windows COM Error: Dispatch('ADODB.Connection') failed."
@@ -110,8 +79,9 @@ def connect(*args, **kwargs):  # --> a db-api connection object
 
     call using:
     :connection_string -- An ADODB formatted connection string, see:
-         * http://www.connectionstrings.com
-         * http://www.asp101.com/articles/john/connstring/default.asp
+         * https://www.connectionstrings.com
+         * https://www.codeguru.com/dotnet/whats-in-an-ado-connection-string/
+         * https://learn.microsoft.com/en-us/dotnet/framework/data/adonet/connection-strings
     :timeout -- A command timeout value, in seconds (default 30 seconds)
     """
     co = Connection()  # make an empty connection object
@@ -121,7 +91,7 @@ def connect(*args, **kwargs):  # --> a db-api connection object
     try:  # connect to the database, using the connection information in kwargs
         co.connect(kwargs)
         return co
-    except (Exception) as e:
+    except Exception as e:
         message = 'Error opening connection to "%s"' % co.connection_string
         raise api.OperationalError(e, message)
 
@@ -192,24 +162,19 @@ def _configure_parameter(p, value, adotype, settings_known):
         p.Size = len(value)
         p.AppendChunk(value)
 
-    elif isinstance(value, StringTypes):  # v2.1 Jevon
-        L = len(value)
+    elif isinstance(value, str):  # v2.1 Jevon
+        length = len(value)
         if adotype in api.adoStringTypes:  # v2.2.1 Cole
             if settings_known:
-                L = min(L, p.Size)  # v2.1 Cole limit data to defined size
-            p.Value = value[:L]  # v2.1 Jevon & v2.1 Cole
+                length = min(length, p.Size)  # v2.1 Cole limit data to defined size
+            p.Value = value[:length]  # v2.1 Jevon & v2.1 Cole
         else:
-            p.Value = value  # dont limit if db column is numeric
-        if L > 0:  # v2.1 Cole something does not like p.Size as Zero
-            p.Size = L  # v2.1 Jevon
+            p.Value = value  # don't limit if db column is numeric
+        if length > 0:  # v2.1 Cole something does not like p.Size as Zero
+            p.Size = length  # v2.1 Jevon
 
     elif isinstance(value, decimal.Decimal):
-        if api.onIronPython:
-            s = str(value)
-            p.Value = s
-            p.Size = len(s)
-        else:
-            p.Value = value
+        p.Value = value
         exponent = value.as_tuple()[2]
         digit_count = len(value.as_tuple()[1])
         p.Precision = digit_count
@@ -232,10 +197,6 @@ def _configure_parameter(p, value, adotype, settings_known):
             p.Value = s
             p.Size = len(s)
 
-    elif api.onIronPython and isinstance(value, longType):  # Iron Python Long
-        s = str(value)  # feature workaround for IPy 2.0
-        p.Value = s
-
     elif adotype == adc.adEmpty:  # ADO will not let you specify a null column
         p.Type = (
             adc.adInteger
@@ -248,7 +209,7 @@ def _configure_parameter(p, value, adotype, settings_known):
 
 
 # # # # # ----- the Class that defines a connection ----- # # # # #
-class Connection(object):
+class Connection:
     # include connection attributes as class attributes required by api definition.
     Warning = api.Warning
     Error = api.Error
@@ -274,7 +235,7 @@ class Connection(object):
         self.paramstyle = api.paramstyle
         self.supportsTransactions = False
         self.connection_string = ""
-        self.cursors = weakref.WeakValueDictionary()
+        self.cursors = weakref.WeakValueDictionary[int, Cursor]()
         self.dbms_name = ""
         self.dbms_version = ""
         self.errorhandler = None  # use the standard error handler for this instance
@@ -283,12 +244,12 @@ class Connection(object):
 
     def connect(self, kwargs, connection_maker=make_COM_connecter):
         if verbose > 9:
-            print("kwargs=", repr(kwargs))
+            print(f"kwargs={kwargs!r}")
         try:
             self.connection_string = (
                 kwargs["connection_string"] % kwargs
             )  # insert keyword arguments
-        except (Exception) as e:
+        except Exception as e:
             self._raiseConnectionError(
                 KeyError, "Python string format error in connection string->"
             )
@@ -373,7 +334,7 @@ class Connection(object):
         self.messages = []
         try:
             self._closeAdoConnection()  # v2.1 Rose
-        except (Exception) as e:
+        except Exception as e:
             self._raiseConnectionError(sys.exc_info()[0], sys.exc_info()[1])
 
         self.connector = None  # v2.4.2.2 fix subtle timeout bug
@@ -435,9 +396,7 @@ class Connection(object):
                     # If attributes has adXactAbortRetaining it performs retaining aborts that is,
                     # calling RollbackTrans automatically starts a new transaction. Not all providers support this.
                     # If not, we will have to start a new transaction by this command:
-                    if (
-                        not self.transaction_level
-                    ):  # if self.transaction_level == 0 or self.transaction_level is None:
+                    if not self.transaction_level:
                         self.transaction_level = self.connector.BeginTrans()
             except Exception as e:
                 self._raiseConnectionError(api.ProgrammingError, e)
@@ -455,13 +414,11 @@ class Connection(object):
             if value not in api.accepted_paramstyles:
                 self._raiseConnectionError(
                     api.NotSupportedError,
-                    'paramstyle="%s" not in:%s'
-                    % (value, repr(api.accepted_paramstyles)),
+                    f"paramstyle={value!r} not in:{api.accepted_paramstyles!r}",
                 )
         elif name == "variantConversions":
-            value = copy.copy(
-                value
-            )  # make a new copy -- no changes in the default, please
+            # make a new copy -- no changes in the default, please
+            value = copy.copy(value)
         object.__setattr__(self, name, value)
 
     def __getattr__(self, item):
@@ -508,7 +465,7 @@ class Connection(object):
             print("Error: %s %s " % (e.Number, adc.adoErrors.get(e.Number, "unknown")))
             if e.Number == adc.ado_error_TIMEOUT:
                 print(
-                    "Timeout Error: Try using adodbpi.connect(constr,timeout=Nseconds)"
+                    "Timeout Error: Try using adodbapi.connect(constr,timeout=Nseconds)"
                 )
             print("Source: %s" % e.Source)
             print("NativeError: %s" % e.NativeError)
@@ -518,7 +475,7 @@ class Connection(object):
         """Introspect the current ADO Errors and determine an appropriate error class.
 
         Error.SQLState is a SQL-defined error condition, per the SQL specification:
-        http://www.contrib.andrew.cmu.edu/~shadow/sql/sql1992.txt
+        https://www.contrib.andrew.cmu.edu/~shadow/sql/sql1992.txt
 
         The 23000 class of errors are integrity errors.
         Error 40002 is a transactional integrity error.
@@ -559,7 +516,7 @@ class Connection(object):
 
 
 # # # # # ----- the Class that defines a cursor ----- # # # # #
-class Cursor(object):
+class Cursor:
     ## ** api required attributes:
     ## description...
     ##    This read-only attribute is a sequence of 7-item sequences.
@@ -637,7 +594,7 @@ class Cursor(object):
         eh(self.connection, self, errorclass, errorvalue)
 
     def build_column_info(self, recordset):
-        self.converters = []  # convertion function for each column
+        self.converters = []  # conversion function for each column
         self.columnNames = {}  # names of columns {lowercase name : number,...}
         self._description = None
 
@@ -647,7 +604,7 @@ class Cursor(object):
             self.numberOfColumns = 0
             return
         self.rs = recordset  # v2.1.1 bkline
-        self.recordset_format = api.RS_ARRAY if api.onIronPython else api.RS_WIN_32
+        self.recordset_format = api.RS_WIN_32
         self.numberOfColumns = recordset.Fields.Count
         try:
             varCon = self.connection.variantConversions
@@ -676,9 +633,8 @@ class Cursor(object):
             if self.rs.EOF or self.rs.BOF:
                 display_size = None
             else:
-                display_size = (
-                    f.ActualSize
-                )  # TODO: Is this the correct defintion according to the DB API 2 Spec ?
+                # TODO: Is this the correct definition according to the DB API 2 Spec ?
+                display_size = f.ActualSize
             null_ok = bool(f.Attributes & adc.adFldMayBeNull)  # v2.1 Cole
             desc.append(
                 (
@@ -771,8 +727,7 @@ class Cursor(object):
         except:
             self._raiseCursorError(
                 api.DatabaseError,
-                'Error creating new ADODB.Command object for "%s"'
-                % repr(self.commandText),
+                f"Error creating new ADODB.Command object for {self.commandText!r}",
             )
 
     def _execute_command(self):
@@ -784,14 +739,9 @@ class Cursor(object):
             print('Executing command="%s"' % self.commandText)
         try:
             # ----- the actual SQL is executed here ---
-            if api.onIronPython:
-                ra = Reference[int]()
-                recordset = self.cmd.Execute(ra)
-                count = ra.Value
-            else:  # pywin32
-                recordset, count = self.cmd.Execute()
+            recordset, count = self.cmd.Execute()
             # ----- ------------------------------- ---
-        except (Exception) as e:
+        except Exception as e:
             _message = ""
             if hasattr(e, "args"):
                 _message += str(e.args) + "\n"
@@ -822,9 +772,8 @@ class Cursor(object):
         after the last recordset has been read.  In that case, you must coll nextset() until it
         returns None, then call this method to get your returned information."""
 
-        retLst = (
-            []
-        )  # store procedures may return altered parameters, including an added "return value" item
+        # store procedures may return altered parameters, including an added "return value" item
+        retLst = []
         for p in tuple(self.cmd.Parameters):
             if verbose > 2:
                 print(
@@ -901,7 +850,7 @@ class Cursor(object):
                         "ADO detected Params=",
                         format_parameters(self.cmd.Parameters, True),
                     )
-                    print("Program Parameters=", repr(parameters))
+                    print(f"Program Parameters={parameters!r}")
                 parameters_known = True
             except api.Error:
                 if verbose:
@@ -923,18 +872,15 @@ class Cursor(object):
                             _configure_parameter(
                                 p, parameters[pm_name], p.Type, parameters_known
                             )
-                        except (Exception) as e:
-                            _message = (
-                                "Error Converting Parameter %s: %s, %s <- %s\n"
-                                % (
-                                    p.Name,
-                                    adc.ado_type_name(p.Type),
-                                    p.Value,
-                                    repr(parameters[pm_name]),
-                                )
+                        except Exception as e:
+                            _message = "Error Converting Parameter {}: {}, {} <- {!r}\n".format(
+                                p.Name,
+                                adc.ado_type_name(p.Type),
+                                p.Value,
+                                parameters[pm_name],
                             )
                             self._raiseCursorError(
-                                api.DataError, _message + "->" + repr(e.args)
+                                api.DataError, f"{_message}->{e.args!r}"
                             )
                 else:  # regular sequence of parameters
                     for value in parameters:
@@ -947,23 +893,19 @@ class Cursor(object):
                         try:
                             _configure_parameter(p, value, p.Type, parameters_known)
                         except Exception as e:
-                            _message = (
-                                "Error Converting Parameter %s: %s, %s <- %s\n"
-                                % (
-                                    p.Name,
-                                    adc.ado_type_name(p.Type),
-                                    p.Value,
-                                    repr(value),
-                                )
+                            _message = "Error Converting Parameter {}: {}, {} <- {!r}\n".format(
+                                p.Name,
+                                adc.ado_type_name(p.Type),
+                                p.Value,
+                                value,
                             )
                             self._raiseCursorError(
-                                api.DataError, _message + "->" + repr(e.args)
+                                api.DataError, f"{_message}->{e.args!r}"
                             )
                         i += 1
             else:  # -- build own parameter list
-                if (
-                    self._parameter_names
-                ):  # we expect a dictionary of parameters, this is the list of expected names
+                # we expect a dictionary of parameters, this is the list of expected names
+                if self._parameter_names:
                     for parm_name in self._parameter_names:
                         elem = parameters[parm_name]
                         adotype = api.pyTypeToADOType(elem)
@@ -974,14 +916,16 @@ class Cursor(object):
                         try:
                             self.cmd.Parameters.Append(p)
                         except Exception as e:
-                            _message = "Error Building Parameter %s: %s, %s <- %s\n" % (
-                                p.Name,
-                                adc.ado_type_name(p.Type),
-                                p.Value,
-                                repr(elem),
+                            _message = (
+                                "Error Building Parameter {}: {}, {} <- {!r}\n".format(
+                                    p.Name,
+                                    adc.ado_type_name(p.Type),
+                                    p.Value,
+                                    elem,
+                                )
                             )
                             self._raiseCursorError(
-                                api.DataError, _message + "->" + repr(e.args)
+                                api.DataError, f"{_message}->{e.args!r}"
                             )
                 else:  # expecting the usual sequence of parameters
                     if sproc:
@@ -1000,14 +944,16 @@ class Cursor(object):
                         try:
                             self.cmd.Parameters.Append(p)
                         except Exception as e:
-                            _message = "Error Building Parameter %s: %s, %s <- %s\n" % (
-                                p.Name,
-                                adc.ado_type_name(p.Type),
-                                p.Value,
-                                repr(elem),
+                            _message = (
+                                "Error Building Parameter {}: {}, {} <- {!r}\n".format(
+                                    p.Name,
+                                    adc.ado_type_name(p.Type),
+                                    p.Value,
+                                    elem,
+                                )
                             )
                             self._raiseCursorError(
-                                api.DataError, _message + "->" + repr(e.args)
+                                api.DataError, f"{_message}->{e.args!r}"
                             )
                         i += 1
                 if self._ado_prepared == "setup":
@@ -1067,7 +1013,7 @@ class Cursor(object):
         """Prepare a database operation (query or command)
         and then execute it against all parameter sequences or mappings found in the sequence seq_of_parameters.
 
-            Return values are not defined.
+        Return values are not defined.
         """
         self.messages = list()
         total_recordcount = 0
@@ -1174,21 +1120,11 @@ class Cursor(object):
             )
             return None
 
-        if api.onIronPython:
-            try:
-                recordset = self.rs.NextRecordset()
-            except TypeError:
-                recordset = None
-            except api.Error as exc:
-                self._raiseCursorError(api.NotSupportedError, exc.args)
-        else:  # pywin32
-            try:  # [begin 2.1 ekelund]
-                rsTuple = self.rs.NextRecordset()  #
-            except pywintypes.com_error as exc:  # return appropriate error
-                self._raiseCursorError(
-                    api.NotSupportedError, exc.args
-                )  # [end 2.1 ekelund]
-            recordset = rsTuple[0]
+        try:  # [begin 2.1 ekelund]
+            rsTuple = self.rs.NextRecordset()  #
+        except pywintypes.com_error as exc:  # return appropriate error
+            self._raiseCursorError(api.NotSupportedError, exc.args)  # [end 2.1 ekelund]
+        recordset = rsTuple[0]
         if recordset is None:
             return None
         self.build_column_info(recordset)
@@ -1202,10 +1138,10 @@ class Cursor(object):
 
     def _last_query(self):  # let the programmer see what query we actually used
         try:
-            if self.parameters == None:
+            if self.parameters is None:
                 ret = self.commandText
             else:
-                ret = "%s,parameters=%s" % (self.commandText, repr(self.parameters))
+                ret = f"{self.commandText},parameters={self.parameters!r}"
         except:
             ret = None
         return ret

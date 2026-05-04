@@ -1,9 +1,8 @@
+import unittest
+
 import pythoncom
 import win32com.server.util
 import win32com.test.util
-
-import unittest
-from pywin32_testutil import str2bytes
 
 
 class Persists:
@@ -18,7 +17,7 @@ class Persists:
     _com_interfaces_ = [pythoncom.IID_IPersistStreamInit]
 
     def __init__(self):
-        self.data = str2bytes("abcdefg")
+        self.data = b"abcdefg"
         self.dirty = 1
 
     def GetClassID(self):
@@ -52,7 +51,7 @@ class Stream:
 
     def Read(self, amount):
         result = self.data[self.index : self.index + amount]
-        self.index = self.index + amount
+        self.index += amount
         return result
 
     def Write(self, data):
@@ -64,7 +63,7 @@ class Stream:
         if origin == pythoncom.STREAM_SEEK_SET:
             self.index = dist
         elif origin == pythoncom.STREAM_SEEK_CUR:
-            self.index = self.index + dist
+            self.index += dist
         elif origin == pythoncom.STREAM_SEEK_END:
             self.index = len(self.data) + dist
         else:
@@ -82,7 +81,7 @@ class BadStream(Stream):
     """
 
     def Read(self, amount):
-        return str2bytes("x") * (amount + 1)
+        return b"x" * (amount + 1)
 
 
 class StreamTest(win32com.test.util.TestCase):
@@ -98,7 +97,7 @@ class StreamTest(win32com.test.util.TestCase):
         self.assertEqual(data[1:-1], got)
 
     def testit(self):
-        mydata = str2bytes("abcdefghijklmnopqrstuvwxyz")
+        mydata = b"abcdefghijklmnopqrstuvwxyz"
 
         # First test the objects just as Python objects...
         s = Stream(mydata)
@@ -118,7 +117,7 @@ class StreamTest(win32com.test.util.TestCase):
         self._readWrite(mydata, s2, s)
         self._readWrite(mydata, s2, s2)
 
-        self._readWrite(str2bytes("string with\0a NULL"), s2, s2)
+        self._readWrite(b"string with\0a NULL", s2, s2)
         # reset the stream
         s.Write(mydata)
         p2.Load(s2)
@@ -126,9 +125,9 @@ class StreamTest(win32com.test.util.TestCase):
         self.assertEqual(s.data, mydata)
 
     def testseek(self):
-        s = Stream(str2bytes("yo"))
+        s = Stream(b"yo")
         s = win32com.server.util.wrap(s, pythoncom.IID_IStream)
-        # we used to die in py3k passing a value > 32bits
+        # we used to die passing a value > 32bits
         s.Seek(0x100000000, pythoncom.STREAM_SEEK_SET)
 
     def testerrors(self):

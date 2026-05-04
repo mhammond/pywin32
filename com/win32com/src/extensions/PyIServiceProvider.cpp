@@ -1,8 +1,6 @@
 #include "stdafx.h"
 #include "PythonCOM.h"
 
-#ifndef NO_PYCOM_ISERVICEPROVIDER
-
 #include "PythonCOMServer.h"
 #include "PyIServiceProvider.h"
 // @doc
@@ -84,5 +82,3 @@ STDMETHODIMP PyGServiceProvider::QueryService(REFGUID guidService, REFIID riid, 
     Py_XDECREF(result);
     return MAKE_PYCOM_GATEWAY_FAILURE_CODE(method_name);
 }
-
-#endif  // NO_PYCOM_ISERVICEPROVIDER

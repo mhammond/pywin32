@@ -14,13 +14,6 @@ extern const GUID IID_IInternalUnwrapPythonObject = {
 extern PyObject *g_obMissing;
 
 #include <malloc.h>
-// When building with the 2003 Platform SDK 64-bit compiloer, _MSC_VER is 1400,
-// but _malloca is not defined
-// #if _MSC_VER < 1400
-#ifndef _malloca
-// _malloca is the new 'safe' one
-#define _malloca _alloca
-#endif
 
 // Internal ErrorUtil helpers we reach in for.
 // Free the strings from an excep-info.
@@ -70,11 +63,9 @@ void *PyGatewayBase::ThisAsIID(IID iid)
     if (iid == IID_IUnknown || iid == IID_IDispatch)
         // IDispatch * == IUnknown *
         return (IDispatch *)(PyGatewayBase *)this;
-#ifndef NO_PYCOM_IDISPATCHEX
     else if (iid == IID_IDispatchEx)
         // IDispatchEx * probably == IUnknown *, but no real need to assume that!
         return (IDispatchEx *)this;
-#endif  // NO_PYCOM_IDISPATCHEX
     else if (iid == IID_ISupportErrorInfo)
         return (ISupportErrorInfo *)this;
     else if (iid == IID_IInternalUnwrapPythonObject)
@@ -89,12 +80,12 @@ PyGatewayBase::PyGatewayBase(PyObject *instance)
     m_pBaseObject = NULL;
     m_cRef = 1;
     m_pPyObject = instance;
-    Py_XINCREF(instance);  // instance should never be NULL - but whats an X between friends!
+    Py_XINCREF(instance);  // instance should never be NULL - but what's an X between friends!
 
     PyCom_DLLAddRef();
 
 #ifdef DEBUG_FULL
-    PyCom_LogF(U"PyGatewayBase: created %s", m_pPyObject ? m_pPyObject->ob_type->tp_name : "<NULL>");
+    PyCom_LogF(U"PyGatewayBase: created %s", m_pPyObject ? Py_TYPE(m_pPyObject)->tp_name : "<NULL>");
 #endif
 }
 
@@ -102,7 +93,7 @@ PyGatewayBase::~PyGatewayBase()
 {
     InterlockedDecrement(&cGateways);
 #ifdef DEBUG_FULL
-    PyCom_LogF(L"PyGatewayBase: deleted %s", m_pPyObject ? m_pPyObject->ob_type->tp_name : "<NULL>");
+    PyCom_LogF(L"PyGatewayBase: deleted %s", m_pPyObject ? Py_TYPE(m_pPyObject)->tp_name : "<NULL>");
 #endif
 
     if (m_pPyObject) {
@@ -379,7 +370,7 @@ static HRESULT invoke_setup(DISPPARAMS FAR *params, LCID lcid, PyObject **pPyArg
         params->cNamedArgs != 1 || params->rgdispidNamedArgs[0] != DISPID_PROPERTYPUT ? params->cNamedArgs : 0;
 
     for (i = 0; i < numNamedArgs; i++) {
-        // make sure its not a special DISPID we don't understand.
+        // make sure it's not a special DISPID we don't understand.
         if (params->rgdispidNamedArgs[i] < 0)
             return DISP_E_PARAMNOTFOUND;
         numArgs = max(numArgs, (UINT)params->rgdispidNamedArgs[i] + 1);
@@ -494,8 +485,8 @@ static void fill_byref_offsets(DISPPARAMS *pDispParams, unsigned *pOffsets, unsi
     // named params could have their dispid in any order - so we sort
     // them - but only if necessary
     if (numNamedArgs && ioffset < noffsets) {
-        //  NOTE: optimizations possible - if only 1 named param its
-        // obvious which one it is!  If 2 params its very easy to work
+        //  NOTE: optimizations possible - if only 1 named param it's
+        // obvious which one it is!  If 2 params it's very easy to work
         // it out - so we should only qsort for 3 or more.
         NPI *npi = (NPI *)_malloca(sizeof(NPI) * pDispParams->cNamedArgs);  // death if we fail :)
         for (unsigned i = 0; i < pDispParams->cNamedArgs; i++) {
@@ -582,7 +573,7 @@ static HRESULT invoke_finish(PyObject *dispatcher,    /* The dispatcher for the 
     // here - otherwise returning an array of objects would be difficult.
     // NOTE: Although this is not ideal, it would be evil if the parameters determined
     // how the Python result was unpacked.  VB, for example, will often pass everything
-    // BYREF, but Python wont.  This would mean Python and VB would see different results
+    // BYREF, but Python won't.  This would mean Python and VB would see different results
     // from the same function.
     if (PyTuple_Check(userResult)) {
         unsigned cUserResult = PyWin_SAFE_DOWNCAST(PyTuple_Size(userResult), Py_ssize_t, UINT);
@@ -618,7 +609,7 @@ static HRESULT invoke_finish(PyObject *dispatcher,    /* The dispatcher for the 
             ob = PyTuple_GetItem(userResult, i + firstByRef);
             if (!ob)
                 goto done;
-            Py_INCREF(ob);  // tuple fetch doesnt do this!
+            Py_INCREF(ob);  // tuple fetch doesn't do this!
             // Need to use the ArgHelper to get correct BYREF semantics.
             PythonOleArgHelper arghelper;
             arghelper.m_reqdType = V_VT(pv);
@@ -696,7 +687,6 @@ STDMETHODIMP PyGatewayBase::Invoke(DISPID dispid, REFIID riid, LCID lcid, WORD w
     return hr;
 }
 
-#ifndef NO_PYCOM_IDISPATCHEX
 ////////////////////////////////////////////////////////////////////////////
 //
 // The IDispatchEx implementation
@@ -849,8 +839,6 @@ STDMETHODIMP PyGatewayBase::GetNameSpaceParent(IUnknown **ppunk)
     }
     return PyCom_SetCOMErrorFromPyException(IID_IDispatchEx);
 }
-
-#endif  // NO_PYCOM_IDISPATCHEX
 
 ////////////////////////////////////////////////////////////////////////////
 //

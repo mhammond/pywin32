@@ -369,7 +369,7 @@ PyObject *PyIDispatch::InvokeTypes(PyObject *self, PyObject *args)
     // See how many _real_ entries - count until end or
     // first param marked as Missing.
     for (numArgs = 0; numArgs < argc - 5; numArgs++) {
-        if (PyTuple_GET_ITEM(args, numArgs + 5)->ob_type == &PyOleMissingType) {
+        if (Py_TYPE(PyTuple_GET_ITEM(args, numArgs + 5)) == &PyOleMissingType) {
             break;
         }
     }
@@ -517,7 +517,12 @@ PyObject *PyIDispatch::InvokeTypes(PyObject *self, PyObject *args)
 
 error:
     if (dispparams.rgvarg) {
-        for (i = dispparams.cArgs; i--;) VariantClear(&dispparams.rgvarg[i]);
+        for (i = dispparams.cArgs; i--;) {
+            if ((V_VT(&dispparams.rgvarg[i]) & ~VT_TYPEMASK) == (VT_BYREF | VT_ARRAY)) {
+                SafeArrayDestroy(*V_ARRAYREF(&dispparams.rgvarg[i]));
+            }
+            VariantClear(&dispparams.rgvarg[i]);
+        }
         delete[] dispparams.rgvarg;
     }
     delete[] ArgHelpers;
@@ -600,8 +605,6 @@ PyComTypeObject PyIDispatch::type("PyIDispatch",
                                   &PyIUnknown::type,  // @base PyIDispatch|PyIUnknown
                                   sizeof(PyIDispatch), PyIDispatch_methods, GET_PYCOM_CTOR(PyIDispatch));
 
-#ifndef NO_PYCOM_IDISPATCHEX
-
 //////////////////////////////////////////////////////////////////
 //
 // PyIDispatchEx
@@ -668,7 +671,7 @@ PyObject *PyIDispatchEx::InvokeEx(PyObject *self, PyObject *args)
     }
 
     // TODO - We do not yet support the Type Description here
-    // (Im not even sure if we need it!)
+    // (I'm not even sure if we need it!)
     if (types != Py_None || obReturnDesc != Py_None) {
         PyErr_SetString(PyExc_TypeError, "Type descriptions are not yet supported.");
         return NULL;
@@ -845,5 +848,3 @@ static struct PyMethodDef PyIDispatchEx_methods[] = {
 PyComTypeObject PyIDispatchEx::type("PyIDispatchEx",
                                     &PyIDispatch::type,  // @base PyIDispatchEx|PyIDispatch
                                     sizeof(PyIDispatchEx), PyIDispatchEx_methods, GET_PYCOM_CTOR(PyIDispatchEx));
-
-#endif  // NO_PYCOM_IDISPATCHEX

@@ -1,9 +1,7 @@
-# -*- coding: latin-1 -*-
-
 # PyWin32 Internet Explorer Button
 #
 # written by Leonard Ritter (paniq@gmx.net)
-# and Robert Förtsch (info@robert-foertsch.com)
+# and Robert FÃ¶rtsch (info@robert-foertsch.com)
 
 
 """
@@ -25,14 +23,11 @@ Contribtions to this sample to make it a little "friendlier" welcome!
 """
 
 # imports section
-import sys, os
-from win32com import universal
-from win32com.client import gencache, DispatchWithEvents, Dispatch
-from win32com.client import constants, getevents
-import win32com.server.register
-import win32com
+
 import pythoncom
 import win32api
+import win32com
+import win32com.server.register
 
 # This demo uses 'print' - use win32traceutil to see it if we have no
 # console.
@@ -41,9 +36,8 @@ try:
 except win32api.error:
     import win32traceutil
 
-from win32com.axcontrol import axcontrol
 
-import array, struct
+from win32com.axcontrol import axcontrol
 
 # ensure we know the ms internet controls typelib so we have access to IWebBrowser2 later on
 win32com.client.gencache.EnsureModule("{EAB22AC0-30C1-11CF-A7EB-0000C05BAE0B}", 0, 1, 1)
@@ -158,7 +152,7 @@ def register(classobj):
         winreg.SetValueEx(hKey, "ToolTip", 0, winreg.REG_SZ, classobj._tool_tip_)
         winreg.SetValueEx(hKey, "Icon", 0, winreg.REG_SZ, classobj._icon_)
         winreg.SetValueEx(hKey, "HotIcon", 0, winreg.REG_SZ, classobj._hot_icon_)
-    except WindowsError:
+    except OSError:
         print("Couldn't set standard toolbar reg keys.")
     else:
         print("Set standard toolbar reg keys.")
@@ -181,7 +175,7 @@ def unregister(classobj):
         winreg.DeleteValue(hKey, "Icon")
         winreg.DeleteValue(hKey, "HotIcon")
         winreg.DeleteKey(winreg.HKEY_LOCAL_MACHINE, subKeyCLSID)
-    except WindowsError:
+    except OSError:
         print("Couldn't delete Standard toolbar regkey.")
     else:
         print("Deleted Standard toolbar regkey.")

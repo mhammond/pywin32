@@ -1,6 +1,6 @@
 //
 // SWIG Pointer manipulation library
-// 
+//
 // This library can be used to manipulate C pointers.
 %title "SWIG Pointer Library"
 
@@ -12,14 +12,14 @@
 %text %{
 %include pointer.i
 
-The pointer.i library provides run-time support for managing and 
+The pointer.i library provides run-time support for managing and
 manipulating a variety of C/C++ pointer values.  In particular,
 you can create various kinds of objects and dereference common
 pointer types.  This is done through a common set of functions:
 
     ptrcast      - Casts a pointer to a new type
-    ptrvalue     - Dereferences a pointer 
-    ptrset       - Set the value of an object referenced by 
+    ptrvalue     - Dereferences a pointer
+    ptrset       - Set the value of an object referenced by
                    a pointer.
     ptrcreate    - Create a new object and return a pointer.
     ptrfree      - Free the memory allocated by ptrcreate.
@@ -40,7 +40,7 @@ pointers with type information, this can be done transparently
 and in most cases, you can dereference a pointer without
 ever knowing what type it actually is.
 
-This library is primarily designed for utility, not high 
+This library is primarily designed for utility, not high
 performance (the dynamic determination of pointer types takes
 more work than most normal wrapper functions).  As a result,
 you may achieve better performance by writing customized
@@ -52,7 +52,3 @@ functions in inner loops or other intensive operations.
 // Grab the implementation from the appropriate libray
 
 %include ptrlang.i
-
-
-
-

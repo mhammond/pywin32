@@ -30,7 +30,7 @@
 %typemap(python,in) IExchangeManageStoreEx *INPUT_NULLOK {
 	if (!PyCom_InterfaceFromPyInstanceOrObject($source, IID_IExchangeManageStoreEx, (void **)&$target, 1))
 		return NULL;
-}		
+}
 
 %{
 #include <initguid.h>
@@ -52,7 +52,7 @@ PyIExchangeManageStoreEx::~PyIExchangeManageStoreEx() {}
 %}
 
 /*
-** See http://blogs.msdn.com/b/dvespa/archive/2014/01/15/new-mapi-interface-ignore-home-server.aspx
+** See https://learn.microsoft.com/en-ca/archive/blogs/dvespa/a-new-mapi-interface-is-available-to-let-you-force-connections-to-go-to-a-specific-exchange-server
 */
 
 %native(CreateStoreEntryID2) CreateStoreEntryID2;

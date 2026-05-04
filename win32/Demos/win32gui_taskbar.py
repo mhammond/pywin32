@@ -1,8 +1,12 @@
 # Creates a task-bar icon.  Run from Python.exe to see the
 # messages printed.
-import win32api, win32gui
-import win32con, winerror
-import sys, os
+import os
+import sys
+
+import win32api
+import win32con
+import win32gui
+import winerror
 
 
 class MainWindow:
@@ -55,11 +59,6 @@ class MainWindow:
             os.path.join(os.path.split(sys.executable)[0], "pyc.ico")
         )
         if not os.path.isfile(iconPathName):
-            # Look in DLLs dir, a-la py 2.5
-            iconPathName = os.path.abspath(
-                os.path.join(os.path.split(sys.executable)[0], "DLLs", "pyc.ico")
-            )
-        if not os.path.isfile(iconPathName):
             # Look in the source tree.
             iconPathName = os.path.abspath(
                 os.path.join(os.path.split(sys.executable)[0], "..\\PC\\pyc.ico")
@@ -105,7 +104,7 @@ class MainWindow:
             win32gui.AppendMenu(menu, win32con.MF_STRING, 1024, "Say Hello")
             win32gui.AppendMenu(menu, win32con.MF_STRING, 1025, "Exit program")
             pos = win32gui.GetCursorPos()
-            # See http://msdn.microsoft.com/library/default.asp?url=/library/en-us/winui/menus_0hdi.asp
+            # See https://learn.microsoft.com/en-us/windows/win32/api/_menurc/
             win32gui.SetForegroundWindow(self.hwnd)
             win32gui.TrackPopupMenu(
                 menu, win32con.TPM_LEFTALIGN, pos[0], pos[1], 0, self.hwnd, None

@@ -79,7 +79,7 @@ BOOL PyWinObject_AsHCRYPTPROV(PyObject *obhcryptprov, HCRYPTPROV *hcryptprov, BO
         *hcryptprov = NULL;
         return true;
     }
-    if (obhcryptprov->ob_type != &PyCRYPTPROVType) {
+    if (Py_TYPE(obhcryptprov) != &PyCRYPTPROVType) {
         PyErr_SetString(PyExc_TypeError, "Object must be of type PyCRYPTPROV");
         return FALSE;
     }
@@ -401,7 +401,7 @@ PyObject *PyCRYPTPROV::PyCryptImportKey(PyObject *self, PyObject *args, PyObject
     if (!pybuf.ok())
         return NULL;
 
-    if (!CryptImportKey(hcryptprov, (BYTE*)pybuf.ptr(), pybuf.len(), pubkey, flags, &retkey))
+    if (!CryptImportKey(hcryptprov, (BYTE *)pybuf.ptr(), pybuf.len(), pubkey, flags, &retkey))
         return PyWin_SetAPIError("PyCRYPTPROV::CryptImportKey");
     return new PyCRYPTKEY(retkey, self);
 }

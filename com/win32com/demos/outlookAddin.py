@@ -25,13 +25,11 @@
 # the addin to not automatically load next time Outlook starts.  To
 # correct this, simply re-register the addin (see above)
 
-from win32com import universal
-from win32com.server.exception import COMException
-from win32com.client import gencache, DispatchWithEvents
-import winerror
-import pythoncom
-from win32com.client import constants
 import sys
+
+import pythoncom
+from win32com import universal
+from win32com.client import DispatchWithEvents, constants, gencache
 
 # Support for COM objects we use.
 gencache.EnsureModule(
@@ -60,9 +58,7 @@ class FolderEvent:
         try:
             print("An item was added to the inbox with subject:", item.Subject)
         except AttributeError:
-            print(
-                "An item was added to the inbox, but it has no subject! - ", repr(item)
-            )
+            print(f"An item was added to the inbox, but it has no subject! - {item!r}")
 
 
 class OutlookAddin:
@@ -125,7 +121,7 @@ def UnregisterAddin(klass):
             winreg.HKEY_CURRENT_USER,
             "Software\\Microsoft\\Office\\Outlook\\Addins\\" + klass._reg_progid_,
         )
-    except WindowsError:
+    except OSError:
         pass
 
 

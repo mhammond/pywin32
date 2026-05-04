@@ -1,5 +1,5 @@
 // General utilities and conversion routines for MAPI support.
-#include "pywintypes.h"
+#include "PyWinTypes.h"
 #include "PythonCOM.h"
 #include "PyMAPIUtil.h"
 // @doc
@@ -512,7 +512,7 @@ PyObject *PyMAPIObject_FromSPropValue(SPropValue *pv)
 
         default:
             printf("File %s: Unsupported MAPI property type 0x%X", __FILE__, PROP_TYPE(pv->ulPropTag));
-            /* Dont set exception, as this prevents otherwise valid props from
+            /* Don't set exception, as this prevents otherwise valid props from
                being returned
             */
             val = Py_None;

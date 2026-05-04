@@ -9,12 +9,14 @@
 # changes and hardware profile events - so try putting your computer to
 # sleep and waking it, inserting a memory stick, etc then check the event log
 
-import win32serviceutil, win32service
-import win32event
-import servicemanager
-
 # Most event notification support lives around win32gui
-import win32gui, win32gui_struct, win32con
+import servicemanager
+import win32con
+import win32event
+import win32gui
+import win32gui_struct
+import win32service
+import win32serviceutil
 
 GUID_DEVINTERFACE_USB_DEVICE = "{A5DCBF10-6530-11D2-901F-00C04FB951ED}"
 
@@ -59,15 +61,15 @@ class EventDemoService(win32serviceutil.ServiceFramework):
         # docs for "HandlerEx callback" for more info.
         if control == win32service.SERVICE_CONTROL_DEVICEEVENT:
             info = win32gui_struct.UnpackDEV_BROADCAST(data)
-            msg = "A device event occurred: %x - %s" % (event_type, info)
+            msg = f"A device event occurred: {event_type:x} - {info}"
         elif control == win32service.SERVICE_CONTROL_HARDWAREPROFILECHANGE:
-            msg = "A hardware profile changed: type=%s, data=%s" % (event_type, data)
+            msg = f"A hardware profile changed: type={event_type}, data={data}"
         elif control == win32service.SERVICE_CONTROL_POWEREVENT:
             msg = "A power event: setting %s" % data
         elif control == win32service.SERVICE_CONTROL_SESSIONCHANGE:
             # data is a single elt tuple, but this could potentially grow
             # in the future if the win32 struct does
-            msg = "Session event: type=%s, data=%s" % (event_type, data)
+            msg = f"Session event: type={event_type}, data={data}"
         else:
             msg = "Other event: code=%d, type=%s, data=%s" % (control, event_type, data)
 

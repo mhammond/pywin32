@@ -83,17 +83,17 @@ from win32com.server.exception import COMException
 import win32com.server.util
 import win32com.client.dynamic
 
-#to generate guids use:
-#import pythoncom
-#print pythoncom.CreateGuid()
+# to generate guids use:
+# import pythoncom
+# print(pythoncom.CreateGuid())
 
 class Mts:
 	# COM attributes.
-	_reg_clsid_ = '{3D094770-B73E-11D3-99FC-00902776D585}' 
+	_reg_clsid_ = '{3D094770-B73E-11D3-99FC-00902776D585}'
 	               #guid for your class in registry
-	_reg_desc_ = "test mts functions" 
+	_reg_desc_ = "test mts functions"
 	_reg_progid_ = "mts1" #The progid for this class
-	_reg_class_spec_ = "mts_test.Mts" 
+	_reg_class_spec_ = "mts_test.Mts"
                            #tells Python how to create the object: filename.class
 	_public_methods_ = ['getkid' ]  #names of callable methods
 
@@ -110,7 +110,7 @@ class Mts:
 			result='error: mts not available'
 		else:
 			#mts is available
-			#first check if they are in the right role	
+			#first check if they are in the right role
 			if mts.IsCallerInRole('bedrock'):
 				moms={'wilma':'bambam','betty':'pebbles'}
 				person=str(person) #convert from unicode to string
@@ -127,12 +127,10 @@ class Mts:
 if __name__=='__main__':
 	import win32com.server.register
 	win32com.server.register.UseCommandLine(Mts)
-		
+
 
 @ex Have a great time with programming with python!
-<nl>|John Nielsen   nielsenjf@my-deja.com       
+<nl>|John Nielsen   nielsenjf@my-deja.com
 
 
 */
-
-

@@ -2,16 +2,16 @@
 # A nod to the Code Project's article "Embed an HTML control in your own
 # window using plain C"
 import sys
-from win32com.axcontrol import axcontrol
-from win32com.server.exception import COMException
-from win32com.server.util import wrap
-from win32com.client import Dispatch
 
 import pythoncom
+import win32api
 import win32con
 import win32gui
 import winerror
-import win32api
+from win32com.axcontrol import axcontrol
+from win32com.client import Dispatch
+from win32com.server.exception import COMException
+from win32com.server.util import wrap
 
 # Set to True to see debug output in the 'trace collector' window.
 debugging = False
@@ -169,7 +169,6 @@ class IEHost:
             pass
 
     def create_window(self):
-
         message_map = {
             win32con.WM_SIZE: self.OnSize,
             win32con.WM_DESTROY: self.OnDestroy,
@@ -235,7 +234,7 @@ if __name__ == "__main__":
         h.browser2.Navigate2("about:blank")
         doc = h.browser2.Document
         doc.write(
-            'This is an IE page hosted by <a href="http://www.python.org">python</a>'
+            'This is an IE page hosted by <a href="https://www.python.org">python</a>'
         )
         doc.write("<br>(you can also specify a URL on the command-line...)")
     else:

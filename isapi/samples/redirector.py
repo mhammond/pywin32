@@ -16,16 +16,12 @@
 # an example.  If this sample is run on IIS5 or earlier it simply ignores
 # any excludes.
 
-from isapi import isapicon, threaded_extension
 import sys
-import traceback
+from urllib.request import urlopen
 
-try:
-    from urllib.request import urlopen
-except ImportError:
-    # py3k spelling...
-    from urllib.request import urlopen
 import win32api
+
+from isapi import isapicon, threaded_extension
 
 # sys.isapidllhandle will exist when we are loaded by the IIS framework.
 # In this case we redirect our output to the win32traceutil collector.
@@ -33,11 +29,12 @@ if hasattr(sys, "isapidllhandle"):
     import win32traceutil
 
 # The site we are proxying.
-proxy = "http://www.python.org"
+proxy = "https://www.python.org"
 
 # Urls we exclude (ie, allow IIS to handle itself) - all are lowered,
 # and these entries exist by default on Vista...
 excludes = ["/iisstart.htm", "/welcome.png"]
+
 
 # An "io completion" function, called when ecb.ExecURL completes...
 def io_callback(ecb, url, cbIO, errcode):
@@ -59,7 +56,7 @@ class Extension(threaded_extension.ThreadPoolExtension):
         # Note that our ThreadPoolExtension base class will catch exceptions
         # in our Dispatch method, and write the traceback to the client.
         # That is perfect for this sample, so we don't catch our own.
-        # print 'IIS dispatching "%s"' % (ecb.GetServerVariable("URL"),)
+        # print(f'IIS dispatching "{ecb.GetServerVariable("URL")}"')
         url = ecb.GetServerVariable("URL").decode("ascii")
         for exclude in excludes:
             if url.lower().startswith(exclude):
@@ -82,19 +79,15 @@ class Extension(threaded_extension.ThreadPoolExtension):
         print("Opening %s" % new_url)
         fp = urlopen(new_url)
         headers = fp.info()
-        # subtle py3k breakage: in py3k, str(headers) has normalized \r\n
-        # back to \n and also stuck an extra \n term.  py2k leaves the
-        # \r\n from the server in tact and finishes with a single term.
-        if sys.version_info < (3, 0):
-            header_text = str(headers) + "\r\n"
-        else:
-            # take *all* trailing \n off, replace remaining with
-            # \r\n, then add the 2 trailing \r\n.
-            header_text = str(headers).rstrip("\n").replace("\n", "\r\n") + "\r\n\r\n"
+        # subtle breakage: str(headers) normalizes \r\n
+        # back to \n and also sticks an extra \n term.
+        # take *all* trailing \n off, replace remaining with
+        # \r\n, then add the 2 trailing \r\n.
+        header_text = str(headers).rstrip("\n").replace("\n", "\r\n") + "\r\n\r\n"
         ecb.SendResponseHeaders("200 OK", header_text, False)
         ecb.WriteClient(fp.read())
         ecb.DoneWithSession()
-        print("Returned data from '%s'" % (new_url,))
+        print(f"Returned data from '{new_url}'")
         return isapicon.HSE_STATUS_SUCCESS
 
 

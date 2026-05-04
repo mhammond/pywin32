@@ -1,10 +1,9 @@
-import win32console, win32con
-import traceback, time
+import time
 
-virtual_keys = {}
-for k, v in list(win32con.__dict__.items()):
-    if k.startswith("VK_"):
-        virtual_keys[v] = k
+import win32con
+import win32console
+
+virtual_keys = {k: v for k, v in win32con.__dict__.items() if k.startswith("VK_")}
 
 free_console = True
 try:

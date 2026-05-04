@@ -5,28 +5,19 @@
 # * Uses a ListView control.
 # * Dynamically resizes content.
 # * Uses a second worker thread to fill the list.
-# * Demostrates support for windows XP themes.
+# * Demonstrates support for windows XP themes.
 
-# If you are on Windows XP, and specify a '--noxp' argument, you will see:
-# * alpha-blend issues with icons
-# * The buttons are "old" style, rather than based on the XP theme.
-# Hence, using:
-#   import winxpgui as win32gui
-# is recommended.
-# Please report any problems.
-import sys
-
-if "--noxp" in sys.argv:
-    import win32gui
-else:
-    import winxpgui as win32gui
-import win32gui_struct
-import win32api
-import win32con, winerror
-import struct, array
-import commctrl
-import queue
+import array
 import os
+import queue
+import struct
+
+import commctrl
+import win32api
+import win32con
+import win32gui
+import win32gui_struct
+import winerror
 
 IDC_SEARCHTEXT = 1024
 IDC_BUTTON_SEARCH = 1025
@@ -48,7 +39,7 @@ class _WIN32MASKEDSTRUCT:
                 full_fmt += fmt
         for name, val in kw.items():
             if name not in self.__dict__:
-                raise ValueError("LVITEM structures do not have an item '%s'" % (name,))
+                raise ValueError(f"LVITEM structures do not have an item '{name}'")
             self.__dict__[name] = val
 
     def __setattr__(self, attr, val):
@@ -78,7 +69,7 @@ class _WIN32MASKEDSTRUCT:
                     # alternate strategy would be to use unicode natively
                     # and use the 'W' version of the messages - eg,
                     # LVM_SETITEMW etc.
-                    val = val + "\0"
+                    val += "\x00"
                     if isinstance(val, str):
                         val = val.encode("mbcs")
                     str_buf = array.array("b", val)
@@ -142,7 +133,7 @@ class DemoWindowBase:
         wc.cbWndExtra = win32con.DLGWINDOWEXTRA + struct.calcsize("Pi")
         icon_flags = win32con.LR_LOADFROMFILE | win32con.LR_DEFAULTSIZE
 
-        ## py.ico went away in python 2.5, load from executable instead
+        ## load icon from executable
         this_app = win32api.GetModuleHandle(None)
         try:
             wc.hIcon = win32gui.LoadIcon(this_app, 1)  ## python.exe and pythonw.exe
@@ -257,8 +248,8 @@ class DemoWindowBase:
         )
 
         # Add an image list - use the builtin shell folder icon - this
-        # demonstrates the problem with alpha-blending of icons on XP if
-        # winxpgui is not used in place of win32gui.
+        # demonstrates that the problem with alpha-blending of icons
+        # present on XP is not a problem anymore.
         il = win32gui.ImageList_Create(
             win32api.GetSystemMetrics(win32con.SM_CXSMICON),
             win32api.GetSystemMetrics(win32con.SM_CYSMICON),

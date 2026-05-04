@@ -6,13 +6,12 @@
 # is cheated on - so this is still working as a fully-fledged server.
 
 import pythoncom
-import win32com.server.util
+import pywintypes
 import win32com.server.connect
-from win32com.server.exception import Exception
-from pywin32_testutil import str2bytes
+import win32com.server.util
 
 # This is the IID of the Events interface both Client and Server support.
-IID_IConnectDemoEvents = pythoncom.MakeIID("{A4988850-49C3-11d0-AE5D-52342E000000}")
+IID_IConnectDemoEvents = pywintypes.IID("{A4988850-49C3-11d0-AE5D-52342E000000}")
 
 # The server which implements
 # Create a connectable class, that has a single public method
@@ -24,6 +23,7 @@ class ConnectableServer(win32com.server.connect.ConnectableServer):
         "DoIt"
     ] + win32com.server.connect.ConnectableServer._public_methods_
     _connect_interfaces_ = [IID_IConnectDemoEvents]
+
     # The single public method that the client can call on us
     # (ie, as a normal COM server, this exposes just this single method.
     def DoIt(self, arg):
@@ -50,8 +50,6 @@ class ConnectableClient:
     # A client must implement QI, and respond to a query for the Event interface.
     # In addition, it must provide a COM object (which server.util.wrap) does.
     def _query_interface_(self, iid):
-        import win32com.server.util
-
         # Note that this seems like a necessary hack.  I am responding to IID_IConnectDemoEvents
         # but only creating an IDispatch gateway object.
         if iid == IID_IConnectDemoEvents:
@@ -66,7 +64,7 @@ def CheckEvent(server, client, val, verbose):
     client.last_event_arg = None
     server.DoIt(val)
     if client.last_event_arg != val:
-        raise RuntimeError("Sent %r, but got back %r" % (val, client.last_event_arg))
+        raise RuntimeError(f"Sent {val!r}, but got back {client.last_event_arg!r}")
     if verbose:
         print("Sent and received %r" % val)
 
@@ -75,7 +73,8 @@ def CheckEvent(server, client, val, verbose):
 # In the real world, it is likely that the code controlling the server
 # will be in the same class as that getting the notifications.
 def test(verbose=0):
-    import win32com.client.dynamic, win32com.client.connect
+    import win32com.client.connect
+    import win32com.client.dynamic
     import win32com.server.policy
 
     server = win32com.client.dynamic.Dispatch(
@@ -85,7 +84,7 @@ def test(verbose=0):
     client = ConnectableClient()
     connection.Connect(server, client, IID_IConnectDemoEvents)
     CheckEvent(server, client, "Hello", verbose)
-    CheckEvent(server, client, str2bytes("Here is a null>\x00<"), verbose)
+    CheckEvent(server, client, b"Here is a null>\x00<", verbose)
     CheckEvent(server, client, "Here is a null>\x00<", verbose)
     val = "test-\xe0\xf2"  # 2 extended characters.
     CheckEvent(server, client, val, verbose)

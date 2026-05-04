@@ -1,4 +1,5 @@
-""" Unit tests version 2.6.1.0 for adodbapi"""
+"""Unit tests version 2.6.1.0 for adodbapi"""
+
 """
     adodbapi - A python DB API 2.0 interface to Microsoft ADO
 
@@ -21,45 +22,19 @@
     Updates by Vernon Cole
 """
 
-import unittest
-import sys
+import copy
 import datetime
 import decimal
-import copy
 import random
 import string
+import time
+import unittest
 
-try:
-    import win32com.client
-
-    win32 = True
-except ImportError:
-    win32 = False
-
-# run the configuration module.
-import adodbapitestconfig as config  # will set sys.path to find correct version of adodbapi
-
-# in our code below, all our switches are from config.whatever
-import tryconnection
+import adodbapitestconfig as config  # run the configuration module. # will set sys.path to find correct version of adodbapi
+import tryconnection  # in our code below, all our switches are from config.whatever
 
 import adodbapi
 import adodbapi.apibase as api
-
-
-try:
-    import adodbapi.ado_consts as ado_consts
-except ImportError:  # we are doing a shortcut import as a module -- so
-    try:
-        import ado_consts
-    except ImportError:
-        from adodbapi import ado_consts
-
-
-def str2bytes(sval):
-    return sval.encode("latin1")
-
-
-long = int
 
 
 def randomstring(length):
@@ -86,30 +61,26 @@ class CommonDBTests(unittest.TestCase):
         assert crsr.__class__.__name__ == "Cursor"
 
     def testErrorHandlerInherits(self):
-        if not self.remote:
-            conn = self.getConnection()
-            mycallable = lambda connection, cursor, errorclass, errorvalue: 1
-            conn.errorhandler = mycallable
-            crsr = conn.cursor()
-            assert (
-                crsr.errorhandler == mycallable
-            ), "Error handler on crsr should be same as on connection"
+        conn = self.getConnection()
+        mycallable = lambda connection, cursor, errorclass, errorvalue: 1
+        conn.errorhandler = mycallable
+        crsr = conn.cursor()
+        assert crsr.errorhandler == mycallable, (
+            "Error handler on crsr should be same as on connection"
+        )
 
     def testDefaultErrorHandlerConnection(self):
-        if not self.remote:
-            conn = self.getConnection()
-            del conn.messages[:]
-            try:
-                conn.close()
-                conn.commit()  # Should not be able to use connection after it is closed
-            except:
-                assert len(conn.messages) == 1
-                assert len(conn.messages[0]) == 2
-                assert conn.messages[0][0] == api.ProgrammingError
+        conn = self.getConnection()
+        del conn.messages[:]
+        try:
+            conn.close()
+            conn.commit()  # Should not be able to use connection after it is closed
+        except:
+            assert len(conn.messages) == 1
+            assert len(conn.messages[0]) == 2
+            assert conn.messages[0][0] == api.ProgrammingError
 
     def testOwnErrorHandlerConnection(self):
-        if self.remote:  # ToDo: use "skip"
-            return
         mycallable = (
             lambda connection, cursor, errorclass, errorvalue: 1
         )  # does not raise anything
@@ -126,24 +97,21 @@ class CommonDBTests(unittest.TestCase):
         except:
             pass
         # The Standard errorhandler appends error to messages attribute
-        assert (
-            len(conn.messages) > 0
-        ), "Setting errorhandler to none  should bring back the standard error handler"
+        assert len(conn.messages) > 0, (
+            "Setting errorhandler to none  should bring back the standard error handler"
+        )
 
     def testDefaultErrorHandlerCursor(self):
         crsr = self.getConnection().cursor()
-        if not self.remote:
-            del crsr.messages[:]
-            try:
-                crsr.execute("SELECT abbtytddrf FROM dasdasd")
-            except:
-                assert len(crsr.messages) == 1
-                assert len(crsr.messages[0]) == 2
-                assert crsr.messages[0][0] == api.DatabaseError
+        del crsr.messages[:]
+        try:
+            crsr.execute("SELECT abbtytddrf FROM dasdasd")
+        except:
+            assert len(crsr.messages) == 1
+            assert len(crsr.messages[0]) == 2
+            assert crsr.messages[0][0] == api.DatabaseError
 
     def testOwnErrorHandlerCursor(self):
-        if self.remote:  # ToDo: should be a "skip"
-            return
         mycallable = (
             lambda connection, cursor, errorclass, errorvalue: 1
         )  # does not raise anything
@@ -158,13 +126,11 @@ class CommonDBTests(unittest.TestCase):
         except:
             pass
         # The Standard errorhandler appends error to messages attribute
-        assert (
-            len(crsr.messages) > 0
-        ), "Setting errorhandler to none  should bring back the standard error handler"
+        assert len(crsr.messages) > 0, (
+            "Setting errorhandler to none  should bring back the standard error handler"
+        )
 
     def testUserDefinedConversions(self):
-        if self.remote:  ## Todo: should be a "skip"
-            return
         try:
             duplicatingConverter = lambda aStringField: aStringField * 2
             assert duplicatingConverter("gabba") == "gabbagabba"
@@ -173,42 +139,38 @@ class CommonDBTests(unittest.TestCase):
             conn = self.getConnection()
             # the variantConversions attribute should not exist on a normal connection object
             self.assertRaises(AttributeError, lambda x: conn.variantConversions[x], [2])
-            if not self.remote:
-                # create a variantConversions attribute on the connection
-                conn.variantConversions = copy.copy(api.variantConversions)
-                crsr = conn.cursor()
-                tabdef = (
-                    "CREATE TABLE xx_%s (fldData VARCHAR(100) NOT NULL, fld2 VARCHAR(20))"
-                    % config.tmp
-                )
-                crsr.execute(tabdef)
-                crsr.execute(
-                    "INSERT INTO xx_%s(fldData,fld2) VALUES('gabba','booga')"
-                    % config.tmp
-                )
-                crsr.execute(
-                    "INSERT INTO xx_%s(fldData,fld2) VALUES('hey','yo')" % config.tmp
-                )
-                # change converter for ALL adoStringTypes columns
-                conn.variantConversions[api.adoStringTypes] = duplicatingConverter
-                crsr.execute(
-                    "SELECT fldData,fld2 FROM xx_%s ORDER BY fldData" % config.tmp
-                )
+            # create a variantConversions attribute on the connection
+            conn.variantConversions = copy.copy(api.variantConversions)
+            crsr = conn.cursor()
+            tabdef = (
+                "CREATE TABLE xx_%s (fldData VARCHAR(100) NOT NULL, fld2 VARCHAR(20))"
+                % config.tmp
+            )
+            crsr.execute(tabdef)
+            crsr.execute(
+                "INSERT INTO xx_%s(fldData,fld2) VALUES('gabba','booga')" % config.tmp
+            )
+            crsr.execute(
+                "INSERT INTO xx_%s(fldData,fld2) VALUES('hey','yo')" % config.tmp
+            )
+            # change converter for ALL adoStringTypes columns
+            conn.variantConversions[api.adoStringTypes] = duplicatingConverter
+            crsr.execute("SELECT fldData,fld2 FROM xx_%s ORDER BY fldData" % config.tmp)
 
-                rows = crsr.fetchall()
-                row = rows[0]
-                self.assertEqual(row[0], "gabbagabba")
-                row = rows[1]
-                self.assertEqual(row[0], "heyhey")
-                self.assertEqual(row[1], "yoyo")
+            rows = crsr.fetchall()
+            row = rows[0]
+            self.assertEqual(row[0], "gabbagabba")
+            row = rows[1]
+            self.assertEqual(row[0], "heyhey")
+            self.assertEqual(row[1], "yoyo")
 
-                upcaseConverter = lambda aStringField: aStringField.upper()
-                assert upcaseConverter("upThis") == "UPTHIS"
+            upcaseConverter = lambda aStringField: aStringField.upper()
+            assert upcaseConverter("upThis") == "UPTHIS"
 
-                # now use a single column converter
-                rows.converters[1] = upcaseConverter  # convert second column
-                self.assertEqual(row[0], "heyhey")  # first will be unchanged
-                self.assertEqual(row[1], "YO")  # second will convert to upper case
+            # now use a single column converter
+            rows.converters[1] = upcaseConverter  # convert second column
+            self.assertEqual(row[0], "heyhey")  # first will be unchanged
+            self.assertEqual(row[1], "YO")  # second will convert to upper case
 
         finally:
             try:
@@ -216,49 +178,6 @@ class CommonDBTests(unittest.TestCase):
             except:
                 pass
             self.helpRollbackTblTemp()
-
-    def testUserDefinedConversionForExactNumericTypes(self):
-        # variantConversions is a dictionary of conversion functions
-        # held internally in adodbapi.apibase
-        #
-        # !!! this test intentionally alters the value of what should be constant in the module
-        # !!! no new code should use this example, to is only a test to see that the
-        # !!! deprecated way of doing this still works.  (use connection.variantConversions)
-        #
-        if not self.remote and sys.version_info < (3, 0):  ### Py3 need different test
-            oldconverter = adodbapi.variantConversions[
-                ado_consts.adNumeric
-            ]  # keep old function to restore later
-            # By default decimal and "numbers" are returned as decimals.
-            # Instead, make numbers return as  floats
-            try:
-                adodbapi.variantConversions[ado_consts.adNumeric] = adodbapi.cvtFloat
-                self.helpTestDataType(
-                    "decimal(18,2)", "NUMBER", 3.45, compareAlmostEqual=1
-                )
-                self.helpTestDataType(
-                    "numeric(18,2)", "NUMBER", 3.45, compareAlmostEqual=1
-                )
-                # now return strings
-                adodbapi.variantConversions[ado_consts.adNumeric] = adodbapi.cvtString
-                self.helpTestDataType("numeric(18,2)", "NUMBER", "3.45")
-                # now a completly weird user defined convertion
-                adodbapi.variantConversions[ado_consts.adNumeric] = (
-                    lambda x: "!!This function returns a funny unicode string %s!!" % x
-                )
-                self.helpTestDataType(
-                    "numeric(18,2)",
-                    "NUMBER",
-                    "3.45",
-                    allowedReturnValues=[
-                        "!!This function returns a funny unicode string 3.45!!"
-                    ],
-                )
-            finally:
-                # now reset the converter to its original function
-                adodbapi.variantConversions[
-                    ado_consts.adNumeric
-                ] = oldconverter  # Restore the original convertion function
 
     def helpTestDataType(
         self,
@@ -346,11 +265,7 @@ class CommonDBTests(unittest.TestCase):
                     (fldId, inParam),
                 )
             except:
-                if self.remote:
-                    for message in crsr.messages:
-                        print(message)
-                else:
-                    conn.printADOerrors()
+                conn.printADOerrors()
                 raise
             crsr.execute(
                 "SELECT fldData FROM xx_%s WHERE ?=fldID" % config.tmp, [fldId]
@@ -358,15 +273,16 @@ class CommonDBTests(unittest.TestCase):
             rs = crsr.fetchone()
             if allowedReturnValues:
                 allowedTypes = tuple([type(aRV) for aRV in allowedReturnValues])
-                assert isinstance(
-                    rs[0], allowedTypes
-                ), 'result type "%s" must be one of %s' % (type(rs[0]), allowedTypes)
+                assert isinstance(rs[0], allowedTypes), (
+                    'result type "%s" must be one of %s' % (type(rs[0]), allowedTypes)
+                )
             else:
-                assert isinstance(
-                    rs[0], type(pyData)
-                ), 'result type "%s" must be instance of %s' % (
-                    type(rs[0]),
-                    type(pyData),
+                assert isinstance(rs[0], type(pyData)), (
+                    'result type "%s" must be instance of %s'
+                    % (
+                        type(rs[0]),
+                        type(pyData),
+                    )
                 )
 
             if compareAlmostEqual and DBAPIDataTypeString == "DATETIME":
@@ -376,15 +292,15 @@ class CommonDBTests(unittest.TestCase):
             elif compareAlmostEqual:
                 s = float(pyData)
                 v = float(rs[0])
-                assert (
-                    abs(v - s) / s < 0.00001
-                ), "Values not almost equal recvd=%s, expected=%f" % (rs[0], s)
+                assert abs(v - s) / s < 0.00001, (
+                    "Values not almost equal recvd=%s, expected=%f" % (rs[0], s)
+                )
             else:
                 if allowedReturnValues:
                     ok = False
                     self.assertTrue(
                         rs[0] in allowedReturnValues,
-                        'Value "%s" not in %s' % (repr(rs[0]), allowedReturnValues),
+                        f'Value "{rs[0]!r}" not in {allowedReturnValues}',
                     )
                 else:
                     self.assertEqual(
@@ -398,7 +314,7 @@ class CommonDBTests(unittest.TestCase):
         self.helpTestDataType("real", "NUMBER", 3.45, compareAlmostEqual=True)
         self.helpTestDataType("float", "NUMBER", 1.79e37, compareAlmostEqual=True)
 
-    def testDataTypeDecmal(self):
+    def testDataTypeDecimal(self):
         self.helpTestDataType(
             "decimal(18,2)",
             "NUMBER",
@@ -464,7 +380,7 @@ class CommonDBTests(unittest.TestCase):
                 "bigint",
                 "NUMBER",
                 3000000000,
-                allowedReturnValues=[3000000000, int(3000000000)],
+                allowedReturnValues=[3000000000, 3000000000],
             )
         self.helpTestDataType("int", "NUMBER", 2147483647)
 
@@ -520,7 +436,7 @@ class CommonDBTests(unittest.TestCase):
             )
 
     def testDataTypeBinary(self):
-        binfld = str2bytes("\x07\x00\xE2\x40*")
+        binfld = b"\x07\x00\xe2\x40*"
         arv = [binfld, adodbapi.Binary(binfld), bytes(binfld)]
         if self.getEngine() == "PostgreSQL":
             self.helpTestDataType(
@@ -686,11 +602,8 @@ class CommonDBTests(unittest.TestCase):
 
     def testErrorConnect(self):
         conn = self.getConnection()
-        kw = {}
-        if "proxy_host" in conn.kwargs:
-            kw["proxy_host"] = conn.kwargs["proxy_host"]
         conn.close()
-        self.assertRaises(api.DatabaseError, self.db, "not a valid connect string", kw)
+        self.assertRaises(api.DatabaseError, self.db, "not a valid connect string", {})
 
     def testRowIterator(self):
         self.helpForceDropOnTblTemp()
@@ -719,11 +632,7 @@ class CommonDBTests(unittest.TestCase):
                     (fldId, inParam[0], inParam[1], inParam[2]),
                 )
             except:
-                if self.remote:
-                    for message in crsr.messages:
-                        print(message)
-                else:
-                    conn.printADOerrors()
+                conn.printADOerrors()
                 raise
             crsr.execute(
                 "SELECT fldTwo,fldThree,fldFour FROM xx_%s WHERE ?=fldID" % config.tmp,
@@ -732,20 +641,18 @@ class CommonDBTests(unittest.TestCase):
             rec = crsr.fetchone()
             # check that stepping through an emulated row works
             for j in range(len(inParam)):
-                assert (
-                    rec[j] == inParam[j]
-                ), 'returned value:"%s" != test value:"%s"' % (rec[j], inParam[j])
+                assert rec[j] == inParam[j], (
+                    'returned value:"%s" != test value:"%s"' % (rec[j], inParam[j])
+                )
             # check that we can get a complete tuple from a row
-            assert tuple(rec) == inParam, 'returned value:"%s" != test value:"%s"' % (
-                repr(rec),
-                repr(inParam),
+            assert tuple(rec) == inParam, (
+                f'returned value:"{rec!r}" != test value:"{inParam!r}"'
             )
             # test that slices of rows work
             slice1 = tuple(rec[:-1])
             slice2 = tuple(inParam[0:2])
-            assert slice1 == slice2, 'returned value:"%s" != test value:"%s"' % (
-                repr(slice1),
-                repr(slice2),
+            assert slice1 == slice2, (
+                f'returned value:"{slice1!r}" != test value:"{slice2!r}"'
             )
             # now test named column retrieval
             assert rec["fldTwo"] == inParam[0]
@@ -793,11 +700,7 @@ class CommonDBTests(unittest.TestCase):
             try:
                 crsr.execute(sql, (fldId, inParam))
             except:
-                if self.remote:
-                    for message in crsr.messages:
-                        print(message)
-                else:
-                    conn.printADOerrors()
+                conn.printADOerrors()
                 raise
             crsr.execute(
                 "SELECT fldData, fldConst FROM xx_" + config.tmp + " WHERE %s=fldID",
@@ -824,8 +727,7 @@ class CommonDBTests(unittest.TestCase):
         assert crsr.command == sel, 'expected:"%s" but found "%s"' % (sel, crsr.command)
 
         # test the .parameters attribute
-        if not self.remote:  # parameter list will be altered in transit
-            self.assertEqual(crsr.parameters, params)
+        self.assertEqual(crsr.parameters, params)
         # now make sure the data made it
         crsr.execute("SELECT fldData FROM xx_%s WHERE fldID=20" % config.tmp)
         rec = crsr.fetchone()
@@ -857,11 +759,7 @@ class CommonDBTests(unittest.TestCase):
                     {"f_Val": inParam, "Id": fldId},
                 )
             except:
-                if self.remote:
-                    for message in crsr.messages:
-                        print(message)
-                else:
-                    conn.printADOerrors()
+                conn.printADOerrors()
                 raise
             crsr.execute(
                 "SELECT fldData FROM xx_%s WHERE fldID=:Id" % config.tmp, {"Id": fldId}
@@ -907,11 +805,7 @@ class CommonDBTests(unittest.TestCase):
                     {"f_Val": inParam, "Id": fldId},
                 )
             except:
-                if self.remote:
-                    for message in crsr.messages:
-                        print(message)
-                else:
-                    conn.printADOerrors()
+                conn.printADOerrors()
                 raise
             crsr.execute(
                 "SELECT fldData FROM xx_%s WHERE fldID=%%(Id)s" % config.tmp,
@@ -960,11 +854,7 @@ class CommonDBTests(unittest.TestCase):
                     (fldId, inParam),
                 )
             except:
-                if self.remote:
-                    for message in crsr.messages:
-                        print(message)
-                else:
-                    conn.printADOerrors()
+                conn.printADOerrors()
                 raise
             trouble = "thi%s :may cause? troub:1e"
             crsr.execute(
@@ -989,11 +879,7 @@ class CommonDBTests(unittest.TestCase):
                     {"f_Val": inParam, "Id": fldId},
                 )
             except:
-                if self.remote:
-                    for message in crsr.messages:
-                        print(message)
-                else:
-                    conn.printADOerrors()
+                conn.printADOerrors()
                 raise
             crsr.execute(
                 "SELECT fldData FROM xx_%s WHERE :Id=fldID" % config.tmp, {"Id": fldId}
@@ -1029,9 +915,9 @@ class CommonDBTests(unittest.TestCase):
         assert len(rs) == 1
         self.conn.rollback()
         crsr.execute(selectSql)
-        assert (
-            crsr.fetchone() == None
-        ), "cursor.fetchone should return None if a query retrieves no rows"
+        assert crsr.fetchone() is None, (
+            "cursor.fetchone should return None if a query retrieves no rows"
+        )
         crsr.execute("SELECT fldData from xx_%s" % config.tmp)
         rs = crsr.fetchall()
         assert len(rs) == 9, "the original records should still be present"
@@ -1087,9 +973,8 @@ class CommonDBTests(unittest.TestCase):
             row = crsr.fetchone()
         except api.DatabaseError:
             row = None  # if the entire table disappeared the rollback was perfect and the test passed
-        assert row == None, (
-            "cursor.fetchone should return None if a query retrieves no rows. Got %s"
-            % repr(row)
+        assert row is None, (
+            f"cursor.fetchone should return None if a query retrieves no rows. Got {row!r}"
         )
         self.helpRollbackTblTemp()
 
@@ -1183,7 +1068,6 @@ class TestADOwithSQLServer(CommonDBTests):
         self.conn.timeout = 30  # turn timeout back up
         self.engine = "MSSQL"
         self.db = config.dbSqlServerconnect
-        self.remote = config.connStrSQLServer[2]
 
     def tearDown(self):
         try:
@@ -1200,7 +1084,7 @@ class TestADOwithSQLServer(CommonDBTests):
         return self.conn
 
     def getAnotherConnection(self, addkeys=None):
-        keys = dict(config.connStrSQLServer[1])
+        keys = config.connStrSQLServer[1].copy()
         if addkeys:
             keys.update(addkeys)
         return config.dbSqlServerconnect(*config.connStrSQLServer[0], **keys)
@@ -1225,10 +1109,10 @@ class TestADOwithSQLServer(CommonDBTests):
         retvalues = crsr.callproc(
             "sp_DeleteMeOnlyForTesting", ("Dodsworth", "Anne", "              ")
         )
-        assert retvalues[0] == "Dodsworth", '%s is not "Dodsworth"' % repr(retvalues[0])
-        assert retvalues[1] == "Anne", '%s is not "Anne"' % repr(retvalues[1])
-        assert retvalues[2] == "DodsworthAnne", '%s is not "DodsworthAnne"' % repr(
-            retvalues[2]
+        assert retvalues[0] == "Dodsworth", f'{retvalues[0]!r} is not "Dodsworth"'
+        assert retvalues[1] == "Anne", f'{retvalues[1]!r} is not "Anne"'
+        assert retvalues[2] == "DodsworthAnne", (
+            f'{retvalues[2]!r} is not "DodsworthAnne"'
         )
         self.conn.rollback()
 
@@ -1262,7 +1146,7 @@ class TestADOwithSQLServer(CommonDBTests):
         assert crsr.nextset() == True, "third set should be present"
         rowdesc = crsr.fetchall()
         self.assertEqual(rowdesc[0][0], 8)
-        assert crsr.nextset() == None, "No more return sets, should return None"
+        assert crsr.nextset() is None, "No more return sets, should return None"
 
         self.helpRollbackTblTemp()
 
@@ -1316,9 +1200,9 @@ class TestADOwithSQLServer(CommonDBTests):
             {"parameters": ["this is wrong", "Anne", "not Alice"]},
         )
         if result[0]:  # the expected exception was raised
-            assert "@theInput" in str(result[1]) or "DatabaseError" in str(
-                result
-            ), "Identifies the wrong erroneous parameter"
+            assert "@theInput" in str(result[1]) or "DatabaseError" in str(result), (
+                "Identifies the wrong erroneous parameter"
+            )
         else:
             assert result[0], result[1]  # incorrect or no exception
         self.conn.rollback()
@@ -1332,7 +1216,6 @@ class TestADOwithAccessDB(CommonDBTests):
         self.conn.timeout = 30  # turn timeout back up
         self.engine = "ACCESS"
         self.db = config.dbAccessconnect
-        self.remote = config.connStrAccess[2]
 
     def tearDown(self):
         try:
@@ -1353,7 +1236,7 @@ class TestADOwithAccessDB(CommonDBTests):
 
     def testOkConnect(self):
         c = self.db(*config.connStrAccess[0], **config.connStrAccess[1])
-        assert c != None
+        assert c is not None
         c.close()
 
 
@@ -1365,7 +1248,6 @@ class TestADOwithMySql(CommonDBTests):
         self.conn.timeout = 30  # turn timeout back up
         self.engine = "MySQL"
         self.db = config.dbMySqlconnect
-        self.remote = config.connStrMySql[2]
 
     def tearDown(self):
         try:
@@ -1382,23 +1264,23 @@ class TestADOwithMySql(CommonDBTests):
         return self.conn
 
     def getAnotherConnection(self, addkeys=None):
-        keys = dict(config.connStrMySql[1])
+        keys = config.connStrMySql[1].copy()
         if addkeys:
             keys.update(addkeys)
         return config.dbMySqlconnect(*config.connStrMySql[0], **keys)
 
     def testOkConnect(self):
         c = self.db(*config.connStrMySql[0], **config.connStrMySql[1])
-        assert c != None
+        assert c is not None
 
     # def testStoredProcedure(self):
-    #     crsr=self.conn.cursor()
+    #     crsr = self.conn.cursor()
     #     try:
     #         crsr.execute("DROP PROCEDURE DeleteMeOnlyForTesting")
     #         self.conn.commit()
-    #     except: #Make sure it is empty
+    #     except:  # Make sure it is empty
     #         pass
-    #     spdef= """
+    #     spdef = """
     #             DELIMITER $$
     #             CREATE PROCEDURE DeleteMeOnlyForTesting (onein CHAR(10), twoin CHAR(10), OUT theout CHAR(20))
     #             DETERMINISTIC
@@ -1407,19 +1289,20 @@ class TestADOwithMySql(CommonDBTests):
     #                 /* (SELECT 'a small string' as result; */
     #                 END $$
     #             """
-    #
     #     crsr.execute(spdef)
-    #
-    #     retvalues=crsr.callproc('DeleteMeOnlyForTesting',('Dodsworth','Anne','              '))
-    #     print 'return value (mysql)=',repr(crsr.returnValue) ###
-    #     assert retvalues[0]=='Dodsworth', '%s is not "Dodsworth"'%repr(retvalues[0])
-    #     assert retvalues[1]=='Anne','%s is not "Anne"'%repr(retvalues[1])
-    #     assert retvalues[2]=='DodsworthAnne','%s is not "DodsworthAnne"'%repr(retvalues[2])
-    #
+    #     retvalues = crsr.callproc(
+    #         "DeleteMeOnlyForTesting", ("Dodsworth", "Anne", "              ")
+    #     )
+    #     # print(f"return value (mysql)={crsr.returnValue!r}")
+    #     assert retvalues[0] == "Dodsworth", f'{retvalues[0]!r} is not "Dodsworth"'
+    #     assert retvalues[1] == "Anne", f'{retvalues[1]!r} is not "Anne"'
+    #     assert (
+    #         retvalues[2] == "DodsworthAnne"
+    #     ), f'{retvalues[2]!r} is not "DodsworthAnne"'
     #     try:
     #         crsr.execute("DROP PROCEDURE, DeleteMeOnlyForTesting")
     #         self.conn.commit()
-    #     except: #Make sure it is empty
+    #     except:  # Make sure it is empty
     #         pass
 
 
@@ -1431,7 +1314,6 @@ class TestADOwithPostgres(CommonDBTests):
         self.conn.timeout = 30  # turn timeout back up
         self.engine = "PostgreSQL"
         self.db = config.dbPostgresConnect
-        self.remote = config.connStrPostgres[2]
 
     def tearDown(self):
         try:
@@ -1448,18 +1330,18 @@ class TestADOwithPostgres(CommonDBTests):
         return self.conn
 
     def getAnotherConnection(self, addkeys=None):
-        keys = dict(config.connStrPostgres[1])
+        keys = config.connStrPostgres[1].copy()
         if addkeys:
             keys.update(addkeys)
         return config.dbPostgresConnect(*config.connStrPostgres[0], **keys)
 
     def testOkConnect(self):
         c = self.db(*config.connStrPostgres[0], **config.connStrPostgres[1])
-        assert c != None
+        assert c is not None
 
     # def testStoredProcedure(self):
-    #     crsr=self.conn.cursor()
-    #     spdef= """
+    #     crsr = self.conn.cursor()
+    #     spdef = """
     #         CREATE OR REPLACE FUNCTION DeleteMeOnlyForTesting (text, text)
     #         RETURNS text AS $funk$
     #         BEGIN
@@ -1468,18 +1350,22 @@ class TestADOwithPostgres(CommonDBTests):
     #         $funk$
     #         LANGUAGE SQL;
     #         """
-    #
+
     #     crsr.execute(spdef)
-    #     retvalues = crsr.callproc('DeleteMeOnlyForTesting',('Dodsworth','Anne','              '))
-    #     ### print 'return value (pg)=',repr(crsr.returnValue) ###
-    #     assert retvalues[0]=='Dodsworth', '%s is not "Dodsworth"'%repr(retvalues[0])
-    #     assert retvalues[1]=='Anne','%s is not "Anne"'%repr(retvalues[1])
-    #     assert retvalues[2]=='Dodsworth Anne','%s is not "Dodsworth Anne"'%repr(retvalues[2])
+    #     retvalues = crsr.callproc(
+    #         "DeleteMeOnlyForTesting", ("Dodsworth", "Anne", "              ")
+    #     )
+    #     # print(f"return value (pg)={crsr.returnValue!r}")
+    #     assert retvalues[0] == "Dodsworth", f'{retvalues[0]!r} is not "Dodsworth"'
+    #     assert retvalues[1] == "Anne", f'{retvalues[1]!r} is not "Anne"'
+    #     assert (
+    #         retvalues[2] == "DodsworthAnne"
+    #     ), f'{retvalues[2]!r} is not "DodsworthAnne"'
     #     self.conn.rollback()
     #     try:
     #         crsr.execute("DROP PROCEDURE, DeleteMeOnlyForTesting")
     #         self.conn.commit()
-    #     except: #Make sure it is empty
+    #     except:  # Make sure it is empty
     #         pass
 
 
@@ -1526,40 +1412,6 @@ class TimeConverterInterfaceTest(unittest.TestCase):
         self.assertEqual(str(iso[:10]), "2003-05-02")
 
 
-if config.doMxDateTimeTest:
-    import mx.DateTime
-
-
-class TestMXDateTimeConverter(TimeConverterInterfaceTest):
-    def setUp(self):
-        self.tc = api.mxDateTimeConverter()
-
-    def testCOMDate(self):
-        t = mx.DateTime.DateTime(2002, 6, 28, 18, 15, 2)
-        cmd = self.tc.COMDate(t)
-        assert cmd == t.COMDate()
-
-    def testDateObjectFromCOMDate(self):
-        cmd = self.tc.DateObjectFromCOMDate(37435.7604282)
-        t = mx.DateTime.DateTime(2002, 6, 28, 18, 15, 0)
-        t2 = mx.DateTime.DateTime(2002, 6, 28, 18, 15, 2)
-        assert t2 > cmd > t
-
-    def testDate(self):
-        assert mx.DateTime.Date(1980, 11, 4) == self.tc.Date(1980, 11, 4)
-
-    def testTime(self):
-        assert mx.DateTime.Time(13, 11, 4) == self.tc.Time(13, 11, 4)
-
-    def testTimestamp(self):
-        t = mx.DateTime.DateTime(2002, 6, 28, 18, 15, 1)
-        obj = self.tc.Timestamp(2002, 6, 28, 18, 15, 1)
-        assert t == obj
-
-
-import time
-
-
 class TestPythonTimeConverter(TimeConverterInterfaceTest):
     def setUp(self):
         self.tc = api.pythonTimeConverter()
@@ -1580,7 +1432,7 @@ class TestPythonTimeConverter(TimeConverterInterfaceTest):
         t2 = time.gmtime(
             time.mktime((2002, 6, 29, 12, 14, 2, 4, 31 + 28 + 31 + 30 + 31 + 28, -1))
         )
-        assert t1 < cmd < t2, '"%s" should be about 2002-6-28 12:15:01' % repr(cmd)
+        assert t1 < cmd < t2, f'"{cmd}" should be about 2002-6-28 12:15:01'
 
     def testDate(self):
         t1 = time.mktime((2002, 6, 28, 18, 15, 1, 4, 31 + 28 + 31 + 30 + 31 + 30, 0))
@@ -1642,24 +1494,32 @@ class TestPythonDateTimeConverter(TimeConverterInterfaceTest):
         assert t1 < obj < t2, obj
 
 
-suites = []
-suites.append(unittest.makeSuite(TestPythonDateTimeConverter, "test"))
-if config.doMxDateTimeTest:
-    suites.append(unittest.makeSuite(TestMXDateTimeConverter, "test"))
+suites = [
+    unittest.defaultTestLoader.loadTestsFromModule(TestPythonDateTimeConverter, "test")
+]
 if config.doTimeTest:
-    suites.append(unittest.makeSuite(TestPythonTimeConverter, "test"))
-
+    suites.append(
+        unittest.defaultTestLoader.loadTestsFromModule(TestPythonTimeConverter, "test")
+    )
 if config.doAccessTest:
-    suites.append(unittest.makeSuite(TestADOwithAccessDB, "test"))
+    suites.append(
+        unittest.defaultTestLoader.loadTestsFromModule(TestADOwithAccessDB, "test")
+    )
 if config.doSqlServerTest:
-    suites.append(unittest.makeSuite(TestADOwithSQLServer, "test"))
+    suites.append(
+        unittest.defaultTestLoader.loadTestsFromModule(TestADOwithSQLServer, "test")
+    )
 if config.doMySqlTest:
-    suites.append(unittest.makeSuite(TestADOwithMySql, "test"))
+    suites.append(
+        unittest.defaultTestLoader.loadTestsFromModule(TestADOwithMySql, "test")
+    )
 if config.doPostgresTest:
-    suites.append(unittest.makeSuite(TestADOwithPostgres, "test"))
+    suites.append(
+        unittest.defaultTestLoader.loadTestsFromModule(TestADOwithPostgres, "test")
+    )
 
 
-class cleanup_manager(object):
+class cleanup_manager:
     def __enter__(self):
         pass
 
@@ -1675,19 +1535,13 @@ if __name__ == "__main__":
         print(__doc__)
         print("Default Date Converter is %s" % (defaultDateConverter,))
         dateconverter = defaultDateConverter
-        tag = "datetime"
         unittest.TextTestRunner().run(mysuite)
 
-        if config.iterateOverTimeTests:
-            for test, dateconverter, tag in (
-                (config.doTimeTest, api.pythonTimeConverter, "pythontime"),
-                (config.doMxDateTimeTest, api.mxDateTimeConverter, "mx"),
-            ):
-                if test:
-                    mysuite = copy.deepcopy(
-                        suite
-                    )  # work around a side effect of unittest.TextTestRunner
-                    adodbapi.adodbapi.dateconverter = dateconverter()
-                    print("Changed dateconverter to ")
-                    print(adodbapi.adodbapi.dateconverter)
-                    unittest.TextTestRunner().run(mysuite)
+        if config.doTimeTest:
+            mysuite = copy.deepcopy(
+                suite
+            )  # work around a side effect of unittest.TextTestRunner
+            adodbapi.adodbapi.dateconverter = api.pythonTimeConverter()
+            print("Changed dateconverter to ")
+            print(adodbapi.adodbapi.dateconverter)
+            unittest.TextTestRunner().run(mysuite)

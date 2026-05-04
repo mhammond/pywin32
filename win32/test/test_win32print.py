@@ -1,6 +1,5 @@
 # Tests (scarce) for win32print module
 
-import os
 import unittest
 
 import win32print as wprn

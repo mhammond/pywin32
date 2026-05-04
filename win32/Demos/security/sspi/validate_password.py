@@ -3,8 +3,9 @@
 #
 # To use with Kerberos you need to jump through the 'targetspn' hoops.
 
-import win32security
 import sys
+
+import win32security
 from sspi import ClientAuth, ServerAuth
 
 
@@ -22,7 +23,7 @@ def validate(username, password, domain=""):
 
 if __name__ == "__main__":
     if len(sys.argv) not in [2, 3, 4]:
-        print("Usage: %s username [password [domain]]" % (__file__,))
+        print(f"Usage: {__file__} username [password [domain]]")
         sys.exit(1)
 
     # password and domain are optional!

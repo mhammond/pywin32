@@ -1,6 +1,7 @@
-from win32com.shell import shell, shellcon
-import win32api
 import os
+
+import win32api
+from win32com.shell import shell, shellcon
 
 
 def testSHFileOperation(file_cnt):

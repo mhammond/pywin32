@@ -389,9 +389,8 @@ PyObject *PyIScheduledWorkItem::SetComment(PyObject *self, PyObject *args)
     HRESULT hr;
     PY_INTERFACE_PRECALL;
     hr = pISWI->SetComment(pwszComment);
-    PyWinObject_FreeWCHAR(pwszComment);
-
     PY_INTERFACE_POSTCALL;
+    PyWinObject_FreeWCHAR(pwszComment);
 
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pISWI, IID_IScheduledWorkItem);
@@ -437,9 +436,8 @@ PyObject *PyIScheduledWorkItem::SetCreator(PyObject *self, PyObject *args)
     HRESULT hr;
     PY_INTERFACE_PRECALL;
     hr = pISWI->SetCreator(pwszCreator);
-    PyWinObject_FreeWCHAR(pwszCreator);
-
     PY_INTERFACE_POSTCALL;
+    PyWinObject_FreeWCHAR(pwszCreator);
 
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pISWI, IID_IScheduledWorkItem);
@@ -482,13 +480,14 @@ PyObject *PyIScheduledWorkItem::SetWorkItemData(PyObject *self, PyObject *args)
     PyObject *obworkitem_data = NULL;
     if (!PyArg_ParseTuple(args, "O:PyIScheduledWorkItem::SetWorkItemData", &obworkitem_data))
         return NULL;
-    if (obworkitem_data != Py_None)
+    if (obworkitem_data != Py_None) {
         if (PyBytes_AsStringAndSize(obworkitem_data, (CHAR **)&workitem_data, &data_len) == -1)
             return NULL;
         else
             // Task Scheduler won't take an empty string for data anymore ??????
             if (data_len == 0)
-            workitem_data = NULL;
+                workitem_data = NULL;
+    }
 
     HRESULT hr;
     PY_INTERFACE_PRECALL;
@@ -684,9 +683,9 @@ PyObject *PyIScheduledWorkItem::SetAccountInformation(PyObject *self, PyObject *
     HRESULT hr;
     PY_INTERFACE_PRECALL;
     hr = pISWI->SetAccountInformation(AccountName, Password);
+    PY_INTERFACE_POSTCALL;
     PyWinObject_FreeWCHAR(AccountName);
     PyWinObject_FreeWCHAR(Password);
-    PY_INTERFACE_POSTCALL;
 
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pISWI, IID_IScheduledWorkItem);

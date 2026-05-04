@@ -716,13 +716,14 @@ static int ibindDate(cursorObject *cur, int column, PyObject *item)
     // Last 3 items are ignored.
     PyObject *obwday, *obyday, *obdst;
     if (!PyArg_ParseTuple(timeseq, "hhh|hhhOOO:TIMESTAMP_STRUCT", &dt->year, &dt->month, &dt->day, &dt->hour,
-                            &dt->minute, &dt->second, &obwday, &obyday, &obdst))
+                          &dt->minute, &dt->second, &obwday, &obyday, &obdst))
         return 0;
 
     TmpPyObject usec = PyObject_GetAttrString(item, "microsecond");
     if (usec == NULL) {
         PyErr_Clear();
-    } else {
+    }
+    else {
         dt->fraction = PyLong_AsUnsignedLong(usec);
         if (dt->fraction == -1 && PyErr_Occurred())
             return 0;
@@ -817,7 +818,9 @@ static int ibindString(cursorObject *cur, int column, PyObject *item)
 
 static int ibindUnicode(cursorObject *cur, int column, PyObject *item)
 {
-    TmpWCHAR wval = item;  if (!wval) return 0;
+    TmpWCHAR wval = item;
+    if (!wval)
+        return 0;
     Py_ssize_t nchars = wval.length + 1;
     Py_ssize_t nbytes = nchars * sizeof(WCHAR);
 
@@ -853,8 +856,7 @@ static int rewriteQuery(TCHAR *out, const TCHAR *in)
     parseContext ctx;
 
     initParseContext(&ctx, in);
-    while (*out++ = doParse(&ctx))
-        ;
+    while (*out++ = doParse(&ctx));
     return ctx.parmCount;
 }
 
@@ -893,13 +895,12 @@ static int bindInput(cursorObject *cur, PyObject *vars, int columns)
         else if (PyWinTime_Check(item)) {
             rv = ibindDate(cur, iCol, item);
         }
-        else if (PyObject_CheckBuffer(item))
-        {
+        else if (PyObject_CheckBuffer(item)) {
             rv = ibindRaw(cur, iCol, item);
         }
         else {
             OutputDebugString(_T("bindInput - using repr conversion for type: '"));
-            OutputDebugStringA(item->ob_type->tp_name);
+            OutputDebugStringA(Py_TYPE(item)->tp_name);
             OutputDebugString(_T("'\n"));
             PyObject *sitem = PyObject_Str(item);
             if (sitem == NULL)
@@ -909,8 +910,8 @@ static int bindInput(cursorObject *cur, PyObject *vars, int columns)
             else if (PyUnicode_Check(sitem))
                 rv = ibindUnicode(cur, iCol, sitem);
             else {  // Just in case some object doesn't follow the rules
-                PyErr_Format(PyExc_SystemError, "??? Repr for type '%s' returned type '%s' ???", item->ob_type,
-                             sitem->ob_type);
+                PyErr_Format(PyExc_SystemError, "??? Repr for type '%s' returned type '%s' ???", Py_TYPE(item),
+                             Py_TYPE(sitem));
                 rv = 0;
             }
             Py_XDECREF(sitem);
@@ -1016,7 +1017,8 @@ static BOOL bindOutput(cursorObject *cur)
                 break;
             case SQL_VARCHAR:
             case SQL_WVARCHAR:
-                if (!bindOutputVar(cur, wcharCopy, SQL_C_WCHAR, (((vsize == 0) ? cur->max_width : vsize) + 1) * sizeof(WCHAR), pos, false))
+                if (!bindOutputVar(cur, wcharCopy, SQL_C_WCHAR,
+                                   (((vsize == 0) ? cur->max_width : vsize) + 1) * sizeof(WCHAR), pos, false))
                     return FALSE;
                 typeOf = DbiString;
                 break;
@@ -1122,7 +1124,7 @@ static PyObject *odbcCurExec(PyObject *self, PyObject *args)
 
     if (inputvars) {
         if (PyBytes_Check(inputvars) || PyUnicode_Check(inputvars) || !PySequence_Check(inputvars))
-            return PyErr_Format(odbcError, "Values must be a sequence, not %s", inputvars->ob_type->tp_name);
+            return PyErr_Format(odbcError, "Values must be a sequence, not %s", Py_TYPE(inputvars)->tp_name);
         if (PySequence_Length(inputvars) > 0) {
             PyObject *temp = PySequence_GetItem(inputvars, 0);
             if (temp == NULL)
@@ -1443,8 +1445,8 @@ static void parseInfo(connectionObject *conn, const TCHAR *c)
     TCHAR pwd[MAX_STR];
     size_t connectionStringLength;
 
-    firstEqualsSign = _tcschr(c, _T('='));
-    firstSlash = _tcschr(c, _T('/'));
+    firstEqualsSign = wcschr(c, _T('='));
+    firstSlash = wcschr(c, _T('/'));
 
     if (!firstEqualsSign || (firstSlash && firstSlash < firstEqualsSign)) {
         _tcsncpy(buf, c, sizeof(buf) / sizeof(TCHAR));
@@ -1606,7 +1608,7 @@ PYWIN_MODULE_INIT_FUNC(odbc)
     }
 
     /* Names of various sql datatypes.
-        's' format of Py_BuildValue creates unicode on py3k, and char string on 2.x
+        's' format of Py_BuildValue creates unicode on py3k, and char string on Python 2
     */
     char *szDbiString = "STRING";
     char *szDbiRaw = "RAW";

@@ -156,7 +156,8 @@ static BOOL PyCom_ExcepInfoFromServerExceptionInstance(PyObject *v, EXCEPINFO *p
     return TRUE;
 }
 
-BSTR BstrFromOb(PyObject *value) {
+BSTR BstrFromOb(PyObject *value)
+{
     BSTR result = NULL;
     if (!PyWinObject_AsBstr(value, &result, TRUE, NULL)) {
         PyCom_LoggerNonServerException(NULL, L"Failed to convert exception element to a string");
@@ -179,7 +180,7 @@ BOOL PyCom_ExcepInfoFromPyObject(PyObject *v, EXCEPINFO *pExcepInfo, HRESULT *ph
 
     // New handling for 1.5 exceptions.
     if (!PyErr_GivenExceptionMatches(v, PyWinExc_COMError)) {
-        PyErr_Format(PyExc_TypeError, "Must be a COM exception object (not '%s')", v->ob_type->tp_name);
+        PyErr_Format(PyExc_TypeError, "Must be a COM exception object (not '%s')", Py_TYPE(v)->tp_name);
         return FALSE;
     }
 
@@ -188,7 +189,7 @@ BOOL PyCom_ExcepInfoFromPyObject(PyObject *v, EXCEPINFO *pExcepInfo, HRESULT *ph
     // Note that with class based exceptions, a simple pointer check fails.
     // Any class sub-classed from the client is considered a server error,
     // so we need to check the class explicitly.
-    if ((PyObject *)v->ob_type == PyWinExc_COMError) {
+    if (reinterpret_cast<PyObject *>(Py_TYPE(v)) == PyWinExc_COMError) {
         // Client side error
         // Clear the state of the excep info.
         // use abstract API to get at details.
@@ -279,20 +280,15 @@ void PyCom_CleanupExcepInfo(EXCEPINFO *pexcepinfo)
     }
 }
 
-HRESULT PyCom_CheckIEnumNextResult(HRESULT hr, REFIID riid) {
+HRESULT PyCom_CheckIEnumNextResult(HRESULT hr, REFIID riid)
+{
     return PyCom_SetCOMErrorFromSimple(
-        hr,
-        riid,
-        L"Could not convert the result from Next()/Clone() into the required COM interface"
-    );
+        hr, riid, L"Could not convert the result from Next()/Clone() into the required COM interface");
 }
 
-HRESULT PyCom_HandleIEnumNoSequence(REFIID riid) {
-    return PyCom_SetCOMErrorFromSimple(
-        E_FAIL,
-        riid,
-        L"Next() did not return a sequence of objects"
-    );
+HRESULT PyCom_HandleIEnumNoSequence(REFIID riid)
+{
+    return PyCom_SetCOMErrorFromSimple(E_FAIL, riid, L"Next() did not return a sequence of objects");
 }
 
 HRESULT PyCom_SetCOMErrorFromSimple(HRESULT hr, REFIID riid /* = IID_NULL */, const WCHAR *description /* = NULL*/)
@@ -363,7 +359,7 @@ void PyCom_StreamMessage(const WCHAR *pszMessageText)
 {
     OutputDebugString(pszMessageText);
     // PySys_WriteStderr has an internal 1024 limit due to varargs.
-    // weve already resolved them, so we gotta do it the hard way
+    // we've already resolved them, so we gotta do it the hard way
     // We can't afford to screw with the Python exception state
     PyObject *typ, *val, *tb;
     PyErr_Fetch(&typ, &val, &tb);
@@ -371,7 +367,7 @@ void PyCom_StreamMessage(const WCHAR *pszMessageText)
     if (pyfile) {
         PyObject *obUnicode = PyWinObject_FromWCHAR(pszMessageText);
         if (obUnicode) {
-            if (PyFile_WriteObject(obUnicode, pyfile,  Py_PRINT_RAW) != 0) {
+            if (PyFile_WriteObject(obUnicode, pyfile, Py_PRINT_RAW) != 0) {
                 // eeek - Python error writing this error - write it to stdout.
                 fwprintf(stdout, L"%s", pszMessageText);
             }
@@ -721,14 +717,15 @@ void GetScodeString(HRESULT hr, LPTSTR buf, int bufSize)
         HRESULT hr;
         LPCTSTR lpszName;
     };
+
 #define MAKE_HRESULT_ENTRY(hr) \
     {                          \
         hr, _T(#hr)            \
     }
+
     static const HRESULT_ENTRY hrNameTable[] = {
         MAKE_HRESULT_ENTRY(S_OK),
         MAKE_HRESULT_ENTRY(S_FALSE),
-
         MAKE_HRESULT_ENTRY(CACHE_S_FORMATETC_NOTSUPPORTED),
         MAKE_HRESULT_ENTRY(CACHE_S_SAMECACHE),
         MAKE_HRESULT_ENTRY(CACHE_S_SOMECACHES_NOTUPDATED),
@@ -978,11 +975,9 @@ void GetScodeString(HRESULT hr, LPTSTR buf, int bufSize)
         MAKE_HRESULT_ENTRY(CONNECT_E_CANNOTCONNECT),
         MAKE_HRESULT_ENTRY(CONNECT_E_OVERRIDDEN),
 
-#ifndef NO_PYCOM_IPROVIDECLASSINFO
         MAKE_HRESULT_ENTRY(CLASS_E_NOTLICENSED),
         MAKE_HRESULT_ENTRY(CLASS_E_NOAGGREGATION),
         MAKE_HRESULT_ENTRY(CLASS_E_CLASSNOTAVAILABLE),
-#endif  // NO_PYCOM_IPROVIDECLASSINFO
 
         MAKE_HRESULT_ENTRY(CTL_E_ILLEGALFUNCTIONCALL),
         MAKE_HRESULT_ENTRY(CTL_E_OVERFLOW),
@@ -1122,7 +1117,7 @@ LPCTSTR GetFacilityString(HRESULT hr)
         _T("FACILITY_0x06"),
         _T("FACILITY_WIN32"),
         _T("FACILITY_WINDOWS"),
-        _T("FACILITY_SSPI/FACILITY_MQ"),  // SSPI from ADSERR.H, MQ from mq.h
+        _T("FACILITY_SSPI/FACILITY_MQ"),  // SSPI from adserr.h, MQ from mq.h
         _T("FACILITY_CONTROL"),
         _T("FACILITY_EDK"),
         _T("FACILITY_INTERNET"),

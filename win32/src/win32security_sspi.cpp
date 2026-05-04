@@ -67,7 +67,7 @@ PySequenceMethods PySecBufferDesc_sequencemethods = {
     NULL,                         // objobjproc sq_contains;
     NULL,                         // binaryfunc sq_inplace_concat;
     NULL                          // intargfunc sq_inplace_repeat;
-};                                // ??? why isnt append included ???
+};  // ??? why isn't append included ???
 
 // @object PySecBufferDesc|Sequence-like object that contains a group of buffers to be used with SSPI functions.
 // @comm This object is created using win32security.PySecBufferDescType(Version), where Version is an int that
@@ -172,7 +172,7 @@ PySecBufferDesc::~PySecBufferDesc()
 
 BOOL PySecBufferDesc_Check(PyObject *ob)
 {
-    if (ob->ob_type != &PySecBufferDescType) {
+    if (Py_TYPE(ob) != &PySecBufferDescType) {
         PyErr_SetString(PyExc_TypeError, "Object must be a PySecBufferDesc");
         return FALSE;
     }
@@ -192,11 +192,11 @@ PyObject *PySecBufferDesc::tp_new(PyTypeObject *typ, PyObject *args, PyObject *k
     return new PySecBufferDesc(ulVersion);
 }
 
-PyObject * PySecBufferDesc::tp_repr(PyObject * obj)
+PyObject *PySecBufferDesc::tp_repr(PyObject *obj)
 {
     PSecBufferDesc psecbufferdesc = ((PySecBufferDesc *)obj)->GetSecBufferDesc();
     return PyUnicode_FromFormat("PySecBufferDesc(ulVersion: %i | cBuffers: %i | pBuffers: %p)",
-        psecbufferdesc->ulVersion, psecbufferdesc->cBuffers, psecbufferdesc->pBuffers);
+                                psecbufferdesc->ulVersion, psecbufferdesc->cBuffers, psecbufferdesc->pBuffers);
 }
 
 BOOL PyWinObject_AsSecBufferDesc(PyObject *ob, PSecBufferDesc *ppSecBufferDesc, BOOL bNoneOk)
@@ -365,8 +365,7 @@ PySecBuffer::PySecBuffer(ULONG cbBuffer, ULONG BufferType)
     secbuffer.BufferType = BufferType;
 
     allocBuffer = NULL;
-    if (cbBuffer > 0)
-    {
+    if (cbBuffer > 0) {
         // Stores our allocated memory in a class property so we don't try and free memory that wasn't allocated by us.
         // Windows could change where pvBuffer points to after a function call and we should only be concerned about
         // freeing memory that we have allocated ourselves.
@@ -394,7 +393,7 @@ PySecBuffer::~PySecBuffer()
 
 BOOL PySecBuffer_Check(PyObject *ob)
 {
-    if (ob->ob_type != &PySecBufferType) {
+    if (Py_TYPE(ob) != &PySecBufferType) {
         PyErr_SetString(PyExc_TypeError, "Object must be a PySecBuffer");
         return FALSE;
     }
@@ -452,11 +451,11 @@ PyObject *PySecBuffer::tp_new(PyTypeObject *typ, PyObject *args, PyObject *kwarg
     return new PySecBuffer(cbBuffer, BufferType);
 }
 
-PyObject * PySecBuffer::tp_repr(PyObject * obj)
+PyObject *PySecBuffer::tp_repr(PyObject *obj)
 {
     PSecBuffer psecbuffer = ((PySecBuffer *)obj)->GetSecBuffer();
     return PyUnicode_FromFormat("PySecBuffer(cbBuffer: %i | BufferType: %i | pvBuffer: %p)", psecbuffer->cbBuffer,
-        psecbuffer->BufferType, psecbuffer->pvBuffer);
+                                psecbuffer->BufferType, psecbuffer->pvBuffer);
 }
 
 // @pymethod |PySecBuffer|Clear|Resets the buffer to all NULL's, and set the current size to maximum
@@ -578,7 +577,7 @@ PyCtxtHandle::~PyCtxtHandle()
 
 BOOL PyCtxtHandle_Check(PyObject *ob)
 {
-    if (ob->ob_type != &PyCtxtHandleType) {
+    if (Py_TYPE(ob) != &PyCtxtHandleType) {
         PyErr_SetString(PyExc_TypeError, "Object must be a PyCtxtHandle");
         return FALSE;
     }
@@ -624,7 +623,6 @@ PyObject *PyCtxtHandle::MakeSignature(PyObject *self, PyObject *args)
     PyObject *obdesc;
     PSecBufferDesc psecbufferdesc;
     ULONG fqop, seq_no;
-    CHECK_SECURITYFUNCTIONTABLE(MakeSignature);
 
     if (!PyArg_ParseTuple(args, "lOl:MakeSignature", &fqop, &obdesc, &seq_no))
         return NULL;
@@ -658,7 +656,6 @@ PyObject *PyCtxtHandle::VerifySignature(PyObject *self, PyObject *args)
     PyObject *obdesc;
     PSecBufferDesc psecbufferdesc;
     ULONG fqop, seq_no;
-    CHECK_SECURITYFUNCTIONTABLE(VerifySignature);
     if (!PyArg_ParseTuple(args, "Ol:VerifySignature", &obdesc, &seq_no))
         return NULL;
 
@@ -687,7 +684,6 @@ PyObject *PyCtxtHandle::EncryptMessage(PyObject *self, PyObject *args)
     PyObject *obdesc;
     PSecBufferDesc psecbufferdesc;
     ULONG fqop, seq_no;
-    CHECK_SECURITYFUNCTIONTABLE(EncryptMessage);
 
     if (!PyArg_ParseTuple(args, "lOl:EncryptMessage", &fqop, &obdesc, &seq_no))
         return NULL;
@@ -722,7 +718,6 @@ PyObject *PyCtxtHandle::DecryptMessage(PyObject *self, PyObject *args)
     PyObject *obdesc;
     PSecBufferDesc psecbufferdesc;
     ULONG fqop, seq_no;
-    CHECK_SECURITYFUNCTIONTABLE(DecryptMessage);
     if (!PyArg_ParseTuple(args, "Ol:DecryptMessage", &obdesc, &seq_no))
         return NULL;
 
@@ -754,7 +749,6 @@ PyObject *PyCtxtHandle::Detach(PyObject *self, PyObject *args)
 // @pymethod |PyCtxtHandle|DeleteSecurityContext|Frees the security context and invalidates the handle
 PyObject *PyCtxtHandle::DeleteSecurityContext(PyObject *self, PyObject *args)
 {
-    CHECK_SECURITYFUNCTIONTABLE(DeleteSecurityContext);
     if (!PyArg_ParseTuple(args, ":DeleteSecurityContext"))
         return NULL;
     PyCtxtHandle *This = (PyCtxtHandle *)self;
@@ -778,7 +772,6 @@ PyObject *PyCtxtHandle::CompleteAuthToken(PyObject *self, PyObject *args)
     PSecBufferDesc psecbufferdesc;
     PyObject *obsecbufferdesc;
     SECURITY_STATUS err;
-    CHECK_SECURITYFUNCTIONTABLE(CompleteAuthToken);
     // @pyparm <o PySecBufferDesc>|Token||The buffer that contains the token buffer used when the context was
     // initialized
     if (!PyArg_ParseTuple(args, "O:CompleteAuthToken", &obsecbufferdesc))
@@ -805,7 +798,6 @@ PyObject *PyCtxtHandle::QueryContextAttributes(PyObject *self, PyObject *args)
     ZeroMemory(&buf, 256);
     ULONG attr;
     PyObject *ret = NULL;
-    CHECK_SECURITYFUNCTIONTABLE(QueryContextAttributesW);
     // @pyparm int|Attribute||SECPKG_ATTR_* constant
     if (!PyArg_ParseTuple(args, "l:QueryContextAttributes", &attr))
         return NULL;
@@ -896,7 +888,8 @@ PyObject *PyCtxtHandle::QueryContextAttributes(PyObject *self, PyObject *args)
             pe = (PSecPkgContext_PasswordExpiry)&buf;
             ret = PyWinObject_FromTimeStamp(pe->tsPasswordExpires);
             break;
-        // @flag SECPKG_ATTR_LIFESPAN|(<o PyDateTime>,<o PyDateTime>) - returns time period during which context is valid
+        // @flag SECPKG_ATTR_LIFESPAN|(<o PyDateTime>,<o PyDateTime>) - returns time period during which context is
+        // valid
         case SECPKG_ATTR_LIFESPAN:
             PSecPkgContext_Lifespan ls;
             ls = (PSecPkgContext_Lifespan)&buf;
@@ -959,7 +952,6 @@ PyObject *PyCtxtHandle::QuerySecurityContextToken(PyObject *self, PyObject *args
     SECURITY_STATUS err;
     PCtxtHandle pctxt;
     HANDLE htoken;
-    CHECK_SECURITYFUNCTIONTABLE(QuerySecurityContextToken);
     if (!PyArg_ParseTuple(args, ":QuerySecurityContextToken"))
         return NULL;
     pctxt = ((PyCtxtHandle *)self)->GetCtxtHandle();
@@ -972,7 +964,6 @@ PyObject *PyCtxtHandle::QuerySecurityContextToken(PyObject *self, PyObject *args
 // @pymethod |PyCtxtHandle|ImpersonateSecurityContext|Impersonates a client security context
 PyObject *PyCtxtHandle::ImpersonateSecurityContext(PyObject *self, PyObject *args)
 {
-    CHECK_SECURITYFUNCTIONTABLE(ImpersonateSecurityContext);
     PCtxtHandle pctxt;
     SECURITY_STATUS err;
     if (!PyArg_ParseTuple(args, ":ImpersonateSecurityContext"))
@@ -992,7 +983,6 @@ PyObject *PyCtxtHandle::ImpersonateSecurityContext(PyObject *self, PyObject *arg
 // PyCtxtHandle::ImpersonateSecurityContext>)
 PyObject *PyCtxtHandle::RevertSecurityContext(PyObject *self, PyObject *args)
 {
-    CHECK_SECURITYFUNCTIONTABLE(RevertSecurityContext);
     PCtxtHandle pctxt;
     SECURITY_STATUS err;
     if (!PyArg_ParseTuple(args, ":RevertSecurityContext"))
@@ -1095,7 +1085,7 @@ PyCredHandle::~PyCredHandle()
 
 BOOL PyCredHandle_Check(PyObject *ob)
 {
-    if (ob->ob_type != &PyCredHandleType) {
+    if (Py_TYPE(ob) != &PyCredHandleType) {
         PyErr_SetString(PyExc_TypeError, "Object must be a PyCredHandle");
         return FALSE;
     }
@@ -1142,7 +1132,6 @@ PyObject *PyCredHandle::Detach(PyObject *self, PyObject *args)
 // @pymethod |PyCredHandle|FreeCredentialsHandle|Releases the credentials handle and makes object unusable
 PyObject *PyCredHandle::FreeCredentialsHandle(PyObject *self, PyObject *args)
 {
-    CHECK_SECURITYFUNCTIONTABLE(FreeCredentialsHandle);
     if (!PyArg_ParseTuple(args, ":FreeCredentialsHandle"))
         return NULL;
     PyCredHandle *This = (PyCredHandle *)self;
@@ -1167,7 +1156,6 @@ PyObject *PyCredHandle::QueryCredentialsAttributes(PyObject *self, PyObject *arg
     SECURITY_STATUS err;
     PyObject *ret = NULL;
     BYTE buf[32];
-    CHECK_SECURITYFUNCTIONTABLE(QueryCredentialsAttributesW);
     PyCredHandle *This = (PyCredHandle *)self;
     PCredHandle pcredhandle = This->GetCredHandle();
     if (!PyArg_ParseTuple(args, "l:QueryCredentialsAttributes", &attr))

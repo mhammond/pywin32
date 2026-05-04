@@ -65,7 +65,7 @@ BOOL PyWinObject_AsHCRYPTHASH(PyObject *obhcrypthash, HCRYPTHASH *hcrypthash, BO
         *hcrypthash = NULL;
         return true;
     }
-    if (obhcrypthash->ob_type != &PyCRYPTHASHType) {
+    if (Py_TYPE(obhcrypthash) != &PyCRYPTHASHType) {
         PyErr_SetString(PyExc_TypeError, "Object must be of type PyCRYPTHASH");
         return FALSE;
     }
@@ -137,7 +137,7 @@ PyObject *PyCRYPTHASH::PyCryptHashData(PyObject *self, PyObject *args, PyObject 
     dwDataLen = pybuf.len();
     if (dwFlags & CRYPT_USERDATA)
         dwDataLen = 0;
-    if (CryptHashData(hcrypthash, (BYTE*)pybuf.ptr(), dwDataLen, dwFlags)) {
+    if (CryptHashData(hcrypthash, (BYTE *)pybuf.ptr(), dwDataLen, dwFlags)) {
         Py_INCREF(Py_None);
         return Py_None;
     }

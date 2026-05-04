@@ -1,4 +1,5 @@
-import win32security, win32event
+import win32event
+import win32security
 
 evt = win32event.CreateEvent(None, 0, 0, None)
 win32security.LsaRegisterPolicyChangeNotification(

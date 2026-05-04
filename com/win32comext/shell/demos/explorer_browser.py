@@ -1,15 +1,18 @@
-# A sample of using Vista's IExplorerBrowser interfaces...
+# A sample of using IExplorerBrowser interfaces...
 # Currently doesn't quite work:
 # * CPU sits at 100% while running.
 
 import sys
+
 import pythoncom
+import win32api
+import win32con
+import win32gui
+from win32com.server.util import unwrap, wrap
 from win32com.shell import shell, shellcon
-import win32gui, win32con, win32api
-from win32com.server.util import wrap, unwrap
 
 # event handler for the browser.
-IExplorerBrowserEvents_Methods = """OnNavigationComplete OnNavigationFailed 
+IExplorerBrowserEvents_Methods = """OnNavigationComplete OnNavigationFailed
                                     OnNavigationPending OnViewCreated""".split()
 
 
@@ -32,7 +35,7 @@ class EventHandler:
         # be that view!
         try:
             pyview = unwrap(view)
-            print("and look - its a Python implemented view!", pyview)
+            print("and look - it's a Python implemented view!", pyview)
         except ValueError:
             pass
 

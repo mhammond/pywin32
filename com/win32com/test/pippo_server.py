@@ -2,7 +2,9 @@
 # Originally submitted with bug:
 # [ 753154 ] memory leak wrapping object having _typelib_guid_ attribute
 # but modified by mhammond for use as part of the test suite.
-import sys, os
+import os
+import sys
+
 import pythoncom
 import win32com
 import winerror
@@ -39,22 +41,21 @@ class CPippo:
 
 
 def BuildTypelib():
-    from distutils.dep_util import newer
+    from setuptools.modified import newer
 
     this_dir = os.path.dirname(__file__)
     idl = os.path.abspath(os.path.join(this_dir, "pippo.idl"))
     tlb = os.path.splitext(idl)[0] + ".tlb"
     if newer(idl, tlb):
-        print("Compiling %s" % (idl,))
-        rc = os.system('midl "%s"' % (idl,))
-        if rc:
-            raise RuntimeError("Compiling MIDL failed!")
+        print(f"Compiling {idl}")
+        rc = os.system(f'midl "{idl}"')
+        assert not rc, "Compiling MIDL failed!"
         # Can't work out how to prevent MIDL from generating the stubs.
         # just nuke them
         for fname in "dlldata.c pippo_i.c pippo_p.c pippo.h".split():
             os.remove(os.path.join(this_dir, fname))
 
-    print("Registering %s" % (tlb,))
+    print(f"Registering {tlb}")
     tli = pythoncom.LoadTypeLib(tlb)
     pythoncom.RegisterTypeLib(tli, tlb)
 

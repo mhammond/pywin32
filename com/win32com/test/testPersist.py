@@ -1,26 +1,19 @@
-import pythoncom
-import win32com.server.util
-import time
+import os
 
-import win32com, sys, string, win32api, traceback
-import win32com.client.dynamic
-import win32com.client
 import pythoncom
-from win32com.axcontrol import axcontrol
-from pywintypes import Unicode
+import pywintypes
+import win32api
+import win32com
+import win32com.client
+import win32com.client.dynamic
+import win32com.server.util
+import win32timezone
+import win32ui
 from win32com import storagecon
+from win32com.axcontrol import axcontrol
 from win32com.test.util import CheckClean
 
-import pywintypes
-import win32ui
-import win32api, os
-
-from pywin32_testutil import str2bytes
-
 S_OK = 0
-
-import datetime
-import win32timezone
 
 now = win32timezone.now()
 
@@ -37,8 +30,8 @@ class LockBytes:
     ]
     _com_interfaces_ = [pythoncom.IID_ILockBytes]
 
-    def __init__(self, data=""):
-        self.data = str2bytes(data)
+    def __init__(self, data=b""):
+        self.data = data
         self.ctime = now
         self.mtime = now
         self.atime = now
@@ -49,43 +42,41 @@ class LockBytes:
         return result
 
     def WriteAt(self, offset, data):
-        print("WriteAt " + str(offset))
-        print("len " + str(len(data)))
+        print("WriteAt", offset)
+        print("len", len(data))
         print("data:")
-        # print data
+        # print(data)
         if len(self.data) >= offset:
             newdata = self.data[0:offset] + data
         print(len(newdata))
         if len(self.data) >= offset + len(data):
-            newdata = newdata + self.data[offset + len(data) :]
+            newdata += self.data[offset + len(data) :]
         print(len(newdata))
         self.data = newdata
         return len(data)
 
     def Flush(self, whatsthis=0):
-        print("Flush" + str(whatsthis))
+        print("Flush", whatsthis)
         fname = os.path.join(win32api.GetTempPath(), "persist.doc")
         open(fname, "wb").write(self.data)
         return S_OK
 
     def SetSize(self, size):
-        print("Set Size" + str(size))
+        print("Set Size", size)
         if size > len(self.data):
-            self.data = self.data + str2bytes("\000" * (size - len(self.data)))
+            self.data += b"\000" * (size - len(self.data))
         else:
             self.data = self.data[0:size]
         return S_OK
 
     def LockRegion(self, offset, size, locktype):
         print("LockRegion")
-        pass
 
     def UnlockRegion(self, offset, size, locktype):
         print("UnlockRegion")
-        pass
 
     def Stat(self, statflag):
-        print("returning Stat " + str(statflag))
+        print("returning Stat", statflag)
         return (
             "PyMemBytes",
             storagecon.STGTY_LOCKBYTES,
@@ -124,13 +115,13 @@ class OleClientSite:
 
     def SaveObject(self):
         print("SaveObject")
-        if self.IPersistStorage != None and self.IStorage != None:
+        if self.IPersistStorage is not None and self.IStorage is not None:
             self.IPersistStorage.Save(self.IStorage, 1)
             self.IStorage.Commit(0)
         return S_OK
 
     def GetMoniker(self, dwAssign, dwWhichMoniker):
-        print("GetMoniker " + str(dwAssign) + " " + str(dwWhichMoniker))
+        print("GetMoniker", dwAssign, dwWhichMoniker)
 
     def GetContainer(self):
         print("GetContainer")
@@ -139,7 +130,7 @@ class OleClientSite:
         print("ShowObject")
 
     def OnShowWindow(self, fShow):
-        print("ShowObject" + str(fShow))
+        print("ShowObject", fShow)
 
     def RequestNewObjectLayout(self):
         print("RequestNewObjectLayout")
@@ -215,7 +206,7 @@ def test():
     # XXX - note that
     # for para in paras:
     #       para().Font...
-    # doesnt seem to work - no error, just doesnt work
+    # doesn't seem to work - no error, just doesn't work
     # Should check if it works for VB!
 
     dpcom.Save(stcom, 0)

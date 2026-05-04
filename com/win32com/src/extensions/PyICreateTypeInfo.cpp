@@ -366,7 +366,7 @@ PyObject *PyICreateTypeInfo::SetFuncAndParamNames(PyObject *self, PyObject *args
     }
     if (!bPythonIsHappy) {
         for (i = 0; i < cNames; i++) PyWinObject_FreeBstr(pNames[i]);
-        delete pNames;
+        delete[] pNames;
         return NULL;
     }
     HRESULT hr;
@@ -375,7 +375,7 @@ PyObject *PyICreateTypeInfo::SetFuncAndParamNames(PyObject *self, PyObject *args
     PY_INTERFACE_POSTCALL;
 
     for (i = 0; i < cNames; i++) PyWinObject_FreeBstr(pNames[i]);
-    delete pNames;
+    delete[] pNames;
 
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pICTI, IID_ICreateTypeInfo);

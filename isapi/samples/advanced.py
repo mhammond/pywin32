@@ -13,9 +13,12 @@
 #   tools are installed, but you should always see the reason written
 #   to the Windows event log - see the IIS documentation for more.
 
+import os
+import stat
+import sys
+
 from isapi import isapicon
 from isapi.simple import SimpleExtension
-import sys, os, stat
 
 if hasattr(sys, "isapidllhandle"):
     import win32traceutil
@@ -54,13 +57,20 @@ if hasattr(sys, "isapidllhandle"):
 # your module, the existing module will avoid the NameError, and allow
 # you to reload that module.
 
+import threading
+
+import win32con
+import win32event
+import win32file
+import winerror
+
 from isapi import InternalReloadException
-import win32event, win32file, winerror, win32con, threading
 
 try:
-    reload_counter += 1
+    reload_counter += 1  # type: ignore[used-before-def]
 except NameError:
     reload_counter = 0
+
 
 # A watcher thread that checks for __file__ changing.
 # When it detects it, it simply sets "change_detected" to true.
@@ -129,7 +139,7 @@ class Extension(SimpleExtension):
             print("<PRE>", file=ecb)
             for q in queries:
                 val = ecb.GetServerVariable(q, "&lt;no such variable&gt;")
-                print("%s=%r" % (q, val), file=ecb)
+                print(f"{q}={val!r}", file=ecb)
             print("</PRE><P/>", file=ecb)
 
         print("This module has been imported", file=ecb)

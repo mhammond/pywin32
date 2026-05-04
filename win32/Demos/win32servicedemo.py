@@ -1,5 +1,5 @@
-import win32service
 import win32con
+import win32service
 
 
 def EnumServices():
@@ -16,7 +16,7 @@ def EnumServices():
     stateFilter = win32service.SERVICE_STATE_ALL
 
     statuses = win32service.EnumServicesStatus(hscm, typeFilter, stateFilter)
-    for (short_name, desc, status) in statuses:
+    for short_name, desc, status in statuses:
         print(short_name, desc, status)
 
 

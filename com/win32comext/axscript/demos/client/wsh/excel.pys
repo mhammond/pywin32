@@ -15,7 +15,6 @@ xl = WScript.CreateObject("Excel.Application")
 import sys
 
 xl.Visible = 1
-#xl.Workbooks().Add() # Excel versions before 98
 xl.Workbooks.Add()
 
 # Show the WScript properties.
@@ -30,5 +29,3 @@ args = WScript.Arguments
 
 for i in range(0,args.Count()):
 	Show("Arg %d" % i, args(i))
-
-
