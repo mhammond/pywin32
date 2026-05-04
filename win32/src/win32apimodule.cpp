@@ -5340,7 +5340,6 @@ int PyApplyExceptionFilter(DWORD ExceptionCode, PEXCEPTION_POINTERS ExceptionInf
     return ret;
 }
 
-#ifndef MAINWIN
 // @pymethod object|win32api|Apply|Calls a Python function, but traps Win32 exceptions.
 static PyObject *PyApply(PyObject *self, PyObject *args)
 {
@@ -5408,7 +5407,6 @@ static PyObject *PyApply(PyObject *self, PyObject *args)
     // exception handler, it is as if None were returned (ie, no tracebacks
     // or other diagnostics are printed)
 }
-#endif  // MAINWIN
 
 // @pymethod |win32api|GetFileVersionInfo|Retrieve version info for specified file
 PyObject *PyGetFileVersionInfo(PyObject *self, PyObject *args)
@@ -5939,10 +5937,8 @@ static struct PyMethodDef win32api_functions[] = {
     {"InitiateSystemShutdown", PyInitiateSystemShutdown,
      1},  // @pymeth InitiateSystemShutdown|Initiates a shutdown and optional restart of the specified computer.
 #endif
-#ifndef MAINWIN
     {"Apply", PyApply, 1},  // @pymeth Apply|Calls a Python function, but traps Win32 exceptions.
-#endif
-    {"Beep", PyBeep, 1},  // @pymeth Beep|Generates a simple tone on the speaker.
+    {"Beep", PyBeep, 1},    // @pymeth Beep|Generates a simple tone on the speaker.
     {"BeginUpdateResource", PyBeginUpdateResource,
      1},  // @pymeth BeginUpdateResource|Begins an update cycle for a PE file.
     {"ChangeDisplaySettings", PyChangeDisplaySettings,
