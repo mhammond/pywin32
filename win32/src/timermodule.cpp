@@ -72,8 +72,9 @@ static PyObject *py_timer_set_timer(PyObject *self, PyObject *args)
     }
 
     // create the win32 timer
-    Py_BEGIN_ALLOW_THREADS;
-    timer_id = ::SetTimer(NULL, 0, elapse, py_win32_timer_callback);
+    Py_BEGIN_ALLOW_THREADS
+        ;
+        timer_id = ::SetTimer(NULL, 0, elapse, py_win32_timer_callback);
     Py_END_ALLOW_THREADS;
 
     if (!timer_id)
@@ -110,8 +111,9 @@ static PyObject *py_timer_kill_timer(PyObject *self, PyObject *args)
             return NULL;
 
     BOOL rc;
-    Py_BEGIN_ALLOW_THREADS;
-    rc = ::KillTimer(NULL, timer_id);
+    Py_BEGIN_ALLOW_THREADS
+        ;
+        rc = ::KillTimer(NULL, timer_id);
     Py_END_ALLOW_THREADS;
     return PyBool_FromLong(rc);
 }

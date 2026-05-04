@@ -195,8 +195,9 @@ PyObject *PyGetSystemCpuSetInformation(PyObject *self, PyObject *args)
 
     // second call to get the actual data
     BOOL result;
-    Py_BEGIN_ALLOW_THREADS;
-    result = (*pfnGetSystemCpuSetInformation)(buffer, length, &length, NULL, 0);
+    Py_BEGIN_ALLOW_THREADS
+        ;
+        result = (*pfnGetSystemCpuSetInformation)(buffer, length, &length, NULL, 0);
     Py_END_ALLOW_THREADS;
 
     if (!result) {

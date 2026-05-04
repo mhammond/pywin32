@@ -547,8 +547,9 @@ PyObject *PyCredGetSessionTypes(PyObject *self, PyObject *args, PyObject *kwargs
     }
     BOOL res = TRUE;
     DWORD arr[CRED_TYPE_MAXIMUM];
-    Py_BEGIN_ALLOW_THREADS;
-    res = CredGetSessionTypes(mpc, arr);
+    Py_BEGIN_ALLOW_THREADS
+        ;
+        res = CredGetSessionTypes(mpc, arr);
     Py_END_ALLOW_THREADS;
     if (!res)
         return PyWin_SetAPIError("CredGetSessionTypes");

@@ -83,21 +83,22 @@ static PyObject *PyEnumObjectItems(PyObject *self, PyObject *args)
 
     PDH_STATUS pdhStatus;
 
-    Py_BEGIN_ALLOW_THREADS pdhStatus = PdhEnumObjectItems(DataSource,            // Perf log file
-                                                          Machine,               // local machine
-                                                          Object,                // object to enumerate
-                                                          szCounterListBuffer,   // pass in NULL buffers
-                                                          &dwCounterListSize,    // an 0 length to get
-                                                          szInstanceListBuffer,  // required size
-                                                          &dwInstanceListSize,   // of the buffers in chars
-                                                          detailLevel,           // counter detail level
-                                                          flags);
+    Py_BEGIN_ALLOW_THREADS
+        pdhStatus = PdhEnumObjectItems(DataSource,            // Perf log file
+                                       Machine,               // local machine
+                                       Object,                // object to enumerate
+                                       szCounterListBuffer,   // pass in NULL buffers
+                                       &dwCounterListSize,    // an 0 length to get
+                                       szInstanceListBuffer,  // required size
+                                       &dwInstanceListSize,   // of the buffers in chars
+                                       detailLevel,           // counter detail level
+                                       flags);
     Py_END_ALLOW_THREADS
 
-        // it appears NT/2k will return 0, while XP will return
-        // PDH_MORE_DATA
-        if (pdhStatus != ERROR_SUCCESS && pdhStatus != PDH_MORE_DATA) return PyWin_SetAPIError(
-            "EnumObjectItems for buffer size", pdhStatus);
+    // it appears NT/2k will return 0, while XP will return
+    // PDH_MORE_DATA
+    if (pdhStatus != ERROR_SUCCESS && pdhStatus != PDH_MORE_DATA)
+        return PyWin_SetAPIError("EnumObjectItems for buffer size", pdhStatus);
 
     // Allocate the buffers and try the call again.
     if (dwCounterListSize) {
@@ -116,21 +117,24 @@ static PyObject *PyEnumObjectItems(PyObject *self, PyObject *args)
         }
     }
 
-    Py_BEGIN_ALLOW_THREADS pdhStatus = PdhEnumObjectItems(DataSource,            // Perf log file
-                                                          Machine,               // local machine
-                                                          Object,                // object to enumerate
-                                                          szCounterListBuffer,   // pass in NULL buffers
-                                                          &dwCounterListSize,    // an 0 length to get
-                                                          szInstanceListBuffer,  // required size
-                                                          &dwInstanceListSize,   // of the buffers in chars
-                                                          detailLevel,           // counter detail level
-                                                          flags);
+    Py_BEGIN_ALLOW_THREADS
+        pdhStatus = PdhEnumObjectItems(DataSource,            // Perf log file
+                                       Machine,               // local machine
+                                       Object,                // object to enumerate
+                                       szCounterListBuffer,   // pass in NULL buffers
+                                       &dwCounterListSize,    // an 0 length to get
+                                       szInstanceListBuffer,  // required size
+                                       &dwInstanceListSize,   // of the buffers in chars
+                                       detailLevel,           // counter detail level
+                                       flags);
     Py_END_ALLOW_THREADS
 
-        if (pdhStatus != ERROR_SUCCESS) PyWin_SetAPIError("EnumObjectItems for data", pdhStatus);
-    else ret =
-        Py_BuildValue("NN", szCounterListBuffer ? PyWinObject_FromMultipleString(szCounterListBuffer) : PyList_New(0),
-                      szInstanceListBuffer ? PyWinObject_FromMultipleString(szInstanceListBuffer) : PyList_New(0));
+    if (pdhStatus != ERROR_SUCCESS)
+        PyWin_SetAPIError("EnumObjectItems for data", pdhStatus);
+    else
+        ret = Py_BuildValue(
+            "NN", szCounterListBuffer ? PyWinObject_FromMultipleString(szCounterListBuffer) : PyList_New(0),
+            szInstanceListBuffer ? PyWinObject_FromMultipleString(szInstanceListBuffer) : PyList_New(0));
 
 cleanup:
     if (szInstanceListBuffer)
@@ -164,18 +168,19 @@ static PyObject *PyEnumObjects(PyObject *self, PyObject *args)
 
     PDH_STATUS pdhStatus;
 
-    Py_BEGIN_ALLOW_THREADS pdhStatus = PdhEnumObjects(DataSource,          // perf log file
-                                                      Machine,             // local machine
-                                                      szObjectListBuffer,  // pass in NULL buffers
-                                                      &dwObjectListSize,   // an 0 length to get
-                                                      detailLevel,         // counter detail level
-                                                      refresh);
+    Py_BEGIN_ALLOW_THREADS
+        pdhStatus = PdhEnumObjects(DataSource,          // perf log file
+                                   Machine,             // local machine
+                                   szObjectListBuffer,  // pass in NULL buffers
+                                   &dwObjectListSize,   // an 0 length to get
+                                   detailLevel,         // counter detail level
+                                   refresh);
     Py_END_ALLOW_THREADS
 
-        // it appears NT/2k will return 0, while XP will return
-        // PDH_MORE_DATA
-        if (pdhStatus != ERROR_SUCCESS && pdhStatus != PDH_MORE_DATA) return PyWin_SetAPIError(
-            "EnumObjects for buffer size", pdhStatus);
+    // it appears NT/2k will return 0, while XP will return
+    // PDH_MORE_DATA
+    if (pdhStatus != ERROR_SUCCESS && pdhStatus != PDH_MORE_DATA)
+        return PyWin_SetAPIError("EnumObjects for buffer size", pdhStatus);
 
     // Allocate the buffers and try the call again.
     if (dwObjectListSize) {
@@ -186,16 +191,19 @@ static PyObject *PyEnumObjects(PyObject *self, PyObject *args)
         }
     }
 
-    Py_BEGIN_ALLOW_THREADS pdhStatus = PdhEnumObjects(DataSource,          // Perf log file
-                                                      Machine,             // local machine
-                                                      szObjectListBuffer,  // pass in NULL buffers
-                                                      &dwObjectListSize,   // an 0 length to get
-                                                      detailLevel,         // counter detail level
-                                                      0);
+    Py_BEGIN_ALLOW_THREADS
+        pdhStatus = PdhEnumObjects(DataSource,          // Perf log file
+                                   Machine,             // local machine
+                                   szObjectListBuffer,  // pass in NULL buffers
+                                   &dwObjectListSize,   // an 0 length to get
+                                   detailLevel,         // counter detail level
+                                   0);
     Py_END_ALLOW_THREADS
 
-        if (pdhStatus != ERROR_SUCCESS) PyWin_SetAPIError("EnumObjects for data", pdhStatus);
-    else ret = szObjectListBuffer ? PyWinObject_FromMultipleString(szObjectListBuffer) : PyList_New(0);
+    if (pdhStatus != ERROR_SUCCESS)
+        PyWin_SetAPIError("EnumObjects for data", pdhStatus);
+    else
+        ret = szObjectListBuffer ? PyWinObject_FromMultipleString(szObjectListBuffer) : PyList_New(0);
 
     if (szObjectListBuffer)
         free(szObjectListBuffer);
@@ -226,7 +234,8 @@ static PyObject *PyAddCounter(PyObject *self, PyObject *args)
         return NULL;
     HCOUNTER hCounter;
 
-    Py_BEGIN_ALLOW_THREADS pdhStatus = PdhAddCounter(hQuery, szPath, userData, &hCounter);
+    Py_BEGIN_ALLOW_THREADS
+        pdhStatus = PdhAddCounter(hQuery, szPath, userData, &hCounter);
 
     Py_END_ALLOW_THREADS;
     PyWinObject_FreeTCHAR(szPath);
@@ -261,7 +270,8 @@ static PyObject *PyAddEnglishCounter(PyObject *self, PyObject *args)
         return NULL;
     HCOUNTER hCounter;
 
-    Py_BEGIN_ALLOW_THREADS pdhStatus = PdhAddEnglishCounter(hQuery, szPath, userData, &hCounter);
+    Py_BEGIN_ALLOW_THREADS
+        pdhStatus = PdhAddEnglishCounter(hQuery, szPath, userData, &hCounter);
 
     Py_END_ALLOW_THREADS;
     PyWinObject_FreeTCHAR(szPath);
@@ -283,10 +293,12 @@ static PyObject *PyRemoveCounter(PyObject *self, PyObject *args)
     if (!PyWinObject_AsHANDLE(obhandle, &handle))
         return NULL;
     // @comm See also <om win32pdh.AddCounter>
-    Py_BEGIN_ALLOW_THREADS pdhStatus = PdhRemoveCounter(handle);
+    Py_BEGIN_ALLOW_THREADS
+        pdhStatus = PdhRemoveCounter(handle);
     Py_END_ALLOW_THREADS
 
-        if (pdhStatus != ERROR_SUCCESS) return PyWin_SetAPIError("RemoveCounter", pdhStatus);
+    if (pdhStatus != ERROR_SUCCESS)
+        return PyWin_SetAPIError("RemoveCounter", pdhStatus);
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -311,10 +323,11 @@ static PyObject *PyOpenQuery(PyObject *self, PyObject *args)
     if (!PyWinObject_AsTCHAR(obDataSource, &DataSource, TRUE))
         return NULL;
 
-    Py_BEGIN_ALLOW_THREADS pdhStatus = PdhOpenQuery(DataSource, userData, &hQuery);
+    Py_BEGIN_ALLOW_THREADS
+        pdhStatus = PdhOpenQuery(DataSource, userData, &hQuery);
     Py_END_ALLOW_THREADS
 
-        PyWinObject_FreeTCHAR(DataSource);
+    PyWinObject_FreeTCHAR(DataSource);
     if (pdhStatus != ERROR_SUCCESS)
         return PyWin_SetAPIError("OpenQuery", pdhStatus);
     return PyWinLong_FromHANDLE(hQuery);
@@ -333,10 +346,12 @@ static PyObject *PyCloseQuery(PyObject *self, PyObject *args)
     if (!PyWinObject_AsHANDLE(obhandle, &handle))
         return NULL;
     // @comm See also <om win32pdh.OpenQuery>
-    Py_BEGIN_ALLOW_THREADS pdhStatus = PdhCloseQuery(handle);
+    Py_BEGIN_ALLOW_THREADS
+        pdhStatus = PdhCloseQuery(handle);
     Py_END_ALLOW_THREADS
 
-        if (pdhStatus != ERROR_SUCCESS) return PyWin_SetAPIError("CloseQuery", pdhStatus);
+    if (pdhStatus != ERROR_SUCCESS)
+        return PyWin_SetAPIError("CloseQuery", pdhStatus);
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -377,9 +392,13 @@ static PyObject *PyMakeCounterPath(PyObject *self, PyObject *args)
     }
 
     PDH_STATUS pdhStatus;
-    Py_BEGIN_ALLOW_THREADS pdhStatus = PdhMakeCounterPath(&cpe, szResult, &bufSize, flags);
-    Py_END_ALLOW_THREADS if (pdhStatus != ERROR_SUCCESS) PyWin_SetAPIError("PdhMakeCounterPath", pdhStatus);
-    else ret = PyWinObject_FromTCHAR(szResult);
+    Py_BEGIN_ALLOW_THREADS
+        pdhStatus = PdhMakeCounterPath(&cpe, szResult, &bufSize, flags);
+    Py_END_ALLOW_THREADS
+    if (pdhStatus != ERROR_SUCCESS)
+        PyWin_SetAPIError("PdhMakeCounterPath", pdhStatus);
+    else
+        ret = PyWinObject_FromTCHAR(szResult);
 
 done:
     if (szResult)
@@ -408,11 +427,12 @@ static PyObject *PyGetCounterInfo(PyObject *self, PyObject *args)
     // First call to get buffer size
     DWORD bufSize = 0;
     PDH_STATUS pdhStatus;
-    Py_BEGIN_ALLOW_THREADS pdhStatus = PdhGetCounterInfo(handle, bExplainText, &bufSize, NULL);
+    Py_BEGIN_ALLOW_THREADS
+        pdhStatus = PdhGetCounterInfo(handle, bExplainText, &bufSize, NULL);
     Py_END_ALLOW_THREADS
-        // as usual, pre-xp returns ERROR_SUCCESS, xp returns PDH_MORE_DATA
-        if (pdhStatus != ERROR_SUCCESS && pdhStatus != PDH_MORE_DATA) return PyWin_SetAPIError(
-            "GetCounterInfo for size", pdhStatus);
+    // as usual, pre-xp returns ERROR_SUCCESS, xp returns PDH_MORE_DATA
+    if (pdhStatus != ERROR_SUCCESS && pdhStatus != PDH_MORE_DATA)
+        return PyWin_SetAPIError("GetCounterInfo for size", pdhStatus);
 
     PPDH_COUNTER_INFO pInfo = (PPDH_COUNTER_INFO)malloc(bufSize);
     if (pInfo == NULL) {
@@ -421,8 +441,10 @@ static PyObject *PyGetCounterInfo(PyObject *self, PyObject *args)
     }
     pInfo->dwLength = bufSize;
 
-    Py_BEGIN_ALLOW_THREADS pdhStatus = PdhGetCounterInfo(handle, bExplainText, &bufSize, pInfo);
-    Py_END_ALLOW_THREADS PyObject *rc;
+    Py_BEGIN_ALLOW_THREADS
+        pdhStatus = PdhGetCounterInfo(handle, bExplainText, &bufSize, pInfo);
+    Py_END_ALLOW_THREADS
+    PyObject *rc;
     if (pdhStatus != ERROR_SUCCESS)
         rc = PyWin_SetAPIError("GetCounterInfo for data", pdhStatus);
     else {
@@ -462,9 +484,11 @@ static PyObject *PyGetFormattedCounterValue(PyObject *self, PyObject *args)
     DWORD type;
     PDH_FMT_COUNTERVALUE result;
     PDH_STATUS pdhStatus;
-    Py_BEGIN_ALLOW_THREADS pdhStatus = PdhGetFormattedCounterValue(handle, format, &type, &result);
-    Py_END_ALLOW_THREADS if (pdhStatus != ERROR_SUCCESS) return PyWin_SetAPIError("GetFormattedCounterValue",
-                                                                                  pdhStatus);
+    Py_BEGIN_ALLOW_THREADS
+        pdhStatus = PdhGetFormattedCounterValue(handle, format, &type, &result);
+    Py_END_ALLOW_THREADS
+    if (pdhStatus != ERROR_SUCCESS)
+        return PyWin_SetAPIError("GetFormattedCounterValue", pdhStatus);
     if (!CheckCounterStatusOK(result.CStatus))
         return NULL;
 
@@ -503,8 +527,9 @@ static PyObject *PyPdhGetFormattedCounterArray(PyObject *self, PyObject *args)
     DWORD count;
     PDH_FMT_COUNTERVALUE_ITEM *pItems = NULL;
 
-    Py_BEGIN_ALLOW_THREADS;
-    pdhStatus = PdhGetFormattedCounterArray(handle, format, &size, &count, pItems);
+    Py_BEGIN_ALLOW_THREADS
+        ;
+        pdhStatus = PdhGetFormattedCounterArray(handle, format, &size, &count, pItems);
     Py_END_ALLOW_THREADS;
     if (pdhStatus != PDH_MORE_DATA) {
         return PyWin_SetAPIError("PdhGetFormattedCounterArray", pdhStatus);
@@ -515,8 +540,9 @@ static PyObject *PyPdhGetFormattedCounterArray(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    Py_BEGIN_ALLOW_THREADS;
-    pdhStatus = PdhGetFormattedCounterArray(handle, format, &size, &count, pItems);
+    Py_BEGIN_ALLOW_THREADS
+        ;
+        pdhStatus = PdhGetFormattedCounterArray(handle, format, &size, &count, pItems);
     Py_END_ALLOW_THREADS;
     if (pdhStatus != ERROR_SUCCESS) {
         free(pItems);
@@ -567,10 +593,12 @@ static PyObject *PyCollectQueryData(PyObject *self, PyObject *args)
     if (!PyWinObject_AsHANDLE(obhQuery, &hQuery))
         return NULL;
     PDH_STATUS pdhStatus;
-    Py_BEGIN_ALLOW_THREADS pdhStatus = PdhCollectQueryData(hQuery);
+    Py_BEGIN_ALLOW_THREADS
+        pdhStatus = PdhCollectQueryData(hQuery);
     Py_END_ALLOW_THREADS
 
-        if (pdhStatus != ERROR_SUCCESS) return PyWin_SetAPIError("CollectQueryData", pdhStatus);
+    if (pdhStatus != ERROR_SUCCESS)
+        return PyWin_SetAPIError("CollectQueryData", pdhStatus);
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -622,10 +650,12 @@ static PyObject *PyExpandCounterPath(PyObject *self, PyObject *args)
 
     DWORD dwSize = 0;
     PDH_STATUS pdhStatus;
-    Py_BEGIN_ALLOW_THREADS pdhStatus = PdhExpandCounterPath(path, NULL, &dwSize);
+    Py_BEGIN_ALLOW_THREADS
+        pdhStatus = PdhExpandCounterPath(path, NULL, &dwSize);
     Py_END_ALLOW_THREADS
 
-        if (dwSize == 0) return PyWin_SetAPIError("ExpandCounterPath for size", pdhStatus);
+    if (dwSize == 0)
+        return PyWin_SetAPIError("ExpandCounterPath for size", pdhStatus);
     dwSize++;
     TCHAR *buf = (TCHAR *)malloc(dwSize * sizeof(TCHAR));
     if (buf == NULL) {
@@ -633,8 +663,10 @@ static PyObject *PyExpandCounterPath(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    Py_BEGIN_ALLOW_THREADS pdhStatus = PdhExpandCounterPath(path, buf, &dwSize);
-    Py_END_ALLOW_THREADS PyObject *rc;
+    Py_BEGIN_ALLOW_THREADS
+        pdhStatus = PdhExpandCounterPath(path, buf, &dwSize);
+    Py_END_ALLOW_THREADS
+    PyObject *rc;
     if (pdhStatus != ERROR_SUCCESS)
         rc = PyWin_SetAPIError("ExpandCounterPath for data", pdhStatus);
     else
@@ -665,8 +697,11 @@ static PyObject *PyParseCounterPath(PyObject *self, PyObject *args)
     DWORD size = 0;
     PDH_STATUS pdhStatus;
 
-    Py_BEGIN_ALLOW_THREADS pdhStatus = PdhParseCounterPath(path, NULL, &size, flags);
-    Py_END_ALLOW_THREADS if (size == 0) return PyWin_SetAPIError("ParseCounterPath for size", pdhStatus);
+    Py_BEGIN_ALLOW_THREADS
+        pdhStatus = PdhParseCounterPath(path, NULL, &size, flags);
+    Py_END_ALLOW_THREADS
+    if (size == 0)
+        return PyWin_SetAPIError("ParseCounterPath for size", pdhStatus);
     void *pBuf = malloc(size);
     if (pBuf == NULL) {
         PyErr_SetString(PyExc_MemoryError, "allocating buffer for PDH_COUNTER_PATH_ELEMENTS(+strings)");
@@ -674,10 +709,11 @@ static PyObject *PyParseCounterPath(PyObject *self, PyObject *args)
     }
 
     PDH_COUNTER_PATH_ELEMENTS *pCPE = (PDH_COUNTER_PATH_ELEMENTS *)pBuf;
-    Py_BEGIN_ALLOW_THREADS pdhStatus = PdhParseCounterPath(path, pCPE, &size, flags);
+    Py_BEGIN_ALLOW_THREADS
+        pdhStatus = PdhParseCounterPath(path, pCPE, &size, flags);
     Py_END_ALLOW_THREADS
 
-        PyObject *rc;
+    PyObject *rc;
     if (pdhStatus != 0) {
         rc = PyWin_SetAPIError("ParseCounterPath", pdhStatus);
     }
@@ -706,9 +742,10 @@ static PyObject *PyParseInstanceName(PyObject *self, PyObject *args)
     TCHAR szName[_MAX_PATH], szParent[_MAX_PATH];
     DWORD nameSize = _MAX_PATH, parentSize = _MAX_PATH;
     DWORD dwInstance;
-    Py_BEGIN_ALLOW_THREADS pdhStatus =
-        PdhParseInstanceName(iname, szName, &nameSize, szParent, &parentSize, &dwInstance);
-    Py_END_ALLOW_THREADS PyWinObject_FreeTCHAR(iname);
+    Py_BEGIN_ALLOW_THREADS
+        pdhStatus = PdhParseInstanceName(iname, szName, &nameSize, szParent, &parentSize, &dwInstance);
+    Py_END_ALLOW_THREADS
+    PyWinObject_FreeTCHAR(iname);
     if (pdhStatus != 0)
         return PyWin_SetAPIError("ParseInstanceName", pdhStatus);
     return Py_BuildValue("NNk", PyWinObject_FromTCHAR(szName), PyWinObject_FromTCHAR(szParent), dwInstance);
@@ -728,8 +765,11 @@ static PyObject *PySetCounterScaleFactor(PyObject *self, PyObject *args)
         return NULL;
     if (!PyWinObject_AsHANDLE(obhCounter, &hCounter))
         return NULL;
-    Py_BEGIN_ALLOW_THREADS pdhStatus = PdhSetCounterScaleFactor(hCounter, lFactor);
-    Py_END_ALLOW_THREADS if (pdhStatus != 0) return PyWin_SetAPIError("SetCounterScaleFactor", pdhStatus);
+    Py_BEGIN_ALLOW_THREADS
+        pdhStatus = PdhSetCounterScaleFactor(hCounter, lFactor);
+    Py_END_ALLOW_THREADS
+    if (pdhStatus != 0)
+        return PyWin_SetAPIError("SetCounterScaleFactor", pdhStatus);
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -894,12 +934,15 @@ static PyObject *PyBrowseCounters(PyObject *self, PyObject *args, PyObject *kwar
     if (!PyWinObject_AsTCHAR(obDataSource, &myCfg.cfg.szDataSource, TRUE))
         goto cleanup;
 
-    Py_BEGIN_ALLOW_THREADS pdhStatus = PdhBrowseCounters(&myCfg.cfg);
+    Py_BEGIN_ALLOW_THREADS
+        pdhStatus = PdhBrowseCounters(&myCfg.cfg);
     Py_END_ALLOW_THREADS
 
-        if (pdhStatus != 0 && pdhStatus != PDH_DIALOG_CANCELLED) PyWin_SetAPIError("PdhBrowseCounters", pdhStatus);
-    else ret = myCfg.bReturnMultiple ? PyWinObject_FromMultipleString(myCfg.cfg.szReturnPathBuffer)
-                                     : PyWinObject_FromTCHAR(myCfg.cfg.szReturnPathBuffer);
+    if (pdhStatus != 0 && pdhStatus != PDH_DIALOG_CANCELLED)
+        PyWin_SetAPIError("PdhBrowseCounters", pdhStatus);
+    else
+        ret = myCfg.bReturnMultiple ? PyWinObject_FromMultipleString(myCfg.cfg.szReturnPathBuffer)
+                                    : PyWinObject_FromTCHAR(myCfg.cfg.szReturnPathBuffer);
 
 cleanup:
     // Note - myCfg does not own any references
@@ -924,8 +967,10 @@ static PyObject *PyConnectMachine(PyObject *self, PyObject *args)
     if (!PyWinObject_AsTCHAR(obPath, &path, TRUE))
         return NULL;
 
-    Py_BEGIN_ALLOW_THREADS pdhStatus = PdhConnectMachine(path);
-    Py_END_ALLOW_THREADS PyWinObject_FreeTCHAR(path);
+    Py_BEGIN_ALLOW_THREADS
+        pdhStatus = PdhConnectMachine(path);
+    Py_END_ALLOW_THREADS
+    PyWinObject_FreeTCHAR(path);
 
     PyObject *rc;
     if (pdhStatus != 0) {
@@ -955,10 +1000,12 @@ static PyObject *PyLookupPerfIndexByName(PyObject *self, PyObject *args)
         return NULL;
 
     DWORD dwIndex;
-    Py_BEGIN_ALLOW_THREADS pdhStatus = PdhLookupPerfIndexByName(mname, iname, &dwIndex);
+    Py_BEGIN_ALLOW_THREADS
+        pdhStatus = PdhLookupPerfIndexByName(mname, iname, &dwIndex);
     Py_END_ALLOW_THREADS
 
-        if (pdhStatus != 0) return PyWin_SetAPIError("LookupPerfIndexByName", pdhStatus);
+    if (pdhStatus != 0)
+        return PyWin_SetAPIError("LookupPerfIndexByName", pdhStatus);
     return PyLong_FromLong(dwIndex);
 }
 
@@ -998,9 +1045,10 @@ static PyObject *PyLookupPerfNameByIndex(PyObject *self, PyObject *args)
             PyErr_NoMemory();
             return NULL;
         }
-        Py_BEGIN_ALLOW_THREADS pdhStatus = PdhLookupPerfNameByIndex(mname, index, buffer, &buf_size);
-        Py_END_ALLOW_THREADS if (pdhStatus == ERROR_SUCCESS)
-        {
+        Py_BEGIN_ALLOW_THREADS
+            pdhStatus = PdhLookupPerfNameByIndex(mname, index, buffer, &buf_size);
+        Py_END_ALLOW_THREADS
+        if (pdhStatus == ERROR_SUCCESS) {
             ret = PyWinObject_FromTCHAR(buffer);
             break;
         }

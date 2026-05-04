@@ -277,13 +277,10 @@ PyObject *PyDoSimpleEnum(PyObject *self, PyObject *args, PFNSIMPLEENUM pfn, char
 
     Py_BEGIN_ALLOW_THREADS
         /* Bad resume handles etc can cause access violations here - catch them. */
-        PYWINTYPES_TRY
-    {
-        err = (*pfn)(szServer, level, &buf, dwPrefLen, &numRead, &totalEntries, &resumeHandle);
-    }
-    PYWINTYPES_EXCEPT { err = ERROR_INVALID_PARAMETER; }
-    Py_END_ALLOW_THREADS if (err != 0 && err != ERROR_MORE_DATA)
-    {
+        PYWINTYPES_TRY { err = (*pfn)(szServer, level, &buf, dwPrefLen, &numRead, &totalEntries, &resumeHandle); }
+        PYWINTYPES_EXCEPT { err = ERROR_INVALID_PARAMETER; }
+    Py_END_ALLOW_THREADS
+    if (err != 0 && err != ERROR_MORE_DATA) {
         ReturnNetError(fnname, err);
         goto done;
     }
@@ -341,10 +338,10 @@ PyObject *PyDoNamedEnum(PyObject *self, PyObject *args, PFNNAMEDENUM pfn, char *
     if (!FindNET_STRUCT(level, pInfos, &pInfo))
         goto done;
 
-    Py_BEGIN_ALLOW_THREADS err =
-        (*pfn)(szServer, szGroup, level, &buf, dwPrefLen, &numRead, &totalEntries, &resumeHandle);
-    Py_END_ALLOW_THREADS if (err != 0 && err != ERROR_MORE_DATA)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        err = (*pfn)(szServer, szGroup, level, &buf, dwPrefLen, &numRead, &totalEntries, &resumeHandle);
+    Py_END_ALLOW_THREADS
+    if (err != 0 && err != ERROR_MORE_DATA) {
         ReturnNetError(fnname, err);
         goto done;
     }
@@ -415,9 +412,10 @@ PyObject *PyDoGroupSet(PyObject *self, PyObject *args, PFNGROUPSET pfn, char *fn
         goto done;
     }
     for (i = 0; i < numEntries; i++) memcpy(buf + (i * pI->structsize), ppTempObjects[i], pI->structsize);
-    Py_BEGIN_ALLOW_THREADS err = (*pfn)(szServer, szGroup, level, buf, numEntries);
-    Py_END_ALLOW_THREADS if (err)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        err = (*pfn)(szServer, szGroup, level, buf, numEntries);
+    Py_END_ALLOW_THREADS
+    if (err) {
         ReturnNetError(fnname, err);
         goto done;
     }
@@ -455,9 +453,10 @@ PyObject *PyDoGetInfo(PyObject *self, PyObject *args, PFNGETINFO pfn, char *fnna
         goto done;
     if (!FindNET_STRUCT(typ, pInfos, &pInfo))
         goto done;
-    Py_BEGIN_ALLOW_THREADS err = (*pfn)(szServer, szName, typ, &buf);
-    Py_END_ALLOW_THREADS if (err)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        err = (*pfn)(szServer, szName, typ, &buf);
+    Py_END_ALLOW_THREADS
+    if (err) {
         ReturnNetError(fnname, err);
         goto done;
     }
@@ -485,9 +484,10 @@ PyObject *PyDoGetModalsInfo(PyObject *self, PyObject *args, PFNGETMODALSINFO pfn
         goto done;
     if (!FindNET_STRUCT(typ, pInfos, &pInfo))
         goto done;
-    Py_BEGIN_ALLOW_THREADS err = (*pfn)(szServer, typ, &buf);
-    Py_END_ALLOW_THREADS if (err)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        err = (*pfn)(szServer, typ, &buf);
+    Py_END_ALLOW_THREADS
+    if (err) {
         ReturnNetError(fnname, err);
         goto done;
     }
@@ -539,8 +539,8 @@ PyObject *PyNetMessageBufferSend(PyObject *self, PyObject *args)
     Py_BEGIN_ALLOW_THREADS
         // message is "BYTE *", but still expects Unicode?  Wonder why not LPTSTR like the other string args?
         rc = NetMessageBufferSend(serverName, msgName, fromName, (BYTE *)message, msgLen * sizeof(TCHAR));
-    Py_END_ALLOW_THREADS if (rc)
-    {
+    Py_END_ALLOW_THREADS
+    if (rc) {
         ReturnNetError("NetMessageBufferSend", rc);  // @pyseeapi NetMessageBufferSend
         goto done;
     }
@@ -700,9 +700,10 @@ PyObject *PyDoSetInfo(PyObject *self, PyObject *args, PFNSETINFO pfn, char *fnna
     if (!PyObject_AsNET_STRUCT(obData, pInfo, &buf))
         goto done;
 
-    Py_BEGIN_ALLOW_THREADS err = (*pfn)(szServer, szName, typ, buf, NULL);
-    Py_END_ALLOW_THREADS if (err)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        err = (*pfn)(szServer, szName, typ, buf, NULL);
+    Py_END_ALLOW_THREADS
+    if (err) {
         ReturnNetError(fnname, err);
         goto done;
     }
@@ -736,9 +737,10 @@ PyObject *PyDoSetModalsInfo(PyObject *self, PyObject *args, PFNSETMODALSINFO pfn
     if (!PyObject_AsNET_STRUCT(obData, pInfo, &buf))
         goto done;
 
-    Py_BEGIN_ALLOW_THREADS err = (*pfn)(szServer, typ, buf, NULL);
-    Py_END_ALLOW_THREADS if (err)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        err = (*pfn)(szServer, typ, buf, NULL);
+    Py_END_ALLOW_THREADS
+    if (err) {
         ReturnNetError(fnname, err);
         goto done;
     }
@@ -770,9 +772,10 @@ PyObject *PyDoAdd(PyObject *self, PyObject *args, PFNADD pfn, char *fnname, PyNE
     if (!PyObject_AsNET_STRUCT(obData, pInfo, &buf))
         goto done;
 
-    Py_BEGIN_ALLOW_THREADS err = (*pfn)(szServer, typ, buf, NULL);
-    Py_END_ALLOW_THREADS if (err)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        err = (*pfn)(szServer, typ, buf, NULL);
+    Py_END_ALLOW_THREADS
+    if (err) {
         ReturnNetError(fnname, err);
         goto done;
     }
@@ -799,9 +802,10 @@ PyObject *PyDoDel(PyObject *self, PyObject *args, PFNDEL pfn, char *fnname)
     if (!PyWinObject_AsWCHAR(obName, &szName, FALSE))
         goto done;
 
-    Py_BEGIN_ALLOW_THREADS err = (*pfn)(szServer, szName);
-    Py_END_ALLOW_THREADS if (err)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        err = (*pfn)(szServer, szName);
+    Py_END_ALLOW_THREADS
+    if (err) {
         ReturnNetError(fnname, err);
         goto done;
     }
@@ -851,9 +855,10 @@ PyObject *PyDoGroupDelMembers(PyObject *self, PyObject *args)
             goto done;
     }
 
-    Py_BEGIN_ALLOW_THREADS err = NetLocalGroupDelMembers(szServer, szGroup, 3, (BYTE *)plgrminfo, numEntries);
-    Py_END_ALLOW_THREADS if (err)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        err = NetLocalGroupDelMembers(szServer, szGroup, 3, (BYTE *)plgrminfo, numEntries);
+    Py_END_ALLOW_THREADS
+    if (err) {
         ReturnNetError("NetLocalGroupDelMembers", err);
         goto done;
     }
@@ -895,9 +900,10 @@ PyObject *PyNetGetDCName(PyObject *self, PyObject *args)
         goto done;
     if (!PyWinObject_AsWCHAR(obDomain, &szDomain, TRUE))
         goto done;
-    Py_BEGIN_ALLOW_THREADS err = NetGetDCName(szServer, szDomain, (LPBYTE *)&result);
-    Py_END_ALLOW_THREADS if (err)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        err = NetGetDCName(szServer, szDomain, (LPBYTE *)&result);
+    Py_END_ALLOW_THREADS
+    if (err) {
         ReturnNetError("NetGetDCName", err);
         goto done;
     }
@@ -928,9 +934,10 @@ PyObject *PyNetGetAnyDCName(PyObject *self, PyObject *args)
         goto done;
     if (!PyWinObject_AsWCHAR(obDomain, &szDomain, TRUE))
         goto done;
-    Py_BEGIN_ALLOW_THREADS err = NetGetAnyDCName(szServer, szDomain, (LPBYTE *)&result);
-    Py_END_ALLOW_THREADS if (err)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        err = NetGetAnyDCName(szServer, szDomain, (LPBYTE *)&result);
+    Py_END_ALLOW_THREADS
+    if (err) {
         ReturnNetError("NetGetAnyDCName", err);
         goto done;
     }
@@ -957,9 +964,10 @@ static PyObject *PyNetGetJoinInformation(PyObject *self, PyObject *args)
         return NULL;
     if (!PyWinObject_AsWCHAR(obServer, &server, TRUE))
         goto done;
-    Py_BEGIN_ALLOW_THREADS err = NetGetJoinInformation(server, &result, &status);
-    Py_END_ALLOW_THREADS if (err)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        err = NetGetJoinInformation(server, &result, &status);
+    Py_END_ALLOW_THREADS
+    if (err) {
         ReturnNetError("NetGetJoinInformation", err);
         goto done;
     }

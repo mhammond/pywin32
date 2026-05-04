@@ -135,9 +135,10 @@ PyObject *PyWinHttpGetDefaultProxyConfiguration(PyObject *self, PyObject *args)
     WINHTTP_PROXY_INFO info;
     memset(&info, 0, sizeof(info));
     BOOL ok;
-    Py_BEGIN_ALLOW_THREADS ok = WinHttpGetDefaultProxyConfiguration(&info);
-    Py_END_ALLOW_THREADS if (!ok)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        ok = WinHttpGetDefaultProxyConfiguration(&info);
+    Py_END_ALLOW_THREADS
+    if (!ok) {
         PyWin_SetAPIError("WinHttpGetDefaultProxyConfiguration");
         return NULL;
     }
@@ -174,9 +175,10 @@ PyObject *PyWinHttpGetProxyForUrl(PyObject *self, PyObject *args)
     if (!PyObject_AsWINHTTP_AUTOPROXY_OPTIONS(obOptions, &opts))
         goto done;
 
-    Py_BEGIN_ALLOW_THREADS ok = WinHttpGetProxyForUrl(hi, url, &opts, &info);
-    Py_END_ALLOW_THREADS if (!ok)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        ok = WinHttpGetProxyForUrl(hi, url, &opts, &info);
+    Py_END_ALLOW_THREADS
+    if (!ok) {
         PyWin_SetAPIError("WinHttpGetProxyForUrl");
         goto done;
     }
@@ -216,9 +218,10 @@ PyObject *PyWinHttpOpen(PyObject *self, PyObject *args)
     if (!PyWinObject_AsWCHAR(obProxyBypass, &proxy_bypass, TRUE))
         goto done;
 
-    Py_BEGIN_ALLOW_THREADS hi = WinHttpOpen(ua, dwAccessType, proxy, proxy_bypass, dwFlags);
-    Py_END_ALLOW_THREADS if (!hi)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        hi = WinHttpOpen(ua, dwAccessType, proxy, proxy_bypass, dwFlags);
+    Py_END_ALLOW_THREADS
+    if (!hi) {
         PyWin_SetAPIError("WinHttpOpen");
         goto done;
     }

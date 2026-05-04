@@ -49,11 +49,12 @@ static PyObject *PyCryptProtectData(PyObject *self, PyObject *args, PyObject *kw
 
     PyObject *ret = NULL;
     BOOL bsuccess;
-    Py_BEGIN_ALLOW_THREADS bsuccess =
-        CryptProtectData(&DataIn, DataDescr, pOptionalEntropy, pReserved, pPromptStruct, Flags, &DataOut);
-    Py_END_ALLOW_THREADS if (!bsuccess) PyWin_SetAPIError("CryptProtectData");
-    else
-    {
+    Py_BEGIN_ALLOW_THREADS
+        bsuccess = CryptProtectData(&DataIn, DataDescr, pOptionalEntropy, pReserved, pPromptStruct, Flags, &DataOut);
+    Py_END_ALLOW_THREADS
+    if (!bsuccess)
+        PyWin_SetAPIError("CryptProtectData");
+    else {
         ret = PyWinObject_FromDATA_BLOB(&DataOut);
         LocalFree(DataOut.pbData);
     }
@@ -106,11 +107,12 @@ static PyObject *PyCryptUnprotectData(PyObject *self, PyObject *args, PyObject *
     WCHAR *DataDescr = NULL;
     PyObject *ret = NULL;
     BOOL bsuccess;
-    Py_BEGIN_ALLOW_THREADS bsuccess =
-        CryptUnprotectData(&DataIn, &DataDescr, pOptionalEntropy, pReserved, pPromptStruct, Flags, &DataOut);
-    Py_END_ALLOW_THREADS if (!bsuccess) PyWin_SetAPIError("CryptUnprotectData");
-    else
-    {
+    Py_BEGIN_ALLOW_THREADS
+        bsuccess = CryptUnprotectData(&DataIn, &DataDescr, pOptionalEntropy, pReserved, pPromptStruct, Flags, &DataOut);
+    Py_END_ALLOW_THREADS
+    if (!bsuccess)
+        PyWin_SetAPIError("CryptUnprotectData");
+    else {
         ret = Py_BuildValue("NN", PyWinObject_FromWCHAR(DataDescr), PyWinObject_FromDATA_BLOB(&DataOut));
         if (DataDescr)
             LocalFree(DataDescr);
@@ -130,9 +132,10 @@ static PyObject *PyCertAlgIdToOID(PyObject *self, PyObject *args, PyObject *kwar
     // @pyparm int|AlgId||An algorithm identifier
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "I:CertAlgIdToOID", keywords, &algid))
         return NULL;
-    Py_BEGIN_ALLOW_THREADS szoid = CertAlgIdToOID(algid);
-    Py_END_ALLOW_THREADS if (szoid == NULL)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        szoid = CertAlgIdToOID(algid);
+    Py_END_ALLOW_THREADS
+    if (szoid == NULL) {
         Py_INCREF(Py_None);
         return Py_None;
     }
@@ -149,8 +152,10 @@ static PyObject *PyCertOIDToAlgId(PyObject *self, PyObject *args, PyObject *kwar
     // @pyparm string|ObjId||String szOID_* identifier
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "s:CertOIDToAlgId", keywords, &szoid))
         return NULL;
-    Py_BEGIN_ALLOW_THREADS algid = CertOIDToAlgId(szoid);
-    Py_END_ALLOW_THREADS return PyLong_FromUnsignedLong(algid);
+    Py_BEGIN_ALLOW_THREADS
+        algid = CertOIDToAlgId(szoid);
+    Py_END_ALLOW_THREADS
+    return PyLong_FromUnsignedLong(algid);
 }
 
 // @pymethod <o PyCRYPTPROV>|win32crypt|CryptAcquireContext|Retrieve handle to a cryptographic service provider
@@ -177,11 +182,12 @@ static PyObject *PyCryptAcquireContext(PyObject *self, PyObject *args, PyObject 
         goto done;
 
     BOOL bsuccess;
-    Py_BEGIN_ALLOW_THREADS bsuccess =
-        CryptAcquireContext(&hcryptprov, container_name, provider_name, dwProvType, dwFlags);
-    Py_END_ALLOW_THREADS if (!bsuccess) PyWin_SetAPIError("CryptAcquireContext");
-    else
-    {
+    Py_BEGIN_ALLOW_THREADS
+        bsuccess = CryptAcquireContext(&hcryptprov, container_name, provider_name, dwProvType, dwFlags);
+    Py_END_ALLOW_THREADS
+    if (!bsuccess)
+        PyWin_SetAPIError("CryptAcquireContext");
+    else {
         if (dwFlags & CRYPT_DELETEKEYSET) {  // when key is being deleted, no context is returned
             Py_INCREF(Py_None);
             ret = Py_None;
@@ -214,9 +220,10 @@ static PyObject *PyCryptEnumProviders(PyObject *self, PyObject *args)
         cbProvName = 0;
         pszProvName = NULL;
         ret_item = NULL;
-        Py_BEGIN_ALLOW_THREADS bsuccess = CryptEnumProviders(dwIndex, NULL, dwFlags, &dwProvType, NULL, &cbProvName);
-        Py_END_ALLOW_THREADS if (!bsuccess)
-        {
+        Py_BEGIN_ALLOW_THREADS
+            bsuccess = CryptEnumProviders(dwIndex, NULL, dwFlags, &dwProvType, NULL, &cbProvName);
+        Py_END_ALLOW_THREADS
+        if (!bsuccess) {
             err = GetLastError();
             break;
         }
@@ -225,10 +232,10 @@ static PyObject *PyCryptEnumProviders(PyObject *self, PyObject *args)
             PyErr_Format(PyExc_MemoryError, "CryptEnumProviders: Unable to allocate %d bytes", cbProvName);
             break;
         }
-        Py_BEGIN_ALLOW_THREADS bsuccess =
-            CryptEnumProviders(dwIndex, NULL, dwFlags, &dwProvType, pszProvName, &cbProvName);
-        Py_END_ALLOW_THREADS if (!bsuccess)
-        {
+        Py_BEGIN_ALLOW_THREADS
+            bsuccess = CryptEnumProviders(dwIndex, NULL, dwFlags, &dwProvType, pszProvName, &cbProvName);
+        Py_END_ALLOW_THREADS
+        if (!bsuccess) {
             err = GetLastError();
             break;
         }
@@ -273,10 +280,10 @@ static PyObject *PyCryptEnumProviderTypes(PyObject *self, PyObject *args)
         cbTypeName = 0;
         pszTypeName = NULL;
         ret_item = NULL;
-        Py_BEGIN_ALLOW_THREADS bsuccess =
-            CryptEnumProviderTypes(dwIndex, NULL, dwFlags, &dwProvType, NULL, &cbTypeName);
-        Py_END_ALLOW_THREADS if (!bsuccess)
-        {
+        Py_BEGIN_ALLOW_THREADS
+            bsuccess = CryptEnumProviderTypes(dwIndex, NULL, dwFlags, &dwProvType, NULL, &cbTypeName);
+        Py_END_ALLOW_THREADS
+        if (!bsuccess) {
             err = GetLastError();
             break;
         }
@@ -285,10 +292,10 @@ static PyObject *PyCryptEnumProviderTypes(PyObject *self, PyObject *args)
             PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", cbTypeName);
             break;
         }
-        Py_BEGIN_ALLOW_THREADS bsuccess =
-            CryptEnumProviderTypes(dwIndex, NULL, dwFlags, &dwProvType, pszTypeName, &cbTypeName);
-        Py_END_ALLOW_THREADS if (!bsuccess)
-        {
+        Py_BEGIN_ALLOW_THREADS
+            bsuccess = CryptEnumProviderTypes(dwIndex, NULL, dwFlags, &dwProvType, pszTypeName, &cbTypeName);
+        Py_END_ALLOW_THREADS
+        if (!bsuccess) {
             err = GetLastError();
             break;
         }
@@ -331,14 +338,21 @@ static PyObject *PyCryptGetDefaultProvider(PyObject *self, PyObject *args, PyObj
     PyObject *ret = NULL;
 
     BOOL bsuccess;
-    Py_BEGIN_ALLOW_THREADS bsuccess = CryptGetDefaultProvider(dwProvType, NULL, dwFlags, NULL, &cbProvName);
-    Py_END_ALLOW_THREADS if (!bsuccess) return PyWin_SetAPIError("CryptGetDefaultProvider");
+    Py_BEGIN_ALLOW_THREADS
+        bsuccess = CryptGetDefaultProvider(dwProvType, NULL, dwFlags, NULL, &cbProvName);
+    Py_END_ALLOW_THREADS
+    if (!bsuccess)
+        return PyWin_SetAPIError("CryptGetDefaultProvider");
     pszProvName = (WCHAR *)malloc(cbProvName);
     if (pszProvName == NULL)
         return PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", cbProvName);
-    Py_BEGIN_ALLOW_THREADS bsuccess = CryptGetDefaultProvider(dwProvType, NULL, dwFlags, pszProvName, &cbProvName);
-    Py_END_ALLOW_THREADS if (!bsuccess) PyWin_SetAPIError("CryptGetDefaultProvider");
-    else ret = PyWinObject_FromWCHAR(pszProvName);
+    Py_BEGIN_ALLOW_THREADS
+        bsuccess = CryptGetDefaultProvider(dwProvType, NULL, dwFlags, pszProvName, &cbProvName);
+    Py_END_ALLOW_THREADS
+    if (!bsuccess)
+        PyWin_SetAPIError("CryptGetDefaultProvider");
+    else
+        ret = PyWinObject_FromWCHAR(pszProvName);
     free(pszProvName);
     return ret;
 }
@@ -363,10 +377,12 @@ static PyObject *PyCryptSetProviderEx(PyObject *self, PyObject *args, PyObject *
         return NULL;
 
     BOOL bsuccess;
-    Py_BEGIN_ALLOW_THREADS bsuccess = CryptSetProviderEx(ProvName, dwProvType, NULL, dwFlags);
-    Py_END_ALLOW_THREADS if (!bsuccess) PyWin_SetAPIError("CryptSetProviderEx");
-    else
-    {
+    Py_BEGIN_ALLOW_THREADS
+        bsuccess = CryptSetProviderEx(ProvName, dwProvType, NULL, dwFlags);
+    Py_END_ALLOW_THREADS
+    if (!bsuccess)
+        PyWin_SetAPIError("CryptSetProviderEx");
+    else {
         Py_INCREF(Py_None);
         ret = Py_None;
     }
@@ -387,13 +403,15 @@ static PyObject *PyCryptFindLocalizedName(PyObject *self, PyObject *args, PyObje
         return NULL;
     if (!PyWinObject_AsWCHAR(obstore_name, &store_name, FALSE))
         return NULL;
-    Py_BEGIN_ALLOW_THREADS localized_name = CryptFindLocalizedName(store_name);
-    Py_END_ALLOW_THREADS if (localized_name == NULL)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        localized_name = CryptFindLocalizedName(store_name);
+    Py_END_ALLOW_THREADS
+    if (localized_name == NULL) {
         Py_INCREF(Py_None);
         ret = Py_None;
     }
-    else ret = PyWinObject_FromWCHAR(localized_name);
+    else
+        ret = PyWinObject_FromWCHAR(localized_name);
     PyWinObject_FreeWCHAR(store_name);
     return ret;
 }
@@ -423,9 +441,10 @@ static PyObject *PyCertEnumSystemStoreLocation(PyObject *self, PyObject *args, P
     if (ret == NULL)
         return NULL;
     BOOL bsuccess;
-    Py_BEGIN_ALLOW_THREADS bsuccess = CertEnumSystemStoreLocation(dwFlags, ret, CertEnumSystemStoreLocationCallback);
-    Py_END_ALLOW_THREADS if (!bsuccess)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        bsuccess = CertEnumSystemStoreLocation(dwFlags, ret, CertEnumSystemStoreLocationCallback);
+    Py_END_ALLOW_THREADS
+    if (!bsuccess) {
         Py_DECREF(ret);
         ret = NULL;
         if (!PyErr_Occurred())
@@ -479,12 +498,11 @@ static PyObject *PyCertEnumSystemStore(PyObject *self, PyObject *args, PyObject 
         return NULL;
 
     BOOL bsuccess;
-    Py_BEGIN_ALLOW_THREADS bsuccess =
-        CertEnumSystemStore(dwFlags, pvSystemStoreLocationPara, ret, CertEnumSystemStoreCallback);
+    Py_BEGIN_ALLOW_THREADS
+        bsuccess = CertEnumSystemStore(dwFlags, pvSystemStoreLocationPara, ret, CertEnumSystemStoreCallback);
     Py_END_ALLOW_THREADS
 
-        if (!bsuccess)
-    {
+    if (!bsuccess) {
         Py_DECREF(ret);
         ret = NULL;
         if (!PyErr_Occurred())
@@ -535,10 +553,10 @@ static PyObject *PyCertEnumPhysicalStore(PyObject *self, PyObject *args, PyObjec
         return NULL;
 
     BOOL bsuccess;
-    Py_BEGIN_ALLOW_THREADS bsuccess =
-        CertEnumPhysicalStore(pvSystemStore, dwFlags, (void *)ret, CertEnumPhysicalStoreCallback);
-    Py_END_ALLOW_THREADS if (!bsuccess)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        bsuccess = CertEnumPhysicalStore(pvSystemStore, dwFlags, (void *)ret, CertEnumPhysicalStoreCallback);
+    Py_END_ALLOW_THREADS
+    if (!bsuccess) {
         Py_DECREF(ret);
         ret = NULL;
         if (!PyErr_Occurred())
@@ -623,9 +641,10 @@ static PyObject *PyCertOpenStore(PyObject *self, PyObject *args, PyObject *kwarg
         }
     }
 
-    Py_BEGIN_ALLOW_THREADS hcertstore = CertOpenStore(StoreProvider, dwEncodingType, hcryptprov, dwFlags, pvPara);
-    Py_END_ALLOW_THREADS if (hcertstore == NULL)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        hcertstore = CertOpenStore(StoreProvider, dwEncodingType, hcryptprov, dwFlags, pvPara);
+    Py_END_ALLOW_THREADS
+    if (hcertstore == NULL) {
         err = GetLastError();
         // when delete is specified, return value is always NULL
         if ((dwFlags & CERT_STORE_DELETE_FLAG) && (err == 0)) {
@@ -635,7 +654,8 @@ static PyObject *PyCertOpenStore(PyObject *self, PyObject *args, PyObject *kwarg
         else
             PyWin_SetAPIError("CertOpenStore", err);
     }
-    else ret = PyWinObject_FromCERTSTORE(hcertstore);
+    else
+        ret = PyWinObject_FromCERTSTORE(hcertstore);
     if (free_wchar)
         PyWinObject_FreeWCHAR((WCHAR *)pvPara);
     return ret;
@@ -659,9 +679,13 @@ static PyObject *PyCertOpenSystemStore(PyObject *self, PyObject *args, PyObject 
         return NULL;
     if (!PyWinObject_AsWCHAR(obstore_name, &store_name, FALSE))
         return NULL;
-    Py_BEGIN_ALLOW_THREADS hcertstore = CertOpenSystemStore(hcryptprov, store_name);
-    Py_END_ALLOW_THREADS if (hcertstore == NULL) PyWin_SetAPIError("CertOpenSystemStore");
-    else ret = PyWinObject_FromCERTSTORE(hcertstore);
+    Py_BEGIN_ALLOW_THREADS
+        hcertstore = CertOpenSystemStore(hcryptprov, store_name);
+    Py_END_ALLOW_THREADS
+    if (hcertstore == NULL)
+        PyWin_SetAPIError("CertOpenSystemStore");
+    else
+        ret = PyWinObject_FromCERTSTORE(hcertstore);
     PyWinObject_FreeWCHAR(store_name);
     return ret;
 }
@@ -693,10 +717,12 @@ static PyObject *PyCertRegisterSystemStore(PyObject *self, PyObject *args, PyObj
     else if (!PyWinObject_AsWCHAR(obSystemStore, (WCHAR **)&pvSystemStore))
         return NULL;
     BOOL bsuccess;
-    Py_BEGIN_ALLOW_THREADS bsuccess = CertRegisterSystemStore(pvSystemStore, dwFlags, pStoreInfo, pvReserved);
-    Py_END_ALLOW_THREADS if (!bsuccess) PyWin_SetAPIError("CertRegisterSystemStore");
-    else
-    {
+    Py_BEGIN_ALLOW_THREADS
+        bsuccess = CertRegisterSystemStore(pvSystemStore, dwFlags, pStoreInfo, pvReserved);
+    Py_END_ALLOW_THREADS
+    if (!bsuccess)
+        PyWin_SetAPIError("CertRegisterSystemStore");
+    else {
         Py_INCREF(Py_None);
         ret = Py_None;
     }
@@ -724,10 +750,12 @@ static PyObject *PyCertUnregisterSystemStore(PyObject *self, PyObject *args, PyO
         return NULL;
 
     BOOL bsuccess;
-    Py_BEGIN_ALLOW_THREADS bsuccess = CertUnregisterSystemStore(pvSystemStore, dwFlags);
-    Py_END_ALLOW_THREADS if (!bsuccess) PyWin_SetAPIError("CertUnregisterSystemStore");
-    else
-    {
+    Py_BEGIN_ALLOW_THREADS
+        bsuccess = CertUnregisterSystemStore(pvSystemStore, dwFlags);
+    Py_END_ALLOW_THREADS
+    if (!bsuccess)
+        PyWin_SetAPIError("CertUnregisterSystemStore");
+    else {
         Py_INCREF(Py_None);
         ret = Py_None;
     }
@@ -788,8 +816,11 @@ static PyObject *PyCryptFindOIDInfo(PyObject *self, PyObject *args, PyObject *kw
             PyErr_SetString(PyExc_ValueError, "Unrecognized key type");
             return NULL;
     }
-    Py_BEGIN_ALLOW_THREADS oid_info = CryptFindOIDInfo(keytype, key, groupid);
-    Py_END_ALLOW_THREADS if (oid_info == NULL) return PyWin_SetAPIError("CryptFindOIDInfo");
+    Py_BEGIN_ALLOW_THREADS
+        oid_info = CryptFindOIDInfo(keytype, key, groupid);
+    Py_END_ALLOW_THREADS
+    if (oid_info == NULL)
+        return PyWin_SetAPIError("CryptFindOIDInfo");
     // docs say do NOT free the returned CRYPT_OID_INFO
     return PyWinObject_FromCRYPT_OID_INFO(oid_info);
 }
@@ -826,9 +857,11 @@ static PyObject *PyCryptGetKeyIdentifierProperty(PyObject *self, PyObject *args,
         return NULL;
 
     BOOL bsuccess;
-    Py_BEGIN_ALLOW_THREADS bsuccess =
-        CryptGetKeyIdentifierProperty(&chb, propid, flags, computername, reserved, &buf, &bufsize);
-    Py_END_ALLOW_THREADS if (!bsuccess) return PyWin_SetAPIError("CryptGetKeyIdentifierProperty");
+    Py_BEGIN_ALLOW_THREADS
+        bsuccess = CryptGetKeyIdentifierProperty(&chb, propid, flags, computername, reserved, &buf, &bufsize);
+    Py_END_ALLOW_THREADS
+    if (!bsuccess)
+        return PyWin_SetAPIError("CryptGetKeyIdentifierProperty");
 
     /* Usually only CERT_KEY_PROV_INFO_PROP_ID is used with this function.
         However, according to the docs other certificate properties can be requested.
@@ -938,10 +971,11 @@ static PyObject *PyCryptEnumKeyIdentifierProperties(PyObject *self, PyObject *ar
         return NULL;
 
     BOOL bsuccess;
-    Py_BEGIN_ALLOW_THREADS bsuccess = CryptEnumKeyIdentifierProperties(
-        pchb, propid, flags, computername, reserved, (void *)ret, CryptEnumKeyIdentifierProperties_callback);
-    Py_END_ALLOW_THREADS if (!bsuccess)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        bsuccess = CryptEnumKeyIdentifierProperties(pchb, propid, flags, computername, reserved, (void *)ret,
+                                                    CryptEnumKeyIdentifierProperties_callback);
+    Py_END_ALLOW_THREADS
+    if (!bsuccess) {
         Py_DECREF(ret);
         ret = NULL;
         if (!PyErr_Occurred())
@@ -980,9 +1014,10 @@ static PyObject *PyCryptEnumOIDInfo(PyObject *self, PyObject *args, PyObject *kw
         return NULL;
 
     BOOL bsuccess;
-    Py_BEGIN_ALLOW_THREADS bsuccess = CryptEnumOIDInfo(groupid, flags, (void *)ret, CryptEnumOIDInfo_callback);
-    Py_END_ALLOW_THREADS if (!bsuccess)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        bsuccess = CryptEnumOIDInfo(groupid, flags, (void *)ret, CryptEnumOIDInfo_callback);
+    Py_END_ALLOW_THREADS
+    if (!bsuccess) {
         Py_DECREF(ret);
         ret = NULL;
         if (!PyErr_Occurred())
@@ -1020,11 +1055,13 @@ static PyObject *PyCertAddSerializedElementToStore(PyObject *self, PyObject *arg
         return NULL;
 
     BOOL bsuccess;
-    Py_BEGIN_ALLOW_THREADS bsuccess = CertAddSerializedElementToStore(
-        hcertstore, (BYTE *)pybuf.ptr(), pybuf.len(), adddisposition, flags, contexttype, &contexttype_out, &context);
+    Py_BEGIN_ALLOW_THREADS
+        bsuccess = CertAddSerializedElementToStore(hcertstore, (BYTE *)pybuf.ptr(), pybuf.len(), adddisposition, flags,
+                                                   contexttype, &contexttype_out, &context);
     Py_END_ALLOW_THREADS
 
-        if (!bsuccess) return PyWin_SetAPIError("CertAddSerializedElementToStore");
+    if (!bsuccess)
+        return PyWin_SetAPIError("CertAddSerializedElementToStore");
     if (contexttype_out == CERT_STORE_CERTIFICATE_CONTEXT)
         return PyWinObject_FromCERT_CONTEXT((PCCERT_CONTEXT)context);
     else if (contexttype_out == CERT_STORE_CTL_CONTEXT)
@@ -1086,9 +1123,10 @@ static PyObject *PyCryptQueryObject(PyObject *self, PyObject *args, PyObject *kw
     }
 
     BOOL bsuccess;
-    Py_BEGIN_ALLOW_THREADS;
-    bsuccess = CryptQueryObject(objecttype, input, contenttype, formattype, flags, &encoding, &contenttypeout,
-                                &formattypeout, &hcertstore, &hcryptmsg, (const void **)&context);
+    Py_BEGIN_ALLOW_THREADS
+        ;
+        bsuccess = CryptQueryObject(objecttype, input, contenttype, formattype, flags, &encoding, &contenttypeout,
+                                    &formattypeout, &hcertstore, &hcryptmsg, (const void **)&context);
     Py_END_ALLOW_THREADS;
     if (!bsuccess)
         return PyWin_SetAPIError("CryptQueryObject");
@@ -1163,11 +1201,12 @@ static PyObject *PyCryptDecodeMessage(PyObject *self, PyObject *args, PyObject *
     if (!PyWinObject_AsCRYPT_DECRYPT_MESSAGE_PARA(obcdmp, &cdmp))
         return NULL;
 
-    Py_BEGIN_ALLOW_THREADS bsuccess =
-        CryptDecodeMessage(msg_type_flags, &cdmp, &cvmp, signer_ind, (BYTE *)pybuf.ptr(), pybuf.len(), prev_inner_type,
-                           &msg_type, &inner_type, output_buf, &output_bufsize, &exchange_cert, &signer_cert);
-    Py_END_ALLOW_THREADS if (!bsuccess)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        bsuccess = CryptDecodeMessage(msg_type_flags, &cdmp, &cvmp, signer_ind, (BYTE *)pybuf.ptr(), pybuf.len(),
+                                      prev_inner_type, &msg_type, &inner_type, output_buf, &output_bufsize,
+                                      &exchange_cert, &signer_cert);
+    Py_END_ALLOW_THREADS
+    if (!bsuccess) {
         // Callback may raise an exception
         if (!PyErr_Occurred())
             PyWin_SetAPIError("CryptDecodeMessage");
@@ -1184,18 +1223,19 @@ static PyObject *PyCryptDecodeMessage(PyObject *self, PyObject *args, PyObject *
     output_buf = (BYTE *)malloc(output_bufsize);
     if (output_buf == NULL)
         return PyErr_NoMemory();
-    Py_BEGIN_ALLOW_THREADS bsuccess =
-        CryptDecodeMessage(msg_type_flags, &cdmp, &cvmp, signer_ind, (BYTE *)pybuf.ptr(), pybuf.len(), prev_inner_type,
-                           &msg_type, &inner_type, output_buf, &output_bufsize, NULL, NULL);
-    Py_END_ALLOW_THREADS if (!bsuccess)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        bsuccess = CryptDecodeMessage(msg_type_flags, &cdmp, &cvmp, signer_ind, (BYTE *)pybuf.ptr(), pybuf.len(),
+                                      prev_inner_type, &msg_type, &inner_type, output_buf, &output_bufsize, NULL, NULL);
+    Py_END_ALLOW_THREADS
+    if (!bsuccess) {
         if (!PyErr_Occurred())
             PyWin_SetAPIError("CryptDecodeMessage");
     }
-    else ret = Py_BuildValue("{s:k,s:k,s:N,s:N,s:N}", "MsgType", msg_type, "InnerContentType", inner_type, "Decoded",
-                             PyBytes_FromStringAndSize((char *)output_buf, output_bufsize), "XchgCert",
-                             PyWinObject_FromCERT_CONTEXT(exchange_cert), "SignerCert",
-                             PyWinObject_FromCERT_CONTEXT(signer_cert));
+    else
+        ret = Py_BuildValue("{s:k,s:k,s:N,s:N,s:N}", "MsgType", msg_type, "InnerContentType", inner_type, "Decoded",
+                            PyBytes_FromStringAndSize((char *)output_buf, output_bufsize), "XchgCert",
+                            PyWinObject_FromCERT_CONTEXT(exchange_cert), "SignerCert",
+                            PyWinObject_FromCERT_CONTEXT(signer_cert));
 
     free(output_buf);
     if (!ret) {
@@ -1233,19 +1273,25 @@ static PyObject *PyCryptEncryptMessage(PyObject *self, PyObject *args, PyObject 
         return NULL;
     if (!PyWinObject_AsCERT_CONTEXTArray(obrecipients, &recipients, &recipient_cnt))
         return NULL;
-    Py_BEGIN_ALLOW_THREADS bsuccess = CryptEncryptMessage(&cemp, recipient_cnt, recipients, (BYTE *)pybuf.ptr(),
-                                                          pybuf.len(), outputbuf, &output_bufsize);
-    Py_END_ALLOW_THREADS if (!bsuccess) PyWin_SetAPIError("CryptEncryptMessage");
-    else
-    {
+    Py_BEGIN_ALLOW_THREADS
+        bsuccess = CryptEncryptMessage(&cemp, recipient_cnt, recipients, (BYTE *)pybuf.ptr(), pybuf.len(), outputbuf,
+                                       &output_bufsize);
+    Py_END_ALLOW_THREADS
+    if (!bsuccess)
+        PyWin_SetAPIError("CryptEncryptMessage");
+    else {
         outputbuf = (BYTE *)malloc(output_bufsize);
         if (outputbuf == NULL)
             PyErr_Format(PyExc_MemoryError, "CryptEncryptMessage: Unable to allocate %d bytes", output_bufsize);
         else {
-            Py_BEGIN_ALLOW_THREADS bsuccess = CryptEncryptMessage(&cemp, recipient_cnt, recipients, (BYTE *)pybuf.ptr(),
-                                                                  pybuf.len(), outputbuf, &output_bufsize);
-            Py_END_ALLOW_THREADS if (!bsuccess) PyWin_SetAPIError("CryptEncryptMessage");
-            else ret = PyBytes_FromStringAndSize((char *)outputbuf, output_bufsize);
+            Py_BEGIN_ALLOW_THREADS
+                bsuccess = CryptEncryptMessage(&cemp, recipient_cnt, recipients, (BYTE *)pybuf.ptr(), pybuf.len(),
+                                               outputbuf, &output_bufsize);
+            Py_END_ALLOW_THREADS
+            if (!bsuccess)
+                PyWin_SetAPIError("CryptEncryptMessage");
+            else
+                ret = PyBytes_FromStringAndSize((char *)outputbuf, output_bufsize);
         }
     }
 
@@ -1278,19 +1324,25 @@ static PyObject *PyCryptDecryptMessage(PyObject *self, PyObject *args, PyObject 
     if (!PyWinObject_AsCRYPT_DECRYPT_MESSAGE_PARA(obcdmp, &cdmp))
         return NULL;
 
-    Py_BEGIN_ALLOW_THREADS bsuccess =
-        CryptDecryptMessage(&cdmp, (BYTE *)pybuf.ptr(), pybuf.len(), output_buf, &output_bufsize, NULL);
-    Py_END_ALLOW_THREADS if (!bsuccess) return PyWin_SetAPIError("CryptDecryptMessage");
+    Py_BEGIN_ALLOW_THREADS
+        bsuccess = CryptDecryptMessage(&cdmp, (BYTE *)pybuf.ptr(), pybuf.len(), output_buf, &output_bufsize, NULL);
+    Py_END_ALLOW_THREADS
+    if (!bsuccess)
+        return PyWin_SetAPIError("CryptDecryptMessage");
 
     output_buf = (BYTE *)malloc(output_bufsize);
     if (output_buf == NULL)
         return PyErr_NoMemory();
 
-    Py_BEGIN_ALLOW_THREADS bsuccess =
-        CryptDecryptMessage(&cdmp, (BYTE *)pybuf.ptr(), pybuf.len(), output_buf, &output_bufsize, &exchange_cert);
-    Py_END_ALLOW_THREADS if (!bsuccess) PyWin_SetAPIError("CryptDecryptMessage");
-    else ret = Py_BuildValue("NN", PyBytes_FromStringAndSize((char *)output_buf, output_bufsize),
-                             PyWinObject_FromCERT_CONTEXT(exchange_cert));
+    Py_BEGIN_ALLOW_THREADS
+        bsuccess =
+            CryptDecryptMessage(&cdmp, (BYTE *)pybuf.ptr(), pybuf.len(), output_buf, &output_bufsize, &exchange_cert);
+    Py_END_ALLOW_THREADS
+    if (!bsuccess)
+        PyWin_SetAPIError("CryptDecryptMessage");
+    else
+        ret = Py_BuildValue("NN", PyBytes_FromStringAndSize((char *)output_buf, output_bufsize),
+                            PyWinObject_FromCERT_CONTEXT(exchange_cert));
     free(output_buf);
     return ret;
 }
@@ -1324,10 +1376,11 @@ static PyObject *PyCryptSignAndEncryptMessage(PyObject *self, PyObject *args, Py
         goto cleanup;
 
     BOOL bsuccess;
-    Py_BEGIN_ALLOW_THREADS bsuccess = CryptSignAndEncryptMessage(
-        &csmp, &cemp, recipient_cnt, recipients, (BYTE *)pybuf.ptr(), pybuf.len(), output_buf, &output_bufsize);
-    Py_END_ALLOW_THREADS if (!bsuccess)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        bsuccess = CryptSignAndEncryptMessage(&csmp, &cemp, recipient_cnt, recipients, (BYTE *)pybuf.ptr(), pybuf.len(),
+                                              output_buf, &output_bufsize);
+    Py_END_ALLOW_THREADS
+    if (!bsuccess) {
         PyWin_SetAPIError("CryptSignAndEncryptMessage");
         goto cleanup;
     }
@@ -1338,10 +1391,11 @@ static PyObject *PyCryptSignAndEncryptMessage(PyObject *self, PyObject *args, Py
         goto cleanup;
     }
 
-    Py_BEGIN_ALLOW_THREADS bsuccess = CryptSignAndEncryptMessage(
-        &csmp, &cemp, recipient_cnt, recipients, (BYTE *)pybuf.ptr(), pybuf.len(), output_buf, &output_bufsize);
-    Py_END_ALLOW_THREADS if (!bsuccess)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        bsuccess = CryptSignAndEncryptMessage(&csmp, &cemp, recipient_cnt, recipients, (BYTE *)pybuf.ptr(), pybuf.len(),
+                                              output_buf, &output_bufsize);
+    Py_END_ALLOW_THREADS
+    if (!bsuccess) {
         PyWin_SetAPIError("CryptSignAndEncryptMessage");
         goto cleanup;
     }
@@ -1382,12 +1436,12 @@ static PyObject *PyCryptVerifyMessageSignature(PyObject *self, PyObject *args, P
 
     if (!PyWinObject_AsCRYPT_VERIFY_MESSAGE_PARA(obcvmp, &cvmp))
         return NULL;
-    Py_BEGIN_ALLOW_THREADS bsuccess = CryptVerifyMessageSignature(&cvmp, signer_ind, (BYTE *)pybuf.ptr(), pybuf.len(),
-                                                                  output_buf, &output_bufsize, &signer_cert);
+    Py_BEGIN_ALLOW_THREADS
+        bsuccess = CryptVerifyMessageSignature(&cvmp, signer_ind, (BYTE *)pybuf.ptr(), pybuf.len(), output_buf,
+                                               &output_bufsize, &signer_cert);
     Py_END_ALLOW_THREADS
-        // Callback may have already set an exception
-        if (!bsuccess)
-    {
+    // Callback may have already set an exception
+    if (!bsuccess) {
         if (!PyErr_Occurred())
             PyWin_SetAPIError("CryptVerifyMessageSignature");
         return NULL;
@@ -1401,16 +1455,18 @@ static PyObject *PyCryptVerifyMessageSignature(PyObject *self, PyObject *args, P
     if (output_buf == NULL)
         PyErr_NoMemory();
     else {
-        Py_BEGIN_ALLOW_THREADS bsuccess = CryptVerifyMessageSignature(&cvmp, signer_ind, (BYTE *)pybuf.ptr(),
-                                                                      pybuf.len(), output_buf, &output_bufsize, NULL);
-        Py_END_ALLOW_THREADS if (!bsuccess)
-        {
+        Py_BEGIN_ALLOW_THREADS
+            bsuccess = CryptVerifyMessageSignature(&cvmp, signer_ind, (BYTE *)pybuf.ptr(), pybuf.len(), output_buf,
+                                                   &output_bufsize, NULL);
+        Py_END_ALLOW_THREADS
+        if (!bsuccess) {
             // Callback may have already set an exception
             if (!PyErr_Occurred())
                 PyWin_SetAPIError("CryptVerifyMessageSignature");
         }
-        else ret = Py_BuildValue("{s:N, s:N}", "SignerCert", PyWinObject_FromCERT_CONTEXT(signer_cert), "Decoded",
-                                 PyBytes_FromStringAndSize((char *)output_buf, output_bufsize));
+        else
+            ret = Py_BuildValue("{s:N, s:N}", "SignerCert", PyWinObject_FromCERT_CONTEXT(signer_cert), "Decoded",
+                                PyBytes_FromStringAndSize((char *)output_buf, output_bufsize));
     }
     if (output_buf)
         free(output_buf);
@@ -1441,9 +1497,11 @@ static PyObject *PyCryptGetMessageCertificates(PyObject *self, PyObject *args, P
         return NULL;
     if (!PyWinObject_AsHCRYPTPROV(obcsp, &csp, TRUE))
         return NULL;
-    Py_BEGIN_ALLOW_THREADS hcertstore =
-        CryptGetMessageCertificates(encoding_type, csp, flags, (BYTE *)pybuf.ptr(), pybuf.len());
-    Py_END_ALLOW_THREADS if (hcertstore == NULL) return PyWin_SetAPIError("CryptGetMessageCertificates");
+    Py_BEGIN_ALLOW_THREADS
+        hcertstore = CryptGetMessageCertificates(encoding_type, csp, flags, (BYTE *)pybuf.ptr(), pybuf.len());
+    Py_END_ALLOW_THREADS
+    if (hcertstore == NULL)
+        return PyWin_SetAPIError("CryptGetMessageCertificates");
     return PyWinObject_FromCERTSTORE(hcertstore);
 }
 
@@ -1464,8 +1522,11 @@ static PyObject *PyCryptGetMessageSignerCount(PyObject *self, PyObject *args, Py
     PyWinBufferView pybuf(obbuf);
     if (!pybuf.ok())
         return NULL;
-    Py_BEGIN_ALLOW_THREADS signer_cnt = CryptGetMessageSignerCount(encoding_type, (BYTE *)pybuf.ptr(), pybuf.len());
-    Py_END_ALLOW_THREADS if (signer_cnt == -1) return PyWin_SetAPIError("CryptGetMessageSignerCount");
+    Py_BEGIN_ALLOW_THREADS
+        signer_cnt = CryptGetMessageSignerCount(encoding_type, (BYTE *)pybuf.ptr(), pybuf.len());
+    Py_END_ALLOW_THREADS
+    if (signer_cnt == -1)
+        return PyWin_SetAPIError("CryptGetMessageSignerCount");
     return PyLong_FromLong(signer_cnt);
 }
 
@@ -1494,10 +1555,11 @@ static PyObject *PyCryptSignMessage(PyObject *self, PyObject *args, PyObject *kw
         goto cleanup;
 
     BOOL bsuccess;
-    Py_BEGIN_ALLOW_THREADS bsuccess =
-        CryptSignMessage(&csmp, detached_sig, msg_cnt, (const BYTE **)msgs, msg_sizes, output_buf, &output_bufsize);
-    Py_END_ALLOW_THREADS if (!bsuccess)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        bsuccess =
+            CryptSignMessage(&csmp, detached_sig, msg_cnt, (const BYTE **)msgs, msg_sizes, output_buf, &output_bufsize);
+    Py_END_ALLOW_THREADS
+    if (!bsuccess) {
         PyWin_SetAPIError("CryptSignMessage");
         goto cleanup;
     }
@@ -1507,10 +1569,11 @@ static PyObject *PyCryptSignMessage(PyObject *self, PyObject *args, PyObject *kw
         goto cleanup;
     }
 
-    Py_BEGIN_ALLOW_THREADS bsuccess =
-        CryptSignMessage(&csmp, detached_sig, msg_cnt, (const BYTE **)msgs, msg_sizes, output_buf, &output_bufsize);
-    Py_END_ALLOW_THREADS if (!bsuccess)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        bsuccess =
+            CryptSignMessage(&csmp, detached_sig, msg_cnt, (const BYTE **)msgs, msg_sizes, output_buf, &output_bufsize);
+    Py_END_ALLOW_THREADS
+    if (!bsuccess) {
         PyWin_SetAPIError("CryptSignMessage");
         goto cleanup;
     }
@@ -1553,10 +1616,14 @@ static PyObject *PyCryptVerifyDetachedMessageSignature(PyObject *self, PyObject 
         return NULL;
 
     BOOL bsuccess;
-    Py_BEGIN_ALLOW_THREADS bsuccess = CryptVerifyDetachedMessageSignature(
-        &cvmp, signer_ind, (BYTE *)pybuf.ptr(), pybuf.len(), msg_cnt, (const BYTE **)msgs, msg_sizes, &signer_cert);
-    Py_END_ALLOW_THREADS if (!bsuccess) PyWin_SetAPIError("CryptVerifyDetachedMessageSignature");
-    else ret = PyWinObject_FromCERT_CONTEXT(signer_cert);
+    Py_BEGIN_ALLOW_THREADS
+        bsuccess = CryptVerifyDetachedMessageSignature(&cvmp, signer_ind, (BYTE *)pybuf.ptr(), pybuf.len(), msg_cnt,
+                                                       (const BYTE **)msgs, msg_sizes, &signer_cert);
+    Py_END_ALLOW_THREADS
+    if (!bsuccess)
+        PyWin_SetAPIError("CryptVerifyDetachedMessageSignature");
+    else
+        ret = PyWinObject_FromCERT_CONTEXT(signer_cert);
 
     PyWinObject_FreePBYTEArray(msgs, msg_sizes, msg_cnt);
     return ret;
@@ -1596,20 +1663,26 @@ static PyObject *PyCryptDecryptAndVerifyMessageSignature(PyObject *self, PyObjec
         return NULL;
 
     BOOL bsuccess;
-    Py_BEGIN_ALLOW_THREADS bsuccess = CryptDecryptAndVerifyMessageSignature(
-        &cdmp, &cvmp, signer_ind, (BYTE *)pybuf.ptr(), pybuf.len(), output_buf, &output_bufsize, NULL, NULL);
-    Py_END_ALLOW_THREADS if (!bsuccess) return PyWin_SetAPIError("CryptDecryptAndVerifyMessageSignature");
+    Py_BEGIN_ALLOW_THREADS
+        bsuccess = CryptDecryptAndVerifyMessageSignature(&cdmp, &cvmp, signer_ind, (BYTE *)pybuf.ptr(), pybuf.len(),
+                                                         output_buf, &output_bufsize, NULL, NULL);
+    Py_END_ALLOW_THREADS
+    if (!bsuccess)
+        return PyWin_SetAPIError("CryptDecryptAndVerifyMessageSignature");
 
     output_buf = (BYTE *)malloc(output_bufsize);
     if (output_buf == NULL)
         return PyErr_NoMemory();
-    Py_BEGIN_ALLOW_THREADS bsuccess =
-        CryptDecryptAndVerifyMessageSignature(&cdmp, &cvmp, signer_ind, (BYTE *)pybuf.ptr(), pybuf.len(), output_buf,
-                                              &output_bufsize, &exchange_cert, &signer_cert);
-    Py_END_ALLOW_THREADS if (!bsuccess) PyWin_SetAPIError("CryptDecryptAndVerifyMessageSignature");
-    else ret = Py_BuildValue(
-        "{s:N,s:N,s:N}", "Decrypted", PyBytes_FromStringAndSize((char *)output_buf, output_bufsize), "XchgCert",
-        PyWinObject_FromCERT_CONTEXT(exchange_cert), "SignerCert", PyWinObject_FromCERT_CONTEXT(signer_cert));
+    Py_BEGIN_ALLOW_THREADS
+        bsuccess = CryptDecryptAndVerifyMessageSignature(&cdmp, &cvmp, signer_ind, (BYTE *)pybuf.ptr(), pybuf.len(),
+                                                         output_buf, &output_bufsize, &exchange_cert, &signer_cert);
+    Py_END_ALLOW_THREADS
+    if (!bsuccess)
+        PyWin_SetAPIError("CryptDecryptAndVerifyMessageSignature");
+    else
+        ret = Py_BuildValue("{s:N,s:N,s:N}", "Decrypted", PyBytes_FromStringAndSize((char *)output_buf, output_bufsize),
+                            "XchgCert", PyWinObject_FromCERT_CONTEXT(exchange_cert), "SignerCert",
+                            PyWinObject_FromCERT_CONTEXT(signer_cert));
 
     free(output_buf);
     return ret;
@@ -1696,10 +1769,13 @@ static PyObject *PyCryptEncodeObjectEx(PyObject *self, PyObject *args, PyObject 
         goto cleanup;
     }
     BOOL bsuccess;
-    Py_BEGIN_ALLOW_THREADS bsuccess =
-        CryptEncodeObjectEx(encoding, structtype, input_buf, flags, NULL, &output_buf, &output_bufsize);
-    Py_END_ALLOW_THREADS if (!bsuccess) PyWin_SetAPIError("CryptDecodeObjectEx");
-    else ret = PyBytes_FromStringAndSize((char *)output_buf, output_bufsize);
+    Py_BEGIN_ALLOW_THREADS
+        bsuccess = CryptEncodeObjectEx(encoding, structtype, input_buf, flags, NULL, &output_buf, &output_bufsize);
+    Py_END_ALLOW_THREADS
+    if (!bsuccess)
+        PyWin_SetAPIError("CryptDecodeObjectEx");
+    else
+        ret = PyBytes_FromStringAndSize((char *)output_buf, output_bufsize);
 
 cleanup:
     if ((oid_is_str && (strcmp(structtype, szOID_ENHANCED_KEY_USAGE) == 0)) || (structtype == X509_ENHANCED_KEY_USAGE))
@@ -1745,10 +1821,11 @@ static PyObject *PyCryptDecodeObjectEx(PyObject *self, PyObject *args, PyObject 
     }
 
     BOOL bsuccess;
-    Py_BEGIN_ALLOW_THREADS bsuccess = CryptDecodeObjectEx(encoding, structtype, (BYTE *)pybuf.ptr(), pybuf.len(), flags,
-                                                          NULL, &output_buf, &output_bufsize);
-    Py_END_ALLOW_THREADS if (!bsuccess)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        bsuccess = CryptDecodeObjectEx(encoding, structtype, (BYTE *)pybuf.ptr(), pybuf.len(), flags, NULL, &output_buf,
+                                       &output_bufsize);
+    Py_END_ALLOW_THREADS
+    if (!bsuccess) {
         PyWin_SetAPIError("CryptDecodeObjectEx");
         goto cleanup;
     }
@@ -1878,14 +1955,21 @@ static PyObject *PyCertNameToStr(PyObject *self, PyObject *args, PyObject *kwarg
     cnb.pbData = (BYTE *)pybuf.ptr();
     cnb.cbData = pybuf.len();
 
-    Py_BEGIN_ALLOW_THREADS output_buflen = CertNameToStr(encoding, &cnb, strtype, output_buf, output_buflen);
-    Py_END_ALLOW_THREADS if (output_buflen == 0) return PyWin_SetAPIError("CertNameToStr");
+    Py_BEGIN_ALLOW_THREADS
+        output_buflen = CertNameToStr(encoding, &cnb, strtype, output_buf, output_buflen);
+    Py_END_ALLOW_THREADS
+    if (output_buflen == 0)
+        return PyWin_SetAPIError("CertNameToStr");
     output_buf = (WCHAR *)malloc(output_buflen * sizeof(WCHAR));
     if (output_buf == NULL)
         return PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", output_buflen);
-    Py_BEGIN_ALLOW_THREADS output_buflen = CertNameToStr(encoding, &cnb, strtype, output_buf, output_buflen);
-    Py_END_ALLOW_THREADS if (output_buflen == 0) PyWin_SetAPIError("CertNameToStr");
-    else ret = PyWinObject_FromWCHAR(output_buf);
+    Py_BEGIN_ALLOW_THREADS
+        output_buflen = CertNameToStr(encoding, &cnb, strtype, output_buf, output_buflen);
+    Py_END_ALLOW_THREADS
+    if (output_buflen == 0)
+        PyWin_SetAPIError("CertNameToStr");
+    else
+        ret = PyWinObject_FromWCHAR(output_buf);
     free(output_buf);
     return ret;
 }
@@ -1926,17 +2010,24 @@ static PyObject *PyCryptFormatObject(PyObject *self, PyObject *args, PyObject *k
     }
 
     BOOL bsuccess;
-    Py_BEGIN_ALLOW_THREADS bsuccess = CryptFormatObject(encoding, fmt_type, string_fmt, fmt_struct, oid,
-                                                        (BYTE *)pybuf.ptr(), pybuf.len(), output_buf, &output_bufsize);
-    Py_END_ALLOW_THREADS if (!bsuccess) return PyWin_SetAPIError("CryptFormatObject");
+    Py_BEGIN_ALLOW_THREADS
+        bsuccess = CryptFormatObject(encoding, fmt_type, string_fmt, fmt_struct, oid, (BYTE *)pybuf.ptr(), pybuf.len(),
+                                     output_buf, &output_bufsize);
+    Py_END_ALLOW_THREADS
+    if (!bsuccess)
+        return PyWin_SetAPIError("CryptFormatObject");
     output_buf = malloc(output_bufsize);
     if (output_buf == NULL)
         return PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", output_bufsize);
 
-    Py_BEGIN_ALLOW_THREADS bsuccess = CryptFormatObject(encoding, fmt_type, string_fmt, fmt_struct, oid,
-                                                        (BYTE *)pybuf.ptr(), pybuf.len(), output_buf, &output_bufsize);
-    Py_END_ALLOW_THREADS if (!bsuccess) PyWin_SetAPIError("CryptFormatObject");
-    else ret = PyWinObject_FromWCHAR((WCHAR *)output_buf);
+    Py_BEGIN_ALLOW_THREADS
+        bsuccess = CryptFormatObject(encoding, fmt_type, string_fmt, fmt_struct, oid, (BYTE *)pybuf.ptr(), pybuf.len(),
+                                     output_buf, &output_bufsize);
+    Py_END_ALLOW_THREADS
+    if (!bsuccess)
+        PyWin_SetAPIError("CryptFormatObject");
+    else
+        ret = PyWinObject_FromWCHAR((WCHAR *)output_buf);
     free(output_buf);
     return ret;
 }
@@ -1966,8 +2057,11 @@ static PyObject *PyPFXImportCertStore(PyObject *self, PyObject *args, PyObject *
         return NULL;
     if (!PyWinObject_AsWCHAR(obpassword, &password, TRUE))
         return NULL;
-    Py_BEGIN_ALLOW_THREADS hcertstore = PFXImportCertStore(&input_buf, password, flags);
-    Py_END_ALLOW_THREADS if (hcertstore == NULL) return PyWin_SetAPIError("PFXImportCertStore");
+    Py_BEGIN_ALLOW_THREADS
+        hcertstore = PFXImportCertStore(&input_buf, password, flags);
+    Py_END_ALLOW_THREADS
+    if (hcertstore == NULL)
+        return PyWin_SetAPIError("PFXImportCertStore");
     return PyWinObject_FromCERTSTORE(hcertstore);
 }
 
@@ -1993,8 +2087,10 @@ static PyObject *PyPFXVerifyPassword(PyObject *self, PyObject *args, PyObject *k
     if (!PyWinObject_AsWCHAR(obpassword, &password, TRUE))
         return NULL;
     BOOL out;
-    Py_BEGIN_ALLOW_THREADS out = PFXVerifyPassword(&input_buf, password, flags);
-    Py_END_ALLOW_THREADS return PyBool_FromLong(out);
+    Py_BEGIN_ALLOW_THREADS
+        out = PFXVerifyPassword(&input_buf, password, flags);
+    Py_END_ALLOW_THREADS
+    return PyBool_FromLong(out);
 }
 
 // @pymethod boolean|win32crypt|PFXIsPFXBlob|Checks if data buffer contains a PFX blob
@@ -2010,8 +2106,10 @@ static PyObject *PyPFXIsPFXBlob(PyObject *self, PyObject *args, PyObject *kwargs
     if (!PyWinObject_AsDATA_BLOB(obinput_buf, &input_buf))
         return NULL;
     BOOL out;
-    Py_BEGIN_ALLOW_THREADS out = PFXIsPFXBlob(&input_buf);
-    Py_END_ALLOW_THREADS return PyBool_FromLong(out);
+    Py_BEGIN_ALLOW_THREADS
+        out = PFXIsPFXBlob(&input_buf);
+    Py_END_ALLOW_THREADS
+    return PyBool_FromLong(out);
 }
 
 // @pymethod str|win32crypt|CryptBinaryToString|Formats a binary buffer into the specified type of string
@@ -2032,18 +2130,23 @@ static PyObject *PyCryptBinaryToString(PyObject *self, PyObject *args, PyObject 
     if (!pybuf.ok())
         return NULL;
     BOOL bsuccess;
-    Py_BEGIN_ALLOW_THREADS bsuccess =
-        CryptBinaryToString((BYTE *)pybuf.ptr(), pybuf.len(), flags, output_buf, &output_size);
-    Py_END_ALLOW_THREADS if (!bsuccess) return PyWin_SetAPIError("CryptBinaryToString");
+    Py_BEGIN_ALLOW_THREADS
+        bsuccess = CryptBinaryToString((BYTE *)pybuf.ptr(), pybuf.len(), flags, output_buf, &output_size);
+    Py_END_ALLOW_THREADS
+    if (!bsuccess)
+        return PyWin_SetAPIError("CryptBinaryToString");
     output_buf = (WCHAR *)malloc(output_size * sizeof(WCHAR));
     if (output_buf == NULL)
         return PyErr_NoMemory();
 
     PyObject *ret = NULL;
-    Py_BEGIN_ALLOW_THREADS bsuccess =
-        CryptBinaryToString((BYTE *)pybuf.ptr(), pybuf.len(), flags, output_buf, &output_size);
-    Py_END_ALLOW_THREADS if (!bsuccess) PyWin_SetAPIError("CryptBinaryToString");
-    else ret = PyWinObject_FromWCHAR(output_buf, output_size);
+    Py_BEGIN_ALLOW_THREADS
+        bsuccess = CryptBinaryToString((BYTE *)pybuf.ptr(), pybuf.len(), flags, output_buf, &output_size);
+    Py_END_ALLOW_THREADS
+    if (!bsuccess)
+        PyWin_SetAPIError("CryptBinaryToString");
+    else
+        ret = PyWinObject_FromWCHAR(output_buf, output_size);
     free(output_buf);
     return ret;
 }
@@ -2068,17 +2171,19 @@ static PyObject *PyCryptStringToBinary(PyObject *self, PyObject *args, PyObject 
     if (!PyWinObject_AsWCHAR(obinput_buf, &input_buf, FALSE, &input_size))
         return NULL;
     BOOL bsuccess;
-    Py_BEGIN_ALLOW_THREADS bsuccess =
-        CryptStringToBinary(input_buf, input_size, flags, output_buf, &output_size, &skip, &out_flags);
-    Py_END_ALLOW_THREADS if (!bsuccess) return PyWin_SetAPIError("CryptStringToBinary");
+    Py_BEGIN_ALLOW_THREADS
+        bsuccess = CryptStringToBinary(input_buf, input_size, flags, output_buf, &output_size, &skip, &out_flags);
+    Py_END_ALLOW_THREADS
+    if (!bsuccess)
+        return PyWin_SetAPIError("CryptStringToBinary");
     oboutput_buf = PyBytes_FromStringAndSize(NULL, output_size);
     if (oboutput_buf == NULL)
         return NULL;
     output_buf = (BYTE *)PyBytes_AS_STRING(oboutput_buf);
-    Py_BEGIN_ALLOW_THREADS bsuccess =
-        CryptStringToBinary(input_buf, input_size, flags, output_buf, &output_size, &skip, &out_flags);
-    Py_END_ALLOW_THREADS if (!bsuccess)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        bsuccess = CryptStringToBinary(input_buf, input_size, flags, output_buf, &output_size, &skip, &out_flags);
+    Py_END_ALLOW_THREADS
+    if (!bsuccess) {
         Py_DECREF(oboutput_buf);
         return PyWin_SetAPIError("CryptStringToBinary");
     }

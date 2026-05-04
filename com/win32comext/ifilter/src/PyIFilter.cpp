@@ -163,8 +163,9 @@ static PyObject *pyLoadIFilter(PyObject *self, PyObject *args)
     if (!PyWinObject_AsWCHAR(obPath, &path, FALSE))
         goto done;
 
-    Py_BEGIN_ALLOW_THREADS;
-    hr = LoadIFilter(path, NULL, (void **)&pOb);
+    Py_BEGIN_ALLOW_THREADS
+        ;
+        hr = LoadIFilter(path, NULL, (void **)&pOb);
     Py_END_ALLOW_THREADS;
     if (FAILED(hr))
         ret = OleSetOleError(hr);
@@ -195,9 +196,10 @@ static PyObject *pyBindIFilterFromStorage(PyObject *self, PyObject *args)
     if (!bPythonIsHappy)
         return NULL;
 
-    Py_BEGIN_ALLOW_THREADS;
-    hr = BindIFilterFromStorage(pstgDest, NULL, (void **)&pOb);
-    pstgDest->Release();
+    Py_BEGIN_ALLOW_THREADS
+        ;
+        hr = BindIFilterFromStorage(pstgDest, NULL, (void **)&pOb);
+        pstgDest->Release();
     Py_END_ALLOW_THREADS;
     if (FAILED(hr))
         ret = OleSetOleError(hr);
@@ -227,9 +229,10 @@ static PyObject *pyBindIFilterFromStream(PyObject *self, PyObject *args)
     if (!bPythonIsHappy)
         return NULL;
 
-    Py_BEGIN_ALLOW_THREADS;
-    hr = BindIFilterFromStream(pstm, NULL, (void **)&pOb);
-    pstm->Release();
+    Py_BEGIN_ALLOW_THREADS
+        ;
+        hr = BindIFilterFromStream(pstm, NULL, (void **)&pOb);
+        pstm->Release();
     Py_END_ALLOW_THREADS;
     if (FAILED(hr))
         ret = OleSetOleError(hr);

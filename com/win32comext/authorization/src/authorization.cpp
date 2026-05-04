@@ -23,8 +23,9 @@ static PyObject *PyEditSecurity(PyObject *self, PyObject *args, PyObject *kwargs
     if (!PyCom_InterfaceFromPyObject(obisi, IID_ISecurityInformation, (void **)&isi, FALSE))
         return NULL;
 
-    Py_BEGIN_ALLOW_THREADS;
-    bsuccess = EditSecurity(hwnd, isi);
+    Py_BEGIN_ALLOW_THREADS
+        ;
+        bsuccess = EditSecurity(hwnd, isi);
     Py_END_ALLOW_THREADS;
     if (!bsuccess)
         ret = PyWin_SetAPIError("EditSecurity");

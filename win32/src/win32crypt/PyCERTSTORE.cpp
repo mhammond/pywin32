@@ -148,8 +148,9 @@ PyObject *PyCERTSTORE::PyCertCloseStore(PyObject *self, PyObject *args, PyObject
                    "The Flags param to CertCloseStore is deprecated; a non-zero value is likely to crash");
     }
     BOOL bsuccess;
-    Py_BEGIN_ALLOW_THREADS;
-    bsuccess = CertCloseStore(hcertstore, CERT_CLOSE_STORE_CHECK_FLAG);
+    Py_BEGIN_ALLOW_THREADS
+        ;
+        bsuccess = CertCloseStore(hcertstore, CERT_CLOSE_STORE_CHECK_FLAG);
     Py_END_ALLOW_THREADS;
     // On failure, the message just says the free is "pending" - so we still want to invalidate it
     // so we don't try and free it outselves later.
@@ -179,8 +180,9 @@ PyObject *PyCERTSTORE::PyCertControlStore(PyObject *self, PyObject *args, PyObje
     if (!PyWinObject_AsHANDLE(obCtrlPara, &hevent))
         return NULL;
     BOOL bsuccess;
-    Py_BEGIN_ALLOW_THREADS;
-    bsuccess = CertControlStore(hcertstore, dwFlags, dwCtrlType, hevent);
+    Py_BEGIN_ALLOW_THREADS
+        ;
+        bsuccess = CertControlStore(hcertstore, dwFlags, dwCtrlType, hevent);
     Py_END_ALLOW_THREADS;
     if (!bsuccess)
         return PyWin_SetAPIError("CertControlStore");
@@ -200,8 +202,9 @@ PyObject *PyCERTSTORE::PyCertEnumCertificatesInStore(PyObject *self, PyObject *a
     if (ret == NULL)
         return NULL;
     do {
-        Py_BEGIN_ALLOW_THREADS;
-        pccert_context = CertEnumCertificatesInStore(hcertstore, pccert_context);
+        Py_BEGIN_ALLOW_THREADS
+            ;
+            pccert_context = CertEnumCertificatesInStore(hcertstore, pccert_context);
         Py_END_ALLOW_THREADS;
         if (pccert_context != NULL) {
             // increments reference count
@@ -238,8 +241,9 @@ PyObject *PyCERTSTORE::PyCertEnumCTLsInStore(PyObject *self, PyObject *args)
     if (ret == NULL)
         return NULL;
     do {
-        Py_BEGIN_ALLOW_THREADS;
-        ctl_context = CertEnumCTLsInStore(hcertstore, ctl_context);
+        Py_BEGIN_ALLOW_THREADS
+            ;
+            ctl_context = CertEnumCTLsInStore(hcertstore, ctl_context);
         Py_END_ALLOW_THREADS;
         if (ctl_context != NULL) {
             py_ctl_context = CertDuplicateCTLContext(ctl_context);
@@ -304,8 +308,9 @@ PyObject *PyCERTSTORE::PyCertSaveStore(PyObject *self, PyObject *args, PyObject 
         }
     }
     BOOL bsuccess;
-    Py_BEGIN_ALLOW_THREADS;
-    bsuccess = CertSaveStore(hcertstore, dwMsgAndCertEncodingType, dwSaveAs, dwSaveTo, pvSaveToPara, dwFlags);
+    Py_BEGIN_ALLOW_THREADS
+        ;
+        bsuccess = CertSaveStore(hcertstore, dwMsgAndCertEncodingType, dwSaveAs, dwSaveTo, pvSaveToPara, dwFlags);
     Py_END_ALLOW_THREADS;
     if (!bsuccess)
         PyWin_SetAPIError("PyCERTSTORE::CertSaveStore");
@@ -340,9 +345,10 @@ PyObject *PyCERTSTORE::PyCertAddEncodedCertificateToStore(PyObject *self, PyObje
     if (!pybuf.ok())
         return NULL;
     BOOL bsuccess;
-    Py_BEGIN_ALLOW_THREADS;
-    bsuccess = CertAddEncodedCertificateToStore(hcertstore, dwCertEncodingType, (BYTE *)pybuf.ptr(), pybuf.len(),
-                                                dwAddDisposition, (const struct _CERT_CONTEXT **)&newcert_context);
+    Py_BEGIN_ALLOW_THREADS
+        ;
+        bsuccess = CertAddEncodedCertificateToStore(hcertstore, dwCertEncodingType, (BYTE *)pybuf.ptr(), pybuf.len(),
+                                                    dwAddDisposition, (const struct _CERT_CONTEXT **)&newcert_context);
     Py_END_ALLOW_THREADS;
     if (!bsuccess)
         return PyWin_SetAPIError("PyCERTSTORE::CertAddEncodedCertificateToStore");
@@ -366,8 +372,9 @@ PyObject *PyCERTSTORE::PyCertAddCertificateContextToStore(PyObject *self, PyObje
     if (!PyWinObject_AsCERT_CONTEXT(obcertcontext, &pcert_context, FALSE))
         return NULL;
     BOOL bsuccess;
-    Py_BEGIN_ALLOW_THREADS;
-    bsuccess = CertAddCertificateContextToStore(hcertstore, pcert_context, dwAddDisposition, &newcert_context);
+    Py_BEGIN_ALLOW_THREADS
+        ;
+        bsuccess = CertAddCertificateContextToStore(hcertstore, pcert_context, dwAddDisposition, &newcert_context);
     Py_END_ALLOW_THREADS;
     if (!bsuccess)
         return PyWin_SetAPIError("CertAddCertificateContextToStore");
@@ -391,8 +398,9 @@ PyObject *PyCERTSTORE::PyCertAddCertificateLinkToStore(PyObject *self, PyObject 
     if (!PyWinObject_AsCERT_CONTEXT(obcertcontext, &pcert_context, FALSE))
         return NULL;
     BOOL bsuccess;
-    Py_BEGIN_ALLOW_THREADS;
-    bsuccess = CertAddCertificateLinkToStore(hcertstore, pcert_context, dwAddDisposition, &newcert_context);
+    Py_BEGIN_ALLOW_THREADS
+        ;
+        bsuccess = CertAddCertificateLinkToStore(hcertstore, pcert_context, dwAddDisposition, &newcert_context);
     Py_END_ALLOW_THREADS;
     if (!bsuccess)
         return PyWin_SetAPIError("CertAddCertificateLinkToStore");
@@ -415,8 +423,9 @@ PyObject *PyCERTSTORE::PyCertAddCTLContextToStore(PyObject *self, PyObject *args
     if (!PyWinObject_AsCTL_CONTEXT(obctl, &pctl, FALSE))
         return NULL;
     BOOL bsuccess;
-    Py_BEGIN_ALLOW_THREADS;
-    bsuccess = CertAddCTLContextToStore(hcertstore, pctl, dwAddDisposition, &new_pctl);
+    Py_BEGIN_ALLOW_THREADS
+        ;
+        bsuccess = CertAddCTLContextToStore(hcertstore, pctl, dwAddDisposition, &new_pctl);
     Py_END_ALLOW_THREADS;
     if (!bsuccess)
         return PyWin_SetAPIError("CertAddCTLContextToStore");
@@ -440,8 +449,9 @@ PyObject *PyCERTSTORE::PyCertAddCTLLinkToStore(PyObject *self, PyObject *args, P
     if (!PyWinObject_AsCTL_CONTEXT(obctl, &pctl, FALSE))
         return NULL;
     BOOL bsuccess;
-    Py_BEGIN_ALLOW_THREADS;
-    bsuccess = CertAddCTLLinkToStore(hcertstore, pctl, dwAddDisposition, &new_pctl);
+    Py_BEGIN_ALLOW_THREADS
+        ;
+        bsuccess = CertAddCTLLinkToStore(hcertstore, pctl, dwAddDisposition, &new_pctl);
     Py_END_ALLOW_THREADS;
     if (!bsuccess)
         return PyWin_SetAPIError("CertAddCTLLinkToStore");
@@ -467,8 +477,9 @@ PyObject *PyCERTSTORE::PyCertAddStoreToCollection(PyObject *self, PyObject *args
     if (!PyWinObject_AsCERTSTORE(obsibling, &sibling, TRUE))
         return NULL;
     BOOL bsuccess;
-    Py_BEGIN_ALLOW_THREADS;
-    bsuccess = CertAddStoreToCollection(hcertstore, sibling, flags, priority);
+    Py_BEGIN_ALLOW_THREADS
+        ;
+        bsuccess = CertAddStoreToCollection(hcertstore, sibling, flags, priority);
     Py_END_ALLOW_THREADS;
     if (!bsuccess)
         return PyWin_SetAPIError("CertAddStoreToCollection");
@@ -492,8 +503,9 @@ PyObject *PyCERTSTORE::PyCertRemoveStoreFromCollection(PyObject *self, PyObject 
     if (!PyWinObject_AsCERTSTORE(obsibling, &sibling, TRUE))
         return NULL;
     // does not return a value
-    Py_BEGIN_ALLOW_THREADS;
-    CertRemoveStoreFromCollection(hcertstore, sibling);
+    Py_BEGIN_ALLOW_THREADS
+        ;
+        CertRemoveStoreFromCollection(hcertstore, sibling);
     Py_END_ALLOW_THREADS;
     Py_INCREF(Py_None);
     return Py_None;
@@ -519,8 +531,9 @@ PyObject *PyCERTSTORE::PyPFXExportCertStoreEx(PyObject *self, PyObject *args, Py
     CRYPT_DATA_BLOB out = {0};
 
     BOOL bsuccess;
-    Py_BEGIN_ALLOW_THREADS;
-    bsuccess = PFXExportCertStoreEx(hcertstore, &out, password, NULL, flags);
+    Py_BEGIN_ALLOW_THREADS
+        ;
+        bsuccess = PFXExportCertStoreEx(hcertstore, &out, password, NULL, flags);
     Py_END_ALLOW_THREADS;
     if (!bsuccess)
         return PyWin_SetAPIError("PFXExportCertStoreEx");
@@ -529,8 +542,9 @@ PyObject *PyCERTSTORE::PyPFXExportCertStoreEx(PyObject *self, PyObject *args, Py
         return PyErr_NoMemory();
 
     PyObject *ret = NULL;
-    Py_BEGIN_ALLOW_THREADS;
-    bsuccess = PFXExportCertStoreEx(hcertstore, &out, password, NULL, flags);
+    Py_BEGIN_ALLOW_THREADS
+        ;
+        bsuccess = PFXExportCertStoreEx(hcertstore, &out, password, NULL, flags);
     Py_END_ALLOW_THREADS;
     if (!bsuccess)
         PyWin_SetAPIError("PFXExportCertStoreEx");
