@@ -438,8 +438,11 @@ PyObject *PyECB::WriteClient(PyObject *self, PyObject *args)
     DWORD bytesWritten = 0;
     buffLenOut = Py_SAFE_DOWNCAST(buffLenIn, Py_ssize_t, DWORD);
     if (pecb->m_pcb) {
-        Py_BEGIN_ALLOW_THREADS bRes = pecb->m_pcb->WriteClient(buffer, &buffLenOut, reserved);
-        Py_END_ALLOW_THREADS if (!bRes) return SetPyECBError("WriteClient");
+        Py_BEGIN_ALLOW_THREADS
+            bRes = pecb->m_pcb->WriteClient(buffer, &buffLenOut, reserved);
+        Py_END_ALLOW_THREADS
+        if (!bRes)
+            return SetPyECBError("WriteClient");
     }
     return PyLong_FromLong(buffLenOut);
     // @rdesc the result is the number of bytes written.
@@ -519,31 +522,32 @@ PyObject *PyECB::ReadClient(PyObject *self, PyObject *args)
     // @pyparm int|nbytes||Default is to read all available data.
     if (!PyArg_ParseTuple(args, "|l:ReadClient", &nSize))
         return NULL;
-    Py_BEGIN_ALLOW_THREADS assert(nSize >= 0);  // DWORD == unsigned == >= 0
+    Py_BEGIN_ALLOW_THREADS
+        assert(nSize >= 0);  // DWORD == unsigned == >= 0
 
-    DWORD orgSize = nSize;
-    DWORD bytesGot = nSize;
+        DWORD orgSize = nSize;
+        DWORD bytesGot = nSize;
 
-    pBuff = new BYTE[nSize];
-    bRes = pecb->m_pcb->ReadClient(pBuff, &bytesGot);
-    if (bytesGot < orgSize) {
-        DWORD extraBytes = orgSize - bytesGot;
-        DWORD offset = bytesGot;
-        while (extraBytes > 0) {
-            bytesGot = extraBytes;
-            bRes = pecb->m_pcb->ReadClient(&pBuff[offset], &bytesGot);
-            if (bytesGot < 1)
-                break;
+        pBuff = new BYTE[nSize];
+        bRes = pecb->m_pcb->ReadClient(pBuff, &bytesGot);
+        if (bytesGot < orgSize) {
+            DWORD extraBytes = orgSize - bytesGot;
+            DWORD offset = bytesGot;
+            while (extraBytes > 0) {
+                bytesGot = extraBytes;
+                bRes = pecb->m_pcb->ReadClient(&pBuff[offset], &bytesGot);
+                if (bytesGot < 1)
+                    break;
 
-            extraBytes -= bytesGot;
-            offset += bytesGot;
+                extraBytes -= bytesGot;
+                offset += bytesGot;
+            }
+            if (extraBytes > 0)
+                nSize -= extraBytes;
         }
-        if (extraBytes > 0)
-            nSize -= extraBytes;
-    }
 
-    Py_END_ALLOW_THREADS if (!bRes)
-    {
+    Py_END_ALLOW_THREADS
+    if (!bRes) {
         delete[] pBuff;
         return SetPyECBError("ReadClient");
     }
@@ -592,8 +596,11 @@ PyObject *PyECB::SendResponseHeaders(PyObject *self, PyObject *args)
             //  by itself..
             //  Send header
             EXTENSION_CONTROL_BLOCK *ecb = pecb->m_pcb->GetECB();
-        bRes = ecb->ServerSupportFunction(ecb->ConnID, HSE_REQ_SEND_RESPONSE_HEADER_EX, &SendHeaderExInfo, NULL, NULL);
-        Py_END_ALLOW_THREADS if (!bRes) return SetPyECBError("ServerSupportFunction(HSE_REQ_SEND_RESPONSE_HEADER_EX)");
+            bRes =
+                ecb->ServerSupportFunction(ecb->ConnID, HSE_REQ_SEND_RESPONSE_HEADER_EX, &SendHeaderExInfo, NULL, NULL);
+        Py_END_ALLOW_THREADS
+        if (!bRes)
+            return SetPyECBError("ServerSupportFunction(HSE_REQ_SEND_RESPONSE_HEADER_EX)");
     }
 
     Py_INCREF(Py_None);
@@ -621,9 +628,12 @@ PyObject *PyECB::SetFlushFlag(PyObject *self, PyObject *args)
 
     if (pecb->m_pcb) {
         BOOL bRes;
-        Py_BEGIN_ALLOW_THREADS EXTENSION_CONTROL_BLOCK *ecb = pecb->m_pcb->GetECB();
-        bRes = ecb->ServerSupportFunction(ecb->ConnID, HSE_REQ_SET_FLUSH_FLAG, (LPVOID)f, NULL, NULL);
-        Py_END_ALLOW_THREADS if (!bRes) return SetPyECBError("ServerSupportFunction(HSE_REQ_SET_FLUSH_FLAG)");
+        Py_BEGIN_ALLOW_THREADS
+            EXTENSION_CONTROL_BLOCK *ecb = pecb->m_pcb->GetECB();
+            bRes = ecb->ServerSupportFunction(ecb->ConnID, HSE_REQ_SET_FLUSH_FLAG, (LPVOID)f, NULL, NULL);
+        Py_END_ALLOW_THREADS
+        if (!bRes)
+            return SetPyECBError("ServerSupportFunction(HSE_REQ_SET_FLUSH_FLAG)");
     }
     Py_INCREF(Py_None);
     return Py_None;
@@ -644,8 +654,11 @@ PyObject *PyECB::Redirect(PyObject *self, PyObject *args)
         return NULL;
 
     if (pecb->m_pcb) {
-        Py_BEGIN_ALLOW_THREADS bRes = pecb->m_pcb->Redirect(url);
-        Py_END_ALLOW_THREADS if (!bRes) return SetPyECBError("ServerSupportFunction(HSE_REQ_SEND_URL_REDIRECT_RESP)");
+        Py_BEGIN_ALLOW_THREADS
+            bRes = pecb->m_pcb->Redirect(url);
+        Py_END_ALLOW_THREADS
+        if (!bRes)
+            return SetPyECBError("ServerSupportFunction(HSE_REQ_SEND_URL_REDIRECT_RESP)");
     }
 
     Py_INCREF(Py_None);
@@ -664,8 +677,11 @@ PyObject *PyECB::GetImpersonationToken(PyObject *self, PyObject *args)
         return NULL;
     HANDLE handle;
     BOOL bRes;
-    Py_BEGIN_ALLOW_THREADS bRes = pecb->m_pcb->GetImpersonationToken(&handle);
-    Py_END_ALLOW_THREADS if (!bRes) return SetPyECBError("ServerSupportFunction(HSE_REQ_GET_IMPERSONATION_TOKEN)");
+    Py_BEGIN_ALLOW_THREADS
+        bRes = pecb->m_pcb->GetImpersonationToken(&handle);
+    Py_END_ALLOW_THREADS
+    if (!bRes)
+        return SetPyECBError("ServerSupportFunction(HSE_REQ_GET_IMPERSONATION_TOKEN)");
     return PyLong_FromVoidPtr(handle);
 }
 
@@ -685,16 +701,18 @@ PyObject *PyECB::GetAnonymousToken(PyObject *self, PyObject *args)
     HANDLE handle;
     BOOL bRes;
     if (PyBytes_Check(obStr)) {
-        Py_BEGIN_ALLOW_THREADS bRes = ecb->ServerSupportFunction(ecb->ConnID, HSE_REQ_GET_ANONYMOUS_TOKEN,
-                                                                 PyBytes_AS_STRING(obStr), (DWORD *)&handle, NULL);
+        Py_BEGIN_ALLOW_THREADS
+            bRes = ecb->ServerSupportFunction(ecb->ConnID, HSE_REQ_GET_ANONYMOUS_TOKEN, PyBytes_AS_STRING(obStr),
+                                              (DWORD *)&handle, NULL);
         Py_END_ALLOW_THREADS
     }
     else if (PyUnicode_Check(obStr)) {
         TmpWCHAR tmpw = obStr;
         if (!tmpw)
             return NULL;
-        Py_BEGIN_ALLOW_THREADS bRes =
-            ecb->ServerSupportFunction(ecb->ConnID, HSE_REQ_GET_UNICODE_ANONYMOUS_TOKEN, tmpw, (DWORD *)&handle, NULL);
+        Py_BEGIN_ALLOW_THREADS
+            bRes = ecb->ServerSupportFunction(ecb->ConnID, HSE_REQ_GET_UNICODE_ANONYMOUS_TOKEN, tmpw, (DWORD *)&handle,
+                                              NULL);
         Py_END_ALLOW_THREADS
     }
     else
@@ -714,8 +732,11 @@ PyObject *PyECB::IsKeepConn(PyObject *self, PyObject *args)
     if (!pecb || !pecb->Check())
         return NULL;
     BOOL bRes, bIs;
-    Py_BEGIN_ALLOW_THREADS bRes = pecb->m_pcb->IsKeepConn(&bIs);
-    Py_END_ALLOW_THREADS if (!bRes) return SetPyECBError("ServerSupportFunction(HSE_REQ_IS_KEEP_CONN)");
+    Py_BEGIN_ALLOW_THREADS
+        bRes = pecb->m_pcb->IsKeepConn(&bIs);
+    Py_END_ALLOW_THREADS
+    if (!bRes)
+        return SetPyECBError("ServerSupportFunction(HSE_REQ_IS_KEEP_CONN)");
     return PyBool_FromLong(bIs);
 }
 
@@ -745,8 +766,11 @@ PyObject *PyECB::ExecURL(PyObject *self, PyObject *args)
     if (!pecb || !pecb->Check())
         return NULL;
     BOOL bRes;
-    Py_BEGIN_ALLOW_THREADS bRes = ecb->ServerSupportFunction(ecb->ConnID, HSE_REQ_EXEC_URL, &i, NULL, NULL);
-    Py_END_ALLOW_THREADS if (!bRes) return SetPyECBError("ServerSupportFunction(HSE_REQ_EXEC_URL)");
+    Py_BEGIN_ALLOW_THREADS
+        bRes = ecb->ServerSupportFunction(ecb->ConnID, HSE_REQ_EXEC_URL, &i, NULL, NULL);
+    Py_END_ALLOW_THREADS
+    if (!bRes)
+        return SetPyECBError("ServerSupportFunction(HSE_REQ_EXEC_URL)");
     Py_RETURN_NONE;
 }
 
@@ -762,9 +786,11 @@ PyObject *PyECB::GetExecURLStatus(PyObject *self, PyObject *args)
         return NULL;
     BOOL bRes;
     HSE_EXEC_URL_STATUS status;
-    Py_BEGIN_ALLOW_THREADS bRes =
-        ecb->ServerSupportFunction(ecb->ConnID, HSE_REQ_GET_EXEC_URL_STATUS, &status, NULL, NULL);
-    Py_END_ALLOW_THREADS if (!bRes) return SetPyECBError("ServerSupportFunction(HSE_REQ_GET_EXEC_URL_STATUS)");
+    Py_BEGIN_ALLOW_THREADS
+        bRes = ecb->ServerSupportFunction(ecb->ConnID, HSE_REQ_GET_EXEC_URL_STATUS, &status, NULL, NULL);
+    Py_END_ALLOW_THREADS
+    if (!bRes)
+        return SetPyECBError("ServerSupportFunction(HSE_REQ_GET_EXEC_URL_STATUS)");
     // @rdesc The result of a tuple of 3 integers - (uHttpStatusCode, uHttpSubStatus, dwWin32Error)
     // @pyseeapi HSE_EXEC_URL_STATUS
     return Py_BuildValue("HHk", status.uHttpStatusCode, status.uHttpSubStatus, status.dwWin32Error);
@@ -814,9 +840,11 @@ PyObject *PyECB::IOCompletion(PyObject *self, PyObject *args)
         return NULL;
 
     BOOL bRes;
-    Py_BEGIN_ALLOW_THREADS bRes =
-        ecb->ServerSupportFunction(ecb->ConnID, HSE_REQ_IO_COMPLETION, DoIOCallback, NULL, NULL);
-    Py_END_ALLOW_THREADS if (!bRes) return SetPyECBError("ServerSupportFunction(HSE_REQ_IO_COMPLETION)");
+    Py_BEGIN_ALLOW_THREADS
+        bRes = ecb->ServerSupportFunction(ecb->ConnID, HSE_REQ_IO_COMPLETION, DoIOCallback, NULL, NULL);
+    Py_END_ALLOW_THREADS
+    if (!bRes)
+        return SetPyECBError("ServerSupportFunction(HSE_REQ_IO_COMPLETION)");
     Py_RETURN_NONE;
 }
 
@@ -833,8 +861,11 @@ PyObject *PyECB::ReportUnhealthy(PyObject *self, PyObject *args)
     if (!pecb || !pecb->Check())
         return NULL;
     BOOL bRes;
-    Py_BEGIN_ALLOW_THREADS bRes = ecb->ServerSupportFunction(ecb->ConnID, HSE_REQ_REPORT_UNHEALTHY, reason, NULL, NULL);
-    Py_END_ALLOW_THREADS if (!bRes) return SetPyECBError("ServerSupportFunction(HSE_REQ_REPORT_UNHEALTHY)");
+    Py_BEGIN_ALLOW_THREADS
+        bRes = ecb->ServerSupportFunction(ecb->ConnID, HSE_REQ_REPORT_UNHEALTHY, reason, NULL, NULL);
+    Py_END_ALLOW_THREADS
+    if (!bRes)
+        return SetPyECBError("ServerSupportFunction(HSE_REQ_REPORT_UNHEALTHY)");
     Py_RETURN_NONE;
 }
 
@@ -923,9 +954,10 @@ PyObject *PyECB::TransmitFile(PyObject *self, PyObject *args)
         return NULL;
 
     BOOL bRes;
-    Py_BEGIN_ALLOW_THREADS bRes = pecb->m_pcb->TransmitFile(&info);
-    Py_END_ALLOW_THREADS if (!bRes)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        bRes = pecb->m_pcb->TransmitFile(&info);
+    Py_END_ALLOW_THREADS
+    if (!bRes) {
         // ack - the completion routine will not be called - clean up!
         context->Cleanup();
         return SetPyECBError("ServerSupportFunction(HSE_REQ_TRANSMIT_FILE)");
@@ -949,7 +981,8 @@ PyObject *PyECB::IsKeepAlive(PyObject *self, PyObject *args)
         return NULL;
 
     if (pecb->m_pcb) {
-        Py_BEGIN_ALLOW_THREADS bKeepAlive = pecb->m_pcb->IsKeepAlive();
+        Py_BEGIN_ALLOW_THREADS
+            bKeepAlive = pecb->m_pcb->IsKeepAlive();
         Py_END_ALLOW_THREADS
     }
 
@@ -973,8 +1006,11 @@ PyObject *PyECB::MapURLToPath(PyObject *self, PyObject *args)
     DWORD bufSize = sizeof(buffer);
     BOOL ok;
 
-    Py_BEGIN_ALLOW_THREADS ok = pecb->m_pcb->MapURLToPath(buffer, &bufSize);
-    Py_END_ALLOW_THREADS if (!ok) return SetPyECBError("ServerSupportFunction(HSE_REQ_MAP_URL_TO_PATH)");
+    Py_BEGIN_ALLOW_THREADS
+        ok = pecb->m_pcb->MapURLToPath(buffer, &bufSize);
+    Py_END_ALLOW_THREADS
+    if (!ok)
+        return SetPyECBError("ServerSupportFunction(HSE_REQ_MAP_URL_TO_PATH)");
     return PyBytes_FromString(buffer);
 }
 
@@ -995,8 +1031,10 @@ PyObject *PyECB::DoneWithSession(PyObject *self, PyObject *args)
     // currently means just the io-completion callback.
     CleanupIOCallback(pecb->m_pcb->GetECB());
 
-    Py_BEGIN_ALLOW_THREADS pecb->m_pcb->DoneWithSession(status);
-    Py_END_ALLOW_THREADS pecb->m_pcb->Done();
+    Py_BEGIN_ALLOW_THREADS
+        pecb->m_pcb->DoneWithSession(status);
+    Py_END_ALLOW_THREADS
+    pecb->m_pcb->Done();
     pecb->m_pcb = NULL;
     Py_INCREF(Py_None);
     return Py_None;

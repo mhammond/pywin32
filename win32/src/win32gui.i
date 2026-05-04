@@ -2953,9 +2953,9 @@ static PyObject *PyCascadeWindows(PyObject *self, PyObject *args)
         PyErr_SetString(PyExc_TypeError, "The child windows object is neither a tuple nor None");
         return NULL;
     }
-    Py_BEGIN_ALLOW_THREADS;
+    Py_BEGIN_ALLOW_THREADS
     res = CascadeWindows(hwnd, how, rectPtr, childCount, children);
-    Py_END_ALLOW_THREADS;
+    Py_END_ALLOW_THREADS
     if (children) {
         free(children);
     }
@@ -5226,10 +5226,10 @@ static PyObject *PyExtTextOut(PyObject *self, PyObject *args)
 	}
 
 	BOOL ok;
-	Py_BEGIN_ALLOW_THREADS;
+	Py_BEGIN_ALLOW_THREADS
 	// @pyseeapi ExtTextOut
 	ok = ExtTextOut(hdc, x, y, options, rectPtr, text, strLen, widths);
-	Py_END_ALLOW_THREADS;
+	Py_END_ALLOW_THREADS
 	PyWinObject_FreeTCHAR(text);
 	delete [] widths;
 	if (!ok)
@@ -6229,9 +6229,9 @@ static PyObject *PyGetSaveFileNameW(PyObject *self, PyObject *args, PyObject *kw
 		return NULL;
 
 	BOOL ok;
-	Py_BEGIN_ALLOW_THREADS;
+	Py_BEGIN_ALLOW_THREADS
 	ok = GetSaveFileNameW(&ofn);
-	Py_END_ALLOW_THREADS;
+	Py_END_ALLOW_THREADS
 	if (!ok)
 		PyWin_SetAPIError("GetSaveFileNameW", CommDlgExtendedError());
 	else
@@ -6253,9 +6253,9 @@ static PyObject *PyGetOpenFileNameW(PyObject *self, PyObject *args, PyObject *kw
 		return NULL;
 
 	BOOL ok;
-	Py_BEGIN_ALLOW_THREADS;
+	Py_BEGIN_ALLOW_THREADS
 	ok = GetOpenFileNameW(&ofn);
-	Py_END_ALLOW_THREADS;
+	Py_END_ALLOW_THREADS
 	if (!ok)
 		PyWin_SetAPIError("GetOpenFileNameW", CommDlgExtendedError());
 	else

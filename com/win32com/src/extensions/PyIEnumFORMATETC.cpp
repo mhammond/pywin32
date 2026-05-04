@@ -237,11 +237,12 @@ STDMETHODIMP PyGEnumFORMATETC::Clone(
     ** Get the interface we want. note it is returned with a refcount.
     ** This QI is actually going to instantiate a PyGEnumFORMATETC.
     */
-    Py_BEGIN_ALLOW_THREADS hr = punk->QueryInterface(IID_IEnumFORMATETC, (LPVOID *)ppEnum);
+    Py_BEGIN_ALLOW_THREADS
+        hr = punk->QueryInterface(IID_IEnumFORMATETC, (LPVOID *)ppEnum);
     Py_END_ALLOW_THREADS
 
-        /* done with the result; this DECREF is also for <punk> */
-        Py_DECREF(result);
+    /* done with the result; this DECREF is also for <punk> */
+    Py_DECREF(result);
 
     return PyCom_CheckIEnumNextResult(hr, IID_IEnumFORMATETC);
 }

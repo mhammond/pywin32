@@ -373,9 +373,9 @@ PyObject *PyNetUserEnum(PyObject *self, PyObject *args)
     if (!FindNET_STRUCT(level, user_infos, &pInfo))
         goto done;
 
-    Py_BEGIN_ALLOW_THREADS;
-    err = NetUserEnum(szServer, level, filter, &buf, dwPrefLen, &numRead, &totalEntries, &resumeHandle);
-    Py_END_ALLOW_THREADS;
+    Py_BEGIN_ALLOW_THREADS
+        err = NetUserEnum(szServer, level, filter, &buf, dwPrefLen, &numRead, &totalEntries, &resumeHandle);
+    Py_END_ALLOW_THREADS
     if (err != 0 && err != ERROR_MORE_DATA) {
         ReturnNetError("NetUserEnum", err);  // @pyseeapi NetUserEnum
         goto done;
@@ -489,11 +489,12 @@ PyObject *PyNetUserGetGroups(PyObject *self, PyObject *args)
     if (pRetlist == NULL)
         return NULL;  // did we err?
 
-    Py_BEGIN_ALLOW_THREADS Errno = NetUserGetGroups((BSTR)wzServerName, (BSTR)wzUserName, 1, (LPBYTE *)&lpBuffer,
-                                                    dwBuffsize, &dwCount, &dwMaxCount);
+    Py_BEGIN_ALLOW_THREADS
+        Errno = NetUserGetGroups((BSTR)wzServerName, (BSTR)wzUserName, 1, (LPBYTE *)&lpBuffer, dwBuffsize, &dwCount,
+                                 &dwMaxCount);
     Py_END_ALLOW_THREADS
 
-        if (Errno == NERR_Success)  // if no error, then build the list
+    if (Errno == NERR_Success)  // if no error, then build the list
     {
         GROUP_USERS_INFO_1 *p_nr = lpBuffer;  // Enum Resource returns a buffer of successive structs
 
@@ -518,8 +519,7 @@ PyObject *PyNetUserGetGroups(PyObject *self, PyObject *args)
             } while (dwCount);
         };  // if (dwCount > 0)
     }
-    else
-    {  // ERROR Occurred
+    else {  // ERROR Occurred
         Py_DECREF(pRetlist);
         return ReturnNetError("NetUserGetGroups", Errno);
     }
@@ -575,11 +575,12 @@ PyObject *PyNetUserGetLocalGroups(PyObject *self, PyObject *args)
     if (pRetlist == NULL)
         return NULL;  // did we err?
 
-    Py_BEGIN_ALLOW_THREADS Errno = NetUserGetLocalGroups(wzServerName, wzUserName, 0, dwFlags, (LPBYTE *)&lpBuffer,
-                                                         dwBuffsize, &dwCount, &dwMaxCount);  // do the enumeration
+    Py_BEGIN_ALLOW_THREADS
+        Errno = NetUserGetLocalGroups(wzServerName, wzUserName, 0, dwFlags, (LPBYTE *)&lpBuffer, dwBuffsize, &dwCount,
+                                      &dwMaxCount);  // do the enumeration
     Py_END_ALLOW_THREADS
 
-        if (Errno == NERR_Success)  // if no error, then build the list
+    if (Errno == NERR_Success)  // if no error, then build the list
     {
         LOCALGROUP_USERS_INFO_0 *p_nr = lpBuffer;  // Enum Resource returns a buffer of successive structs
 
