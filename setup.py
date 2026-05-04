@@ -279,7 +279,7 @@ class WinExt_win32com_mapi(WinExt_win32com):
         # Additional utility functions are only available for 32-bit builds.
         if not platform.machine() in ("AMD64", "ARM64"):
             libs += " version user32 advapi32 Ex2KSdk sadapi netapi32"
-        kw["libraries"] = kw.get("libraries", "")
+        kw["libraries"] = libs
         super().__init__(name, **kw)
 
     def get_pywin32_dir(self):
