@@ -23,7 +23,7 @@
  ======================================================================
  */
 
-#include "stdafx.h"
+#include "StdAfx.h"
 #include "Utils.h"
 
 extern HINSTANCE g_hInstance;

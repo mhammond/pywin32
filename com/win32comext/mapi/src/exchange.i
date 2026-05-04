@@ -30,7 +30,7 @@
 #include "EdkMdb.h"
 
 #define USES_IID_IExchangeManageStore
-#include <edkguid.h>
+#include <EdkGuid.h>
 
 #include "PyIExchangeManageStore.h"
 #include "IExchangeManageStoreEx.h"

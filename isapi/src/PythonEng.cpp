@@ -26,7 +26,7 @@
 // NOTE: This code used to host the thread-pool used by dispatch to Python
 // Some of the methods etc made alot more sense then.
 
-#include "stdafx.h"
+#include "StdAfx.h"
 #include "Utils.h"
 #include "PythonEng.h"
 #include "PyExtensionObjects.h"
