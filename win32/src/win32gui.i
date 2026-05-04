@@ -7405,13 +7405,13 @@ PyObject *PyRegisterDeviceNotification(PyObject *self, PyObject *args)
 				"structure says it has %d bytes, but %d was provided",
 				(int)struct_bytes, (int)pybuf.len());
 	// @pyseeapi RegisterDeviceNotification
-	HDEVNOTIFY not;
+	HDEVNOTIFY notify;
 	Py_BEGIN_ALLOW_THREADS
-	not = RegisterDeviceNotification(handle, pybuf.ptr(), flags);
+	notify = RegisterDeviceNotification(handle, pybuf.ptr(), flags);
 	Py_END_ALLOW_THREADS
-	if (not == NULL)
+	if (notify == NULL)
 		return PyWin_SetAPIError("RegisterDeviceNotification");
-	return PyWinObject_FromHDEVNOTIFY(not);
+	return PyWinObject_FromHDEVNOTIFY(notify);
 }
 %}
 %native(RegisterDeviceNotification) PyRegisterDeviceNotification;
