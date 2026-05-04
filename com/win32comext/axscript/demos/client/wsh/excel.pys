@@ -1,18 +1,20 @@
-#app=WScript.Application
-#app._print_details_() # Use this to see what Python knows about a COM object.
-
+# app=WScript.Application
+# app._print_details_() # Use this to see what Python knows about a COM object.
 g_index = 1
+
+
 # A procedure, using a global.
-def Show(desc, value = None):
-	global g_index # Need global for g_index, as I locally assign.
-	# No global needed to "xl" object, as only referenced.
-	# Also note "xl" is assigned later in the script - ie, Python is very late bound.
-	xl.Cells(g_index, 1).Value = desc
-	if value: xl.Cells(g_index, 2).Value = value
-	g_index = g_index + 1
+def Show(desc, value=None):
+    global g_index  # Need global for g_index, as I locally assign.
+    # No global needed to "xl" object, as only referenced.
+    # Also note "xl" is assigned later in the script - ie, Python is very late bound.
+    xl.Cells(g_index, 1).Value = desc
+    if value:
+        xl.Cells(g_index, 2).Value = value
+    g_index = g_index + 1
+
 
 xl = WScript.CreateObject("Excel.Application")
-import sys
 
 xl.Visible = 1
 xl.Workbooks.Add()
@@ -27,5 +29,5 @@ Show("State of Interactive Mode", WScript.Interactive)
 Show("All script arguments:")
 args = WScript.Arguments
 
-for i in range(0,args.Count()):
-	Show("Arg %d" % i, args(i))
+for i in range(0, args.Count()):
+    Show("Arg %d" % i, args(i))
