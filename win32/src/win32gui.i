@@ -6015,7 +6015,7 @@ PyListView_SortItems(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyCallable_Check(ob))
 		return PyErr_Format(PyExc_TypeError,
-		                    "2nd param must be callable (got type %s)", Py_TYPE(ob)->tp_name);
+		                    "2nd param must be callable (got type %s)", ob->ob_type->tp_name);
 	PySortCallback cb = {ob, obParam};
 	BOOL ok;
 	GUI_BGN_SAVE;
@@ -6049,7 +6049,7 @@ PyListView_SortItemsEx(PyObject *self, PyObject *args)
 		return NULL;
 	if (!PyCallable_Check(ob))
 		return PyErr_Format(PyExc_TypeError,
-		                    "2nd param must be callable (got type %s)", Py_TYPE(ob)->tp_name);
+		                    "2nd param must be callable (got type %s)", ob->ob_type->tp_name);
 	PySortCallback cb = {ob, obParam};
 	BOOL ok;
 	GUI_BGN_SAVE;
