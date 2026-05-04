@@ -103,8 +103,8 @@ PyTypeObject PyDSBUFFERDESCType = {
     // IDirectSound::CreateSoundBuffer call. With this flag set, an application using DirectSound can continue to play
     // its sticky focus buffers if the user switches to another application not using DirectSound. In this situation,
     // the application's normal buffers are muted, but the sticky focus buffers are still audible. This is useful for
-    // nongame applications, such as movie playback (DirectShow™), when the user wants to hear the soundtrack while
-    // typing in Microsoft Word or Microsoft® Excel, for example. However, if the user switches to another DirectSound
+    // nongame applications, such as movie playback (DirectShowâ„¢), when the user wants to hear the soundtrack while
+    // typing in Microsoft Word or MicrosoftÂ® Excel, for example. However, if the user switches to another DirectSound
     // application, all sound buffers, both normal and sticky focus, in the previous application are muted.
     // @flag DSBCAPS_GLOBALFOCUS|The buffer is a global sound buffer. With this flag set, an application using
     // DirectSound can continue to play its buffers if the user switches focus to another application, even if the new
@@ -167,7 +167,7 @@ PyDSBUFFERDESC::~PyDSBUFFERDESC() { Py_XDECREF(m_obWFX); }
 int PyDSBUFFERDESC::setattro(PyObject *self, PyObject *obname, PyObject *obvalue)
 {
     PyDSBUFFERDESC *obself = (PyDSBUFFERDESC *)self;
-    char *name = PYWIN_ATTR_CONVERT(obname);
+    const char *name = PyUnicode_AsUTF8(obname);
     if (name == NULL)
         return -1;
 

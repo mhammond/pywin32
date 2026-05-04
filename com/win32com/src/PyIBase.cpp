@@ -32,14 +32,14 @@ PyObject *PyIBase::getattr(char *name) { return PyObject_GetAttrString(this, nam
 
 /*static*/ int PyIBase::setattro(PyObject *op, PyObject *obname, PyObject *v)
 {
-    char *name = PYWIN_ATTR_CONVERT(obname);
+    const char *name = PyUnicode_AsUTF8(obname);
     if (name == NULL)
         return -1;
     PyIBase *bc = (PyIBase *)op;
     return bc->setattr(name, v);
 }
 
-int PyIBase::setattr(char *name, PyObject *v)
+int PyIBase::setattr(const char *name, PyObject *v)
 {
     char buf[128];
     sprintf(buf, "%s has read-only attributes", ob_type->tp_name);

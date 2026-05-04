@@ -52,13 +52,6 @@
 // Macro to handle PyObject layout changes in Py3k
 #define PYWIN_OBJECT_HEAD PyVarObject_HEAD_INIT(NULL, 0)
 
-/* Attribute names are passed as Unicode in Py3k, so use a macro to
-    switch between string and unicode conversion.  This function is not
-    documented, but is used extensively in the Python codebase itself,
-    so it's reasonable to assume it won't disappear anytime soon.
-*/
-#define PYWIN_ATTR_CONVERT (char *)_PyUnicode_AsString
-
 typedef Py_ssize_t Py_hash_t;
 
 // This only enables runtime checks in debug builds - so we use

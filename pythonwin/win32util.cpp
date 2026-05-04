@@ -92,7 +92,7 @@ static PySequenceMethods PyCRect_Sequence = {
 
 PyObject *PyCRect::getattro(PyObject *obname)
 {
-    char *name = PYWIN_ATTR_CONVERT(obname);
+    const char *name = PyUnicode_AsUTF8(obname);
     if (name == NULL)
         return NULL;
     if (strcmp(name, "left") == 0)
@@ -140,7 +140,7 @@ CString PyCRect::repr()
 
 int PyCRect::setattro(PyObject *obname, PyObject *v)
 {
-    char *name = PYWIN_ATTR_CONVERT(obname);
+    const char *name = PyUnicode_AsUTF8(obname);
     if (name == NULL)
         return -1;
     int intval = PyLong_AsLong(v);
