@@ -1051,6 +1051,10 @@ PYWINTYPES_EXPORT WCHAR *GetPythonTraceback(PyObject *exc_type, PyObject *exc_va
     PyObject *argsTB = NULL;
     PyObject *obResult = NULL;
     TmpWCHAR resultPtr;
+    // Py3k has added an undocumented 'chain' argument which defaults to True
+    // and causes all kinds of exceptions while trying to print a traceback!
+    // This *could* be useful thought if we can tame it - later!
+    int chain = 0;
 
     // cStringIO is in "io"
     modStringIO = PyImport_ImportModule("io");
@@ -1073,10 +1077,6 @@ PYWINTYPES_EXPORT WCHAR *GetPythonTraceback(PyObject *exc_type, PyObject *exc_va
     obFuncTB = PyObject_GetAttrString(modTB, "print_exception");
     if (obFuncTB == NULL)
         GPEM_ERROR("can't find traceback.print_exception");
-    // Py3k has added an undocumented 'chain' argument which defaults to True
-    // and causes all kinds of exceptions while trying to print a traceback!
-    // This *could* be useful thought if we can tame it - later!
-    int chain = 0;
 
     argsTB = Py_BuildValue("OOOOOi", exc_type ? exc_type : Py_None, exc_value ? exc_value : Py_None,
                            exc_tb ? exc_tb : Py_None,
