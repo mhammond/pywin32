@@ -115,7 +115,7 @@ class Flock:
 		secur_att = win32security.SECURITY_ATTRIBUTES()
 		secur_att.Initialize()
 		self.highbits=0xffff0000 #high-order 32 bits of byte range to lock
-		#make a handel with read/write and open or create if doesn't exist
+		# make a handle with read/write and open or create if doesn't exist
 		self.hfile=win32file.CreateFile( self.file,\
 					win32con.GENERIC_READ|win32con.GENERIC_WRITE,\
 					win32con.FILE_SHARE_READ|win32con.FILE_SHARE_WRITE,\
@@ -198,7 +198,7 @@ def del_dir(self,path):
 	for file in os.listdir(path):
 		file_or_dir = os.path.join(path,file)
 		if os.path.isdir(file_or_dir) and not os.path.islink(file_or_dir):
-			del_dir(file_or_dir) #it's a directory reucursive call to function again
+			del_dir(file_or_dir) # it's a directory recursive call to function again
 		else:
 			try:
 				os.remove(file_or_dir) #it's a file, delete it

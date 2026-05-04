@@ -4,9 +4,6 @@
 //
 // Interface Declaration
 
-// Requires Windows 7 SDK to build
-#if WINVER >= 0x0601
-
 class PyIObjectCollection : public PyIObjectArray {
    public:
     MAKE_PYCOM_CTOR(PyIObjectCollection);
@@ -23,5 +20,3 @@ class PyIObjectCollection : public PyIObjectArray {
     PyIObjectCollection(IUnknown *pdisp);
     ~PyIObjectCollection();
 };
-
-#endif  // WINVER

@@ -1,14 +1,14 @@
 """Python.Interpreter COM Server
 
-  This module implements a very very simple COM server which
-  exposes the Python interpreter.
+This module implements a very very simple COM server which
+exposes the Python interpreter.
 
-  This is designed more as a demonstration than a full blown COM server.
-  General functionality and Error handling are both limited.
+This is designed more as a demonstration than a full blown COM server.
+General functionality and Error handling are both limited.
 
-  To use this object, ensure it is registered by running this module
-  from Python.exe.  Then, from Visual Basic, use "CreateObject('Python.Interpreter')",
-  and call its methods!
+To use this object, ensure it is registered by running this module
+from Python.exe.  Then, from Visual Basic, use "CreateObject('Python.Interpreter')",
+and call its methods!
 """
 
 import winerror

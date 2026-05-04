@@ -3,7 +3,6 @@ fname = r"h:\tmp.txt"
 import ntsecuritycon
 import win32api
 import win32con
-import win32file
 import win32security
 
 new_privs = (

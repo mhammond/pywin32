@@ -28,9 +28,9 @@ def DumpDebugApplicationNode(node, level=0):
         numLines, numChars = doctext.GetSize()
         # text, attr = doctext.GetText(0, 20, 1)
         text, attr = doctext.GetText(0, numChars, 1)
-        print(f"{spacer}Text is {repr(text[:40] + '...')}, {len(text)} bytes long")
+        print(f"{spacer}Text is '{text[:40] + '...'}', {len(text)} bytes long")
     else:
-        print(f"{spacer*2}<No document available>")
+        print(f"{spacer * 2}<No document available>")
 
     for child in Enumerator(node.EnumChildren()):
         DumpDebugApplicationNode(child, level + 1)
@@ -46,9 +46,7 @@ def dumpall():
     e = Enumerator(dm.EnumApplications())
     for app in e:
         print(f"Application: {app.GetName()}")
-        node = (
-            app.GetRootNode()
-        )  # of type PyIDebugApplicationNode->PyIDebugDocumentProvider->PyIDebugDocumentInfo
+        node = app.GetRootNode()  # of type PyIDebugApplicationNode->PyIDebugDocumentProvider->PyIDebugDocumentInfo
         DumpDebugApplicationNode(node)
 
 

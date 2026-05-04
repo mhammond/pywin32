@@ -1,6 +1,5 @@
 import win32api
 import win32con
-import win32process
 import win32security
 
 ## You need SE_RESTORE_NAME to be able to set the owner of a security descriptor to anybody

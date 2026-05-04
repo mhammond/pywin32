@@ -3,7 +3,6 @@ import os
 import ntsecuritycon
 import win32api
 import win32con
-import win32file
 import win32security
 from security_enums import ACCESS_MODE, ACE_FLAGS, TRUSTEE_FORM, TRUSTEE_TYPE
 

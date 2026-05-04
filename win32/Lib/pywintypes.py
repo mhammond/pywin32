@@ -3,6 +3,7 @@ import importlib.machinery
 import importlib.util
 import os
 import sys
+from typing import TYPE_CHECKING, Any
 
 
 def __import_pywin32_system_module__(modname, globs):
@@ -83,7 +84,7 @@ def __import_pywin32_system_module__(modname, globs):
 
         # There are 2 site-packages directories - one "global" and one "user".
         # We could be in either, or both (but with different versions!). Factors include
-        # virtualenvs, post-install script being run or not, `setup.py install` flags, etc.
+        # virtualenvs, post-install script being run or not, `pip install` flags, etc.
 
         # In a worst-case, it means, say 'python -c "import win32api"'
         # will not work but 'python -c "import pywintypes, win32api"' will,
@@ -122,3 +123,10 @@ def __import_pywin32_system_module__(modname, globs):
 
 
 __import_pywin32_system_module__("pywintypes", globals())
+
+# This module dynamically re-exports from a C-Extension.
+# Prevent attribute access issues with checkers and language servers (IDEs)
+# External usage should still prefer typeshed stubs
+if TYPE_CHECKING:
+
+    def __getattr__(name: str) -> Any: ...

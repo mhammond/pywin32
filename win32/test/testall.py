@@ -99,15 +99,13 @@ class TestRunner:
             base = os.path.basename(self.argv[1])
             # See if we can detect and reconstruct an exception in the output.
             reconstituted = find_exception_in_output(output)
-            assert (
-                reconstituted is not None
-            ), f"{base} failed with exit code {rc}.  Output is:\n{output}"
+            assert reconstituted is not None, (
+                f"{base} failed with exit code {rc}.  Output is:\n{output}"
+            )
             raise reconstituted
 
 
 def get_demo_tests():
-    import win32api
-
     ret = []
     demo_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "Demos"))
     assert os.path.isdir(demo_dir), demo_dir

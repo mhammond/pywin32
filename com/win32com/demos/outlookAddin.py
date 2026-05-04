@@ -58,9 +58,7 @@ class FolderEvent:
         try:
             print("An item was added to the inbox with subject:", item.Subject)
         except AttributeError:
-            print(
-                "An item was added to the inbox, but it has no subject! - ", repr(item)
-            )
+            print(f"An item was added to the inbox, but it has no subject! - {item!r}")
 
 
 class OutlookAddin:

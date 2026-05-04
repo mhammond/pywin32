@@ -24,8 +24,8 @@
  */
 
 // #define PY_SSIZE_T_CLEAN  // defined by isapi\src\StdAfx.h
-#include "stdafx.h"
-#include "pywintypes.h"
+#include "StdAfx.h"
+#include "PyWinTypes.h"
 #include "Utils.h"
 #include "PyExtensionObjects.h"
 #include "PythonEng.h"
@@ -698,7 +698,7 @@ PyObject *PyECB::GetAnonymousToken(PyObject *self, PyObject *args)
         Py_END_ALLOW_THREADS
     }
     else
-        return PyErr_Format(PyExc_TypeError, "must pass a string or unicode object (got %s)", obStr->ob_type->tp_name);
+        return PyErr_Format(PyExc_TypeError, "must pass a string or unicode object (got %s)", Py_TYPE(obStr)->tp_name);
     if (!bRes)
         return SetPyECBError("ServerSupportFunction(HSE_REQ_GET_IMPERSONATION_TOKEN)");
     return PyLong_FromVoidPtr(handle);

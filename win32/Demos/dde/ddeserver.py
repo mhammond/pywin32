@@ -1,7 +1,7 @@
 # 'Request' example added jjk  11/20/98
 
+import win32ui  # isort: skip # Must be imported before dde !
 import dde
-import win32ui
 from pywin.mfc import object
 
 

@@ -2,7 +2,7 @@
 # Adds a 'Hello from Python' menu entry to .py files.  When clicked, a
 # simple message box is displayed.
 #
-# To demostrate:
+# To demonstrate:
 # * Execute this script to register the context menu.
 # * Open Windows Explorer, and browse to a directory with a .py file.
 # * Right-Click on a .py file - locate and click on 'Hello from Python' on
@@ -78,12 +78,11 @@ class ShellExtension:
         mask, hwnd, verb, params, dir, nShow, hotkey, hicon = ci
         win32gui.MessageBox(hwnd, "Hello", "Wow", win32con.MB_OK)
 
-    def GetCommandString(self, cmd, typ):
+    def GetCommandString(self, cmd: int, typ):
         # If GetCommandString returns the same string for all items then
-        # the shell seems to ignore all but one.  This is even true in
-        # Win7 etc where there is no status bar (and hence this string seems
-        # ignored)
-        return "Hello from Python (cmd=%d)!!" % (cmd,)
+        # the shell seems to ignore all but one.  This is even true if the
+        # status bar is turned off (and hence this string seems ignored).
+        return f"Hello from Python ({cmd=})!!"
 
 
 def DllRegisterServer():

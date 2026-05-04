@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1252">
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html" charset="utf-8">
 <META NAME="Generator" CONTENT="Microsoft Word 97">
 <TITLE>Quick Start to Client side COM and Python</TITLE>
 <META NAME="Template" CONTENT="D:\Program Files\Microsoft Office\Office\html.dot">
@@ -10,8 +10,8 @@
 <H1>Quick Start to Client side COM and Python</H1>
 <H2>Introduction</H2>
 <P>This documents how to quickly start using COM from Python. It is not a thorough discussion of the COM system, or of the concepts introduced by COM.</P>
-<P>Other good information on COM can be found in various conference tutorials - please see <A HREF="http://starship.python.net/crew/mhammond/conferences">the collection of Mark's conference tutorials</A></P>
-<P>For information on implementing COM objects using Python, please see <A HREF="http://www.python.org/windows/win32com/QuickStartServerCom.html">a Quick Start to Server side COM and Python</A></P>
+<P>Other good information on COM can be found in various conference tutorials - please see <A HREF="https://web.archive.org/web/20130420121155/http://starship.python.net/crew/mhammond/conferences/">the collection of Mark's conference tutorials</A></P>
+<P>For information on implementing COM objects using Python, please see <A HREF="QuickStartServerCom.html">a Quick Start to Server side COM and Python</A></P>
 <P>In this document we discuss the following topics:</P>
 
 <UL>
@@ -30,7 +30,7 @@ print(o.property)</P>
 </CODE><P>Example</P>
 <CODE><P>o = win32com.client.Dispatch("Excel.Application")<BR>
 o.Visible = 1<BR>
-o.Workbooks.Add() # for office 97 – 95 a bit different!<BR>
+o.Workbooks.Add()<BR>
 o.Cells(1,1).Value = "Hello"</CODE> </P>
 <P>And we will see the word "Hello" appear in the top cell. </P>
 <H3><A NAME="WhatObjects">How do I know which methods and properties are available?</A></H3>

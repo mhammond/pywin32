@@ -51,9 +51,8 @@ class PippoTester(unittest.TestCase):
         self._testArray(numpy.array([-3.14, -2, -0.1, 0.0, 1.1, 2.5, 3]))
 
     def testByteArrays(self):
-        if "bytes" in dir(__builtins__):
-            self._testArray(b"abcdef")
-            self._testArray(bytearray(b"abcdef"))
+        self._testArray(b"abcdef")
+        self._testArray(bytearray(b"abcdef"))
 
     def _testArray(self, inArray):
         outArray = self.object.Method3(inArray)

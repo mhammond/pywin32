@@ -1,8 +1,7 @@
 // @doc
-#define _WIN32_WINNT 0x501  // Credentials functions only available on WinXP
 #include "PyWinTypes.h"
 #include "PyWinObjects.h"
-#include "WinCred.h"
+#include "wincred.h"
 
 // @object PyCREDENTIAL_ATTRIBUTE|A dictionary containing information for a CREDENTIAL_ATTRIBUTE struct
 // @pyseeapi CREDENTIAL_ATTRIBUTE
@@ -63,7 +62,7 @@ BOOL PyWinObject_AsCREDENTIAL_ATTRIBUTE(PyObject *obattr, PCREDENTIAL_ATTRIBUTE 
         goto done;
     }
     // Handle `Value`: the docs
-    // https://docs.microsoft.com/en-us/windows/win32/api/wincred/ns-wincred-credential_attributew say it's an LPBYTE
+    // https://learn.microsoft.com/en-us/windows/win32/api/wincred/ns-wincred-credential_attributew say it's an LPBYTE
     // Value (meaning it's just bytes) but then the description says "Data associated with the attribute. By convention,
     // if Value is a text string, then Value should not include the trailing zero character and should be in UNICODE."
     if (PyUnicode_Check(obValue)) {
@@ -723,8 +722,17 @@ PyObject *PyCredWrite(PyObject *self, PyObject *args, PyObject *kwargs)
         return NULL;
     if (!PyWinObject_AsCREDENTIAL(obcred, &cred))
         return NULL;
-    if (!CredWrite(&cred, flags))
-        PyWin_SetAPIError("CredWrite");
+    BOOL ok;
+    DWORD err;
+    Py_BEGIN_ALLOW_THREADS;
+    ok = CredWrite(&cred, flags);
+    // Capture error before Py_END_ALLOW_THREADS reacquires the GIL,
+    // which may call Win32 functions that overwrite GetLastError().
+    if (!ok)
+        err = GetLastError();
+    Py_END_ALLOW_THREADS;
+    if (!ok)
+        PyWin_SetAPIError("CredWrite", err);
     else {
         Py_INCREF(Py_None);
         ret = Py_None;
@@ -940,8 +948,10 @@ PyObject *PyCredUIPromptForCredentials(PyObject *self, PyObject *args, PyObject 
     if (!PyWinObject_AsCREDUI_INFO(obuiinfo, &uiinfo))
         goto done;
 
+    Py_BEGIN_ALLOW_THREADS;
     reterr = CredUIPromptForCredentials(uiinfo, targetname, reserved, autherror, username_io, maxusername, password_io,
                                         maxpassword, &save, flags);
+    Py_END_ALLOW_THREADS;
     if (reterr == NO_ERROR)
         ret = Py_BuildValue("uuN", username_io, password_io, PyBool_FromLong(save));
     else
@@ -1105,7 +1115,6 @@ done:
 }
 
 // @module win32cred|Interface to credentials management functions.
-// The functions in this module are only available on Windows XP and later.<nl>
 // Functions operate only on the credential set of the calling user.<nl>
 // User's profile must be loaded for stored credentials to be accessible.<nl>
 // Each credential is uniquely identified by its TargetName and Type.<nl>

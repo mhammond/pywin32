@@ -15,11 +15,12 @@
 """Generate a .py file from an OLE TypeLibrary file.
 
 
- This module is concerned only with the actual writing of
- a .py file.  It draws on the @build@ module, which builds
- the knowledge of a COM interface.
+This module is concerned only with the actual writing of
+a .py file.  It draws on the @build@ module, which builds
+the knowledge of a COM interface.
 
 """
+
 usageHelp = """ \
 
 Usage:
@@ -151,8 +152,8 @@ class SimpleProgress(genpy.GeneratorProgress):
 
 class GUIProgress(SimpleProgress):
     def __init__(self, verboseLevel):
-        # Import some modules we need to we can trap failure now.
-        import pywin  # nopycln: import
+        # Import some modules we need so we can trap failure now.
+        import pywin  # noqa: F401
         import win32ui
 
         SimpleProgress.__init__(self, verboseLevel)
@@ -292,10 +293,11 @@ def GenerateFromTypeLibSpec(
     for typelib, info in typelibs:
         gen = genpy.Generator(typelib, info.dll, progress, bBuildHidden=bBuildHidden)
 
+        this_name = gencache.GetGeneratedFileName(
+            info.clsid, info.lcid, info.major, info.minor
+        )
+
         if file is None:
-            this_name = gencache.GetGeneratedFileName(
-                info.clsid, info.lcid, info.major, info.minor
-            )
             full_name = os.path.join(gencache.GetGeneratePath(), this_name)
             if bForDemand:
                 try:
@@ -310,12 +312,15 @@ def GenerateFromTypeLibSpec(
                     os.unlink(full_name + ".pyo")
                 except OSError:
                     pass
-                if not os.path.isdir(full_name):
-                    os.mkdir(full_name)
+                # Don't create the package folder yet, wait until the file's been generated.
+                # This avoids issues with other processes attemping to import the package
+                # and getting a namespace package before the __init__.py file is written.
+                tempName = full_name + ".__init__.py"
                 outputName = os.path.join(full_name, "__init__.py")
             else:
                 outputName = full_name + ".py"
-            fileUse = gen.open_writer(outputName)
+                tempName = outputName
+            fileUse, tempName = gen.open_writer(tempName)
             progress.LogBeginGenerate(outputName)
         else:
             fileUse = file
@@ -326,7 +331,8 @@ def GenerateFromTypeLibSpec(
             worked = True
         finally:
             if file is None:
-                gen.finish_writer(outputName, fileUse, worked)
+                with gencache.ModuleMutex(this_name):
+                    gen.finish_writer(outputName, fileUse, tempName, worked)
         importlib.invalidate_caches()
         if bToGenDir:
             progress.SetDescription("Importing module")
@@ -371,7 +377,8 @@ def GenerateChildFromTypeLibSpec(
         gen.generate_child(child, dir_path_name)
         progress.SetDescription("Importing module")
         importlib.invalidate_caches()
-        __import__("win32com.gen_py." + dir_name + "." + child)
+        with gencache.ModuleMutex(dir_name):
+            __import__("win32com.gen_py." + dir_name + "." + child)
     progress.Close()
 
 

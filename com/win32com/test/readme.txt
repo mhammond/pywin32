@@ -13,6 +13,7 @@ In general, this should just run the best it can, utilizing what is available
 on the machine.  It is likely some tests will refuse to run due to objects not
 being locally available - this is normal.
 
-The win32com source tree has source code to a C++ and VB component used purely
+The `com/TestSources/` directory has source code to a C++ and VB component used purely
 for testing.  You may like to build and register these, particularly if you
 are doing anything related to argument/result handling.
+You can run `com/TestSources/PyCOMTest/buildAndRegister.bat` directly.

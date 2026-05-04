@@ -3,9 +3,6 @@
 
 #include "shell_pch.h"
 
-// Requires Windows 7 SDK to build
-#if WINVER >= 0x0601
-
 #include "PyIObjectArray.h"
 
 // @doc - This file contains autoduck documentation
@@ -67,5 +64,3 @@ static struct PyMethodDef PyIObjectArray_methods[] = {
 
 PyComTypeObject PyIObjectArray::type("PyIObjectArray", &PyIUnknown::type, sizeof(PyIObjectArray),
                                      PyIObjectArray_methods, GET_PYCOM_CTOR(PyIObjectArray));
-
-#endif  // WINVER

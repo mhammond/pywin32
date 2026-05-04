@@ -18,16 +18,8 @@ generates Windows .hlp files.
 #include "htmlhelp.h"
 
 #define DllExport _declspec(dllexport)
-
-#if _MSC_VER == 1500
-// This uses htmlhelp.lib, which causes an unresolved external for
-// __report_rangecheckfailure with vs2008 (which is what we used for Python 2)
-// No idea why, but we define it here and cause it to kill the process if it is ever hit.
-extern "C" __declspec(noreturn, dllexport) void __cdecl __report_rangecheckfailure(void) { ::ExitProcess(1); }
-#endif
-
-#define PyW32_BEGIN_ALLOW_THREADS PyThreadState *_save = PyEval_SaveThread();
-#define PyW32_END_ALLOW_THREADS PyEval_RestoreThread(_save);
+#define PyW32_BEGIN_ALLOW_THREADS PyThreadState *_save = PyEval_SaveThread()
+#define PyW32_END_ALLOW_THREADS PyEval_RestoreThread(_save)
 
 PyObject *ReturnAPIError(char *fnName, long err = 0) { return PyWin_SetAPIError(fnName, err); }
 
@@ -66,8 +58,10 @@ static PyObject *PyWinHelp(PyObject *self, PyObject *args)
         data = (ULONG_PTR)pybuf.ptr();
     if (!PyWinObject_AsTCHAR(obhlpFile, &hlpFile, FALSE))
         return NULL;
-    PyW32_BEGIN_ALLOW_THREADS BOOL ok = ::WinHelp(hwnd, hlpFile, cmd, data);
-    PyW32_END_ALLOW_THREADS PyWinObject_FreeTCHAR(hlpFile);
+    PyW32_BEGIN_ALLOW_THREADS;
+    BOOL ok = ::WinHelp(hwnd, hlpFile, cmd, data);
+    PyW32_END_ALLOW_THREADS;
+    PyWinObject_FreeTCHAR(hlpFile);
     if (!ok)
         return ReturnAPIError("WinHelp");
     Py_INCREF(Py_None);
@@ -101,7 +95,7 @@ class PyHH_AKLINK : public PyObject {
     PyObject *m_pszWindow;    // LPCTSTR       pszWindow;
 };
 
-#define PyHH_AKLINK_Check(ob) ((ob)->ob_type == &PyHH_AKLINKType)
+#define PyHH_AKLINK_Check(ob) (Py_TYPE(ob) == &PyHH_AKLINKType)
 
 // @object PyHH_AKLINK|A Python object, representing an HH_AKLINK structure
 // @comm Typically you create a PyHH_AKLINK (via <om win32help.HH_AKLINK>)
@@ -398,7 +392,7 @@ class PyHH_FTS_QUERY : public PyObject {
     PyObject *m_pszSearchQuery;  // LPCTSTR       pszSearchQuery;
 };
 
-#define PyHH_FTS_QUERY_Check(ob) ((ob)->ob_type == &PyHH_FTS_QUERYType)
+#define PyHH_FTS_QUERY_Check(ob) (Py_TYPE(ob) == &PyHH_FTS_QUERYType)
 
 // @object PyHH_FTS_QUERY|A Python object, representing an HH_FTS_QUERY
 // structure
@@ -620,7 +614,7 @@ class PyHH_POPUP : public PyObject {
     PyObject *m_pszFont;    // LPCTSTR       pszFont;
 };
 
-#define PyHH_POPUP_Check(ob) ((ob)->ob_type == &PyHH_POPUPType)
+#define PyHH_POPUP_Check(ob) (Py_TYPE(ob) == &PyHH_POPUPType)
 
 // @object PyHH_POPUP|A Python object, representing an HH_POPUP structure
 // @comm Typically you create a PyHH_POPUP (via <om win32help.HH_POPUP>)
@@ -933,7 +927,7 @@ class PyHH_WINTYPE : public PyObject {
     HH_WINTYPE m_HH_WINTYPE;
 };
 
-#define PyHH_WINTYPE_Check(ob) ((ob)->ob_type == &PyHH_WINTYPEType)
+#define PyHH_WINTYPE_Check(ob) (Py_TYPE(ob) == &PyHH_WINTYPEType)
 
 // @object PyHH_WINTYPE|A Python object, representing an HH_WINTYPE structure
 // @comm Typically you create a PyHH_WINTYPE (via <om win32help.HH_WINTYPE>)
@@ -1429,7 +1423,7 @@ class PyNMHDR : public PyObject {
     NMHDR m_NMHDR;
 };
 
-#define PyNMHDR_Check(ob) ((ob)->ob_type == &PyNMHDRType)
+#define PyNMHDR_Check(ob) (Py_TYPE(ob) == &PyNMHDRType)
 
 // @object PyNMHDR|A Python object, representing an NMHDR
 // structure
@@ -1593,7 +1587,7 @@ class PyHHN_NOTIFY : public PyObject {
     PyObject *m_pszUrl;  // PCSTR  pszUrl;
 };
 
-#define PyHHN_NOTIFY_Check(ob) ((ob)->ob_type == &PyHHN_NOTIFYType)
+#define PyHHN_NOTIFY_Check(ob) (Py_TYPE(ob) == &PyHHN_NOTIFYType)
 
 // @object PyHHN_NOTIFY|A Python object, representing an HHN_NOTIFY
 // structure
@@ -1823,7 +1817,7 @@ class PyHHNTRACK : public PyObject {
     PyObject *m_phhWinType;  // HH_WINTYPE* phhWinType;
 };
 
-#define PyHHNTRACK_Check(ob) ((ob)->ob_type == &PyHHNTRACKType)
+#define PyHHNTRACK_Check(ob) (Py_TYPE(ob) == &PyHHNTRACKType)
 
 // @object PyHHNTRACK|A Python object, representing an HHNTRACK
 // structure
@@ -2487,10 +2481,11 @@ data tuple items must be integers");
     }
 
     HWND helpWnd;
-    PyW32_BEGIN_ALLOW_THREADS helpWnd = ::HtmlHelp(hwnd, file, cmd, data);
-    PyW32_END_ALLOW_THREADS
+    PyW32_BEGIN_ALLOW_THREADS;
+    helpWnd = ::HtmlHelp(hwnd, file, cmd, data);
+    PyW32_END_ALLOW_THREADS;
 
-        PyWinObject_FreeTCHAR(dataObAsTCHAR);
+    PyWinObject_FreeTCHAR(dataObAsTCHAR);
     PyWinObject_FreeTCHAR(file);
 
     PyObject *ret;

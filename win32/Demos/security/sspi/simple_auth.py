@@ -67,6 +67,6 @@ encbuf.append(win32security.PySecBufferType(len(msg), sspicon.SECBUFFER_DATA))
 encbuf.append(win32security.PySecBufferType(trailersize, sspicon.SECBUFFER_TOKEN))
 encbuf[0].Buffer = msg
 sspiclient.ctxt.EncryptMessage(0, encbuf, 1)
-print("Encrypted data:", repr(encbuf[0].Buffer))
+print(f"Encrypted data: {encbuf[0].Buffer!r}")
 sspiserver.ctxt.DecryptMessage(encbuf, 1)
-print("Unencrypted data:", encbuf[0].Buffer)
+print(f"Encrypted data: {encbuf[0].Buffer}")

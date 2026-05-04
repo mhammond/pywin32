@@ -150,13 +150,8 @@ DWORD APIENTRY OpenPerformanceData(LPWSTR lpDeviceNames)
     TCHAR registryKeyName[MAX_PATH];
     TCHAR szFileMapping[MAX_PATH + 10] = _T("");
 
-    // Use a TerminalServices friendly "Global\\" prefix if supported.
-    OSVERSIONINFO info;
-    info.dwOSVersionInfoSize = sizeof(info);
-    GetVersionEx(&info);
-    if (info.dwMajorVersion > 4)
-        // 2000 or later - "Global\\" prefix OK.
-        _tcscpy(szFileMapping, _T("Global\\"));
+    // Use a TerminalServices friendly "Global\\" prefix.
+    _tcscpy(szFileMapping, _T("Global\\"));
     _tcscat(szFileMapping, szModuleName);
 
     //

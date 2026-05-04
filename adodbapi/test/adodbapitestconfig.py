@@ -42,10 +42,6 @@ if "--help" in sys.argv:
     """
     )
     exit()
-try:
-    onWindows = bool(sys.getwindowsversion())  # seems to work on all versions of Python
-except:
-    onWindows = False
 
 # create a random name for temporary table names
 _alphabet = (
@@ -89,7 +85,7 @@ doAccessTest = not ("--nojet" in sys.argv)
 doSqlServerTest = "--mssql" in sys.argv or doAllTests
 doMySqlTest = "--mysql" in sys.argv or doAllTests
 doPostgresTest = "--pg" in sys.argv or doAllTests
-doTimeTest = ("--time" in sys.argv or doAllTests) and onWindows
+doTimeTest = ("--time" in sys.argv or doAllTests) and sys.platform == "win32"
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # # start your environment setup here v v v
@@ -166,7 +162,7 @@ if doPostgresTest:
         "Provider=MSDASQL;Driver={PostgreSQL Unicode(x64)}",
         "Driver=PostgreSQL Unicode",
     ]
-    # get driver from http://www.postgresql.org/ftp/odbc/versions/
+    # get driver from https://www.postgresql.org/ftp/odbc/releases/
     # test using positional and keyword arguments (bad example for real code)
     print("    ...Testing PostgreSQL login to {}...".format(_computername))
     doPostgresTest, connStrPostgres, dbPostgresConnect = tryconnection.try_connection(
@@ -179,6 +175,6 @@ if doPostgresTest:
         **kws,
     )
 
-assert (
-    doAccessTest or doSqlServerTest or doMySqlTest or doPostgresTest
-), "No database engine found for testing"
+assert doAccessTest or doSqlServerTest or doMySqlTest or doPostgresTest, (
+    "No database engine found for testing"
+)

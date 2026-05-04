@@ -1,5 +1,6 @@
 # ADO enumerated constants documented on MSDN:
-# http://msdn.microsoft.com/en-us/library/ms678353(VS.85).aspx
+# https://learn.microsoft.com/en-us/sql/ado/reference/ado-api/ado-enumerated-constants
+# TODO: Update to https://learn.microsoft.com/en-us/sql/ado/reference/ado-api/ado-enumerated-constants
 
 # IsolationLevelEnum
 adXactUnspecified = -1
@@ -79,6 +80,7 @@ ado_error_TIMEOUT = -2147217871
 
 # DataTypeEnum - ADO Data types documented at:
 # http://msdn2.microsoft.com/en-us/library/ms675318.aspx
+# TODO: Update to https://learn.microsoft.com/en-us/sql/ado/reference/ado-api/datatypeenum
 adArray = 0x2000
 adEmpty = 0x0
 adBSTR = 0x8

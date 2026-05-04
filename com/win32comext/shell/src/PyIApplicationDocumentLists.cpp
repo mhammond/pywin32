@@ -3,9 +3,6 @@
 
 #include "shell_pch.h"
 
-// Requires Windows 7 SDK to build
-#if WINVER >= 0x0601
-
 #include "PyIApplicationDocumentLists.h"
 
 // @doc - This file contains autoduck documentation
@@ -72,7 +69,6 @@ PyObject *PyIApplicationDocumentLists::GetList(PyObject *self, PyObject *args)
 }
 
 // @object PyIApplicationDocumentLists|Interface used to retrieve the jump lists for an application
-// @comm Available on Windows 7 and later
 static struct PyMethodDef PyIApplicationDocumentLists_methods[] = {
     {"SetAppID", PyIApplicationDocumentLists::SetAppID,
      1},  // @pymeth SetAppID|Specifies the application whose jump list is to be accessed
@@ -83,5 +79,3 @@ PyComTypeObject PyIApplicationDocumentLists::type("PyIApplicationDocumentLists",
                                                   sizeof(PyIApplicationDocumentLists),
                                                   PyIApplicationDocumentLists_methods,
                                                   GET_PYCOM_CTOR(PyIApplicationDocumentLists));
-
-#endif  // WINVER

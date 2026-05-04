@@ -3,9 +3,6 @@
 
 #include "shell_pch.h"
 
-// Requires Windows 7 SDK to build
-#if WINVER >= 0x0601
-
 #include "PyICustomDestinationList.h"
 
 // @doc - This file contains autoduck documentation
@@ -228,7 +225,6 @@ PyObject *PyICustomDestinationList::AbortList(PyObject *self, PyObject *args)
 }
 
 // @object PyICustomDestinationList|Interface used to customize an application's jump list
-// @comm Requires Windows 7 or later
 static struct PyMethodDef PyICustomDestinationList_methods[] = {
     {"SetAppID", PyICustomDestinationList::SetAppID,
      1},  // @pymeth SetAppID|Specifies the taskbar identifier for the jump list
@@ -251,5 +247,3 @@ static struct PyMethodDef PyICustomDestinationList_methods[] = {
 PyComTypeObject PyICustomDestinationList::type("PyICustomDestinationList", &PyIUnknown::type,
                                                sizeof(PyICustomDestinationList), PyICustomDestinationList_methods,
                                                GET_PYCOM_CTOR(PyICustomDestinationList));
-
-#endif  // WINVER

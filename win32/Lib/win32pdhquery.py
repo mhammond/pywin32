@@ -88,10 +88,10 @@ number of common one-off tasks.
 If you can access the MS Developers Network Library, you can find
 information about the PDH API as MS describes it.  For a background article,
 try:
-http://msdn.microsoft.com/library/en-us/dnperfmo/html/msdn_pdhlib.asp
+https://web.archive.org/web/20040926110045/http://msdn.microsoft.com:80/library/en-us/dnperfmo/html/msdn_pdhlib.asp
 
 The reference guide for the PDH API was last spotted at:
-http://msdn.microsoft.com/library/en-us/perfmon/base/using_the_pdh_interface.asp
+https://learn.microsoft.com/en-us/windows/win32/perfctrs/using-the-pdh-functions-to-consume-counter-data
 
 
 In general the Python version of the API is just a wrapper around the
@@ -108,7 +108,7 @@ in this plan.  There should be an article describing the creation of
 a simple logger there, but the example above is 90% of the work of
 that project, so don't sweat it if you don't find anything there.
 (currently the account hasn't been set up).
-http://starship.skyport.net/crew/mcfletch/
+https://web.archive.org/web/19980422204546/http://starship.skyport.net/crew/mcfletch/
 
 If you need to contact me immediately, (why I can't imagine), you can
 email me at mcfletch@golden.net, or just post your question to the
@@ -331,9 +331,8 @@ class BaseQuery:
                 if not ok:
                     temp.append(-1)  # a better way to signal failure???
             return temp
-        except (
-            win32api.error
-        ):  # will happen if, for instance, no counters are part of the query and we attempt to collect data for it.
+        # will happen if, for instance, no counters are part of the query and we attempt to collect data for it.
+        except win32api.error:
             return [-1] * len(self.counters)
 
     # pickle functions
@@ -505,10 +504,10 @@ class Query(BaseQuery):
     def collectdatawhile(self, period=1):
         """
         Threaded collection of performance data:
-        This method sets up a simple semaphor system for signalling
+        This method sets up a simple semaphore system for signalling
         when you would like to start and stop a threaded data collection
         method.  The collection runs every period seconds until the
-        semaphor attribute is set to a non-true value (which normally
+        semaphore attribute is set to a non-true value (which normally
         should be done by calling query.collectdatawhile_stop() .)
         e.g.:
                 query.collectdatawhile(2)
@@ -561,11 +560,11 @@ class Query(BaseQuery):
         self.volatilecounters = volatilecounters
 
 
-class QueryError:
-    def __init__(self, query):
+class QueryError(Exception):
+    def __init__(self, query: BaseQuery):
         self.query = query
 
     def __repr__(self):
-        return "<Query Error in %s>" % repr(self.query)
+        return f"<Query Error in {self.query!r}>"
 
     __str__ = __repr__

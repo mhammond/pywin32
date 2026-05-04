@@ -163,8 +163,6 @@ def FindPythonExe(exeAlias, possibleRealNames, searchPaths):
 def QuotedFileName(fname):
     """Given a filename, return a quoted version if necessary"""
 
-    import regutil
-
     try:
         fname.index(" ")  # Other chars forcing quote?
         return '"%s"' % fname
@@ -182,8 +180,6 @@ def LocateFileName(fileNamesString, searchPaths):
     Raises KeyboardInterrupt if the user cancels.
     """
     import os
-
-    import regutil
 
     fileNames = fileNamesString.split(";")
     for path in searchPaths:
@@ -447,8 +443,7 @@ def RegisterShellInfo(searchPaths):
 
 #       FindRegisterApp("win32", ["win32con.pyc", "win32api%s.pyd" % suffix], searchPaths)
 
-usage = (
-    """\
+usage = """\
 regsetup.py - Setup/maintain the registry for Python apps.
 
 Run without options, (but possibly search paths) to repair a totally broken
@@ -468,16 +463,14 @@ Usage:   %s [options ...] paths ...
                    core path, you can avoid packages re-registering the same path.
 -m filename     -- Find and register the specific file name as a module.
                    Do not include a path on the filename!
---shell         -- Register everything with the Win95/NT shell.
+--shell         -- Register everything with the Windows shell.
 --upackage name -- Unregister the package
 --uapp name     -- Unregister the app (identical to --upackage)
 --umodule name  -- Unregister the module
 
 --description   -- Print a description of the usage.
 --examples      -- Print examples of usage.
-"""
-    % sys.argv[0]
-)
+""" % sys.argv[0]
 
 description = """\
 If no options are processed, the program attempts to validate and set
@@ -500,9 +493,9 @@ of the registry.
 # Using raw string so that all paths meant to be copied read correctly inline and when printed
 examples = r"""
 Examples:
-"regsetup c:\wierd\spot\1 c:\wierd\spot\2"
+"regsetup c:\weird\spot\1 c:\weird\spot\2"
 Attempts to setup the core Python.  Looks in some standard places,
-as well as the 2 wierd spots to locate the core Python files (eg, Python.exe,
+as well as the 2 weird spots to locate the core Python files (eg, Python.exe,
 pythonXX.dll, the standard library and Win32 Extensions).
 
 "regsetup -a myappname . .\subdir"
@@ -592,7 +585,7 @@ if __name__ == "__main__":
                 print("Registering application", a, "to path", path)
                 regutil.RegisterNamedPath(a, path)
             if o == "-c":
-                if not len(searchPaths):
+                if not searchPaths:
                     raise error("-c option must provide at least one additional path")
                 import regutil
 

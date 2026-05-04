@@ -37,9 +37,9 @@ def TestInterp(interp):
     except pythoncom.com_error as details:
         import winerror
 
-        assert (
-            details[0] == winerror.DISP_E_TYPEMISMATCH
-        ), "The interpreter exception was not winerror.DISP_E_TYPEMISMATCH."
+        assert details[0] == winerror.DISP_E_TYPEMISMATCH, (
+            "The interpreter exception was not winerror.DISP_E_TYPEMISMATCH."
+        )
 
 
 def TestInterpInThread(stopEvent, cookie):

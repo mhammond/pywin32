@@ -21,11 +21,11 @@ else:
 # helpers.
 
 # Of specific note - most of the interfaces supported by ADSI
-# derive from IDispatch - thus, you get the custome methods from the
+# derive from IDispatch - thus, you get the custom methods from the
 # interface, as well as via IDispatch.
 import pythoncom
 
-from .adsi import *  # nopycln: import # Re-export everything from win32comext/adsi/adsi.pyd
+from .adsi import *  # Re-export everything from win32comext/adsi/adsi.pyd
 
 LCID = 0
 

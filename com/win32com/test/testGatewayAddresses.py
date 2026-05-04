@@ -60,7 +60,7 @@ def FailObjectIdentity(ob1, ob2, when):
     if not CheckObjectIdentity(ob1, ob2):
         global numErrors
         numErrors += 1
-        print(when, f"are not identical ({repr(ob1)}, {repr(ob2)})")
+        print(f"{when} are not identical ({ob1!r}, {ob2!r})")
 
 
 class Dummy:

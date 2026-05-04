@@ -5,6 +5,14 @@ import pywintypes
 import win32api
 
 
+class TestError1(Exception):
+    pass
+
+
+class TestError2(Exception):
+    pass
+
+
 # A class that will never die vie refcounting, but will die via GC.
 class Cycle:
     def __init__(self, handle):
@@ -21,7 +29,7 @@ class PyHandleTestCase(unittest.TestCase):
             h = win32event.CreateEvent(None, 0, 0, None)
             if invalidate:
                 win32api.CloseHandle(int(h))
-            1 / 0
+            raise TestError1
             # If we invalidated, then the object destruction code will attempt
             # to close an invalid handle.  We don't wan't an exception in
             # this case
@@ -30,13 +38,13 @@ class PyHandleTestCase(unittest.TestCase):
             """This function should throw an OSError."""
             try:
                 f1(invalidate)
-            except ZeroDivisionError as exc:
-                raise OSError("raise 2")
+            except TestError1:
+                raise TestError2
 
-        self.assertRaises(OSError, f2, False)
+        self.assertRaises(TestError2, f2, False)
         # Now do it again, but so the auto object destruction
         # actually fails.
-        self.assertRaises(OSError, f2, True)
+        self.assertRaises(TestError2, f2, True)
 
     def testCleanup2(self):
         # Cause an exception during object destruction.
@@ -79,7 +87,7 @@ class PyHandleTestCase(unittest.TestCase):
             # Ideally, we'd:
             #     self.assertRaises(win32api.error, h.Close)
             # and everywhere markh has tried, that would pass - but not on
-            # github automation, where the .Close apparently works fine.
+            # GitHub automation, where the .Close apparently works fine.
             # (same for -1. Using 0 appears to work fine everywhere)
             # There still seems value in testing it though, so we just accept
             # either working or failing.

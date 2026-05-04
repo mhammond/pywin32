@@ -4,7 +4,7 @@
 
 // If building under a GCC, tweak what we need.
 #if defined(__GNUC__) && defined(_POSIX_C_SOURCE)
-// python.h complains if _POSIX_C_SOURCE is already defined
+// Python.h complains if _POSIX_C_SOURCE is already defined
 #undef _POSIX_C_SOURCE
 #endif
 
@@ -32,10 +32,10 @@
 #define PYWIN_MODULE_INIT_FUNC(module_name) extern "C" __declspec(dllexport) PyObject *PyInit_##module_name(void)
 
 // If the module needs to early-exit on an error condition.
-#define PYWIN_MODULE_INIT_RETURN_ERROR return NULL;
+#define PYWIN_MODULE_INIT_RETURN_ERROR return NULL
 
 // When the module has successfully initialized.
-#define PYWIN_MODULE_INIT_RETURN_SUCCESS return module;
+#define PYWIN_MODULE_INIT_RETURN_SUCCESS return module
 
 // To setup the module object itself and the module's dictionary.
 #define PYWIN_MODULE_INIT_PREPARE(module_name, functions, docstring)                                        \
@@ -82,6 +82,8 @@ typedef Py_ssize_t Py_hash_t;
 #endif  // DEBUG/_DEBUG
 #endif  // _MSC_VER
 #endif  // BUILD_PYWINTYPES
+
+extern PYWINTYPES_EXPORT HMODULE PyWin_GetOrLoadLibraryHandle(const char *name);
 
 // Py3k uses memoryview object in place of buffer, and we don't yet.
 extern PYWINTYPES_EXPORT PyObject *PyBuffer_New(Py_ssize_t size);
@@ -322,7 +324,7 @@ inline BOOL PyWinLong_AsDWORD_PTR(PyObject *ob, DWORD_PTR *r) { return PyWinLong
 */
 class PyOVERLAPPED;                                      // forward declare
 extern PYWINTYPES_EXPORT PyTypeObject PyOVERLAPPEDType;  // the Type for PyOVERLAPPED
-#define PyOVERLAPPED_Check(ob) ((ob)->ob_type == &PyOVERLAPPEDType)
+#define PyOVERLAPPED_Check(ob) (Py_TYPE(ob) == &PyOVERLAPPEDType)
 PYWINTYPES_EXPORT BOOL PyWinObject_AsOVERLAPPED(PyObject *ob, OVERLAPPED **ppOverlapped, BOOL bNoneOK = TRUE);
 PYWINTYPES_EXPORT BOOL PyWinObject_AsPyOVERLAPPED(PyObject *ob, PyOVERLAPPED **ppOverlapped, BOOL bNoneOK = TRUE);
 PYWINTYPES_EXPORT PyObject *PyWinObject_FromOVERLAPPED(const OVERLAPPED *pOverlapped);
@@ -336,7 +338,7 @@ PYWINTYPES_EXPORT PyObject *PyWinMethod_NewOVERLAPPED(PyObject *self, PyObject *
 */
 
 extern PYWINTYPES_EXPORT PyTypeObject PyIIDType;  // the Type for PyIID
-#define PyIID_Check(ob) ((ob)->ob_type == &PyIIDType)
+#define PyIID_Check(ob) (Py_TYPE(ob) == &PyIIDType)
 
 // Given an object repring a CLSID (either PyIID or string), fill the CLSID.
 PYWINTYPES_EXPORT BOOL PyWinObject_AsIID(PyObject *obCLSID, CLSID *clsid);
@@ -465,7 +467,7 @@ PYWINTYPES_EXPORT PyObject *PyWinObject_FromRECT(LPRECT prect);
 ** SECURITY_ATTRIBUTES support
 */
 extern PYWINTYPES_EXPORT PyTypeObject PySECURITY_ATTRIBUTESType;
-#define PySECURITY_ATTRIBUTES_Check(ob) ((ob)->ob_type == &PySECURITY_ATTRIBUTESType)
+#define PySECURITY_ATTRIBUTES_Check(ob) (Py_TYPE(ob) == &PySECURITY_ATTRIBUTESType)
 extern PYWINTYPES_EXPORT PyTypeObject PyDEVMODEWType;
 
 PYWINTYPES_EXPORT PyObject *PyWinMethod_NewSECURITY_ATTRIBUTES(PyObject *self, PyObject *args);
@@ -483,13 +485,13 @@ PYWINTYPES_EXPORT PyObject *PyWinMethod_NewWAVEFORMATEX(PyObject *self, PyObject
 PYWINTYPES_EXPORT PyObject *PyWinObject_FromWAVEFROMATEX(const WAVEFORMATEX &wfx);
 PYWINTYPES_EXPORT BOOL PyWinObject_AsWAVEFORMATEX(PyObject *ob, WAVEFORMATEX **ppWAVEFORMATEX, BOOL bNoneOK = TRUE);
 extern PYWINTYPES_EXPORT PyTypeObject PyWAVEFORMATEXType;
-#define PyWAVEFORMATEX_Check(ob) ((ob)->ob_type == &PyWAVEFORMATEXType)
+#define PyWAVEFORMATEX_Check(ob) (Py_TYPE(ob) == &PyWAVEFORMATEXType)
 
 /*
 ** SECURITY_DESCRIPTOR support
 */
 extern PYWINTYPES_EXPORT PyTypeObject PySECURITY_DESCRIPTORType;
-#define PySECURITY_DESCRIPTOR_Check(ob) ((ob)->ob_type == &PySECURITY_DESCRIPTORType)
+#define PySECURITY_DESCRIPTOR_Check(ob) (Py_TYPE(ob) == &PySECURITY_DESCRIPTORType)
 
 PYWINTYPES_EXPORT PyObject *PyWinMethod_NewSECURITY_DESCRIPTOR(PyObject *self, PyObject *args);
 PYWINTYPES_EXPORT BOOL PyWinObject_AsSECURITY_DESCRIPTOR(PyObject *ob, PSECURITY_DESCRIPTOR *ppSECURITY_DESCRIPTOR,
@@ -503,7 +505,7 @@ PYWINTYPES_EXPORT void FreeAbsoluteSD(PSECURITY_DESCRIPTOR psd);
 ** SID support
 */
 extern PYWINTYPES_EXPORT PyTypeObject PySIDType;
-#define PySID_Check(ob) ((ob)->ob_type == &PySIDType)
+#define PySID_Check(ob) (Py_TYPE(ob) == &PySIDType)
 
 PYWINTYPES_EXPORT PyObject *PyWinMethod_NewSID(PyObject *self, PyObject *args);
 PYWINTYPES_EXPORT BOOL PyWinObject_AsSID(PyObject *ob, PSID *ppSID, BOOL bNoneOK = FALSE);
@@ -513,7 +515,7 @@ PYWINTYPES_EXPORT PyObject *PyWinObject_FromSID(PSID pSID);
 ** ACL support
 */
 extern PYWINTYPES_EXPORT PyTypeObject PyACLType;
-#define PyACL_Check(ob) ((ob)->ob_type == &PyACLType)
+#define PyACL_Check(ob) (Py_TYPE(ob) == &PyACLType)
 
 PYWINTYPES_EXPORT PyObject *PyWinMethod_NewACL(PyObject *self, PyObject *args);
 PYWINTYPES_EXPORT BOOL PyWinObject_AsACL(PyObject *ob, PACL *ppACL, BOOL bNoneOK = FALSE);
@@ -522,7 +524,7 @@ PYWINTYPES_EXPORT BOOL PyWinObject_AsACL(PyObject *ob, PACL *ppACL, BOOL bNoneOK
 ** Win32 HANDLE wrapper - any handle closable by "CloseHandle()"
 */
 extern PYWINTYPES_EXPORT PyTypeObject PyHANDLEType;  // the Type for PyHANDLE
-#define PyHANDLE_Check(ob) ((ob)->ob_type == &PyHANDLEType)
+#define PyHANDLE_Check(ob) (Py_TYPE(ob) == &PyHANDLEType)
 
 // Convert an object to a HANDLE - None is always OK, as are ints, etc.
 PYWINTYPES_EXPORT BOOL PyWinObject_AsHANDLE(PyObject *ob, HANDLE *pRes);
@@ -701,17 +703,13 @@ class CEnterLeavePython {
 };
 
 // A helper for simple exception handling.
-// try/__try
-#if defined(__MINGW32__) || defined(MAINWIN)
+#if defined(__MINGW32__)
+#define __try try
+#define __except(filter) catch (...)
 #define PYWINTYPES_TRY try
-#else
-#define PYWINTYPES_TRY __try
-#endif /* MAINWIN */
-
-// catch/__except
-#if defined(__MINGW32__) || defined(MAINWIN)
 #define PYWINTYPES_EXCEPT catch (...)
 #else
+#define PYWINTYPES_TRY __try
 #define PYWINTYPES_EXCEPT __except (EXCEPTION_EXECUTE_HANDLER)
 #endif
 // End of exception helper macros.

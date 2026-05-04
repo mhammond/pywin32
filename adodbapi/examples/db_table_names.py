@@ -1,4 +1,4 @@
-""" db_table_names.py -- a simple demo for ADO database table listing."""
+"""db_table_names.py -- a simple demo for ADO database table listing."""
 
 import sys
 

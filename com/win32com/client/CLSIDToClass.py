@@ -17,7 +17,9 @@ This obviously applies to all cooperating objects, not just DAO and
 Access.
 """
 
-mapCLSIDToClass = {}
+from __future__ import annotations
+
+mapCLSIDToClass: dict[str, type] = {}
 
 
 def RegisterCLSID(clsid, pythonClass):

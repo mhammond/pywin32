@@ -260,10 +260,10 @@ static int AddIID(PyObject *dict, const char *key, REFGUID guid)
 
 #define ADD_CONSTANT(tok)                  \
     if (0 != AddConstant(dict, #tok, tok)) \
-    PYWIN_MODULE_INIT_RETURN_ERROR
+        PYWIN_MODULE_INIT_RETURN_ERROR;
 #define ADD_IID(tok)                  \
     if (0 != AddIID(dict, #tok, tok)) \
-    PYWIN_MODULE_INIT_RETURN_ERROR
+        PYWIN_MODULE_INIT_RETURN_ERROR;
 
 // @object PyIFilter|Wraps the interfaces used with Indexing Service filtering
 static struct PyMethodDef PyIFilter_methods[] = {
@@ -299,7 +299,7 @@ PYWIN_MODULE_INIT_FUNC(ifilter)
     // query.dll
     HMODULE hmod = GetModuleHandle(_T("query.dll"));
     if (hmod)
-        // According to FiltErr.h, "Codes 0x1700-0x172F are reserved for FILTER"
+        // According to filterr.h, "Codes 0x1700-0x172F are reserved for FILTER"
         PyWin_RegisterErrorMessageModule(0x80041700, 0x8004172F, hmod);
 
     // NOTE: New constants should go in ifiltercon.py

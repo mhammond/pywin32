@@ -26,7 +26,7 @@
 
 //
 // String names for some standard DDE strings not
-// defined in DDEML.H
+// defined in ddeml.h
 //
 
 #define SZ_READY "Ready"

@@ -43,9 +43,9 @@ PyObject *PyIShellIconOverlayIdentifier::IsMemberOf(PyObject *self, PyObject *ar
     HRESULT hr;
     PY_INTERFACE_PRECALL;
     hr = pISIOI->IsMemberOf(path, attrib);
-    PyWinObject_FreeWCHAR(path);
 
     PY_INTERFACE_POSTCALL;
+    PyWinObject_FreeWCHAR(path);
 
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pISIOI, IID_IShellIconOverlayIdentifier);

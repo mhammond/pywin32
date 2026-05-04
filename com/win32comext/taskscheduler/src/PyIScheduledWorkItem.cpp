@@ -389,9 +389,8 @@ PyObject *PyIScheduledWorkItem::SetComment(PyObject *self, PyObject *args)
     HRESULT hr;
     PY_INTERFACE_PRECALL;
     hr = pISWI->SetComment(pwszComment);
-    PyWinObject_FreeWCHAR(pwszComment);
-
     PY_INTERFACE_POSTCALL;
+    PyWinObject_FreeWCHAR(pwszComment);
 
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pISWI, IID_IScheduledWorkItem);
@@ -437,9 +436,8 @@ PyObject *PyIScheduledWorkItem::SetCreator(PyObject *self, PyObject *args)
     HRESULT hr;
     PY_INTERFACE_PRECALL;
     hr = pISWI->SetCreator(pwszCreator);
-    PyWinObject_FreeWCHAR(pwszCreator);
-
     PY_INTERFACE_POSTCALL;
+    PyWinObject_FreeWCHAR(pwszCreator);
 
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pISWI, IID_IScheduledWorkItem);
@@ -685,9 +683,9 @@ PyObject *PyIScheduledWorkItem::SetAccountInformation(PyObject *self, PyObject *
     HRESULT hr;
     PY_INTERFACE_PRECALL;
     hr = pISWI->SetAccountInformation(AccountName, Password);
+    PY_INTERFACE_POSTCALL;
     PyWinObject_FreeWCHAR(AccountName);
     PyWinObject_FreeWCHAR(Password);
-    PY_INTERFACE_POSTCALL;
 
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, pISWI, IID_IScheduledWorkItem);

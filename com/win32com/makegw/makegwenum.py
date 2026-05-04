@@ -191,9 +191,7 @@ PyComEnumTypeObject PyIEnum{enumtype}::type("PyIEnum{enumtype}",
         sizeof(PyIEnum{enumtype}),
         PyIEnum{enumtype}_methods,
         GET_PYCOM_CTOR(PyIEnum{enumtype}));
-""".format(
-            **locals()
-        )
+""".format(**locals())
     )
 
 
@@ -329,7 +327,5 @@ STDMETHODIMP PyGEnum{enumtype}::Clone(
 
     return PyCom_CheckIEnumNextResult(hr, IID_IEnum{enumtype});
 }}
-""".format(
-            **locals()
-        )
+""".format(**locals())
     )

@@ -4,9 +4,10 @@
 
 #include "stdafx.h"
 #include "PythonCOM.h"
+#include "PyRecord.h"
 
-extern PyObject *PyObject_FromRecordInfo(IRecordInfo *, void *, ULONG);
-extern PyObject *PyObject_FromSAFEARRAYRecordInfo(SAFEARRAY *psa);
+extern PyObject *PyObject_FromRecordInfo(IRecordInfo *, void *, ULONG, PyTypeObject *type = NULL);
+extern PyObject *PyObject_FromSAFEARRAYRecordInfo(SAFEARRAY *psa, long *arrayIndices);
 extern BOOL PyObject_AsVARIANTRecordInfo(PyObject *ob, VARIANT *pv);
 extern BOOL PyRecord_Check(PyObject *ob);
 
@@ -18,7 +19,7 @@ static PyObject *PyVariant_Type;
 // new array (old behaviour)
 #define BYREF_ARRAY_USE_EXISTING_ARRAY
 
-// Need to put this in pywintypes.h with rest of compatibility macros
+// Need to put this in PyWinTypes.h with rest of compatibility macros
 #define PYWIN_BUFFER_CHECK(obj) (PyBytes_Check(obj) || PyByteArray_Check(obj) || PyMemoryView_Check(obj))
 
 // A little helper just for this file
@@ -238,16 +239,16 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
         V_UNKNOWN(var) = PyIUnknown::GetI(obj);
         V_UNKNOWN(var)->AddRef();
     }
-    else if (obj->ob_type == &PyOleEmptyType) {
+    else if (Py_TYPE(obj) == &PyOleEmptyType) {
         bGoodEmpty = TRUE;
     }
     // code changed by ssc
-    else if (obj->ob_type == &PyOleNothingType) {
+    else if (Py_TYPE(obj) == &PyOleNothingType) {
         V_VT(var) = VT_DISPATCH;
         V_DISPATCH(var) = NULL;
     }
     // end code changed by ssc
-    else if (obj->ob_type == &PyOleArgNotFoundType) {
+    else if (Py_TYPE(obj) == &PyOleArgNotFoundType) {
         // use default parameter
         // Note the SDK documentation for FUNCDESC describes this behaviour
         // as correct.  However, IMAPI.Session.Logon, most DAO, etc do _not_ work
@@ -288,12 +289,13 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
         V_VT(var) = VT_RECORD;
     }
     // Decimal class from new _decimal module in Python 3.3 shows different name
-    else if (strcmp(obj->ob_type->tp_name, "Decimal") == 0 || strcmp(obj->ob_type->tp_name, "decimal.Decimal") == 0) {
+    else if (strcmp(Py_TYPE(obj)->tp_name, "Decimal") == 0 || strcmp(Py_TYPE(obj)->tp_name, "decimal.Decimal") == 0) {
+        // VT_DECIMAL supports more precision here, use in error case? leave existing behavior for now
         if (!PyObject_AsCurrency(obj, &V_CY(var)))
             return FALSE;
         V_VT(var) = VT_CY;
     }
-    else if (obj->ob_type->tp_as_number) {
+    else if (Py_TYPE(obj)->tp_as_number) {
         V_VT(var) = VT_R8;
         V_R8(var) = PyFloat_AsDouble(obj);
         if (V_R8(var) == -1.0 && PyErr_Occurred())
@@ -304,10 +306,10 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
         // Must ensure we have a Python error set if we fail!
         if (!PyErr_Occurred()) {
             char *extraMessage = "";
-            if (obj->ob_type->tp_as_buffer)
+            if (Py_TYPE(obj)->tp_as_buffer)
                 extraMessage = " (but obtaining the buffer() of this object could)";
             PyErr_Format(PyExc_TypeError, "Objects of type '%s' can not be converted to a COM VARIANT%s",
-                         obj->ob_type->tp_name, extraMessage);
+                         Py_TYPE(obj)->tp_name, extraMessage);
         }
         return FALSE;
     }
@@ -467,6 +469,10 @@ PyObject *PyCom_PyObjectFromVariant(const VARIANT *var)
             result = PyObject_FromCurrency(varValue.cyVal);
             break;
 
+        case VT_DECIMAL:
+            result = PyObject_FromDecimal(varValue.decVal);
+            break;
+
         case VT_RECORD: {
             ULONG cb;
             V_RECORDINFO(&varValue)->GetSize(&cb);
@@ -507,7 +513,7 @@ static BOOL PyCom_SAFEARRAYFromPyObjectBuildDimension(PyObject *obj, SAFEARRAY *
     // See if we can take a short-cut for byte arrays - if
     // so, we can copy the entire dimension in one hit
     // (only support single segment buffers for now)
-    if (dimNo == nDims && vt == VT_UI1 && obj->ob_type->tp_as_buffer) {
+    if (dimNo == nDims && vt == VT_UI1 && Py_TYPE(obj)->tp_as_buffer) {
         void *sa_buf;
         PyWinBufferView pybuf(obj);
         if (!pybuf.ok())
@@ -554,6 +560,9 @@ static BOOL PyCom_SAFEARRAYFromPyObjectBuildDimension(PyObject *obj, SAFEARRAY *
                     helper.m_reqdType = vt;
                     ok = helper.MakeObjToVariant(item, &element);
                     switch (vt) {
+                        case VT_RECORD:
+                            pvData = V_RECORD(&element);
+                            break;
                         case VT_DISPATCH:
                             pvData = V_DISPATCH(&element);
                             break;
@@ -565,7 +574,7 @@ static BOOL PyCom_SAFEARRAYFromPyObjectBuildDimension(PyObject *obj, SAFEARRAY *
                             break;
                         default:
                             // The data is in a union - just use an
-                            // arbitary element.
+                            // arbitrary element.
                             pvData = &V_I4(&element);
                             break;
                     }
@@ -755,17 +764,32 @@ static BOOL PyCom_SAFEARRAYFromPyObjectEx(PyObject *obj, SAFEARRAY **ppSA, bool 
             }
         }
     }
-    Py_XDECREF(obItemCheck);
 
     if (bAllocNewArray) {
         // OK - Finally can create the array...
-        *ppSA = SafeArrayCreate(vt, cDims, pBounds);
+        if (vt == VT_RECORD) {
+            // SAFEARRAYS of UDTs need a special treatment.
+            // When the loop above has finished, we expect the 'obItemCheck' variable to reference
+            // a Record type element. We cannot accept other types or empty arrays because we need
+            // to access the IRecordInfo interface to create the SAFEARRAY.
+            if (!PyRecord_Check(obItemCheck)) {
+                PyErr_SetString(PyExc_TypeError, "Expected elements of type com_record");
+                Py_XDECREF(obItemCheck);
+                return NULL;
+            }
+            PyRecord *pyrec = (PyRecord *)obItemCheck;
+            *ppSA = SafeArrayCreateEx(vt, cDims, pBounds, pyrec->pri);
+        }
+        else
+            *ppSA = SafeArrayCreate(vt, cDims, pBounds);
         if (*ppSA == NULL) {
             delete[] pBounds;
             PyErr_SetString(PyExc_MemoryError, "CreatingSafeArray");
+            Py_XDECREF(obItemCheck);
             return FALSE;
         }
     }
+    Py_XDECREF(obItemCheck);
 
     LONG *indices = new LONG[cDims];
     // Get the data
@@ -847,6 +871,14 @@ static PyObject *PyCom_PyObjectFromSAFEARRAYDimensionItem(SAFEARRAY *psa, VARENU
             subitem = PyObject_FromCurrency(c);
             break;
         }
+        case VT_DECIMAL: {
+            DECIMAL dec;
+            hres = SafeArrayGetElement(psa, arrayIndices, &dec);
+            if (FAILED(hres))
+                break;
+            subitem = PyObject_FromDecimal(dec);
+            break;
+        }
         case VT_DATE: {
             DATE dt;
             hres = SafeArrayGetElement(psa, arrayIndices, &dt);
@@ -860,7 +892,7 @@ static PyObject *PyCom_PyObjectFromSAFEARRAYDimensionItem(SAFEARRAY *psa, VARENU
             hres = SafeArrayGetElement(psa, arrayIndices, &str);
             if (FAILED(hres))
                 break;
-            subitem = PyWinObject_FromBstr(str);
+            subitem = PyWinObject_FromBstr(str, TRUE);
             break;
         }
         case VT_DISPATCH: {
@@ -868,7 +900,7 @@ static PyObject *PyCom_PyObjectFromSAFEARRAYDimensionItem(SAFEARRAY *psa, VARENU
             hres = SafeArrayGetElement(psa, arrayIndices, &pDisp);
             if (FAILED(hres))
                 break;
-            subitem = PyCom_PyObjectFromIUnknown(pDisp, IID_IDispatch, TRUE);
+            subitem = PyCom_PyObjectFromIUnknown(pDisp, IID_IDispatch, FALSE);
             break;
         }
         // case VT_ERROR - handled above with I4
@@ -895,12 +927,9 @@ static PyObject *PyCom_PyObjectFromSAFEARRAYDimensionItem(SAFEARRAY *psa, VARENU
             hres = SafeArrayGetElement(psa, arrayIndices, &pUnk);
             if (FAILED(hres))
                 break;
-            subitem = PyCom_PyObjectFromIUnknown(pUnk, IID_IUnknown, TRUE);
+            subitem = PyCom_PyObjectFromIUnknown(pUnk, IID_IUnknown, FALSE);
             break;
         }
-            // case VT_DECIMAL
-            // case VT_RECORD
-
         case VT_I1:
         case VT_UI1: {
             unsigned char i1;
@@ -1007,20 +1036,19 @@ PyObject *PyCom_PyObjectFromSAFEARRAYBuildDimension(SAFEARRAY *psa, VARENUM vt, 
         SafeArrayUnaccessData(psa);
         return ret;
     }
-    // Another shortcut for VT_RECORD types.
-    if (vt == VT_RECORD) {
-        return PyObject_FromSAFEARRAYRecordInfo(psa);
-    }
-    // Normal SAFEARRAY case returning a tuple.
 
+    BOOL bBuildItems = (nDims == dimNo);
+    // Get a pointer for the dimension to iterate.
+    long *pMyArrayIndex = arrayIndices + (dimNo - 1);
+    *pMyArrayIndex = lb;
+    // For Records we arrange all BuildItems in one single RecordBuffer.
+    if (bBuildItems && vt == VT_RECORD) {
+        return PyObject_FromSAFEARRAYRecordInfo(psa, arrayIndices);
+    }
     PyObject *retTuple = PyTuple_New(ub - lb + 1);
     if (retTuple == NULL)
         return FALSE;
     int tupleIndex = 0;
-    // Get a pointer for the dimension to iterate (the last one)
-    long *pMyArrayIndex = arrayIndices + (dimNo - 1);
-    *pMyArrayIndex = lb;
-    BOOL bBuildItems = (nDims == dimNo);
     for (; *pMyArrayIndex <= ub; (*pMyArrayIndex)++, tupleIndex++) {
         PyObject *subItem = NULL;
         if (bBuildItems) {
@@ -1150,7 +1178,7 @@ BOOL PythonOleArgHelper::ParseTypeInformation(PyObject *reqdObjectTuple)
         rc = FALSE; \
         break;      \
     }
-#define VALID_BYREF_MISSING(obUse) (obUse == Py_None || obUse->ob_type == &PyOleEmptyType)
+#define VALID_BYREF_MISSING(obUse) (obUse == Py_None || Py_TYPE(obUse) == &PyOleEmptyType)
 
 BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject *reqdObjectTuple)
 {
@@ -1181,7 +1209,7 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
     if (m_convertDirection == POAH_CONVERT_UNKNOWN)
         m_convertDirection = POAH_CONVERT_FROM_PYOBJECT;
 
-    if (obj->ob_type == &PyOleEmptyType) {
+    if (Py_TYPE(obj) == &PyOleEmptyType) {
         // Quick exit - use default parameter
         V_VT(var) = VT_ERROR;
         V_ERROR(var) = DISP_E_PARAMNOTFOUND;
@@ -1321,6 +1349,7 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
                 *V_UI8REF(var) = 0;
             break;
         case VT_I4:
+        case VT_INT:
             if ((obUse = PyNumber_Long(obj)) == NULL)
                 BREAK_FALSE
             V_I4(var) = PyLong_AsLong(obUse);
@@ -1328,6 +1357,7 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
                 BREAK_FALSE;
             break;
         case VT_I4 | VT_BYREF:
+        case VT_INT | VT_BYREF:
             if (bCreateBuffers)
                 V_I4REF(var) = &m_lBuf;
 
@@ -1437,23 +1467,15 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
             break;
         case VT_BOOL | VT_BYREF:
             if (bCreateBuffers)
-#if _MSC_VER <= 1010
-                // use this macro for MSVC4.1 or before
-                V_BOOLREF(var) = &m_boolBuf;
-#define MYBOOLREF V_BOOLREF(var)
-#else
                 // this is used in MSVC4.2 and after
                 var->pboolVal = &m_boolBuf;
-#define MYBOOLREF (var->pboolVal)
-#endif
-
             if (!VALID_BYREF_MISSING(obj)) {
                 if ((obUse = PyNumber_Long(obj)) == NULL)
                     BREAK_FALSE
-                *MYBOOLREF = PyLong_AsLong(obj) ? VARIANT_TRUE : VARIANT_FALSE;
+                *(var->pboolVal) = PyLong_AsLong(obj) ? VARIANT_TRUE : VARIANT_FALSE;
             }
             else
-                *MYBOOLREF = 0;
+                *(var->pboolVal) = 0;
             break;
         case VT_R8:
             if ((obUse = PyNumber_Float(obj)) == NULL)
@@ -1572,6 +1594,7 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
             // Nothing else to do - the code below sets the VT up correctly.
             break;
         case VT_RECORD:
+        case VT_RECORD | VT_BYREF:
             rc = PyObject_AsVARIANTRecordInfo(obj, var);
             break;
         case VT_CY:
@@ -1586,6 +1609,19 @@ BOOL PythonOleArgHelper::MakeObjToVariant(PyObject *obj, VARIANT *var, PyObject 
             }
             else
                 V_CYREF(var)->int64 = 0;
+            break;
+        case VT_DECIMAL:
+            rc = PyObject_AsDecimal(obj, &V_DECIMAL(var));
+            break;
+        case VT_DECIMAL | VT_BYREF:
+            if (bCreateBuffers)
+                V_DECIMALREF(var) = &m_decBuf;
+            if (!VALID_BYREF_MISSING(obj)) {
+                if (!PyObject_AsDecimal(obj, V_DECIMALREF(var)))
+                    BREAK_FALSE;
+            }
+            else
+                memset(V_DECIMALREF(var), 0, sizeof(DECIMAL));
             break;
         default:
             // could try default, but this error indicates we need to

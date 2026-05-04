@@ -3,9 +3,6 @@
 
 #include "shell_pch.h"
 
-// Requires Windows 7 SDK to build
-#if WINVER >= 0x0601
-
 #include "PyIObjectArray.h"
 #include "PyIObjectCollection.h"
 
@@ -124,5 +121,3 @@ PyComTypeObject PyIObjectCollection::type("PyIObjectCollection",
                                           &PyIObjectArray::type,  // @base PyIObjectCollection|PyIObjectArray
                                           sizeof(PyIObjectCollection), PyIObjectCollection_methods,
                                           GET_PYCOM_CTOR(PyIObjectCollection));
-
-#endif  // WINVER

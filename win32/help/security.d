@@ -5,7 +5,7 @@
 
 <nl>There may be times when you want to give specific access to
 someone with NT. One mechanism to do this is with the win32 calls:
-LogonUser and ImpersonateLoggedOnUser. LogonUser gives you a handel
+LogonUser and ImpersonateLoggedOnUser. LogonUser gives you a handle
 which ImpersonateLoggedOnUser can then use to "become" the user. To do
 this the thread calling, LogonUser, needs SE_TCB_NAME,
 SE_CHANGE_NOTIFY_NAME, and SE_ASSIGNPRIMARYTOKEN_NAME privileges.  If
@@ -33,14 +33,14 @@ BOOL LogonUser(
 
 
 @ex The api call is very similar in both cases except in python the
-handel is returned seperately to the caller. The interesting options
+handle is returned separately to the caller. The interesting options
 in this case are logonType and logonProvider.  To give values for
 these, you need to use the constants present in win32con (you can use
 the browser in pythonwin->tools to list the constants in
 win32con). Unless you have unusual server requirements, for logonType,
 win32con.LOGON32_LOGON_INTERACTIVE should be fine. With regards to
 logonProvider, generally use win32con.LOGON32_PROVIDER_DEFAULT -- it's
-for specifiying the type of logon NT 3.5, 4.0, win2000. Generally,
+for specifying the type of logon NT 3.5, 4.0, win2000. Generally,
 default is fine.
 
 ImpersonateLoggedOnUser is extremely simple and you'll see it's usage in the
@@ -49,15 +49,15 @@ examples.
 <nl>Now for some code|
 
 #A raw example looks like this:
-handel=win32security.LogonUser('barney','bedrock','bambam'\
+handle=win32security.LogonUser('barney','bedrock','bambam'\
 	,win32con.LOGON32_LOGON_INTERACTIVE,win32con.LOGON32_PROVIDER_DEFAULT)
-win32security.ImpersonateLoggedOnUser(handel)
+win32security.ImpersonateLoggedOnUser(handle)
 
 # do stuff here
 print(win32api.GetUserName())  # show you're someone else
 
 win32security.RevertToSelf() #terminates impersonation
-handel.Close()
+handle.Close()
 
 #The impersonate code can be encapsulated in a class, which then makes it even more
 #trivial to use
@@ -72,12 +72,12 @@ class Impersonate:
         self.login=login
         self.password=password
     def logon(self):
-        self.handel=win32security.LogonUser(self.login,self.domain,self.password,\
+        self.handle=win32security.LogonUser(self.login,self.domain,self.password,\
         win32con.LOGON32_LOGON_INTERACTIVE,win32con.LOGON32_PROVIDER_DEFAULT)
-        win32security.ImpersonateLoggedOnUser(self.handel)
+        win32security.ImpersonateLoggedOnUser(self.handle)
     def logoff(self):
         win32security.RevertToSelf() #terminates impersonation
-        self.handel.Close() #guarantees cleanup
+        self.handle.Close() #guarantees cleanup
 
 
 a=Impersonate('barney','bambam')

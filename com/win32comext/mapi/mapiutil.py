@@ -203,7 +203,7 @@ def SetProperties(msg, propDict):
                 tagType = mapitags.PT_SYSTIME
             else:
                 raise ValueError(
-                    f"The type of object {repr(val)}({type(val)}) can not be written"
+                    f"The type of object {val!r}({type(val)}) can not be written"
                 )
             key = mapitags.PROP_TAG(tagType, mapitags.PROP_ID(newIds[newIdNo]))
             newIdNo += 1

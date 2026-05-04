@@ -7,7 +7,7 @@ import sspi
 import sspicon
 import win32api
 import win32security
-from pywin32_testutil import TestSkipped, testmain
+from pywin32_testutil import testmain
 
 
 # It is quite likely that the Kerberos tests will fail due to not being
@@ -21,7 +21,7 @@ def applyHandlingSkips(func, *args):
             sspicon.SEC_E_NO_CREDENTIALS,
             sspicon.SEC_E_NO_AUTHENTICATING_AUTHORITY,
         ]:
-            raise TestSkipped(exc)
+            raise unittest.SkipTest(str(exc))
         raise
 
 
@@ -84,7 +84,7 @@ class TestSSPI(unittest.TestCase):
 
     def _doTestEncryptStream(self, pkg_name):
         # Test out the SSPI/GSSAPI interop wrapping examples at
-        # https://docs.microsoft.com/en-us/windows/win32/secauthn/sspi-kerberos-interoperability-with-gssapi
+        # https://learn.microsoft.com/en-us/windows/win32/secauthn/sspi-kerberos-interoperability-with-gssapi
 
         sspiclient, sspiserver = self._doAuth(pkg_name)
 

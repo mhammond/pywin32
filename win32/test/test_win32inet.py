@@ -1,7 +1,7 @@
 import unittest
 
 import winerror
-from pywin32_testutil import TestSkipped, testmain
+from pywin32_testutil import testmain
 from win32inet import (
     FtpCommand,
     InternetCanonicalizeUrl,
@@ -26,15 +26,15 @@ from win32inetcon import (
 class CookieTests(unittest.TestCase):
     def testCookies(self):
         data = "TestData=Test"
-        InternetSetCookie("http://www.python.org", None, data)
-        got = InternetGetCookie("http://www.python.org", None)
+        InternetSetCookie("https://www.python.org", None, data)
+        got = InternetGetCookie("https://www.python.org", None)
         # handle that there might already be cookies for the domain.
         bits = (x.strip() for x in got.split(";"))
         self.assertTrue(data in bits)
 
     def testCookiesEmpty(self):
         try:
-            InternetGetCookie("http://site-with-no-cookie.python.org", None)
+            InternetGetCookie("https://site-with-no-cookie.python.org", None)
             self.fail("expected win32 exception")
         except error as exc:
             self.assertEqual(exc.winerror, winerror.ERROR_NO_MORE_ITEMS)
@@ -61,7 +61,7 @@ class TestNetwork(unittest.TestCase):
 
     def testPythonDotOrg(self):
         hdl = InternetOpenUrl(
-            self.hi, "http://www.python.org", None, INTERNET_FLAG_EXISTING_CONNECT
+            self.hi, "https://www.python.org", None, INTERNET_FLAG_EXISTING_CONNECT
         )
         chunks = []
         while 1:
@@ -101,7 +101,7 @@ class TestNetwork(unittest.TestCase):
             finally:
                 hcon.Close()
         except error as e:
-            raise TestSkipped(e)
+            raise unittest.SkipTest(str(e))
 
 
 if __name__ == "__main__":

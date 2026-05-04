@@ -4,9 +4,6 @@
 //
 // Interface Declaration
 
-// Requires Windows 7 SDK to build
-#if WINVER >= 0x0601
-
 class PyIShellLibrary : public PyIUnknown {
    public:
     MAKE_PYCOM_CTOR(PyIShellLibrary);
@@ -36,5 +33,3 @@ class PyIShellLibrary : public PyIUnknown {
     PyIShellLibrary(IUnknown *pdisp);
     ~PyIShellLibrary();
 };
-
-#endif  // WINVER

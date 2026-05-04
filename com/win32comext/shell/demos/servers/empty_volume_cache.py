@@ -1,5 +1,5 @@
 # A sample implementation of IEmptyVolumeCache - see
-# http://msdn2.microsoft.com/en-us/library/aa969271.aspx for an overview.
+# https://learn.microsoft.com/en-ca/windows/win32/lwef/disk-cleanup for an overview.
 #
 # * Execute this script to register the handler
 # * Start the "disk cleanup" tool - look for "pywin32 compiled files"
@@ -36,8 +36,6 @@ class EmptyVolumeCache:
     _public_methods_ = IEmptyVolumeCache_Methods + IEmptyVolumeCache2_Methods
 
     def Initialize(self, hkey, volume, flags):
-        # This should never be called, except on win98.
-        print("Unless we are on 98, Initialize call is unexpected!")
         raise COMException(hresult=winerror.E_NOTIMPL)
 
     def InitializeEx(self, hkey, volume, key_name, flags):
@@ -87,7 +85,7 @@ class EmptyVolumeCache:
         ]
 
     def _WalkCallback(self, arg, directory, files):
-        # callback function for os.path.walk - no need to be member, but it's
+        # callback function for os.walk - no need to be member, but it's
         # close to the callers :)
         callback, total_list = arg
         for file in files:
@@ -119,7 +117,7 @@ class EmptyVolumeCache:
         total = [0]  # See _WalkCallback above
         try:
             for d in self._GetDirectories():
-                os.path.walk(d, self._WalkCallback, (callback, total))
+                os.walk(d, self._WalkCallback, (callback, total))
                 print("After looking in", d, "we have", total[0], "bytes")
         except pythoncom.error as exc:
             # This will be raised by the callback when the user selects 'cancel'.
@@ -134,7 +132,7 @@ class EmptyVolumeCache:
         # GetSpaceUsed
         try:
             for d in self._GetDirectories():
-                os.path.walk(d, self._WalkCallback, (callback, None))
+                os.walk(d, self._WalkCallback, (callback, None))
         except pythoncom.error as exc:
             # This will be raised by the callback when the user selects 'cancel'.
             if exc.hresult != winerror.E_ABORT:

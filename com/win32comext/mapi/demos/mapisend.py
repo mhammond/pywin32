@@ -2,7 +2,7 @@
 
 """module to send mail with Extended MAPI using the pywin32 mapi wrappers..."""
 
-# this was based on Jason Hattingh's C++ code at http://www.codeproject.com/internet/mapadmin.asp
+# this was based on Jason Hattingh's C++ code at http://www.codeproject.com/internet/mapadmin.asp (dead link)
 # written by David Fraser <davidf at sjsoft.com> and Stephen Emslie <stephene at sjsoft.com>
 # you can test this by changing the variables at the bottom and running from the command line
 

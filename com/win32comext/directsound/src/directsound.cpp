@@ -353,8 +353,8 @@ PYWIN_MODULE_INIT_FUNC(directsound)
     // in an IDirectSound::CreateSoundBuffer call. With this flag set, an application using DirectSound can continue to
     // play its sticky focus buffers if the user switches to another application not using DirectSound. In this
     // situation, the application's normal buffers are muted, but the sticky focus buffers are still audible. This is
-    // useful for nongame applications, such as movie playback (DirectShow�), when the user wants to hear the soundtrack
-    // while typing in Microsoft Word or Microsoft� Excel, for example. However, if the user switches to another
+    // useful for nongame applications, such as movie playback (DirectShow®), when the user wants to hear the soundtrack
+    // while typing in Microsoft Word or Microsoft® Excel, for example. However, if the user switches to another
     // DirectSound application, all sound buffers, both normal and sticky focus, in the previous application are muted.
     ADD_CONSTANT(DSBCAPS_STICKYFOCUS);
     // @const directsound|DSBCAPS_GLOBALFOCUS|The buffer is a global sound buffer. With this flag set, an application

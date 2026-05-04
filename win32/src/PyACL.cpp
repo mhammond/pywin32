@@ -9,16 +9,6 @@
 #include "accctrl.h"
 #include "aclapi.h"
 
-addacefunc addaccessallowedace = NULL;
-addacefunc addaccessdeniedace = NULL;
-addaceexfunc addaccessallowedaceex = NULL;
-addaceexfunc addaccessdeniedaceex = NULL;
-addaceexfunc addmandatoryace = NULL;
-addobjectacefunc addaccessallowedobjectace = NULL;
-addobjectacefunc addaccessdeniedobjectace = NULL;
-BOOL(WINAPI *addauditaccessaceex)(PACL, DWORD, DWORD, DWORD, PSID, BOOL, BOOL) = NULL;
-BOOL(WINAPI *addauditaccessobjectace)(PACL, DWORD, DWORD, DWORD, GUID *, GUID *, PSID, BOOL, BOOL) = NULL;
-
 // @pymethod <o PyACL>|pywintypes|ACL|Creates a new ACL object
 PyObject *PyWinMethod_NewACL(PyObject *self, PyObject *args)
 {
@@ -263,7 +253,6 @@ BOOL PyWinObject_AsTRUSTEE(PyObject *obtrustee, TRUSTEE_W *ptrustee)
                 }
                 break;
             }
-#if WINVER >= 0x0501
             case TRUSTEE_IS_OBJECTS_AND_SID:
             case TRUSTEE_IS_OBJECTS_AND_NAME: {
                 // still need to add TRUSTEE_IS_OBJECTS_AND_SID and TRUSTEE_IS_OBJECTS_AND_NAME
@@ -271,11 +260,6 @@ BOOL PyWinObject_AsTRUSTEE(PyObject *obtrustee, TRUSTEE_W *ptrustee)
                 bsuccess = FALSE;
                 break;
             }
-#else
-#pragma message(                                                  \
-    "NOTE: You are building with an early Platform SDK - not all" \
-    "TRUSTEE operations on SIDs will be supported")
-#endif  // WINVER
             default: {
                 PyErr_SetString(PyExc_ValueError, "Invalid value for TrusteeForm");
                 bsuccess = FALSE;
@@ -298,13 +282,11 @@ PyObject *PyWinObject_FromTRUSTEE(TRUSTEE_W *ptrustee)
             obIdentifier = PyWinObject_FromWCHAR(ptrustee->ptstrName);
             break;
         }
-#if WINVER >= 0x0501
         case TRUSTEE_IS_OBJECTS_AND_SID:
         case TRUSTEE_IS_OBJECTS_AND_NAME: {
             PyErr_SetString(PyExc_NotImplementedError, "TrusteeForm not yet supported");
             return FALSE;
         }
-#endif
         default: {
             PyErr_SetString(PyExc_ValueError, "Invalid value for TrusteeForm");
             return FALSE;
@@ -385,8 +367,6 @@ PyObject *addaceorig(addacefunc addfunc, CHAR *funcname, PyACL *This, DWORD revi
     PACL pdacl_padded = NULL;
     BOOL bsuccess;
     PSID psid;
-    if (addfunc == NULL)
-        return PyErr_Format(PyExc_NotImplementedError, "%s not supported by this version of Windows", funcname);
     if (!PyWinObject_AsSID(obSID, &psid, FALSE))
         return NULL;
 
@@ -451,7 +431,7 @@ PyObject *PyACL::AddAccessAllowedAce(PyObject *self, PyObject *args)
         if (!PyArg_ParseTuple(args, "llO:AddAccessAllowedAce", &revision, &access, &obSID))
             return NULL;
     }
-    return addaceorig(addaccessallowedace, "AddAccesAllowedAce", (PyACL *)self, revision, access, obSID);
+    return addaceorig(::AddAccessAllowedAce, "AddAccessAllowedAce", (PyACL *)self, revision, access, obSID);
 
     // @comm Note that early versions of this function supported only
     // two arguments.  This has been deprecated in preference of the
@@ -482,7 +462,7 @@ PyObject *PyACL::AddAccessDeniedAce(PyObject *self, PyObject *args)
         if (!PyArg_ParseTuple(args, "llO:AddAccessDeniedAce", &revision, &access, &obSID))
             return NULL;
     }
-    return addaceorig(addaccessdeniedace, "AddAccesDeniedAce", (PyACL *)self, revision, access, obSID);
+    return addaceorig(::AddAccessDeniedAce, "AddAccessDeniedAce", (PyACL *)self, revision, access, obSID);
 
     // @comm Note that early versions of this function supported only
     // two arguments.  This has been deprecated in preference of the
@@ -494,8 +474,6 @@ PyObject *addaceex(addaceexfunc addfunc, CHAR *funcname, PyACL *This, DWORD revi
                    PyObject *obSID)
 {
     /* AddAccessAllowedAceEx and AddAccessDeniedAceEx have the same signature and semantics */
-    if (addfunc == NULL)
-        return PyErr_Format(PyExc_NotImplementedError, "%s not supported by this version of Windows", funcname);
     PSID psid;
     BOOL bsuccess;
     PACL pacl = This->GetACL();
@@ -552,7 +530,7 @@ PyObject *PyACL::AddAccessAllowedAceEx(PyObject *self, PyObject *args)
     // @pyparm <o PySID>|sid||A SID object representing a user, group, or logon account being granted access.
     if (!PyArg_ParseTuple(args, "lllO:AddAccessAllowedAceEx", &revision, &aceflags, &access, &obSID))
         return NULL;
-    return addaceex(addaccessallowedaceex, "AddAccessAllowedAceEx", (PyACL *)self, revision, aceflags, access, obSID);
+    return addaceex(::AddAccessAllowedAceEx, "AddAccessAllowedAceEx", (PyACL *)self, revision, aceflags, access, obSID);
 }
 
 // @pymethod |PyACL|AddAccessDeniedAceEx|Add access denied ACE to an ACL with ACE flags (Requires Win2k or higher)
@@ -567,7 +545,7 @@ PyObject *PyACL::AddAccessDeniedAceEx(PyObject *self, PyObject *args)
     // @pyparm <o PySID>|sid||A SID object representing a user, group, or logon account being denied access.
     if (!PyArg_ParseTuple(args, "lllO:AddAccessDeniedAceEx", &revision, &aceflags, &access, &obSID))
         return NULL;
-    return addaceex(addaccessdeniedaceex, "AddAccessDeniedAceEx", (PyACL *)self, revision, aceflags, access, obSID);
+    return addaceex(::AddAccessDeniedAceEx, "AddAccessDeniedAceEx", (PyACL *)self, revision, aceflags, access, obSID);
 }
 
 // @pymethod |PyACL|AddMandatoryAce|Adds a mandatory integrity level ACE to a SACL
@@ -584,7 +562,7 @@ PyObject *PyACL::AddMandatoryAce(PyObject *self, PyObject *args)
     //	<nl>Also can be constructed manually using SECURITY_MANDATORY_LABEL_AUTHORITY and a SECURITY_MANDATORY_*_RID
     if (!PyArg_ParseTuple(args, "kkkO:AddMandatoryAce", &revision, &aceflags, &access, &obSID))
         return NULL;
-    return addaceex(addmandatoryace, "AddMandatoryAce", (PyACL *)self, revision, aceflags, access, obSID);
+    return addaceex(::AddMandatoryAce, "AddMandatoryAce", (PyACL *)self, revision, aceflags, access, obSID);
 }
 
 PyObject *addobjectace(addobjectacefunc addfunc, CHAR *funcname, PyACL *This, DWORD revision, DWORD aceflags,
@@ -598,8 +576,6 @@ PyObject *addobjectace(addobjectacefunc addfunc, CHAR *funcname, PyACL *This, DW
     GUID ObjectTypeGuid, InheritedObjectTypeGuid;
     GUID *pObjectTypeGuid = NULL, *pInheritedObjectTypeGuid = NULL;
 
-    if (addfunc == NULL)
-        return PyErr_Format(PyExc_NotImplementedError, "%s not supported by this version of Windows", funcname);
     if (obObjectTypeGuid != Py_None) {
         if (!PyWinObject_AsIID(obObjectTypeGuid, &ObjectTypeGuid))
             return NULL;
@@ -669,7 +645,7 @@ PyObject *PyACL::AddAccessAllowedObjectAce(PyObject *self, PyObject *args)
                           &obInheritedObjectTypeGuid, &obSID))
         return NULL;
 
-    return addobjectace(addaccessallowedobjectace, "AddAccessAllowedObjectAce", (PyACL *)self, revision, aceflags,
+    return addobjectace(::AddAccessAllowedObjectAce, "AddAccessAllowedObjectAce", (PyACL *)self, revision, aceflags,
                         access, obObjectTypeGuid, obInheritedObjectTypeGuid, obSID);
 }
 
@@ -690,8 +666,8 @@ PyObject *PyACL::AddAccessDeniedObjectAce(PyObject *self, PyObject *args)
                           &obInheritedObjectTypeGuid, &obSID))
         return NULL;
 
-    return addobjectace(addaccessdeniedobjectace, "AddAccessDeniedObjectAce", (PyACL *)self, revision, aceflags, access,
-                        obObjectTypeGuid, obInheritedObjectTypeGuid, obSID);
+    return addobjectace(::AddAccessDeniedObjectAce, "AddAccessDeniedObjectAce", (PyACL *)self, revision, aceflags,
+                        access, obObjectTypeGuid, obInheritedObjectTypeGuid, obSID);
 }
 
 // @pymethod |PyACL|AddAuditAccessAce|Adds an audit ACE to a Sacl
@@ -762,9 +738,6 @@ PyObject *PyACL::AddAuditAccessAceEx(PyObject *self, PyObject *args)
     PyACL *This = (PyACL *)self;
     psacl = This->GetACL();
     PACL psacl_padded = NULL;
-    BOOL bsuccess;
-    if (addauditaccessaceex == NULL)
-        return PyErr_Format(PyExc_NotImplementedError, "AddAuditAccessAceEx not supported by this version of Windows");
 
     // @pyparm int|dwAceRevision||Revision of ACL: Must be at least ACL_REVISION_DS
     // @pyparm int|AceFlags||Combination of
@@ -780,7 +753,7 @@ PyObject *PyACL::AddAuditAccessAceEx(PyObject *self, PyObject *args)
         return NULL;
     if (!PyWinObject_AsSID(obSID, &psid, FALSE))
         return NULL;
-    bsuccess = (*addauditaccessaceex)(psacl, acerevision, aceflags, accessmask, psid, bAuditSuccess, bAuditFailure);
+    BOOL bsuccess = ::AddAuditAccessAceEx(psacl, acerevision, aceflags, accessmask, psid, bAuditSuccess, bAuditFailure);
     if (!bsuccess) {
         DWORD err = GetLastError();
         if (err != ERROR_ALLOTTED_SPACE_EXCEEDED)
@@ -798,7 +771,7 @@ PyObject *PyACL::AddAuditAccessAceEx(PyObject *self, PyObject *args)
         memcpy(psacl_padded, psacl, psacl->AclSize);
         psacl_padded->AclSize = (unsigned short)required_size;
         bsuccess =
-            (*addauditaccessaceex)(psacl_padded, acerevision, aceflags, accessmask, psid, bAuditSuccess, bAuditFailure);
+            ::AddAuditAccessAceEx(psacl_padded, acerevision, aceflags, accessmask, psid, bAuditSuccess, bAuditFailure);
         if (bsuccess)
             bsuccess = This->SetACL(psacl_padded);
         else
@@ -823,15 +796,11 @@ PyObject *PyACL::AddAuditAccessObjectAce(PyObject *self, PyObject *args)
     GUID ObjectTypeGuid, InheritedObjectTypeGuid;
     GUID *pObjectTypeGuid = NULL, *pInheritedObjectTypeGuid = NULL;
     PyObject *obObjectTypeGuid, *obInheritedObjectTypeGuid;
-    BOOL bsuccess;
     PSID psid;
     PACL psacl;
     PyACL *This = (PyACL *)self;
     psacl = This->GetACL();
     PACL psacl_padded = NULL;
-    if (addauditaccessobjectace == NULL)
-        return PyErr_Format(PyExc_NotImplementedError,
-                            "AddAuditAccessObjectAce not supported by this version of Windows");
 
     // @pyparm int|dwAceRevision||Revision of ACL: Must be at least ACL_REVISION_DS
     // @pyparm int|AceFlags||Combination of
@@ -860,8 +829,8 @@ PyObject *PyACL::AddAuditAccessObjectAce(PyObject *self, PyObject *args)
     if (!PyWinObject_AsSID(obSID, &psid, FALSE))
         return NULL;
 
-    bsuccess = (*addauditaccessobjectace)(psacl, acerevision, aceflags, accessmask, pObjectTypeGuid,
-                                          pInheritedObjectTypeGuid, psid, bAuditSuccess, bAuditFailure);
+    BOOL bsuccess = ::AddAuditAccessObjectAce(psacl, acerevision, aceflags, accessmask, pObjectTypeGuid,
+                                              pInheritedObjectTypeGuid, psid, bAuditSuccess, bAuditFailure);
     if (!bsuccess) {
         DWORD err = GetLastError();
         if (err != ERROR_ALLOTTED_SPACE_EXCEEDED)
@@ -879,8 +848,8 @@ PyObject *PyACL::AddAuditAccessObjectAce(PyObject *self, PyObject *args)
         ZeroMemory(psacl_padded, required_size);
         memcpy(psacl_padded, psacl, psacl->AclSize);
         psacl_padded->AclSize = (unsigned short)required_size;
-        bsuccess = (*addauditaccessobjectace)(psacl_padded, acerevision, aceflags, accessmask, pObjectTypeGuid,
-                                              pInheritedObjectTypeGuid, psid, bAuditSuccess, bAuditFailure);
+        bsuccess = ::AddAuditAccessObjectAce(psacl_padded, acerevision, aceflags, accessmask, pObjectTypeGuid,
+                                             pInheritedObjectTypeGuid, psid, bAuditSuccess, bAuditFailure);
         if (bsuccess)
             bsuccess = This->SetACL(psacl_padded);
         else
@@ -964,10 +933,7 @@ PyObject *PyACL::GetAce(PyObject *self, PyObject *args)
         case ACCESS_ALLOWED_ACE_TYPE:
         case ACCESS_DENIED_ACE_TYPE:
         case SYSTEM_AUDIT_ACE_TYPE:
-#ifdef _WIN32_WINNT_LONGHORN
-        case SYSTEM_MANDATORY_LABEL_ACE_TYPE:
-#endif
-        {
+        case SYSTEM_MANDATORY_LABEL_ACE_TYPE: {
             ACCESS_ALLOWED_ACE *pAce = (ACCESS_ALLOWED_ACE *)p;
             return Py_BuildValue("(ll)lN", pAceHeader->AceType, pAceHeader->AceFlags, pAce->Mask,
                                  PyWinObject_FromSID((PSID)(&pAce->SidStart)));
@@ -1106,8 +1072,6 @@ PyObject *PyACL::PyGetEffectiveRightsFromAcl(PyObject *self, PyObject *args)
 
 // @pymethod (SuccessfulAuditedRights,FailedAuditRights)|PyACL|GetAuditedPermissionsFromAcl|Return types of access for
 // which ACL will generate an audit event for specified trustee
-// @comm This function is known to return the success and failure access masks in the the wrong order
-//       on Windows 2000 service pack 4.  Problem has been reported to Microsoft.
 PyObject *PyACL::PyGetAuditedPermissionsFromAcl(PyObject *self, PyObject *args)
 {
     DWORD err = 0;
@@ -1121,7 +1085,6 @@ PyObject *PyACL::PyGetAuditedPermissionsFromAcl(PyObject *self, PyObject *args)
         return NULL;
     if (!PyWinObject_AsTRUSTEE(obTrustee, &trustee))
         return NULL;
-    // ???? SDK docs say the success mask is first, but on Win2k sp4 they're returned in the opposite order ????
     err = GetAuditedPermissionsFromAclW(This->GetACL(), &trustee, &success_mask, &fail_mask);
     if (err != ERROR_SUCCESS)
         PyWin_SetAPIError("GetAuditedPermissionsFromAcl", err);

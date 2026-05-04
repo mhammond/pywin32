@@ -40,6 +40,7 @@ class SimpleExtension:
 
 class SimpleFilter:
     "Base class for a a simple ISAPI filter"
+
     filter_flags: int | None = None
 
     def __init__(self):

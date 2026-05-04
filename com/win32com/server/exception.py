@@ -1,15 +1,15 @@
 """Exception Handling
 
- Exceptions
+Exceptions
 
-     To better support COM exceptions, the framework allows for an instance to be
-     raised.  This instance may have a certain number of known attributes, which are
-     translated into COM exception details.
+    To better support COM exceptions, the framework allows for an instance to be
+    raised.  This instance may have a certain number of known attributes, which are
+    translated into COM exception details.
 
-     This means, for example, that Python could raise a COM exception that includes details
-     on a Help file and location, and a description for the user.
+    This means, for example, that Python could raise a COM exception that includes details
+    on a Help file and location, and a description for the user.
 
-     This module provides a class which provides the necessary attributes.
+    This module provides a class which provides the necessary attributes.
 """
 
 import sys
@@ -78,7 +78,7 @@ class COMException(pythoncom.com_error):
         pythoncom.com_error.__init__(self, scode, self.description, None, -1)
 
     def __repr__(self):
-        return f"<COM Exception - scode={self.scode}, desc={self.description}>"
+        return f"{self.__class__.__name__}(scode={self.scode!r}, desc={self.description!r})"
 
 
 def IsCOMException(t=None):

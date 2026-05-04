@@ -1,6 +1,6 @@
-// PyMapiUtil.h
+// PyMAPIUtil.h
 
-#include "mapix.h"
+#include "MAPIX.h"
 
 // We should not be using this!
 #define OleSetOleError PyCom_BuildPyException

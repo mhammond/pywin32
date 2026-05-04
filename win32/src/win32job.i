@@ -1,34 +1,13 @@
 /* File : win32job.i */
 
 %module win32job // An interface to the win32 Process and Thread API's,
-// available in Windows 2000 and later.
 
 %{
-#ifndef _WIN32_WINNT
-#define _WIN32_WINNT 0x500
-#endif
-
 #include "PyWinTypes.h"
-
-#define CHECK_PFN(fname)if (pfn##fname==NULL) return PyErr_Format(PyExc_NotImplementedError,"%s is not available on this platform", #fname);
-typedef BOOL (WINAPI *IsProcessInJobfunc)(HANDLE,HANDLE,PBOOL);
-static IsProcessInJobfunc pfnIsProcessInJob=NULL;
 %}
 
 %include "typemaps.i"
 %include "pywin32.i"
-
-
-%init %{
-HMODULE hmodule=GetModuleHandle(L"kernel32.dll");
-if (hmodule==NULL)
-	hmodule=LoadLibrary(L"kernel32.dll");
-if (hmodule){
-	pfnIsProcessInJob=(IsProcessInJobfunc)GetProcAddress(hmodule,"IsProcessInJob");
-	}
-
-%}
-
 
 // @pyswig |AssignProcessToJobObject|Associates a process with an existing job object.
 BOOLAPI AssignProcessToJobObject(
@@ -64,10 +43,8 @@ BOOLAPI UserHandleGrantAccess(
 
 %{
 // @pyswig boolean|IsProcessInJob|Determines if the process is running in the specified job.
-// @comm Function is only available on WinXP and later
 PyObject *PyIsProcessInJob(PyObject *self, PyObject *args)
 {
-	CHECK_PFN(IsProcessInJob);
 	PyObject *obph, *objh;
 	HANDLE ph, jh;
 	BOOL res;
@@ -80,7 +57,7 @@ PyObject *PyIsProcessInJob(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsHANDLE(objh, &jh))
 		return NULL;
 
-	if (!(*pfnIsProcessInJob)(ph, jh, &res))
+	if (!IsProcessInJob(ph, jh, &res))
 		return PyWin_SetAPIError("IsProcessInJob");
 	return PyBool_FromLong(res);
 }
@@ -459,7 +436,7 @@ PyObject *PySetInformationJobObject(PyObject *self, PyObject *args)
 
 #define JOB_OBJECT_BASIC_LIMIT_VALID_FLAGS JOB_OBJECT_BASIC_LIMIT_VALID_FLAGS
 #define JOB_OBJECT_EXTENDED_LIMIT_VALID_FLAGS JOB_OBJECT_EXTENDED_LIMIT_VALID_FLAGS
-// This apparently went away in the win10 sdk?
+// This apparently went away in the Windows 10 sdk?
 // #define JOB_OBJECT_RESERVED_LIMIT_VALID_FLAGS JOB_OBJECT_RESERVED_LIMIT_VALID_FLAGS
 
 #define JOB_OBJECT_UILIMIT_NONE JOB_OBJECT_UILIMIT_NONE

@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1252">
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html" charset="utf-8">
 <META NAME="Generator" CONTENT="Microsoft Word 97">
 <TITLE>The win32com package</TITLE>
 <META NAME="Template" CONTENT="D:\Program Files\Microsoft Office\Office\html.dot">
@@ -32,6 +32,6 @@ This module is rarely used directly by programmers - instead the other "helper" 
 </FONT><P>&nbsp;</P>
 <H2>The pythoncom module </H2>
 <FONT SIZE=2><P>The pythoncom module is the underlying C++ support for all COM related objects. In general, Python programmers will not use this module directly, but use win32com helper classes and functions. </P>
-<P>This module exposes a C++ like interface to COM - there are objects implemented in pythoncom that have methods "QueryInterface()", "Invoke()", just like the C++ API. If you are using COM in C++, you would not call a method directly, you would use pObject-&gt;Invoke( …, MethodId, argArray…). Similarly, if you are using pythoncom directly, you must also use the Invoke method to call an object's exposed method.</FONT> </P>
+<P>This module exposes a C++ like interface to COM - there are objects implemented in pythoncom that have methods "QueryInterface()", "Invoke()", just like the C++ API. If you are using COM in C++, you would not call a method directly, you would use pObject-&gt;Invoke( ..., MethodId, argArray...). Similarly, if you are using pythoncom directly, you must also use the Invoke method to call an object's exposed method.</FONT> </P>
 <FONT SIZE=2><P>There are some Python wrappers for hiding this raw interface, meaning you should almost never need to use the pythoncom module directly. These helpers translate a "natural" looking interface (eg, obj.SomeMethod()) into the underlying Invoke call.</P></FONT></BODY>
 </HTML>

@@ -44,9 +44,9 @@
 <hr>
 <h1><a name="SUMMARY">SUMMARY</a></h1>
 <p>
-Python's adsi access works really well with Exchange (late or early binding since you can read microsoft's type library).
-To get started, you will need to download adsi from microsoft:
-<a href="https://www.microsoft.com/windows/server/Technical/directory/adsilinks.asp">Microsoft ADSI</a>.
+Python's ADSI access works really well with Exchange (late or early binding since you can read microsoft's type library).
+To get started, you will need to download ADSI from microsoft:
+<a href="https://learn.microsoft.com/en-us/windows/win32/adsi/setting-up-your-development-environment">Setting Up Your Development Environment</a>.
 Microsoft has documentation for using languages other than python in the sdk.
 </p>
 
@@ -89,9 +89,10 @@ Before doing anything else you need to go through the next two steps:
 </table>
 
 <br>
-<strong>Note</strong> -- the fourth argument to opendsobject has various options for how to authenticate.
+<strong>Note</strong> -- the fourth argument to OpenDSObject has various options for how to authenticate.
 For example, if you use 1 instead of zero, it should either use NTLM or Kerberos for authentication.
-For more information, check out: <a href="http://www.microsoft.com/windows/server/Technical/directory/adsilinks.asp">OpenDSObject</a>
+For more information, check out:
+ <a href="https://learn.microsoft.com/en-us/windows/win32/api/iads/nf-iads-iadsopendsobject-opendsobject">OpenDSObject</a>
 
 <p>
 The ex_path in the above example specifies the resource you are trying to access.  For example:
@@ -264,9 +265,11 @@ Python has no trouble accessing Microsoft's ADSI to help simplify user managemen
 <h1><a name="Further Info">Further Info</a></h1>
 <p>
 <ul>
-<li><a href="http://msdn.microsoft.com">Microsoft MSDN references</a>
-<li><a href="http://www.microsoft.com/windows/server/Technical/directory/adsilinks.asp">Microsoft ADSI</a>
-<li><a href="http://msdn.microsoft.com/library/default.asp?URL=/library/psdk/adsi/if_core_3uic.htm">Microsoft MSDN ADSI reference</a>
+<li>
+  <a href="https://learn.microsoft.com/en-us/windows/win32/ADSI">
+    Windows Active Directory Service Interfaces documentation
+  </a>
+</li>
 <li>Relevant Python libraries: win32com.client
 </ul>
 </p>

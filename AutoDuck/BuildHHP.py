@@ -65,9 +65,9 @@ def handle_globs(lGlobs):
         sCommonPrefix = os.path.split(sCommonPrefix)[0]
         sCommonPrefix = os.path.normpath(sCommonPrefix) + "\\"
     # else we have a trailing slash - it means we _expect_ it to be a patch as-is.
-    assert (
-        os.path.isdir(sCommonPrefix) and sCommonPrefix[-1] == "\\"
-    ), "commonprefix splitting ain't gunna work!"
+    assert os.path.isdir(sCommonPrefix) and sCommonPrefix[-1] == "\\", (
+        "commonprefix splitting ain't gunna work!"
+    )
     print("sCommonPrefix=", sCommonPrefix)
     # Ok, now remove this common prefix from every file:
     lRelativeFiles = []

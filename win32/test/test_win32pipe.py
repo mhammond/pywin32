@@ -57,7 +57,7 @@ class PipeTests(unittest.TestCase):
         )
         self.assertEqual(got, b"bar\0foo")
         event.wait(5)
-        self.assertTrue(event.isSet(), "Pipe server thread didn't terminate")
+        self.assertTrue(event.is_set(), "Pipe server thread didn't terminate")
 
     def testTransactNamedPipeBlocking(self):
         event = threading.Event()
@@ -82,7 +82,7 @@ class PipeTests(unittest.TestCase):
         hr, got = win32pipe.TransactNamedPipe(hpipe, b"foo\0bar", 1024, None)
         self.assertEqual(got, b"bar\0foo")
         event.wait(5)
-        self.assertTrue(event.isSet(), "Pipe server thread didn't terminate")
+        self.assertTrue(event.is_set(), "Pipe server thread didn't terminate")
 
     def testTransactNamedPipeBlockingBuffer(self):
         # Like testTransactNamedPipeBlocking, but a pre-allocated buffer is
@@ -110,7 +110,7 @@ class PipeTests(unittest.TestCase):
         hr, got = win32pipe.TransactNamedPipe(hpipe, b"foo\0bar", buffer, None)
         self.assertEqual(got, b"bar\0foo")
         event.wait(5)
-        self.assertTrue(event.isSet(), "Pipe server thread didn't terminate")
+        self.assertTrue(event.is_set(), "Pipe server thread didn't terminate")
 
     def testTransactNamedPipeAsync(self):
         event = threading.Event()
@@ -141,7 +141,7 @@ class PipeTests(unittest.TestCase):
         got = buffer[:nbytes]
         self.assertEqual(got, b"bar\0foo")
         event.wait(5)
-        self.assertTrue(event.isSet(), "Pipe server thread didn't terminate")
+        self.assertTrue(event.is_set(), "Pipe server thread didn't terminate")
 
 
 if __name__ == "__main__":

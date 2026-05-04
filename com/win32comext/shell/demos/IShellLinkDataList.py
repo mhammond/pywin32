@@ -20,9 +20,9 @@ ish.SetDescription("shortcut made by python")
 console_props = {
     "Signature": shellcon.NT_CONSOLE_PROPS_SIG,
     "InsertMode": True,
-    "FullScreen": False,  ## True looks like "DOS Mode" from win98!
+    "FullScreen": False,  # True looks like "DOS Mode" from win98!
     "FontFamily": 54,
-    "CursorSize": 75,  ## pct of character size
+    "CursorSize": 75,  # pct of character size
     "ScreenBufferSize": (152, 256),
     "AutoPosition": False,
     "FontSize": (4, 5),
@@ -30,7 +30,7 @@ console_props = {
     "HistoryBufferSize": 32,
     "InputBufferSize": 0,
     "QuickEdit": True,
-    "Font": 0,  ## 0 should always be present, use win32console.GetNumberOfConsoleFonts() to find how many available
+    "Font": 0,  # 0 should always be present, use win32console.GetNumberOfConsoleFonts() to find how many available
     "FillAttribute": 7,
     "PopupFillAttribute": 245,
     "WindowSize": (128, 32),
@@ -38,8 +38,8 @@ console_props = {
     "FontWeight": 400,
     "HistoryNoDup": False,
     "NumberOfHistoryBuffers": 32,
-    ## ColorTable copied from a 'normal' console shortcut, with some obvious changes
-    ## These do not appear to be documented.  From experimentation, [0] is background, [7] is foreground text
+    # ColorTable copied from a 'normal' console shortcut, with some obvious changes
+    # These do not appear to be documented.  From experimentation, [0] is background, [7] is foreground text
     "ColorTable": (
         255,
         8388608,

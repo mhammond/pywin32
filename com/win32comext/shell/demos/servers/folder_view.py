@@ -1,5 +1,5 @@
 # This is a port of the Vista SDK "FolderView" sample, and associated
-# notes at http://shellrevealed.com/blogs/shellblog/archive/2007/03/15/Shell-Namespace-Extension_3A00_-Creating-and-Using-the-System-Folder-View-Object.aspx
+# notes at https://web.archive.org/web/20081225011615/http://shellrevealed.com/blogs/shellblog/archive/2007/03/15/Shell-Namespace-Extension_3A00_-Creating-and-Using-the-System-Folder-View-Object.aspx
 # A key difference to shell_view.py is that this version uses the default
 # IShellView provided by the shell (via SHCreateShellFolderView) rather
 # than our own.
@@ -8,7 +8,8 @@
 import os
 import pickle
 import random
-import sys
+import struct
+import winreg
 
 import commctrl
 import pythoncom
@@ -529,7 +530,7 @@ class ContextMenu:
 
     def InvokeCommand(self, ci):
         mask, hwnd, verb, params, dir, nShow, hotkey, hicon = ci
-        # this seems very convuluted, but it's what the sample does :)
+        # this seems very convoluted, but it's what the sample does :)
         for verb_name, verb_id, flag in folderViewImplContextMenuIDs:
             if isinstance(verb, int):
                 matches = verb == verb_id
@@ -796,12 +797,6 @@ def get_schema_fname():
 
 
 def DllRegisterServer():
-    import winreg
-
-    if sys.getwindowsversion()[0] < 6:
-        print("This sample only works on Vista")
-        sys.exit(1)
-
     key = winreg.CreateKey(
         winreg.HKEY_LOCAL_MACHINE,
         "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\"
@@ -816,7 +811,6 @@ def DllRegisterServer():
     attr = (
         shellcon.SFGAO_FOLDER | shellcon.SFGAO_HASSUBFOLDER | shellcon.SFGAO_BROWSABLE
     )
-    import struct
 
     s = struct.pack("i", attr)
     winreg.SetValueEx(key, "Attributes", 0, winreg.REG_BINARY, s)
@@ -832,8 +826,6 @@ def DllRegisterServer():
 
 
 def DllUnregisterServer():
-    import winreg
-
     paths = [
         "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Desktop\\Namespace\\"
         + ShellFolder._reg_clsid_,

@@ -100,7 +100,7 @@ class _BaseAuth:
     def unwrap(self, token):
         """
         GSSAPI's unwrap with SSPI.
-        https://docs.microsoft.com/en-us/windows/win32/secauthn/sspi-kerberos-interoperability-with-gssapi
+        https://learn.microsoft.com/en-us/windows/win32/secauthn/sspi-kerberos-interoperability-with-gssapi
 
         Usable mainly with Kerberos SSPI package, but this is not enforced.
 
@@ -125,7 +125,7 @@ class _BaseAuth:
     def wrap(self, msg, encrypt=False):
         """
         GSSAPI's wrap with SSPI.
-        https://docs.microsoft.com/en-us/windows/win32/secauthn/sspi-kerberos-interoperability-with-gssapi
+        https://learn.microsoft.com/en-us/windows/win32/secauthn/sspi-kerberos-interoperability-with-gssapi
 
         Usable mainly with Kerberos SSPI package, but this is not enforced.
 
@@ -337,7 +337,7 @@ if __name__ == "__main__":
     # This is the security package (the security support provider / the security backend)
     # we want to use for this example.
     ssp = "Kerberos"  # or "NTLM" or "Negotiate" which enable negotiation between
-    # Kerberos (prefered) and NTLM (if not supported on the other side).
+    # Kerberos (preferred) and NTLM (if not supported on the other side).
 
     flags = (
         sspicon.ISC_REQ_MUTUAL_AUTH

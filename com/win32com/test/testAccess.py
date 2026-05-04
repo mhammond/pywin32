@@ -95,15 +95,15 @@ def CreateTestAccessDatabase(dbname=None):
     # Reset the bookmark to the one we saved.
     # But first check the test is actually doing something!
     tab1.MoveLast()
-    assert (
-        tab1.Fields("First Name").Value == "Second"
-    ), "Unexpected record is last - makes bookmark test pointless!"
+    assert tab1.Fields("First Name").Value == "Second", (
+        "Unexpected record is last - makes bookmark test pointless!"
+    )
 
     tab1.Bookmark = bk
     assert tab1.Bookmark == bk, "The bookmark data is not the same"
-    assert (
-        tab1.Fields("First Name").Value == "Mark"
-    ), "The bookmark did not reset the record pointer correctly"
+    assert tab1.Fields("First Name").Value == "Mark", (
+        "The bookmark did not reset the record pointer correctly"
+    )
 
     return dbname
 

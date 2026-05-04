@@ -469,7 +469,7 @@ STDMETHODIMP PyGShellFolder::ParseDisplayName(
     BOOL bPythonIsHappy = TRUE;
     if (!PyTuple_Check(result)) {
         PyErr_Format(PyExc_TypeError, "ParseDisplayName must return a tuple of (int, pidl, attr) - got '%s'",
-                     result->ob_type->tp_name);
+                     Py_TYPE(result)->tp_name);
         bPythonIsHappy = FALSE;
     }
     if (bPythonIsHappy && !PyArg_ParseTuple(result, "lOl", &chEaten, &obppidl, &dwAttributes))

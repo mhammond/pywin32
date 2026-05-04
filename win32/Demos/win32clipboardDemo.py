@@ -31,9 +31,9 @@ def TestEmptyClipboard():
     OpenClipboard()
     try:
         EmptyClipboard()
-        assert (
-            EnumClipboardFormats(0) == 0
-        ), "Clipboard formats were available after emptying it!"
+        assert EnumClipboardFormats(0) == 0, (
+            "Clipboard formats were available after emptying it!"
+        )
     finally:
         CloseClipboard()
 
@@ -100,9 +100,9 @@ def TestClipboardEnum():
             enum = EnumClipboardFormats(enum)
             if enum == 0:
                 break
-            assert IsClipboardFormatAvailable(
-                enum
-            ), "Have format, but clipboard says it is not available!"
+            assert IsClipboardFormatAvailable(enum), (
+                "Have format, but clipboard says it is not available!"
+            )
             n = cf_names.get(enum, "")
             if not n:
                 try:
