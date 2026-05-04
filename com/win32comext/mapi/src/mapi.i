@@ -25,11 +25,11 @@
 %include "mapilib.i"
 
 %{
-#include "mapiaux.h"
+#include "MAPIAux.h"
 
 #include "PythonCOMServer.h"
 #include "PythonCOMRegister.h"
-#include <mapiutil.h>
+#include <MAPIUtil.h>
 #include "PyIMAPIProp.h"
 #include "PyIMAPIStatus.h"
 #include "PyIMAPITable.h"
@@ -1052,7 +1052,7 @@ PyObject *PyOpenStreamOnFile(PyObject *self, PyObject *args)
 
 		{
 			PY_INTERFACE_PRECALL;
-			// mapiutil.h incorrectly declares OpenStreamOnFile taking type LPTSTR
+			// MAPIUtil.h incorrectly declares OpenStreamOnFile taking type LPTSTR
 			hRes = OpenStreamOnFile(MAPIAllocateBuffer, MAPIFreeBuffer, flags, (LPTSTR)filename, (LPTSTR)prefix, &pStream);
 			PY_INTERFACE_POSTCALL;
 		}

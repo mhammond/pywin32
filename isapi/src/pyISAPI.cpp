@@ -26,7 +26,7 @@
 // pyISAPI.cpp - Implementation file for your Internet Server
 //    Python ISAPI Extension
 
-#include "stdafx.h"
+#include "StdAfx.h"
 #include "pyISAPI.h"
 #include "PyExtensionObjects.h"
 #include "PyFilterObjects.h"

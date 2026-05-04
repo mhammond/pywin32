@@ -24,7 +24,7 @@
  */
 
 // #define PY_SSIZE_T_CLEAN  // defined by isapi\src\StdAfx.h
-#include "stdafx.h"
+#include "StdAfx.h"
 #include "PyWinTypes.h"
 #include "Utils.h"
 #include "PyExtensionObjects.h"
