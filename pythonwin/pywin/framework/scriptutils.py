@@ -2,6 +2,8 @@
 Various utilities for running/importing a script
 """
 
+from __future__ import annotations
+
 import bdb
 import linecache
 import os
@@ -497,6 +499,9 @@ def CheckFile():
     try:
         pathName = GetActiveFileName()
     except KeyboardInterrupt:
+        return
+    if not pathName:
+        print(f"No active file found")
         return
 
     what = "check"
