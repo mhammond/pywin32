@@ -1,8 +1,9 @@
 /* File : PyIMAPIStatus.i */
 
-%module IMAPIStatus  // Provides status information about the MAPI
-                     // subsystem, the integrated address book and the MAPI
-                     // spooler.
+%module IMAPIStatus
+// Provides status information about the MAPI
+// subsystem, the integrated address book and the MAPI
+// spooler.
 
 %{
 #define PY_SSIZE_T_CLEAN
@@ -17,20 +18,11 @@
 #include "PyIMAPIProp.h"
 #include "PyIMAPIStatus.h"
 
-PyIMAPIStatus::PyIMAPIStatus(IUnknown *pDisp) :
-    PyIMAPIProp(pDisp)
-{
-    ob_type = &type;
-}
+PyIMAPIStatus::PyIMAPIStatus(IUnknown *pDisp) : PyIMAPIProp(pDisp) { ob_type = &type; }
 
-PyIMAPIStatus::~PyIMAPIStatus()
-{
-}
+PyIMAPIStatus::~PyIMAPIStatus() {}
 
-/*static*/ IMAPIStatus *PyIMAPIStatus::GetI(PyObject *self)
-{
-    return (IMAPIStatus *)PyIUnknown::GetI(self);
-}
+/*static*/ IMAPIStatus *PyIMAPIStatus::GetI(PyObject *self) { return (IMAPIStatus *)PyIUnknown::GetI(self); }
 
 %}
 
@@ -59,26 +51,19 @@ HRESULT ValidateState(ULONG ulUIParam, ULONG ulFlags);
 PyObject *PyIMAPIStatus::FlushQueues(PyObject *self, PyObject *args)
 {
     IMAPIStatus *_swig_self;
-    if ((_swig_self=GetI(self))==NULL) return NULL;
-    HRESULT  _result;
+    if ((_swig_self = GetI(self)) == NULL)
+        return NULL;
+    HRESULT _result;
     ULONG uiparam = 0, flags = 0;
     char *entryID;
     Py_ssize_t cbEntryID;
     // @pyparm int|uiparam||
     // @pyparm string|entryID||A blob
     // @pyparm int|flags||
-    if (!PyArg_ParseTuple(args, "lz#l:FlushQueues",
-                          &uiparam,
-                          &entryID,
-                          &cbEntryID,
-                          &flags))
+    if (!PyArg_ParseTuple(args, "lz#l:FlushQueues", &uiparam, &entryID, &cbEntryID, &flags))
         return NULL;
-    Py_BEGIN_ALLOW_THREADS
-    _result = (HRESULT )_swig_self->FlushQueues(uiparam, cbEntryID, (ENTRYID *)entryID, flags);
-    Py_END_ALLOW_THREADS
-    if (FAILED(_result)) {
-        return OleSetOleError(_result);
-    }
+    Py_BEGIN_ALLOW_THREADS _result = (HRESULT)_swig_self->FlushQueues(uiparam, cbEntryID, (ENTRYID *)entryID, flags);
+    Py_END_ALLOW_THREADS if (FAILED(_result)) { return OleSetOleError(_result); }
     Py_INCREF(Py_None);
     return Py_None;
 }

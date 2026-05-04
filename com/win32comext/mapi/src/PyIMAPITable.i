@@ -11,21 +11,11 @@
 
 #include "PyIMAPITable.h"
 
-PyIMAPITable::PyIMAPITable(IUnknown *pDisp) :
-	PyIUnknown(pDisp)
-{
-	ob_type = &type;
-}
+PyIMAPITable::PyIMAPITable(IUnknown *pDisp) : PyIUnknown(pDisp) { ob_type = &type; }
 
-PyIMAPITable::~PyIMAPITable()
-{
-}
+PyIMAPITable::~PyIMAPITable() {}
 
-/*static*/ IMAPITable *PyIMAPITable::GetI(PyObject *self)
-{
-	return (IMAPITable *)PyIUnknown::GetI(self);
-}
-
+/*static*/ IMAPITable *PyIMAPITable::GetI(PyObject *self) { return (IMAPITable *)PyIUnknown::GetI(self); }
 
 %}
 
@@ -34,130 +24,108 @@ PyIMAPITable::~PyIMAPITable()
 // @pyswig <o MAPIERROR>|GetLastError|Returns the last error code for the object.
 PyObject *PyIMAPITable::GetLastError(PyObject *self, PyObject *args)
 {
-	HRESULT hr, hRes;
-	ULONG flags = 0;
-	MAPIERROR *me = NULL;
+    HRESULT hr, hRes;
+    ULONG flags = 0;
+    MAPIERROR *me = NULL;
 
-	IMAPITable *_swig_self;
-	if ((_swig_self=GetI(self))==NULL) return NULL;
-
-    if(!PyArg_ParseTuple(args,"l|l:GetLastError",
-		&hr, // @pyparm int|hr||Contains the error code generated in the previous method call.
-		&flags)) // @pyparm int|flags||Indicates for format for the output.
+    IMAPITable *_swig_self;
+    if ((_swig_self = GetI(self)) == NULL)
         return NULL;
 
-	Py_BEGIN_ALLOW_THREADS
-	hRes = _swig_self->GetLastError(hr, flags, &me);
-	Py_END_ALLOW_THREADS
+    if (!PyArg_ParseTuple(args, "l|l:GetLastError",
+                          &hr,      // @pyparm int|hr||Contains the error code generated in the previous method call.
+                          &flags))  // @pyparm int|flags||Indicates for format for the output.
+        return NULL;
 
-	if (FAILED(hRes))
-		return OleSetOleError(hRes);
+    Py_BEGIN_ALLOW_THREADS hRes = _swig_self->GetLastError(hr, flags, &me);
+    Py_END_ALLOW_THREADS
 
-	if (me == NULL)
-	{
-		Py_INCREF(Py_None);
-		return Py_None;
-	}
-	return PyObject_FromMAPIERROR(me, flags & MAPI_UNICODE, TRUE);
+        if (FAILED(hRes)) return OleSetOleError(hRes);
+
+    if (me == NULL) {
+        Py_INCREF(Py_None);
+        return Py_None;
+    }
+    return PyObject_FromMAPIERROR(me, flags & MAPI_UNICODE, TRUE);
 }
 %}
 
 // @pyswig int|Advise|Registers to receive notification of specified events affecting the table.
-HRESULT Advise(
-	unsigned long ulEventMask, // @pyparm int|eventMask||
-	IMAPIAdviseSink *INPUT,	   // @pyparm <o PyIMAPIAdviseSink>|adviseSink||
-	ULONG_PTR *OUTPUT );
+HRESULT Advise(unsigned long ulEventMask,  // @pyparm int|eventMask||
+               IMAPIAdviseSink *INPUT,     // @pyparm <o PyIMAPIAdviseSink>|adviseSink||
+               ULONG_PTR *OUTPUT);
 
 // @pyswig int|SeekRow|Moves the cursor to a specific position in the table.
-HRESULT SeekRow(
-	unsigned long bm,	// @pyparm int|bookmark||The bookmark.
-	long rowCount,  // @pyparm int|rowCount||
-	long *OUTPUT
-// @rdesc The result is the number of rows processed.
+HRESULT SeekRow(unsigned long bm,  // @pyparm int|bookmark||The bookmark.
+                long rowCount,     // @pyparm int|rowCount||
+                long *OUTPUT
+                // @rdesc The result is the number of rows processed.
 );
 
 // @pyswig |SeekRowApprox|Moves the cursor to an approximate fractional position in the table.
 HRESULT SeekRowApprox(
-	unsigned long ulNumerator, // @pyparm int|numerator||The numerator of the fraction representing the table position
-	unsigned long ulDenominator // @pyparm int|denominator||The denominator of the fraction representing the table position. This must not be zero.
+    unsigned long ulNumerator,   // @pyparm int|numerator||The numerator of the fraction representing the table position
+    unsigned long ulDenominator  // @pyparm int|denominator||The denominator of the fraction representing the table
+                                 // position. This must not be zero.
 );
-
 
 // @pyswig int|GetRowCount|Returns the total number of rows in the table.
-HRESULT GetRowCount(
-	unsigned long ulFlags, // @pyparm int|flags||Reserved - must be zero
-	unsigned long *OUTPUT
-);
+HRESULT GetRowCount(unsigned long ulFlags,  // @pyparm int|flags||Reserved - must be zero
+                    unsigned long *OUTPUT);
 
 // @pyswig <o SRowSet>|QueryRows|Returns one or more rows from a table, beginning at the current cursor position.
-HRESULT QueryRows(
-	long rowCount, // @pyparm int|rowCount||Number of rows to retrieve
-	ULONG ulFlags, // @pyparm int|flags||Flags.
-	SRowSet **OUTPUT);
+HRESULT QueryRows(long rowCount,  // @pyparm int|rowCount||Number of rows to retrieve
+                  ULONG ulFlags,  // @pyparm int|flags||Flags.
+                  SRowSet **OUTPUT);
 
 // @pyswig |SetColumns|Defines the particular properties and order of properties to appear as columns in the table.
-HRESULT SetColumns(
-	SPropTagArray *INPUT, // @pyparm <o SPropTagArray>|propTags||Sequence of property tags identifying properties to be included as columns in the table.
-	unsigned long lFlags // @pyparm int|flags||
+HRESULT SetColumns(SPropTagArray *INPUT,  // @pyparm <o SPropTagArray>|propTags||Sequence of property tags identifying
+                                          // properties to be included as columns in the table.
+                   unsigned long lFlags   // @pyparm int|flags||
 );
 
 // @pyswig |GetStatus|Returns the table's status and type.
 // @rdesc Result is a tuple of (tableStatus, tableType)
-HRESULT GetStatus(
-	unsigned long *OUTPUT,
-	unsigned long *OUTPUT
-);
+HRESULT GetStatus(unsigned long *OUTPUT, unsigned long *OUTPUT);
 
 // @pyswig |QueryPosition|Retrieves the current table row position of the cursor, based on a fractional value.
 // @rdesc Result is a tuple of (row, numerator, denominator)
-HRESULT QueryPosition(
-	unsigned long *OUTPUT,
-	unsigned long *OUTPUT,
-	unsigned long *OUTPUT
-);
+HRESULT QueryPosition(unsigned long *OUTPUT, unsigned long *OUTPUT, unsigned long *OUTPUT);
 
 // @pyswig <o SPropTagArray>|QueryColumns|Returns a list of columns for the table.
-HRESULT QueryColumns(
-	unsigned long lFlags, // @pyparm int|flags||
-	SPropTagArray **OUTPUT
-);
+HRESULT QueryColumns(unsigned long lFlags,  // @pyparm int|flags||
+                     SPropTagArray **OUTPUT);
 
 // @pyswig |Abort|Stops any asynchronous operations currently in progress for the table.
 HRESULT Abort();
 
 // @pyswig |FreeBookmark|Releases the memory associated with a bookmark.
-HRESULT FreeBookmark(
-	unsigned long bm // @pyparm int|bookmark||
+HRESULT FreeBookmark(unsigned long bm  // @pyparm int|bookmark||
 );
 
 // @pyswig int|CreateBookmark|Marks the table's current position.
-HRESULT CreateBookmark(
-	ULONG_PTR *OUTPUT
-);
+HRESULT CreateBookmark(ULONG_PTR *OUTPUT);
 
-// @pyswig |Restrict|Applies a filter to a table, reducing the row set to only those rows matching the specified criteria.
-HRESULT Restrict(
-	SRestriction *INPUT, // @pyparm <o PySRestriction>|restriction||
-	unsigned long ulFlags // @pyparm int|flags||
+// @pyswig |Restrict|Applies a filter to a table, reducing the row set to only those rows matching the specified
+// criteria.
+HRESULT Restrict(SRestriction *INPUT,   // @pyparm <o PySRestriction>|restriction||
+                 unsigned long ulFlags  // @pyparm int|flags||
 );
 
 // @pyswig |FindRow|Finds the next row in a table that matches specific search criteria.
-HRESULT FindRow(
-	SRestriction *INPUT, // @pyparm <o PySRestriction>|restriction||
-	BOOKMARK bkOrigin, // @pyparm int|bookmarkOrigin||
-	unsigned long ulFlags // @pyparm int|flags||
+HRESULT FindRow(SRestriction *INPUT,   // @pyparm <o PySRestriction>|restriction||
+                BOOKMARK bkOrigin,     // @pyparm int|bookmarkOrigin||
+                unsigned long ulFlags  // @pyparm int|flags||
 );
 
 // @pyswig |SortTable|Orders the rows of the table based on sort criteria.
-HRESULT SortTable(
-	SSortOrderSet *INPUT, // @pyparm <o PySSortOrderSet>|sortOrderSet||
-	unsigned long flags // @pyparm int|flags||
+HRESULT SortTable(SSortOrderSet *INPUT,  // @pyparm <o PySSortOrderSet>|sortOrderSet||
+                  unsigned long flags    // @pyparm int|flags||
 );
 
-// @pyswig |Unadvise|Cancels the sending of notifications previously set up with a call to the IMAPITable::Advise method.
-HRESULT Unadvise(
-	unsigned long handle); // @pyparm int|handle||Handle returned from <om PyIMAPITable.Advise>
-
+// @pyswig |Unadvise|Cancels the sending of notifications previously set up with a call to the IMAPITable::Advise
+// method.
+HRESULT Unadvise(unsigned long handle);  // @pyparm int|handle||Handle returned from <om PyIMAPITable.Advise>
 
 /*
 
@@ -172,5 +140,6 @@ WaitForCompletion|Suspends processing until one or more asynchronous operations 
 
 GetCollapseState|Returns the data necessary to rebuild the current collapsed or expanded state of a categorized table.
 
-SetCollapseState|Rebuilds the current expanded or collapsed state of a categorized table using data that was saved by a prior call to the IMAPITable::GetCollapseState method.
+SetCollapseState|Rebuilds the current expanded or collapsed state of a categorized table using data that was saved by a
+prior call to the IMAPITable::GetCollapseState method.
 */

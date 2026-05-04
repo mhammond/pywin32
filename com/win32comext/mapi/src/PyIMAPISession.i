@@ -14,20 +14,11 @@
 
 #include "PyIMAPISession.h"
 
-PyIMAPISession::PyIMAPISession(IUnknown *pDisp) :
-	PyIUnknown(pDisp)
-{
-	ob_type = &type;
-}
+PyIMAPISession::PyIMAPISession(IUnknown *pDisp) : PyIUnknown(pDisp) { ob_type = &type; }
 
-PyIMAPISession::~PyIMAPISession()
-{
-}
+PyIMAPISession::~PyIMAPISession() {}
 
-/*static*/ IMAPISession *PyIMAPISession::GetI(PyObject *self)
-{
-	return (IMAPISession *)PyIUnknown::GetI(self);
-}
+/*static*/ IMAPISession *PyIMAPISession::GetI(PyObject *self) { return (IMAPISession *)PyIUnknown::GetI(self); }
 %}
 
 %native(OpenEntry) OpenEntry; // OpenEntry manually done :-(
@@ -35,48 +26,49 @@ PyIMAPISession::~PyIMAPISession()
 // @pyswig <o PyIInterface>|OpenEntry|Opens an object and returns an interface object for further access.
 PyObject *PyIMAPISession::OpenEntry(PyObject *self, PyObject *args)
 {
-    HRESULT  _result;
+    HRESULT _result;
     char *entryString;
-	int entryStrLen;
+    int entryStrLen;
     IID iid;
-	IID *pIID;
-    PyObject * objIID = 0;
-    unsigned long  flags;
-    IUnknown * pUnk = NULL;
-	ULONG resType;
-	PyObject *obEntry;
+    IID *pIID;
+    PyObject *objIID = 0;
+    unsigned long flags;
+    IUnknown *pUnk = NULL;
+    ULONG resType;
+    PyObject *obEntry;
 
-	IMAPISession *_swig_self;
-	if ((_swig_self=GetI(self))==NULL) return NULL;
+    IMAPISession *_swig_self;
+    if ((_swig_self = GetI(self)) == NULL)
+        return NULL;
     // @pyparm string|entryId||The EntryID to open.
     // @pyparm <o PyIID>|iid||The IID of the returned interface, or None for the default interface.
-    // @pyparm int|flags||Flags for the call.  May include MAPI_BEST_ACCESS, MAPI_DEFERRED_ERRORS, MAPI_MODIFY and possibly others (see the MAPI documentation)
-    if(!PyArg_ParseTuple(args,"OOl:OpenEntry", &obEntry, &objIID, &flags))
+    // @pyparm int|flags||Flags for the call.  May include MAPI_BEST_ACCESS, MAPI_DEFERRED_ERRORS, MAPI_MODIFY and
+    // possibly others (see the MAPI documentation)
+    if (!PyArg_ParseTuple(args, "OOl:OpenEntry", &obEntry, &objIID, &flags))
         return NULL;
-	if (obEntry==Py_None) {
-		entryString = NULL;
-		entryStrLen = 0;
-	} else if (PyBytes_Check(obEntry)) {
-		entryString = PyBytes_AsString(obEntry);
-		entryStrLen = PyBytes_Size(obEntry);
-	} else {
-		PyErr_SetString(PyExc_TypeError, "EntryID must be a string or None");
-		return NULL;
-	}
-	if (objIID==Py_None)
-		pIID = NULL;
-	else {
-		pIID = &iid;
-		if (!PyWinObject_AsIID(objIID, pIID))
-			return NULL;
-	}
-	Py_BEGIN_ALLOW_THREADS
-     _result = (HRESULT )_swig_self->OpenEntry(entryStrLen,(ENTRYID *)entryString,pIID,flags, &resType, &pUnk);
-	Py_END_ALLOW_THREADS
-     if (FAILED(_result)) {
-           return OleSetOleError(_result);
-     }
-	 return PyMAPIObject_FromTypedUnknown( resType, pUnk, FALSE /*bAddRef*/);
+    if (obEntry == Py_None) {
+        entryString = NULL;
+        entryStrLen = 0;
+    }
+    else if (PyBytes_Check(obEntry)) {
+        entryString = PyBytes_AsString(obEntry);
+        entryStrLen = PyBytes_Size(obEntry);
+    }
+    else {
+        PyErr_SetString(PyExc_TypeError, "EntryID must be a string or None");
+        return NULL;
+    }
+    if (objIID == Py_None)
+        pIID = NULL;
+    else {
+        pIID = &iid;
+        if (!PyWinObject_AsIID(objIID, pIID))
+            return NULL;
+    }
+    Py_BEGIN_ALLOW_THREADS _result =
+        (HRESULT)_swig_self->OpenEntry(entryStrLen, (ENTRYID *)entryString, pIID, flags, &resType, &pUnk);
+    Py_END_ALLOW_THREADS if (FAILED(_result)) { return OleSetOleError(_result); }
+    return PyMAPIObject_FromTypedUnknown(resType, pUnk, FALSE /*bAddRef*/);
 }
 %}
 
@@ -85,69 +77,67 @@ PyObject *PyIMAPISession::OpenEntry(PyObject *self, PyObject *args)
 // @pyswig <o PyIUnknown>|OpenMsgStore|Opens a message store.
 PyObject *PyIMAPISession::OpenMsgStore(PyObject *self, PyObject *args)
 {
-    HRESULT  _result;
-    char * entryString;
-	Py_ssize_t entryStrLen;
+    HRESULT _result;
+    char *entryString;
+    Py_ssize_t entryStrLen;
     IID iid;
-	IID *pIID;
-    PyObject * objIID = 0;
-    unsigned long  ulParm;
-    unsigned long  flags;
-    IMsgStore * pMS = NULL;
+    IID *pIID;
+    PyObject *objIID = 0;
+    unsigned long ulParm;
+    unsigned long flags;
+    IMsgStore *pMS = NULL;
 
-	IMAPISession *_swig_self;
-	if ((_swig_self=GetI(self))==NULL) return NULL;
+    IMAPISession *_swig_self;
+    if ((_swig_self = GetI(self)) == NULL)
+        return NULL;
     // @pyparm int|uiParam||Handle to the parent window for dialogs.
     // @pyparm string|entryId||The entry ID of the message store to open.
     // @pyparm <o PyIID>|iid||The IID of the interface returned, or None
     // @pyparm int|flags||Options for the call.
-    if(!PyArg_ParseTuple(args,"ls#Ol:OpenMsgStore",&ulParm,&entryString,&entryStrLen, &objIID,&flags))
+    if (!PyArg_ParseTuple(args, "ls#Ol:OpenMsgStore", &ulParm, &entryString, &entryStrLen, &objIID, &flags))
         return NULL;
-	if (objIID==Py_None)
-		pIID = NULL;
-	else {
-		pIID = &iid;
-		if (!PyWinObject_AsIID(objIID, pIID))
-			return NULL;
-	}
-	Py_BEGIN_ALLOW_THREADS
-     _result = (HRESULT )_swig_self->OpenMsgStore(ulParm, entryStrLen,(ENTRYID *)entryString,pIID,flags,&pMS);
-	Py_END_ALLOW_THREADS
-     if (FAILED(_result)) {
-           return OleSetOleError(_result);
-     }
+    if (objIID == Py_None)
+        pIID = NULL;
+    else {
+        pIID = &iid;
+        if (!PyWinObject_AsIID(objIID, pIID))
+            return NULL;
+    }
+    Py_BEGIN_ALLOW_THREADS _result =
+        (HRESULT)_swig_self->OpenMsgStore(ulParm, entryStrLen, (ENTRYID *)entryString, pIID, flags, &pMS);
+    Py_END_ALLOW_THREADS if (FAILED(_result)) { return OleSetOleError(_result); }
     // @comm The result is the interface specified by the IID, or IID_IMsgStore if None is used.
-     return PyCom_PyObjectFromIUnknown(pMS, pIID ? *pIID : IID_IMsgStore, FALSE /*bAddRef*/ );
+    return PyCom_PyObjectFromIUnknown(pMS, pIID ? *pIID : IID_IMsgStore, FALSE /*bAddRef*/);
 }
 %}
 
-
 %native(QueryIdentity) QueryIdentity;
 %{
-// @pyswig string|QueryIdentity|Returns the entry identifier of the object that provides the primary identity for the session.
+// @pyswig string|QueryIdentity|Returns the entry identifier of the object that provides the primary identity for the
+// session.
 PyObject *PyIMAPISession::QueryIdentity(PyObject *self, PyObject *args)
 {
-	ULONG cb;
-	LPENTRYID peid;
-	IMAPISession *_swig_self;
-	if ((_swig_self=GetI(self))==NULL) return NULL;
-    if(!PyArg_ParseTuple(args,":QueryIdentity"))
+    ULONG cb;
+    LPENTRYID peid;
+    IMAPISession *_swig_self;
+    if ((_swig_self = GetI(self)) == NULL)
+        return NULL;
+    if (!PyArg_ParseTuple(args, ":QueryIdentity"))
         return NULL;
 
-	HRESULT _result;
-	Py_BEGIN_ALLOW_THREADS
-	_result = _swig_self->QueryIdentity(&cb, &peid);
-	Py_END_ALLOW_THREADS
-	PyObject *rc;
-	if (_result==S_OK)
-		rc = PyBytes_FromStringAndSize((char *)peid, cb);
-	else if (FAILED(_result)) {
-           rc = OleSetOleError(_result);
-    } else {
-		rc = Py_None;
-		Py_INCREF(Py_None);
-	}
-	return rc;
+    HRESULT _result;
+    Py_BEGIN_ALLOW_THREADS _result = _swig_self->QueryIdentity(&cb, &peid);
+    Py_END_ALLOW_THREADS PyObject *rc;
+    if (_result == S_OK)
+        rc = PyBytes_FromStringAndSize((char *)peid, cb);
+    else if (FAILED(_result)) {
+        rc = OleSetOleError(_result);
+    }
+    else {
+        rc = Py_None;
+        Py_INCREF(Py_None);
+    }
+    return rc;
 }
 %}
 
@@ -158,48 +148,45 @@ PyObject *PyIMAPISession::QueryIdentity(PyObject *self, PyObject *args)
 %{
 PyObject *PyIMAPISession::Advise(PyObject *self, PyObject *args)
 {
-	IMAPISession *_swig_self;
-	if ((_swig_self=GetI(self))==NULL) return NULL;
+    IMAPISession *_swig_self;
+    if ((_swig_self = GetI(self)) == NULL)
+        return NULL;
 
-	// @pyparm string|entryId||The entryID of the object
-	// @pyparm int|mask||
-	// @pyparm <o PyIMAPIAdviseSink>|sink||
-	PyObject *obEntry, *obSink;
-	int mask;
-	if(!PyArg_ParseTuple(args,"OkO:Advise",&obEntry, &mask, &obSink))
-		return NULL;
-	char *entryString;
-	Py_ssize_t entryStrLen;
-	if (obEntry==Py_None) {
-		entryString = NULL;
-		entryStrLen = 0;
-	} else if (PyBytes_Check(obEntry)) {
-		entryString = PyBytes_AsString(obEntry);
-		entryStrLen = PyBytes_Size(obEntry);
-	} else {
-		PyErr_SetString(PyExc_TypeError, "EntryID must be a string or None");
-		return NULL;
-	}
-	IMAPIAdviseSink *psink = NULL;
-	if (!PyCom_InterfaceFromPyObject(obSink, IID_IMAPIAdviseSink, (void **)&psink, FALSE))
-		return NULL;
-	ULONG_PTR connection;
-	HRESULT _result;
-	PyObject *rc;
-	Py_BEGIN_ALLOW_THREADS
-	_result = _swig_self->Advise(entryStrLen, (LPENTRYID)entryString,
-	                             mask, psink, &connection);
-	Py_END_ALLOW_THREADS
-	if (FAILED(_result))
-		rc = OleSetOleError(_result);
-	else
-		rc = PyWinObject_FromULONG_PTR(connection);
-	{
-	Py_BEGIN_ALLOW_THREADS
-	psink->Release();
-	Py_END_ALLOW_THREADS
-	}
-	return rc;
+    // @pyparm string|entryId||The entryID of the object
+    // @pyparm int|mask||
+    // @pyparm <o PyIMAPIAdviseSink>|sink||
+    PyObject *obEntry, *obSink;
+    int mask;
+    if (!PyArg_ParseTuple(args, "OkO:Advise", &obEntry, &mask, &obSink))
+        return NULL;
+    char *entryString;
+    Py_ssize_t entryStrLen;
+    if (obEntry == Py_None) {
+        entryString = NULL;
+        entryStrLen = 0;
+    }
+    else if (PyBytes_Check(obEntry)) {
+        entryString = PyBytes_AsString(obEntry);
+        entryStrLen = PyBytes_Size(obEntry);
+    }
+    else {
+        PyErr_SetString(PyExc_TypeError, "EntryID must be a string or None");
+        return NULL;
+    }
+    IMAPIAdviseSink *psink = NULL;
+    if (!PyCom_InterfaceFromPyObject(obSink, IID_IMAPIAdviseSink, (void **)&psink, FALSE))
+        return NULL;
+    ULONG_PTR connection;
+    HRESULT _result;
+    PyObject *rc;
+    Py_BEGIN_ALLOW_THREADS _result = _swig_self->Advise(entryStrLen, (LPENTRYID)entryString, mask, psink, &connection);
+    Py_END_ALLOW_THREADS if (FAILED(_result)) rc = OleSetOleError(_result);
+    else rc = PyWinObject_FromULONG_PTR(connection);
+    {
+        Py_BEGIN_ALLOW_THREADS psink->Release();
+        Py_END_ALLOW_THREADS
+    }
+    return rc;
 }
 %}
 
@@ -207,118 +194,106 @@ PyObject *PyIMAPISession::Advise(PyObject *self, PyObject *args)
 // @pyparm int|connection||Value returned from <om PyIMAPISession.Advise>
 HRESULT Unadvise(unsigned long connection);
 
-
-// @pyswig int|CompareEntryIDs|Compares two entry identifiers belonging to a particular address book provider to determine if they refer to the same address book object
+// @pyswig int|CompareEntryIDs|Compares two entry identifiers belonging to a particular address book provider to
+// determine if they refer to the same address book object
 // @rdesc The result is set to TRUE if the two entry identifiers refer to the same object, and FALSE otherwise.
 %native(CompareEntryIDs) CompareEntryIDs;
 %{
 PyObject *PyIMAPISession::CompareEntryIDs(PyObject *self, PyObject *args)
 {
-	PyObject *rc = NULL;
-	HRESULT hr;
-	ULONG cb1, cb2;
-	ULONG flags=0;
-	ULONG ulResult;
-	LPENTRYID peid1 = NULL, peid2 = NULL;
-	IMAPISession *_swig_self;
-	PyObject *obE1, *obE2;
-	if ((_swig_self=GetI(self))==NULL) return NULL;
-    if(!PyArg_ParseTuple(args,"OO|i:CompareEntryIDs",
-		&obE1, // @pyparm string|entryId||The first entry ID to be compared
-		&obE2, // @pyparm string|entryId||The second entry ID to be compared
-		&flags)) // @pyparm int|flags|0|Reserved - must be zero.
+    PyObject *rc = NULL;
+    HRESULT hr;
+    ULONG cb1, cb2;
+    ULONG flags = 0;
+    ULONG ulResult;
+    LPENTRYID peid1 = NULL, peid2 = NULL;
+    IMAPISession *_swig_self;
+    PyObject *obE1, *obE2;
+    if ((_swig_self = GetI(self)) == NULL)
+        return NULL;
+    if (!PyArg_ParseTuple(args, "OO|i:CompareEntryIDs",
+                          &obE1,    // @pyparm string|entryId||The first entry ID to be compared
+                          &obE2,    // @pyparm string|entryId||The second entry ID to be compared
+                          &flags))  // @pyparm int|flags|0|Reserved - must be zero.
         goto done;
 
-	if (!PyWinObject_AsChars(obE1, (char **)&peid1, FALSE, &cb1))
+    if (!PyWinObject_AsChars(obE1, (char **)&peid1, FALSE, &cb1))
         goto done;
 
-	if (!PyWinObject_AsChars(obE2, (char **)&peid2, FALSE, &cb2))
+    if (!PyWinObject_AsChars(obE2, (char **)&peid2, FALSE, &cb2))
         goto done;
 
-	Py_BEGIN_ALLOW_THREADS
-	hr=_swig_self->CompareEntryIDs(cb1, peid1, cb2, peid2, flags, &ulResult);
-	Py_END_ALLOW_THREADS
-	if (FAILED(hr))
-		rc =  OleSetOleError(hr);
-	else
-		rc = PyLong_FromLong(ulResult);
+    Py_BEGIN_ALLOW_THREADS hr = _swig_self->CompareEntryIDs(cb1, peid1, cb2, peid2, flags, &ulResult);
+    Py_END_ALLOW_THREADS if (FAILED(hr)) rc = OleSetOleError(hr);
+    else rc = PyLong_FromLong(ulResult);
 done:
-	PyWinObject_FreeChars((char *)peid1);
-	PyWinObject_FreeChars((char *)peid2);
-	return rc;
+    PyWinObject_FreeChars((char *)peid1);
+    PyWinObject_FreeChars((char *)peid2);
+    return rc;
 }
 %}
 
-
-//HRESULT GetLastError(HRESULT hr, unsigned long flags, MAPIERROR **OUTPUT);
+// HRESULT GetLastError(HRESULT hr, unsigned long flags, MAPIERROR **OUTPUT);
 %native(GetLastError) GetLastError;
 %{
 // @pyswig <o MAPIERROR>|GetLastError|Returns the last error code for the object.
 PyObject *PyIMAPISession::GetLastError(PyObject *self, PyObject *args)
 {
-	HRESULT hr, hRes;
-	ULONG flags = 0;
-	MAPIERROR *me = NULL;
+    HRESULT hr, hRes;
+    ULONG flags = 0;
+    MAPIERROR *me = NULL;
 
-	IMAPISession *_swig_self;
-	if ((_swig_self=GetI(self))==NULL) return NULL;
-
-    if(!PyArg_ParseTuple(args,"l|l:GetLastError",
-		&hr, // @pyparm int|hr||Contains the error code generated in the previous method call.
-		&flags)) // @pyparm int|flags||Indicates for format for the output.
+    IMAPISession *_swig_self;
+    if ((_swig_self = GetI(self)) == NULL)
         return NULL;
 
-	Py_BEGIN_ALLOW_THREADS
-	hRes = _swig_self->GetLastError(hr, flags, &me);
-	Py_END_ALLOW_THREADS
+    if (!PyArg_ParseTuple(args, "l|l:GetLastError",
+                          &hr,      // @pyparm int|hr||Contains the error code generated in the previous method call.
+                          &flags))  // @pyparm int|flags||Indicates for format for the output.
+        return NULL;
 
-	if (FAILED(hRes))
-		return OleSetOleError(hRes);
+    Py_BEGIN_ALLOW_THREADS hRes = _swig_self->GetLastError(hr, flags, &me);
+    Py_END_ALLOW_THREADS
 
-	if (me == NULL)
-	{
-		Py_INCREF(Py_None);
-		return Py_None;
-	}
-	return PyObject_FromMAPIERROR(me, flags & MAPI_UNICODE, TRUE);
+        if (FAILED(hRes)) return OleSetOleError(hRes);
+
+    if (me == NULL) {
+        Py_INCREF(Py_None);
+        return Py_None;
+    }
+    return PyObject_FromMAPIERROR(me, flags & MAPI_UNICODE, TRUE);
 }
 %}
 
-// @pyswig <o PyIMAPITable>|GetMsgStoresTable|Provides access to the message store table - a table with information about all of the message stores in the session profile.
-HRESULT GetMsgStoresTable(
-    unsigned long ulFlags, // @pyparm int|flags||Flags that control the opening.
-    IMAPITable **OUTPUT
-);
+// @pyswig <o PyIMAPITable>|GetMsgStoresTable|Provides access to the message store table - a table with information
+// about all of the message stores in the session profile.
+HRESULT GetMsgStoresTable(unsigned long ulFlags,  // @pyparm int|flags||Flags that control the opening.
+                          IMAPITable **OUTPUT);
 
-// @pyswig <o PyIMAPITable>|GetStatusTable|Provides access to the status table - a table with information about all of the MAPI resources in the session.
-HRESULT GetStatusTable(
-    unsigned long ulFlags, // @pyparm int|flags||Flags that control the opening.
-    IMAPITable **OUTPUT
-);
+// @pyswig <o PyIMAPITable>|GetStatusTable|Provides access to the status table - a table with information about all of
+// the MAPI resources in the session.
+HRESULT GetStatusTable(unsigned long ulFlags,  // @pyparm int|flags||Flags that control the opening.
+                       IMAPITable **OUTPUT);
 
 // @pyswig |Logoff|Ends a MAPI session.
-HRESULT Logoff(
-    unsigned long ulUIParam,  // @pyparm int|uiParm||hwnd of a dialog is to be displayed.
-    unsigned long ulFlags,    // @pyparm int|flags||Bitmask of flags that control the logoff operation.
-    unsigned long ulReserved ); // @pyparm int|reserved||Reserved; must be zero.
+HRESULT Logoff(unsigned long ulUIParam,    // @pyparm int|uiParm||hwnd of a dialog is to be displayed.
+               unsigned long ulFlags,      // @pyparm int|flags||Bitmask of flags that control the logoff operation.
+               unsigned long ulReserved);  // @pyparm int|reserved||Reserved; must be zero.
 
 // @pyswig <o PyIAddrBook>|OpenAddressBook|Opens the integrated address book.
-HRESULT OpenAddressBook(
-	unsigned long ulUIParm, // @pyparm int|uiParm||hwnd of a dialog is to be displayed.
-	IID *INPUT_NULLOK, // @pyparm <o PyIID>|iid||The IID of the interface, or None.
-	unsigned long flags, // @pyparm int|flags||Flags that control the opening - AB_NO_DIALOG.
-	IAddrBook **OUTPUT
-);
+HRESULT OpenAddressBook(unsigned long ulUIParm,  // @pyparm int|uiParm||hwnd of a dialog is to be displayed.
+                        IID *INPUT_NULLOK,       // @pyparm <o PyIID>|iid||The IID of the interface, or None.
+                        unsigned long flags,     // @pyparm int|flags||Flags that control the opening - AB_NO_DIALOG.
+                        IAddrBook **OUTPUT);
 
-// @pyswig <o PyIProfSection>|OpenProfileSection|Opens a section of the current profile and returns an object for futher access
-HRESULT OpenProfileSection(
-	MAPIUID *INPUT, // @pyparm <o PyIID>|iidSection||The MAPIIID of the profile section
-	IID *INPUT_NULLOK, // @pyparm <o PyIID>|iid||The IID of the interface, or None.
-	unsigned long flags, // @pyparm int|flags||Flags that control the opening.
-	IProfSect **OUTPUT);
+// @pyswig <o PyIProfSection>|OpenProfileSection|Opens a section of the current profile and returns an object for futher
+// access
+HRESULT OpenProfileSection(MAPIUID *INPUT,       // @pyparm <o PyIID>|iidSection||The MAPIIID of the profile section
+                           IID *INPUT_NULLOK,    // @pyparm <o PyIID>|iid||The IID of the interface, or None.
+                           unsigned long flags,  // @pyparm int|flags||Flags that control the opening.
+                           IProfSect **OUTPUT);
 
-
-// @pyswig <o PyIMsgServiceAdmin>|AdminServices|Provides access to a message service administration object for making changes to the message services.
-HRESULT AdminServices(
-   unsigned long ulFlags=0, // @pyparm int|flags|0|reserved; must be zero.
-   IMsgServiceAdmin **OUTPUT);
+// @pyswig <o PyIMsgServiceAdmin>|AdminServices|Provides access to a message service administration object for making
+// changes to the message services.
+HRESULT AdminServices(unsigned long ulFlags = 0,  // @pyparm int|flags|0|reserved; must be zero.
+                      IMsgServiceAdmin **OUTPUT);

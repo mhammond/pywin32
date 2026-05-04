@@ -13,20 +13,10 @@
 #include "PyIMAPIContainer.h"
 #include "PyIDistList.h"
 
-PyIDistList::PyIDistList(IUnknown *pDisp) :
-	PyIMAPIContainer(pDisp)
-{
-	ob_type = &type;
-}
+PyIDistList::PyIDistList(IUnknown *pDisp) : PyIMAPIContainer(pDisp) { ob_type = &type; }
 
-PyIDistList::~PyIDistList()
-{
-}
+PyIDistList::~PyIDistList() {}
 
-/*static*/ IDistList *PyIDistList::GetI(PyObject *self)
-{
-	return (IDistList *)PyIUnknown::GetI(self);
-}
-
+/*static*/ IDistList *PyIDistList::GetI(PyObject *self) { return (IDistList *)PyIUnknown::GetI(self); }
 
 %}
