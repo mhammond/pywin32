@@ -262,19 +262,28 @@ PyObject *PyIADs_getattro(PyObject *ob, PyObject *obname)
         // allow both
         // @prop <o PyUnicode>|ADsPath|
         // @prop <o PyUnicode>|AdsPath|Synonym for ADsPath
-        if (strcmp(name, "AdsPath") == 0 || strcmp(name, "ADsPath") == 0) hr = p->get_ADsPath(&ret);
-    // @prop <o PyUnicode>|Class|
-    else if (strcmp(name, "Class") == 0) hr = p->get_Class(&ret);
-    // @prop <o PyUnicode>|GUID|Like the IADs method, this returns a string rather than a GUID object.
-    else if (strcmp(name, "GUID") == 0) hr = p->get_GUID(&ret);
-    // @prop <o PyUnicode>|Name|
-    else if (strcmp(name, "Name") == 0) hr = p->get_Name(&ret);
-    // @prop <o PyUnicode>|Parent|
-    else if (strcmp(name, "Parent") == 0) hr = p->get_Parent(&ret);
-    // @prop <o PyUnicode>|Schema|
-    else if (strcmp(name, "Schema") == 0) hr = p->get_Schema(&ret);
-    else bad = TRUE;
-    Py_END_ALLOW_THREADS if (bad) return PyIBase::getattro(ob, obname);
+        if (strcmp(name, "AdsPath") == 0 || strcmp(name, "ADsPath") == 0)
+            hr = p->get_ADsPath(&ret);
+        // @prop <o PyUnicode>|Class|
+        else if (strcmp(name, "Class") == 0)
+            hr = p->get_Class(&ret);
+        // @prop <o PyUnicode>|GUID|Like the IADs method, this returns a string rather than a GUID object.
+        else if (strcmp(name, "GUID") == 0)
+            hr = p->get_GUID(&ret);
+        // @prop <o PyUnicode>|Name|
+        else if (strcmp(name, "Name") == 0)
+            hr = p->get_Name(&ret);
+        // @prop <o PyUnicode>|Parent|
+        else if (strcmp(name, "Parent") == 0)
+            hr = p->get_Parent(&ret);
+        // @prop <o PyUnicode>|Schema|
+        else if (strcmp(name, "Schema") == 0)
+            hr = p->get_Schema(&ret);
+        else
+            bad = TRUE;
+    Py_END_ALLOW_THREADS
+    if (bad)
+        return PyIBase::getattro(ob, obname);
     if (FAILED(hr))
         return PyCom_BuildPyException(hr, p, IID_IADs);
     PyObject *rc = MakeBstrToObj(ret);

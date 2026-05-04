@@ -565,9 +565,10 @@ static PyObject *PyRasDial(PyObject *self, PyObject *args)
     }
 
     // @pyseeapi RasDial
-    Py_BEGIN_ALLOW_THREADS rc = RasDial(dialExts, fileName, &dialParams, notType, pNotification, &hRas);
-    Py_END_ALLOW_THREADS if (hRas == 0 && notType == 1)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        rc = RasDial(dialExts, fileName, &dialParams, notType, pNotification, &hRas);
+    Py_END_ALLOW_THREADS
+    if (hRas == 0 && notType == 1) {
         PyDict_DelItem(obHandleMap, Py_None);
         PyErr_Clear();
     }
@@ -600,8 +601,11 @@ static PyObject *PyRasEditPhonebookEntry(PyObject *self, PyObject *args)
         return NULL;
     if (hwnd != 0 && !IsWindow(hwnd))
         return ReturnError("The first parameter must be a valid window handle", "<EditPhonebookEntry param parsing>");
-    Py_BEGIN_ALLOW_THREADS rc = RasEditPhonebookEntry(hwnd, fileName, entryName);
-    Py_END_ALLOW_THREADS if (rc) return ReturnRasError("RasEditPhonebookEntry", rc);  // @pyseeapi RasEditPhonebookEntry
+    Py_BEGIN_ALLOW_THREADS
+        rc = RasEditPhonebookEntry(hwnd, fileName, entryName);
+    Py_END_ALLOW_THREADS
+    if (rc)
+        return ReturnRasError("RasEditPhonebookEntry", rc);  // @pyseeapi RasEditPhonebookEntry
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -618,9 +622,11 @@ static PyObject *PyRasEnumConnections(PyObject *self, PyObject *args)
     RASCONN *pCon = NULL;
     // make dummy call to determine buffer size.
     tc.dwSize = bufSize = sizeof(RASCONN);
-    Py_BEGIN_ALLOW_THREADS rc = RasEnumConnections(&tc, &bufSize, &noConns);
-    Py_END_ALLOW_THREADS if (rc != 0 && rc != ERROR_BUFFER_TOO_SMALL) return ReturnRasError("RasEnumConnections(NULL)",
-                                                                                            rc);
+    Py_BEGIN_ALLOW_THREADS
+        rc = RasEnumConnections(&tc, &bufSize, &noConns);
+    Py_END_ALLOW_THREADS
+    if (rc != 0 && rc != ERROR_BUFFER_TOO_SMALL)
+        return ReturnRasError("RasEnumConnections(NULL)", rc);
     if (rc == ERROR_BUFFER_TOO_SMALL) {
         if (bufSize == 0)
             return ReturnRasError("RasEnumConnections buffer size is invalid");
@@ -631,8 +637,11 @@ static PyObject *PyRasEnumConnections(PyObject *self, PyObject *args)
         }
         // @pyseeapi RasEnumConnections
         pCon[0].dwSize = sizeof(RASCONN);
-        Py_BEGIN_ALLOW_THREADS rc = RasEnumConnections(pCon, &bufSize, &noConns);
-        Py_END_ALLOW_THREADS if (rc != 0) return ReturnRasError("RasEnumConnections", rc);
+        Py_BEGIN_ALLOW_THREADS
+            rc = RasEnumConnections(pCon, &bufSize, &noConns);
+        Py_END_ALLOW_THREADS
+        if (rc != 0)
+            return ReturnRasError("RasEnumConnections", rc);
     }
     else {
         pCon = &tc;
@@ -686,8 +695,11 @@ static PyObject *PyRasEnumEntries(PyObject *self, PyObject *args)
         }
         // ??? Not sure if this is needed, only sets the size of first struct in buf ???
         buf->dwSize = sizeof(RASENTRYNAME);
-        Py_BEGIN_ALLOW_THREADS rc = RasEnumEntries(reserved, bookName, buf, &bufSize, &noConns);
-        Py_END_ALLOW_THREADS if (rc == 0) break;
+        Py_BEGIN_ALLOW_THREADS
+            rc = RasEnumEntries(reserved, bookName, buf, &bufSize, &noConns);
+        Py_END_ALLOW_THREADS
+        if (rc == 0)
+            break;
         if (rc == ERROR_BUFFER_TOO_SMALL)
             continue;
         ReturnRasError("RasEnumEntries", rc);
@@ -871,9 +883,13 @@ static PyObject *PyRasGetEapUserIdentity(PyObject *self, PyObject *args)
         // @pyseeapi RasGetEapUserIdentity
         DWORD rc;
         RASEAPUSERIDENTITY *identity;
-        Py_BEGIN_ALLOW_THREADS rc = RasGetEapUserIdentity(phoneBook, entry, flags, hwnd, &identity);
-        Py_END_ALLOW_THREADS if (rc != 0) ReturnRasError("RasGetEapUserIdentity", rc);
-        else ret = PyWinObject_FromRASEAPUSERIDENTITY(identity);
+        Py_BEGIN_ALLOW_THREADS
+            rc = RasGetEapUserIdentity(phoneBook, entry, flags, hwnd, &identity);
+        Py_END_ALLOW_THREADS
+        if (rc != 0)
+            ReturnRasError("RasGetEapUserIdentity", rc);
+        else
+            ret = PyWinObject_FromRASEAPUSERIDENTITY(identity);
     }
     PyWinObject_FreeTCHAR(phoneBook);
     PyWinObject_FreeTCHAR(entry);
