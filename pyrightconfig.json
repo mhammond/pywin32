@@ -12,9 +12,9 @@
     ".venv/",
     "build/",
     // Vendored
-    "Pythonwin/Scintilla/",
+    "pythonwin/Scintilla/",
     // Forked IDLE extensions predating Python 2.3. They now live in idlelib in https://github.com/python/cpython/tree/main/Lib/idlelib
-    "Pythonwin/pywin/idle/",
+    "pythonwin/pywin/idle/",
     // Ignoring non-public apis for now
     "**/test/",
     "**/Demos/",
@@ -25,7 +25,7 @@
   "extraPaths": [
     "com",
     "win32/Lib",
-    "Pythonwin",
+    "pythonwin",
   ],
   "reportConstantRedefinition": "error",
   // TODO: For now this allows us to at least put pyright in place by massively reducing checked code

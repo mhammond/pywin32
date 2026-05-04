@@ -353,7 +353,7 @@ class my_build(build):
     def run(self) -> None:
         super().run()
         version_file_path.write_text(f"{build_id}\n")
-        shutil.copyfile("Pythonwin/Scintilla/License.txt", scintilla_licence_path)
+        shutil.copyfile("pythonwin/Scintilla/License.txt", scintilla_licence_path)
         shutil.copyfile(
             "com/win32comext/mapi/src/MAPIStubLibrary/LICENSE", mapi_stubs_licence_path
         )
@@ -418,7 +418,7 @@ class my_build_ext(build_ext):
         return None  # no reason - it can be built!
 
     def _build_scintilla(self):
-        path = "pythonwin\\Scintilla"
+        scintilla_path = "pythonwin/Scintilla"
         makefile = "makefile_pythonwin"
         makeargs = []
 
@@ -461,7 +461,7 @@ class my_build_ext(build_ext):
         old_env = os.environ.copy()
         os.environ["INCLUDE"] = os.pathsep.join(self.compiler.include_dirs)
         os.environ["LIB"] = os.pathsep.join(self.compiler.library_dirs)
-        os.chdir(path)
+        os.chdir(scintilla_path)
         try:
             cmd = [nmake, "/nologo", "/f", makefile] + makeargs
             self.compiler.spawn(cmd)
@@ -470,7 +470,7 @@ class my_build_ext(build_ext):
             os.environ["INCLUDE"] = old_env.get("INCLUDE", "")
             os.environ["LIB"] = old_env.get("LIB", "")
 
-        # The DLL goes in the Pythonwin directory.
+        # The DLL goes in the pythonwin directory.
         if self.debug:
             base_name = "scintilla_d.dll"
         else:
@@ -658,8 +658,9 @@ class my_build_ext(build_ext):
     def build_exefile(self, ext):
         suffix = "_d" if self.debug else ""
         logging.info("building exe '%s'", ext.name)
-        leaf_name = f"{ext.get_pywin32_dir()}\\{ext.name}{suffix}.exe"
-        full_name = os.path.join(self.build_lib, leaf_name)
+        full_name = os.path.join(
+            self.build_lib, ext.get_pywin32_dir(), f"{ext.name}{suffix}.exe"
+        )
 
         sources = list(ext.sources)
         depends = sources + ext.depends
@@ -1605,134 +1606,134 @@ pythonwin_extensions = [
     WinExt_pythonwin(
         "win32ui",
         sources=[
-            "Pythonwin/dbgthread.cpp",
-            "Pythonwin/dibapi.cpp",
-            "Pythonwin/dllmain.cpp",
-            "Pythonwin/pythondoc.cpp",
-            "Pythonwin/pythonppage.cpp",
-            "Pythonwin/pythonpsheet.cpp",
-            "Pythonwin/pythonRichEditCntr.cpp",
-            "Pythonwin/pythonRichEditDoc.cpp",
-            "Pythonwin/pythonview.cpp",
-            "Pythonwin/stdafx.cpp",
-            "Pythonwin/win32app.cpp",
-            "Pythonwin/win32assoc.cpp",
-            "Pythonwin/win32bitmap.cpp",
-            "Pythonwin/win32brush.cpp",
-            "Pythonwin/win32cmd.cpp",
-            "Pythonwin/win32cmdui.cpp",
-            "Pythonwin/win32context.cpp",
-            "Pythonwin/win32control.cpp",
-            "Pythonwin/win32ctledit.cpp",
-            "Pythonwin/win32ctrlList.cpp",
-            "Pythonwin/win32ctrlRichEdit.cpp",
-            "Pythonwin/win32ctrlTree.cpp",
-            "Pythonwin/win32dc.cpp",
-            "Pythonwin/win32dlg.cpp",
-            "Pythonwin/win32dlgbar.cpp",
-            "Pythonwin/win32dll.cpp",
-            "Pythonwin/win32doc.cpp",
+            "pythonwin/dbgthread.cpp",
+            "pythonwin/dibapi.cpp",
+            "pythonwin/dllmain.cpp",
+            "pythonwin/pythondoc.cpp",
+            "pythonwin/pythonppage.cpp",
+            "pythonwin/pythonpsheet.cpp",
+            "pythonwin/pythonRichEditCntr.cpp",
+            "pythonwin/pythonRichEditDoc.cpp",
+            "pythonwin/pythonview.cpp",
+            "pythonwin/stdafx.cpp",
+            "pythonwin/win32app.cpp",
+            "pythonwin/win32assoc.cpp",
+            "pythonwin/win32bitmap.cpp",
+            "pythonwin/win32brush.cpp",
+            "pythonwin/win32cmd.cpp",
+            "pythonwin/win32cmdui.cpp",
+            "pythonwin/win32context.cpp",
+            "pythonwin/win32control.cpp",
+            "pythonwin/win32ctledit.cpp",
+            "pythonwin/win32ctrlList.cpp",
+            "pythonwin/win32ctrlRichEdit.cpp",
+            "pythonwin/win32ctrlTree.cpp",
+            "pythonwin/win32dc.cpp",
+            "pythonwin/win32dlg.cpp",
+            "pythonwin/win32dlgbar.cpp",
+            "pythonwin/win32dll.cpp",
+            "pythonwin/win32doc.cpp",
             "win32/src/win32dynamicdialog.cpp",
-            "Pythonwin/win32font.cpp",
-            "Pythonwin/win32gdi.cpp",
-            "Pythonwin/win32ImageList.cpp",
-            "Pythonwin/win32menu.cpp",
-            "Pythonwin/win32notify.cpp",
-            "Pythonwin/win32pen.cpp",
-            "Pythonwin/win32prinfo.cpp",
-            "Pythonwin/win32prop.cpp",
-            "Pythonwin/win32rgn.cpp",
-            "Pythonwin/win32RichEdit.cpp",
-            "Pythonwin/win32RichEditDocTemplate.cpp",
-            "Pythonwin/win32splitter.cpp",
-            "Pythonwin/win32template.cpp",
-            "Pythonwin/win32thread.cpp",
-            "Pythonwin/win32toolbar.cpp",
-            "Pythonwin/win32tooltip.cpp",
-            "Pythonwin/win32ui.rc",
-            "Pythonwin/win32uimodule.cpp",
-            "Pythonwin/win32util.cpp",
-            "Pythonwin/win32view.cpp",
-            "Pythonwin/win32virt.cpp",
-            "Pythonwin/win32win.cpp",
+            "pythonwin/win32font.cpp",
+            "pythonwin/win32gdi.cpp",
+            "pythonwin/win32ImageList.cpp",
+            "pythonwin/win32menu.cpp",
+            "pythonwin/win32notify.cpp",
+            "pythonwin/win32pen.cpp",
+            "pythonwin/win32prinfo.cpp",
+            "pythonwin/win32prop.cpp",
+            "pythonwin/win32rgn.cpp",
+            "pythonwin/win32RichEdit.cpp",
+            "pythonwin/win32RichEditDocTemplate.cpp",
+            "pythonwin/win32splitter.cpp",
+            "pythonwin/win32template.cpp",
+            "pythonwin/win32thread.cpp",
+            "pythonwin/win32toolbar.cpp",
+            "pythonwin/win32tooltip.cpp",
+            "pythonwin/win32ui.rc",
+            "pythonwin/win32uimodule.cpp",
+            "pythonwin/win32util.cpp",
+            "pythonwin/win32view.cpp",
+            "pythonwin/win32virt.cpp",
+            "pythonwin/win32win.cpp",
         ],
         extra_compile_args=["-DBUILD_PYW"],
         depends=[
-            "Pythonwin/stdafx.h",
-            "Pythonwin/win32uiExt.h",
+            "pythonwin/stdafx.h",
+            "pythonwin/win32uiExt.h",
             "win32/src/PyWinTypes.h",
-            "Pythonwin/dibapi.h",
-            "Pythonwin/pythoncbar.h",
-            "Pythonwin/pythondoc.h",
-            "Pythonwin/pythonframe.h",
-            "Pythonwin/pythonppage.h",
-            "Pythonwin/pythonpsheet.h",
-            "Pythonwin/pythonRichEdit.h",
-            "Pythonwin/pythonRichEditCntr.h",
-            "Pythonwin/pythonRichEditDoc.h",
-            "Pythonwin/pythonview.h",
-            "Pythonwin/pythonwin.h",
-            "Pythonwin/Win32app.h",
-            "Pythonwin/win32assoc.h",
-            "Pythonwin/win32bitmap.h",
-            "Pythonwin/win32brush.h",
-            "Pythonwin/win32cmd.h",
-            "Pythonwin/win32cmdui.h",
-            "Pythonwin/win32control.h",
-            "Pythonwin/win32ctrlList.h",
-            "Pythonwin/win32ctrlTree.h",
-            "Pythonwin/win32dc.h",
-            "Pythonwin/win32dlg.h",
-            "Pythonwin/win32dlgbar.h",
+            "pythonwin/dibapi.h",
+            "pythonwin/pythoncbar.h",
+            "pythonwin/pythondoc.h",
+            "pythonwin/pythonframe.h",
+            "pythonwin/pythonppage.h",
+            "pythonwin/pythonpsheet.h",
+            "pythonwin/pythonRichEdit.h",
+            "pythonwin/pythonRichEditCntr.h",
+            "pythonwin/pythonRichEditDoc.h",
+            "pythonwin/pythonview.h",
+            "pythonwin/pythonwin.h",
+            "pythonwin/Win32app.h",
+            "pythonwin/win32assoc.h",
+            "pythonwin/win32bitmap.h",
+            "pythonwin/win32brush.h",
+            "pythonwin/win32cmd.h",
+            "pythonwin/win32cmdui.h",
+            "pythonwin/win32control.h",
+            "pythonwin/win32ctrlList.h",
+            "pythonwin/win32ctrlTree.h",
+            "pythonwin/win32dc.h",
+            "pythonwin/win32dlg.h",
+            "pythonwin/win32dlgbar.h",
             "win32/src/win32dynamicdialog.h",
-            "Pythonwin/win32dll.h",
-            "Pythonwin/win32doc.h",
-            "Pythonwin/win32font.h",
-            "Pythonwin/win32gdi.h",
-            "Pythonwin/win32hl.h",
-            "Pythonwin/win32ImageList.h",
-            "Pythonwin/win32menu.h",
-            "Pythonwin/win32pen.h",
-            "Pythonwin/win32prinfo.h",
-            "Pythonwin/win32prop.h",
-            "Pythonwin/win32rgn.h",
-            "Pythonwin/win32RichEdit.h",
-            "Pythonwin/win32RichEditDocTemplate.h",
-            "Pythonwin/win32splitter.h",
-            "Pythonwin/win32template.h",
-            "Pythonwin/win32toolbar.h",
-            "Pythonwin/win32ui.h",
-            "Pythonwin/Win32uiHostGlue.h",
-            "Pythonwin/win32win.h",
+            "pythonwin/win32dll.h",
+            "pythonwin/win32doc.h",
+            "pythonwin/win32font.h",
+            "pythonwin/win32gdi.h",
+            "pythonwin/win32hl.h",
+            "pythonwin/win32ImageList.h",
+            "pythonwin/win32menu.h",
+            "pythonwin/win32pen.h",
+            "pythonwin/win32prinfo.h",
+            "pythonwin/win32prop.h",
+            "pythonwin/win32rgn.h",
+            "pythonwin/win32RichEdit.h",
+            "pythonwin/win32RichEditDocTemplate.h",
+            "pythonwin/win32splitter.h",
+            "pythonwin/win32template.h",
+            "pythonwin/win32toolbar.h",
+            "pythonwin/win32ui.h",
+            "pythonwin/Win32uiHostGlue.h",
+            "pythonwin/win32win.h",
         ],
         optional_headers=["afxres.h"],
     ),
     WinExt_pythonwin(
         "win32uiole",
         sources=[
-            "Pythonwin/stdafxole.cpp",
-            "Pythonwin/win32oleDlgInsert.cpp",
-            "Pythonwin/win32oleDlgs.cpp",
-            "Pythonwin/win32uiole.cpp",
-            "Pythonwin/win32uioleClientItem.cpp",
-            "Pythonwin/win32uioledoc.cpp",
+            "pythonwin/stdafxole.cpp",
+            "pythonwin/win32oleDlgInsert.cpp",
+            "pythonwin/win32oleDlgs.cpp",
+            "pythonwin/win32uiole.cpp",
+            "pythonwin/win32uioleClientItem.cpp",
+            "pythonwin/win32uioledoc.cpp",
         ],
         depends=[
-            "Pythonwin/stdafxole.h",
-            "Pythonwin/win32oleDlgs.h",
-            "Pythonwin/win32uioledoc.h",
+            "pythonwin/stdafxole.h",
+            "pythonwin/win32oleDlgs.h",
+            "pythonwin/win32uioledoc.h",
         ],
         optional_headers=["afxres.h"],
     ),
     WinExt_pythonwin(
         "dde",
         sources=[
-            "Pythonwin/stddde.cpp",
-            "Pythonwin/ddetopic.cpp",
-            "Pythonwin/ddeconv.cpp",
-            "Pythonwin/ddeitem.cpp",
-            "Pythonwin/ddemodule.cpp",
-            "Pythonwin/ddeserver.cpp",
+            "pythonwin/stddde.cpp",
+            "pythonwin/ddetopic.cpp",
+            "pythonwin/ddeconv.cpp",
+            "pythonwin/ddeitem.cpp",
+            "pythonwin/ddemodule.cpp",
+            "pythonwin/ddeserver.cpp",
         ],
         depends=["win32/src/stddde.h", "pythonwin/ddemodule.h"],
         optional_headers=["afxres.h"],
@@ -1782,13 +1783,13 @@ W32_exe_files: list[WinExt] = [
     WinExt_pythonwin_subsys_win(
         "Pythonwin",
         sources=[
-            "Pythonwin/pythonwin.cpp",
-            "Pythonwin/pythonwin.rc",
-            "Pythonwin/stdafxpw.cpp",
+            "pythonwin/pythonwin.cpp",
+            "pythonwin/pythonwin.rc",
+            "pythonwin/stdafxpw.cpp",
         ],
         depends=[
-            "Pythonwin/Win32uiHostGlue.h",
-            "Pythonwin/pythonwin.h",
+            "pythonwin/Win32uiHostGlue.h",
+            "pythonwin/pythonwin.h",
         ],
         optional_headers=["afxres.h"],
     ),
@@ -2005,7 +2006,7 @@ dist = setup(
     data_files=convert_optional_data_files(["PyWin32.chm"])
     + convert_data_files(
         [
-            "Pythonwin/start_pythonwin.pyw",
+            "pythonwin/start_pythonwin.pyw",
             "pythonwin/pywin/*.cfg",
             "pythonwin/pywin/Demos/*.py",
             "pythonwin/pywin/Demos/app/*.py",

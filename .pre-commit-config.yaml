@@ -34,7 +34,7 @@ repos:
         types: [c++]
 
 # Vendored
-exclude: ^(com/win32comext/mapi/src/MAPIStubLibrary/|Pythonwin/Scintilla/).*$
+exclude: ^(com/win32comext/mapi/src/MAPIStubLibrary/|pythonwin/Scintilla/).*$
 
 ci:
   autoupdate_schedule: quarterly
