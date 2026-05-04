@@ -1034,10 +1034,10 @@ extern "C" __declspec(dllexport) BOOL WINAPI DllMain(HANDLE hInstance, DWORD dwR
 }
 
 // Function to format a python traceback into a character string.
-#define GPEM_ERROR(what)                                      \
-    {                                                         \
-        errorMsg = L"<Error getting traceback - "##what##">"; \
-        goto done;                                            \
+#define GPEM_ERROR(what)                                    \
+    {                                                       \
+        errorMsg = L"<Error getting traceback - " what ">"; \
+        goto done;                                          \
     }
 PYWINTYPES_EXPORT WCHAR *GetPythonTraceback(PyObject *exc_type, PyObject *exc_value, PyObject *exc_tb)
 {
