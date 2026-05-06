@@ -120,7 +120,6 @@ def GetPackageModuleName(fileName):
                 and (
                     os.path.exists(os.path.join(path, modBit, "__init__.py"))
                     or os.path.exists(os.path.join(path, modBit, "__init__.pyc"))
-                    or os.path.exists(os.path.join(path, modBit, "__init__.pyo"))
                 )
             ):
                 modBits.reverse()
@@ -439,12 +438,9 @@ def ImportFile():
     # meaning sys.modules can change as a side-effect of looking at
     # module.__file__ - so we must take a copy (ie, list(items()))
     for key, mod in sys.modules.items():
-        if getattr(mod, "__file__", None):
-            fname = mod.__file__
-            base, ext = os.path.splitext(fname)
-            if ext.lower() in (".pyo", ".pyc"):
-                ext = ".py"
-            fname = base + ext
+        if fname := getattr(mod, "__file__", ""):
+            if fname.endswith(".pyc"):
+                fname = fname[:-1]
             if win32ui.ComparePath(fname, pathName):
                 modName = key
                 break
