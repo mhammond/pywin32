@@ -1889,8 +1889,8 @@ def convert_data_files(files: Iterable[str]):
             files_use = tuple(
                 str(path)
                 for path in Path(file).parent.rglob(os.path.basename(file))
-                # We never want CVS
-                if not ("\\CVS\\" in file or path.suffix in {".pyc", ".pyo"})
+                # Ignore pre-compiled bytecode
+                if path.suffix != ".pyc"
             )
             if not files_use:
                 raise RuntimeError("No files match '%s'" % file)
