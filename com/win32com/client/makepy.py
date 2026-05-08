@@ -304,12 +304,8 @@ def GenerateFromTypeLibSpec(
                     os.unlink(full_name + ".pyc")
                 except OSError:
                     pass
-                try:
-                    os.unlink(full_name + ".pyo")
-                except OSError:
-                    pass
                 # Don't create the package folder yet, wait until the file's been generated.
-                # This avoids issues with other processes attemping to import the package
+                # This avoids issues with other processes attempting to import the package
                 # and getting a namespace package before the __init__.py file is written.
                 tempName = full_name + ".__init__.py"
                 outputName = os.path.join(full_name, "__init__.py")
