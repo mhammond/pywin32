@@ -380,7 +380,7 @@ class WindowOutput(docview.DocTemplate):
             self.iniSizeSection = None
             self.defSize = defSize
         self.currentView = None
-        self.outputQueue: queue.Queue[str] = queue.Queue(-1)
+        self.outputQueue = queue.Queue[str](-1)
         self.mainThreadId = win32api.GetCurrentThreadId()
         self.idleHandlerSet = 0
         self.SetIdleHandler()
