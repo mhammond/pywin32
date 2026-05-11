@@ -29,7 +29,7 @@
 #include "PyIADsUser.h"
 #include "PyIADsDeleteOps.h"
 #include "PyIDsObjectPicker.h"
-#include "ADSIID.h"
+#include "adsiid.h"
 
 extern PyTypeObject PyDSOP_SCOPE_INIT_INFOsType;
 extern PyObject* PyIADs_getattro(PyObject *ob, PyObject *obname);

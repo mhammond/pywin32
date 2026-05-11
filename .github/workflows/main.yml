@@ -165,7 +165,7 @@ jobs:
         shell: pwsh
         if: ${{ !cancelled() }}
       - run: |
-          clang-format --Werror --dry-run $(git ls-files '*.h' ':!:Pythonwin/Scintilla/' ':!:com/win32comext/mapi/src/MAPIStubLibrary/')
+          clang-format --Werror --dry-run $(git ls-files '*.h' ':!:pythonwin/Scintilla/' ':!:com/win32comext/mapi/src/MAPIStubLibrary/')
           if ($LastExitCode -ne 0) { exit $LastExitCode }
         shell: pwsh
         if: ${{ !cancelled() }}

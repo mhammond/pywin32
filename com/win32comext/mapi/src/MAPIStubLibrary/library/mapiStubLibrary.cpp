@@ -1,5 +1,5 @@
 #define _WINSOCKAPI_
-#include <Windows.h>
+#include <windows.h>
 
 #ifdef WIN_NOEXCEPT
 #undef WIN_NOEXCEPT
@@ -17,7 +17,7 @@
 #include <MAPIVal.h>
 #include <MAPISPI.h>
 #include <IMessage.h>
-#include <TNEF.h>
+#include <tnef.h>
 
 // clang-format off
 #pragma warning(disable : 26426) // Warning C26426 Global initializer calls a non-constexpr (i.22)

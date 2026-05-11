@@ -11,14 +11,14 @@ generates Windows .hlp files.
 
 #include "stdafx.h"
 #include <objbase.h>
-#include <ComSvcs.h>
+#include <comsvcs.h>
 #include "PythonCOM.h"
 #include "PythonCOMServer.h"
 #include "PyFactory.h"
 #include "PyRecord.h"
 #include "PyComTypeObjects.h"
-#include "OleAcc.h"    // for ObjectFromLresult proto...
-#include "IAccess.h"   // for IAccessControl
+#include "oleacc.h"    // for ObjectFromLresult proto...
+#include "iaccess.h"   // for IAccessControl
 #include "pyerrors.h"  // for PyErr_Warn in 2.5 and earlier...
 
 extern int PyCom_RegisterCoreIIDs(PyObject *dict);

@@ -4,7 +4,7 @@
 
 // If building under a GCC, tweak what we need.
 #if defined(__GNUC__) && defined(_POSIX_C_SOURCE)
-// python.h complains if _POSIX_C_SOURCE is already defined
+// Python.h complains if _POSIX_C_SOURCE is already defined
 #undef _POSIX_C_SOURCE
 #endif
 
@@ -703,17 +703,13 @@ class CEnterLeavePython {
 };
 
 // A helper for simple exception handling.
-// try/__try
-#if defined(__MINGW32__) || defined(MAINWIN)
+#if defined(__MINGW32__)
+#define __try try
+#define __except(filter) catch (...)
 #define PYWINTYPES_TRY try
-#else
-#define PYWINTYPES_TRY __try
-#endif /* MAINWIN */
-
-// catch/__except
-#if defined(__MINGW32__) || defined(MAINWIN)
 #define PYWINTYPES_EXCEPT catch (...)
 #else
+#define PYWINTYPES_TRY __try
 #define PYWINTYPES_EXCEPT __except (EXCEPTION_EXECUTE_HANDLER)
 #endif
 // End of exception helper macros.

@@ -19,6 +19,7 @@ Coming in build 312, as yet unreleased
 --------------------------------------
 
 * Added Python 3.15 support (mhammond#2729, mhammond#2732, [@Avasam][Avasam])
+* Removed special-casing for `.pyo` files which haven't been a thing since [Python 3.5](https://peps.python.org/pep-0488/) (mhammond#2754, [@Avasam][Avasam])
 * Fixed `axdebug` build on Python 3.11+ using CPython's new opaque frame APIs, fixed 64-bit overflow in sourceContext and stack addresses, fixed incorrect step-over and step-out behavior, and fixed `ListEnumeratorGateway.Next()` returning lazy `map` iterator incompatible with C++ COM gateways that require a sequence (mhammond#2723, mhammond#2724, mhammond#2725, [@wxinix-2022][wxinix-2022])
 * Removed more leftover obsolete `UNICODE` constants since dropping Python 2 support in `win32ui`, `win32gui` and `win32clipboard` (mhammond#2717, [@Avasam][Avasam])
 * Implement COM Records as `[out]` method parameters (mhammond#2708, [@geppi][geppi], [@the-snork][the-snork])
@@ -94,7 +95,7 @@ Build 309, released 2025/03/09
 * Fixed `win32timezone.TimeZoneInfo` initialization from a `[DYNAMIC_]TIME_ZONE_INFORMATION` (mhammond#2339, [@Avasam][Avasam])
 * Added runtime deprecation warning of `win2kras`, use `win32ras` instead (mhammond#2356, [@Avasam][Avasam])
 * Improved handling of dict iterations and fallbacks (removes Python 2 support code, small general speed improvement) (mhammond#2332, mhammond#2330, [@Avasam][Avasam])
-* Fixed accidentally trying to raise an undefined name instead of an `Exception` in `Pythonwin/pywin/debugger/debugger.py` (mhammond#2326, [@Avasam][Avasam])
+* Fixed accidentally trying to raise an undefined name instead of an `Exception` in `pythonwin/pywin/debugger/debugger.py` (mhammond#2326, [@Avasam][Avasam])
 * Fixed PythonService DoLogMessage raising fatal GIL lock error (mhammond#2426, JacobNolan1)
 * Fixed and improved the following demos: `ddeclient`, `ddeserver`, `EvtSubscribe_push`, `openGLDemo`, `guidemo`, `ocxserialtest`, `ocxtest`, `testMSOffice.TestWord8` (mhammond#2290, mhammond#2281, mhammond#2291, mhammond#2478 [@Avasam][Avasam])
 
@@ -130,8 +131,8 @@ as the .chm file, certain MAPI libraries etc, and .exe installers.
 * Add RealGetWindowClass (mhammond#2299, [@CristiFati][CristiFati])
 * Make it compile on Python 3.13 (mhammond#2260, [@clin1234][clin1234])
 * Fixed accidentally trying to raise a `str` instead of an `Exception` in (mhammond#2270, [@Avasam][Avasam])
-  * `Pythonwin/pywin/debugger/debugger.py`
-  * `Pythonwin/pywin/framework/dlgappcore.py`
+  * `pythonwin/pywin/debugger/debugger.py`
+  * `pythonwin/pywin/framework/dlgappcore.py`
   * `com/win32com/server/policy.py`
   * `win32/Lib/regutil.py`
   * `win32/scripts/VersionStamp/vssutil.py`

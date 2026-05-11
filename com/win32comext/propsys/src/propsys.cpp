@@ -32,7 +32,7 @@
 
 #include "delayimp.h"
 #include "propvarutil.h"
-#include "Shobjidl.h"
+#include "shobjidl.h"
 
 // @object PyPROPERTYKEY|A tuple of a fmtid and property id (IID, int) that uniquely identifies a property
 BOOL PyWinObject_AsPROPERTYKEY(PyObject *obkey, PROPERTYKEY *pkey)
@@ -206,7 +206,7 @@ static PyObject *PySHGetPropertyStoreFromParsingName(PyObject *self, PyObject *a
 
 // ??? needs PyObject_AsPIDL from shell module, or maybe move this function into shell itself ???
 /*
-#include "..//..//shell//src//shell_pch.h"
+#include "../../shell/src/shell_pch.h"
 // Does not exist on XP, shell32 is /delayload'ed
 // @pymethod <o PyIPropertyStore>|propsys|SHGetPropertyStoreFromIDList|Retrieves the property store from an absolute ID
 list static PyObject *PySHGetPropertyStoreFromIDList(PyObject *self, PyObject *args)

@@ -9,7 +9,7 @@
 %{
 #undef PyHANDLE
 #include "PyWinObjects.h"
-#include "Dbt.h" // for device events
+#include "dbt.h" // for device events
 
 // according to msdn, 256 is limit for service names and service display names
 #define MAX_SERVICE_NAME_LEN 256

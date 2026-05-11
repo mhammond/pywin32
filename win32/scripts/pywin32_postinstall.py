@@ -513,7 +513,7 @@ def install(lib_dir):
         if os.path.isdir(fldr):
             dst = os.path.join(fldr, "PythonWin.lnk")
             create_shortcut(
-                os.path.join(lib_dir, "Pythonwin\\Pythonwin.exe"),
+                os.path.join(lib_dir, "pythonwin", "Pythonwin.exe"),
                 "The Pythonwin IDE",
                 dst,
                 "",

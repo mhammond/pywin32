@@ -16,7 +16,7 @@ generates Windows .hlp files.
 #define PY_SSIZE_T_CLEAN
 
 #include "shell_pch.h"
-#include "EmptyVC.h"
+#include "emptyvc.h"
 #include "PyIShellLink.h"
 #include "PyICategorizer.h"
 #include "PyICategoryProvider.h"
@@ -150,12 +150,7 @@ PyObject *PyObject_FromPIDL(LPCITEMIDLIST pidl, BOOL bFreeSystemPIDL)
             pidl = _ILNext(pidl);
         }
     }
-#if defined(__MINGW32__) || defined(MAINWIN)
-    catch (...)
-#else
-    __except (EXCEPTION_EXECUTE_HANDLER)
-#endif
-    {
+    __except (EXCEPTION_EXECUTE_HANDLER) {
         Py_DECREF(ret);
         PyErr_SetString(PyExc_ValueError, "This string is an invalid PIDL (win32 exception unpacking)");
         ret = NULL;
