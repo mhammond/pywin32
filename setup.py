@@ -156,6 +156,10 @@ class WinExt(Extension):
                 # Technically official Python 3.9 builds require at least Windows 8.1, but we had no reason to bump this
                 ("_WIN32_WINNT", hex(0x0601)),
                 ("WINVER", hex(0x0601)),
+                ("WINNT", None),
+                # Always Unicode since Python 3
+                ("UNICODE", None),
+                ("_UNICODE", None),
             )
         )
         self.optional_headers = optional_headers
@@ -235,10 +239,6 @@ class WinExt(Extension):
                 if found_mfc:
                     break
 
-        self.extra_compile_args.append("-DUNICODE")
-        self.extra_compile_args.append("-D_UNICODE")
-        self.extra_compile_args.append("-DWINNT")
-
     @abstractmethod
     def get_pywin32_dir(self) -> str:
         raise NotImplementedError
@@ -246,8 +246,10 @@ class WinExt(Extension):
 
 class WinExt_pythonwin(WinExt):
     def __init__(self, name, **kw):
-        kw.setdefault("extra_compile_args", []).extend(["-D_AFXDLL", "-D_AFXEXT"])
-        WinExt.__init__(self, name, **kw)
+        kw.setdefault("define_macros", []).extend(
+            [("_AFXDLL", None), ("_AFXEXT", None)]
+        )
+        super().__init__(name, **kw)
 
     def get_pywin32_dir(self):
         return "pythonwin"
@@ -654,6 +656,7 @@ class my_build_ext(build_ext):
         objects = self.compiler.compile(
             sources,
             output_dir=os.path.join(self.build_temp, ext.name),
+            macros=ext.define_macros,
             include_dirs=ext.include_dirs,
             debug=self.debug,
             extra_postargs=ext.extra_compile_args,
@@ -983,7 +986,7 @@ pywintypes = WinExt_system32(
         "win32/src/PySoundObjects.h",
         "win32/src/PySecurityObjects.h",
     ],
-    extra_compile_args=["-DBUILD_PYWINTYPES"],
+    define_macros=[("BUILD_PYWINTYPES", None)],
     libraries="advapi32 user32 ole32 oleaut32",
 )
 
@@ -1161,7 +1164,7 @@ win32_extensions += [
     WinExt_win32(
         "servicemanager",
         sources=["win32/src/PythonServiceMessages.mc", "win32/src/PythonService.cpp"],
-        extra_compile_args=["-DPYSERVICE_BUILD_DLL"],
+        define_macros=[("PYSERVICE_BUILD_DLL", None)],
         libraries="user32 ole32 advapi32 shell32",
     ),
 ]
@@ -1268,7 +1271,7 @@ pythoncom = WinExt_system32(
     ).split(),
     libraries="oleaut32 ole32 user32 urlmon oleacc",
     export_symbol_file="com/win32com/src/PythonCOM.def",
-    extra_compile_args=["-DBUILD_PYTHONCOM"],
+    define_macros=[("BUILD_PYTHONCOM", None)],
 )
 com_extensions = [
     pythoncom,
@@ -1331,7 +1334,7 @@ com_extensions = [
                              {axscript}/stdafx.h
                              """.format(**dirs)
         ).split(),
-        extra_compile_args=["-DPY_BUILD_AXSCRIPT"],
+        define_macros=[("PY_BUILD_AXSCRIPT", None)],
         implib_name="axscript",
     ),
     WinExt_win32com(
@@ -1690,7 +1693,7 @@ pythonwin_extensions = [
             "pythonwin/win32virt.cpp",
             "pythonwin/win32win.cpp",
         ],
-        extra_compile_args=["-DBUILD_PYW"],
+        define_macros=[("BUILD_PYW", None)],
         depends=[
             "pythonwin/stdafx.h",
             "pythonwin/win32uiExt.h",
@@ -1986,6 +1989,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
     "Programming Language :: Python :: Implementation :: CPython",
 ]
 
