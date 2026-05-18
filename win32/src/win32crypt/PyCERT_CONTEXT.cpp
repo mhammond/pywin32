@@ -228,7 +228,7 @@ BOOL PyWinObject_AsCERT_CONTEXT(PyObject *obpccert_context, PCCERT_CONTEXT *pcce
         *pccert_context = NULL;
         return true;
     }
-    if (obpccert_context->ob_type != &PyCERT_CONTEXTType) {
+    if (Py_TYPE(obpccert_context) != &PyCERT_CONTEXTType) {
         PyErr_SetString(PyExc_TypeError, "Object must be of type PyCERT_CONTEXT");
         return FALSE;
     }

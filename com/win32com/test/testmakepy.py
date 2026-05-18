@@ -1,5 +1,8 @@
 # Test makepy - try and run it over every OCX in the windows system directory.
 
+import multiprocessing
+import os
+import shutil
 import sys
 import traceback
 
@@ -44,9 +47,43 @@ def TestBuildAll(verbose=1):
     return num
 
 
+def _TestEnsureModule(info):
+    # This used to fail when called concurrently from multiple processes. See mhammond/pywin32#1923 .
+    # The issue only happens when bForDemand is set as that creates a package instead of
+    # a single module.
+    tinfo = (info.clsid, info.lcid, int(info.major), int(info.minor))
+    mod = gencache.EnsureModule(*tinfo, bForDemand=True)
+    if makepy.bForDemandDefault:
+        for name in mod.NamesToIIDMap:
+            makepy.GenerateChildFromTypeLibSpec(name, tinfo)
+
+
+def TestBuildConcurrent(verbose=1):
+    # Pick any type library
+    info = next(iter(selecttlb.EnumTlbs()))
+
+    if verbose:
+        print(f"{info.desc} ({info.dll})")
+
+    # Call EnsureModule from multiple processes concurrently.
+    nprocs = 16
+    with multiprocessing.Pool(nprocs) as p:
+        p.map(_TestEnsureModule, [info] * nprocs)
+
+    return nprocs
+
+
 def TestAll(verbose=0):
+    gen_path = gencache.GetGeneratePath()
+    if os.path.isdir(gen_path):
+        shutil.rmtree(gen_path)
+
+    nprocs = TestBuildConcurrent(verbose)
+    print("Tested", nprocs, "concurrent processes")
+
     num = TestBuildAll(verbose)
     print("Generated and imported", num, "modules")
+
     win32com.test.util.CheckClean()
 
 

@@ -1,6 +1,8 @@
 # See https://github.com/actions/runner-images/issues/9701
 # Adapted from https://github.com/actions/runner-images/issues/9873#issuecomment-2139288682
 
+# NOTE: This isn't currently needed, but script is kept in case Microsoft breaks GitHub-hosted runners for us again
+
 import os
 import platform
 from itertools import chain
@@ -21,11 +23,11 @@ vs_install_path = check_output(
     text=True,
     shell=True,
 ).strip()
-components_to_add = (
-    ["Microsoft.VisualStudio.Component.VC.14.29.16.11.ATL.ARM64"]
+components_to_add = [
+    "Microsoft.VisualStudio.Component.VC.14.29.16.11.ATL.ARM64"
     if platform.machine() == "ARM64"
-    else ["Microsoft.VisualStudio.Component.VC.14.29.16.11.ATL"]
-)
+    else "Microsoft.VisualStudio.Component.VC.14.29.16.11.ATL"
+]
 args = (
     "vs_installer.exe",
     "modify",

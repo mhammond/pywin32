@@ -11,7 +11,7 @@ PyObject *PyWinMethod_NewDSBUFFERDESC(PyObject *self, PyObject *args);
 PyObject *PyWinObject_FromWAVEFROMATEX(const DSBUFFERDESC &dsbd);
 BOOL PyWinObject_AsDSBUFFERDESC(PyObject *ob, DSBUFFERDESC **ppDSBUFFERDESC, BOOL bNoneOK = TRUE);
 extern PyTypeObject PyDSBUFFERDESCType;
-#define PyDSBUFFERDESC_Check(ob) ((ob)->ob_type == &PyDSBUFFERDESCType)
+#define PyDSBUFFERDESC_Check(ob) (Py_TYPE(ob) == &PyDSBUFFERDESCType)
 
 /*
 ** DSCBUFFERDESC support
@@ -21,7 +21,7 @@ PyObject *PyWinMethod_NewDSCBUFFERDESC(PyObject *self, PyObject *args);
 PyObject *PyWinObject_FromWAVEFROMATEX(const DSCBUFFERDESC &dsbd);
 BOOL PyWinObject_AsDSCBUFFERDESC(PyObject *ob, DSCBUFFERDESC **ppDSCBUFFERDESC, BOOL bNoneOK = TRUE);
 extern PyTypeObject PyDSCBUFFERDESCType;
-#define PyDSCBUFFERDESC_Check(ob) ((ob)->ob_type == &PyDSCBUFFERDESCType)
+#define PyDSCBUFFERDESC_Check(ob) (Py_TYPE(ob) == &PyDSCBUFFERDESCType)
 
 /*
 ** DSCAPS support
@@ -31,7 +31,7 @@ PyObject *PyWinMethod_NewDSCAPS(PyObject *self, PyObject *args);
 PyObject *PyWinObject_FromDSCAPS(const DSBUFFERDESC &dsbd);
 BOOL PyWinObject_AsDSCAPS(PyObject *ob, DSCAPS **ppDSCAPS, BOOL bNoneOK = TRUE);
 extern PyTypeObject PyDSCAPSType;
-#define PyDSCAPS_Check(ob) ((ob)->ob_type == &PyDSCAPSType)
+#define PyDSCAPS_Check(ob) (Py_TYPE(ob) == &PyDSCAPSType)
 
 /*
 ** DSBCAPS support
@@ -41,7 +41,7 @@ PyObject *PyWinMethod_NewDSBCAPS(PyObject *self, PyObject *args);
 PyObject *PyWinObject_FromDSBCAPS(const DSBUFFERDESC &dsbd);
 BOOL PyWinObject_AsDSBCAPS(PyObject *ob, DSBCAPS **ppDSBCAPS, BOOL bNoneOK = TRUE);
 extern PyTypeObject PyDSBCAPSType;
-#define PyDSBCAPS_Check(ob) ((ob)->ob_type == &PyDSBCAPSType)
+#define PyDSBCAPS_Check(ob) (Py_TYPE(ob) == &PyDSBCAPSType)
 
 /*
 ** DSCCAPS support
@@ -51,7 +51,7 @@ PyObject *PyWinMethod_NewDSCCAPS(PyObject *self, PyObject *args);
 PyObject *PyWinObject_FromDSCCAPS(const DSBUFFERDESC &dsbd);
 BOOL PyWinObject_AsDSCCAPS(PyObject *ob, DSCCAPS **ppDSCCAPS, BOOL bNoneOK = TRUE);
 extern PyTypeObject PyDSCCAPSType;
-#define PyDSCCAPS_Check(ob) ((ob)->ob_type == &PyDSCCAPSType)
+#define PyDSCCAPS_Check(ob) (Py_TYPE(ob) == &PyDSCCAPSType)
 
 /*
 ** DSCBCAPS support
@@ -61,7 +61,7 @@ PyObject *PyWinMethod_NewDSCBCAPS(PyObject *self, PyObject *args);
 PyObject *PyWinObject_FromDSCBCAPS(const DSBUFFERDESC &dsbd);
 BOOL PyWinObject_AsDSCBCAPS(PyObject *ob, DSCBCAPS **ppDSCBCAPS, BOOL bNoneOK = TRUE);
 extern PyTypeObject PyDSCBCAPSType;
-#define PyDSCBCAPS_Check(ob) ((ob)->ob_type == &PyDSCBCAPSType)
+#define PyDSCBCAPS_Check(ob) (Py_TYPE(ob) == &PyDSCBCAPSType)
 
 class PyDSBUFFERDESC : public PyObject {
    public:

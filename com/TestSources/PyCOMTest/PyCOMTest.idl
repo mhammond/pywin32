@@ -1,3 +1,5 @@
+// -*- coding: latin1 -*-
+
 // PyCOMTest.idl : IDL source for PyCOMTest.dll
 //
 // This is a test harness for Python
@@ -26,7 +28,7 @@ typedef enum // Missing EnumTestAttributes2
 	uuid(6bcdcb60-5605-11d0-ae5f-cadd4c000000),
 	version(1.1),
 	// an extended character in the help string should stress things...
-	helpstring("Python COM Test Harness 1.0 Type Library, © pywin32 contributors")
+	helpstring("Python COM Test Harness 1.0 Type Library, Â© pywin32 contributors")
 ]
 library PyCOMTestLib
 {
@@ -70,7 +72,7 @@ library PyCOMTestLib
 		const long LongTest2 = 0x7FFFFFFFL;
 		const unsigned char UCharTest = 255;
 		const char CharTest = -1;
-		const LPWSTR StringTest = L"Hello Wo®ld";
+		const LPWSTR StringTest = L"Hello WoÂ®ld";
 	};
 
 	enum TestAttributes3{ // Note missing the enum name.
@@ -94,6 +96,12 @@ library PyCOMTestLib
         SAFEARRAY(TestStruct1) array_of_records;
         int rec_count;
     } TestStruct2;
+    typedef [uuid(865045EB-A7AE-4E88-B102-E2C5B97A64B6), version(1.0)]
+    struct TestStruct3 {
+        TestStruct1 a_struct_field;
+        SAFEARRAY(double) array_of_double;
+        float id;
+    } TestStruct3;
 
 	// Test enumerators.
    [
@@ -261,6 +269,7 @@ library PyCOMTestLib
 							   [in, defaultvalue(1)] short sval,
 							   [out, retval] IPyCOMTest **ppout );
 		HRESULT GetStruct([out, retval]TestStruct1 *ret);
+        HRESULT GetOutStruct([out]TestStruct1 *pRecord);
 		HRESULT DoubleString([in] BSTR inStr, [out, retval] BSTR *outStr);
 		HRESULT DoubleInOutString([in,out] BSTR *str);
 		[restricted] HRESULT NotScriptable([in,out] int *val);
@@ -311,6 +320,8 @@ library PyCOMTestLib
         // Test struct byref as [ in, out ] parameter.
         HRESULT ModifyStruct([ in, out ] TestStruct1 * prec);
         HRESULT VerifyArrayOfStructs([in] TestStruct2 * prec, [ out, retval ] VARIANT_BOOL * is_ok);
+        HRESULT GetNestedStruct([out, retval]TestStruct3 *ret);
+        HRESULT ModifyArrayOfStructs([in, out] SAFEARRAY(TestStruct3) * array_of_structs);
 	};
 
 	// Define a new class to test how Python handles derived interfaces!

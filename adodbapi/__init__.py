@@ -1,4 +1,3 @@
-# nopycln: file # undecidable cases due to explicit re-exports https://github.com/hadialqattan/pycln/issues/205
 """adodbapi - A python DB API 2.0 (PEP 249) interface to Microsoft ADO
 
 Copyright (C) 2002 Henrik Ekelund, version 2.1 by Vernon Cole

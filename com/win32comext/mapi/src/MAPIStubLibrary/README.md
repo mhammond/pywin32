@@ -7,4 +7,4 @@ The MAPI Stub Library is a drop in replacement for mapi32.lib which supports bui
 
 ---
 
-These MAPI headers were downloaded from <https://github.com/microsoft/MAPIStubLibrary/commit/5183a5f18c388a1b964662fa48bb0f08592fc4b8> and enable us to build the MAPI extension.
+These MAPI headers were downloaded from <https://github.com/microsoft/MAPIStubLibrary/tree/5183a5f18c388a1b964662fa48bb0f08592fc4b8> and enable us to build the MAPI extension.

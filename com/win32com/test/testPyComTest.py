@@ -15,7 +15,6 @@ import win32com.test.util
 import win32timezone
 import winerror
 from win32api import CloseHandle, GetCurrentProcessId, OpenProcess
-from win32com import universal
 from win32com.client import (
     VARIANT,
     CastTo,
@@ -25,6 +24,7 @@ from win32com.client import (
     gencache,
     register_record_class,
 )
+from win32com.universal import RegisterInterfaces
 from win32process import GetProcessMemoryInfo
 
 # This test uses a Python implemented COM server - ensure correctly registered.
@@ -45,10 +45,6 @@ except pythoncom.com_error as error:
   and build it using MS Visual C++"""
     print(f"The PyCOMTest module can not be located or generated.\n{importMsg}\n")
     raise RuntimeError(importMsg) from error
-
-# We had a bg where RegisterInterfaces would fail if gencache had
-# already been run - exercise that here
-universal.RegisterInterfaces("{6BCDCB60-5605-11D0-AE5F-CADD4C000000}", 0, 1, 1)
 
 verbose = 0
 
@@ -71,6 +67,15 @@ class TestStruct2(pythoncom.com_record):
     MNVER = 1
     LCID = 0
     GUID = "{78F0EA07-B7CF-42EA-A251-A4C6269F76AF}"
+
+
+class TestStruct3(pythoncom.com_record):
+    __slots__ = ()
+    TLBID = "{6BCDCB60-5605-11D0-AE5F-CADD4C000000}"
+    MJVER = 1
+    MNVER = 1
+    LCID = 0
+    GUID = "{865045EB-A7AE-4E88-B102-E2C5B97A64B6}"
 
 
 # We don't need to stick with the struct name in the TypeLibrary for the subclass name.
@@ -175,7 +180,7 @@ class RandomEventHandler:
         if not self.fireds:
             print("ERROR: Nothing was received!")
         for firedId, no in self.fireds.items():
-            progress("ID %d fired %d times" % (firedId, no))
+            progress(f"ID {firedId} fired {no} times")
 
 
 # Test everything which can be tested using both the "dynamic" and "generated"
@@ -519,6 +524,113 @@ def TestArrayOfStructs(o, test_rec):
     assert o.VerifyArrayOfStructs(test_rec)
 
 
+def TestNestedStructs(o):
+    # Create an instance of a Record type with a nested Record field.
+    outer = TestStruct3()
+    # Initialize the Record fields including the fields of the nested Record.
+    outer.id = 7.0
+    outer.a_struct_field.int_value = 33
+    outer.a_struct_field.str_value = "Fibonacci"
+    outer.array_of_double = (1.0, 1.0, 2.0, 3.0, 5.0, 8.0, 13.0)
+    # We expect the representation to include the nested Record instance field values.
+    assert (
+        str(outer) == "com_struct(a_struct_field=com_struct(int_value=33, "
+        "str_value='Fibonacci'), array_of_double=(1.0, 1.0, "
+        "2.0, 3.0, 5.0, 8.0, 13.0), id=7.0)"
+    )
+    # Create a seperate instance of the nested Record type.
+    inner = TestStruct1()
+    # Initialize it with the same values as the nested instance above.
+    inner.int_value = 33
+    inner.str_value = "Fibonacci"
+    # We expect the types of this instace and the nested instance to be equal.
+    assert type(outer.a_struct_field) is TestStruct1
+    # We expect that their fields have the same values.
+    assert outer.a_struct_field == inner
+    # We expect that nevertheless they are different instance objects.
+    assert outer.a_struct_field is not inner
+    # Get a nested Record returned from a method.
+    nested = o.GetNestedStruct()
+    # We expect it to have the same field values as the 'outer' Record instance.
+    assert nested == outer
+    # Access the inner Record directly.
+    assert nested.a_struct_field.int_value == inner.int_value
+    assert nested.a_struct_field.str_value == inner.str_value
+
+
+def TestNestedArrays(o):
+    # First we test the assignment of a nested sequence of Records
+    # to a Record member attribute, followed by the retrieval of the
+    # multidimensional SAFEARRAY from the Record member attribute.
+    # Create a nested 3 dimensional tuple of COM Records.
+    record_tuple = tuple(
+        [
+            tuple([tuple([TestStruct1() for i in range(3)]) for j in range(5)])
+            for k in range(4)
+        ]
+    )
+    # Assign a different integer identifier to each Record in the nested tuple.
+    for k in range(4):
+        for j in range(5):
+            for i in range(3):
+                record_tuple[k][j][i].int_value = k * 15 + j * 3 + i
+    # Create an instance of a COM Record that has a member of type
+    # SAFEARRAY(TestStruct1) and assign the nested tuple to this member.
+    rec_with_multidim_sa_of_rec = ArrayOfStructsTestStruct()
+    rec_with_multidim_sa_of_rec.array_of_records = record_tuple
+    # Now retrieve a tuple from the Record member and check that
+    # it is equal to our input nested tuple but not the same object.
+    tuple_retrieved_from_rec = rec_with_multidim_sa_of_rec.array_of_records
+    assert tuple_retrieved_from_rec == record_tuple
+    assert tuple_retrieved_from_rec is not record_tuple
+    # Next we test passing a multidimensional SAFEARRAY of Records
+    # to a COM method that modifies the Records in the SAFEARRAY.
+    # The test seems a little convoluted. However, it should show
+    # that we got the multidimensional indexing right.
+    # First step:
+    # We create a nested sequence of COM Records.
+    record_tuple = tuple(
+        [
+            tuple([tuple([TestStruct3() for i in range(3)]) for j in range(5)])
+            for k in range(4)
+        ]
+    )
+    # Second step:
+    # We create a nested sequence of doubles.
+    float_tuple = tuple(
+        [
+            tuple(
+                [tuple([float(i + 3 * j + 15 * k) for i in range(3)]) for j in range(5)]
+            )
+            for k in range(4)
+        ]
+    )
+    # Third step:
+    # We assign the nested sequence of doubles to the SAFEARRAY member attribute
+    # in each of the Records in the nested Record sequence.
+    # In addition we also assign a unique identifier to each of the Records.
+    for k in range(4):
+        for j in range(5):
+            for i in range(3):
+                record_tuple[k][j][i].id = float(k * 15 + j * 3 + i)
+                record_tuple[k][j][i].array_of_double = float_tuple
+    # Now we use the nested sequence of Records in the call to a COM method
+    # that modifies the Records. Note that the array dimension sizes are
+    # hard wired in the COM method.
+    array_of_structs = o.ModifyArrayOfStructs(record_tuple)
+    # The method should have multiplied each element of each of the
+    # SAFEARRAY(double) Record members by the id of the respective Record.
+    for k in range(4):
+        for j in range(5):
+            for i in range(3):
+                rec = array_of_structs[k][j][i]
+                for n in range(4):
+                    for m in range(5):
+                        for l in range(3):
+                            f = float_tuple[n][m][l]
+                            assert rec.array_of_double[n][m][l] == f * rec.id
+
+
 def TestGenerated():
     # Create an instance of the server.
     from win32com.client.gencache import EnsureDispatch
@@ -545,8 +657,14 @@ def TestGenerated():
 
     # Test plain pythoncom.com_record structs.
     progress("Testing baseclass pythoncom.com_record structs.")
+    # Test pythoncom.com_record as an [out] parameter.
+    r = o.GetOutStruct()
+    assert type(r) is pythoncom.com_record
+    assert r.int_value == 99 and str(r.str_value) == "Luftballons"
+    # Test pythoncom.com_record as a retval:
     r = o.GetStruct()
     assert type(r) is pythoncom.com_record
+    assert r.int_value == 99 and str(r.str_value) == "Hello from C++"
     TestStructByref(o, r)
     test_rec = Record("TestStruct2", o)
     assert type(test_rec) is pythoncom.com_record
@@ -566,6 +684,7 @@ def TestGenerated():
     # Register the subclasses in pythoncom.
     register_record_class(TestStruct1)
     register_record_class(ArrayOfStructsTestStruct)
+    register_record_class(TestStruct3)
     # Now the type of the instance is the registered subclass.
     r_sub = TestStruct1()
     assert type(r_sub) is TestStruct1
@@ -578,8 +697,24 @@ def TestGenerated():
     # Also registering a class with a GUID that is not in the TypeLibrary should fail.
     check_get_set_raises(TypeError, register_record_class, NotInTypeLibraryTestStruct)
 
-    # Perform the 'Byref' and 'ArrayOfStruct tests using the registered subclasses.
     progress("Testing subclasses of pythoncom.com_record.")
+    # Test assignment and retrieval of a Record field.
+    member_struct = TestStruct1()
+    member_struct.int_value = 42
+    member_struct.str_value = "The meaning of life, the universe and everything."
+    parent_struct = TestStruct3()
+    parent_struct.a_struct_field = member_struct
+    retrieved_struct = parent_struct.a_struct_field
+    assert retrieved_struct == member_struct
+
+    # Test a pythoncom.com_record subclass as an [out] parameter.
+    r = o.GetOutStruct()
+    # After 'TestStruct1' was registered as an instantiable subclass
+    # of pythoncom.com_record, the return value should have this type.
+    assert type(r) is TestStruct1
+    assert r.int_value == 99 and str(r.str_value) == "Luftballons"
+
+    # Perform the 'Byref' and 'ArrayOfStruct tests using the registered subclasses.
     r = o.GetStruct()
     # After 'TestStruct1' was registered as an instantiable subclass
     # of pythoncom.com_record, the return value should have this type.
@@ -588,6 +723,10 @@ def TestGenerated():
     test_rec = ArrayOfStructsTestStruct()
     assert type(test_rec) is ArrayOfStructsTestStruct
     TestArrayOfStructs(o, test_rec)
+    progress("Testing nested Records.")
+    TestNestedStructs(o)
+    progress("Testing multidimensional SAFEARRAYS of Records and double.")
+    TestNestedArrays(o)
 
     # Test initialization of registered pythoncom.com_record subclasses.
     progress("Testing initialization of pythoncom.com_record subclasses.")
@@ -891,34 +1030,39 @@ def TestVTableMI():
         pass
 
 
-def TestQueryInterface(long_lived_server=0, iterations=5):
+def TestQueryInterface(long_lived_server=False, iterations=5):
     tester = win32com.client.Dispatch("PyCOMTest.PyCOMTest")
     if long_lived_server:
         # Create a local server
         t0 = win32com.client.Dispatch(
             "Python.Test.PyCOMTest", clsctx=pythoncom.CLSCTX_LOCAL_SERVER
         )
-    # Request custom interfaces a number of times
-    prompt = [
-        "Testing QueryInterface without long-lived local-server #%d of %d...",
-        "Testing QueryInterface with long-lived local-server #%d of %d...",
-    ]
 
+    # Request custom interfaces a number of time
     for i in range(iterations):
-        progress(prompt[long_lived_server != 0] % (i + 1, iterations))
+        progress(
+            f"Testing QueryInterface "
+            + ("with" if long_lived_server else "without")
+            + f" long-lived local-server #{i + 1} of {iterations}..."
+        )
         tester.TestQueryInterface()
 
 
 class Tester(win32com.test.util.TestCase):
-    def testVTableInProc(self):
+    def testRegisterInterfacesAfterGencache(self) -> None:
+        # We had a bug where RegisterInterfaces would fail if gencache had
+        # already been run - exercise that here
+        RegisterInterfaces("{6BCDCB60-5605-11D0-AE5F-CADD4C000000}", 0, 1, 1)
+
+    def testVTableInProc(self) -> None:
         # We used to crash running this the second time - do it a few times
         for i in range(3):
-            progress("Testing VTables in-process #%d..." % (i + 1))
+            progress(f"Testing VTables in-process #{(i + 1)}...")
             TestVTable(pythoncom.CLSCTX_INPROC_SERVER)
 
-    def testVTableLocalServer(self):
+    def testVTableLocalServer(self) -> None:
         for i in range(3):
-            progress("Testing VTables out-of-process #%d..." % (i + 1))
+            progress(f"Testing VTables out-of-process #{(i + 1)}...")
             TestVTable(pythoncom.CLSCTX_LOCAL_SERVER)
 
     def testVTable2(self):
@@ -930,15 +1074,15 @@ class Tester(win32com.test.util.TestCase):
             TestVTableMI()
 
     def testMultiQueryInterface(self):
-        TestQueryInterface(0, 6)
+        TestQueryInterface(False, 6)
         # When we use the custom interface in the presence of a long-lived
         # local server, i.e. a local server that is already running when
         # we request an instance of our COM object, and remains afterwards,
         # then after repeated requests to create an instance of our object
         # the custom interface disappears -- i.e. QueryInterface fails with
         # E_NOINTERFACE. Set the upper range of the following test to 2 to
-        # pass this test, i.e. TestQueryInterface(1,2)
-        TestQueryInterface(1, 6)
+        # pass this test, i.e. TestQueryInterface(True, 2)
+        TestQueryInterface(True, 6)
 
     def testDynamic(self):
         TestDynamic()

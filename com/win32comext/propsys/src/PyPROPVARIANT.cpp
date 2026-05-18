@@ -112,7 +112,7 @@ PyPROPVARIANT::~PyPROPVARIANT()
 
 BOOL PyWinObject_AsPROPVARIANT(PyObject *ob, PROPVARIANT **pppv)
 {
-    if (ob->ob_type != &PyPROPVARIANTType) {
+    if (Py_TYPE(ob) != &PyPROPVARIANTType) {
         PyErr_SetString(PyExc_TypeError, "Object must be a PyPROPVARIANT");
         return FALSE;
     }
@@ -304,7 +304,7 @@ BOOL PyWin_NewPROPVARIANT(PyObject *ob, VARTYPE vt, PROPVARIANT *ppv)
 
     // use this to signal that variant type should be guessed from type of python object
     if (vt == VT_ILLEGAL) {
-        if (ob->ob_type == &PyPROPVARIANTType) {
+        if (Py_TYPE(ob) == &PyPROPVARIANTType) {
             // already a propvariant, take a copy
             HRESULT hr = PropVariantCopy(ppv, &((PyPROPVARIANT *)ob)->Py_propvariant);
             if (FAILED(hr)) {

@@ -21,15 +21,16 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: astral-sh/setup-uv@v7
         with:
           python-version: "3.9"
+          activate-environment: true
 
       # We still need to install pywin32 because
       # AutoDuck/py2d.py currently relies on runtime imports for introspection
       # Downloading latest release is faster than re-building
       - name: Install latest release
-        run: pip install --user --upgrade pywin32
+        run: uv pip install --upgrade pywin32
 
       - name: Generate PyWin32.chm help file
         run: python AutoDuck/make.py

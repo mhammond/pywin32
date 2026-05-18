@@ -16,12 +16,10 @@ class TestCredFunctions(unittest.TestCase):
         }
 
     def create_dummy_cred(self):
-        cred = copy.deepcopy(self.dummy_cred)
-        cred.update(
-            {
-                "Persist": win32cred.CRED_PERSIST_SESSION,
-            }
-        )
+        cred = copy.deepcopy(self.dummy_cred) | {
+            "Persist": win32cred.CRED_PERSIST_SESSION,
+        }
+
         try:
             win32cred.CredWrite(cred, self.flags)
         except Exception as e:

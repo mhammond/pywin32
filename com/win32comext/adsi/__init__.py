@@ -33,9 +33,9 @@ import pythoncom
 
 if TYPE_CHECKING:
     # Get the names from typeshed stubs
-    from win32comext.adsi.adsi import *  # nopycln: import # pyright: ignore[reportAssignmentType,reportWildcardImportFromLibrary]
+    from win32comext.adsi.adsi import *  # pyright: ignore[reportAssignmentType,reportWildcardImportFromLibrary]
 else:
-    from .adsi import *  # nopycln: import # Re-export everything from win32comext/adsi/adsi.pyd
+    from .adsi import *  # Re-export everything from win32comext/adsi/adsi.pyd
 
 LCID = 0
 

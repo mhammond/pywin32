@@ -1,7 +1,7 @@
 // @doc
 #include "Python.h"
 #include "pyerrors.h"  // for PyErr_Warn in 2.5...
-#include "Windows.h"
+#include "windows.h"
 #include "PyWinTypes.h"
 #include "PythonCOM.h"
 #include "PyADSIUtil.h"
@@ -545,7 +545,7 @@ BOOL _Make_ATTR_INFO(PyObject *ob, ADS_ATTR_INFO *pBase, DWORD index)
         return FALSE;
     if (!PySequence_Check(obValues)) {
         PyErr_Format(PyExc_TypeError, "4th item in an ATTR_INFO structure must be a sequence (got %s)",
-                     obValues->ob_type->tp_name);
+                     Py_TYPE(obValues)->tp_name);
         return FALSE;
     }
     DWORD nValues = PySequence_Length(obValues);
@@ -672,11 +672,11 @@ done:
 //
 // Error string utility.
 //
-// AdsErr.h is built from a message file.
+// adserr.h is built from a message file.
 // Therefore, there _must_ be a DLL around we can call
 // FormatMessage with.
 // However, it's not obvious, and this code was cut directly from MSDN.
-#include "AdsErr.h"
+#include "adserr.h"
 typedef struct tagADSERRMSG {
     HRESULT hr;
     LPCWSTR pszError;

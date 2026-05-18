@@ -177,7 +177,7 @@ STDMETHODIMP PyGAsyncOperation::GetAsyncMode(
     if (FAILED(hr))
         return hr;
     if (!PyLong_Check(result)) {
-        PyErr_Format(PyExc_TypeError, "Result for GetAsyncMode must be a bool (got '%s')", result->ob_type->tp_name);
+        PyErr_Format(PyExc_TypeError, "Result for GetAsyncMode must be a bool (got '%s')", Py_TYPE(result)->tp_name);
         hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("GetAsyncMode");
     }
     else
@@ -209,7 +209,7 @@ STDMETHODIMP PyGAsyncOperation::InOperation(
     if (FAILED(hr))
         return hr;
     if (!PyLong_Check(result)) {
-        PyErr_Format(PyExc_TypeError, "Result for InOperation must be a bool (got '%s')", result->ob_type->tp_name);
+        PyErr_Format(PyExc_TypeError, "Result for InOperation must be a bool (got '%s')", Py_TYPE(result)->tp_name);
         hr = MAKE_PYCOM_GATEWAY_FAILURE_CODE("InOperation");
     }
     else

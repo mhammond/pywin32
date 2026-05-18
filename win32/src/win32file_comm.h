@@ -34,7 +34,7 @@ class PyDCB : public PyObject {
     DCB m_DCB;
 };
 
-#define PyDCB_Check(x) ((x)->ob_type == &PyDCB::type)
+#define PyDCB_Check(x) (Py_TYPE(x) == &PyDCB::type)
 
 ////////////////////////////////////////////////////////////////
 //
@@ -64,4 +64,4 @@ class PyCOMSTAT : public PyObject {
     COMSTAT m_COMSTAT;
 };
 
-#define PyCOMSTAT_Check(x) ((x)->ob_type == &PyCOMSTAT::type)
+#define PyCOMSTAT_Check(x) (Py_TYPE(x) == &PyCOMSTAT::type)
