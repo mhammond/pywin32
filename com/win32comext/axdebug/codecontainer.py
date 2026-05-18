@@ -256,8 +256,7 @@ class SourceModuleContainer(SourceCodeContainer):
 
 
 if __name__ == "__main__":
-    # local untyped module (improved by https://github.com/mhammond/pywin32/pull/2282)
-    from test import ttest  # pyright: ignore[reportMissingImports]
+    from test import ttest
 
     sc = SourceModuleContainer(ttest)
     # sc = SourceCodeContainer(open(sys.argv[1], "rb").read(), sys.argv[1])
