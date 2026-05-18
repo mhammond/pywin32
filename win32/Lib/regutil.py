@@ -200,9 +200,8 @@ def RegisterHelpFile(helpFile, helpPath, helpDesc=None, bCheckFile=1):
     if helpDesc is None:
         helpDesc = helpFile
     fullHelpFile = os.path.join(helpPath, helpFile)
-    if bCheckFile:
-        if not os.path.exists(fullHelpFile):
-            raise ValueError("Help file does not exist")
+    if bCheckFile and not os.path.exists(fullHelpFile):
+        raise ValueError("Help file does not exist")
     # Now register with Python itself.
     win32api.RegSetValue(
         GetRootKey(),
