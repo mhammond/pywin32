@@ -702,17 +702,27 @@ class CEnterLeavePython {
     BOOL released;
 };
 
-// A helper for simple exception handling.
 #if defined(__MINGW32__)
+// MSVC's min/max macros don't need matching parameter types.
+// Replicate them here instead of using algorithm.h's std::min/std::max.
+#ifndef min
+#define min(a, b) ((a) < (b) ? (a) : (b))
+#endif
+#ifndef max
+#define max(a, b) ((a) > (b) ? (a) : (b))
+#endif
+
 #define __try try
 #define __except(filter) catch (...)
+
+// Helpers for simple exception handling.
 #define PYWINTYPES_TRY try
 #define PYWINTYPES_EXCEPT catch (...)
 #else
 #define PYWINTYPES_TRY __try
 #define PYWINTYPES_EXCEPT __except (EXCEPTION_EXECUTE_HANDLER)
-#endif
 // End of exception helper macros.
+#endif
 
 // Class to hold a temporary reference that decrements itself
 class TmpPyObject {
