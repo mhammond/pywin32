@@ -136,14 +136,10 @@ def _find_localserver_module():
     pyfile = os.path.join(path, baseName + ".py")
     if not os.path.exists(pyfile):
         # See if we have a compiled extension
-        if __debug__:
-            ext = ".pyc"
-        else:
-            ext = ".pyo"
-        pyfile = os.path.join(path, baseName + ext)
+        pyfile = os.path.join(path, baseName + ".pyc")
         if not os.path.exists(pyfile):
             raise RuntimeError(
-                "Can not locate the Python module 'win32com.server.%s'" % baseName
+                f"Can not locate the Python module 'win32com.server.{baseName}'"
             )
     return pyfile
 
