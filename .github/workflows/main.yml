@@ -23,7 +23,7 @@ jobs:
         python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14", "3.15", "3.13t", "3.14t", "3.15t"]
         python-architecture: [x64, x86, arm64]
         include:
-          - os: windows-2022
+          - os: windows-2025
           - python-architecture: arm64
             os: windows-11-arm
         exclude:
@@ -95,7 +95,7 @@ jobs:
   # actions/setup-python does not provide prebuilt arm64 Python before 3.11, so we cross-compile.
   cross_compile_arm64:
     name: Cross-compile ARM64
-    runs-on: windows-2022
+    runs-on: windows-2025
     timeout-minutes: *timeout-minutes
     strategy:
       fail-fast: false
