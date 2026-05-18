@@ -155,9 +155,7 @@ class TypeBrowseDialog(TypeBrowseDialog_Parent):
             typeFlags = attr[11]
 
             desc = doc[0]
-            desc += ", Flags=0x{:x}, typeKind=0x{:x}, typeFlags=0x{:x}".format(
-                flags, typeKind, typeFlags
-            )
+            desc += f", Flags=0x{flags:x}, typeKind=0x{typeKind:x}, typeFlags=0x{typeFlags:x}"
             if flags & pythoncom.IMPLTYPEFLAG_FSOURCE:
                 desc += "(Source)"
             infos.append(("Implements", desc))

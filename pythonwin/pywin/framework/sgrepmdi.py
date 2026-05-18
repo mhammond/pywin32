@@ -325,14 +325,7 @@ class GrepDocument(docview.RichEditDoc):
         return 1
 
     def GetParams(self):
-        return "{}\t{}\t{}\t{!r}\t{!r}\t{!r}".format(
-            self.dirpattern,
-            self.filpattern,
-            self.greppattern,
-            self.casesensitive,
-            self.recurse,
-            self.verbose,
-        )
+        return f"{self.dirpattern}\t{self.filpattern}\t{self.greppattern}\t{self.casesensitive!r}\t{self.recurse!r}\t{self.verbose!r}"
 
     def OnSaveDocument(self, filename):
         # print("OnSaveDocument() filename=", filename)
