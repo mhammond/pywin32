@@ -22,7 +22,7 @@ class Win32uiHostGlue : public CObject {
     virtual void SetStatusText(const TCHAR * /*cmd*/, int /*bForce*/) { return; }
     // Helper class, to register _any_ HMODULE as a module name.
     // This allows modules built into .EXE's, or in differently
-    // named DLL's etc.  This requires admin priveliges on some machines, so
+    // named DLL's etc.  This requires admin privileges on some machines, so
     // a program should not refuse to start if this fails, but calling it
     // each time means the app is guaranteed to work when moved.
     // REMOVED - See below!!!
