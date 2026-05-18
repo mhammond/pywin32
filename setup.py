@@ -294,7 +294,7 @@ class WinExt_win32com_mapi(WinExt_win32com):
         libs = kw.get("libraries", "")
         # The stand-alone exchange SDK has these libs
         # Additional utility functions are only available for 32-bit builds.
-        if not platform.machine() in ("AMD64", "ARM64"):
+        if not platform.machine() in ("AMD64", "ARM64", "x86_64"):
             libs += " version user32 advapi32 Ex2KSdk sadapi netapi32"
         kw["libraries"] = libs
         super().__init__(name, **kw)
@@ -814,10 +814,10 @@ class my_build_ext(build_ext):
                 "-python",
                 # we never use the .doc files.
                 "-dnone",
+                *self.swig_opts,
+                *ext.swig_opts,
             ]
-            swig_cmd.extend(self.swig_opts)
-            swig_cmd.extend(ext.swig_opts)
-            if platform.machine() in ("AMD64", "ARM64"):
+            if platform.machine() in ("AMD64", "ARM64", "x86_64"):
                 swig_cmd.append("-DSWIG_PY64BIT")
             else:
                 swig_cmd.append("-DSWIG_PY32BIT")
@@ -1132,7 +1132,7 @@ win32_extensions += [
     WinExt_win32(
         "win32evtlog",
         sources="""
-                win32\\src\\win32evtlog_messages.mc win32\\src\\win32evtlog.i
+                win32/src/win32evtlog_messages.mc win32/src/win32evtlog.i
                 """.split(),
         libraries="advapi32 oleaut32",
         delay_load_libraries="wevtapi",
@@ -1244,29 +1244,29 @@ pythoncom = WinExt_system32(
     ).split(),
     depends=(
         """
-                        {win32com}/include\\propbag.h          {win32com}/include\\PyComTypeObjects.h
-                        {win32com}/include\\PyFactory.h        {win32com}/include\\PyGConnectionPoint.h
-                        {win32com}/include\\PyGConnectionPointContainer.h
-                        {win32com}/include\\PyGPersistStorage.h {win32com}/include\\PyIBindCtx.h
-                        {win32com}/include\\PyICatInformation.h {win32com}/include\\PyICatRegister.h
-                        {win32com}/include\\PyIDataObject.h    {win32com}/include\\PyIDropSource.h
-                        {win32com}/include\\PyIDropTarget.h    {win32com}/include\\PyIEnumConnectionPoints.h
-                        {win32com}/include\\PyIEnumConnections.h {win32com}/include\\PyIEnumFORMATETC.h
-                        {win32com}/include\\PyIEnumGUID.h      {win32com}/include\\PyIEnumSTATPROPSETSTG.h
-                        {win32com}/include\\PyIEnumSTATSTG.h   {win32com}/include\\PyIEnumString.h
-                        {win32com}/include\\PyIEnumVARIANT.h   {win32com}/include\\PyIExternalConnection.h
-                        {win32com}/include\\PyIGlobalInterfaceTable.h {win32com}/include\\PyILockBytes.h
-                        {win32com}/include\\PyIMoniker.h       {win32com}/include\\PyIOleWindow.h
-                        {win32com}/include\\PyIPersist.h       {win32com}/include\\PyIPersistFile.h
-                        {win32com}/include\\PyIPersistStorage.h {win32com}/include\\PyIPersistStream.h
-                        {win32com}/include\\PyIPersistStreamInit.h {win32com}/include\\PyIRunningObjectTable.h
-                        {win32com}/include\\PyIStorage.h       {win32com}/include\\PyIStream.h
-                        {win32com}/include\\PythonCOM.h        {win32com}/include\\PythonCOMRegister.h
-                        {win32com}/include\\PythonCOMServer.h  {win32com}/include\\stdafx.h
-                        {win32com}/include\\univgw_dataconv.h
-                        {win32com}/include\\PyICancelMethodCalls.h    {win32com}/include\\PyIContext.h
-                        {win32com}/include\\PyIEnumContextProps.h     {win32com}/include\\PyIClientSecurity.h
-                        {win32com}/include\\PyIServerSecurity.h
+                        {win32com}/include/propbag.h          {win32com}/include/PyComTypeObjects.h
+                        {win32com}/include/PyFactory.h        {win32com}/include/PyGConnectionPoint.h
+                        {win32com}/include/PyGConnectionPointContainer.h
+                        {win32com}/include/PyGPersistStorage.h {win32com}/include/PyIBindCtx.h
+                        {win32com}/include/PyICatInformation.h {win32com}/include/PyICatRegister.h
+                        {win32com}/include/PyIDataObject.h    {win32com}/include/PyIDropSource.h
+                        {win32com}/include/PyIDropTarget.h    {win32com}/include/PyIEnumConnectionPoints.h
+                        {win32com}/include/PyIEnumConnections.h {win32com}/include/PyIEnumFORMATETC.h
+                        {win32com}/include/PyIEnumGUID.h      {win32com}/include/PyIEnumSTATPROPSETSTG.h
+                        {win32com}/include/PyIEnumSTATSTG.h   {win32com}/include/PyIEnumString.h
+                        {win32com}/include/PyIEnumVARIANT.h   {win32com}/include/PyIExternalConnection.h
+                        {win32com}/include/PyIGlobalInterfaceTable.h {win32com}/include/PyILockBytes.h
+                        {win32com}/include/PyIMoniker.h       {win32com}/include/PyIOleWindow.h
+                        {win32com}/include/PyIPersist.h       {win32com}/include/PyIPersistFile.h
+                        {win32com}/include/PyIPersistStorage.h {win32com}/include/PyIPersistStream.h
+                        {win32com}/include/PyIPersistStreamInit.h {win32com}/include/PyIRunningObjectTable.h
+                        {win32com}/include/PyIStorage.h       {win32com}/include/PyIStream.h
+                        {win32com}/include/PythonCOM.h        {win32com}/include/PythonCOMRegister.h
+                        {win32com}/include/PythonCOMServer.h  {win32com}/include/stdafx.h
+                        {win32com}/include/univgw_dataconv.h
+                        {win32com}/include/PyICancelMethodCalls.h    {win32com}/include/PyIContext.h
+                        {win32com}/include/PyIEnumContextProps.h     {win32com}/include/PyIClientSecurity.h
+                        {win32com}/include/PyIServerSecurity.h
                         """.format(**dirs)
     ).split(),
     libraries="oleaut32 ole32 user32 urlmon oleacc",
@@ -1880,7 +1880,7 @@ def expand_modules(module_dir: str | os.PathLike[str]):
 
 
 # NOTE: somewhat counter-intuitively, a result list a-la:
-#  [('Lib/site-packages\\pythonwin', ('pythonwin/License.txt',)),]
+# [('Lib/site-packages/pythonwin', ('pythonwin/License.txt',)),]
 # will 'do the right thing' in terms of installing License.txt into
 # 'Lib/site-packages/pythonwin/License.txt'.  We exploit this to
 # get 'com/win32com/whatever' installed to 'win32com/whatever'
@@ -1896,13 +1896,13 @@ def convert_data_files(files: Iterable[str]):
                 if path.suffix != ".pyc"
             )
             if not files_use:
-                raise RuntimeError("No files match '%s'" % file)
+                raise RuntimeError(f"No files match '{file}'")
         else:
             if not os.path.isfile(file):
-                raise RuntimeError("No file '%s'" % file)
+                raise RuntimeError(f"No file '{file}'")
             files_use = (file,)
         for fname in files_use:
-            path_use = os.path.dirname(fname).removeprefix("com\\")
+            path_use = os.path.dirname(fname).removeprefix(f"com{os.sep}")
             ret.append((path_use, (fname,)))
     return ret
 
@@ -1966,7 +1966,7 @@ packages = [
     "adodbapi",
 ]
 
-py_modules = [*expand_modules("win32\\lib"), "win32\\winxpgui"]
+py_modules = [*expand_modules("win32/lib"), "win32/winxpgui"]
 ext_modules = (
     win32_extensions + com_extensions + pythonwin_extensions + other_extensions
 )
