@@ -51,6 +51,12 @@ jobs:
           check-latest: true
           allow-prereleases: true
 
+      - name: Enable COM server logging on free-threaded interpreters
+        if: endWith( ${{matrix.python-version}}, 't') && contains( ${{matrix.python-architecture}}, 'x64')
+        run: |
+          $env:PYTHONVERBOSE = "1"
+          $env:PYTHONFAULTHANDLER = "1"  # re-enable this specifically for COM server subprocess
+
       - name: Build and install
         run: pip install . -v --user
 
