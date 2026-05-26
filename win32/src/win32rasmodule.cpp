@@ -11,7 +11,7 @@ generates Windows .hlp files.
 
 ******************************************************************/
 
-#include "pywintypes.h"
+#include "PyWinTypes.h"
 #include "ras.h"
 #include "raserror.h"
 

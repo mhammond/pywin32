@@ -71,7 +71,7 @@ PyObject *PyBuffer_FromMemory(void *buf, Py_ssize_t size)
     return PyMemoryView_FromBuffer(&info);
 }
 
-// See comments in pywintypes.h for why we need this!
+// See comments in PyWinTypes.h for why we need this!
 void PyWin_MakePendingCalls()
 {
     while (1) {
@@ -633,7 +633,7 @@ BOOL PyWinObject_AsSimplePARAM(PyObject *ob, WPARAM *wparam)
 
 // Converts for WPARAM and LPARAM: int or str (WCHAR*) or buffer (pointer to its locked memory)
 // (WPARAM is defined as UINT_PTR, and LPARAM is defined as LONG_PTR - see
-// pywintypes.h for inline functions to resolve this)
+// PyWinTypes.h for inline functions to resolve this)
 BOOL PyWinObject_AsPARAM(PyObject *ob, PyWin_PARAMHolder *holder)
 {
     assert(!PyErr_Occurred());  // lingering exception?
@@ -1034,10 +1034,10 @@ extern "C" __declspec(dllexport) BOOL WINAPI DllMain(HANDLE hInstance, DWORD dwR
 }
 
 // Function to format a python traceback into a character string.
-#define GPEM_ERROR(what)                                      \
-    {                                                         \
-        errorMsg = L"<Error getting traceback - "##what##">"; \
-        goto done;                                            \
+#define GPEM_ERROR(what)                                    \
+    {                                                       \
+        errorMsg = L"<Error getting traceback - " what ">"; \
+        goto done;                                          \
     }
 PYWINTYPES_EXPORT WCHAR *GetPythonTraceback(PyObject *exc_type, PyObject *exc_value, PyObject *exc_tb)
 {
@@ -1051,6 +1051,10 @@ PYWINTYPES_EXPORT WCHAR *GetPythonTraceback(PyObject *exc_type, PyObject *exc_va
     PyObject *argsTB = NULL;
     PyObject *obResult = NULL;
     TmpWCHAR resultPtr;
+    // Py3k has added an undocumented 'chain' argument which defaults to True
+    // and causes all kinds of exceptions while trying to print a traceback!
+    // This *could* be useful thought if we can tame it - later!
+    int chain = 0;
 
     // cStringIO is in "io"
     modStringIO = PyImport_ImportModule("io");
@@ -1073,10 +1077,6 @@ PYWINTYPES_EXPORT WCHAR *GetPythonTraceback(PyObject *exc_type, PyObject *exc_va
     obFuncTB = PyObject_GetAttrString(modTB, "print_exception");
     if (obFuncTB == NULL)
         GPEM_ERROR("can't find traceback.print_exception");
-    // Py3k has added an undocumented 'chain' argument which defaults to True
-    // and causes all kinds of exceptions while trying to print a traceback!
-    // This *could* be useful thought if we can tame it - later!
-    int chain = 0;
 
     argsTB = Py_BuildValue("OOOOOi", exc_type ? exc_type : Py_None, exc_value ? exc_value : Py_None,
                            exc_tb ? exc_tb : Py_None,

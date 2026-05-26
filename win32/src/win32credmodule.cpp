@@ -1,7 +1,7 @@
 // @doc
 #include "PyWinTypes.h"
 #include "PyWinObjects.h"
-#include "WinCred.h"
+#include "wincred.h"
 
 // @object PyCREDENTIAL_ATTRIBUTE|A dictionary containing information for a CREDENTIAL_ATTRIBUTE struct
 // @pyseeapi CREDENTIAL_ATTRIBUTE
@@ -722,8 +722,17 @@ PyObject *PyCredWrite(PyObject *self, PyObject *args, PyObject *kwargs)
         return NULL;
     if (!PyWinObject_AsCREDENTIAL(obcred, &cred))
         return NULL;
-    if (!CredWrite(&cred, flags))
-        PyWin_SetAPIError("CredWrite");
+    BOOL ok;
+    DWORD err;
+    Py_BEGIN_ALLOW_THREADS;
+    ok = CredWrite(&cred, flags);
+    // Capture error before Py_END_ALLOW_THREADS reacquires the GIL,
+    // which may call Win32 functions that overwrite GetLastError().
+    if (!ok)
+        err = GetLastError();
+    Py_END_ALLOW_THREADS;
+    if (!ok)
+        PyWin_SetAPIError("CredWrite", err);
     else {
         Py_INCREF(Py_None);
         ret = Py_None;
@@ -939,8 +948,10 @@ PyObject *PyCredUIPromptForCredentials(PyObject *self, PyObject *args, PyObject 
     if (!PyWinObject_AsCREDUI_INFO(obuiinfo, &uiinfo))
         goto done;
 
+    Py_BEGIN_ALLOW_THREADS;
     reterr = CredUIPromptForCredentials(uiinfo, targetname, reserved, autherror, username_io, maxusername, password_io,
                                         maxpassword, &save, flags);
+    Py_END_ALLOW_THREADS;
     if (reterr == NO_ERROR)
         ret = Py_BuildValue("uuN", username_io, password_io, PyBool_FromLong(save));
     else

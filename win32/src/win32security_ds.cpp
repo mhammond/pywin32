@@ -5,7 +5,7 @@
 #include "PyWinObjects.h"
 #include "PySecurityObjects.h"
 #include "win32security_sspi.h"
-#include "Lm.h"  // for NetApiBufferFree, for some Ds functions.
+#include "lm.h"  // for NetApiBufferFree, for some Ds functions.
 
 static PyObject *PyObject_FromDS_NAME_RESULT(DS_NAME_RESULT *dsresult)
 {

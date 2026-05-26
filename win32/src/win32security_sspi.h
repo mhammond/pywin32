@@ -2,10 +2,10 @@
 // $Id$
 
 #define SECURITY_WIN32
-#include "Security.h"
+#include "security.h"
 #include "ntdsapi.h"
 #include "subauth.h"
-#include "Dsgetdc.h"
+#include "dsgetdc.h"
 
 // SecBuffer objects for SSPI functionality
 extern __declspec(dllexport) PyTypeObject PySecBufferType;
