@@ -96,7 +96,7 @@ class DockingBar(window.Wnd):
         self._obj_.CreateWindow(wndClass, title, style, (0, 0, 0, 0), parent, id)
 
         # Create the child dialog
-        self.dialog = childCreator(*(self,) + childCreatorArgs)
+        self.dialog = childCreator(self, *childCreatorArgs)
 
         # use the dialog dimensions as default base dimensions
         assert self.dialog.IsWindow(), (
