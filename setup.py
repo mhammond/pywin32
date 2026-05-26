@@ -25,15 +25,14 @@ build_env.md, which is getting out of date but might help getting everything
 required for an official build - see README.md for that process.
 """
 # Originally by Thomas Heller, started in 2000 or so.
-import glob
 import logging
 import os
 import platform
-import re
 import shutil
 import sys
 from abc import abstractmethod
 from collections.abc import Iterable
+from itertools import chain
 from pathlib import Path
 from setuptools import Extension, setup
 from setuptools.command.build import build
@@ -462,42 +461,6 @@ class my_build_ext(build_ext):
             os.path.join(self.build_lib, "pythonwin"),
         )
 
-    # find the VC base path corresponding to distutils paths, and
-    # potentially upgrade for extra include / lib paths (MFC)
-    def _check_vc(self):
-        vcbase = vcverdir = None
-        atlmfc_found = False
-        for _dir in self.compiler.library_dirs:
-            m = re.search(r"(?i)VC\\([\d.]+\\)?(LIB)\b", _dir)
-            if m and not vcbase:
-                vcbase = _dir[: m.start(2)]
-                vcverdir = m.group(1)
-            m = re.search(r"(?i)ATLMFC\\LIB\b", _dir)
-            if m:
-                atlmfc_found = True  # ATLMFC libs/includes already found by distutils
-
-        if not vcbase and not is_mingw:
-            print("-- compiler.library_dirs:", self.compiler.library_dirs)
-            # Error or warn? last hope would be a non-standard build environment
-            print("-- Visual C base path not found !?")
-
-        # The afxres.h/atls.lib files aren't always included by default,
-        # so find and add them
-        if vcbase and not atlmfc_found:
-            atls_lib = glob.glob(vcbase + rf"ATLMFC\lib\{self.plat_dir}\atls.lib")
-            if atls_lib:
-                self.library_dirs.append(os.path.dirname(atls_lib[0]))
-                self.include_dirs.append(
-                    os.path.join(
-                        os.path.dirname(os.path.dirname(os.path.dirname(atls_lib[0]))),
-                        "Include",
-                    )
-                )
-            else:
-                print("-- compiler.library_dirs:", self.compiler.library_dirs)
-                print("-- ATLMFC paths likely missing (Required for win32ui)")
-        return vcbase, vcverdir
-
     def _verstamp(self, filename):
         """
         Stamp the version of the built target.
@@ -543,8 +506,6 @@ class my_build_ext(build_ext):
             self.compiler.__class__.library_dirs = []
         else:
             print("-- FIX ME ! distutils may expose complete inc/lib dirs again")
-
-        vcbase, vcverdir = self._check_vc()
 
         # Here we hack a "pywin32" directory (one of 'win32', 'win32com',
         # 'pythonwin' etc), as distutils doesn't seem to like the concept
@@ -606,36 +567,29 @@ class my_build_ext(build_ext):
             self.copy_file(os.path.join(self.build_temp, fname), target_dir)
 
         # Finally find and copy the MFC redistributable DLLs.
+        # This is only available from the Visual Studio Installer.
+        # Skip if Pythonwin was also skipped.
         win32ui_ext = pythonwin_extensions[0]
-        if win32ui_ext not in set(self.extensions) - {
-            ext for ext, why in self.excluded_extensions
-        }:
-            return
-        if not vcbase:
-            raise RuntimeError("Can't find MFC redist DLLs with unkown VC base path")
-        redist_globs = [vcbase + r"redist\%s\*MFC\mfc140u.dll" % self.plat_dir]
-        m = re.search(r"\\VC\\Tools\\", vcbase)
-        if m:
-            # typical path on newer Visual Studios
+        if win32ui_ext in {ext for ext, why in self.excluded_extensions}:
+            vc_path = next(p for p in Path(self.compiler.cc).parents if p.name == "VC")
+            msvc_version = next(
+                p for p in Path(self.compiler.cc).parents if p.parent.name == "MSVC"
+            ).name
+            # Only mfcNNNu DLL is required (mfcmNNNX is Windows Forms, rest is ANSI)
             # prefer corresponding version but accept different version
-            same_version = vcverdir is not None and os.path.isdir(
-                vcbase[: m.start()]
-                + r"\VC\Redist\MSVC\{}{}".format(vcverdir, self.plat_dir)
-            )
-            redist_globs.append(
-                vcbase[: m.start()]
-                + r"\VC\Redist\MSVC\{}{}\*\mfc140u.dll".format(
-                    vcverdir if same_version else "*\\", self.plat_dir
-                )
-            )
-        # Only mfcNNNu DLL is required (mfcmNNNX is Windows Forms, rest is ANSI)
-        mfc_contents = next(filter(None, map(glob.glob, redist_globs)), [])[:1]
-        if not mfc_contents:
-            raise RuntimeError("MFC redist DLLs not found like %r!" % redist_globs)
+            redist_globs = [
+                f"Redist/MSVC/{msvc_version}/{self.plat_dir}/Microsoft.*.MFC/mfc140u.dll",
+                f"Redist/MSVC/*/{self.plat_dir}/Microsoft.*.MFC/mfc140u.dll",
+            ]
 
-        target_dir = os.path.join(self.build_lib, win32ui_ext.get_pywin32_dir())
-        for mfc_content in mfc_contents:
-            self.copy_file(mfc_content, target_dir)
+            mfc_dll = next(chain.from_iterable(map(vc_path.glob, redist_globs)), None)
+            if not mfc_dll:
+                raise RuntimeError(
+                    f"MFC redist DLLs not found like '{vc_path / redist_globs[-1]}'!"
+                )
+
+            target_dir = os.path.join(self.build_lib, win32ui_ext.get_pywin32_dir())
+            self.copy_file(mfc_dll, target_dir)
 
     def build_exefile(self, ext):
         suffix = "_d" if self.debug else ""
@@ -701,9 +655,7 @@ class my_build_ext(build_ext):
             if source.endswith(".i"):
                 self.find_swig()  # for the side-effect of the environment value.
                 # Find the swig_lib .i files we care about for dependency tracking.
-                ext.swig_deps = glob.glob(
-                    os.path.join(os.environ["SWIG_LIB"], "python", "*.i")
-                )
+                ext.swig_deps = list(Path(os.environ["SWIG_LIB"], "python").glob("*.i"))
                 ext.depends.extend(ext.swig_deps)
                 break
         else:
