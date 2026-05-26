@@ -5,7 +5,7 @@ from pywin.framework import interact
 if __name__ == "__main__":
     import demoutils
 
-    if demoutils.NeedGoodGUI():
+    if demoutils.NeedGoodGUI() and interact.edit is not None:
         win = interact.edit.currentView.GetParent()
         menu = win.GetSystemMenu()
         id = menu.GetMenuItemID(6)
