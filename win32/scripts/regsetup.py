@@ -1,22 +1,16 @@
-# A tool to setup the Python registry.
+"""A tool to setup the Python registry."""
+import sys
 
 
 class error(Exception):
     pass
 
 
-import sys  # at least we can count on this!
-
-
 def FileExists(fname):
     """Check if a file exists.  Returns true or false."""
     import os
 
-    try:
-        os.stat(fname)
-        return 1
-    except OSError:
-        return 0
+    return os.path.exists(fname)
 
 
 def IsPackageDir(path, packageName, knownFileName):
@@ -183,11 +177,10 @@ def LocateFileName(fileNamesString, searchPaths):
     fileNames = fileNamesString.split(";")
     for path in searchPaths:
         for fileName in fileNames:
-            try:
-                retPath = os.path.join(path, fileName)
-                os.stat(retPath)
+            retPath = os.path.join(path, fileName)
+            if os.path.exists(retPath):
                 break
-            except OSError:
+            else:
                 retPath = None
         if retPath:
             break

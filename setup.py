@@ -25,15 +25,14 @@ build_env.md, which is getting out of date but might help getting everything
 required for an official build - see README.md for that process.
 """
 # Originally by Thomas Heller, started in 2000 or so.
-import glob
 import logging
 import os
 import platform
-import re
 import shutil
 import sys
 from abc import abstractmethod
 from collections.abc import Iterable
+from itertools import chain
 from pathlib import Path
 from setuptools import Extension, setup
 from setuptools.command.build import build
@@ -294,7 +293,7 @@ class WinExt_win32com_mapi(WinExt_win32com):
         libs = kw.get("libraries", "")
         # The stand-alone exchange SDK has these libs
         # Additional utility functions are only available for 32-bit builds.
-        if not platform.machine() in ("AMD64", "ARM64"):
+        if not platform.machine() in ("AMD64", "ARM64", "x86_64"):
             libs += " version user32 advapi32 Ex2KSdk sadapi netapi32"
         kw["libraries"] = libs
         super().__init__(name, **kw)
@@ -462,42 +461,6 @@ class my_build_ext(build_ext):
             os.path.join(self.build_lib, "pythonwin"),
         )
 
-    # find the VC base path corresponding to distutils paths, and
-    # potentially upgrade for extra include / lib paths (MFC)
-    def _check_vc(self):
-        vcbase = vcverdir = None
-        atlmfc_found = False
-        for _dir in self.compiler.library_dirs:
-            m = re.search(r"(?i)VC\\([\d.]+\\)?(LIB)\b", _dir)
-            if m and not vcbase:
-                vcbase = _dir[: m.start(2)]
-                vcverdir = m.group(1)
-            m = re.search(r"(?i)ATLMFC\\LIB\b", _dir)
-            if m:
-                atlmfc_found = True  # ATLMFC libs/includes already found by distutils
-
-        if not vcbase and not is_mingw:
-            print("-- compiler.library_dirs:", self.compiler.library_dirs)
-            # Error or warn? last hope would be a non-standard build environment
-            print("-- Visual C base path not found !?")
-
-        # The afxres.h/atls.lib files aren't always included by default,
-        # so find and add them
-        if vcbase and not atlmfc_found:
-            atls_lib = glob.glob(vcbase + rf"ATLMFC\lib\{self.plat_dir}\atls.lib")
-            if atls_lib:
-                self.library_dirs.append(os.path.dirname(atls_lib[0]))
-                self.include_dirs.append(
-                    os.path.join(
-                        os.path.dirname(os.path.dirname(os.path.dirname(atls_lib[0]))),
-                        "Include",
-                    )
-                )
-            else:
-                print("-- compiler.library_dirs:", self.compiler.library_dirs)
-                print("-- ATLMFC paths likely missing (Required for win32ui)")
-        return vcbase, vcverdir
-
     def _verstamp(self, filename):
         """
         Stamp the version of the built target.
@@ -543,8 +506,6 @@ class my_build_ext(build_ext):
             self.compiler.__class__.library_dirs = []
         else:
             print("-- FIX ME ! distutils may expose complete inc/lib dirs again")
-
-        vcbase, vcverdir = self._check_vc()
 
         # Here we hack a "pywin32" directory (one of 'win32', 'win32com',
         # 'pythonwin' etc), as distutils doesn't seem to like the concept
@@ -606,36 +567,29 @@ class my_build_ext(build_ext):
             self.copy_file(os.path.join(self.build_temp, fname), target_dir)
 
         # Finally find and copy the MFC redistributable DLLs.
+        # This is only available from the Visual Studio Installer.
+        # Skip if Pythonwin was also skipped.
         win32ui_ext = pythonwin_extensions[0]
-        if win32ui_ext not in set(self.extensions) - {
-            ext for ext, why in self.excluded_extensions
-        }:
-            return
-        if not vcbase:
-            raise RuntimeError("Can't find MFC redist DLLs with unkown VC base path")
-        redist_globs = [vcbase + r"redist\%s\*MFC\mfc140u.dll" % self.plat_dir]
-        m = re.search(r"\\VC\\Tools\\", vcbase)
-        if m:
-            # typical path on newer Visual Studios
+        if win32ui_ext in {ext for ext, why in self.excluded_extensions}:
+            vc_path = next(p for p in Path(self.compiler.cc).parents if p.name == "VC")
+            msvc_version = next(
+                p for p in Path(self.compiler.cc).parents if p.parent.name == "MSVC"
+            ).name
+            # Only mfcNNNu DLL is required (mfcmNNNX is Windows Forms, rest is ANSI)
             # prefer corresponding version but accept different version
-            same_version = vcverdir is not None and os.path.isdir(
-                vcbase[: m.start()]
-                + r"\VC\Redist\MSVC\{}{}".format(vcverdir, self.plat_dir)
-            )
-            redist_globs.append(
-                vcbase[: m.start()]
-                + r"\VC\Redist\MSVC\{}{}\*\mfc140u.dll".format(
-                    vcverdir if same_version else "*\\", self.plat_dir
-                )
-            )
-        # Only mfcNNNu DLL is required (mfcmNNNX is Windows Forms, rest is ANSI)
-        mfc_contents = next(filter(None, map(glob.glob, redist_globs)), [])[:1]
-        if not mfc_contents:
-            raise RuntimeError("MFC redist DLLs not found like %r!" % redist_globs)
+            redist_globs = [
+                f"Redist/MSVC/{msvc_version}/{self.plat_dir}/Microsoft.*.MFC/mfc140u.dll",
+                f"Redist/MSVC/*/{self.plat_dir}/Microsoft.*.MFC/mfc140u.dll",
+            ]
 
-        target_dir = os.path.join(self.build_lib, win32ui_ext.get_pywin32_dir())
-        for mfc_content in mfc_contents:
-            self.copy_file(mfc_content, target_dir)
+            mfc_dll = next(chain.from_iterable(map(vc_path.glob, redist_globs)), None)
+            if not mfc_dll:
+                raise RuntimeError(
+                    f"MFC redist DLLs not found like '{vc_path / redist_globs[-1]}'!"
+                )
+
+            target_dir = os.path.join(self.build_lib, win32ui_ext.get_pywin32_dir())
+            self.copy_file(mfc_dll, target_dir)
 
     def build_exefile(self, ext):
         suffix = "_d" if self.debug else ""
@@ -701,9 +655,7 @@ class my_build_ext(build_ext):
             if source.endswith(".i"):
                 self.find_swig()  # for the side-effect of the environment value.
                 # Find the swig_lib .i files we care about for dependency tracking.
-                ext.swig_deps = glob.glob(
-                    os.path.join(os.environ["SWIG_LIB"], "python", "*.i")
-                )
+                ext.swig_deps = list(Path(os.environ["SWIG_LIB"], "python").glob("*.i"))
                 ext.depends.extend(ext.swig_deps)
                 break
         else:
@@ -814,10 +766,10 @@ class my_build_ext(build_ext):
                 "-python",
                 # we never use the .doc files.
                 "-dnone",
+                *self.swig_opts,
+                *ext.swig_opts,
             ]
-            swig_cmd.extend(self.swig_opts)
-            swig_cmd.extend(ext.swig_opts)
-            if platform.machine() in ("AMD64", "ARM64"):
+            if platform.machine() in ("AMD64", "ARM64", "x86_64"):
                 swig_cmd.append("-DSWIG_PY64BIT")
             else:
                 swig_cmd.append("-DSWIG_PY32BIT")
@@ -1132,7 +1084,7 @@ win32_extensions += [
     WinExt_win32(
         "win32evtlog",
         sources="""
-                win32\\src\\win32evtlog_messages.mc win32\\src\\win32evtlog.i
+                win32/src/win32evtlog_messages.mc win32/src/win32evtlog.i
                 """.split(),
         libraries="advapi32 oleaut32",
         delay_load_libraries="wevtapi",
@@ -1244,29 +1196,29 @@ pythoncom = WinExt_system32(
     ).split(),
     depends=(
         """
-                        {win32com}/include\\propbag.h          {win32com}/include\\PyComTypeObjects.h
-                        {win32com}/include\\PyFactory.h        {win32com}/include\\PyGConnectionPoint.h
-                        {win32com}/include\\PyGConnectionPointContainer.h
-                        {win32com}/include\\PyGPersistStorage.h {win32com}/include\\PyIBindCtx.h
-                        {win32com}/include\\PyICatInformation.h {win32com}/include\\PyICatRegister.h
-                        {win32com}/include\\PyIDataObject.h    {win32com}/include\\PyIDropSource.h
-                        {win32com}/include\\PyIDropTarget.h    {win32com}/include\\PyIEnumConnectionPoints.h
-                        {win32com}/include\\PyIEnumConnections.h {win32com}/include\\PyIEnumFORMATETC.h
-                        {win32com}/include\\PyIEnumGUID.h      {win32com}/include\\PyIEnumSTATPROPSETSTG.h
-                        {win32com}/include\\PyIEnumSTATSTG.h   {win32com}/include\\PyIEnumString.h
-                        {win32com}/include\\PyIEnumVARIANT.h   {win32com}/include\\PyIExternalConnection.h
-                        {win32com}/include\\PyIGlobalInterfaceTable.h {win32com}/include\\PyILockBytes.h
-                        {win32com}/include\\PyIMoniker.h       {win32com}/include\\PyIOleWindow.h
-                        {win32com}/include\\PyIPersist.h       {win32com}/include\\PyIPersistFile.h
-                        {win32com}/include\\PyIPersistStorage.h {win32com}/include\\PyIPersistStream.h
-                        {win32com}/include\\PyIPersistStreamInit.h {win32com}/include\\PyIRunningObjectTable.h
-                        {win32com}/include\\PyIStorage.h       {win32com}/include\\PyIStream.h
-                        {win32com}/include\\PythonCOM.h        {win32com}/include\\PythonCOMRegister.h
-                        {win32com}/include\\PythonCOMServer.h  {win32com}/include\\stdafx.h
-                        {win32com}/include\\univgw_dataconv.h
-                        {win32com}/include\\PyICancelMethodCalls.h    {win32com}/include\\PyIContext.h
-                        {win32com}/include\\PyIEnumContextProps.h     {win32com}/include\\PyIClientSecurity.h
-                        {win32com}/include\\PyIServerSecurity.h
+                        {win32com}/include/propbag.h          {win32com}/include/PyComTypeObjects.h
+                        {win32com}/include/PyFactory.h        {win32com}/include/PyGConnectionPoint.h
+                        {win32com}/include/PyGConnectionPointContainer.h
+                        {win32com}/include/PyGPersistStorage.h {win32com}/include/PyIBindCtx.h
+                        {win32com}/include/PyICatInformation.h {win32com}/include/PyICatRegister.h
+                        {win32com}/include/PyIDataObject.h    {win32com}/include/PyIDropSource.h
+                        {win32com}/include/PyIDropTarget.h    {win32com}/include/PyIEnumConnectionPoints.h
+                        {win32com}/include/PyIEnumConnections.h {win32com}/include/PyIEnumFORMATETC.h
+                        {win32com}/include/PyIEnumGUID.h      {win32com}/include/PyIEnumSTATPROPSETSTG.h
+                        {win32com}/include/PyIEnumSTATSTG.h   {win32com}/include/PyIEnumString.h
+                        {win32com}/include/PyIEnumVARIANT.h   {win32com}/include/PyIExternalConnection.h
+                        {win32com}/include/PyIGlobalInterfaceTable.h {win32com}/include/PyILockBytes.h
+                        {win32com}/include/PyIMoniker.h       {win32com}/include/PyIOleWindow.h
+                        {win32com}/include/PyIPersist.h       {win32com}/include/PyIPersistFile.h
+                        {win32com}/include/PyIPersistStorage.h {win32com}/include/PyIPersistStream.h
+                        {win32com}/include/PyIPersistStreamInit.h {win32com}/include/PyIRunningObjectTable.h
+                        {win32com}/include/PyIStorage.h       {win32com}/include/PyIStream.h
+                        {win32com}/include/PythonCOM.h        {win32com}/include/PythonCOMRegister.h
+                        {win32com}/include/PythonCOMServer.h  {win32com}/include/stdafx.h
+                        {win32com}/include/univgw_dataconv.h
+                        {win32com}/include/PyICancelMethodCalls.h    {win32com}/include/PyIContext.h
+                        {win32com}/include/PyIEnumContextProps.h     {win32com}/include/PyIClientSecurity.h
+                        {win32com}/include/PyIServerSecurity.h
                         """.format(**dirs)
     ).split(),
     libraries="oleaut32 ole32 user32 urlmon oleacc",
@@ -1880,7 +1832,7 @@ def expand_modules(module_dir: str | os.PathLike[str]):
 
 
 # NOTE: somewhat counter-intuitively, a result list a-la:
-#  [('Lib/site-packages\\pythonwin', ('pythonwin/License.txt',)),]
+# [('Lib/site-packages/pythonwin', ('pythonwin/License.txt',)),]
 # will 'do the right thing' in terms of installing License.txt into
 # 'Lib/site-packages/pythonwin/License.txt'.  We exploit this to
 # get 'com/win32com/whatever' installed to 'win32com/whatever'
@@ -1896,13 +1848,13 @@ def convert_data_files(files: Iterable[str]):
                 if path.suffix != ".pyc"
             )
             if not files_use:
-                raise RuntimeError("No files match '%s'" % file)
+                raise RuntimeError(f"No files match '{file}'")
         else:
             if not os.path.isfile(file):
-                raise RuntimeError("No file '%s'" % file)
+                raise RuntimeError(f"No file '{file}'")
             files_use = (file,)
         for fname in files_use:
-            path_use = os.path.dirname(fname).removeprefix("com\\")
+            path_use = os.path.dirname(fname).removeprefix(f"com{os.sep}")
             ret.append((path_use, (fname,)))
     return ret
 
@@ -1966,7 +1918,7 @@ packages = [
     "adodbapi",
 ]
 
-py_modules = [*expand_modules("win32\\lib"), "win32\\winxpgui"]
+py_modules = [*expand_modules("win32/lib"), "win32/winxpgui"]
 ext_modules = (
     win32_extensions + com_extensions + pythonwin_extensions + other_extensions
 )
@@ -1989,6 +1941,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
     "Programming Language :: Python :: Implementation :: CPython",
 ]
 
