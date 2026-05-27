@@ -44,6 +44,8 @@ select = [
   "TC", # flake8-type-checking
   # Helps prevent misuse of imports
   "TID", # flake8-tidy-imports
+  "TID254", # lazy-import-mismatch (preview)
+  "TID255", # lazy-import-immediately-resolved (preview)
 ]
 extend-ignore = [
   "C409", # Actually makes tuples comprehensions slower in preview

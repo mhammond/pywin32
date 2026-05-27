@@ -1,4 +1,5 @@
 """A tool to setup the Python registry."""
+
 import sys
 
 
