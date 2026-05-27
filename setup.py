@@ -365,15 +365,19 @@ class my_build_ext(build_ext):
         self.swig_opts.append("-c++")
 
     def _get_gcc_include_dirs(self) -> list[str]:
-        """Query gcc's built-in include search paths (needed for cross-compilation on Linux)."""
+        """Query gcc's built-in include search paths."""
         cc = getattr(self.compiler, "cc", "")
         if not cc:
             return []
-        output = subprocess.check_output(
-            [cc, "-xc", "-E", "-", "-v"],
-            input=b"",
-            stderr=subprocess.STDOUT,
-        ).decode(errors="replace")
+        try:
+            output = subprocess.check_output(
+                [cc, "-xc", "-E", "-", "-v"],
+                input=b"",
+                stderr=subprocess.STDOUT,
+            ).decode(errors="replace")
+        except subprocess.CalledProcessError:
+            return []  # probably wasn't gcc
+        # All lines between the start and end markers will be include directories
         dirs: Iterator[str] = dropwhile(
             lambda line: line != "#include <...> search starts here:",
             output.splitlines(),
