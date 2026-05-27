@@ -400,20 +400,24 @@ class my_build_ext(build_ext):
 
     def _build_scintilla(self):
         scintilla_path = "pythonwin/Scintilla"
-        makefile = "makefile_pythonwin"
+        if is_mingw:
+            makefile = "GNUmakefile"
+        else:
+            makefile = "makefile_pythonwin"
         makeargs = []
 
         if self.debug:
             makeargs.append("DEBUG=1")
         if not self.verbose:
-            makeargs.append("/C")  # nmake: /C Suppress output messages
+            if not is_mingw:
+                makeargs.append("/C")  # nmake: /C Suppress output messages
             makeargs.append("QUIET=1")
         # We build the DLL into our own temp directory, then copy it to the
         # real directory - this avoids the generated .lib/.exp
         build_temp = os.path.abspath(os.path.join(self.build_temp, "scintilla"))
         self.mkpath(build_temp)
         # Use short-names, as the scintilla makefiles barf with spaces.
-        if " " in build_temp:
+        if sys.platform == "win32" and " " in build_temp:
             # ack - can't use win32api!!!  This is the best I could come up
             # with:
             # C:\>for %I in ("C:\Program Files",) do @echo %~sI
@@ -425,40 +429,43 @@ class my_build_ext(build_ext):
         makeargs.append("SUB_DIR_O=%s" % build_temp)
         makeargs.append("SUB_DIR_BIN=%s" % build_temp)
 
-        nmake = "nmake.exe"
-        # Attempt to resolve nmake to the same one that our compiler object
-        # would use. compiler.spawn() ought to do this, but it does not search
-        # its own PATH value for the initial command. It does, however, set it
-        # correctly for any subsequent commands.
-        try:
-            for p in self.compiler._paths.split(os.pathsep):
-                if os.path.isfile(os.path.join(p, nmake)):
-                    nmake = os.path.join(p, nmake)
-                    break
-        except (AttributeError, TypeError):
-            pass
-
         cwd = os.getcwd()
-        old_env = os.environ.copy()
-        os.environ["INCLUDE"] = os.pathsep.join(self.compiler.include_dirs)
-        os.environ["LIB"] = os.pathsep.join(self.compiler.library_dirs)
         os.chdir(scintilla_path)
-        try:
-            cmd = [nmake, "/nologo", "/f", makefile] + makeargs
-            self.compiler.spawn(cmd)
-        finally:
-            os.chdir(cwd)
-            os.environ["INCLUDE"] = old_env.get("INCLUDE", "")
-            os.environ["LIB"] = old_env.get("LIB", "")
-
-        # The DLL goes in the pythonwin directory.
-        if self.debug:
-            base_name = "scintilla_d.dll"
+        if is_mingw:
+            try:
+                self.compiler.spawn(["make", "-f", makefile, *makeargs])
+            finally:
+                os.chdir(cwd)
         else:
-            base_name = "scintilla.dll"
+            nmake = "nmake.exe"
+            # Attempt to resolve nmake to the same one that our compiler object
+            # would use. compiler.spawn() ought to do this, but it does not search
+            # its own PATH value for the initial command. It does, however, set it
+            # correctly for any subsequent commands.
+            try:
+                for p in self.compiler._paths.split(os.pathsep):
+                    if os.path.isfile(os.path.join(p, nmake)):
+                        nmake = os.path.join(p, nmake)
+                        break
+            except (AttributeError, TypeError):
+                pass
+
+            old_env = os.environ.copy()
+            os.environ["INCLUDE"] = os.pathsep.join(self.compiler.include_dirs)
+            os.environ["LIB"] = os.pathsep.join(self.compiler.library_dirs)
+            os.chdir(scintilla_path)
+            try:
+                self.compiler.spawn([nmake, "/nologo", "/f", makefile, *makeargs])
+            finally:
+                os.chdir(cwd)
+                os.environ["INCLUDE"] = old_env.get("INCLUDE", "")
+                os.environ["LIB"] = old_env.get("LIB", "")
+
+        # The DLL goes in the Pythonwin directory.
+        suffix = "_d" if self.debug else ""
         self.copy_file(
-            os.path.join(self.build_temp, "scintilla", base_name),
-            os.path.join(self.build_lib, "pythonwin"),
+            os.path.join(self.build_temp, "scintilla", f"Scintilla{suffix}.dll"),
+            os.path.join(self.build_lib, "pythonwin", f"scintilla{suffix}.dll"),
         )
 
     def _verstamp(self, filename):
@@ -552,6 +559,7 @@ class my_build_ext(build_ext):
         # Not sure how to make this completely generic, and there is no
         # need at this stage.
         self._build_scintilla()
+
         # Copy cpp lib files needed to create Python COM extensions
         clib_files = (
             ["win32", "pywintypes%s.lib"],
