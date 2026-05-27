@@ -406,14 +406,15 @@ class my_build_ext(build_ext):
             )
             patched_libs = []
             for lib in ext.libraries:
-                if lib.lower() in self.found_libraries:
-                    found = self.found_libraries[lib.lower()]
+                lib_lower = lib.lower()
+                if lib_lower in self.found_libraries:
+                    found = self.found_libraries[lib_lower]
                 else:
                     found = self.compiler.find_library_file(look_dirs, lib, self.debug)
                     if not found:
                         logging.debug("Lib '%s' not found in %s", lib, look_dirs)
                         return f"No library '{lib}'"
-                    self.found_libraries[lib.lower()] = found
+                    self.found_libraries[lib_lower] = found
                 patched_libs.append(os.path.splitext(os.path.basename(found))[0])
 
             # We update the .libraries list with the resolved library name.
