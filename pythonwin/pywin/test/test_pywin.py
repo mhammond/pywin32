@@ -415,7 +415,6 @@ class T(unittest.TestCase):
 
     def test_debugger(self):
         import pywin.debugger
-        import pywin.framework.dbgcommands
 
         fn = src_dir + "\\_dbgscript.py"
         deb = pywin.debugger.GetDebugger()
@@ -437,7 +436,8 @@ class T(unittest.TestCase):
         deb.set_break(fn, getlno("aa = 77"))  # break within `def ff()`
         cmds_brk_next = [cmGo, cmClose]  # continue, quit/abort
         self.addCleanup(lambda: (deb.clear_all_breaks(), deb.UpdateAllLineStates()))
-        ##debh = pywin.framework.dbgcommands.DebuggerCommandHandler()
+        # import pywin.framework.dbgcommands
+        # debh = pywin.framework.dbgcommands.DebuggerCommandHandler()
         obj = Object(brk_linenos=[])
         GUIAboutToBreak = deb.GUIAboutToBreak
 

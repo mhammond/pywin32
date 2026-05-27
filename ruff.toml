@@ -12,6 +12,8 @@ extend-exclude = ["pythonwin/pywin/test/_dbgscript.py"]
 line-ending = "cr-lf"
 
 [lint]
+preview = true
+explicit-preview-rules = true
 future-annotations = true
 select = [
   "B028", # no-explicit-stacklevel
@@ -40,8 +42,11 @@ select = [
 
   # Helps prevent circular imports and other unneeded imports
   "TC", # flake8-type-checking
+  # Helps prevent misuse of imports
+  "TID", # flake8-tidy-imports
 ]
 extend-ignore = [
+  "C409", # Actually makes tuples comprehensions slower in preview
   # Lots of lazy or side-effect imports
   "PLC0415", # import-outside-top-level
   # We prefer explicit open mode parameter
