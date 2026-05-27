@@ -1,4 +1,4 @@
-target-version = "py39" # Target the oldest supported version
+target-version = "py315" # Target the oldest supported version
 extend-include = [
   "*.pyw", # Will be included by default in Ruff eventually
   "*.pys", # PythonScript (Windows Script Host)
@@ -86,9 +86,19 @@ extend-ignore = [
 # "win32traceutil", # Redirects output to win32trace remote collector
 # "win32ui", # Must always be imported before dde
 # Note: com/win32com/client/gencache.py does read files on import, but only to fill in it's own dicts from cache
-[lint.flake8-tidy-imports.require-lazy]
-include = "all"
-exclude = ["coloreditor", "IDLEenvironment", "pythoncom", "pywintypes", "win32com", "win32traceutil", "win32ui"]
+# [lint.flake8-tidy-imports.require-lazy]
+# Currently leads to an infinite loop: https://github.com/astral-sh/ruff/issues/25418
+# include = "all"
+# Request to avoid config duplication: https://github.com/astral-sh/ruff/issues/25420
+# exclude = [
+#   "coloreditor",
+#   "IDLEenvironment",
+#   "pythoncom",
+#   "pywintypes",
+#   "win32com",
+#   "win32traceutil",
+#   "win32ui",
+# ]
 [lint.flake8-tidy-imports]
 ban-lazy = ["coloreditor", "IDLEenvironment", "pythoncom", "pywintypes", "win32com", "win32traceutil", "win32ui"]
 [lint.pyflakes]
