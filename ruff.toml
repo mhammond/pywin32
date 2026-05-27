@@ -1,4 +1,10 @@
-target-version = "py39" # Target the oldest supported version
+target-version = "py315" # Target the oldest supported version
+extend-include = [
+  "*.pyw", # Will be included by default in Ruff eventually
+  "*.pys", # PythonScript (Windows Script Host)
+  # Can be uncommented to format the [Extensions] section
+  # "**/default.cfg",
+]
 # This file is not UTF-8
 extend-exclude = ["pythonwin/pywin/test/_dbgscript.py"]
 
@@ -6,6 +12,9 @@ extend-exclude = ["pythonwin/pywin/test/_dbgscript.py"]
 line-ending = "cr-lf"
 
 [lint]
+preview = true
+explicit-preview-rules = true
+future-annotations = true
 select = [
   "B028", # no-explicit-stacklevel
   "C4", # flake8-comprehensions
@@ -33,14 +42,21 @@ select = [
 
   # Helps prevent circular imports and other unneeded imports
   "TC", # flake8-type-checking
+  # Helps prevent misuse of imports
+  "TID", # flake8-tidy-imports
+  "TID254", # lazy-import-mismatch (preview)
+  "TID255", # lazy-import-immediately-resolved (preview)
 ]
 extend-ignore = [
+  "C409", # Actually makes tuples comprehensions slower in preview
   # Lots of lazy or side-effect imports
   "PLC0415", # import-outside-top-level
   # We prefer explicit open mode parameter
   "UP015", # redundant-open-modes
   # No such concerns for stdlib
   "TC003", # typing-only-standard-library-import
+  # Lots of lazy or side-effect imports
+  "PLC0415", # import-outside-top-level
   # TODO: Consider passing exception around to ensure methods are only ever used within exception handlers
   "PLE0704", # misplaced-bare-raise
   # TODO: Still lots of manual fixes needed
@@ -49,13 +65,9 @@ extend-ignore = [
 ]
 
 [lint.per-file-ignores]
-# Explicit re-exports is fine in __init__.py, still a code smell elsewhere.
-"__init__.py" = ["PLC0414"]
 # TODO: Make adodbapi changes in their own PRs
 "adodbapi/*" = [
   "C4",
-  "UP031",
-  "UP032",
   # Dropping Python 3.8 support
   "UP005",
   "UP006",
@@ -65,17 +77,39 @@ extend-ignore = [
   "YTT301",
 ]
 
+# Modules with known side-effects
+# "coloreditor", # Adds doc template
+# "IDLEenvironment", # Injects fast_readline into the IDLE auto-indent extension
+# "pythoncom", # pythoncomXX.dll loader
+# "pywintypes", # pywintypesXX.dll loader
+# "win32com", # Adds modules to path based on the registry
+# "win32traceutil", # Redirects output to win32trace remote collector
+# "win32ui", # Must always be imported before dde
+# Note: com/win32com/client/gencache.py does read files on import, but only to fill in it's own dicts from cache
+# [lint.flake8-tidy-imports.require-lazy]
+# Currently leads to an infinite loop: https://github.com/astral-sh/ruff/issues/25418
+# include = "all"
+# Request to avoid config duplication: https://github.com/astral-sh/ruff/issues/25420
+# exclude = [
+#   "coloreditor",
+#   "IDLEenvironment",
+#   "pythoncom",
+#   "pywintypes",
+#   "win32com",
+#   "win32traceutil",
+#   "win32ui",
+# ]
+[lint.flake8-tidy-imports]
+ban-lazy = ["coloreditor", "IDLEenvironment", "pythoncom", "pywintypes", "win32com", "win32traceutil", "win32ui"]
 [lint.pyflakes]
 allowed-unused-imports = [
-  # Modules with known side-effects
-  "coloreditor", # Adds doc template
-  "IDLEenvironment", # Injects fast_readline into the IDLE auto-indent extension
-  "pythoncom", # pythoncomXX.dll loader
-  "pywintypes", # pywintypesXX.dll loader
-  "win32com", # Adds modules to path based on the registry
-  "win32traceutil", # Redirects output to win32trace remote collector
-  "win32ui", # Must always be imported before dde
-  # Note: com/win32com/client/gencache.py does read files on import, but only to fill in it's own dicts from cache
+  "coloreditor",
+  "IDLEenvironment",
+  "pythoncom",
+  "pywintypes",
+  "win32com",
+  "win32traceutil",
+  "win32ui",
 ]
 
 [lint.isort]
