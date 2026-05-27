@@ -75,18 +75,22 @@ extend-ignore = [
   "YTT301",
 ]
 
+# Modules with known side-effects
+# "coloreditor", # Adds doc template
+# "IDLEenvironment", # Injects fast_readline into the IDLE auto-indent extension
+# "pythoncom", # pythoncomXX.dll loader
+# "pywintypes", # pywintypesXX.dll loader
+# "win32com", # Sets pythoncom.frozen and adds modules to path based on the registry
+# "win32traceutil", # Redirects output to win32trace remote collector
+# "win32ui", # Must always be imported before dde
+# Note: com/win32com/client/gencache.py does read files on import, but only to fill in it's own dicts from cache
+[lint.flake8-tidy-imports.require-lazy]
+include = "all"
+exclude = ["coloreditor", "IDLEenvironment", "pythoncom", "pywintypes", "win32com", "win32traceutil", "win32ui"]
+[lint.flake8-tidy-imports]
+ban-lazy = ["coloreditor", "IDLEenvironment", "pythoncom", "pywintypes", "win32com", "win32traceutil", "win32ui"]
 [lint.pyflakes]
-allowed-unused-imports = [
-  # Modules with known side-effects
-  "coloreditor", # Adds doc template
-  "IDLEenvironment", # Injects fast_readline into the IDLE auto-indent extension
-  "pythoncom", # pythoncomXX.dll loader
-  "pywintypes", # pywintypesXX.dll loader
-  "win32com", # Sets pythoncom.frozen and adds modules to path based on the registry
-  "win32traceutil", # Redirects output to win32trace remote collector
-  "win32ui", # Must always be imported before dde
-  # Note: com/win32com/client/gencache.py does read files on import, but only to fill in it's own dicts from cache
-]
+allowed-unused-imports = ["coloreditor", "IDLEenvironment", "pythoncom", "pywintypes", "win32com", "win32traceutil", "win32ui"]
 
 [lint.isort]
 combine-as-imports = true
