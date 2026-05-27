@@ -2089,7 +2089,15 @@ if "build_ext" in dist.command_obj:
     # Print the list of extension modules we skipped building.
     excluded_extensions = dist.command_obj["build_ext"].excluded_extensions
     if excluded_extensions:
-        skip_whitelist = {"axdebug"}
+        # Set of extension names that are acceptable to skip for a release build
+        skip_whitelist = set()
+        if is_mingw:
+            # On MinGW, allow excluded ext/exe due to missing ATL/MFC headers (typically PythonWin)
+            skip_whitelist |= {
+                ext.name
+                for ext in [*pythonwin_extensions, *W32_exe_files]
+                if "afxwin.h" in ext.optional_headers
+            }
         skipped_ex = []
         print(f"*** NOTE: The following extensions were NOT {what_string}:")
         for ext, why in excluded_extensions:
