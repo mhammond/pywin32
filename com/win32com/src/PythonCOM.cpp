@@ -1428,17 +1428,18 @@ static PyObject *pythoncom_PumpWaitingMessages(PyObject *self, PyObject *args)
     long result = 0;
     // Read all of the messages in this next loop,
     // removing each message as we read it.
-    Py_BEGIN_ALLOW_THREADS while (PeekMessage(&msg, NULL, firstMsg, lastMsg, PM_REMOVE))
-    {
-        // If it's a quit message, we're out of here.
-        if (msg.message == WM_QUIT) {
-            result = 1;
-            break;
-        }
-        // Otherwise, dispatch the message.
-        DispatchMessage(&msg);
-    }  // End of PeekMessage while loop
-    Py_END_ALLOW_THREADS return PyLong_FromLong(result);
+    Py_BEGIN_ALLOW_THREADS
+        while (PeekMessage(&msg, NULL, firstMsg, lastMsg, PM_REMOVE)) {
+            // If it's a quit message, we're out of here.
+            if (msg.message == WM_QUIT) {
+                result = 1;
+                break;
+            }
+            // Otherwise, dispatch the message.
+            DispatchMessage(&msg);
+        }  // End of PeekMessage while loop
+    Py_END_ALLOW_THREADS
+    return PyLong_FromLong(result);
 }
 
 // @pymethod |pythoncom|PumpMessages|Pumps all messages for the current thread until a WM_QUIT message.
@@ -1446,12 +1447,14 @@ static PyObject *pythoncom_PumpMessages(PyObject *self, PyObject *args)
 {
     MSG msg;
     int rc;
-    Py_BEGIN_ALLOW_THREADS while ((rc = GetMessage(&msg, 0, 0, 0)) == 1)
-    {
-        TranslateMessage(&msg);  // needed?
-        DispatchMessage(&msg);
-    }
-    Py_END_ALLOW_THREADS if (rc == -1) return PyWin_SetAPIError("GetMessage");
+    Py_BEGIN_ALLOW_THREADS
+        while ((rc = GetMessage(&msg, 0, 0, 0)) == 1) {
+            TranslateMessage(&msg);  // needed?
+            DispatchMessage(&msg);
+        }
+    Py_END_ALLOW_THREADS
+    if (rc == -1)
+        return PyWin_SetAPIError("GetMessage");
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -1520,9 +1523,14 @@ static PyObject *pythoncom_CoWaitForMultipleHandles(PyObject *self, PyObject *ar
     DWORD index;
     PyObject *rc = NULL;
     HRESULT hr;
-    Py_BEGIN_ALLOW_THREADS hr = CoWaitForMultipleHandles(flags, timeout, numItems, pItems, &index);
-    Py_END_ALLOW_THREADS if (FAILED(hr)) { PyCom_BuildPyException(hr); }
-    else rc = PyLong_FromLong(index);
+    Py_BEGIN_ALLOW_THREADS
+        hr = CoWaitForMultipleHandles(flags, timeout, numItems, pItems, &index);
+    Py_END_ALLOW_THREADS
+    if (FAILED(hr)) {
+        PyCom_BuildPyException(hr);
+    }
+    else
+        rc = PyLong_FromLong(index);
     free(pItems);
     return rc;
 }
@@ -1535,9 +1543,10 @@ static PyObject *pythoncom_OleGetClipboard(PyObject *, PyObject *args)
         return NULL;
     IDataObject *pd = NULL;
     HRESULT hr;
-    Py_BEGIN_ALLOW_THREADS hr = ::OleGetClipboard(&pd);
-    Py_END_ALLOW_THREADS if (FAILED(hr))
-    {
+    Py_BEGIN_ALLOW_THREADS
+        hr = ::OleGetClipboard(&pd);
+    Py_END_ALLOW_THREADS
+    if (FAILED(hr)) {
         PyCom_BuildPyException(hr);
         return NULL;
     }
@@ -1557,8 +1566,11 @@ static PyObject *pythoncom_OleSetClipboard(PyObject *, PyObject *args)
     if (!PyCom_InterfaceFromPyObject(obd, IID_IDataObject, (void **)&pd, TRUE))
         return NULL;
     HRESULT hr;
-    Py_BEGIN_ALLOW_THREADS hr = ::OleSetClipboard(pd);
-    Py_END_ALLOW_THREADS if (pd) pd->Release();
+    Py_BEGIN_ALLOW_THREADS
+        hr = ::OleSetClipboard(pd);
+    Py_END_ALLOW_THREADS
+    if (pd)
+        pd->Release();
     if (FAILED(hr)) {
         PyCom_BuildPyException(hr);
         return NULL;
@@ -1579,8 +1591,10 @@ static PyObject *pythoncom_OleIsCurrentClipboard(PyObject *, PyObject *args)
     if (!PyCom_InterfaceFromPyObject(obd, IID_IDataObject, (void **)&pd, FALSE))
         return NULL;
     HRESULT hr;
-    Py_BEGIN_ALLOW_THREADS hr = ::OleIsCurrentClipboard(pd);
-    Py_END_ALLOW_THREADS pd->Release();
+    Py_BEGIN_ALLOW_THREADS
+        hr = ::OleIsCurrentClipboard(pd);
+    Py_END_ALLOW_THREADS
+    pd->Release();
     if (FAILED(hr)) {
         PyCom_BuildPyException(hr);
         return NULL;
@@ -1598,9 +1612,10 @@ static PyObject *pythoncom_OleFlushClipboard(PyObject *, PyObject *args)
         return NULL;
 
     HRESULT hr;
-    Py_BEGIN_ALLOW_THREADS hr = ::OleFlushClipboard();
-    Py_END_ALLOW_THREADS if (FAILED(hr))
-    {
+    Py_BEGIN_ALLOW_THREADS
+        hr = ::OleFlushClipboard();
+    Py_END_ALLOW_THREADS
+    if (FAILED(hr)) {
         PyCom_BuildPyException(hr);
         return NULL;
     }
@@ -1626,8 +1641,10 @@ static PyObject *pythoncom_RegisterDragDrop(PyObject *, PyObject *args)
     if (!PyCom_InterfaceFromPyObject(obd, IID_IDropTarget, (void **)&dt, FALSE))
         return NULL;
     HRESULT hr;
-    Py_BEGIN_ALLOW_THREADS hr = ::RegisterDragDrop(hwnd, dt);
-    Py_END_ALLOW_THREADS dt->Release();
+    Py_BEGIN_ALLOW_THREADS
+        hr = ::RegisterDragDrop(hwnd, dt);
+    Py_END_ALLOW_THREADS
+    dt->Release();
     if (FAILED(hr)) {
         PyCom_BuildPyException(hr);
         return NULL;
@@ -1649,9 +1666,10 @@ static PyObject *pythoncom_RevokeDragDrop(PyObject *, PyObject *args)
     if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hwnd))
         return NULL;
     HRESULT hr;
-    Py_BEGIN_ALLOW_THREADS hr = ::RevokeDragDrop(hwnd);
-    Py_END_ALLOW_THREADS if (FAILED(hr))
-    {
+    Py_BEGIN_ALLOW_THREADS
+        hr = ::RevokeDragDrop(hwnd);
+    Py_END_ALLOW_THREADS
+    if (FAILED(hr)) {
         PyCom_BuildPyException(hr);
         return NULL;
     }
@@ -1676,8 +1694,10 @@ static PyObject *pythoncom_DoDragDrop(PyObject *, PyObject *args)
     }
     HRESULT hr;
     DWORD retEffect = 0;
-    Py_BEGIN_ALLOW_THREADS hr = ::DoDragDrop(dob, ds, effects, &retEffect);
-    Py_END_ALLOW_THREADS ds->Release();
+    Py_BEGIN_ALLOW_THREADS
+        hr = ::DoDragDrop(dob, ds, effects, &retEffect);
+    Py_END_ALLOW_THREADS
+    ds->Release();
     dob->Release();
     if (FAILED(hr)) {
         PyCom_BuildPyException(hr);
@@ -1694,9 +1714,10 @@ static PyObject *pythoncom_OleInitialize(PyObject *, PyObject *args)
     if (!PyArg_ParseTuple(args, ":OleInitialize"))
         return NULL;
     HRESULT hr;
-    Py_BEGIN_ALLOW_THREADS hr = ::OleInitialize(NULL);
-    Py_END_ALLOW_THREADS if (FAILED(hr))
-    {
+    Py_BEGIN_ALLOW_THREADS
+        hr = ::OleInitialize(NULL);
+    Py_END_ALLOW_THREADS
+    if (FAILED(hr)) {
         PyCom_BuildPyException(hr);
         return NULL;
     }
@@ -1728,9 +1749,10 @@ static PyObject *pythoncom_ObjectFromLresult(PyObject *self, PyObject *args)
 
     HRESULT hr;
     void *ret = 0;
-    Py_BEGIN_ALLOW_THREADS hr = ObjectFromLresult(lresult, iid, wparam, &ret);
-    Py_END_ALLOW_THREADS if (FAILED(hr))
-    {
+    Py_BEGIN_ALLOW_THREADS
+        hr = ObjectFromLresult(lresult, iid, wparam, &ret);
+    Py_END_ALLOW_THREADS
+    if (FAILED(hr)) {
         PyCom_BuildPyException(hr);
         return NULL;
     }
@@ -1796,8 +1818,11 @@ static PyObject *pythoncom_CoGetCallContext(PyObject *self, PyObject *args)
         return NULL;
 
     HRESULT hr;
-    Py_BEGIN_ALLOW_THREADS hr = CoGetCallContext(riid, &ret);
-    Py_END_ALLOW_THREADS if (FAILED(hr)) return PyCom_BuildPyException(hr);
+    Py_BEGIN_ALLOW_THREADS
+        hr = CoGetCallContext(riid, &ret);
+    Py_END_ALLOW_THREADS
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr);
     return PyCom_PyObjectFromIUnknown((IUnknown *)ret, riid, FALSE);
 }
 
@@ -1813,8 +1838,11 @@ static PyObject *pythoncom_CoGetObjectContext(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "|O&:CoGetObjectContext", PyWinObject_AsIID, &riid))
         return NULL;
     HRESULT hr;
-    Py_BEGIN_ALLOW_THREADS hr = CoGetObjectContext(riid, &ret);
-    Py_END_ALLOW_THREADS if (FAILED(hr)) return PyCom_BuildPyException(hr);
+    Py_BEGIN_ALLOW_THREADS
+        hr = CoGetObjectContext(riid, &ret);
+    Py_END_ALLOW_THREADS
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr);
     return PyCom_PyObjectFromIUnknown((IUnknown *)ret, riid, FALSE);
 }
 
@@ -1829,8 +1857,11 @@ static PyObject *pythoncom_CoGetCancelObject(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "|kO&:CoGetCancelObject", &tid, PyWinObject_AsIID, &riid))
         return NULL;
     HRESULT hr;
-    Py_BEGIN_ALLOW_THREADS hr = CoGetCancelObject(tid, riid, &ret);
-    Py_END_ALLOW_THREADS if (FAILED(hr)) return PyCom_BuildPyException(hr);
+    Py_BEGIN_ALLOW_THREADS
+        hr = CoGetCancelObject(tid, riid, &ret);
+    Py_END_ALLOW_THREADS
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr);
     return PyCom_PyObjectFromIUnknown((IUnknown *)ret, riid, FALSE);
 }
 
@@ -1848,8 +1879,11 @@ static PyObject *pythoncom_CoSetCancelObject(PyObject *self, PyObject *args)
         return NULL;
 
     HRESULT hr;
-    Py_BEGIN_ALLOW_THREADS hr = CoSetCancelObject(pUnk);
-    Py_END_ALLOW_THREADS if (FAILED(hr)) return PyCom_BuildPyException(hr);
+    Py_BEGIN_ALLOW_THREADS
+        hr = CoSetCancelObject(pUnk);
+    Py_END_ALLOW_THREADS
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr);
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -1859,8 +1893,11 @@ static PyObject *pythoncom_CoEnableCallCancellation(PyObject *self, PyObject *ar
 {
     // Only param is reserved
     HRESULT hr;
-    Py_BEGIN_ALLOW_THREADS hr = CoEnableCallCancellation(NULL);
-    Py_END_ALLOW_THREADS if (FAILED(hr)) return PyCom_BuildPyException(hr);
+    Py_BEGIN_ALLOW_THREADS
+        hr = CoEnableCallCancellation(NULL);
+    Py_END_ALLOW_THREADS
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr);
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -1870,8 +1907,11 @@ static PyObject *pythoncom_CoDisableCallCancellation(PyObject *self, PyObject *a
 {
     // Only param is reserved
     HRESULT hr;
-    Py_BEGIN_ALLOW_THREADS hr = CoDisableCallCancellation(NULL);
-    Py_END_ALLOW_THREADS if (FAILED(hr)) return PyCom_BuildPyException(hr);
+    Py_BEGIN_ALLOW_THREADS
+        hr = CoDisableCallCancellation(NULL);
+    Py_END_ALLOW_THREADS
+    if (FAILED(hr))
+        return PyCom_BuildPyException(hr);
     Py_INCREF(Py_None);
     return Py_None;
 }

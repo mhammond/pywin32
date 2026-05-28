@@ -135,13 +135,13 @@ PyObject *PyLoadUserProfile(PyObject *self, PyObject *args, PyObject *kwargs)
         return NULL;
     BOOL ok;
     DWORD err;
-    Py_BEGIN_ALLOW_THREADS;
-    ok = LoadUserProfile(hToken, &profileinfo);
-    // Capture error before Py_END_ALLOW_THREADS reacquires the GIL,
-    // which may call Win32 functions that overwrite GetLastError().
-    if (!ok)
-        err = GetLastError();
-    Py_END_ALLOW_THREADS;
+    Py_BEGIN_ALLOW_THREADS
+        ok = LoadUserProfile(hToken, &profileinfo);
+        // Capture error before Py_END_ALLOW_THREADS reacquires the GIL,
+        // which may call Win32 functions that overwrite GetLastError().
+        if (!ok)
+            err = GetLastError();
+    Py_END_ALLOW_THREADS
     if (!ok)
         PyWin_SetAPIError("LoadUserProfile", err);
     else
@@ -170,11 +170,11 @@ PyObject *PyUnloadUserProfile(PyObject *self, PyObject *args, PyObject *kwargs)
         return NULL;
     BOOL ok;
     DWORD err;
-    Py_BEGIN_ALLOW_THREADS;
-    ok = UnloadUserProfile(hToken, hProfile);
-    if (!ok)
-        err = GetLastError();
-    Py_END_ALLOW_THREADS;
+    Py_BEGIN_ALLOW_THREADS
+        ok = UnloadUserProfile(hToken, hProfile);
+        if (!ok)
+            err = GetLastError();
+    Py_END_ALLOW_THREADS
     if (!ok) {
         PyWin_SetAPIError("UnloadUserProfile", err);
         return NULL;
@@ -353,11 +353,11 @@ PyObject *PyCreateEnvironmentBlock(PyObject *self, PyObject *args, PyObject *kwa
         return NULL;
     BOOL ok;
     DWORD err;
-    Py_BEGIN_ALLOW_THREADS;
-    ok = CreateEnvironmentBlock(&env, hToken, inherit);
-    if (!ok)
-        err = GetLastError();
-    Py_END_ALLOW_THREADS;
+    Py_BEGIN_ALLOW_THREADS
+        ok = CreateEnvironmentBlock(&env, hToken, inherit);
+        if (!ok)
+            err = GetLastError();
+    Py_END_ALLOW_THREADS
     if (!ok)
         PyWin_SetAPIError("CreateEnvironmentBlock", err);
     else {
