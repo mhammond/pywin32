@@ -419,11 +419,11 @@ class my_build_ext(build_ext):
             # C:\>for %I in ("C:\Program Files",) do @echo %~sI
             # C:\PROGRA~1
             cs = os.environ.get("comspec", "cmd.exe")
-            cmd = cs + ' /c for %I in ("' + build_temp + '",) do @echo %~sI'
+            cmd = f'{cs} /c for %I in ("{build_temp}",) do @echo %~sI'
             build_temp = os.popen(cmd).read().strip()
             assert os.path.isdir(build_temp), build_temp
-        makeargs.append("SUB_DIR_O=%s" % build_temp)
-        makeargs.append("SUB_DIR_BIN=%s" % build_temp)
+        makeargs.append(f"SUB_DIR_O={build_temp}")
+        makeargs.append(f"SUB_DIR_BIN={build_temp}")
 
         nmake = "nmake.exe"
         # Attempt to resolve nmake to the same one that our compiler object
@@ -541,6 +541,12 @@ class my_build_ext(build_ext):
                 continue
             self.build_exefile(ext)
 
+            # If Pythonwin can't be built, then no need to build scintilla either
+            if ext.name == "Pythonwin":
+                # Not sure how to make this completely generic,
+                # and there is no need at this stage.
+                self._build_scintilla()
+
         # Error when too many skips
         if len(self.excluded_extensions) > 0.3 * (
             len(self.extensions) + len(W32_exe_files)
@@ -549,9 +555,6 @@ class my_build_ext(build_ext):
             print("-- compiler.library_dirs:", self.compiler.library_dirs)
             raise RuntimeError("Too many extensions skipped, check build environment")
 
-        # Not sure how to make this completely generic, and there is no
-        # need at this stage.
-        self._build_scintilla()
         # Copy cpp lib files needed to create Python COM extensions
         clib_files = (
             ["win32", "pywintypes%s.lib"],
