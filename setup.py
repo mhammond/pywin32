@@ -422,9 +422,8 @@ class my_build_ext(build_ext):
             cmd = f'{cs} /c for %I in ("{build_temp}",) do @echo %~sI'
             build_temp = os.popen(cmd).read().strip()
             assert os.path.isdir(build_temp), build_temp
-        makeargs.append("SUB_DIR_O=%s" % build_temp)
-makeargs.append("SUB_DIR_O={build_temp}")
-makeargs.append("SUB_DIR_BIN={build_temp}")
+        makeargs.append(f"SUB_DIR_O={build_temp}")
+        makeargs.append(f"SUB_DIR_BIN={build_temp}")
 
         nmake = "nmake.exe"
         # Attempt to resolve nmake to the same one that our compiler object
