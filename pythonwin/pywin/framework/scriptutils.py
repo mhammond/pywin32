@@ -542,14 +542,13 @@ def RunTabNanny(filename):
     data = newout.getvalue()
     if data:
         try:
-            lineno = data.split()[1]
-            lineno = int(lineno)
+            lineno = int(data.split()[1])
             _JumpToPosition(filename, lineno)
             try:  # Try and display whitespace
                 GetActiveEditControl().SCISetViewWS(1)
             except:
                 pass
-            win32ui.SetStatusText("The TabNanny found trouble at line %d" % lineno)
+            win32ui.SetStatusText(f"The TabNanny found trouble at line {lineno}")
         except (IndexError, TypeError, ValueError):
             print("The tab nanny complained, but I can't see where!")
             print(data)
