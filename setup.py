@@ -2062,7 +2062,6 @@ dist = setup(
             "com/win32comext/axscript/test/*.vbs",
             "com/win32comext/axscript/demos/*.pys",
             "com/win32comext/axscript/demos/*.htm*",
-            "com/win32comext/axscript/demos/*.gif",
             "com/win32comext/axscript/demos/*.asp",
             "com/win32comext/mapi/demos/*.py",
             "com/win32comext/propsys/test/*.py",
