@@ -579,48 +579,36 @@ static PyObject *PyCertOpenStore(PyObject *self, PyObject *args, PyObject *kwarg
             return NULL;
         pvPara = (void *)&cssrp;
     }
+    else if (StoreProvider == CERT_STORE_PROV_PHYSICAL || StoreProvider == CERT_STORE_PROV_FILENAME ||
+             StoreProvider == CERT_STORE_PROV_SYSTEM || StoreProvider == CERT_STORE_PROV_SYSTEM_REGISTRY ||
+             StoreProvider == CERT_STORE_PROV_LDAP) {
+        if (!PyWinObject_AsWCHAR(obpvPara, (WCHAR **)&pvPara))
+            return NULL;
+        free_wchar = TRUE;
+    }
+    else if (StoreProvider == CERT_STORE_PROV_REG) {
+        if (!PyWinObject_AsHKEY(obpvPara, (HKEY *)&pvPara))
+            return NULL;
+    }
+    else if (StoreProvider == CERT_STORE_PROV_FILE) {
+        if (!PyWinObject_AsHANDLE(obpvPara, (HANDLE *)&pvPara))
+            return NULL;
+    }
+    else if (StoreProvider == CERT_STORE_PROV_SERIALIZED || StoreProvider == CERT_STORE_PROV_PKCS7) {
+        if (!pybuf.init(obpvPara))
+            return NULL;
+        crypt_data_blob.pbData = (BYTE *)pybuf.ptr();
+        crypt_data_blob.cbData = pybuf.len();
+        pvPara = (void *)&crypt_data_blob;
+    }
+    else if (StoreProvider == CERT_STORE_PROV_MEMORY) {
+        // pvPara is not used, warn if something passed in
+        if (obpvPara != Py_None)
+            PyErr_Warn(PyExc_RuntimeWarning, "Para ignored for CERT_STORE_PROV_MEMORY");
+    }
     else {
-        switch ((ULONG_PTR)StoreProvider) {
-            case CERT_STORE_PROV_PHYSICAL:
-            case CERT_STORE_PROV_FILENAME:
-            case CERT_STORE_PROV_SYSTEM:
-            case CERT_STORE_PROV_SYSTEM_REGISTRY:
-            case CERT_STORE_PROV_LDAP: {
-                if (!PyWinObject_AsWCHAR(obpvPara, (WCHAR **)&pvPara))
-                    return NULL;
-                free_wchar = TRUE;
-                break;
-            }
-            case CERT_STORE_PROV_REG: {
-                if (!PyWinObject_AsHKEY(obpvPara, (HKEY *)&pvPara))
-                    return NULL;
-                break;
-            }
-            case CERT_STORE_PROV_FILE: {
-                if (!PyWinObject_AsHANDLE(obpvPara, (HANDLE *)&pvPara))
-                    return NULL;
-                break;
-            }
-            case CERT_STORE_PROV_SERIALIZED:
-            case CERT_STORE_PROV_PKCS7: {
-                if (!pybuf.init(obpvPara))
-                    return NULL;
-                crypt_data_blob.pbData = (BYTE *)pybuf.ptr();
-                crypt_data_blob.cbData = pybuf.len();
-                pvPara = (void *)&crypt_data_blob;
-                break;
-            }
-            case CERT_STORE_PROV_MEMORY: {
-                // pvPara is not used, warn if something passed in
-                if (obpvPara != Py_None)
-                    PyErr_Warn(PyExc_RuntimeWarning, "Para ignored for CERT_STORE_PROV_MEMORY");
-                break;
-            }
-            default: {
-                PyErr_SetString(PyExc_NotImplementedError, "Specified store provider type not supported");
-                return NULL;
-            }
-        }
+        PyErr_SetString(PyExc_NotImplementedError, "Specified store provider type not supported");
+        return NULL;
     }
 
     Py_BEGIN_ALLOW_THREADS hcertstore = CertOpenStore(StoreProvider, dwEncodingType, hcryptprov, dwFlags, pvPara);
