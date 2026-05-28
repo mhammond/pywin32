@@ -95,10 +95,10 @@ inline HKEY Win32uiHostGlue::GetRegistryRootKey() { return HKEY_LOCAL_MACHINE; }
 
 #ifndef LINK_WITH_WIN32UI
 
-#define CHECK_PFN(p)                                                        \
-    if (!p) {                                                               \
-        wsprintf(err_buf, _T("Failed to load ##p - %d\n"), GetLastError()); \
-        goto fail_with_error_dlg;                                           \
+#define CHECK_PFN(p)                                                           \
+    if (!p) {                                                                  \
+        wsprintf(err_buf, _T("Failed to load " #p " - %d\n"), GetLastError()); \
+        goto fail_with_error_dlg;                                              \
     }
 
 inline BOOL Win32uiHostGlue::DynamicApplicationInit(const TCHAR *cmd, const TCHAR *additionalPaths)
