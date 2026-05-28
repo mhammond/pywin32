@@ -1,4 +1,10 @@
-// PyMAPIUtil.h
+#include "sal_compat.h"
+
+// Must include before MAPIX.h, which includes mapidefs.h and mapicode.h.
+// Because of casing that will import from MinGW shared headers instead,
+// Which actually has some differences in param types, causing build failures
+#include <MAPIDefS.h>
+#include <MAPICode.h>
 
 #include "MAPIX.h"
 

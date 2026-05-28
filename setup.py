@@ -1390,51 +1390,47 @@ com_extensions = [
         "mapi",
         libraries="advapi32",
         include_dirs=["{mapi}/MAPIStubLibrary/include".format(**dirs)],
-        sources=(
-            """
-                        {mapi}/mapi.i                 {mapi}/mapi.cpp
-                        {mapi}/PyIABContainer.i       {mapi}/PyIABContainer.cpp
-                        {mapi}/PyIAddrBook.i          {mapi}/PyIAddrBook.cpp
-                        {mapi}/PyIAttach.i            {mapi}/PyIAttach.cpp
-                        {mapi}/PyIDistList.i          {mapi}/PyIDistList.cpp
-                        {mapi}/PyIMailUser.i          {mapi}/PyIMailUser.cpp
-                        {mapi}/PyIMAPIContainer.i     {mapi}/PyIMAPIContainer.cpp
-                        {mapi}/PyIMAPIFolder.i        {mapi}/PyIMAPIFolder.cpp
-                        {mapi}/PyIMAPIProp.i          {mapi}/PyIMAPIProp.cpp
-                        {mapi}/PyIMAPISession.i       {mapi}/PyIMAPISession.cpp
-                        {mapi}/PyIMAPIStatus.i        {mapi}/PyIMAPIStatus.cpp
-                        {mapi}/PyIMAPITable.i         {mapi}/PyIMAPITable.cpp
-                        {mapi}/PyIMessage.i           {mapi}/PyIMessage.cpp
-                        {mapi}/PyIMsgServiceAdmin.i   {mapi}/PyIMsgServiceAdmin.cpp
-                        {mapi}/PyIMsgServiceAdmin2.i  {mapi}/PyIMsgServiceAdmin2.cpp
-                        {mapi}/PyIProviderAdmin.i     {mapi}/PyIProviderAdmin.cpp
-                        {mapi}/PyIMsgStore.i          {mapi}/PyIMsgStore.cpp
-                        {mapi}/PyIProfAdmin.i         {mapi}/PyIProfAdmin.cpp
-                        {mapi}/PyIProfSect.i          {mapi}/PyIProfSect.cpp
-                        {mapi}/PyIConverterSession.i  {mapi}/PyIConverterSession.cpp
-                        {mapi}/PyIMAPIAdviseSink.cpp
-                        {mapi}/mapiutil.cpp
-                        {mapi}/mapiguids.cpp
-                        {mapi}/MAPIStubLibrary/library/mapiStubLibrary.cpp
-                        {mapi}/MAPIStubLibrary/library/stubutils.cpp
-                        """.format(**dirs)
-        ).split(),
+        sources="""
+            {mapi}/mapi.i                 {mapi}/mapi.cpp
+            {mapi}/PyIABContainer.i       {mapi}/PyIABContainer.cpp
+            {mapi}/PyIAddrBook.i          {mapi}/PyIAddrBook.cpp
+            {mapi}/PyIAttach.i            {mapi}/PyIAttach.cpp
+            {mapi}/PyIDistList.i          {mapi}/PyIDistList.cpp
+            {mapi}/PyIMailUser.i          {mapi}/PyIMailUser.cpp
+            {mapi}/PyIMAPIContainer.i     {mapi}/PyIMAPIContainer.cpp
+            {mapi}/PyIMAPIFolder.i        {mapi}/PyIMAPIFolder.cpp
+            {mapi}/PyIMAPIProp.i          {mapi}/PyIMAPIProp.cpp
+            {mapi}/PyIMAPISession.i       {mapi}/PyIMAPISession.cpp
+            {mapi}/PyIMAPIStatus.i        {mapi}/PyIMAPIStatus.cpp
+            {mapi}/PyIMAPITable.i         {mapi}/PyIMAPITable.cpp
+            {mapi}/PyIMessage.i           {mapi}/PyIMessage.cpp
+            {mapi}/PyIMsgServiceAdmin.i   {mapi}/PyIMsgServiceAdmin.cpp
+            {mapi}/PyIMsgServiceAdmin2.i  {mapi}/PyIMsgServiceAdmin2.cpp
+            {mapi}/PyIProviderAdmin.i     {mapi}/PyIProviderAdmin.cpp
+            {mapi}/PyIMsgStore.i          {mapi}/PyIMsgStore.cpp
+            {mapi}/PyIProfAdmin.i         {mapi}/PyIProfAdmin.cpp
+            {mapi}/PyIProfSect.i          {mapi}/PyIProfSect.cpp
+            {mapi}/PyIConverterSession.i  {mapi}/PyIConverterSession.cpp
+            {mapi}/PyIMAPIAdviseSink.cpp
+            {mapi}/mapiutil.cpp
+            {mapi}/mapiguids.cpp
+            {mapi}/mapiStubLibrary.cpp
+            {mapi}/MAPIStubLibrary/library/stubutils.cpp
+        """.format(**dirs).split(),
     ),
     WinExt_win32com_mapi(
         "exchange",
         libraries="advapi32 legacy_stdio_definitions",
         include_dirs=["{mapi}/MAPIStubLibrary/include".format(**dirs)],
-        sources=(
-            """
-                                  {mapi}/exchange.i         {mapi}/exchange.cpp
-                                  {mapi}/PyIExchangeManageStore.i {mapi}/PyIExchangeManageStore.cpp
-                                  {mapi}/PyIExchangeManageStoreEx.i {mapi}/PyIExchangeManageStoreEx.cpp
-                                  {mapi}/mapiutil.cpp
-                                  {mapi}/exchangeguids.cpp
-                                  {mapi}/MAPIStubLibrary/library/mapiStubLibrary.cpp
-                                  {mapi}/MAPIStubLibrary/library/stubutils.cpp
-                                  """.format(**dirs)
-        ).split(),
+        sources="""
+            {mapi}/exchange.i                   {mapi}/exchange.cpp
+            {mapi}/PyIExchangeManageStore.i     {mapi}/PyIExchangeManageStore.cpp
+            {mapi}/PyIExchangeManageStoreEx.i   {mapi}/PyIExchangeManageStoreEx.cpp
+            {mapi}/mapiutil.cpp
+            {mapi}/exchangeguids.cpp
+            {mapi}/mapiStubLibrary.cpp
+            {mapi}/MAPIStubLibrary/library/stubutils.cpp
+        """.format(**dirs).split(),
     ),
     WinExt_win32com(
         "shell",
