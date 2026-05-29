@@ -13,11 +13,9 @@
  *   - https://sourceforge.net/p/mingw-w64/mingw-w64/ci/master/tree/mingw-w64-headers/include/sal.h#l523
  */
 // clang-format on
+#include "sal.h"
 #ifndef __in
 #define __in
-#endif
-#ifndef __in_opt
-#define __in_opt
 #endif
 #ifndef __out
 #define __out
