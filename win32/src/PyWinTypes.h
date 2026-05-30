@@ -14,7 +14,7 @@
 #undef small
 #endif
 
-#include "Python.h"
+#include <Python.h>
 #include "structmember.h"
 #include "windows.h"
 
@@ -38,6 +38,19 @@
 #define PYWIN_MODULE_INIT_RETURN_SUCCESS return module
 
 // To setup the module object itself and the module's dictionary.
+#ifdef Py_GIL_DISABLED
+#define PYWIN_MODULE_INIT_PREPARE(module_name, functions, docstring)                                        \
+    PyObject *dict, *module;                                                                                \
+    static PyModuleDef module_name##_def = {PyModuleDef_HEAD_INIT, #module_name, docstring, -1, functions}; \
+    if (PyWinGlobals_Ensure() == -1)                                                                        \
+        return NULL;                                                                                        \
+    if (!(module = PyModule_Create(&module_name##_def)))                                                    \
+        return NULL;                                                                                        \
+    PyUnstable_Module_SetGIL(module, Py_MOD_GIL_NOT_USED);                                                  \
+    if (!(dict = PyModule_GetDict(module)))                                                                 \
+        return NULL;
+
+#else
 #define PYWIN_MODULE_INIT_PREPARE(module_name, functions, docstring)                                        \
     PyObject *dict, *module;                                                                                \
     static PyModuleDef module_name##_def = {PyModuleDef_HEAD_INIT, #module_name, docstring, -1, functions}; \
@@ -47,6 +60,7 @@
         return NULL;                                                                                        \
     if (!(dict = PyModule_GetDict(module)))                                                                 \
         return NULL;
+#endif
 
 // Helpers for our types.
 // Macro to handle PyObject layout changes in Py3k
