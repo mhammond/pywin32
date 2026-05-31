@@ -137,6 +137,7 @@ def _find_localserver_exe(mustfind):
         if mustfind:
             raise RuntimeError("Can not locate the program '%s'" % exeBaseName)
         return None
+    print("Executable: %s" % exeName)
     return exeName
 
 
