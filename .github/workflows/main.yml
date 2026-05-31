@@ -38,7 +38,6 @@ jobs:
       PYTHONMALLOC: debug
       PYTHONASYNCIODEBUG: 1
       PYTHONWARNINGS: always
-      PYTHONFAULTHANDLER: 1
       PYTHONVERBOSE: 1
       # PYTHONFAULTHANDLER: 1 # This causes our tests to fail
 
