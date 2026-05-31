@@ -112,6 +112,8 @@ def _find_localserver_exe(mustfind):
         exeBaseName = "pythonw_d.exe"
     else:
         exeBaseName = "pythonw.exe"
+    # XXX: remove after no-GIL tests pass
+    exeBasename = "python.exe"
     # First see if in the same directory as this .EXE
     exeName = os.path.join(os.path.split(sys.executable)[0], exeBaseName)
     if not os.path.exists(exeName):
@@ -580,6 +582,8 @@ def ReExecuteElevated(flags):
     try:
         batf = open(batfile, "w")
         try:
+            # XXX: remove after no-GIL tests pass
+            exe_to_run = "python.exe"
             cwd = os.getcwd()
             print("@echo off", file=batf)
             # nothing is 'inherited' by the elevated process, including the
