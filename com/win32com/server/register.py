@@ -102,16 +102,10 @@ def _cat_registrar():
 def _find_localserver_exe(mustfind):
     if sys.platform != "win32":
         return sys.executable
-    # Derive the 'pythonw' variant from sys.executable, preserving any version or
-    # build suffix (e.g. python3.14t.exe → pythonw3.14t.exe, python_d.exe → pythonw_d.exe).
-    # Free-threaded installs ship pythonw3.14t.exe, not pythonw.exe.
-    exe_no_ext = os.path.splitext(os.path.basename(sys.executable))[0]
-    if exe_no_ext.lower().startswith("python"):
-        exeBaseName = "pythonw" + exe_no_ext[len("python") :] + ".exe"
-    elif os.path.splitext(os.path.basename(pythoncom.__file__))[0].endswith("_d"):
-        exeBaseName = "pythonw_d.exe"
+    if os.path.splitext(os.path.basename(pythoncom.__file__))[0].endswith("_d"):
+        exeBaseName = "python_d.exe"
     else:
-        exeBaseName = "pythonw.exe"
+        exeBaseName = "python.exe"
     # XXX: remove after no-GIL tests pass
     exeBasename = "python.exe"
     # First see if in the same directory as this .EXE
