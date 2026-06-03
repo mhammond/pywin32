@@ -626,6 +626,16 @@ HRESULT CPyCOMTest::GetStruct(TestStruct1 *ret)
     return S_OK;
 }
 
+HRESULT CPyCOMTest::GetOutStruct(TestStruct1 *pRecord)
+{
+    if (pRecord == NULL) {
+        return E_POINTER;
+    }
+    pRecord->int_value = 99;
+    pRecord->str_value = SysAllocString(L"Luftballons");
+    return S_OK;
+}
+
 HRESULT CPyCOMTest::ModifyStruct(TestStruct1 *prec)
 {
     prec->int_value = 100;
@@ -641,7 +651,7 @@ HRESULT CPyCOMTest::VerifyArrayOfStructs(TestStruct2 *prec, VARIANT_BOOL *is_ok)
 
     hr = SafeArrayAccessData(prec->array_of_records, reinterpret_cast<void **>(&pdata));
     if (FAILED(hr)) {
-        return E_FAIL;
+        return hr;
     }
     *is_ok = VARIANT_TRUE;
     for (i = 0; i < prec->rec_count; i++) {
@@ -649,6 +659,98 @@ HRESULT CPyCOMTest::VerifyArrayOfStructs(TestStruct2 *prec, VARIANT_BOOL *is_ok)
             *is_ok = VARIANT_FALSE;
             break;
         }
+    }
+    hr = SafeArrayUnaccessData(prec->array_of_records);
+    if (FAILED(hr)) {
+        return hr;
+    }
+    return S_OK;
+}
+
+HRESULT CPyCOMTest::GetNestedStruct(TestStruct3 *ret)
+{
+    HRESULT hr;
+    double d_next;
+    double d = 1.0;
+    double last_d = 0.0;
+    SAFEARRAYBOUND rgsabound[1] = {7, 0};
+    TestStruct3 outer;
+    outer.id = 7.0;
+    outer.a_struct_field.int_value = 33;
+    outer.a_struct_field.str_value = SysAllocString(L"Fibonacci");
+
+    outer.array_of_double = SafeArrayCreate(VT_R8, 1, rgsabound);
+    if (outer.array_of_double == NULL)
+        return E_OUTOFMEMORY;
+    long i;
+    for (i = 0; i < 7; i++) {
+        if (S_OK != (hr = SafeArrayPutElement(outer.array_of_double, &i, &d))) {
+            SafeArrayDestroy(outer.array_of_double);
+            return hr;
+        }
+        d_next = d + last_d;
+        last_d = d;
+        d = d_next;
+    }
+
+    *ret = outer;
+    return S_OK;
+}
+
+HRESULT CPyCOMTest::ModifyArrayOfStructs(SAFEARRAY **array_of_structs)
+{
+    HRESULT hr;
+    double *d;
+    LONG index[3] = {0, 0, 0};
+    LONG d_index[3] = {0, 0, 0};
+    TestStruct3 *pstruct;
+
+    // This method loops over all Records in a 3 dimensional SAFEARRAY and
+    // multiplies each Records 'array_of_double' member, which is a 3
+    // dimensional SAFEARRAY of doubles, element wise with a number calculated
+    // from the loop indices.
+    hr = SafeArrayLock(*array_of_structs);
+    if (FAILED(hr)) {
+        return hr;
+    }
+    for (int k = 0; k < 4; k++) {
+        index[0] = k;
+        for (int j = 0; j < 5; j++) {
+            index[1] = j;
+            for (int i = 0; i < 3; i++) {
+                index[2] = i;
+                hr = SafeArrayPtrOfIndex(*array_of_structs, index, (void **)&pstruct);
+                if (FAILED(hr)) {
+                    return hr;
+                }
+                hr = SafeArrayLock(pstruct->array_of_double);
+                if (FAILED(hr)) {
+                    return hr;
+                }
+                for (int n = 0; n < 4; n++) {
+                    d_index[0] = n;
+                    for (int m = 0; m < 5; m++) {
+                        d_index[1] = m;
+                        for (int l = 0; l < 3; l++) {
+                            d_index[2] = l;
+                            hr = SafeArrayPtrOfIndex(pstruct->array_of_double, d_index, (void **)&d);
+                            if (FAILED(hr)) {
+                                return hr;
+                            }
+                            *d = *d * (k * 15 + j * 3 + i);
+                        }
+                    }
+                }
+                hr = SafeArrayUnlock(pstruct->array_of_double);
+                if (FAILED(hr)) {
+                    return hr;
+                }
+            }
+        }
+    }
+    hr = SafeArrayUnlock(*array_of_structs);
+    if (FAILED(hr)) {
+        return hr;
     }
     return S_OK;
 }

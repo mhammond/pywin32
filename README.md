@@ -203,6 +203,10 @@ the builds. Build 306 was the last released with this process.
 
 </details>
 
+## Versioning
+
+pywin32 uses a simple incremental version numbering scheme. Any increase in the version number may correspond to a breaking interface change. It is recommended that projects using pywin32 pin the dependency to a specific version.
+
 ## Licenses
 
 pywin32 contains a mix of differently licensed code. The license files in the source tree are the source of truth.[^1]. So are individual Copyright notices at the top of files. You can also find license information through the [License-File Packaging Metadata](https://packaging.python.org/en/latest/specifications/core-metadata/#license-file-multiple-use).

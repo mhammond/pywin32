@@ -28,10 +28,7 @@ def GetGenPath():
 def GenerateFromRegistered(fname, *loadArgs):
     #       tlb = apply(pythoncom.LoadRegTypeLib, loadArgs)
     genPath = GetGenPath()
-    try:
-        os.stat(genPath)
-    except OSError:
-        os.mkdir(genPath)
+    os.makedirs(genPath, exist_ok=True)
     # Ensure an __init__ exists.
     open(os.path.join(genPath, "__init__.py"), "w").close()
     print(fname, ": generating -", end=" ")

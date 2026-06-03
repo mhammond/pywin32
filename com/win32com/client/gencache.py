@@ -170,10 +170,8 @@ def GetGeneratePath():
     """
     assert not is_readonly, "Why do you want the genpath for a readonly store?"
     os.makedirs(win32com.__gen_path__, exist_ok=True)
-    try:
-        fname = os.path.join(win32com.__gen_path__, "__init__.py")
-        os.stat(fname)
-    except OSError:
+    fname = os.path.join(win32com.__gen_path__, "__init__.py")
+    if not os.path.exists(fname):
         f = open(fname, "w")
         f.write(
             "# Generated file - this directory may be deleted to reset the COM cache...\n"
@@ -509,9 +507,7 @@ def EnsureModule(
                     typelibCLSID, major, minor, lcid
                 )
                 # windows seems to add an extra \0 (via the underlying BSTR)
-                # The mainwin toolkit does not add this erroneous \0
-                if typLibPath[-1] == "\0":
-                    typLibPath = typLibPath[:-1]
+                typLibPath = typLibPath.removesuffix("\0")
                 suf = getattr(os.path, "supports_unicode_filenames", 0)
                 if not suf:
                     # can't pass unicode filenames directly - convert

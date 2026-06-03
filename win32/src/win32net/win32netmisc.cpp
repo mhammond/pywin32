@@ -1353,11 +1353,9 @@ PyObject *PyNetServerComputerNameDel(PyObject *self, PyObject *args)
     return ret;
 }
 
-extern "C" NetValidateNamefunc pfnNetValidateName = NULL;
 // @pymethod |win32net|NetValidateName|Checks that domain/machine/workgroup name is valid for given context
 // @rdesc Returns none if valid, exception if not
 // @comm If Account and Password aren't passed, current logon credentials are used
-// @comm Will raise NotImplementedError if not available on this platform.
 PyObject *PyNetValidateName(PyObject *self, PyObject *args)
 {
     // @pyparm string/<o PyUnicode>|Server||Name of server on which to execute (None or blank uses local)
@@ -1368,17 +1366,12 @@ PyObject *PyNetValidateName(PyObject *self, PyObject *args)
     // @pyparm string/<o PyUnicode>|Password|None|Password for Account
     PyObject *obServer, *obName, *obAccount = Py_None, *obPassword = Py_None, *ret = NULL;
     WCHAR *Server = NULL, *Name = NULL, *Account = NULL, *Password = NULL;
-    NET_API_STATUS err;
     NETSETUP_NAME_TYPE NameType;
-    if (pfnNetValidateName == NULL) {
-        PyErr_SetString(PyExc_NotImplementedError, "NetValidateName does not exist on this platform");
-        return NULL;
-    }
     if (!PyArg_ParseTuple(args, "OOl|OO", &obServer, &obName, &NameType, &obAccount, &obPassword))
         return NULL;
     if (PyWinObject_AsWCHAR(obServer, &Server, TRUE) && PyWinObject_AsWCHAR(obName, &Name, FALSE) &&
         PyWinObject_AsWCHAR(obAccount, &Account, TRUE) && PyWinObject_AsWCHAR(obPassword, &Password, TRUE)) {
-        err = (*pfnNetValidateName)(Server, Name, Account, Password, NameType);
+        NET_API_STATUS err = NetValidateName(Server, Name, Account, Password, NameType);
         if (err == NERR_Success)
             ret = Py_None;
         else
@@ -1395,9 +1388,6 @@ PyObject *PyNetValidateName(PyObject *self, PyObject *args)
     Py_XINCREF(ret);
     return ret;
 }
-
-extern "C" NetValidatePasswordPolicyfunc pfnNetValidatePasswordPolicy = NULL;
-extern "C" NetValidatePasswordPolicyFreefunc pfnNetValidatePasswordPolicyFree = NULL;
 
 static void PyObject_CleanupAUTH_INPUT(NET_VALIDATE_AUTHENTICATION_INPUT_ARG *p)
 {
@@ -1569,8 +1559,7 @@ static PyObject *PyObject_FromNET_VALIDATE_PERSISTED_FIELDS(NET_VALIDATE_PERSIST
 // history reuse requirements of a password policy.
 // @rdesc Returns a tuple of (<o PyNET_VALIDATE_PERSISTED_FIELDS>, int) with
 // the integer being the ValidationResult.
-// @comm Will raise NotImplementedError if not available on this platform, or
-// raise win32net.error if the function fails.
+// @comm Will raise win32net.error if the function fails.
 PyObject *PyNetValidatePasswordPolicy(PyObject *self, PyObject *args)
 {
     // @pyparm string/<o PyUnicode>|Server||Name of server on which to execute (None or blank uses local)
@@ -1595,10 +1584,6 @@ PyObject *PyNetValidatePasswordPolicy(PyObject *self, PyObject *args)
     ALL_INS in_arg;
     memset(&in_arg, 0, sizeof(in_arg));
 
-    if (pfnNetValidateName == NULL || pfnNetValidatePasswordPolicyFree == NULL) {
-        PyErr_SetString(PyExc_NotImplementedError, "NetValidatePasswordPolicy does not exist on this platform");
-        return NULL;
-    }
     if (!PyArg_ParseTuple(args, "OOiO", &obServer, &obQualifier, &valType, &obArg))
         return NULL;
     if (obQualifier != Py_None)
@@ -1623,7 +1608,7 @@ PyObject *PyNetValidatePasswordPolicy(PyObject *self, PyObject *args)
             goto done;
     }
     Py_BEGIN_ALLOW_THREADS err =
-        (*pfnNetValidatePasswordPolicy)(Server, NULL, (NET_VALIDATE_PASSWORD_TYPE)valType, &in_arg, (void **)&out_arg);
+        NetValidatePasswordPolicy(Server, NULL, (NET_VALIDATE_PASSWORD_TYPE)valType, &in_arg, (void **)&out_arg);
     Py_END_ALLOW_THREADS if (NERR_Success != err)
     {
         ReturnNetError("NetValidatePasswordPolicy", err);
@@ -1647,6 +1632,6 @@ done:
             break;
     }
     if (out_arg)
-        (*pfnNetValidatePasswordPolicyFree)((void **)&out_arg);
+        NetValidatePasswordPolicyFree((void **)&out_arg);
     return ret;
 }
