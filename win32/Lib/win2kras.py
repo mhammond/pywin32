@@ -9,6 +9,6 @@ This exists just to avoid breaking old scripts.\
 
 import warnings
 
-from win32ras import *  # nopycln: import
+from win32ras import *
 
 warnings.warn(str(__doc__), category=DeprecationWarning, stacklevel=2)

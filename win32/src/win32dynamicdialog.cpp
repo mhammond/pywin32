@@ -31,14 +31,14 @@
 
 #ifdef WIN32GUI  // being compiled from WIN32GUI
 #define PYW_EXPORT
-#include "python.h"
+#include "Python.h"
 #undef PyHANDLE
 #include <windows.h>
-#include "CommCtrl.h"
+#include "commctrl.h"
 #include "windowsx.h"  // For edit control hacks.
 
-#include "pywintypes.h"
-#include "pywinobjects.h"
+#include "PyWinTypes.h"
+#include "PyWinObjects.h"
 #include "tchar.h"
 
 #define BASED_CODE
@@ -47,7 +47,7 @@
 #endif
 
 #else  // else being compiled from WIN32UI
-#include "..\..\pythonwin\stdafx.h"
+#include "../../pythonwin/stdafx.h"
 #endif
 
 #include "win32dynamicdialog.h"

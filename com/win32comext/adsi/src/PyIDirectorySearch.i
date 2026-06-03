@@ -7,7 +7,7 @@
 %include "adsilib.i"
 
 %{
-#include "AdsErr.h"
+#include "adserr.h"
 #include "PyIDirectorySearch.h"
 
 #define SWIG_THIS_IID IID_IDirectorySearch

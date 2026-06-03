@@ -113,7 +113,7 @@ PyObject *PyIContext::EnumContextProps(PyObject *self, PyObject *args)
     return PyCom_PyObjectFromIUnknown(pEnumContextProps, IID_IEnumContextProps, FALSE);
 }
 
-// @object PyIContext|Allows access to properties defined for the current context (Requires win2k or later)
+// @object PyIContext|Allows access to properties defined for the current context
 static struct PyMethodDef PyIContext_methods[] = {
     {"SetProperty", PyIContext::SetProperty, 1},        // @pymeth SetProperty|Sets a property on the context
     {"RemoveProperty", PyIContext::RemoveProperty, 1},  // @pymeth RemoveProperty|Removes a property from the context

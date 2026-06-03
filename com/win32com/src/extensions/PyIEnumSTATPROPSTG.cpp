@@ -4,9 +4,6 @@
 #include "stdafx.h"
 #include "PythonCOM.h"
 #include "PythonCOMServer.h"
-
-#ifndef NO_PYCOM_ENUMSTATPROPSTG
-
 #include "PyIEnumSTATPROPSTG.h"
 
 // @doc - This file contains autoduck documentation
@@ -255,5 +252,3 @@ STDMETHODIMP PyGEnumSTATPROPSTG::Clone(
 
     return PyCom_CheckIEnumNextResult(hr, IID_IEnumSTATPROPSTG);
 }
-
-#endif  // NO_PYCOM_ENUMSTATPROPSTG

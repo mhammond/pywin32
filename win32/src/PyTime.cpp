@@ -417,7 +417,7 @@ PyObject *PyWinTimeObject_Fromtime_t(time_t t)
 }
 
 // Converts a TimeStamp, which is in 100 nanosecond units like a FILETIME
-// See comments in pywintypes.h re LARGE_INTEGER vs TimeStamp
+// See comments in PyWinTypes.h re LARGE_INTEGER vs TimeStamp
 PyObject *PyWinObject_FromTimeStamp(const LARGE_INTEGER &ts)
 {
     FILETIME ft;
