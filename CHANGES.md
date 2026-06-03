@@ -18,6 +18,11 @@ As of build 305, installation .exe files have been deprecated; see
 Coming in build 312, as yet unreleased
 --------------------------------------
 
+* Deprecate `pythoncom.frozen` and resolve build deprecation warnings (mhammond#2593, [@Avasam][Avasam])
+  `pythoncom.frozen` used to expose `Py_FrozenFlag` from the C API.
+  `Py_FrozenFlag` is deprecated since Python 3.12.
+* Added Python 3.15 support (mhammond#2729, mhammond#2732, [@Avasam][Avasam])
+* Removed special-casing for `.pyo` files which haven't been a thing since [Python 3.5](https://peps.python.org/pep-0488/) (mhammond#2754, [@Avasam][Avasam])
 * Fixed `axdebug` build on Python 3.11+ using CPython's new opaque frame APIs, fixed 64-bit overflow in sourceContext and stack addresses, fixed incorrect step-over and step-out behavior, and fixed `ListEnumeratorGateway.Next()` returning lazy `map` iterator incompatible with C++ COM gateways that require a sequence (mhammond#2723, mhammond#2724, mhammond#2725, [@wxinix-2022][wxinix-2022])
 * Removed more leftover obsolete `UNICODE` constants since dropping Python 2 support in `win32ui`, `win32gui` and `win32clipboard` (mhammond#2717, [@Avasam][Avasam])
 * Implement COM Records as `[out]` method parameters (mhammond#2708, [@geppi][geppi], [@the-snork][the-snork])
@@ -27,7 +32,7 @@ Coming in build 312, as yet unreleased
 * Bugfix for COM Record instance creation (mhammond#2641, [@geppi][geppi])
 * Fix regression introduced by mhammond#2506 (mhammond#2640, [@geppi][geppi])
 * Fixed `LoadPerfCounterTextStrings` and `UnloadPerfCounterTextStrings`'s `bQuiet` param being unused and hardcoded to `True` (mhammond#2711, [@Avasam][Avasam])
-* Removed considerations for unsupported Windows Versions (95/98/ME/2000/2k/Vista, most of XP) (mhammond#2711, mhammond#2667, mhammond#2400, [@Avasam][Avasam])
+* Removed considerations for unsupported Windows Versions (95/98/ME/2000/2k/Vista, most of XP) (mhammond#2711, mhammond#2667, mhammond#2400, mhammond#2747, mhammond#2752 [@Avasam][Avasam])
   * Updated a lot of dynamic function loading at runtime to instead use static build linking
   * Updated a lot of documentation
   * This removes the following constants:

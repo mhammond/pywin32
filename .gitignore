@@ -11,7 +11,6 @@ __pycache__
 *.flg
 *.chm
 *.chw
-*.pyo
 *.pdb
 *.whl
 arm64libs/
