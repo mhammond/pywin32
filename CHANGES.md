@@ -15,8 +15,11 @@ or
 As of build 305, installation .exe files have been deprecated; see
 <https://mhammond.github.io/pywin32_installers.html>.
 
-Coming in build 312, as yet unreleased
+Coming in build 313, as yet unreleased
 --------------------------------------
+
+Build 312, released 2026/06/04
+------------------------------
 
 * Deprecate `pythoncom.frozen` and resolve build deprecation warnings (mhammond#2593, [@Avasam][Avasam])
   `pythoncom.frozen` used to expose `Py_FrozenFlag` from the C API.
