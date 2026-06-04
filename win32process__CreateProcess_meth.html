@@ -66,7 +66,7 @@
 
 <TR><TD><HR></TD><TD><HR></TD></TR>
 
-<TR><TD>CREATE_BREAKAWAY_FROM_JOB</TD><TD>Windows 2000: The child processes of a process associated with a job are not associated with the job. 
+<TR><TD>CREATE_BREAKAWAY_FROM_JOB</TD><TD>The child processes of a process associated with a job are not associated with the job. 
 
 If the calling process is not associated with a job, this flag has no effect. If the calling process is associated with a job, the job must set the JOB_OBJECT_LIMIT_BREAKAWAY_OK limit or CreateProcess will fail.</TD></TR>
 
@@ -94,17 +94,15 @@ The default behavior for CreateProcess is for the new process to inherit the err
 
 <TR><TD>DEBUG_PROCESS</TD><TD>If this flag is set, the calling process is treated as a debugger, and the new process is debugged. The system notifies the debugger of all debug events that occur in the process being debugged. 
 
-If you create a process with this flag set, only the calling thread (the thread that called CreateProcess) can call the WaitForDebugEvent function. 
-
-Windows 95/98: This flag is not valid if the new process is a 16-bit application.</TD></TR>
+If you create a process with this flag set, only the calling thread (the thread that called CreateProcess) can call the WaitForDebugEvent function.</TD></TR>
 
 <TR><TD>DEBUG_ONLY_THIS_PROCESS</TD><TD>If this flag is not set and the calling process is being debugged, the new process becomes another process being debugged by the calling process's debugger. If the calling process is not a process being debugged, no debugging-related actions occur.</TD></TR>
 
 <TR><TD>DETACHED_PROCESS</TD><TD>For console processes, the new process does not have access to the console of the parent process. The new process can call the AllocConsole function at a later time to create a new console. This flag cannot be used with the CREATE_NEW_CONSOLE flag.</TD></TR>
 
-<TR><TD>ABOVE_NORMAL_PRIORITY_CLASS</TD><TD>Windows 2000: Indicates a process that has priority higher than NORMAL_PRIORITY_CLASS but lower than HIGH_PRIORITY_CLASS.</TD></TR>
+<TR><TD>ABOVE_NORMAL_PRIORITY_CLASS</TD><TD>Indicates a process that has priority higher than NORMAL_PRIORITY_CLASS but lower than HIGH_PRIORITY_CLASS.</TD></TR>
 
-<TR><TD>BELOW_NORMAL_PRIORITY_CLASS</TD><TD>Windows 2000: Indicates a process that has priority higher than IDLE_PRIORITY_CLASS but lower than NORMAL_PRIORITY_CLASS.</TD></TR>
+<TR><TD>BELOW_NORMAL_PRIORITY_CLASS</TD><TD>Indicates a process that has priority higher than IDLE_PRIORITY_CLASS but lower than NORMAL_PRIORITY_CLASS.</TD></TR>
 
 <TR><TD>HIGH_PRIORITY_CLASS</TD><TD>Indicates a process that performs time-critical tasks. The threads of a high-priority class process preempt the threads of normal-priority or idle-priority class processes. An example is the Task List, which must respond quickly when called by the user, regardless of the load on the system. Use extreme care when using the high-priority class, because a CPU-bound application with a high-priority class can use nearly all available cycles.</TD></TR>
 

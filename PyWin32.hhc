@@ -824,6 +824,11 @@
              <param name="Local" value="mk:@MSITStore:PyWin32.chm::/win32api__GetSysColor_meth.html">
             </OBJECT>
         <LI><OBJECT type="text/sitemap">
+             <param name="Name" value="GetSystemCpuSetInformation">
+             <param name="ImageNumber" value="11">
+             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/win32api__GetSystemCpuSetInformation_meth.html">
+            </OBJECT>
+        <LI><OBJECT type="text/sitemap">
              <param name="Name" value="GetSystemDefaultLCID">
              <param name="ImageNumber" value="11">
              <param name="Local" value="mk:@MSITStore:PyWin32.chm::/win32api__GetSystemDefaultLCID_meth.html">
@@ -15997,11 +16002,6 @@
              <param name="Name" value="dcom">
              <param name="ImageNumber" value="11">
              <param name="Local" value="mk:@MSITStore:PyWin32.chm::/pythoncom__dcom_prop.html">
-            </OBJECT>
-        <LI><OBJECT type="text/sitemap">
-             <param name="Name" value="frozen">
-             <param name="ImageNumber" value="11">
-             <param name="Local" value="mk:@MSITStore:PyWin32.chm::/pythoncom__frozen_prop.html">
             </OBJECT>
         </UL>
         <LI> <OBJECT type="text/sitemap">

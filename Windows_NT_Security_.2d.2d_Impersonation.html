@@ -22,7 +22,7 @@ Python's win32 access to help to simplify providing privileged access.<P>
 
 someone with NT. One mechanism to do this is with the win32 calls: 
 
-LogonUser and ImpersonateLoggedOnUser. LogonUser gives you a handel 
+LogonUser and ImpersonateLoggedOnUser. LogonUser gives you a handle 
 
 which ImpersonateLoggedOnUser can then use to "become" the user. To do 
 
@@ -70,7 +70,7 @@ The python documentation says this:<P>
 
 The api call is very similar in both cases except in python the 
 
-handel is returned seperately to the caller. The interesting options 
+handle is returned separately to the caller. The interesting options 
 
 in this case are logonType and logonProvider.  To give values for 
 
@@ -84,7 +84,7 @@ win32con.LOGON32_LOGON_INTERACTIVE should be fine. With regards to
 
 logonProvider, generally use win32con.LOGON32_PROVIDER_DEFAULT -- it's 
 
-for specifiying the type of logon NT 3.5, 4.0, win2000. Generally, 
+for specifying the type of logon NT 3.5, 4.0, win2000. Generally, 
 
 default is fine.<P>
 
@@ -96,11 +96,11 @@ examples.<P>
 
 <PRE>#A raw example looks like this:
 
-handel=win32security.LogonUser('barney','bedrock','bambam'\\
+handle=win32security.LogonUser('barney','bedrock','bambam'\\
 
 &#09,win32con.LOGON32_LOGON_INTERACTIVE,win32con.LOGON32_PROVIDER_DEFAULT)
 
-win32security.ImpersonateLoggedOnUser(handel)
+win32security.ImpersonateLoggedOnUser(handle)
 
 
 
@@ -112,7 +112,7 @@ print(win32api.GetUserName())  # show you're someone else
 
 win32security.RevertToSelf() #terminates impersonation
 
-handel.Close()
+handle.Close()
 
 
 
@@ -142,17 +142,17 @@ class Impersonate:
 
     def logon(self):
 
-&#09self.handel=win32security.LogonUser(self.login,self.domain,self.password,\\
+&#09self.handle=win32security.LogonUser(self.login,self.domain,self.password,\\
 
 &#09win32con.LOGON32_LOGON_INTERACTIVE,win32con.LOGON32_PROVIDER_DEFAULT)
 
-&#09win32security.ImpersonateLoggedOnUser(self.handel)
+&#09win32security.ImpersonateLoggedOnUser(self.handle)
 
     def logoff(self):
 
 &#09win32security.RevertToSelf() #terminates impersonation
 
-&#09self.handel.Close() #guarantees cleanup
+&#09self.handle.Close() #guarantees cleanup
 
 
 

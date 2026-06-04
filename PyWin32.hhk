@@ -7927,11 +7927,6 @@
         <param name="Local" value="PyCSliderCtrl__SetTicFreq_meth.html">
         </OBJECT>
     <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="VerifyPos">
-        <param name="Name" value="PyCSliderCtrl.VerifyPos">
-        <param name="Local" value="PyCSliderCtrl__VerifyPos_meth.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
         <param name="Keyword" value="PyCSpinButtonCtrl">
         <param name="Name" value="PyCSpinButtonCtrl">
         <param name="Local" value="PyCSpinButtonCtrl.html">
@@ -10055,11 +10050,6 @@
         <param name="Keyword" value="__int__">
         <param name="Name" value="PyHANDLE.__int__">
         <param name="Local" value="PyHANDLE____int___meth.html">
-        </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-        <param name="Keyword" value="__long__">
-        <param name="Name" value="PyHANDLE.__long__">
-        <param name="Local" value="PyHANDLE____long___meth.html">
         </OBJECT>
     <LI><OBJECT type="text/sitemap">
         <param name="Keyword" value="__print__">
@@ -20260,6 +20250,11 @@
         <param name="Keyword" value="GetSysColor">
         <param name="Name" value="win32api.GetSysColor">
         <param name="Local" value="win32api__GetSysColor_meth.html">
+        </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Keyword" value="GetSystemCpuSetInformation">
+        <param name="Name" value="win32api.GetSystemCpuSetInformation">
+        <param name="Local" value="win32api__GetSystemCpuSetInformation_meth.html">
         </OBJECT>
     <LI><OBJECT type="text/sitemap">
         <param name="Keyword" value="GetSystemDefaultLangID">

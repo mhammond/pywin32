@@ -66,9 +66,9 @@ public:
 
 
 
-#Abtract Base classes for python
+# Abstract Base classes for python
 
-#not as formal as C++'s
+# not as formal as C++'s
 
 class IFlintstone:
 
@@ -116,9 +116,9 @@ this is that it means that the interfaces can't have the same function
 
 names. These interfaces need to be defined using IDL to allow for 
 
-proxies, resove any ambiguities C++ may have, and generate type 
+proxies, resolve any ambiguities C++ may have, and generate type 
 
-libraries.  A very simple IDL interface wouuld look like:<P>
+libraries.  A very simple IDL interface would look like:<P>
 
 <BR><BR>IDL interface:<P>
 
@@ -152,9 +152,9 @@ examples above. Then you define every method for each interface which
 
 includes IUnknown, as well as IFlintstone and IRubble. At this point, 
 
-I'm ommitting some details like the metaclass which implements 
+I'm omitting some details like the metaclass which implements 
 
-IClassFactory that creates Bedrock and errorhandeling , but from this 
+IClassFactory that creates Bedrock and error handling , but from this 
 
 class you can see the basic functions you'll have to write.<P>
 
@@ -250,7 +250,7 @@ similar in spirit to the above.<P>
 
 <BR><BR>Basic python COM code<P>
 
-<PRE>##Abtract Base classes for python
+<PRE># Abstract Base classes for python
 
 class IFlintstone:
 
@@ -274,11 +274,11 @@ class BedRock(IFlintstone, IRubble): #no need to use MIDL for these
 
     _reg_clsid_ = "{12345678-1234-5678-1234-567812345678}"
 
-    def __init__(self): #constructur
+    def __init__(self): # constructor
 
-&#09pass #not doing anthing w/it
+&#09    pass # not doing anything w/it
 
-&#09     #no need to keep track of reference counts
+&#09# no need to keep track of reference counts
 
     def __del__(self): #destructor
 
