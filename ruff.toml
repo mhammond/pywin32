@@ -19,8 +19,11 @@ select = [
   "YTT", # flake8-2020
 
   # String formatting, concatenating, interpolation, ...
+  "D2", # pydocstyle docstring styling
+  "D3", # pydocstyle docstring quotes
   "FLY", # static-join-to-f-string
   "G", # flake8-logging-format
+  "ISC001", # single-line-implicit-string-concatenation
 
   # Ensure modern type annotation syntax and best practices
   # Not including those covered by type-checkers or exclusive to Python 3.11+
@@ -35,6 +38,10 @@ select = [
   "TC", # flake8-type-checking
 ]
 extend-ignore = [
+  # Docstring stylistic rules we don't care about
+  "D205", # missing-blank-line-after-summary
+  "D209", # new-line-after-last-paragraph
+  "D210", # surrounding-whitespace
   # Lots of lazy or side-effect imports
   "PLC0415", # import-outside-top-level
   # We prefer explicit open mode parameter
@@ -51,6 +58,11 @@ extend-ignore = [
 [lint.per-file-ignores]
 # Explicit re-exports is fine in __init__.py, still a code smell elsewhere.
 "__init__.py" = ["PLC0414"]
+# TODO: Make non-adodbapi changes in their own PRs
+"com/win32com*/*" = ["D200", "D202", "D300", "D301"]
+"win32/*" = ["D200", "D202", "D300", "D301", "ISC001"]
+"Pythonwin/pywin/*" = ["D200", "D202", "D300", "D301"]
+"isapi/*" = ["D202", "D300"]
 # TODO: Make adodbapi changes in their own PRs
 "adodbapi/*" = [
   "C4",
@@ -64,6 +76,9 @@ extend-ignore = [
   "UP036",
   "YTT301",
 ]
+
+[lint.pydocstyle]
+convention = "pep257" # Base style that ignores the most stylistic rules we don't want
 
 [lint.pyflakes]
 allowed-unused-imports = [
