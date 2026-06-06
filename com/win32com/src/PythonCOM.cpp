@@ -1764,13 +1764,11 @@ static PyObject *pythoncom_ObjectFromAddress(PyObject *self, PyObject *args)
     HRESULT hr;
     IUnknown *ret = 0;
     PyThreadState *_save = PyEval_SaveThread();
-    PYWINTYPES_TRY
-    {
+    __try {
         hr = ((IUnknown *)addr)->QueryInterface(iid, (void **)&ret);
         PyEval_RestoreThread(_save);
     }
-    PYWINTYPES_EXCEPT
-    {
+    __except (EXCEPTION_EXECUTE_HANDLER) {
         PyEval_RestoreThread(_save);
         return PyErr_Format(PyExc_ValueError,
                             "Address is not a valid COM object (win32 exception attempting to retrieve it!)");
