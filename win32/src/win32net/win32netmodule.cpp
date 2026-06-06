@@ -3,7 +3,7 @@
 win32net.cpp -- module for interface into Network API
 
 NOTE: The Network API for NT uses UNICODE.  Therefore, you
-can not simply pass python strings to the API functioms - some
+can not simply pass python strings to the API functions - some
 conversion is required.
 
     Note: The NET functions have their own set of error codes in  2100-2200
