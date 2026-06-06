@@ -134,9 +134,11 @@ class TypeBrowseDialog(TypeBrowseDialog_Parent):
         if pos < 0:
             return []
         docinfo = self.tlb.GetDocumentation(pos)
-        infos = [("GUID", str(self.attr[0]))]
-        infos.append(("Help File", docinfo[3]))
-        infos.append(("Help Context", str(docinfo[2])))
+        infos = [
+            ("GUID", str(self.attr[0])),
+            ("Help File", docinfo[3]),
+            ("Help Context", str(docinfo[2])),
+        ]
         try:
             infos.append(("Type Kind", typekindmap[self.tlb.GetTypeInfoType(pos)]))
         except:
@@ -179,8 +181,7 @@ class TypeBrowseDialog(TypeBrowseDialog_Parent):
             id = self.typeinfo.GetVarDesc(realPos)[0]
 
         docinfo = self.typeinfo.GetDocumentation(id)
-        ret.append(("Help String", docinfo[1]))
-        ret.append(("Help Context", str(docinfo[2])))
+        ret.extend((("Help String", docinfo[1]), ("Help Context", str(docinfo[2]))))
         return ret
 
     def CmdTypeListbox(self, id, code):
@@ -233,20 +234,6 @@ class TypeBrowseDialog(TypeBrowseDialog_Parent):
             | win32con.DS_SETFONT
             | win32con.WS_MINIMIZEBOX
         )
-        template = [
-            ["Type Library Browser", (0, 0, w, h), style, None, (8, "Helv")],
-        ]
-        template.append([130, "&Type", -1, (10, 10, 62, 9), SS_STD | win32con.SS_LEFT])
-        template.append([131, None, self.IDC_TYPELIST, (10, 20, 80, 80), LBS_STD])
-        template.append(
-            [130, "&Members", -1, (100, 10, 62, 9), SS_STD | win32con.SS_LEFT]
-        )
-        template.append([131, None, self.IDC_MEMBERLIST, (100, 20, 80, 80), LBS_STD])
-        template.append(
-            [130, "&Parameters", -1, (190, 10, 62, 9), SS_STD | win32con.SS_LEFT]
-        )
-        template.append([131, None, self.IDC_PARAMLIST, (190, 20, 75, 80), LBS_STD])
-
         lvStyle = (
             SS_STD
             | commctrl.LVS_REPORT
@@ -255,11 +242,17 @@ class TypeBrowseDialog(TypeBrowseDialog_Parent):
             | win32con.WS_BORDER
             | win32con.WS_TABSTOP
         )
-        template.append(
-            ["SysListView32", "", self.IDC_LISTVIEW, (10, 110, 255, 65), lvStyle]
-        )
 
-        return template
+        return [
+            ["Type Library Browser", (0, 0, w, h), style, None, (8, "Helv")],
+            [130, "&Type", -1, (10, 10, 62, 9), SS_STD | win32con.SS_LEFT],
+            [131, None, self.IDC_TYPELIST, (10, 20, 80, 80), LBS_STD],
+            [130, "&Members", -1, (100, 10, 62, 9), SS_STD | win32con.SS_LEFT],
+            [131, None, self.IDC_MEMBERLIST, (100, 20, 80, 80), LBS_STD],
+            [130, "&Parameters", -1, (190, 10, 62, 9), SS_STD | win32con.SS_LEFT],
+            [131, None, self.IDC_PARAMLIST, (190, 20, 75, 80), LBS_STD],
+            ["SysListView32", "", self.IDC_LISTVIEW, (10, 110, 255, 65), lvStyle],
+        ]
 
 
 if __name__ == "__main__":
