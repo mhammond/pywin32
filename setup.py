@@ -1995,7 +1995,21 @@ dist = setup(
         "Support Requests": "https://github.com/mhammond/pywin32/discussions",
         "Mailing List": "https://mail.python.org/mailman/listinfo/python-win32",
     },
-    license="PSF",
+    # `license` must contain all licenses for the *distribution*
+    # in the form of a SPDX license expression. See:
+    # https://packaging.python.org/en/latest/specifications/pyproject-toml/#license
+    # https://packaging.python.org/en/latest/specifications/core-metadata/#core-metadata-license-expression
+    # https://packaging.python.org/en/latest/specifications/license-expression/
+    license=" AND ".join(  # noqa: FLY002 # Entries broken by comment for readability and maintainability
+        (
+            "PSF-2.0",  # project root (explicit license file), https://github.com/mhammond/pywin32/issues/1127#issuecomment-393364022
+            "BSD-3-Clause",  # Pythonwin, com, win32, win32com, win32comext, pywin32_system32 (explicit license file), https://github.com/mhammond/pywin32/issues/1127#issuecomment-393364022
+            "(PSF-2.0 OR BSD-3-Clause)",  # isapi, https://github.com/mhammond/pywin32/issues/1744#issuecomment-917368167
+            "Python-2.0.1",  # IDLE (bundled with Pythonwin)
+            "MIT",  # MAPI
+            "LGPL-2.1-or-later",  # ADO DB-API
+        )
+    ),
     license_files=(
         "**/[Ll]icense.txt",
         "**/LICENSE*",
