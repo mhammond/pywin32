@@ -82,6 +82,7 @@ jobs:
         run: python win32/scripts/pywin32_testall.py -v -skip-adodbapi
 
       - name: Build wheels
+        if: ${{ !contains(matrix.python-version, 't') }}
         run: pip wheel . -v --wheel-dir=dist
 
       - uses: actions/upload-artifact@v4
@@ -115,6 +116,7 @@ jobs:
         run: python .github\workflows\download-arm64-libs.py ./arm64libs
 
       - name: Build wheels
+        if: ${{ !contains(matrix.python-version, 't') }}
         run: uv build --wheel --config-setting=--build-option="build_ext -L./arm64libs --plat-name=win-arm64 build --plat-name=win-arm64 bdist_wheel --plat-name=win-arm64"
 
       - uses: actions/upload-artifact@v4
