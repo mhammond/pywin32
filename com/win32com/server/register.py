@@ -103,9 +103,9 @@ def _find_localserver_exe(mustfind):
     if sys.platform != "win32":
         return sys.executable
     if os.path.splitext(os.path.basename(pythoncom.__file__))[0].endswith("_d"):
-        exeBaseName = "python_d.exe"
+        exeBaseName = "pythonw_d.exe"
     else:
-        exeBaseName = "python.exe"
+        exeBaseName = "pythonw.exe"
     # First see if in the same directory as this .EXE
     exeName = os.path.join(os.path.split(sys.executable)[0], exeBaseName)
     if not os.path.exists(exeName):
