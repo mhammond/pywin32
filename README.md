@@ -58,6 +58,13 @@ it should only be run in "global" installs.
 For unreleased changes, you can download builds made by [GitHub actions](https://github.com/mhammond/pywin32/actions/) -
 choose any "workflow" from the `main` branch and download its "artifacts"
 
+### Free-threaded support
+
+While installing via pip with a no-GIL interpreter will build a compatible wheel,
+consider its support to be in alpha,
+as no prebuilt wheels compatible with the free-threaded interpreter are available.
+See [this](NOGIL.md) for details.
+
 ### Installing globally
 
 Outside of a virtual environment you might want to install COM objects, services, etc. You can do
