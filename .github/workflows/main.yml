@@ -35,7 +35,6 @@ jobs:
     env:
       # TODO: We can't yet run tests with PYTHONDEVMODE=1, let's emulated it as much as we can
       # https://docs.python.org/3/library/devmode.html#effects-of-the-python-development-mode
-      # PYTHONVERBOSE: 1
       PYTHONMALLOC: debug
       PYTHONASYNCIODEBUG: 1
       PYTHONWARNINGS: always
@@ -101,7 +100,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # pythonarm64 NuGet's has no download for Python ~=3.9.11
+        # pythonarm64 NuGet has no download for Python ~=3.9.11
         python-version: ["3.9.10", "3.10"]
     steps:
       - uses: actions/checkout@v4
