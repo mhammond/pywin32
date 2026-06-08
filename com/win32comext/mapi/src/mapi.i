@@ -693,10 +693,10 @@ HRESULT WrapCompressedRTFStream(
 
 
 // WrapCompressedRTFStreamEx
-#define MAPI_NATIVE_BODY ((ULONG) 0x00010000) // Indicates whether the decompressed stream is also converted to its native body.
-#define MAPI_NATIVE_BODY_TYPE_RTF ((ULONG) 1) // Native body is RTF.
-#define MAPI_NATIVE_BODY_TYPE_HTML ((ULONG) 2) // Native body is plain text.
-#define MAPI_NATIVE_BODY_TYPE_PLAINTEXT ((ULONG) 4) // Native body is HTML.
+#define MAPI_NATIVE_BODY MAPI_NATIVE_BODY // Indicates whether the decompressed stream is also converted to its native body.
+#define MAPI_NATIVE_BODY_TYPE_RTF MAPI_NATIVE_BODY_TYPE_RTF // Native body is RTF.
+#define MAPI_NATIVE_BODY_TYPE_HTML MAPI_NATIVE_BODY_TYPE_HTML // Native body is HTML.
+#define MAPI_NATIVE_BODY_TYPE_PLAINTEXT MAPI_NATIVE_BODY_TYPE_PLAINTEXT // Native body is plain text.
 
 // @pyswig (<o PyIStream>, ULONG)|WrapCompressedRTFStreamEx|
 // @rdesc Result is a tuple of (bodyStream, bodyType);
