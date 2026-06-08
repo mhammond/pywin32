@@ -1,3 +1,4 @@
+// SAL macros are known statically by MSVC. Include no-op on MSVC, required on other compilers
 #include "sal.h"
 
 // Must include before MAPIX.h, which includes mapidefs.h and mapicode.h.
