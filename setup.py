@@ -209,7 +209,7 @@ class WinExt(Extension):
             if build_ext.plat_name == "win32":
                 self.extra_link_args.append("/MACHINE:x86")
             else:
-                self.extra_link_args.append("/MACHINE:%s" % build_ext.plat_name[4:])
+                self.extra_link_args.append(f"/MACHINE:{build_ext.plat_name[4:]}")
 
             # like Python, always use debug info, even in release builds
             # (note the compiler doesn't include debug info, so you only get
@@ -232,31 +232,13 @@ class WinExt(Extension):
             if self.delay_load_libraries:
                 self.libraries.append("delayimp")
                 for delay_lib in self.delay_load_libraries:
-                    self.extra_link_args.append("/delayload:%s.dll" % delay_lib)
+                    self.extra_link_args.append(f"/delayload:{delay_lib}.dll")
 
             # If someone needs a specially named implib created, handle that
             if self.implib_name:
                 implib = os.path.join(build_ext.build_temp, self.implib_name)
                 suffix = "_d" if build_ext.debug else ""
                 self.extra_link_args.append(f"/IMPLIB:{implib}{suffix}.lib")
-            # Try and find the MFC headers, so we can reach inside for
-            # some of the ActiveX support we need.  We need to do this late, so
-            # the environment is setup correctly.
-            # Only used by the win32uiole extensions, but I can't be
-            # bothered making a subclass just for this - so they all get it!
-            found_mfc = False
-            for incl in os.environ.get("INCLUDE", "").split(os.pathsep):
-                # first is a "standard" MSVC install, second is the Vista SDK.
-                for candidate in (r"..\src\occimpl.h", r"..\..\src\mfc\occimpl.h"):
-                    check = os.path.join(incl, candidate)
-                    if os.path.isfile(check):
-                        self.extra_compile_args.append(
-                            '/DMFC_OCC_IMPL_H=\\"%s\\"' % candidate
-                        )
-                        found_mfc = True
-                        break
-                if found_mfc:
-                    break
         else:
             # Set our C++ standard
             self.extra_compile_args.append("-std=c++17")
