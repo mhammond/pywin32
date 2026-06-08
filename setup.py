@@ -205,7 +205,7 @@ class WinExt(Extension):
         # distutils doesn't define this function for an Extension - it is
         # our own invention, and called just before the extension is built.
         if not is_mingw:
-            # bugger - add this to python!
+            # bugger - add this to distutils!
             if build_ext.plat_name == "win32":
                 self.extra_link_args.append("/MACHINE:x86")
             else:
