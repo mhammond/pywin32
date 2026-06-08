@@ -141,7 +141,7 @@ class WinExt(Extension):
         libraries.extend(self.delay_load_libraries)
 
         extra_link_args = extra_link_args or []
-        if export_symbol_file:
+        if export_symbol_file and not is_mingw:
             extra_link_args.append("/DEF:" + export_symbol_file)
 
         define_macros = define_macros or []
@@ -156,12 +156,31 @@ class WinExt(Extension):
                 # Technically official Python 3.9 builds require at least Windows 8.1, but we had no reason to bump this
                 ("_WIN32_WINNT", hex(0x0601)),
                 ("WINVER", hex(0x0601)),
-                ("WINNT", None),
                 # Always Unicode since Python 3
                 ("UNICODE", None),
                 ("_UNICODE", None),
             )
         )
+
+        # MinGW doesn't define these.
+        if is_mingw:
+            define_macros.extend(
+                (
+                    # Required for PyExc_WindowsError in pyerrors.h
+                    ("MS_WINDOWS", None),
+                    # Currently missing from MinGW's wincred.h
+                    ("CRED_TYPE_GENERIC_CERTIFICATE", 5),
+                    ("CRED_TYPE_DOMAIN_EXTENDED", 6),
+                    ("CRED_ENUMERATE_ALL_CREDENTIALS", 0x1),
+                )
+            )
+            # Extra compile args (mapi, pythoncom & win32ui)
+            if "AMD64" in sys.version:
+                define_macros.extend((("_M_X64", None), ("_AMD64_", None)))
+            elif "ARM64" in sys.version:
+                define_macros.extend((("_M_ARM64", None), ("_ARM64_", None)))
+            else:
+                define_macros.extend((("_M_IX86", None), ("_X86_", None)))
         self.optional_headers = optional_headers
         self.is_regular_dll = is_regular_dll
         self.implib_name = implib_name
@@ -238,6 +257,19 @@ class WinExt(Extension):
                         break
                 if found_mfc:
                     break
+        else:
+            # Set our C++ standard
+            self.extra_compile_args.append("-std=c++17")
+            # More lenient about non-standard C++ code as this project was based on MSVC
+            self.extra_compile_args.append("-fpermissive")
+            # Enables MS-specific syntax and MS-specific idioms: namely anonymous structs/unions which C++ lacks
+            self.extra_compile_args.append("-fms-extensions")
+
+            # If someone needs a specially named implib created, handle that
+            if self.implib_name:
+                implib = os.path.join(build_ext.build_temp, self.implib_name)
+                suffix = "_d" if build_ext.debug else ""
+                self.extra_link_args.append(f"-Wl,--out-implib,{implib}{suffix}.dll.a")
 
     @abstractmethod
     def get_pywin32_dir(self) -> str:
