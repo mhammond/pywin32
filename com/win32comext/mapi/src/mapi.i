@@ -702,27 +702,6 @@ HRESULT WrapCompressedRTFStream(
 // @rdesc Result is a tuple of (bodyStream, bodyType);
 %native(WrapCompressedRTFStreamEx) PyWrapCompressedRTFStreamEx;
 %{
-// @object RTF_WCSINFO|A tuple representing a RTF_WCSINFO structure
-struct RTF_WCSINFO
-{
-	ULONG size;
-	ULONG Flags; // @tupleitem 0|ULONG|flags|
-	ULONG ulInCodePage; // @tupleitem 1|ULONG|incodepage|
-	ULONG ulOutCodePage; // @tupleitem 2|ULONG|outcodepage|
-};
-
-struct RTF_WCSRETINFO
-{
-	ULONG size;
-	ULONG ulStreamFlags;
-};
-
-STDAPI WrapCompressedRTFStreamEx(
-	LPSTREAM            lpCompressedRTFStream,
-	CONST RTF_WCSINFO   *pWCSInfo,
-	LPSTREAM            *lppUncompressedRTFStream,
-	RTF_WCSRETINFO      *pRetInfo);
-
 PyObject *PyWrapCompressedRTFStreamEx(PyObject *self, PyObject *args)
 {
 	HRESULT hRes;
@@ -738,7 +717,7 @@ PyObject *PyWrapCompressedRTFStreamEx(PyObject *self, PyObject *args)
 	retinfo.size = sizeof(RTF_WCSRETINFO);
 
 	if (!PyArg_ParseTuple(args, "O|(kkk):PyWrapCompressedRTFStreamEx", &obCompressedStream,
-						  &wcsinfo.Flags, &wcsinfo.ulInCodePage, &wcsinfo.ulOutCodePage))
+						  &wcsinfo.ulFlags, &wcsinfo.ulInCodePage, &wcsinfo.ulOutCodePage))
 		return NULL;
 
 	if (!PyCom_InterfaceFromPyObject(obCompressedStream, IID_IStream, (void **)&lpCompressedStream, FALSE))
