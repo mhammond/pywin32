@@ -252,6 +252,7 @@ static PyObject *PyMAPIUninitialize(PyObject *self, PyObject *args)
 #define MAPI_MOVE MAPI_MOVE // Perform a move operation instead of a copy.
 #define MAPI_NOREPLACE MAPI_NOREPLACE // Existing objects in the destination object should not be overwritten.
 #define MAPI_ASSOCIATED MAPI_ASSOCIATED // The container's associated contents table should be returned rather than the standard contents table. This flag is used only with folders. The messages that are included in the associated contents table were created with the MAPI_ASSOCIATED flag set in the call to IMAPIFolder::CreateMessage. Clients typically use the associated contents table to retrieve forms and views.
+#define MAPI_APP_PROFILE MAPI_APP_PROFILE // Include "app" profiles in the profile table. If this flag is not set, "app" profiles are not included. This flag may not be recognized or supported in all MAPI implementations.
 #define MAPI_ALLOW_OTHERS MAPI_ALLOW_OTHERS // The shared session should be returned, allowing subsequent clients to acquire the session without providing any user credentials.
 #define MAPI_EXPLICIT_PROFILE MAPI_EXPLICIT_PROFILE // The default profile should not be used, and the user should be required to supply a profile.
 #define MAPI_EXTENDED MAPI_EXTENDED // Log on with extended capabilities. This flag should always be set. The older MAPILogon function is no longer available.
