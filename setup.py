@@ -1422,19 +1422,17 @@ com_extensions = [
     ),
     WinExt_win32com_mapi(
         "exchange",
-        libraries="advapi32 legacy_stdio_definitions",
+        libraries="advapi32",
         include_dirs=["{mapi}/MAPIStubLibrary/include".format(**dirs)],
-        sources=(
-            """
-                                  {mapi}/exchange.i         {mapi}/exchange.cpp
-                                  {mapi}/PyIExchangeManageStore.i {mapi}/PyIExchangeManageStore.cpp
-                                  {mapi}/PyIExchangeManageStoreEx.i {mapi}/PyIExchangeManageStoreEx.cpp
-                                  {mapi}/mapiutil.cpp
-                                  {mapi}/exchangeguids.cpp
-                                  {mapi}/MAPIStubLibrary/library/mapiStubLibrary.cpp
-                                  {mapi}/MAPIStubLibrary/library/stubutils.cpp
-                                  """.format(**dirs)
-        ).split(),
+        sources="""
+            {mapi}/exchange.i                   {mapi}/exchange.cpp
+            {mapi}/PyIExchangeManageStore.i     {mapi}/PyIExchangeManageStore.cpp
+            {mapi}/PyIExchangeManageStoreEx.i   {mapi}/PyIExchangeManageStoreEx.cpp
+            {mapi}/mapiutil.cpp
+            {mapi}/exchangeguids.cpp
+            {mapi}/MAPIStubLibrary/library/mapiStubLibrary.cpp
+            {mapi}/MAPIStubLibrary/library/stubutils.cpp
+        """.format(**dirs).split(),
     ),
     WinExt_win32com(
         "shell",
