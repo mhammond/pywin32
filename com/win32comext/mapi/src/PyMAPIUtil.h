@@ -1,4 +1,4 @@
-#include "sal_compat.h"
+#include "sal.h"
 
 // Must include before MAPIX.h, which includes mapidefs.h and mapicode.h.
 // Because of casing that will import from MinGW shared headers instead,
