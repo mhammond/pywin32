@@ -82,6 +82,7 @@ if (
         return frozenset(roots)
 
     _PYWIN32_ROOTS = _collect_pywin32_roots()
+    del _collect_pywin32_roots
 
     def _pywin32_lazy_imports_filter(
         importer: str, name: str, fromlist: "tuple[str, ...] | None"
