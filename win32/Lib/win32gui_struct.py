@@ -38,7 +38,7 @@ import win32con
 import win32gui
 
 
-def _MakeResult(names_str, values):
+def _MakeResult(names_str: str, values):
     names = names_str.split()
     # TODO: Dynamic namedtuple. This could be made static, also exposing the types
     nt = namedtuple(names[0], names[1:])  # noqa: PYI024
