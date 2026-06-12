@@ -601,7 +601,7 @@ class my_build_ext(build_ext):
         # This is only available from the Visual Studio Installer.
         # Skip if Pythonwin was also skipped.
         win32ui_ext = pythonwin_extensions[0]
-        if win32ui_ext in {ext for ext, why in self.excluded_extensions}:
+        if win32ui_ext not in {ext for ext, why in self.excluded_extensions}:
             vc_path = next(p for p in Path(self.compiler.cc).parents if p.name == "VC")
             msvc_version = next(
                 p for p in Path(self.compiler.cc).parents if p.parent.name == "MSVC"
