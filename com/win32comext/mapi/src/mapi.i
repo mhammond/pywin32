@@ -251,6 +251,7 @@ static PyObject *PyMAPIUninitialize(PyObject *self, PyObject *args)
 #define MAPI_MOVE MAPI_MOVE // Perform a move operation instead of a copy.
 #define MAPI_NOREPLACE MAPI_NOREPLACE // Existing objects in the destination object should not be overwritten.
 #define MAPI_ASSOCIATED MAPI_ASSOCIATED // The container's associated contents table should be returned rather than the standard contents table. This flag is used only with folders. The messages that are included in the associated contents table were created with the MAPI_ASSOCIATED flag set in the call to IMAPIFolder::CreateMessage. Clients typically use the associated contents table to retrieve forms and views.
+#define MAPI_APP_PROFILE MAPI_APP_PROFILE // Include "app" profiles in the profile table. If this flag is not set, "app" profiles are not included. This flag may not be recognized or supported in all MAPI implementations.
 #define MAPI_ALLOW_OTHERS MAPI_ALLOW_OTHERS // The shared session should be returned, allowing subsequent clients to acquire the session without providing any user credentials.
 #define MAPI_EXPLICIT_PROFILE MAPI_EXPLICIT_PROFILE // The default profile should not be used, and the user should be required to supply a profile.
 #define MAPI_EXTENDED MAPI_EXTENDED // Log on with extended capabilities. This flag should always be set. The older MAPILogon function is no longer available.
@@ -692,36 +693,15 @@ HRESULT WrapCompressedRTFStream(
 
 
 // WrapCompressedRTFStreamEx
-#define MAPI_NATIVE_BODY ((ULONG) 0x00010000) // Indicates whether the decompressed stream is also converted to its native body.
-#define MAPI_NATIVE_BODY_TYPE_RTF ((ULONG) 1) // Native body is RTF.
-#define MAPI_NATIVE_BODY_TYPE_HTML ((ULONG) 2) // Native body is plain text.
-#define MAPI_NATIVE_BODY_TYPE_PLAINTEXT ((ULONG) 4) // Native body is HTML.
+#define MAPI_NATIVE_BODY MAPI_NATIVE_BODY // Indicates whether the decompressed stream is also converted to its native body.
+#define MAPI_NATIVE_BODY_TYPE_RTF MAPI_NATIVE_BODY_TYPE_RTF // Native body is RTF.
+#define MAPI_NATIVE_BODY_TYPE_HTML MAPI_NATIVE_BODY_TYPE_HTML // Native body is HTML.
+#define MAPI_NATIVE_BODY_TYPE_PLAINTEXT MAPI_NATIVE_BODY_TYPE_PLAINTEXT // Native body is plain text.
 
 // @pyswig (<o PyIStream>, ULONG)|WrapCompressedRTFStreamEx|
 // @rdesc Result is a tuple of (bodyStream, bodyType);
 %native(WrapCompressedRTFStreamEx) PyWrapCompressedRTFStreamEx;
 %{
-// @object RTF_WCSINFO|A tuple representing a RTF_WCSINFO structure
-struct RTF_WCSINFO
-{
-	ULONG size;
-	ULONG Flags; // @tupleitem 0|ULONG|flags|
-	ULONG ulInCodePage; // @tupleitem 1|ULONG|incodepage|
-	ULONG ulOutCodePage; // @tupleitem 2|ULONG|outcodepage|
-};
-
-struct RTF_WCSRETINFO
-{
-	ULONG size;
-	ULONG ulStreamFlags;
-};
-
-STDAPI WrapCompressedRTFStreamEx(
-	LPSTREAM            lpCompressedRTFStream,
-	CONST RTF_WCSINFO   *pWCSInfo,
-	LPSTREAM            *lppUncompressedRTFStream,
-	RTF_WCSRETINFO      *pRetInfo);
-
 PyObject *PyWrapCompressedRTFStreamEx(PyObject *self, PyObject *args)
 {
 	HRESULT hRes;
@@ -737,7 +717,7 @@ PyObject *PyWrapCompressedRTFStreamEx(PyObject *self, PyObject *args)
 	retinfo.size = sizeof(RTF_WCSRETINFO);
 
 	if (!PyArg_ParseTuple(args, "O|(kkk):PyWrapCompressedRTFStreamEx", &obCompressedStream,
-						  &wcsinfo.Flags, &wcsinfo.ulInCodePage, &wcsinfo.ulOutCodePage))
+						  &wcsinfo.ulFlags, &wcsinfo.ulInCodePage, &wcsinfo.ulOutCodePage))
 		return NULL;
 
 	if (!PyCom_InterfaceFromPyObject(obCompressedStream, IID_IStream, (void **)&lpCompressedStream, FALSE))
