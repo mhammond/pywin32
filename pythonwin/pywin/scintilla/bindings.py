@@ -8,7 +8,7 @@ import win32ui
 
 from . import (
     # https://github.com/astral-sh/ruff/issues/15705
-    IDLEenvironment,  # noqa: F401 # Injects fast_readline into the IDLE auto-indent extensionCollapse comment
+    IDLEenvironment,  # noqa: F401 # Injects fast_readline into the IDLE auto-indent extension
 )
 
 HANDLER_ARGS_GUESS = 0
