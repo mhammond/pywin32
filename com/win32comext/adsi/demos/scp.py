@@ -220,7 +220,7 @@ def SpnRegister(
     operation,  # Add, replace, or delete SPNs
 ):
     assert not isinstance(spns, str) and hasattr(spns, "__iter__"), (
-        "spns must be a sequence of strings (got %r)" % spns
+        f"spns must be a sequence of strings (got {spns!r})"
     )
     # Bind to a domain controller.
     # Get the domain for the current user.
