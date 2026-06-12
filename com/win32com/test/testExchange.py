@@ -68,7 +68,7 @@ def DumpFolders(session):
 
 # Build a dictionary of property tags, so I can reverse look-up
 #
-PropTagsById = {}
+PropTagsById: dict[str, str] = {}
 if ammodule:
     for name, val in ammodule.constants.__dict__.items():
         PropTagsById[val] = name
