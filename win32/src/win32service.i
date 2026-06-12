@@ -825,7 +825,6 @@ static PyObject *MyEnumServicesStatus(PyObject *self, PyObject *args)
 	char *buffer = NULL;
 
 	Py_BEGIN_ALLOW_THREADS
-
 	EnumServicesStatus(hscm, serviceType, serviceState, services, sizeof(tmp), &bytesNeeded,
 		&servicesReturned, &resumeHandle);
 
@@ -986,7 +985,6 @@ static PyObject *MyEnumDependentServices(PyObject *self, PyObject *args)
 	char *buffer = NULL;
 
 	Py_BEGIN_ALLOW_THREADS
-
 	result = EnumDependentServices(hsc, serviceState, services, sizeof(tmp), &bytesNeeded,
 		&servicesReturned);
 
@@ -1052,7 +1050,6 @@ static PyObject *MyQueryServiceConfig(PyObject *self, PyObject *args)
 	char *buffer = NULL;
 
 	Py_BEGIN_ALLOW_THREADS
-
 	result = QueryServiceConfig(hsc, config, sizeof(tmp), &bytesNeeded);
 
 	if (GetLastError() == ERROR_INSUFFICIENT_BUFFER)

@@ -236,16 +236,17 @@ BOOL DoOpenMap(HANDLE *pHandle, VOID **ppPtr)
         ReturnError("DoOpenMap, already open");
         return FALSE;
     }
-    Py_BEGIN_ALLOW_THREADS *pHandle =
-        CreateFileMapping((HANDLE)-1, &sa, PAGE_READWRITE, 0, BUFFER_SIZE, FixupObjectName(MAP_OBJECT_NAME));
-    Py_END_ALLOW_THREADS if (*pHandle == NULL)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        *pHandle = CreateFileMapping((HANDLE)-1, &sa, PAGE_READWRITE, 0, BUFFER_SIZE, FixupObjectName(MAP_OBJECT_NAME));
+    Py_END_ALLOW_THREADS
+    if (*pHandle == NULL) {
         PyWin_SetAPIError("CreateFileMapping");
         return FALSE;
     }
-    Py_BEGIN_ALLOW_THREADS *ppPtr = MapViewOfFile(*pHandle, FILE_MAP_ALL_ACCESS, 0, 0, BUFFER_SIZE);
-    Py_END_ALLOW_THREADS if (*ppPtr == NULL)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        *ppPtr = MapViewOfFile(*pHandle, FILE_MAP_ALL_ACCESS, 0, 0, BUFFER_SIZE);
+    Py_END_ALLOW_THREADS
+    if (*ppPtr == NULL) {
         // not allowed to access the interpreter inside
         // Py_BEGIN_ALLOW_THREADS block
         PyWin_SetAPIError("MapViewOfFile");
@@ -311,38 +312,40 @@ BOOL PyTraceObject::WriteData(const char *data, unsigned len)
         return FALSE;
     }
     BOOL rc = TRUE;
-    Py_BEGIN_ALLOW_THREADS const char *data_this = data;
-    while (len) {
-        unsigned len_this = min(len, BUFFER_SIZE / 2);
-        BOOL ok = GetMyMutex();
-        if (ok) {
-            // must use types with identical size on win32 and win64
-            unsigned long *pLen = (unsigned long *)pMapBaseWrite;
-            unsigned long sizeLeft = (BUFFER_SIZE - sizeof(unsigned long)) - *pLen;
-            // If less than double we need left, wait for it to empty, or .1 sec.
-            if (sizeLeft < len_this * 2) {
-                ReleaseMyMutex();
+    Py_BEGIN_ALLOW_THREADS
+        const char *data_this = data;
+        while (len) {
+            unsigned len_this = min(len, BUFFER_SIZE / 2);
+            BOOL ok = GetMyMutex();
+            if (ok) {
+                // must use types with identical size on win32 and win64
+                unsigned long *pLen = (unsigned long *)pMapBaseWrite;
+                unsigned long sizeLeft = (BUFFER_SIZE - sizeof(unsigned long)) - *pLen;
+                // If less than double we need left, wait for it to empty, or .1 sec.
+                if (sizeLeft < len_this * 2) {
+                    ReleaseMyMutex();
+                    SetEvent(hEvent);
+                    WaitForSingleObject(hEventEmpty, 100);
+                    ok = GetMyMutex();
+                }
+            }
+            if (ok) {
+                unsigned long *pLen = (unsigned long *)pMapBaseWrite;
+                char *buffer = (char *)(((unsigned long *)pMapBaseWrite) + 1);
+
+                unsigned long sizeLeft = (BUFFER_SIZE - sizeof(unsigned long)) - *pLen;
+                if (sizeLeft < len_this)
+                    *pLen = 0;
+                memcpy(buffer + (*pLen), data_this, len_this);
+                *pLen += len_this;
+                rc = ReleaseMyMutex();
                 SetEvent(hEvent);
-                WaitForSingleObject(hEventEmpty, 100);
-                ok = GetMyMutex();
+                data_this += len_this;
+                len -= len_this;
             }
         }
-        if (ok) {
-            unsigned long *pLen = (unsigned long *)pMapBaseWrite;
-            char *buffer = (char *)(((unsigned long *)pMapBaseWrite) + 1);
-
-            unsigned long sizeLeft = (BUFFER_SIZE - sizeof(unsigned long)) - *pLen;
-            if (sizeLeft < len_this)
-                *pLen = 0;
-            memcpy(buffer + (*pLen), data_this, len_this);
-            *pLen += len_this;
-            rc = ReleaseMyMutex();
-            SetEvent(hEvent);
-            data_this += len_this;
-            len -= len_this;
-        }
-    }
-    Py_END_ALLOW_THREADS return rc;
+    Py_END_ALLOW_THREADS
+    return rc;
 }
 
 BOOL PyTraceObject::ReadData(char **ppResult, int *retSize, int waitMilliseconds)
@@ -353,32 +356,36 @@ BOOL PyTraceObject::ReadData(char **ppResult, int *retSize, int waitMilliseconds
     }
     if (waitMilliseconds != 0) {
         DWORD rc;
-        Py_BEGIN_ALLOW_THREADS rc = WaitForSingleObject(hEvent, waitMilliseconds);
-        Py_END_ALLOW_THREADS if (rc == WAIT_FAILED)
-        {
+        Py_BEGIN_ALLOW_THREADS
+            rc = WaitForSingleObject(hEvent, waitMilliseconds);
+        Py_END_ALLOW_THREADS
+        if (rc == WAIT_FAILED) {
             PyWin_SetAPIError("WaitForSingleObject", GetLastError());
             return FALSE;
         }
     }
     BOOL rc = FALSE;
     char *result = NULL;
-    Py_BEGIN_ALLOW_THREADS if (GetMyMutex())
-    {
-        // must use sizes that are identical on win32 and win64
-        unsigned long *pLen = (unsigned long *)pMapBaseRead;
-        char *buffer = (char *)(((unsigned long *)pMapBaseRead) + 1);
+    Py_BEGIN_ALLOW_THREADS
+        if (GetMyMutex()) {
+            // must use sizes that are identical on win32 and win64
+            unsigned long *pLen = (unsigned long *)pMapBaseRead;
+            char *buffer = (char *)(((unsigned long *)pMapBaseRead) + 1);
 
-        result = (char *)malloc(*pLen + 1);
-        if (result) {
-            memcpy(result, buffer, *pLen);
-            result[*pLen] = '\0';
-            *retSize = *pLen;
-            *pLen = 0;
+            result = (char *)malloc(*pLen + 1);
+            if (result) {
+                memcpy(result, buffer, *pLen);
+                result[*pLen] = '\0';
+                *retSize = *pLen;
+                *pLen = 0;
+            }
+            rc = ReleaseMyMutex();
+            SetEvent(hEventEmpty);  // in case anyone wants to optimize waiting.
         }
-        rc = ReleaseMyMutex();
-        SetEvent(hEventEmpty);  // in case anyone wants to optimize waiting.
+    Py_END_ALLOW_THREADS
+    if (!rc && result) {
+        free(result);
     }
-    Py_END_ALLOW_THREADS if (!rc && result) { free(result); }
     if (rc && result == NULL) {
         PyErr_SetString(PyExc_MemoryError, "Allocating buffer for trace data");
         rc = FALSE;
@@ -444,8 +451,11 @@ static PyObject *win32trace_TermRead(PyObject *self, PyObject *args)
         // can't terminate something that you haven't started
         return ReturnError("The module has not been setup for reading");
     }
-    Py_BEGIN_ALLOW_THREADS ok = static_cast<PyTraceObject *>(traceObject)->CloseReadMap();
-    Py_END_ALLOW_THREADS if (!ok) return NULL;
+    Py_BEGIN_ALLOW_THREADS
+        ok = static_cast<PyTraceObject *>(traceObject)->CloseReadMap();
+    Py_END_ALLOW_THREADS
+    if (!ok)
+        return NULL;
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -458,8 +468,11 @@ static PyObject *win32trace_TermWrite(PyObject *self, PyObject *args)
         // can't terminate something that you haven't started
         return ReturnError("The module has not been setup for writing");
     }
-    Py_BEGIN_ALLOW_THREADS ok = static_cast<PyTraceObject *>(traceObject)->CloseWriteMap();
-    Py_END_ALLOW_THREADS if (!ok) return NULL;
+    Py_BEGIN_ALLOW_THREADS
+        ok = static_cast<PyTraceObject *>(traceObject)->CloseWriteMap();
+    Py_END_ALLOW_THREADS
+    if (!ok)
+        return NULL;
     Py_INCREF(Py_None);
     return Py_None;
 }

@@ -149,10 +149,12 @@ static PyObject *PyWNetAddConnection2(PyObject *self, PyObject *args, PyObject *
     if (!PyWinObject_AsTCHAR(obPassword, &Password, TRUE) || !PyWinObject_AsTCHAR(obUsername, &Username, TRUE))
         goto done;
 
-    Py_BEGIN_ALLOW_THREADS ErrorNo = WNetAddConnection2(pNetResource, Password, Username, flags);
-    Py_END_ALLOW_THREADS if (ErrorNo != NO_ERROR) ReturnNetError("WNetAddConnection2", ErrorNo);
-    else
-    {
+    Py_BEGIN_ALLOW_THREADS
+        ErrorNo = WNetAddConnection2(pNetResource, Password, Username, flags);
+    Py_END_ALLOW_THREADS
+    if (ErrorNo != NO_ERROR)
+        ReturnNetError("WNetAddConnection2", ErrorNo);
+    else {
         Py_INCREF(Py_None);
         ret = Py_None;
     }
@@ -197,10 +199,12 @@ static PyObject *PyWNetAddConnection3(PyObject *self, PyObject *args, PyObject *
     if (!PyWinObject_AsTCHAR(obPassword, &Password, TRUE) || !PyWinObject_AsTCHAR(obUsername, &Username, TRUE))
         goto done;
 
-    Py_BEGIN_ALLOW_THREADS ErrorNo = WNetAddConnection3(hwnd, pNetResource, Password, Username, flags);
-    Py_END_ALLOW_THREADS if (ErrorNo != NO_ERROR) ReturnNetError("WNetAddConnection3", ErrorNo);
-    else
-    {
+    Py_BEGIN_ALLOW_THREADS
+        ErrorNo = WNetAddConnection3(hwnd, pNetResource, Password, Username, flags);
+    Py_END_ALLOW_THREADS
+    if (ErrorNo != NO_ERROR)
+        ReturnNetError("WNetAddConnection3", ErrorNo);
+    else {
         Py_INCREF(Py_None);
         ret = Py_None;
     }
@@ -225,8 +229,10 @@ static PyObject *PyWNetCancelConnection2(PyObject *self, PyObject *args)
         return NULL;
     if (!PyWinObject_AsTCHAR(obName, &lpName, FALSE))
         return NULL;
-    Py_BEGIN_ALLOW_THREADS ErrorNo = WNetCancelConnection2(lpName, dwFlags, (BOOL)bForce);
-    Py_END_ALLOW_THREADS PyWinObject_FreeTCHAR(lpName);
+    Py_BEGIN_ALLOW_THREADS
+        ErrorNo = WNetCancelConnection2(lpName, dwFlags, (BOOL)bForce);
+    Py_END_ALLOW_THREADS
+    PyWinObject_FreeTCHAR(lpName);
     if (ErrorNo != NO_ERROR) {
         return ReturnNetError("WNetCancelConnection2", ErrorNo);
     }
@@ -254,10 +260,12 @@ static PyObject *PyWNetOpenEnum(PyObject *self, PyObject *args)
     if (!PyWinObject_AsNETRESOURCE(ob_nr, &p_nr, TRUE))
         return NULL;
 
-    Py_BEGIN_ALLOW_THREADS Errno = WNetOpenEnum(dwScope, dwType, dwUsage, p_nr, &hEnum);
+    Py_BEGIN_ALLOW_THREADS
+        Errno = WNetOpenEnum(dwScope, dwType, dwUsage, p_nr, &hEnum);
     Py_END_ALLOW_THREADS
 
-        if (Errno != NO_ERROR) return (ReturnNetError("WNetOpenEnum", Errno));
+    if (Errno != NO_ERROR)
+        return (ReturnNetError("WNetOpenEnum", Errno));
 
     return (PyNETENUMObject_FromHANDLE(hEnum));
     // @rdesc PyHANDLE representing the Win32 HANDLE for the open resource.
@@ -339,10 +347,11 @@ static PyObject *PyWNetEnumResource(PyObject *self, PyObject *args)
             }
         }
 
-        Py_BEGIN_ALLOW_THREADS Errno = WNetEnumResource(hEnum, &dwCount, lpBuffer, &dwBuffsize);  // do the enumeration
+        Py_BEGIN_ALLOW_THREADS
+            Errno = WNetEnumResource(hEnum, &dwCount, lpBuffer, &dwBuffsize);  // do the enumeration
         Py_END_ALLOW_THREADS
 
-            if (Errno == NO_ERROR)  // if no error, then build the list
+        if (Errno == NO_ERROR)  // if no error, then build the list
         {
             NETRESOURCE *p_nr =
                 (NETRESOURCE *)lpBuffer;  // Enum Resource returns a buffer of successive NETRESOURCE structs
@@ -400,7 +409,8 @@ static PyObject *PyWNetGetUser(PyObject *self, PyObject *args)
         goto done;
     // get the buffer size
     {
-        Py_BEGIN_ALLOW_THREADS errcode = WNetGetUser(szConnection, NULL, &length);
+        Py_BEGIN_ALLOW_THREADS
+            errcode = WNetGetUser(szConnection, NULL, &length);
         Py_END_ALLOW_THREADS
     }
     if (length == 0) {
@@ -412,9 +422,10 @@ static PyObject *PyWNetGetUser(PyObject *self, PyObject *args)
         PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", sizeof(TCHAR) * length);
         goto done;
     }
-    Py_BEGIN_ALLOW_THREADS errcode = WNetGetUser(szConnection, buf, &length);
-    Py_END_ALLOW_THREADS if (0 != errcode)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        errcode = WNetGetUser(szConnection, buf, &length);
+    Py_END_ALLOW_THREADS
+    if (0 != errcode) {
         ReturnNetError("WNetGetUser", errcode);
         goto done;
     }
@@ -457,8 +468,9 @@ static PyObject *PyWNetGetUniversalName(PyObject *self, PyObject *args)
 
     // First get the buffer size.
     {
-        Py_BEGIN_ALLOW_THREADS char temp_buf[] = "";  // doesn't appear to like NULL!!
-        errcode = WNetGetUniversalName(szLocalPath, level, &temp_buf, &length);
+        Py_BEGIN_ALLOW_THREADS
+            char temp_buf[] = "";  // doesn't appear to like NULL!!
+            errcode = WNetGetUniversalName(szLocalPath, level, &temp_buf, &length);
         Py_END_ALLOW_THREADS
     }
     if (errcode != ERROR_MORE_DATA || length == 0) {
@@ -527,14 +539,14 @@ PyObject *PyWNetGetResourceInformation(PyObject *self, PyObject *args)
         nrout = (NETRESOURCE *)malloc(bufsize);
         if (nrout == NULL)
             return PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", bufsize);
-        Py_BEGIN_ALLOW_THREADS err = WNetGetResourceInformation(nrin, nrout, &bufsize, &szFilePath);
-        Py_END_ALLOW_THREADS if (err == NO_ERROR)
-        {
+        Py_BEGIN_ALLOW_THREADS
+            err = WNetGetResourceInformation(nrin, nrout, &bufsize, &szFilePath);
+        Py_END_ALLOW_THREADS
+        if (err == NO_ERROR) {
             ret = Py_BuildValue("NN", PyWinObject_FromNETRESOURCE(nrout), PyWinObject_FromTCHAR(szFilePath));
             break;
         }
-        else if (err != ERROR_MORE_DATA)
-        {
+        else if (err != ERROR_MORE_DATA) {
             ReturnNetError("WNetGetResourceInformation", err);
             break;
         }
@@ -553,8 +565,10 @@ PyObject *PyWinMethod_Netbios(PyObject *self, PyObject *args)
         return NULL;
     PyNCB *pyncb = (PyNCB *)obncb;
     UCHAR rc;
-    Py_BEGIN_ALLOW_THREADS rc = Netbios(&pyncb->m_ncb);
-    Py_END_ALLOW_THREADS return PyLong_FromLong((long)rc);
+    Py_BEGIN_ALLOW_THREADS
+        rc = Netbios(&pyncb->m_ncb);
+    Py_END_ALLOW_THREADS
+    return PyLong_FromLong((long)rc);
 }
 
 // @pymethod buffer|win32wnet|NCBBuffer|Creates an NCB buffer of the relevant size.
@@ -578,10 +592,12 @@ PyObject *PyWNetGetLastError(PyObject *self, PyObject *args)
         return NULL;
     DWORD err, extendederr;
     TCHAR errstr[1024], provider[256];
-    Py_BEGIN_ALLOW_THREADS err = WNetGetLastError(&extendederr, errstr, sizeof(errstr) / sizeof(TCHAR), provider,
-                                                  sizeof(provider) / sizeof(TCHAR));
-    Py_END_ALLOW_THREADS if (err == NO_ERROR) return Py_BuildValue("kNN", extendederr, PyWinObject_FromTCHAR(errstr),
-                                                                   PyWinObject_FromTCHAR(provider));
+    Py_BEGIN_ALLOW_THREADS
+        err = WNetGetLastError(&extendederr, errstr, sizeof(errstr) / sizeof(TCHAR), provider,
+                               sizeof(provider) / sizeof(TCHAR));
+    Py_END_ALLOW_THREADS
+    if (err == NO_ERROR)
+        return Py_BuildValue("kNN", extendederr, PyWinObject_FromTCHAR(errstr), PyWinObject_FromTCHAR(provider));
     return ReturnNetError("WNetGetLastError", err);
 }
 
@@ -608,14 +624,14 @@ PyObject *PyWNetGetResourceParent(PyObject *self, PyObject *args)
         parentnr = (NETRESOURCE *)malloc(bufsize);
         if (parentnr == NULL)
             return PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", bufsize);
-        Py_BEGIN_ALLOW_THREADS err = WNetGetResourceParent(nr, parentnr, &bufsize);
-        Py_END_ALLOW_THREADS if (err == NO_ERROR)
-        {
+        Py_BEGIN_ALLOW_THREADS
+            err = WNetGetResourceParent(nr, parentnr, &bufsize);
+        Py_END_ALLOW_THREADS
+        if (err == NO_ERROR) {
             ret = PyWinObject_FromNETRESOURCE(parentnr);
             break;
         }
-        else if (err != ERROR_MORE_DATA)
-        {
+        else if (err != ERROR_MORE_DATA) {
             ReturnNetError("WNetGetResourceParent", err);
             break;
         }
@@ -646,7 +662,8 @@ static PyObject *PyWNetGetConnection(PyObject *self, PyObject *args)
         goto done;
     // get the buffer size
     {
-        Py_BEGIN_ALLOW_THREADS errcode = WNetGetConnection(szConnection, NULL, &length);
+        Py_BEGIN_ALLOW_THREADS
+            errcode = WNetGetConnection(szConnection, NULL, &length);
         Py_END_ALLOW_THREADS
     }
     if (length == 0) {
@@ -658,9 +675,10 @@ static PyObject *PyWNetGetConnection(PyObject *self, PyObject *args)
         PyErr_Format(PyExc_MemoryError, "Unable to allocate %d bytes", sizeof(TCHAR) * length);
         goto done;
     }
-    Py_BEGIN_ALLOW_THREADS errcode = WNetGetConnection(szConnection, buf, &length);
-    Py_END_ALLOW_THREADS if (0 != errcode)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        errcode = WNetGetConnection(szConnection, buf, &length);
+    Py_END_ALLOW_THREADS
+    if (0 != errcode) {
         ReturnNetError("WNetGetConnection", errcode);
         goto done;
     }
