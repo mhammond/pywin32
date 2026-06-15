@@ -18,6 +18,22 @@ As of build 305, installation .exe files have been deprecated; see
 Coming in build 313, as yet unreleased
 --------------------------------------
 
+* Updated `MAPIStubLibrary` vendored sources:
+  * Migrated from deprecated SAL v1 annotations to SAL v2
+  * New `win32comext.mapi.mapitags` symbols:
+    * `PR_SENDER_SMTP_ADDRESS`
+    * `PR_SENDER_SMTP_ADDRESS_W`
+    * `PR_SENDER_SMTP_ADDRESS_A`
+    * `PR_SENT_REPRESENTING_SMTP_ADDRESS`
+    * `PR_SENT_REPRESENTING_SMTP_ADDRESS_W`
+    * `PR_SENT_REPRESENTING_SMTP_ADDRESS_A`
+    * `PR_RECEIVED_BY_SMTP_ADDRESS`
+    * `PR_RECEIVED_BY_SMTP_ADDRESS_W`
+    * `PR_RECEIVED_BY_SMTP_ADDRESS_A`
+    * `PR_RCVD_REPRESENTING_SMTP_ADDRESS`
+    * `PR_RCVD_REPRESENTING_SMTP_ADDRESS_W`
+    * `PR_RCVD_REPRESENTING_SMTP_ADDRESS_A`
+
 Build 312, released 2026/06/04
 ------------------------------
 
@@ -44,7 +60,7 @@ Build 312, released 2026/06/04
 * Removed considerations for MFC < 9 (VS 2008) (mhammond#2669, mhammond#2716, [@Avasam][Avasam])
   * This removes the unusable `PyCSliderCtrl.VerifyPos` method
 * win32cred.{CredWrite, CredUIPromptForCredentials}, win32net.NetUserEnum,
-  win32profile.{LoadUserProfile,UnloadUserProfile,CreateEnvironmentBlock}, 
+  win32profile.{LoadUserProfile,UnloadUserProfile,CreateEnvironmentBlock},
   win32security.{LogonUser, LookupAccountName, SetNamedSecurityInfo, GetNamedSecurityInfo, LsaAddAccountRights, ConvertSidToStringSid}
   all now release the GIL before making the call (#2732)
 * Fix memory leak in PyCom_VariantFromPyObject (#2688)
