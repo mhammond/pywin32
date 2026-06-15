@@ -712,17 +712,11 @@ class CEnterLeavePython {
 #define max(a, b) ((a) > (b) ? (a) : (b))
 #endif
 
-#define __try try
+// HACK: Maps __except to catch(...), which only catches C++ exceptions.
+// SEH/hardware faults (e.g. access violations) will crash on MinGW.
+// Proper fix requires input validation to prevent the fault.
 #define __except(filter) catch (...)
-
-// Helpers for simple exception handling.
-#define PYWINTYPES_TRY try
-#define PYWINTYPES_EXCEPT catch (...)
-#else
-#define PYWINTYPES_TRY __try
-#define PYWINTYPES_EXCEPT __except (EXCEPTION_EXECUTE_HANDLER)
-// End of exception helper macros.
-#endif
+#endif  // __MINGW32__
 
 // Class to hold a temporary reference that decrements itself
 class TmpPyObject {

@@ -15,8 +15,11 @@ or
 As of build 305, installation .exe files have been deprecated; see
 <https://mhammond.github.io/pywin32_installers.html>.
 
-Coming in build 312, as yet unreleased
+Coming in build 313, as yet unreleased
 --------------------------------------
+
+Build 312, released 2026/06/04
+------------------------------
 
 * Deprecate `pythoncom.frozen` and resolve build deprecation warnings (mhammond#2593, [@Avasam][Avasam])
   `pythoncom.frozen` used to expose `Py_FrozenFlag` from the C API.
@@ -40,6 +43,11 @@ Coming in build 312, as yet unreleased
     * `win32con.FILE_ATTRIBUTE_XACTION_WRITE`
 * Removed considerations for MFC < 9 (VS 2008) (mhammond#2669, mhammond#2716, [@Avasam][Avasam])
   * This removes the unusable `PyCSliderCtrl.VerifyPos` method
+* win32cred.{CredWrite, CredUIPromptForCredentials}, win32net.NetUserEnum,
+  win32profile.{LoadUserProfile,UnloadUserProfile,CreateEnvironmentBlock}, 
+  win32security.{LogonUser, LookupAccountName, SetNamedSecurityInfo, GetNamedSecurityInfo, LsaAddAccountRights, ConvertSidToStringSid}
+  all now release the GIL before making the call (#2732)
+* Fix memory leak in PyCom_VariantFromPyObject (#2688)
 * Dropped support for Python 3.8 (mhammond#2413, [@Avasam][Avasam])
   * Note that whilst pywin32 hasn't explicitly dropped support for Windows 7 / 8 / Server 2008,
     Python 3.8 was the last official CPython version to support those versions (Python 3.9 installer requires at least Windows 8.1 / Server 2012).
