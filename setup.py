@@ -615,7 +615,7 @@ class my_build_ext(build_ext):
         # This is only available from the Visual Studio Installer.
         # Skip if Pythonwin was also skipped.
         win32ui_ext = pythonwin_extensions[0]
-        if win32ui_ext in {ext for ext, why in self.excluded_extensions}:
+        if win32ui_ext not in {ext for ext, why in self.excluded_extensions}:
             vc_path = next(p for p in Path(self.compiler.cc).parents if p.name == "VC")
             msvc_version = next(
                 p for p in Path(self.compiler.cc).parents if p.parent.name == "MSVC"
@@ -1436,19 +1436,17 @@ com_extensions = [
     ),
     WinExt_win32com_mapi(
         "exchange",
-        libraries="advapi32 legacy_stdio_definitions",
+        libraries="advapi32",
         include_dirs=["{mapi}/MAPIStubLibrary/include".format(**dirs)],
-        sources=(
-            """
-                                  {mapi}/exchange.i         {mapi}/exchange.cpp
-                                  {mapi}/PyIExchangeManageStore.i {mapi}/PyIExchangeManageStore.cpp
-                                  {mapi}/PyIExchangeManageStoreEx.i {mapi}/PyIExchangeManageStoreEx.cpp
-                                  {mapi}/mapiutil.cpp
-                                  {mapi}/exchangeguids.cpp
-                                  {mapi}/MAPIStubLibrary/library/mapiStubLibrary.cpp
-                                  {mapi}/MAPIStubLibrary/library/stubutils.cpp
-                                  """.format(**dirs)
-        ).split(),
+        sources="""
+            {mapi}/exchange.i                   {mapi}/exchange.cpp
+            {mapi}/PyIExchangeManageStore.i     {mapi}/PyIExchangeManageStore.cpp
+            {mapi}/PyIExchangeManageStoreEx.i   {mapi}/PyIExchangeManageStoreEx.cpp
+            {mapi}/mapiutil.cpp
+            {mapi}/exchangeguids.cpp
+            {mapi}/MAPIStubLibrary/library/mapiStubLibrary.cpp
+            {mapi}/MAPIStubLibrary/library/stubutils.cpp
+        """.format(**dirs).split(),
     ),
     WinExt_win32com(
         "shell",
