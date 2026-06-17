@@ -18,6 +18,9 @@ As of build 305, installation .exe files have been deprecated; see
 Coming in build 313, as yet unreleased
 --------------------------------------
 
+* Fixed a regression where `pythonwin/mfc140u.dll` isn't bundled with the wheels ([3cc74e0
+](mhammond/pywin32/commit/3cc74e05b4d5680c69fd6c02232a630db7a34675), [@Avasam][Avasam])
+
 Build 312, released 2026/06/04
 ------------------------------
 
@@ -44,7 +47,7 @@ Build 312, released 2026/06/04
 * Removed considerations for MFC < 9 (VS 2008) (mhammond#2669, mhammond#2716, [@Avasam][Avasam])
   * This removes the unusable `PyCSliderCtrl.VerifyPos` method
 * win32cred.{CredWrite, CredUIPromptForCredentials}, win32net.NetUserEnum,
-  win32profile.{LoadUserProfile,UnloadUserProfile,CreateEnvironmentBlock}, 
+  win32profile.{LoadUserProfile,UnloadUserProfile,CreateEnvironmentBlock},
   win32security.{LogonUser, LookupAccountName, SetNamedSecurityInfo, GetNamedSecurityInfo, LsaAddAccountRights, ConvertSidToStringSid}
   all now release the GIL before making the call (#2732)
 * Fix memory leak in PyCom_VariantFromPyObject (#2688)
