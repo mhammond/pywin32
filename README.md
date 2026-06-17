@@ -60,10 +60,10 @@ choose any "workflow" from the `main` branch and download its "artifacts"
 
 ### Free-threaded support
 
-While installing via pip with a no-GIL interpreter will build a compatible wheel,
-consider its support to be in alpha,
-as no prebuilt wheels compatible with the free-threaded interpreter are available.
-See [this](NOGIL.md) for details.
+Building via pip with a no-GIL interpreter will create a compatible, but knowingly unsafe, wheel.
+This should be considered experimental; while knowingly unsafe, no wheels compatible with the free-threaded interpreter will be made available - but you can build them yourself.
+
+See [NOGIL.md](NOGIL.md) for the blockers to supplying these artifacts.
 
 ### Installing globally
 
