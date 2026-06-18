@@ -32,7 +32,7 @@ def GetComments(line, lineNo, lines):
 
 
 def make_doc_summary(inFile, outFile):
-    methods = []
+    methods: list[tuple[str, list[str]]] = []
     modDoc = ""
     modName = ""
     lines = inFile.readlines()
