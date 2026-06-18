@@ -18,6 +18,21 @@ As of build 305, installation .exe files have been deprecated; see
 Coming in build 313, as yet unreleased
 --------------------------------------
 
+* Updated `MAPIStubLibrary` vendored sources (mhammond#2764, [@Avasam][Avasam]):
+  * Migrated from deprecated SAL v1 annotations to SAL v2
+  * New `win32comext.mapi.mapitags` symbols:
+    * `PR_SENDER_SMTP_ADDRESS`
+    * `PR_SENDER_SMTP_ADDRESS_W`
+    * `PR_SENDER_SMTP_ADDRESS_A`
+    * `PR_SENT_REPRESENTING_SMTP_ADDRESS`
+    * `PR_SENT_REPRESENTING_SMTP_ADDRESS_W`
+    * `PR_SENT_REPRESENTING_SMTP_ADDRESS_A`
+    * `PR_RECEIVED_BY_SMTP_ADDRESS`
+    * `PR_RECEIVED_BY_SMTP_ADDRESS_W`
+    * `PR_RECEIVED_BY_SMTP_ADDRESS_A`
+    * `PR_RCVD_REPRESENTING_SMTP_ADDRESS`
+    * `PR_RCVD_REPRESENTING_SMTP_ADDRESS_W`
+    * `PR_RCVD_REPRESENTING_SMTP_ADDRESS_A`
 * Fixed a regression where `pythonwin/mfc140u.dll` isn't bundled with the wheels ([3cc74e0
 ](mhammond/pywin32/commit/3cc74e05b4d5680c69fd6c02232a630db7a34675), [@Avasam][Avasam])
 
