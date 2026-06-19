@@ -277,7 +277,8 @@ class ScintillaFormatPropertyPage(dialog.PropertyPage):
             style.format[2],
             style.format[3],
             color[1],
-        ) + style.format[5:]
+            *style.format[5:],
+        )
 
     def OnOK(self):
         self.scintilla._GetColorizer().SavePreferences()
