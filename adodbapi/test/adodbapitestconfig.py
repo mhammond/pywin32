@@ -61,9 +61,6 @@ if pth not in sys.path:
     #  look here _first_ to find modules
     sys.path.insert(1, pth)
 
-# function to clean up the temporary folder -- calling program must run this function before exit.
-cleanup = setuptestframework.getcleanupfunction()
-
 import adodbapi  # will (hopefully) be imported using the "pth" discovered above
 
 print(adodbapi.version)  # show version
