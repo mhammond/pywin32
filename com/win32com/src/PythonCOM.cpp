@@ -1764,13 +1764,11 @@ static PyObject *pythoncom_ObjectFromAddress(PyObject *self, PyObject *args)
     HRESULT hr;
     IUnknown *ret = 0;
     PyThreadState *_save = PyEval_SaveThread();
-    PYWINTYPES_TRY
-    {
+    __try {
         hr = ((IUnknown *)addr)->QueryInterface(iid, (void **)&ret);
         PyEval_RestoreThread(_save);
     }
-    PYWINTYPES_EXCEPT
-    {
+    __except (EXCEPTION_EXECUTE_HANDLER) {
         PyEval_RestoreThread(_save);
         return PyErr_Format(PyExc_ValueError,
                             "Address is not a valid COM object (win32 exception attempting to retrieve it!)");
@@ -2552,9 +2550,6 @@ PYWIN_MODULE_INIT_FUNC(pythoncom)
 
     ADD_CONSTANT(DESCKIND_FUNCDESC);
     ADD_CONSTANT(DESCKIND_VARDESC);
-    // Expose the frozen flag, as Python itself doesn't!!
-    // @prop int|frozen|1 if the host is a frozen program, else 0
-    AddConstant(dict, "frozen", Py_FrozenFlag);
 
     ADD_CONSTANT(CLSCTX_ALL);
     ADD_CONSTANT(CLSCTX_SERVER);
@@ -2577,7 +2572,10 @@ PYWIN_MODULE_INIT_FUNC(pythoncom)
     // @prop int|dcom|1 if the system is DCOM aware, else 0.  Only Win95 without DCOM extensions should return 0
 
     // ### ALL THE @PROPERTY TAGS MUST COME AFTER THE LAST @PROP TAG!!
-    // @property int|pythoncom|frozen|1 if the host is a frozen program, else 0
+    // @property int|pythoncom|frozen|`pythoncom.frozen` used to expose `Py_FrozenFlag` from the C API.
+    // `Py_FrozenFlag` is deprecated since Python 3.12.
+    // Ever since pywin32 b200, loading the `win32com` module has silently been replacing `pythoncom.frozen` with
+    // `sys.frozen`. Use `getattr(sys, "frozen", False)` directly instead.
     // @property int|pythoncom|dcom|1 if the system is DCOM aware, else 0.  Only Win95 without DCOM extensions should
     // return 0
 
