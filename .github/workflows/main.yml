@@ -20,7 +20,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14", "3.15", "3.13t", "3.14t", "3.15t"]
         python-architecture: [x64, x86, arm64]
         include:
           - os: windows-2022
@@ -82,11 +82,12 @@ jobs:
         run: python win32/scripts/pywin32_testall.py -v -skip-adodbapi
 
       - name: Build wheels
+        if: ${{ !contains(matrix.python-version, 't') }}
         run: pip wheel . -v --wheel-dir=dist
 
       - uses: actions/upload-artifact@v4
         # Upload artifacts even if tests fail
-        if: ${{ always() }}
+        if: ${{ !contains(matrix.python-version, 't') }}
         with:
           name: artifacts-${{ matrix.python-version }}-${{ matrix.python-architecture }}
           path: dist/*.whl
@@ -115,10 +116,12 @@ jobs:
         run: python .github\workflows\download-arm64-libs.py ./arm64libs
 
       - name: Build wheels
+        if: ${{ !contains(matrix.python-version, 't') }}
         run: uv build --wheel --config-setting=--build-option="build_ext -L./arm64libs --plat-name=win-arm64 build --plat-name=win-arm64 bdist_wheel --plat-name=win-arm64"
 
       - uses: actions/upload-artifact@v4
         with:
+          if: ${{ !contains(matrix.python-version, 't') }}
           name: artifacts-${{ matrix.python-version }}-arm64
           path: dist/*.whl
           if-no-files-found: error
@@ -129,6 +132,7 @@ jobs:
     steps:
       - name: Merge Artifacts
         uses: actions/upload-artifact/merge@v4
+        if: ${{ !contains(matrix.python-version, 't') }}
         with:
           name: artifacts
           pattern: artifacts-*
@@ -176,7 +180,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14", "3.15"]
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v7
