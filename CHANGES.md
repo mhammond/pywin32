@@ -15,9 +15,33 @@ or
 As of build 305, installation .exe files have been deprecated; see
 <https://mhammond.github.io/pywin32_installers.html>.
 
-Coming in build 312, as yet unreleased
+Coming in build 313, as yet unreleased
 --------------------------------------
 
+* Updated `MAPIStubLibrary` vendored sources (mhammond#2764, [@Avasam][Avasam]):
+  * Migrated from deprecated SAL v1 annotations to SAL v2
+  * New `win32comext.mapi.mapitags` symbols:
+    * `PR_SENDER_SMTP_ADDRESS`
+    * `PR_SENDER_SMTP_ADDRESS_W`
+    * `PR_SENDER_SMTP_ADDRESS_A`
+    * `PR_SENT_REPRESENTING_SMTP_ADDRESS`
+    * `PR_SENT_REPRESENTING_SMTP_ADDRESS_W`
+    * `PR_SENT_REPRESENTING_SMTP_ADDRESS_A`
+    * `PR_RECEIVED_BY_SMTP_ADDRESS`
+    * `PR_RECEIVED_BY_SMTP_ADDRESS_W`
+    * `PR_RECEIVED_BY_SMTP_ADDRESS_A`
+    * `PR_RCVD_REPRESENTING_SMTP_ADDRESS`
+    * `PR_RCVD_REPRESENTING_SMTP_ADDRESS_W`
+    * `PR_RCVD_REPRESENTING_SMTP_ADDRESS_A`
+* Fixed a regression where `pythonwin/mfc140u.dll` isn't bundled with the wheels ([3cc74e0
+](mhammond/pywin32/commit/3cc74e05b4d5680c69fd6c02232a630db7a34675), [@Avasam][Avasam])
+
+Build 312, released 2026/06/04
+------------------------------
+
+* Deprecate `pythoncom.frozen` and resolve build deprecation warnings (mhammond#2593, [@Avasam][Avasam])
+  `pythoncom.frozen` used to expose `Py_FrozenFlag` from the C API.
+  `Py_FrozenFlag` is deprecated since Python 3.12.
 * Added Python 3.15 support (mhammond#2729, mhammond#2732, [@Avasam][Avasam])
 * Removed special-casing for `.pyo` files which haven't been a thing since [Python 3.5](https://peps.python.org/pep-0488/) (mhammond#2754, [@Avasam][Avasam])
 * Fixed `axdebug` build on Python 3.11+ using CPython's new opaque frame APIs, fixed 64-bit overflow in sourceContext and stack addresses, fixed incorrect step-over and step-out behavior, and fixed `ListEnumeratorGateway.Next()` returning lazy `map` iterator incompatible with C++ COM gateways that require a sequence (mhammond#2723, mhammond#2724, mhammond#2725, [@wxinix-2022][wxinix-2022])
@@ -37,6 +61,11 @@ Coming in build 312, as yet unreleased
     * `win32con.FILE_ATTRIBUTE_XACTION_WRITE`
 * Removed considerations for MFC < 9 (VS 2008) (mhammond#2669, mhammond#2716, [@Avasam][Avasam])
   * This removes the unusable `PyCSliderCtrl.VerifyPos` method
+* win32cred.{CredWrite, CredUIPromptForCredentials}, win32net.NetUserEnum,
+  win32profile.{LoadUserProfile,UnloadUserProfile,CreateEnvironmentBlock},
+  win32security.{LogonUser, LookupAccountName, SetNamedSecurityInfo, GetNamedSecurityInfo, LsaAddAccountRights, ConvertSidToStringSid}
+  all now release the GIL before making the call (#2732)
+* Fix memory leak in PyCom_VariantFromPyObject (#2688)
 * Dropped support for Python 3.8 (mhammond#2413, [@Avasam][Avasam])
   * Note that whilst pywin32 hasn't explicitly dropped support for Windows 7 / 8 / Server 2008,
     Python 3.8 was the last official CPython version to support those versions (Python 3.9 installer requires at least Windows 8.1 / Server 2012).

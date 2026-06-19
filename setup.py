@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-build_id = "311.1"  # may optionally include a ".{patchno}" suffix.
+build_id = "312.1"  # may optionally include a ".{patchno}" suffix.
 
 __doc__ = """This is a distutils setup-script for the pywin32 extensions.
 
@@ -25,15 +25,15 @@ build_env.md, which is getting out of date but might help getting everything
 required for an official build - see README.md for that process.
 """
 # Originally by Thomas Heller, started in 2000 or so.
-import glob
 import logging
 import os
 import platform
-import re
 import shutil
+import subprocess
 import sys
 from abc import abstractmethod
-from collections.abc import Iterable
+from collections.abc import Iterable, Iterator
+from itertools import chain, dropwhile, takewhile
 from pathlib import Path
 from setuptools import Extension, setup
 from setuptools.command.build import build
@@ -385,39 +385,66 @@ class my_build_ext(build_ext):
         """List of excluded extensions and their reason"""
         self.swig_opts.append("-c++")
 
+    def _get_gcc_include_dirs(self) -> list[str]:
+        """Query gcc's built-in include search paths."""
+        cc = getattr(self.compiler, "cc", "")
+        if not cc:
+            return []
+        try:
+            output = subprocess.check_output(
+                [cc, "-xc", "-E", "-", "-v"],
+                input=b"",
+                stderr=subprocess.STDOUT,
+            ).decode(errors="replace")
+        except subprocess.CalledProcessError:
+            return []  # probably wasn't gcc
+        # All lines between the start and end markers will be include directories
+        dirs: Iterator[str] = dropwhile(
+            lambda line: line != "#include <...> search starts here:",
+            output.splitlines(),
+        )
+        next(dirs)
+        dirs = takewhile(lambda line: line != "End of search list.", dirs)
+        return [os.path.normpath(line.strip()) for line in dirs]
+
     def _why_cant_build_extension(self, ext):
         """Return None, or a reason it can't be built."""
-        include_dirs = self.compiler.include_dirs + os.environ.get("INCLUDE", "").split(
-            os.pathsep
+        include_dirs = (
+            self.compiler.include_dirs
+            + os.environ.get("INCLUDE", "").split(os.pathsep)  # MSVC INCLUDE Env
+            + self._get_gcc_include_dirs()
         )
 
-        look_dirs = include_dirs
         for h in ext.optional_headers:
-            for d in look_dirs:
+            for d in include_dirs:
                 if os.path.isfile(os.path.join(d, h)):
                     break
             else:
-                logging.debug("Header '%s' not found  in %s", h, look_dirs)
+                logging.debug("Header '%s' not found in %s", h, include_dirs)
                 return f"The header '{h}' can not be located."
 
-        common_dirs = self.compiler.library_dirs[:]
-        common_dirs += os.environ.get("LIB", "").split(os.pathsep)
-        patched_libs = []
-        for lib in ext.libraries:
-            if lib.lower() in self.found_libraries:
-                found = self.found_libraries[lib.lower()]
-            else:
-                look_dirs = common_dirs + ext.library_dirs
-                found = self.compiler.find_library_file(look_dirs, lib, self.debug)
-                if not found:
-                    logging.debug("Lib '%s' not found in %s", lib, look_dirs)
-                    return "No library '%s'" % lib
-                self.found_libraries[lib.lower()] = found
-            patched_libs.append(os.path.splitext(os.path.basename(found))[0])
+        if not is_mingw:
+            look_dirs = (
+                self.compiler.library_dirs
+                + os.environ.get("LIB", "").split(os.pathsep)
+                + ext.library_dirs
+            )
+            patched_libs = []
+            for lib in ext.libraries:
+                lib_lower = lib.lower()
+                if lib_lower in self.found_libraries:
+                    found = self.found_libraries[lib_lower]
+                else:
+                    found = self.compiler.find_library_file(look_dirs, lib, self.debug)
+                    if not found:
+                        logging.debug("Lib '%s' not found in %s", lib, look_dirs)
+                        return f"No library '{lib}'"
+                    self.found_libraries[lib_lower] = found
+                patched_libs.append(os.path.splitext(os.path.basename(found))[0])
 
-        # We update the .libraries list with the resolved library name.
-        # This is really only so "_d" works.
-        ext.libraries = patched_libs
+            # We update the .libraries list with the resolved library name.
+            # This is really only so "_d" works.
+            ext.libraries = patched_libs
         return None  # no reason - it can be built!
 
     def _build_scintilla(self):
@@ -441,11 +468,11 @@ class my_build_ext(build_ext):
             # C:\>for %I in ("C:\Program Files",) do @echo %~sI
             # C:\PROGRA~1
             cs = os.environ.get("comspec", "cmd.exe")
-            cmd = cs + ' /c for %I in ("' + build_temp + '",) do @echo %~sI'
+            cmd = f'{cs} /c for %I in ("{build_temp}",) do @echo %~sI'
             build_temp = os.popen(cmd).read().strip()
             assert os.path.isdir(build_temp), build_temp
-        makeargs.append("SUB_DIR_O=%s" % build_temp)
-        makeargs.append("SUB_DIR_BIN=%s" % build_temp)
+        makeargs.append(f"SUB_DIR_O={build_temp}")
+        makeargs.append(f"SUB_DIR_BIN={build_temp}")
 
         nmake = "nmake.exe"
         # Attempt to resolve nmake to the same one that our compiler object
@@ -482,42 +509,6 @@ class my_build_ext(build_ext):
             os.path.join(self.build_temp, "scintilla", base_name),
             os.path.join(self.build_lib, "pythonwin"),
         )
-
-    # find the VC base path corresponding to distutils paths, and
-    # potentially upgrade for extra include / lib paths (MFC)
-    def _check_vc(self):
-        vcbase = vcverdir = None
-        atlmfc_found = False
-        for _dir in self.compiler.library_dirs:
-            m = re.search(r"(?i)VC\\([\d.]+\\)?(LIB)\b", _dir)
-            if m and not vcbase:
-                vcbase = _dir[: m.start(2)]
-                vcverdir = m.group(1)
-            m = re.search(r"(?i)ATLMFC\\LIB\b", _dir)
-            if m:
-                atlmfc_found = True  # ATLMFC libs/includes already found by distutils
-
-        if not vcbase and not is_mingw:
-            print("-- compiler.library_dirs:", self.compiler.library_dirs)
-            # Error or warn? last hope would be a non-standard build environment
-            print("-- Visual C base path not found !?")
-
-        # The afxres.h/atls.lib files aren't always included by default,
-        # so find and add them
-        if vcbase and not atlmfc_found:
-            atls_lib = glob.glob(vcbase + rf"ATLMFC\lib\{self.plat_dir}\atls.lib")
-            if atls_lib:
-                self.library_dirs.append(os.path.dirname(atls_lib[0]))
-                self.include_dirs.append(
-                    os.path.join(
-                        os.path.dirname(os.path.dirname(os.path.dirname(atls_lib[0]))),
-                        "Include",
-                    )
-                )
-            else:
-                print("-- compiler.library_dirs:", self.compiler.library_dirs)
-                print("-- ATLMFC paths likely missing (Required for win32ui)")
-        return vcbase, vcverdir
 
     def _verstamp(self, filename):
         """
@@ -565,8 +556,6 @@ class my_build_ext(build_ext):
         else:
             print("-- FIX ME ! distutils may expose complete inc/lib dirs again")
 
-        vcbase, vcverdir = self._check_vc()
-
         # Here we hack a "pywin32" directory (one of 'win32', 'win32com',
         # 'pythonwin' etc), as distutils doesn't seem to like the concept
         # of multiple top-level directories.
@@ -601,6 +590,12 @@ class my_build_ext(build_ext):
                 continue
             self.build_exefile(ext)
 
+            # If Pythonwin can't be built, then no need to build scintilla either
+            if ext.name == "Pythonwin":
+                # Not sure how to make this completely generic,
+                # and there is no need at this stage.
+                self._build_scintilla()
+
         # Error when too many skips
         if len(self.excluded_extensions) > 0.3 * (
             len(self.extensions) + len(W32_exe_files)
@@ -609,9 +604,6 @@ class my_build_ext(build_ext):
             print("-- compiler.library_dirs:", self.compiler.library_dirs)
             raise RuntimeError("Too many extensions skipped, check build environment")
 
-        # Not sure how to make this completely generic, and there is no
-        # need at this stage.
-        self._build_scintilla()
         # Copy cpp lib files needed to create Python COM extensions
         clib_files = (
             ["win32", "pywintypes%s.lib"],
@@ -627,36 +619,29 @@ class my_build_ext(build_ext):
             self.copy_file(os.path.join(self.build_temp, fname), target_dir)
 
         # Finally find and copy the MFC redistributable DLLs.
+        # This is only available from the Visual Studio Installer.
+        # Skip if Pythonwin was also skipped.
         win32ui_ext = pythonwin_extensions[0]
-        if win32ui_ext not in set(self.extensions) - {
-            ext for ext, why in self.excluded_extensions
-        }:
-            return
-        if not vcbase:
-            raise RuntimeError("Can't find MFC redist DLLs with unkown VC base path")
-        redist_globs = [vcbase + r"redist\%s\*MFC\mfc140u.dll" % self.plat_dir]
-        m = re.search(r"\\VC\\Tools\\", vcbase)
-        if m:
-            # typical path on newer Visual Studios
+        if win32ui_ext not in {ext for ext, why in self.excluded_extensions}:
+            vc_path = next(p for p in Path(self.compiler.cc).parents if p.name == "VC")
+            msvc_version = next(
+                p for p in Path(self.compiler.cc).parents if p.parent.name == "MSVC"
+            ).name
+            # Only mfcNNNu DLL is required (mfcmNNNX is Windows Forms, rest is ANSI)
             # prefer corresponding version but accept different version
-            same_version = vcverdir is not None and os.path.isdir(
-                vcbase[: m.start()]
-                + r"\VC\Redist\MSVC\{}{}".format(vcverdir, self.plat_dir)
-            )
-            redist_globs.append(
-                vcbase[: m.start()]
-                + r"\VC\Redist\MSVC\{}{}\*\mfc140u.dll".format(
-                    vcverdir if same_version else "*\\", self.plat_dir
-                )
-            )
-        # Only mfcNNNu DLL is required (mfcmNNNX is Windows Forms, rest is ANSI)
-        mfc_contents = next(filter(None, map(glob.glob, redist_globs)), [])[:1]
-        if not mfc_contents:
-            raise RuntimeError("MFC redist DLLs not found like %r!" % redist_globs)
+            redist_globs = [
+                f"Redist/MSVC/{msvc_version}/{self.plat_dir}/Microsoft.*.MFC/mfc140u.dll",
+                f"Redist/MSVC/*/{self.plat_dir}/Microsoft.*.MFC/mfc140u.dll",
+            ]
 
-        target_dir = os.path.join(self.build_lib, win32ui_ext.get_pywin32_dir())
-        for mfc_content in mfc_contents:
-            self.copy_file(mfc_content, target_dir)
+            mfc_dll = next(chain.from_iterable(map(vc_path.glob, redist_globs)), None)
+            if not mfc_dll:
+                raise RuntimeError(
+                    f"MFC redist DLLs not found like '{vc_path / redist_globs[-1]}'!"
+                )
+
+            target_dir = os.path.join(self.build_lib, win32ui_ext.get_pywin32_dir())
+            self.copy_file(mfc_dll, target_dir)
 
     def build_exefile(self, ext):
         suffix = "_d" if self.debug else ""
@@ -722,9 +707,7 @@ class my_build_ext(build_ext):
             if source.endswith(".i"):
                 self.find_swig()  # for the side-effect of the environment value.
                 # Find the swig_lib .i files we care about for dependency tracking.
-                ext.swig_deps = glob.glob(
-                    os.path.join(os.environ["SWIG_LIB"], "python", "*.i")
-                )
+                ext.swig_deps = list(Path(os.environ["SWIG_LIB"], "python").glob("*.i"))
                 ext.depends.extend(ext.swig_deps)
                 break
         else:
@@ -1435,13 +1418,13 @@ com_extensions = [
             {mapi}/PyIMAPIAdviseSink.cpp
             {mapi}/mapiutil.cpp
             {mapi}/mapiguids.cpp
-            {mapi}/MAPIStubLibrary/library/mapiStubLibrary.cpp
+            {mapi}/mapiStubLibrary.cpp
             {mapi}/MAPIStubLibrary/library/stubutils.cpp
         """.format(**dirs).split(),
     ),
     WinExt_win32com_mapi(
         "exchange",
-        libraries=["advapi32", "legacy_stdio_definitions"],
+        libraries=["advapi32"],
         include_dirs=["{mapi}/MAPIStubLibrary/include".format(**dirs)],
         sources="""
             {mapi}/exchange.i                   {mapi}/exchange.cpp
@@ -1449,7 +1432,7 @@ com_extensions = [
             {mapi}/PyIExchangeManageStoreEx.i   {mapi}/PyIExchangeManageStoreEx.cpp
             {mapi}/mapiutil.cpp
             {mapi}/exchangeguids.cpp
-            {mapi}/MAPIStubLibrary/library/mapiStubLibrary.cpp
+            {mapi}/mapiStubLibrary.cpp
             {mapi}/MAPIStubLibrary/library/stubutils.cpp
         """.format(**dirs).split(),
     ),
@@ -1725,7 +1708,7 @@ pythonwin_extensions = [
             "pythonwin/Win32uiHostGlue.h",
             "pythonwin/win32win.h",
         ],
-        optional_headers=["afxres.h"],
+        optional_headers=["afxwin.h"],
     ),
     WinExt_pythonwin(
         "win32uiole",
@@ -1742,7 +1725,7 @@ pythonwin_extensions = [
             "pythonwin/win32oleDlgs.h",
             "pythonwin/win32uioledoc.h",
         ],
-        optional_headers=["afxres.h"],
+        optional_headers=["afxwin.h"],
     ),
     WinExt_pythonwin(
         "dde",
@@ -1755,7 +1738,7 @@ pythonwin_extensions = [
             "pythonwin/ddeserver.cpp",
         ],
         depends=["win32/src/stddde.h", "pythonwin/ddemodule.h"],
-        optional_headers=["afxres.h"],
+        optional_headers=["afxwin.h"],
     ),
 ]
 
@@ -1816,7 +1799,7 @@ W32_exe_files: list[WinExt] = [
             "pythonwin/Win32uiHostGlue.h",
             "pythonwin/pythonwin.h",
         ],
-        optional_headers=["afxres.h"],
+        optional_headers=["afxwin.h"],
     ),
 ]
 
@@ -2001,7 +1984,21 @@ dist = setup(
         "Support Requests": "https://github.com/mhammond/pywin32/discussions",
         "Mailing List": "https://mail.python.org/mailman/listinfo/python-win32",
     },
-    license="PSF",
+    # `license` must contain all licenses for the *distribution*
+    # in the form of a SPDX license expression. See:
+    # https://packaging.python.org/en/latest/specifications/pyproject-toml/#license
+    # https://packaging.python.org/en/latest/specifications/core-metadata/#core-metadata-license-expression
+    # https://packaging.python.org/en/latest/specifications/license-expression/
+    license=" AND ".join(  # noqa: FLY002 # Entries broken by comment for readability and maintainability
+        (
+            "PSF-2.0",  # project root (explicit license file), https://github.com/mhammond/pywin32/issues/1127#issuecomment-393364022
+            "BSD-3-Clause",  # Pythonwin, com, win32, win32com, win32comext, pywin32_system32 (explicit license file), https://github.com/mhammond/pywin32/issues/1127#issuecomment-393364022
+            "(PSF-2.0 OR BSD-3-Clause)",  # isapi, https://github.com/mhammond/pywin32/issues/1744#issuecomment-917368167
+            "Python-2.0.1",  # IDLE (bundled with Pythonwin)
+            "MIT",  # MAPI
+            "LGPL-2.1-or-later",  # ADO DB-API
+        )
+    ),
     license_files=(
         "**/[Ll]icense.txt",
         "**/LICENSE*",
@@ -2126,7 +2123,15 @@ if "build_ext" in dist.command_obj:
     # Print the list of extension modules we skipped building.
     excluded_extensions = dist.command_obj["build_ext"].excluded_extensions
     if excluded_extensions:
-        skip_whitelist = {"axdebug"}
+        # Set of extension names that are acceptable to skip for a release build
+        skip_whitelist = set()
+        if is_mingw:
+            # On MinGW, allow excluded ext/exe due to missing ATL/MFC headers (typically PythonWin)
+            skip_whitelist |= {
+                ext.name
+                for ext in [*pythonwin_extensions, *W32_exe_files]
+                if "afxwin.h" in ext.optional_headers
+            }
         skipped_ex = []
         print(f"*** NOTE: The following extensions were NOT {what_string}:")
         for ext, why in excluded_extensions:
