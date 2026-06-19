@@ -16,10 +16,10 @@
 
 %{
 #undef PyHANDLE
-#include "pywinobjects.h"
+#include "PyWinObjects.h"
 #include "windows.h"
-#include "Uxtheme.h"
-#include "CommCtrl.h"
+#include "uxtheme.h"
+#include "commctrl.h"
 %}
 
 // @object PyHTHEME|A <o PyHANDLE> object wrapping a HTHEME.

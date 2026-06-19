@@ -12,6 +12,7 @@ import win32api
 import win32com
 import winerror
 from pythoncom import _GetGatewayCount, _GetInterfaceCount
+from win32com.shell.shell import IsUserAnAdmin
 
 
 def CheckClean():
@@ -62,19 +63,8 @@ def RegisterPythonServer(filename, progids=None, verbose=0):
         else:
             # print(f"Skipping registration of '{filename}' - already registered")
             return
-    # needs registration - see if it's likely!
-    try:
-        from win32com.shell.shell import IsUserAnAdmin
-    except ImportError:
-        print("Can't import win32com.shell - no idea if you are an admin or not?")
-        is_admin = False
-    else:
-        try:
-            is_admin = IsUserAnAdmin()
-        except pythoncom.com_error:
-            # old, less-secure OS - assume *is* admin.
-            is_admin = True
-    if not is_admin:
+
+    if not IsUserAnAdmin():
         msg = (
             "%r isn't registered, but I'm not an administrator who can register it."
             % progids[0]

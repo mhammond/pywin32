@@ -3,7 +3,7 @@
 win32net.cpp -- module for interface into Network API
 
 NOTE: The Network API for NT uses UNICODE.  Therefore, you
-can not simply pass python strings to the API functioms - some
+can not simply pass python strings to the API functions - some
 conversion is required.
 
     Note: The NET functions have their own set of error codes in  2100-2200
@@ -31,8 +31,6 @@ conversion is required.
 #include "win32net.h"
 
 #include "assert.h"
-
-NetGetJoinInformationfunc pfnNetGetJoinInformation = NULL;
 
 /*****************************************************************************/
 /* error helpers */
@@ -277,15 +275,16 @@ PyObject *PyDoSimpleEnum(PyObject *self, PyObject *args, PFNSIMPLEENUM pfn, char
     if (!FindNET_STRUCT(level, pInfos, &pInfo))
         goto done;
 
-    Py_BEGIN_ALLOW_THREADS
-        /* Bad resume handles etc can cause access violations here - catch them. */
-        PYWINTYPES_TRY
-    {
+    Py_BEGIN_ALLOW_THREADS;
+    /* Bad resume handles etc can cause access violations here - catch them. */
+    __try {
         err = (*pfn)(szServer, level, &buf, dwPrefLen, &numRead, &totalEntries, &resumeHandle);
     }
-    PYWINTYPES_EXCEPT { err = ERROR_INVALID_PARAMETER; }
-    Py_END_ALLOW_THREADS if (err != 0 && err != ERROR_MORE_DATA)
-    {
+    __except (EXCEPTION_EXECUTE_HANDLER) {
+        err = ERROR_INVALID_PARAMETER;
+    }
+    Py_END_ALLOW_THREADS;
+    if (err != 0 && err != ERROR_MORE_DATA) {
         ReturnNetError(fnname, err);
         goto done;
     }
@@ -957,13 +956,9 @@ static PyObject *PyNetGetJoinInformation(PyObject *self, PyObject *args)
     NETSETUP_JOIN_STATUS status;
     if (!PyArg_ParseTuple(args, "|O:NetGetJoinInformation", &obServer))
         return NULL;
-    if (pfnNetGetJoinInformation == NULL) {
-        PyErr_SetString(PyExc_NotImplementedError, "NetGetJoinInformation does not exist on this platform");
-        goto done;
-    }
     if (!PyWinObject_AsWCHAR(obServer, &server, TRUE))
         goto done;
-    Py_BEGIN_ALLOW_THREADS err = (*pfnNetGetJoinInformation)(server, &result, &status);
+    Py_BEGIN_ALLOW_THREADS err = NetGetJoinInformation(server, &result, &status);
     Py_END_ALLOW_THREADS if (err)
     {
         ReturnNetError("NetGetJoinInformation", err);
@@ -1202,14 +1197,5 @@ PYWIN_MODULE_INIT_FUNC(win32net)
     AddConstant(dict, "USE_FORCE", USE_FORCE);
     AddConstant(dict, "USE_LOTS_OF_FORCE", USE_LOTS_OF_FORCE);
 
-    HMODULE hmodule = PyWin_GetOrLoadLibraryHandle("netapi32.dll");
-    if (hmodule != NULL) {
-        pfnNetValidateName = (NetValidateNamefunc)GetProcAddress(hmodule, "NetValidateName");
-        pfnNetGetJoinInformation = (NetGetJoinInformationfunc)GetProcAddress(hmodule, "NetGetJoinInformation");
-        pfnNetValidatePasswordPolicy =
-            (NetValidatePasswordPolicyfunc)GetProcAddress(hmodule, "NetValidatePasswordPolicy");
-        pfnNetValidatePasswordPolicyFree =
-            (NetValidatePasswordPolicyFreefunc)GetProcAddress(hmodule, "NetValidatePasswordPolicyFree");
-    }
     PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }
