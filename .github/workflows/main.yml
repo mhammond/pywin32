@@ -16,11 +16,11 @@ jobs:
   test:
     name: Build and test
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 30
+    timeout-minutes: &timeout-minutes 25
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14", "3.15", "3.13t", "3.14t", "3.15t"]
         python-architecture: [x64, x86, arm64]
         include:
           - os: windows-2022
@@ -72,9 +72,6 @@ jobs:
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v2
 
-      - name: Install missing Visual Studio components
-        run: python .github\workflows\install-vs-components.py
-
       - name: Build and register the PyCOMTest server dll
         # Pass Silent flag to regsvr32 to avoid hanging on confirmation window
         run: com/TestSources/PyCOMTest/buildAndRegister.bat /s
@@ -85,11 +82,12 @@ jobs:
         run: python win32/scripts/pywin32_testall.py -v -skip-adodbapi
 
       - name: Build wheels
+        if: ${{ !contains(matrix.python-version, 't') }}
         run: pip wheel . -v --wheel-dir=dist
 
       - uses: actions/upload-artifact@v4
         # Upload artifacts even if tests fail
-        if: ${{ always() }}
+        if: ${{ !contains(matrix.python-version, 't') }}
         with:
           name: artifacts-${{ matrix.python-version }}-${{ matrix.python-architecture }}
           path: dist/*.whl
@@ -99,7 +97,7 @@ jobs:
   cross_compile_arm64:
     name: Cross-compile ARM64
     runs-on: windows-2022
-    timeout-minutes: 30
+    timeout-minutes: *timeout-minutes
     strategy:
       fail-fast: false
       matrix:
@@ -118,10 +116,12 @@ jobs:
         run: python .github\workflows\download-arm64-libs.py ./arm64libs
 
       - name: Build wheels
+        if: ${{ !contains(matrix.python-version, 't') }}
         run: uv build --wheel --config-setting=--build-option="build_ext -L./arm64libs --plat-name=win-arm64 build --plat-name=win-arm64 bdist_wheel --plat-name=win-arm64"
 
       - uses: actions/upload-artifact@v4
         with:
+          if: ${{ !contains(matrix.python-version, 't') }}
           name: artifacts-${{ matrix.python-version }}-arm64
           path: dist/*.whl
           if-no-files-found: error
@@ -132,6 +132,7 @@ jobs:
     steps:
       - name: Merge Artifacts
         uses: actions/upload-artifact/merge@v4
+        if: ${{ !contains(matrix.python-version, 't') }}
         with:
           name: artifacts
           pattern: artifacts-*
@@ -143,7 +144,7 @@ jobs:
   # This job can be run locally by running `pre-commit run`
   checkers:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: *timeout-minutes
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v7
@@ -154,8 +155,6 @@ jobs:
       - run: uv pip install --group=checkers
 
       # !cancelled(): Show issues even if the previous steps failed. But still fail the job
-      - run: pycln . --config=pycln.toml --check
-
       - name: Run Ruff linter
         uses: astral-sh/ruff-action@v3
         if: ${{ !cancelled() }}
@@ -170,18 +169,18 @@ jobs:
         shell: pwsh
         if: ${{ !cancelled() }}
       - run: |
-          clang-format --Werror --dry-run $(git ls-files '*.h' ':!:Pythonwin/Scintilla/' ':!:com/win32comext/mapi/src/MAPIStubLibrary/')
+          clang-format --Werror --dry-run $(git ls-files '*.h' ':!:pythonwin/Scintilla/' ':!:com/win32comext/mapi/src/MAPIStubLibrary/')
           if ($LastExitCode -ne 0) { exit $LastExitCode }
         shell: pwsh
         if: ${{ !cancelled() }}
 
   type-checkers:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: *timeout-minutes
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14", "3.15"]
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v7

@@ -1,7 +1,7 @@
 import unittest
 
 import winerror
-from pywin32_testutil import TestSkipped, testmain
+from pywin32_testutil import testmain
 from win32inet import (
     FtpCommand,
     InternetCanonicalizeUrl,
@@ -101,7 +101,7 @@ class TestNetwork(unittest.TestCase):
             finally:
                 hcon.Close()
         except error as e:
-            raise TestSkipped(e)
+            raise unittest.SkipTest(str(e))
 
 
 if __name__ == "__main__":

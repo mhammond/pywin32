@@ -106,8 +106,6 @@ class TestRunner:
 
 
 def get_demo_tests():
-    import win32api
-
     ret = []
     demo_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "Demos"))
     assert os.path.isdir(demo_dir), demo_dir
