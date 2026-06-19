@@ -197,7 +197,7 @@ BOOL PyHANDLE::Close(void)
             rc = CloseHandle(m_handle);
 #ifdef Py_DEBUG
         }
-        __except (1)
+        __except (EXCEPTION_EXECUTE_HANDLER)
         {
             // according to the docs on CloseHandle(), this
             // can happen when run under the debugger.  This is a

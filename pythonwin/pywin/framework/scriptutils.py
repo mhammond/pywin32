@@ -120,7 +120,6 @@ def GetPackageModuleName(fileName):
                 and (
                     os.path.exists(os.path.join(path, modBit, "__init__.py"))
                     or os.path.exists(os.path.join(path, modBit, "__init__.pyc"))
-                    or os.path.exists(os.path.join(path, modBit, "__init__.pyo"))
                 )
             ):
                 modBits.reverse()
@@ -284,10 +283,9 @@ def RunScript(defName=None, defArgs=None, bShowDialog=1, debuggingType=None):
     # If no path specified, try and locate the file
     path, fnameonly = os.path.split(script)
     if len(path) == 0:
-        try:
-            os.stat(fnameonly)  # See if it is OK as is...
+        if os.path.exists(fnameonly):  # See if it is OK as is...
             script = fnameonly
-        except OSError:
+        else:
             fullScript = LocatePythonFile(script)
             if fullScript is None:
                 win32ui.MessageBox("The file '%s' can not be located" % script)
@@ -439,12 +437,9 @@ def ImportFile():
     # meaning sys.modules can change as a side-effect of looking at
     # module.__file__ - so we must take a copy (ie, list(items()))
     for key, mod in sys.modules.items():
-        if getattr(mod, "__file__", None):
-            fname = mod.__file__
-            base, ext = os.path.splitext(fname)
-            if ext.lower() in (".pyo", ".pyc"):
-                ext = ".py"
-            fname = base + ext
+        if fname := getattr(mod, "__file__", ""):
+            if fname.endswith(".pyc"):
+                fname = fname[:-1]
             if win32ui.ComparePath(fname, pathName):
                 modName = key
                 break
@@ -637,9 +632,7 @@ def FindTabNanny():
         print("          The file '%s' can not be located" % (filename))
         return None
     fname = os.path.join(path, "Tools\\Scripts\\%s" % filename)
-    try:
-        os.stat(fname)
-    except OSError:
+    if not os.path.exists(fname):
         print(f"WARNING - The file '{filename}' can not be located in path '{path}'")
         return None
 
