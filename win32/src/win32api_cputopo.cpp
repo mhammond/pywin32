@@ -6,6 +6,7 @@
 #include "win32api_cputopo.h"
 
 // from kernel32.dll, loaded in win32api's init function
+// Not available before Windows 10 / Windows Server 2016
 GetSystemCpuSetInformationfunc pfnGetSystemCpuSetInformation = NULL;
 
 struct PyMemberDef PySYSTEM_CPU_SET_INFORMATION::members[] = {

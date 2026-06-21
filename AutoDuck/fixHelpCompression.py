@@ -7,10 +7,8 @@ import win32api
 
 fname = sys.argv[1]
 
-try:
-    os.stat(fname)
-except OSError:
-    sys.stderr.write("The project file '%s' was not found\n" % (fname))
+if not os.path.exists(fname):
+    sys.stderr.write(f"The project file '{fname}' was not found\n")
     sys.exit(1)
 
 win32api.WriteProfileVal("options", "COMPRESS", "12 Hall Zeck", fname)

@@ -1,6 +1,13 @@
-// PyMapiUtil.h
+// SAL macros are known statically by MSVC. Include no-op on MSVC, required on other compilers
+#include "sal.h"
 
-#include "mapix.h"
+// Must include before MAPIX.h, which includes mapidefs.h and mapicode.h.
+// Because of casing that will import from MinGW shared headers instead,
+// Which actually has some differences in param types, causing build failures
+#include <MAPIDefS.h>
+#include <MAPICode.h>
+
+#include "MAPIX.h"
 
 // We should not be using this!
 #define OleSetOleError PyCom_BuildPyException

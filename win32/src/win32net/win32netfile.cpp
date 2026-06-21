@@ -4,7 +4,7 @@
 #include "stdio.h"
 #include "assert.h"
 #include "lm.h"
-#include "WinUser.h"
+#include "winuser.h"
 #include "win32net.h"
 
 // @pymethod (dict,...)|win32net|NetFileEnum|Lists remotely opened resources on a server
