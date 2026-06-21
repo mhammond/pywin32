@@ -7,8 +7,11 @@ construct the necessary Python object, and dispatch COM events.
 
 """
 
+from __future__ import annotations
+
 import os
 import sys
+import tempfile
 
 import pythoncom
 import win32api
@@ -16,6 +19,8 @@ import win32con
 import winerror
 
 CATID_PythonCOMServer = "{B3EF80D0-68E2-11D0-A689-00C04FD658FF}"
+
+__frozen: str | bool = getattr(sys, "frozen", False)
 
 
 def _set_subkeys(keyName, valueDict, base=win32con.HKEY_CLASSES_ROOT):
@@ -98,9 +103,9 @@ def _find_localserver_exe(mustfind):
     if sys.platform != "win32":
         return sys.executable
     if os.path.splitext(os.path.basename(pythoncom.__file__))[0].endswith("_d"):
-        exeBaseName = "pythonw_d.exe"
+        exeBaseName = "python_d.exe"
     else:
-        exeBaseName = "pythonw.exe"
+        exeBaseName = "python.exe"
     # First see if in the same directory as this .EXE
     exeName = os.path.join(os.path.split(sys.executable)[0], exeBaseName)
     if not os.path.exists(exeName):
@@ -133,20 +138,12 @@ def _find_localserver_module():
     path = next(iter(win32com.server.__path__))
     baseName = "localserver"
     pyfile = os.path.join(path, baseName + ".py")
-    try:
-        os.stat(pyfile)
-    except OSError:
+    if not os.path.exists(pyfile):
         # See if we have a compiled extension
-        if __debug__:
-            ext = ".pyc"
-        else:
-            ext = ".pyo"
-        pyfile = os.path.join(path, baseName + ext)
-        try:
-            os.stat(pyfile)
-        except OSError:
+        pyfile = os.path.join(path, baseName + ".pyc")
+        if not os.path.exists(pyfile):
             raise RuntimeError(
-                "Can not locate the Python module 'win32com.server.%s'" % baseName
+                f"Can not locate the Python module 'win32com.server.{baseName}'"
             )
     return pyfile
 
@@ -207,15 +204,11 @@ def RegisterServer(
     # Set default clsctx.
     if not clsctx:
         clsctx = pythoncom.CLSCTX_INPROC_SERVER | pythoncom.CLSCTX_LOCAL_SERVER
-    # And if we are frozen, ignore the ones that don't make sense in this
-    # context.
-    if pythoncom.frozen:
-        assert sys.frozen, (
-            "pythoncom is frozen, but sys.frozen is not set - don't know the context!"
-        )
-        if sys.frozen == "dll":
+    # And if we are frozen, ignore the ones that don't make sense in this context.
+    if __frozen:
+        if __frozen == "dll":  # Frozen py2exe DLL
             clsctx &= pythoncom.CLSCTX_INPROC_SERVER
-        else:
+        else:  # True | "windows_exe"
             clsctx &= pythoncom.CLSCTX_LOCAL_SERVER
     # Now setup based on the clsctx left over.
     if clsctx & pythoncom.CLSCTX_INPROC_SERVER:
@@ -223,7 +216,7 @@ def RegisterServer(
         # nod to Gordon's installer - if sys.frozen and sys.frozendllhandle
         # exist, then we are being registered via a DLL - use this DLL as the
         # file name.
-        if pythoncom.frozen:
+        if __frozen:
             if hasattr(sys, "frozendllhandle"):
                 dllName = win32api.GetModuleFileName(sys.frozendllhandle)
             else:
@@ -261,9 +254,8 @@ def RegisterServer(
         _remove_key(keyNameRoot + "\\InprocServer32")
 
     if clsctx & pythoncom.CLSCTX_LOCAL_SERVER:
-        if pythoncom.frozen:
-            # If we are frozen, we write "{exe} /Automate", just
-            # like "normal" .EXEs do
+        if __frozen:
+            # If we are frozen, we write "{exe} /Automate", just like "normal" .EXEs do
             exeName = win32api.GetShortPathName(sys.executable)
             command = f"{exeName} /Automate"
         else:
@@ -302,7 +294,7 @@ def RegisterServer(
         _remove_key(keyNameRoot + "\\PythonCOMPath")
 
     if addPyComCat is None:
-        addPyComCat = pythoncom.frozen == 0
+        addPyComCat = not __frozen
     if addPyComCat:
         catids = catids + [CATID_PythonCOMServer]
 
@@ -422,7 +414,7 @@ def RegisterClasses(*classes, **flags):
         clsctx = _get(cls, "_reg_clsctx_")
         tlb_filename = _get(cls, "_reg_typelib_filename_")
         # default to being a COM category only when not frozen.
-        addPyComCat = not _get(cls, "_reg_disable_pycomcat_", pythoncom.frozen != 0)
+        addPyComCat = not _get(cls, "_reg_disable_pycomcat_", __frozen)
         addnPath = None
         if debugging:
             # If the class has a debugging dispatcher specified, use it, otherwise
@@ -455,7 +447,7 @@ def RegisterClasses(*classes, **flags):
 
             spec = moduleName + "." + cls.__name__
             # Frozen apps don't need their directory on sys.path
-            if not pythoncom.frozen:
+            if not __frozen:
                 scriptDir = os.path.split(sys.argv[0])[0]
                 if not scriptDir:
                     scriptDir = "."
@@ -541,10 +533,8 @@ def UnregisterInfoClasses(*classes, **flags):
 
 # Attempt to 're-execute' our current process with elevation.
 def ReExecuteElevated(flags):
-    import tempfile
-
     import win32console
-    import win32event  # we've already checked we are running XP above
+    import win32event
     import win32process
     from win32com.shell import shellcon
     from win32com.shell.shell import ShellExecuteEx
@@ -574,7 +564,7 @@ def ReExecuteElevated(flags):
     #  pythonwin will just open script for editting
     current_exe = os.path.split(sys.executable)[1].lower()
     exe_to_run = None
-    if current_exe == "pythonwin.exe":
+    if current_exe == "Pythonwin.exe":
         exe_to_run = os.path.join(sys.prefix, "python.exe")
     elif current_exe == "pythonwin_d.exe":
         exe_to_run = os.path.join(sys.prefix, "python_d.exe")
@@ -646,14 +636,9 @@ def UseCommandLine(*classes, **flags):
         else:
             RegisterClasses(*classes, **flags)
     except win32api.error as exc:
-        # If we are on xp+ and have "access denied", retry using
-        # ShellExecuteEx with 'runas' verb to force elevation (vista) and/or
-        # admin login dialog (vista/xp)
-        if (
-            flags["unattended"]
-            or exc.winerror != winerror.ERROR_ACCESS_DENIED
-            or sys.getwindowsversion()[0] < 5
-        ):
+        # If we have "access denied", retry using
+        # ShellExecuteEx with 'runas' verb to force elevation
+        if flags["unattended"] or exc.winerror != winerror.ERROR_ACCESS_DENIED:
             raise
         ReExecuteElevated(flags)
 
@@ -664,7 +649,7 @@ def RegisterPyComCategory():
     regCat.RegisterCategories([(CATID_PythonCOMServer, 0x0409, "Python COM Server")])
 
 
-if not pythoncom.frozen:
+if not __frozen:
     try:
         win32api.RegQueryValue(
             win32con.HKEY_CLASSES_ROOT,

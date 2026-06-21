@@ -623,7 +623,6 @@ PyObject *PyCtxtHandle::MakeSignature(PyObject *self, PyObject *args)
     PyObject *obdesc;
     PSecBufferDesc psecbufferdesc;
     ULONG fqop, seq_no;
-    CHECK_SECURITYFUNCTIONTABLE(MakeSignature);
 
     if (!PyArg_ParseTuple(args, "lOl:MakeSignature", &fqop, &obdesc, &seq_no))
         return NULL;
@@ -657,7 +656,6 @@ PyObject *PyCtxtHandle::VerifySignature(PyObject *self, PyObject *args)
     PyObject *obdesc;
     PSecBufferDesc psecbufferdesc;
     ULONG fqop, seq_no;
-    CHECK_SECURITYFUNCTIONTABLE(VerifySignature);
     if (!PyArg_ParseTuple(args, "Ol:VerifySignature", &obdesc, &seq_no))
         return NULL;
 
@@ -686,7 +684,6 @@ PyObject *PyCtxtHandle::EncryptMessage(PyObject *self, PyObject *args)
     PyObject *obdesc;
     PSecBufferDesc psecbufferdesc;
     ULONG fqop, seq_no;
-    CHECK_SECURITYFUNCTIONTABLE(EncryptMessage);
 
     if (!PyArg_ParseTuple(args, "lOl:EncryptMessage", &fqop, &obdesc, &seq_no))
         return NULL;
@@ -721,7 +718,6 @@ PyObject *PyCtxtHandle::DecryptMessage(PyObject *self, PyObject *args)
     PyObject *obdesc;
     PSecBufferDesc psecbufferdesc;
     ULONG fqop, seq_no;
-    CHECK_SECURITYFUNCTIONTABLE(DecryptMessage);
     if (!PyArg_ParseTuple(args, "Ol:DecryptMessage", &obdesc, &seq_no))
         return NULL;
 
@@ -753,7 +749,6 @@ PyObject *PyCtxtHandle::Detach(PyObject *self, PyObject *args)
 // @pymethod |PyCtxtHandle|DeleteSecurityContext|Frees the security context and invalidates the handle
 PyObject *PyCtxtHandle::DeleteSecurityContext(PyObject *self, PyObject *args)
 {
-    CHECK_SECURITYFUNCTIONTABLE(DeleteSecurityContext);
     if (!PyArg_ParseTuple(args, ":DeleteSecurityContext"))
         return NULL;
     PyCtxtHandle *This = (PyCtxtHandle *)self;
@@ -777,7 +772,6 @@ PyObject *PyCtxtHandle::CompleteAuthToken(PyObject *self, PyObject *args)
     PSecBufferDesc psecbufferdesc;
     PyObject *obsecbufferdesc;
     SECURITY_STATUS err;
-    CHECK_SECURITYFUNCTIONTABLE(CompleteAuthToken);
     // @pyparm <o PySecBufferDesc>|Token||The buffer that contains the token buffer used when the context was
     // initialized
     if (!PyArg_ParseTuple(args, "O:CompleteAuthToken", &obsecbufferdesc))
@@ -804,7 +798,6 @@ PyObject *PyCtxtHandle::QueryContextAttributes(PyObject *self, PyObject *args)
     ZeroMemory(&buf, 256);
     ULONG attr;
     PyObject *ret = NULL;
-    CHECK_SECURITYFUNCTIONTABLE(QueryContextAttributesW);
     // @pyparm int|Attribute||SECPKG_ATTR_* constant
     if (!PyArg_ParseTuple(args, "l:QueryContextAttributes", &attr))
         return NULL;
@@ -959,7 +952,6 @@ PyObject *PyCtxtHandle::QuerySecurityContextToken(PyObject *self, PyObject *args
     SECURITY_STATUS err;
     PCtxtHandle pctxt;
     HANDLE htoken;
-    CHECK_SECURITYFUNCTIONTABLE(QuerySecurityContextToken);
     if (!PyArg_ParseTuple(args, ":QuerySecurityContextToken"))
         return NULL;
     pctxt = ((PyCtxtHandle *)self)->GetCtxtHandle();
@@ -972,7 +964,6 @@ PyObject *PyCtxtHandle::QuerySecurityContextToken(PyObject *self, PyObject *args
 // @pymethod |PyCtxtHandle|ImpersonateSecurityContext|Impersonates a client security context
 PyObject *PyCtxtHandle::ImpersonateSecurityContext(PyObject *self, PyObject *args)
 {
-    CHECK_SECURITYFUNCTIONTABLE(ImpersonateSecurityContext);
     PCtxtHandle pctxt;
     SECURITY_STATUS err;
     if (!PyArg_ParseTuple(args, ":ImpersonateSecurityContext"))
@@ -992,7 +983,6 @@ PyObject *PyCtxtHandle::ImpersonateSecurityContext(PyObject *self, PyObject *arg
 // PyCtxtHandle::ImpersonateSecurityContext>)
 PyObject *PyCtxtHandle::RevertSecurityContext(PyObject *self, PyObject *args)
 {
-    CHECK_SECURITYFUNCTIONTABLE(RevertSecurityContext);
     PCtxtHandle pctxt;
     SECURITY_STATUS err;
     if (!PyArg_ParseTuple(args, ":RevertSecurityContext"))
@@ -1142,7 +1132,6 @@ PyObject *PyCredHandle::Detach(PyObject *self, PyObject *args)
 // @pymethod |PyCredHandle|FreeCredentialsHandle|Releases the credentials handle and makes object unusable
 PyObject *PyCredHandle::FreeCredentialsHandle(PyObject *self, PyObject *args)
 {
-    CHECK_SECURITYFUNCTIONTABLE(FreeCredentialsHandle);
     if (!PyArg_ParseTuple(args, ":FreeCredentialsHandle"))
         return NULL;
     PyCredHandle *This = (PyCredHandle *)self;
@@ -1167,7 +1156,6 @@ PyObject *PyCredHandle::QueryCredentialsAttributes(PyObject *self, PyObject *arg
     SECURITY_STATUS err;
     PyObject *ret = NULL;
     BYTE buf[32];
-    CHECK_SECURITYFUNCTIONTABLE(QueryCredentialsAttributesW);
     PyCredHandle *This = (PyCredHandle *)self;
     PCredHandle pcredhandle = This->GetCredHandle();
     if (!PyArg_ParseTuple(args, "l:QueryCredentialsAttributes", &attr))

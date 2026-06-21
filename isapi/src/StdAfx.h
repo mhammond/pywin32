@@ -46,7 +46,7 @@
 #undef WRITE_RESTRICTED
 
 // ***** py3k support *****
-// Note that when built for py3k, 'UNICODE' is defined, which conveniently
+// Note that since building for py3k, 'UNICODE' is defined, which conveniently
 // means TCHAR is the same size as the native unicode object in all versions.
 // Note however that ISAPI is always an ANSI API - so even when UNICODE is
 // defined, most strings passed and received from ISAPI itself remain 'char *'

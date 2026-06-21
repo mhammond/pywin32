@@ -71,7 +71,7 @@ static PyObject *mmapfile_read_byte_method(mmapfile_object *self, PyObject *args
 {
     char *where = (self->data + self->pos);
     CHECK_VALID;
-    if ((where >= 0) && (where < (self->data + self->size))) {
+    if ((where >= self->data) && (where < (self->data + self->size))) {
         PyObject *ret = PyBytes_FromStringAndSize(where, 1);
         if (ret)
             self->pos += 1;

@@ -58,6 +58,13 @@ it should only be run in "global" installs.
 For unreleased changes, you can download builds made by [GitHub actions](https://github.com/mhammond/pywin32/actions/) -
 choose any "workflow" from the `main` branch and download its "artifacts"
 
+### Free-threaded support
+
+Building via pip with a no-GIL interpreter will create a compatible, but knowingly unsafe, wheel.
+This should be considered experimental; while knowingly unsafe, no wheels compatible with the free-threaded interpreter will be made available - but you can build them yourself.
+
+See [NOGIL.md](NOGIL.md) for the blockers to supplying these artifacts.
+
 ### Installing globally
 
 Outside of a virtual environment you might want to install COM objects, services, etc. You can do
@@ -202,6 +209,10 @@ the builds. Build 306 was the last released with this process.
 * Send mail to python-win32
 
 </details>
+
+## Versioning
+
+pywin32 uses a simple incremental version numbering scheme. Any increase in the version number may correspond to a breaking interface change. It is recommended that projects using pywin32 pin the dependency to a specific version.
 
 ## Licenses
 
