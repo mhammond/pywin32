@@ -1,6 +1,19 @@
 // PyIDispatch and PyIDispathEx implementation
 
 // @doc
+
+#ifdef __MINGW32__
+// mingw-w64's uuid import library lacks some GUID constants that MSVC's
+// uuid.lib supplies (e.g. IID_IDispatchEx from dispex.h). Defining INITGUID
+// makes the DEFINE_GUID() macros in the headers below emit definitions
+// (DECLSPEC_SELECTANY, so they merge across TUs) rather than extern
+// declarations, so this TU provides them; other pythoncom TUs reference them
+// extern. Scoped to this single TU on purpose: defining INITGUID more widely
+// (e.g. in PythonCOM.h) would also flip MAPIGuid.h's INITGUID-conditional
+// logic and break the mapi extension's own GUID-definition scheme.
+#define INITGUID
+#endif
+
 #include "stdafx.h"
 #include "PythonCOM.h"
 
