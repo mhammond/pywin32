@@ -426,6 +426,34 @@ class my_build_ext(build_ext):
             ext.libraries = patched_libs
         return None  # no reason - it can be built!
 
+    def _generate_missing_import_libs(self):
+        """Generate import libraries missing from some MinGW toolchains.
+
+        i686 MSYS2 MinGW ships headers but not all import .a files.
+        Generate them from bundled .def files using dlltool.
+        Only runs on win32 (i686) builds; x86_64 ships these already.
+        """
+        if not (is_mingw and self.plat_name == "win32"):
+            return
+        # (def_file, output_lib)
+        missing_libs = [
+            (
+                os.path.join("win32", "src", "PerfMon", "loadperf.def"),
+                os.path.join(self.build_temp, "libloadperf.a"),
+            ),
+            (
+                os.path.join("win32", "src", "sfc.def"),
+                os.path.join(self.build_temp, "libsfc.a"),
+            ),
+        ]
+        dlltool = os.environ.get("DLLTOOL", "dlltool")
+        for def_file, out_lib in missing_libs:
+            if os.path.exists(def_file) and not os.path.exists(out_lib):
+                self.mkpath(self.build_temp)
+                self.compiler.spawn(
+                    [dlltool, "--input-def", def_file, "--output-lib", out_lib]
+                )
+
     def _build_scintilla(self):
         scintilla_path = "pythonwin/Scintilla"
         makefile = "makefile_pythonwin"
@@ -551,6 +579,8 @@ class my_build_ext(build_ext):
             remove_manifest_flags(self.compiler.ldflags_exe_debug)
             remove_manifest_flags(self.compiler.ldflags_shared)
             remove_manifest_flags(self.compiler.ldflags_shared_debug)
+
+        self._generate_missing_import_libs()
 
         for ext in self.extensions:
             if not isinstance(ext, WinExt):
