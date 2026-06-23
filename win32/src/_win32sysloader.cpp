@@ -75,5 +75,8 @@ extern "C" __declspec(dllexport) PyObject *PyInit__win32sysloader(void)
     static PyModuleDef _win32sysloader_def = {PyModuleDef_HEAD_INIT, "_win32sysloader",
                                               "Exists only to load Pywin32 system modules", -1, functions};
     PyObject *module = PyModule_Create(&_win32sysloader_def);
+#ifdef Py_GIL_DISABLED
+    PyUnstable_Module_SetGIL(module, Py_MOD_GIL_NOT_USED);
+#endif
     return module;
 }
