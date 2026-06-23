@@ -528,7 +528,7 @@ class my_build_ext(build_ext):
 
         self.found_libraries = {}
 
-        if hasattr(self.compiler, "initialize") and not self.compiler.initialized:
+        if isinstance(self.compiler, MSVCCompiler) and not self.compiler.initialized:
             self.compiler.initialize()
 
         # XXX this distutils class var peek hack should become obsolete
