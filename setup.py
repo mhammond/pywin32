@@ -296,11 +296,12 @@ class WinExt_pythonwin(WinExt):
 
 class WinExt_pythonwin_ole(WinExt_pythonwin):
     # A Pythonwin extension that also bridges OLE/COM (includes PythonCOM.h),
-    # so it links pythoncom on top of the usual pywintypes + win32ui.
+    # so on top of the usual pywintypes + win32ui it links pythoncom and uuid
+    # (the COM IID_*/CLSID_* constants, uuid.lib on MSVC).
     def finalize_options(self, build_ext):
         super().finalize_options(build_ext)
         suffix = "_d" if build_ext.debug else ""
-        self.libraries.append(f"pythoncom{suffix}")
+        self.libraries += ["uuid", f"pythoncom{suffix}"]
 
 
 class WinExt_pythonwin_subsys_win(WinExt_pythonwin):
@@ -332,7 +333,7 @@ class WinExt_win32com(WinExt):
     def finalize_options(self, build_ext):
         super().finalize_options(build_ext)
         suffix = "_d" if build_ext.debug else ""
-        self.libraries += ["oleaut32", "ole32", f"pywintypes{suffix}"]
+        self.libraries += ["oleaut32", "ole32", "uuid", f"pythoncom{suffix}"]
 
     def get_pywin32_dir(self):
         return "win32comext/" + self.name
@@ -1272,7 +1273,7 @@ pythoncom = WinExt_system32(
                         {win32com}/include/PyIServerSecurity.h
                         """.format(**dirs)
     ).split(),
-    libraries="oleaut32 ole32 user32 urlmon oleacc",
+    libraries="oleaut32 ole32 user32 urlmon oleacc uuid",
     export_symbol_file="com/win32com/src/PythonCOM.def",
     define_macros=[("BUILD_PYTHONCOM", None)],
     implib_name="pythoncom",
