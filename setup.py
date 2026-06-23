@@ -256,6 +256,18 @@ class WinExt(Extension):
                 suffix = "_d" if build_ext.debug else ""
                 self.extra_link_args.append(f"-Wl,--out-implib,{implib}{suffix}.lib")
 
+        # Link pywin32's own import libraries. MSVC also resolves these via the
+        # #pragma comment(lib, ...) in PyWinTypes.h/PythonCOM.h/win32ui.h, so
+        # listing them is redundant there but harmless; GCC ignores the pragmas.
+        #
+        # pywintypes is used by virtually every extension (PyWinTypes.h).
+        # pythoncom/win32ui are added by the relevant subclasses.
+        # Each library built before its consumers (see the ext_modules ordering).
+        macros = {name for name, _ in self.define_macros}
+        if "BUILD_PYWINTYPES" not in macros:
+            suffix = "_d" if build_ext.debug else ""
+            self.libraries.append(f"pywintypes{suffix}")
+
     @abstractmethod
     def get_pywin32_dir(self) -> str:
         raise NotImplementedError
@@ -268,8 +280,27 @@ class WinExt_pythonwin(WinExt):
         )
         super().__init__(name, **kw)
 
+    def finalize_options(self, build_ext):
+        super().finalize_options(build_ext)
+        # Pythonwin extensions/executables include win32ui.h (win32ui).
+        # win32ui itself exports it (BUILD_PYW) so must not self-link.
+        if not any(
+            name in ("BUILD_PYW", "FREEZE_WIN32UI") for name, _ in self.define_macros
+        ):
+            suffix = "_d" if build_ext.debug else ""
+            self.libraries.append(f"win32ui{suffix}")
+
     def get_pywin32_dir(self):
         return "pythonwin"
+
+
+class WinExt_pythonwin_ole(WinExt_pythonwin):
+    # A Pythonwin extension that also bridges OLE/COM (includes PythonCOM.h),
+    # so it links pythoncom on top of the usual pywintypes + win32ui.
+    def finalize_options(self, build_ext):
+        super().finalize_options(build_ext)
+        suffix = "_d" if build_ext.debug else ""
+        self.libraries.append(f"pythoncom{suffix}")
 
 
 class WinExt_pythonwin_subsys_win(WinExt_pythonwin):
@@ -298,9 +329,10 @@ class WinExt_ISAPI(WinExt):
 # Note this is used only for "win32com extensions", not pythoncom
 # itself - thus, output is "win32comext"
 class WinExt_win32com(WinExt):
-    def __init__(self, name, **kw):
-        kw["libraries"] = kw.get("libraries", "") + " oleaut32 ole32"
-        WinExt.__init__(self, name, **kw)
+    def finalize_options(self, build_ext):
+        super().finalize_options(build_ext)
+        suffix = "_d" if build_ext.debug else ""
+        self.libraries += ["oleaut32", "ole32", f"pywintypes{suffix}"]
 
     def get_pywin32_dir(self):
         return "win32comext/" + self.name
@@ -1713,7 +1745,7 @@ pythonwin_extensions = [
         optional_headers=["afxwin.h"],
         implib_name="win32ui",
     ),
-    WinExt_pythonwin(
+    WinExt_pythonwin_ole(
         "win32uiole",
         sources=[
             "pythonwin/stdafxole.cpp",
