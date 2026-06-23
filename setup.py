@@ -958,6 +958,7 @@ pywintypes = WinExt_system32(
     ],
     define_macros=[("BUILD_PYWINTYPES", None)],
     libraries="advapi32 user32 ole32 oleaut32",
+    implib_name="pywintypes",
 )
 
 win32_extensions: list[WinExt] = [pywintypes]
@@ -1242,6 +1243,7 @@ pythoncom = WinExt_system32(
     libraries="oleaut32 ole32 user32 urlmon oleacc",
     export_symbol_file="com/win32com/src/PythonCOM.def",
     define_macros=[("BUILD_PYTHONCOM", None)],
+    implib_name="pythoncom",
 )
 com_extensions = [
     pythoncom,
@@ -1709,6 +1711,7 @@ pythonwin_extensions = [
             "pythonwin/win32win.h",
         ],
         optional_headers=["afxwin.h"],
+        implib_name="win32ui",
     ),
     WinExt_pythonwin(
         "win32uiole",
