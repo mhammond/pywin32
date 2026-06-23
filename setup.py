@@ -1348,6 +1348,7 @@ com_extensions = [
         libraries="axscript",
         sources=(
             """
+                    {axdebug}/MinGWGUIDs.cpp
                     {axdebug}/AXDebug.cpp
                     {axdebug}/PyIActiveScriptDebug.cpp
                     {axdebug}/PyIActiveScriptErrorDebug.cpp
