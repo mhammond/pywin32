@@ -717,36 +717,6 @@ class my_build_ext(build_ext):
         try:
             build_ext.build_extension(self, ext)
             self._verstamp(self.get_ext_fullpath(ext.name))
-            # Convincing distutils to create .lib files with the name we
-            # need is difficult, so we just hack around it by copying from
-            # the created name to the name we need.
-            extra = "_d.lib" if self.debug else ".lib"
-            if ext.name in ("pywintypes", "pythoncom"):
-                # The import libraries are created as PyWinTypes23.lib, but
-                # are expected to be pywintypes.lib.
-                created = "%s%d%d%s" % (
-                    ext.name,
-                    sys.version_info.major,
-                    sys.version_info.minor,
-                    extra,
-                )
-                needed = f"{ext.name}{extra}"
-            elif ext.name in ("win32ui",):
-                # This one just needs a copy.
-                created = needed = ext.name + extra
-            else:
-                created = needed = None
-            if created is not None:
-                # To keep us on our toes, MSVCCompiler constructs the .lib files
-                # in the same directory as the first source file's object file:
-                #    os.path.dirname(objects[0])
-                # rather than in the self.build_temp directory
-                src = os.path.join(
-                    old_build_temp, os.path.dirname(ext.sources[0]), created
-                )
-                dst = os.path.join(old_build_temp, needed)
-                if os.path.abspath(src) != os.path.abspath(dst):
-                    self.copy_file(src, dst)
         finally:
             self.build_temp = old_build_temp
 
