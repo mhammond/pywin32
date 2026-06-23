@@ -158,8 +158,7 @@ jobs:
         include:
           # Using legacy environments (MSVCRT) as long as we support Windows 8.1
           - { sys: mingw64, env: x86_64, plat-name: win-amd64 }
-          # TODO: Add mingw32 + i686 support
-          # - { sys: mingw32, env: i686, plat-name: win32 }
+          - { sys: mingw32, env: i686, plat-name: win32 }
           # Modern environment (Windows 10 / Windows Server 2016)
           # - { sys: ucrt64, env: ucrt-x86_64, plat-name: win-amd64 }
           # No ARM yet, that currently requires using clang
