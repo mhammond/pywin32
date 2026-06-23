@@ -1204,6 +1204,7 @@ pythoncom = WinExt_system32(
     sources=(
         """
                         {win32com}/dllmain.cpp            {win32com}/ErrorUtils.cpp
+                        {win32com}/MinGWGUIDs.cpp
                         {win32com}/MiscTypes.cpp          {win32com}/oleargs.cpp
                         {win32com}/PyComHelpers.cpp       {win32com}/PyFactory.cpp
                         {win32com}/PyGatewayBase.cpp      {win32com}/PyIBase.cpp
