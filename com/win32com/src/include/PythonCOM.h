@@ -93,6 +93,12 @@
 #ifdef __MINGW32__
 #include <olectl.h>
 
+// mingw-w64's uuid import library doesn't provide every GUID that MSVC's
+// uuid.lib does (e.g. IID_IDispatchEx from dispex.h below). Pulling in
+// initguid.h makes the DEFINE_GUID() macros in subsequently-included headers
+// emit definitions (DECLSPEC_SELECTANY, so they merge across TUs) rather than
+// extern declarations, letting the library supply its own GUID constants.
+#include <initguid.h>
 #endif  // __MINGW32__
 
 #include <PyWinTypes.h>  // Standard Win32 Types
