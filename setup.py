@@ -199,9 +199,6 @@ class WinExt(Extension):
             # Enable unwind semantics - some stuff needs it and I can't see it hurting
             self.extra_compile_args.append("/EHsc")
 
-            # silence: warning C4163: '__cpuidex' : not available as an intrinsic function
-            self.extra_compile_args.append("/wd4163")
-
             if self.delay_load_libraries:
                 self.libraries.append("delayimp")
                 for delay_lib in self.delay_load_libraries:
