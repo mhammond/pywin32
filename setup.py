@@ -1969,6 +1969,7 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
     "Programming Language :: Python :: 3.15",
+    "Programming Language :: Python :: Free Threading :: 1 - Unstable",
     "Programming Language :: Python :: Implementation :: CPython",
 ]
 
