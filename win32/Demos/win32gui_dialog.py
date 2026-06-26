@@ -62,8 +62,7 @@ class _WIN32MASKEDSTRUCT:
             if fmt == "z":
                 fmt = "Pi"
                 if val is None:
-                    vals.append(0)
-                    vals.append(0)
+                    vals.extend((0, 0))
                 else:
                     # Note this demo still works with byte strings.  An
                     # alternate strategy would be to use unicode natively
@@ -73,8 +72,7 @@ class _WIN32MASKEDSTRUCT:
                     if isinstance(val, str):
                         val = val.encode("mbcs")
                     str_buf = array.array("b", val)
-                    vals.append(str_buf.buffer_info()[0])
-                    vals.append(len(val))
+                    vals.extend((str_buf.buffer_info()[0], len(val)))
                     self._buffs.append(str_buf)  # keep alive during the call.
             else:
                 if val is None:

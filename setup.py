@@ -434,8 +434,8 @@ class my_build_ext(build_ext):
         if self.debug:
             makeargs.append("DEBUG=1")
         if not self.verbose:
-            makeargs.append("/C")  # nmake: /C Suppress output messages
-            makeargs.append("QUIET=1")
+            # nmake: /C Suppress output messages
+            makeargs.extend(("/C", "QUIET=1"))
         # We build the DLL into our own temp directory, then copy it to the
         # real directory - this avoids the generated .lib/.exp
         build_temp = os.path.abspath(os.path.join(self.build_temp, "scintilla"))
@@ -450,8 +450,7 @@ class my_build_ext(build_ext):
             cmd = f'{cs} /c for %I in ("{build_temp}",) do @echo %~sI'
             build_temp = os.popen(cmd).read().strip()
             assert os.path.isdir(build_temp), build_temp
-        makeargs.append(f"SUB_DIR_O={build_temp}")
-        makeargs.append(f"SUB_DIR_BIN={build_temp}")
+        makeargs.extend((f"SUB_DIR_O={build_temp}", f"SUB_DIR_BIN={build_temp}"))
 
         nmake = "nmake.exe"
         # Attempt to resolve nmake to the same one that our compiler object
@@ -714,7 +713,7 @@ class my_build_ext(build_ext):
                     extra,
                 )
                 needed = f"{ext.name}{extra}"
-            elif ext.name in ("win32ui",):
+            elif ext.name == "win32ui":
                 # This one just needs a copy.
                 created = needed = ext.name + extra
             else:
