@@ -29,6 +29,8 @@ import random
 import string
 import time
 import unittest
+from abc import abstractmethod
+from collections.abc import Callable
 
 import adodbapitestconfig as config  # run the configuration module. # will set sys.path to find correct version of adodbapi
 import tryconnection  # in our code below, all our switches are from config.whatever
@@ -50,8 +52,17 @@ class CommonDBTests(unittest.TestCase):
     def getEngine(self):
         return self.engine
 
+    # This must be set by a subclass
+    db: Callable[..., adodbapi.Connection]
+    conn: adodbapi.Connection
+
+    @abstractmethod
     def getConnection(self):
-        raise NotImplementedError  # "This method must be overriden by a subclass"
+        raise NotImplementedError
+
+    @abstractmethod
+    def getAnotherConnection(self, addkeys=None):
+        raise NotImplementedError
 
     def getCursor(self):
         return self.getConnection().cursor()
@@ -213,7 +224,7 @@ class CommonDBTests(unittest.TestCase):
 
         # Test description related
         descTuple = crsr.description[1]
-        assert descTuple[0] in ["fldData", "flddata"], 'was "%s" expected "%s"' % (
+        assert descTuple[0] in {"fldData", "flddata"}, 'was "%s" expected "%s"' % (
             descTuple[0],
             "fldData",
         )
@@ -371,11 +382,10 @@ class CommonDBTests(unittest.TestCase):
         if self.getEngine() != "PostgreSQL":
             self.helpTestDataType("tinyint", "NUMBER", 115)
         self.helpTestDataType("smallint", "NUMBER", -32768)
-        if self.getEngine() not in ["ACCESS", "PostgreSQL"]:
-            self.helpTestDataType(
-                "bit", "NUMBER", 1
-            )  # Does not work correctly with access
-        if self.getEngine() in ["MSSQL", "PostgreSQL"]:
+        if self.getEngine() not in {"ACCESS", "PostgreSQL"}:
+            # Does not work correctly with access
+            self.helpTestDataType("bit", "NUMBER", 1)
+        if self.getEngine() in {"MSSQL", "PostgreSQL"}:
             self.helpTestDataType(
                 "bigint",
                 "NUMBER",
@@ -417,17 +427,15 @@ class CommonDBTests(unittest.TestCase):
         self.helpTestDataType(
             dt, "DATETIME", adodbapi.Date(2002, 10, 28), compareAlmostEqual=True
         )
-        if self.getEngine() not in ["MySQL", "PostgreSQL"]:
+        if self.getEngine() not in {"MySQL", "PostgreSQL"}:
             self.helpTestDataType(
                 "smalldatetime",
                 "DATETIME",
                 adodbapi.Date(2002, 10, 28),
                 compareAlmostEqual=True,
             )
-        if tag != "pythontime" and self.getEngine() not in [
-            "MySQL",
-            "PostgreSQL",
-        ]:  # fails when using pythonTime
+        # fails when using pythonTimeConverter
+        if not config.doTimeTest and self.getEngine() not in {"MySQL", "PostgreSQL"}:
             self.helpTestDataType(
                 dt,
                 "DATETIME",
@@ -1078,7 +1086,8 @@ class TestADOwithSQLServer(CommonDBTests):
             self.conn.close()
         except:
             pass
-        self.conn = None
+        # Pretend conn can't be None during tests, but still cleanup
+        self.conn = None  # pyright: ignore[reportAttributeAccessIssue]
 
     def getConnection(self):
         return self.conn
@@ -1226,7 +1235,8 @@ class TestADOwithAccessDB(CommonDBTests):
             self.conn.close()
         except:
             pass
-        self.conn = None
+        # Pretend conn can't be None during tests, but still cleanup
+        self.conn = None  # pyright: ignore[reportAttributeAccessIssue]
 
     def getConnection(self):
         return self.conn
@@ -1258,7 +1268,8 @@ class TestADOwithMySql(CommonDBTests):
             self.conn.close()
         except:
             pass
-        self.conn = None
+        # Pretend conn can't be None during tests, but still cleanup
+        self.conn = None  # pyright: ignore[reportAttributeAccessIssue]
 
     def getConnection(self):
         return self.conn
@@ -1324,7 +1335,8 @@ class TestADOwithPostgres(CommonDBTests):
             self.conn.close()
         except:
             pass
-        self.conn = None
+        # Pretend conn can't be None during tests, but still cleanup
+        self.conn = None  # pyright: ignore[reportAttributeAccessIssue]
 
     def getConnection(self):
         return self.conn
@@ -1370,6 +1382,9 @@ class TestADOwithPostgres(CommonDBTests):
 
 
 class TimeConverterInterfaceTest(unittest.TestCase):
+    # Must be set by subclasses
+    tc: api.TimeConverter
+
     def testIDate(self):
         assert self.tc.Date(1990, 2, 2)
 
@@ -1494,29 +1509,21 @@ class TestPythonDateTimeConverter(TimeConverterInterfaceTest):
         assert t1 < obj < t2, obj
 
 
-suites = [
-    unittest.defaultTestLoader.loadTestsFromModule(TestPythonDateTimeConverter, "test")
-]
+suites = [unittest.defaultTestLoader.loadTestsFromTestCase(TestPythonDateTimeConverter)]
 if config.doTimeTest:
     suites.append(
-        unittest.defaultTestLoader.loadTestsFromModule(TestPythonTimeConverter, "test")
+        unittest.defaultTestLoader.loadTestsFromTestCase(TestPythonTimeConverter)
     )
 if config.doAccessTest:
-    suites.append(
-        unittest.defaultTestLoader.loadTestsFromModule(TestADOwithAccessDB, "test")
-    )
+    suites.append(unittest.defaultTestLoader.loadTestsFromTestCase(TestADOwithAccessDB))
 if config.doSqlServerTest:
     suites.append(
-        unittest.defaultTestLoader.loadTestsFromModule(TestADOwithSQLServer, "test")
+        unittest.defaultTestLoader.loadTestsFromTestCase(TestADOwithSQLServer)
     )
 if config.doMySqlTest:
-    suites.append(
-        unittest.defaultTestLoader.loadTestsFromModule(TestADOwithMySql, "test")
-    )
+    suites.append(unittest.defaultTestLoader.loadTestsFromTestCase(TestADOwithMySql))
 if config.doPostgresTest:
-    suites.append(
-        unittest.defaultTestLoader.loadTestsFromModule(TestADOwithPostgres, "test")
-    )
+    suites.append(unittest.defaultTestLoader.loadTestsFromTestCase(TestADOwithPostgres))
 
 
 class cleanup_manager:

@@ -127,11 +127,9 @@ def process(
         for kwarg in list(kwargs.keys()):
             if kwarg.startswith("macro_"):  # If a key defines a macro
                 macro_name = kwarg[6:]  # name without the "macro_"
-                macro_code = kwargs.pop(
-                    kwarg
-                )  # we remove the macro_key and get the code to execute
-                new_key, rslt = macro_call(
-                    macro_name, macro_code, kwargs
-                )  # run the code in the local context
+                # we remove the macro_key and get the code to execute
+                macro_code = kwargs.pop(kwarg)
+                # run the code in the local context
+                new_key, rslt = macro_call(macro_name, macro_code, kwargs)
                 kwargs[new_key] = rslt  # put the result back in the keywords dict
     return kwargs
