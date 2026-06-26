@@ -50,7 +50,7 @@ int PyCRYPTMSG::setattro(PyObject *self, PyObject *obname, PyObject *v)
 PyObject *PyCRYPTMSG::getattro(PyObject *self, PyObject *obname)
 {
     /*
-    char *name=PYWIN_ATTR_CONVERT(obname);
+    const char *name = PyUnicode_AsUTF8(obname);
     if (name==NULL)
         return NULL;
     if (strcmp(name,"HCRYPTMSG")==0){
