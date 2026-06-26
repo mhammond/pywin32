@@ -9,6 +9,8 @@ on:
       - main
 
 concurrency:
+  # Cancel previous runs for the same PR
+  # Don't cancel successive pushes to main
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
 
@@ -140,6 +142,42 @@ jobs:
         uses: geekyeggo/delete-artifact@v5
         with:
           name: artifacts-*
+  build_msys2_mingw:
+    runs-on: windows-2022
+    timeout-minutes: *timeout-minutes
+    defaults:
+      run:
+        shell: msys2 {0}
+    strategy:
+      fail-fast: false
+      matrix:
+        # https://www.msys2.org/docs/environments/#overview
+        include:
+          # Using legacy environments (MSVCRT) as long as we support Windows 8.1
+          - { sys: mingw64, env: x86_64, plat-name: win-amd64 }
+          - { sys: mingw32, env: i686, plat-name: win32 }
+          # Modern environment (Windows 10 / Windows Server 2016)
+          # - { sys: ucrt64, env: ucrt-x86_64, plat-name: win-amd64 }
+          # No ARM yet, that currently requires using clang
+    steps:
+      - uses: actions/checkout@v4
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: ${{matrix.sys}}
+          update: true
+          install: |
+            make
+            mingw-w64-${{matrix.env}}-cc
+            mingw-w64-${{matrix.env}}-python
+            mingw-w64-${{matrix.env}}-python-build
+
+      - name: Build and install
+        # Having to specify plat-name here is definitely hacky, not sure why setuptools fails with
+        # error: --plat-name must be one of ('win32', 'win-amd64', 'win-arm32', 'win-arm64')
+        #
+        # We don't actually need wheels, but this causes a direct-from-source build,
+        # so we can reference files that wouldn't be copied in a temp sdist folder
+        run: python -m build --wheel -v --config-setting=--build-option="build_ext --plat-name=${{matrix.plat-name}} build --plat-name=${{matrix.plat-name}} bdist_wheel --plat-name=${{matrix.plat-name}}"
 
   # This job can be run locally by running `pre-commit run`
   checkers:

@@ -1,0 +1,6 @@
+; Import definition for loadperf.dll (Windows Performance Counter API)
+; Used to generate libloadperf.a for i686 MinGW toolchains that don't ship it.
+LIBRARY "loadperf.dll"
+EXPORTS
+    LoadPerfCounterTextStringsA@8
+    UnloadPerfCounterTextStringsA@8
