@@ -35,6 +35,7 @@ Coming in build 313, as yet unreleased
     * `PR_RCVD_REPRESENTING_SMTP_ADDRESS_A`
 * Fixed a regression where `pythonwin/mfc140u.dll` isn't bundled with the wheels ([3cc74e0
 ](mhammond/pywin32/commit/3cc74e05b4d5680c69fd6c02232a630db7a34675), [@Avasam][Avasam])
+* Add experimental no-GIL interpreter support (mhammond#2767  [@clin1234][clin1234])
 
 Build 312, released 2026/06/04
 ------------------------------
