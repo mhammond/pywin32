@@ -29,7 +29,7 @@
   classes, and at certain key points in your CWinApp derived class, call the appropriate methods. You may choose to
   provide your own glue class derived from Win32uiHostGlue in certain cases. </P>
 <P>Below is an example class, which overrides the "SetStatusText" method, so that status information displays in the applications status bar (this is only necessary if your application has a "non standard" status bar - normally you could omit this.). </P>
-<PRE>GameApp NEAR theApp; // My existing CWinApp derived class.
+<PRE><CODE>GameApp NEAR theApp; // My existing CWinApp derived class.
 // HostGlue class.
 
 class GameHostGlue : public Win32uiHostGlue
@@ -40,12 +40,12 @@ class GameHostGlue : public Win32uiHostGlue
 };
 
 // The one and only Glue object.
-GameHostGlue NEAR glue; </PRE>
+GameHostGlue NEAR glue; </CODE></PRE>
 <P>And now we are well on our way. </P>
 <H3>Delegating to win32uiHostGlue</H3>
 <P>You need to either implement, or modify, certain key methods of your Application object. Probably the most important is the call to initialise win32ui. You need to modify your CWinApp::InitInstance method (it is almost certain you already have one). The following code needs to be executed in this method: </P>
 <H4>InitInstance</H4>
-<PRE>BOOL GameApp::InitInstance()
+<PRE><CODE>BOOL GameApp::InitInstance()
 {
 ...
   if (!glue.DynamicApplicationInit("import initscore", csScripts)) {
@@ -53,7 +53,7 @@ GameHostGlue NEAR glue; </PRE>
     ReportError("Could not attach to the Python win32ui extensions");
     return FALSE;
   }
-... </PRE>
+... </CODE></PRE>
 <P>Note the following: </P>
 
 <UL>
@@ -63,7 +63,7 @@ GameHostGlue NEAR glue; </PRE>
 
 <H4>And the Rest</H4>
 <P>Below is the rest of the code you need to implement. You may need to create these methods, as the AppWizard generated MFC application does not have some. </P>
-<PRE>BOOL
+<PRE><CODE>BOOL
 GameApp::OnCmdMsg (UINT nID, int nCode,
 void* pExtra, AFX_CMDHANDLERINFO*pHandlerInfo)
 {
@@ -87,13 +87,13 @@ BOOL GameApp::OnIdle( LONG lCount )
   if (CWinApp::OnIdle(lCount))
     return TRUE;
   return glue.OnIdle(lCount);
-} </PRE>
+} </CODE></PRE>
 
 <UL>
 <H3><LI>initscore.py</LI></H3>
 <LI>Below is the code for initscore.py. Obviously your code will vary, depending on your requirements. </LI></UL>
 
-<PRE>import sys
+<PRE><CODE>import sys
 import win32ui
 # First step - redirect python output to the debugging device, until we
 # can create a window to capture it.
@@ -114,9 +114,9 @@ sys.stderr=sys.stdout=DebugOutput()
 # the Pythonwin Interactive Window, which handles this automatically.
 
 # Now here is the code that does the real work.
-import win32con </PRE>
-<FONT FACE="Courier New" SIZE=2><P>from pywin.framework import intpyapp, app</P>
-</FONT><PRE>
+import win32con
+from pywin.framework import intpyapp, app
+
 class ScoreApp(intpyapp.InteractivePythonApp):
   def InitInstance(self):
     # Call the base class (if you want)
@@ -130,6 +130,6 @@ class ScoreApp(intpyapp.InteractivePythonApp):
 #  def OnExitInstance(self):
 #    return 0
 
-app = ScoreApp()</PRE>
+app = ScoreApp()</CODE></PRE>
 <P>And we are done </P></BODY>
 </HTML>

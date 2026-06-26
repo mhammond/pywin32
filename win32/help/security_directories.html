@@ -152,7 +152,7 @@ for info about the various win32 calls made.
 <H2><A NAME="Extend_get">Extending Python for Directory Permissions</A></H2>
 The following Extension creates a dictionary of
 user or group plus the access mask. To Python it will look like:
-<pre>
+<pre><code>
 import fileperm
 all_perms=fileperm.get_perms(r'\\Simon\share\db\a.txt')
 
@@ -160,10 +160,10 @@ And if you print the perms you'll get something like:
 
 print(all_perms)
 {'\\Everyone': 2032127L, 'Domain\\fred': 1179817L, 'BUILTIN\\Users': 1179817L}
-</pre>
+</code></pre>
 
 <h3><A NAME="#Extend_Get_c">C code</a></h3>
-<pre>
+<pre><code>
 
 #include <Python.h>
 
@@ -249,13 +249,13 @@ static PyObject *get_perms(PyObject *self, PyObject *args)
 		acl_info(pDACL, aclSize.AceCount, fp );
 
 		//Dict
-		for (ULONG i=0;i<aclSize.AceCount;++i){
+		for (ULONG i=0;i&lt;aclSize.AceCount;++i){
 			PyDict_SetItem( py_perms, PyBytes_FromString(fp[i].user_domain) ,
 				PyLong_FromUnsignedLong ((unsigned long) fp[i].user_mask));
 		}
 
 		//List
-		for (i=0;i<aclSize.AceCount;++i){
+		for (i=0;i&lt;aclSize.AceCount;++i){
 			PyList_Append(py_perms,PyBytes_FromString(fp[i].user_domain));
 		}
 
@@ -282,9 +282,6 @@ Py_InitModule("fileperm",fileperm_methods);
 
 }
 
-</pre>
-
-
 
 
 //Boilerplate functions
@@ -306,9 +303,7 @@ void initfileperm()
 Py_InitModule("fileperm",fileperm_methods);
 
 }
-
-<p>
-</p>
+</code></pre>
 
 <h3><A NAME="#Extend_Get_py">Python code</a></h3>
 One thing the extension doesn't do is process the access mask into human
@@ -317,7 +312,7 @@ readable names. Python can easily do that as shown in the program below.
 This program looks down a directory tree, takes the access mask and the login/group information,
 processes the access mask to produce human readable names and prints out the
 permission structure for the tree.
-<pre>
+<pre><code>
 import os
 import sys
 import win32net
@@ -423,7 +418,7 @@ def get_perm(file):
             perm_list.append(sys_id+'\t\t'+mask_name)
     return perm_list
 def get_perms(arg, d, files):
-    a=2147483648L #1L<<31L
+    a=2147483648L #1L&lt;&lt;31L
     print("Now at ",d)
     for i in files:
         file=d+'\\'+i
@@ -505,7 +500,7 @@ else:
             print(i)
         end = time.clock()-init
 
-</pre>
+</code></pre>
 
 <HR>
 <H2><A NAME="Conclusion">In Conclusion</A></H2>
