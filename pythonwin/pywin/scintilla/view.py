@@ -1,4 +1,4 @@
-# A general purpose MFC CCtrlView view that uses Scintilla.
+"""A general purpose MFC CCtrlView view that uses Scintilla."""
 
 import os
 import re
@@ -26,44 +26,42 @@ wordbreaks = "._" + string.ascii_uppercase + string.ascii_lowercase + string.dig
 
 patImport = re.compile(r"import (?P<name>.*)")
 
-_event_commands = [
+event_commands = [
     # File menu
-    "win32ui.ID_FILE_LOCATE",
-    "win32ui.ID_FILE_CHECK",
-    "afxres.ID_FILE_CLOSE",
-    "afxres.ID_FILE_NEW",
-    "afxres.ID_FILE_OPEN",
-    "afxres.ID_FILE_SAVE",
-    "afxres.ID_FILE_SAVE_AS",
-    "win32ui.ID_FILE_SAVE_ALL",
+    ("FileLocate", win32ui.ID_FILE_LOCATE),
+    ("FileCheck", win32ui.ID_FILE_CHECK),
+    ("FileClose", afxres.ID_FILE_CLOSE),
+    ("FileNew", afxres.ID_FILE_NEW),
+    ("FileOpen", afxres.ID_FILE_OPEN),
+    ("FileSave", afxres.ID_FILE_SAVE),
+    ("FileSaveAs", afxres.ID_FILE_SAVE_AS),
+    ("FileSaveAll", win32ui.ID_FILE_SAVE_ALL),
     # Edit menu
-    "afxres.ID_EDIT_UNDO",
-    "afxres.ID_EDIT_REDO",
-    "afxres.ID_EDIT_CUT",
-    "afxres.ID_EDIT_COPY",
-    "afxres.ID_EDIT_PASTE",
-    "afxres.ID_EDIT_SELECT_ALL",
-    "afxres.ID_EDIT_FIND",
-    "afxres.ID_EDIT_REPEAT",
-    "afxres.ID_EDIT_REPLACE",
+    ("EditUndo", afxres.ID_EDIT_UNDO),
+    ("EditRedo", afxres.ID_EDIT_REDO),
+    ("EditCut", afxres.ID_EDIT_CUT),
+    ("EditCopy", afxres.ID_EDIT_COPY),
+    ("EditPaste", afxres.ID_EDIT_PASTE),
+    ("EditSelectAll", afxres.ID_EDIT_SELECT_ALL),
+    ("EditFind", afxres.ID_EDIT_FIND),
+    ("EditRepeat", afxres.ID_EDIT_REPEAT),
+    ("EditReplace", afxres.ID_EDIT_REPLACE),
     # View menu
-    "win32ui.ID_VIEW_WHITESPACE",
-    "win32ui.ID_VIEW_FIXED_FONT",
-    "win32ui.ID_VIEW_BROWSE",
-    "win32ui.ID_VIEW_INTERACTIVE",
+    ("ViewWhitespace", win32ui.ID_VIEW_WHITESPACE),
+    ("ViewFixedFont", win32ui.ID_VIEW_FIXED_FONT),
+    ("ViewBrowse", win32ui.ID_VIEW_BROWSE),
+    ("ViewInteractive", win32ui.ID_VIEW_INTERACTIVE),
     # Window menu
-    "afxres.ID_WINDOW_ARRANGE",
-    "afxres.ID_WINDOW_CASCADE",
-    "afxres.ID_WINDOW_NEW",
-    "afxres.ID_WINDOW_SPLIT",
-    "afxres.ID_WINDOW_TILE_HORZ",
-    "afxres.ID_WINDOW_TILE_VERT",
+    ("WindowArrange", afxres.ID_WINDOW_ARRANGE),
+    ("WindowCascade", afxres.ID_WINDOW_CASCADE),
+    ("WindowNew", afxres.ID_WINDOW_NEW),
+    ("WindowSplit", afxres.ID_WINDOW_SPLIT),
+    ("WindowTileHorz", afxres.ID_WINDOW_TILE_HORZ),
+    ("WindowTileVert", afxres.ID_WINDOW_TILE_VERT),
     # Others
-    "afxres.ID_APP_EXIT",
-    "afxres.ID_APP_ABOUT",
-]
-
-_extra_event_commands = [
+    ("AppExit", afxres.ID_APP_EXIT),
+    ("AppAbout", afxres.ID_APP_ABOUT),
+    # Extra event commands
     ("EditDelete", afxres.ID_EDIT_CLEAR),
     ("LocateModule", win32ui.ID_FILE_LOCATE),
     ("GotoLine", win32ui.ID_EDIT_GOTO_LINE),
@@ -75,24 +73,6 @@ _extra_event_commands = [
     ("DbgBreakpointClearAll", win32ui.IDC_DBG_CLEAR),
     ("DbgClose", win32ui.IDC_DBG_CLOSE),
 ]
-
-event_commands = []
-
-
-def _CreateEvents():
-    for name in _event_commands:
-        val = eval(name)
-        name_parts = name.split("_")[1:]
-        name_parts = [p.capitalize() for p in name_parts]
-        event = "".join(name_parts)
-        event_commands.append((event, val))
-    for name, id in _extra_event_commands:
-        event_commands.append((name, id))
-
-
-_CreateEvents()
-del _event_commands
-del _extra_event_commands
 
 command_reflectors = [
     (win32ui.ID_EDIT_UNDO, win32con.WM_UNDO),
