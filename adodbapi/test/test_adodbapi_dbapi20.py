@@ -1,12 +1,18 @@
 print("This module depends on the dbapi20 compliance tests created by Stuart Bishop")
 print("(see db-sig mailing list history for info)")
 import platform
+import random
 import sys
 import unittest
 
 import dbapi20
 import setuptestframework
 
+_alphabet = (
+    "PYFGCRLAOEUIDHTNSQJKXBMWVZ"  # why, yes, I do happen to use a dvorak keyboard
+)
+tmp = "".join([random.choice(_alphabet) for x in range(9)])
+mdb_name = "xx_" + tmp + ".mdb"  # generate a non-colliding name for the temporary .mdb
 testfolder = setuptestframework.maketemp()
 if "--package" in sys.argv:
     pth = setuptestframework.makeadopackage(testfolder)
@@ -73,7 +79,7 @@ elif node == "yyy":  # ACCESS data base is known to fail some tests.
         driver = "Microsoft.ACE.OLEDB.12.0"
     else:
         driver = "Microsoft.Jet.OLEDB.4.0"
-    testmdb = setuptestframework.makemdb(testfolder)
+    testmdb = setuptestframework.makemdb(testfolder, mdb_name)
     connStr = r"Provider=%s;Data Source=%s" % (driver, testmdb)
 
 print(f"Using Connection String like={connStr}")
