@@ -18,6 +18,7 @@ As of build 305, installation .exe files have been deprecated; see
 Coming in build 313, as yet unreleased
 --------------------------------------
 
+* Fixed `AttributeError: 'Enumerator' object has no attribute 'resultCLSID'` when cloning a `win32com.client.util.Enumerator` other than `EnumVARIANT` (mhammond#2333, [@Avasam][Avasam])
 * Updated `MAPIStubLibrary` vendored sources (mhammond#2764, [@Avasam][Avasam]):
   * Migrated from deprecated SAL v1 annotations to SAL v2
   * New `win32comext.mapi.mapitags` symbols:
