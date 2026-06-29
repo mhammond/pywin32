@@ -18,6 +18,7 @@ As of build 305, installation .exe files have been deprecated; see
 Coming in build 313, as yet unreleased
 --------------------------------------
 
+* Fixed `gencache.ForgetAboutTypelibInterface` to actually drop cached redirects (mhammond#2329, [@Avasam][Avasam])
 * Updated `MAPIStubLibrary` vendored sources (mhammond#2764, [@Avasam][Avasam]):
   * Migrated from deprecated SAL v1 annotations to SAL v2
   * New `win32comext.mapi.mapitags` symbols:
