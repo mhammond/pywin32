@@ -18,6 +18,12 @@ As of build 305, installation .exe files have been deprecated; see
 Coming in build 313, as yet unreleased
 --------------------------------------
 
+## adodbapi
+
+* When `errorhandler` is called, the `errorvalue` argument is now always an `Exception` and the `errortype` is the `type` of that specific `errorvalue` (#2351, @Avasam)
+
+## pywin32
+
 * Updated `MAPIStubLibrary` vendored sources (mhammond#2764, [@Avasam][Avasam]):
   * Migrated from deprecated SAL v1 annotations to SAL v2
   * New `win32comext.mapi.mapitags` symbols:
