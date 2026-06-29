@@ -46,7 +46,7 @@ class HLIPythonObject(hierlist.HierListItem):
 
     def __repr__(self):
         return (
-            f"{self.__class__.__name__}(name={self.name!r}, object={self.myobject!r})"
+            f"{self.__class__.__name__}(myobject={self.myobject!r}, name={self.name!r})"
         )
 
     def GetText(self):
