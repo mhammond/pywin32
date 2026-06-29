@@ -7,7 +7,7 @@
 
 import win32con
 import win32ui
-from pywin.framework import app
+from pywin.framework.app import CApp
 from pywin.mfc import afxres, dialog, docview
 
 PRINTDLGORD = 1538
@@ -132,10 +132,7 @@ class PrintDemoView(docview.ScrollView):
         y += cyChar
 
 
-class PrintDemoApp(app.CApp):
-    def __init__(self):
-        app.CApp.__init__(self)
-
+class PrintDemoApp(CApp):
     def InitInstance(self):
         template = PrintDemoTemplate(None, None, None, PrintDemoView)
         self.AddDocTemplate(template)
@@ -173,11 +170,12 @@ class ImagePrintDialog(dialog.PrintDialog):
 
 
 if __name__ == "__main__":
-    # Running under Pythonwin
+
     def test():
         template = PrintDemoTemplate(None, None, None, PrintDemoView)
         template.OpenDocumentFile(None)
 
     test()
 else:
+    # Running under Pythonwin
     app = PrintDemoApp()
