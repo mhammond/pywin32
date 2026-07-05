@@ -164,12 +164,8 @@ class WinExt(Extension):
 
         # MinGW doesn't define these.
         if is_mingw:
-            define_macros.extend(
-                (
-                    # Required for PyExc_WindowsError in pyerrors.h
-                    ("MS_WINDOWS", None),
-                )
-            )
+            # Required for PyExc_WindowsError in pyerrors.h
+            define_macros.append(("MS_WINDOWS", None))
             # Extra compile args (mapi, pythoncom & win32ui)
             if "AMD64" in sys.version:
                 define_macros.extend((("_M_X64", None), ("_AMD64_", None)))
