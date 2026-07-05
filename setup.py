@@ -168,10 +168,6 @@ class WinExt(Extension):
                 (
                     # Required for PyExc_WindowsError in pyerrors.h
                     ("MS_WINDOWS", None),
-                    # Currently missing from MinGW's wincred.h
-                    ("CRED_TYPE_GENERIC_CERTIFICATE", 5),
-                    ("CRED_TYPE_DOMAIN_EXTENDED", 6),
-                    ("CRED_ENUMERATE_ALL_CREDENTIALS", 0x1),
                 )
             )
             # Extra compile args (mapi, pythoncom & win32ui)
