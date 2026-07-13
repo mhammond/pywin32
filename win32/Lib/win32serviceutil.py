@@ -1,5 +1,5 @@
 # General purpose service utilities, both for standard Python scripts,
-# and for for Python programs which run as services...
+# and for Python programs which run as services...
 #
 # Note that most utility functions here will raise win32api.error's
 # (which is win32service.error, pywintypes.error, etc)
