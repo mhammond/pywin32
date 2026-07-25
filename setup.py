@@ -868,7 +868,7 @@ class MyCygwinCompiler(BaseCygwinCompiler):
         return super().compile(sources, **kwargs)
 
     # Work around missing .mc support in CygwinCompiler+MinGW32Compiler pypa/distutils#405
-    src_extensions = BaseCygwinCompiler.src_extensions + [".mc"]
+    src_extensions = [*BaseCygwinCompiler.src_extensions, ".mc"]
 
     def _compile(
         self,
