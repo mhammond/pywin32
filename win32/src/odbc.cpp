@@ -93,8 +93,8 @@ typedef struct {
 static cursorObject *cursor(PyObject *o) { return (cursorObject *)o; }
 
 static void cursorDealloc(PyObject *self);
-PyMethodDef cursorMethods[];
-PyMemberDef cursorMembers[];
+extern PyMethodDef cursorMethods[];
+extern PyMemberDef cursorMembers[];
 
 static PyTypeObject Cursor_Type = {
     PYWIN_OBJECT_HEAD "odbccur", /*tp_name */
@@ -137,8 +137,8 @@ static PyTypeObject Cursor_Type = {
 };
 
 static void connectionDealloc(PyObject *self);
-PyMethodDef connectionMethods[];
-PyMemberDef connectionMembers[];
+extern PyMethodDef connectionMethods[];
+extern PyMemberDef connectionMembers[];
 static PyTypeObject Connection_Type = {
     PYWIN_OBJECT_HEAD "odbcconn", /*tp_name */
     sizeof(connectionObject),     /*tp_basicsize */

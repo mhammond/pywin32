@@ -3598,12 +3598,10 @@ static PyObject *PyCFrameWnd_LoadBarState(PyObject *self, PyObject *args)
     if (!PyWinObject_AsTCHAR(obprofileName, &profileName, FALSE))
         return NULL;
     GUI_BGN_SAVE;
-    PYWINTYPES_TRY
-    {
+    __try {
         pFrame->LoadBarState(profileName);  // @pyseemfc CFrameWnd|LoadBarState
     }
-    PYWINTYPES_EXCEPT
-    {
+    __except (EXCEPTION_EXECUTE_HANDLER) {
         GUI_BLOCK_THREADS;
         PyWinObject_FreeTCHAR(profileName);
         RETURN_ERR("LoadBarState failed (with win32 exception!)");

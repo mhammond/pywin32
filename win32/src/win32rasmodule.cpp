@@ -809,7 +809,7 @@ static PyObject *PyRasIsHandleValid(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "O&:IsHandleValid", PyWinObject_AsHANDLE,
                           &hras))  // @pyparm int|hras||The handle to the RAS connection being checked.
         return NULL;
-    BOOL bRet = (hras >= 0);
+    BOOL bRet = (hras != NULL);
     return PyBool_FromLong(bRet);
 }
 

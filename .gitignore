@@ -11,7 +11,6 @@ __pycache__
 *.flg
 *.chm
 *.chw
-*.pyo
 *.pdb
 *.whl
 arm64libs/
@@ -44,6 +43,7 @@ com/win32comext/adsi/src/Py*.h
 com/win32comext/mapi/src/*.cpp
 !com/win32comext/mapi/src/mapiutil.cpp
 !com/win32comext/mapi/src/mapiguids.cpp
+!com/win32comext/mapi/src/mapiStubLibrary.cpp
 !com/win32comext/mapi/src/PyIMAPIAdviseSink.cpp
 !com/win32comext/mapi/src/exchangeguids.cpp
 com/win32comext/mapi/src/Py*.h
@@ -73,6 +73,7 @@ venv.bak/
 .vagrant/
 # Not currently using a lock file
 uv.lock
+.python-version
 
 # other IDEs, MacOS, etc
 .idea/

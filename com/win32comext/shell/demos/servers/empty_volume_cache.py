@@ -68,7 +68,7 @@ class EmptyVolumeCache:
 
         return (
             "pywin32 compiled files",
-            "Removes all .pyc and .pyo files in the pywin32 directories",
+            "Removes all .pyc files in the pywin32 directories",
             "click me!",
             flags,
         )
@@ -90,7 +90,7 @@ class EmptyVolumeCache:
         callback, total_list = arg
         for file in files:
             fqn = os.path.join(directory, file).lower()
-            if file.endswith(".pyc") or file.endswith(".pyo"):
+            if file.endswith(".pyc"):
                 # See below - total_list is None means delete files,
                 # otherwise it is a list where the result is stored. It's a
                 # list simply due to the way os.walk works - only [0] is

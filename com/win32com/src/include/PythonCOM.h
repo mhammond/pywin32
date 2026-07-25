@@ -91,9 +91,6 @@
 #endif
 
 #ifdef __MINGW32__
-// Special Mingw32 considerations.
-#define __try try
-#define __except(filter) catch (...)
 #include <olectl.h>
 
 #endif  // __MINGW32__

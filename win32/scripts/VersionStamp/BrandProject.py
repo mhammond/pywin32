@@ -86,12 +86,10 @@ if __name__ == "__main__":
         usage("You must specify the required arguments")
     vssProjectName = "$\\" + args[0]
     descFile = args[1]
+    if not os.path.exists(descFile):
+        usage(f"The description file '{descFile}' can not be found")
     path = args[2]
-    try:
-        os.stat(descFile)
-    except OSError:
-        usage("The description file '%s' can not be found" % (descFile))
     if not os.path.isdir(path):
-        usage("The path to the files to stamp '%s' does not exist" % (path))
+        usage(f"The path to the files to stamp '{path}' does not exist")
 
     BrandProject(vssProjectName, descFile, path, stampFiles, desc, bAuto, bRebrand)

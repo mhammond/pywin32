@@ -7,6 +7,7 @@ by specifying the "-L <dir>" argument to the build_ext command.
 
 import pathlib
 import sys
+import sysconfig
 from urllib.request import urlretrieve
 from zipfile import ZipFile
 
@@ -27,8 +28,11 @@ if sys.version_info.releaselevel == "beta":
 if sys.version_info.releaselevel == "candidate":
     VERSION += f"-rc{sys.version_info.serial}"  # pyright: ignore[reportConstantRedefinition]
 
-URL = f"https://www.nuget.org/api/v2/package/pythonarm64/{VERSION}"
-DEST_PATH = dest / f"pythonarm64.{VERSION}.zip"
+PACKAGE = "pythonarm64" + (
+    "-freethreaded" if sysconfig.get_config_var("Py_GIL_DISABLED") else ""
+)
+URL = f"https://www.nuget.org/api/v2/package/{PACKAGE}/{VERSION}"
+DEST_PATH = dest / f"{PACKAGE}.{VERSION}.zip"
 
 if DEST_PATH.is_file():
     print("Skipping download because", DEST_PATH, "exists")
