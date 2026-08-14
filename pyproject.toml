@@ -1,6 +1,7 @@
 [build-system]
 requires = [
-  "setuptools >=84.0.0" # required for compiler initialization compatibility
+  "setuptools >=77.0.3", # made PEP-639 license deprecations introduced by 77.0.0 into warnings rather than errors
+  "setuptools >=84.0.0; python_version >= '3.10'", # required for compiler initialization compatibility; setuptools 83 and msys2 dropped support for Python 3.9
 ]
 build-backend = "setuptools.build_meta"
 
