@@ -249,6 +249,17 @@ class Misc(unittest.TestCase):
         # hopefully ' ' doesn't depend on the locale!
         self.assertEqual(win32api.VkKeyScan(" "), 32)
 
+    def testToUnicodeEx(self):
+        state = bytes(256)
+        vk = ord("A")
+        sc = win32api.MapVirtualKey(vk, 0)
+        self.assertEqual(win32api.ToUnicodeEx(vk, sc, state), "a")
+        self.assertIsNone(win32api.ToUnicodeEx(0, 0, state))
+        with self.assertRaisesRegex(
+            ValueError, "keyboard state string must be exactly 256 characters"
+        ):
+            win32api.ToUnicodeEx(vk, sc, b"")
+
     def testVkKeyScanEx(self):
         # hopefully ' ' doesn't depend on the locale!
         self.assertEqual(win32api.VkKeyScanEx(" ", 0), 32)
