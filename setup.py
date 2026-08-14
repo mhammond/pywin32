@@ -856,9 +856,6 @@ else:
 
 
 class MyCygwinCompiler(BaseCygwinCompiler):
-    # Workaround until pypa/distutils#399 is fixed
-    BaseCygwinCompiler.initialize = lambda *_: None
-
     # Work around python/cpython#80483 / python/cpython#86175
     # it sorts sources but this breaks support for building .mc files etc :(
     # See pypa/setuptools#4986 / pypa/distutils#370 for potential upstream fix.
