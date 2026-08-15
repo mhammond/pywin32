@@ -18,6 +18,7 @@ As of build 305, installation .exe files have been deprecated; see
 Coming in build 313, as yet unreleased
 --------------------------------------
 
+* Fixed bad format when `VTableItem.WriteVTableMap` returns an object derived from `IDispatch` (mhammond#2481, [@Avasam][Avasam])
 * Updated `MAPIStubLibrary` vendored sources (mhammond#2764, [@Avasam][Avasam]):
   * Migrated from deprecated SAL v1 annotations to SAL v2
   * New `win32comext.mapi.mapitags` symbols:
