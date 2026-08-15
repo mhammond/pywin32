@@ -12,7 +12,16 @@ from pywin32_testutil import testmain
 
 class SecurityTests(unittest.TestCase):
     def setUp(self):
-        self.pwr_sid = win32security.LookupAccountName("", "Power Users")[0]
+        try:
+            self.pwr_sid = win32security.LookupAccountName("", "Power Users")[0]
+        except pywintypes.error as exc:
+            # 'Power Users' does not exist on every edition - it is absent on
+            # Windows Home (EditionID "Core") - and is localized on non-English
+            # installs. Every test in this class needs the SID, so skip rather
+            # than error out of setUp.
+            if exc.winerror != winerror.ERROR_NONE_MAPPED:
+                raise
+            raise unittest.SkipTest("No 'Power Users' group is available")
         try:
             self.admin_sid = win32security.LookupAccountName("", "Administrator")[0]
         except pywintypes.error as exc:
