@@ -169,7 +169,7 @@ class StringDef:
         self.value = value
 
     def __repr__(self):
-        return f"StringDef({self.id!r}, {self.idNum!r}, {self.value!r})"
+        return f"{self.__class__.__name__}({self.id!r}, {self.idNum!r}, {self.value!r})"
 
 
 class RCParser:

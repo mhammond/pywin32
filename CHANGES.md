@@ -18,6 +18,16 @@ As of build 305, installation .exe files have been deprecated; see
 Coming in build 313, as yet unreleased
 --------------------------------------
 
+* The following classes will now use the correct subclass name in `repr`: (mhammond#2570, [@Avasam][Avasam])
+  * `pywin.tools.browser.HLIPythonObject`
+  * `win32com.client.VARIANT`
+  * `win32com.client.build.MapEntry`
+  * `win32com.server.exception.COMException`
+  * `win32comext.axdebug.debugger.ModuleTreeNode`
+  * `win32comext.axscript.client.pyscript.NamedScriptAttribute`
+  * `win32comext.axscript.client.error.AXScriptException`
+  * `win32pdhquery.QueryError`
+  * `win32rcparser.StringDef`
 * Updated `MAPIStubLibrary` vendored sources (mhammond#2764, [@Avasam][Avasam]):
   * Migrated from deprecated SAL v1 annotations to SAL v2
   * New `win32comext.mapi.mapitags` symbols:
