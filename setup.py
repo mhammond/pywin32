@@ -601,7 +601,7 @@ class my_build_ext(build_ext):
         # This is only available from the Visual Studio Installer.
         # Skip if Pythonwin was also skipped.
         win32ui_ext = pythonwin_extensions[0]
-        if win32ui_ext not in {ext for ext, why in self.excluded_extensions}:
+        if not any(win32ui_ext is ext for ext, why in self.excluded_extensions):
             vc_path = next(p for p in Path(self.compiler.cc).parents if p.name == "VC")
             msvc_version = next(
                 p for p in Path(self.compiler.cc).parents if p.parent.name == "MSVC"
@@ -856,9 +856,6 @@ else:
 
 
 class MyCygwinCompiler(BaseCygwinCompiler):
-    # Workaround until pypa/distutils#399 is fixed
-    BaseCygwinCompiler.initialize = lambda *_: None
-
     # Work around python/cpython#80483 / python/cpython#86175
     # it sorts sources but this breaks support for building .mc files etc :(
     # See pypa/setuptools#4986 / pypa/distutils#370 for potential upstream fix.
