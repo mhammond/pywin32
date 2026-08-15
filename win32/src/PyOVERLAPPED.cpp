@@ -182,7 +182,7 @@ PyObject *PyOVERLAPPED::richcompareFunc(PyObject *ob, PyObject *other, int op)
 
 PyObject *PyOVERLAPPED::getattro(PyObject *self, PyObject *obname)
 {
-    char *name = PYWIN_ATTR_CONVERT(obname);
+    const char *name = PyUnicode_AsUTF8(obname);
     if (name == NULL)
         return NULL;
     if (strcmp("hEvent", name) == 0) {
@@ -210,7 +210,7 @@ int PyOVERLAPPED::setattro(PyObject *self, PyObject *obname, PyObject *v)
         PyErr_SetString(PyExc_AttributeError, "can't delete OVERLAPPED attributes");
         return -1;
     }
-    char *name = PYWIN_ATTR_CONVERT(obname);
+    const char *name = PyUnicode_AsUTF8(obname);
     if (name == NULL)
         return NULL;
     if (strcmp("hEvent", name) == 0) {

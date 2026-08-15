@@ -267,7 +267,7 @@ PyHH_AKLINK::~PyHH_AKLINK(void)
 
 int PyHH_AKLINK::setattro(PyObject *self, PyObject *obname, PyObject *v)
 {
-    char *name = PYWIN_ATTR_CONVERT(obname);
+    const char *name = PyUnicode_AsUTF8(obname);
     if (name == NULL)
         return -1;
     PyHH_AKLINK *pO = (PyHH_AKLINK *)self;
@@ -505,7 +505,7 @@ PyHH_FTS_QUERY::~PyHH_FTS_QUERY(void) { Py_XDECREF(m_pszSearchQuery); }
 
 PyObject *PyHH_FTS_QUERY::getattro(PyObject *self, PyObject *obname)
 {
-    char *name = PYWIN_ATTR_CONVERT(obname);
+    const char *name = PyUnicode_AsUTF8(obname);
     if (name == NULL)
         return NULL;
     PyHH_FTS_QUERY *pO = (PyHH_FTS_QUERY *)self;
@@ -525,7 +525,7 @@ int PyHH_FTS_QUERY::setattro(PyObject *self, PyObject *obname, PyObject *v)
         PyErr_SetString(PyExc_AttributeError, "can't delete HH_FTS_QUERY attributes");
         return -1;
     }
-    char *name = PYWIN_ATTR_CONVERT(obname);
+    const char *name = PyUnicode_AsUTF8(obname);
     if (name == NULL)
         return -1;
 
@@ -771,7 +771,7 @@ PyHH_POPUP::~PyHH_POPUP(void)
 
 PyObject *PyHH_POPUP::getattro(PyObject *self, PyObject *obname)
 {
-    char *name = PYWIN_ATTR_CONVERT(obname);
+    const char *name = PyUnicode_AsUTF8(obname);
     if (name == NULL)
         return NULL;
 
@@ -807,7 +807,7 @@ int PyHH_POPUP::setattro(PyObject *self, PyObject *obname, PyObject *v)
         PyErr_SetString(PyExc_AttributeError, "can't delete HH_POPUP attributes");
         return -1;
     }
-    char *name = PYWIN_ATTR_CONVERT(obname);
+    const char *name = PyUnicode_AsUTF8(obname);
     if (name == NULL)
         return -1;
 
@@ -1197,7 +1197,7 @@ PyHH_WINTYPE::~PyHH_WINTYPE(void)
 
 PyObject *PyHH_WINTYPE::getattro(PyObject *self, PyObject *obname)
 {
-    char *name = PYWIN_ATTR_CONVERT(obname);
+    const char *name = PyUnicode_AsUTF8(obname);
     if (name == NULL)
         return NULL;
     PyHH_WINTYPE *pO = (PyHH_WINTYPE *)self;
@@ -1247,7 +1247,7 @@ int PyHH_WINTYPE::setattro(PyObject *self, PyObject *obname, PyObject *v)
         PyErr_SetString(PyExc_AttributeError, "can't delete HH_WINTYPE attributes");
         return -1;
     }
-    char *name = PYWIN_ATTR_CONVERT(obname);
+    const char *name = PyUnicode_AsUTF8(obname);
     if (name == NULL)
         return -1;
     PyHH_WINTYPE *pO = (PyHH_WINTYPE *)self;
@@ -1696,7 +1696,7 @@ PyHHN_NOTIFY::~PyHHN_NOTIFY(void)
 
 PyObject *PyHHN_NOTIFY::getattro(PyObject *self, PyObject *obname)
 {
-    char *name = PYWIN_ATTR_CONVERT(obname);
+    const char *name = PyUnicode_AsUTF8(obname);
     if (name == NULL)
         return NULL;
     PyHHN_NOTIFY *pO = (PyHHN_NOTIFY *)self;
@@ -1721,7 +1721,7 @@ int PyHHN_NOTIFY::setattro(PyObject *self, PyObject *obname, PyObject *v)
         PyErr_SetString(PyExc_AttributeError, "can't delete HHN_NOTIFY attributes");
         return -1;
     }
-    char *name = PYWIN_ATTR_CONVERT(obname);
+    const char *name = PyUnicode_AsUTF8(obname);
     if (name == NULL)
         return -1;
 
@@ -1939,7 +1939,7 @@ PyHHNTRACK::~PyHHNTRACK(void)
 
 PyObject *PyHHNTRACK::getattro(PyObject *self, PyObject *obname)
 {
-    char *name = PYWIN_ATTR_CONVERT(obname);
+    const char *name = PyUnicode_AsUTF8(obname);
     if (name == NULL)
         return NULL;
 
@@ -1969,7 +1969,7 @@ int PyHHNTRACK::setattro(PyObject *self, PyObject *obname, PyObject *v)
         PyErr_SetString(PyExc_AttributeError, "can't delete HHNTRACK attributes");
         return -1;
     }
-    char *name = PYWIN_ATTR_CONVERT(obname);
+    const char *name = PyUnicode_AsUTF8(obname);
     if (name == NULL)
         return -1;
     PyHHNTRACK *pO = (PyHHNTRACK *)self;

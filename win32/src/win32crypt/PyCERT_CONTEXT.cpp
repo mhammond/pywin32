@@ -141,7 +141,7 @@ PyObject *PyWinObject_FromCERT_EXTENSIONArray(PCERT_EXTENSION pce, DWORD ext_cnt
 
 PyObject *PyCERT_CONTEXT::getattro(PyObject *self, PyObject *obname)
 {
-    char *name = PYWIN_ATTR_CONVERT(obname);
+    const char *name = PyUnicode_AsUTF8(obname);
     if (name == NULL)
         return NULL;
     PCCERT_CONTEXT pcc = ((PyCERT_CONTEXT *)self)->GetPCCERT_CONTEXT();

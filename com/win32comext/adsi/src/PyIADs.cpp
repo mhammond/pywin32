@@ -247,7 +247,7 @@ static struct PyMethodDef PyIADs_methods[] = {
 
 PyObject *PyIADs_getattro(PyObject *ob, PyObject *obname)
 {
-    char *name = PYWIN_ATTR_CONVERT(obname);
+    const char *name = PyUnicode_AsUTF8(obname);
     if (!name)
         return NULL;
 

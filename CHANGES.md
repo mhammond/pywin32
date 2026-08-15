@@ -18,6 +18,7 @@ As of build 305, installation .exe files have been deprecated; see
 Coming in build 313, as yet unreleased
 --------------------------------------
 
+* Resolved a handful of deprecation warnings (mhammond#2591, [@Avasam][Avasam])
 * Updated `MAPIStubLibrary` vendored sources (mhammond#2764, [@Avasam][Avasam]):
   * Migrated from deprecated SAL v1 annotations to SAL v2
   * New `win32comext.mapi.mapitags` symbols:
