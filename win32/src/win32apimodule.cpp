@@ -5792,7 +5792,8 @@ PyObject *PyToAsciiEx(PyObject *self, PyObject *args)
     return PyBytes_FromStringAndSize(result, nc);
 }
 
-// @pymethod string|win32api|ToUnicodeEx|Translates the specified virtual-key code and keyboard state to Unicode characters.
+// @pymethod string|win32api|ToUnicodeEx|Translates the specified virtual-key code and keyboard state to Unicode
+// characters.
 PyObject *PyToUnicodeEx(PyObject *self, PyObject *args)
 {
     UINT vk, sc, flags = 0;
@@ -5818,15 +5819,7 @@ PyObject *PyToUnicodeEx(PyObject *self, PyObject *args)
 
     WCHAR result[256];
 
-    int nc = ToUnicodeEx(
-        vk,
-        sc,
-        (const BYTE *)state,
-        result,
-        ARRAYSIZE(result),
-        flags,
-        layout
-    );
+    int nc = ToUnicodeEx(vk, sc, (const BYTE *)state, result, ARRAYSIZE(result), flags, layout);
 
     if (nc <= 0) {
         Py_INCREF(Py_None);
@@ -5835,7 +5828,6 @@ PyObject *PyToUnicodeEx(PyObject *self, PyObject *args)
 
     return PyUnicode_FromWideChar(result, nc);
 }
-
 
 // @pymethod int|win32api|MapVirtualKey|Translates (maps) a virtual-key code into a scan code or character value, or
 // translates a scan code into a virtual-key code.
@@ -6305,7 +6297,8 @@ static struct PyMethodDef win32api_functions[] = {
     {"TerminateProcess", PyTerminateProcess, 1},  // @pymeth TerminateProcess|Terminates a process.
     {"ToAsciiEx", PyToAsciiEx, 1},  // @pymeth ToAsciiEx|Translates the specified virtual-key code and keyboard state to
                                     // the corresponding character or characters.
-    {"ToUnicodeEx", PyToUnicodeEx, 1},  // @pymeth ToUnicodeEx|Translates the specified virtual-key code and keyboard state to Unicode characters.
+    {"ToUnicodeEx", PyToUnicodeEx,
+     1},  // @pymeth ToUnicodeEx|Translates the specified virtual-key code and keyboard state to Unicode characters.
     {"UpdateResource", PyUpdateResource, 1},  // @pymeth UpdateResource|Updates a resource in a PE file.
     {"VkKeyScan", PyVkKeyScan,
      1},  // @pymeth VkKeyScan|Translates a character to the corresponding virtual-key code and shift state.
