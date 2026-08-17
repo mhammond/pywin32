@@ -1,4 +1,5 @@
 # Tests for the win32security module.
+import os
 import unittest
 
 import ntsecuritycon
@@ -19,7 +20,7 @@ class SecurityTests(unittest.TestCase):
             # Windows Home (EditionID "Core") - and is localized on non-English
             # installs. Every test in this class needs the SID, so skip rather
             # than error out of setUp.
-            if exc.winerror != winerror.ERROR_NONE_MAPPED:
+            if exc.winerror != winerror.ERROR_NONE_MAPPED or "CI" in os.environ:
                 raise
             raise unittest.SkipTest("No 'Power Users' group is available")
         try:
