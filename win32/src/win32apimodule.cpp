@@ -5792,6 +5792,43 @@ PyObject *PyToAsciiEx(PyObject *self, PyObject *args)
     return PyBytes_FromStringAndSize(result, nc);
 }
 
+// @pymethod string|win32api|ToUnicodeEx|Translates the specified virtual-key code and keyboard state to Unicode
+// characters.
+PyObject *PyToUnicodeEx(PyObject *self, PyObject *args)
+{
+    UINT vk, sc, flags = 0;
+    const char *state;
+    Py_ssize_t statesize;
+    PyObject *obhlayout = NULL;
+    HKL layout = 0;
+
+    // @pyparm int|vk||The virtual key code.
+    // @pyparm int|scancode||The scan code.
+    // @pyparm bytes|keyboardstate||A string of exactly 256 characters.
+    // @pyparm int|flags|0|
+    // @pyparm handle|hlayout|None|The keyboard layout to use
+
+    if (!PyArg_ParseTuple(args, "iis#|iO", &vk, &sc, &state, &statesize, &flags, &obhlayout))
+        return NULL;
+
+    if (statesize != 256)
+        return PyErr_Format(PyExc_ValueError, "keyboard state string must be exactly 256 characters");
+
+    if (obhlayout && !PyWinObject_AsHANDLE(obhlayout, (HANDLE *)&layout))
+        return NULL;
+
+    WCHAR result[256];
+
+    int nc = ToUnicodeEx(vk, sc, (const BYTE *)state, result, ARRAYSIZE(result), flags, layout);
+
+    if (nc <= 0) {
+        Py_INCREF(Py_None);
+        return Py_None;
+    }
+
+    return PyUnicode_FromWideChar(result, nc);
+}
+
 // @pymethod int|win32api|MapVirtualKey|Translates (maps) a virtual-key code into a scan code or character value, or
 // translates a scan code into a virtual-key code.
 // @comm implemented by calling the unicode versions of the API (MapVirtualKeyW/MapVirtualKeyExW)
@@ -6260,6 +6297,8 @@ static struct PyMethodDef win32api_functions[] = {
     {"TerminateProcess", PyTerminateProcess, 1},  // @pymeth TerminateProcess|Terminates a process.
     {"ToAsciiEx", PyToAsciiEx, 1},  // @pymeth ToAsciiEx|Translates the specified virtual-key code and keyboard state to
                                     // the corresponding character or characters.
+    {"ToUnicodeEx", PyToUnicodeEx,
+     1},  // @pymeth ToUnicodeEx|Translates the specified virtual-key code and keyboard state to Unicode characters.
     {"UpdateResource", PyUpdateResource, 1},  // @pymeth UpdateResource|Updates a resource in a PE file.
     {"VkKeyScan", PyVkKeyScan,
      1},  // @pymeth VkKeyScan|Translates a character to the corresponding virtual-key code and shift state.
