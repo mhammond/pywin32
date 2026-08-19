@@ -40,28 +40,18 @@ const TCHAR *MUTEX_OBJECT_NAME = _T("Global\\PythonTraceOutputMutex");
 const TCHAR *EVENT_OBJECT_NAME = _T("Global\\PythonTraceOutputEvent");
 const TCHAR *EVENT_EMPTY_OBJECT_NAME = _T("Global\\PythonTraceOutputEmptyEvent");
 
-// Global\\ etc goodness:
-// On NT4/9x, 'Global\\' is not understood and will fail.
-// On 2k/XP, anyone can create 'global' objects.
-// On Vista, you need elevated perms to create global objects - however, once
-// it has been created and permissions adjusted, a user with normal
-// permissions can open these global objects.
-// As a service generally will be able to create global objects, we want a
-// non-elevated Python to be capable of automatically using the global space
-// if it exists, but coping when it can't create such an object (a local
-// one is probably fine in such cases).
-// [Why bother?: without the Global namespace, a 'win32traceutil' running in
-// a 'Remote Desktop' session would not be able to see output from a
-// service - they have different local namespaces]
-
-// This means:
-// * We first check to see if the mutex exists in the local namespace.  If it
-//   does, it we use that namespace for all objects.
-// * We then try and create a mutex in the global namespace - if this works, we also
-//   use the global namespace.
-// * We then create the mutex in our local namespace and use that for everything.
-// (Ack - the above is only true for CreateFileMapping - creating mutexes etc
-// works fine)
+// Global namespace handling:
+// The Global\ namespace allows win32trace objects to be shared between
+// processes running in different Windows sessions, such as a service and
+// an interactive Remote Desktop session.
+//
+// Creating objects in the Global\ namespace may require elevated
+// privileges. We therefore prefer an existing local mapping, then try
+// the Global\ namespace, and fall back to the local namespace if the
+// global mapping cannot be created.
+//
+// This allows win32trace to use the Global\ namespace when it is
+// available, while still allowing local tracing when it cannot be used.
 
 // This behavior is controlled by a global variable set at mutex creation time.
 BOOL use_global_namespace = FALSE;
@@ -587,15 +577,10 @@ PYWIN_MODULE_INIT_FUNC(win32trace)
 
     assert(hMutex == NULL);
 
-    // See comments re global namespace above - the problem child is
-    // CreateFileMapping - so we temporarily use that just to work out what
-    // namespace to use for our objects.
-
-    // is the "Global\" namespace even possible? It was first made possible in
-    // win2k, so yes, it is!
-    // see comments at top of file - if it exists locally, stick with
-    // local - use_global_namespace is still FALSE now, so that is the
-    // name we get.
+    // CreateFileMapping is used to determine which namespace to use for all
+    // of the win32trace objects. We first check for an existing local mapping,
+    // then try the Global\ namespace and fall back to the local namespace if
+    // the global mapping cannot be created.
     HANDLE h = CreateFileMapping((HANDLE)-1, &sa, PAGE_READWRITE, 0, BUFFER_SIZE, FixupObjectName(MAP_OBJECT_NAME));
     if (GetLastError() != ERROR_ALREADY_EXISTS) {
         // no local one exists - see if we can create it globally - if
