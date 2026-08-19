@@ -29,11 +29,6 @@ if "--verbose" in sys.argv:
 print(adodbapi.version)
 print("Tested with dbapi20 %s" % dbapi20.__version__)
 
-try:
-    onWindows = bool(sys.getwindowsversion())  # seems to work on all versions of Python
-except:
-    onWindows = False
-
 node = platform.node()
 
 conn_kws = {}
@@ -56,7 +51,7 @@ conn_kws["provider"] = (
 )
 connStr = "%(provider)s; %(security)s; Initial Catalog=%(name)s;Data Source=%(host)s"
 
-if onWindows and node != "z-PC":
+if sys.platform == "win32" and node != "z-PC":
     pass  # default should make a local SQL Server connection
 elif node == "xxx":  # try Postgres database
     _computername = "25.223.161.222"
