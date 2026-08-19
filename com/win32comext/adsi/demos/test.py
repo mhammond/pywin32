@@ -259,7 +259,7 @@ def main():
                     break
             else:
                 print("Test '%s' unknown - skipping" % arg)
-    if not len(dotests):
+    if not dotests:
         print("Nothing to do!")
         usage(tests)
     for test in dotests:

@@ -52,7 +52,7 @@ BOOL PyWinObject_AsPfnAllocatedWCHAR(PyObject *stringObject, void *(*pfnAllocato
         }
     }
     else {
-        const char *tp_name = stringObject && stringObject->ob_type ? stringObject->ob_type->tp_name : "<NULL!!>";
+        const char *tp_name = stringObject && Py_TYPE(stringObject) ? Py_TYPE(stringObject)->tp_name : "<NULL!!>";
         PyErr_Format(PyExc_TypeError, "Objects of type '%s' can not be converted to Unicode.", tp_name);
         rc = FALSE;
     }
@@ -109,7 +109,7 @@ BOOL PyWinObject_AsChars(PyObject *stringObject, char **pResult, BOOL bNoneOK /*
             return FALSE;
     }
     if (!PyBytes_Check(stringObject)) {
-        PyErr_Format(PyExc_TypeError, "Expected 'bytes', got '%s'", stringObject->ob_type->tp_name);
+        PyErr_Format(PyExc_TypeError, "Expected 'bytes', got '%s'", Py_TYPE(stringObject)->tp_name);
         return FALSE;
     }
     char *temp = PyBytes_AsString(stringObject);
@@ -201,7 +201,7 @@ BOOL PyWinObject_AsBstr(PyObject *stringObject, BSTR *pResult, BOOL bNoneOK /*= 
         }
     }
     else {
-        const char *tp_name = stringObject && stringObject->ob_type ? stringObject->ob_type->tp_name : "<NULL!!>";
+        const char *tp_name = stringObject && Py_TYPE(stringObject) ? Py_TYPE(stringObject)->tp_name : "<NULL!!>";
         PyErr_Format(PyExc_TypeError, "Objects of type '%s' can not be converted to Unicode.", tp_name);
         rc = FALSE;
     }
@@ -242,7 +242,7 @@ BOOL PyWinObject_AsWCHAR(PyObject *stringObject, WCHAR **pResult, BOOL bNoneOK /
         }
     }
     else {
-        const char *tp_name = stringObject && stringObject->ob_type ? stringObject->ob_type->tp_name : "<NULL!!>";
+        const char *tp_name = stringObject && Py_TYPE(stringObject) ? Py_TYPE(stringObject)->tp_name : "<NULL!!>";
         PyErr_Format(PyExc_TypeError, "Objects of type '%s' can not be converted to Unicode.", tp_name);
         rc = FALSE;
     }

@@ -1,5 +1,3 @@
-# -*- coding: latin-1 -*-
-
 # PyWin32 Internet Explorer Button
 #
 # written by Leonard Ritter (paniq@gmx.net)

@@ -64,7 +64,7 @@ BOOL PyWinObject_AsCTL_CONTEXT(PyObject *ob, PCCTL_CONTEXT *ppctl_context, BOOL 
         *ppctl_context = NULL;
         return true;
     }
-    if (ob->ob_type != &PyCTL_CONTEXTType) {
+    if (Py_TYPE(ob) != &PyCTL_CONTEXTType) {
         PyErr_SetString(PyExc_TypeError, "Object must be of type PyCTL_CONTEXT");
         return FALSE;
     }

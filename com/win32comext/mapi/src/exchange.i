@@ -11,12 +11,6 @@
 
 %module exchange // A COM interface to Exchange's API
 
-%{
-// #define UNICODE
-// #define _UNICODE
-%}
-
-
 %include "typemaps.i"
 %include "pywin32.i"
 %include "pythoncom.i"
@@ -30,7 +24,7 @@
 #include "EdkMdb.h"
 
 #define USES_IID_IExchangeManageStore
-#include <edkguid.h>
+#include <EdkGuid.h>
 
 #include "PyIExchangeManageStore.h"
 #include "IExchangeManageStoreEx.h"
@@ -64,9 +58,9 @@ static int AddIID(PyObject *dict, const char *key, REFGUID guid)
 
 
 %init %{
-	if ( PyCom_RegisterClientType(&PyIExchangeManageStore::type, &IID_IExchangeManageStore) != 0 ) return MODINIT_ERROR_RETURN;
+	if ( PyCom_RegisterClientType(&PyIExchangeManageStore::type, &IID_IExchangeManageStore) != 0 ) return NULL;
 	ADD_IID(IID_IExchangeManageStore);
-	if ( PyCom_RegisterClientType(&PyIExchangeManageStoreEx::type, &IID_IExchangeManageStoreEx) != 0 ) return MODINIT_ERROR_RETURN;
+	if ( PyCom_RegisterClientType(&PyIExchangeManageStoreEx::type, &IID_IExchangeManageStoreEx) != 0 ) return NULL;
 	ADD_IID(IID_IExchangeManageStoreEx);
 %}
 

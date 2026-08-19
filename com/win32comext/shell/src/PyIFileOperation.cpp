@@ -629,7 +629,6 @@ PyObject *PyIFileOperation::GetAnyOperationsAborted(PyObject *self, PyObject *ar
 //	performed by the shell as a unit.  Serves as a replacement for <om shell.SHFileOperation>.
 // <nl>No changes are actually made until PerformOperations is called.
 // <nl>Progress can be monitored by implementing <o PyGFileOperationProgressSink>.
-// <nl>Requires Vista or later.
 static struct PyMethodDef PyIFileOperation_methods[] = {
     {"Advise", PyIFileOperation::Advise, 1},      // @pymeth Advise|Connects an event sink to receive updates
     {"Unadvise", PyIFileOperation::Unadvise, 1},  // @pymeth Unadvise|Disconnects a progress sink

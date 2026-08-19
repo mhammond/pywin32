@@ -59,16 +59,3 @@ typedef DWORD(__stdcall *PFNDEL)(LPCWSTR, LPCWSTR);
 PyObject *PyDoDel(PyObject *self, PyObject *args, PFNDEL pfn, char *fnname);
 
 PyObject *PyDoGroupDelMembers(PyObject *self, PyObject *args);
-
-typedef NET_API_STATUS(NET_API_FUNCTION *NetValidateNamefunc)(LPCWSTR, LPCWSTR, LPCWSTR, LPCWSTR, NETSETUP_NAME_TYPE);
-extern "C" NetValidateNamefunc pfnNetValidateName;
-
-typedef NET_API_STATUS(NET_API_FUNCTION *NetGetJoinInformationfunc)(LPCWSTR, LPWSTR *, PNETSETUP_JOIN_STATUS);
-extern "C" NetGetJoinInformationfunc pfnNetGetJoinInformation;
-
-typedef NET_API_STATUS(NET_API_FUNCTION *NetValidatePasswordPolicyfunc)(LPCWSTR, LPVOID, NET_VALIDATE_PASSWORD_TYPE,
-                                                                        LPVOID, LPVOID *);
-extern "C" NetValidatePasswordPolicyfunc pfnNetValidatePasswordPolicy;
-
-typedef NET_API_STATUS(NET_API_FUNCTION *NetValidatePasswordPolicyFreefunc)(LPVOID *);
-extern "C" NetValidatePasswordPolicyFreefunc pfnNetValidatePasswordPolicyFree;

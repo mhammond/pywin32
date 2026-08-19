@@ -232,7 +232,7 @@ class DispatcherOutputDebugString(DispatcherTrace):
 
 
 try:
-    import win32trace  # nopycln: import # Check for win32traceutil w/o importing it
+    import win32trace  # noqa: F401 # Check for win32traceutil w/o importing it
 
     DefaultDebugDispatcher: type[DispatcherTrace] = DispatcherWin32trace
 except ImportError:  # no win32trace module - just use a print based one.

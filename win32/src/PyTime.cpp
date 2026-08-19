@@ -203,7 +203,7 @@ BOOL PyWinObject_AsFILETIME(PyObject *ob, FILETIME *ft)
 BOOL PyWinObject_AsSYSTEMTIME(PyObject *ob, SYSTEMTIME *st)
 {
     if (!PyDateTime_Check(ob)) {
-        PyErr_Format(PyExc_TypeError, "must be a pywintypes time object (got %s)", ob->ob_type->tp_name);
+        PyErr_Format(PyExc_TypeError, "must be a pywintypes time object (got %s)", Py_TYPE(ob)->tp_name);
         return NULL;
     }
     // convert the date to a UTC date.
@@ -325,7 +325,7 @@ PyObject *PyWin_NewTime(PyObject *timeOb)
     else
         // result stays NULL.
         PyErr_Format(PyExc_TypeError, "Objects of type '%s' can not be used as a time object",
-                     timeOb->ob_type->tp_name);
+                     Py_TYPE(timeOb)->tp_name);
     Py_XDECREF(cleanupOb);
     return result;
 }
@@ -417,7 +417,7 @@ PyObject *PyWinTimeObject_Fromtime_t(time_t t)
 }
 
 // Converts a TimeStamp, which is in 100 nanosecond units like a FILETIME
-// See comments in pywintypes.h re LARGE_INTEGER vs TimeStamp
+// See comments in PyWinTypes.h re LARGE_INTEGER vs TimeStamp
 PyObject *PyWinObject_FromTimeStamp(const LARGE_INTEGER &ts)
 {
     FILETIME ft;

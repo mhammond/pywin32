@@ -6,7 +6,6 @@ import unittest
 
 import odbc
 import pythoncom
-from pywin32_testutil import TestSkipped
 from win32com.client import constants
 
 # We use the DAO ODBC driver
@@ -33,7 +32,7 @@ class TestStuff(unittest.TestCase):
                 except pythoncom.com_error:
                     pass
             else:
-                raise TestSkipped("Can't find a DB engine")
+                raise unittest.SkipTest("Can't find a DB engine")
 
             workspace = dbe.Workspaces(0)
 

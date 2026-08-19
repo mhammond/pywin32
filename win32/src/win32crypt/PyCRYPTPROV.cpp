@@ -79,7 +79,7 @@ BOOL PyWinObject_AsHCRYPTPROV(PyObject *obhcryptprov, HCRYPTPROV *hcryptprov, BO
         *hcryptprov = NULL;
         return true;
     }
-    if (obhcryptprov->ob_type != &PyCRYPTPROVType) {
+    if (Py_TYPE(obhcryptprov) != &PyCRYPTPROVType) {
         PyErr_SetString(PyExc_TypeError, "Object must be of type PyCRYPTPROV");
         return FALSE;
     }

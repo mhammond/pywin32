@@ -67,7 +67,7 @@ PyObject *PyIEnumDebugStackFrames::Next(PyObject *self, PyObject *args)
             PyObject *obUnkFinal = PyCom_PyObjectFromIUnknown(rgVar[i].punkFinal, IID_IUnknown, TRUE);
             PyTuple_SET_ITEM(
                 result, i,
-                Py_BuildValue("OiiiO", obFrame, rgVar[i].dwMin, rgVar[i].dwLim, rgVar[i].fFinal, obUnkFinal));
+                Py_BuildValue("OkkiO", obFrame, rgVar[i].dwMin, rgVar[i].dwLim, rgVar[i].fFinal, obUnkFinal));
             Py_DECREF(obFrame);
             Py_XDECREF(obUnkFinal);
         }
@@ -191,7 +191,7 @@ STDMETHODIMP PyGEnumDebugStackFrames::Next(
             goto error;
         }
         PyObject *obEnum, *obUnk;
-        if (!PyArg_ParseTuple(ob, "OiiiO", &obEnum, &rgVar[i].dwMin, &rgVar[i].dwLim, &rgVar[i].fFinal, &obUnk)) {
+        if (!PyArg_ParseTuple(ob, "OkkiO", &obEnum, &rgVar[i].dwMin, &rgVar[i].dwLim, &rgVar[i].fFinal, &obUnk)) {
             Py_DECREF(ob);
             goto error;
         }
@@ -271,3 +271,64 @@ STDMETHODIMP PyGEnumDebugStackFrames::Clone(
 
     return PyCom_SetCOMErrorFromSimple(hr, IID_IEnumDebugStackFrames);
 }
+
+#ifdef _WIN64
+STDMETHODIMP PyGEnumDebugStackFrames::Next64(
+    /* [in] */ ULONG celt,
+    /* [length_is][size_is][out] */ DebugStackFrameDescriptor64 __RPC_FAR *rgVar,
+    /* [out] */ ULONG __RPC_FAR *pCeltFetched)
+{
+    PY_GATEWAY_METHOD;
+    PyObject *result;
+    Py_ssize_t len;
+    HRESULT hr = InvokeViaPolicy("Next", &result, "i", celt);
+    if (FAILED(hr))
+        return hr;
+
+    if (!PySequence_Check(result))
+        goto error;
+    len = PyObject_Length(result);
+    if (len == -1)
+        goto error;
+    if (len > (Py_ssize_t)celt)
+        len = celt;
+
+    if (pCeltFetched)
+        *pCeltFetched = PyWin_SAFE_DOWNCAST(len, Py_ssize_t, ULONG);
+
+    Py_ssize_t i;
+    for (i = 0; i < len; ++i) {
+        PyObject *ob = PySequence_GetItem(result, i);
+        if (ob == NULL)
+            goto error;
+        if (!PyTuple_Check(ob)) {
+            Py_DECREF(ob);
+            PyErr_SetString(PyExc_TypeError, "PyIEnumDebugStackFrames::Next must return a tuple.");
+            goto error;
+        }
+        PyObject *obEnum, *obUnk;
+        if (!PyArg_ParseTuple(ob, "OKKiO", &obEnum, &rgVar[i].dwMin, &rgVar[i].dwLim, &rgVar[i].fFinal, &obUnk)) {
+            Py_DECREF(ob);
+            goto error;
+        }
+
+        if (!PyCom_InterfaceFromPyInstanceOrObject(obEnum, IID_IDebugStackFrame, (void **)&rgVar[i].pdsf, FALSE) ||
+            !PyCom_InterfaceFromPyInstanceOrObject(obUnk, IID_IUnknown, (void **)&rgVar[i].punkFinal, TRUE)) {
+            Py_DECREF(ob);
+            Py_DECREF(result);
+            return PyCom_SetCOMErrorFromPyException(IID_IEnumDebugStackFrames);
+        }
+        Py_DECREF(ob);
+    }
+
+    Py_DECREF(result);
+
+    return len < (Py_ssize_t)celt ? S_FALSE : S_OK;
+
+error:
+    hr = PyErr_Occurred() ? PyCom_SetCOMErrorFromPyException(IID_IEnumDebugStackFrames)
+                          : PyCom_SetCOMErrorFromSimple(E_FAIL, IID_IEnumDebugStackFrames);
+    Py_DECREF(result);
+    return hr;
+}
+#endif

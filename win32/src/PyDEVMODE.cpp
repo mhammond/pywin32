@@ -300,7 +300,7 @@ PyDEVMODEW::~PyDEVMODEW()
 
 BOOL PyDEVMODEW_Check(PyObject *ob)
 {
-    if (ob->ob_type != &PyDEVMODEWType) {
+    if (Py_TYPE(ob) != &PyDEVMODEWType) {
         PyErr_SetString(PyExc_TypeError, "Object must be a PyDEVMODEW");
         return FALSE;
     }

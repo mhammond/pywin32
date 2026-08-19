@@ -168,7 +168,7 @@ int PyIID::IsEqual(REFIID riid) { return IsEqualIID(m_iid, riid); }
 
 int PyIID::IsEqual(PyObject *ob)
 {
-    if (ob->ob_type != &PyIIDType)
+    if (Py_TYPE(ob) != &PyIIDType)
         return 0;
     return IsEqualIID(m_iid, ((PyIID *)ob)->m_iid);
 }

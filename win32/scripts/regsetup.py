@@ -12,11 +12,7 @@ def FileExists(fname):
     """Check if a file exists.  Returns true or false."""
     import os
 
-    try:
-        os.stat(fname)
-        return 1
-    except OSError as details:
-        return 0
+    return os.path.exists(fname)
 
 
 def IsPackageDir(path, packageName, knownFileName):
@@ -163,8 +159,6 @@ def FindPythonExe(exeAlias, possibleRealNames, searchPaths):
 def QuotedFileName(fname):
     """Given a filename, return a quoted version if necessary"""
 
-    import regutil
-
     try:
         fname.index(" ")  # Other chars forcing quote?
         return '"%s"' % fname
@@ -183,16 +177,13 @@ def LocateFileName(fileNamesString, searchPaths):
     """
     import os
 
-    import regutil
-
     fileNames = fileNamesString.split(";")
     for path in searchPaths:
         for fileName in fileNames:
-            try:
-                retPath = os.path.join(path, fileName)
-                os.stat(retPath)
+            retPath = os.path.join(path, fileName)
+            if os.path.exists(retPath):
                 break
-            except OSError:
+            else:
                 retPath = None
         if retPath:
             break

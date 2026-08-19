@@ -7,7 +7,7 @@ import win32api
 import win32con
 import win32security
 import winerror
-from pywin32_testutil import TestSkipped, testmain
+from pywin32_testutil import testmain
 
 
 class SecurityTests(unittest.TestCase):
@@ -27,7 +27,7 @@ class SecurityTests(unittest.TestCase):
 
     def testEqual(self):
         if self.admin_sid is None:
-            raise TestSkipped("No 'Administrator' account is available")
+            raise unittest.SkipTest("No 'Administrator' account is available")
         self.assertEqual(
             win32security.LookupAccountName("", "Administrator")[0],
             win32security.LookupAccountName("", "Administrator")[0],
@@ -51,7 +51,7 @@ class SecurityTests(unittest.TestCase):
 
     def testBuffer(self):
         if self.admin_sid is None:
-            raise TestSkipped("No 'Administrator' account is available")
+            raise unittest.SkipTest("No 'Administrator' account is available")
         self.assertEqual(
             memoryview(win32security.LookupAccountName("", "Administrator")[0]),
             memoryview(win32security.LookupAccountName("", "Administrator")[0]),
@@ -97,7 +97,7 @@ class DomainTests(unittest.TestCase):
         except win32security.error as exc:
             if exc.winerror != winerror.ERROR_NO_SUCH_DOMAIN:
                 raise
-            raise TestSkipped(exc)
+            raise unittest.SkipTest(str(exc))
 
     def tearDown(self):
         if self.ds_handle is not None:

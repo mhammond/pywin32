@@ -68,7 +68,7 @@ class EmptyVolumeCache:
 
         return (
             "pywin32 compiled files",
-            "Removes all .pyc and .pyo files in the pywin32 directories",
+            "Removes all .pyc files in the pywin32 directories",
             "click me!",
             flags,
         )
@@ -85,12 +85,12 @@ class EmptyVolumeCache:
         ]
 
     def _WalkCallback(self, arg, directory, files):
-        # callback function for os.path.walk - no need to be member, but it's
+        # callback function for os.walk - no need to be member, but it's
         # close to the callers :)
         callback, total_list = arg
         for file in files:
             fqn = os.path.join(directory, file).lower()
-            if file.endswith(".pyc") or file.endswith(".pyo"):
+            if file.endswith(".pyc"):
                 # See below - total_list is None means delete files,
                 # otherwise it is a list where the result is stored. It's a
                 # list simply due to the way os.walk works - only [0] is
@@ -117,7 +117,7 @@ class EmptyVolumeCache:
         total = [0]  # See _WalkCallback above
         try:
             for d in self._GetDirectories():
-                os.path.walk(d, self._WalkCallback, (callback, total))
+                os.walk(d, self._WalkCallback, (callback, total))
                 print("After looking in", d, "we have", total[0], "bytes")
         except pythoncom.error as exc:
             # This will be raised by the callback when the user selects 'cancel'.
@@ -132,7 +132,7 @@ class EmptyVolumeCache:
         # GetSpaceUsed
         try:
             for d in self._GetDirectories():
-                os.path.walk(d, self._WalkCallback, (callback, None))
+                os.walk(d, self._WalkCallback, (callback, None))
         except pythoncom.error as exc:
             # This will be raised by the callback when the user selects 'cancel'.
             if exc.hresult != winerror.E_ABORT:

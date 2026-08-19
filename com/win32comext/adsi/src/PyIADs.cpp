@@ -4,8 +4,8 @@
 // getattr for the type.
 // All "get_" methods have been exposed as properties.
 
-#include "pythoncom.h"
-#include "PyADSIutil.h"
+#include "PythonCOM.h"
+#include "PyADSIUtil.h"
 #include "PyIADs.h"
 
 // @doc - This file contains autoduck documentation

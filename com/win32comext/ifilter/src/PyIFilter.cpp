@@ -299,7 +299,7 @@ PYWIN_MODULE_INIT_FUNC(ifilter)
     // query.dll
     HMODULE hmod = GetModuleHandle(_T("query.dll"));
     if (hmod)
-        // According to FiltErr.h, "Codes 0x1700-0x172F are reserved for FILTER"
+        // According to filterr.h, "Codes 0x1700-0x172F are reserved for FILTER"
         PyWin_RegisterErrorMessageModule(0x80041700, 0x8004172F, hmod);
 
     // NOTE: New constants should go in ifiltercon.py

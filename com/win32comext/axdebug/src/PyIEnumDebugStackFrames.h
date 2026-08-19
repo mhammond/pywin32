@@ -24,6 +24,53 @@ class PyIEnumDebugStackFrames : public PyIUnknown {
 //
 // Gateway Declaration
 
+#ifdef _WIN64
+class PyGEnumDebugStackFrames : public PyGatewayBase, public IEnumDebugStackFrames64 {
+   protected:
+    PyGEnumDebugStackFrames(PyObject *instance) : PyGatewayBase(instance) { ; }
+
+   public:
+    static HRESULT PyGatewayConstruct(PyObject *pPyInstance, PyGatewayBase *unkBase, void **ppResult, REFIID iid)
+    {
+        if (ppResult == NULL)
+            return E_INVALIDARG;
+        PyGEnumDebugStackFrames *newob = new PyGEnumDebugStackFrames(pPyInstance);
+        newob->m_pBaseObject = unkBase;
+        if (unkBase)
+            unkBase->AddRef();
+        *ppResult = newob->ThisAsIID(iid);
+        return *ppResult ? S_OK : E_OUTOFMEMORY;
+    }
+
+   protected:
+    virtual IID GetIID(void) { return IID_IEnumDebugStackFrames64; }
+    virtual void *ThisAsIID(IID iid)
+    {
+        if (this == NULL)
+            return NULL;
+        if (iid == IID_IEnumDebugStackFrames64)
+            return (IEnumDebugStackFrames64 *)this;
+        if (iid == IID_IEnumDebugStackFrames)
+            return (IEnumDebugStackFrames *)this;
+        return PyGatewayBase::ThisAsIID(iid);
+    }
+    STDMETHOD_(ULONG, AddRef)(void) { return PyGatewayBase::AddRef(); }
+    STDMETHOD_(ULONG, Release)(void) { return PyGatewayBase::Release(); }
+    STDMETHOD(QueryInterface)(REFIID iid, void **obj) { return PyGatewayBase::QueryInterface(iid, obj); };
+
+    // IEnumDebugStackFrames
+    STDMETHOD(Next)(ULONG celt, DebugStackFrameDescriptor __RPC_FAR *ppdsf, ULONG __RPC_FAR *pceltFetched);
+
+    STDMETHOD(Skip)(ULONG celt);
+
+    STDMETHOD(Reset)(void);
+
+    STDMETHOD(Clone)(IEnumDebugStackFrames __RPC_FAR *__RPC_FAR *ppedsf);
+
+    // IEnumDebugStackFrames64
+    STDMETHOD(Next64)(ULONG celt, DebugStackFrameDescriptor64 __RPC_FAR *ppdsf, ULONG __RPC_FAR *pceltFetched);
+};
+#else
 class PyGEnumDebugStackFrames : public PyGatewayBase, public IEnumDebugStackFrames {
    protected:
     PyGEnumDebugStackFrames(PyObject *instance) : PyGatewayBase(instance) { ; }
@@ -38,3 +85,4 @@ class PyGEnumDebugStackFrames : public PyGatewayBase, public IEnumDebugStackFram
 
     STDMETHOD(Clone)(IEnumDebugStackFrames __RPC_FAR *__RPC_FAR *ppedsf);
 };
+#endif

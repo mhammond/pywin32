@@ -243,7 +243,11 @@ PyObject *PyIDebugDocumentHelper::DefineScriptBlock(PyObject *self, PyObject *ar
     if (FAILED(hr))
         return OleSetOleError(hr);
 
+#ifdef _WIN64
+    PyObject *pyretval = Py_BuildValue("K", pdwSourceContext);
+#else
     PyObject *pyretval = Py_BuildValue("i", pdwSourceContext);
+#endif
     return pyretval;
 }
 
@@ -402,14 +406,23 @@ PyObject *PyIDebugDocumentHelper::GetScriptBlockInfo(PyObject *self, PyObject *a
 {
     PY_INTERFACE_METHOD;
     IDebugDocumentHelper *pIDDH = GetI(self);
-    if (pIDDH == NULL)
+    if (pIDDH == NULL) {
         return NULL;
+    }
     // @pyparm int|dwSourceContext||Description for dwSourceContext
+#ifdef _WIN64
+    DWORDLONG dwSourceContext;
+    IActiveScript *ppasd;
+    ULONG piCharPos;
+    ULONG pcChars;
+    if (!PyArg_ParseTuple(args, "K:GetScriptBlockInfo", &dwSourceContext))
+#else
     DWORD dwSourceContext;
     IActiveScript *ppasd;
     ULONG piCharPos;
     ULONG pcChars;
     if (!PyArg_ParseTuple(args, "i:GetScriptBlockInfo", &dwSourceContext))
+#endif
         return NULL;
     PY_INTERFACE_PRECALL;
     HRESULT hr = pIDDH->GetScriptBlockInfo(dwSourceContext, &ppasd, &piCharPos, &pcChars);
@@ -622,10 +635,15 @@ STDMETHODIMP PyGDebugDocumentHelper::DefineScriptBlock(
     PyObject *result;
     HRESULT hr = InvokeViaPolicy("DefineScriptBlock", &result, "iiOi", ulCharOffset, cChars, obpas, fScriptlet);
     Py_XDECREF(obpas);
-    if (FAILED(hr))
+    if (FAILED(hr)) {
         return hr;
+    }
     // Process the Python results, and convert back to the real params
+#ifdef _WIN64
+    if (!PyArg_Parse(result, "K", pdwSourceContext))
+#else
     if (!PyArg_Parse(result, "i", pdwSourceContext))
+#endif
         return PyCom_HandlePythonFailureToCOM(/*pexcepinfo*/);
     Py_DECREF(result);
     return hr;
@@ -718,7 +736,11 @@ STDMETHODIMP PyGDebugDocumentHelper::GetScriptBlockInfo(
     if (ppasd == NULL)
         return E_POINTER;
     PyObject *result;
+#ifdef _WIN64
+    HRESULT hr = InvokeViaPolicy("GetScriptBlockInfo", &result, "K", dwSourceContext);
+#else
     HRESULT hr = InvokeViaPolicy("GetScriptBlockInfo", &result, "i", dwSourceContext);
+#endif
     if (FAILED(hr))
         return hr;
     // Process the Python results, and convert back to the real params

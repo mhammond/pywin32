@@ -1,7 +1,7 @@
 /* MAPI Support */
 
 %{
-#include "pymapiutil.h"
+#include "PyMAPIUtil.h"
 %}
 
 typedef unsigned long BOOKMARK;
