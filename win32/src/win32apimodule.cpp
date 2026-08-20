@@ -2630,13 +2630,36 @@ static PyObject *PyGetFullPathName(PyObject *self, PyObject *args)
     if (!PyWinObject_AsTCHAR(obfileName, &fileName, FALSE))
         return NULL;
     TCHAR *temp;
+    PyObject *obFullPathName = NULL;
     PyW32_BEGIN_ALLOW_THREADS;
-    BOOL ok = GetFullPathName(fileName, sizeof(pathBuf) / sizeof(pathBuf[0]), pathBuf, &temp);
+    DWORD length = GetFullPathName(fileName, sizeof(pathBuf) / sizeof(pathBuf[0]), pathBuf, &temp);
     PyW32_END_ALLOW_THREADS;
+    if (length) {
+        if (length < sizeof(pathBuf) / sizeof(pathBuf[0]))
+            obFullPathName = PyWinObject_FromTCHAR(pathBuf);
+        else {
+            // The buffer was too small.  The length is then the buffer needed,
+            // which includes the NULL, so retry with one that is big enough.
+            TCHAR *buf = PyMem_New(TCHAR, length);
+            if (buf == NULL)
+                PyErr_NoMemory();
+            else {
+                PyW32_BEGIN_ALLOW_THREADS;
+                DWORD length2 = GetFullPathName(fileName, length, buf, &temp);
+                PyW32_END_ALLOW_THREADS;
+                if (length2)
+                    obFullPathName = PyWinObject_FromTCHAR(buf);
+                // On success it is the number of chars copied *not* including
+                // the NULL.  Check this is true.
+                assert(length2 == 0 || length2 + 1 == length);
+                PyMem_Free(buf);
+            }
+        }
+    }
     PyWinObject_FreeTCHAR(fileName);
-    if (!ok)
+    if (obFullPathName == NULL && !PyErr_Occurred())
         return ReturnAPIError("GetFullPathName");
-    return PyWinObject_FromTCHAR(pathBuf);
+    return obFullPathName;
 }
 
 // @pymethod string|win32api|GetWindowsDirectory|Returns the path of the Windows directory.
