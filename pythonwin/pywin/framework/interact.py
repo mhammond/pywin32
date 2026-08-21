@@ -12,7 +12,6 @@ import traceback
 
 import __main__
 import pywin.framework.app
-import pywin.scintilla.control
 import pywin.scintilla.formatter
 import pywin.scintilla.IDLEenvironment  # Injects fast_readline into the IDLE auto-indent extension
 import win32api
