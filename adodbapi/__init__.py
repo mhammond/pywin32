@@ -43,17 +43,17 @@ def Binary(aString):
 
 
 def Date(year, month, day):
-    "This function constructs an object holding a date value."
+    """This function constructs an object holding a date value."""
     return dateconverter.Date(year, month, day)
 
 
 def Time(hour, minute, second):
-    "This function constructs an object holding a time value."
+    """This function constructs an object holding a time value."""
     return dateconverter.Time(hour, minute, second)
 
 
 def Timestamp(year, month, day, hour, minute, second):
-    "This function constructs an object holding a time stamp value."
+    """This function constructs an object holding a time stamp value."""
     return dateconverter.Timestamp(year, month, day, hour, minute, second)
 
 
