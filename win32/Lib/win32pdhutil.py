@@ -100,7 +100,7 @@ def FindPerformanceAttributesByName(
     instanceName = instanceName.lower()
     items, instances = win32pdh.EnumObjectItems(None, None, object, -1)
     # Track multiple instances.
-    instance_dict = {}
+    instance_dict: dict[str, int] = {}
     for instance in instances:
         try:
             instance_dict[instance] += 1
@@ -125,7 +125,7 @@ def ShowAllProcesses():
         None, None, object, win32pdh.PERF_DETAIL_WIZARD
     )
     # Need to track multiple instances of the same name.
-    instance_dict = {}
+    instance_dict: dict[str, int] = {}
     for instance in instances:
         try:
             instance_dict[instance] += 1
