@@ -1,5 +1,5 @@
 {
-  "typeCheckingMode": "basic",
+  "typeCheckingMode": "standard",
   // Needs to be set for non-Windows CI runners
   "pythonPlatform": "Windows",
   // Target the oldest supported version in editors and default CLI
@@ -29,17 +29,18 @@
   ],
   "reportConstantRedefinition": "error",
   // TODO: For now this allows us to at least put pyright in place by massively reducing checked code
-  // it also reduces issues with the shipped types-pywin32 from typeshed
-  "reportGeneralTypeIssues": "none",
   "reportArgumentType": "none",
   "reportAttributeAccessIssue": "none",
+  "reportIncompatibleMethodOverride": "none",
   // FIXE: These all need to be fixed first and turned back to error
   "reportCallIssue": "warning",
+  "reportGeneralTypeIssues": "warning",
   "reportOperatorIssue": "warning",
   "reportOptionalCall": "warning",
   "reportOptionalIterable": "warning",
   "reportOptionalMemberAccess": "warning",
   "reportOptionalSubscript": "warning",
+  "reportPossiblyUnboundVariable": "warning",
   // Too many dynamically generated modules. This will require type stubs to properly fix.
   "reportMissingImports": "warning",
   // IDEM, but happens when pywin32 is not in site-packages but module is found from typeshed.

@@ -189,9 +189,14 @@ jobs:
           activate-environment: true
       - run: uv pip install --group=type-checkers
 
+      # Since mypy drops older Python versions faster than we do,
+      # Skip on unsupported older, then run with older semantics on a newer version
       - run: mypy . --python-version=${{ matrix.python-version }}
+        if: ${{ matrix.python-version != '3.9' }}
+      - run: mypy . --python-version=3.9
+        if: ${{ matrix.python-version == '3.10' }}
 
-      - uses: jakebailey/pyright-action@v2
+      - uses: jakebailey/pyright-action@v3
         with:
           python-version: ${{ matrix.python-version }}
           version: PATH
