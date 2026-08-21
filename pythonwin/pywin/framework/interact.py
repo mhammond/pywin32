@@ -486,7 +486,7 @@ class InteractiveCore:
         while end >= start:
             thisLine = self.DoGetLine(end)
             promptLen = len(GetPromptPrefix(thisLine))
-            retList = [thisLine[promptLen:]] + retList
+            retList = [thisLine[promptLen:], *retList]
             end -= 1
         return retList
 

@@ -220,6 +220,6 @@ def FeedEventLogRecords(
             objects = win32evtlog.ReadEventLog(h, readFlags, 0)
             if not objects:
                 break
-            map(lambda item, feeder=feeder: feeder(*(item,)), objects)
+            map(lambda item, feeder=feeder: feeder(item), objects)
     finally:
         win32evtlog.CloseEventLog(h)

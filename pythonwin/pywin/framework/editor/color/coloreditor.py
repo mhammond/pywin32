@@ -631,8 +631,9 @@ class SyntEditTemplate(EditorTemplateBase):
         """Returns a list of property pages"""
         from pywin.scintilla import configui
 
-        return EditorTemplateBase.GetPythonPropertyPages(self) + [
-            configui.ScintillaFormatPropertyPage()
+        return [
+            *EditorTemplateBase.GetPythonPropertyPages(self),
+            configui.ScintillaFormatPropertyPage(),
         ]
 
 

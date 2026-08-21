@@ -1210,10 +1210,11 @@ IOleWindow_Methods = [
     "ContextSensitiveHelp",
 ]  # XXX - this should be somewhere in win32com
 IPersist_Methods = ["GetClassID"]
-IPersistFolder_Methods = IPersist_Methods + ["Initialize"]
-IPersistFolder2_Methods = IPersistFolder_Methods + ["GetCurFolder"]
+IPersistFolder_Methods = [*IPersist_Methods, "Initialize"]
+IPersistFolder2_Methods = [*IPersistFolder_Methods, "GetCurFolder"]
 IShellExtInit_Methods = ["Initialize"]
-IShellView_Methods = IOleWindow_Methods + [
+IShellView_Methods = [
+    *IOleWindow_Methods,
     "TranslateAccelerator",
     "EnableModeless",
     "UIActivate",
@@ -1239,7 +1240,8 @@ IShellFolder_Methods = [
     "GetDisplayNameOf",
     "SetNameOf",
 ]
-IShellFolder2_Methods = IShellFolder_Methods + [
+IShellFolder2_Methods = [
+    *IShellFolder_Methods,
     "GetDefaultSearchGUID",
     "EnumSearches",
     "GetDefaultColumn",

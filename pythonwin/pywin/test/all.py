@@ -34,5 +34,5 @@ if __name__ == "__main__":
     if "-h" in sys.argv or "--help" in sys.argv:
         p.print_help()
 
-    argv = sys.argv[:1] + ["discover", "--start-directory", src_dir] + remains
+    argv = [*sys.argv[:1], "discover", "--start-directory", src_dir, *remains]
     unittest.main(None, argv=argv)  # discover when no tests here
