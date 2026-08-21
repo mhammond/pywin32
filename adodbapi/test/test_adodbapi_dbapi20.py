@@ -1,9 +1,12 @@
+from __future__ import annotations
+
 print("This module depends on the dbapi20 compliance tests created by Stuart Bishop")
 print("(see db-sig mailing list history for info)")
 import platform
 import sys
 import unittest
 
+import adodbapitestconfig
 import dbapi20
 import setuptestframework
 
@@ -29,27 +32,31 @@ if "--verbose" in sys.argv:
 print(adodbapi.version)
 print("Tested with dbapi20 %s" % dbapi20.__version__)
 
-node = platform.node()
+# TODO: Make host and user configurable from the command line,
+# in the mean time use simplest defaults for CI
 
-conn_kws = {}
-host = "testsql.2txt.us,1430"  # if None, will use macro to fill in node name
-instance = r"%s\SQLEXPRESS"
-conn_kws["name"] = "adotest"
+# if None, will use macro to fill in node name
+# host: str | None = "testsql.2txt.us,1430"
+host: str | None = None
+conn_kws: dict[str, str | list[str] | None] = {
+    **(
+        {"macro_getnode": ["host", r"%s\SQLEXPRESS"]}
+        if host is None  #
+        else {"host": host}
+    ),
+    "name": "adotest",
+    # "user": "adotestuser",  # None implies Windows security
+    "user": None,
+    "password": "Sq1234567",
+    # macro definition for keyword "security" using macro "auto_security"
+    "macro_auto_security": "security",
+    "provider": "Provider=MSOLEDBSQL;DataTypeCompatibility=80;MARS Connection=True;",
+}
 
-conn_kws["user"] = "adotestuser"  # None implies Windows security
-conn_kws["password"] = "Sq1234567"
-# macro definition for keyword "security" using macro "auto_security"
-conn_kws["macro_auto_security"] = "security"
-
-if host is None:
-    conn_kws["macro_getnode"] = ["host", instance]
-else:
-    conn_kws["host"] = host
-
-conn_kws["provider"] = (
-    "Provider=MSOLEDBSQL;DataTypeCompatibility=80;MARS Connection=True;"
-)
 connStr = "%(provider)s; %(security)s; Initial Catalog=%(name)s;Data Source=%(host)s"
+
+# TODO: Set the database target from command line rather than using the PC name
+node = platform.node()
 
 if sys.platform == "win32" and node != "z-PC":
     pass  # default should make a local SQL Server connection
@@ -73,7 +80,7 @@ elif node == "yyy":  # ACCESS data base is known to fail some tests.
         driver = "Microsoft.ACE.OLEDB.12.0"
     else:
         driver = "Microsoft.Jet.OLEDB.4.0"
-    testmdb = setuptestframework.makemdb(testfolder)
+    testmdb = setuptestframework.makemdb(testfolder, adodbapitestconfig.mdb_name)
     connStr = r"Provider=%s;Data Source=%s" % (driver, testmdb)
 
 print(f"Using Connection String like={connStr}")
@@ -92,8 +99,7 @@ class test_adodbapi(dbapi20.DatabaseAPI20Test):
         return self.id().split(".")[-1]
 
     def setUp(self):
-        # Call superclass setUp In case this does something in the
-        # future
+        # Call superclass setUp In case this does something in the future
         dbapi20.DatabaseAPI20Test.setUp(self)
         if self.getTestMethodName() == "test_callproc":
             con = self._connect()
@@ -169,6 +175,7 @@ class test_adodbapi(dbapi20.DatabaseAPI20Test):
 
             cur.callproc("deleteme")
             numberofrows = cur.fetchone()
+            assert numberofrows is not None
             assert numberofrows[0] == 6
             assert cur.nextset()
             names = cur.fetchall()
