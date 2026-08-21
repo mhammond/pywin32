@@ -110,8 +110,8 @@ class PippoTest(TestCase):
 
 
 # This is a list of "win32com.test.???" module names, optionally with a
-# function in that module if the module isn't unitest based...
-unittest_modules = [
+# function in that module if the module isn't unittest based...
+unittest_modules = (
     # Level 1 tests - fast and few dependencies - good for CI!
     [
         "testIterators",
@@ -144,11 +144,11 @@ unittest_modules = [
     ],
     # Level 4 tests - we try and run `makepy` over every typelib installed!
     ["testmakepy.TestAll"],
-]
+)
 
 # A list of other unittest modules we use - these are fully qualified module
 # names and the module is assumed to be unittest based.
-unittest_other_modules = [
+unittest_other_modules = (
     # Level 1 tests.
     ["win32com.directsound.test.ds_test"],
     # Level 2 tests.
@@ -157,10 +157,10 @@ unittest_other_modules = [
     [],
     # Level 4 tests.
     [],
-]
+)
 
 
-output_checked_programs = [
+output_checked_programs = (
     # Level 1 tests.
     [],
     # Level 2 tests.
@@ -175,9 +175,9 @@ output_checked_programs = [
     [],
     # Level 4 tests.
     [],
-]
+)
 
-custom_test_cases = [
+custom_test_cases = (
     # Level 1 tests.
     [
         PyCOMTest,
@@ -190,7 +190,7 @@ custom_test_cases = [
     [],
     # Level 4 tests.
     [],
-]
+)
 
 
 def get_test_mod_and_func(

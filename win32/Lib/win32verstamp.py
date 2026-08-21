@@ -163,7 +163,7 @@ def stamp(pathname, options):
     }
     is_dll = options.dll
     if is_dll is None:
-        is_dll = os.path.splitext(pathname)[1].lower() in ".dll .pyd".split()
+        is_dll = os.path.splitext(pathname)[1].lower() in (".dll", ".pyd")
     is_debug = options.debug
     if is_debug is None:
         is_debug = os.path.splitext(pathname)[0].lower().endswith("_d")

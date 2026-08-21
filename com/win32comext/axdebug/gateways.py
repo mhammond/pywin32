@@ -86,11 +86,15 @@ class DebugDocumentProvider(DebugDocumentInfo):
 class DebugApplicationNode(DebugDocumentProvider):
     """Provides the functionality of IDebugDocumentProvider, plus a context within a project tree."""
 
-    _public_methods_ = (
-        """EnumChildren GetParent SetDocumentProvider
-                    Close Attach Detach""".split()
-        + DebugDocumentProvider._public_methods_
-    )
+    _public_methods_ = [
+        "EnumChildren",
+        "GetParent",
+        "SetDocumentProvider",
+        "Close",
+        "Attach",
+        "Detach",
+    ] + DebugDocumentProvider._public_methods_
+
     _com_interfaces_ = [
         axdebug.IID_IDebugDocumentProvider
     ] + DebugDocumentProvider._com_interfaces_
@@ -126,7 +130,7 @@ class DebugApplicationNode(DebugDocumentProvider):
 class DebugApplicationNodeEvents:
     """Event interface for DebugApplicationNode object."""
 
-    _public_methods_ = "onAddChild onRemoveChild onDetach".split()
+    _public_methods_ = ["onAddChild", "onRemoveChild", "onDetach"]
     _com_interfaces_ = [axdebug.IID_IDebugApplicationNodeEvents]
 
     def __init__(self):
@@ -252,9 +256,14 @@ class DebugDocumentTextExternalAuthor:
 
 
 class DebugDocumentTextEvents:
-    _public_methods_ = """onDestroy onInsertText onRemoveText
-              onReplaceText onUpdateTextAttributes
-              onUpdateDocumentAttributes""".split()
+    _public_methods_ = [
+        "onDestroy",
+        "onInsertText",
+        "onRemoveText",
+        "onReplaceText",
+        "onUpdateTextAttributes",
+        "onUpdateDocumentAttributes",
+    ]
     _com_interfaces_ = [axdebug.IID_IDebugDocumentTextEvents]
 
     def __init__(self):
