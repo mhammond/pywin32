@@ -15,19 +15,10 @@ import platform
 import random
 import sys
 
-import is64bit
 import setuptestframework
 import tryconnection
 
 print("\nPython", sys.version)
-node = platform.node()
-try:
-    print(
-        "node=%s, is64bit.os()= %s, is64bit.Python()= %s"
-        % (node, is64bit.os(), is64bit.Python())
-    )
-except:
-    pass
 
 if "--help" in sys.argv:
     print(
@@ -65,7 +56,10 @@ if pth not in sys.path:
 cleanup = setuptestframework.getcleanupfunction()
 
 import adodbapi  # will (hopefully) be imported using the "pth" discovered above
+from adodbapi import is64bit
 
+node = platform.node()
+print(f"node={node}, is64bit.os()={is64bit.os()}, is64bit.Python()={is64bit.Python()}")
 print(adodbapi.version)  # show version
 print(__doc__)
 

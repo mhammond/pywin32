@@ -19,7 +19,7 @@ if pth not in sys.path:
 cleanup = setuptestframework.getcleanupfunction()
 
 import adodbapi
-import adodbapi.is64bit as is64bit
+from adodbapi import is64bit
 
 db = adodbapi
 

@@ -36,6 +36,8 @@ from .apibase import (
     threadsafety as threadsafety,
 )
 
+version = "adodbapi v" + __version__
+
 
 def Binary(aString):
     """This function constructs an object capable of holding a binary (long) string value."""
@@ -76,6 +78,3 @@ def TimestampFromTicks(ticks):
     ticks value (number of seconds since the epoch;
     see the documentation of the standard Python time module for details)."""
     return Timestamp(*time.gmtime(ticks)[:6])
-
-
-version = "adodbapi v" + __version__
