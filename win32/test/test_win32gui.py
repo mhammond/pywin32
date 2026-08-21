@@ -6,6 +6,7 @@ import unittest
 
 import pywintypes
 import win32api
+import win32con
 import win32gui
 
 
@@ -167,6 +168,43 @@ class TestEnumWindowsFamily(unittest.TestCase):
         for func in (self.enum_callback, self.enum_callback_sle):
             for data in self.type_data_set:
                 self.assertRaises(TypeError, win32gui.EnumDesktopWindows, 0, func, data)
+
+
+class TestCreateWindow(unittest.TestCase):
+    def test_wm_create(self):
+        messages = []
+
+        def wndproc(hwnd, msg, wparam, lparam):
+            if msg == win32con.WM_CREATE:
+                messages.append(msg)
+            return win32gui.DefWindowProc(hwnd, msg, wparam, lparam)
+
+        wc = win32gui.WNDCLASS()
+        wc.lpfnWndProc = wndproc
+        wc.lpszClassName = "PyWin32TestWMCreate"
+
+        atom = win32gui.RegisterClass(wc)
+        try:
+            hwnd = win32gui.CreateWindow(
+                atom,
+                "PyWin32 WM_CREATE test",
+                0,
+                0,
+                0,
+                100,
+                100,
+                0,
+                0,
+                wc.hInstance,
+                None,
+            )
+
+            try:
+                self.assertIn(win32con.WM_CREATE, messages)
+            finally:
+                win32gui.DestroyWindow(hwnd)
+        finally:
+            win32gui.UnregisterClass(atom, wc.hInstance)
 
 
 class TestWindowProperties(unittest.TestCase):
