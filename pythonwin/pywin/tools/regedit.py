@@ -332,10 +332,8 @@ class HLIRegistryKey(hierlist.HierListItem):
         )
 
     def __repr__(self):
-        return "<{} with root={}, key={}>".format(
-            self.__class__.__name__,
-            self.keyRoot,
-            self.keyName,
+        return (
+            f"<{self.__class__.__name__} with root={self.keyRoot}, key={self.keyName}>"
         )
 
     def GetText(self):

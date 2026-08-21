@@ -85,9 +85,7 @@ def TestConnection():
             fname = os.path.join(localName + "\\", os.listdir(localName + "\\")[0])
             try:
                 print(
-                    "Universal name of '{}' is '{}'".format(
-                        fname, win32wnet.WNetGetUniversalName(fname)
-                    )
+                    f"Universal name of '{fname}' is '{win32wnet.WNetGetUniversalName(fname)}'"
                 )
             except win32wnet.error as details:
                 print(f"Couldn't get universal name of '{fname}': {details.strerror}")

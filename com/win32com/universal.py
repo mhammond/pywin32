@@ -212,9 +212,7 @@ class Definition:
                 retVal = retVal[1:]
             else:
                 raise TypeError(
-                    "Expected {} return values, got: {}".format(
-                        len(meth._gw_out_args) + 1, len(retVal)
-                    )
+                    f"Expected {len(meth._gw_out_args) + 1} return values, got: {len(retVal)}"
                 )
         else:
             retVal = [retVal]
