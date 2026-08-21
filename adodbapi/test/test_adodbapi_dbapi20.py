@@ -1,5 +1,7 @@
-print("This module depends on the dbapi20 compliance tests created by Stuart Bishop")
-print("(see db-sig mailing list history for info)")
+"""This module depends on the dbapi20 compliance tests created by Stuart Bishop
+(see db-sig mailing list history for info)"""
+
+print(__doc__)
 import platform
 import sys
 import unittest
@@ -135,8 +137,9 @@ class test_adodbapi(dbapi20.DatabaseAPI20Test):
         dbapi20.DatabaseAPI20Test.tearDown(self)
 
     def help_nextset_setUp(self, cur):
-        "Should create a procedure called deleteme"
-        'that returns two result sets, first the number of rows in booze then "name from booze"'
+        """Should create a procedure called deleteme
+        that returns two result sets, first the number of rows in booze then "name from booze"
+        """
         sql = """
             create procedure deleteme as
             begin
@@ -150,7 +153,7 @@ class test_adodbapi(dbapi20.DatabaseAPI20Test):
         cur.execute(sql)
 
     def help_nextset_tearDown(self, cur):
-        "If cleaning up is needed after nextSetTest"
+        """If cleaning up is needed after nextSetTest"""
         try:
             cur.execute("drop procedure deleteme")
         except:
