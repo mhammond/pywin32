@@ -7,7 +7,7 @@
 
 
 try:
-    import pywin32_system32
+    import pywin32_system32  # pyright: ignore[reportMissingImports] # Empty module created in setup.py to store dlls
 except ImportError:  # Python ≥3.6: replace ImportError with ModuleNotFoundError
     pass
 else:
