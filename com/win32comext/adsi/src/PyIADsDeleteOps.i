@@ -10,20 +10,11 @@
 #include "PyIADsDeleteOps.h"
 #define SWIG_THIS_IID IID_IADsDeleteOps
 
-PyIADsDeleteOps::PyIADsDeleteOps(IUnknown *pDisp) :
-	PyIDispatch(pDisp)
-{
-	ob_type = &type;
-}
+PyIADsDeleteOps::PyIADsDeleteOps(IUnknown *pDisp) : PyIDispatch(pDisp) { ob_type = &type; }
 
-PyIADsDeleteOps::~PyIADsDeleteOps()
-{
-}
+PyIADsDeleteOps::~PyIADsDeleteOps() {}
 
-IADsDeleteOps *PyIADsDeleteOps::GetI(PyObject *self)
-{
-	return (IADsDeleteOps *)PyIDispatch::GetI(self);
-}
+IADsDeleteOps *PyIADsDeleteOps::GetI(PyObject *self) { return (IADsDeleteOps *)PyIDispatch::GetI(self); }
 
 %}
 
