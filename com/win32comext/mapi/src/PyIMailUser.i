@@ -13,20 +13,10 @@
 #include "PyIMAPIContainer.h"
 #include "PyIMailUser.h"
 
-PyIMailUser::PyIMailUser(IUnknown *pDisp) :
-	PyIMAPIContainer(pDisp)
-{
-	ob_type = &type;
-}
+PyIMailUser::PyIMailUser(IUnknown *pDisp) : PyIMAPIContainer(pDisp) { ob_type = &type; }
 
-PyIMailUser::~PyIMailUser()
-{
-}
+PyIMailUser::~PyIMailUser() {}
 
-/*static*/ IMailUser *PyIMailUser::GetI(PyObject *self)
-{
-	return (IMailUser *)PyIUnknown::GetI(self);
-}
-
+/*static*/ IMailUser *PyIMailUser::GetI(PyObject *self) { return (IMailUser *)PyIUnknown::GetI(self); }
 
 %}

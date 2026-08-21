@@ -26,3 +26,6 @@ d8f97a8c8f72263d336fc4050f83e007ac6e770d
 
 # 2026-05-04 reformatted Py_*_ALLOW_THREADS with clang-format MacroBlock
 dd12a27fb6ef43a6b3df1237f28dbf5e68f0e1c6
+
+# 2026-08-21 formatted SWIG .i files
+09e8e25a2d587d1499ccf0fc67c5ee0cc8098d8c

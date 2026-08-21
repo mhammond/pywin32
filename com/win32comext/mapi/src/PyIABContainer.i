@@ -13,20 +13,10 @@
 #include "PyIMAPIContainer.h"
 #include "PyIABContainer.h"
 
-PyIABContainer::PyIABContainer(IUnknown *pDisp) :
-	PyIMAPIContainer(pDisp)
-{
-	ob_type = &type;
-}
+PyIABContainer::PyIABContainer(IUnknown *pDisp) : PyIMAPIContainer(pDisp) { ob_type = &type; }
 
-PyIABContainer::~PyIABContainer()
-{
-}
+PyIABContainer::~PyIABContainer() {}
 
-/*static*/ IABContainer *PyIABContainer::GetI(PyObject *self)
-{
-	return (IABContainer *)PyIUnknown::GetI(self);
-}
-
+/*static*/ IABContainer *PyIABContainer::GetI(PyObject *self) { return (IABContainer *)PyIUnknown::GetI(self); }
 
 %}
