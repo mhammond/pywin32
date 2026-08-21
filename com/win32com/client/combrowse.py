@@ -24,6 +24,7 @@ Details
 """
 
 import sys
+from typing import Any, TypeVar
 
 import pythoncom
 import pywintypes
@@ -33,8 +34,14 @@ import win32ui
 from pywin.tools import browser
 from win32com.client import util
 
+# Representing the full set of HLICOM subclasses generics
+# would also require statically exposing many types from pythoncom.
+# So make the type parameter optional and using `__init__` inference for now,
+# and consider relying on typeshed's `pywin32-stubs` later.
+_HLICOMT = TypeVar("_HLICOMT", default=Any)  # incomplete
 
-class HLIRoot(browser.HLIPythonObject):
+
+class HLIRoot(browser.HLIPythonObject[None]):
     def __init__(self, title):
         super().__init__(name=title)
 
@@ -51,7 +58,7 @@ class HLIRoot(browser.HLIPythonObject):
         return self.name < other.name
 
 
-class HLICOM(browser.HLIPythonObject):
+class HLICOM(browser.HLIPythonObject[_HLICOMT]):
     def GetText(self):
         return self.name
 
