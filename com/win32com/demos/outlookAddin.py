@@ -24,8 +24,10 @@
 # NOTE: If the AddIn fails with an error, Outlook will re-register
 # the addin to not automatically load next time Outlook starts.  To
 # correct this, simply re-register the addin (see above)
+from __future__ import annotations
 
 import sys
+from typing import ClassVar
 
 import pythoncom
 from win32com import universal
@@ -63,7 +65,7 @@ class FolderEvent:
 
 class OutlookAddin:
     _com_interfaces_ = ["_IDTExtensibility2"]
-    _public_methods_ = []
+    _public_methods_: ClassVar[list[str]] = []
     _reg_clsctx_ = pythoncom.CLSCTX_INPROC_SERVER
     _reg_clsid_ = "{0F47D9F3-598B-4d24-B7E3-92AC15ED27E2}"
     _reg_progid_ = "Python.Test.OutlookAddin"
