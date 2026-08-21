@@ -11,6 +11,7 @@ select = [
   "C4", # flake8-comprehensions
   "F401", # unused-import
   "F811", # redefined-while-unused
+  "FURB", # refurb
   "I", # isort
   "PLC", # Pylint Convention
   "PLE", # Pylint Error
@@ -35,7 +36,9 @@ select = [
   "TC", # flake8-type-checking
 ]
 extend-ignore = [
-  # Lots of lazy or side-effect imports
+  # Not that much more idiomatic astral-sh/ruff#24259
+  "FURB122", # for-loop-writes
+  # Often used as lazy import, not configurable
   "PLC0415", # import-outside-top-level
   # We prefer explicit open mode parameter
   "UP015", # redundant-open-modes
@@ -56,6 +59,8 @@ extend-ignore = [
   "C4",
   "UP031",
   "UP032",
+  "FURB105",
+  "FURB157",
   # Dropping Python 3.8 support
   "UP005",
   "UP006",

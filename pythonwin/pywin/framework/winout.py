@@ -111,11 +111,11 @@ class WindowOutputViewImpl:
         self.SetSel(-2)  # end of buffer
 
     def GetRightMenuItems(self):
-        ret = []
         flags = win32con.MF_STRING | win32con.MF_ENABLED
-        ret.append((flags, win32ui.ID_EDIT_COPY, "&Copy"))
-        ret.append((flags, win32ui.ID_EDIT_SELECT_ALL, "&Select all"))
-        return ret
+        return [
+            (flags, win32ui.ID_EDIT_COPY, "&Copy"),
+            (flags, win32ui.ID_EDIT_SELECT_ALL, "&Select all"),
+        ]
 
     #
     # Windows command handlers, virtuals, etc.

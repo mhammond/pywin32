@@ -349,11 +349,15 @@ class HLITypeLibProperty(HLICOM):
         if len(names) > 1:
             ret.append(browser.MakeHLI(names[1:], "Named Params"))
         vd = typeinfo.GetVarDesc(index)
-        ret.append(browser.MakeHLI(self.id, "Dispatch ID"))
-        ret.append(browser.MakeHLI(vd[1], "Value"))
-        ret.append(browser.MakeHLI(vd[2], "Elem Desc"))
-        ret.append(browser.MakeHLI(vd[3], "Var Flags"))
-        ret.append(browser.MakeHLI(vd[4], "Var Kind"))
+        ret.extend(
+            (
+                browser.MakeHLI(self.id, "Dispatch ID"),
+                browser.MakeHLI(vd[1], "Value"),
+                browser.MakeHLI(vd[2], "Elem Desc"),
+                browser.MakeHLI(vd[3], "Var Flags"),
+                browser.MakeHLI(vd[4], "Var Kind"),
+            )
+        )
         return ret
 
 
@@ -485,12 +489,16 @@ class HLITypeLibFunction(HLICOM):
             ret.append(browser.MakeHLI(val, "Argument"))
 
         fkind = self.funckinds.get(fd[3], "Unknown")
-        ret.append(browser.MakeHLI(fkind, "Function Kind"))
         ikind = self.invokekinds.get([fd[4]], "Unknown")
-        ret.append(browser.MakeHLI(ikind, "Invoke Kind"))
-        # 5 = call conv
-        # 5 = offset vtbl
-        ret.append(browser.MakeHLI(fd[6], "Number Optional Params"))
+        ret.extend(
+            (
+                browser.MakeHLI(fkind, "Function Kind"),
+                browser.MakeHLI(ikind, "Invoke Kind"),
+                # 5 = call conv
+                # 5 = offset vtbl
+                browser.MakeHLI(fd[6], "Number Optional Params"),
+            )
+        )
         flagDescs = []
         for flag, desc in self.funcflags:
             if flag & fd[9]:

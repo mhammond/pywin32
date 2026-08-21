@@ -92,9 +92,7 @@ def make_framework_support(
         gw_cpp_writer = _write_gw_cpp
 
     fout = open(
-        os.path.join(
-            directory if directory else os.getcwd(), f"Py{interface.name}.cpp"
-        ),
+        os.path.join(directory or os.getcwd(), f"Py{interface.name}.cpp"),
         "w",
     )
     try:
@@ -121,7 +119,7 @@ def make_framework_support(
     finally:
         fout.close()
     fout = open(
-        os.path.join(directory if directory else os.getcwd(), f"Py{interface.name}.h"),
+        os.path.join(directory or os.getcwd(), f"Py{interface.name}.h"),
         "w",
     )
     try:

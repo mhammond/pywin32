@@ -557,9 +557,7 @@ class TestFindFiles(unittest.TestCase):
         dir = os.path.join(os.getcwd(), "*")
         files = win32file.FindFilesW(dir)
         set1 = set(files)
-        set2 = set()
-        for file in win32file.FindFilesIterator(dir):
-            set2.add(file)
+        set2 = set(win32file.FindFilesIterator(dir))
         self.assertGreater(len(set2), 5, "This directory has less than 5 files!?")
         self.assertEqual(set1, set2)
 
