@@ -924,7 +924,7 @@ class MyCygwinCompiler(BaseCygwinCompiler):
         jobs = _build_jobs()
         if jobs == 1:
             # Let distutils run its own serial `for obj in objects` loop.
-            return super().compile(
+            return super().compile(  # type: ignore[no-any-return, unused-ignore] # Untyped in types-setuptools on Python 3.9
                 sources,
                 output_dir=output_dir,
                 macros=macros,
@@ -1023,7 +1023,17 @@ class MyMSVCCompiler(MSVCCompiler):
     # would otherwise run one at a time. None at all other times.
     _pending_compiles: list[list[str]] | None = None
 
-    def compile(self, sources, **kwargs):
+    def compile(
+        self,
+        sources: Sequence[str | os.PathLike[str]],
+        output_dir=None,
+        macros=None,
+        include_dirs=None,
+        debug=False,
+        extra_preargs=None,
+        extra_postargs=None,
+        depends=None,
+    ) -> list[str]:
         # Work around python/cpython#80483 / python/cpython#86175
         # it sorts sources but this breaks support for building .mc files etc :(
         # See pypa/setuptools#4986 / pypa/distutils#370 for potential upstream fix.
@@ -1032,10 +1042,19 @@ class MyMSVCCompiler(MSVCCompiler):
             sources, key=lambda source: Path(source).suffix not in self._mc_extensions
         )
 
+        kwargs = {
+            "output_dir": output_dir,
+            "macros": macros,
+            "include_dirs": include_dirs,
+            "debug": debug,
+            "extra_preargs": extra_preargs,
+            "extra_postargs": extra_postargs,
+            "depends": depends,
+        }
         jobs = _build_jobs()
         if jobs == 1:
             # Let distutils run its own one cl.exe per source, unbatched.
-            return super().compile(sources, **kwargs)
+            return super().compile(sources, **kwargs)  # type: ignore[no-any-return, unused-ignore] # Untyped in types-setuptools on Python 3.9
 
         # Batch sources into as few cl.exe /MP runs as possible.
         # MSVCCompiler.compile() runs one cl.exe per source, so /MP in
@@ -1053,7 +1072,7 @@ class MyMSVCCompiler(MSVCCompiler):
             )
         self._pending_compiles = []
         try:
-            objects = super().compile(sources, **kwargs)
+            objects: list[str] = super().compile(sources, **kwargs)
             if len(self._pending_compiles) != expected:
                 # call() recognizes cl.exe by cmd[0]. If that stops matching we would
                 # silently fall back to one cl.exe per source, so fail instead.
@@ -1080,7 +1099,15 @@ class MyMSVCCompiler(MSVCCompiler):
         if self._pending_compiles is not None and cmd[0] == self.cc:
             self._pending_compiles.append(list(cmd))
             return None
-        return super().call(cmd, **kwargs)
+
+        # setuptools <81 (Python 3.9) has no Compiler.call(), use deprecated spawn()
+        if sys.version_info < (3, 10):
+            return super().spawn(cmd, **kwargs)
+        else:
+            return super().call(cmd, **kwargs)
+
+    if sys.version_info < (3, 10):
+        spawn = call
 
     @staticmethod
     def _batch_compiles(
