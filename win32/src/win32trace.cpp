@@ -40,28 +40,20 @@ const TCHAR *MUTEX_OBJECT_NAME = _T("Global\\PythonTraceOutputMutex");
 const TCHAR *EVENT_OBJECT_NAME = _T("Global\\PythonTraceOutputEvent");
 const TCHAR *EVENT_EMPTY_OBJECT_NAME = _T("Global\\PythonTraceOutputEmptyEvent");
 
-// Global\\ etc goodness:
-// On NT4/9x, 'Global\\' is not understood and will fail.
-// On 2k/XP, anyone can create 'global' objects.
-// On Vista, you need elevated perms to create global objects - however, once
-// it has been created and permissions adjusted, a user with normal
-// permissions can open these global objects.
-// As a service generally will be able to create global objects, we want a
-// non-elevated Python to be capable of automatically using the global space
-// if it exists, but coping when it can't create such an object (a local
-// one is probably fine in such cases).
-// [Why bother?: without the Global namespace, a 'win32traceutil' running in
-// a 'Remote Desktop' session would not be able to see output from a
-// service - they have different local namespaces]
-
-// This means:
-// * We first check to see if the mutex exists in the local namespace.  If it
-//   does, it we use that namespace for all objects.
-// * We then try and create a mutex in the global namespace - if this works, we also
-//   use the global namespace.
-// * We then create the mutex in our local namespace and use that for everything.
-// (Ack - the above is only true for CreateFileMapping - creating mutexes etc
-// works fine)
+// Global\\ allows the trace objects to be shared between processes in
+// different Terminal Services sessions. Creating a file mapping in the
+// Global namespace from a non-session-0 process requires
+// SeCreateGlobalPrivilege. An existing global mapping can be opened without
+// that privilege.
+//
+// We first check whether a local mapping already exists and use the local
+// namespace if it does. Otherwise, we try to create the mapping in the
+// Global namespace. If that fails, we fall back to the local namespace.
+//
+// This allows a non-elevated process to use the Global namespace when it is
+// already available, while still allowing local operation when the process
+// cannot create a Global mapping. This is useful when win32traceutil is
+// running in a Remote Desktop session and the trace producer is a service.
 
 // This behavior is controlled by a global variable set at mutex creation time.
 BOOL use_global_namespace = FALSE;
