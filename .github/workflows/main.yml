@@ -26,6 +26,11 @@ jobs:
           - os: windows-2022
           - python-architecture: arm64
             os: windows-11-arm
+          # Keep setup.py's serial-compile fallback exercised on the fastest job,
+          # so it doesn't rot. Every other job builds with one cl.exe/gcc per CPU.
+          - python-version: "3.15"
+            python-architecture: x64
+            build-jobs: 1
         exclude:
           # actions/setup-python does not provide prebuilt arm64 Python before 3.11
           - python-architecture: arm64
@@ -39,6 +44,8 @@ jobs:
       PYTHONASYNCIODEBUG: 1
       PYTHONWARNINGS: always
       # PYTHONFAULTHANDLER: 1 # This causes our tests to fail
+      # Empty on every job but the one that pins it, which setup.py reads as "unset".
+      PYWIN32_BUILD_JOBS: ${{ matrix.build-jobs }}
 
     steps:
       - uses: actions/checkout@v4
