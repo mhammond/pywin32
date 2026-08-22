@@ -180,7 +180,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14", "3.15"]
+        # Only test the oldest and newest supported Python. This should cover new breaking changes and support drops.
+        # Drawback is a less obvious failure boundary, but worth due to https://gh.io/actions-limits
+        python-version: ["3.9", "3.15"]
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v7
