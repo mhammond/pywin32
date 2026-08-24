@@ -93,15 +93,12 @@ def main():
         lGlobs = sys.argv[4:]
         lDestFiles, lSrcFiles = handle_globs(lGlobs)
         # copy files into html_dir
-        for i in range(len(lDestFiles)):
-            file = lDestFiles[i]
-            file = os.path.join(html_dir, file)
+        for dest_file, src_file in zip(lDestFiles, lSrcFiles):
+            file = os.path.join(html_dir, dest_file)
             # ensure any directories under html_dir get created.
             os.makedirs(os.path.split(file)[0], exist_ok=True)
-            shutil.copyfile(lSrcFiles[i], file)
-
-        for file in lDestFiles:
-            html_files += f"{html_dir}\\{file}\n"
+            shutil.copyfile(src_file, file)
+            html_files += f"{html_dir}\\{dest_file}\n"
 
     for cat in doc:
         html_files += f"{output_dir}\\{cat.id}.html\n"
