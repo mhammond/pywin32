@@ -34,6 +34,7 @@ import sys
 from abc import abstractmethod
 from collections.abc import Iterable, Iterator, Sequence
 from concurrent.futures import FIRST_EXCEPTION, ThreadPoolExecutor, wait
+from functools import cached_property
 from itertools import chain, dropwhile, takewhile
 from pathlib import Path
 from setuptools import Extension, setup
@@ -365,8 +366,13 @@ class my_build_ext(build_ext):
         """List of excluded extensions and their reason"""
         self.swig_opts.append("-c++")
 
-    def _get_gcc_include_dirs(self) -> list[str]:
-        """Query gcc's built-in include search paths."""
+    @cached_property
+    def _gcc_include_dirs(self) -> list[str]:
+        """Query gcc's built-in include search paths.
+
+        Cached: the compiler doesn't change during a build,
+        this saves on process spawn, and parsing on non-MSVC, once per extension.
+        """
         cc = getattr(self.compiler, "cc", "")
         if not cc:
             return []
@@ -392,7 +398,7 @@ class my_build_ext(build_ext):
         include_dirs = (
             self.compiler.include_dirs
             + os.environ.get("INCLUDE", "").split(os.pathsep)  # MSVC INCLUDE Env
-            + self._get_gcc_include_dirs()
+            + self._gcc_include_dirs
         )
 
         for h in ext.optional_headers:
