@@ -152,7 +152,7 @@ jobs:
 
       # !cancelled(): Show issues even if the previous steps failed. But still fail the job
       - name: Run Ruff linter
-        uses: astral-sh/ruff-action@v3
+        uses: astral-sh/ruff-action@v4.1.0
         if: ${{ !cancelled() }}
       - name: Run Ruff formatter
         run: ruff format --check

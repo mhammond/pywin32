@@ -607,9 +607,7 @@ class my_build_ext(build_ext):
 
         # Finally find and copy the MFC redistributable DLLs.
         win32ui_ext = pythonwin_extensions[0]
-        if win32ui_ext not in set(self.extensions) - {
-            ext for ext, why in self.excluded_extensions
-        }:
+        if any(win32ui_ext is ext for ext, why in self.excluded_extensions):
             return
         if not vcbase:
             raise RuntimeError("Can't find MFC redist DLLs with unkown VC base path")
@@ -874,7 +872,7 @@ else:
 
 class MyCygwinCompiler(BaseCygwinCompiler):
     # Workaround until pypa/distutils#399 is fixed
-    BaseCygwinCompiler.initialize = lambda *_: None
+    BaseCygwinCompiler.initialize = lambda *_: None  # type: ignore[method-assign]
 
     # Work around python/cpython#80483 / python/cpython#86175
     # it sorts sources but this breaks support for building .mc files etc :(
@@ -885,7 +883,7 @@ class MyCygwinCompiler(BaseCygwinCompiler):
         return super().compile(sources, **kwargs)
 
     # Work around missing .mc support in CygwinCompiler+MinGW32Compiler pypa/distutils#405
-    src_extensions = BaseCygwinCompiler.src_extensions + [".mc"]
+    src_extensions = (BaseCygwinCompiler.src_extensions or []) + [".mc"]
 
     def _compile(
         self,
