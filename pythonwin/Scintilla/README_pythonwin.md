@@ -1,4 +1,4 @@
-This is a copy of Scintilla 4.4.6 used for Pythonwin.
+This is a copy of [Scintilla 4.4.6](https://www.scintilla.org/ScintillaHistory.html#:~:text=Release%204.4.6) used for Pythonwin.
 
 Scintilla's home is <https://www.scintilla.org/>
 

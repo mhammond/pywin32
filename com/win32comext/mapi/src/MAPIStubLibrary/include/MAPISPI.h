@@ -554,7 +554,7 @@ DECLARE_MAPI_INTERFACE_PTR(IXPLogon, LPXPLOGON);
 	MAPIMETHOD(TransportLogon)											\
 		(THIS_	LPMAPISUP					lpMAPISup,					\
 				ULONG_PTR					ulUIParam,					\
-				__in LPTSTR						lpszProfileName,			\
+				_In_ LPTSTR						lpszProfileName,			\
 				ULONG FAR *					lpulFlags,					\
                 LPMAPIERROR FAR *			lppMAPIError,				\
 				LPXPLOGON FAR *				lppXPLogon) IPURE;			\
@@ -645,7 +645,7 @@ typedef SCODE (STDMAPIINITCALLTYPE OPTIONCALLBACK)(
 	MAPIMETHOD(AddressTypes)											\
 		(THIS_	ULONG FAR *					lpulFlags,					\
 				ULONG FAR *					lpcAdrType,					\
-				__deref_out_ecount_full(*lpcAdrType) LPTSTR FAR * FAR *			lpppAdrTypeArray,			\
+				_Outptr_result_buffer_(*lpcAdrType) LPTSTR FAR * FAR *			lpppAdrTypeArray,			\
 				ULONG FAR *					lpcMAPIUID,					\
 				LPMAPIUID FAR * FAR *		lpppUIDArray) IPURE;		\
 	MAPIMETHOD(RegisterOptions)											\

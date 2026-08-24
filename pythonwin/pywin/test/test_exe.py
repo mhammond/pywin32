@@ -7,6 +7,7 @@ import os
 import subprocess
 import sys
 import tempfile
+import traceback
 import unittest
 
 import win32ui
@@ -24,6 +25,7 @@ class TestPythonwinExe(unittest.TestCase):
 
     def setUp(self):
         import site
+        import sysconfig
 
         fh, self.tfn = tempfile.mkstemp(suffix=".testout.txt", prefix="pywintest-")
         os.close(fh)
@@ -40,8 +42,9 @@ class TestPythonwinExe(unittest.TestCase):
 
             # XXX Pythonwin.exe / Win32uiHostGlue.h could be improved to search
             # the Python DLL itself via registry when local / relative search fails.
+            t = "t" if sysconfig.get_config_var("Py_GIL_DISABLED") else ""
 
-            pydll = f"Python{sys.version_info.major}{sys.version_info.minor}.dll"  # same for 32bit
+            pydll = f"Python{sys.version_info.major}{sys.version_info.minor}{t}.dll"  # same for 32bit
             src = os.path.dirname(sys.executable) + os.sep + pydll
             dst = os.path.dirname(pythonwinexe_path) + os.sep + pydll
             if not os.path.isfile(dst):
@@ -59,6 +62,7 @@ class TestPythonwinExe(unittest.TestCase):
         try:
             rc = self.p.wait(20)
         except subprocess.TimeoutExpired:
+            traceback.print_exc()
             rc = "TIMEOUT"
         with open(self.tfn) as f:
             outs = f.read()

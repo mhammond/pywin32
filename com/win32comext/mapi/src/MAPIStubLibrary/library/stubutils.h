@@ -4,7 +4,7 @@
 #include <string>
 
 // stubutils.h - Optional header to enable clients to reuse stubutils code
-// Not reuqired to build the mapistub library
+// Not required to build the mapistub library
 
 namespace mapistub
 {
@@ -37,8 +37,8 @@ namespace mapistub
 	std::wstring GetComponentPath(const std::wstring& szComponent, const std::wstring& szQualifier, bool fInstall);
 	extern std::vector<std::wstring> g_pszOutlookQualifiedComponents;
 	std::vector<std::wstring> GetMAPIPaths();
-	// Looks up Outlook's path given its qualified component guid
-	std::wstring GetOutlookPath(_In_ const std::wstring& szCategory, _Out_opt_ bool* lpb64);
+	// Looks up olmapi32.dll path using a qualified component guid
+	std::wstring GetOLMAPI32Path(_In_ const std::wstring& szCategory);
 	std::wstring GetInstalledOutlookMAPI(int iOutlook);
 	std::wstring GetMAPISystemDir();
 
@@ -49,4 +49,5 @@ namespace mapistub
 	void UnloadPrivateMAPI();
 	void ForceOutlookMAPI(bool fForce);
 	void ForceSystemMAPI(bool fForce);
+	void PreferOlmapi32(bool fPrefer);
 } // namespace mapistub

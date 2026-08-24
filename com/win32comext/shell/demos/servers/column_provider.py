@@ -73,8 +73,7 @@ class ColumnProvider:
             return None
         check_file = os.path.splitext(name)[0] + ".pyc"
         try:
-            st = os.stat(check_file)
-            return st[stat.ST_SIZE]
+            return os.stat(check_file)[stat.ST_SIZE]
         except OSError:
             # No file
             return None

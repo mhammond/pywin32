@@ -1,5 +1,5 @@
 # General purpose service utilities, both for standard Python scripts,
-# and for for Python programs which run as services...
+# and for Python programs which run as services...
 #
 # Note that most utility functions here will raise win32api.error's
 # (which is win32service.error, pywintypes.error, etc)
@@ -55,7 +55,11 @@ def LocatePythonServiceExe(exe=None):
         # Handle case where MoveFile() fails. Particularly if destination file
         # has a resource lock and can't be replaced by src file
         try:
-            win32api.MoveFileEx(maybe, correct, win32con.MOVEFILE_REPLACE_EXISTING)
+            win32api.MoveFileEx(
+                maybe,
+                correct,
+                win32con.MOVEFILE_REPLACE_EXISTING | win32con.MOVEFILE_COPY_ALLOWED,
+            )
         except win32api.error as exc:
             print(f"Failed to move host exe '{exc}'")
 
