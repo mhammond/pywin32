@@ -1,13 +1,9 @@
 import datetime
 
 import adodbapi
+from adodbapi import is64bit
 
-try:
-    import adodbapi.is64bit as is64bit
-
-    is64 = is64bit.Python()
-except ImportError:
-    is64 = False  # in case the user has an old version of adodbapi
+is64 = is64bit.Python()
 if is64:
     driver = "Microsoft.ACE.OLEDB.12.0"
 else:
