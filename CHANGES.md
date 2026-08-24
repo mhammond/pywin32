@@ -17,7 +17,8 @@ As of build 305, installation .exe files have been deprecated; see
 
 Coming in build 313, as yet unreleased
 --------------------------------------
-
+* Fixed `win32api.GetFullPathName` silently returning an empty string for paths of 260 characters or more (mhammond#2795, [@MohammedAlkindi][MohammedAlkindi])
+* Added `win32api.ToUnicodeEx` wrapper for translating virtual-key codes and keyboard state to Unicode characters (mhammond#2788, [@ravik453][ravik453])
 * Updated `MAPIStubLibrary` vendored sources (mhammond#2764, [@Avasam][Avasam]):
   * Migrated from deprecated SAL v1 annotations to SAL v2
   * New `win32comext.mapi.mapitags` symbols:
@@ -510,8 +511,10 @@ for them.
 [kxrob]: https://github.com/kxrob
 [markuskimius]: https://github.com/markuskimius
 [maxim-krikun]: https://github.com/maxim
+[MohammedAlkindi]: https://github.com/MohammedAlkindi
 [Mscht]: https://github.com/Mscht
 [nbbeatty]: https://github.com/nbbeatty
+[ravik453]: https://github.com/ravik453
 [saaketp]: https://github.com/saaketp
 [the-snork]: https://github.com/the-snork
 [wkschwartz]: https://github.com/wkschwartz

@@ -1,6 +1,7 @@
 [build-system]
 requires = [
-  "setuptools >=77.0.3" # made PEP-639 license deprecations introduced by 77.0.0 into warnings rather than errors
+  "setuptools >=77.0.3", # made PEP-639 license deprecations introduced by 77.0.0 into warnings rather than errors
+  "setuptools >=84.0.0; python_version >= '3.10'", # required for compiler initialization compatibility; setuptools 83 and msys2 dropped support for Python 3.9
 ]
 build-backend = "setuptools.build_meta"
 
@@ -10,6 +11,7 @@ checkers = [ # Keep these in sync with .pre-commit-config.yaml
   "ruff ==0.14.14",
 ]
 type-checkers = [
+  "setuptools >=83.0.0; python_version >= '3.10'", # setuptools/_distutils vendor is py.typed
   "types-setuptools >=80.9.0.20251221",
   "PyOpenGL",
   "mypy ==1.16.*",
