@@ -20,12 +20,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14", "3.15"]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14", "3.15", "3.13t", "3.14t", "3.15t"]
         python-architecture: [x64, x86, arm64]
         include:
           - os: windows-2022
           - python-architecture: arm64
             os: windows-11-arm
+          # Keep setup.py's serial-compile fallback exercised on the fastest job,
+          # so it doesn't rot. Every other job builds with one cl.exe/gcc per CPU.
+          - python-version: "3.15"
+            python-architecture: x64
+            build-jobs: 1
         exclude:
           # actions/setup-python does not provide prebuilt arm64 Python before 3.11
           - python-architecture: arm64
@@ -39,6 +44,8 @@ jobs:
       PYTHONASYNCIODEBUG: 1
       PYTHONWARNINGS: always
       # PYTHONFAULTHANDLER: 1 # This causes our tests to fail
+      # Empty on every job but the one that pins it, which setup.py reads as "unset".
+      PYWIN32_BUILD_JOBS: ${{ matrix.build-jobs }}
 
     steps:
       - uses: actions/checkout@v4
@@ -82,11 +89,12 @@ jobs:
         run: python win32/scripts/pywin32_testall.py -v -skip-adodbapi
 
       - name: Build wheels
+        if: ${{ !contains(matrix.python-version, 't') }}
         run: pip wheel . -v --wheel-dir=dist
 
       - uses: actions/upload-artifact@v4
         # Upload artifacts even if tests fail
-        if: ${{ always() }}
+        if: ${{ !contains(matrix.python-version, 't') }}
         with:
           name: artifacts-${{ matrix.python-version }}-${{ matrix.python-architecture }}
           path: dist/*.whl
@@ -115,10 +123,12 @@ jobs:
         run: python .github\workflows\download-arm64-libs.py ./arm64libs
 
       - name: Build wheels
+        if: ${{ !contains(matrix.python-version, 't') }}
         run: uv build --wheel --config-setting=--build-option="build_ext -L./arm64libs --plat-name=win-arm64 build --plat-name=win-arm64 bdist_wheel --plat-name=win-arm64"
 
       - uses: actions/upload-artifact@v4
         with:
+          if: ${{ !contains(matrix.python-version, 't') }}
           name: artifacts-${{ matrix.python-version }}-arm64
           path: dist/*.whl
           if-no-files-found: error
@@ -129,6 +139,7 @@ jobs:
     steps:
       - name: Merge Artifacts
         uses: actions/upload-artifact/merge@v4
+        if: ${{ !contains(matrix.python-version, 't') }}
         with:
           name: artifacts
           pattern: artifacts-*
@@ -176,7 +187,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14", "3.15"]
+        # Only test the oldest and newest supported Python. This should cover new breaking changes and support drops.
+        # Drawback is a less obvious failure boundary, but worth due to https://gh.io/actions-limits
+        python-version: ["3.9", "3.15"]
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v7

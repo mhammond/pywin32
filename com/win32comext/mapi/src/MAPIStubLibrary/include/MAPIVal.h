@@ -277,7 +277,7 @@ typedef enum _tagMethods
 		 || FBadRowSet( (LPSRowSet) lpAdrList))
 
 STDAPI_(BOOL)
-FBadRglpszW(__in LPWSTR FAR	*lppszW,
+FBadRglpszW(_In_ LPWSTR FAR	*lppszW,
 			 ULONG		cStrings);
 
 STDAPI_(BOOL)

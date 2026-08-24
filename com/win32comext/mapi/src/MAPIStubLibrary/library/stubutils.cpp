@@ -103,6 +103,20 @@ namespace mapistub
 		L"{BC174BAD-2F53-4855-A1D5-1D575C19B1EA}", // O11_CATEGORY_GUID_CORE_OFFICE (debug) // STRING_OK
 	};
 
+	std::vector<std::wstring> g_OutlookQualifiers = {
+		// Possible qualifiers for MsiProvideQualifiedComponent
+		L"outlook.x64.exe",
+		L"outlook.exe",
+		L"excel.exe",
+		L"winword.exe",
+		L"wwlib.dll",
+		L"powerpnt.exe",
+		L"msaccess.exe",
+		L"onenote.exe",
+		L"mspub.exe",
+		L"visio.exe",
+		L"mspub.exe"};
+
 	std::wstring GetInstalledOutlookMAPI(int iOutlook);
 	std::wstring GetInstalledOutlookMAPI(const std::wstring component);
 
@@ -261,6 +275,9 @@ namespace mapistub
 
 	// Whether or not we should ignore the registry and load MAPI from the system directory
 	static bool s_fForceSystemMAPI = false;
+
+	// Preference flag for olmapi32.dll, true by default
+	static bool s_fPreferOlmapi32 = true;
 
 	static volatile HMODULE g_hinstMAPI = nullptr;
 	HMODULE g_hModPstPrx32 = nullptr;
@@ -468,70 +485,63 @@ namespace mapistub
 		return hkeyMapiClient;
 	}
 
-	// Looks up Outlook's path given its qualified component guid
-	std::wstring GetOutlookPath(_In_ const std::wstring& szCategory, _Out_opt_ bool* lpb64)
+	// Looks up olmapi32.dll path given a qualified component guid
+	std::wstring GetOLMAPI32Path(_In_ const std::wstring& szCategory)
 	{
-		logLoadMapi(L"Enter GetOutlookPath: szCategory = %ws\n", szCategory.c_str());
+		logLoadMapi(L"Enter GetOLMAPI32Path: szCategory = %ws\n", szCategory.c_str());
 		DWORD dwValueBuf = 0;
 		std::wstring path;
 
-		if (lpb64) *lpb64 = false;
-
-		auto hRes = MyMsiProvideQualifiedComponent(
-			szCategory.c_str(),
-			L"outlook.x64.exe", // STRING_OK
-			static_cast<DWORD>(INSTALLMODE_DEFAULT),
-			nullptr,
-			&dwValueBuf);
-		LogError(L"GetOutlookPath: MsiProvideQualifiedComponent(x64)", hRes);
-		if (hRes == S_OK)
+		auto hRes = E_FAIL;
+		int usedIndex = -1;
+		for (int i = 0; i < static_cast<int>(g_OutlookQualifiers.size()); ++i)
 		{
-			if (lpb64) *lpb64 = true;
-		}
-		else
-		{
+			logLoadMapi(L"GetOLMAPI32Path: qualifier = %ws\n", g_OutlookQualifiers[i].c_str());
+			dwValueBuf = 0;
 			hRes = MyMsiProvideQualifiedComponent(
 				szCategory.c_str(),
-				L"outlook.exe", // STRING_OK
+				g_OutlookQualifiers[i].c_str(),
 				static_cast<DWORD>(INSTALLMODE_DEFAULT),
 				nullptr,
 				&dwValueBuf);
-			LogError(L"GetOutlookPath: MsiProvideQualifiedComponent(x86)", hRes);
+			LogError(L"GetOLMAPI32Path: MsiProvideQualifiedComponent", hRes);
+			if (hRes == S_OK)
+			{
+				usedIndex = i;
+				break;
+			}
 		}
 
-		if (hRes == S_OK)
+		if (hRes == S_OK && usedIndex != -1)
 		{
 			dwValueBuf += 1;
 			const auto lpszTempPath = std::wstring(dwValueBuf, '\0');
-
 			hRes = MyMsiProvideQualifiedComponent(
 				szCategory.c_str(),
-				L"outlook.x64.exe", // STRING_OK
+				g_OutlookQualifiers[usedIndex].c_str(),
 				static_cast<DWORD>(INSTALLMODE_DEFAULT),
 				const_cast<wchar_t*>(lpszTempPath.c_str()),
 				&dwValueBuf);
-			LogError(L"GetOutlookPath: MsiProvideQualifiedComponent(x64)", hRes);
-			if (hRes != S_OK)
+			LogError(L"GetOLMAPI32Path: MsiProvideQualifiedComponent (path)", hRes);
+			if (hRes == S_OK && !lpszTempPath.empty())
 			{
-				hRes = MyMsiProvideQualifiedComponent(
-					szCategory.c_str(),
-					L"outlook.exe", // STRING_OK
-					static_cast<DWORD>(INSTALLMODE_DEFAULT),
-					const_cast<wchar_t*>(lpszTempPath.c_str()),
-					&dwValueBuf);
-				LogError(L"GetOutlookPath: MsiProvideQualifiedComponent(x86)", hRes);
-			}
+				WCHAR szDrive[_MAX_DRIVE] = {0};
+				WCHAR szOutlookPath[MAX_PATH] = {0};
+				const auto errNo = _wsplitpath_s(
+					lpszTempPath.c_str(), szDrive, _MAX_DRIVE, szOutlookPath, MAX_PATH, nullptr, NULL, nullptr, NULL);
+				LogError(L"GetOLMAPI32Path: _wsplitpath_s", errNo);
 
-			if (hRes == S_OK)
-			{
-				path = lpszTempPath;
-				logLoadMapi(L"Exit GetOutlookPath: Path = %ws\n", path.c_str());
+				if (errNo == ERROR_SUCCESS)
+				{
+					path = std::wstring(szDrive) + std::wstring(szOutlookPath) + WszOlMAPI32DLL;
+					logLoadMapi(L"GetOLMAPI32Path: found %ws\n", path.c_str());
+				}
 			}
 		}
 
 		if (path.empty())
 		{
-			logLoadMapi(L"Exit GetOutlookPath: nothing found\n");
+			logLoadMapi(L"Exit GetOLMAPI32Path: nothing found\n");
 		}
 
 		return path;
@@ -557,23 +567,12 @@ namespace mapistub
 	{
 		logLoadMapi(L"Enter GetInstalledOutlookMAPI(%s)\n", component.c_str());
 
-		auto lpszTempPath = GetOutlookPath(component, nullptr);
+		auto szPath = GetOLMAPI32Path(component);
 
-		if (!lpszTempPath.empty())
+		if (!szPath.empty())
 		{
-			WCHAR szDrive[_MAX_DRIVE] = {0};
-			WCHAR szOutlookPath[MAX_PATH] = {0};
-			const auto errNo = _wsplitpath_s(
-				lpszTempPath.c_str(), szDrive, _MAX_DRIVE, szOutlookPath, MAX_PATH, nullptr, NULL, nullptr, NULL);
-			LogError(L"GetOutlookPath: _wsplitpath_s", errNo);
-
-			if (errNo == ERROR_SUCCESS)
-			{
-				const auto szPath = std::wstring(szDrive) + std::wstring(szOutlookPath) + WszOlMAPI32DLL;
-
-				logLoadMapi(L"GetInstalledOutlookMAPI: found %ws\n", szPath.c_str());
-				return szPath;
-			}
+			logLoadMapi(L"GetInstalledOutlookMAPI: found %ws\n", szPath.c_str());
+			return szPath;
 		}
 
 		logLoadMapi(L"Exit GetInstalledOutlookMAPI: found nothing\n");
@@ -595,10 +594,25 @@ namespace mapistub
 		return paths;
 	}
 
+	/*
+	 * GetMAPIPaths - Returns a list of possible MAPI DLL paths in order of preference.
+	 *
+	 * Order of preference:
+	 * 1. If ForceSystemMAPI is set, prefer the system directory MAPI32.dll only.
+	 * 2. If ForceOutlookMAPI is set, prefer the Outlook MAPI client registry key.
+	 * 3. DllPathEx registry value from the selected MAPI client.
+	 * 4. All installed Outlook MAPI implementations (from known component GUIDs).
+	 * 5. DllPath registry value from the selected MAPI client.
+	 * 6. MSI-based MAPI path from the selected MAPI client.
+	 * 7. If not forcing Outlook, fallback to system directory MAPI32.dll.
+	 */
 	std::vector<std::wstring> GetMAPIPaths()
 	{
+		// Holds the ordered list of possible MAPI DLL paths
 		auto paths = std::vector<std::wstring>();
 		std::wstring szPath;
+
+		// 1. If ForceSystemMAPI is set, only use the system directory MAPI32.dll
 		if (s_fForceSystemMAPI)
 		{
 			szPath = GetMAPISystemDir();
@@ -606,24 +620,30 @@ namespace mapistub
 			return paths;
 		}
 
+		// 2. Select the MAPI client registry key: Outlook if forced, otherwise default
 		auto hkeyMapiClient = HKEY{};
 		if (s_fForceOutlookMAPI)
 			hkeyMapiClient = GetHKeyMapiClient(WszOutlookMapiClientName);
 		else
 			hkeyMapiClient = GetHKeyMapiClient(L"");
 
+		// 3. Prefer DllPathEx registry value from the selected MAPI client
 		szPath = RegQueryWszExpand(hkeyMapiClient, WszValueNameDllPathEx);
 		if (!szPath.empty()) paths.push_back(szPath);
 
+		// 4. Add all installed Outlook MAPI implementations (from known component GUIDs)
 		auto outlookPaths = GetInstalledOutlookMAPI();
 		paths.insert(end(paths), std::begin(outlookPaths), std::end(outlookPaths));
 
+		// 5. Prefer DllPath registry value from the selected MAPI client
 		szPath = RegQueryWszExpand(hkeyMapiClient, WszValueNameDllPath);
 		if (!szPath.empty()) paths.push_back(szPath);
 
+		// 6. Prefer MSI-based MAPI path from the selected MAPI client
 		szPath = GetMailClientFromMSIData(hkeyMapiClient);
 		if (!szPath.empty()) paths.push_back(szPath);
 
+		// 7. If not forcing Outlook, fallback to system directory MAPI32.dll
 		if (!s_fForceOutlookMAPI)
 		{
 			szPath = GetMAPISystemDir();
@@ -631,6 +651,18 @@ namespace mapistub
 		}
 
 		if (hkeyMapiClient) RegCloseKey(hkeyMapiClient);
+
+		// If olmapi32 preference is set, bubble all olmapi32.dll paths to the top (case-insensitive)
+		if (s_fPreferOlmapi32)
+		{
+			auto is_olmapi32 = [](const std::wstring& path) {
+				std::wstring lower = path;
+				std::transform(lower.begin(), lower.end(), lower.begin(), ::towlower);
+				return lower.find(L"olmapi32.dll") != std::wstring::npos;
+			};
+			static_cast<void>(std::stable_partition(paths.begin(), paths.end(), is_olmapi32));
+		}
+
 		return paths;
 	}
 
@@ -776,5 +808,11 @@ namespace mapistub
 	{
 		logLoadMapi(L"ForceSystemMAPI: fForce = 0x%08X\n", fForce);
 		s_fForceSystemMAPI = fForce;
+	}
+
+	void PreferOlmapi32(bool fPrefer)
+	{
+		logLoadMapi(L"PreferOlmapi32: fPrefer = 0x%08X\n", fPrefer);
+		s_fPreferOlmapi32 = fPrefer;
 	}
 } // namespace mapistub
