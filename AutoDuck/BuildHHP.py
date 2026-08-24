@@ -90,28 +90,15 @@ def main():
         # sys.argv[4:] == html_files (globbed)
         output_dir = os.path.abspath(sys.argv[3])
         html_dir = os.path.abspath(os.path.join(output_dir, "html"))
-        if not os.path.isdir(html_dir):
-            os.makedirs(html_dir)
         lGlobs = sys.argv[4:]
         lDestFiles, lSrcFiles = handle_globs(lGlobs)
-        # ensure HTML Help build directory exists.
-        try:
-            os.makedirs(html_dir)
-        except:
-            pass
         # copy files into html_dir
-        for i in range(len(lDestFiles)):
-            file = lDestFiles[i]
-            file = os.path.join(html_dir, file)
+        for dest_file, src_file in zip(lDestFiles, lSrcFiles):
+            file = os.path.join(html_dir, dest_file)
             # ensure any directories under html_dir get created.
-            try:
-                os.makedirs(os.path.split(file)[0])
-            except:
-                pass
-            shutil.copyfile(lSrcFiles[i], file)
-
-        for file in lDestFiles:
-            html_files += f"{html_dir}\\{file}\n"
+            os.makedirs(os.path.split(file)[0], exist_ok=True)
+            shutil.copyfile(src_file, file)
+            html_files += f"{html_dir}\\{dest_file}\n"
 
     for cat in doc:
         html_files += f"{output_dir}\\{cat.id}.html\n"
