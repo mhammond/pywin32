@@ -136,9 +136,8 @@ class OpenGLView(OpenGLViewParent):
         self.oldrect = self.oldrect[0], self.oldrect[1], cx, cy
 
     def OnInitialUpdate(self):
-        self.SetScaleToFitSize(
-            (100, 100)
-        )  # or SetScrollSizes() - A Pythonwin requirement
+        self.SetScaleToFitSize((100, 100))
+        # or SetScrollSizes() - A Pythonwin requirement
         return self._obj_.OnInitialUpdate()
 
     # 		return rc

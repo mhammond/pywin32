@@ -20,10 +20,13 @@ repos:
       - id: pretty-format-ini
         args: [--autofix]
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.14.14
+    rev: v0.16.0
     hooks:
       - id: ruff # Run the linter.
         args: [--fix]
+      - id: ruff-ANN2
+        args: [--fix, --unsafe-fixes, --exit-zero, --select=ANN2, --ignore=ANN202]
+        name: ruff autofixable return type annotations
       - id: ruff-format
   - repo: https://github.com/pre-commit/mirrors-clang-format
     rev: v18.1.8
