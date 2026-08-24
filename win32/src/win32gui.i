@@ -614,17 +614,7 @@ BOOL PyWndProc_Call(PyObject *obFuncOrMap, HWND hWnd, UINT uMsg, WPARAM wParam, 
 	return TRUE;
 }
 
-LRESULT CALLBACK PyWndProcClass(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-	PyObject *obFunc = (PyObject *)GetClassLongPtr( hWnd, 0);
-	LRESULT rc = 0;
-	CEnterLeavePython _celp;
-	if (!PyWndProc_Call(obFunc, hWnd, uMsg, wParam, lParam, &rc)) {
-		_celp.release();
-		rc = DefWindowProc(hWnd, uMsg, wParam, lParam);
-	}
-	return rc;
-}
+LRESULT CALLBACK PyWndProcClass(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 LRESULT CALLBACK PyDlgProcClass(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -837,6 +827,29 @@ PyWNDCLASS::PyWNDCLASS()
 	m_WNDCLASS.cbClsExtra = sizeof(PyObject *);
 	m_WNDCLASS.lpfnWndProc = PyWndProcClass;
 	m_obMenuName = m_obClassName = m_obWndProc = NULL;
+}
+
+LRESULT CALLBACK PyWndProcClass(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+        CEnterLeavePython _celp;
+        PyObject *obFunc = (PyObject *)GetClassLongPtr(hWnd, 0);
+        if (obFunc == NULL) {
+                ATOM atom = (ATOM)GetClassLongPtr(hWnd, GCW_ATOM);
+                PyObject *obatom = PyLong_FromUnsignedLong(atom);
+                if (obatom != NULL) {
+                        PyObject *obwc = PyDict_GetItem(g_AtomMap, obatom);
+                        if (obwc != NULL)
+                                obFunc = ((PyWNDCLASS *)obwc)->m_obWndProc;
+
+                        Py_DECREF(obatom);
+                }
+        }
+        LRESULT rc = 0;
+        if (!PyWndProc_Call(obFunc, hWnd, uMsg, wParam, lParam, &rc)) {
+                _celp.release();
+                rc = DefWindowProc(hWnd, uMsg, wParam, lParam);
+        }
+        return rc;
 }
 
 PyWNDCLASS::~PyWNDCLASS(void)
