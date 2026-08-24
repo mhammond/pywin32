@@ -17,7 +17,8 @@ As of build 305, installation .exe files have been deprecated; see
 
 Coming in build 313, as yet unreleased
 --------------------------------------
-
+* Fixed `win32api.GetFullPathName` silently returning an empty string for paths of 260 characters or more (mhammond#2795, [@MohammedAlkindi][MohammedAlkindi])
+* Added `win32api.ToUnicodeEx` wrapper for translating virtual-key codes and keyboard state to Unicode characters (mhammond#2788, [@ravik453][ravik453])
 * Updated `MAPIStubLibrary` vendored sources (mhammond#2764, [@Avasam][Avasam]):
   * Migrated from deprecated SAL v1 annotations to SAL v2
   * New `win32comext.mapi.mapitags` symbols:
@@ -35,6 +36,7 @@ Coming in build 313, as yet unreleased
     * `PR_RCVD_REPRESENTING_SMTP_ADDRESS_A`
 * Fixed a regression where `pythonwin/mfc140u.dll` isn't bundled with the wheels ([3cc74e0
 ](mhammond/pywin32/commit/3cc74e05b4d5680c69fd6c02232a630db7a34675), [@Avasam][Avasam])
+* Add experimental no-GIL interpreter support (mhammond#2767  [@clin1234][clin1234])
 
 Build 312, released 2026/06/04
 ------------------------------
@@ -509,8 +511,10 @@ for them.
 [kxrob]: https://github.com/kxrob
 [markuskimius]: https://github.com/markuskimius
 [maxim-krikun]: https://github.com/maxim
+[MohammedAlkindi]: https://github.com/MohammedAlkindi
 [Mscht]: https://github.com/Mscht
 [nbbeatty]: https://github.com/nbbeatty
+[ravik453]: https://github.com/ravik453
 [saaketp]: https://github.com/saaketp
 [the-snork]: https://github.com/the-snork
 [wkschwartz]: https://github.com/wkschwartz

@@ -800,7 +800,7 @@ class TestConnect(unittest.TestCase):
             win32file.ConnectEx(s2, self.addr, ol, b"some expected request")
         except win32file.error as exc:
             win32event.SetEvent(giveup_event)
-            raise  # some error error we don't expect.
+            raise  # some error we don't expect.
         # We occasionally see ERROR_CONNECTION_REFUSED in automation
         try:
             win32file.GetOverlappedResult(s2.fileno(), ol, 1)
@@ -835,7 +835,7 @@ class TestConnect(unittest.TestCase):
             win32file.ConnectEx(s2, self.addr, ol)
         except win32file.error as exc:
             win32event.SetEvent(giveup_event)
-            raise  # some error error we don't expect.
+            raise  # some error we don't expect.
         # We occasionally see ERROR_CONNECTION_REFUSED in automation
         try:
             win32file.GetOverlappedResult(s2.fileno(), ol, 1)
