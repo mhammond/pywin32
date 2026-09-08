@@ -737,6 +737,15 @@ class TestEncrypt(unittest.TestCase):
             try:
                 win32file.EncryptFile(fname)
             except win32file.error as details:
+                if (
+                    details.winerror == winerror.ERROR_NOT_SUPPORTED
+                    and "CI" not in os.environ
+                ):
+                    # EFS is not available on every edition - Windows Home
+                    # (EditionID "Core") returns ERROR_NOT_SUPPORTED here.
+                    raise unittest.SkipTest(
+                        "EFS is not supported on this edition of Windows"
+                    )
                 if details.winerror != winerror.ERROR_ACCESS_DENIED:
                     raise
                 print("It appears this is not NTFS - can't encrypt/decrypt")
