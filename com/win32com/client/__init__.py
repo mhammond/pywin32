@@ -597,7 +597,7 @@ class DispatchBaseClass:
             args, defArgs = self._prop_map_put_[attr]
         except KeyError:
             raise AttributeError(f"'{self!r}' object has no attribute '{attr}'")
-        self._oleobj_.Invoke(*(args + (value,) + defArgs))
+        self._oleobj_.Invoke(*args, value, *defArgs)
 
     def _get_good_single_object_(self, obj, obUserName=None, resultCLSID=None):
         return _get_good_single_object_(obj, obUserName, resultCLSID)

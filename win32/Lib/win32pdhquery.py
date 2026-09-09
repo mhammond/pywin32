@@ -367,7 +367,7 @@ class Query(BaseQuery):
         overhead of unpickling the class).
         """
         self.volatilecounters = []
-        BaseQuery.__init__(*(self,) + args, **namedargs)
+        BaseQuery.__init__(self, *args, **namedargs)
 
     def addperfcounter(self, object, counter, machine=None):
         """
@@ -465,7 +465,7 @@ class Query(BaseQuery):
         There are currently no arguments to open.
         """
         # do all the normal opening stuff, self._base is now the query object
-        BaseQuery.open(*(self,) + args, **namedargs)
+        BaseQuery.open(self, *args, **namedargs)
         # should rewrite getinstpaths to take a single tuple
         paths = []
         for tup in self.volatilecounters:

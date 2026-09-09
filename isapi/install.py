@@ -531,7 +531,7 @@ def CheckLoaderModule(dll_name):
 def _CallHook(ob, hook_name, options, *extra_args):
     func = getattr(ob, hook_name, None)
     if func is not None:
-        args = (ob, options) + extra_args
+        args = (ob, options, *extra_args)
         func(*args)
 
 

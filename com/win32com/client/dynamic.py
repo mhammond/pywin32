@@ -209,7 +209,7 @@ class CDispatch:
                 pythoncom.DISPID_VALUE,
             )
         if invkind is not None:
-            allArgs = (dispid, LCID, invkind, 1) + args
+            allArgs = (dispid, LCID, invkind, 1, *args)
             return self._get_good_object_(
                 self._oleobj_.Invoke(*allArgs), self._olerepr_.defaultDispatchName, None
             )
@@ -331,7 +331,7 @@ class CDispatch:
                 pythoncom.DISPID_VALUE,
             )
         if invkind is not None:
-            allArgs = (dispid, LCID, invkind, 0, index) + args
+            allArgs = (dispid, LCID, invkind, 0, index, *args)
             return self._get_good_object_(
                 self._oleobj_.Invoke(*allArgs), self._olerepr_.defaultDispatchName, None
             )
@@ -354,7 +354,7 @@ class CDispatch:
 
     def _ApplyTypes_(self, dispid, wFlags, retType, argTypes, user, resultCLSID, *args):
         result = self._oleobj_.InvokeTypes(
-            *(dispid, LCID, wFlags, retType, argTypes) + args
+            dispid, LCID, wFlags, retType, argTypes, *args
         )
         return self._get_good_object_(result, user, resultCLSID)
 
@@ -447,7 +447,7 @@ class CDispatch:
             item = self._olerepr_.mapFuncs[name]
             dispId = item.dispid
             return self._get_good_object_(
-                self._oleobj_.Invoke(*(dispId, LCID, item.desc[4], 0) + (args))
+                self._oleobj_.Invoke(dispId, LCID, item.desc[4], 0, *args)
             )
         except KeyError:
             raise AttributeError(name)
@@ -505,7 +505,7 @@ class CDispatch:
                     r = olerepr._AddVar_(typeinfo, t, 0)
                 else:  # not found or TYPEDESC/IMPLICITAPP
                     r = None
-                if not r is None:
+                if r is not None:
                     key, map = r[0], r[1]
                     item = map[key]
                     if map == olerepr.propMapPut:

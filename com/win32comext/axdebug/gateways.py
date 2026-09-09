@@ -74,9 +74,10 @@ class DebugDocumentInfo:
 
 
 class DebugDocumentProvider(DebugDocumentInfo):
-    _public_methods_ = DebugDocumentInfo._public_methods_ + ["GetDocument"]
-    _com_interfaces_ = DebugDocumentInfo._com_interfaces_ + [
-        axdebug.IID_IDebugDocumentProvider
+    _public_methods_ = [*DebugDocumentInfo._public_methods_, "GetDocument"]
+    _com_interfaces_ = [
+        *DebugDocumentInfo._com_interfaces_,
+        axdebug.IID_IDebugDocumentProvider,
     ]
 
     def GetDocument(self):
@@ -92,8 +93,9 @@ class DebugApplicationNode(DebugDocumentProvider):
         + DebugDocumentProvider._public_methods_
     )
     _com_interfaces_ = [
-        axdebug.IID_IDebugDocumentProvider
-    ] + DebugDocumentProvider._com_interfaces_
+        axdebug.IID_IDebugDocumentProvider,
+        *DebugDocumentProvider._com_interfaces_,
+    ]
 
     def __init__(self):
         DebugDocumentProvider.__init__(self)
@@ -153,13 +155,13 @@ class DebugDocument(DebugDocumentInfo):
     """The base interface to all debug documents."""
 
     _public_methods_ = DebugDocumentInfo._public_methods_
-    _com_interfaces_ = [axdebug.IID_IDebugDocument] + DebugDocumentInfo._com_interfaces_
+    _com_interfaces_ = [axdebug.IID_IDebugDocument, *DebugDocumentInfo._com_interfaces_]
 
 
 class DebugDocumentText(DebugDocument):
     """The interface to a text only debug document."""
 
-    _com_interfaces_ = [axdebug.IID_IDebugDocumentText] + DebugDocument._com_interfaces_
+    _com_interfaces_ = [axdebug.IID_IDebugDocumentText, *DebugDocument._com_interfaces_]
     _public_methods_ = [
         "GetDocumentAttributes",
         "GetSize",
@@ -168,7 +170,8 @@ class DebugDocumentText(DebugDocument):
         "GetText",
         "GetPositionOfContext",
         "GetContextOfPosition",
-    ] + DebugDocument._public_methods_
+        *DebugDocument._public_methods_,
+    ]
 
     def __init__(self):
         pass
