@@ -49,8 +49,8 @@ def should_build_function(build_info):
 
 # docstring aware paragraph generator.  Isn't there something in docutils
 # we can use?
-def gen_paras(val):
-    chunks = []
+def gen_paras(val: str):
+    chunks: list[str] = []
     in_docstring = False
     for line in val.splitlines():
         line = ad_escape(line.strip())
