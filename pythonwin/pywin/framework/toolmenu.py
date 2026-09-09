@@ -1,12 +1,10 @@
-# toolmenu.py
-
 import sys
 
 import win32api
 import win32con
 import win32ui
 
-tools = {}
+tools: dict[int, tuple[str, str, str]] = {}
 idPos = 100
 
 # The default items should no tools menu exist in the INI file.
@@ -73,7 +71,6 @@ def WriteToolMenuItems(items):
 
 
 def SetToolsMenu(menu, menuPos=None):
-    global tools
     global idPos
 
     # todo - check the menu does not already exist.
@@ -111,7 +108,6 @@ def HandleToolCommand(cmd, code):
     import re
     import traceback
 
-    global tools
     (menuString, pyCmd, desc) = tools[cmd]
     win32ui.SetStatusText("Executing tool %s" % desc, 1)
     pyCmd = re.sub(r"\\n", "\n", pyCmd)

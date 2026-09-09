@@ -64,7 +64,7 @@ class DebuggerCommandHandler:
             method()
         else:
             scriptutils.RunScript(
-                defName=None, defArgs=None, bShowDialog=0, debuggingType=startFlag
+                defName=None, defArgs=None, bShowDialog=False, debuggingType=startFlag
             )
 
     def OnStep(self, msg, code):

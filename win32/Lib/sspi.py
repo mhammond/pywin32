@@ -14,6 +14,8 @@ functions directly.
 
 # Based on Roger Upole's sspi demos.
 # $Id$
+from __future__ import annotations
+
 import sspicon
 import win32security
 
