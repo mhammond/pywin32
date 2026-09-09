@@ -3,6 +3,8 @@
 #
 # * Execute this script to register the handler
 # * Start the "disk cleanup" tool - look for "pywin32 compiled files"
+from __future__ import annotations
+
 import os
 import stat
 import sys
@@ -23,7 +25,7 @@ ico = os.path.join(sys.prefix, "py.ico")
 if not os.path.isfile(ico):
     ico = os.path.join(sys.prefix, "PC", "py.ico")
 if not os.path.isfile(ico):
-    ico = None
+    ico = ""
     print("Can't find python.ico - no icon will be installed")
 
 
@@ -31,7 +33,7 @@ class EmptyVolumeCache:
     _reg_progid_ = "Python.ShellExtension.EmptyVolumeCache"
     _reg_desc_ = "Python Sample Shell Extension (disk cleanup)"
     _reg_clsid_ = "{EADD0777-2968-4c72-A999-2BF5F756259C}"
-    _reg_icon_ = ico
+    _reg_icon_ = ico or None
     _com_interfaces_ = [shell.IID_IEmptyVolumeCache, shell.IID_IEmptyVolumeCache2]
     _public_methods_ = IEmptyVolumeCache_Methods + IEmptyVolumeCache2_Methods
 
@@ -117,7 +119,8 @@ class EmptyVolumeCache:
         total = [0]  # See _WalkCallback above
         try:
             for d in self._GetDirectories():
-                os.walk(d, self._WalkCallback, (callback, total))
+                for directory, dirnames, filenames in os.walk(d):
+                    self._WalkCallback((callback, total), directory, filenames)
                 print("After looking in", d, "we have", total[0], "bytes")
         except pythoncom.error as exc:
             # This will be raised by the callback when the user selects 'cancel'.
@@ -132,7 +135,8 @@ class EmptyVolumeCache:
         # GetSpaceUsed
         try:
             for d in self._GetDirectories():
-                os.walk(d, self._WalkCallback, (callback, None))
+                for directory, dirnames, filenames in os.walk(d):
+                    self._WalkCallback((callback, None), directory, filenames)
         except pythoncom.error as exc:
             # This will be raised by the callback when the user selects 'cancel'.
             if exc.hresult != winerror.E_ABORT:

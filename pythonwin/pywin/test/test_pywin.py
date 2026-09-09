@@ -26,6 +26,7 @@ pywin_path = next(iter(pywin.__path__))
 pythonwinpy_path = os.path.dirname(pywin_path) + "\\start_pythonwin.py"
 Object = argparse.Namespace
 _indebugger = "pywin.debugger" in sys.modules
+teared_down = False
 
 
 def read_file(*args, **kw):
@@ -55,7 +56,7 @@ class T(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         global teared_down
-        teared_down = 1
+        teared_down = True
         if user_interaction:
             print("-- Interact, then close the window for continuing the tests!")
             cls.app.Run()
@@ -464,7 +465,7 @@ if __name__ == "__main__":
         ts = unittest.TestSuite((t,))  # suite needed for setUpClass() !?
         ##ts = unittest.TestLoader().loadTestsFromTestCase(T)
         _tests = ts._tests[:]
-        r = ts.debug()
+        ts.debug()
         t.assertTrue(teared_down)
         print(_tests, "ok!")
         sys.exit()

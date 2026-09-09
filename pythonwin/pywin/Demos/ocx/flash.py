@@ -22,7 +22,7 @@ if FlashModule is None:
     raise ImportError("Flash does not appear to be installed.")
 
 
-class MyFlashComponent(activex.Control, FlashModule.ShockwaveFlash):
+class MyFlashComponent(activex.Control, FlashModule.ShockwaveFlash):  # type: ignore[name-defined] # Generated module
     def __init__(self):
         activex.Control.__init__(self)
         FlashModule.ShockwaveFlash.__init__(self)
