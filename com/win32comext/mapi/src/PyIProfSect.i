@@ -12,20 +12,10 @@
 #include "PyIMAPIProp.h"
 #include "PyIProfSect.h"
 
-PyIProfSect::PyIProfSect(IUnknown *pDisp) :
-	PyIMAPIProp(pDisp)
-{
-	ob_type = &type;
-}
+PyIProfSect::PyIProfSect(IUnknown *pDisp) : PyIMAPIProp(pDisp) { ob_type = &type; }
 
-PyIProfSect::~PyIProfSect()
-{
-}
+PyIProfSect::~PyIProfSect() {}
 
-/*static*/ IProfSect *PyIProfSect::GetI(PyObject *self)
-{
-	return (IProfSect *)PyIUnknown::GetI(self);
-}
-
+/*static*/ IProfSect *PyIProfSect::GetI(PyObject *self) { return (IProfSect *)PyIUnknown::GetI(self); }
 
 %}
