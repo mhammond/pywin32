@@ -17,6 +17,7 @@ As of build 305, installation .exe files have been deprecated; see
 
 Coming in build 313, as yet unreleased
 --------------------------------------
+* Fixed the documented return values of `win32gui.GetMessage`, `win32gui.PeekMessage` and `win32gui.GetMenuItemRect`, which all return the API status code alongside the output value rather than the output value alone (mhammond#2428, [@MohammedAlkindi][MohammedAlkindi])
 * Fixed `win32api.GetFullPathName` silently returning an empty string for paths of 260 characters or more (mhammond#2795, [@MohammedAlkindi][MohammedAlkindi])
 * Added `win32api.ToUnicodeEx` wrapper for translating virtual-key codes and keyboard state to Unicode characters (mhammond#2788, [@ravik453][ravik453])
 * Updated `MAPIStubLibrary` vendored sources (mhammond#2764, [@Avasam][Avasam]):
