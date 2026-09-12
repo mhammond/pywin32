@@ -32,11 +32,12 @@ def MakeDlgTemplate():
         | win32con.DS_SETFONT
     )
     cs = win32con.WS_CHILD | win32con.WS_VISIBLE
+    s = win32con.WS_TABSTOP | cs
 
     w = 215
     h = 36
 
-    dlg = [
+    return [
         [
             "Progress bar control example",
             (0, 0, w, h),
@@ -44,31 +45,21 @@ def MakeDlgTemplate():
             None,
             (8, "MS Sans Serif"),
         ],
-    ]
-
-    s = win32con.WS_TABSTOP | cs
-
-    dlg.append(
         [
             128,
             "Tick",
             win32con.IDOK,
             (10, h - 18, 50, 14),
             s | win32con.BS_DEFPUSHBUTTON,
-        ]
-    )
-
-    dlg.append(
+        ],
         [
             128,
             "Cancel",
             win32con.IDCANCEL,
             (w - 60, h - 18, 50, 14),
             s | win32con.BS_PUSHBUTTON,
-        ]
-    )
-
-    return dlg
+        ],
+    ]
 
 
 class TestDialog(dialog.Dialog):

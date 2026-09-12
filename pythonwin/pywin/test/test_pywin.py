@@ -289,7 +289,7 @@ class T(unittest.TestCase):
 
         w = PaintWnd()
         w.Create("Test Paint MDI Child")
-        self.addCleanup(lambda: (o.cnt_ondestroy or w.DestroyWindow()))
+        self.addCleanup(lambda: o.cnt_ondestroy or w.DestroyWindow())
         win32gui.PumpWaitingMessages()
         dc = w.GetDC()
         self.assertGreater(

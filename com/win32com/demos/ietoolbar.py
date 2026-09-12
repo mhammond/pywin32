@@ -84,12 +84,10 @@ class WIN32STRUCT:
             if fmt == "z":
                 fmt = "Pi"
                 if val is None:
-                    vals.append(0)
-                    vals.append(0)
+                    vals.extend((0, 0))
                 else:
                     str_buf = array.array("c", val + "\0")
-                    vals.append(str_buf.buffer_info()[0])
-                    vals.append(len(val))
+                    vals.extend((str_buf.buffer_info()[0], len(val)))
                     self._buffs.append(str_buf)  # keep alive during the call.
             else:
                 if val is None:
