@@ -251,7 +251,11 @@ int PyOVERLAPPED::setattro(PyObject *self, PyObject *obname, PyObject *v)
 /*static*/ Py_hash_t PyOVERLAPPED::hashFunc(PyObject *ob)
 {
     // Just use the address.
+#if PY_VERSION_HEX >= 0x03130000
+    return Py_HashPointer(ob);
+#else
     return _Py_HashPointer(ob);
+#endif
 }
 
 /*static*/ void PyOVERLAPPED::deallocFunc(PyObject *ob) { delete (PyOVERLAPPED *)ob; }
