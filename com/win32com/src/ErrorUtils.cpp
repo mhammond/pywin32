@@ -55,6 +55,7 @@ void PyCom_ExcepInfoFromPyException(EXCEPINFO *pExcepInfo)
         else
             pExcepInfo->bstrDescription = SysAllocString(L"memory error allocating exception buffer!");
         pExcepInfo->bstrSource = SysAllocString(L"Python COM Server Internal Error");
+        free(szException);
 
         // Map some well known exceptions to specific HRESULTs
         // Note: v can be NULL. This can happen via PyErr_SetNone().
