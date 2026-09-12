@@ -619,7 +619,7 @@ def GenerateFrozenResource(rc_name, output_name, h_name=None):
     out = open(output_name, "wt")
     out.write("#%s\n" % output_name)
     out.write("#This is a generated file. Please edit %s instead.\n" % rc_name)
-    out.write("__version__=%r\n" % __version__)
+    out.write(f"__version__={__version__!r}\n")
     out.write(
         "_rc_size_=%d\n_rc_mtime_=%d\n"
         % (in_stat[stat.ST_SIZE], in_stat[stat.ST_MTIME])
@@ -631,9 +631,7 @@ def GenerateFrozenResource(rc_name, output_name, h_name=None):
     out.write("\t\tself.idNum = idNum\n")
     out.write("\t\tself.value = value\n")
     out.write("\tdef __repr__(self):\n")
-    out.write(
-        '\t\treturn "StringDef(%r, %r, %r)" % (self.id, self.idNum, self.value)\n'
-    )
+    out.write('\t\treturn f"StringDef({self.id!r}, {self.idNum!r}, {self.value!r})"\n')
 
     out.write("class FakeParser:\n")
 
