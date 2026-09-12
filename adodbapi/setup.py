@@ -1,15 +1,9 @@
-"""adodbapi -- a pure Python PEP 249 DB-API package using Microsoft ADO
+__doc__ = """adodbapi - A pure Python package implementing PEP 249 DB-API using Microsoft ADO."""
 
-Adodbapi can be run on CPython 3.8 and later.
-"""
-
-NAME = "adodbapi"
+NAME, DESCRIPTION = __doc__.split(" - ", 1)
 MAINTAINER = "Vernon Cole"
 MAINTAINER_EMAIL = "vernondcole@gmail.com"
-DESCRIPTION = (
-    """A pure Python package implementing PEP 249 DB-API using Microsoft ADO."""
-)
-URL = "https://sourceforge.net/projects/adodbapi"
+URL = "http://sourceforge.net/projects/adodbapi"
 LICENSE = "LGPL"
 CLASSIFIERS = [
     "Development Status :: 5 - Production/Stable",
@@ -50,7 +44,6 @@ def setup_package():
         description=DESCRIPTION,
         url=URL,
         keywords="database ado odbc dbapi db-api Microsoft SQL",
-        ##        download_url=DOWNLOAD_URL,
         long_description=open("README.txt").read(),
         license=LICENSE,
         classifiers=CLASSIFIERS,
