@@ -221,7 +221,7 @@ class CDispatch:
         # desirable???
 
     def __repr__(self):
-        return "<COMObject %s>" % (self._username_)
+        return f"<COMObject {self._username_}>"
 
     def __str__(self):
         # __str__ is used when the user does "print(object)", so we gracefully
