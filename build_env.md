@@ -3,17 +3,18 @@
 This describes how to setup the build environment for pywin32.
 
 Double check the compiler version you need in the [Python wiki](https://wiki.python.org/moin/WindowsCompilers)
-but note that Python 3.5+ all use version 14.X of the compiler, which,
-confusingly, report themselves as V.19XX (eg, note in Python's banner,
-3.5's "MSC v.1900", even 3.13's "MSC v.1941")
+but note that Python 3.5+ all use version 14.X of the compiler, which, confusingly,
+report themselves as V.19XX (eg, note in Python's banner, 3.5's "MSC v.1900", even 3.13's "MSC v.1941")
 
-This compiler first shipped with Visual Studio 2015, although Visual Studio
-2017, 2019 and 2022 all have this compiler available, just not installed
-by default.
-
-In the Visual Studio Installer:
+This compiler first shipped with Visual Studio 2015, although Visual Studio 2017+
+all have this compiler available, just not installed by default.
 
 ## For Visual Studio 2017
+
+- Install the [Build Tools for Visual Studio 2017](https://my.visualstudio.com/Downloads?q=Build%20Tools%20for%20Visual%20Studio%202017) (Version 15.0)\
+  Public landing page: <https://visualstudio.microsoft.com/vs/older-downloads/#visual-studio-2017-family>\
+
+In the Visual Studio Installer:
 
 Locate the "Desktop development with C++" section:
 
@@ -51,9 +52,8 @@ way to build pywin32 - it's build process should find these tools automatically.
 
 ## For Visual Studio 2019
 
-- Install the [Build Tools for Visual Studio 2019](https://my.visualstudio.com/Downloads?q=Build%20Tools%20for%20Visual%20Studio%202019) (Version 16.0)
-  Public landing page: <https://visualstudio.microsoft.com/vs/older-downloads/#2019-family>
-
+- Install the [Build Tools for Visual Studio 2019](https://my.visualstudio.com/Downloads?q=Build%20Tools%20for%20Visual%20Studio%202019) (Version 16.0)\
+  Public landing page: <https://visualstudio.microsoft.com/vs/older-downloads/#visual-studio-2019-family>\
 - Maybe stop your virus scanner
 - In `Visual Studio Installer`:
   - Select `Visual Studio Build Tools 2019`
@@ -75,10 +75,10 @@ way to build pywin32 - it's build process should find these tools automatically.
 
 ## For Visual Studio 2022
 
-- Install the [Visual Studio 2022](https://visualstudio.microsoft.com/downloads/) (`VisualStudioSetup.exe` ~ 4.22 MB)
-  Note that `17.6` is the last version that supports Windows 8.1. See [Evergreen bootstrappers](https://learn.microsoft.com/en-us/visualstudio/releases/2022/release-history#evergreen-bootstrappers).
-  Direct link for [Build Tools 17.6](https://aka.ms/vs/17/release.ltsc.17.6/vs_buildtools.exe).
-
+- Install the [Build Tools for Visual Studio 2022](https://my.visualstudio.com/Downloads?q=Build%20Tools%20for%20Visual%20Studio%202022) (Version 17.2 [LTSC] or 17.14)\
+  Public landing page: <https://visualstudio.microsoft.com/vs/older-downloads/#visual-studio-2022-family>\
+  Note that `17.6` is the last version that supports Windows 8.1. See [Evergreen bootstrappers](https://learn.microsoft.com/en-us/visualstudio/releases/2022/release-history#evergreen-bootstrappers).\
+  Direct link for [Build Tools 17.6](https://aka.ms/vs/17/release.ltsc.17.6/vs_buildtools.exe).\
 - Maybe stop your virus scanner
 - In `Visual Studio Installer`:
   - Select `Visual Studio Build Tools 2022`
@@ -94,6 +94,28 @@ way to build pywin32 - it's build process should find these tools automatically.
               - `MSVC v143 - VS 2022 C++ ARM64/ARM64EC build tools (Latest)`
               - `C++ MFC for latest v143 build tools (ARM64/ARM64EC)`
               - `C++ ATL for latest v143 build tools (ARM64/ARM64EC)`
+        - Press `Install`
+- Restart your virus scanner
+- Restart
+
+## For Visual Studio 2026
+
+- Install the [Visual Studio 2026](https://visualstudio.microsoft.com/downloads/) (`VisualStudioSetup.exe`)\
+- Maybe stop your virus scanner
+- In `Visual Studio Installer`:
+  - Select `Visual Studio Build Tools 2026`
+    - Press `Modify`
+      - In `Visual Studio Build Tools 2026`
+        - Check `Desktop development with C++`
+          - In the menu to the right, check:
+            - `MSVC v145 - VS 2026 C++ x64/x86 build tools`
+            - `Windows 10 SDK`
+            - `C++ MFC for latest v145 build tools (x86 & x64)`
+            - `C++ ATL for latest v145 build tools`
+        - If building for ARM64 (optional), select the "Individual Components" tab, and search for and select:
+              - `MSVC v145 - VS 2026 C++ ARM64/ARM64EC build tools (Latest)`
+              - `C++ MFC for latest v145 build tools (ARM64/ARM64EC)`
+              - `C++ ATL for latest v145 build tools (ARM64/ARM64EC)`
         - Press `Install`
 - Restart your virus scanner
 - Restart
