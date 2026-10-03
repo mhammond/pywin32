@@ -108,10 +108,10 @@ way to build pywin32 - it's build process should find these tools automatically.
       - In `Visual Studio Build Tools 2026`
         - Check `Desktop development with C++`
           - In the menu to the right, check:
-            - `MSVC v145 - VS 2026 C++ x64/x86 build tools`
-            - `Windows 10 SDK`
-            - `C++ MFC for latest v145 build tools (x86 & x64)`
-            - `C++ ATL for latest v145 build tools`
+            - `MSVC Build Tools fir x64/x86 (Latest)` (checked by default)
+            - `Windows 11 SDK` (checked by default)
+            - `C++ ATL for x64/x86 (Latest MSVC)`
+            - `C++ MFC for x64/x86 (Latest MSVC)`
         - If building for ARM64 (optional), select the "Individual Components" tab, and search for and select:
               - `MSVC v145 - VS 2026 C++ ARM64/ARM64EC build tools (Latest)`
               - `C++ MFC for latest v145 build tools (ARM64/ARM64EC)`
