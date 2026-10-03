@@ -11,6 +11,7 @@ checkers = [ # Keep these in sync with .pre-commit-config.yaml
   "ruff ==0.14.14",
 ]
 type-checkers = [
+  "setuptools >=83.0.0; python_version >= '3.10'", # setuptools/_distutils vendor is py.typed
   "types-setuptools",
   "PyOpenGL",
   "mypy ==1.16.*; python_version >='3.9'",
