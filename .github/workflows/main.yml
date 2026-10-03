@@ -33,12 +33,8 @@ jobs:
           - python-architecture: arm64
             python-version: "3.10"
     env:
-      # TODO: We can't yet run tests with PYTHONDEVMODE=1, let's emulated it as much as we can
       # https://docs.python.org/3/library/devmode.html#effects-of-the-python-development-mode
-      PYTHONMALLOC: debug
-      PYTHONASYNCIODEBUG: 1
-      PYTHONWARNINGS: always
-      # PYTHONFAULTHANDLER: 1 # This causes our tests to fail
+      PYTHONDEVMODE: 1
 
     steps:
       - uses: actions/checkout@v4
