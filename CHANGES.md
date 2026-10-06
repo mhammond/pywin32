@@ -17,6 +17,8 @@ As of build 305, installation .exe files have been deprecated; see
 
 Coming in build 313, as yet unreleased
 --------------------------------------
+
+* Fixed `win32evtlogutil.FeedEventLogRecords`'s `feeder` callback param never being called (mhammond#, [@Avasam][Avasam])
 * Fixed `win32api.GetFullPathName` silently returning an empty string for paths of 260 characters or more (mhammond#2795, [@MohammedAlkindi][MohammedAlkindi])
 * Added `win32api.ToUnicodeEx` wrapper for translating virtual-key codes and keyboard state to Unicode characters (mhammond#2788, [@ravik453][ravik453])
 * Updated `MAPIStubLibrary` vendored sources (mhammond#2764, [@Avasam][Avasam]):
