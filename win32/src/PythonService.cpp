@@ -55,6 +55,29 @@ static void CheckRegisterEventSourceFile();
         ReportError(MSG_IR1, (LPCTSTR *)lpszStrings, EVENTLOG_INFORMATION_TYPE); \
     }
 
+// Like Py_Initialize, but also sets the program name.
+// (Replaces the deprecated Py_SetProgramName)
+static void PyService_InitializeWithProgramName(const wchar_t *program_name)
+{
+    // Like Py_Initialize, do nothing if already initialized (eg: by pythonservice.exe).
+    // Py_InitializeFromConfig would instead re-apply the configuration, resetting sys.argv.
+    if (Py_IsInitialized())
+        return;
+    PyConfig config;
+    PyConfig_InitPythonConfig(&config);
+    // Match Py_Initialize's legacy configuration
+    config.configure_c_stdio = 0;
+    config.parse_argv = 0;
+    PyStatus status = PyStatus_Ok();
+    if (program_name != NULL)
+        status = PyConfig_SetString(&config, &config.program_name, program_name);
+    if (!PyStatus_Exception(status))
+        status = Py_InitializeFromConfig(&config);
+    PyConfig_Clear(&config);
+    if (PyStatus_Exception(status))
+        Py_ExitStatusException(status);
+}
+
 #ifdef PYSERVICE_BUILD_DLL  // The bulk of this file is only used when building the core DLL.
 
 #define MAX_SERVICES 10
@@ -553,29 +576,6 @@ static char *NarrowString(WCHAR *s)
     if (ret)
         WideCharToMultiByte(CP_ACP, 0, s, -1, ret, cchNarrow, NULL, NULL);
     return ret;
-}
-
-// Like Py_Initialize, but also sets the program name.
-// (Replaces the deprecated Py_SetProgramName)
-static void PyService_InitializeWithProgramName(const wchar_t *program_name)
-{
-    // Like Py_Initialize, do nothing if already initialized (eg: by pythonservice.exe).
-    // Py_InitializeFromConfig would instead re-apply the configuration, resetting sys.argv.
-    if (Py_IsInitialized())
-        return;
-    PyConfig config;
-    PyConfig_InitPythonConfig(&config);
-    // Match Py_Initialize's legacy configuration
-    config.configure_c_stdio = 0;
-    config.parse_argv = 0;
-    PyStatus status = PyStatus_Ok();
-    if (program_name != NULL)
-        status = PyConfig_SetString(&config, &config.program_name, program_name);
-    if (!PyStatus_Exception(status))
-        status = Py_InitializeFromConfig(&config);
-    PyConfig_Clear(&config);
-    if (PyStatus_Exception(status))
-        Py_ExitStatusException(status);
 }
 
 // Couple of helpers for the service manager
