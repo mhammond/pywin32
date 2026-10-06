@@ -584,8 +584,8 @@ static void PyService_InitPython()
     // isn't ideal, but has been this way for a few builds, and a good
     // fix isn't clear - should 'servicename' be presented in argv, even
     // though it never is when running as a real service?
-    if (pyargv)
-        PySys_SetArgv(pyargc, pyargv);
+    if (pyargv && !PyWinSys_SetArgv(pyargc, pyargv))
+        PyErr_Print();
     PyInit_servicemanager();
     LocalFree(pyargv);
 }
