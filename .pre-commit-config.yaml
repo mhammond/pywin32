@@ -3,11 +3,14 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
     hooks:
+      # Trailing whitespace and line endings are significant in patch files
       - id: trailing-whitespace
         args: [--markdown-linebreak-ext=md]
-      - id: end-of-file-fixer
+        exclude: (\.(diff|patch)|(^|/)Copyright)$
       - id: mixed-line-ending
         args: [--fix=crlf]
+        exclude: (\.(diff|patch)|(^|/)Copyright)$
+      - id: end-of-file-fixer
       - id: check-case-conflict
   - repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
     rev: v2.14.0
@@ -19,19 +22,42 @@ repos:
         args: [--autofix, --indent, "2", --offset, "2", --preserve-quotes]
       - id: pretty-format-ini
         args: [--autofix]
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.16.0
+  # Run tools from the project's dependency-groups, so versions are not duplicated here
+  - repo: local
     hooks:
-      - id: ruff # Run the linter.
-        args: [--fix]
+      - id: install-checkers
+        name: install-checkers
+        entry: |
+          python -c "
+          import shutil, subprocess, sys
+          cmd = [shutil.which('uv'), 'pip'] if shutil.which('uv') else [sys.executable, '-m', 'pip']
+          subprocess.run([*cmd, 'install', '--group', 'checkers', '-U'], check=True)
+          "
+        language: system
+        pass_filenames: false
+        require_serial: true
+      - id: ruff
+        name: ruff
+        entry: ruff check --force-exclude --fix
+        language: system
+        types_or: [python, pyi]
+        require_serial: true
       - id: ruff-ANN2
-        args: [--fix, --unsafe-fixes, --exit-zero, --select=ANN2, --ignore=ANN202]
         name: ruff autofixable return type annotations
+        entry: ruff check --force-exclude --fix --unsafe-fixes --exit-zero --select=ANN2 --ignore=ANN202
+        language: system
+        types_or: [python, pyi]
+        require_serial: true
       - id: ruff-format
-  - repo: https://github.com/pre-commit/mirrors-clang-format
-    rev: v18.1.8
-    hooks:
+        name: ruff format
+        entry: ruff format
+        language: system
+        pass_filenames: false
+        require_serial: true
       - id: clang-format
+        name: clang-format
+        entry: clang-format -i
+        language: system
         # Supports a lot more filetypes, but only tagging those we use
         # https://github.com/pre-commit/mirrors-clang-format/blob/main/.pre-commit-hooks.yaml#L6
         types: [c++]

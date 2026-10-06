@@ -6,9 +6,9 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [dependency-groups]
-checkers = [ # Keep these in sync with .pre-commit-config.yaml
-  "clang-format ==18.1.8",
-  "ruff ==0.16.0",
+checkers = [ # Also used by .pre-commit-config.yaml
+  "clang-format ==18.1.*",
+  "ruff ==0.16.*",
 ]
 type-checkers = [
   "setuptools >=83.0.0; python_version >= '3.10'", # setuptools/_distutils vendor is py.typed
