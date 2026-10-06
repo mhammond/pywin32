@@ -205,15 +205,27 @@ WORD *CDDEStringItem::GetFormatList()
 
 BOOL CDDEStringItem::Request(UINT wFmt, CDDEAllocator &allocr)
 {
-    ASSERT(wFmt == CF_TEXT);
+    if (!IsSupportedFormat(wFmt))
+        return FALSE;
+    // The allocator converts to the requested format
     return allocr.Alloc(m_strData);
 }
 
 BOOL CDDEStringItem::Poke(UINT wFmt, void *pData, DWORD dwSize)
 {
-    ASSERT(wFmt == CF_TEXT);
     ASSERT(pData);
-    m_strData = (TCHAR *)pData;
+    // The data may not be null-terminated, so never read past dwSize
+    if (wFmt == CF_TEXT) {
+        const char *psz = (const char *)pData;
+        m_strData = CString(psz, (int)strnlen(psz, dwSize));
+    }
+    else if (wFmt == CF_UNICODETEXT) {
+        const wchar_t *psz = (const wchar_t *)pData;
+        m_strData = CString(psz, (int)wcsnlen(psz, dwSize / sizeof(wchar_t)));
+    }
+    else {
+        return FALSE;
+    }
     OnPoke();
     return TRUE;
 }

@@ -53,15 +53,13 @@ class CDDEAllocator {
     }
     BOOL Alloc(CString &cs)
     {
-        LPBYTE p = (LPBYTE)(const TCHAR *)cs;
-        DWORD cb = (cs.GetLength() + 1) * sizeof(TCHAR);
-
         if (m_wFmt == CF_TEXT) {
-            p = (LPBYTE)(const char *)CT2CA(cs);
-            cb = (cs.GetLength() + 1) * sizeof(const char);
+            // The converted buffer must outlive the copy made by DdeCreateDataHandle,
+            // and its length can differ from cs's in multibyte code pages.
+            CT2CA ansi(cs);
+            return Alloc((LPBYTE)(const char *)ansi, (DWORD)strlen(ansi) + 1);
         }
-
-        return Alloc(p, cb);
+        return Alloc((LPBYTE)(const TCHAR *)cs, (cs.GetLength() + 1) * sizeof(TCHAR));
     }
     BOOL Alloc(LPBYTE p, DWORD cb)
     {
