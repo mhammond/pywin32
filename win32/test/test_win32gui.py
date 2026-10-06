@@ -6,6 +6,7 @@ import unittest
 
 import pywintypes
 import win32api
+import win32con
 import win32gui
 
 
@@ -182,6 +183,35 @@ class TestWindowProperties(unittest.TestCase):
         wnd = win32gui.GetDesktopWindow()
         for func in self.class_functions:
             self.assertTrue(func(wnd))
+
+
+class TestMessageFunctions(unittest.TestCase):
+    # GetMessage and PeekMessage each return the API's status code alongside
+    # the MSG tuple, not the MSG tuple on its own.
+
+    def setUp(self):
+        # Force this thread's message queue to exist so PostThreadMessage
+        # can't fail with ERROR_INVALID_THREAD_ID, and start from empty.
+        while win32gui.PeekMessage(0, 0, 0, win32con.PM_REMOVE)[0]:
+            pass
+
+    def test_peekmessage(self):
+        win32api.PostThreadMessage(
+            win32api.GetCurrentThreadId(), win32con.WM_USER, 1, 2
+        )
+        rc, msg = win32gui.PeekMessage(0, 0, 0, win32con.PM_REMOVE)
+        self.assertEqual(rc, 1)
+        self.assertEqual(msg[1:4], (win32con.WM_USER, 1, 2))
+
+    def test_getmessage(self):
+        win32api.PostThreadMessage(
+            win32api.GetCurrentThreadId(), win32con.WM_USER, 3, 4
+        )
+        # Never block: only call GetMessage once something is queued.
+        self.assertTrue(win32gui.PeekMessage(0, 0, 0, win32con.PM_NOREMOVE)[0])
+        rc, msg = win32gui.GetMessage(0, 0, 0)
+        self.assertEqual(rc, 1)
+        self.assertEqual(msg[1:4], (win32con.WM_USER, 3, 4))
 
 
 if __name__ == "__main__":
