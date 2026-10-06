@@ -3,17 +3,18 @@
 This describes how to setup the build environment for pywin32.
 
 Double check the compiler version you need in the [Python wiki](https://wiki.python.org/moin/WindowsCompilers)
-but note that Python 3.5+ all use version 14.X of the compiler, which,
-confusingly, report themselves as V.19XX (eg, note in Python's banner,
-3.5's "MSC v.1900", even 3.13's "MSC v.1941")
+but note that Python 3.5+ all use version 14.X of the compiler, which, confusingly,
+report themselves as V.19XX (eg, note in Python's banner, 3.5's "MSC v.1900", even 3.13's "MSC v.1941")
 
-This compiler first shipped with Visual Studio 2015, although Visual Studio
-2017, 2019 and 2022 all have this compiler available, just not installed
-by default.
-
-In the Visual Studio Installer:
+This compiler first shipped with Visual Studio 2015, although Visual Studio 2017+
+all have this compiler available, just not installed by default.
 
 ## For Visual Studio 2017
+
+- Install the [Build Tools for Visual Studio 2017](https://my.visualstudio.com/Downloads?q=Build%20Tools%20for%20Visual%20Studio%202017) (Version 15.0)\
+  Public landing page: <https://visualstudio.microsoft.com/vs/older-downloads/#visual-studio-2017-family>\
+
+In the Visual Studio Installer:
 
 Locate the "Desktop development with C++" section:
 
@@ -51,9 +52,8 @@ way to build pywin32 - it's build process should find these tools automatically.
 
 ## For Visual Studio 2019
 
-- Install the [Build Tools for Visual Studio 2019](https://my.visualstudio.com/Downloads?q=Build%20Tools%20for%20Visual%20Studio%202019) (Version 16.0)
-  Public landing page: <https://visualstudio.microsoft.com/vs/older-downloads/#2019-family>
-
+- Install the [Build Tools for Visual Studio 2019](https://my.visualstudio.com/Downloads?q=Build%20Tools%20for%20Visual%20Studio%202019) (Version 16.0)\
+  Public landing page: <https://visualstudio.microsoft.com/vs/older-downloads/#visual-studio-2019-family>\
 - Maybe stop your virus scanner
 - In `Visual Studio Installer`:
   - Select `Visual Studio Build Tools 2019`
@@ -75,10 +75,10 @@ way to build pywin32 - it's build process should find these tools automatically.
 
 ## For Visual Studio 2022
 
-- Install the [Visual Studio 2022](https://visualstudio.microsoft.com/downloads/) (`VisualStudioSetup.exe` ~ 4.22 MB)
-  Note that `17.6` is the last version that supports Windows 8.1. See [Evergreen bootstrappers](https://learn.microsoft.com/en-us/visualstudio/releases/2022/release-history#evergreen-bootstrappers).
-  Direct link for [Build Tools 17.6](https://aka.ms/vs/17/release.ltsc.17.6/vs_buildtools.exe).
-
+- Install the [Build Tools for Visual Studio 2022](https://my.visualstudio.com/Downloads?q=Build%20Tools%20for%20Visual%20Studio%202022) (Version 17.2 [LTSC] or 17.14)\
+  Public landing page: <https://visualstudio.microsoft.com/vs/older-downloads/#visual-studio-2022-family>\
+  Note that `17.6` is the last version that supports Windows 8.1. See [Evergreen bootstrappers](https://learn.microsoft.com/en-us/visualstudio/releases/2022/release-history#evergreen-bootstrappers).\
+  Direct link for [Build Tools 17.6](https://aka.ms/vs/17/release.ltsc.17.6/vs_buildtools.exe).\
 - Maybe stop your virus scanner
 - In `Visual Studio Installer`:
   - Select `Visual Studio Build Tools 2022`
@@ -94,6 +94,28 @@ way to build pywin32 - it's build process should find these tools automatically.
               - `MSVC v143 - VS 2022 C++ ARM64/ARM64EC build tools (Latest)`
               - `C++ MFC for latest v143 build tools (ARM64/ARM64EC)`
               - `C++ ATL for latest v143 build tools (ARM64/ARM64EC)`
+        - Press `Install`
+- Restart your virus scanner
+- Restart
+
+## For Visual Studio 2026
+
+- Install the [Visual Studio 2026](https://visualstudio.microsoft.com/downloads/) (`VisualStudioSetup.exe`)\
+- Maybe stop your virus scanner
+- In `Visual Studio Installer`:
+  - Select `Visual Studio Build Tools 2026`
+    - Press `Modify`
+      - In `Visual Studio Build Tools 2026`
+        - Check `Desktop development with C++`
+          - In the menu to the right, check:
+            - `MSVC Build Tools fir x64/x86 (Latest)` (checked by default)
+            - `Windows 11 SDK` (checked by default)
+            - `C++ ATL for x64/x86 (Latest MSVC)`
+            - `C++ MFC for x64/x86 (Latest MSVC)`
+        - If building for ARM64 (optional), select the "Individual Components" tab, and search for and select:
+              - `MSVC v145 - VS 2026 C++ ARM64/ARM64EC build tools (Latest)`
+              - `C++ MFC for latest v145 build tools (ARM64/ARM64EC)`
+              - `C++ ATL for latest v145 build tools (ARM64/ARM64EC)`
         - Press `Install`
 - Restart your virus scanner
 - Restart
@@ -145,23 +167,19 @@ configuration, please [open an issue](https://github.com/mhammond/pywin32/issues
     python .github\workflows\download-arm64-libs.py ./arm64libs
     ```
 
-- Setup the cross-compilation environment:
+- Optional: by default, `setuptools` finds the latest Visual Studio install and sets up the ARM64 cross-compilation environment itself. To use a specific install or toolset instead, set up the environment yourself, and tell `setuptools` to use it as is:
 
     ```shell
     "C:\Program Files (x86)\Microsoft Visual Studio\XXXX\BuildTools\vc\Auxiliary\Build\vcvarsall.bat" x86_arm64
-    ```
-
-- Set the following environment variables to ensure it is used by `setuptools`:
-
-    ```shell
     set DISTUTILS_USE_SDK=1
     ```
 
-- Build the extensions, passing the directory from earlier. You may optionally add the `bdist_wheel` command to generate a wheel.
-  - If you are not using an initialized build environment, you will need to specify the `build_ext`, `build` and `bdist_wheel` commands and pass `--plat-name win-arm64` to *each* of them separately. Otherwise you may get a mixed platform build and/or linker errors.
+  Both are needed. Without `DISTUTILS_USE_SDK`, `setuptools` ignores this environment and runs `vcvarsall.bat` on its own.
+
+- Build the wheel, passing the directory from earlier. Pass `--plat-name=win-arm64` to *each* of the `build_ext`, `build` and `bdist_wheel` commands. Otherwise you may get a mixed platform build and/or linker errors.
 
     ```shell
-    python -m build --wheel --config-setting=--build-option="build_ext -L./arm64libs --plat-name=win-arm64 bdist_wheel --plat-name=win-arm64"
+    python -m build --wheel --config-setting=--build-option="build_ext -L./arm64libs --plat-name=win-arm64 build --plat-name=win-arm64 bdist_wheel --plat-name=win-arm64"
     ```
 
 - Copy the built wheel to the target machine and install directly:
