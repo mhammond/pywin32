@@ -17,6 +17,8 @@ As of build 305, installation .exe files have been deprecated; see
 
 Coming in build 313, as yet unreleased
 --------------------------------------
+
+* Fixed `dde` servers returning garbage for `CF_TEXT` requests (string items and the system topic's `Topics`, `SysItems` and `Formats` items), and string items misreading `CF_TEXT` pokes as wide strings (mhammond#2431, [@Avasam][Avasam])
 * Fixed `Pythonwin.exe` silently exiting with code 1 when started without a console and with `PYTHONFAULTHANDLER` or `PYTHONDEVMODE` set (mhammond#2504, [@Avasam][Avasam])
 * Fixed `win32api.GetFullPathName` silently returning an empty string for paths of 260 characters or more (mhammond#2795, [@MohammedAlkindi][MohammedAlkindi])
 * Added `win32api.ToUnicodeEx` wrapper for translating virtual-key codes and keyboard state to Unicode characters (mhammond#2788, [@ravik453][ravik453])
