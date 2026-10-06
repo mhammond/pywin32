@@ -54,7 +54,11 @@ def LocatePythonServiceExe(exe=None):
         # Handle case where MoveFile() fails. Particularly if destination file
         # has a resource lock and can't be replaced by src file
         try:
-            win32api.MoveFileEx(maybe, correct, win32con.MOVEFILE_REPLACE_EXISTING)
+            win32api.MoveFileEx(
+                maybe,
+                correct,
+                win32con.MOVEFILE_REPLACE_EXISTING | win32con.MOVEFILE_COPY_ALLOWED,
+            )
         except win32api.error as exc:
             print(f"Failed to move host exe '{exc}'")
 

@@ -202,9 +202,12 @@ PyObject *PyHFC::WriteClient(PyObject *self, PyObject *args)
 
     if (phfc->m_pfc) {
         HTTP_FILTER_CONTEXT *fc = phfc->m_pfc->m_pHFC;
-        Py_BEGIN_ALLOW_THREADS DWORD dwBufLen = Py_SAFE_DOWNCAST(buffLen, Py_ssize_t, DWORD);
-        bRes = fc->WriteClient(fc, (void *)buffer, &dwBufLen, reserved);
-        Py_END_ALLOW_THREADS if (!bRes) return SetPyHFCError("WriteClient");
+        Py_BEGIN_ALLOW_THREADS
+            DWORD dwBufLen = Py_SAFE_DOWNCAST(buffLen, Py_ssize_t, DWORD);
+            bRes = fc->WriteClient(fc, (void *)buffer, &dwBufLen, reserved);
+        Py_END_ALLOW_THREADS
+        if (!bRes)
+            return SetPyHFCError("WriteClient");
     }
 
     Py_INCREF(Py_None);
@@ -225,8 +228,11 @@ PyObject *PyHFC::AddResponseHeaders(PyObject *self, PyObject *args)
         return NULL;
 
     if (phfc->m_pfc) {
-        Py_BEGIN_ALLOW_THREADS bRes = phfc->m_pfc->AddResponseHeaders(buffer, reserved);
-        Py_END_ALLOW_THREADS if (!bRes) return SetPyHFCError("AddResponseHeaders");
+        Py_BEGIN_ALLOW_THREADS
+            bRes = phfc->m_pfc->AddResponseHeaders(buffer, reserved);
+        Py_END_ALLOW_THREADS
+        if (!bRes)
+            return SetPyHFCError("AddResponseHeaders");
     }
 
     Py_INCREF(Py_None);
@@ -312,7 +318,9 @@ PyObject *PyHFC::SendResponseHeader(PyObject *self, PyObject *args)
         // but docs clearly have second as unused.  Either way, I can't see the
         // specific header!
         bRes = phfc->m_pfc->ServerSupportFunction(SF_REQ_SEND_RESPONSE_HEADER, status, (DWORD)header, 0);
-    Py_END_ALLOW_THREADS if (!bRes) return SetPyHFCError("SendResponseHeader");
+    Py_END_ALLOW_THREADS
+    if (!bRes)
+        return SetPyHFCError("SendResponseHeader");
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -329,8 +337,11 @@ PyObject *PyHFC::DisableNotifications(PyObject *self, PyObject *args)
 
     if (!phfc->m_pfc)
         return PyErr_Format(PyExc_RuntimeError, "No filtercontext!");
-    Py_BEGIN_ALLOW_THREADS bRes = phfc->m_pfc->ServerSupportFunction(SF_REQ_DISABLE_NOTIFICATIONS, 0, flags, 0);
-    Py_END_ALLOW_THREADS if (!bRes) return SetPyHFCError("DisableNotifications");
+    Py_BEGIN_ALLOW_THREADS
+        bRes = phfc->m_pfc->ServerSupportFunction(SF_REQ_DISABLE_NOTIFICATIONS, 0, flags, 0);
+    Py_END_ALLOW_THREADS
+    if (!bRes)
+        return SetPyHFCError("DisableNotifications");
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -604,9 +615,10 @@ PyObject *PyPREPROC_HEADERS_GetHeader(PyObject *self, PyObject *args)
     HTTP_FILTER_CONTEXT *pfc = ((PyPREPROC_HEADERS *)self)->GetFILTER_CONTEXT();
     if (!pp || !pfc)
         return NULL;
-    Py_BEGIN_ALLOW_THREADS ok = pp->GetHeader(pfc, name, buffer, &bufSize);
-    Py_END_ALLOW_THREADS if (!ok || bufSize == 0)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        ok = pp->GetHeader(pfc, name, buffer, &bufSize);
+    Py_END_ALLOW_THREADS
+    if (!ok || bufSize == 0) {
         if (def == NULL)
             return SetPyHFCError("GetHeader");
         Py_INCREF(def);
@@ -628,8 +640,11 @@ PyObject *PyPREPROC_HEADERS_SetHeader(PyObject *self, PyObject *args)
     // @pyparm string|val||
     if (!PyArg_ParseTuple(args, "ss:SetHeader", &name, &val))
         return NULL;
-    Py_BEGIN_ALLOW_THREADS ok = pp->SetHeader(pfc, name, val);
-    Py_END_ALLOW_THREADS if (!ok) return SetPyHFCError("SetHeader");
+    Py_BEGIN_ALLOW_THREADS
+        ok = pp->SetHeader(pfc, name, val);
+    Py_END_ALLOW_THREADS
+    if (!ok)
+        return SetPyHFCError("SetHeader");
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -645,8 +660,11 @@ PyObject *PyPREPROC_HEADERS_AddHeader(PyObject *self, PyObject *args)
         return NULL;
     if (!PyArg_ParseTuple(args, "ss:AddHeader", &name, &val))
         return NULL;
-    Py_BEGIN_ALLOW_THREADS ok = pp->AddHeader(pfc, name, val);
-    Py_END_ALLOW_THREADS if (!ok) return SetPyHFCError("AddHeader");
+    Py_BEGIN_ALLOW_THREADS
+        ok = pp->AddHeader(pfc, name, val);
+    Py_END_ALLOW_THREADS
+    if (!ok)
+        return SetPyHFCError("AddHeader");
     Py_INCREF(Py_None);
     return Py_None;
 }
