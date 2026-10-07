@@ -187,14 +187,13 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
     def HookHandlers(self):
         # Create events for all the menu names.
         for name, val in event_commands:
-            # 			handler = lambda id, code, tosend=val, parent=parent: parent.OnCommand(tosend, 0) and 0
+            # handler = lambda id, code, tosend=val, parent=parent: parent.OnCommand(tosend, 0) and 0
             self.bindings.bind(name, None, cid=val)
 
         # Hook commands that do nothing other than send Scintilla messages.
         for command, reflection in command_reflectors:
-            handler = (
-                lambda id, code, ss=self.SendScintilla, tosend=reflection: ss(tosend)
-                and 0
+            handler = lambda id, code, ss=self.SendScintilla, tosend=reflection: (
+                ss(tosend) and 0
             )
             self.HookCommand(handler, command)
 

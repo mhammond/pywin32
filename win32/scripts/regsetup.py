@@ -1,11 +1,10 @@
-# A tool to setup the Python registry.
+"""A tool to setup the Python registry."""
+
+import sys
 
 
 class error(Exception):
     pass
-
-
-import sys  # at least we can count on this!
 
 
 def FileExists(fname):
@@ -158,7 +157,6 @@ def FindPythonExe(exeAlias, possibleRealNames, searchPaths):
 
 def QuotedFileName(fname):
     """Given a filename, return a quoted version if necessary"""
-
     try:
         fname.index(" ")  # Other chars forcing quote?
         return '"%s"' % fname
@@ -514,7 +512,7 @@ for that module.
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] in ["/?", "-?", "-help", "-h"]:
         print(usage)
-    elif len(sys.argv) == 1 or not sys.argv[1][0] in ["/", "-"]:
+    elif len(sys.argv) == 1 or sys.argv[1][0] not in ["/", "-"]:
         # No args, or useful args.
         searchPath = sys.path[:]
         for arg in sys.argv[1:]:
