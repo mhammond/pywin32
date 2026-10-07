@@ -143,7 +143,7 @@ class WinExt(Extension):
         libraries.extend(self.delay_load_libraries)
 
         extra_link_args = extra_link_args or []
-        if export_symbol_file:
+        if export_symbol_file and not is_mingw:
             extra_link_args.append("/DEF:" + export_symbol_file)
 
         define_macros = define_macros or []
@@ -163,6 +163,18 @@ class WinExt(Extension):
                 ("_UNICODE", None),
             )
         )
+
+        # MinGW doesn't define these.
+        if is_mingw:
+            # Required for PyExc_WindowsError in pyerrors.h
+            define_macros.append(("MS_WINDOWS", None))
+            # Extra compile args (mapi, pythoncom & win32ui)
+            if "AMD64" in sys.version:
+                define_macros.extend((("_M_X64", None), ("_AMD64_", None)))
+            elif "ARM64" in sys.version:
+                define_macros.extend((("_M_ARM64", None), ("_ARM64_", None)))
+            else:
+                define_macros.extend((("_M_IX86", None), ("_X86_", None)))
         self.optional_headers = optional_headers
         self.is_regular_dll = is_regular_dll
         self.implib_name = implib_name
@@ -211,6 +223,22 @@ class WinExt(Extension):
                 implib = os.path.join(build_ext.build_temp, self.implib_name)
                 suffix = "_d" if build_ext.debug else ""
                 self.extra_link_args.append(f"/IMPLIB:{implib}{suffix}.lib")
+        else:
+            # Set our C++ standard
+            self.extra_compile_args.append("-std=c++17")
+            # More lenient about non-standard C++ code as this project was based on MSVC
+            self.extra_compile_args.append("-fpermissive")
+            # Enables MS-specific syntax and MS-specific idioms: namely anonymous structs/unions which C++ lacks
+            self.extra_compile_args.append("-fms-extensions")
+
+            # If someone needs a specially named implib created, handle that.
+            if self.implib_name:
+                implib = os.path.join(build_ext.build_temp, self.implib_name)
+                suffix = "_d" if build_ext.debug else ""
+                # We always use a .lib extension (even on MinGW, where ld accepts
+                # any name) so the import libraries match the names expected by
+                # clib_files below and the #pragma comment(lib, ...) directives.
+                self.extra_link_args.append(f"-Wl,--out-implib,{implib}{suffix}.lib")
 
     @abstractmethod
     def get_pywin32_dir(self) -> str:
@@ -492,7 +520,7 @@ class my_build_ext(build_ext):
 
         self.found_libraries = {}
 
-        if hasattr(self.compiler, "initialize") and not self.compiler.initialized:
+        if isinstance(self.compiler, MSVCCompiler) and not self.compiler.initialized:
             self.compiler.initialize()
 
         # XXX this distutils class var peek hack should become obsolete
@@ -678,36 +706,6 @@ class my_build_ext(build_ext):
         try:
             build_ext.build_extension(self, ext)
             self._verstamp(self.get_ext_fullpath(ext.name))
-            # Convincing distutils to create .lib files with the name we
-            # need is difficult, so we just hack around it by copying from
-            # the created name to the name we need.
-            extra = "_d.lib" if self.debug else ".lib"
-            if ext.name in ("pywintypes", "pythoncom"):
-                # The import libraries are created as PyWinTypes23.lib, but
-                # are expected to be pywintypes.lib.
-                created = "%s%d%d%s" % (
-                    ext.name,
-                    sys.version_info.major,
-                    sys.version_info.minor,
-                    extra,
-                )
-                needed = f"{ext.name}{extra}"
-            elif ext.name in ("win32ui",):
-                # This one just needs a copy.
-                created = needed = ext.name + extra
-            else:
-                created = needed = None
-            if created is not None:
-                # To keep us on our toes, MSVCCompiler constructs the .lib files
-                # in the same directory as the first source file's object file:
-                #    os.path.dirname(objects[0])
-                # rather than in the self.build_temp directory
-                src = os.path.join(
-                    old_build_temp, os.path.dirname(ext.sources[0]), created
-                )
-                dst = os.path.join(old_build_temp, needed)
-                if os.path.abspath(src) != os.path.abspath(dst):
-                    self.copy_file(src, dst)
         finally:
             self.build_temp = old_build_temp
 
@@ -1219,6 +1217,7 @@ pywintypes = WinExt_system32(
     ],
     define_macros=[("BUILD_PYWINTYPES", None)],
     libraries="advapi32 user32 ole32 oleaut32",
+    implib_name="pywintypes",
 )
 
 win32_extensions: list[WinExt] = [pywintypes]
@@ -1503,6 +1502,7 @@ pythoncom = WinExt_system32(
     libraries="oleaut32 ole32 user32 urlmon oleacc",
     export_symbol_file="com/win32com/src/PythonCOM.def",
     define_macros=[("BUILD_PYTHONCOM", None)],
+    implib_name="pythoncom",
 )
 com_extensions = [
     pythoncom,
@@ -1970,6 +1970,7 @@ pythonwin_extensions = [
             "pythonwin/win32win.h",
         ],
         optional_headers=["afxwin.h"],
+        implib_name="win32ui",
     ),
     WinExt_pythonwin(
         "win32uiole",
