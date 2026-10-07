@@ -6,10 +6,8 @@ Adodbapi can be run on CPython 3.8 and later.
 NAME = "adodbapi"
 MAINTAINER = "Vernon Cole"
 MAINTAINER_EMAIL = "vernondcole@gmail.com"
-DESCRIPTION = (
-    """A pure Python package implementing PEP 249 DB-API using Microsoft ADO."""
-)
-URL = "https://sourceforge.net/projects/adodbapi"
+DESCRIPTION = "A pure Python package implementing PEP 249 DB-API using Microsoft ADO."
+URL = "http://sourceforge.net/projects/adodbapi"
 LICENSE = "LGPL"
 CLASSIFIERS = [
     "Development Status :: 5 - Production/Stable",
