@@ -41,6 +41,9 @@ while 1:
     if err == 0:
         break
 
+assert sspiclient.ctxt
+assert sspiserver.ctxt
+
 # The server can now impersonate the client.  In this demo the 2 users will
 # always be the same.
 sspiserver.ctxt.ImpersonateSecurityContext()
