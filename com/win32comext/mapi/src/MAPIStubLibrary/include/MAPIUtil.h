@@ -489,16 +489,16 @@ STDMETHODIMP OpenStreamOnFile(
 	LPALLOCATEBUFFER	lpAllocateBuffer,
 	LPFREEBUFFER		lpFreeBuffer,
 	ULONG				ulFlags,
-	__in LPCTSTR		lpszFileName,
-	__in_opt LPCTSTR	lpszPrefix,
+	_In_ LPCTSTR		lpszFileName,
+	_In_opt_ LPCTSTR	lpszPrefix,
 	LPSTREAM FAR *		lppStream);
 
 typedef HRESULT (STDMETHODCALLTYPE FAR * LPOPENSTREAMONFILE) (
 	LPALLOCATEBUFFER	lpAllocateBuffer,
 	LPFREEBUFFER		lpFreeBuffer,
 	ULONG				ulFlags,
-	__in LPCTSTR		lpszFileName,
-	__in_opt LPCTSTR	lpszPrefix,
+	_In_ LPCTSTR		lpszFileName,
+	_In_opt_ LPCTSTR	lpszPrefix,
 	LPSTREAM FAR *		lppStream);
 
 #if defined(_WIN64) || defined(_WIN32) || defined(_M_ARM)
@@ -739,16 +739,16 @@ STDAPI					HrValidateIPMSubtree(LPMDB lpMDB, ULONG ulFlags,
 
 /* Encoding and decoding strings */
 
-STDAPI_(BOOL)			FBinFromHex(__in LPTSTR lpsz, LPBYTE lpb);
-STDAPI_(SCODE)			ScBinFromHexBounded(__in LPTSTR lpsz, LPBYTE lpb, ULONG cb);
-STDAPI_(void)			HexFromBin(LPBYTE lpb, int cb, __in LPTSTR lpsz);
+STDAPI_(BOOL)			FBinFromHex(_In_ LPTSTR lpsz, LPBYTE lpb);
+STDAPI_(SCODE)			ScBinFromHexBounded(_In_ LPTSTR lpsz, LPBYTE lpb, ULONG cb);
+STDAPI_(void)			HexFromBin(LPBYTE lpb, int cb, _In_ LPTSTR lpsz);
 STDAPI_(ULONG)			UlFromSzHex(LPCTSTR lpsz);
 
 /* Encoding and decoding entry IDs */
-STDAPI					HrEntryIDFromSz(__in LPTSTR lpsz, ULONG FAR *lpcb,
+STDAPI					HrEntryIDFromSz(_In_ LPTSTR lpsz, ULONG FAR *lpcb,
 						LPENTRYID FAR *lppEntryID);
 STDAPI					HrSzFromEntryID(ULONG cb, LPENTRYID lpEntryID,
-						__in LPTSTR FAR *lpsz);
+						_In_ LPTSTR FAR *lpsz);
 STDAPI					HrComposeEID(LPMAPISESSION lpSession,
 						ULONG cbStoreRecordKey, LPBYTE lpStoreRecordKey,
 						ULONG cbMsgEntryID, LPENTRYID lpMsgEntryID,
@@ -762,9 +762,9 @@ STDAPI					HrDecomposeEID(LPMAPISESSION lpSession,
 STDAPI					HrComposeMsgID(LPMAPISESSION lpSession,
 						ULONG cbStoreSearchKey, LPBYTE pStoreSearchKey,
 						ULONG cbMsgEntryID, LPENTRYID lpMsgEntryID,
-						__in LPTSTR FAR *lpszMsgID);
+						_In_ LPTSTR FAR *lpszMsgID);
 STDAPI					HrDecomposeMsgID(LPMAPISESSION lpSession,
-						__in LPTSTR lpszMsgID,
+						_In_ LPTSTR lpszMsgID,
 						ULONG FAR *lpcbStoreEntryID,
 						LPENTRYID FAR *lppStoreEntryID,
 						ULONG FAR *lppcbMsgEntryID,
@@ -778,9 +778,9 @@ STDAPI_(LPTSTR)			SzFindLastCh(LPCTSTR lpsz, USHORT ch);	/* strrchr */
 STDAPI_(LPTSTR)			SzFindSz(LPCTSTR lpsz, LPCTSTR lpszKey); /*strstr */
 STDAPI_(unsigned int)	UFromSz(LPCTSTR lpsz);					/* atoi */
 
-STDAPI_(SCODE)			ScUNCFromLocalPath(__in LPSTR lpszLocal, __in LPSTR lpszUNC,
+STDAPI_(SCODE)			ScUNCFromLocalPath(_In_ LPSTR lpszLocal, _In_ LPSTR lpszUNC,
 						UINT cchUNC);
-STDAPI_(SCODE)			ScLocalPathFromUNC(__in LPSTR lpszUNC, __in LPSTR lpszLocal,
+STDAPI_(SCODE)			ScLocalPathFromUNC(_In_ LPSTR lpszUNC, _In_ LPSTR lpszLocal,
 						UINT cchLocal);
 
 /* 64-bit arithmetic with times */
@@ -800,7 +800,7 @@ STDAPI_(SCODE)			ScCreateConversationIndex (ULONG cbParent,
 
 /* Store support */
 
-STDAPI WrapStoreEntryID (ULONG ulFlags, __in LPTSTR lpszDLLName, ULONG cbOrigEntry,
+STDAPI WrapStoreEntryID (ULONG ulFlags, _In_ LPTSTR lpszDLLName, ULONG cbOrigEntry,
 	LPENTRYID lpOrigEntry, ULONG *lpcbWrappedEntry, LPENTRYID *lppWrappedEntry);
 
 /* RTF Sync Utilities */
@@ -809,7 +809,7 @@ STDAPI WrapStoreEntryID (ULONG ulFlags, __in LPTSTR lpszDLLName, ULONG cbOrigEnt
 #define RTF_SYNC_BODY_CHANGED	((ULONG) 0x00000002)
 
 STDAPI_(HRESULT)
-RTFSync (LPMESSAGE lpMessage, ULONG ulFlags, __out BOOL FAR * lpfMessageUpdated);
+RTFSync (LPMESSAGE lpMessage, ULONG ulFlags, _Out_ BOOL FAR * lpfMessageUpdated);
 
 
 /* Flags for WrapCompressedRTFStream() */
@@ -818,8 +818,8 @@ RTFSync (LPMESSAGE lpMessage, ULONG ulFlags, __out BOOL FAR * lpfMessageUpdated)
 /****** STORE_UNCOMPRESSED_RTF	((ULONG) 0x00008000) mapidefs.h */
 
 STDAPI_(HRESULT)
-WrapCompressedRTFStream (__in LPSTREAM lpCompressedRTFStream,
-		ULONG ulFlags, __out LPSTREAM FAR * lpUncompressedRTFStream);
+WrapCompressedRTFStream (_In_ LPSTREAM lpCompressedRTFStream,
+		ULONG ulFlags, _Out_ LPSTREAM FAR * lpUncompressedRTFStream);
 
 /* Storage on Stream */
 
@@ -846,6 +846,44 @@ HrIStorageFromStream (LPUNKNOWN lpUnkIn,
 STDAPI_(SCODE)			ScInitMapiUtil(ULONG ulFlags);
 STDAPI_(VOID)			DeinitMapiUtil(VOID);
 
+// Definitions for WrapCompressedRTFStreamEx in param for WrapCompressedRTFStreamEX
+// https://learn.microsoft.com/en-us/previous-versions/office/developer/office-2007/bb905293(v=office.12)
+struct RTF_WCSINFO
+{
+	ULONG size; // Size of the structure
+	ULONG ulFlags;
+	/****** MAPI_MODIFY ((ULONG) 0x00000001) above */
+	/****** STORE_UNCOMPRESSED_RTF ((ULONG) 0x00008000) above */
+	/****** MAPI_NATIVE_BODY ((ULONG) 0x00010000) mapidefs.h Only used for reading*/
+	ULONG ulInCodePage; // Codepage of the message, used when passing MAPI_NATIVE_BODY, ignored otherwise
+	ULONG ulOutCodePage; // Codepage of the Returned Stream, used when passing MAPI_NATIVE_BODY, ignored otherwise
+};
+
+// out param type information for WrapCompressedRTFStreamEX
+// https://learn.microsoft.com/en-us/previous-versions/office/developer/office-2007/bb905294(v=office.12)
+struct RTF_WCSRETINFO
+{
+	ULONG size; // Size of the structure
+	ULONG ulStreamFlags;
+	/****** MAPI_NATIVE_BODY_TYPE_RTF ((ULONG) 0x00000001) mapidefs.h */
+	/****** MAPI_NATIVE_BODY_TYPE_HTML ((ULONG) 0x00000002) mapidefs.h */
+	/****** MAPI_NATIVE_BODY_TYPE_PLAINTEXT ((ULONG) 0x00000004) mapidefs.h */
+};
+
+STDAPI_(HRESULT)
+WrapCompressedRTFStreamEx(
+	LPSTREAM pCompressedRTFStream,
+	const RTF_WCSINFO* pWCSInfo,
+	LPSTREAM* ppUncompressedRTFStream,
+	RTF_WCSRETINFO* pRetInfo);
+
+_Check_return_ STDAPI OpenStreamOnFileW(
+	_In_ LPALLOCATEBUFFER lpAllocateBuffer,
+	_In_ LPFREEBUFFER lpFreeBuffer,
+	ULONG ulFlags,
+	_In_z_ LPCWSTR lpszFileName,
+	_In_opt_z_ LPCWSTR lpszPrefix,
+	_Out_ LPSTREAM FAR* lppStream);
 
 /*
  *	Entry point names.
