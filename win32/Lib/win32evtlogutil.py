@@ -47,9 +47,9 @@ def AddSourceToRegistry(
     # Add the Event-ID message-file name to the subkey.
     win32api.RegSetValueEx(
         hkey,
-        "EventMessageFile",  # value name \
-        0,  # reserved \
-        win32con.REG_EXPAND_SZ,  # value type \
+        "EventMessageFile",  # value name
+        0,  # reserved
+        win32con.REG_EXPAND_SZ,  # value type
         msgDLL,
     )
 
@@ -61,10 +61,10 @@ def AddSourceToRegistry(
             | win32evtlog.EVENTLOG_INFORMATION_TYPE
         )
     win32api.RegSetValueEx(
-        hkey,  # subkey handle \
-        "TypesSupported",  # value name \
-        0,  # reserved \
-        win32con.REG_DWORD,  # value type \
+        hkey,  # subkey handle
+        "TypesSupported",  # value name
+        0,  # reserved
+        win32con.REG_DWORD,  # value type
         eventLogFlags,
     )
 
@@ -73,18 +73,18 @@ def AddSourceToRegistry(
         if categoryDLL is None:
             categoryDLL = win32evtlog.__file__
         win32api.RegSetValueEx(
-            hkey,  # subkey handle \
-            "CategoryMessageFile",  # value name \
-            0,  # reserved \
-            win32con.REG_EXPAND_SZ,  # value type \
+            hkey,  # subkey handle
+            "CategoryMessageFile",  # value name
+            0,  # reserved
+            win32con.REG_EXPAND_SZ,  # value type
             categoryDLL,
         )
 
         win32api.RegSetValueEx(
-            hkey,  # subkey handle \
-            "CategoryCount",  # value name \
-            0,  # reserved \
-            win32con.REG_DWORD,  # value type \
+            hkey,  # subkey handle
+            "CategoryCount",  # value name
+            0,  # reserved
+            win32con.REG_DWORD,  # value type
             categoryCount,
         )
     win32api.RegCloseKey(hkey)
@@ -117,9 +117,9 @@ def ReportEvent(
     # Get a handle to the Application event log
     hAppLog = win32evtlog.RegisterEventSource(None, appName)
 
-    # Now report the event, which will add this event to the event log */
+    # Now report the event, which will add this event to the event log
     win32evtlog.ReportEvent(
-        hAppLog,  # event-log handle \
+        hAppLog,  # event-log handle
         eventType,
         eventCategory,
         eventID,
@@ -140,10 +140,9 @@ def FormatMessage(eventLogRecord, logType="Application"):
     not be processed.
     """
 
-    # From the event log source name, we know the name of the registry
-    # key to look under for the name of the message DLL that contains
-    # the messages we need to extract with FormatMessage. So first get
-    # the event log source name...
+    # From the event log source name, we know the name of the registry key to look under
+    # for the name of the message DLL that contains the messages we need to extract with
+    # FormatMessage. So first get the event log source name...
     keyName = "SYSTEM\\CurrentControlSet\\Services\\EventLog\\{}\\{}".format(
         logType,
         eventLogRecord.SourceName,
@@ -197,13 +196,11 @@ def SafeFormatMessage(eventLogRecord, logType=None):
             desc = ""
         else:
             desc = ", ".join(eventLogRecord.StringInserts)
+        event_id = winerror.HRESULT_CODE(eventLogRecord.EventID)
         return (
-            "<The description for Event ID ( %d ) in Source ( %r ) could not be found. It contains the following insertion string(s):%r.>"
-            % (
-                winerror.HRESULT_CODE(eventLogRecord.EventID),
-                eventLogRecord.SourceName,
-                desc,
-            )
+            f"<The description for Event ID ( {event_id} ) "
+            + f"in Source ( {eventLogRecord.SourceName!r} ) could not be found. "
+            + f"It contains the following insertion string(s): {desc!r}.>"
         )
 
 
@@ -214,12 +211,10 @@ def FeedEventLogRecords(
         readFlags = (
             win32evtlog.EVENTLOG_BACKWARDS_READ | win32evtlog.EVENTLOG_SEQUENTIAL_READ
         )
-    h = win32evtlog.OpenEventLog(machineName, logName)
+    handle = win32evtlog.OpenEventLog(machineName, logName)
     try:
-        while 1:
-            objects = win32evtlog.ReadEventLog(h, readFlags, 0)
-            if not objects:
-                break
-            (feeder(*(item,)) for item in objects)
+        while objects := win32evtlog.ReadEventLog(handle, readFlags, 0):
+            for item in objects:
+                feeder(item)
     finally:
-        win32evtlog.CloseEventLog(h)
+        win32evtlog.CloseEventLog(handle)
