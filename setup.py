@@ -232,12 +232,12 @@ class WinExt(Extension):
             self.extra_compile_args.append("-fms-extensions")
 
             # If someone needs a specially named implib created, handle that.
-            # We always use a .lib extension (even on MinGW, where ld accepts
-            # any name) so the import libraries match the names expected by
-            # clib_files below and the #pragma comment(lib, ...) directives.
             if self.implib_name:
                 implib = os.path.join(build_ext.build_temp, self.implib_name)
                 suffix = "_d" if build_ext.debug else ""
+                # We always use a .lib extension (even on MinGW, where ld accepts
+                # any name) so the import libraries match the names expected by
+                # clib_files below and the #pragma comment(lib, ...) directives.
                 self.extra_link_args.append(f"-Wl,--out-implib,{implib}{suffix}.lib")
 
         # Link pywin32's own import libraries. MSVC also resolves these via the
