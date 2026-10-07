@@ -50,7 +50,7 @@ else:
         print("")
         print("result data description is:")
         print("            NAME Type         DispSize IntrnlSz Prec Scale Null?")
-        for d in c.description:
+        for d in c.description or ():
             print(
                 ("%16s %-12s %8s %8d %4d %5d %s")
                 % (d[0], adc.adTypeNames[d[1]], d[2], d[3], d[4], d[5], bool(d[6]))

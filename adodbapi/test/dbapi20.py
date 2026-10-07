@@ -16,6 +16,7 @@ __author__ = "Stuart Bishop <stuart@stuartbishop.net>"
 
 import time
 import unittest
+from typing import TYPE_CHECKING
 
 # set this to "True" to follow API 2.0 to the letter
 TEST_FOR_NON_IDEMPOTENT_CLOSE = False
@@ -105,9 +106,15 @@ class DatabaseAPI20Test(unittest.TestCase):
     confuse the unit tester - just 'import dbapi20'.
     """
 
-    # The self.driver module. This should be the module where the 'connect'
-    # method is to be found
-    driver = None
+    # The self.driver module.
+    # This should be the module where the 'connect' method is to be found.
+    if TYPE_CHECKING:
+        # This should be set by the TestCase subclass,
+        # we're just pretending it's always adodbapi module here
+        # for static-typing purposes.
+        import adodbapi as driver  # noqa: PLC0415 # pyright: ignore[reportMissingImports] # False positive ???
+    else:
+        driver = None
     connect_args = ()  # List of arguments to pass to connect
     connect_kw_args = {}  # Keyword arguments for connect
     table_prefix = "dbapi20test_"  # If you need to specify a prefix for tables

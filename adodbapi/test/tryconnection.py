@@ -1,6 +1,10 @@
-def try_connection(verbose, *args, **kwargs):
-    import adodbapi
+from collections.abc import Callable
+from typing import cast
 
+import adodbapi
+
+
+def try_connection(verbose, *args, **kwargs):
     dbconnect = adodbapi.connect
     try:
         s = dbconnect(*args, **kwargs)  # connect to server
@@ -11,7 +15,9 @@ def try_connection(verbose, *args, **kwargs):
     except adodbapi.DatabaseError as inst:
         print(inst.args[0])  # should be the error message
         print(f"***Failed getting connection using= {args!r} {kwargs!r}")
-        return False, (args, kwargs), None
+        # Note: For test typing purposes, pretend this method can't return None
+        # It'll rapidly fail elsewhere anyway
+        return False, (args, kwargs), cast("Callable[..., adodbapi.Connection]", None)
 
     print("  (successful)")
 
