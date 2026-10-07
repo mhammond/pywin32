@@ -90,7 +90,7 @@ class T(unittest.TestCase):
         t = v.GetTextRange()
         testpat = "self.app = thisApp"
         self.assertIn(testpat, t)
-        # Umlauts for encoding test: áéúäöü
+        # Umlauts for encoding test: áéúäöüÐ
         self.assertEqual(read_file(__file__, encoding="utf-8", newline="\r\n"), t)
         v.SetSel(0)
         self.assertEqual(v.GetSel(), (0, 0))
@@ -124,6 +124,16 @@ class T(unittest.TestCase):
         s, e = v.GetSel()
         self.assertEqual(e - s, len(testpat))
         self.assertGreater(s, 0)
+
+    def test_checkfile_encoding(self):
+        """CheckFile must honour the file's encoding, not the locale (mhammond/pywin32#667)"""
+        # _dbgscript.py is latin-1 (not valid UTF-8), this file is UTF-8 with
+        # a 0x90 byte (undefined in cp1252): one of them fails either locale.
+        for fn in (src_dir + "\\_dbgscript.py", file_abs):
+            scriptutils.JumpToDocument(fn)
+            with mock.patch.object(scriptutils, "_HandlePythonFailure") as failure:
+                scriptutils.CheckFile()
+            failure.assert_not_called()
 
     def test_browseobj(self):
         """Test object browser"""

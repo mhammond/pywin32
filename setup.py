@@ -178,8 +178,7 @@ class WinExt(Extension):
         self.optional_headers = optional_headers
         self.is_regular_dll = is_regular_dll
         self.implib_name = implib_name
-        Extension.__init__(
-            self,
+        super().__init__(
             name,
             sources,
             include_dirs,
@@ -199,12 +198,6 @@ class WinExt(Extension):
         # distutils doesn't define this function for an Extension - it is
         # our own invention, and called just before the extension is built.
         if not is_mingw:
-            # bugger - add this to distutils!
-            if build_ext.plat_name == "win32":
-                self.extra_link_args.append("/MACHINE:x86")
-            else:
-                self.extra_link_args.append(f"/MACHINE:{build_ext.plat_name[4:]}")
-
             # like Python, always use debug info, even in release builds
             # (note the compiler doesn't include debug info, so you only get
             # basic info - but it's better than nothing!)
@@ -216,12 +209,9 @@ class WinExt(Extension):
             self.extra_compile_args.append(f"/Fd{pch_dir}\\{self.name}_vc.pdb")
             self.extra_link_args.append("/DEBUG")
             self.extra_link_args.append(f"/PDB:{pch_dir}\\{self.name}.pdb")
-            # enable unwind semantics - some stuff needs it and I can't see
-            # it hurting
-            self.extra_compile_args.append("/EHsc")
 
-            # silence: warning C4163: '__cpuidex' : not available as an intrinsic function
-            self.extra_compile_args.append("/wd4163")
+            # Enable unwind semantics - some stuff needs it and I can't see it hurting
+            self.extra_compile_args.append("/EHsc")
 
             if self.delay_load_libraries:
                 self.libraries.append("delayimp")
