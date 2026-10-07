@@ -335,7 +335,7 @@ def RegisterServer(
 
 
 def GetUnregisterServerKeys(clsid, progID=None, verProgID=None, customKeys=None):
-    """Given a server, return a list of of ("key", root), which are keys recursively
+    """Given a server, return a list of ("key", root), which are keys recursively
     and uncondtionally deleted at unregister or uninstall time.
     """
     # remove the main CLSID registration

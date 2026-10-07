@@ -10,7 +10,7 @@ import win32com.directsound.directsound as ds
 import win32event
 from pywin32_testutil import find_test_fixture
 
-# next two lines are for for debugging:
+# next two lines are for debugging:
 # import win32com
 # import directsound as ds
 

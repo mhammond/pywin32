@@ -495,22 +495,22 @@ def CheckFile():
         pathName = GetActiveFileName()
     except KeyboardInterrupt:
         return
-    if not pathName:
-        print(f"No active file found")
+    if pathName is None:
+        win32ui.SetStatusText("No saved file is active to check")
         return
 
     what = "check"
     win32ui.SetStatusText(what.capitalize() + "ing module...", 1)
     win32ui.DoWaitCursor(1)
+    # Read as bytes so compile() decodes according to the file's encoding
+    # declaration (PEP 263), defaulting to UTF-8, rather than the locale encoding.
     try:
-        f = open(pathName)
+        with open(pathName, "rb") as f:
+            code = f.read() + b"\n"
     except OSError as details:
         print(f"Can't open file '{pathName}' - {details}")
+        win32ui.DoWaitCursor(0)
         return
-    try:
-        code = f.read() + "\n"
-    finally:
-        f.close()
     try:
         codeObj = compile(code, pathName, "exec")
         if RunTabNanny(pathName):
