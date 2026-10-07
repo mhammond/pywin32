@@ -53,9 +53,10 @@ static PyObject *directsound_DirectSoundCreate(PyObject *, PyObject *args)
         pguid = &guid;
     }
 
-    Py_BEGIN_ALLOW_THREADS hr = ::DirectSoundCreate(pguid, &ds, pUnkIn);
-    Py_END_ALLOW_THREADS if (FAILED(hr))
-    {
+    Py_BEGIN_ALLOW_THREADS
+        hr = ::DirectSoundCreate(pguid, &ds, pUnkIn);
+    Py_END_ALLOW_THREADS
+    if (FAILED(hr)) {
         PyCom_BuildPyException(hr);
         goto done;
     }
@@ -115,11 +116,11 @@ static PyObject *directsound_DirectSoundEnumerate(PyObject *, PyObject *args)
     }
 
     HRESULT hr;
-    Py_BEGIN_ALLOW_THREADS hr = ::DirectSoundEnumerate(dsEnumCallback, list);
+    Py_BEGIN_ALLOW_THREADS
+        hr = ::DirectSoundEnumerate(dsEnumCallback, list);
     Py_END_ALLOW_THREADS
 
-        if (PyErr_Occurred())
-    {
+    if (PyErr_Occurred()) {
         Py_DECREF(list);
         return NULL;
     }
@@ -165,9 +166,10 @@ static PyObject *directsound_DirectSoundCaptureCreate(PyObject *, PyObject *args
         pguid = &guid;
     }
 
-    Py_BEGIN_ALLOW_THREADS hr = ::DirectSoundCaptureCreate(pguid, &dsc, pUnkIn);
-    Py_END_ALLOW_THREADS if (FAILED(hr))
-    {
+    Py_BEGIN_ALLOW_THREADS
+        hr = ::DirectSoundCaptureCreate(pguid, &dsc, pUnkIn);
+    Py_END_ALLOW_THREADS
+    if (FAILED(hr)) {
         PyCom_BuildPyException(hr);
         goto done;
     }
@@ -193,11 +195,11 @@ static PyObject *directsound_DirectSoundCaptureEnumerate(PyObject *, PyObject *a
     }
 
     HRESULT hr;
-    Py_BEGIN_ALLOW_THREADS hr = ::DirectSoundCaptureEnumerate(dsEnumCallback, list);
+    Py_BEGIN_ALLOW_THREADS
+        hr = ::DirectSoundCaptureEnumerate(dsEnumCallback, list);
     Py_END_ALLOW_THREADS
 
-        if (PyErr_Occurred())
-    {
+    if (PyErr_Occurred()) {
         Py_DECREF(list);
         return NULL;
     }

@@ -9,6 +9,8 @@ on:
       - main
 
 concurrency:
+  # Cancel previous runs for the same PR
+  # Don't cancel successive pushes to main
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
 
@@ -20,12 +22,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14", "3.15", "3.13t", "3.14t", "3.15t"]
+        python-version:
+          ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14", "3.15", "3.13t", "3.14t", "3.15t"]
         python-architecture: [x64, x86, arm64]
         include:
           - os: windows-2022
           - python-architecture: arm64
             os: windows-11-arm
+          # Keep setup.py's serial-compile fallback exercised on the fastest job,
+          # so it doesn't rot. Every other job builds with one cl.exe/gcc per CPU.
+          - python-version: "3.15"
+            python-architecture: x64
+            build-jobs: 1
         exclude:
           # actions/setup-python does not provide prebuilt arm64 Python before 3.11
           - python-architecture: arm64
@@ -33,12 +41,10 @@ jobs:
           - python-architecture: arm64
             python-version: "3.10"
     env:
-      # TODO: We can't yet run tests with PYTHONDEVMODE=1, let's emulated it as much as we can
       # https://docs.python.org/3/library/devmode.html#effects-of-the-python-development-mode
-      PYTHONMALLOC: debug
-      PYTHONASYNCIODEBUG: 1
-      PYTHONWARNINGS: always
-      # PYTHONFAULTHANDLER: 1 # This causes our tests to fail
+      PYTHONDEVMODE: 1
+      # Empty on every job but the one that pins it, which setup.py reads as "unset".
+      PYWIN32_BUILD_JOBS: ${{ matrix.build-jobs }}
 
     steps:
       - uses: actions/checkout@v4
@@ -140,6 +146,41 @@ jobs:
         uses: geekyeggo/delete-artifact@v5
         with:
           name: artifacts-*
+  build_msys2_mingw:
+    runs-on: windows-2022
+    timeout-minutes: *timeout-minutes
+    defaults:
+      run:
+        shell: msys2 {0}
+    strategy:
+      fail-fast: false
+      matrix:
+        # https://www.msys2.org/docs/environments/#overview
+        include:
+          # Using legacy environments (MSVCRT) as long as we support Windows 8.1
+          - { sys: mingw64, env: x86_64, plat-name: win-amd64 }
+          - { sys: mingw32, env: i686, plat-name: win32 }
+          # Modern environment (Windows 10 / Windows Server 2016)
+          # - { sys: ucrt64, env: ucrt-x86_64, plat-name: win-amd64 }
+          # No ARM yet, that currently requires using clang
+    steps:
+      - uses: actions/checkout@v4
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: ${{matrix.sys}}
+          update: true
+          install: |
+            mingw-w64-${{matrix.env}}-cc
+            mingw-w64-${{matrix.env}}-python
+            mingw-w64-${{matrix.env}}-python-build
+
+      - name: Build and install
+        # Having to specify plat-name here is definitely hacky, not sure why setuptools fails with
+        # error: --plat-name must be one of ('win32', 'win-amd64', 'win-arm32', 'win-arm64')
+        #
+        # We don't actually need wheels, but this causes a direct-from-source build,
+        # so we can reference files that wouldn't be copied in a temp sdist folder
+        run: python -m build --wheel -v --config-setting=--build-option="build_ext --plat-name=${{matrix.plat-name}} build --plat-name=${{matrix.plat-name}} bdist_wheel --plat-name=${{matrix.plat-name}}"
 
   # This job can be run locally by running `pre-commit run`
   checkers:
@@ -180,7 +221,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14", "3.15"]
+        # Only test the oldest and newest supported Python. This should cover new breaking changes and support drops.
+        # Drawback is a less obvious failure boundary, but worth due to https://gh.io/actions-limits
+        python-version: ["3.9", "3.15"]
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v7

@@ -32,7 +32,9 @@ import shutil
 import subprocess
 import sys
 from abc import abstractmethod
-from collections.abc import Iterable, Iterator
+from collections.abc import Iterable, Iterator, Sequence
+from concurrent.futures import FIRST_EXCEPTION, ThreadPoolExecutor, wait
+from functools import cached_property
 from itertools import chain, dropwhile, takewhile
 from pathlib import Path
 from setuptools import Extension, setup
@@ -136,7 +138,7 @@ class WinExt(Extension):
         include_dirs = ["com/win32com/src/include", "win32/src"] + include_dirs
 
         extra_link_args = extra_link_args or []
-        if export_symbol_file:
+        if export_symbol_file and not is_mingw:
             extra_link_args.append("/DEF:" + export_symbol_file)
 
         define_macros = define_macros or []
@@ -151,12 +153,23 @@ class WinExt(Extension):
                 # Technically official Python 3.9 builds require at least Windows 8.1, but we had no reason to bump this
                 ("_WIN32_WINNT", hex(0x0601)),
                 ("WINVER", hex(0x0601)),
-                ("WINNT", None),
                 # Always Unicode since Python 3
                 ("UNICODE", None),
                 ("_UNICODE", None),
             )
         )
+
+        # MinGW doesn't define these.
+        if is_mingw:
+            # Required for PyExc_WindowsError in pyerrors.h
+            define_macros.append(("MS_WINDOWS", None))
+            # Extra compile args (mapi, pythoncom & win32ui)
+            if "AMD64" in sys.version:
+                define_macros.extend((("_M_X64", None), ("_AMD64_", None)))
+            elif "ARM64" in sys.version:
+                define_macros.extend((("_M_ARM64", None), ("_ARM64_", None)))
+            else:
+                define_macros.extend((("_M_IX86", None), ("_X86_", None)))
         self.optional_headers = optional_headers
         self.is_regular_dll = is_regular_dll
         self.implib_name = implib_name
@@ -180,12 +193,6 @@ class WinExt(Extension):
         # distutils doesn't define this function for an Extension - it is
         # our own invention, and called just before the extension is built.
         if not is_mingw:
-            # bugger - add this to python!
-            if build_ext.plat_name == "win32":
-                self.extra_link_args.append("/MACHINE:x86")
-            else:
-                self.extra_link_args.append("/MACHINE:%s" % build_ext.plat_name[4:])
-
             # like Python, always use debug info, even in release builds
             # (note the compiler doesn't include debug info, so you only get
             # basic info - but it's better than nothing!)
@@ -197,36 +204,43 @@ class WinExt(Extension):
             self.extra_compile_args.append(f"/Fd{pch_dir}\\{self.name}_vc.pdb")
             self.extra_link_args.append("/DEBUG")
             self.extra_link_args.append(f"/PDB:{pch_dir}\\{self.name}.pdb")
-            # enable unwind semantics - some stuff needs it and I can't see
-            # it hurting
-            self.extra_compile_args.append("/EHsc")
 
-            # silence: warning C4163: '__cpuidex' : not available as an intrinsic function
-            self.extra_compile_args.append("/wd4163")
+            # Enable unwind semantics - some stuff needs it and I can't see it hurting
+            self.extra_compile_args.append("/EHsc")
 
             # If someone needs a specially named implib created, handle that
             if self.implib_name:
                 implib = os.path.join(build_ext.build_temp, self.implib_name)
                 suffix = "_d" if build_ext.debug else ""
                 self.extra_link_args.append(f"/IMPLIB:{implib}{suffix}.lib")
-            # Try and find the MFC headers, so we can reach inside for
-            # some of the ActiveX support we need.  We need to do this late, so
-            # the environment is setup correctly.
-            # Only used by the win32uiole extensions, but I can't be
-            # bothered making a subclass just for this - so they all get it!
-            found_mfc = False
-            for incl in os.environ.get("INCLUDE", "").split(os.pathsep):
-                # first is a "standard" MSVC install, second is the Vista SDK.
-                for candidate in (r"..\src\occimpl.h", r"..\..\src\mfc\occimpl.h"):
-                    check = os.path.join(incl, candidate)
-                    if os.path.isfile(check):
-                        self.extra_compile_args.append(
-                            '/DMFC_OCC_IMPL_H=\\"%s\\"' % candidate
-                        )
-                        found_mfc = True
-                        break
-                if found_mfc:
-                    break
+        else:
+            # Set our C++ standard
+            self.extra_compile_args.append("-std=c++17")
+            # More lenient about non-standard C++ code as this project was based on MSVC
+            self.extra_compile_args.append("-fpermissive")
+            # Enables MS-specific syntax and MS-specific idioms: namely anonymous structs/unions which C++ lacks
+            self.extra_compile_args.append("-fms-extensions")
+
+            # If someone needs a specially named implib created, handle that.
+            if self.implib_name:
+                implib = os.path.join(build_ext.build_temp, self.implib_name)
+                suffix = "_d" if build_ext.debug else ""
+                # We always use a .lib extension (even on MinGW, where ld accepts
+                # any name) so the import libraries match the names expected by
+                # clib_files below and the #pragma comment(lib, ...) directives.
+                self.extra_link_args.append(f"-Wl,--out-implib,{implib}{suffix}.lib")
+
+        # Link pywin32's own import libraries. MSVC also resolves these via the
+        # #pragma comment(lib, ...) in PyWinTypes.h/PythonCOM.h, so
+        # listing them is redundant there but harmless; GCC ignores the pragmas.
+        #
+        # pywintypes is used by virtually every extension (PyWinTypes.h).
+        # pythoncom is added by WinExt_win32com.
+        # Each library built before its consumers (see the ext_modules ordering).
+        macros = {name for name, _ in self.define_macros}
+        if "BUILD_PYWINTYPES" not in macros:
+            suffix = "_d" if build_ext.debug else ""
+            self.libraries.append(f"pywintypes{suffix}")
 
     @abstractmethod
     def get_pywin32_dir(self) -> str:
@@ -270,9 +284,10 @@ class WinExt_ISAPI(WinExt):
 # Note this is used only for "win32com extensions", not pythoncom
 # itself - thus, output is "win32comext"
 class WinExt_win32com(WinExt):
-    def __init__(self, name, **kw):
-        kw["libraries"] = kw.get("libraries", "") + " oleaut32 ole32"
-        WinExt.__init__(self, name, **kw)
+    def finalize_options(self, build_ext):
+        super().finalize_options(build_ext)
+        suffix = "_d" if build_ext.debug else ""
+        self.libraries += ["oleaut32", "ole32", "uuid", f"pythoncom{suffix}"]
 
     def get_pywin32_dir(self):
         return "win32comext/" + self.name
@@ -353,8 +368,13 @@ class my_build_ext(build_ext):
         """List of excluded extensions and their reason"""
         self.swig_opts.append("-c++")
 
-    def _get_gcc_include_dirs(self) -> list[str]:
-        """Query gcc's built-in include search paths."""
+    @cached_property
+    def _gcc_include_dirs(self) -> list[str]:
+        """Query gcc's built-in include search paths.
+
+        Cached: the compiler doesn't change during a build,
+        this saves on process spawn, and parsing on non-MSVC, once per extension.
+        """
         cc = getattr(self.compiler, "cc", "")
         if not cc:
             return []
@@ -380,7 +400,7 @@ class my_build_ext(build_ext):
         include_dirs = (
             self.compiler.include_dirs
             + os.environ.get("INCLUDE", "").split(os.pathsep)  # MSVC INCLUDE Env
-            + self._get_gcc_include_dirs()
+            + self._gcc_include_dirs
         )
 
         for h in ext.optional_headers:
@@ -503,7 +523,7 @@ class my_build_ext(build_ext):
 
         self.found_libraries = {}
 
-        if hasattr(self.compiler, "initialize") and not self.compiler.initialized:
+        if isinstance(self.compiler, MSVCCompiler) and not self.compiler.initialized:
             self.compiler.initialize()
 
         # XXX this distutils class var peek hack should become obsolete
@@ -590,7 +610,7 @@ class my_build_ext(build_ext):
         # This is only available from the Visual Studio Installer.
         # Skip if Pythonwin was also skipped.
         win32ui_ext = pythonwin_extensions[0]
-        if win32ui_ext not in {ext for ext, why in self.excluded_extensions}:
+        if not any(win32ui_ext is ext for ext, why in self.excluded_extensions):
             vc_path = next(p for p in Path(self.compiler.cc).parents if p.name == "VC")
             msvc_version = next(
                 p for p in Path(self.compiler.cc).parents if p.parent.name == "MSVC"
@@ -689,36 +709,6 @@ class my_build_ext(build_ext):
         try:
             build_ext.build_extension(self, ext)
             self._verstamp(self.get_ext_fullpath(ext.name))
-            # Convincing distutils to create .lib files with the name we
-            # need is difficult, so we just hack around it by copying from
-            # the created name to the name we need.
-            extra = "_d.lib" if self.debug else ".lib"
-            if ext.name in ("pywintypes", "pythoncom"):
-                # The import libraries are created as PyWinTypes23.lib, but
-                # are expected to be pywintypes.lib.
-                created = "%s%d%d%s" % (
-                    ext.name,
-                    sys.version_info.major,
-                    sys.version_info.minor,
-                    extra,
-                )
-                needed = f"{ext.name}{extra}"
-            elif ext.name in ("win32ui",):
-                # This one just needs a copy.
-                created = needed = ext.name + extra
-            else:
-                created = needed = None
-            if created is not None:
-                # To keep us on our toes, MSVCCompiler constructs the .lib files
-                # in the same directory as the first source file's object file:
-                #    os.path.dirname(objects[0])
-                # rather than in the self.build_temp directory
-                src = os.path.join(
-                    old_build_temp, os.path.dirname(ext.sources[0]), created
-                )
-                dst = os.path.join(old_build_temp, needed)
-                if os.path.abspath(src) != os.path.abspath(dst):
-                    self.copy_file(src, dst)
         finally:
             self.build_temp = old_build_temp
 
@@ -838,26 +828,139 @@ class my_build_ext(build_ext):
         return new_sources
 
 
+def _build_jobs() -> int:
+    """How many compiler invocations to run at once.
+
+    Defaults to the number of CPUs. Set env `PYWIN32_BUILD_JOBS=1` to disable.
+    Useful to get readable diagnostics out of a failing build,
+    or to check whether a problem is caused by building in parallel.
+    """
+    override = os.environ.get("PYWIN32_BUILD_JOBS")
+    if override:
+        try:
+            return max(1, int(override))
+        except ValueError as e:
+            raise ValueError(f"{e}. PYWIN32_BUILD_JOBS set to {override!r}")
+    if sys.version_info >= (3, 13):
+        # Respects affinity masks and PYTHON_CPU_COUNT/-X cpu_count
+        return os.process_cpu_count() or 1
+    else:
+        return os.cpu_count() or 1
+
+
 if sys.platform == "cygwin":
     BaseCygwinCompiler: TypeAlias = CygwinCompiler
 else:
     BaseCygwinCompiler: TypeAlias = MinGW32Compiler
+_Macro: TypeAlias = "tuple[str] | tuple[str, str | None]"
 
 
 class MyCygwinCompiler(BaseCygwinCompiler):
-    # Workaround until pypa/distutils#399 is fixed
-    BaseCygwinCompiler.initialize = lambda *_: None
+    _resource_extensions = frozenset({".mc", ".rc", ".res"})
+    """
+    Sources built by windmc/windres rather than by the compiler, and that generate
+    files other sources then read (.mc writes a .h). Neither batchable nor
+    parallelizable, and must be built before anything that might include them.
+    """
 
-    # Work around python/cpython#80483 / python/cpython#86175
-    # it sorts sources but this breaks support for building .mc files etc :(
-    # See pypa/setuptools#4986 / pypa/distutils#370 for potential upstream fix.
-    def compile(self, sources, **kwargs):
+    if TYPE_CHECKING:
+        # Untyped distutils internals
+        def _setup_compile(
+            self,
+            outdir: str | None,
+            macros: list[_Macro] | None,
+            incdirs: list[str] | tuple[str, ...] | None,
+            sources,
+            depends,
+            extra,
+        ) -> tuple[
+            list[_Macro],
+            list[str],
+            str | list[str],
+            list[str],
+            dict[str, tuple[str, str]],
+        ]: ...
+        def _get_cc_args(self, pp_opts, debug, before) -> list[str]: ...
+
+    def compile(
+        self,
+        sources: Sequence[str | os.PathLike[str]],
+        output_dir=None,
+        macros=None,
+        include_dirs=None,
+        debug=False,
+        extra_preargs=None,
+        extra_postargs=None,
+        depends=None,
+    ) -> list[str]:
+        # Work around python/cpython#80483 / python/cpython#86175
+        # it sorts sources but this breaks support for building .mc files etc :(
+        # See pypa/setuptools#4986 / pypa/distutils#370 for potential upstream fix.
         # Move .mc files to the start of the list, otherwise keep the same order
         sources = sorted(sources, key=lambda source: Path(source).suffix != ".mc")
-        return super().compile(sources, **kwargs)
+
+        jobs = _build_jobs()
+        if jobs == 1:
+            # Let distutils run its own serial `for obj in objects` loop.
+            return super().compile(  # type: ignore[no-any-return, unused-ignore] # Untyped in types-setuptools on Python 3.9
+                sources,
+                output_dir=output_dir,
+                macros=macros,
+                include_dirs=include_dirs,
+                debug=debug,
+                extra_preargs=extra_preargs,
+                extra_postargs=extra_postargs,
+                depends=depends,
+            )
+
+        # Compile each source, running several compiler processes concurrently.
+        # This reimplements Compiler.compile()'s serial `for obj in objects` loop over
+        # _compile(). GCC has no equivalent of MSVC's /MP (see MyMSVCCompiler.compile),
+        # so the only way to use more than one core is to run more than one process.
+
+        macros, objects, extra_postargs, pp_opts, build = self._setup_compile(
+            output_dir, macros, include_dirs, sources, depends, extra_postargs
+        )
+        cc_args = self._get_cc_args(pp_opts, debug, extra_preargs)
+
+        resources = []
+        compilations = []
+        for obj in objects:
+            try:
+                src, ext = build[obj]
+            except KeyError:
+                continue
+            args = (obj, src, ext, cc_args, extra_postargs, pp_opts)
+            if ext in self._resource_extensions:
+                resources.append(args)
+            else:
+                compilations.append(args)
+
+        for args in resources:
+            self._compile(*args)
+
+        # Safe to run concurrently: every gcc writes only its own `-o <obj>`,
+        # there is no shared debugging info (pdb) to serialize on (that's MSVC concern),
+        # and _compile() only reads self.
+        pool = ThreadPoolExecutor(jobs)
+        try:
+            futures = [pool.submit(self._compile, *args) for args in compilations]
+            # Awaiting each in turn would sit on a slow early source long after a
+            # later one already failed. Only futures wait() reports as done are
+            # guaranteed not to block, so re-raise from those.
+            done, _ = wait(futures, return_when=FIRST_EXCEPTION)
+            for future in done:
+                future.result()  # Re-raise a worker's CompileError here
+        finally:
+            # cancel_futures so the first failure stops the build promptly, instead
+            # of every queued source compiling and interleaving its diagnostics.
+            pool.shutdown(cancel_futures=True)
+
+        # Return *all* object filenames, not just the ones we just built.
+        return objects
 
     # Work around missing .mc support in CygwinCompiler+MinGW32Compiler pypa/distutils#405
-    src_extensions = BaseCygwinCompiler.src_extensions + [".mc"]
+    src_extensions = (BaseCygwinCompiler.src_extensions or []) + [".mc"]
 
     def _compile(
         self,
@@ -880,7 +983,7 @@ class MyCygwinCompiler(BaseCygwinCompiler):
                 # then compile .rc to .res file
                 base, _ = os.path.splitext(os.path.basename(src))
                 src = os.path.join(rc_dir, base + ".rc")
-            if ext in {".rc", ".res", ".mc"}:
+            if ext in self._resource_extensions:
                 # gcc needs '.res' and '.rc' compiled to object files !!!
                 self.spawn([os.environ.get("WINDRES", "windres"), "-i", src, "-o", obj])
             else:  # for other files use the C-compiler
@@ -894,15 +997,172 @@ class MyCygwinCompiler(BaseCygwinCompiler):
 
 
 class MyMSVCCompiler(MSVCCompiler):
-    # Work around python/cpython#80483 / python/cpython#86175
-    # it sorts sources but this breaks support for building .mc files etc :(
-    # See pypa/setuptools#4986 / pypa/distutils#370 for potential upstream fix.
-    def compile(self, sources, **kwargs):
+    # While compile() runs, collects the cl.exe invocations MSVCCompiler.compile()
+    # would otherwise run one at a time. None at all other times.
+    _pending_compiles: list[list[str]] | None = None
+
+    def compile(
+        self,
+        sources: Sequence[str | os.PathLike[str]],
+        output_dir=None,
+        macros=None,
+        include_dirs=None,
+        debug=False,
+        extra_preargs=None,
+        extra_postargs=None,
+        depends=None,
+    ) -> list[str]:
+        # Work around python/cpython#80483 / python/cpython#86175
+        # it sorts sources but this breaks support for building .mc files etc :(
+        # See pypa/setuptools#4986 / pypa/distutils#370 for potential upstream fix.
         # Move .mc files to the start of the list, otherwise keep the same order
         sources = sorted(
             sources, key=lambda source: Path(source).suffix not in self._mc_extensions
         )
-        return super().compile(sources, **kwargs)
+
+        kwargs = {
+            "output_dir": output_dir,
+            "macros": macros,
+            "include_dirs": include_dirs,
+            "debug": debug,
+            "extra_preargs": extra_preargs,
+            "extra_postargs": extra_postargs,
+            "depends": depends,
+        }
+        jobs = _build_jobs()
+        if jobs == 1:
+            # Let distutils run its own one cl.exe per source, unbatched.
+            return super().compile(sources, **kwargs)  # type: ignore[no-any-return, unused-ignore] # Untyped in types-setuptools on Python 3.9
+
+        # Batch sources into as few cl.exe /MP runs as possible.
+        # MSVCCompiler.compile() runs one cl.exe per source, so /MP in
+        # extra_compile_args would only ever get a single input. It also replaces
+        # Compiler.compile() entirely, leaving no per-file _compile() hook. So let it
+        # build the command lines, collect them instead of running them, then merge.
+
+        compilable = {*self._c_extensions, *self._cpp_extensions}
+        expected = sum(Path(source).suffix in compilable for source in sources)
+        if self._pending_compiles is not None:
+            raise RuntimeError(
+                "compile() is already collecting cl.exe command lines. Extensions must "
+                "be built one at a time, each has its own /Fo directory and /Fd pdb. "
+                "Set env `PYWIN32_BUILD_JOBS=1` to compile without batching."
+            )
+        self._pending_compiles = []
+        try:
+            objects: list[str] = super().compile(sources, **kwargs)
+            if len(self._pending_compiles) != expected:
+                # call() recognizes cl.exe by cmd[0]. If that stops matching we would
+                # silently fall back to one cl.exe per source, so fail instead.
+                raise RuntimeError(
+                    f"Collected {len(self._pending_compiles)} cl.exe command lines for "
+                    f"{expected} compilable sources, did distutils change? "
+                    "Set env `PYWIN32_BUILD_JOBS=1` to compile without batching."
+                )
+            commands = list(self._batch_compiles(self._pending_compiles, jobs))
+        finally:
+            self._pending_compiles = None
+
+        for cmd in commands:
+            try:
+                self.call(cmd)
+            except (subprocess.CalledProcessError, OSError) as msg:
+                raise CompileError(msg)
+        return objects
+
+    def call(self, cmd, **kwargs):
+        # Defer compiler invocations to compile(). Everything else has to happen now,
+        # in the order distutils asked for it, notably the rc.exe/mc.exe runs that
+        # generate the .h and .rc files the compiler then reads.
+        if self._pending_compiles is not None and cmd[0] == self.cc:
+            self._pending_compiles.append(list(cmd))
+            return None
+
+        # setuptools <81 (Python 3.9) has no Compiler.call(), use deprecated spawn()
+        if sys.version_info < (3, 10):
+            return super().spawn(cmd, **kwargs)
+        else:
+            return super().call(cmd, **kwargs)
+
+    if sys.version_info < (3, 10):
+        spawn = call
+
+    @staticmethod
+    def _batch_compiles(
+        commands: Iterable[list[str]], jobs: int
+    ) -> Iterator[list[str]]:
+        """Merge per-source cl.exe command lines into one cl.exe /MP each.
+
+        The commands distutils builds for one extension differ only in their
+        /Tp<source> (or /Tc<source>) and /Fo<object> arguments. Those that agree on
+        everything else and write to the same directory are merged: given several
+        inputs and a /Fo naming a directory, cl names each object after its source's
+        basename, which is how distutils derived the paths it expects back. /MP then
+        compiles them in parallel.
+
+        Sources sharing a basename live in different directories, so they land in
+        different groups and can't collide.
+
+        Groups are yielded to be run one at a time, never overlapped. Within a group
+        /MP still runs several cl.exe against the extension's shared /Fd<name>_vc.pdb,
+        which is safe because "the /MP option enables /FS by default", serializing
+        those writes through MSPDBSRV.EXE. So this needs neither an explicit /FS nor a
+        switch to /Z7:
+        https://learn.microsoft.com/en-us/cpp/build/reference/fs-force-synchronous-pdb-writes
+
+        Raises RuntimeError if a command line isn't the expected shape, or if a group
+        would write the same object twice, since merging it would be guesswork.
+        """
+        groups: dict[
+            tuple[
+                tuple[str, ...],  # args before the input
+                tuple[str, ...],  # args after the object
+                str,  # object directory
+            ],
+            list[list[str]],  # commands
+        ] = {}
+        for cmd in commands:
+            inputs = [i for i, arg in enumerate(cmd) if arg.startswith(("/Tp", "/Tc"))]
+            outputs = [i for i, arg in enumerate(cmd) if arg.startswith("/Fo")]
+            if len(inputs) != 1 or outputs != [inputs[0] + 1]:
+                raise RuntimeError(
+                    "Unexpected cl.exe command line, did distutils change? "
+                    "Set env `PYWIN32_BUILD_JOBS=1` to compile without batching.\n"
+                    f"{cmd}"
+                )
+            key = (
+                tuple(cmd[: inputs[0]]),
+                tuple(cmd[outputs[0] + 1 :]),
+                os.path.dirname(cmd[outputs[0]].removeprefix("/Fo")),
+            )
+            groups.setdefault(key, []).append(cmd)
+
+        for (head, tail, obj_dir), cmds in groups.items():
+            if len(cmds) == 1:
+                yield from cmds
+                continue
+
+            objs = [
+                os.path.basename(cmd[len(head) + 1].removeprefix("/Fo")) for cmd in cmds
+            ]
+            collisions = sorted({obj for obj in objs if objs.count(obj) > 1})
+            if collisions:
+                raise RuntimeError(
+                    f"Refusing to batch {collisions} in {obj_dir!r}: merged, cl names "
+                    "every object after its source's basename, so several /MP children "
+                    "would write the same object file. "
+                    "Set env `PYWIN32_BUILD_JOBS=1` to compile without batching."
+                )
+
+            yield [
+                *head,
+                f"/MP{jobs}",
+                *(cmd[len(head)] for cmd in cmds),
+                # The trailing separator is what makes cl treat this as a directory
+                # to write into, rather than as the object's filename.
+                "/Fo" + os.path.join(obj_dir, ""),
+                *tail,
+            ]
 
     # CCompiler's implementations of these methods completely replace the values
     # determined by the build environment. This seems like a design that must
@@ -960,6 +1220,7 @@ pywintypes = WinExt_system32(
     ],
     define_macros=[("BUILD_PYWINTYPES", None)],
     libraries="advapi32 user32 ole32 oleaut32",
+    implib_name="pywintypes",
 )
 
 win32_extensions = [
@@ -1160,6 +1421,7 @@ pythoncom = WinExt_system32(
     sources=(
         """
                         {win32com}/dllmain.cpp            {win32com}/ErrorUtils.cpp
+                        {win32com}/MinGWGUIDs.cpp
                         {win32com}/MiscTypes.cpp          {win32com}/oleargs.cpp
                         {win32com}/PyComHelpers.cpp       {win32com}/PyFactory.cpp
                         {win32com}/PyGatewayBase.cpp      {win32com}/PyIBase.cpp
@@ -1229,9 +1491,10 @@ pythoncom = WinExt_system32(
                         {win32com}/include/PyIServerSecurity.h
                         """.format(**dirs)
     ).split(),
-    libraries="oleaut32 ole32 user32 urlmon oleacc",
+    libraries="oleaut32 ole32 user32 urlmon oleacc uuid",
     export_symbol_file="com/win32com/src/PythonCOM.def",
     define_macros=[("BUILD_PYTHONCOM", None)],
+    implib_name="pythoncom",
 )
 com_extensions = [
     pythoncom,
@@ -1302,6 +1565,7 @@ com_extensions = [
         libraries="axscript",
         sources=(
             """
+                    {axdebug}/MinGWGUIDs.cpp
                     {axdebug}/AXDebug.cpp
                     {axdebug}/PyIActiveScriptDebug.cpp
                     {axdebug}/PyIActiveScriptErrorDebug.cpp
@@ -1696,6 +1960,7 @@ pythonwin_extensions = [
             "pythonwin/win32win.h",
         ],
         optional_headers=["afxwin.h"],
+        implib_name="win32ui",
     ),
     WinExt_pythonwin(
         "win32uiole",
@@ -1943,6 +2208,7 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
     "Programming Language :: Python :: 3.15",
+    "Programming Language :: Python :: Free Threading :: 1 - Unstable",
     "Programming Language :: Python :: Implementation :: CPython",
 ]
 
