@@ -354,6 +354,69 @@ PyObject *PyWin_SetBasicCOMError(HRESULT hr)
     return NULL;
 }
 
+BOOL PyWinSys_SetArgv(int argc, const WCHAR *const *argv)
+{
+    static const WCHAR *const empty_argv[] = {L""};
+    if (argc < 1 || argv == NULL) {
+        argc = 1;
+        argv = empty_argv;
+    }
+    PyObject *obArgv = PyList_New(argc);
+    if (obArgv == NULL)
+        return FALSE;
+    for (int i = 0; i < argc; i++) {
+        PyObject *arg = PyUnicode_FromWideChar(argv[i], -1);
+        if (arg == NULL) {
+            Py_DECREF(obArgv);
+            return FALSE;
+        }
+        PyList_SET_ITEM(obArgv, i, arg);
+    }
+    int rc = PySys_SetObject("argv", obArgv);
+    Py_DECREF(obArgv);
+    if (rc != 0)
+        return FALSE;
+
+    // Compute sys.path[0] the same way PySys_SetArgv does on Windows:
+    // the current directory for "-m", '' for "-c",
+    // otherwise the directory of argv[0] ('' if it has none).
+    const WCHAR *path0 = argv[0];
+    Py_ssize_t n = 0;
+    WCHAR fullpath[MAX_PATH + 1];
+    if (wcscmp(path0, L"-m") == 0) {
+        DWORD len = GetCurrentDirectoryW(MAX_PATH + 1, fullpath);
+        if (len == 0 || len > MAX_PATH) {
+            PyWin_SetAPIError("GetCurrentDirectory");
+            return FALSE;
+        }
+        path0 = fullpath;
+        n = len;
+    }
+    else if (wcscmp(path0, L"-c") != 0) {
+        DWORD len = GetFullPathNameW(path0, MAX_PATH + 1, fullpath, NULL);
+        if (len != 0 && len <= MAX_PATH)
+            path0 = fullpath;
+        const WCHAR *p = wcsrchr(path0, L'\\');
+        const WCHAR *q = wcsrchr(p ? p : path0, L'/');
+        if (q != NULL)
+            p = q;
+        if (p != NULL) {
+            n = p + 1 - path0;
+            if (n > 1 && p[-1] != L':')
+                n--;  // Drop trailing separator
+        }
+    }
+    PyObject *sysPath = PySys_GetObject("path");  // borrowed reference
+    if (sysPath == NULL)
+        return TRUE;
+    PyObject *obPath0 = PyUnicode_FromWideChar(path0, n);
+    if (obPath0 == NULL)
+        return FALSE;
+    rc = PyList_Insert(sysPath, 0, obPath0);
+    Py_DECREF(obPath0);
+    return rc == 0;
+}
+
 // @pymethod string|pywintypes|UnicodeFromRaw|Creates a new Unicode object from raw binary data
 static PyObject *PyWin_NewUnicodeFromRaw(PyObject *self, PyObject *args)
 {
