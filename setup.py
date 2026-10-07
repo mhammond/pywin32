@@ -240,6 +240,18 @@ class WinExt(Extension):
                 # clib_files below and the #pragma comment(lib, ...) directives.
                 self.extra_link_args.append(f"-Wl,--out-implib,{implib}{suffix}.lib")
 
+        # Link pywin32's own import libraries. MSVC also resolves these via the
+        # #pragma comment(lib, ...) in PyWinTypes.h/PythonCOM.h, so
+        # listing them is redundant there but harmless; GCC ignores the pragmas.
+        #
+        # pywintypes is used by virtually every extension (PyWinTypes.h).
+        # pythoncom is added by WinExt_win32com.
+        # Each library built before its consumers (see the ext_modules ordering).
+        macros = {name for name, _ in self.define_macros}
+        if "BUILD_PYWINTYPES" not in macros:
+            suffix = "_d" if build_ext.debug else ""
+            self.libraries.append(f"pywintypes{suffix}")
+
     @abstractmethod
     def get_pywin32_dir(self) -> str:
         raise NotImplementedError
@@ -282,9 +294,10 @@ class WinExt_ISAPI(WinExt):
 # Note this is used only for "win32com extensions", not pythoncom
 # itself - thus, output is "win32comext"
 class WinExt_win32com(WinExt):
-    def __init__(self, name, **kw):
-        kw["libraries"] = kw.get("libraries", "") + " oleaut32 ole32"
-        WinExt.__init__(self, name, **kw)
+    def finalize_options(self, build_ext):
+        super().finalize_options(build_ext)
+        suffix = "_d" if build_ext.debug else ""
+        self.libraries += ["oleaut32", "ole32", "uuid", f"pythoncom{suffix}"]
 
     def get_pywin32_dir(self):
         return "win32comext/" + self.name
@@ -1430,6 +1443,7 @@ pythoncom = WinExt_system32(
     sources=(
         """
                         {win32com}/dllmain.cpp            {win32com}/ErrorUtils.cpp
+                        {win32com}/MinGWGUIDs.cpp
                         {win32com}/MiscTypes.cpp          {win32com}/oleargs.cpp
                         {win32com}/PyComHelpers.cpp       {win32com}/PyFactory.cpp
                         {win32com}/PyGatewayBase.cpp      {win32com}/PyIBase.cpp
@@ -1499,7 +1513,7 @@ pythoncom = WinExt_system32(
                         {win32com}/include/PyIServerSecurity.h
                         """.format(**dirs)
     ).split(),
-    libraries="oleaut32 ole32 user32 urlmon oleacc",
+    libraries="oleaut32 ole32 user32 urlmon oleacc uuid",
     export_symbol_file="com/win32com/src/PythonCOM.def",
     define_macros=[("BUILD_PYTHONCOM", None)],
     implib_name="pythoncom",
@@ -1573,6 +1587,7 @@ com_extensions = [
         libraries="axscript",
         sources=(
             """
+                    {axdebug}/MinGWGUIDs.cpp
                     {axdebug}/AXDebug.cpp
                     {axdebug}/PyIActiveScriptDebug.cpp
                     {axdebug}/PyIActiveScriptErrorDebug.cpp
