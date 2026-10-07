@@ -1,8 +1,4 @@
-from __future__ import annotations
-
-build_id = "312.1"  # may optionally include a ".{patchno}" suffix.
-
-__doc__ = """This is a distutils setup-script for the pywin32 extensions.
+"""This is a distutils setup-script for the pywin32 extensions.
 
 The canonical source of truth for supported versions and build environments
 is [the GitHub CI](https://github.com/mhammond/pywin32/tree/main/.github/workflows).
@@ -24,6 +20,11 @@ instead of a failing, it will report what was skipped, and why. See also
 build_env.md, which is getting out of date but might help getting everything
 required for an official build - see README.md for that process.
 """
+
+from __future__ import annotations
+
+build_id = "312.1"  # may optionally include a ".{patchno}" suffix.
+
 # Originally by Thomas Heller, started in 2000 or so.
 import logging
 import os
@@ -31,6 +32,7 @@ import platform
 import shutil
 import subprocess
 import sys
+import sysconfig
 from abc import abstractmethod
 from collections.abc import Iterable, Iterator, Sequence
 from concurrent.futures import FIRST_EXCEPTION, ThreadPoolExecutor, wait
