@@ -63,7 +63,7 @@ class TestCase(unittest.TestCase):
 
     def testTimeTuplems(self):
         now = datetime.datetime.now()  # has usec...
-        tt = now.timetuple() + (now.microsecond // 1000,)
+        tt = (*now.timetuple(), now.microsecond // 1000)
         pt = pywintypes.Time(tt)
         # we can't compare if using the old type, as it loses all sub-second res.
         if isinstance(pt, datetime.datetime):

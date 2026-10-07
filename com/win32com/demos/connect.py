@@ -20,8 +20,9 @@ IID_IConnectDemoEvents = pywintypes.IID("{A4988850-49C3-11d0-AE5D-52342E000000}"
 
 class ConnectableServer(win32com.server.connect.ConnectableServer):
     _public_methods_ = [
-        "DoIt"
-    ] + win32com.server.connect.ConnectableServer._public_methods_
+        "DoIt",
+        *win32com.server.connect.ConnectableServer._public_methods_,
+    ]
     _connect_interfaces_ = [IID_IConnectDemoEvents]
 
     # The single public method that the client can call on us

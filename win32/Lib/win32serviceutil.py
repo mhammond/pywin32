@@ -856,7 +856,7 @@ def HandleCommandLine(
                 delayedstart=delayedstart,
             )
             if customOptionHandler:
-                customOptionHandler(*(opts,))
+                customOptionHandler(opts)
             print("Service installed")
         except win32service.error as exc:
             if exc.winerror == winerror.ERROR_SERVICE_EXISTS:
@@ -916,7 +916,7 @@ def HandleCommandLine(
                 delayedstart=delayedstart,
             )
             if customOptionHandler:
-                customOptionHandler(*(opts,))
+                customOptionHandler(opts)
             print("Service updated")
         except win32service.error as exc:
             print(

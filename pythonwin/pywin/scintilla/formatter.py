@@ -76,7 +76,7 @@ class Style:
             | win32con.CFM_ITALIC
             | win32con.CFM_SIZE
         )
-        return (flags,) + fmt[1:]
+        return (flags, *fmt[1:])
 
 
 # The Formatter interface

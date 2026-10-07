@@ -19,7 +19,7 @@ def Generate():
 
     # Create the dependencies file for g++
     deps = Dependencies.FindDependencies(
-        ["../win32/*.cxx"] + sources, ["../win32"] + includes, ".o", "../win32/"
+        ["../win32/*.cxx", *sources], ["../win32", *includes], ".o", "../win32/"
     )
 
     # Add ScintillaBaseL as the same as ScintillaBase
