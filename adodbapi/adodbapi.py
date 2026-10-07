@@ -114,7 +114,7 @@ defaultIsolationLevel = adc.adXactReadCommitted
 # It may be one of the "adUse..." consts.
 defaultCursorLocation = adc.adUseClient  # changed from adUseServer as of v 2.3.0
 
-dateconverter = api.pythonDateTimeConverter()  # default
+dateconverter: api.TimeConverter = api.pythonDateTimeConverter()  # default
 
 
 def format_parameters(ADOparameters, show_value=False):

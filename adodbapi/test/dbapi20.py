@@ -16,6 +16,7 @@ __author__ = "Stuart Bishop <stuart@stuartbishop.net>"
 
 import time
 import unittest
+from typing import TYPE_CHECKING, Any, ClassVar
 
 # set this to "True" to follow API 2.0 to the letter
 TEST_FOR_NON_IDEMPOTENT_CLOSE = False
@@ -107,9 +108,14 @@ class DatabaseAPI20Test(unittest.TestCase):
 
     # The self.driver module. This should be the module where the 'connect'
     # method is to be found
-    driver = None
-    connect_args = ()  # List of arguments to pass to connect
-    connect_kw_args = {}  # Keyword arguments for connect
+    if TYPE_CHECKING:
+        import adodbapi
+
+        driver = adodbapi
+    else:
+        driver = None
+    connect_args: ClassVar[tuple[str, ...]] = ()  # List of arguments to pass to connect
+    connect_kw_args: ClassVar[dict[str, Any]] = {}  # Keyword arguments for connect
     table_prefix = "dbapi20test_"  # If you need to specify a prefix for tables
 
     ddl1 = "create table %sbooze (name varchar(20))" % table_prefix

@@ -1494,29 +1494,21 @@ class TestPythonDateTimeConverter(TimeConverterInterfaceTest):
         assert t1 < obj < t2, obj
 
 
-suites = [
-    unittest.defaultTestLoader.loadTestsFromModule(TestPythonDateTimeConverter, "test")
-]
+suites = [unittest.defaultTestLoader.loadTestsFromTestCase(TestPythonDateTimeConverter)]
 if config.doTimeTest:
     suites.append(
-        unittest.defaultTestLoader.loadTestsFromModule(TestPythonTimeConverter, "test")
+        unittest.defaultTestLoader.loadTestsFromTestCase(TestPythonTimeConverter)
     )
 if config.doAccessTest:
-    suites.append(
-        unittest.defaultTestLoader.loadTestsFromModule(TestADOwithAccessDB, "test")
-    )
+    suites.append(unittest.defaultTestLoader.loadTestsFromTestCase(TestADOwithAccessDB))
 if config.doSqlServerTest:
     suites.append(
-        unittest.defaultTestLoader.loadTestsFromModule(TestADOwithSQLServer, "test")
+        unittest.defaultTestLoader.loadTestsFromTestCase(TestADOwithSQLServer)
     )
 if config.doMySqlTest:
-    suites.append(
-        unittest.defaultTestLoader.loadTestsFromModule(TestADOwithMySql, "test")
-    )
+    suites.append(unittest.defaultTestLoader.loadTestsFromTestCase(TestADOwithMySql))
 if config.doPostgresTest:
-    suites.append(
-        unittest.defaultTestLoader.loadTestsFromModule(TestADOwithPostgres, "test")
-    )
+    suites.append(unittest.defaultTestLoader.loadTestsFromTestCase(TestADOwithPostgres))
 
 
 class cleanup_manager:
