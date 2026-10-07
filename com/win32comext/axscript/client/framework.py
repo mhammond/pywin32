@@ -510,16 +510,6 @@ class ScriptItem:
                         result = self.dispatch.Invoke(
                             dispid, 0x0, pythoncom.DISPATCH_PROPERTYGET, 1
                         )
-                        # IE has an interesting problem - there are lots of synonyms for the same object.  Eg
-                        # in a simple form, "window.top", "window.window", "window.parent", "window.self"
-                        # all refer to the same object.  Our event implementation code does not differentiate
-                        # eg, "window_onload" will fire for *all* objects named "window".  Thus,
-                        # "window" and "window.window" will fire the same event handler :(
-                        # One option would be to check if the sub-object is indeed the
-                        # parent object - however, this would stop "top_onload" from firing,
-                        # as no event handler for "top" would work.
-                        # I think we simply need to connect to a *single* event handler.
-                        # As use in IE is deprecated, I am not solving this now.
                         if isinstance(
                             result, pythoncom.TypeIIDs[pythoncom.IID_IDispatch]
                         ):
@@ -527,18 +517,6 @@ class ScriptItem:
                             subObj = self.GetCreateSubItem(
                                 self, name, result, axscript.SCRIPTITEM_ISVISIBLE
                             )
-                            # print(
-                            #     "subobj",
-                            #     name,
-                            #     "flags are",
-                            #     subObj.flags,
-                            #     "mydisp=",
-                            #     self.dispatch,
-                            #     "result disp=",
-                            #     result,
-                            #     "compare=",
-                            #     self.dispatch == result,
-                            # )
                             subObj.BuildEvents()
                             subObj.Register()
                     except pythoncom.com_error:
@@ -727,15 +705,6 @@ class COMScript:
             startingLineNumber,
             flags,
         )
-        # NOTE - this is never called, as we have disabled this interface.
-        # Problem is, once enabled all even code comes via here, rather than AddScriptlet.
-        # However, the "procName" is always an empty string - ie, itemName is the object whose event we are handling,
-        # but no idea what the specific event is!?
-        # Problem is disabling this block is that AddScriptlet is _not_ passed
-        # <SCRIPT for="whatever" event="onClick" language="Python">
-        # (but even for those blocks, the "onClick" information is still missing!?!?!?)
-
-        # 		self.DoAddScriptlet(None, code, itemName, subItemName, eventName, delimiter,sourceContextCookie, startLineNumber)
         return None
 
     #
@@ -925,20 +894,10 @@ class COMScript:
     #
     # IObjectSafety
 
-    # Note that IE seems to insist we say we support all the flags, even tho
-    # we don't accept them all.  If unknown flags come in, they are ignored, and never
-    # reflected in GetInterfaceSafetyOptions and the QIs obviously fail, but still IE
-    # allows our engine to initialize.
     def SetInterfaceSafetyOptions(self, iid, optionsMask, enabledOptions):
-        # 		trace ("SetInterfaceSafetyOptions", iid, optionsMask, enabledOptions)
+        # trace("SetInterfaceSafetyOptions", iid, optionsMask, enabledOptions)
         if optionsMask & enabledOptions == 0:
             return
-
-        # See comments above.
-        # 		if (optionsMask & enabledOptions & \
-        # 			~(axscript.INTERFACESAFE_FOR_UNTRUSTED_DATA | axscript.INTERFACESAFE_FOR_UNTRUSTED_CALLER)):
-        # 			# request for options we don't understand
-        # 			RaiseAssert(scode=winerror.E_FAIL, desc="Unknown safety options")
 
         if iid in [
             pythoncom.IID_IPersist,
