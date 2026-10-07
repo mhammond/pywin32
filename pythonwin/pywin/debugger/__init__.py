@@ -1,4 +1,10 @@
+from __future__ import annotations
+
 import sys
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from . import debugger
 
 isInprocApp = -1
 
@@ -29,7 +35,7 @@ def _CheckNeedGUI():
 
 
 # Inject some methods in the top level name-space.
-currentDebugger = None  # Wipe out any old one on reload.
+currentDebugger: debugger.Debugger | None = None  # Wipe out any old one on reload.
 
 
 def _GetCurrentDebugger():
