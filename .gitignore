@@ -73,6 +73,7 @@ ENV/
 env.bak/
 venv.bak/
 .vagrant/
+vgr.bat
 # Not currently using a lock file
 uv.lock
 .python-version
@@ -80,5 +81,4 @@ uv.lock
 # other IDEs, MacOS, etc
 .idea/
 .DS_Store
-vagrant_helpers/bootstrap-salt.ps1
 .vscode/
