@@ -170,7 +170,6 @@ jobs:
           msystem: ${{matrix.sys}}
           update: true
           install: |
-            make
             mingw-w64-${{matrix.env}}-cc
             mingw-w64-${{matrix.env}}-python
             mingw-w64-${{matrix.env}}-python-build

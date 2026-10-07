@@ -241,11 +241,11 @@ class WinExt(Extension):
                 self.extra_link_args.append(f"-Wl,--out-implib,{implib}{suffix}.lib")
 
         # Link pywin32's own import libraries. MSVC also resolves these via the
-        # #pragma comment(lib, ...) in PyWinTypes.h/PythonCOM.h/win32ui.h, so
+        # #pragma comment(lib, ...) in PyWinTypes.h/PythonCOM.h, so
         # listing them is redundant there but harmless; GCC ignores the pragmas.
         #
         # pywintypes is used by virtually every extension (PyWinTypes.h).
-        # pythoncom/win32ui are added by the relevant subclasses.
+        # pythoncom is added by WinExt_win32com.
         # Each library built before its consumers (see the ext_modules ordering).
         macros = {name for name, _ in self.define_macros}
         if "BUILD_PYWINTYPES" not in macros:
@@ -264,28 +264,8 @@ class WinExt_pythonwin(WinExt):
         )
         super().__init__(name, **kw)
 
-    def finalize_options(self, build_ext):
-        super().finalize_options(build_ext)
-        # Pythonwin extensions/executables include win32ui.h (win32ui).
-        # win32ui itself exports it (BUILD_PYW) so must not self-link.
-        if not any(
-            name in ("BUILD_PYW", "FREEZE_WIN32UI") for name, _ in self.define_macros
-        ):
-            suffix = "_d" if build_ext.debug else ""
-            self.libraries.append(f"win32ui{suffix}")
-
     def get_pywin32_dir(self):
         return "pythonwin"
-
-
-class WinExt_pythonwin_ole(WinExt_pythonwin):
-    # A Pythonwin extension that also bridges OLE/COM (includes PythonCOM.h),
-    # so on top of the usual pywintypes + win32ui it links pythoncom and uuid
-    # (the COM IID_*/CLSID_* constants, uuid.lib on MSVC).
-    def finalize_options(self, build_ext):
-        super().finalize_options(build_ext)
-        suffix = "_d" if build_ext.debug else ""
-        self.libraries += ["uuid", f"pythoncom{suffix}"]
 
 
 class WinExt_pythonwin_subsys_win(WinExt_pythonwin):
@@ -2007,7 +1987,7 @@ pythonwin_extensions = [
         optional_headers=["afxwin.h"],
         implib_name="win32ui",
     ),
-    WinExt_pythonwin_ole(
+    WinExt_pythonwin(
         "win32uiole",
         sources=[
             "pythonwin/stdafxole.cpp",
