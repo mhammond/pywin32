@@ -1,8 +1,4 @@
-from __future__ import annotations
-
-build_id = "312.1"  # may optionally include a ".{patchno}" suffix.
-
-__doc__ = """This is a distutils setup-script for the pywin32 extensions.
+"""This is a distutils setup-script for the pywin32 extensions.
 
 The canonical source of truth for supported versions and build environments
 is [the GitHub CI](https://github.com/mhammond/pywin32/tree/main/.github/workflows).
@@ -23,8 +19,12 @@ often aren't available in all environments. The build process treats them as opt
 instead of a failing, it will report what was skipped, and why. See also
 build_env.md, which is getting out of date but might help getting everything
 required for an official build - see README.md for that process.
+
+Originally by Thomas Heller, started in 2000 or so.
 """
-# Originally by Thomas Heller, started in 2000 or so.
+
+from __future__ import annotations
+
 import logging
 import os
 import platform
@@ -65,6 +65,7 @@ else:
     from distutils.compilers.C.errors import CompileError
     from distutils.errors import DistutilsExecError
 
+build_id = "312.1"  # may optionally include a ".{patchno}" suffix.
 is_mingw = "MSC" not in sys.version
 
 
