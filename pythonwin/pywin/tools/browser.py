@@ -24,19 +24,12 @@ class HLIPythonObject(hierlist.HierListItem):
         hierlist.HierListItem.__init__(self)
         self.myobject = myobject
         self.knownExpandable = None
-        if name:
-            self.name = name
-        else:
-            try:
-                self.name = myobject.__name__
-            except (AttributeError, TypeError):
-                try:
-                    r = repr(myobject)
-                    if len(r) > 20:
-                        r = r[:20] + "..."
-                    self.name = r
-                except (AttributeError, TypeError):
-                    self.name = "???"
+        self.name = name or getattr(myobject, "__name__", "")
+        if not self.name:
+            r = repr(myobject)
+            if len(r) > 20:
+                r = r[:20] + "..."
+            self.name = r
 
     def __lt__(self, other):
         return self.name < other.name
@@ -56,11 +49,7 @@ class HLIPythonObject(hierlist.HierListItem):
             return f"{self.name} = {self.myobject!r}"
 
     def InsertDocString(self, lst):
-        ob = None
-        try:
-            ob = self.myobject.__doc__
-        except (AttributeError, TypeError):
-            pass
+        ob = getattr(self.myobject, "__doc__", None)
         # I don't quite grok descriptors enough to know how to
         # best hook them up. Eg:
         # >>> object.__getattribute__.__class__.__doc__
@@ -69,24 +58,22 @@ class HLIPythonObject(hierlist.HierListItem):
             lst.insert(0, HLIDocString(ob, "Doc"))
 
     def GetSubList(self):
-        ret = []
-        try:
-            for key, ob in self.myobject.__dict__.items():
-                if key not in special_names:
-                    ret.append(MakeHLI(ob, key))
-        except (AttributeError, TypeError):
-            pass
-        try:
-            for name in self.myobject.__methods__:
-                ret.append(HLIMethod(name))  # no MakeHLI, as can't auto detect
-        except (AttributeError, TypeError):
-            pass
-        try:
-            for member in self.myobject.__members__:
-                if not member in special_names:
-                    ret.append(MakeHLI(getattr(self.myobject, member), member))
-        except (AttributeError, TypeError):
-            pass
+        ret = [
+            *(
+                MakeHLI(ob, key)
+                for key, ob in getattr(self.myobject, "__dict__", {}).items()
+                if key not in special_names
+            ),
+            *(
+                HLIMethod(name)  # no MakeHLI, as can't auto detect
+                for name in getattr(self.myobject, "__methods__", ())
+            ),
+            *(
+                MakeHLI(getattr(self.myobject, member), member)
+                for member in getattr(self.myobject, "__members__", ())
+            ),
+        ]
+
         ret.sort()
         self.InsertDocString(ret)
         return ret
@@ -98,25 +85,14 @@ class HLIPythonObject(hierlist.HierListItem):
         return self.knownExpandable
 
     def CalculateIsExpandable(self):
-        if hasattr(self.myobject, "__doc__"):
+        if hasattr(self.myobject, "__doc__") or hasattr(self.myobject, "__methods__"):
             return 1
-        try:
-            for key in self.myobject.__dict__:
-                if key not in special_names:
-                    return 1
-        except (AttributeError, TypeError):
-            pass
-        try:
-            self.myobject.__methods__
-            return 1
-        except (AttributeError, TypeError):
-            pass
-        try:
-            for item in self.myobject.__members__:
-                if item not in special_names:
-                    return 1
-        except (AttributeError, TypeError):
-            pass
+        for key in getattr(self.myobject, "__dict__", {}):
+            if key not in special_names:
+                return 1
+        for item in getattr(self.myobject, "__members__", ()):
+            if item not in special_names:
+                return 1
         return 0
 
     def GetBitmapColumn(self):
@@ -163,11 +139,13 @@ class HLIClass(HLIPythonObject):
         return "Class"
 
     def GetSubList(self):
-        ret = []
-        for base in self.myobject.__bases__:
-            ret.append(MakeHLI(base, "Base class: " + base.__name__))
-        ret.extend(HLIPythonObject.GetSubList(self))
-        return ret
+        return [
+            *(
+                MakeHLI(base, "Base class: " + base.__name__)
+                for base in getattr(self.myobject, "__bases__", ())
+            ),
+            *HLIPythonObject.GetSubList(self),
+        ]
 
 
 class HLIMethod(HLIPythonObject):
@@ -176,7 +154,7 @@ class HLIMethod(HLIPythonObject):
         return "Method"
 
     def GetText(self):
-        return "Method: " + self.myobject + "()"
+        return f"Method: {self.myobject}()"
 
 
 class HLICode(HLIPythonObject):
@@ -187,14 +165,13 @@ class HLICode(HLIPythonObject):
         return self.myobject
 
     def GetSubList(self):
-        ret = []
-        ret.append(MakeHLI(self.myobject.co_consts, "Constants (co_consts)"))
-        ret.append(MakeHLI(self.myobject.co_names, "Names (co_names)"))
-        ret.append(MakeHLI(self.myobject.co_filename, "Filename (co_filename)"))
-        ret.append(MakeHLI(self.myobject.co_argcount, "Number of args (co_argcount)"))
-        ret.append(MakeHLI(self.myobject.co_varnames, "Param names (co_varnames)"))
-
-        return ret
+        return [
+            MakeHLI(self.myobject.co_consts, "Constants (co_consts)"),
+            MakeHLI(self.myobject.co_names, "Names (co_names)"),
+            MakeHLI(self.myobject.co_filename, "Filename (co_filename)"),
+            MakeHLI(self.myobject.co_argcount, "Number of args (co_argcount)"),
+            MakeHLI(self.myobject.co_varnames, "Param names (co_varnames)"),
+        ]
 
 
 class HLIInstance(HLIPythonObject):
@@ -202,21 +179,13 @@ class HLIInstance(HLIPythonObject):
         return "Instance"
 
     def GetText(self):
-        return (
-            str(self.name)
-            + " (Instance of class "
-            + str(self.myobject.__class__.__name__)
-            + ")"
-        )
+        return f"{self.name} (Instance of class {self.myobject.__class__.__name__})"
 
     def IsExpandable(self):
         return 1
 
     def GetSubList(self):
-        ret = []
-        ret.append(MakeHLI(self.myobject.__class__))
-        ret.extend(HLIPythonObject.GetSubList(self))
-        return ret
+        return [MakeHLI(self.myobject.__class__), *HLIPythonObject.GetSubList(self)]
 
 
 class HLIBuiltinFunction(HLIPythonObject):
@@ -248,11 +217,14 @@ class HLISeq(HLIPythonObject):
         return len(self.myobject) > 0
 
     def GetSubList(self):
-        ret = []
-        pos = 0
-        for item in self.myobject:
-            ret.append(MakeHLI(item, f"[{pos}]"))
+        pos = -1
+
+        def indexed_hli(item):
+            nonlocal pos
             pos += 1
+            MakeHLI(item, f"[{pos}]")
+
+        ret = [indexed_hli(item) for item in self.myobject or ()]
         self.InsertDocString(ret)
         return ret
 
@@ -272,11 +244,7 @@ class HLIDict(HLIPythonObject):
         return "Dict"
 
     def IsExpandable(self):
-        try:
-            self.myobject.__doc__
-            return 1
-        except (AttributeError, TypeError):
-            return len(self.myobject) > 0
+        return hasattr(self.myobject, "__doc__") or len(self.myobject) > 0
 
     def GetSubList(self):
         ret = [MakeHLI(self.myobject[key], str(key)) for key in sorted(self.myobject)]
