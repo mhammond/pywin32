@@ -99,7 +99,7 @@ We'll cover these points now in more depth.
 The MSDN describes the call as the following:
 </p>
 <p>
-<code>
+<pre><code>
 PDH_STATUS PdhEnumObjectItems(
   LPCTSTR szDataSource,
   LPCTSTR szMachineName,
@@ -111,7 +111,7 @@ PDH_STATUS PdhEnumObjectItems(
   DWORD dwDetailLevel,
   DWORD dwFlags
 );
-</code>
+</code></pre>
 </p>
 <p>
 The python call is similar though simpler. For example, you do not
@@ -121,14 +121,14 @@ components shown later.To call make with python would look like the
 following
 
 <p>
-<code>
+<pre><code>
     def proclist(self):
         try:
             junk, instances = win32pdh.EnumObjectItems(None,None,self.object, win32pdh.PERF_DETAIL_WIZARD)
             return instances
         except:
             raise COMException("Problem getting process list")
-</code>
+</code></pre>
 <p>
 The variable instances contains the list of processes, and you'll find the item or counter than we want
 'ID Process' present in the list of items.
@@ -139,13 +139,13 @@ python it is convenient to use a dictionary to store a list of
 processes and how many you found for each type.
 </p>
 <p>
-<pre>
+<pre><code>
     for instance in instances:
         if proc_dict.has_key(instance):
             proc_dict[instance] = proc_dict[instance] + 1
         else:
             proc_dict[instance]=0
-</pre>
+</code></pre>
 </p>
 
 <p>
@@ -160,7 +160,7 @@ Standard C++. The additional things you need to manage are:
 </ul>
 </p>
 <p>
-<code>
+<pre><code>
 HRESULT getinst (map &lt; string,int &gt; & m_inst) {
 
 	map&lt;string, int&gt;::iterator iter;
@@ -234,7 +234,7 @@ HRESULT getinst (map &lt; string,int &gt; & m_inst) {
 	return S_OK;
 
 }
-</code>
+</code></pre>
 </p>
 
 <hr>
@@ -254,7 +254,7 @@ As usual the python code matches this very cleanly (like pseudocode that actuall
 out the basic meanings and sequences of the win32 calls without having to deal with other details.
 
 <p>
-<code>
+<pre><code>
         for instance, max_instances in proc_dict.items():
             for inum in xrange(max_instances+1):
                 try:
@@ -267,7 +267,7 @@ out the basic meanings and sequences of the win32 calls without having to deal w
                     win32pdh.CloseQuery(hq)
                 except:
                     raise COMException("Problem getting process id")
-</code>
+</code></pre>
 
 <p>
 Again, the C++ code is more involved and makes use of Standard C++, vector, map, and string.
@@ -276,7 +276,7 @@ has tab-delimited process id entry. Also, the process id info is returned in the
 is converted to a string.
 </p>
 <p>
-<code>
+<pre><code>
 HRESULT getprocid (map&lt;string,int&gt;& m_inst, vector&lt;string&gt; &v_ids) {
 
 
@@ -347,20 +347,20 @@ HRESULT getprocid (map&lt;string,int&gt;& m_inst, vector&lt;string&gt; &v_ids) {
 	return S_OK;
 }
 
-</code>
+</code></pre>
 <p>
 <hr><h2><a name="client">The COM client.</a></h2>
 The Python COM client which will call the C++ COM object and Python COM object does the following:
 </p>
 <p>
-<code>
+<pre><code>
      import win32com.client
      a=win32com.client.Dispatch('NtPerf.process') # C++ com object
      print(a.procids())
 
      b=win32com.client.Dispatch('PyPerf.process') # python com object
      print(b.procids())
-</code>
+</code></pre>
 </p>
 <p>
 As far as it is concerned, there is no difference between the 2 objects. Both returns a list of processes and their
@@ -448,7 +448,7 @@ object and a line to register it.
 </p>
 
 <p>
-<code>
+<pre><code>
 import win32pdh, string, win32api
 from win32com.server.exception import COMException
 import win32com.server.util
@@ -504,7 +504,7 @@ class pyperf:
 if __name__=='__main__':
     import win32com.server.register
     win32com.server.register.UseCommandLine(pyperf)
-</code>
+</code></pre>
 </p>
 
 
@@ -524,7 +524,7 @@ you store the values in a Variant pointer.
 </p>
 
 <p>
-<code>
+<pre><code>
 
 Here is the relevant excerpt from the IDL:
 
@@ -819,7 +819,7 @@ STDMETHODIMP Cprocess::procids(VARIANT *pids)
 
 
 }
-</code>
+</code></pre>
 <p>
 
 <hr>

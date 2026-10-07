@@ -88,7 +88,7 @@ A tool that can be of a great help is the ADSI Edit MMC snap-in, aka <b>ADSIEdit
 >Remote Server Administration Tools for Windows 10</a> for installation instructions.
 It gives you the raw ldap view of active directory.
 Note that it is not available for the Home edition of Windows.</p>
-<code>
+<pre><code>
 def discover():
     Here is a function that helps you determine the active directory ldap strings that you can actually use.
     #get base LDAP string
@@ -125,7 +125,7 @@ def discover():
     for i in win32com.client.GetObject('LDAP://'+ex_first_store):
         ex_stores.append('cn='+i.cn+','+ex_first_store)
     print("\tExchange stores:","',".join(ex_stores))
-</code>
+</code></pre>
 
 <h3><a name="opends">Making the object</a></h3>
 
@@ -145,7 +145,7 @@ or to get the groups fred is a member of
 <br>
 print("groups=",opends("fred").memberOf)
 
-<code>
+<pre><code>
 def opends(loc,server=''):
     '''automatically buoild ldap string and authenticate
     ldap=win32com.client.Dispatch('ADsNameSpaces').getobject("","LDAP:")
@@ -161,7 +161,7 @@ def opends(loc,server=''):
     if loc.find('LDAP://')==-1: loc='LDAP://'+loc
 
     return ldap.OpenDSObject(loc,Ad.ldap_auth,Ad.pw,1)
-</code>
+</code></pre>
 
 <h3><a name="what">What does the object have?</a></h3>
 
@@ -178,16 +178,16 @@ library.
 <p>
 You would use ad_dict like a normal python dictionary.
 <br>
-<code>
+<pre><code>
 for i in ad_dict('fred').items():
 	print(i)
-</code>
+</code></pre>
 <br>
 A lot of things convert to automatic python data types. For others, you'll get stuff like
 COMObject. You need to do specific processing, like the one done for
 pwdLastSet below, to extract data from them.
 
-<code>
+<pre><code>
 def ad_dict(ldapobj,attr_dict={},recurse=0,auth=1,filter=()):
     if ldapobj.find(',')==-1: ldapobj='cn='+ldapobj+','+Ad.ldap_main_loc
     if auth: #setup authenticated connections
@@ -233,7 +233,7 @@ def ad_dict(ldapobj,attr_dict={},recurse=0,auth=1,filter=()):
             except:
                 pass
     return attr_dict
-</code>
+</code></pre>
 
 
 <h3><a NAME="time">The time property</a></h3>
@@ -252,7 +252,7 @@ print("time in seconds",conv_time(user.pwdLastSet.lowpart,user.pwdLastSet.highpa
 
 user.pwdLastSet returns a com object, not a python data type.
 
-<code>
+<pre><code>
 def conv_time(l,h):
     #converts 64-bit integer specifying the number of 100-nanosecond
     #intervals which have passed since January 1, 1601.
@@ -261,7 +261,7 @@ def conv_time(l,h):
     d=116444736000000000L #diference between 1601 and 1970
     #we divide by 10million to convert to seconds
     return (((long(h)<< 32) + long(l))-d)/10000000
-</code>
+</code></pre>
 
 <hr>
 <h2><A name="users">Managing Users</a></h2>

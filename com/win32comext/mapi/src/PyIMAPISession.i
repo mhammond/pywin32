@@ -310,7 +310,7 @@ HRESULT OpenAddressBook(
 	IAddrBook **OUTPUT
 );
 
-// @pyswig <o PyIProfSection>|OpenProfileSection|Opens a section of the current profile and returns an object for futher access
+// @pyswig <o PyIProfSection>|OpenProfileSection|Opens a section of the current profile and returns an object for further access
 HRESULT OpenProfileSection(
 	MAPIUID *INPUT, // @pyparm <o PyIID>|iidSection||The MAPIIID of the profile section
 	IID *INPUT_NULLOK, // @pyparm <o PyIID>|iid||The IID of the interface, or None.
