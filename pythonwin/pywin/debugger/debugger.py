@@ -1,12 +1,13 @@
-# debugger.py
+"""A debugger for Pythonwin.  Built from pdb.
 
-# A debugger for Pythonwin.  Built from pdb.
+Mark Hammond (MHammond@skippinet.com.au) - Dec 94.
 
-# Mark Hammond (MHammond@skippinet.com.au) - Dec 94.
+usage:
+>>> import pywin.debugger
+>>> pywin.debugger.GetDebugger().run("command")
+"""
 
-# usage:
-# >>> import pywin.debugger
-# >>> pywin.debugger.GetDebugger().run("command")
+from __future__ import annotations
 
 import bdb
 import os
@@ -15,6 +16,7 @@ import string
 import sys
 import traceback
 import types
+from typing import TypeVar
 
 import commctrl
 import pywin.docking.DockingBar
@@ -27,6 +29,8 @@ from pywin.mfc import afxres, window
 from pywin.tools import browser, hierlist
 
 from .dbgcon import *
+
+_T = TypeVar("_T")
 
 LVN_ENDLABELEDIT = commctrl.LVN_ENDLABELEDITW
 
@@ -44,11 +48,11 @@ def _LineStateToMarker(ls):
     return MARKER_BREAKPOINT
 
 
-class HierListItem(browser.HLIPythonObject):
+class HierListItem(browser.HLIPythonObject[_T]):
     pass
 
 
-class HierFrameItem(HierListItem):
+class HierFrameItem(HierListItem[types.FrameType]):
     def __init__(self, frame, debugger):
         HierListItem.__init__(self, frame, repr(frame))
         self.debugger = debugger
@@ -89,16 +93,16 @@ class HierFrameItem(HierListItem):
         return 1
 
 
-class HierFrameDict(browser.HLIDict):
-    def __init__(self, dict, name, bitmapColumn):
+class HierFrameDict(browser.HLIDict[str, _T]):
+    def __init__(self, dict: dict[str, _T], name, bitmapColumn):
         self.bitmapColumn = bitmapColumn
-        browser.HLIDict.__init__(self, dict, name)
+        super().__init__(dict, name)
 
     def GetBitmapColumn(self):
         return self.bitmapColumn
 
 
-class NoStackAvailableItem(HierListItem):
+class NoStackAvailableItem(HierListItem[None]):
     def __init__(self, why):
         HierListItem.__init__(self, None, why)
 
@@ -112,7 +116,7 @@ class NoStackAvailableItem(HierListItem):
         return 8
 
 
-class HierStackRoot(HierListItem):
+class HierStackRoot(HierListItem["Debugger"]):
     def __init__(self, debugger):
         HierListItem.__init__(self, debugger, None)
         self.last_stack = []
