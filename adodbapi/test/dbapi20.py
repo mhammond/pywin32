@@ -777,7 +777,7 @@ class DatabaseAPI20Test(unittest.TestCase):
         # cur.execute(sql)
 
     def help_nextset_tearDown(self, cur):
-        "If cleaning up is needed after nextSetTest"
+        """If cleaning up is needed after nextSetTest"""
         raise NotImplementedError("Helper not implemented")
         # cur.execute("drop procedure deleteme")
 

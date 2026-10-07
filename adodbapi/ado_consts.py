@@ -1,6 +1,6 @@
-# ADO enumerated constants documented on MSDN:
-# https://learn.microsoft.com/en-us/sql/ado/reference/ado-api/ado-enumerated-constants
-# TODO: Update to https://learn.microsoft.com/en-us/sql/ado/reference/ado-api/ado-enumerated-constants
+"""ADO enumerated constants documented on MSDN: \
+http://msdn.microsoft.com/en-us/library/ms678353(VS.85).aspx"""
+# TODO: Update to constants in https://learn.microsoft.com/en-us/sql/ado/reference/ado-api/ado-enumerated-constants
 
 # IsolationLevelEnum
 adXactUnspecified = -1
