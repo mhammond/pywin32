@@ -55,6 +55,29 @@ static void CheckRegisterEventSourceFile();
         ReportError(MSG_IR1, (LPCTSTR *)lpszStrings, EVENTLOG_INFORMATION_TYPE); \
     }
 
+// Like Py_Initialize, but also sets the program name.
+// (Replaces the deprecated Py_SetProgramName)
+static void PyService_InitializeWithProgramName(const wchar_t *program_name)
+{
+    // Like Py_Initialize, do nothing if already initialized (eg: by pythonservice.exe).
+    // Py_InitializeFromConfig would instead re-apply the configuration, resetting sys.argv.
+    if (Py_IsInitialized())
+        return;
+    PyConfig config;
+    PyConfig_InitPythonConfig(&config);
+    // Match Py_Initialize's legacy configuration
+    config.configure_c_stdio = 0;
+    config.parse_argv = 0;
+    PyStatus status = PyStatus_Ok();
+    if (program_name != NULL)
+        status = PyConfig_SetString(&config, &config.program_name, program_name);
+    if (!PyStatus_Exception(status))
+        status = Py_InitializeFromConfig(&config);
+    PyConfig_Clear(&config);
+    if (PyStatus_Exception(status))
+        Py_ExitStatusException(status);
+}
+
 #ifdef PYSERVICE_BUILD_DLL  // The bulk of this file is only used when building the core DLL.
 
 #define MAX_SERVICES 10
@@ -569,13 +592,11 @@ static void PyService_InitPython()
     // knows how to get the .EXE name when it needs.
     int pyargc;
     WCHAR **pyargv = CommandLineToArgvW(GetCommandLineW(), &pyargc);
-    if (pyargv)
-        Py_SetProgramName(pyargv[0]);
 
 #ifdef BUILD_FREEZE
     PyInitFrozenExtensions();
 #endif
-    Py_Initialize();
+    PyService_InitializeWithProgramName(pyargv ? pyargv[0] : NULL);
 #ifdef BUILD_FREEZE
     PyWinFreeze_ExeInit();
 #endif
@@ -1404,11 +1425,8 @@ int _tmain(int argc, TCHAR **argv)
     FARPROC proc;
     int dummy;
     wchar_t **program = CommandLineToArgvW(GetCommandLineW(), &dummy);
-    if (program != NULL) {
-        Py_SetProgramName(program[0]);
-        // do not free `program` since Py_SetProgramName does not copy it.
-    }
-    Py_Initialize();
+    PyService_InitializeWithProgramName(program ? program[0] : NULL);
+    LocalFree(program);
     module = PyImport_ImportModule("servicemanager");
     if (!module)
         goto failed;
