@@ -89,78 +89,61 @@ pwr_trustee["TrusteeForm"] = TRUSTEE_FORM.TRUSTEE_IS_SID
 pwr_trustee["TrusteeType"] = TRUSTEE_TYPE.TRUSTEE_IS_USER
 pwr_trustee["Identifier"] = pwr_sid
 
-expl_list = []
-expl_list.append(
+expl_list = [
     {
         "Trustee": my_trustee,
         "Inheritance": ACE_FLAGS.NO_INHERITANCE,
         "AccessMode": ACCESS_MODE.SET_AUDIT_SUCCESS,  ##|ACCESS_MODE.SET_AUDIT_FAILURE,
         "AccessPermissions": win32con.GENERIC_ALL,
-    }
-)
-
-expl_list.append(
+    },
     {
         "Trustee": my_trustee,
         "Inheritance": ACE_FLAGS.NO_INHERITANCE,
         "AccessMode": ACCESS_MODE.SET_AUDIT_FAILURE,
         "AccessPermissions": win32con.GENERIC_ALL,
-    }
-)
-
-expl_list.append(
+    },
     {
         "Trustee": tmp_trustee,
         "Inheritance": ACE_FLAGS.NO_INHERITANCE,
         "AccessMode": ACCESS_MODE.SET_AUDIT_SUCCESS,
         "AccessPermissions": win32con.GENERIC_ALL,
-    }
-)
-
-expl_list.append(
+    },
     {
         "Trustee": tmp_trustee,
         "Inheritance": ACE_FLAGS.NO_INHERITANCE,
         "AccessMode": ACCESS_MODE.SET_AUDIT_FAILURE,
         "AccessPermissions": win32con.GENERIC_ALL,
-    }
-)
+    },
+]
 old_sacl.SetEntriesInAcl(expl_list)
 
-expl_list = []
-expl_list.append(
+expl_list = [
     {
         "Trustee": tmp_trustee,
         "Inheritance": ACE_FLAGS.NO_INHERITANCE,
         "AccessMode": ACCESS_MODE.DENY_ACCESS,
         "AccessPermissions": win32con.DELETE,
-    }
-)
-
-expl_list.append(
+    },
     {
         "Trustee": tmp_trustee,
         "Inheritance": ACE_FLAGS.NO_INHERITANCE,
         "AccessMode": ACCESS_MODE.GRANT_ACCESS,
         "AccessPermissions": win32con.WRITE_OWNER,
-    }
-)
-expl_list.append(
+    },
     {
         "Trustee": pwr_trustee,
         "Inheritance": ACE_FLAGS.NO_INHERITANCE,
         "AccessMode": ACCESS_MODE.GRANT_ACCESS,
         "AccessPermissions": win32con.GENERIC_READ,
-    }
-)
-expl_list.append(
+    },
     {
         "Trustee": my_trustee,
         "Inheritance": ACE_FLAGS.NO_INHERITANCE,
         "AccessMode": ACCESS_MODE.GRANT_ACCESS,
         "AccessPermissions": win32con.GENERIC_ALL,
-    }
-)
+    },
+]
+
 
 old_dacl.SetEntriesInAcl(expl_list)
 sd.SetSecurityDescriptorSacl(1, old_sacl, 1)

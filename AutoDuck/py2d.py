@@ -20,7 +20,7 @@ def BuildArgInfos(ob):
     vars = list(ob.__code__.co_varnames[: ob.__code__.co_argcount])
     vars.reverse()  # for easier default checking.
     defs = list(ob.__defaults__ or [])
-    for i, n in enumerate(vars):
+    for n in vars:
         info = DocInfo(n, ob)
         info.short_desc = info.desc = n
         info.default = ""
