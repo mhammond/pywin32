@@ -2845,6 +2845,19 @@ DECLARE_MAPI_INTERFACE_(IMAPIProviderShutdown, IUnknown)
 	MAPI_IMAPIPROVIDERSHUTDOWN_METHODS(PURE)
 };
 
+/* WrapCompressedRTFStreamEx ---------------------------------------------- */
+
+/* Flags for WrapCompressedRTFStreamEx */
+
+/****** MAPI_MODIFY					((ULONG) 0x00000001) above */
+/****** STORE_UNCOMPRESSED_RTF		((ULONG) 0x00008000) above */
+#define MAPI_NATIVE_BODY 0x00010000
+
+/* out param type infomation for WrapCompressedRTFStreamEx */
+#define MAPI_NATIVE_BODY_TYPE_RTF 0x00000001
+#define MAPI_NATIVE_BODY_TYPE_HTML 0x00000002
+#define MAPI_NATIVE_BODY_TYPE_PLAINTEXT 0x00000004
+
 #ifdef	__cplusplus
 }		/*	extern "C" */
 #endif

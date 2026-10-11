@@ -547,9 +547,9 @@ PyObject *PyCredGetSessionTypes(PyObject *self, PyObject *args, PyObject *kwargs
     }
     BOOL res = TRUE;
     DWORD arr[CRED_TYPE_MAXIMUM];
-    Py_BEGIN_ALLOW_THREADS;
-    res = CredGetSessionTypes(mpc, arr);
-    Py_END_ALLOW_THREADS;
+    Py_BEGIN_ALLOW_THREADS
+        res = CredGetSessionTypes(mpc, arr);
+    Py_END_ALLOW_THREADS
     if (!res)
         return PyWin_SetAPIError("CredGetSessionTypes");
     PyObject *ret = PyList_New(mpc);
@@ -724,13 +724,13 @@ PyObject *PyCredWrite(PyObject *self, PyObject *args, PyObject *kwargs)
         return NULL;
     BOOL ok;
     DWORD err;
-    Py_BEGIN_ALLOW_THREADS;
-    ok = CredWrite(&cred, flags);
-    // Capture error before Py_END_ALLOW_THREADS reacquires the GIL,
-    // which may call Win32 functions that overwrite GetLastError().
-    if (!ok)
-        err = GetLastError();
-    Py_END_ALLOW_THREADS;
+    Py_BEGIN_ALLOW_THREADS
+        ok = CredWrite(&cred, flags);
+        // Capture error before Py_END_ALLOW_THREADS reacquires the GIL,
+        // which may call Win32 functions that overwrite GetLastError().
+        if (!ok)
+            err = GetLastError();
+    Py_END_ALLOW_THREADS
     if (!ok)
         PyWin_SetAPIError("CredWrite", err);
     else {
@@ -948,10 +948,10 @@ PyObject *PyCredUIPromptForCredentials(PyObject *self, PyObject *args, PyObject 
     if (!PyWinObject_AsCREDUI_INFO(obuiinfo, &uiinfo))
         goto done;
 
-    Py_BEGIN_ALLOW_THREADS;
-    reterr = CredUIPromptForCredentials(uiinfo, targetname, reserved, autherror, username_io, maxusername, password_io,
-                                        maxpassword, &save, flags);
-    Py_END_ALLOW_THREADS;
+    Py_BEGIN_ALLOW_THREADS
+        reterr = CredUIPromptForCredentials(uiinfo, targetname, reserved, autherror, username_io, maxusername,
+                                            password_io, maxpassword, &save, flags);
+    Py_END_ALLOW_THREADS
     if (reterr == NO_ERROR)
         ret = Py_BuildValue("uuN", username_io, password_io, PyBool_FromLong(save));
     else

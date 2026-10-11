@@ -75,9 +75,9 @@ static PyObject *PyADsOpenObject(PyObject *self, PyObject *args)
 		goto done;
 	if (!PyWinObject_AsWCHAR(obPassword, &password, TRUE))
 		goto done;
-	Py_BEGIN_ALLOW_THREADS;
+	Py_BEGIN_ALLOW_THREADS
 	hr = ADsOpenObject(path, userName, password, (DWORD)lres, iid, (void **)&pOb);
-	Py_END_ALLOW_THREADS;
+	Py_END_ALLOW_THREADS
 	if (FAILED(hr))
 		ret = OleSetADSIError(hr, NULL, IID_NULL);
 	else
@@ -109,9 +109,9 @@ static PyObject *PyADsGetObject(PyObject *self, PyObject *args)
 		goto done;
 	if (!PyWinObject_AsWCHAR(obPath, &path, FALSE))
 		goto done;
-	Py_BEGIN_ALLOW_THREADS;
+	Py_BEGIN_ALLOW_THREADS
 	hr = ADsGetObject(path, iid, (void **)&pOb);
-	Py_END_ALLOW_THREADS;
+	Py_END_ALLOW_THREADS
 	if (FAILED(hr))
 		ret = OleSetADSIError(hr, NULL, IID_NULL);
 	else
@@ -149,10 +149,10 @@ static PyObject *PyADsBuildEnumerator(PyObject *self, PyObject *args)
 	if (!PyCom_InterfaceFromPyInstanceOrObject(obCont, IID_IADsContainer, (void **)&pC, FALSE))
 		return NULL;
 	IEnumVARIANT *pev;
-	Py_BEGIN_ALLOW_THREADS;
+	Py_BEGIN_ALLOW_THREADS
 	hr = ADsBuildEnumerator(pC, &pev);
 	pC->Release();
-	Py_END_ALLOW_THREADS;
+	Py_END_ALLOW_THREADS
 	if (FAILED(hr))
 		ret = OleSetADSIError(hr, NULL, IID_NULL);
 	else

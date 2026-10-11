@@ -18,6 +18,30 @@ As of build 305, installation .exe files have been deprecated; see
 Coming in build 313, as yet unreleased
 --------------------------------------
 
+* Pythonwin: Fixed "Check" (Ctrl+Shift+C) raising `UnicodeDecodeError` on files not encoded in the system locale encoding. It now respects the file's encoding declaration, defaulting to UTF-8 (mhammond#667, [@Avasam][Avasam])
+* Fixed `win32evtlogutil.FeedEventLogRecords`'s `feeder` callback param never being called (mhammond#2807, [@Avasam][Avasam])
+* Fixed `Pythonwin.exe` silently exiting with code 1 when started without a console and with `PYTHONFAULTHANDLER` or `PYTHONDEVMODE` set (mhammond#2504, [@Avasam][Avasam])
+* Fixed `win32api.GetFullPathName` silently returning an empty string for paths of 260 characters or more (mhammond#2795, [@MohammedAlkindi][MohammedAlkindi])
+* Added `win32api.ToUnicodeEx` wrapper for translating virtual-key codes and keyboard state to Unicode characters (mhammond#2788, [@ravik453][ravik453])
+* Updated `MAPIStubLibrary` vendored sources (mhammond#2764, [@Avasam][Avasam]):
+  * Migrated from deprecated SAL v1 annotations to SAL v2
+  * New `win32comext.mapi.mapitags` symbols:
+    * `PR_SENDER_SMTP_ADDRESS`
+    * `PR_SENDER_SMTP_ADDRESS_W`
+    * `PR_SENDER_SMTP_ADDRESS_A`
+    * `PR_SENT_REPRESENTING_SMTP_ADDRESS`
+    * `PR_SENT_REPRESENTING_SMTP_ADDRESS_W`
+    * `PR_SENT_REPRESENTING_SMTP_ADDRESS_A`
+    * `PR_RECEIVED_BY_SMTP_ADDRESS`
+    * `PR_RECEIVED_BY_SMTP_ADDRESS_W`
+    * `PR_RECEIVED_BY_SMTP_ADDRESS_A`
+    * `PR_RCVD_REPRESENTING_SMTP_ADDRESS`
+    * `PR_RCVD_REPRESENTING_SMTP_ADDRESS_W`
+    * `PR_RCVD_REPRESENTING_SMTP_ADDRESS_A`
+* Fixed a regression where `pythonwin/mfc140u.dll` isn't bundled with the wheels ([3cc74e0
+](mhammond/pywin32/commit/3cc74e05b4d5680c69fd6c02232a630db7a34675), [@Avasam][Avasam])
+* Add experimental no-GIL interpreter support (mhammond#2767  [@clin1234][clin1234])
+
 Build 312, released 2026/06/04
 ------------------------------
 
@@ -44,7 +68,7 @@ Build 312, released 2026/06/04
 * Removed considerations for MFC < 9 (VS 2008) (mhammond#2669, mhammond#2716, [@Avasam][Avasam])
   * This removes the unusable `PyCSliderCtrl.VerifyPos` method
 * win32cred.{CredWrite, CredUIPromptForCredentials}, win32net.NetUserEnum,
-  win32profile.{LoadUserProfile,UnloadUserProfile,CreateEnvironmentBlock}, 
+  win32profile.{LoadUserProfile,UnloadUserProfile,CreateEnvironmentBlock},
   win32security.{LogonUser, LookupAccountName, SetNamedSecurityInfo, GetNamedSecurityInfo, LsaAddAccountRights, ConvertSidToStringSid}
   all now release the GIL before making the call (#2732)
 * Fix memory leak in PyCom_VariantFromPyObject (#2688)
@@ -491,8 +515,10 @@ for them.
 [kxrob]: https://github.com/kxrob
 [markuskimius]: https://github.com/markuskimius
 [maxim-krikun]: https://github.com/maxim
+[MohammedAlkindi]: https://github.com/MohammedAlkindi
 [Mscht]: https://github.com/Mscht
 [nbbeatty]: https://github.com/nbbeatty
+[ravik453]: https://github.com/ravik453
 [saaketp]: https://github.com/saaketp
 [the-snork]: https://github.com/the-snork
 [wkschwartz]: https://github.com/wkschwartz
