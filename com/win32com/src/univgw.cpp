@@ -56,9 +56,10 @@ static void set_error(REFIID riid, LPCOLESTR desc)
         pICEI->SetDescription(b);
 
         IErrorInfo *pIEI;
-        Py_BEGIN_ALLOW_THREADS hr = pICEI->QueryInterface(IID_IErrorInfo, (LPVOID *)&pIEI);
-        Py_END_ALLOW_THREADS if (SUCCEEDED(hr))
-        {
+        Py_BEGIN_ALLOW_THREADS
+            hr = pICEI->QueryInterface(IID_IErrorInfo, (LPVOID *)&pIEI);
+        Py_END_ALLOW_THREADS
+        if (SUCCEEDED(hr)) {
             SetErrorInfo(0, pIEI);
             pIEI->Release();
         }
@@ -722,8 +723,11 @@ BOOL initunivgw(PyObject *parentDict)
     if (!module) /* Eeek - some serious error! */
         return FALSE;
 
-    //	PyObject *dict = PyModule_GetDict(module);
-    //	if (!dict) return; /* Another serious error!*/
+        //	PyObject *dict = PyModule_GetDict(module);
+        //	if (!dict) return; /* Another serious error!*/
+#ifdef Py_GIL_DISABLED
+    PyUnstable_Module_SetGIL(module, Py_MOD_GIL_NOT_USED);
+#endif
 
     g_obRegisteredVTables = PyDict_New();
 

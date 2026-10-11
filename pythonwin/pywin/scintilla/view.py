@@ -598,7 +598,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
                 self._UpdateWithClassMethods(dict, super)
 
     # Find which class definition caret is currently in and return
-    # indexes of the the first and the last lines of that class definition
+    # indexes of the first and the last lines of that class definition
     # Data is obtained from module browser (if enabled)
     def _GetClassInfoFromBrowser(self, pos=-1):
         minline = 0

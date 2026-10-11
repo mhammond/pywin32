@@ -50,7 +50,7 @@ diff --unified --recursive --ignore-space-change SWIG1.1p5-orig/Modules/makefile
  tcl.obj: tcl.cxx 
 diff --unified --recursive --ignore-space-change SWIG1.1p5-orig/Modules/python.cxx SWIG1.1p5/Modules/python.cxx
 --- SWIG1.1p5-orig/Modules/python.cxx	1998-01-03 01:17:40.000000000 -0500
-+++ SWIG1.1p5/Modules/python.cxx	2025-12-11 00:03:32.740350600 -0500
++++ SWIG1.1p5/Modules/python.cxx	2026-04-25 15:25:52.266230400 -0400
 @@ -61,6 +61,8 @@
  
  static   int          doc_index = 0;
@@ -141,7 +141,7 @@ diff --unified --recursive --ignore-space-change SWIG1.1p5-orig/Modules/python.c
    fprintf(f_init,"\t PyObject *m, *d;\n");
  
    if (InitNames) {
-@@ -400,8 +453,21 @@
+@@ -400,8 +453,24 @@
      }
    }
    fprintf(f_init,"\t SWIG_globals = SWIG_newvarlink();\n");
@@ -158,6 +158,9 @@ diff --unified --recursive --ignore-space-change SWIG1.1p5-orig/Modules/python.c
 +    "  m = PyModule_Create(&%s_def);\n"
 +    "  if (!m)\n"
 +    "    return NULL;\n"
++    "#ifdef Py_GIL_DISABLED\n"
++    "\t PyUnstable_Module_SetGIL(m, Py_MOD_GIL_NOT_USED);\n"
++    "#endif\n"
 +    "  d = PyModule_GetDict(m);\n"
 +    "  if (!d)\n"
 +    "    return NULL;\n",
@@ -165,7 +168,7 @@ diff --unified --recursive --ignore-space-change SWIG1.1p5-orig/Modules/python.c
  }
  
  
-@@ -417,6 +483,9 @@
+@@ -417,6 +486,9 @@
  
    print_methods();
    close_cmodule();
@@ -175,7 +178,7 @@ diff --unified --recursive --ignore-space-change SWIG1.1p5-orig/Modules/python.c
    if ((doc_entry) && (module)){
      String temp;
      temp << "Python Module : ";
-@@ -469,7 +538,11 @@
+@@ -469,7 +541,11 @@
  // --------------------------------------------------------------------
  void PYTHON::close_cmodule(void)
  {
@@ -188,7 +191,7 @@ diff --unified --recursive --ignore-space-change SWIG1.1p5-orig/Modules/python.c
    fprintf(f_init,"}\n");
  }
  
-@@ -598,8 +671,11 @@
+@@ -598,8 +674,11 @@
  // ----------------------------------------------------------------------
  void PYTHON::emit_function_header(WrapperFunction &emit_to, char *wname)
  {
@@ -201,7 +204,7 @@ diff --unified --recursive --ignore-space-change SWIG1.1p5-orig/Modules/python.c
    emit_to.code << tab4 << "self = self;\n";
  }
  
-@@ -612,8 +688,13 @@
+@@ -612,8 +691,13 @@
  //
  // Returns the name of the variable to use as the self pointer
  // ----------------------------------------------------------------------
@@ -216,7 +219,7 @@ diff --unified --recursive --ignore-space-change SWIG1.1p5-orig/Modules/python.c
    // Default behaviour is no translation
    return "";
  }
-@@ -625,7 +706,14 @@
+@@ -625,7 +709,14 @@
  // ----------------------------------------------------------------------
  char *PYTHON::make_funcname_wrapper(char *fnName)
  {
@@ -231,7 +234,7 @@ diff --unified --recursive --ignore-space-change SWIG1.1p5-orig/Modules/python.c
  }
  
  // ----------------------------------------------------------------------
-@@ -1629,7 +1717,13 @@
+@@ -1629,7 +1720,13 @@
  // -----------------------------------------------------------------------
  
  void PYTHON::add_native(char *name, char *funcname) {

@@ -65,9 +65,9 @@ static PyObject *py_change_clipboard_chain(PyObject *self, PyObject *args)
         return NULL;
 
     BOOL rc;
-    Py_BEGIN_ALLOW_THREADS;
-    rc = ChangeClipboardChain(hWndRemove, hWndNewNext);
-    Py_END_ALLOW_THREADS;
+    Py_BEGIN_ALLOW_THREADS
+        rc = ChangeClipboardChain(hWndRemove, hWndNewNext);
+    Py_END_ALLOW_THREADS
 
     return (Py_BuildValue("i", (int)rc));
 
@@ -95,9 +95,9 @@ static PyObject *py_close_clipboard(PyObject *self, PyObject *args)
     CHECK_NO_ARGS2(args, "CloseClipboard");
 
     BOOL rc;
-    Py_BEGIN_ALLOW_THREADS;
-    rc = CloseClipboard();
-    Py_END_ALLOW_THREADS;
+    Py_BEGIN_ALLOW_THREADS
+        rc = CloseClipboard();
+    Py_END_ALLOW_THREADS
 
     if (!rc) {
         return ReturnAPIError("CloseClipboard");
@@ -128,9 +128,9 @@ static PyObject *py_count_clipboard_formats(PyObject *self, PyObject *args)
     CHECK_NO_ARGS2(args, "CountClipboardFormats");
 
     int rc;
-    Py_BEGIN_ALLOW_THREADS;
-    rc = CountClipboardFormats();
-    Py_END_ALLOW_THREADS;
+    Py_BEGIN_ALLOW_THREADS
+        rc = CountClipboardFormats();
+    Py_END_ALLOW_THREADS
 
     if (!rc) {
         return ReturnAPIError("CountClipboardFormats");
@@ -158,9 +158,9 @@ static PyObject *py_empty_clipboard(PyObject *self, PyObject *args)
     CHECK_NO_ARGS2(args, "EmptyClipboard");
 
     BOOL rc;
-    Py_BEGIN_ALLOW_THREADS;
-    rc = EmptyClipboard();
-    Py_END_ALLOW_THREADS;
+    Py_BEGIN_ALLOW_THREADS
+        rc = EmptyClipboard();
+    Py_END_ALLOW_THREADS
 
     if (!rc) {
         return ReturnAPIError("EmptyClipboard");
@@ -201,9 +201,9 @@ static PyObject *py_enum_clipboard_formats(PyObject *self, PyObject *args)
     }
 
     UINT rc;
-    Py_BEGIN_ALLOW_THREADS;
-    rc = EnumClipboardFormats(format);
-    Py_END_ALLOW_THREADS;
+    Py_BEGIN_ALLOW_THREADS
+        rc = EnumClipboardFormats(format);
+    Py_END_ALLOW_THREADS
 
     if (!rc) {
         DWORD errNum = GetLastError();
@@ -262,9 +262,9 @@ static PyObject *py_get_clipboard_data_handle(PyObject *self, PyObject *args)
     if (!IsClipboardFormatAvailable(format))
         return PyErr_Format(PyExc_TypeError, "The clipboard format %d is not available", format);
     HANDLE handle;
-    Py_BEGIN_ALLOW_THREADS;
-    handle = GetClipboardData((UINT)format);
-    Py_END_ALLOW_THREADS;
+    Py_BEGIN_ALLOW_THREADS
+        handle = GetClipboardData((UINT)format);
+    Py_END_ALLOW_THREADS
     if (!handle)
         return ReturnAPIError("GetClipboardData");
     return PyWinLong_FromHANDLE(handle);
@@ -298,9 +298,9 @@ static PyObject *py_get_clipboard_data(PyObject *self, PyObject *args)
     PyObject *obfilename = NULL;
     UINT filecnt = 0, fileind = 0, filenamesize = 0;
     HDROP hdrop;
-    Py_BEGIN_ALLOW_THREADS;
-    handle = GetClipboardData((UINT)format);
-    Py_END_ALLOW_THREADS;
+    Py_BEGIN_ALLOW_THREADS
+        handle = GetClipboardData((UINT)format);
+    Py_END_ALLOW_THREADS
 
     if (!handle) {
         return ReturnAPIError("GetClipboardData");
@@ -484,9 +484,9 @@ static PyObject *py_get_clipboard_formatName(PyObject *self, PyObject *args)
 
     TCHAR buf[256];
     int rc;
-    Py_BEGIN_ALLOW_THREADS;
-    rc = GetClipboardFormatName((UINT)format, buf, 255);
-    Py_END_ALLOW_THREADS;
+    Py_BEGIN_ALLOW_THREADS
+        rc = GetClipboardFormatName((UINT)format, buf, 255);
+    Py_END_ALLOW_THREADS
 
     if (!rc) {
         return ReturnAPIError("GetClipboardFormatName");
@@ -511,9 +511,9 @@ static PyObject *py_get_clipboard_owner(PyObject *self, PyObject *args)
     CHECK_NO_ARGS2(args, "GetClipboardOwner");
 
     HWND rc;
-    Py_BEGIN_ALLOW_THREADS;
-    rc = GetClipboardOwner();
-    Py_END_ALLOW_THREADS;
+    Py_BEGIN_ALLOW_THREADS
+        rc = GetClipboardOwner();
+    Py_END_ALLOW_THREADS
 
     if (!rc)
         return ReturnAPIError("GetClipboardOwner");
@@ -555,9 +555,9 @@ static PyObject *py_get_clipboard_sequence_number(PyObject *self, PyObject *args
     CHECK_NO_ARGS2(args, "GetClipboardSequenceNumber");
 
     DWORD rc;
-    Py_BEGIN_ALLOW_THREADS;
-    rc = GetClipboardSequenceNumber();
-    Py_END_ALLOW_THREADS;
+    Py_BEGIN_ALLOW_THREADS
+        rc = GetClipboardSequenceNumber();
+    Py_END_ALLOW_THREADS
 
     return (Py_BuildValue("i", (int)rc));
 
@@ -586,9 +586,9 @@ static PyObject *py_get_clipboard_viewer(PyObject *self, PyObject *args)
     CHECK_NO_ARGS2(args, "GetClipboardViewer");
 
     HWND rc;
-    Py_BEGIN_ALLOW_THREADS;
-    rc = GetClipboardViewer();
-    Py_END_ALLOW_THREADS;
+    Py_BEGIN_ALLOW_THREADS
+        rc = GetClipboardViewer();
+    Py_END_ALLOW_THREADS
 
     if (!rc)
         return ReturnAPIError("GetClipboardViewer");
@@ -613,9 +613,9 @@ static PyObject *py_get_open_clipboard_window(PyObject *self, PyObject *args)
     CHECK_NO_ARGS2(args, "GetOpenClipboardWindow");
 
     HWND rc;
-    Py_BEGIN_ALLOW_THREADS;
-    rc = GetOpenClipboardWindow();
-    Py_END_ALLOW_THREADS;
+    Py_BEGIN_ALLOW_THREADS
+        rc = GetOpenClipboardWindow();
+    Py_END_ALLOW_THREADS
 
     if (!rc)
         return ReturnAPIError("GetOpenClipboardWindow");
@@ -656,9 +656,9 @@ static PyObject *py_getPriority_clipboard_format(PyObject *self, PyObject *args)
         return NULL;
 
     int rc;
-    Py_BEGIN_ALLOW_THREADS;
-    rc = GetPriorityClipboardFormat(format_list, num_formats);
-    Py_END_ALLOW_THREADS;
+    Py_BEGIN_ALLOW_THREADS
+        rc = GetPriorityClipboardFormat(format_list, num_formats);
+    Py_END_ALLOW_THREADS
 
     free(format_list);
     return PyLong_FromLong(rc);
@@ -688,9 +688,9 @@ static PyObject *py_is_clipboard_format_available(PyObject *self, PyObject *args
     }
 
     BOOL rc;
-    Py_BEGIN_ALLOW_THREADS;
-    rc = IsClipboardFormatAvailable((UINT)format);
-    Py_END_ALLOW_THREADS;
+    Py_BEGIN_ALLOW_THREADS
+        rc = IsClipboardFormatAvailable((UINT)format);
+    Py_END_ALLOW_THREADS
 
     return (Py_BuildValue("i", (int)rc));
 
@@ -727,9 +727,9 @@ static PyObject *py_open_clipboard(PyObject *self, PyObject *args)
     if (!PyWinObject_AsHANDLE(obhWnd, (HANDLE *)&hWnd))
         return NULL;
     BOOL rc;
-    Py_BEGIN_ALLOW_THREADS;
-    rc = OpenClipboard(hWnd);
-    Py_END_ALLOW_THREADS;
+    Py_BEGIN_ALLOW_THREADS
+        rc = OpenClipboard(hWnd);
+    Py_END_ALLOW_THREADS
 
     if (!rc) {
         return ReturnAPIError("OpenClipboard");
@@ -766,9 +766,9 @@ static PyObject *py_register_clipboard_format(PyObject *self, PyObject *args)
     if (!PyWinObject_AsTCHAR(obname, &name, FALSE))
         return NULL;
     UINT rc;
-    Py_BEGIN_ALLOW_THREADS;
-    rc = RegisterClipboardFormat(name);
-    Py_END_ALLOW_THREADS;
+    Py_BEGIN_ALLOW_THREADS
+        rc = RegisterClipboardFormat(name);
+    Py_END_ALLOW_THREADS
     PyWinObject_FreeTCHAR(name);
     if (!rc)
         return ReturnAPIError("RegisterClipboardFormat");
@@ -860,9 +860,9 @@ static PyObject *py_set_clipboard_data(PyObject *self, PyObject *args)
         GlobalUnlock(handle);
     }
     HANDLE data;
-    Py_BEGIN_ALLOW_THREADS;
-    data = SetClipboardData((UINT)format, handle);
-    Py_END_ALLOW_THREADS;
+    Py_BEGIN_ALLOW_THREADS
+        data = SetClipboardData((UINT)format, handle);
+    Py_END_ALLOW_THREADS
 
     if (!data)
         // XXX - should we GlobalFree the mem?
@@ -939,9 +939,9 @@ static PyObject *py_set_clipboard_text(PyObject *self, PyObject *args)
         memset(dest + cb, 0, size_null);
         GlobalUnlock(hMem);
         HANDLE data;
-        Py_BEGIN_ALLOW_THREADS;
-        data = SetClipboardData((UINT)format, hMem);
-        Py_END_ALLOW_THREADS;
+        Py_BEGIN_ALLOW_THREADS
+            data = SetClipboardData((UINT)format, hMem);
+        Py_END_ALLOW_THREADS
         if (!data)
             PyWin_SetAPIError("SetClipboardText");
         else
@@ -978,9 +978,9 @@ static PyObject *py_set_clipboard_viewer(PyObject *self, PyObject *args)
     if (!PyWinObject_AsHANDLE(obhwnd, (HANDLE *)&hWndNewViewer))
         return NULL;
     HWND rc;
-    Py_BEGIN_ALLOW_THREADS;
-    rc = SetClipboardViewer(hWndNewViewer);
-    Py_END_ALLOW_THREADS;
+    Py_BEGIN_ALLOW_THREADS
+        rc = SetClipboardViewer(hWndNewViewer);
+    Py_END_ALLOW_THREADS
 
     // Function can return NULL on success if there is no other viewer
     if (rc != NULL)

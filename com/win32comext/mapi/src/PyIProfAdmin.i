@@ -134,9 +134,9 @@ PyObject *PyIProfAdmin::DeleteProfile(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsMAPIStr(obProfileName, &lpszProfileName, ulFlags & MAPI_UNICODE, FALSE))
 		return NULL;
 
-	Py_BEGIN_ALLOW_THREADS;
+	Py_BEGIN_ALLOW_THREADS
 	hRes = _swig_self->DeleteProfile(lpszProfileName, ulFlags);
-	Py_END_ALLOW_THREADS;
+	Py_END_ALLOW_THREADS
 
 	PyWinObject_FreeMAPIStr(lpszProfileName, ulFlags & MAPI_UNICODE);
 	if (FAILED(hRes))
