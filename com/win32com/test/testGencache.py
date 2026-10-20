@@ -34,16 +34,12 @@ class TestGetModule(unittest.TestCase):
         gencache.versionRedirectMap.clear()
         gencache.versionRedirectMap.update(self._orig_version_redirects)
         # Remove anything imported under win32com.gen_py.<name>.
-        for name in [
-            m for m in sys.modules if m.startswith("win32com.gen_py.")
-        ]:
+        for name in [m for m in sys.modules if m.startswith("win32com.gen_py.")]:
             del sys.modules[name]
         shutil.rmtree(self.gen_dir, ignore_errors=True)
 
     def _clear_gen_py_modules(self):
-        for name in [
-            m for m in sys.modules if m.startswith("win32com.gen_py.")
-        ]:
+        for name in [m for m in sys.modules if m.startswith("win32com.gen_py.")]:
             del sys.modules[name]
 
     def test_regular_module(self):
@@ -98,9 +94,7 @@ class TestGetModule(unittest.TestCase):
         self.assertIsNotNone(mod)
         fname = gencache.GetGeneratedFileName(*info)
         pkg_dir = os.path.join(self.gen_dir, fname)
-        self.assertTrue(
-            os.path.isfile(os.path.join(pkg_dir, "__init__.py"))
-        )
+        self.assertTrue(os.path.isfile(os.path.join(pkg_dir, "__init__.py")))
 
         # Break it the way %TEMP% cleanup, antivirus quarantine or a failed
         # regeneration do: remove only __init__.py, keep the child modules.
