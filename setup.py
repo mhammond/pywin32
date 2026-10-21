@@ -571,6 +571,29 @@ class my_build_ext(build_ext):
             remove_manifest_flags(self.compiler.ldflags_shared)
             remove_manifest_flags(self.compiler.ldflags_shared_debug)
 
+        if is_mingw and "ARM64" in sys.version:
+            # mingw-w64 has no ARM64 import library for these, so build them in build_temp
+            # (already in library_dirs) from vendored copies of mingw-w64's lib64 .def files
+            # TODO: Remove once MSYS2 ships https://sourceforge.net/p/mingw-w64/mailman/message/59419316/
+            # and https://sourceforge.net/p/mingw-w64/mailman/message/59419317/
+            self.mkpath(self.build_temp)
+            for def_file in (
+                "win32/src/rasapi32.def",
+                "com/win32comext/authorization/src/aclui.def",
+            ):
+                base, _ = os.path.splitext(os.path.basename(def_file))
+                self.spawn(
+                    [
+                        os.environ.get("DLLTOOL", "llvm-dlltool"),
+                        "-m",
+                        "arm64",
+                        "-d",
+                        def_file,
+                        "-l",
+                        os.path.join(self.build_temp, f"lib{base}.a"),
+                    ]
+                )
+
         for ext in self.extensions:
             if not isinstance(ext, WinExt):
                 raise RuntimeError("Not a win32 package!")
