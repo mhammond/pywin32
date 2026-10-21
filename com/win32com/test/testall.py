@@ -128,6 +128,7 @@ unittest_modules = [
         "testArrays",
         "testClipboard",
         "testConversionErrors",
+        "testGencache",
     ],
     # Level 2 tests - wants our demo COM objects registered.
     # (these are strange; on GitHub CI they get further than expected when
