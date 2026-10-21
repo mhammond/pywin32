@@ -381,7 +381,7 @@ def GenerateChildFromTypeLibSpec(
 def main():
     import getopt
 
-    hiddenSpec = 1
+    hiddenSpec = True
     outputName = None
     verboseLevel = 1
     doit = 1
@@ -390,7 +390,7 @@ def main():
         opts, args = getopt.getopt(sys.argv[1:], "vo:huiqd")
         for o, v in opts:
             if o == "-h":
-                hiddenSpec = 0
+                hiddenSpec = False
             elif o == "-o":
                 outputName = v
             elif o == "-v":
