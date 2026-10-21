@@ -757,7 +757,7 @@ class InteractiveFrame(winout.WindowOutputFrame):
         self.lastActive = None
         winout.WindowOutputFrame.__init__(self)
 
-    def OnMDIActivate(self, bActive, wndActive, wndDeactive):
+    def OnMDIActivate(self, bActive: bool, wndActive, wndDeactive):
         if bActive:
             self.lastActive = wndDeactive
 

@@ -63,7 +63,7 @@ class DockingBar(window.Wnd):
         self.cMinHeight = win32api.GetSystemMetrics(win32con.SM_CYMIN)
         self.rectUndock = (0, 0, 0, 0)
 
-    def OnUpdateCmdUI(self, target, bDisableIfNoHndler):
+    def OnUpdateCmdUI(self, target, bDisableIfNoHndler: bool):
         return self.UpdateDialogControls(target, bDisableIfNoHndler)
 
     def CreateWindow(
@@ -112,7 +112,7 @@ class DockingBar(window.Wnd):
         self.sizeVert = self.sizeVert[0] + self.cxEdge + self.cxBorder, self.sizeVert[1]
         self.HookMessages()
 
-    def CalcFixedLayout(self, bStretch, bHorz):
+    def CalcFixedLayout(self, bStretch: bool, bHorz):
         rectTop = self.dockSite.GetControlBar(
             afxres.AFX_IDW_DOCKBAR_TOP
         ).GetWindowRect()
@@ -378,7 +378,7 @@ class DockingBar(window.Wnd):
 
     # 	def OnBarStyleChange(self, old, new):
 
-    def OnNcCalcSize(self, bCalcValid, size_info):
+    def OnNcCalcSize(self, bCalcValid: bool, size_info):
         (rc0, rc1, rc2, pos) = size_info
         self.rectBorder = self.GetWindowRect()
         self.rectBorder = OffsetRect(
@@ -497,7 +497,7 @@ class DockingBar(window.Wnd):
             self.StopTracking(0)  # cancel tracking
         return 1
 
-    def StopTracking(self, bAccept):
+    def StopTracking(self, bAccept: bool):
         self.OnInvertTracker(self.rectTracker)
         self.dockSite.UnlockWindowUpdate()
         self.bTracking = 0

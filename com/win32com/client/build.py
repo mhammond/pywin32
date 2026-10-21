@@ -189,7 +189,7 @@ class DispatchItem(OleItem):
             if deleteExisting:
                 del self.propMapGet[key]
 
-    def _AddFunc_(self, typeinfo, fdesc, bForUser):
+    def _AddFunc_(self, typeinfo, fdesc, bForUser: bool):
         assert fdesc.desckind == pythoncom.DESCKIND_FUNCDESC
         id = fdesc.memid
         funcflags = fdesc.wFuncFlags
@@ -267,7 +267,7 @@ class DispatchItem(OleItem):
             return (name, map)
         return None
 
-    def _AddVar_(self, typeinfo, vardesc, bForUser):
+    def _AddVar_(self, typeinfo, vardesc, bForUser: bool):
         ### need pythoncom.VARFLAG_FRESTRICTED ...
         ### then check it
         assert vardesc.desckind == pythoncom.DESCKIND_VARDESC

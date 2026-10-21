@@ -69,7 +69,7 @@ def StartServer(cmd, title=None, bCloseOnEnd=0, serverFlags=flags.SERVER_BEST):
     _thread.start_new_thread(ServerThread, (out, cmd, title, bCloseOnEnd))
 
 
-def ServerThread(myout, cmd, title, bCloseOnEnd):
+def ServerThread(myout, cmd, title, bCloseOnEnd: bool):
     try:
         writer.register(myout)
         print('Executing "%s"\n' % cmd)

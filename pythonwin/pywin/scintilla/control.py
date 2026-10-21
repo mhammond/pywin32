@@ -166,10 +166,10 @@ class ScintillaControlInterface:
         self.SendScintilla(scintillacon.SCI_STYLESETFONT, num, buff)
         self.SendScintilla(scintillacon.SCI_STYLESETCHARACTERSET, num, characterset)
 
-    def SCIStyleSetBold(self, num, bBold):
+    def SCIStyleSetBold(self, num, bBold: bool):
         self.SendScintilla(scintillacon.SCI_STYLESETBOLD, num, bBold)
 
-    def SCIStyleSetItalic(self, num, bItalic):
+    def SCIStyleSetItalic(self, num, bItalic: bool):
         self.SendScintilla(scintillacon.SCI_STYLESETITALIC, num, bItalic)
 
     def SCIStyleSetSize(self, num, size):

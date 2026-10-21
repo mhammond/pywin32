@@ -38,7 +38,7 @@ byte_crlf = b"\r\n"
 class DlgRunScript(dialog.Dialog):
     "A class for the 'run script' dialog"
 
-    def __init__(self, bHaveDebugger):
+    def __init__(self, bHaveDebugger: bool):
         dialog.Dialog.__init__(self, win32ui.IDD_RUN_SCRIPT)
         self.AddDDX(win32ui.IDC_EDIT1, "script")
         self.AddDDX(win32ui.IDC_EDIT2, "args")
