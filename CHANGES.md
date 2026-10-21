@@ -18,6 +18,7 @@ As of build 305, installation .exe files have been deprecated; see
 Coming in build 313, as yet unreleased
 --------------------------------------
 
+* pywin32 now fully builds from source using MinGW, GCC and clang. As well as on case-sensitive systems. (<https://github.com/mhammond/pywin32/pulls?q=label%3AMinGW+merged%3A%3C2026-10-22>, [@Avasam][Avasam])
 * Pythonwin: Fixed "Check" (Ctrl+Shift+C) raising `UnicodeDecodeError` on files not encoded in the system locale encoding. It now respects the file's encoding declaration, defaulting to UTF-8 (mhammond#667, [@Avasam][Avasam])
 * Fixed `win32evtlogutil.FeedEventLogRecords`'s `feeder` callback param never being called (mhammond#2807, [@Avasam][Avasam])
 * Fixed `Pythonwin.exe` silently exiting with code 1 when started without a console and with `PYTHONFAULTHANDLER` or `PYTHONDEVMODE` set (mhammond#2504, [@Avasam][Avasam])
