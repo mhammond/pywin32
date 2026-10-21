@@ -1,8 +1,4 @@
-from __future__ import annotations
-
-build_id = "312.1"  # may optionally include a ".{patchno}" suffix.
-
-__doc__ = """This is a distutils setup-script for the pywin32 extensions.
+"""This is a distutils setup-script for the pywin32 extensions.
 
 The canonical source of truth for supported versions and build environments
 is [the GitHub CI](https://github.com/mhammond/pywin32/tree/main/.github/workflows).
@@ -23,8 +19,12 @@ often aren't available in all environments. The build process treats them as opt
 instead of a failing, it will report what was skipped, and why. See also
 build_env.md, which is getting out of date but might help getting everything
 required for an official build - see README.md for that process.
+
+Originally by Thomas Heller, started in 2000 or so.
 """
-# Originally by Thomas Heller, started in 2000 or so.
+
+from __future__ import annotations
+
 import logging
 import os
 import platform
@@ -65,6 +65,7 @@ else:
     from distutils.compilers.C.errors import CompileError
     from distutils.errors import DistutilsExecError
 
+build_id = "312.1"  # may optionally include a ".{patchno}" suffix.
 is_mingw = "MSC" not in sys.version
 
 
@@ -130,17 +131,12 @@ class WinExt(Extension):
         export_symbols=None,
         export_symbol_file=None,
         is_regular_dll=False,  # regular Windows DLL?
-        # list of headers which may not be installed forcing us to
-        # skip this extension
+        # list of headers which may not be installed forcing us to skip this extension
         optional_headers=[],
         depends=None,
         implib_name=None,
-        delay_load_libraries="",
     ):
         include_dirs = ["com/win32com/src/include", "win32/src"] + include_dirs
-        libraries = libraries.split()
-        self.delay_load_libraries = delay_load_libraries.split()
-        libraries.extend(self.delay_load_libraries)
 
         extra_link_args = extra_link_args or []
         if export_symbol_file and not is_mingw:
@@ -185,7 +181,7 @@ class WinExt(Extension):
             define_macros,
             undef_macros,
             library_dirs,
-            libraries,
+            libraries.split(),
             runtime_library_dirs,
             extra_objects,
             extra_compile_args,
@@ -212,11 +208,6 @@ class WinExt(Extension):
 
             # Enable unwind semantics - some stuff needs it and I can't see it hurting
             self.extra_compile_args.append("/EHsc")
-
-            if self.delay_load_libraries:
-                self.libraries.append("delayimp")
-                for delay_lib in self.delay_load_libraries:
-                    self.extra_link_args.append(f"/delayload:{delay_lib}.dll")
 
             # If someone needs a specially named implib created, handle that
             if self.implib_name:
@@ -1233,9 +1224,8 @@ pywintypes = WinExt_system32(
     implib_name="pywintypes",
 )
 
-win32_extensions: list[WinExt] = [pywintypes]
-
-win32_extensions.append(
+win32_extensions = [
+    pywintypes,
     WinExt_win32(
         "perfmondata",
         sources=[
@@ -1244,13 +1234,13 @@ win32_extensions.append(
         ],
         libraries="advapi32",
         export_symbol_file="win32/src/PerfMon/perfmondata.def",
-        is_regular_dll=1,
+        is_regular_dll=True,
         depends=[
             "win32/src/PerfMon/perfutil.h",
             "win32/src/PerfMon/PyPerfMonControl.h",
         ],
     ),
-)
+]
 
 for name, libraries, sources in (
     ("mmapfile", "", "win32/src/mmapfilemodule.cpp"),
@@ -1361,6 +1351,29 @@ for name, libraries, sources in (
     ("win32ts", "wtsapi32", "win32/src/win32tsmodule.cpp"),
     ("_win32sysloader", "", "win32/src/_win32sysloader.cpp"),
     ("win32transaction", "kernel32 ktmw32", "win32/src/win32transactionmodule.cpp"),
+    (
+        "win32evtlog",
+        "advapi32 oleaut32 wevtapi",
+        """
+        win32/src/win32evtlog_messages.mc
+        win32/src/win32evtlog.i
+        """,
+    ),
+    (
+        "win32api",
+        "user32 advapi32 shell32 version secur32 powrprof",
+        """
+        win32/src/win32apimodule.cpp
+        win32/src/win32api_display.cpp
+        win32/src/win32api_cputopo.cpp
+        """,
+    ),
+    (
+        "_winxptheme",
+        "gdi32 user32 comdlg32 comctl32 shell32 uxtheme",
+        "win32/src/_winxptheme.i",
+    ),
+    ("win32help", "htmlhelp user32 advapi32", "win32/src/win32helpmodule.cpp"),
 ):
     ext = WinExt_win32(
         name,
@@ -1373,50 +1386,16 @@ for name, libraries, sources in (
 # The few that need slightly special treatment
 win32_extensions += [
     WinExt_win32(
-        "win32evtlog",
-        sources="""
-                win32/src/win32evtlog_messages.mc win32/src/win32evtlog.i
-                """.split(),
-        libraries="advapi32 oleaut32",
-        delay_load_libraries="wevtapi",
-    ),
-    WinExt_win32(
-        "win32api",
-        sources="""
-                win32/src/win32apimodule.cpp win32/src/win32api_display.cpp win32/src/win32api_cputopo.cpp
-                """.split(),
-        libraries="user32 advapi32 shell32 version secur32",
-        delay_load_libraries="powrprof",
-    ),
-    WinExt_win32(
         "win32gui",
-        sources="""
-                win32/src/win32dynamicdialog.cpp
-                win32/src/win32gui.i
-               """.split(),
+        sources=["win32/src/win32dynamicdialog.cpp", "win32/src/win32gui.i"],
         libraries="gdi32 user32 comdlg32 comctl32 shell32 msimg32",
         define_macros=[("WIN32GUI", None)],
     ),
     WinExt_win32(
-        "_winxptheme",
-        sources=["win32/src/_winxptheme.i"],
-        libraries="gdi32 user32 comdlg32 comctl32 shell32 uxtheme",
-    ),
-]
-win32_extensions += [
-    WinExt_win32(
         "servicemanager",
         sources=["win32/src/PythonServiceMessages.mc", "win32/src/PythonService.cpp"],
-        define_macros=[("PYSERVICE_BUILD_DLL", None)],
         libraries="user32 ole32 advapi32 shell32",
-    ),
-]
-
-win32_extensions += [
-    WinExt_win32(
-        "win32help",
-        sources=["win32/src/win32helpmodule.cpp"],
-        libraries="htmlhelp user32 advapi32",
+        define_macros=[("PYSERVICE_BUILD_DLL", None)],
     ),
 ]
 
@@ -1777,31 +1756,28 @@ com_extensions = [
     ),
     WinExt_win32com(
         "propsys",
-        libraries="propsys",
-        delay_load_libraries="shell32",
-        sources=(
-            """
-                        {propsys}/propsys.cpp
-                        {propsys}/PyIInitializeWithFile.cpp
-                        {propsys}/PyIInitializeWithStream.cpp
-                        {propsys}/PyINamedPropertyStore.cpp
-                        {propsys}/PyIPropertyDescription.cpp
-                        {propsys}/PyIPropertyDescriptionAliasInfo.cpp
-                        {propsys}/PyIPropertyDescriptionList.cpp
-                        {propsys}/PyIPropertyDescriptionSearchInfo.cpp
-                        {propsys}/PyIPropertyEnumType.cpp
-                        {propsys}/PyIPropertyEnumTypeList.cpp
-                        {propsys}/PyIPropertyStore.cpp
-                        {propsys}/PyIPropertyStoreCache.cpp
-                        {propsys}/PyIPropertyStoreCapabilities.cpp
-                        {propsys}/PyIPropertySystem.cpp
-                        {propsys}/PyPROPVARIANT.cpp
-                        {propsys}/PyIPersistSerializedPropStorage.cpp
-                        {propsys}/PyIObjectWithPropertyKey.cpp
-                        {propsys}/PyIPropertyChange.cpp
-                        {propsys}/PyIPropertyChangeArray.cpp
-                        """.format(**dirs)
-        ).split(),
+        libraries="propsys shell32",
+        sources="""
+            {propsys}/propsys.cpp
+            {propsys}/PyIInitializeWithFile.cpp
+            {propsys}/PyIInitializeWithStream.cpp
+            {propsys}/PyINamedPropertyStore.cpp
+            {propsys}/PyIPropertyDescription.cpp
+            {propsys}/PyIPropertyDescriptionAliasInfo.cpp
+            {propsys}/PyIPropertyDescriptionList.cpp
+            {propsys}/PyIPropertyDescriptionSearchInfo.cpp
+            {propsys}/PyIPropertyEnumType.cpp
+            {propsys}/PyIPropertyEnumTypeList.cpp
+            {propsys}/PyIPropertyStore.cpp
+            {propsys}/PyIPropertyStoreCache.cpp
+            {propsys}/PyIPropertyStoreCapabilities.cpp
+            {propsys}/PyIPropertySystem.cpp
+            {propsys}/PyPROPVARIANT.cpp
+            {propsys}/PyIPersistSerializedPropStorage.cpp
+            {propsys}/PyIObjectWithPropertyKey.cpp
+            {propsys}/PyIPropertyChange.cpp
+            {propsys}/PyIPropertyChangeArray.cpp
+        """.format(**dirs).split(),
         implib_name="pypropsys",
     ),
     WinExt_win32com(
@@ -2040,7 +2016,7 @@ other_extensions = [
                   PythonEng.h StdAfx.h Utils.h
                """.split()
         ],
-        is_regular_dll=1,
+        is_regular_dll=True,
         export_symbols="""HttpExtensionProc GetExtensionVersion
                            TerminateExtension GetFilterVersion
                            HttpFilterProc TerminateFilter
