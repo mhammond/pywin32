@@ -1284,7 +1284,10 @@ for name, libraries, sources in (
     ),
     (
         "win32file",
-        "ws2_32 mswsock sfc advapi32",
+        # mingw-w64 has no ARM64 import library for sfc, win32file loads it at runtime instead
+        # TODO: Remove once MSYS2 ships https://sourceforge.net/p/mingw-w64/mailman/message/59419267/
+        "ws2_32 mswsock advapi32"
+        + ("" if is_mingw and "ARM64" in sys.version else " sfc"),
         """
         win32/src/win32file.i
         win32/src/win32file_comm.cpp
