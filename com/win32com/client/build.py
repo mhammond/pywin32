@@ -133,9 +133,9 @@ class OleItem:
             self.python_name = MakePublicAttributeName(self.doc[0])
         else:
             self.python_name = None
-        self.bWritten = 0
-        self.bIsDispatch = 0
-        self.bIsSink = 0
+        self.bWritten = False
+        self.bIsDispatch = False
+        self.bIsSink = False
         self.clsid = None
         self.co_class = None
 

@@ -44,7 +44,7 @@ class SyntEditView(SyntEditViewParent):
 
     def __init__(self, doc):
         SyntEditViewParent.__init__(self, doc)
-        self.bCheckingFile = 0
+        self.bCheckingFile = False
 
     def OnInitialUpdate(self):
         SyntEditViewParent.OnInitialUpdate(self)
@@ -315,7 +315,7 @@ class SyntEditView(SyntEditViewParent):
             return
         self.bCheckingFile = 1
         self.GetDocument().CheckExternalDocumentUpdated()
-        self.bCheckingFile = 0
+        self.bCheckingFile = False
 
     def OnRClick(self, params):
         menu = win32ui.CreatePopupMenu()
@@ -591,7 +591,7 @@ class SyntEditTemplate(EditorTemplateBase):
             makeView = SyntEditView
         if makeFrame is None:
             makeFrame = SplitterFrame
-        self.bSetMenus = 0
+        self.bSetMenus = False
         EditorTemplateBase.__init__(self, res, makeDoc, makeFrame, makeView)
 
     def CheckIDLEMenus(self, idle):

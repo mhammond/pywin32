@@ -125,7 +125,7 @@ def post_mortem(t=None):
         p.interaction(t.tb_frame, t)
     finally:
         t = None
-        p.bAtPostMortem = 0
+        p.bAtPostMortem = False
         p.done_run()
 
 

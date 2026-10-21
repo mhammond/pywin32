@@ -83,14 +83,14 @@ class TimerManager:
         self.dlg = dlg
         self.timerId = None
         self.intervaler = eval(self.dlg.buildTimer)
-        self.bConnectNow = 0
-        self.bHaveSetPrompt1 = 0
+        self.bConnectNow = False
+        self.bHaveSetPrompt1 = False
 
     def CaptureOutput(self):
         self.oldOut = sys.stdout
         self.oldErr = sys.stderr
         sys.stdout = sys.stderr = self
-        self.bHaveSetPrompt1 = 0
+        self.bHaveSetPrompt1 = False
 
     def ReleaseOutput(self):
         sys.stdout = self.oldOut
@@ -154,7 +154,7 @@ class TimerManager:
         self.timerId = timer.set_timer(
             self.intervaler.GetWakeupInterval(), self.OnTimer
         )
-        self.bConnectNow = 0
+        self.bConnectNow = False
 
 
 class TimerIntervaler:

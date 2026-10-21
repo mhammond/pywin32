@@ -237,8 +237,8 @@ class FormatterBase:
 # (as opposed to those formatters built in to Scintilla)
 class Formatter(FormatterBase):
     def __init__(self, scintilla):
-        self.bCompleteWhileIdle = 0
-        self.bHaveIdleHandler = 0  # Don't currently have an idle handle
+        self.bCompleteWhileIdle = False
+        self.bHaveIdleHandler = False  # Don't currently have an idle handle
         self.nextstylenum = 0
         FormatterBase.__init__(self, scintilla)
 
@@ -331,7 +331,7 @@ class Formatter(FormatterBase):
             finished = 1
 
         if finished:
-            self.bHaveIdleHandler = 0
+            self.bHaveIdleHandler = False
             win32ui.GetApp().DeleteIdleHandler(handler)
         return not finished
 

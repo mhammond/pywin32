@@ -812,7 +812,7 @@ class DockedInteractiveView(DockedInteractiveViewParent):
 
 class CDockedInteractivePython(CInteractivePython):
     def __init__(self, dockbar):
-        self.bFirstCreated = 0
+        self.bFirstCreated = False
         self.dockbar = dockbar
         CInteractivePython.__init__(self)
 
@@ -854,7 +854,7 @@ class CDockedInteractivePython(CInteractivePython):
         self.bFirstCreated = 1
 
         self.currentView = doc.GetFirstView()
-        self.bCreating = 0
+        self.bCreating = False
         if self.title:
             doc.SetTitle(self.title)
 

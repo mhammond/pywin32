@@ -305,7 +305,7 @@ class CubeView(OpenGLView):
         self.radius = near_plane + maxObjectSize / 2.0
 
     def Init(self):
-        self.busy = 0
+        self.busy = False
         self.wAngleY = 10.0
         self.wAngleX = 1.0
         self.wAngleZ = 5.0
@@ -402,7 +402,7 @@ class CubeView(OpenGLView):
         glFinish()
         SwapBuffers(wglGetCurrentDC())
 
-        self.busy = 0
+        self.busy = False
 
 
 def test():

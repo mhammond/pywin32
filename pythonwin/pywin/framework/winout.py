@@ -370,7 +370,7 @@ class WindowOutput(docview.DocTemplate):
         self.style = style
         self.bAutoRestore = bAutoRestore
         self.title = title
-        self.bCreating = 0
+        self.bCreating = False
         self.interruptCount = 0
         if isinstance(defSize, str):  # maintain size pos from ini file.
             self.iniSizeSection = defSize
@@ -398,7 +398,7 @@ class WindowOutput(docview.DocTemplate):
         if doc is None:
             return
         self.currentView = doc.GetFirstView()
-        self.bCreating = 0
+        self.bCreating = False
         if self.title:
             doc.SetTitle(self.title)
 

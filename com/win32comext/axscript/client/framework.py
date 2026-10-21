@@ -137,7 +137,7 @@ class AXScriptCodeBlock:
         self.sourceContextCookie = sourceContextCookie
         self.startLineNumber = startLineNumber
         self.flags = flags
-        self.beenExecuted = 0
+        self.beenExecuted = False
 
     def GetFileName(self):
         # Gets the "file name" for Python - uses <...> so Python doesn't think

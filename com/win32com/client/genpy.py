@@ -861,9 +861,9 @@ class Generator:
         progressObject,
         bBuildHidden=True,
     ):
-        self.bHaveWrittenDispatchBaseClass = 0
-        self.bHaveWrittenCoClassBaseClass = 0
-        self.bHaveWrittenEventBaseClass = 0
+        self.bHaveWrittenDispatchBaseClass = False
+        self.bHaveWrittenCoClassBaseClass = False
+        self.bHaveWrittenEventBaseClass = False
         self.typelib = typelib
         self.sourceFilename = sourceFilename
         self.bBuildHidden = bBuildHidden
@@ -1053,9 +1053,9 @@ class Generator:
             docDesc = moduleDoc[1]
 
         # Reset all the 'per file' state
-        self.bHaveWrittenDispatchBaseClass = 0
-        self.bHaveWrittenCoClassBaseClass = 0
-        self.bHaveWrittenEventBaseClass = 0
+        self.bHaveWrittenDispatchBaseClass = False
+        self.bHaveWrittenCoClassBaseClass = False
+        self.bHaveWrittenEventBaseClass = False
         # You must provide a file correctly configured for writing unicode.
         # We assert this is it may indicate somewhere in pywin32 that needs
         # upgrading.

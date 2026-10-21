@@ -159,7 +159,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
         )
         self.bAutoCompleteAttributes = 1
         self.bShowCallTips = 1
-        self.bMatchBraces = 0  # Editor option will default this to true later!
+        self.bMatchBraces = False  # Editor option will default this to true later!
         self.bindings = bindings.BindingsManager(self)
 
         self.idle = IDLEenvironment.IDLEEditorWindow(self)

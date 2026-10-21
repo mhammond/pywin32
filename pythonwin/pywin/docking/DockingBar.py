@@ -48,8 +48,8 @@ class DockingBar(window.Wnd):
         self.sizeHorz = 200, 200
         self.sizeVert = 200, 200
         self.sizeFloat = 200, 200
-        self.bTracking = 0
-        self.bInRecalcNC = 0
+        self.bTracking = False
+        self.bInRecalcNC = False
         self.cxEdge = 6
         self.cxBorder = 3
         self.cxGripper = 20
@@ -276,7 +276,7 @@ class DockingBar(window.Wnd):
             )
             self.SetWindowPos(0, (0, 0, 0, 0), swpflags)
         finally:
-            self.bInRecalcNC = 0
+            self.bInRecalcNC = False
         return 0
 
     # This is a virtual and not a message hook.
@@ -500,7 +500,7 @@ class DockingBar(window.Wnd):
     def StopTracking(self, bAccept: bool):
         self.OnInvertTracker(self.rectTracker)
         self.dockSite.UnlockWindowUpdate()
-        self.bTracking = 0
+        self.bTracking = False
         self.ReleaseCapture()
         if not bAccept:
             return

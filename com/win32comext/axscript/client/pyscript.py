@@ -228,7 +228,7 @@ class PyScript(framework.COMScript):
         self.codeBlocks = []
         for b in oldCodeBlocks:
             if b.flags & SCRIPTTEXT_ISPERSISTENT:
-                b.beenExecuted = 0
+                b.beenExecuted = False
                 self.codeBlocks.append(b)
         return framework.COMScript.Reset(self)
 
