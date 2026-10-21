@@ -147,7 +147,7 @@ jobs:
         with:
           name: artifacts-*
   build_msys2_mingw:
-    runs-on: windows-2022
+    runs-on: ${{ matrix.plat-name == 'win-arm64' && 'windows-11-arm' || 'windows-2022' }}
     timeout-minutes: *timeout-minutes
     defaults:
       run:
@@ -163,7 +163,7 @@ jobs:
           # Modern environment (Windows 10 / Windows Server 2016)
           # - { sys: ucrt64, env: ucrt-x86_64, plat-name: win-amd64 }
           # ARM only available using clang
-          - { sys: clangarm64, env: aarch64, plat-name: win-arm64 }
+          - { sys: clangarm64, env: clang-aarch64, plat-name: win-arm64 }
     steps:
       - uses: actions/checkout@v4
       - uses: msys2/setup-msys2@v2
