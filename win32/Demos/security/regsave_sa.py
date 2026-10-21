@@ -55,7 +55,7 @@ acl.AddAccessAllowedAce(
 )
 sd.SetSecurityDescriptorDacl(1, acl, 0)
 sd.SetSecurityDescriptorOwner(pwr_sid, 0)
-sa.bInheritHandle = 1
+sa.bInheritHandle = True
 assert sa.SECURITY_DESCRIPTOR is sd
 
 win32api.RegSaveKey(skey, fname, sa)

@@ -135,7 +135,7 @@ def create_desktop(desktop_name, start_explorer=1):
     Will also start a new icon thread on an existing desktop
     """
     sa = pywintypes.SECURITY_ATTRIBUTES()
-    sa.bInheritHandle = 1
+    sa.bInheritHandle = True
 
     try:
         hdesk = win32service.CreateDesktop(

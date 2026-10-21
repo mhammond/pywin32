@@ -232,4 +232,4 @@ class BrowserView(pywin.mfc.docview.TreeView):
         return 1
 
     def _UpdateUIForState(self):
-        self.bDirty = 1
+        self.bDirty = True

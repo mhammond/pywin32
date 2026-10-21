@@ -161,7 +161,7 @@ class EditorDocumentBase(ParentEditorDocument):
                         self.GetPathName(), exc.strerror
                     )
                 )
-                self.bReportedFileNotFound = 1
+                self.bReportedFileNotFound = True
             return
         if self.bReportedFileNotFound:
             print(
@@ -197,7 +197,7 @@ class EditorDocumentBase(ParentEditorDocument):
             if question:
                 rc = win32ui.MessageBox(question, None, mbStyle)
                 if rc != win32con.IDYES:
-                    self.bDeclinedReload = 1
+                    self.bDeclinedReload = True
                     return
             self.ReloadDocument()
 

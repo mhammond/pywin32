@@ -313,7 +313,7 @@ class SyntEditView(SyntEditViewParent):
     def OnCheckExternalDocumentUpdated(self, msg):
         if self.bCheckingFile:
             return
-        self.bCheckingFile = 1
+        self.bCheckingFile = True
         self.GetDocument().CheckExternalDocumentUpdated()
         self.bCheckingFile = False
 
@@ -597,7 +597,7 @@ class SyntEditTemplate(EditorTemplateBase):
     def CheckIDLEMenus(self, idle):
         if self.bSetMenus:
             return
-        self.bSetMenus = 1
+        self.bSetMenus = True
 
         submenu = win32ui.CreatePopupMenu()
         newitems = idle.GetMenuItems("edit")

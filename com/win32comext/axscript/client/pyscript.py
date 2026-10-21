@@ -219,7 +219,7 @@ class PyScript(framework.COMScript):
     def Stop(self):
         # Flag every pending script as already done
         for b in self.codeBlocks:
-            b.beenExecuted = 1
+            b.beenExecuted = True
         return framework.COMScript.Stop(self)
 
     def Reset(self):

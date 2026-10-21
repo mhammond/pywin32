@@ -389,7 +389,7 @@ class WindowOutput(docview.DocTemplate):
         self.Close()
 
     def Create(self, title=None, style=None):
-        self.bCreating = 1
+        self.bCreating = True
         if title:
             self.title = title
         if style:

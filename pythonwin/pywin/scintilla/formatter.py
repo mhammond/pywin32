@@ -86,7 +86,7 @@ class FormatterBase:
         self.scintilla = scintilla
         self.baseFormatFixed = (-402653169, 0, 200, 0, 0, 0, 49, "Courier New")
         self.baseFormatProp = (-402653169, 0, 200, 0, 0, 0, 49, "Arial")
-        self.bUseFixed = 1
+        self.bUseFixed = True
         self.styles = {}  # Indexed by name
         self.styles_by_id = {}  # Indexed by allocated ID.
         self.SetStyles()
@@ -307,7 +307,7 @@ class Formatter(FormatterBase):
             and end != -1
             and end < scintilla.GetTextLength()
         ):
-            self.bHaveIdleHandler = 1
+            self.bHaveIdleHandler = True
             win32ui.GetApp().AddIdleHandler(self.DoMoreColoring)
             # Kicking idle makes the app seem slower when initially repainting!
 

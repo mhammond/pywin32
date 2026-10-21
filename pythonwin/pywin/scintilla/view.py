@@ -157,8 +157,8 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
         self._tabWidth = (
             8  # Mirror of what we send to Scintilla - never change this directly
         )
-        self.bAutoCompleteAttributes = 1
-        self.bShowCallTips = 1
+        self.bAutoCompleteAttributes = True
+        self.bShowCallTips = True
         self.bMatchBraces = False  # Editor option will default this to true later!
         self.bindings = bindings.BindingsManager(self)
 

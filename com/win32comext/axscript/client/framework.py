@@ -1153,7 +1153,7 @@ class COMScript:
         assert not codeBlock.beenExecuted, (
             "This code block should not have been executed"
         )
-        codeBlock.beenExecuted = 1
+        codeBlock.beenExecuted = True
         self.BeginScriptedSection()
         try:
             try:
@@ -1181,7 +1181,7 @@ class COMScript:
         assert not codeBlock.beenExecuted, (
             "This code block should not have been executed"
         )
-        codeBlock.beenExecuted = 1
+        codeBlock.beenExecuted = True
         self.BeginScriptedSection()
         try:
             try:

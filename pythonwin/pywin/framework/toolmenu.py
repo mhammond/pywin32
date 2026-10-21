@@ -234,7 +234,7 @@ class ToolMenuPropPage(dialog.PropertyPage):
         except win32ui.error:  # No selection!
             return
 
-        self.bImChangingEditControls = 1
+        self.bImChangingEditControls = True
         try:
             item = self.listControl.GetItem(itemNo, 1)
             self.editMenuCommand.SetWindowText(item[4])

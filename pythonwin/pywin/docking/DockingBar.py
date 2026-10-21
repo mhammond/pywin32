@@ -266,7 +266,7 @@ class DockingBar(window.Wnd):
         self.nDockBarID = nDockBarID
 
         # Force recalc the non-client area
-        self.bInRecalcNC = 1
+        self.bInRecalcNC = True
         try:
             swpflags = (
                 win32con.SWP_NOSIZE
@@ -481,7 +481,7 @@ class DockingBar(window.Wnd):
         self.dockSite.LockWindowUpdate()
 
         self.ptOld = CenterPoint(self.rectBorder)
-        self.bTracking = 1
+        self.bTracking = True
 
         self.rectTracker = self.rectBorder
         if not self.IsHorz():

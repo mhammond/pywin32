@@ -69,7 +69,7 @@ class TimerAppDialog(dlgappcore.AppDialog):
     def OnOK(self):
         # stop the timer, then restart after setting special boolean
         self.timerManager.stop()
-        self.timerManager.bConnectNow = 1
+        self.timerManager.bConnectNow = True
         self.timerManager.go()
         return
 
@@ -103,7 +103,7 @@ class TimerManager:
                 dest = self.dlg.prompt3
             else:
                 dest = self.dlg.prompt1
-                self.bHaveSetPrompt1 = 1
+                self.bHaveSetPrompt1 = True
             dest.SetWindowText(s)
 
     def go(self):
