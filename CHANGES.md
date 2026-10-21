@@ -18,6 +18,7 @@ As of build 305, installation .exe files have been deprecated; see
 Coming in build 313, as yet unreleased
 --------------------------------------
 
+* Fixed `AttributeError: 'Enumerator' object has no attribute 'resultCLSID'` when cloning a `win32com.client.util.Enumerator` other than `EnumVARIANT` (mhammond#2333, [@Avasam][Avasam])
 * Pythonwin: Fixed "Check" (Ctrl+Shift+C) raising `UnicodeDecodeError` on files not encoded in the system locale encoding. It now respects the file's encoding declaration, defaulting to UTF-8 (mhammond#667, [@Avasam][Avasam])
 * Fixed `win32evtlogutil.FeedEventLogRecords`'s `feeder` callback param never being called (mhammond#2807, [@Avasam][Avasam])
 * Fixed `Pythonwin.exe` silently exiting with code 1 when started without a console and with `PYTHONFAULTHANDLER` or `PYTHONDEVMODE` set (mhammond#2504, [@Avasam][Avasam])

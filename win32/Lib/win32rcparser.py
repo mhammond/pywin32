@@ -177,7 +177,7 @@ class RCParser:
     dialogs: dict[str, list[list[str | int | None | tuple[str | int, ...]]]] = {}
     _dialogs: dict[str, DialogDef] = {}
     debugEnabled = False
-    token = ""
+    token: str | None = ""
 
     def __init__(self):
         self.ungot = False
@@ -226,6 +226,7 @@ class RCParser:
     # quote.  consumes all tokens until the end of the string
     def currentQuotedString(self):
         # Handle quoted strings - pity shlex doesn't handle it.
+        assert self.token
         assert self.token.startswith('"'), self.token
         bits = [self.token]
         while 1:

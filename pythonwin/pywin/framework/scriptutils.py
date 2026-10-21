@@ -2,6 +2,8 @@
 Various utilities for running/importing a script
 """
 
+from __future__ import annotations
+
 import bdb
 import linecache
 import os
