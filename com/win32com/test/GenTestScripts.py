@@ -34,7 +34,7 @@ def GenerateFromRegistered(fname, *loadArgs):
     print(fname, ": generating -", end=" ")
     f = open(os.path.join(genPath, fname + ".py"), "w")
     win32com.client.makepy.GenerateFromTypeLibSpec(
-        loadArgs, f, bQuiet=1, bGUIProgress=1
+        loadArgs, f, bQuiet=True, bGUIProgress=True
     )
     f.close()
     print("compiling -", end=" ")

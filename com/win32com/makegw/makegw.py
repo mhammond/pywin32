@@ -55,8 +55,8 @@ from . import makegwparse
 def make_framework_support(
     header_file_name,
     interface_name,
-    bMakeInterface=1,
-    bMakeGateway=1,
+    bMakeInterface=True,
+    bMakeGateway=True,
     output_directory=None,
 ):
     """Generate C++ code for a Python Interface and Gateway

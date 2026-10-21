@@ -912,7 +912,7 @@ class COMScript:
         # Get the win32com gencache to register this library.
         from win32com.client import gencache
 
-        gencache.EnsureModule(uuid, self.lcid, major, minor, bForDemand=1)
+        gencache.EnsureModule(uuid, self.lcid, major, minor, bForDemand=True)
 
     # This is never called by the C++ framework - it does magic.
     # See PyGActiveScript.cpp

@@ -540,7 +540,7 @@ class CScintillaColorEditInterface(CScintillaEditInterface):
         if c is not None:
             c.Colorize(start, end)
 
-    def ApplyFormattingStyles(self, bReload=1):
+    def ApplyFormattingStyles(self, bReload=True):
         c = self._GetColorizer()
         if c is not None:
             c.ApplyFormattingStyles(bReload)

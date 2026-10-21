@@ -467,7 +467,7 @@ class CScintillaView(docview.CtrlView, control.CScintillaColorEditInterface):
         ob = self._GetObjectAtPos(bAllowCalls=False)
         # If that failed, try and process call or indexing to get the object.
         if ob is None:
-            ob = self._GetObjectAtPos(bAllowCalls=1)
+            ob = self._GetObjectAtPos(bAllowCalls=True)
         items_dict = {}
         if ob is not None:
             try:  # Catch unexpected errors when fetching attribute names from the object

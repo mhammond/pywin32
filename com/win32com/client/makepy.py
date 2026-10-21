@@ -242,7 +242,7 @@ def GenerateFromTypeLibSpec(
     verboseLevel=None,
     progressInstance=None,
     bForDemand=bForDemandDefault,
-    bBuildHidden=1,
+    bBuildHidden=True,
 ):
     if verboseLevel is None:
         verboseLevel = 0  # By default, we use no gui and no verbose level!

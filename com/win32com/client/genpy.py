@@ -119,7 +119,7 @@ class RecordItem(build.OleItem, WritableItem):
     order = 9
     typename = "RECORD"
 
-    def __init__(self, typeInfo, typeAttr, doc=None, bForUser=1):
+    def __init__(self, typeInfo, typeAttr, doc=None, bForUser=True):
         ##    sys.stderr.write("Record %s: size %s\n" % (doc,typeAttr.cbSizeInstance))
         ##    sys.stderr.write(" cVars = %s\n" % (typeAttr.cVars,))
         ##    for i in range(typeAttr.cVars):
@@ -146,7 +146,7 @@ class AliasItem(build.OleItem, WritableItem):
     order = 2
     typename = "ALIAS"
 
-    def __init__(self, typeinfo, attr, doc=None, bForUser=1):
+    def __init__(self, typeinfo, attr, doc=None, bForUser=True):
         build.OleItem.__init__(self, doc)
 
         ai = attr[14]
@@ -190,7 +190,7 @@ class EnumerationItem(build.OleItem, WritableItem):
     order = 1
     typename = "ENUMERATION"
 
-    def __init__(self, typeinfo, attr, doc=None, bForUser=1):
+    def __init__(self, typeinfo, attr, doc=None, bForUser=True):
         build.OleItem.__init__(self, doc)
 
         self.clsid = attr[0]
@@ -732,7 +732,9 @@ class CoClassItem(build.OleItem, WritableItem):
     order = 5
     typename = "COCLASS"
 
-    def __init__(self, typeinfo, attr, doc=None, sources=[], interfaces=[], bForUser=1):
+    def __init__(
+        self, typeinfo, attr, doc=None, sources=[], interfaces=[], bForUser=True
+    ):
         build.OleItem.__init__(self, doc)
         self.clsid = attr[0]
         self.sources = sources
@@ -857,7 +859,7 @@ class Generator:
         typelib,
         sourceFilename,
         progressObject,
-        bBuildHidden=1,
+        bBuildHidden=True,
     ):
         self.bHaveWrittenDispatchBaseClass = 0
         self.bHaveWrittenCoClassBaseClass = 0

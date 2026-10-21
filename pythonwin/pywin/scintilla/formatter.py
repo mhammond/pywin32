@@ -178,7 +178,7 @@ class FormatterBase:
     def GetStyleByNum(self, stylenum):
         return self.styles_by_id[stylenum]
 
-    def ApplyFormattingStyles(self, bReload=1):
+    def ApplyFormattingStyles(self, bReload=True):
         if bReload:
             self.LoadPreferences()
         baseFormat = self.GetDefaultFormat()
