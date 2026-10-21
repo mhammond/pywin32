@@ -1570,7 +1570,7 @@ static PyObject *ui_set_registry_key(PyObject *self, PyObject *args)
     RETURN_NONE;
 }
 
-// @pymethod |win32ui|GetAppRegistryKey|Returns the registry key for the application.
+// @pymethod PyHKEY|win32ui|GetAppRegistryKey|Returns the registry key for the application.
 static PyObject *ui_get_app_registry_key(PyObject *self, PyObject *args)
 {
     if (!PyArg_ParseTuple(args, ":GetRegistryKey"))
