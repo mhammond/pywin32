@@ -219,7 +219,7 @@ class PyScript(framework.COMScript):
     def Stop(self):
         # Flag every pending script as already done
         for b in self.codeBlocks:
-            b.beenExecuted = 1
+            b.beenExecuted = True
         return framework.COMScript.Stop(self)
 
     def Reset(self):
@@ -228,7 +228,7 @@ class PyScript(framework.COMScript):
         self.codeBlocks = []
         for b in oldCodeBlocks:
             if b.flags & SCRIPTTEXT_ISPERSISTENT:
-                b.beenExecuted = 0
+                b.beenExecuted = False
                 self.codeBlocks.append(b)
         return framework.COMScript.Reset(self)
 

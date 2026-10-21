@@ -111,7 +111,7 @@ class ThreadInterpCase(InterpCase):
             threads.append(t)
         return threads, events
 
-    def _DoTestMarshal(self, fn, bCoWait=0):
+    def _DoTestMarshal(self, fn, bCoWait=False):
         # print(f"The main thread is {win32api.GetCurrentThreadId()}")
         threads, events = fn(2)
         numFinished = 0

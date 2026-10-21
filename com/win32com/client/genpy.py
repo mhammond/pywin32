@@ -119,7 +119,7 @@ class RecordItem(build.OleItem, WritableItem):
     order = 9
     typename = "RECORD"
 
-    def __init__(self, typeInfo, typeAttr, doc=None, bForUser=1):
+    def __init__(self, typeInfo, typeAttr, doc=None, bForUser=True):
         ##    sys.stderr.write("Record %s: size %s\n" % (doc,typeAttr.cbSizeInstance))
         ##    sys.stderr.write(" cVars = %s\n" % (typeAttr.cVars,))
         ##    for i in range(typeAttr.cVars):
@@ -146,7 +146,7 @@ class AliasItem(build.OleItem, WritableItem):
     order = 2
     typename = "ALIAS"
 
-    def __init__(self, typeinfo, attr, doc=None, bForUser=1):
+    def __init__(self, typeinfo, attr, doc=None, bForUser=True):
         build.OleItem.__init__(self, doc)
 
         ai = attr[14]
@@ -183,14 +183,14 @@ class AliasItem(build.OleItem, WritableItem):
                         file=stream,
                     )
         print(file=stream)
-        self.bWritten = 1
+        self.bWritten = True
 
 
 class EnumerationItem(build.OleItem, WritableItem):
     order = 1
     typename = "ENUMERATION"
 
-    def __init__(self, typeinfo, attr, doc=None, bForUser=1):
+    def __init__(self, typeinfo, attr, doc=None, bForUser=True):
         build.OleItem.__init__(self, doc)
 
         self.clsid = attr[0]
@@ -248,7 +248,7 @@ class VTableItem(build.VTableItem, WritableItem):
 
     def WriteClass(self, generator):
         self.WriteVTableMap(generator)
-        self.bWritten = 1
+        self.bWritten = True
 
     def WriteVTableMap(self, generator):
         stream = generator.file
@@ -322,7 +322,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
             self.WriteClassHeader(generator)
             self.WriteClassBody(generator)
         print(file=generator.file)
-        self.bWritten = 1
+        self.bWritten = True
 
     def WriteClassHeader(self, generator):
         generator.checkWriteDispatchBaseClass()
@@ -344,7 +344,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
         else:
             print(f"\tcoclass_clsid = {self.coclass_clsid!r}", file=stream)
         print(file=stream)
-        self.bWritten = 1
+        self.bWritten = True
 
     def WriteEventSinkClassHeader(self, generator):
         generator.checkWriteEventBaseClass()
@@ -405,7 +405,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
             file=stream,
         )
         print(file=stream)
-        self.bWritten = 1
+        self.bWritten = True
 
     def WriteCallbackClassBody(self, generator):
         stream = generator.file
@@ -438,7 +438,7 @@ class DispatchItem(build.DispatchItem, WritableItem):
             if entry.doc and entry.doc[1]:
                 print("#\t\t" + build._makeDocString(entry.doc[1]), file=stream)
         print(file=stream)
-        self.bWritten = 1
+        self.bWritten = True
 
     def WriteClassBody(self, generator):
         stream = generator.file
@@ -732,12 +732,14 @@ class CoClassItem(build.OleItem, WritableItem):
     order = 5
     typename = "COCLASS"
 
-    def __init__(self, typeinfo, attr, doc=None, sources=[], interfaces=[], bForUser=1):
+    def __init__(
+        self, typeinfo, attr, doc=None, sources=[], interfaces=[], bForUser=True
+    ):
         build.OleItem.__init__(self, doc)
         self.clsid = attr[0]
         self.sources = sources
         self.interfaces = interfaces
-        self.bIsDispatch = 1  # Pretend it is so it is written to the class map.
+        self.bIsDispatch = True  # Pretend it is so it is written to the class map.
 
     def WriteClass(self, generator):
         generator.checkWriteCoClassBaseClass()
@@ -766,7 +768,7 @@ class CoClassItem(build.OleItem, WritableItem):
                     file=stream,
                 )
                 # And pretend we have written it - the name is now available as if we had!
-                ref.bWritten = 1
+                ref.bWritten = True
         try:
             progId = pythoncom.ProgIDFromCLSID(self.clsid)
             print("# This CoClass is known by the name '%s'" % (progId), file=stream)
@@ -815,7 +817,7 @@ class CoClassItem(build.OleItem, WritableItem):
             else:
                 defName = f"'{defItem.clsid}'"  # really the iid.
             print(f"\tdefault_interface = {defName}", file=stream)
-        self.bWritten = 1
+        self.bWritten = True
         print(file=stream)
 
 
@@ -857,11 +859,11 @@ class Generator:
         typelib,
         sourceFilename,
         progressObject,
-        bBuildHidden=1,
+        bBuildHidden=True,
     ):
-        self.bHaveWrittenDispatchBaseClass = 0
-        self.bHaveWrittenCoClassBaseClass = 0
-        self.bHaveWrittenEventBaseClass = 0
+        self.bHaveWrittenDispatchBaseClass = False
+        self.bHaveWrittenCoClassBaseClass = False
+        self.bHaveWrittenEventBaseClass = False
         self.typelib = typelib
         self.sourceFilename = sourceFilename
         self.bBuildHidden = bBuildHidden
@@ -923,7 +925,7 @@ class Generator:
                     oleItems[dispItem.clsid] = dispItem
                 dispItem.coclass_clsid = coclass.clsid
                 if flags & pythoncom.IMPLTYPEFLAG_FSOURCE:
-                    dispItem.bIsSink = 1
+                    dispItem.bIsSink = True
                     sources[dispItem.clsid] = (dispItem, flags)
                 else:
                     interfaces[dispItem.clsid] = (dispItem, flags)
@@ -1051,9 +1053,9 @@ class Generator:
             docDesc = moduleDoc[1]
 
         # Reset all the 'per file' state
-        self.bHaveWrittenDispatchBaseClass = 0
-        self.bHaveWrittenCoClassBaseClass = 0
-        self.bHaveWrittenEventBaseClass = 0
+        self.bHaveWrittenDispatchBaseClass = False
+        self.bHaveWrittenCoClassBaseClass = False
+        self.bHaveWrittenEventBaseClass = False
         # You must provide a file correctly configured for writing unicode.
         # We assert this is it may indicate somewhere in pywin32 that needs
         # upgrading.
@@ -1336,18 +1338,18 @@ class Generator:
     def checkWriteDispatchBaseClass(self):
         if not self.bHaveWrittenDispatchBaseClass:
             print("from win32com.client import DispatchBaseClass", file=self.file)
-            self.bHaveWrittenDispatchBaseClass = 1
+            self.bHaveWrittenDispatchBaseClass = True
 
     def checkWriteCoClassBaseClass(self):
         if not self.bHaveWrittenCoClassBaseClass:
             print("from win32com.client import CoClassBaseClass", file=self.file)
-            self.bHaveWrittenCoClassBaseClass = 1
+            self.bHaveWrittenCoClassBaseClass = True
 
     def checkWriteEventBaseClass(self):
         # Not a base class as such...
         if not self.bHaveWrittenEventBaseClass:
             # Nothing to do any more!
-            self.bHaveWrittenEventBaseClass = 1
+            self.bHaveWrittenEventBaseClass = True
 
 
 if __name__ == "__main__":

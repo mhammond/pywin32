@@ -308,7 +308,7 @@ class WindowOutputViewScintilla(
         if atEnd:
             self.SetSel(self.GetTextLength())
 
-    def SetWordWrap(self, bWrapOn=1):
+    def SetWordWrap(self, bWrapOn=True):
         if bWrapOn:
             wrap_mode = scintillacon.SC_WRAP_WORD
         else:
@@ -337,7 +337,7 @@ class WindowOutput(docview.DocTemplate):
         title=None,
         defSize=None,
         queueing=flags.WQ_LINE,
-        bAutoRestore=1,
+        bAutoRestore=True,
         style=None,
         makeDoc=None,
         makeFrame=None,
@@ -349,7 +349,7 @@ class WindowOutput(docview.DocTemplate):
         defSize=None -- What is the default size for the window - if this
                         is a string, the size will be loaded from the ini file.
         queueing = flags.WQ_LINE -- When should output be written
-        bAutoRestore=1 -- Should a minimized window be restored.
+        bAutoRestore=True -- Should a minimized window be restored.
         style -- Style for Window, or None for default.
         makeDoc, makeFrame, makeView -- Classes for frame, view and window respectively.
         """
@@ -370,7 +370,7 @@ class WindowOutput(docview.DocTemplate):
         self.style = style
         self.bAutoRestore = bAutoRestore
         self.title = title
-        self.bCreating = 0
+        self.bCreating = False
         self.interruptCount = 0
         if isinstance(defSize, str):  # maintain size pos from ini file.
             self.iniSizeSection = defSize
@@ -389,7 +389,7 @@ class WindowOutput(docview.DocTemplate):
         self.Close()
 
     def Create(self, title=None, style=None):
-        self.bCreating = 1
+        self.bCreating = True
         if title:
             self.title = title
         if style:
@@ -398,7 +398,7 @@ class WindowOutput(docview.DocTemplate):
         if doc is None:
             return
         self.currentView = doc.GetFirstView()
-        self.bCreating = 0
+        self.bCreating = False
         if self.title:
             doc.SetTitle(self.title)
 

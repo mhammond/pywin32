@@ -133,9 +133,9 @@ class OleItem:
             self.python_name = MakePublicAttributeName(self.doc[0])
         else:
             self.python_name = None
-        self.bWritten = 0
-        self.bIsDispatch = 0
-        self.bIsSink = 0
+        self.bWritten = False
+        self.bIsDispatch = False
+        self.bIsSink = False
         self.clsid = None
         self.co_class = None
 
@@ -143,7 +143,7 @@ class OleItem:
 class DispatchItem(OleItem):
     typename = "DispatchItem"
 
-    def __init__(self, typeinfo=None, attr=None, doc=None, bForUser=1):
+    def __init__(self, typeinfo=None, attr=None, doc=None, bForUser=True):
         OleItem.__init__(self, doc)
         self.propMap = {}
         self.propMapGet = {}
@@ -189,7 +189,7 @@ class DispatchItem(OleItem):
             if deleteExisting:
                 del self.propMapGet[key]
 
-    def _AddFunc_(self, typeinfo, fdesc, bForUser):
+    def _AddFunc_(self, typeinfo, fdesc, bForUser: bool):
         assert fdesc.desckind == pythoncom.DESCKIND_FUNCDESC
         id = fdesc.memid
         funcflags = fdesc.wFuncFlags
@@ -267,7 +267,7 @@ class DispatchItem(OleItem):
             return (name, map)
         return None
 
-    def _AddVar_(self, typeinfo, vardesc, bForUser):
+    def _AddVar_(self, typeinfo, vardesc, bForUser: bool):
         ### need pythoncom.VARFLAG_FRESTRICTED ...
         ### then check it
         assert vardesc.desckind == pythoncom.DESCKIND_VARDESC
@@ -297,7 +297,7 @@ class DispatchItem(OleItem):
         else:
             return None
 
-    def Build(self, typeinfo, attr, bForUser=1):
+    def Build(self, typeinfo, attr, bForUser=True):
         self.clsid = attr[0]
         self.bIsDispatch = (attr.wTypeFlags & pythoncom.TYPEFLAG_FDISPATCHABLE) != 0
         if typeinfo is None:
@@ -338,14 +338,14 @@ class DispatchItem(OleItem):
                     out += 1
         return ins, out, opts
 
-    def MakeFuncMethod(self, entry, name, bMakeClass=1):
+    def MakeFuncMethod(self, entry, name, bMakeClass=True):
         # If we have a type description, and not varargs...
         if entry.desc is not None and (len(entry.desc) < 6 or entry.desc[6] != -1):
             return self.MakeDispatchFuncMethod(entry, name, bMakeClass)
         else:
             return self.MakeVarArgsFuncMethod(entry, name, bMakeClass)
 
-    def MakeDispatchFuncMethod(self, entry, name, bMakeClass=1):
+    def MakeDispatchFuncMethod(self, entry, name, bMakeClass=True):
         fdesc = entry.desc
         doc = entry.doc
         names = entry.names
@@ -477,7 +477,7 @@ class DispatchItem(OleItem):
         ret.append("")
         return ret
 
-    def MakeVarArgsFuncMethod(self, entry, name, bMakeClass=1):
+    def MakeVarArgsFuncMethod(self, entry, name, bMakeClass=True):
         fdesc = entry.desc
         names = entry.names
         doc = entry.doc
@@ -504,7 +504,7 @@ class DispatchItem(OleItem):
 
 # Note - "DispatchItem" poorly named - need a new intermediate class.
 class VTableItem(DispatchItem):
-    def Build(self, typeinfo, attr, bForUser=1):
+    def Build(self, typeinfo, attr, bForUser=True):
         DispatchItem.Build(self, typeinfo, attr, bForUser)
         assert typeinfo is not None, "Can't build vtables without type info!"
 

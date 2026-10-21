@@ -911,7 +911,7 @@ def TestPyVariant(o, is_generated):
     _TestPyVariantFails(o, is_generated, VARIANT(pythoncom.VT_UI1, "foo"), ValueError)
 
 
-def TestCounter(counter, bIsGenerated):
+def TestCounter(counter, bIsGenerated: bool):
     # Test random access into container
     progress(f"Testing counter {counter!r}")
     import random

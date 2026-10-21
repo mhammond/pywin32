@@ -59,7 +59,7 @@ class flags:
     SERVER_PROCESS = 3
 
 
-def StartServer(cmd, title=None, bCloseOnEnd=0, serverFlags=flags.SERVER_BEST):
+def StartServer(cmd, title=None, bCloseOnEnd=False, serverFlags=flags.SERVER_BEST):
     out = winout.WindowOutput(title, None, winout.flags.WQ_IDLE)
     if not title:
         title = cmd
@@ -69,7 +69,7 @@ def StartServer(cmd, title=None, bCloseOnEnd=0, serverFlags=flags.SERVER_BEST):
     _thread.start_new_thread(ServerThread, (out, cmd, title, bCloseOnEnd))
 
 
-def ServerThread(myout, cmd, title, bCloseOnEnd):
+def ServerThread(myout, cmd, title, bCloseOnEnd: bool):
     try:
         writer.register(myout)
         print('Executing "%s"\n' % cmd)

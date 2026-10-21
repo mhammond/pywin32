@@ -584,7 +584,7 @@ class Debugger(debugger_parent):
         self.reset()
         self.inForcedGUI = win32ui.GetApp().IsInproc()
         self.options = LoadDebuggerOptions()
-        self.bAtException = self.bAtPostMortem = 0
+        self.bAtException = self.bAtPostMortem = False
 
     def __del__(self):
         self.close()

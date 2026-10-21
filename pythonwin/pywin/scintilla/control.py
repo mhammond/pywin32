@@ -166,10 +166,10 @@ class ScintillaControlInterface:
         self.SendScintilla(scintillacon.SCI_STYLESETFONT, num, buff)
         self.SendScintilla(scintillacon.SCI_STYLESETCHARACTERSET, num, characterset)
 
-    def SCIStyleSetBold(self, num, bBold):
+    def SCIStyleSetBold(self, num, bBold: bool):
         self.SendScintilla(scintillacon.SCI_STYLESETBOLD, num, bBold)
 
-    def SCIStyleSetItalic(self, num, bItalic):
+    def SCIStyleSetItalic(self, num, bItalic: bool):
         self.SendScintilla(scintillacon.SCI_STYLESETITALIC, num, bItalic)
 
     def SCIStyleSetSize(self, num, size):
@@ -540,7 +540,7 @@ class CScintillaColorEditInterface(CScintillaEditInterface):
         if c is not None:
             c.Colorize(start, end)
 
-    def ApplyFormattingStyles(self, bReload=1):
+    def ApplyFormattingStyles(self, bReload=True):
         c = self._GetColorizer()
         if c is not None:
             c.ApplyFormattingStyles(bReload)

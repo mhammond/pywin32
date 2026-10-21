@@ -172,7 +172,7 @@ class EditorView(ParentEditorView):
 
         self.addToMRU = 1
         self.HookHandlers()
-        self.bCheckingFile = 0
+        self.bCheckingFile = False
 
         self.defCharFormat = GetEditorFontOption("Default Font", defaultCharacterFormat)
 
@@ -467,9 +467,9 @@ class EditorView(ParentEditorView):
     def OnCheckExternalDocumentUpdated(self, msg):
         if self._obj_ is None or self.bCheckingFile:
             return
-        self.bCheckingFile = 1
+        self.bCheckingFile = True
         self.GetDocument().CheckExternalDocumentUpdated()
-        self.bCheckingFile = 0
+        self.bCheckingFile = False
 
 
 from .template import EditorTemplateBase

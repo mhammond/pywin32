@@ -86,7 +86,7 @@ class FormatterBase:
         self.scintilla = scintilla
         self.baseFormatFixed = (-402653169, 0, 200, 0, 0, 0, 49, "Courier New")
         self.baseFormatProp = (-402653169, 0, 200, 0, 0, 0, 49, "Arial")
-        self.bUseFixed = 1
+        self.bUseFixed = True
         self.styles = {}  # Indexed by name
         self.styles_by_id = {}  # Indexed by allocated ID.
         self.SetStyles()
@@ -178,7 +178,7 @@ class FormatterBase:
     def GetStyleByNum(self, stylenum):
         return self.styles_by_id[stylenum]
 
-    def ApplyFormattingStyles(self, bReload=1):
+    def ApplyFormattingStyles(self, bReload=True):
         if bReload:
             self.LoadPreferences()
         baseFormat = self.GetDefaultFormat()
@@ -237,8 +237,8 @@ class FormatterBase:
 # (as opposed to those formatters built in to Scintilla)
 class Formatter(FormatterBase):
     def __init__(self, scintilla):
-        self.bCompleteWhileIdle = 0
-        self.bHaveIdleHandler = 0  # Don't currently have an idle handle
+        self.bCompleteWhileIdle = False
+        self.bHaveIdleHandler = False  # Don't currently have an idle handle
         self.nextstylenum = 0
         FormatterBase.__init__(self, scintilla)
 
@@ -307,7 +307,7 @@ class Formatter(FormatterBase):
             and end != -1
             and end < scintilla.GetTextLength()
         ):
-            self.bHaveIdleHandler = 1
+            self.bHaveIdleHandler = True
             win32ui.GetApp().AddIdleHandler(self.DoMoreColoring)
             # Kicking idle makes the app seem slower when initially repainting!
 
@@ -331,7 +331,7 @@ class Formatter(FormatterBase):
             finished = 1
 
         if finished:
-            self.bHaveIdleHandler = 0
+            self.bHaveIdleHandler = False
             win32ui.GetApp().DeleteIdleHandler(handler)
         return not finished
 
