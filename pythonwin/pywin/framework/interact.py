@@ -158,7 +158,7 @@ class InteractiveFormatter(FormatterParent):
             ch = chNext
             chNext = cdoc[i + 1 : i + 2].decode("latin-1")
 
-            # 			trace("ch=%r, i=%d, next=%r, state=%s" % (ch, i, chNext, state))
+            # trace(f"ch={ch!r}, i={i}, next={chNext!r}, state={state}")
             if state == STYLE_INTERACTIVE_EOL:
                 if ch not in "\r\n":
                     self.ColorSeg(startSeg, i - 1, state)
@@ -357,7 +357,7 @@ class InteractiveCore:
                 )
             except:
                 sys.stderr.write(
-                    ">>> \nError executing PYTHONSTARTUP script %r\n" % (rcfile)
+                    f">>> \nError executing PYTHONSTARTUP script {rcfile!r}\n"
                 )
                 traceback.print_exc(file=sys.stderr)
         self.AppendToPrompt([])
