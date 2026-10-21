@@ -177,7 +177,7 @@ class InteractiveFormatter(FormatterParent):
                         state = STYLE_INTERACTIVE_EOL
                     else:
                         state = stylePyStart  # Start coloring Python code.
-            elif state in (STYLE_INTERACTIVE_OUTPUT,):
+            elif state == STYLE_INTERACTIVE_OUTPUT:
                 if ch in "\r\n":
                     self.ColorSeg(startSeg, i - 1, state)
                     startSeg = i
@@ -652,12 +652,13 @@ class InteractiveCore:
 
     def GetRightMenuItems(self):
         # Just override parents
-        ret = []
         flags = 0
-        ret.append((flags, win32ui.ID_EDIT_UNDO, "&Undo"))
-        ret.append(win32con.MF_SEPARATOR)
-        ret.append((flags, win32ui.ID_EDIT_CUT, "Cu&t"))
-        ret.append((flags, win32ui.ID_EDIT_COPY, "&Copy"))
+        ret = [
+            (flags, win32ui.ID_EDIT_UNDO, "&Undo"),
+            win32con.MF_SEPARATOR,
+            (flags, win32ui.ID_EDIT_CUT, "Cu&t"),
+            (flags, win32ui.ID_EDIT_COPY, "&Copy"),
+        ]
 
         start, end = self.GetSel()
         if start != end:
@@ -667,11 +668,15 @@ class InteractiveCore:
                 (flags, ID_EDIT_EXEC_CLIPBOARD, "Execute python code from clipboard")
             )
 
-        ret.append((flags, win32ui.ID_EDIT_PASTE, "&Paste"))
-        ret.append(win32con.MF_SEPARATOR)
-        ret.append((flags, win32ui.ID_EDIT_SELECT_ALL, "&Select all"))
-        ret.append((flags, win32ui.ID_EDIT_SELECT_BLOCK, "Select &block"))
-        ret.append((flags, win32ui.ID_VIEW_WHITESPACE, "View &Whitespace"))
+        ret.extend(
+            (
+                (flags, win32ui.ID_EDIT_PASTE, "&Paste"),
+                win32con.MF_SEPARATOR,
+                (flags, win32ui.ID_EDIT_SELECT_ALL, "&Select all"),
+                (flags, win32ui.ID_EDIT_SELECT_BLOCK, "Select &block"),
+                (flags, win32ui.ID_VIEW_WHITESPACE, "View &Whitespace"),
+            )
+        )
         return ret
 
     def MDINextEvent(self, event):

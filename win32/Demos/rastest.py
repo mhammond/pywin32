@@ -21,7 +21,7 @@ def Callback(hras, msg, state, error, exterror):
     # print("Callback called with ", hras, msg, state, error, exterror)
     stateName = stateMap.get(state, "Unknown state?")
     print("Status is %s (%04lx), error code is %d" % (stateName, state, error))
-    finished = state in [win32ras.RASCS_Connected]
+    finished = state == win32ras.RASCS_Connected
     if finished:
         win32event.SetEvent(callbackEvent)
     if error != 0 or int(state) == win32ras.RASCS_Disconnected:
