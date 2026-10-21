@@ -162,7 +162,8 @@ jobs:
           - { sys: mingw32, env: i686, plat-name: win32 }
           # Modern environment (Windows 10 / Windows Server 2016)
           # - { sys: ucrt64, env: ucrt-x86_64, plat-name: win-amd64 }
-          # No ARM yet, that currently requires using clang
+          # ARM only available using clang
+          - { sys: clangarm64, env: aarch64, plat-name: win-arm64 }
     steps:
       - uses: actions/checkout@v4
       - uses: msys2/setup-msys2@v2
