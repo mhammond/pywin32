@@ -149,7 +149,7 @@ class EnumDebugPropertyInfo(ListEnumeratorGateway):
 
     """
 
-    _public_methods_ = ListEnumeratorGateway._public_methods_ + ["GetCount"]
+    _public_methods_ = [*ListEnumeratorGateway._public_methods_, "GetCount"]
     _com_interfaces_ = [axdebug.IID_IEnumDebugPropertyInfo]
 
     def GetCount(self):

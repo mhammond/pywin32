@@ -137,4 +137,4 @@ def suite():
 
 
 if __name__ == "__main__":
-    unittest.main(argv=sys.argv + ["suite"])
+    unittest.main(argv=[*sys.argv, "suite"])

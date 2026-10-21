@@ -133,7 +133,7 @@ def ShowAllProcesses():
             instance_dict[instance] = 0
 
     # Bit of a hack to get useful info.
-    items = [find_pdh_counter_localized_name("ID Process")] + items[:5]
+    items = [find_pdh_counter_localized_name("ID Process"), *items[:5]]
     print("Process Name", ",".join(items))
     for instance, max_instances in instance_dict.items():
         for inum in range(max_instances + 1):
