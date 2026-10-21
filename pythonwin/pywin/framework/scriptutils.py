@@ -564,7 +564,7 @@ def _JumpToPosition(fileName, lineno, col=1):
     JumpToDocument(fileName, lineno, col)
 
 
-def JumpToDocument(fileName, lineno=0, col=1, nChars=0, bScrollToTop=0):
+def JumpToDocument(fileName, lineno=0, col=1, nChars=0, bScrollToTop=False):
     # Jump to the position in a file.
     # If lineno is <= 0, don't move the position - just open/restore.
     # if nChars > 0, select that many characters.

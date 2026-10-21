@@ -278,7 +278,7 @@ def __get_disp_and_event_classes(dispatch):
             disp_clsid = ti.GetTypeAttr()[0]
             tlb, index = ti.GetContainingTypeLib()
             tla = tlb.GetLibAttr()
-            gencache.EnsureModule(tla[0], tla[1], tla[3], tla[4], bValidateFile=0)
+            gencache.EnsureModule(tla[0], tla[1], tla[3], tla[4], bValidateFile=False)
             # Get the class from the module.
             disp_class = gencache.GetClassForProgID(str(disp_clsid))
         except pythoncom.com_error as error:

@@ -164,7 +164,7 @@ def MakePathSubList(path):
 
 
 class HLIDirectoryItem(hierlist.HierListItem):
-    def __init__(self, path, displayName=None, bSubDirs=0):
+    def __init__(self, path, displayName=None, bSubDirs=False):
         hierlist.HierListItem.__init__(self)
         self.path = path
         self.bSubDirs = bSubDirs
