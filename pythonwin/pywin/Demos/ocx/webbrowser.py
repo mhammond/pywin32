@@ -19,7 +19,7 @@ if WebBrowserModule is None:
     raise ImportError("Internet Explorer does not appear to be installed.")
 
 
-class MyWebBrowser(activex.Control, WebBrowserModule.WebBrowser):
+class MyWebBrowser(activex.Control, WebBrowserModule.WebBrowser):  # type: ignore[name-defined] # Generated module
     def OnBeforeNavigate2(
         self, pDisp, URL, Flags, TargetFrameName, PostData, Headers, Cancel
     ):
