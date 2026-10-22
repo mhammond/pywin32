@@ -17,10 +17,12 @@
 # - You can save grep results by right clicking in the result window.
 # Hats off to Mark Hammond for providing an environment where I could cobble
 # something like this together in a couple evenings!
+from __future__ import annotations
 
 import glob
 import os
 import re
+from collections.abc import Sequence
 
 import win32api
 import win32con
@@ -637,9 +639,15 @@ class GrepDialog(dialog.Dialog):
 
 
 class GrepParamsDialog(dialog.Dialog):
-    def __init__(self, items):
-        self.items = items
-        self.newitems = []
+    def __init__(
+        self,
+        # Sequence rather than Iterable to avoid single-use iterable
+        items: Sequence[str],
+    ):
+        # This subclass breaks LSP by making "items" not a method
+        # TODO: Consider making this a method or changing the base class to a property
+        self.items: Sequence[str] = items  # type: ignore[assignment]
+        self.newitems: list[str] = []
         style = (
             win32con.DS_MODALFRAME
             | win32con.WS_POPUP
