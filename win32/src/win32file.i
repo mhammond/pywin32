@@ -48,28 +48,6 @@
 #include <stddef.h>
 #include "sfc.h"
 
-#if defined(__MINGW32__) && defined(_M_ARM64)
-// mingw-w64 ships no sfc import library for ARM64, so resolve sfc.dll at runtime instead.
-// TODO: Remove once MSYS2 ships https://sourceforge.net/p/mingw-w64/mailman/message/59419267/
-static FARPROC GetSfcProc(LPCSTR name)
-{
-	static HMODULE hmod = LoadLibraryW(L"sfc.dll");
-	return hmod ? GetProcAddress(hmod, name) : NULL;
-}
-static BOOL WINAPI PyWin_SfcGetNextProtectedFile(HANDLE RpcHandle, PPROTECTED_FILE_DATA ProtFileData)
-{
-	static auto pfn = (decltype(&SfcGetNextProtectedFile))GetSfcProc("SfcGetNextProtectedFile");
-	return pfn ? pfn(RpcHandle, ProtFileData) : (SetLastError(ERROR_PROC_NOT_FOUND), FALSE);
-}
-static BOOL WINAPI PyWin_SfcIsFileProtected(HANDLE RpcHandle, LPCWSTR ProtFileName)
-{
-	static auto pfn = (decltype(&SfcIsFileProtected))GetSfcProc("SfcIsFileProtected");
-	return pfn ? pfn(RpcHandle, ProtFileName) : (SetLastError(ERROR_PROC_NOT_FOUND), FALSE);
-}
-#	define SfcGetNextProtectedFile PyWin_SfcGetNextProtectedFile
-#	define SfcIsFileProtected PyWin_SfcIsFileProtected
-#endif
-
 // pyconfig.h defines socklen_t, which conflicts with below header
 #ifdef socklen_t
 #	undef socklen_t
