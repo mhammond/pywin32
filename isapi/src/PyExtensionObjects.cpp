@@ -841,7 +841,7 @@ PyObject *PyECB::IOCompletion(PyObject *self, PyObject *args)
 
     BOOL bRes;
     Py_BEGIN_ALLOW_THREADS
-        bRes = ecb->ServerSupportFunction(ecb->ConnID, HSE_REQ_IO_COMPLETION, DoIOCallback, NULL, NULL);
+        bRes = ecb->ServerSupportFunction(ecb->ConnID, HSE_REQ_IO_COMPLETION, (LPVOID)DoIOCallback, NULL, NULL);
     Py_END_ALLOW_THREADS
     if (!bRes)
         return SetPyECBError("ServerSupportFunction(HSE_REQ_IO_COMPLETION)");
