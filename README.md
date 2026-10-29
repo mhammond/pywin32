@@ -87,7 +87,7 @@ will be changed, etc)
 
 ### Installing for MinGW/MSYS2
 
-Install the package hosted by [MINGW-packages](https://github.com/msys2/MINGW-packages/tree/master/mingw-w64-python-pywin32) (see <https://packages.msys2.org/base/mingw-w64-python-pywin32>), from the MSYS2 shell of your environment:
+Install the package hosted by [MINGW-packages](https://github.com/msys2/MINGW-packages/tree/master/mingw-w64-python-pywin32) (see [mingw-w64-python-pywin32](https://packages.msys2.org/base/mingw-w64-python-pywin32)), from the MSYS2 shell of your environment:
 
 ```shell
 pacman -S ${MINGW_PACKAGE_PREFIX}-python-pywin32
