@@ -66,6 +66,12 @@ class TestGetSetClipboardData(unittest.TestCase):
         for data, fmt, expected in test_data:
             self.assertEqual(expected, self.copyData(data, fmt))
 
+    def test_text_from_buffer(self):
+        # mhammond#2132: any buffer object sent as a text format gets the terminator,
+        # not just bytes; bytearray and memoryview used to come back one byte short
+        for data in (bytearray(b"Dummy bytearray"), memoryview(b"Dummy memoryview")):
+            self.assertEqual(bytes(data), self.copyData(data, win32clipboard.CF_TEXT))
+
 
 if __name__ == "__main__":
     unittest.main()
