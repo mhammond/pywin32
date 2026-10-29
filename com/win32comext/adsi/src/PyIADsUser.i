@@ -11,29 +11,21 @@
 
 #define SWIG_THIS_IID IID_IADsUser
 
-PyIADsUser::PyIADsUser(IUnknown *pDisp) :
-	PyIADs(pDisp)
-{
-	ob_type = &type;
-}
+PyIADsUser::PyIADsUser(IUnknown *pDisp) : PyIADs(pDisp) { ob_type = &type; }
 
-PyIADsUser::~PyIADsUser()
-{
-}
+PyIADsUser::~PyIADsUser() {}
 
-IADsUser *PyIADsUser::GetI(PyObject *self)
-{
-	return (IADsUser *)PyIADs::GetI(self);
-}
+IADsUser *PyIADsUser::GetI(PyObject *self) { return (IADsUser *)PyIADs::GetI(self); }
 
-PyObject* PyIADsUser_getattro(PyObject *ob, PyObject *obname)
+PyObject *PyIADsUser_getattro(PyObject *ob, PyObject *obname)
 {
-	char *name = PyBytes_AsString(obname);
-	if (!name) return NULL;
+    char *name = PyBytes_AsString(obname);
+    if (!name)
+        return NULL;
 
-	IADsUser *p = PyIADsUser::GetI(ob);
-	// todo!
-	return PyIADs::getattro(ob, obname);
+    IADsUser *p = PyIADsUser::GetI(ob);
+    // todo!
+    return PyIADs::getattro(ob, obname);
 }
 
 %}
@@ -55,7 +47,7 @@ HRESULT put_AccountExpirationDate(DATE val);
 HRESULT get_BadLoginAddress(BSTR *OUTPUT);
 
 // @pyswig int|get_BadLoginCount |
-HRESULT get_BadLoginCount (long *OUTPUT);
+HRESULT get_BadLoginCount(long *OUTPUT);
 
 // @pyswig unicode|get_Department|
 HRESULT get_Department(BSTR *OUTPUT);
