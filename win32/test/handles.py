@@ -3,6 +3,7 @@ import unittest
 
 import pywintypes
 import win32api
+import win32file
 
 
 class TestError1(Exception):
@@ -169,6 +170,16 @@ class PyHandleTestCase(unittest.TestCase):
     def testTypes(self):
         self.assertRaises(TypeError, pywintypes.HANDLE, "foo")
         self.assertRaises(TypeError, pywintypes.HANDLE, ())
+
+    def testTextAsHandleWarns(self):
+        # mhammond#2132: int() parses these, so they were silently used as a handle.
+        # That now warns; a future release will raise TypeError instead.
+        for bad in ("42", b"42", bytearray(b"42"), memoryview(b"42")):
+            with self.assertWarns(FutureWarning):
+                try:
+                    win32file.GetFileType(bad)
+                except win32api.error:
+                    pass
 
 
 if __name__ == "__main__":

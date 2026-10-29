@@ -541,6 +541,17 @@ BOOL PyWinLong_AsVoidPtr(PyObject *ob, void **pptr)
         PyErr_Format(PyExc_TypeError, "Unable to convert %s to pointer-sized value", Py_TYPE(ob)->tp_name);
         return FALSE;
     }
+    // PyNumber_Long also parses str, bytes and buffers, the same as int() does, so
+    // "201920" or b"201920" was silently used as an address (mhammond#2132).
+    // Warn for now; a future release will raise TypeError for anything that is not a number.
+    if (!PyNumber_Check(ob) &&
+        PyErr_WarnFormat(PyExc_FutureWarning, 1,
+                         "Passing a %s where a handle is expected is deprecated and will raise TypeError "
+                         "in a future release; pass an int or PyHANDLE instead",
+                         Py_TYPE(ob)->tp_name) < 0) {
+        Py_DECREF(longob);
+        return FALSE;
+    }
     *pptr = (void *)SIGNED_CONVERTER(longob);
     if (*pptr == (void *)-1 && PyErr_Occurred()) {
         PyErr_Clear();

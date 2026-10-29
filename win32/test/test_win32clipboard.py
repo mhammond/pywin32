@@ -54,6 +54,18 @@ class TestGetSetClipboardData(unittest.TestCase):
             s.encode(), self.copyText(s, win32clipboard.CF_TEXT)
         )  # @TODO - cfati: Do we want this?
 
+    def test_numeric_looking_data(self):
+        # mhammond#2132: data that int() can parse must be copied, not used as a handle
+        test_data = [
+            ("201920", win32clipboard.CF_UNICODETEXT, "201920"),
+            (" 7_000 ", win32clipboard.CF_UNICODETEXT, " 7_000 "),
+            (b"531815", win32clipboard.CF_TEXT, b"531815"),
+            (bytearray(b"42"), win32clipboard.CF_TEXT, b"42"),
+            (memoryview(b"42"), win32clipboard.CF_TEXT, b"42"),
+        ]
+        for data, fmt, expected in test_data:
+            self.assertEqual(expected, self.copyData(data, fmt))
+
 
 if __name__ == "__main__":
     unittest.main()

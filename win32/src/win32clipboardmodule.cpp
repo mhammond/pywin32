@@ -826,7 +826,10 @@ static PyObject *py_set_clipboard_data(PyObject *self, PyObject *args)
 
     if (!PyArg_ParseTuple(args, "iO:SetClipboardData", &format, &obhandle))
         return NULL;
-    if (!PyWinObject_AsHANDLE(obhandle, &handle)) {
+    // str and buffer objects are always data, never a handle. Trying them as a
+    // handle first turned "201920" or b"201920" into a bogus HGLOBAL (mhammond#2132).
+    BOOL isData = PyUnicode_Check(obhandle) || PyObject_CheckBuffer(obhandle);
+    if (isData || !PyWinObject_AsHANDLE(obhandle, &handle)) {
         PyErr_Clear();
 
         const void *buf = NULL;
