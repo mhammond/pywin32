@@ -22,16 +22,17 @@
 
 <H2>Quick Start</H2>
 <H3><A NAME="Using">To use a COM object from Python</A></H3>
-<CODE><P>import win32com.client<BR>
-o = win32com.client.Dispatch("Object.Name")<BR>
-o.Method()<BR>
-o.property = "New Value"<BR>
-print(o.property)</P>
-</CODE><P>Example</P>
-<CODE><P>o = win32com.client.Dispatch("Excel.Application")<BR>
-o.Visible = 1<BR>
-o.Workbooks.Add()<BR>
-o.Cells(1,1).Value = "Hello"</CODE> </P>
+<PRE><CODE>import win32com.client
+o = win32com.client.Dispatch("Object.Name")
+o.Method()
+o.property = "New Value"
+print(o.property)
+</CODE></PRE>
+<P>Example</P>
+<PRE><CODE>o = win32com.client.Dispatch("Excel.Application")
+o.Visible = 1
+o.Workbooks.Add()
+o.Cells(1,1).Value = "Hello"</CODE></PRE>
 <P>And we will see the word "Hello" appear in the top cell. </P>
 <H3><A NAME="WhatObjects">How do I know which methods and properties are available?</A></H3>
 <P>Good question. This is hard! You need to use the documentation with the products, or possibly a COM browser. Note however that COM browsers typically rely on these objects registering themselves in certain ways, and many objects to not do this. You are just expected to know.</P>
@@ -41,8 +42,8 @@ o.Cells(1,1).Value = "Hello"</CODE> </P>
 <P>To run the browser, simply select it from the Pythonwin <I>Tools</I> menu, or double-click on the file <I>win32com\client\combrowse.py</I></P>
 <H2><A NAME="StaticDispatch">Static Dispatch (or Type Safe) objects</A></H2>
 <P>In the above examples, if we printed the '<CODE>repr(o)</CODE>' object above, it would have resulted in</P>
-<CODE><P>&lt;COMObject Excel.Application&gt;</P>
-</CODE><P>This reflects that the object is a generic COM object that Python has no special knowledge of (other than the name you used to create it!). This is known as a "dynamic dispatch" object, as all knowledge is built dynamically. The win32com package also has the concept of <I>static dispatch</I> objects, which gives Python up-front knowledge about the objects that it is working with (including arguments, argument types, etc)</P>
+<PRE><CODE>&lt;COMObject Excel.Application&gt;</CODE></PRE>
+<P>This reflects that the object is a generic COM object that Python has no special knowledge of (other than the name you used to create it!). This is known as a "dynamic dispatch" object, as all knowledge is built dynamically. The win32com package also has the concept of <I>static dispatch</I> objects, which gives Python up-front knowledge about the objects that it is working with (including arguments, argument types, etc)</P>
 <P>In a nutshell, Static Dispatch involves the generation of a .py file that contains support for the specific object. For more overview information, please see the documentation references above.</P>
 <P>The generation and management of the .py files is somewhat automatic, and involves one of 2 steps:</P>
 
@@ -68,15 +69,17 @@ o.Cells(1,1).Value = "Hello"</CODE> </P>
 <LI>If you desire, you can also use explicit code to generate it just before you need to use it at runtime.  Run <CODE>'makepy.py -i "Microsoft Word 8.0 Object Library"</CODE>' (include the double quotes) to see how to do this.</LI></UL>
 
 <P>And that is it! Nothing more needed. No special import statements needed! Now, you simply need say</P>
-<CODE><P>&gt;&gt;&gt; import win32com.client</P>
-<P>&gt;&gt;&gt; w=win32com.client.Dispatch("Word.Application")</P>
-<P>&gt;&gt;&gt; w.Visible=1</P>
-<P>&gt;&gt;&gt; w</P>
-<P>&lt;win32com.gen_py.Microsoft Word 8.0 Object Library._Application&gt;</P>
-</CODE><P>Note that now Python knows the explicit type of the object.</P>
+<PRE><CODE>&gt;&gt;&gt; import win32com.client
+&gt;&gt;&gt; w=win32com.client.Dispatch("Word.Application")
+&gt;&gt;&gt; w.Visible=1
+&gt;&gt;&gt; w
+&lt;win32com.gen_py.Microsoft Word 8.0 Object Library._Application&gt;
+</CODE></PRE>
+<P>Note that now Python knows the explicit type of the object.</P>
 <H3><A NAME="UsingComConstants">Using COM Constants</A></H3>
-<P>Makepy automatically installs all generated constants from a type library in an object called <I>win32com.clients.constants</I>.  You do not need to do anything special to make these constants work, other than create the object itself (ie, in the example above, the constants relating to <I>Word</I> would automatically be available after the <CODE>w=win32com.client.Dispatch("Word.Application</CODE>") statement<CODE>.</P>
-</CODE><P>For example, immediately after executing the code above, you could execute the following:</P>
-<CODE><P>&gt;&gt;&gt; w.WindowState = win32com.client.constants.wdWindowStateMinimize</P>
-</CODE><P>and Word will Minimize.</P></BODY>
+<P>Makepy automatically installs all generated constants from a type library in an object called <I>win32com.clients.constants</I>.  You do not need to do anything special to make these constants work, other than create the object itself (ie, in the example above, the constants relating to <I>Word</I> would automatically be available after the<CODE>w=win32com.client.Dispatch("Word.Application")</CODE> statement.</P>
+<P>For example, immediately after executing the code above, you could execute the following:</P>
+<PRE><CODE>&gt;&gt;&gt; w.WindowState = win32com.client.constants.wdWindowStateMinimize</CODE></PRE>
+<P>and Word will Minimize.</P>
+</BODY>
 </HTML>

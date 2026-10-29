@@ -38,29 +38,30 @@
 <P>Each win32ui type supports being "attached" to a Python class instance. When a virtual function is called, the Python class instance associated with the object is checked to see if it has a method with the same name. If so, the method is called. </P>
 <P>More details on this can be found in the <A HREF="docview.html">document and view architecture documentation</A>. </P>
 <H3><A NAME="Example">Example of this in action</A> </H3>
-<CODE><P>&gt;&gt;&gt; import win32ui # import the base win32ui module. <BR>
-&gt;&gt;&gt; import dialog # import dialog.py<BR>
-&gt;&gt;&gt; d=dialog.Dialog(win32ui.IDD_SIMPLE_INPUT)<BR>
-&gt;&gt;&gt; d<BR>
-&lt;Dialog instance at 886c78&gt;</CODE> </P>
+<PRE><CODE>&gt;&gt;&gt; import win32ui # import the base win32ui module.
+&gt;&gt;&gt; import dialog # import dialog.py
+&gt;&gt;&gt; d=dialog.Dialog(win32ui.IDD_SIMPLE_INPUT)
+&gt;&gt;&gt; d
+&lt;Dialog instance at 886c78&gt;</CODE></PRE>
 <P>This creates an instance of class Dialog, defined in dialog.py. Dialog is derived from Object (via Wnd). To see the underlying win32ui type: </P>
-<CODE><P>&gt;&gt;&gt; d._obj_<BR>
-object 'PyCDialog' - assoc is 002F3278, vf=True, ch=0, mh=2, kh=0<BR>
-&gt;&gt;&gt; <BR>
-</CODE>This output shows the C++ CDialog object is at address<CODE> 0x002F3278</CODE>, that there is a virtual function handler (i.e., the class instance "d"), that 2 messages have hooks, and no command or keyboard handlers are installed. </P>
+<PRE><CODE><P>&gt;&gt;&gt; d._obj_
+object 'PyCDialog' - assoc is 002F3278, vf=True, ch=0, mh=2, kh=0
+&gt;&gt;&gt;
+</CODE></PRE>This output shows the C++ CDialog object is at address <CODE> 0x002F3278</CODE>, that there is a virtual function handler (i.e., the class instance "d"), that 2 messages have hooks, and no command or keyboard handlers are installed. </P>
 <P>Even though the DoModal() method is implemented in the underlying win32ui type, the class object can be used just like the win32ui object. Thus: </P>
-<CODE><P>&gt;&gt;&gt; d.DoModal()<BR>
-1<BR>
-&gt;&gt;&gt; </P>
-</CODE><P>To see virtual functions in action </P>
-<CODE><PRE>&gt;&gt;&gt; class MyDialog(dialog.Dialog):<BR>
-...   def OnInitDialog(self, msg): <BR>
-...     self.GetDlgItem(win32ui.IDC_PROMPT1).SetWindowText("Hello") <BR>
-...     return 1<BR>
-... <BR>
-&gt;&gt;&gt; d=MyDialog(win32ui.IDD_SIMPLE_INPUT)<BR>
-&gt;&gt;&gt; d.DoModal()<BR>
-1</CODE> </PRE>
-<P>Note the prompt on the dialog box is now "Hello".<BR>
-</P></BODY>
+<PRE><CODE>&gt;&gt;&gt; d.DoModal()
+1
+&gt;&gt;&gt;
+</CODE></PRE>
+<P>To see virtual functions in action </P>
+<PRE><CODE>&gt;&gt;&gt; class MyDialog(dialog.Dialog):
+...   def OnInitDialog(self, msg): 
+...     self.GetDlgItem(win32ui.IDC_PROMPT1).SetWindowText("Hello") 
+...     return 1
+... 
+&gt;&gt;&gt; d=MyDialog(win32ui.IDD_SIMPLE_INPUT)
+&gt;&gt;&gt; d.DoModal()
+1</CODE></PRE>
+<P>Note the prompt on the dialog box is now "Hello".</P>
+</BODY>
 </HTML>
