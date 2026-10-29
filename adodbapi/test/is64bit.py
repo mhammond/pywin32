@@ -1,13 +1,13 @@
-"""is64bit.Python() --> boolean value of detected Python word size. is64bit.os() --> os build version"""
-
 import sys
 
 
 def Python():
+    """boolean value of detected Python word size."""
     return sys.maxsize > 2147483647
 
 
 def os():
+    """os build version"""
     import platform
 
     pm = platform.machine()

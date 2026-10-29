@@ -388,13 +388,7 @@ class CDispatch:
             return None
         elif isinstance(ob, tuple):
             return tuple(
-                map(
-                    lambda o,
-                    s=self,
-                    oun=userName,
-                    rc=ReturnCLSID: s._get_good_single_object_(o, oun, rc),
-                    ob,
-                )
+                [self._get_good_single_object_(o, userName, ReturnCLSID) for o in ob]
             )
         else:
             return self._get_good_single_object_(ob)
