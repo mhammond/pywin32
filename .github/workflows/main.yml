@@ -107,8 +107,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # pythonarm64 NuGet has no download for Python ~=3.9.11
-        python-version: ["3.9.10", "3.10"]
+        # pythonarm64 NuGet has no download for Python ~=3.9.11 and ~=3.10.12
+        python-version: ["3.9.10", "3.10.11"]
     steps:
       - uses: actions/checkout@v4
 
