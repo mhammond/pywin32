@@ -30,37 +30,34 @@ print("Destination dir:", dst_dir)
 ## create an encrypted file
 fname = win32api.GetTempFileName(dst_dir, "ref")[0]
 print("orig file:", fname)
-f = open(fname, "w")
-f.write("xxxxxxxxxxxxxxxx\n" * 32768)
-f.close()
+with open(fname, "w") as f:
+    f.write("xxxxxxxxxxxxxxxx\n" * 32768)
 ## add a couple of extra data streams
-f = open(fname + ":stream_y", "w")
-f.write("yyyyyyyyyyyyyyyy\n" * 32768)
-f.close()
-f = open(fname + ":stream_z", "w")
-f.write("zzzzzzzzzzzzzzzz\n" * 32768)
-f.close()
+with open(fname + ":stream_y", "w") as f:
+    f.write("yyyyyyyyyyyyyyyy\n" * 32768)
+with open(fname + ":stream_z", "w") as f:
+    f.write("zzzzzzzzzzzzzzzz\n" * 32768)
 win32file.EncryptFile(fname)
 
 ## backup raw data of encrypted file
 bkup_fname = win32api.GetTempFileName(dst_dir, "bef")[0]
 print("backup file:", bkup_fname)
-f = open(bkup_fname, "wb")
+fw = open(bkup_fname, "wb")
 ctxt = win32file.OpenEncryptedFileRaw(fname, 0)
 try:
-    win32file.ReadEncryptedFileRaw(ReadCallback, (fname, bkup_fname, f), ctxt)
+    win32file.ReadEncryptedFileRaw(ReadCallback, (fname, bkup_fname, fw), ctxt)
 finally:
     ## if context is not closed, file remains locked even if calling process is killed
     win32file.CloseEncryptedFileRaw(ctxt)
-    f.close()
+    fw.close()
 
 ## restore data from backup to new encrypted file
 dst_fname = win32api.GetTempFileName(dst_dir, "wef")[0]
 print("restored file:", dst_fname)
-f = open(bkup_fname, "rb")
+fr = open(bkup_fname, "rb")
 ctxtout = win32file.OpenEncryptedFileRaw(dst_fname, win32file.CREATE_FOR_IMPORT)
 try:
-    win32file.WriteEncryptedFileRaw(WriteCallback, (bkup_fname, dst_fname, f), ctxtout)
+    win32file.WriteEncryptedFileRaw(WriteCallback, (bkup_fname, dst_fname, fr), ctxtout)
 finally:
     win32file.CloseEncryptedFileRaw(ctxtout)
-    f.close()
+    fr.close()
