@@ -15,8 +15,6 @@ else:
     pth = setuptestframework.find_ado_path()
 if pth not in sys.path:
     sys.path.insert(1, pth)
-# function to clean up the temporary folder -- calling program must run this function before exit.
-cleanup = setuptestframework.getcleanupfunction()
 
 import adodbapi
 import adodbapi.is64bit as is64bit
@@ -187,4 +185,4 @@ class test_adodbapi(dbapi20.DatabaseAPI20Test):
 
 if __name__ == "__main__":
     unittest.main()
-    cleanup(testfolder, None)
+    setuptestframework.cleanup(testfolder, None)

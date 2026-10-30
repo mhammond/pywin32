@@ -31,6 +31,7 @@ import time
 import unittest
 
 import adodbapitestconfig as config  # run the configuration module. # will set sys.path to find correct version of adodbapi
+import setuptestframework
 import tryconnection  # in our code below, all our switches are from config.whatever
 
 import adodbapi
@@ -868,7 +869,7 @@ class CommonDBTests(unittest.TestCase):
                 'returned value:"%s" != test value:"%s"' % (rec[0], inParam),
             )
             self.assertEqual(rec[1], trouble)
-        #     inputs = [u'four',u'five',u'six']
+        # inputs = ["four", "five", "six"]
         fldId = 10
         for inParam in inputs:
             fldId += 1
@@ -1524,7 +1525,7 @@ class cleanup_manager:
         pass
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        config.cleanup(config.testfolder, config.mdb_name)
+        setuptestframework.cleanup(config.testfolder, config.mdb_name)
 
 
 suite = unittest.TestSuite(suites)
