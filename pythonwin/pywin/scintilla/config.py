@@ -175,7 +175,7 @@ class ConfigManager:
         # First, we "recursively" connect any we are based on.
         if subsections is None:
             subsections = []
-        subsections = [""] + subsections
+        subsections = ["", *subsections]
         general = self.get_data("general")
         if general:
             parents = general.get("based on", [])
@@ -224,7 +224,7 @@ class ConfigManager:
     def get_key_binding(self, event, subsections=None):
         if subsections is None:
             subsections = []
-        subsections = [""] + subsections
+        subsections = ["", *subsections]
 
         subsection_keymap = self.get_data("keys")
         for subsection in subsections:
