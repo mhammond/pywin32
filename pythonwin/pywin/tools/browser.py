@@ -187,14 +187,13 @@ class HLICode(HLIPythonObject):
         return self.myobject
 
     def GetSubList(self):
-        ret = []
-        ret.append(MakeHLI(self.myobject.co_consts, "Constants (co_consts)"))
-        ret.append(MakeHLI(self.myobject.co_names, "Names (co_names)"))
-        ret.append(MakeHLI(self.myobject.co_filename, "Filename (co_filename)"))
-        ret.append(MakeHLI(self.myobject.co_argcount, "Number of args (co_argcount)"))
-        ret.append(MakeHLI(self.myobject.co_varnames, "Param names (co_varnames)"))
-
-        return ret
+        return [
+            MakeHLI(self.myobject.co_consts, "Constants (co_consts)"),
+            MakeHLI(self.myobject.co_names, "Names (co_names)"),
+            MakeHLI(self.myobject.co_filename, "Filename (co_filename)"),
+            MakeHLI(self.myobject.co_argcount, "Number of args (co_argcount)"),
+            MakeHLI(self.myobject.co_varnames, "Param names (co_varnames)"),
+        ]
 
 
 class HLIInstance(HLIPythonObject):

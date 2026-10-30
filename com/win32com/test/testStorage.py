@@ -27,9 +27,10 @@ class TestEnum(win32com.test.util.TestCase):
         )  ## it's very picky about flag combinations!
         psuser.WriteMultiple((3, 4), ("hey", "bubba"))
         psuser.WritePropertyNames((3, 4), ("property3", "property4"))
-        expected_summaries = []
-        expected_summaries.append(("property3", 3, pythoncom.VT_BSTR))
-        expected_summaries.append(("property4", 4, pythoncom.VT_BSTR))
+        expected_summaries = [
+            ("property3", 3, pythoncom.VT_BSTR),
+            ("property4", 4, pythoncom.VT_BSTR),
+        ]
         psuser = None
 
         pssum = pss.Create(

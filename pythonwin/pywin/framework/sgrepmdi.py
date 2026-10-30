@@ -470,56 +470,44 @@ class GrepDialog(dialog.Dialog):
         CS = win32con.WS_CHILD | win32con.WS_VISIBLE
         tmp = [
             ["Grep", (0, 0, 210, 90), style, None, (8, "MS Sans Serif")],
-        ]
-        tmp.append([STATIC, "Grep For:", -1, (7, 7, 50, 9), CS])
-        tmp.append(
+            [STATIC, "Grep For:", -1, (7, 7, 50, 9), CS],
             [
                 EDIT,
                 gp,
                 101,
                 (52, 7, 144, 11),
                 CS | win32con.WS_TABSTOP | win32con.ES_AUTOHSCROLL | win32con.WS_BORDER,
-            ]
-        )
-        tmp.append([STATIC, "Directories:", -1, (7, 20, 50, 9), CS])
-        tmp.append(
+            ],
+            [STATIC, "Directories:", -1, (7, 20, 50, 9), CS],
             [
                 EDIT,
                 dp,
                 102,
                 (52, 20, 128, 11),
                 CS | win32con.WS_TABSTOP | win32con.ES_AUTOHSCROLL | win32con.WS_BORDER,
-            ]
-        )
-        tmp.append(
+            ],
             [
                 BUTTON,
                 "...",
                 110,
                 (182, 20, 16, 11),
                 CS | win32con.BS_PUSHBUTTON | win32con.WS_TABSTOP,
-            ]
-        )
-        tmp.append([STATIC, "File types:", -1, (7, 33, 50, 9), CS])
-        tmp.append(
+            ],
+            [STATIC, "File types:", -1, (7, 33, 50, 9), CS],
             [
                 EDIT,
                 fp,
                 103,
                 (52, 33, 128, 11),
                 CS | win32con.WS_TABSTOP | win32con.ES_AUTOHSCROLL | win32con.WS_BORDER,
-            ]
-        )
-        tmp.append(
+            ],
             [
                 BUTTON,
                 "...",
                 111,
                 (182, 33, 16, 11),
                 CS | win32con.BS_PUSHBUTTON | win32con.WS_TABSTOP,
-            ]
-        )
-        tmp.append(
+            ],
             [
                 BUTTON,
                 "Case sensitive",
@@ -529,9 +517,7 @@ class GrepDialog(dialog.Dialog):
                 | win32con.BS_AUTOCHECKBOX
                 | win32con.BS_LEFTTEXT
                 | win32con.WS_TABSTOP,
-            ]
-        )
-        tmp.append(
+            ],
             [
                 BUTTON,
                 "Subdirectories",
@@ -541,9 +527,7 @@ class GrepDialog(dialog.Dialog):
                 | win32con.BS_AUTOCHECKBOX
                 | win32con.BS_LEFTTEXT
                 | win32con.WS_TABSTOP,
-            ]
-        )
-        tmp.append(
+            ],
             [
                 BUTTON,
                 "Verbose",
@@ -553,26 +537,22 @@ class GrepDialog(dialog.Dialog):
                 | win32con.BS_AUTOCHECKBOX
                 | win32con.BS_LEFTTEXT
                 | win32con.WS_TABSTOP,
-            ]
-        )
-        tmp.append(
+            ],
             [
                 BUTTON,
                 "OK",
                 win32con.IDOK,
                 (166, 53, 32, 12),
                 CS | win32con.BS_DEFPUSHBUTTON | win32con.WS_TABSTOP,
-            ]
-        )
-        tmp.append(
+            ],
             [
                 BUTTON,
                 "Cancel",
                 win32con.IDCANCEL,
                 (166, 67, 32, 12),
                 CS | win32con.BS_PUSHBUTTON | win32con.WS_TABSTOP,
-            ]
-        )
+            ],
+        ]
         dialog.Dialog.__init__(self, tmp)
         self.AddDDX(101, "greppattern")
         self.AddDDX(102, "dirpattern")
@@ -651,8 +631,6 @@ class GrepParamsDialog(dialog.Dialog):
         CS = win32con.WS_CHILD | win32con.WS_VISIBLE
         tmp = [
             ["Grep Parameters", (0, 0, 205, 100), style, None, (8, "MS Sans Serif")],
-        ]
-        tmp.append(
             [
                 LISTBOX,
                 "",
@@ -664,45 +642,37 @@ class GrepParamsDialog(dialog.Dialog):
                 | win32con.LBS_HASSTRINGS
                 | win32con.WS_TABSTOP
                 | win32con.LBS_NOTIFY,
-            ]
-        )
-        tmp.append(
+            ],
             [
                 BUTTON,
                 "OK",
                 win32con.IDOK,
                 (167, 7, 32, 12),
                 CS | win32con.BS_DEFPUSHBUTTON | win32con.WS_TABSTOP,
-            ]
-        )
-        tmp.append(
+            ],
             [
                 BUTTON,
                 "Cancel",
                 win32con.IDCANCEL,
                 (167, 23, 32, 12),
                 CS | win32con.BS_PUSHBUTTON | win32con.WS_TABSTOP,
-            ]
-        )
-        tmp.append([STATIC, "New:", -1, (2, 83, 15, 12), CS])
-        tmp.append(
+            ],
+            [STATIC, "New:", -1, (2, 83, 15, 12), CS],
             [
                 EDIT,
                 "",
                 108,
                 (18, 83, 139, 12),
                 CS | win32con.WS_TABSTOP | win32con.ES_AUTOHSCROLL | win32con.WS_BORDER,
-            ]
-        )
-        tmp.append(
+            ],
             [
                 BUTTON,
                 "Add",
                 109,
                 (167, 83, 32, 12),
                 CS | win32con.BS_PUSHBUTTON | win32con.WS_TABSTOP,
-            ]
-        )
+            ],
+        ]
         dialog.Dialog.__init__(self, tmp)
         self.HookCommand(self.OnAddItem, 109)
         self.HookCommand(self.OnListDoubleClick, 107)
