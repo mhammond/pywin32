@@ -19,7 +19,7 @@ Coming in build 313, as yet unreleased
 --------------------------------------
 
 * Fixed `win32clipboard.SetClipboardData` raising "The handle is invalid" or crashing when given `str`/`bytes` data that `int()` can parse (eg, `"201920"`); such data was tried as a memory handle before being treated as data (mhammond#2132, [@msromike][msromike])
-* Passing `str`, `bytes` or another buffer object where a handle is expected now emits a `FutureWarning`; a future release will raise `TypeError`. Any value that `int()` could parse was silently used as a memory address (mhammond#2132, [@msromike][msromike])
+* Passing `str`, `bytes`, another buffer object or a `float` where a handle is expected now emits a `FutureWarning`; a future release will raise `TypeError`. Any value that `int()` could parse was silently used as a memory address, and a `float` was silently truncated (mhammond#2132, [@msromike][msromike])
 * Fixed `win32clipboard.SetClipboardData` dropping the last byte of `bytearray` or `memoryview` data sent as a text format; the terminator was only added for `bytes` (mhammond#2132, [@msromike][msromike])
 * pywin32 now fully builds from source using MinGW, GCC and Clang. As well as on case-sensitive systems. ([All changes](https://github.com/mhammond/pywin32/pulls?q=label%3AMinGW+merged%3A%3C2026-10-29), [@Avasam][Avasam])
 * Pythonwin: Fixed "Check" (Ctrl+Shift+C) raising `UnicodeDecodeError` on files not encoded in the system locale encoding. It now respects the file's encoding declaration, defaulting to UTF-8 (mhammond#667, [@Avasam][Avasam])

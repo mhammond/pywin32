@@ -171,10 +171,10 @@ class PyHandleTestCase(unittest.TestCase):
         self.assertRaises(TypeError, pywintypes.HANDLE, "foo")
         self.assertRaises(TypeError, pywintypes.HANDLE, ())
 
-    def testTextAsHandleWarns(self):
-        # mhammond#2132: int() parses these, so they were silently used as a handle.
-        # That now warns; a future release will raise TypeError instead.
-        for bad in ("42", b"42", bytearray(b"42"), memoryview(b"42")):
+    def testNonIntAsHandleWarns(self):
+        # mhammond#2132: int() parses text and truncates floats, so these were
+        # silently used as a handle. That now warns; a future release will raise TypeError.
+        for bad in ("42", b"42", bytearray(b"42"), memoryview(b"42"), 42.7):
             with self.assertWarns(FutureWarning):
                 try:
                     win32file.GetFileType(bad)

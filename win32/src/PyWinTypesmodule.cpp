@@ -542,9 +542,9 @@ BOOL PyWinLong_AsVoidPtr(PyObject *ob, void **pptr)
         return FALSE;
     }
     // PyNumber_Long also parses str, bytes and buffers, the same as int() does, so
-    // "201920" or b"201920" was silently used as an address (mhammond#2132).
-    // Warn for now; a future release will raise TypeError for anything that is not a number.
-    if (!PyNumber_Check(ob) &&
+    // "201920" or b"201920" was silently used as an address, and a float was truncated (mhammond#2132).
+    // Warn for now; a future release will raise TypeError for anything that is not an int.
+    if ((!PyNumber_Check(ob) || PyFloat_Check(ob)) &&
         PyErr_WarnFormat(PyExc_FutureWarning, 1,
                          "Passing a %s where a handle is expected is deprecated and will raise TypeError "
                          "in a future release; pass an int or PyHANDLE instead",
