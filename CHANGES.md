@@ -18,6 +18,9 @@ As of build 305, installation .exe files have been deprecated; see
 Coming in build 313, as yet unreleased
 --------------------------------------
 
+* Fixed `win32clipboard.SetClipboardData` raising "The handle is invalid" or crashing when given `str`/`bytes` data that `int()` can parse (eg, `"201920"`); such data was tried as a memory handle before being treated as data (mhammond#2132, [@msromike][msromike])
+* Passing `str`, `bytes`, another buffer object or a `float` where a handle is expected now emits a `FutureWarning`; the release after next (two releases from this one) will raise `TypeError`. Any value that `int()` could parse was silently used as a memory address, and a `float` was silently truncated (mhammond#2132, [@msromike][msromike])
+* Fixed `win32clipboard.SetClipboardData` dropping the last byte of `bytearray` or `memoryview` data sent as a text format; the terminator was only added for `bytes` (mhammond#2132, [@msromike][msromike])
 * pywin32 now fully builds from source using MinGW, GCC and Clang. As well as on case-sensitive systems. ([All changes](https://github.com/mhammond/pywin32/pulls?q=label%3AMinGW+merged%3A%3C2026-10-29), [@Avasam][Avasam])
 * Pythonwin: Fixed "Check" (Ctrl+Shift+C) raising `UnicodeDecodeError` on files not encoded in the system locale encoding. It now respects the file's encoding declaration, defaulting to UTF-8 (mhammond#667, [@Avasam][Avasam])
 * Fixed `win32evtlogutil.FeedEventLogRecords`'s `feeder` callback param never being called (mhammond#2807, [@Avasam][Avasam])
@@ -518,6 +521,7 @@ for them.
 [maxim-krikun]: https://github.com/maxim
 [MohammedAlkindi]: https://github.com/MohammedAlkindi
 [Mscht]: https://github.com/Mscht
+[msromike]: https://github.com/msromike
 [nbbeatty]: https://github.com/nbbeatty
 [ravik453]: https://github.com/ravik453
 [saaketp]: https://github.com/saaketp
