@@ -251,9 +251,10 @@ static PyObject *axcontrol_OleLoadPicture(PyObject *, PyObject *args)
         if (!PyWinObject_AsIID(obIIDRet, &iidRet))
             goto done;
     }
-    Py_BEGIN_ALLOW_THREADS hr = ::OleLoadPicture(pStream, size, runMode, iidAPI, (LPVOID *)&pUnk);
-    Py_END_ALLOW_THREADS if (FAILED(hr))
-    {
+    Py_BEGIN_ALLOW_THREADS
+        hr = ::OleLoadPicture(pStream, size, runMode, iidAPI, (LPVOID *)&pUnk);
+    Py_END_ALLOW_THREADS
+    if (FAILED(hr)) {
         PyCom_BuildPyException(hr);
         goto done;
     }
@@ -302,10 +303,10 @@ static PyObject *axcontrol_OleLoadPicturePath(PyObject *, PyObject *args)
         if (!PyWinObject_AsIID(obIIDRet, &iidRet))
             goto done;
     }
-    Py_BEGIN_ALLOW_THREADS hr =
-        ::OleLoadPicturePath(szPath, pUnkIn, (DWORD)reserved, (OLE_COLOR)clr, iidAPI, (LPVOID *)&pUnkRet);
-    Py_END_ALLOW_THREADS if (FAILED(hr))
-    {
+    Py_BEGIN_ALLOW_THREADS
+        hr = ::OleLoadPicturePath(szPath, pUnkIn, (DWORD)reserved, (OLE_COLOR)clr, iidAPI, (LPVOID *)&pUnkRet);
+    Py_END_ALLOW_THREADS
+    if (FAILED(hr)) {
         PyCom_BuildPyException(hr);
         goto done;
     }
@@ -335,9 +336,10 @@ static PyObject *axcontrol_OleSetContainedObject(PyObject *, PyObject *args)
     if (!PyCom_InterfaceFromPyInstanceOrObject(obunk, IID_IUnknown, (void **)&punk, FALSE))
         goto done;
 
-    Py_BEGIN_ALLOW_THREADS hr = ::OleSetContainedObject(punk, fContained);
-    Py_END_ALLOW_THREADS if (FAILED(hr))
-    {
+    Py_BEGIN_ALLOW_THREADS
+        hr = ::OleSetContainedObject(punk, fContained);
+    Py_END_ALLOW_THREADS
+    if (FAILED(hr)) {
         PyCom_BuildPyException(hr);
         goto done;
     }
@@ -371,9 +373,10 @@ static PyObject *axcontrol_OleTranslateAccelerator(PyObject *, PyObject *args)
     MSG msg;
     if (!PyWinObject_AsMSG(obmsg, &msg))
         goto done;
-    Py_BEGIN_ALLOW_THREADS hr = ::OleTranslateAccelerator(pframe, &info, &msg);
-    Py_END_ALLOW_THREADS if (FAILED(hr))
-    {
+    Py_BEGIN_ALLOW_THREADS
+        hr = ::OleTranslateAccelerator(pframe, &info, &msg);
+    Py_END_ALLOW_THREADS
+    if (FAILED(hr)) {
         PyCom_BuildPyException(hr);
         goto done;
     }

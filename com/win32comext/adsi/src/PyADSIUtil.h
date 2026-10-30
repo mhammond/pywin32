@@ -1,6 +1,6 @@
 // PyADSIUtil.h
 #include "iads.h"
-#include "Adshlp.h"
+#include "adshlp.h"
 
 PyObject *PyADSIObject_FromADS_OBJECT_INFO(ADS_OBJECT_INFO *);
 

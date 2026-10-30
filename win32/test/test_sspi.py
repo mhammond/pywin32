@@ -7,7 +7,7 @@ import sspi
 import sspicon
 import win32api
 import win32security
-from pywin32_testutil import TestSkipped, testmain
+from pywin32_testutil import testmain
 
 
 # It is quite likely that the Kerberos tests will fail due to not being
@@ -21,7 +21,7 @@ def applyHandlingSkips(func, *args):
             sspicon.SEC_E_NO_CREDENTIALS,
             sspicon.SEC_E_NO_AUTHENTICATING_AUTHORITY,
         ]:
-            raise TestSkipped(exc)
+            raise unittest.SkipTest(str(exc))
         raise
 
 

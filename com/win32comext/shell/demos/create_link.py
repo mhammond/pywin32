@@ -2,6 +2,7 @@
 # From a demo by Mark Hammond, corrupted by Mike Fletcher
 # (and re-corrupted by Mark Hammond :-)
 import os
+from itertools import zip_longest
 
 import pythoncom
 from win32com.shell import shell
@@ -61,8 +62,7 @@ if __name__ == "__main__":
             )
             sys.exit(1)
         # create the shortcut using rest of args...
-        data = map(
-            None,
+        data = zip_longest(
             sys.argv[2:],
             ("SetPath", "SetArguments", "SetDescription", "SetWorkingDirectory"),
         )

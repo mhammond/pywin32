@@ -103,7 +103,6 @@ class PYWINTYPES_EXPORT PyHANDLE : public PyObject {
 
     static PyObject *strFunc(PyObject *ob);
     static PyObject *intFunc(PyObject *ob);
-    static PyObject *longFunc(PyObject *ob);
     static PyObject *unaryFailureFunc(PyObject *ob);
     static PyObject *binaryFailureFunc(PyObject *ob1, PyObject *ob2);
     static PyObject *ternaryFailureFunc(PyObject *ob1, PyObject *ob2, PyObject *ob3);

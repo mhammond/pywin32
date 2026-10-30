@@ -15,7 +15,7 @@
 #define INITGUID
 #include <initguid.h>
 #define USES_IID_IExchangeManageStore
-#include <edkguid.h>
+#include <EdkGuid.h>
 %}
 
 %typemap(python,ignore) IExchangeManageStore **OUTPUT(IExchangeManageStore *temp)

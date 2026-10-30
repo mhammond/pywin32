@@ -18,7 +18,7 @@
 // @doc
 
 #include "PyWinTypes.h"
-#include "netres.h"  // C++ header file for NETRESOURCE object
+#include "Netres.h"  // C++ header file for NETRESOURCE object
 
 static PyObject *NETRESOURCE_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {

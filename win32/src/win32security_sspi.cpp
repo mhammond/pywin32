@@ -172,7 +172,7 @@ PySecBufferDesc::~PySecBufferDesc()
 
 BOOL PySecBufferDesc_Check(PyObject *ob)
 {
-    if (ob->ob_type != &PySecBufferDescType) {
+    if (Py_TYPE(ob) != &PySecBufferDescType) {
         PyErr_SetString(PyExc_TypeError, "Object must be a PySecBufferDesc");
         return FALSE;
     }
@@ -393,7 +393,7 @@ PySecBuffer::~PySecBuffer()
 
 BOOL PySecBuffer_Check(PyObject *ob)
 {
-    if (ob->ob_type != &PySecBufferType) {
+    if (Py_TYPE(ob) != &PySecBufferType) {
         PyErr_SetString(PyExc_TypeError, "Object must be a PySecBuffer");
         return FALSE;
     }
@@ -577,7 +577,7 @@ PyCtxtHandle::~PyCtxtHandle()
 
 BOOL PyCtxtHandle_Check(PyObject *ob)
 {
-    if (ob->ob_type != &PyCtxtHandleType) {
+    if (Py_TYPE(ob) != &PyCtxtHandleType) {
         PyErr_SetString(PyExc_TypeError, "Object must be a PyCtxtHandle");
         return FALSE;
     }
@@ -623,16 +623,16 @@ PyObject *PyCtxtHandle::MakeSignature(PyObject *self, PyObject *args)
     PyObject *obdesc;
     PSecBufferDesc psecbufferdesc;
     ULONG fqop, seq_no;
-    CHECK_SECURITYFUNCTIONTABLE(MakeSignature);
 
     if (!PyArg_ParseTuple(args, "lOl:MakeSignature", &fqop, &obdesc, &seq_no))
         return NULL;
     if (!PyWinObject_AsSecBufferDesc(obdesc, &psecbufferdesc, FALSE))
         return NULL;
     PCtxtHandle pctxt = ((PyCtxtHandle *)self)->GetCtxtHandle();
-    Py_BEGIN_ALLOW_THREADS err = (*psecurityfunctiontable->MakeSignature)(pctxt, fqop, psecbufferdesc, seq_no);
-    Py_END_ALLOW_THREADS if (err < 0)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        err = (*psecurityfunctiontable->MakeSignature)(pctxt, fqop, psecbufferdesc, seq_no);
+    Py_END_ALLOW_THREADS
+    if (err < 0) {
         PyWin_SetAPIError("MakeSignature", err);
         return NULL;
     }
@@ -657,7 +657,6 @@ PyObject *PyCtxtHandle::VerifySignature(PyObject *self, PyObject *args)
     PyObject *obdesc;
     PSecBufferDesc psecbufferdesc;
     ULONG fqop, seq_no;
-    CHECK_SECURITYFUNCTIONTABLE(VerifySignature);
     if (!PyArg_ParseTuple(args, "Ol:VerifySignature", &obdesc, &seq_no))
         return NULL;
 
@@ -686,7 +685,6 @@ PyObject *PyCtxtHandle::EncryptMessage(PyObject *self, PyObject *args)
     PyObject *obdesc;
     PSecBufferDesc psecbufferdesc;
     ULONG fqop, seq_no;
-    CHECK_SECURITYFUNCTIONTABLE(EncryptMessage);
 
     if (!PyArg_ParseTuple(args, "lOl:EncryptMessage", &fqop, &obdesc, &seq_no))
         return NULL;
@@ -694,9 +692,10 @@ PyObject *PyCtxtHandle::EncryptMessage(PyObject *self, PyObject *args)
     if (!PyWinObject_AsSecBufferDesc(obdesc, &psecbufferdesc, FALSE))
         return NULL;
     PCtxtHandle pctxt = ((PyCtxtHandle *)self)->GetCtxtHandle();
-    Py_BEGIN_ALLOW_THREADS err = (*psecurityfunctiontable->EncryptMessage)(pctxt, fqop, psecbufferdesc, seq_no);
-    Py_END_ALLOW_THREADS if (err < 0)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        err = (*psecurityfunctiontable->EncryptMessage)(pctxt, fqop, psecbufferdesc, seq_no);
+    Py_END_ALLOW_THREADS
+    if (err < 0) {
         PyWin_SetAPIError("EncryptMessage", err);
         return NULL;
     }
@@ -721,14 +720,14 @@ PyObject *PyCtxtHandle::DecryptMessage(PyObject *self, PyObject *args)
     PyObject *obdesc;
     PSecBufferDesc psecbufferdesc;
     ULONG fqop, seq_no;
-    CHECK_SECURITYFUNCTIONTABLE(DecryptMessage);
     if (!PyArg_ParseTuple(args, "Ol:DecryptMessage", &obdesc, &seq_no))
         return NULL;
 
     if (!PyWinObject_AsSecBufferDesc(obdesc, &psecbufferdesc, FALSE))
         return NULL;
     PCtxtHandle pctxt = ((PyCtxtHandle *)self)->GetCtxtHandle();
-    Py_BEGIN_ALLOW_THREADS err = (*psecurityfunctiontable->DecryptMessage)(pctxt, psecbufferdesc, seq_no, &fqop);
+    Py_BEGIN_ALLOW_THREADS
+        err = (*psecurityfunctiontable->DecryptMessage)(pctxt, psecbufferdesc, seq_no, &fqop);
     Py_END_ALLOW_THREADS((PySecBufferDesc *)obdesc)->modify_in_place();
     if (err == SEC_E_OK)
         return Py_BuildValue("l", fqop);
@@ -753,7 +752,6 @@ PyObject *PyCtxtHandle::Detach(PyObject *self, PyObject *args)
 // @pymethod |PyCtxtHandle|DeleteSecurityContext|Frees the security context and invalidates the handle
 PyObject *PyCtxtHandle::DeleteSecurityContext(PyObject *self, PyObject *args)
 {
-    CHECK_SECURITYFUNCTIONTABLE(DeleteSecurityContext);
     if (!PyArg_ParseTuple(args, ":DeleteSecurityContext"))
         return NULL;
     PyCtxtHandle *This = (PyCtxtHandle *)self;
@@ -777,7 +775,6 @@ PyObject *PyCtxtHandle::CompleteAuthToken(PyObject *self, PyObject *args)
     PSecBufferDesc psecbufferdesc;
     PyObject *obsecbufferdesc;
     SECURITY_STATUS err;
-    CHECK_SECURITYFUNCTIONTABLE(CompleteAuthToken);
     // @pyparm <o PySecBufferDesc>|Token||The buffer that contains the token buffer used when the context was
     // initialized
     if (!PyArg_ParseTuple(args, "O:CompleteAuthToken", &obsecbufferdesc))
@@ -785,9 +782,10 @@ PyObject *PyCtxtHandle::CompleteAuthToken(PyObject *self, PyObject *args)
     if (!PyWinObject_AsSecBufferDesc(obsecbufferdesc, &psecbufferdesc, FALSE))
         return NULL;
     pctxt = ((PyCtxtHandle *)self)->GetCtxtHandle();
-    Py_BEGIN_ALLOW_THREADS err = (*psecurityfunctiontable->CompleteAuthToken)(pctxt, psecbufferdesc);
-    Py_END_ALLOW_THREADS if (err == SEC_E_OK)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        err = (*psecurityfunctiontable->CompleteAuthToken)(pctxt, psecbufferdesc);
+    Py_END_ALLOW_THREADS
+    if (err == SEC_E_OK) {
         Py_INCREF(Py_None);
         return Py_None;
     }
@@ -804,15 +802,15 @@ PyObject *PyCtxtHandle::QueryContextAttributes(PyObject *self, PyObject *args)
     ZeroMemory(&buf, 256);
     ULONG attr;
     PyObject *ret = NULL;
-    CHECK_SECURITYFUNCTIONTABLE(QueryContextAttributesW);
     // @pyparm int|Attribute||SECPKG_ATTR_* constant
     if (!PyArg_ParseTuple(args, "l:QueryContextAttributes", &attr))
         return NULL;
 
     pctxt = ((PyCtxtHandle *)self)->GetCtxtHandle();
-    Py_BEGIN_ALLOW_THREADS err = (*psecurityfunctiontable->QueryContextAttributesW)(pctxt, attr, &buf);
-    Py_END_ALLOW_THREADS if (err != SEC_E_OK)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        err = (*psecurityfunctiontable->QueryContextAttributesW)(pctxt, attr, &buf);
+    Py_END_ALLOW_THREADS
+    if (err != SEC_E_OK) {
         PyWin_SetAPIError("QueryContextAttributes", err);
         return NULL;
     }
@@ -959,12 +957,14 @@ PyObject *PyCtxtHandle::QuerySecurityContextToken(PyObject *self, PyObject *args
     SECURITY_STATUS err;
     PCtxtHandle pctxt;
     HANDLE htoken;
-    CHECK_SECURITYFUNCTIONTABLE(QuerySecurityContextToken);
     if (!PyArg_ParseTuple(args, ":QuerySecurityContextToken"))
         return NULL;
     pctxt = ((PyCtxtHandle *)self)->GetCtxtHandle();
-    Py_BEGIN_ALLOW_THREADS err = (*psecurityfunctiontable->QuerySecurityContextToken)(pctxt, &htoken);
-    Py_END_ALLOW_THREADS if (err == SEC_E_OK) return PyWinObject_FromHANDLE(htoken);
+    Py_BEGIN_ALLOW_THREADS
+        err = (*psecurityfunctiontable->QuerySecurityContextToken)(pctxt, &htoken);
+    Py_END_ALLOW_THREADS
+    if (err == SEC_E_OK)
+        return PyWinObject_FromHANDLE(htoken);
     PyWin_SetAPIError("QuerySecurityContextToken", err);
     return NULL;
 }
@@ -972,15 +972,15 @@ PyObject *PyCtxtHandle::QuerySecurityContextToken(PyObject *self, PyObject *args
 // @pymethod |PyCtxtHandle|ImpersonateSecurityContext|Impersonates a client security context
 PyObject *PyCtxtHandle::ImpersonateSecurityContext(PyObject *self, PyObject *args)
 {
-    CHECK_SECURITYFUNCTIONTABLE(ImpersonateSecurityContext);
     PCtxtHandle pctxt;
     SECURITY_STATUS err;
     if (!PyArg_ParseTuple(args, ":ImpersonateSecurityContext"))
         return NULL;
     pctxt = ((PyCtxtHandle *)self)->GetCtxtHandle();
-    Py_BEGIN_ALLOW_THREADS err = (*psecurityfunctiontable->ImpersonateSecurityContext)(pctxt);
-    Py_END_ALLOW_THREADS if (err == SEC_E_OK)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        err = (*psecurityfunctiontable->ImpersonateSecurityContext)(pctxt);
+    Py_END_ALLOW_THREADS
+    if (err == SEC_E_OK) {
         Py_INCREF(Py_None);
         return Py_None;
     }
@@ -992,15 +992,15 @@ PyObject *PyCtxtHandle::ImpersonateSecurityContext(PyObject *self, PyObject *arg
 // PyCtxtHandle::ImpersonateSecurityContext>)
 PyObject *PyCtxtHandle::RevertSecurityContext(PyObject *self, PyObject *args)
 {
-    CHECK_SECURITYFUNCTIONTABLE(RevertSecurityContext);
     PCtxtHandle pctxt;
     SECURITY_STATUS err;
     if (!PyArg_ParseTuple(args, ":RevertSecurityContext"))
         return NULL;
     pctxt = ((PyCtxtHandle *)self)->GetCtxtHandle();
-    Py_BEGIN_ALLOW_THREADS err = (*psecurityfunctiontable->RevertSecurityContext)(pctxt);
-    Py_END_ALLOW_THREADS if (err == SEC_E_OK)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        err = (*psecurityfunctiontable->RevertSecurityContext)(pctxt);
+    Py_END_ALLOW_THREADS
+    if (err == SEC_E_OK) {
         Py_INCREF(Py_None);
         return Py_None;
     }
@@ -1095,7 +1095,7 @@ PyCredHandle::~PyCredHandle()
 
 BOOL PyCredHandle_Check(PyObject *ob)
 {
-    if (ob->ob_type != &PyCredHandleType) {
+    if (Py_TYPE(ob) != &PyCredHandleType) {
         PyErr_SetString(PyExc_TypeError, "Object must be a PyCredHandle");
         return FALSE;
     }
@@ -1142,7 +1142,6 @@ PyObject *PyCredHandle::Detach(PyObject *self, PyObject *args)
 // @pymethod |PyCredHandle|FreeCredentialsHandle|Releases the credentials handle and makes object unusable
 PyObject *PyCredHandle::FreeCredentialsHandle(PyObject *self, PyObject *args)
 {
-    CHECK_SECURITYFUNCTIONTABLE(FreeCredentialsHandle);
     if (!PyArg_ParseTuple(args, ":FreeCredentialsHandle"))
         return NULL;
     PyCredHandle *This = (PyCredHandle *)self;
@@ -1167,14 +1166,14 @@ PyObject *PyCredHandle::QueryCredentialsAttributes(PyObject *self, PyObject *arg
     SECURITY_STATUS err;
     PyObject *ret = NULL;
     BYTE buf[32];
-    CHECK_SECURITYFUNCTIONTABLE(QueryCredentialsAttributesW);
     PyCredHandle *This = (PyCredHandle *)self;
     PCredHandle pcredhandle = This->GetCredHandle();
     if (!PyArg_ParseTuple(args, "l:QueryCredentialsAttributes", &attr))
         return NULL;
-    Py_BEGIN_ALLOW_THREADS err = (*psecurityfunctiontable->QueryCredentialsAttributesW)(pcredhandle, attr, &buf);
-    Py_END_ALLOW_THREADS if (err != SEC_E_OK)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        err = (*psecurityfunctiontable->QueryCredentialsAttributesW)(pcredhandle, attr, &buf);
+    Py_END_ALLOW_THREADS
+    if (err != SEC_E_OK) {
         PyWin_SetAPIError("QueryCredentialsAttributes", err);
         return NULL;
     }

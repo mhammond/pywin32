@@ -179,7 +179,7 @@ BOOL PyCom_ExcepInfoFromPyObject(PyObject *v, EXCEPINFO *pExcepInfo, HRESULT *ph
 
     // New handling for 1.5 exceptions.
     if (!PyErr_GivenExceptionMatches(v, PyWinExc_COMError)) {
-        PyErr_Format(PyExc_TypeError, "Must be a COM exception object (not '%s')", v->ob_type->tp_name);
+        PyErr_Format(PyExc_TypeError, "Must be a COM exception object (not '%s')", Py_TYPE(v)->tp_name);
         return FALSE;
     }
 
@@ -188,7 +188,7 @@ BOOL PyCom_ExcepInfoFromPyObject(PyObject *v, EXCEPINFO *pExcepInfo, HRESULT *ph
     // Note that with class based exceptions, a simple pointer check fails.
     // Any class sub-classed from the client is considered a server error,
     // so we need to check the class explicitly.
-    if ((PyObject *)v->ob_type == PyWinExc_COMError) {
+    if (reinterpret_cast<PyObject *>(Py_TYPE(v)) == PyWinExc_COMError) {
         // Client side error
         // Clear the state of the excep info.
         // use abstract API to get at details.
@@ -252,9 +252,10 @@ BOOL PyCom_SetCOMErrorFromExcepInfo(const EXCEPINFO *pexcepinfo, REFIID riid)
             pICEI->SetSource(pexcepinfo->bstrSource);
 
         IErrorInfo *pIEI;
-        Py_BEGIN_ALLOW_THREADS hr = pICEI->QueryInterface(IID_IErrorInfo, (LPVOID *)&pIEI);
-        Py_END_ALLOW_THREADS if (SUCCEEDED(hr))
-        {
+        Py_BEGIN_ALLOW_THREADS
+            hr = pICEI->QueryInterface(IID_IErrorInfo, (LPVOID *)&pIEI);
+        Py_END_ALLOW_THREADS
+        if (SUCCEEDED(hr)) {
             SetErrorInfo(0, pIEI);
             pIEI->Release();
         }
@@ -546,17 +547,19 @@ PyObject *PyCom_BuildPyException(HRESULT errorhr, IUnknown *pUnk /* = NULL */, R
         // See if it supports error info.
         ISupportErrorInfo *pSEI;
         HRESULT hr;
-        Py_BEGIN_ALLOW_THREADS hr = pUnk->QueryInterface(IID_ISupportErrorInfo, (void **)&pSEI);
+        Py_BEGIN_ALLOW_THREADS
+            hr = pUnk->QueryInterface(IID_ISupportErrorInfo, (void **)&pSEI);
+            if (SUCCEEDED(hr)) {
+                hr = pSEI->InterfaceSupportsErrorInfo(iid);
+                pSEI->Release();  // Finished with this object
+            }
+        Py_END_ALLOW_THREADS
         if (SUCCEEDED(hr)) {
-            hr = pSEI->InterfaceSupportsErrorInfo(iid);
-            pSEI->Release();  // Finished with this object
-        }
-        Py_END_ALLOW_THREADS if (SUCCEEDED(hr))
-        {
             IErrorInfo *pEI;
-            Py_BEGIN_ALLOW_THREADS hr = GetErrorInfo(0, &pEI);
-            Py_END_ALLOW_THREADS if (hr == S_OK)
-            {
+            Py_BEGIN_ALLOW_THREADS
+                hr = GetErrorInfo(0, &pEI);
+            Py_END_ALLOW_THREADS
+            if (hr == S_OK) {
                 obEI = PyCom_PyObjectFromIErrorInfo(pEI, errorhr);
                 PYCOM_RELEASE(pEI);
             }
@@ -655,37 +658,37 @@ static PyObject *PyCom_PyObjectFromIErrorInfo(IErrorInfo *pEI, HRESULT errorhr)
 
     HRESULT hr;
 
-    Py_BEGIN_ALLOW_THREADS hr = pEI->GetDescription(&desc);
-    Py_END_ALLOW_THREADS if (hr != S_OK)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        hr = pEI->GetDescription(&desc);
+    Py_END_ALLOW_THREADS
+    if (hr != S_OK) {
         obDesc = Py_None;
         Py_INCREF(obDesc);
     }
-    else
-    {
+    else {
         obDesc = MakeBstrToObj(desc);
         SysFreeString(desc);
     }
 
-    Py_BEGIN_ALLOW_THREADS hr = pEI->GetSource(&source);
-    Py_END_ALLOW_THREADS if (hr != S_OK)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        hr = pEI->GetSource(&source);
+    Py_END_ALLOW_THREADS
+    if (hr != S_OK) {
         obSource = Py_None;
         Py_INCREF(obSource);
     }
-    else
-    {
+    else {
         obSource = MakeBstrToObj(source);
         SysFreeString(source);
     }
-    Py_BEGIN_ALLOW_THREADS hr = pEI->GetHelpFile(&helpfile);
-    Py_END_ALLOW_THREADS if (hr != S_OK)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        hr = pEI->GetHelpFile(&helpfile);
+    Py_END_ALLOW_THREADS
+    if (hr != S_OK) {
         obHelpFile = Py_None;
         Py_INCREF(obHelpFile);
     }
-    else
-    {
+    else {
         obHelpFile = MakeBstrToObj(helpfile);
         SysFreeString(helpfile);
     }
@@ -716,14 +719,15 @@ void GetScodeString(HRESULT hr, LPTSTR buf, int bufSize)
         HRESULT hr;
         LPCTSTR lpszName;
     };
+
 #define MAKE_HRESULT_ENTRY(hr) \
     {                          \
         hr, _T(#hr)            \
     }
+
     static const HRESULT_ENTRY hrNameTable[] = {
         MAKE_HRESULT_ENTRY(S_OK),
         MAKE_HRESULT_ENTRY(S_FALSE),
-
         MAKE_HRESULT_ENTRY(CACHE_S_FORMATETC_NOTSUPPORTED),
         MAKE_HRESULT_ENTRY(CACHE_S_SAMECACHE),
         MAKE_HRESULT_ENTRY(CACHE_S_SOMECACHES_NOTUPDATED),
@@ -1064,9 +1068,9 @@ LPCTSTR GetScodeRangeString(HRESULT hr)
         HRESULT hrLast;
         LPCTSTR lpszName;
     };
-#define MAKE_RANGE_ENTRY(hrRange)                                                              \
-    {                                                                                          \
-        hrRange##_FIRST, hrRange##_LAST, _T(#hrRange) _T("_FIRST...") _T(#hrRange) _T("_LAST") \
+#define MAKE_RANGE_ENTRY(hrRange)                                                                                 \
+    {                                                                                                             \
+        (HRESULT) hrRange##_FIRST, (HRESULT)hrRange##_LAST, _T(#hrRange) _T("_FIRST...") _T(#hrRange) _T("_LAST") \
     }
 
     static const RANGE_ENTRY hrRangeTable[] = {
@@ -1082,7 +1086,6 @@ LPCTSTR GetScodeRangeString(HRESULT hr)
         MAKE_RANGE_ENTRY(OLE_S),          MAKE_RANGE_ENTRY(REGDB_E),      MAKE_RANGE_ENTRY(REGDB_S),
         MAKE_RANGE_ENTRY(VIEW_E),         MAKE_RANGE_ENTRY(VIEW_S),       MAKE_RANGE_ENTRY(CONNECT_E),
         MAKE_RANGE_ENTRY(CONNECT_S),
-
     };
 #undef MAKE_RANGE_ENTRY
 
@@ -1115,7 +1118,7 @@ LPCTSTR GetFacilityString(HRESULT hr)
         _T("FACILITY_0x06"),
         _T("FACILITY_WIN32"),
         _T("FACILITY_WINDOWS"),
-        _T("FACILITY_SSPI/FACILITY_MQ"),  // SSPI from AdsErr.h, MQ from mq.h
+        _T("FACILITY_SSPI/FACILITY_MQ"),  // SSPI from adserr.h, MQ from mq.h
         _T("FACILITY_CONTROL"),
         _T("FACILITY_EDK"),
         _T("FACILITY_INTERNET"),

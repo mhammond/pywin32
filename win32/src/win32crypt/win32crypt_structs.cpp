@@ -27,7 +27,7 @@ BOOL PyWinObject_AsCRYPTPROTECT_PROMPTSTRUCT(PyObject *ob, CRYPTPROTECT_PROMPTST
     PromptStruct->cbSize = sizeof(CRYPTPROTECT_PROMPTSTRUCT);
     if (!PyTuple_Check(ob)) {
         PyErr_Format(PyExc_TypeError, "CRYPTPROTECT_PROMPTSTRUCT must be None or a tuple (got %s)",
-                     ob->ob_type->tp_name);
+                     Py_TYPE(ob)->tp_name);
         return FALSE;
     }
     PyObject *obPrompt = Py_None;

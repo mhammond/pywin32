@@ -346,12 +346,12 @@ static PyObject *PyNetShareEnum1(WCHAR *szServerName)
         return NULL;  // did we err?
 
     do {
-        Py_BEGIN_ALLOW_THREADS Errno =
-            NetShareEnum(szServerName, dwLevel, (LPBYTE *)&lpBuffer, dwMaxLen, &dwCount, &dwMaxCount, &dwResume);
+        Py_BEGIN_ALLOW_THREADS
+            Errno =
+                NetShareEnum(szServerName, dwLevel, (LPBYTE *)&lpBuffer, dwMaxLen, &dwCount, &dwMaxCount, &dwResume);
         Py_END_ALLOW_THREADS
 
-            if (Errno == NERR_Success)
-        {
+        if (Errno == NERR_Success) {
             SHARE_INFO_1 *p_nr = lpBuffer;
 
             if (dwCount > 0)  // we actually got something
@@ -378,8 +378,7 @@ static PyObject *PyNetShareEnum1(WCHAR *szServerName)
                 } while (dwCount);
             };  // if dwCount
         }  // if Errno == NERR_Sucess
-        else
-        {
+        else {
             Py_DECREF(pRetlist);
             return (ReturnNetError("NetShareEnum", Errno));
         }
@@ -481,9 +480,10 @@ PyObject *PyNetShareDel(PyObject *self, PyObject *args)
     if (!PyWinObject_AsWCHAR(obName, &szName, FALSE))
         goto done;
 
-    Py_BEGIN_ALLOW_THREADS err = NetShareDel(szServer, szName, reserved);
-    Py_END_ALLOW_THREADS if (err)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        err = NetShareDel(szServer, szName, reserved);
+    Py_END_ALLOW_THREADS
+    if (err) {
         ReturnNetError("NetShareDel", err);
         goto done;
     }
@@ -514,9 +514,10 @@ PyObject *PyNetShareCheck(PyObject *self, PyObject *args)
     if (!PyWinObject_AsWCHAR(obName, &deviceName, FALSE))
         goto done;
 
-    Py_BEGIN_ALLOW_THREADS err = NetShareCheck(szServer, deviceName, &type);
-    Py_END_ALLOW_THREADS if (err)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        err = NetShareCheck(szServer, deviceName, &type);
+    Py_END_ALLOW_THREADS
+    if (err) {
         if (err == NERR_DeviceNotShared) {
             ret = Py_BuildValue("(iO)", 0, Py_None);
         }
@@ -753,10 +754,11 @@ PyObject *PyNetServerEnum(PyObject *self, PyObject *args)
     if (!FindNET_STRUCT(level, server_infos, &pInfo))
         goto done;
 
-    Py_BEGIN_ALLOW_THREADS err =
-        NetServerEnum(szServer, level, &buf, dwPrefLen, &numRead, &totalEntries, serverType, szDomain, &resumeHandle);
-    Py_END_ALLOW_THREADS if (err != 0 && err != ERROR_MORE_DATA)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        err = NetServerEnum(szServer, level, &buf, dwPrefLen, &numRead, &totalEntries, serverType, szDomain,
+                            &resumeHandle);
+    Py_END_ALLOW_THREADS
+    if (err != 0 && err != ERROR_MORE_DATA) {
         ReturnNetError("NetServerEnum", err);
         goto done;
     }
@@ -803,9 +805,10 @@ PyObject *PyNetServerGetInfo(PyObject *self, PyObject *args)
         goto done;
     if (!FindNET_STRUCT(typ, server_infos, &pInfo))
         goto done;
-    Py_BEGIN_ALLOW_THREADS err = NetServerGetInfo(szServer, typ, &buf);
-    Py_END_ALLOW_THREADS if (err)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        err = NetServerGetInfo(szServer, typ, &buf);
+    Py_END_ALLOW_THREADS
+    if (err) {
         ReturnNetError("NetServerGetInfo", err);
         goto done;
     }
@@ -844,9 +847,10 @@ PyObject *PyNetServerSetInfo(PyObject *self, PyObject *args)
     if (!PyObject_AsNET_STRUCT(obData, pInfo, &buf))
         goto done;
 
-    Py_BEGIN_ALLOW_THREADS err = NetServerSetInfo(szServer, typ, buf, NULL);
-    Py_END_ALLOW_THREADS if (err)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        err = NetServerSetInfo(szServer, typ, buf, NULL);
+    Py_END_ALLOW_THREADS
+    if (err) {
         ReturnNetError("NetServerSetInfo", err);
         goto done;
     }
@@ -899,10 +903,10 @@ PyObject *PyNetWkstaUserEnum(PyObject *self, PyObject *args)
     if (!FindNET_STRUCT(level, wktau_infos, &pInfo))
         goto done;
 
-    Py_BEGIN_ALLOW_THREADS err =
-        NetWkstaUserEnum(szServer, level, &buf, dwPrefLen, &numRead, &totalEntries, &resumeHandle);
-    Py_END_ALLOW_THREADS if (err != 0 && err != ERROR_MORE_DATA)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        err = NetWkstaUserEnum(szServer, level, &buf, dwPrefLen, &numRead, &totalEntries, &resumeHandle);
+    Py_END_ALLOW_THREADS
+    if (err != 0 && err != ERROR_MORE_DATA) {
         ReturnNetError("NetWkstaUserEnum", err);
         goto done;
     }
@@ -950,9 +954,10 @@ PyObject *PyNetWkstaGetInfo(PyObject *self, PyObject *args)
         goto done;
     if (!FindNET_STRUCT(typ, wksta_infos, &pInfo))
         goto done;
-    Py_BEGIN_ALLOW_THREADS err = NetWkstaGetInfo(szServer, typ, &buf);
-    Py_END_ALLOW_THREADS if (err)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        err = NetWkstaGetInfo(szServer, typ, &buf);
+    Py_END_ALLOW_THREADS
+    if (err) {
         ReturnNetError("NetWkstaGetInfo", err);
         goto done;
     }
@@ -991,9 +996,10 @@ PyObject *PyNetWkstaSetInfo(PyObject *self, PyObject *args)
     if (!PyObject_AsNET_STRUCT(obData, pInfo, &buf))
         goto done;
 
-    Py_BEGIN_ALLOW_THREADS err = NetWkstaSetInfo(szServer, typ, buf, NULL);
-    Py_END_ALLOW_THREADS if (err)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        err = NetWkstaSetInfo(szServer, typ, buf, NULL);
+    Py_END_ALLOW_THREADS
+    if (err) {
         ReturnNetError("NetWkstaSetInfo", err);
         goto done;
     }
@@ -1046,10 +1052,10 @@ PyObject *PyNetWkstaTransportEnum(PyObject *self, PyObject *args)
     if (!FindNET_STRUCT(level, wkstransport_infos, &pInfo))
         goto done;
 
-    Py_BEGIN_ALLOW_THREADS err =
-        NetWkstaTransportEnum(szServer, level, &buf, dwPrefLen, &numRead, &totalEntries, &resumeHandle);
-    Py_END_ALLOW_THREADS if (err != 0 && err != ERROR_MORE_DATA)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        err = NetWkstaTransportEnum(szServer, level, &buf, dwPrefLen, &numRead, &totalEntries, &resumeHandle);
+    Py_END_ALLOW_THREADS
+    if (err != 0 && err != ERROR_MORE_DATA) {
         ReturnNetError("NetWkstaTransportEnum", err);
         goto done;
     }
@@ -1102,9 +1108,10 @@ PyObject *PyNetWkstaTransportAdd(PyObject *self, PyObject *args)
     if (!PyObject_AsNET_STRUCT(obData, pInfo, &buf))
         goto done;
 
-    Py_BEGIN_ALLOW_THREADS err = NetWkstaTransportAdd(szServer, typ, buf, NULL);
-    Py_END_ALLOW_THREADS if (err)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        err = NetWkstaTransportAdd(szServer, typ, buf, NULL);
+    Py_END_ALLOW_THREADS
+    if (err) {
         ReturnNetError("NetWkstaTransportAdd", err);
         goto done;
     }
@@ -1137,9 +1144,10 @@ PyObject *PyNetWkstaTransportDel(PyObject *self, PyObject *args)
     if (!PyWinObject_AsWCHAR(obTransport, &szTransport, TRUE))
         goto done;
 
-    Py_BEGIN_ALLOW_THREADS err = NetWkstaTransportDel(szServer, szTransport, ucond);
-    Py_END_ALLOW_THREADS if (err)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        err = NetWkstaTransportDel(szServer, szTransport, ucond);
+    Py_END_ALLOW_THREADS
+    if (err) {
         ReturnNetError("NetWkstaTransportDel", err);
         goto done;
     }
@@ -1173,10 +1181,10 @@ PyObject *PyNetServerDiskEnum(PyObject *self, PyObject *args)
     if (!PyWinObject_AsWCHAR(obServer, &szServer, TRUE))
         return NULL;
 
-    Py_BEGIN_ALLOW_THREADS err =
-        NetServerDiskEnum(szServer, level, &buf, dwPrefLen, &numRead, &totalEntries, &resumeHandle);
-    Py_END_ALLOW_THREADS if (err != 0)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        err = NetServerDiskEnum(szServer, level, &buf, dwPrefLen, &numRead, &totalEntries, &resumeHandle);
+    Py_END_ALLOW_THREADS
+    if (err != 0) {
         ReturnNetError("NetServerDiskEnum", err);
         goto done;
     }
@@ -1353,11 +1361,9 @@ PyObject *PyNetServerComputerNameDel(PyObject *self, PyObject *args)
     return ret;
 }
 
-extern "C" NetValidateNamefunc pfnNetValidateName = NULL;
 // @pymethod |win32net|NetValidateName|Checks that domain/machine/workgroup name is valid for given context
 // @rdesc Returns none if valid, exception if not
 // @comm If Account and Password aren't passed, current logon credentials are used
-// @comm Will raise NotImplementedError if not available on this platform.
 PyObject *PyNetValidateName(PyObject *self, PyObject *args)
 {
     // @pyparm string/<o PyUnicode>|Server||Name of server on which to execute (None or blank uses local)
@@ -1368,17 +1374,12 @@ PyObject *PyNetValidateName(PyObject *self, PyObject *args)
     // @pyparm string/<o PyUnicode>|Password|None|Password for Account
     PyObject *obServer, *obName, *obAccount = Py_None, *obPassword = Py_None, *ret = NULL;
     WCHAR *Server = NULL, *Name = NULL, *Account = NULL, *Password = NULL;
-    NET_API_STATUS err;
     NETSETUP_NAME_TYPE NameType;
-    if (pfnNetValidateName == NULL) {
-        PyErr_SetString(PyExc_NotImplementedError, "NetValidateName does not exist on this platform");
-        return NULL;
-    }
     if (!PyArg_ParseTuple(args, "OOl|OO", &obServer, &obName, &NameType, &obAccount, &obPassword))
         return NULL;
     if (PyWinObject_AsWCHAR(obServer, &Server, TRUE) && PyWinObject_AsWCHAR(obName, &Name, FALSE) &&
         PyWinObject_AsWCHAR(obAccount, &Account, TRUE) && PyWinObject_AsWCHAR(obPassword, &Password, TRUE)) {
-        err = (*pfnNetValidateName)(Server, Name, Account, Password, NameType);
+        NET_API_STATUS err = NetValidateName(Server, Name, Account, Password, NameType);
         if (err == NERR_Success)
             ret = Py_None;
         else
@@ -1395,9 +1396,6 @@ PyObject *PyNetValidateName(PyObject *self, PyObject *args)
     Py_XINCREF(ret);
     return ret;
 }
-
-extern "C" NetValidatePasswordPolicyfunc pfnNetValidatePasswordPolicy = NULL;
-extern "C" NetValidatePasswordPolicyFreefunc pfnNetValidatePasswordPolicyFree = NULL;
 
 static void PyObject_CleanupAUTH_INPUT(NET_VALIDATE_AUTHENTICATION_INPUT_ARG *p)
 {
@@ -1569,8 +1567,7 @@ static PyObject *PyObject_FromNET_VALIDATE_PERSISTED_FIELDS(NET_VALIDATE_PERSIST
 // history reuse requirements of a password policy.
 // @rdesc Returns a tuple of (<o PyNET_VALIDATE_PERSISTED_FIELDS>, int) with
 // the integer being the ValidationResult.
-// @comm Will raise NotImplementedError if not available on this platform, or
-// raise win32net.error if the function fails.
+// @comm Will raise win32net.error if the function fails.
 PyObject *PyNetValidatePasswordPolicy(PyObject *self, PyObject *args)
 {
     // @pyparm string/<o PyUnicode>|Server||Name of server on which to execute (None or blank uses local)
@@ -1595,10 +1592,6 @@ PyObject *PyNetValidatePasswordPolicy(PyObject *self, PyObject *args)
     ALL_INS in_arg;
     memset(&in_arg, 0, sizeof(in_arg));
 
-    if (pfnNetValidateName == NULL || pfnNetValidatePasswordPolicyFree == NULL) {
-        PyErr_SetString(PyExc_NotImplementedError, "NetValidatePasswordPolicy does not exist on this platform");
-        return NULL;
-    }
     if (!PyArg_ParseTuple(args, "OOiO", &obServer, &obQualifier, &valType, &obArg))
         return NULL;
     if (obQualifier != Py_None)
@@ -1622,10 +1615,10 @@ PyObject *PyNetValidatePasswordPolicy(PyObject *self, PyObject *args)
             PyErr_Format(PyExc_ValueError, "Unknown validation type (%d)", valType);
             goto done;
     }
-    Py_BEGIN_ALLOW_THREADS err =
-        (*pfnNetValidatePasswordPolicy)(Server, NULL, (NET_VALIDATE_PASSWORD_TYPE)valType, &in_arg, (void **)&out_arg);
-    Py_END_ALLOW_THREADS if (NERR_Success != err)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        err = NetValidatePasswordPolicy(Server, NULL, (NET_VALIDATE_PASSWORD_TYPE)valType, &in_arg, (void **)&out_arg);
+    Py_END_ALLOW_THREADS
+    if (NERR_Success != err) {
         ReturnNetError("NetValidatePasswordPolicy", err);
         goto done;
     }
@@ -1647,6 +1640,6 @@ done:
             break;
     }
     if (out_arg)
-        (*pfnNetValidatePasswordPolicyFree)((void **)&out_arg);
+        NetValidatePasswordPolicyFree((void **)&out_arg);
     return ret;
 }

@@ -311,11 +311,7 @@ def RegisterPythonwin(register=True, lib_dir=None):
 
 def get_shortcuts_folder():
     if get_root_hkey() == winreg.HKEY_LOCAL_MACHINE:
-        try:
-            fldr = get_special_folder_path("CSIDL_COMMON_PROGRAMS")
-        except OSError:
-            # No CSIDL_COMMON_PROGRAMS on this platform
-            fldr = get_special_folder_path("CSIDL_PROGRAMS")
+        fldr = get_special_folder_path("CSIDL_COMMON_PROGRAMS")
     else:
         # non-admin install - always goes in this user's start menu.
         fldr = get_special_folder_path("CSIDL_PROGRAMS")
@@ -517,7 +513,7 @@ def install(lib_dir):
         if os.path.isdir(fldr):
             dst = os.path.join(fldr, "PythonWin.lnk")
             create_shortcut(
-                os.path.join(lib_dir, "Pythonwin\\Pythonwin.exe"),
+                os.path.join(lib_dir, "pythonwin", "Pythonwin.exe"),
                 "The Pythonwin IDE",
                 dst,
                 "",

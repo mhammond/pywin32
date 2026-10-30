@@ -188,8 +188,6 @@ class HLIHelpFile(HLICOM):
 
 class HLIRegisteredTypeLibrary(HLICOM):
     def GetSubList(self):
-        import os
-
         clsidstr, versionStr = self.myobject
         collected = []
         helpPath = ""

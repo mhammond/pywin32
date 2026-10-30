@@ -11,7 +11,6 @@ import win32api
 import win32con
 import win32event
 import winerror
-from pywin32_testutil import TestSkipped
 
 
 class TestError(Exception):
@@ -23,7 +22,7 @@ class CurrentUserTestCase(unittest.TestCase):
         domain = win32api.GetDomainName()
         if domain == "NT AUTHORITY":
             # Running as a service account, so the comparison will fail
-            raise TestSkipped("running as service account")
+            raise unittest.SkipTest("running as service account")
         name = f"{domain}\\{win32api.GetUserName()}"
         self.assertEqual(name, win32api.GetUserNameEx(win32api.NameSamCompatible))
 
@@ -225,6 +224,28 @@ class FileNames(unittest.TestCase):
         finally:
             win32file.RemoveDirectory(fname)
 
+    def testGetFullPathNameLongPath(self):
+        # GetFullPathName used to return an empty string for any path of
+        # MAX_PATH characters or more. It resolved into a MAX_PATH buffer and
+        # assigned the DWORD "characters required" return into a BOOL, so a
+        # too-small buffer looked like success and the untouched buffer was
+        # returned. The path does not need to exist; this is string resolution.
+        import win32file
+
+        drive = os.path.splitdrive(os.path.abspath(os.sep))[0]
+        base = drive + "\\" + "a" * 40
+        for total in (259, 260, 300):
+            path = base + "\\" + "b" * (total - len(base) - 1)
+            self.assertEqual(len(path), total)
+            got = win32api.GetFullPathName(path)
+            self.assertEqual(
+                got,
+                path,
+                f"GetFullPathName of a {total} character path returned '{got}'",
+            )
+            # win32file's version has always handled these; keep them agreeing.
+            self.assertEqual(got, win32file.GetFullPathName(path))
+
 
 class FormatMessage(unittest.TestCase):
     def test_FromString(self):
@@ -250,6 +271,17 @@ class Misc(unittest.TestCase):
         # hopefully ' ' doesn't depend on the locale!
         self.assertEqual(win32api.VkKeyScan(" "), 32)
 
+    def testToUnicodeEx(self):
+        state = bytes(256)
+        vk = ord("A")
+        sc = win32api.MapVirtualKey(vk, 0)
+        self.assertEqual(win32api.ToUnicodeEx(vk, sc, state), "a")
+        self.assertIsNone(win32api.ToUnicodeEx(0, 0, state))
+        with self.assertRaisesRegex(
+            ValueError, "keyboard state string must be exactly 256 characters"
+        ):
+            win32api.ToUnicodeEx(vk, sc, b"")
+
     def testVkKeyScanEx(self):
         # hopefully ' ' doesn't depend on the locale!
         self.assertEqual(win32api.VkKeyScanEx(" ", 0), 32)
@@ -267,6 +299,72 @@ class Misc(unittest.TestCase):
             "BatteryFullLifeTime",
         )
         self.assertEqual(set(test_keys), set(sps))
+
+    def testGetSystemCpuSetInformation(self):
+        # Basic smoke test - function should not crash and return a list
+        try:
+            cpus = win32api.GetSystemCpuSetInformation()
+        except NotImplementedError as e:
+            msg = str(e)
+            # Expected on older than Windows 10
+            if msg == "GetSystemCpuSetInformation is not available on this platform":
+                raise TestSkipped(msg) from e
+            raise
+
+        self.assertIsInstance(cpus, list)
+
+        if not cpus:
+            # Empty list is valid (though unusual)
+            return
+
+        # Check first CPU entry has all expected attributes with correct types
+        cpu = cpus[0]
+
+        # Numeric attributes (should be integers)
+        numeric_attrs = (
+            "Id",
+            "Group",
+            "LogicalProcessorIndex",
+            "CoreIndex",
+            "LastLevelCacheIndex",
+            "NumaNodeIndex",
+            "EfficiencyClass",
+            "SchedulingClass",
+            "AllocationTag",
+        )
+        for attr in numeric_attrs:
+            self.assertTrue(hasattr(cpu, attr), f"Missing attribute: {attr}")
+            value = getattr(cpu, attr)
+            self.assertIsInstance(
+                value, int, f"{attr} should be int, got {type(value)}"
+            )
+            self.assertGreaterEqual(value, 0, f"{attr} should be non-negative")
+
+        # Boolean attributes (should be bool)
+        bool_attrs = ("Parked", "Allocated", "AllocatedToTargetProcess", "RealTime")
+        for attr in bool_attrs:
+            self.assertTrue(hasattr(cpu, attr), f"Missing attribute: {attr}")
+            value = getattr(cpu, attr)
+            self.assertIsInstance(
+                value, bool, f"{attr} should be bool, got {type(value)}"
+            )
+
+        # Sanity checks on values
+        self.assertGreater(cpu.Id, 0, "CPU Id should be positive")
+        self.assertLessEqual(
+            cpu.EfficiencyClass, 255, "EfficiencyClass should be <= 255"
+        )
+        self.assertLessEqual(
+            cpu.SchedulingClass, 255, "SchedulingClass should be <= 255"
+        )
+
+        # All entries should be consistently typed
+        for i, cpu in enumerate(cpus):
+            self.assertIsInstance(cpu.Id, int, f"CPU {i}: Id should be int")
+            self.assertIsInstance(cpu.Parked, bool, f"CPU {i}: Parked should be bool")
+
+        # str() should not crash
+        str(cpus[0])
 
 
 if __name__ == "__main__":

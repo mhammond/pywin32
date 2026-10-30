@@ -67,7 +67,7 @@ BOOL PyWinObject_AsCRYPTMSG(PyObject *obHCRYPTMSG, HCRYPTMSG *hcryptmsg, BOOL bN
         *hcryptmsg = NULL;
         return true;
     }
-    if (obHCRYPTMSG->ob_type != &PyCRYPTMSGType) {
+    if (Py_TYPE(obHCRYPTMSG) != &PyCRYPTMSGType) {
         PyErr_SetString(PyExc_TypeError, "Object must be of type PyCRYPTMSG");
         return FALSE;
     }

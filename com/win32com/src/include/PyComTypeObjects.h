@@ -120,4 +120,4 @@ class PYCOM_EXPORT PySTGMEDIUM : public PyObject {
 };
 
 PYCOM_EXPORT PySTGMEDIUM *PyObject_FromSTGMEDIUM(STGMEDIUM *desc = NULL);
-#define PySTGMEDIUM_Check(x) ((x)->ob_type == &PySTGMEDIUM::Type)
+#define PySTGMEDIUM_Check(x) (Py_TYPE(x) == &PySTGMEDIUM::Type)

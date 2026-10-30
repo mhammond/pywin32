@@ -207,10 +207,9 @@ class SourceCodeContainer:
 class SourceModuleContainer(SourceCodeContainer):
     def __init__(self, module):
         self.module = module
-        if hasattr(module, "__file__"):
-            fname = self.module.__file__
-            # Check for .pyc or .pyo or even .pys!
-            if fname[-1] in ["O", "o", "C", "c", "S", "s"]:
+        if fname := getattr(module, "__file__", ""):
+            # Check for .pyc or even .pys!
+            if fname.endswith(("C", "c", "S", "s")):
                 fname = fname[:-1]
             try:
                 fname = win32api.GetFullPathName(fname)
@@ -257,7 +256,7 @@ class SourceModuleContainer(SourceCodeContainer):
 
 
 if __name__ == "__main__":
-    from Test import ttest
+    from test import ttest
 
     sc = SourceModuleContainer(ttest)
     # sc = SourceCodeContainer(open(sys.argv[1], "rb").read(), sys.argv[1])

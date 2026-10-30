@@ -1,11 +1,15 @@
 # Originally contributed by Stefan Schukat as part of this arbitrary-sized
 # arrays patch.
+from __future__ import annotations
+
+import platform
+import unittest
 
 from win32com.client import gencache
 from win32com.test import util
 
 ZeroD = 0
-OneDEmpty = []
+OneDEmpty: list[int] = []
 OneD = [1, 2, 3]
 TwoD = [[1, 2, 3], [1, 2, 3], [1, 2, 3]]
 
@@ -49,6 +53,12 @@ def _normalize_array(a):
     return ret
 
 
+@unittest.skipIf(
+    platform.machine() == "ARM64",
+    "PyCOMTest.ArrayTest cannot currently be run on ARM64 "
+    + "due to lacking win32com.universal implementation "
+    + "in com/win32com/src/univgw.cpp",
+)
 class ArrayTest(util.TestCase):
     def setUp(self):
         self.arr = gencache.EnsureDispatch("PyCOMTest.ArrayTest", bForDemand=False)

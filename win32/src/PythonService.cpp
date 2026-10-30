@@ -55,25 +55,32 @@ static void CheckRegisterEventSourceFile();
         ReportError(MSG_IR1, (LPCTSTR *)lpszStrings, EVENTLOG_INFORMATION_TYPE); \
     }
 
+// Like Py_Initialize, but also sets the program name.
+// (Replaces the deprecated Py_SetProgramName)
+static void PyService_InitializeWithProgramName(const wchar_t *program_name)
+{
+    // Like Py_Initialize, do nothing if already initialized (eg: by pythonservice.exe).
+    // Py_InitializeFromConfig would instead re-apply the configuration, resetting sys.argv.
+    if (Py_IsInitialized())
+        return;
+    PyConfig config;
+    PyConfig_InitPythonConfig(&config);
+    // Match Py_Initialize's legacy configuration
+    config.configure_c_stdio = 0;
+    config.parse_argv = 0;
+    PyStatus status = PyStatus_Ok();
+    if (program_name != NULL)
+        status = PyConfig_SetString(&config, &config.program_name, program_name);
+    if (!PyStatus_Exception(status))
+        status = Py_InitializeFromConfig(&config);
+    PyConfig_Clear(&config);
+    if (PyStatus_Exception(status))
+        Py_ExitStatusException(status);
+}
+
 #ifdef PYSERVICE_BUILD_DLL  // The bulk of this file is only used when building the core DLL.
 
 #define MAX_SERVICES 10
-
-// 2K/XP support newer service registration functions that enable multiple
-// service support, but NT does not.  Depending on the run time environment,
-// we adjust the number of services we can support as well as which
-// registration and service control functions to use.  We leave a hard
-// reference to the older function to ensure that we can at least fall back
-// to that if something goes wrong with the dynamic identification.
-
-// If we can locate the newer registration function on startup, this will be
-// increased to MAX_SERVICES
-DWORD g_maxServices = 1;
-
-typedef SERVICE_STATUS_HANDLE(WINAPI *REGSVC_EX_FN)(LPCTSTR lpServiceName, LPHANDLER_FUNCTION_EX lpHandlerProc,
-                                                    LPVOID lpContext);
-
-REGSVC_EX_FN g_RegisterServiceCtrlHandlerEx = NULL;
 
 typedef struct {
     PyObject *klass;                        // The Python class we instantiate as the service.
@@ -168,9 +175,9 @@ static PyObject *DoLogMessage(WORD errorType, PyObject *obMsg)
     DWORD errorCode = errorType == EVENTLOG_ERROR_TYPE ? PYS_E_GENERIC_ERROR : PYS_E_GENERIC_WARNING;
     LPCTSTR inserts[] = {msg, NULL};
     BOOL ok;
-    Py_BEGIN_ALLOW_THREADS;
-    ok = ReportError(errorCode, inserts, errorType);
-    Py_END_ALLOW_THREADS;
+    Py_BEGIN_ALLOW_THREADS
+        ok = ReportError(errorCode, inserts, errorType);
+    Py_END_ALLOW_THREADS
     PyWinObject_FreeWCHAR(msg);  // free msg before potentially raising error
     if (!ok)
         return PyWin_SetAPIError("RegisterEventSource/ReportEvent");
@@ -221,13 +228,15 @@ static PyObject *PyLogMsg(PyObject *self, PyObject *args)
         PyErr_SetString(PyExc_TypeError, "strings must be None or a sequence");
         goto cleanup;
     }
-    Py_BEGIN_ALLOW_THREADS ok = ReportError(code, pStrings, errorType);
-    Py_END_ALLOW_THREADS if (ok)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        ok = ReportError(code, pStrings, errorType);
+    Py_END_ALLOW_THREADS
+    if (ok) {
         Py_INCREF(Py_None);
         rc = Py_None;
     }
-    else PyWin_SetAPIError("RegisterEventSource/ReportEvent");
+    else
+        PyWin_SetAPIError("RegisterEventSource/ReportEvent");
 
 cleanup:
     if (pStrings) {
@@ -330,14 +339,7 @@ static PyObject *PyRegisterServiceCtrlHandler(PyObject *self, PyObject *args)
         Py_INCREF(Py_None);
         return Py_None;
     }
-    if (g_RegisterServiceCtrlHandlerEx) {
-        // Use 2K/XP extended registration if available
-        pe->sshStatusHandle = g_RegisterServiceCtrlHandlerEx(szName, service_ctrl_ex, pe);
-    }
-    else {
-        // Otherwise fall back to NT
-        pe->sshStatusHandle = RegisterServiceCtrlHandler(szName, service_ctrl);
-    }
+    pe->sshStatusHandle = RegisterServiceCtrlHandlerExW(szName, service_ctrl_ex, pe);
     PyWinObject_FreeWCHAR(szName);
     PyObject *rc;
     if (pe->sshStatusHandle == 0) {
@@ -408,24 +410,28 @@ static PyObject *PyPumpWaitingMessages(PyObject *self, PyObject *args)
     long result = 0;
     // Read all of the messages in this next loop,
     // removing each message as we read it.
-    Py_BEGIN_ALLOW_THREADS while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
-    {
-        // If it's a quit message, we're out of here.
-        if (msg.message == WM_QUIT) {
-            result = 1;
-            break;
-        }
-        // Otherwise, dispatch the message.
-        DispatchMessage(&msg);
-    }  // End of PeekMessage while loop
-    Py_END_ALLOW_THREADS return PyLong_FromLong(result);
+    Py_BEGIN_ALLOW_THREADS
+        while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
+            // If it's a quit message, we're out of here.
+            if (msg.message == WM_QUIT) {
+                result = 1;
+                break;
+            }
+            // Otherwise, dispatch the message.
+            DispatchMessage(&msg);
+        }  // End of PeekMessage while loop
+    Py_END_ALLOW_THREADS
+    return PyLong_FromLong(result);
 }
 
 static PyObject *PyStartServiceCtrlDispatcher(PyObject *self)
 {
     BOOL ok;
-    Py_BEGIN_ALLOW_THREADS ok = PythonService_StartServiceCtrlDispatcher();
-    Py_END_ALLOW_THREADS if (!ok) return PyWin_SetAPIError("StartServiceCtrlDispatcher");
+    Py_BEGIN_ALLOW_THREADS
+        ok = PythonService_StartServiceCtrlDispatcher();
+    Py_END_ALLOW_THREADS
+    if (!ok)
+        return PyWin_SetAPIError("StartServiceCtrlDispatcher");
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -538,7 +544,6 @@ PYWIN_MODULE_INIT_FUNC(servicemanager)
 {
     PYWIN_MODULE_INIT_PREPARE(servicemanager, servicemanager_functions,
                               "A module that interfaces with the Windows Service Control Manager.");
-    HMODULE advapi32_module;
     servicemanager_startup_error = PyErr_NewException("servicemanager.startup_error", NULL, NULL);
     if (servicemanager_startup_error == NULL)
         PYWIN_MODULE_INIT_RETURN_ERROR;
@@ -560,20 +565,6 @@ PYWIN_MODULE_INIT_FUNC(servicemanager)
     ADD_CONSTANT(EVENTLOG_WARNING_TYPE);
     ADD_CONSTANT(EVENTLOG_AUDIT_SUCCESS);
     ADD_CONSTANT(EVENTLOG_AUDIT_FAILURE);
-
-    // Check if we can use the newer control handler registration function
-    // which permits us to support multiple services.  This should be available
-    // on 2K/XP systems.
-
-    // We already have a hard dependency on advapi32, so it shouldn't
-    // be possible for us not to load it, but we'll play it safe.
-    if ((advapi32_module = LoadLibrary(_T("advapi32"))) != NULL) {
-        g_RegisterServiceCtrlHandlerEx = (REGSVC_EX_FN)GetProcAddress(advapi32_module, "RegisterServiceCtrlHandlerExW");
-        // If we found it, go ahead and increase our number of services supported
-        if (g_RegisterServiceCtrlHandlerEx != NULL) {
-            g_maxServices = MAX_SERVICES;
-        }
-    }
 
     PYWIN_MODULE_INIT_RETURN_SUCCESS;
 }
@@ -601,13 +592,11 @@ static void PyService_InitPython()
     // knows how to get the .EXE name when it needs.
     int pyargc;
     WCHAR **pyargv = CommandLineToArgvW(GetCommandLineW(), &pyargc);
-    if (pyargv)
-        Py_SetProgramName(pyargv[0]);
 
 #ifdef BUILD_FREEZE
     PyInitFrozenExtensions();
 #endif
-    Py_Initialize();
+    PyService_InitializeWithProgramName(pyargv ? pyargv[0] : NULL);
 #ifdef BUILD_FREEZE
     PyWinFreeze_ExeInit();
 #endif
@@ -726,13 +715,13 @@ BOOL PythonService_PrepareToHostMultiple(const TCHAR *service_name, PyObject *kl
     else if (g_serviceProcessFlags != SERVICE_WIN32_SHARE_PROCESS)
         return FALSE;
     UINT i;
-    for (i = 0; i < g_maxServices; i++) {
+    for (i = 0; i < MAX_SERVICES; i++) {
         if (DispatchTable[i].lpServiceName == NULL)
             break;
         if (_tcscmp(service_name, DispatchTable[i].lpServiceName) == 0)
             return FALSE;
     }
-    if (i >= g_maxServices)
+    if (i >= MAX_SERVICES)
         return FALSE;
 
     DispatchTable[i].lpServiceName = _tcsdup(service_name);
@@ -855,14 +844,7 @@ void WINAPI service_main(DWORD dwArgc, LPTSTR *lpszArgv)
             ReportPythonError(E_PYS_NOT_CONTROL_HANDLER);
         // else no instance - an error has already been reported.
         if (!bServiceDebug) {
-            if (g_RegisterServiceCtrlHandlerEx) {
-                // Use 2K/XP extended registration if available
-                pe->sshStatusHandle = g_RegisterServiceCtrlHandlerEx(lpszArgv[0], service_ctrl_ex, pe);
-            }
-            else {
-                // Otherwise fall back to NT
-                pe->sshStatusHandle = RegisterServiceCtrlHandler(lpszArgv[0], service_ctrl);
-            }
+            pe->sshStatusHandle = RegisterServiceCtrlHandlerExW(lpszArgv[0], service_ctrl_ex, pe);
         }
     }
     // No instance - we can't start.
@@ -1296,7 +1278,7 @@ static void ReportAPIError(DWORD msgCode, DWORD errCode /*= 0*/)
 
     TCHAR cvtBuf[20];
     wsprintf(cvtBuf, L"%d", errCode);
-    LPTSTR lpszStrings[] = {cvtBuf, buf, L'\0'};
+    LPTSTR lpszStrings[] = {cvtBuf, buf, NULL};
     ReportError(msgCode, (LPCTSTR *)lpszStrings);
 }
 
@@ -1443,11 +1425,8 @@ int _tmain(int argc, TCHAR **argv)
     FARPROC proc;
     int dummy;
     wchar_t **program = CommandLineToArgvW(GetCommandLineW(), &dummy);
-    if (program != NULL) {
-        Py_SetProgramName(program[0]);
-        // do not free `program` since Py_SetProgramName does not copy it.
-    }
-    Py_Initialize();
+    PyService_InitializeWithProgramName(program ? program[0] : NULL);
+    LocalFree(program);
     module = PyImport_ImportModule("servicemanager");
     if (!module)
         goto failed;

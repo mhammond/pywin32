@@ -65,4 +65,4 @@ def update_colinfo(not_used, dir_name, fnames):
             pb = None
 
 
-os.path.walk(template_folder, update_colinfo, None)
+os.walk(template_folder, update_colinfo, None)

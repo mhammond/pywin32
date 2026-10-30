@@ -1,4 +1,5 @@
 # Tests for the win32security module.
+import os
 import unittest
 
 import ntsecuritycon
@@ -7,12 +8,21 @@ import win32api
 import win32con
 import win32security
 import winerror
-from pywin32_testutil import TestSkipped, testmain
+from pywin32_testutil import testmain
 
 
 class SecurityTests(unittest.TestCase):
     def setUp(self):
-        self.pwr_sid = win32security.LookupAccountName("", "Power Users")[0]
+        try:
+            self.pwr_sid = win32security.LookupAccountName("", "Power Users")[0]
+        except pywintypes.error as exc:
+            # 'Power Users' does not exist on every edition - it is absent on
+            # Windows Home (EditionID "Core") - and is localized on non-English
+            # installs. Every test in this class needs the SID, so skip rather
+            # than error out of setUp.
+            if exc.winerror != winerror.ERROR_NONE_MAPPED or "CI" in os.environ:
+                raise
+            raise unittest.SkipTest("No 'Power Users' group is available")
         try:
             self.admin_sid = win32security.LookupAccountName("", "Administrator")[0]
         except pywintypes.error as exc:
@@ -27,7 +37,7 @@ class SecurityTests(unittest.TestCase):
 
     def testEqual(self):
         if self.admin_sid is None:
-            raise TestSkipped("No 'Administrator' account is available")
+            raise unittest.SkipTest("No 'Administrator' account is available")
         self.assertEqual(
             win32security.LookupAccountName("", "Administrator")[0],
             win32security.LookupAccountName("", "Administrator")[0],
@@ -51,7 +61,7 @@ class SecurityTests(unittest.TestCase):
 
     def testBuffer(self):
         if self.admin_sid is None:
-            raise TestSkipped("No 'Administrator' account is available")
+            raise unittest.SkipTest("No 'Administrator' account is available")
         self.assertEqual(
             memoryview(win32security.LookupAccountName("", "Administrator")[0]),
             memoryview(win32security.LookupAccountName("", "Administrator")[0]),
@@ -97,7 +107,7 @@ class DomainTests(unittest.TestCase):
         except win32security.error as exc:
             if exc.winerror != winerror.ERROR_NO_SUCH_DOMAIN:
                 raise
-            raise TestSkipped(exc)
+            raise unittest.SkipTest(str(exc))
 
     def tearDown(self):
         if self.ds_handle is not None:

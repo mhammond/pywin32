@@ -5,7 +5,7 @@
 #include "PyWinObjects.h"
 #include "PySecurityObjects.h"
 #include "win32security_sspi.h"
-#include "Lm.h"  // for NetApiBufferFree, for some Ds functions.
+#include "lm.h"  // for NetApiBufferFree, for some Ds functions.
 
 static PyObject *PyObject_FromDS_NAME_RESULT(DS_NAME_RESULT *dsresult)
 {
@@ -27,15 +27,9 @@ class PyDS_HANDLE : public PyHANDLE {
     PyDS_HANDLE(HANDLE hInit) : PyHANDLE(hInit) {}
     virtual BOOL Close(void)
     {
-        DWORD err;
         if (!m_handle)
             return TRUE;  // already closed or Detached, nothing to do
-        if (pfnDsUnBind == NULL) {
-            // should not happen if functions to create a Ds handle exist ...
-            PyErr_SetString(PyExc_SystemError, "Error closing PyDS_HANDLE, DsUnBind is NULL");
-            return FALSE;
-        }
-        err = (*pfnDsUnBind)(&m_handle);
+        DWORD err = DsUnBind(&m_handle);
         // ??? This function apparently never returns an error, no matter what you pass to it ???
         if (err == NO_ERROR) {
             m_handle = 0;
@@ -55,14 +49,16 @@ extern PyObject *PyDsBind(PyObject *self, PyObject *args)
     PyObject *ret = NULL;
     DWORD err;
     HANDLE dshandle;
-
-    CHECK_PFN(DsBind);
     if (!PyArg_ParseTuple(args, "|OO:DsBind", obdc, obdomain))
         return NULL;
     if (PyWinObject_AsWCHAR(obdc, &dc, TRUE) && PyWinObject_AsWCHAR(obdomain, &domain, TRUE)) {
-        Py_BEGIN_ALLOW_THREADS err = (*pfnDsBind)(dc, domain, &dshandle);
-        Py_END_ALLOW_THREADS if (err == NO_ERROR) ret = new PyDS_HANDLE(dshandle);
-        else PyWin_SetAPIError("DsBind", err);
+        Py_BEGIN_ALLOW_THREADS
+            err = DsBind(dc, domain, &dshandle);
+        Py_END_ALLOW_THREADS
+        if (err == NO_ERROR)
+            ret = new PyDS_HANDLE(dshandle);
+        else
+            PyWin_SetAPIError("DsBind", err);
     }
     PyWinObject_FreeWCHAR(dc);
     PyWinObject_FreeWCHAR(domain);
@@ -74,15 +70,14 @@ extern PyObject *PyDsUnBind(PyObject *self, PyObject *args)
     DWORD err;
     HANDLE dshandle;
     PyObject *obhandle;
-
-    CHECK_PFN(DsUnBind);
     if (!PyArg_ParseTuple(args, "O:DsUnBind", &obhandle))
         return NULL;
     if (!PyWinObject_AsHANDLE(obhandle, &dshandle))
         return NULL;
-    Py_BEGIN_ALLOW_THREADS err = (*pfnDsUnBind)(&dshandle);
-    Py_END_ALLOW_THREADS if (err == NO_ERROR)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        err = DsUnBind(&dshandle);
+    Py_END_ALLOW_THREADS
+    if (err == NO_ERROR) {
         Py_INCREF(Py_None);
         return Py_None;
     }
@@ -102,9 +97,6 @@ extern PyObject *PyDsGetSpn(PyObject *self, PyObject *args)
     long port_nbr;
     PyObject *obInstanceNames = Py_None, *obInstancePorts = Py_None;
     PyObject *obInstancePorts_tuple = NULL;
-
-    CHECK_PFN(DsGetSpn);
-    CHECK_PFN(DsFreeSpnArray);
 
     if (!PyArg_ParseTuple(args, "lOO|HOO:DsGetSpn", &ServiceType, &obServiceClass, &obServiceName, &InstancePort,
                           &obInstanceNames, &obInstancePorts))
@@ -154,11 +146,13 @@ extern PyObject *PyDsGetSpn(PyObject *self, PyObject *args)
         }
     }
 
-    Py_BEGIN_ALLOW_THREADS err = (*pfnDsGetSpn)(ServiceType, ServiceClass, ServiceName, InstancePort, cInstanceNames,
-                                                (LPCWSTR *)InstanceNames, InstancePorts, &cSpns, &Spns);
-    Py_END_ALLOW_THREADS if (err != STATUS_SUCCESS) PyWin_SetAPIError("DsGetSpn", err);
-    else
-    {
+    Py_BEGIN_ALLOW_THREADS
+        err = DsGetSpn(ServiceType, ServiceClass, ServiceName, InstancePort, cInstanceNames, (LPCWSTR *)InstanceNames,
+                       InstancePorts, &cSpns, &Spns);
+    Py_END_ALLOW_THREADS
+    if (err != STATUS_SUCCESS)
+        PyWin_SetAPIError("DsGetSpn", err);
+    else {
         ret = PyTuple_New(cSpns);
         if (ret != NULL) {
             for (tuple_index = 0; tuple_index < cSpns; tuple_index++) {
@@ -174,7 +168,7 @@ extern PyObject *PyDsGetSpn(PyObject *self, PyObject *args)
     }
 done:
     if (Spns != NULL)
-        (*pfnDsFreeSpnArray)(cSpns, Spns);
+        DsFreeSpnArray(cSpns, Spns);
     PyWinObject_FreeWCHARArray(InstanceNames, cInstanceNames);
 
     if (InstancePorts != NULL)
@@ -193,7 +187,6 @@ extern PyObject *PyDsWriteAccountSpn(PyObject *self, PyObject *args)
     DS_SPN_WRITE_OP Operation;
     LPWSTR acct, *spns = NULL;
     PyObject *ret = NULL, *obhandle, *obacct, *obspns;
-    CHECK_PFN(DsWriteAccountSpn);
     if (!PyArg_ParseTuple(args, "OlOO:DsWriteAccountSpn", &obhandle, &Operation, &obacct, &obspns))
         return NULL;
     if (!PyWinObject_AsHANDLE(obhandle, &dshandle))
@@ -202,10 +195,12 @@ extern PyObject *PyDsWriteAccountSpn(PyObject *self, PyObject *args)
         goto done;
     if (!PyWinObject_AsWCHARArray(obspns, &spns, &spn_cnt))
         goto done;
-    Py_BEGIN_ALLOW_THREADS err = (*pfnDsWriteAccountSpn)(dshandle, Operation, acct, spn_cnt, (LPCWSTR *)spns);
-    Py_END_ALLOW_THREADS if (err != STATUS_SUCCESS) PyWin_SetAPIError("DsWriteAccountSpn", err);
-    else
-    {
+    Py_BEGIN_ALLOW_THREADS
+        err = DsWriteAccountSpn(dshandle, Operation, acct, spn_cnt, (LPCWSTR *)spns);
+    Py_END_ALLOW_THREADS
+    if (err != STATUS_SUCCESS)
+        PyWin_SetAPIError("DsWriteAccountSpn", err);
+    else {
         Py_INCREF(Py_None);
         ret = Py_None;
     }
@@ -220,8 +215,6 @@ PyObject *PyDsGetDcName(PyObject *self, PyObject *args, PyObject *kw)
     static char *kw_items[] = {
         "computerName", "domainName", "domainGUID", "siteName", "flags", NULL,
     };
-
-    CHECK_PFN(DsGetDcName);
     PyObject *obServer = Py_None, *obDomain = Py_None, *obSiteName = Py_None;
     PyObject *obGUID = Py_None;
     WCHAR *szServer = NULL, *szDomain = NULL, *szSiteName = NULL;
@@ -244,9 +237,10 @@ PyObject *PyDsGetDcName(PyObject *self, PyObject *args, PyObject *kw)
             goto done;
         pGUID = &guidBuf;
     }
-    Py_BEGIN_ALLOW_THREADS err = (*pfnDsGetDcName)(szServer, szDomain, pGUID, szSiteName, flags, &pdci);
-    Py_END_ALLOW_THREADS if (err)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        err = DsGetDcName(szServer, szDomain, pGUID, szSiteName, flags, &pdci);
+    Py_END_ALLOW_THREADS
+    if (err) {
         PyWin_SetAPIError("DsGetDcName", err);
         goto done;
     }
@@ -279,23 +273,23 @@ PyObject *PyDsCrackNames(PyObject *self, PyObject *args)
     LPWSTR *names;
     DWORD cnames;
     PDS_NAME_RESULT dsresult = NULL;
-
-    CHECK_PFN(DsCrackNames);
-    CHECK_PFN(DsFreeNameResult);
     if (!PyArg_ParseTuple(args, "OlllO:DsCrackNames", &obhandle, &flags, &formatOffered, &formatDesired, &obNames))
         return NULL;
     if (!PyWinObject_AsHANDLE(obhandle, &dshandle))
         return NULL;
     if (!PyWinObject_AsWCHARArray(obNames, &names, &cnames))
         goto done;
-    Py_BEGIN_ALLOW_THREADS err =
-        (*pfnDsCrackNames)(dshandle, flags, formatOffered, formatDesired, cnames, names, &dsresult);
-    Py_END_ALLOW_THREADS if (err != STATUS_SUCCESS || !dsresult) PyWin_SetAPIError("DsCrackNames", err);
-    else ret = PyObject_FromDS_NAME_RESULT(dsresult);
+    Py_BEGIN_ALLOW_THREADS
+        err = DsCrackNames(dshandle, flags, formatOffered, formatDesired, cnames, names, &dsresult);
+    Py_END_ALLOW_THREADS
+    if (err != STATUS_SUCCESS || !dsresult)
+        PyWin_SetAPIError("DsCrackNames", err);
+    else
+        ret = PyObject_FromDS_NAME_RESULT(dsresult);
 done:
     PyWinObject_FreeWCHARArray(names, cnames);
     if (dsresult)
-        (*pfnDsFreeNameResult)(dsresult);
+        DsFreeNameResult(dsresult);
     return ret;
 }
 
@@ -307,9 +301,6 @@ PyObject *PyDsListInfoForServer(PyObject *self, PyObject *args)
     PyObject *ret = NULL, *obhandle;
     PDS_NAME_RESULT dsresult = NULL;
     WCHAR *name = NULL;
-
-    CHECK_PFN(DsListInfoForServer);
-    CHECK_PFN(DsFreeNameResult);
     // @pyparm int|hds||
     // @pyparm <o PyUnicode>|server||
     if (!PyArg_ParseTuple(args, "OO:DsListInfoForServer", &obhandle, &obName))
@@ -318,13 +309,17 @@ PyObject *PyDsListInfoForServer(PyObject *self, PyObject *args)
         return NULL;
     if (!PyWinObject_AsWCHAR(obName, &name))
         goto done;
-    Py_BEGIN_ALLOW_THREADS err = (*pfnDsListInfoForServer)(dshandle, name, &dsresult);
-    Py_END_ALLOW_THREADS if (err != STATUS_SUCCESS || !dsresult) PyWin_SetAPIError("DsListInfoForServer", err);
-    else ret = PyObject_FromDS_NAME_RESULT(dsresult);
+    Py_BEGIN_ALLOW_THREADS
+        err = DsListInfoForServer(dshandle, name, &dsresult);
+    Py_END_ALLOW_THREADS
+    if (err != STATUS_SUCCESS || !dsresult)
+        PyWin_SetAPIError("DsListInfoForServer", err);
+    else
+        ret = PyObject_FromDS_NAME_RESULT(dsresult);
 done:
     PyWinObject_FreeWCHAR(name);
     if (dsresult)
-        (*pfnDsFreeNameResult)(dsresult);
+        DsFreeNameResult(dsresult);
     return ret;
 }
 
@@ -336,9 +331,6 @@ PyObject *PyDsListServersForDomainInSite(PyObject *self, PyObject *args)
     PyObject *ret = NULL, *obhandle;
     PDS_NAME_RESULT dsresult = NULL;
     WCHAR *name = NULL, *site = NULL;
-
-    CHECK_PFN(DsListServersForDomainInSite);
-    CHECK_PFN(DsFreeNameResult);
     // @pyparm int|hds||
     // @pyparm <o PyUnicode>|sute||
     if (!PyArg_ParseTuple(args, "OOO:DsListServersForDomainInSite", &obhandle, &obName, &obSite))
@@ -349,14 +341,18 @@ PyObject *PyDsListServersForDomainInSite(PyObject *self, PyObject *args)
         goto done;
     if (!PyWinObject_AsWCHAR(obSite, &site))
         goto done;
-    Py_BEGIN_ALLOW_THREADS err = (*pfnDsListServersForDomainInSite)(dshandle, name, site, &dsresult);
-    Py_END_ALLOW_THREADS if (err != STATUS_SUCCESS || !dsresult) PyWin_SetAPIError("DsListServersForDomainInSite", err);
-    else ret = PyObject_FromDS_NAME_RESULT(dsresult);
+    Py_BEGIN_ALLOW_THREADS
+        err = DsListServersForDomainInSite(dshandle, name, site, &dsresult);
+    Py_END_ALLOW_THREADS
+    if (err != STATUS_SUCCESS || !dsresult)
+        PyWin_SetAPIError("DsListServersForDomainInSite", err);
+    else
+        ret = PyObject_FromDS_NAME_RESULT(dsresult);
 done:
     PyWinObject_FreeWCHAR(name);
     PyWinObject_FreeWCHAR(site);
     if (dsresult)
-        (*pfnDsFreeNameResult)(dsresult);
+        DsFreeNameResult(dsresult);
     return ret;
 }
 
@@ -368,9 +364,6 @@ PyObject *PyDsListServersInSite(PyObject *self, PyObject *args)
     PyObject *ret = NULL, *obhandle;
     PDS_NAME_RESULT dsresult = NULL;
     WCHAR *name = NULL;
-
-    CHECK_PFN(DsListServersInSite);
-    CHECK_PFN(DsFreeNameResult);
     // @pyparm int|hds||
     // @pyparm <o PyUnicode>|sute||
     if (!PyArg_ParseTuple(args, "OO:DsListServersInSite", &obhandle, &obName))
@@ -379,13 +372,17 @@ PyObject *PyDsListServersInSite(PyObject *self, PyObject *args)
         return NULL;
     if (!PyWinObject_AsWCHAR(obName, &name))
         goto done;
-    Py_BEGIN_ALLOW_THREADS err = (*pfnDsListServersInSite)(dshandle, name, &dsresult);
-    Py_END_ALLOW_THREADS if (err != STATUS_SUCCESS || !dsresult) PyWin_SetAPIError("DsListServersInSite", err);
-    else ret = PyObject_FromDS_NAME_RESULT(dsresult);
+    Py_BEGIN_ALLOW_THREADS
+        err = DsListServersInSite(dshandle, name, &dsresult);
+    Py_END_ALLOW_THREADS
+    if (err != STATUS_SUCCESS || !dsresult)
+        PyWin_SetAPIError("DsListServersInSite", err);
+    else
+        ret = PyObject_FromDS_NAME_RESULT(dsresult);
 done:
     PyWinObject_FreeWCHAR(name);
     if (dsresult)
-        (*pfnDsFreeNameResult)(dsresult);
+        DsFreeNameResult(dsresult);
     return ret;
 }
 
@@ -395,19 +392,20 @@ PyObject *PyDsListSites(PyObject *self, PyObject *args)
     HANDLE dshandle;
     PyObject *ret = NULL, *obhandle;
     PDS_NAME_RESULT dsresult = NULL;
-
-    CHECK_PFN(DsListSites);
-    CHECK_PFN(DsFreeNameResult);
     // @pyparm int|hds||
     if (!PyArg_ParseTuple(args, "O:DsListSites", &obhandle))
         return NULL;
     if (!PyWinObject_AsHANDLE(obhandle, &dshandle))
         return NULL;
-    Py_BEGIN_ALLOW_THREADS err = (*pfnDsListSites)(dshandle, &dsresult);
-    Py_END_ALLOW_THREADS if (err != STATUS_SUCCESS || !dsresult) PyWin_SetAPIError("DsListSites", err);
-    else ret = PyObject_FromDS_NAME_RESULT(dsresult);
+    Py_BEGIN_ALLOW_THREADS
+        err = DsListSites(dshandle, &dsresult);
+    Py_END_ALLOW_THREADS
+    if (err != STATUS_SUCCESS || !dsresult)
+        PyWin_SetAPIError("DsListSites", err);
+    else
+        ret = PyObject_FromDS_NAME_RESULT(dsresult);
     if (dsresult)
-        (*pfnDsFreeNameResult)(dsresult);
+        DsFreeNameResult(dsresult);
     return ret;
 }
 
@@ -417,19 +415,20 @@ PyObject *PyDsListRoles(PyObject *self, PyObject *args)
     HANDLE dshandle;
     PyObject *ret = NULL, *obhandle;
     PDS_NAME_RESULT dsresult = NULL;
-
-    CHECK_PFN(DsListRoles);
-    CHECK_PFN(DsFreeNameResult);
     // @pyparm int|hds||
     if (!PyArg_ParseTuple(args, "O:DsListRoles", &obhandle))
         return NULL;
     if (!PyWinObject_AsHANDLE(obhandle, &dshandle))
         return NULL;
-    Py_BEGIN_ALLOW_THREADS err = (*pfnDsListRoles)(dshandle, &dsresult);
-    Py_END_ALLOW_THREADS if (err != STATUS_SUCCESS || !dsresult) PyWin_SetAPIError("DsListRoles", err);
-    else ret = PyObject_FromDS_NAME_RESULT(dsresult);
+    Py_BEGIN_ALLOW_THREADS
+        err = DsListRoles(dshandle, &dsresult);
+    Py_END_ALLOW_THREADS
+    if (err != STATUS_SUCCESS || !dsresult)
+        PyWin_SetAPIError("DsListRoles", err);
+    else
+        ret = PyObject_FromDS_NAME_RESULT(dsresult);
     if (dsresult)
-        (*pfnDsFreeNameResult)(dsresult);
+        DsFreeNameResult(dsresult);
     return ret;
 }
 
@@ -441,9 +440,6 @@ PyObject *PyDsListDomainsInSite(PyObject *self, PyObject *args)
     PyObject *ret = NULL, *obhandle;
     PDS_NAME_RESULT dsresult = NULL;
     WCHAR *name = NULL;
-
-    CHECK_PFN(DsListDomainsInSite);
-    CHECK_PFN(DsFreeNameResult);
     // @pyparm int|hds||
     // @pyparm <o PyUnicode>|site||
     if (!PyArg_ParseTuple(args, "OO:DsListDomainsInSite", &obhandle, &obName))
@@ -452,12 +448,16 @@ PyObject *PyDsListDomainsInSite(PyObject *self, PyObject *args)
         return NULL;
     if (!PyWinObject_AsWCHAR(obName, &name))
         goto done;
-    Py_BEGIN_ALLOW_THREADS err = (*pfnDsListDomainsInSite)(dshandle, name, &dsresult);
-    Py_END_ALLOW_THREADS if (err != STATUS_SUCCESS || !dsresult) PyWin_SetAPIError("DsListDomainsInSite", err);
-    else ret = PyObject_FromDS_NAME_RESULT(dsresult);
+    Py_BEGIN_ALLOW_THREADS
+        err = DsListDomainsInSite(dshandle, name, &dsresult);
+    Py_END_ALLOW_THREADS
+    if (err != STATUS_SUCCESS || !dsresult)
+        PyWin_SetAPIError("DsListDomainsInSite", err);
+    else
+        ret = PyObject_FromDS_NAME_RESULT(dsresult);
 done:
     PyWinObject_FreeWCHAR(name);
     if (dsresult)
-        (*pfnDsFreeNameResult)(dsresult);
+        DsFreeNameResult(dsresult);
     return ret;
 }

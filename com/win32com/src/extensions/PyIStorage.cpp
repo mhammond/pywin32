@@ -19,7 +19,7 @@ PyIStorage::~PyIStorage() {}
 /* static */ IStorage *PyIStorage::GetI(PyObject *self) { return (IStorage *)PyIUnknown::GetI(self); }
 
 // @pymethod <o PyIStream>|PyIStorage|CreateStream|Creates and opens a stream object with the specified name contained
-// in this storage object. All elements within a storage object — both streams and other storage objects — are kept in
+// in this storage object. All elements within a storage object, both streams and other storage objects, are kept in
 // the same name space.
 PyObject *PyIStorage::CreateStream(PyObject *self, PyObject *args)
 {

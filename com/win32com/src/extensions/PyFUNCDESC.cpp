@@ -30,7 +30,7 @@ PyObject *PyObject_FromFUNCDESC(FUNCDESC *desc) { return new PyFUNCDESC(desc); }
 BOOL PyObject_AsFUNCDESC(PyObject *ob, FUNCDESC **ppfd)
 {
     BOOL rc = FALSE;
-    if (ob->ob_type != &PyFUNCDESC::Type) {
+    if (Py_TYPE(ob) != &PyFUNCDESC::Type) {
         PyErr_SetString(PyExc_TypeError, "The object is not a PyFUNCDESC");
         return FALSE;
     }

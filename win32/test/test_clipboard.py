@@ -116,11 +116,6 @@ class TestGlobalMemory(unittest.TestCase):
     def test_bad_mem(self):
         self.assertRaises(pywintypes.error, GetGlobalMemory, 0)
         self.assertRaises(pywintypes.error, GetGlobalMemory, -1)
-        if sys.getwindowsversion()[0] <= 5:
-            # For some reason, the value '1' dies from a 64bit process, but
-            # "works" (ie, gives the correct exception) from a 32bit process.
-            # just silently skip this value on Vista.
-            self.assertRaises(pywintypes.error, GetGlobalMemory, 1)
 
     def test_custom_mem(self):
         test_data = b"hello\x00\xff"

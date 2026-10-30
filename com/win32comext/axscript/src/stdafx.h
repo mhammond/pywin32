@@ -4,11 +4,6 @@
 //
 
 #include <limits.h>
-
-#if defined(MAINWIN) && defined(_POSIX_C_SOURCE)
-#undef _POSIX_C_SOURCE
-#endif
-
 #include <Python.h>
 
 // Must come after Python headers.

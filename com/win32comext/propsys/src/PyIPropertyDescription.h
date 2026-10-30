@@ -7,7 +7,7 @@
 #include "PythonCOM.h"
 #include "PythonCOMServer.h"
 #include "propsys.h"
-#include "Shobjidl.h"
+#include "shobjidl.h"
 
 class PyIPropertyDescription : public PyIUnknown {
    public:

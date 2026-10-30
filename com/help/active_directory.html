@@ -83,9 +83,11 @@ Later we'll add information about managing users and computers.
 
 <h3><a name="discovery">Discovery</a></h3>
 <p>
-A tool that can be of a great help is ADSIedit which is in the Windows
-2000 support tools on the Windows 2000 server cdrom. It gives you the
-	raw ldap view of active directory.</p>
+A tool that can be of a great help is the ADSI Edit MMC snap-in, aka <b>ADSIEdit.msc</b>. See
+<a href="https://www.microsoft.com/en-us/download/details.aspx?id=45520"
+>Remote Server Administration Tools for Windows 10</a> for installation instructions.
+It gives you the raw ldap view of active directory.
+Note that it is not available for the Home edition of Windows.</p>
 <code>
 def discover():
     Here is a function that helps you determine the active directory ldap strings that you can actually use.

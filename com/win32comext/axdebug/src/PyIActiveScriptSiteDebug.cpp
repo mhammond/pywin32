@@ -23,16 +23,25 @@ PyObject *PyIActiveScriptSiteDebug::GetDocumentContextFromPosition(PyObject *sel
 {
     PY_INTERFACE_METHOD;
     IActiveScriptSiteDebug *pIASSD = GetI(self);
-    if (pIASSD == NULL)
+    if (pIASSD == NULL) {
         return NULL;
+    }
     // @pyparm int|dwSourceContext||Description for dwSourceContext
     // @pyparm int|uCharacterOffset||Description for uCharacterOffset
     // @pyparm int|uNumChars||Description for uNumChars
+#ifdef _WIN64
+    DWORDLONG dwSourceContext;
+    ULONG uCharacterOffset;
+    ULONG uNumChars;
+    IDebugDocumentContext *ppsc;
+    if (!PyArg_ParseTuple(args, "Kii:GetDocumentContextFromPosition", &dwSourceContext, &uCharacterOffset, &uNumChars))
+#else
     DWORD dwSourceContext;
     ULONG uCharacterOffset;
     ULONG uNumChars;
     IDebugDocumentContext *ppsc;
     if (!PyArg_ParseTuple(args, "iii:GetDocumentContextFromPosition", &dwSourceContext, &uCharacterOffset, &uNumChars))
+#endif
         return NULL;
     PY_INTERFACE_PRECALL;
     HRESULT hr = pIASSD->GetDocumentContextFromPosition(dwSourceContext, uCharacterOffset, uNumChars, &ppsc);
@@ -138,7 +147,11 @@ STDMETHODIMP PyGActiveScriptSiteDebug::GetDocumentContextFromPosition(
         return E_POINTER;
     PyObject *result;
     HRESULT hr =
+#ifdef _WIN64
+        InvokeViaPolicy("GetDocumentContextFromPosition", &result, "Kii", dwSourceContext, uCharacterOffset, uNumChars);
+#else
         InvokeViaPolicy("GetDocumentContextFromPosition", &result, "iii", dwSourceContext, uCharacterOffset, uNumChars);
+#endif
     if (FAILED(hr))
         return hr;
     // Process the Python results, and convert back to the real params

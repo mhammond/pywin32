@@ -31,14 +31,14 @@
 
 #ifdef WIN32GUI  // being compiled from WIN32GUI
 #define PYW_EXPORT
-#include "python.h"
+#include "Python.h"
 #undef PyHANDLE
 #include <windows.h>
-#include "CommCtrl.h"
+#include "commctrl.h"
 #include "windowsx.h"  // For edit control hacks.
 
-#include "pywintypes.h"
-#include "pywinobjects.h"
+#include "PyWinTypes.h"
+#include "PyWinObjects.h"
 #include "tchar.h"
 
 #define BASED_CODE
@@ -47,7 +47,7 @@
 #endif
 
 #else  // else being compiled from WIN32UI
-#include "..\..\pythonwin\stdafx.h"
+#include "../../pythonwin/stdafx.h"
 #endif
 
 #include "win32dynamicdialog.h"
@@ -211,7 +211,7 @@ void CPythonDialogTemplate::Set(DLGTEMPLATE *tmpl)
 
 HGLOBAL CPythonDialogTemplate::ClaimTemplate()
 {
-    register HGLOBAL h = m_h;
+    HGLOBAL h = m_h;
     m_h = NULL;
     m_alloc = 0;
     m_len = 0;
@@ -628,7 +628,7 @@ PYW_EXPORT HGLOBAL MakeResourceFromDlgList(PyObject *tmpl)
     if (dlg == NULL)
         return NULL;
 
-    for (register Py_ssize_t i = 1; i < size; i++) {
+    for (Py_ssize_t i = 1; i < size; i++) {
         if (!ParseDlgItemList(dlg, PyTuple_GET_ITEM(obdlg, i))) {
             delete dlg;
             Py_DECREF(obdlg);

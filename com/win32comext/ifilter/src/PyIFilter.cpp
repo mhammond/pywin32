@@ -163,9 +163,9 @@ static PyObject *pyLoadIFilter(PyObject *self, PyObject *args)
     if (!PyWinObject_AsWCHAR(obPath, &path, FALSE))
         goto done;
 
-    Py_BEGIN_ALLOW_THREADS;
-    hr = LoadIFilter(path, NULL, (void **)&pOb);
-    Py_END_ALLOW_THREADS;
+    Py_BEGIN_ALLOW_THREADS
+        hr = LoadIFilter(path, NULL, (void **)&pOb);
+    Py_END_ALLOW_THREADS
     if (FAILED(hr))
         ret = OleSetOleError(hr);
 
@@ -195,10 +195,10 @@ static PyObject *pyBindIFilterFromStorage(PyObject *self, PyObject *args)
     if (!bPythonIsHappy)
         return NULL;
 
-    Py_BEGIN_ALLOW_THREADS;
-    hr = BindIFilterFromStorage(pstgDest, NULL, (void **)&pOb);
-    pstgDest->Release();
-    Py_END_ALLOW_THREADS;
+    Py_BEGIN_ALLOW_THREADS
+        hr = BindIFilterFromStorage(pstgDest, NULL, (void **)&pOb);
+        pstgDest->Release();
+    Py_END_ALLOW_THREADS
     if (FAILED(hr))
         ret = OleSetOleError(hr);
 
@@ -227,10 +227,10 @@ static PyObject *pyBindIFilterFromStream(PyObject *self, PyObject *args)
     if (!bPythonIsHappy)
         return NULL;
 
-    Py_BEGIN_ALLOW_THREADS;
-    hr = BindIFilterFromStream(pstm, NULL, (void **)&pOb);
-    pstm->Release();
-    Py_END_ALLOW_THREADS;
+    Py_BEGIN_ALLOW_THREADS
+        hr = BindIFilterFromStream(pstm, NULL, (void **)&pOb);
+        pstm->Release();
+    Py_END_ALLOW_THREADS
     if (FAILED(hr))
         ret = OleSetOleError(hr);
     else
@@ -299,7 +299,7 @@ PYWIN_MODULE_INIT_FUNC(ifilter)
     // query.dll
     HMODULE hmod = GetModuleHandle(_T("query.dll"));
     if (hmod)
-        // According to FiltErr.h, "Codes 0x1700-0x172F are reserved for FILTER"
+        // According to filterr.h, "Codes 0x1700-0x172F are reserved for FILTER"
         PyWin_RegisterErrorMessageModule(0x80041700, 0x8004172F, hmod);
 
     // NOTE: New constants should go in ifiltercon.py

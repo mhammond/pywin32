@@ -79,7 +79,7 @@ BOOL PyWinObject_AsHCRYPTKEY(PyObject *obhcryptkey, HCRYPTKEY *hcryptkey, BOOL b
         *hcryptkey = NULL;
         return true;
     }
-    if (obhcryptkey->ob_type != &PyCRYPTKEYType) {
+    if (Py_TYPE(obhcryptkey) != &PyCRYPTKEYType) {
         PyErr_SetString(PyExc_TypeError, "Object must be of type PyCRYPTKEY");
         return FALSE;
     }
