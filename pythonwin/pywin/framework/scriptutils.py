@@ -436,7 +436,7 @@ def ImportFile():
     # note that some packages (*cough* email *cough*) use "lazy importers"
     # meaning sys.modules can change as a side-effect of looking at
     # module.__file__ - so we must take a copy (ie, list(items()))
-    for key, mod in sys.modules.items():
+    for key, mod in list(sys.modules.items()):
         if fname := getattr(mod, "__file__", ""):
             if fname.endswith(".pyc"):
                 fname = fname[:-1]

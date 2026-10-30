@@ -101,8 +101,8 @@ class ScintillaControlInterface:
         # If style is specified, text is a normal string, and the style is
         # assumed to apply to the entire string.
         if style is not None:
-            text = list(map(lambda char, style=style: char + chr(style), text))
-            text = "".join(text)
+            style_char = chr(style)
+            text = "".join([char + style_char for char in text])
         self.SendMessage(
             scintillacon.SCI_ADDSTYLEDTEXT, text.encode(default_scintilla_encoding)
         )

@@ -113,7 +113,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@v10.3.0
         with:
           python-version: ${{ matrix.python-version }}
           activate-environment: true
@@ -190,7 +190,7 @@ jobs:
     timeout-minutes: *timeout-minutes
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v7
+      - uses: astral-sh/setup-uv@v10.3.0
         with:
           # This job only needs to target the oldest supported version
           python-version: "3.9"
@@ -228,7 +228,7 @@ jobs:
         python-version: ["3.9", "3.15"]
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v7
+      - uses: astral-sh/setup-uv@v10.3.0
         with:
           python-version: ${{ matrix.python-version }}
           activate-environment: true
