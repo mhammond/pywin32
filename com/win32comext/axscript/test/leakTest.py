@@ -109,7 +109,7 @@ bad code for everyone!
 """
 
 
-def TestEngine(engineName, code, bShouldWork=1):
+def TestEngine(engineName, code, bShouldWork=True):
     echoer = Test()
     model = {
         "test": util.wrap(echoer),

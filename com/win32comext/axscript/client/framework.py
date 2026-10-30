@@ -137,7 +137,7 @@ class AXScriptCodeBlock:
         self.sourceContextCookie = sourceContextCookie
         self.startLineNumber = startLineNumber
         self.flags = flags
-        self.beenExecuted = 0
+        self.beenExecuted = False
 
     def GetFileName(self):
         # Gets the "file name" for Python - uses <...> so Python doesn't think
@@ -912,7 +912,7 @@ class COMScript:
         # Get the win32com gencache to register this library.
         from win32com.client import gencache
 
-        gencache.EnsureModule(uuid, self.lcid, major, minor, bForDemand=1)
+        gencache.EnsureModule(uuid, self.lcid, major, minor, bForDemand=True)
 
     # This is never called by the C++ framework - it does magic.
     # See PyGActiveScript.cpp
@@ -1153,7 +1153,7 @@ class COMScript:
         assert not codeBlock.beenExecuted, (
             "This code block should not have been executed"
         )
-        codeBlock.beenExecuted = 1
+        codeBlock.beenExecuted = True
         self.BeginScriptedSection()
         try:
             try:
@@ -1181,7 +1181,7 @@ class COMScript:
         assert not codeBlock.beenExecuted, (
             "This code block should not have been executed"
         )
-        codeBlock.beenExecuted = 1
+        codeBlock.beenExecuted = True
         self.BeginScriptedSection()
         try:
             try:

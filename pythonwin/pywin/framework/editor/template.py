@@ -45,7 +45,7 @@ class EditorTemplateBase(ParentEditorTemplate):
 
         return [configui.EditorPropertyPage(), configui.EditorWhitespacePropertyPage()]
 
-    def OpenDocumentFile(self, filename, bMakeVisible=1):
+    def OpenDocumentFile(self, filename, bMakeVisible=True):
         if filename is not None:
             try:
                 path = os.path.split(filename)[0]

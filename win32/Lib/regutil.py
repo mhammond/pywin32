@@ -186,7 +186,7 @@ def GetRegisteredHelpFile(helpDesc):
     return None
 
 
-def RegisterHelpFile(helpFile, helpPath, helpDesc=None, bCheckFile=1):
+def RegisterHelpFile(helpFile, helpPath, helpDesc=None, bCheckFile=True):
     """Register a help file in the registry.
 
       Note that this used to support writing to the Windows Help

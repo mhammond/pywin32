@@ -56,7 +56,7 @@ class Dialog(window.Wnd):
         self._obj_.OnCancel()
 
     def OnInitDialog(self):
-        self.bHaveInit = 1
+        self.bHaveInit = True
         if self._obj_.data:
             self._obj_.UpdateData(0)
         return 1  # I did NOT set focus to a child window.
