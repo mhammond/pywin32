@@ -11,11 +11,12 @@ checkers = [ # Keep these in sync with .pre-commit-config.yaml
   "ruff ==0.14.14",
 ]
 type-checkers = [
+  "types-pywin32 >=3.11; sys_platform != 'win32'", # Non-Windows systems can't even install pywin32 for local development, so no choice to rely on external static stubs
   "setuptools >=83.0.0; python_version >= '3.10'", # setuptools/_distutils vendor is py.typed
-  "types-setuptools",
+  "types-setuptools >=80.9.0.20251221",
   "PyOpenGL",
-  "mypy ==1.16.*; python_version >='3.9'",
-  "pyright ==1.1.401",
+  "mypy ==1.20.*; python_version >='3.10'",
+  "pyright ==1.1.409",
 ]
 dev = [
   "pre-commit",

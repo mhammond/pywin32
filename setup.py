@@ -886,7 +886,7 @@ class MyCygwinCompiler(BaseCygwinCompiler):
         ) -> tuple[
             list[_Macro],
             list[str],
-            str | list[str],
+            list[str],
             list[str],
             dict[str, tuple[str, str]],
         ]: ...
