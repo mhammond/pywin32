@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import sys
 from itertools import chain
+from typing import Any
 
 import pythoncom
 import pywintypes
@@ -583,7 +584,7 @@ class DispatchBaseClass:
             resultCLSID,
         )
 
-    def __getattr__(self, attr):
+    def __getattr__(self, attr) -> Any:
         args = self._prop_map_get_.get(attr)
         if args is None:
             raise AttributeError(f"'{self!r}' object has no attribute '{attr}'")

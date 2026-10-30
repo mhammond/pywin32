@@ -11,6 +11,9 @@
 # #  Skip down to the next "# #" line --
 # #  -- the things you need to change are below it.
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+from __future__ import annotations
+
+import os
 import platform
 import random
 import sys
@@ -22,16 +25,12 @@ import tryconnection
 print("\nPython", sys.version)
 node = platform.node()
 try:
-    print(
-        "node=%s, is64bit.os()= %s, is64bit.Python()= %s"
-        % (node, is64bit.os(), is64bit.Python())
-    )
+    print(f"{node=}, {is64bit.os()=}, {is64bit.Python()=}")
 except:
     pass
 
 if "--help" in sys.argv:
-    print(
-        """Valid command-line switches are:
+    print("""Valid command-line switches are:
     --package - create a temporary test package
     --all - run all possible tests
     --time - do time format test
@@ -39,8 +38,7 @@ if "--help" in sys.argv:
     --mssql - test against Microsoft SQL server
     --pg - test against PostgreSQL
     --mysql - test against MariaDB
-    """
-    )
+    """)
     exit()
 
 # create a random name for temporary table names
@@ -89,12 +87,17 @@ doTimeTest = ("--time" in sys.argv or doAllTests) and sys.platform == "win32"
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # # start your environment setup here v v v
-SQL_HOST_NODE = "testsql.2txt.us,1430"
+
+# TODO: Make SQL_HOST_NODE and user configurable from the command line,
+
+# if None, will use macro to fill in node name
+# SQL_HOST_NODE: str | None = "testsql.2txt.us,1430"
+SQL_HOST_NODE: str | None = None
 
 if doAccessTest:
-    c = {
+    c: dict[str, str | list[str] | None] = {
         "mdb": setuptestframework.makemdb(testfolder, mdb_name),
-        # macro definition for keyword "provider"  using macro "is64bit" -- see documentation
+        # macro definition for keyword "provider" using macro "is64bit" -- see documentation
         # is64bit will return true for 64 bit versions of Python, so the macro will select the ACE provider
         "macro_is64bit": [
             "provider",
@@ -112,16 +115,23 @@ if doAccessTest:
 
 if doSqlServerTest:
     c = {
-        "host": SQL_HOST_NODE,  # name of computer with SQL Server
+        **(
+            {"macro_getnode": ["host", r"%s\SQLEXPRESS"]}
+            if SQL_HOST_NODE is None  #
+            else {"host": SQL_HOST_NODE}
+        ),
         "database": "adotest",
-        "user": "adotestuser",  # None implies Windows security
+        # "user": "adotestuser",
+        "user": None,  # None implies Windows security
         "password": "Sq1234567",
         # macro definition for keyword "security" using macro "auto_security"
         "macro_auto_security": "security",
         "provider": "MSOLEDBSQL; MARS Connection=True",
     }
     connStr = "Provider=%(provider)s; Initial Catalog=%(database)s; Data Source=%(host)s; %(security)s;"
-    print("    ...Testing MS-SQL login to {}...".format(c["host"]))
+    print(
+        "    ...Testing MS-SQL login to {}...".format(c.get("host", "local SQLEXPRESS"))
+    )
     (
         doSqlServerTest,
         connStrSQLServer,
@@ -135,12 +145,12 @@ if doMySqlTest:
         "user": "adotest",
         "password": "12345678",
         "port": "3330",  # note the nonstandard port for obfuscation
-        "driver": "MySQL ODBC 5.1 Driver",
-    }  # or _driver="MySQL ODBC 3.51 Driver
-    c["macro_is64bit"] = [
-        "provider",
-        "Provider=MSDASQL;",
-    ]  # turn on the 64 bit ODBC adapter only if needed
+        "driver": "MySQL ODBC 5.1 Driver",  # or _driver="MySQL ODBC 3.51 Driver
+        "macro_is64bit": [  # turn on the 64 bit ODBC adapter only if needed
+            "provider",
+            "Provider=MSDASQL;",
+        ],
+    }
     cs = (
         "%(provider)sDriver={%(driver)s};Server=%(host)s;Port=3330;"
         + "Database=%(database)s;user=%(user)s;password=%(password)s;Option=3;"
@@ -156,12 +166,14 @@ if doPostgresTest:
     _databasename = "adotest"
     _username = "adotestuser"
     _password = "12345678"
-    kws = {"timeout": 4}
-    kws["macro_is64bit"] = [
-        "prov_drv",
-        "Provider=MSDASQL;Driver={PostgreSQL Unicode(x64)}",
-        "Driver=PostgreSQL Unicode",
-    ]
+    kws = {
+        "timeout": 4,
+        "macro_is64bit": [
+            "prov_drv",
+            "Provider=MSDASQL;Driver={PostgreSQL Unicode(x64)}",
+            "Driver=PostgreSQL Unicode",
+        ],
+    }
     # get driver from https://www.postgresql.org/ftp/odbc/releases/
     # test using positional and keyword arguments (bad example for real code)
     print("    ...Testing PostgreSQL login to {}...".format(_computername))
@@ -175,6 +187,10 @@ if doPostgresTest:
         **kws,
     )
 
-assert doAccessTest or doSqlServerTest or doMySqlTest or doPostgresTest, (
-    "No database engine found for testing"
-)
+# TODO: Eventually we want all tests to be run on CI and fail if one cannot be run
+# For now, we're still flexible on which tests can be run,
+# and allow CI to pass even if DB tests aren't run (time tests still are)
+if not os.environ["CI"]:
+    assert doAccessTest or doSqlServerTest or doMySqlTest or doPostgresTest, (
+        "No database engine found for testing"
+    )
