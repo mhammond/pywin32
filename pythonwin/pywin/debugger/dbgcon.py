@@ -20,7 +20,7 @@ def DoGetOption(optsDict, optName, default):
 
 
 def LoadDebuggerOptions():
-    opts = {}
+    opts: dict[str, str] = {}
     DoGetOption(opts, OPT_HIDE, 0)
     DoGetOption(opts, OPT_STOP_EXCEPTIONS, 1)
     return opts

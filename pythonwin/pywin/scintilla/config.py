@@ -8,6 +8,8 @@
 # .py file, and put the config info in a docstring.  Then
 # pass a CStringIO file (rather than a filename) to the
 # config manager.
+from __future__ import annotations
+
 import glob
 import importlib.util
 import marshal
@@ -35,7 +37,7 @@ else:
 compiled_config_version = 3
 
 
-def split_line(line, lineno):
+def split_line(line: str, lineno: int):
     comment_pos = line.find("#")
     if comment_pos >= 0:
         line = line[:comment_pos]
@@ -269,7 +271,7 @@ class ConfigManager:
         return data
 
     def _load_general(self, sub_section, fp, lineno):
-        map = {}
+        map: dict[str, list[str | None]] = {}
         while 1:
             line, lineno, bBreak = self._readline(fp, lineno)
             if bBreak:
