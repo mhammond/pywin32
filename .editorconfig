@@ -6,10 +6,12 @@ insert_final_newline = true
 end_of_line = crlf
 indent_style = space
 indent_size = 4
-max_line_length = 120 # Same as .clang-format
+# Same as .clang-format
+max_line_length = 120
 
 [*.py]
-max_line_length = 88 # Same as Ruff's default
+# Same as Ruff's default
+max_line_length = 88
 
 [*.{md,patch,diff}]
 max_line_length = off
@@ -17,3 +19,6 @@ trim_trailing_whitespace = false
 
 [*.{yaml,yml,json,toml,clang-format,vcxproj}]
 indent_size = 2
+
+[*.sh]
+end_of_line = lf
