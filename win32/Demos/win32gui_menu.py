@@ -14,6 +14,7 @@ import struct
 import sys
 
 import win32con
+import win32gui
 from win32api import GetSystemDirectory, GetSystemMetrics
 from win32gui import (
     LOWORD,
