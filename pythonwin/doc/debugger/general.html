@@ -20,33 +20,33 @@
 <H2><A NAME="Debugger_Interface">Debugger Interface</A></H2>
 <P>The debugger is based on the standard Python debugging modules. It is suggested you read the documentation on the "<CODE>pdb</CODE>" and "<CODE>bdb</CODE>" modules. This documentation can be located in the standard Python documentation: </P>
 <P>The package exports the following functions: </P>
-<CODE><P>GetDebugger()</CODE> </P><DIR>
+<PRE><CODE>GetDebugger()</CODE></PRE><DIR>
 <DIR>
 
 <P>Returns a debugger object. If there is already a debugger, then this function returns it (re-creating its window, if necessary). If there is no current debugger, a debugger is created. </P></DIR>
 </DIR>
 
 <P>The following functions operate almost identically to those described in the <CODE>pdb</CODE> documentation </P>
-<CODE><P>set_trace()<BR>
-brk() # alternative name</CODE> </P><DIR>
+<PRE><CODE>set_trace()
+brk() # alternative name</CODE></PRE><DIR>
 <DIR>
 
 <P>Like a hard-coded break-point, this function creates a debugger if necessary, and stops at the following statement. Note - putting this statement as the last line of a function may cause you to stop at an unexpected place! </P></DIR>
 </DIR>
 
-<CODE><P>post_mortem(traceback, exception_type = None, exception_value = None)</CODE> </P><DIR>
+<PRE><CODE>post_mortem(traceback, exception_type = None, exception_value = None)</CODE></PRE><DIR>
 <DIR>
 
 <P>Perform post-mortem debugging of the passed traceback. This is useful for analysing the conditions that lead up to an exception. </P></DIR>
 </DIR>
 
-<CODE><P>run(cmd, globals=None, locals=None)</CODE> </P><DIR>
+<PRE><CODE>run(cmd, globals=None, locals=None)</CODE></PRE><DIR>
 <DIR>
 
 <P>Begin debugging the command, in the globals and locals context. </P></DIR>
 </DIR>
 
-<CODE><P>runeval(expression, globals=None, locals=None)</CODE> </P><DIR>
+<PRE><CODE>runeval(expression, globals=None, locals=None)</CODE></PRE><DIR>
 <DIR>
 
 <P>Like "<CODE>run</CODE>" but treats the string as an expression to be evaluated. </P></DIR>
