@@ -4,8 +4,8 @@ import win32ui
 
 MAPVK_VK_TO_CHAR = 2
 
-key_name_to_vk = {}
-key_code_to_name = {}
+key_name_to_vk: dict[str, int] = {}
+key_code_to_name: dict[int, str] = {}
 
 _better_names = {
     "escape": "esc",

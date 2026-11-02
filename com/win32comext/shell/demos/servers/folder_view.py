@@ -5,14 +5,11 @@
 # than our own.
 # XXX - sadly, it doesn't work quite like the original sample.  Oh well,
 # another day...
-from __future__ import annotations
-
 import os
 import pickle
 import random
 import struct
 import winreg
-from typing import ClassVar
 
 import commctrl
 import pythoncom
@@ -306,7 +303,7 @@ class FolderViewCategorizer:
     _com_interfaces_ = [shell.IID_ICategorizer]
     _public_methods_ = shellcon.ICategorizer_Methods
 
-    description: ClassVar[str | None] = None  # subclasses should set their own
+    description = None  # subclasses should set their own
 
     def __init__(self, shell_folder):
         self.sf = shell_folder

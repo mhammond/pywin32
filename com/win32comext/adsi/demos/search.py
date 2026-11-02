@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import pythoncom
 import pywintypes
 from win32com.adsi import adsi, adsicon
@@ -7,10 +5,10 @@ from win32com.adsi.adsicon import *
 
 options = None  # set to optparse options object
 
-ADsTypeNameMap: dict[int, str] = {}
+ADsTypeNameMap = {}
 
 
-def getADsTypeName(type_val: int):
+def getADsTypeName(type_val):
     # convert integer type to the 'typename' as known in the headerfiles.
     if not ADsTypeNameMap:
         for n, v in adsicon.__dict__.items():

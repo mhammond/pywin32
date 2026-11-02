@@ -34,8 +34,6 @@
 # The rest are tested here.
 
 
-from typing import ClassVar
-
 import pythoncom
 from win32com.server.util import wrap
 
@@ -66,16 +64,12 @@ def FailObjectIdentity(ob1, ob2, when):
 
 
 class Dummy:
-    _public_methods_: ClassVar[
-        list[str]
-    ] = []  # We never attempt to make a call on this object.
+    _public_methods_ = []  # We never attempt to make a call on this object.
     _com_interfaces_ = [pythoncom.IID_IPersistStorage]
 
 
 class Dummy2:
-    _public_methods_: ClassVar[
-        list[str]
-    ] = []  # We never attempt to make a call on this object.
+    _public_methods_ = []  # We never attempt to make a call on this object.
     _com_interfaces_ = [
         pythoncom.IID_IPersistStorage,
         pythoncom.IID_IExternalConnection,
@@ -83,13 +77,11 @@ class Dummy2:
 
 
 class DelegatedDummy:
-    _public_methods_: ClassVar[list[str]] = []
+    _public_methods_ = []
 
 
 class Dummy3:
-    _public_methods_: ClassVar[
-        list[str]
-    ] = []  # We never attempt to make a call on this object.
+    _public_methods_ = []  # We never attempt to make a call on this object.
     _com_interfaces_ = [pythoncom.IID_IPersistStorage]
 
     def _query_interface_(self, iid):

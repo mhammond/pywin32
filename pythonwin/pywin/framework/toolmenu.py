@@ -6,7 +6,7 @@ import win32api
 import win32con
 import win32ui
 
-tools = {}
+tools: dict[int, tuple[str, str, str]] = {}
 idPos = 100
 
 # The default items should no tools menu exist in the INI file.

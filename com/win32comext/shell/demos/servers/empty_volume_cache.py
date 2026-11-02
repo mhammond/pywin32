@@ -3,8 +3,6 @@
 #
 # * Execute this script to register the handler
 # * Start the "disk cleanup" tool - look for "pywin32 compiled files"
-from __future__ import annotations
-
 import os
 import stat
 import sys
@@ -25,7 +23,7 @@ ico = os.path.join(sys.prefix, "py.ico")
 if not os.path.isfile(ico):
     ico = os.path.join(sys.prefix, "PC", "py.ico")
 if not os.path.isfile(ico):
-    ico = ""
+    ico = None
     print("Can't find python.ico - no icon will be installed")
 
 
@@ -33,7 +31,7 @@ class EmptyVolumeCache:
     _reg_progid_ = "Python.ShellExtension.EmptyVolumeCache"
     _reg_desc_ = "Python Sample Shell Extension (disk cleanup)"
     _reg_clsid_ = "{EADD0777-2968-4c72-A999-2BF5F756259C}"
-    _reg_icon_ = ico or None
+    _reg_icon_ = ico
     _com_interfaces_ = [shell.IID_IEmptyVolumeCache, shell.IID_IEmptyVolumeCache2]
     _public_methods_ = IEmptyVolumeCache_Methods + IEmptyVolumeCache2_Methods
 
@@ -70,7 +68,7 @@ class EmptyVolumeCache:
 
         return (
             "pywin32 compiled files",
-            "Removes all .pyc and .pyo files in the pywin32 directories",
+            "Removes all .pyc files in the pywin32 directories",
             "click me!",
             flags,
         )
@@ -92,7 +90,7 @@ class EmptyVolumeCache:
         callback, total_list = arg
         for file in files:
             fqn = os.path.join(directory, file).lower()
-            if file.endswith(".pyc") or file.endswith(".pyo"):
+            if file.endswith(".pyc"):
                 # See below - total_list is None means delete files,
                 # otherwise it is a list where the result is stored. It's a
                 # list simply due to the way os.walk works - only [0] is

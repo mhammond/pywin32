@@ -76,7 +76,7 @@ _extra_event_commands = [
     ("DbgClose", win32ui.IDC_DBG_CLOSE),
 ]
 
-event_commands = []
+event_commands: list[tuple[str, int]] = []
 
 
 def _CreateEvents():

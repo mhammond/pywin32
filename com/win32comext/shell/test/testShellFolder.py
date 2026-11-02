@@ -1,5 +1,5 @@
 from win32com.shell import shell
-from win32comext.shell.shellcon import *
+from win32com.shell.shellcon import *
 
 sf = shell.SHGetDesktopFolder()
 print("Shell Folder is", sf)

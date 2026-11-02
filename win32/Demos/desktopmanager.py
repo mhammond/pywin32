@@ -1,5 +1,4 @@
 # Demonstrates using a taskbar icon to create and navigate between desktops
-from __future__ import annotations
 
 import _thread
 import io
@@ -116,7 +115,7 @@ def new_icon(hdesk, desktop_name):
         flags,
         win32con.WM_USER + 20,
         hicon,
-        f"Desktop Manager ({desktop_name})",
+        "Desktop Manager (%s)" % desktop_name,
     )
     window_info[hwnd] = notify_info
     ## wait for explorer to initialize system tray for new desktop
@@ -222,7 +221,7 @@ def icon_wndproc(hwnd, msg, wp, lp):
         return win32gui.DefWindowProc(hwnd, msg, wp, lp)
 
 
-window_info: dict[int, tuple[int, int, int, int, int, str]] = {}
+window_info = {}
 origin_desktop = win32service.OpenInputDesktop(0, True, win32con.MAXIMUM_ALLOWED)
 origin_desktop_name = win32service.GetUserObjectInformation(
     origin_desktop, win32service.UOI_NAME

@@ -55,7 +55,7 @@ def MakeDlgTemplate():
 #
 # Serial Control
 #
-class MySerialControl(activex.Control, serialModule.MSComm):  # type: ignore[name-defined] # Generated module
+class MySerialControl(activex.Control, serialModule.MSComm):
     def __init__(self, parent):
         activex.Control.__init__(self)
         serialModule.MSComm.__init__(self)

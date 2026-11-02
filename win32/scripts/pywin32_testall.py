@@ -10,7 +10,7 @@ import sys
 project_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 site_packages = [site.getusersitepackages()] + site.getsitepackages()
 
-failures = []
+failures: list[str] = []
 
 
 # Run a test using subprocess and wait for the result.
