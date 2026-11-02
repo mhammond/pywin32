@@ -45,6 +45,8 @@ if "FAILED(scode)" is TRUE.  You may need to change this if:
   to Python/COM
 """
 
+from __future__ import annotations
+
 import argparse
 import os
 import re
@@ -55,8 +57,8 @@ from . import makegwparse
 def make_framework_support(
     header_file_name,
     interface_name,
-    bMakeInterface=1,
-    bMakeGateway=1,
+    bMakeInterface=True,
+    bMakeGateway=True,
     output_directory=None,
 ):
     """Generate C++ code for a Python Interface and Gateway
@@ -559,7 +561,7 @@ def test():
 # python -m com.win32com.makegw.makegw -f "C:\Windows Kits\10\Include\10.0.19041.0\um\ShObjIdl_core.h" -n IFolderView1 -o com\win32comext\shell\src
 
 
-def parse_arguments():
+def parse_arguments() -> tuple[str, str, bool, bool, str | None]:
     parser = argparse.ArgumentParser(description="COM interface wrapper generator")
     parser.add_argument(
         "--header_file", "-f", required=True, help="header file (system) to parse"

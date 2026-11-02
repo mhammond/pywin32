@@ -246,7 +246,7 @@ class ConfigManager:
     def report_warning(self, msg):
         print(f"Warning in {self.filename}: {msg}")
 
-    def _readline(self, fp, lineno, bStripComments=1):
+    def _readline(self, fp, lineno, bStripComments=True):
         line = fp.readline()
         lineno += 1
         if line:

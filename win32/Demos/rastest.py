@@ -57,7 +57,7 @@ def HangUp(hras):
     return None
 
 
-def Connect(entryName, bUseCallback):
+def Connect(entryName, bUseCallback: bool):
     if bUseCallback:
         theCallback = Callback
         win32event.ResetEvent(callbackEvent)

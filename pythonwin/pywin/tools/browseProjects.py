@@ -44,7 +44,7 @@ class HLICLBRItem(hierlist.HierListItem):
     def TakeDefaultAction(self):
         if self.file:
             pywin.framework.scriptutils.JumpToDocument(
-                self.file, self.lineno, bScrollToTop=1
+                self.file, self.lineno, bScrollToTop=True
             )
         else:
             win32ui.SetStatusText("The source of this object is unknown")
@@ -164,7 +164,7 @@ def MakePathSubList(path):
 
 
 class HLIDirectoryItem(hierlist.HierListItem):
-    def __init__(self, path, displayName=None, bSubDirs=0):
+    def __init__(self, path, displayName=None, bSubDirs=False):
         hierlist.HierListItem.__init__(self)
         self.path = path
         self.bSubDirs = bSubDirs

@@ -152,7 +152,9 @@ LVN_ENDLABELEDIT = commctrl.LVN_ENDLABELEDITW
 
 class ToolMenuPropPage(dialog.PropertyPage):
     def __init__(self):
-        self.bImChangingEditControls = 0  # Am I programatically changing the controls?
+        self.bImChangingEditControls = (
+            False  # Am I programatically changing the controls?
+        )
         dialog.PropertyPage.__init__(self, win32ui.IDD_PP_TOOLMENU)
 
     def OnInitDialog(self):
@@ -232,12 +234,12 @@ class ToolMenuPropPage(dialog.PropertyPage):
         except win32ui.error:  # No selection!
             return
 
-        self.bImChangingEditControls = 1
+        self.bImChangingEditControls = True
         try:
             item = self.listControl.GetItem(itemNo, 1)
             self.editMenuCommand.SetWindowText(item[4])
         finally:
-            self.bImChangingEditControls = 0
+            self.bImChangingEditControls = False
 
         return 0  # we have handled this!
 

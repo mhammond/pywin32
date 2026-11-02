@@ -54,7 +54,7 @@ class HierListCLBRItem(hierlist.HierListItem):
     def TakeDefaultAction(self):
         if self.file:
             pywin.framework.scriptutils.JumpToDocument(
-                self.file, self.lineno, bScrollToTop=1
+                self.file, self.lineno, bScrollToTop=True
             )
         else:
             win32ui.SetStatusText("Can not locate the source code for this object.")
@@ -140,7 +140,7 @@ class BrowserView(pywin.mfc.docview.TreeView):
         self.list = None
         rc = self._obj_.OnInitialUpdate()
         self.HookMessage(self.OnSize, win32con.WM_SIZE)
-        self.bDirty = 0
+        self.bDirty = False
         self.destroying = 0
         return rc
 
@@ -219,7 +219,7 @@ class BrowserView(pywin.mfc.docview.TreeView):
                     self.list.Refresh()
                 else:
                     self.list.AcceptRoot(self._MakeRoot())
-            self.bDirty = 0
+            self.bDirty = False
 
     def OnSize(self, params):
         lparam = params[3]
@@ -232,4 +232,4 @@ class BrowserView(pywin.mfc.docview.TreeView):
         return 1
 
     def _UpdateUIForState(self):
-        self.bDirty = 1
+        self.bDirty = True

@@ -61,7 +61,7 @@ class SecurityInformation(win32com.server.policy.DesignatedWrapPolicy):
         objecttype = IID_NULL
         return flags, hinstance, servername, objectname, pagetitle, objecttype
 
-    def GetSecurity(self, requestedinfo, bdefault):
+    def GetSecurity(self, requestedinfo, bdefault: bool):
         """Requests the existing permissions for object"""
         if bdefault:
             ## This is invoked if the 'Default' button is pressed (only present if SI_RESET is passed

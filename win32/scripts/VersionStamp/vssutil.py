@@ -144,7 +144,7 @@ def GetLastBuildNo(project):
     return None
 
 
-def MakeNewBuildNo(project, buildDesc=None, auto=0, bRebrand=0):
+def MakeNewBuildNo(project, buildDesc=None, auto=0, bRebrand=False):
     if buildDesc is None:
         buildDesc = "Created by Python"
     ss = GetSS()

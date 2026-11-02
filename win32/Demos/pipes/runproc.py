@@ -19,7 +19,7 @@ class Process:
     def run(self, cmdline):
         # security attributes for pipes
         sAttrs = win32security.SECURITY_ATTRIBUTES()
-        sAttrs.bInheritHandle = 1
+        sAttrs.bInheritHandle = True
 
         # create pipes
         hStdin_r, self.hStdin_w = win32pipe.CreatePipe(sAttrs, 0)

@@ -38,7 +38,7 @@ byte_crlf = b"\r\n"
 class DlgRunScript(dialog.Dialog):
     "A class for the 'run script' dialog"
 
-    def __init__(self, bHaveDebugger):
+    def __init__(self, bHaveDebugger: bool):
         dialog.Dialog.__init__(self, win32ui.IDD_RUN_SCRIPT)
         self.AddDDX(win32ui.IDC_EDIT1, "script")
         self.AddDDX(win32ui.IDC_EDIT2, "args")
@@ -169,7 +169,7 @@ def GetActiveEditorDocument():
     return (None, None)
 
 
-def GetActiveFileName(bAutoSave=1):
+def GetActiveFileName(bAutoSave=True):
     """Gets the file name for the active frame, saving it if necessary.
 
     Returns None if it can't be found, or raises KeyboardInterrupt.
@@ -210,7 +210,7 @@ lastArgs = ""
 lastDebuggingType = RS_DEBUGGER_NONE
 
 
-def RunScript(defName=None, defArgs=None, bShowDialog=1, debuggingType=None):
+def RunScript(defName=None, defArgs=None, bShowDialog=True, debuggingType=None):
     global lastScript, lastArgs, lastDebuggingType
     _debugger_stop_frame_ = 1  # Magic variable so the debugger will hide me!
 
@@ -564,7 +564,7 @@ def _JumpToPosition(fileName, lineno, col=1):
     JumpToDocument(fileName, lineno, col)
 
 
-def JumpToDocument(fileName, lineno=0, col=1, nChars=0, bScrollToTop=0):
+def JumpToDocument(fileName, lineno=0, col=1, nChars=0, bScrollToTop=False):
     # Jump to the position in a file.
     # If lineno is <= 0, don't move the position - just open/restore.
     # if nChars > 0, select that many characters.
@@ -650,7 +650,7 @@ def FindTabNanny():
         del sys.path[0]
 
 
-def LocatePythonFile(fileName, bBrowseIfDir=1):
+def LocatePythonFile(fileName, bBrowseIfDir=True):
     "Given a file name, return a fully qualified file name, or None"
     # first look for the exact file as specified
     if not os.path.isfile(fileName):

@@ -316,7 +316,7 @@ def MakeModuleForTypelib(
     minor,
     progressInstance=None,
     bForDemand=bForDemandDefault,
-    bBuildHidden=1,
+    bBuildHidden=True,
 ):
     """Generate support for a type library.
 
@@ -345,7 +345,7 @@ def MakeModuleForTypelib(
 
 
 def MakeModuleForTypelibInterface(
-    typelib_ob, progressInstance=None, bForDemand=bForDemandDefault, bBuildHidden=1
+    typelib_ob, progressInstance=None, bForDemand=bForDemandDefault, bBuildHidden=True
 ):
     """Generate support for a type library.
 
@@ -380,7 +380,7 @@ def MakeModuleForTypelibInterface(
 
 
 def EnsureModuleForTypelibInterface(
-    typelib_ob, progressInstance=None, bForDemand=bForDemandDefault, bBuildHidden=1
+    typelib_ob, progressInstance=None, bForDemand=bForDemandDefault, bBuildHidden=True
 ):
     """Check we have support for a type library, generating if not.
 
@@ -447,7 +447,7 @@ def EnsureModule(
     progressInstance=None,
     bValidateFile=not is_readonly,
     bForDemand=bForDemandDefault,
-    bBuildHidden=1,
+    bBuildHidden=True,
 ):
     """Ensure Python support is loaded for a type library, generating if necessary.
 
@@ -634,7 +634,7 @@ def EnsureModule(
 
 
 def EnsureDispatch(
-    prog_id, bForDemand=1
+    prog_id, bForDemand=True
 ):  # New fn, so we default the new demand feature to on!
     """Given a COM prog_id, return an object that is using makepy support, building if necessary"""
     disp = win32com.client.Dispatch(prog_id)

@@ -130,7 +130,7 @@ class PyCOMTest:
     def Test6(self, inval):
         return inval
 
-    def TestInOut(self, fval, bval, lval):
+    def TestInOut(self, fval, bval: bool, lval):
         return winerror.S_OK, fval * 2, not bval, lval * 2
 
     def TestOptionals(self, strArg="def", sval=0, lval=1, dval=3.1400001049041748):
