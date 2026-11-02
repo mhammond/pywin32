@@ -138,7 +138,14 @@ BOOL PyCom_VariantFromPyObject(PyObject *obj, VARIANT *var)
         V_BOOL(var) = VARIANT_FALSE;
     }
     else if (PyLong_Check(obj)) {
+#if PY_VERSION_HEX >= 0x03140000
+        int sign;
+        if (!PyLong_GetSign(obj, sign)) {
+            return NULL
+        }
+#else
         int sign = _PyLong_Sign(obj);
+#endif
         size_t nbits = _PyLong_NumBits(obj);
         if (nbits == (size_t)-1 && PyErr_Occurred())
             return FALSE;
