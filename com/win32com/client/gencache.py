@@ -744,7 +744,20 @@ def _GetModule(fname):
     mod_name = "win32com.gen_py.%s" % fname
     with ModuleMutex(fname):
         __import__(mod_name)
-    return sys.modules[mod_name]
+    mod = sys.modules[mod_name]
+    if getattr(mod, "__file__", None) is None:
+        # The directory exists but has no __init__.py, so the import created a
+        # namespace package rather than loading a generated module.  Returning
+        # it would only fail later with a confusing AttributeError, so raise
+        # ImportError instead - callers such as EnsureModule will regenerate.
+        # The namespace package must also be evicted from sys.modules, or any
+        # retry would get the broken object straight back from memory.
+        del sys.modules[mod_name]
+        raise ImportError(
+            f"{mod_name} is a namespace package, not a generated module - "
+            "the gen_py cache directory is missing its __init__.py"
+        )
+    return mod
 
 
 def Rebuild(verbose=1):
