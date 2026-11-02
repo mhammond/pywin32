@@ -169,7 +169,7 @@ def DisplayItem(shell_item_array, hwnd_parent=0):
     else:
         si = shell_item_array.GetItemAt(0)
         name = si.GetDisplayName(shellcon.SIGDN_NORMALDISPLAY)
-        msg = "%d items selected, first is %r" % (shell_item_array.GetCount(), name)
+        msg = f"{shell_item_array.GetCount()} items selected, first is {name!r}"
     win32gui.MessageBox(hwnd_parent, msg, "Hello", win32con.MB_OK)
 
 
