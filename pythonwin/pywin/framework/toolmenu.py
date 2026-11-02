@@ -1,4 +1,4 @@
-# toolmenu.py
+from __future__ import annotations
 
 import sys
 
@@ -6,7 +6,7 @@ import win32api
 import win32con
 import win32ui
 
-tools = {}
+tools: dict[int, tuple[str, str, str]] = {}
 idPos = 100
 
 # The default items should no tools menu exist in the INI file.
@@ -113,7 +113,7 @@ def HandleToolCommand(cmd, code):
 
     global tools
     (menuString, pyCmd, desc) = tools[cmd]
-    win32ui.SetStatusText("Executing tool %s" % desc, 1)
+    win32ui.SetStatusText(f"Executing tool {desc}", 1)
     pyCmd = re.sub(r"\\n", "\n", pyCmd)
     win32ui.DoWaitCursor(1)
     oldFlag = None
@@ -124,13 +124,13 @@ def HandleToolCommand(cmd, code):
         pass
 
     try:
-        exec("%s\n" % pyCmd)
+        exec(f"{pyCmd}\n")
         worked = 1
     except SystemExit:
         # The program raised a SystemExit - ignore it.
         worked = 1
     except:
-        print("Failed to execute command:\n%s" % pyCmd)
+        print(f"Failed to execute command:\n{pyCmd}")
         traceback.print_exc()
         worked = 0
     if oldFlag is not None:
@@ -139,7 +139,7 @@ def HandleToolCommand(cmd, code):
     if worked:
         text = "Completed successfully."
     else:
-        text = "Error executing %s." % desc
+        text = f"Error executing {desc}."
     win32ui.SetStatusText(text, 1)
 
 
