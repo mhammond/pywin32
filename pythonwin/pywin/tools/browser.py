@@ -7,6 +7,7 @@
 # >>> browser.Browse(your_module)
 import sys
 import types
+from typing import Any
 
 import __main__
 import win32ui
@@ -20,9 +21,9 @@ special_names = ["__doc__", "__name__", "__self__"]
 #
 # HierList items
 class HLIPythonObject(hierlist.HierListItem):
-    def __init__(self, myobject=None, name=None):
+    def __init__(self, myobject: Any = None, name=None):
         hierlist.HierListItem.__init__(self)
-        self.myobject = myobject
+        self.myobject = myobject  # Way too dynamic, this could be overriden per subclass, but let's use Any for now.
         self.knownExpandable = None
         if name:
             self.name = name
