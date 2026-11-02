@@ -1,68 +1,41 @@
 """adodbapi -- a pure Python PEP 249 DB-API package using Microsoft ADO
 
-Adodbapi can be run on CPython 3.8 and later.
+Adodbapi can be run on CPython 3.9 and later.
 """
 
-NAME = "adodbapi"
-MAINTAINER = "Vernon Cole"
-MAINTAINER_EMAIL = "vernondcole@gmail.com"
-DESCRIPTION = (
-    """A pure Python package implementing PEP 249 DB-API using Microsoft ADO."""
+from setuptools import setup
+
+with open("adodbapi.py") as a:  # find the version string in the source code
+    line = next(line for line in a if line.startswith("__version__"))
+    VERSION = line.split('"')[1]
+    print(f'adodbapi version="{VERSION}"')
+
+setup(
+    name="adodbapi",
+    maintainer="Vernon Cole",
+    maintainer_email="vernondcole@gmail.com",
+    description="A pure Python package implementing PEP 249 DB-API using Microsoft ADO.",
+    url="https://sourceforge.net/projects/adodbapi",
+    keywords="database ado odbc dbapi db-api Microsoft SQL",
+    long_description=open("README.txt").read(),
+    license="LGPL",
+    classifiers=[
+        "Development Status :: 5 - Production/Stable",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)",
+        "Operating System :: Microsoft :: Windows",
+        "Operating System :: POSIX :: Linux",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: SQL",
+        "Topic :: Software Development",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+        "Topic :: Database",
+    ],
+    author="Henrik Ekelund, Vernon Cole, et.al.",
+    author_email="vernondcole@gmail.com",
+    platforms=["Windows", "Linux"],
+    version=VERSION,
+    package_dir={"adodbapi": ""},
+    packages=["adodbapi"],
 )
-URL = "https://sourceforge.net/projects/adodbapi"
-LICENSE = "LGPL"
-CLASSIFIERS = [
-    "Development Status :: 5 - Production/Stable",
-    "Intended Audience :: Developers",
-    "License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)",
-    "Operating System :: Microsoft :: Windows",
-    "Operating System :: POSIX :: Linux",
-    "Programming Language :: Python",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: SQL",
-    "Topic :: Software Development",
-    "Topic :: Software Development :: Libraries :: Python Modules",
-    "Topic :: Database",
-]
-AUTHOR = "Henrik Ekelund, Vernon Cole, et.al."
-AUTHOR_EMAIL = "vernondcole@gmail.com"
-PLATFORMS = ["Windows", "Linux"]
-
-VERSION = None  # in case searching for version fails
-a = open("adodbapi.py")  # find the version string in the source code
-for line in a:
-    if "__version__" in line:
-        VERSION = line.split("'")[1]  # pyright: ignore[reportConstantRedefinition]
-        print('adodbapi version="%s"' % VERSION)
-        break
-a.close()
-
-
-def setup_package():
-    from setuptools import setup
-    from setuptools.command.build_py import build_py
-
-    setup(
-        cmdclass={"build_py": build_py},
-        name=NAME,
-        maintainer=MAINTAINER,
-        maintainer_email=MAINTAINER_EMAIL,
-        description=DESCRIPTION,
-        url=URL,
-        keywords="database ado odbc dbapi db-api Microsoft SQL",
-        ##        download_url=DOWNLOAD_URL,
-        long_description=open("README.txt").read(),
-        license=LICENSE,
-        classifiers=CLASSIFIERS,
-        author=AUTHOR,
-        author_email=AUTHOR_EMAIL,
-        platforms=PLATFORMS,
-        version=VERSION,
-        package_dir={"adodbapi": ""},
-        packages=["adodbapi"],
-    )
-    return
-
-
-if __name__ == "__main__":
-    setup_package()
