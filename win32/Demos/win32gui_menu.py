@@ -14,7 +14,6 @@ import struct
 import sys
 
 import win32con
-import win32gui
 from win32api import GetSystemDirectory, GetSystemMetrics
 from win32gui import (
     LOWORD,
@@ -35,11 +34,13 @@ from win32gui import (
     DestroyIcon,
     DestroyWindow,
     DrawIconEx,
+    ExtractIconEx,
     ExtTextOut,
     FillRect,
     GetCursorPos,
     GetDC,
     GetMenuDefaultItem,
+    GetMenuItemInfo,
     GetMenuState,
     GetModuleHandle,
     GetSysColor,
@@ -200,7 +201,7 @@ class MainWindow:
             )
         else:
             shell_dll = os.path.join(GetSystemDirectory(), "shell32.dll")
-            large, small = win32gui.ExtractIconEx(shell_dll, 4, 1)
+            large, small = ExtractIconEx(shell_dll, 4, 1)
             hicon = small[0]
             DestroyIcon(large[0])
 
@@ -339,7 +340,7 @@ class MainWindow:
                 raise RuntimeError("The new item didn't get the new checked state!")
             # Now the long-winded way via GetMenuItemInfo...
             buf, extras = EmptyMENUITEMINFO()
-            win32gui.GetMenuItemInfo(self.sub_menu, id, False, buf)
+            GetMenuItemInfo(self.sub_menu, id, False, buf)
             (
                 fType,
                 fState,
