@@ -73,7 +73,6 @@ def WriteToolMenuItems(items):
 
 
 def SetToolsMenu(menu, menuPos=None):
-    global tools
     global idPos
 
     # todo - check the menu does not already exist.
@@ -111,7 +110,6 @@ def HandleToolCommand(cmd, code):
     import re
     import traceback
 
-    global tools
     (menuString, pyCmd, desc) = tools[cmd]
     win32ui.SetStatusText(f"Executing tool {desc}", 1)
     pyCmd = re.sub(r"\\n", "\n", pyCmd)
