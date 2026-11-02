@@ -297,7 +297,7 @@ class ViewNotifyDelegate:
         (hwndFrom, idFrom, code) = std
         for v in self.doc.GetAllViews():
             if v.GetSafeHwnd() == hwndFrom:
-                return getattr(v, self.name)(*(std, extra))
+                return getattr(v, self.name)(std, extra)
 
 
 # Delegate to the document, but only from a single view (as each view sends it separately)
@@ -309,4 +309,4 @@ class DocumentNotifyDelegate:
     def __call__(self, std, extra):
         (hwndFrom, idFrom, code) = std
         if hwndFrom == self.doc.GetEditorView().GetSafeHwnd():
-            self.delegate(*(std, extra))
+            self.delegate(std, extra)
