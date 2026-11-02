@@ -106,6 +106,11 @@ extern PYWINTYPES_EXPORT PyObject *PyBuffer_FromMemory(void *buf, Py_ssize_t siz
 // Formats a python traceback into a character string - result must be free()ed
 PYWINTYPES_EXPORT WCHAR *GetPythonTraceback(PyObject *exc_type, PyObject *exc_value, PyObject *exc_tb);
 
+// Replacement for the deprecated PySys_SetArgv, for when Python is already initialized
+// (and PyConfig.argv can no longer be used). Sets sys.argv and, like PySys_SetArgv,
+// prepends the directory of argv[0] to sys.path. Returns FALSE with a Python exception set on failure.
+PYWINTYPES_EXPORT BOOL PyWinSys_SetArgv(int argc, const WCHAR *const *argv);
+
 #include <tchar.h>
 /*
 ** Error/Exception handling
