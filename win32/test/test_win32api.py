@@ -224,6 +224,28 @@ class FileNames(unittest.TestCase):
         finally:
             win32file.RemoveDirectory(fname)
 
+    def testGetFullPathNameLongPath(self):
+        # GetFullPathName used to return an empty string for any path of
+        # MAX_PATH characters or more. It resolved into a MAX_PATH buffer and
+        # assigned the DWORD "characters required" return into a BOOL, so a
+        # too-small buffer looked like success and the untouched buffer was
+        # returned. The path does not need to exist; this is string resolution.
+        import win32file
+
+        drive = os.path.splitdrive(os.path.abspath(os.sep))[0]
+        base = drive + "\\" + "a" * 40
+        for total in (259, 260, 300):
+            path = base + "\\" + "b" * (total - len(base) - 1)
+            self.assertEqual(len(path), total)
+            got = win32api.GetFullPathName(path)
+            self.assertEqual(
+                got,
+                path,
+                f"GetFullPathName of a {total} character path returned '{got}'",
+            )
+            # win32file's version has always handled these; keep them agreeing.
+            self.assertEqual(got, win32file.GetFullPathName(path))
+
 
 class FormatMessage(unittest.TestCase):
     def test_FromString(self):
@@ -248,6 +270,17 @@ class Misc(unittest.TestCase):
     def testVkKeyScan(self):
         # hopefully ' ' doesn't depend on the locale!
         self.assertEqual(win32api.VkKeyScan(" "), 32)
+
+    def testToUnicodeEx(self):
+        state = bytes(256)
+        vk = ord("A")
+        sc = win32api.MapVirtualKey(vk, 0)
+        self.assertEqual(win32api.ToUnicodeEx(vk, sc, state), "a")
+        self.assertIsNone(win32api.ToUnicodeEx(0, 0, state))
+        with self.assertRaisesRegex(
+            ValueError, "keyboard state string must be exactly 256 characters"
+        ):
+            win32api.ToUnicodeEx(vk, sc, b"")
 
     def testVkKeyScanEx(self):
         # hopefully ' ' doesn't depend on the locale!
