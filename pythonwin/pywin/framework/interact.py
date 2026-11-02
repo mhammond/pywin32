@@ -482,7 +482,7 @@ class InteractiveCore:
 
     def ExtractCommand(self, lines):
         start, end = lines
-        retList = []
+        retList: list[str] = []
         while end >= start:
             thisLine = self.DoGetLine(end)
             promptLen = len(GetPromptPrefix(thisLine))
