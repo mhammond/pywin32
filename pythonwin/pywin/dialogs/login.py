@@ -39,31 +39,43 @@ def MakeLoginDlgTemplate(title):
     )
     cs = win32con.WS_CHILD | win32con.WS_VISIBLE
 
-    # Window frame and title
-    dlg = [
+    return [
+        # Window frame and title
         [title, (0, 0, 184, 40), style, None, (8, "MS Sans Serif")],
+        # ID label and text box
+        [130, "User ID:", -1, (7, 9, 69, 9), cs | win32con.SS_LEFT],
+        [
+            "EDIT",
+            None,
+            win32ui.IDC_EDIT1,
+            (50, 7, 60, 12),
+            cs | win32con.WS_TABSTOP | win32con.WS_BORDER,
+        ],
+        # Password label and text box
+        [130, "Password:", -1, (7, 22, 69, 9), cs | win32con.SS_LEFT],
+        [
+            "EDIT",
+            None,
+            win32ui.IDC_EDIT2,
+            (50, 20, 60, 12),
+            cs | win32con.WS_TABSTOP | win32con.WS_BORDER | win32con.ES_PASSWORD,
+        ],
+        # OK/Cancel Buttons
+        [
+            128,
+            "OK",
+            win32con.IDOK,
+            (124, 5, 50, 14),
+            cs | win32con.WS_TABSTOP | win32con.BS_DEFPUSHBUTTON,
+        ],
+        [
+            128,
+            "Cancel",
+            win32con.IDCANCEL,
+            (124, 20, 50, 14),
+            win32con.BS_PUSHBUTTON | cs | win32con.WS_TABSTOP,
+        ],
     ]
-
-    # ID label and text box
-    dlg.append([130, "User ID:", -1, (7, 9, 69, 9), cs | win32con.SS_LEFT])
-    s = cs | win32con.WS_TABSTOP | win32con.WS_BORDER
-    dlg.append(["EDIT", None, win32ui.IDC_EDIT1, (50, 7, 60, 12), s])
-
-    # Password label and text box
-    dlg.append([130, "Password:", -1, (7, 22, 69, 9), cs | win32con.SS_LEFT])
-    s = cs | win32con.WS_TABSTOP | win32con.WS_BORDER
-    dlg.append(
-        ["EDIT", None, win32ui.IDC_EDIT2, (50, 20, 60, 12), s | win32con.ES_PASSWORD]
-    )
-
-    # OK/Cancel Buttons
-    s = cs | win32con.WS_TABSTOP
-    dlg.append(
-        [128, "OK", win32con.IDOK, (124, 5, 50, 14), s | win32con.BS_DEFPUSHBUTTON]
-    )
-    s = win32con.BS_PUSHBUTTON | s
-    dlg.append([128, "Cancel", win32con.IDCANCEL, (124, 20, 50, 14), s])
-    return dlg
 
 
 def MakePasswordDlgTemplate(title):
@@ -76,25 +88,37 @@ def MakePasswordDlgTemplate(title):
         | win32con.DS_SETFONT
     )
     cs = win32con.WS_CHILD | win32con.WS_VISIBLE
-    # Window frame and title
-    dlg = [
+    return [
+        # Window frame and title
         [title, (0, 0, 177, 45), style, None, (8, "MS Sans Serif")],
+        # Password label and text box
+        [130, "Password:", -1, (7, 7, 69, 9), cs | win32con.SS_LEFT],
+        [
+            "EDIT",
+            None,
+            win32ui.IDC_EDIT1,
+            (50, 7, 60, 12),
+            cs | win32con.WS_TABSTOP | win32con.WS_BORDER | win32con.ES_PASSWORD,
+        ],
+        # OK/Cancel Buttons
+        [
+            128,
+            "OK",
+            win32con.IDOK,
+            (124, 5, 50, 14),
+            cs
+            | win32con.WS_TABSTOP
+            | win32con.BS_PUSHBUTTON
+            | win32con.BS_DEFPUSHBUTTON,
+        ],
+        [
+            128,
+            "Cancel",
+            win32con.IDCANCEL,
+            (124, 22, 50, 14),
+            cs | win32con.WS_TABSTOP | win32con.BS_PUSHBUTTON,
+        ],
     ]
-
-    # Password label and text box
-    dlg.append([130, "Password:", -1, (7, 7, 69, 9), cs | win32con.SS_LEFT])
-    s = cs | win32con.WS_TABSTOP | win32con.WS_BORDER
-    dlg.append(
-        ["EDIT", None, win32ui.IDC_EDIT1, (50, 7, 60, 12), s | win32con.ES_PASSWORD]
-    )
-
-    # OK/Cancel Buttons
-    s = cs | win32con.WS_TABSTOP | win32con.BS_PUSHBUTTON
-    dlg.append(
-        [128, "OK", win32con.IDOK, (124, 5, 50, 14), s | win32con.BS_DEFPUSHBUTTON]
-    )
-    dlg.append([128, "Cancel", win32con.IDCANCEL, (124, 22, 50, 14), s])
-    return dlg
 
 
 class LoginDlg(dialog.Dialog):

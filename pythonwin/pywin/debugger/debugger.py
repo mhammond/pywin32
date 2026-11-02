@@ -75,10 +75,10 @@ class HierFrameItem(HierListItem):
             return 8
 
     def GetSubList(self):
-        ret = []
-        ret.append(HierFrameDict(self.myobject.f_locals, "Locals", 2))
-        ret.append(HierFrameDict(self.myobject.f_globals, "Globals", 1))
-        return ret
+        return [
+            HierFrameDict(self.myobject.f_locals, "Locals", 2),
+            HierFrameDict(self.myobject.f_globals, "Globals", 1),
+        ]
 
     def IsExpandable(self):
         return 1
@@ -352,10 +352,11 @@ class DebuggerBreakpointsWindow(DebuggerListViewWindow):
     columns = [("Condition", 70), ("Location", 1024)]
 
     def SaveState(self):
-        items = []
-        for i in range(self.GetItemCount()):
-            items.append(self.GetItemText(i, 0))
-            items.append(self.GetItemText(i, 1))
+        items = [
+            self.GetItemText(i, col)
+            for i in range(self.GetItemCount())
+            for col in range(2)
+        ]
         win32ui.WriteProfileVal(
             "Debugger Windows\\" + self.title, "BreakpointList", "\t".join(items)
         )
