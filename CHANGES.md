@@ -15,9 +15,45 @@ or
 As of build 305, installation .exe files have been deprecated; see
 <https://mhammond.github.io/pywin32_installers.html>.
 
-Coming in build 312, as yet unreleased
+Coming in build 313, as yet unreleased
 --------------------------------------
 
+* Fixed `win32clipboard.SetClipboardData` raising "The handle is invalid" or crashing when given `str`/`bytes` data that `int()` can parse (eg, `"201920"`); such data was tried as a memory handle before being treated as data (mhammond#2132, [@msromike][msromike])
+* Passing `str`, `bytes`, another buffer object or a `float` where a handle is expected now emits a `FutureWarning`; the release after next (two releases from this one) will raise `TypeError`. Any value that `int()` could parse was silently used as a memory address, and a `float` was silently truncated (mhammond#2132, [@msromike][msromike])
+* Fixed `win32clipboard.SetClipboardData` dropping the last byte of `bytearray` or `memoryview` data sent as a text format; the terminator was only added for `bytes` (mhammond#2132, [@msromike][msromike])
+* pywin32 now fully builds from source using MinGW, GCC and Clang. As well as on case-sensitive systems. ([All changes](https://github.com/mhammond/pywin32/pulls?q=label%3AMinGW+merged%3A%3C2026-10-29), [@Avasam][Avasam])
+* Pythonwin: Fixed "Check" (Ctrl+Shift+C) raising `UnicodeDecodeError` on files not encoded in the system locale encoding. It now respects the file's encoding declaration, defaulting to UTF-8 (mhammond#667, [@Avasam][Avasam])
+* Fixed `win32evtlogutil.FeedEventLogRecords`'s `feeder` callback param never being called (mhammond#2807, [@Avasam][Avasam])
+* Fixed `Pythonwin.exe` silently exiting with code 1 when started without a console and with `PYTHONFAULTHANDLER` or `PYTHONDEVMODE` set (mhammond#2504, [@Avasam][Avasam])
+* Fixed `win32api.GetFullPathName` silently returning an empty string for paths of 260 characters or more (mhammond#2795, [@MohammedAlkindi][MohammedAlkindi])
+* Added `win32api.ToUnicodeEx` wrapper for translating virtual-key codes and keyboard state to Unicode characters (mhammond#2788, [@ravik453][ravik453])
+* Updated `MAPIStubLibrary` vendored sources (mhammond#2764, [@Avasam][Avasam]):
+  * Migrated from deprecated SAL v1 annotations to SAL v2
+  * New `win32comext.mapi.mapitags` symbols:
+    * `PR_SENDER_SMTP_ADDRESS`
+    * `PR_SENDER_SMTP_ADDRESS_W`
+    * `PR_SENDER_SMTP_ADDRESS_A`
+    * `PR_SENT_REPRESENTING_SMTP_ADDRESS`
+    * `PR_SENT_REPRESENTING_SMTP_ADDRESS_W`
+    * `PR_SENT_REPRESENTING_SMTP_ADDRESS_A`
+    * `PR_RECEIVED_BY_SMTP_ADDRESS`
+    * `PR_RECEIVED_BY_SMTP_ADDRESS_W`
+    * `PR_RECEIVED_BY_SMTP_ADDRESS_A`
+    * `PR_RCVD_REPRESENTING_SMTP_ADDRESS`
+    * `PR_RCVD_REPRESENTING_SMTP_ADDRESS_W`
+    * `PR_RCVD_REPRESENTING_SMTP_ADDRESS_A`
+* Fixed a regression where `pythonwin/mfc140u.dll` isn't bundled with the wheels ([3cc74e0
+](mhammond/pywin32/commit/3cc74e05b4d5680c69fd6c02232a630db7a34675), [@Avasam][Avasam])
+* Add experimental no-GIL interpreter support (mhammond#2767  [@clin1234][clin1234])
+
+Build 312, released 2026/06/04
+------------------------------
+
+* Deprecate `pythoncom.frozen` and resolve build deprecation warnings (mhammond#2593, [@Avasam][Avasam])
+  `pythoncom.frozen` used to expose `Py_FrozenFlag` from the C API.
+  `Py_FrozenFlag` is deprecated since Python 3.12.
+* Added Python 3.15 support (mhammond#2729, mhammond#2732, [@Avasam][Avasam])
+* Removed special-casing for `.pyo` files which haven't been a thing since [Python 3.5](https://peps.python.org/pep-0488/) (mhammond#2754, [@Avasam][Avasam])
 * Fixed `axdebug` build on Python 3.11+ using CPython's new opaque frame APIs, fixed 64-bit overflow in sourceContext and stack addresses, fixed incorrect step-over and step-out behavior, and fixed `ListEnumeratorGateway.Next()` returning lazy `map` iterator incompatible with C++ COM gateways that require a sequence (mhammond#2723, mhammond#2724, mhammond#2725, [@wxinix-2022][wxinix-2022])
 * Removed more leftover obsolete `UNICODE` constants since dropping Python 2 support in `win32ui`, `win32gui` and `win32clipboard` (mhammond#2717, [@Avasam][Avasam])
 * Implement COM Records as `[out]` method parameters (mhammond#2708, [@geppi][geppi], [@the-snork][the-snork])
@@ -27,7 +63,7 @@ Coming in build 312, as yet unreleased
 * Bugfix for COM Record instance creation (mhammond#2641, [@geppi][geppi])
 * Fix regression introduced by mhammond#2506 (mhammond#2640, [@geppi][geppi])
 * Fixed `LoadPerfCounterTextStrings` and `UnloadPerfCounterTextStrings`'s `bQuiet` param being unused and hardcoded to `True` (mhammond#2711, [@Avasam][Avasam])
-* Removed considerations for unsupported Windows Versions (95/98/ME/2000/2k/Vista, most of XP) (mhammond#2711, mhammond#2667, mhammond#2400, [@Avasam][Avasam])
+* Removed considerations for unsupported Windows Versions (95/98/ME/2000/2k/Vista, most of XP) (mhammond#2711, mhammond#2667, mhammond#2400, mhammond#2747, mhammond#2752 [@Avasam][Avasam])
   * Updated a lot of dynamic function loading at runtime to instead use static build linking
   * Updated a lot of documentation
   * This removes the following constants:
@@ -35,6 +71,11 @@ Coming in build 312, as yet unreleased
     * `win32con.FILE_ATTRIBUTE_XACTION_WRITE`
 * Removed considerations for MFC < 9 (VS 2008) (mhammond#2669, mhammond#2716, [@Avasam][Avasam])
   * This removes the unusable `PyCSliderCtrl.VerifyPos` method
+* win32cred.{CredWrite, CredUIPromptForCredentials}, win32net.NetUserEnum,
+  win32profile.{LoadUserProfile,UnloadUserProfile,CreateEnvironmentBlock},
+  win32security.{LogonUser, LookupAccountName, SetNamedSecurityInfo, GetNamedSecurityInfo, LsaAddAccountRights, ConvertSidToStringSid}
+  all now release the GIL before making the call (#2732)
+* Fix memory leak in PyCom_VariantFromPyObject (#2688)
 * Dropped support for Python 3.8 (mhammond#2413, [@Avasam][Avasam])
   * Note that whilst pywin32 hasn't explicitly dropped support for Windows 7 / 8 / Server 2008,
     Python 3.8 was the last official CPython version to support those versions (Python 3.9 installer requires at least Windows 8.1 / Server 2012).
@@ -478,8 +519,11 @@ for them.
 [kxrob]: https://github.com/kxrob
 [markuskimius]: https://github.com/markuskimius
 [maxim-krikun]: https://github.com/maxim
+[MohammedAlkindi]: https://github.com/MohammedAlkindi
 [Mscht]: https://github.com/Mscht
+[msromike]: https://github.com/msromike
 [nbbeatty]: https://github.com/nbbeatty
+[ravik453]: https://github.com/ravik453
 [saaketp]: https://github.com/saaketp
 [the-snork]: https://github.com/the-snork
 [wkschwartz]: https://github.com/wkschwartz

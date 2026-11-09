@@ -28,8 +28,11 @@ PyIActiveScript::~PyIActiveScript() {}
 
     IActiveScriptSite *pIASS;
     HRESULT hr;
-    Py_BEGIN_ALLOW_THREADS hr = punk->QueryInterface(IID_IActiveScriptSite, (LPVOID *)&pIASS);
-    Py_END_ALLOW_THREADS if (FAILED(hr)) return SetPythonCOMError(self, hr);
+    Py_BEGIN_ALLOW_THREADS
+        hr = punk->QueryInterface(IID_IActiveScriptSite, (LPVOID *)&pIASS);
+    Py_END_ALLOW_THREADS
+    if (FAILED(hr))
+        return SetPythonCOMError(self, hr);
 
     PY_INTERFACE_PRECALL;
     hr = pIAS->SetScriptSite(pIASS);

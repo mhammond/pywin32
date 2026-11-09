@@ -192,8 +192,8 @@ typedef struct
 
 typedef ULONG (FAR PASCAL MAPILOGON)(
 	ULONG_PTR ulUIParam,
-	/*OFFICEDEV add _opt*/ __in_opt LPSTR lpszProfileName,
-	/*OFFICEDEV add _opt*/ __in_opt LPSTR lpszPassword,
+	/*OFFICEDEV add _opt*/ _In_opt_ LPSTR lpszProfileName,
+	/*OFFICEDEV add _opt*/ _In_opt_ LPSTR lpszPassword,
 	FLAGS flFlags,
 	ULONG ulReserved,
 	LPLHANDLE lplhSession
@@ -224,9 +224,9 @@ MAPISENDMAIL MAPISendMail;
 
 typedef ULONG (FAR PASCAL MAPISENDDOCUMENTS)(
 	ULONG_PTR ulUIParam,
-	__in LPSTR lpszDelimChar,
-	__in LPSTR lpszFilePaths,
-	__in LPSTR lpszFileNames,
+	_In_ LPSTR lpszDelimChar,
+	_In_ LPSTR lpszFilePaths,
+	_In_ LPSTR lpszFileNames,
 	ULONG ulReserved
 );
 typedef MAPISENDDOCUMENTS FAR *LPMAPISENDDOCUMENTS;
@@ -236,11 +236,11 @@ MAPISENDDOCUMENTS MAPISendDocuments;
 typedef ULONG (FAR PASCAL MAPIFINDNEXT)(
 	LHANDLE lhSession,
 	ULONG_PTR ulUIParam,
-	__in LPSTR lpszMessageType,
-	__in LPSTR lpszSeedMessageID,
+	_In_ LPSTR lpszMessageType,
+	_In_ LPSTR lpszSeedMessageID,
 	FLAGS flFlags,
 	ULONG ulReserved,
-	__in LPSTR lpszMessageID
+	_In_ LPSTR lpszMessageID
 );
 typedef MAPIFINDNEXT FAR *LPMAPIFINDNEXT;
 MAPIFINDNEXT MAPIFindNext;
@@ -248,7 +248,7 @@ MAPIFINDNEXT MAPIFindNext;
 typedef ULONG (FAR PASCAL MAPIREADMAIL)(
 	LHANDLE lhSession,
 	ULONG_PTR ulUIParam,
-	__in LPSTR lpszMessageID,
+	_In_ LPSTR lpszMessageID,
 	FLAGS flFlags,
 	ULONG ulReserved,
 	lpMapiMessage FAR *lppMessage
@@ -262,7 +262,7 @@ typedef ULONG (FAR PASCAL MAPISAVEMAIL)(
 	lpMapiMessage lpMessage,
 	FLAGS flFlags,
 	ULONG ulReserved,
-	__in LPSTR lpszMessageID
+	_In_ LPSTR lpszMessageID
 );
 typedef MAPISAVEMAIL FAR *LPMAPISAVEMAIL;
 MAPISAVEMAIL MAPISaveMail;
@@ -270,7 +270,7 @@ MAPISAVEMAIL MAPISaveMail;
 typedef ULONG (FAR PASCAL MAPIDELETEMAIL)(
 	LHANDLE lhSession,
 	ULONG_PTR ulUIParam,
-	__in LPSTR lpszMessageID,
+	_In_ LPSTR lpszMessageID,
 	FLAGS flFlags,
 	ULONG ulReserved
 );
@@ -287,9 +287,9 @@ ULONG FAR PASCAL MAPIFreeBuffer(LPVOID pv);
 typedef ULONG (FAR PASCAL MAPIADDRESS)(
 	LHANDLE lhSession,
 	ULONG_PTR ulUIParam,
-	__in LPSTR lpszCaption,
+	_In_ LPSTR lpszCaption,
 	ULONG nEditFields,
-	__in LPSTR lpszLabels,
+	_In_ LPSTR lpszLabels,
 	ULONG nRecips,
 	lpMapiRecipDesc lpRecips,
 	FLAGS flFlags,
@@ -313,7 +313,7 @@ MAPIDETAILS MAPIDetails;
 typedef ULONG (FAR PASCAL MAPIRESOLVENAME)(
 	LHANDLE lhSession,
 	ULONG_PTR ulUIParam,
-	__in LPSTR lpszName,
+	_In_ LPSTR lpszName,
 	FLAGS flFlags,
 	ULONG ulReserved,
 	lpMapiRecipDesc FAR *lppRecip

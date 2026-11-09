@@ -252,9 +252,10 @@ BOOL PyCom_SetCOMErrorFromExcepInfo(const EXCEPINFO *pexcepinfo, REFIID riid)
             pICEI->SetSource(pexcepinfo->bstrSource);
 
         IErrorInfo *pIEI;
-        Py_BEGIN_ALLOW_THREADS hr = pICEI->QueryInterface(IID_IErrorInfo, (LPVOID *)&pIEI);
-        Py_END_ALLOW_THREADS if (SUCCEEDED(hr))
-        {
+        Py_BEGIN_ALLOW_THREADS
+            hr = pICEI->QueryInterface(IID_IErrorInfo, (LPVOID *)&pIEI);
+        Py_END_ALLOW_THREADS
+        if (SUCCEEDED(hr)) {
             SetErrorInfo(0, pIEI);
             pIEI->Release();
         }
@@ -546,17 +547,19 @@ PyObject *PyCom_BuildPyException(HRESULT errorhr, IUnknown *pUnk /* = NULL */, R
         // See if it supports error info.
         ISupportErrorInfo *pSEI;
         HRESULT hr;
-        Py_BEGIN_ALLOW_THREADS hr = pUnk->QueryInterface(IID_ISupportErrorInfo, (void **)&pSEI);
+        Py_BEGIN_ALLOW_THREADS
+            hr = pUnk->QueryInterface(IID_ISupportErrorInfo, (void **)&pSEI);
+            if (SUCCEEDED(hr)) {
+                hr = pSEI->InterfaceSupportsErrorInfo(iid);
+                pSEI->Release();  // Finished with this object
+            }
+        Py_END_ALLOW_THREADS
         if (SUCCEEDED(hr)) {
-            hr = pSEI->InterfaceSupportsErrorInfo(iid);
-            pSEI->Release();  // Finished with this object
-        }
-        Py_END_ALLOW_THREADS if (SUCCEEDED(hr))
-        {
             IErrorInfo *pEI;
-            Py_BEGIN_ALLOW_THREADS hr = GetErrorInfo(0, &pEI);
-            Py_END_ALLOW_THREADS if (hr == S_OK)
-            {
+            Py_BEGIN_ALLOW_THREADS
+                hr = GetErrorInfo(0, &pEI);
+            Py_END_ALLOW_THREADS
+            if (hr == S_OK) {
                 obEI = PyCom_PyObjectFromIErrorInfo(pEI, errorhr);
                 PYCOM_RELEASE(pEI);
             }
@@ -655,37 +658,37 @@ static PyObject *PyCom_PyObjectFromIErrorInfo(IErrorInfo *pEI, HRESULT errorhr)
 
     HRESULT hr;
 
-    Py_BEGIN_ALLOW_THREADS hr = pEI->GetDescription(&desc);
-    Py_END_ALLOW_THREADS if (hr != S_OK)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        hr = pEI->GetDescription(&desc);
+    Py_END_ALLOW_THREADS
+    if (hr != S_OK) {
         obDesc = Py_None;
         Py_INCREF(obDesc);
     }
-    else
-    {
+    else {
         obDesc = MakeBstrToObj(desc);
         SysFreeString(desc);
     }
 
-    Py_BEGIN_ALLOW_THREADS hr = pEI->GetSource(&source);
-    Py_END_ALLOW_THREADS if (hr != S_OK)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        hr = pEI->GetSource(&source);
+    Py_END_ALLOW_THREADS
+    if (hr != S_OK) {
         obSource = Py_None;
         Py_INCREF(obSource);
     }
-    else
-    {
+    else {
         obSource = MakeBstrToObj(source);
         SysFreeString(source);
     }
-    Py_BEGIN_ALLOW_THREADS hr = pEI->GetHelpFile(&helpfile);
-    Py_END_ALLOW_THREADS if (hr != S_OK)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        hr = pEI->GetHelpFile(&helpfile);
+    Py_END_ALLOW_THREADS
+    if (hr != S_OK) {
         obHelpFile = Py_None;
         Py_INCREF(obHelpFile);
     }
-    else
-    {
+    else {
         obHelpFile = MakeBstrToObj(helpfile);
         SysFreeString(helpfile);
     }
@@ -1065,9 +1068,9 @@ LPCTSTR GetScodeRangeString(HRESULT hr)
         HRESULT hrLast;
         LPCTSTR lpszName;
     };
-#define MAKE_RANGE_ENTRY(hrRange)                                                              \
-    {                                                                                          \
-        hrRange##_FIRST, hrRange##_LAST, _T(#hrRange) _T("_FIRST...") _T(#hrRange) _T("_LAST") \
+#define MAKE_RANGE_ENTRY(hrRange)                                                                                 \
+    {                                                                                                             \
+        (HRESULT) hrRange##_FIRST, (HRESULT)hrRange##_LAST, _T(#hrRange) _T("_FIRST...") _T(#hrRange) _T("_LAST") \
     }
 
     static const RANGE_ENTRY hrRangeTable[] = {
@@ -1083,7 +1086,6 @@ LPCTSTR GetScodeRangeString(HRESULT hr)
         MAKE_RANGE_ENTRY(OLE_S),          MAKE_RANGE_ENTRY(REGDB_E),      MAKE_RANGE_ENTRY(REGDB_S),
         MAKE_RANGE_ENTRY(VIEW_E),         MAKE_RANGE_ENTRY(VIEW_S),       MAKE_RANGE_ENTRY(CONNECT_E),
         MAKE_RANGE_ENTRY(CONNECT_S),
-
     };
 #undef MAKE_RANGE_ENTRY
 
