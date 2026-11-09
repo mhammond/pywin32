@@ -379,9 +379,10 @@ static PyObject *PyGetEnvironmentVariableW(PyObject *self, PyObject *args)
                 break;
             }
         }
-        Py_BEGIN_ALLOW_THREADS returned_size = GetEnvironmentVariableW(Name, pResult, allocated_size);
-        Py_END_ALLOW_THREADS if (!returned_size)
-        {
+        Py_BEGIN_ALLOW_THREADS
+            returned_size = GetEnvironmentVariableW(Name, pResult, allocated_size);
+        Py_END_ALLOW_THREADS
+        if (!returned_size) {
             DWORD err = GetLastError();
             if (err == ERROR_ENVVAR_NOT_FOUND) {
                 Py_INCREF(Py_None);
@@ -1786,7 +1787,7 @@ static PyObject *PyGetProcAddress(PyObject *self, PyObject *args)
     if (proc == NULL)
         return ReturnAPIError("GetProcAddress");
     // @pyseeapi GetProcAddress
-    return PyWinLong_FromVoidPtr(proc);
+    return PyWinLong_FromVoidPtr((void *)proc);
 }
 
 // @pymethod <o PyUnicode>|win32api|GetDllDirectory|Returns the DLL search path
@@ -2630,13 +2631,36 @@ static PyObject *PyGetFullPathName(PyObject *self, PyObject *args)
     if (!PyWinObject_AsTCHAR(obfileName, &fileName, FALSE))
         return NULL;
     TCHAR *temp;
+    PyObject *obFullPathName = NULL;
     PyW32_BEGIN_ALLOW_THREADS;
-    BOOL ok = GetFullPathName(fileName, sizeof(pathBuf) / sizeof(pathBuf[0]), pathBuf, &temp);
+    DWORD length = GetFullPathName(fileName, sizeof(pathBuf) / sizeof(pathBuf[0]), pathBuf, &temp);
     PyW32_END_ALLOW_THREADS;
+    if (length) {
+        if (length < sizeof(pathBuf) / sizeof(pathBuf[0]))
+            obFullPathName = PyWinObject_FromTCHAR(pathBuf);
+        else {
+            // The buffer was too small.  The length is then the buffer needed,
+            // which includes the NULL, so retry with one that is big enough.
+            TCHAR *buf = PyMem_New(TCHAR, length);
+            if (buf == NULL)
+                PyErr_NoMemory();
+            else {
+                PyW32_BEGIN_ALLOW_THREADS;
+                DWORD length2 = GetFullPathName(fileName, length, buf, &temp);
+                PyW32_END_ALLOW_THREADS;
+                if (length2)
+                    obFullPathName = PyWinObject_FromTCHAR(buf);
+                // On success it is the number of chars copied *not* including
+                // the NULL.  Check this is true.
+                assert(length2 == 0 || length2 + 1 == length);
+                PyMem_Free(buf);
+            }
+        }
+    }
     PyWinObject_FreeTCHAR(fileName);
-    if (!ok)
+    if (obFullPathName == NULL && !PyErr_Occurred())
         return ReturnAPIError("GetFullPathName");
-    return PyWinObject_FromTCHAR(pathBuf);
+    return obFullPathName;
 }
 
 // @pymethod string|win32api|GetWindowsDirectory|Returns the path of the Windows directory.
@@ -4137,9 +4161,10 @@ static PyObject *PyRegGetKeySecurity(PyObject *self, PyObject *args)
     PSECURITY_DESCRIPTOR psd = (SECURITY_DESCRIPTOR *)malloc(cb);
     if (psd == NULL)
         return PyErr_NoMemory();
-    Py_BEGIN_ALLOW_THREADS rc = RegGetKeySecurity(hKey, si, psd, &cb);
-    Py_END_ALLOW_THREADS if (rc != ERROR_SUCCESS)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        rc = RegGetKeySecurity(hKey, si, psd, &cb);
+    Py_END_ALLOW_THREADS
+    if (rc != ERROR_SUCCESS) {
         free(psd);
         return ReturnAPIError("RegGetKeySecurity", rc);
     }
@@ -5434,9 +5459,10 @@ PyObject *PyGetFileVersionInfo(PyObject *self, PyObject *args)
         goto done;
     if (!PyWinObject_AsWCHAR(obinfo, &info, FALSE))
         goto done;
-    Py_BEGIN_ALLOW_THREADS buf_len = GetFileVersionInfoSizeW(file_name, &dwHandle);  // handle is ignored
-    Py_END_ALLOW_THREADS if (buf_len == 0)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        buf_len = GetFileVersionInfoSizeW(file_name, &dwHandle);  // handle is ignored
+    Py_END_ALLOW_THREADS
+    if (buf_len == 0) {
         PyWin_SetAPIError("GetFileVersionInfo:GetFileVersionInfoSize", GetLastError());
         goto done;
     }
@@ -5445,9 +5471,10 @@ PyObject *PyGetFileVersionInfo(PyObject *self, PyObject *args)
         PyErr_SetString(PyExc_MemoryError, "GetFileVersionInfo");
         goto done;
     }
-    Py_BEGIN_ALLOW_THREADS success = GetFileVersionInfoW(file_name, dwHandle, buf_len, buf);
-    Py_END_ALLOW_THREADS if (!success)
-    {
+    Py_BEGIN_ALLOW_THREADS
+        success = GetFileVersionInfoW(file_name, dwHandle, buf_len, buf);
+    Py_END_ALLOW_THREADS
+    if (!success) {
         PyWin_SetAPIError("GetFileVersionInfo");
         goto done;
     }
@@ -5902,8 +5929,11 @@ PyObject *PySetSystemPowerState(PyObject *self, PyObject *args)
         return NULL;
     bSuspend = PyObject_IsTrue(obSuspend);
     bForce = PyObject_IsTrue(obForce);
-    Py_BEGIN_ALLOW_THREADS bsuccess = SetSystemPowerState(bSuspend, bForce);
-    Py_END_ALLOW_THREADS if (!bsuccess) return PyWin_SetAPIError("SetSystemPowerState");
+    Py_BEGIN_ALLOW_THREADS
+        bsuccess = SetSystemPowerState(bSuspend, bForce);
+    Py_END_ALLOW_THREADS
+    if (!bsuccess)
+        return PyWin_SetAPIError("SetSystemPowerState");
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -5954,9 +5984,9 @@ PyObject *PyGetSystemPowerStatus(PyObject *self, PyObject *args)
 {
     SYSTEM_POWER_STATUS sps;
     BOOL res = FALSE;
-    Py_BEGIN_ALLOW_THREADS;
-    res = GetSystemPowerStatus(&sps);
-    Py_END_ALLOW_THREADS;
+    Py_BEGIN_ALLOW_THREADS
+        res = GetSystemPowerStatus(&sps);
+    Py_END_ALLOW_THREADS
     if (!res)
         return PyWin_SetAPIError("GetSystemPowerStatus");
     return Py_BuildValue(

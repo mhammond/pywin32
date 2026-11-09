@@ -85,13 +85,17 @@ copied to the root of your Python install and some changes made to HKCU). If you
 an elevated process, it will be global for the machine (files will be copied to System32, HKLM
 will be changed, etc)
 
-### Installing for MingGW/msys2
+### Installing for MinGW/MSYS2
 
-The folks at <https://github.com/msys2/MINGW-packages/tree/master/mingw-w64-python-pywin32> are graciously keeping an updated set of patches to install pywin32 for MingGW/msys2.
+Install the package hosted by [MINGW-packages](https://github.com/msys2/MINGW-packages/tree/master/mingw-w64-python-pywin32) (see [mingw-w64-python-pywin32](https://packages.msys2.org/base/mingw-w64-python-pywin32)), from the MSYS2 shell of your environment:
 
-We'd suggest installing from <https://packages.msys2.org/base/mingw-w64-python-pywin32> `pacman -S mingw-w64-python-pywin32`.
+```shell
+pacman -S ${MINGW_PACKAGE_PREFIX}-python-pywin32
+```
 
-We're open to seeing these patches be upstreamed in pywin32 if they can be tested automatically on the CI.
+pywin32 builds from source with MinGW-w64 (GCC or Clang) without any patches, and the MinGW build runs on our CI. Pythonwin (`win32ui`, `win32uiole`, `dde` and `Pythonwin.exe`) requires MFC, which is only available with MSVC, so it isn't included.
+
+Problems building pywin32 with MinGW should be [reported here](https://github.com/mhammond/pywin32/issues). Packaging issues (availability, versions, environments) belong in [MINGW-packages](https://github.com/msys2/MINGW-packages/issues).
 
 ### Running as a Windows Service
 
