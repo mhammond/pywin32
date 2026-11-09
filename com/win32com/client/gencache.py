@@ -432,8 +432,7 @@ def ForgetAboutTypelibInterface(typelib_ob):
             f"ForgetAboutTypelibInterface:: Warning - type library with {info=} is not being remembered!"
         )
     # and drop any version redirects to it
-    if info in versionRedirectMap:
-        del versionRedirectMap[info]
+    versionRedirectMap.pop(info, None)
 
 
 def EnsureModule(
