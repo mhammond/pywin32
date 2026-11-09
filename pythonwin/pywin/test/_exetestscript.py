@@ -12,7 +12,7 @@ import win32ui
 from pywin.framework import scriptutils
 
 try:
-    fnout  # (may be repeated & changed inside Pythonwin debugger)
+    fnout  # type: ignore[has-type, used-before-def] # (may be repeated & changed inside Pythonwin debugger)
 except NameError:
     fnout = sys.argv[-1]
 assert fnout.endswith(".testout.txt")
