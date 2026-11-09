@@ -1,6 +1,9 @@
 import unittest
 from unittest import mock
 
+import win32api
+import win32con
+import win32evtlog
 import win32evtlogutil
 
 
@@ -42,6 +45,27 @@ class TestFeedEventLogRecords(unittest.TestCase):
             win32evtlogutil.FeedEventLogRecords(feeder)
 
         self.mocks["CloseEventLog"].assert_called_once_with(self.handle)
+
+
+class TestDefaultMessageDLL(unittest.TestCase):
+    """win32evtlog is AddSourceToRegistry's default message DLL."""
+
+    def setUp(self):
+        self.handle = win32api.LoadLibraryEx(
+            win32evtlog.__file__, 0, win32con.LOAD_LIBRARY_AS_DATAFILE
+        )
+        self.addCleanup(win32api.FreeLibrary, self.handle)
+
+    def testMessageTableResourceType(self):
+        # Not a user-defined type *named* "MESSAGETABLE" (as llvm-windres would emit)
+        self.assertIn(win32con.RT_MESSAGETABLE, win32api.EnumResourceTypes(self.handle))
+
+    def testFormatMessage(self):
+        # Message 1 in win32evtlog_messages.mc is just "%1"
+        message = win32api.FormatMessageW(
+            win32con.FORMAT_MESSAGE_FROM_HMODULE, self.handle, 1, 0, ["hello"]
+        )
+        self.assertEqual(message.rstrip(), "hello")
 
 
 if __name__ == "__main__":
