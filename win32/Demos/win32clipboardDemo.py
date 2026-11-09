@@ -13,6 +13,7 @@ from win32clipboard import (
     RegisterClipboardFormat,
     SetClipboardData,
     SetClipboardText,
+    error,
 )
 
 if not __debug__:

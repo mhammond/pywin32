@@ -93,6 +93,16 @@ inline Win32uiHostGlue::~Win32uiHostGlue() {}
 
 inline HKEY Win32uiHostGlue::GetRegistryRootKey() { return HKEY_LOCAL_MACHINE; }
 
+// A GUI process started without inherited std handles has no valid stderr (_fileno(stderr) is -2).
+// Python enables faulthandler (PYTHONFAULTHANDLER or PYTHONDEVMODE) on that file descriptor during Py_Initialize,
+// which then fails and calls exit(1) with the error written nowhere.
+// Point stderr at NUL so Python initializes successfully. See mhammond/pywin32#2504
+inline void Win32uiHostGlueEnsureValidStderr()
+{
+    if (_fileno(stderr) < 0)
+        freopen("NUL", "w", stderr);
+}
+
 #ifndef LINK_WITH_WIN32UI
 
 #define CHECK_PFN(p)                                                        \
@@ -183,6 +193,7 @@ inline BOOL Win32uiHostGlue::DynamicApplicationInit(const TCHAR *cmd, const TCHA
         void(__cdecl * pfnPyInit)(void);
         pfnPyInit = (void(__cdecl *)(void))GetProcAddress(hModCore, "Py_Initialize");
         CHECK_PFN(pfnPyInit);
+        Win32uiHostGlueEnsureValidStderr();
         (*pfnPyInit)();
     }
 
@@ -249,6 +260,7 @@ inline BOOL Win32uiHostGlue::ApplicationInit(const TCHAR *cmd, const TCHAR *addi
 {
     if (!Py_IsInitialized()) {
         bShouldFinalizePython = TRUE;
+        Win32uiHostGlueEnsureValidStderr();
         Py_Initialize();
     }
     // Make sure the statically linked win32ui is the one Python sees
