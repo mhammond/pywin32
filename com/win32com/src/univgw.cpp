@@ -56,9 +56,10 @@ static void set_error(REFIID riid, LPCOLESTR desc)
         pICEI->SetDescription(b);
 
         IErrorInfo *pIEI;
-        Py_BEGIN_ALLOW_THREADS hr = pICEI->QueryInterface(IID_IErrorInfo, (LPVOID *)&pIEI);
-        Py_END_ALLOW_THREADS if (SUCCEEDED(hr))
-        {
+        Py_BEGIN_ALLOW_THREADS
+            hr = pICEI->QueryInterface(IID_IErrorInfo, (LPVOID *)&pIEI);
+        Py_END_ALLOW_THREADS
+        if (SUCCEEDED(hr)) {
             SetErrorInfo(0, pIEI);
             pIEI->Release();
         }
@@ -253,7 +254,8 @@ static pfnGWMethod make_method(DWORD index, UINT argsize, UINT argc)
     }
 
     *(int *)(code + 30) = index;
-    *(void **)(code + 36) = &univgw_dispatch;
+    auto *dispatch = &univgw_dispatch;
+    memcpy(code + 36, &dispatch, sizeof(dispatch));
 
     DWORD oldprotect;
     if (!VirtualProtect(code, sizeof(wrapper), PAGE_EXECUTE, &oldprotect)) {

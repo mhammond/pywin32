@@ -13,26 +13,26 @@ static BOOL ExcepInfoFromIErrorInfo(EXCEPINFO *einfo, IDispatch *pDisp, HRESULT 
     }
     ISupportErrorInfo *pSEI;
     HRESULT hr;
-    Py_BEGIN_ALLOW_THREADS hr = pDisp->QueryInterface(IID_ISupportErrorInfo, (void **)&pSEI);
-    if (SUCCEEDED(hr)) {
-        hr = pSEI->InterfaceSupportsErrorInfo(IID_IDispatch);
-        pSEI->Release();  // Finished with this object
-    }
+    Py_BEGIN_ALLOW_THREADS
+        hr = pDisp->QueryInterface(IID_ISupportErrorInfo, (void **)&pSEI);
+        if (SUCCEEDED(hr)) {
+            hr = pSEI->InterfaceSupportsErrorInfo(IID_IDispatch);
+            pSEI->Release();  // Finished with this object
+        }
     Py_END_ALLOW_THREADS
 
-        // InterfaceSupportsErrorInfo returning S_FALSE means we should ignore it.
-        if (FAILED(hr) || hr == S_FALSE)
-    {
+    // InterfaceSupportsErrorInfo returning S_FALSE means we should ignore it.
+    if (FAILED(hr) || hr == S_FALSE) {
         return FALSE;
     }
 
     // ErrorInfo via IErrorInfo hence transform to EXCEPINFO
     IErrorInfo *pEI;
-    Py_BEGIN_ALLOW_THREADS hr = GetErrorInfo(0, &pEI);
+    Py_BEGIN_ALLOW_THREADS
+        hr = GetErrorInfo(0, &pEI);
     Py_END_ALLOW_THREADS
 
-        if (hr != S_OK)
-    {
+    if (hr != S_OK) {
         return FALSE;
     }
     // These strings will be freed when PyCom_CleanupExcepInfo is called
@@ -41,26 +41,28 @@ static BOOL ExcepInfoFromIErrorInfo(EXCEPINFO *einfo, IDispatch *pDisp, HRESULT 
     BSTR source = NULL;
     BSTR helpfile = NULL;
 
-    Py_BEGIN_ALLOW_THREADS hr = pEI->GetDescription(&desc);
-    if (hr == S_OK) {
-        einfo->bstrDescription = desc;
-    }
-    hr = pEI->GetSource(&source);
-    if (hr == S_OK) {
-        einfo->bstrSource = source;
-    }
-    hr = pEI->GetHelpFile(&helpfile);
-    if (hr == S_OK) {
-        einfo->bstrHelpFile = helpfile;
-    }
-    DWORD helpContext = 0;
-    hr = pEI->GetHelpContext(&helpContext);
-    if (hr == S_OK) {
-        einfo->dwHelpContext = helpContext;
-    }
-    einfo->wCode = 0;
-    einfo->scode = scode;
-    Py_END_ALLOW_THREADS PYCOM_RELEASE(pEI);
+    Py_BEGIN_ALLOW_THREADS
+        hr = pEI->GetDescription(&desc);
+        if (hr == S_OK) {
+            einfo->bstrDescription = desc;
+        }
+        hr = pEI->GetSource(&source);
+        if (hr == S_OK) {
+            einfo->bstrSource = source;
+        }
+        hr = pEI->GetHelpFile(&helpfile);
+        if (hr == S_OK) {
+            einfo->bstrHelpFile = helpfile;
+        }
+        DWORD helpContext = 0;
+        hr = pEI->GetHelpContext(&helpContext);
+        if (hr == S_OK) {
+            einfo->dwHelpContext = helpContext;
+        }
+        einfo->wCode = 0;
+        einfo->scode = scode;
+    Py_END_ALLOW_THREADS
+    PYCOM_RELEASE(pEI);
     return TRUE;
 }
 

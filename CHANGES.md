@@ -24,6 +24,15 @@ Coming in build 313, as yet unreleased
 
 ## pywin32
 
+* Fixed `win32clipboard.SetClipboardData` raising "The handle is invalid" or crashing when given `str`/`bytes` data that `int()` can parse (eg, `"201920"`); such data was tried as a memory handle before being treated as data (mhammond#2132, [@msromike][msromike])
+* Passing `str`, `bytes`, another buffer object or a `float` where a handle is expected now emits a `FutureWarning`; the release after next (two releases from this one) will raise `TypeError`. Any value that `int()` could parse was silently used as a memory address, and a `float` was silently truncated (mhammond#2132, [@msromike][msromike])
+* Fixed `win32clipboard.SetClipboardData` dropping the last byte of `bytearray` or `memoryview` data sent as a text format; the terminator was only added for `bytes` (mhammond#2132, [@msromike][msromike])
+* pywin32 now fully builds from source using MinGW, GCC and Clang. As well as on case-sensitive systems. ([All changes](https://github.com/mhammond/pywin32/pulls?q=label%3AMinGW+merged%3A%3C2026-10-29), [@Avasam][Avasam])
+* Pythonwin: Fixed "Check" (Ctrl+Shift+C) raising `UnicodeDecodeError` on files not encoded in the system locale encoding. It now respects the file's encoding declaration, defaulting to UTF-8 (mhammond#667, [@Avasam][Avasam])
+* Fixed `win32evtlogutil.FeedEventLogRecords`'s `feeder` callback param never being called (mhammond#2807, [@Avasam][Avasam])
+* Fixed `Pythonwin.exe` silently exiting with code 1 when started without a console and with `PYTHONFAULTHANDLER` or `PYTHONDEVMODE` set (mhammond#2504, [@Avasam][Avasam])
+* Fixed `win32api.GetFullPathName` silently returning an empty string for paths of 260 characters or more (mhammond#2795, [@MohammedAlkindi][MohammedAlkindi])
+* Added `win32api.ToUnicodeEx` wrapper for translating virtual-key codes and keyboard state to Unicode characters (mhammond#2788, [@ravik453][ravik453])
 * Updated `MAPIStubLibrary` vendored sources (mhammond#2764, [@Avasam][Avasam]):
   * Migrated from deprecated SAL v1 annotations to SAL v2
   * New `win32comext.mapi.mapitags` symbols:
@@ -41,6 +50,7 @@ Coming in build 313, as yet unreleased
     * `PR_RCVD_REPRESENTING_SMTP_ADDRESS_A`
 * Fixed a regression where `pythonwin/mfc140u.dll` isn't bundled with the wheels ([3cc74e0
 ](mhammond/pywin32/commit/3cc74e05b4d5680c69fd6c02232a630db7a34675), [@Avasam][Avasam])
+* Add experimental no-GIL interpreter support (mhammond#2767  [@clin1234][clin1234])
 
 Build 312, released 2026/06/04
 ------------------------------
@@ -515,8 +525,11 @@ for them.
 [kxrob]: https://github.com/kxrob
 [markuskimius]: https://github.com/markuskimius
 [maxim-krikun]: https://github.com/maxim
+[MohammedAlkindi]: https://github.com/MohammedAlkindi
 [Mscht]: https://github.com/Mscht
+[msromike]: https://github.com/msromike
 [nbbeatty]: https://github.com/nbbeatty
+[ravik453]: https://github.com/ravik453
 [saaketp]: https://github.com/saaketp
 [the-snork]: https://github.com/the-snork
 [wkschwartz]: https://github.com/wkschwartz
