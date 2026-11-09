@@ -708,7 +708,7 @@ PyObject *Python_do_callback(PyObject *themeth, PyObject *thearglst)
 // Copied from PyRecord.cpp, should move into PyWinTypes.h
 // Unicode versions of '_Concat' etc have different sigs.  Make them the
 // same here...
-void PyWinCoreString_Concat(register PyObject **pv, register PyObject *w)
+void PyWinCoreString_Concat(PyObject **pv, PyObject *w)
 {
     if (!w) {  // hrm - string version doesn't do this, but I saw PyObject_Repr() return NULL...
         Py_XDECREF(*pv);

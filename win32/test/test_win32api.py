@@ -308,7 +308,7 @@ class Misc(unittest.TestCase):
             msg = str(e)
             # Expected on older than Windows 10
             if msg == "GetSystemCpuSetInformation is not available on this platform":
-                raise TestSkipped(msg) from e
+                raise unittest.SkipTest(msg) from e
             raise
 
         self.assertIsInstance(cpus, list)

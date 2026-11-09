@@ -826,7 +826,10 @@ static PyObject *py_set_clipboard_data(PyObject *self, PyObject *args)
 
     if (!PyArg_ParseTuple(args, "iO:SetClipboardData", &format, &obhandle))
         return NULL;
-    if (!PyWinObject_AsHANDLE(obhandle, &handle)) {
+    // str and buffer objects are always data, never a handle. Trying them as a
+    // handle first turned "201920" or b"201920" into a bogus HGLOBAL (mhammond#2132).
+    BOOL isData = PyUnicode_Check(obhandle) || PyObject_CheckBuffer(obhandle);
+    if (isData || !PyWinObject_AsHANDLE(obhandle, &handle)) {
         PyErr_Clear();
 
         const void *buf = NULL;
@@ -847,9 +850,11 @@ static PyObject *py_set_clipboard_data(PyObject *self, PyObject *args)
                 return NULL;
             buf = pybuf.ptr();
             bufSize = pybuf.len();
-            if ((PyBytes_Check(obhandle)) && (isTextFormat(format)))
-                bufSize++;  // size doesn't include nulls!
-                            // else assume buffer needs no terminator...
+            // Text formats need a terminator, whatever buffer object the data came in.
+            // It used to be added for bytes only, so bytearray and memoryview lost their
+            // last character on the way back (mhammond#2132).
+            if (isTextFormat(format))
+                bufSize += (format == CF_UNICODETEXT) ? sizeof(WCHAR) : 1;
         }
         handle = GlobalAlloc(GHND, bufSize);
         if (handle == NULL) {

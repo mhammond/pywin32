@@ -729,6 +729,8 @@ class CEnterLeavePython {
 // HACK: Maps __except to catch(...), which only catches C++ exceptions.
 // SEH/hardware faults (e.g. access violations) will crash on MinGW.
 // Proper fix requires input validation to prevent the fault.
+// libstdc++ defines __try as try, but libc++ doesn't, and Clang would then parse it as native SEH.
+#define __try try
 #define __except(filter) catch (...)
 #endif  // __MINGW32__
 

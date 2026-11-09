@@ -120,10 +120,12 @@ def TestEngine(engineName, code, bShouldWork=True):
     engine.AddCode(code, axscript.SCRIPTTEXT_ISPERSISTENT)
     try:
         engine.Start()
-    finally:
-        if not bShouldWork:
-            engine.Close()
-            return
+    except Exception:
+        if bShouldWork:
+            raise
+    if not bShouldWork:
+        engine.Close()
+        return
     doTestEngine(engine, echoer)
     # re-transition the engine back to the UNINITIALIZED state, a-la ASP.
     engine.eScript.SetScriptState(axscript.SCRIPTSTATE_UNINITIALIZED)
