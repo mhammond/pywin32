@@ -1,8 +1,8 @@
+"""Run this passing a '.i' file as param.  Will generate '.d'"""
+
 import getopt
 import os
 import sys
-
-# Run this passing a ".i" file as param.  Will generate ".d"
 
 g_com_parent = ""
 
