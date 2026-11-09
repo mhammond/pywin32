@@ -114,15 +114,15 @@ class FetchFailedError(OperationalError):
 
 
 # def Date(year, month, day):
-#     "This function constructs an object holding a date value."
+#     """This function constructs an object holding a date value."""
 #     return dateconverter.date(year, month, day)  # dateconverter.Date(...)
 #
 # def Time(hour, minute, second):
-#     "This function constructs an object holding a time value."
+#     """This function constructs an object holding a time value."""
 #     return dateconverter.time(hour, minute, second)  # dateconverter.Time(...)
 #
 # def Timestamp(year, month, day, hour, minute, second):
-#     "This function constructs an object holding a time stamp value."
+#     """This function constructs an object holding a time stamp value."""
 #     return dateconverter.datetime(year, month, day, hour, minute, second)  # dateconverter.Timestamp(...)
 #
 # def DateFromTicks(ticks):
@@ -187,24 +187,24 @@ class TimeConverter:  # this is a generic time converter skeleton
         return integerPart + fractPart
 
     def DateObjectFromCOMDate(self, comDate):
-        "Returns an object of the wanted type from a ComDate"
+        """Returns an object of the wanted type from a ComDate"""
         raise NotImplementedError  # "Abstract class"
 
     def Date(self, year, month, day):
-        "This function constructs an object holding a date value."
+        """This function constructs an object holding a date value."""
         raise NotImplementedError  # "Abstract class"
 
     def Time(self, hour, minute, second):
-        "This function constructs an object holding a time value."
+        """This function constructs an object holding a time value."""
         raise NotImplementedError  # "Abstract class"
 
     def Timestamp(self, year, month, day, hour, minute, second):
-        "This function constructs an object holding a time stamp value."
+        """This function constructs an object holding a time stamp value."""
         raise NotImplementedError  # "Abstract class"
         # all purpose date to ISO format converter
 
     def DateObjectToIsoFormatString(self, obj):
-        "This function should return a string in the format 'YYYY-MM-dd HH:MM:SS:ms' (ms optional)"
+        """This function should return a string in the format 'YYYY-MM-dd HH:MM:SS:ms' (ms optional)"""
         try:  # most likely, a datetime.datetime
             s = obj.isoformat(" ")
         except (TypeError, AttributeError):
@@ -257,7 +257,7 @@ class pythonTimeConverter(TimeConverter):  # the old, ?nix type date and time
         self.types.add(time.struct_time)
 
     def DateObjectFromCOMDate(self, comDate):
-        "Returns ticks since 1970"
+        """Returns ticks since 1970"""
         if isinstance(comDate, datetime.datetime):
             return comDate.timetuple()
         else:
@@ -461,13 +461,14 @@ class MultiMap(dict[int, Callable[[Any], object]]):
     """A dictionary of ado.type : function
     -- but you can set multiple items by passing an iterable of keys"""
 
+    # builds a dictionary from {(iterable,of,keys) : function}
     # useful for defining conversion functions for groups of similar data types.
     def __init__(self, aDict: Mapping[Iterable[int] | int, Callable[[Any], object]]):
         for k, v in aDict.items():
             self[k] = v  # we must call __setitem__
 
     def __setitem__(self, adoType: Iterable[int] | int, cvtFn: Callable[[Any], object]):
-        "set a single item, or a whole iterable of items"
+        """set a single item, or a whole iterable of items"""
         if isinstance(adoType, Iterable):
             # user passed us an iterable, set them individually
             for type in adoType:
