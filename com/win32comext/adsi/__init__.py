@@ -1,3 +1,5 @@
+from typing import TYPE_CHECKING
+
 import win32com
 import win32com.client
 
@@ -25,7 +27,11 @@ else:
 # interface, as well as via IDispatch.
 import pythoncom
 
-from .adsi import *  # Re-export everything from win32comext/adsi/adsi.pyd
+if TYPE_CHECKING:
+    # Available with typeshed type stubs only
+    from win32comext.adsi.adsi import *  # pyright: ignore[reportWildcardImportFromLibrary, reportAssignmentType]
+else:
+    from .adsi import *  # Re-export everything from win32comext/adsi/adsi.pyd
 
 LCID = 0
 
@@ -103,15 +109,11 @@ class ADSIDispatch(win32com.client.CDispatch):
 
 
 # We override the adsi.pyd methods to do the right thing.
-def ADsGetObject(  # type: ignore[no-redef] # Intentional override of star import
-    path, iid=pythoncom.IID_IDispatch
-):
+def ADsGetObject(path, iid=pythoncom.IID_IDispatch):
     ret = adsi.ADsGetObject(path, iid)
     return _get_good_ret(ret)
 
 
-def ADsOpenObject(  # type: ignore[no-redef] # Intentional override of star import
-    path, username, password, reserved=0, iid=pythoncom.IID_IDispatch
-):
+def ADsOpenObject(path, username, password, reserved=0, iid=pythoncom.IID_IDispatch):
     ret = adsi.ADsOpenObject(path, username, password, reserved, iid)
     return _get_good_ret(ret)

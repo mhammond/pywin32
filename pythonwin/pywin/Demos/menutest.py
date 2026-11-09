@@ -6,6 +6,7 @@ if __name__ == "__main__":
     import demoutils
 
     if demoutils.NeedGoodGUI():
+        assert interact.edit
         win = interact.edit.currentView.GetParent()
         menu = win.GetSystemMenu()
         id = menu.GetMenuItemID(6)
