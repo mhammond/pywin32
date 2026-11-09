@@ -137,12 +137,10 @@ if doMySqlTest:
         "user": "adotest",
         "password": "12345678",
         "port": "3330",  # note the nonstandard port for obfuscation
-        "driver": "MySQL ODBC 5.1 Driver",
-    }  # or _driver="MySQL ODBC 3.51 Driver
-    c["macro_is64bit"] = [
-        "provider",
-        "Provider=MSDASQL;",
-    ]  # turn on the 64 bit ODBC adapter only if needed
+        "driver": "MySQL ODBC 5.1 Driver",  # or "_driver": "MySQL ODBC 3.51 Driver",
+        # turn on the 64 bit ODBC adapter only if needed
+        "macro_is64bit": ["provider", "Provider=MSDASQL;"],
+    }
     cs = (
         "%(provider)sDriver={%(driver)s};Server=%(host)s;Port=3330;"
         + "Database=%(database)s;user=%(user)s;password=%(password)s;Option=3;"

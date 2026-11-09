@@ -213,7 +213,7 @@ class CommonDBTests(unittest.TestCase):
 
         # Test description related
         descTuple = crsr.description[1]
-        assert descTuple[0] in ["fldData", "flddata"], 'was "%s" expected "%s"' % (
+        assert descTuple[0] in {"fldData", "flddata"}, 'was "%s" expected "%s"' % (
             descTuple[0],
             "fldData",
         )
@@ -371,11 +371,11 @@ class CommonDBTests(unittest.TestCase):
         if self.getEngine() != "PostgreSQL":
             self.helpTestDataType("tinyint", "NUMBER", 115)
         self.helpTestDataType("smallint", "NUMBER", -32768)
-        if self.getEngine() not in ["ACCESS", "PostgreSQL"]:
+        if self.getEngine() not in {"ACCESS", "PostgreSQL"}:
             self.helpTestDataType(
                 "bit", "NUMBER", 1
             )  # Does not work correctly with access
-        if self.getEngine() in ["MSSQL", "PostgreSQL"]:
+        if self.getEngine() in {"MSSQL", "PostgreSQL"}:
             self.helpTestDataType(
                 "bigint",
                 "NUMBER",
@@ -417,23 +417,22 @@ class CommonDBTests(unittest.TestCase):
         self.helpTestDataType(
             dt, "DATETIME", adodbapi.Date(2002, 10, 28), compareAlmostEqual=True
         )
-        if self.getEngine() not in ["MySQL", "PostgreSQL"]:
+        if self.getEngine() not in {"MySQL", "PostgreSQL"}:
             self.helpTestDataType(
                 "smalldatetime",
                 "DATETIME",
                 adodbapi.Date(2002, 10, 28),
                 compareAlmostEqual=True,
             )
-        if tag != "pythontime" and self.getEngine() not in [
-            "MySQL",
-            "PostgreSQL",
-        ]:  # fails when using pythonTime
-            self.helpTestDataType(
-                dt,
-                "DATETIME",
-                adodbapi.Timestamp(2002, 10, 28, 12, 15, 1),
-                compareAlmostEqual=True,
-            )
+            # The Timestamp case below fails with pythonTimeConverter
+            # TODO: Is this still needed or can we remove this guard ?
+            if not isinstance(adodbapi.adodbapi.dateconverter, api.pythonTimeConverter):
+                self.helpTestDataType(
+                    dt,
+                    "DATETIME",
+                    adodbapi.Timestamp(2002, 10, 28, 12, 15, 1),
+                    compareAlmostEqual=True,
+                )
 
     def testDataTypeBinary(self):
         binfld = b"\x07\x00\xe2\x40*"
@@ -1526,7 +1525,6 @@ if __name__ == "__main__":
         defaultDateConverter = adodbapi.dateconverter
         print(__doc__)
         print("Default Date Converter is %s" % (defaultDateConverter,))
-        dateconverter = defaultDateConverter
         unittest.TextTestRunner().run(mysuite)
 
         if config.doTimeTest:
