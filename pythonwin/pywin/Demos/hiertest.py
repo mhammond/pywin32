@@ -101,12 +101,9 @@ class HLIFileDir(hierlist.HierListItem):
 
     def GetText(self):
         try:
-            return "%-20s %d bytes" % (
-                os.path.basename(self.filename),
-                os.stat(self.filename)[6],
-            )
+            return f"{os.path.basename(self.filename):<20} {os.stat(self.filename)[6]} bytes"
         except OSError as details:
-            return "%-20s - %s" % (self.filename, details[1])
+            return f"{self.filename:<20} - {details[1]}"
 
     def IsExpandable(self):
         return os.path.isdir(self.filename)

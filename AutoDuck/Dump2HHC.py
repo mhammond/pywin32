@@ -1,14 +1,19 @@
-import copy
-import os
-import sys
-
 """
 Dump2HHC.py
 
 Converts an AutoDuck dump into an HTML Help Table Of Contents file.
+
+Usage:
+  Dump2HHC.py dirname output.hhc
+
 TODOs:
 Add support for merging in non-autoduck'd comments into HTML Help files.
 """
+
+import copy
+import os
+import sys
+from io import TextIOWrapper
 
 
 class category:
@@ -77,7 +82,7 @@ def parseCategories():
     # <repeat ...>
     import document_object
 
-    ret = []
+    ret: list[category] = []
     doc = document_object.GetDocument()
     for defn in doc:
         cat = category(defn)
@@ -86,7 +91,7 @@ def parseCategories():
     return ret
 
 
-def parseTopics(cat, input):
+def parseTopics(cat: category, input: TextIOWrapper) -> None:
     # Sucks in a AutoDuck Dump file.
     # format:
     # topicname\tcontext\tTags:
@@ -180,7 +185,7 @@ def parseTopics(cat, input):
 
                 # Do real work here...
                 assert len(fields[0]) == 0 and len(fields[1]) > 0, (
-                    "Bogus fields: " + fields
+                    "Bogus fields: " + ",".join(fields)
                 )
                 top2 = topic()
                 top2.type = fields[1]
@@ -433,18 +438,17 @@ def genTOC(cats, output, title, target):
     )
 
 
-# Dump2HHC.py
-# Usage:
-#   Dump2HHC.py dirname output.hhc
-#
-
-
 def main():
     gen_dir = sys.argv[1]
     cats = parseCategories()
     for cat in cats:
         file = os.path.join(gen_dir, cat.dump_file)
-        input = open(file, "r")
+        # AutoDuck does not output in UTF-8
+        if sys.version_info >= (3, 10):
+            input = open(file, "r", encoding="locale")
+        else:
+            input = open(file, "r", encoding=None)
+
         parseTopics(cat, input)
         input.close()
 

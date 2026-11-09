@@ -172,7 +172,7 @@ STDMETHODIMP PyGPropertySetStorage::Create(
         TmpPyObject obfmtid = PyWinObject_FromIID(rfmtid);
         if (obfmtid == NULL)
             return MAKE_PYCOM_GATEWAY_FAILURE_CODE("Create");
-        hr = InvokeViaPolicy("Create", &result, "OOkk", obfmtid, obclsid, grfFlags, grfMode);
+        hr = InvokeViaPolicy("Create", &result, "OOkk", (PyObject *)obfmtid, (PyObject *)obclsid, grfFlags, grfMode);
     }
     if (FAILED(hr))
         return hr;
@@ -195,7 +195,7 @@ STDMETHODIMP PyGPropertySetStorage::Open(
     if (ppprstg == NULL)
         return E_POINTER;
     PyObject *result;
-    HRESULT hr = InvokeViaPolicy("Open", &result, "Ok", obfmtid, grfMode);
+    HRESULT hr = InvokeViaPolicy("Open", &result, "Ok", (PyObject *)obfmtid, grfMode);
     if (FAILED(hr))
         return hr;
     // Process the Python results, and convert back to the real params
