@@ -1787,7 +1787,7 @@ static PyObject *PyGetProcAddress(PyObject *self, PyObject *args)
     if (proc == NULL)
         return ReturnAPIError("GetProcAddress");
     // @pyseeapi GetProcAddress
-    return PyWinLong_FromVoidPtr(proc);
+    return PyWinLong_FromVoidPtr((void *)proc);
 }
 
 // @pymethod <o PyUnicode>|win32api|GetDllDirectory|Returns the DLL search path
