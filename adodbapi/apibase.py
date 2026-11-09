@@ -13,7 +13,7 @@ import numbers
 import sys
 import time
 from collections.abc import Callable, Iterable, Mapping
-from typing import Any, TYPE_CHECKING, NoReturn
+from typing import TYPE_CHECKING, Any, NoReturn
 
 from . import ado_consts as adc
 
