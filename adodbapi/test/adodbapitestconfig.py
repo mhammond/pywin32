@@ -46,9 +46,7 @@ if "--help" in sys.argv:
     exit()
 
 # create a random name for temporary table names
-_alphabet = (
-    "PYFGCRLAOEUIDHTNSQJKXBMWVZ"  # why, yes, I do happen to use a dvorak keyboard
-)
+_alphabet = "PYFGCRLAOEUIDHTNSQJKXBMWVZ"  # why, yes, I (vernondcole) do happen to use a dvorak keyboard
 tmp = "".join([random.choice(_alphabet) for x in range(9)])
 mdb_name = "xx_" + tmp + ".mdb"  # generate a non-colliding name for the temporary .mdb
 testfolder = setuptestframework.maketemp()
