@@ -3306,7 +3306,7 @@ static PyObject *PyPumpWaitingMessages(PyObject *self, PyObject *args)
 %native (PumpMessages) PyPumpMessages;
 %native (PumpWaitingMessages) PyPumpWaitingMessages;
 
-// @pyswig MSG|GetMessage|
+// @pyswig (int, <o PyMSG>)|GetMessage|
 BOOL GetMessage(MSG *OUTPUT,
                 HWND hwnd, // @pyparm int|hwnd||
                 UINT min, // @pyparm int|min||
@@ -3327,7 +3327,7 @@ int TranslateAccelerator(
     MSG *INPUT // @pyparm MSG|msg||
 );
 
-// @pyswig MSG|PeekMessage|
+// @pyswig (int, <o PyMSG>)|PeekMessage|
 BOOL PeekMessage(MSG *OUTPUT,
                  HWND hwnd, // @pyparm int|hwnd||
                  UINT min, // @pyparm int|filterMin||
@@ -4546,7 +4546,7 @@ static PyObject *PyGetMenuItemInfo(PyObject *self, PyObject *args)
 // @pyparm int|hMenu||Handle to the menu
 int GetMenuItemCount(HMENU hMenu);
 
-// @pyswig (int, int, int, int)|GetMenuItemRect|
+// @pyswig (int, (left, top, right, bottom))|GetMenuItemRect|
 // @pyparm int|hWnd||
 // @pyparm int|hMenu||Handle to the menu
 // @pyparm int|uItem||

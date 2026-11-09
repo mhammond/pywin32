@@ -540,7 +540,7 @@ static PyObject *PyRasDial(PyObject *self, PyObject *args)
         pNotification = NULL;
     }
     else if (PyCallable_Check(obCallback)) {
-        pNotification = PyRasDialFunc1;
+        pNotification = (LPVOID)PyRasDialFunc1;
         notType = 1;
     }
     else if (PyLong_Check(obCallback)) {
