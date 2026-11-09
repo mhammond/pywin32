@@ -68,26 +68,29 @@ pwr_sid = win32security.LookupAccountName("", "Power Users")[0]
 
 ## MultipleTrustee,MultipleTrusteeOperation,TrusteeForm,TrusteeType,Identifier
 ## first two are ignored
-my_trustee = {}
-my_trustee["MultipleTrustee"] = None
-my_trustee["MultipleTrusteeOperation"] = 0
-my_trustee["TrusteeForm"] = TRUSTEE_FORM.TRUSTEE_IS_SID
-my_trustee["TrusteeType"] = TRUSTEE_TYPE.TRUSTEE_IS_USER
-my_trustee["Identifier"] = my_sid
+my_trustee = {
+    "MultipleTrustee": None,
+    "MultipleTrusteeOperation": 0,
+    "TrusteeForm": TRUSTEE_FORM.TRUSTEE_IS_SID,
+    "TrusteeType": TRUSTEE_TYPE.TRUSTEE_IS_USER,
+    "Identifier": my_sid,
+}
 
-tmp_trustee = {}
-tmp_trustee["MultipleTrustee"] = None
-tmp_trustee["MultipleTrusteeOperation"] = 0
-tmp_trustee["TrusteeForm"] = TRUSTEE_FORM.TRUSTEE_IS_NAME
-tmp_trustee["TrusteeType"] = TRUSTEE_TYPE.TRUSTEE_IS_USER
-tmp_trustee["Identifier"] = "rupole\\tmp"
+tmp_trustee = {
+    "MultipleTrustee": None,
+    "MultipleTrusteeOperation": 0,
+    "TrusteeForm": TRUSTEE_FORM.TRUSTEE_IS_NAME,
+    "TrusteeType": TRUSTEE_TYPE.TRUSTEE_IS_USER,
+    "Identifier": "rupole\\tmp",
+}
 
-pwr_trustee = {}
-pwr_trustee["MultipleTrustee"] = None
-pwr_trustee["MultipleTrusteeOperation"] = 0
-pwr_trustee["TrusteeForm"] = TRUSTEE_FORM.TRUSTEE_IS_SID
-pwr_trustee["TrusteeType"] = TRUSTEE_TYPE.TRUSTEE_IS_USER
-pwr_trustee["Identifier"] = pwr_sid
+pwr_trustee = {
+    "MultipleTrustee": None,
+    "MultipleTrusteeOperation": 0,
+    "TrusteeForm": TRUSTEE_FORM.TRUSTEE_IS_SID,
+    "TrusteeType": TRUSTEE_TYPE.TRUSTEE_IS_USER,
+    "Identifier": pwr_sid,
+}
 
 expl_list = [
     {
@@ -143,9 +146,8 @@ expl_list = [
         "AccessPermissions": win32con.GENERIC_ALL,
     },
 ]
-
-
 old_dacl.SetEntriesInAcl(expl_list)
+
 sd.SetSecurityDescriptorSacl(1, old_sacl, 1)
 sd.SetSecurityDescriptorDacl(1, old_dacl, 1)
 sd.SetSecurityDescriptorOwner(pwr_sid, 1)
