@@ -15,10 +15,6 @@
     "pythonwin/Scintilla/",
     // Forked IDLE extensions predating Python 2.3. They now live in idlelib in https://github.com/python/cpython/tree/main/Lib/idlelib
     "pythonwin/pywin/idle/",
-    // TODO: Ignoring non-public APIs until public API is sufficiently typed
-    "**/test/",
-    "**/Demos/",
-    "**/demos/",
   ],
   // Packages that will be accessible globally.
   // Setting this makes pyright use the repo's code for those modules instead of typeshed or pywin32 in site-packages
@@ -51,4 +47,41 @@
   "reportMissingTypeStubs": "information",
   // Use Ruff instead
   "reportUnusedImport": "none",
+  "executionEnvironments": [
+    // TODO: Real issues in adodbapi tests, to fix in https://github.com/mhammond/pywin32/pull/2730
+    {
+      "root": "adodbapi/test",
+      "reportUndefinedVariable": "warning"
+    },
+    // Demos and tests are the main real usage of the API, so they are checked to validate its annotations.
+    // TODO: Remove what's marked with python/typeshed#16680 once types-pywin32 includes that fix
+    // (pyright bundles its own copy of typeshed, so this needs a pyright bump or types-pywin32 as a dependency)
+    {
+      "root": "com/win32comext/adsi/demos",
+      "reportIndexIssue": "warning", // python/typeshed#16680
+      "reportOptionalOperand": "warning"
+    },
+    {
+      "root": "com/win32comext/shell/demos",
+      "reportIndexIssue": "warning"
+    },
+    {
+      "root": "com/win32comext/shell/test",
+      "reportAssignmentType": "warning"
+    },
+    {
+      "root": "pythonwin/pywin/Demos",
+      "reportIndexIssue": "warning"
+    },
+    {
+      "root": "win32/Demos",
+      "reportAssignmentType": "warning", // python/typeshed#16680
+      "reportIndexIssue": "warning"
+    },
+    {
+      "root": "win32/test",
+      "reportAssignmentType": "warning", // python/typeshed#16680
+      "reportIndexIssue": "warning" // python/typeshed#16680
+    },
+  ],
 }

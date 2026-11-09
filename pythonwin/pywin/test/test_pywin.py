@@ -26,6 +26,7 @@ pywin_path = next(iter(pywin.__path__))
 pythonwinpy_path = os.path.dirname(pywin_path) + "\\start_pythonwin.py"
 Object = argparse.Namespace
 _indebugger = "pywin.debugger" in sys.modules
+teared_down = False
 
 
 def read_file(*args, **kw):
@@ -55,7 +56,7 @@ class T(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         global teared_down
-        teared_down = 1
+        teared_down = True
         if user_interaction:
             print("-- Interact, then close the window for continuing the tests!")
             cls.app.Run()
@@ -90,7 +91,7 @@ class T(unittest.TestCase):
         t = v.GetTextRange()
         testpat = "self.app = thisApp"
         self.assertIn(testpat, t)
-        # Umlauts for encoding test: áéúäöü
+        # Umlauts for encoding test: áéúäöüÐ
         self.assertEqual(read_file(__file__, encoding="utf-8", newline="\r\n"), t)
         v.SetSel(0)
         self.assertEqual(v.GetSel(), (0, 0))
@@ -124,6 +125,16 @@ class T(unittest.TestCase):
         s, e = v.GetSel()
         self.assertEqual(e - s, len(testpat))
         self.assertGreater(s, 0)
+
+    def test_checkfile_encoding(self):
+        """CheckFile must honour the file's encoding, not the locale (mhammond/pywin32#667)"""
+        # _dbgscript.py is latin-1 (not valid UTF-8), this file is UTF-8 with
+        # a 0x90 byte (undefined in cp1252): one of them fails either locale.
+        for fn in (src_dir + "\\_dbgscript.py", file_abs):
+            scriptutils.JumpToDocument(fn)
+            with mock.patch.object(scriptutils, "_HandlePythonFailure") as failure:
+                scriptutils.CheckFile()
+            failure.assert_not_called()
 
     def test_browseobj(self):
         """Test object browser"""
@@ -464,7 +475,7 @@ if __name__ == "__main__":
         ts = unittest.TestSuite((t,))  # suite needed for setUpClass() !?
         ##ts = unittest.TestLoader().loadTestsFromTestCase(T)
         _tests = ts._tests[:]
-        r = ts.debug()
+        ts.debug()
         t.assertTrue(teared_down)
         print(_tests, "ok!")
         sys.exit()
