@@ -26,7 +26,7 @@ def DumpLink(fname):
     print("Icon:", shellLink.GetIconLocation())
 
 
-def FavDumper(nothing, path, names):
+def FavDumper(names):
     # called by os.walk
     for name in names:
         print(name, end=" ")
@@ -39,7 +39,8 @@ def FavDumper(nothing, path, names):
 def DumpFavorites():
     favfold = str(shell.SHGetSpecialFolderPath(0, shellcon.CSIDL_FAVORITES))
     print("Your favourites are at", favfold)
-    os.walk(favfold, FavDumper, None)
+    for directory, dirnames, filenames in os.walk(favfold):
+        FavDumper(filenames)
 
 
 if __name__ == "__main__":
