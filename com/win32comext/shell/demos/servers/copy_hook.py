@@ -51,7 +51,7 @@ def DllUnregisterServer():
     import winreg
 
     try:
-        key = winreg.DeleteKey(
+        winreg.DeleteKey(
             winreg.HKEY_CLASSES_ROOT,
             "directory\\shellex\\CopyHookHandlers\\" + ShellExtension._reg_desc_,
         )
@@ -61,7 +61,7 @@ def DllUnregisterServer():
         if details.errno != errno.ENOENT:
             raise
     try:
-        key = winreg.DeleteKey(
+        winreg.DeleteKey(
             winreg.HKEY_CLASSES_ROOT,
             "*\\shellex\\CopyHookHandlers\\" + ShellExtension._reg_desc_,
         )

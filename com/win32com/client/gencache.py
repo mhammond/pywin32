@@ -434,9 +434,7 @@ def ForgetAboutTypelibInterface(typelib_ob):
             )
         )
     # and drop any version redirects to it
-    for key, val in versionRedirectMap.items():
-        if val == info:
-            del versionRedirectMap[key]
+    versionRedirectMap.pop(info, None)
 
 
 def EnsureModule(

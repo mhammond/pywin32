@@ -80,18 +80,17 @@ class TestPipeService(win32serviceutil.ServiceFramework):
                     hr, thisd = ReadFile(pipeHandle, 256)
                     d += thisd
                 print("Read", d)
-                ok = 1
+                ok = True
             except error:
                 # Client disconnection - do nothing
-                ok = 0
+                ok = False
 
             # A secure service would handle (and ignore!) errors writing to the
             # pipe, but for the sake of this demo we don't (if only to see what errors
             # we can get when our clients break at strange times :-)
             if ok:
-                msg = (
-                    "%s (on thread %d) sent me %s"
-                    % (GetNamedPipeHandleState(pipeHandle, False, True)[4], tid, d)
+                msg = "{} (on thread {}) sent me {!r}".format(
+                    GetNamedPipeHandleState(pipeHandle, False, True)[4], tid, d
                 ).encode("ascii")
                 WriteFile(pipeHandle, msg)
         finally:

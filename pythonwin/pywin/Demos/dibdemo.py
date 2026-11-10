@@ -39,7 +39,7 @@ class DIBDemo:
         dib = win32ui.CreateDIBitmap()
         if len(bPBM) > 0:
             magic = f.readline()
-            if magic != "P6\n":
+            if magic != b"P6\n":
                 print("The file is not a PBM format file")
                 raise ValueError("Failed - The file is not a PBM format file")
             # check magic?

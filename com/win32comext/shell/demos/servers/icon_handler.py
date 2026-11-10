@@ -60,9 +60,7 @@ def DllUnregisterServer():
     import winreg
 
     try:
-        key = winreg.DeleteKey(
-            winreg.HKEY_CLASSES_ROOT, "Python.File\\shellex\\IconHandler"
-        )
+        winreg.DeleteKey(winreg.HKEY_CLASSES_ROOT, "Python.File\\shellex\\IconHandler")
     except OSError as details:
         import errno
 
