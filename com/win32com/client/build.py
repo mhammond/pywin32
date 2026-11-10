@@ -92,7 +92,7 @@ class MapEntry:
         self.doc = doc
         self.resultCLSID = resultCLSID
         self.resultDocumentation = resultDoc
-        self.wasProperty = 0
+        self.wasProperty = False
         """Has this MapEntry been transformed into a function so it can pass args?"""
         self.hidden = hidden
 
@@ -166,7 +166,7 @@ class DispatchItem(OleItem):
                     newKey = "Set" + key
                 else:
                     newKey = key
-            item.wasProperty = 1
+            item.wasProperty = True
             self.mapFuncs[newKey] = item
             if deleteExisting:
                 del self.propMapPut[key]
@@ -183,7 +183,7 @@ class DispatchItem(OleItem):
                     newKey = "Get" + key
                 else:
                     newKey = key
-            item.wasProperty = 1
+            item.wasProperty = True
             self.mapFuncs[newKey] = item
             if deleteExisting:
                 del self.propMapGet[key]
@@ -245,7 +245,7 @@ class DispatchItem(OleItem):
                     map = self.mapFuncs
                     name = "Set" + name
                 else:  # Existing becomes a func.
-                    existing.wasProperty = 1
+                    existing.wasProperty = True
                     self.mapFuncs["Set" + name] = existing
                     map = self.propMapPut  # existing gets overwritten below.
             else:
