@@ -373,6 +373,12 @@ class my_build_ext(build_ext):
         self.library_dirs.append(self.build_temp)
         if is_mingw:
             self.libraries.append("stdc++")
+            # When cross-compiling from another OS, distutils doesn't link
+            # libpython, so link it from the Windows Python lib dir passed through env
+            if win_python_lib := os.environ.get("WIN_PYTHON_LIB"):
+                self.library_dirs.insert(0, win_python_lib)
+                pyver = f"{sys.version_info.major}.{sys.version_info.minor}"
+                self.libraries.append(f"python{pyver}")
 
         self.excluded_extensions: list[tuple[WinExt, str]] = []
         """List of excluded extensions and their reason"""
@@ -385,12 +391,18 @@ class my_build_ext(build_ext):
         Cached: the compiler doesn't change during a build,
         this saves on process spawn, and parsing on non-MSVC, once per extension.
         """
+        # MSVC's cc is a cl.exe path, which shlex.split would mangle
+        if self.compiler.compiler_type == "msvc":
+            return []
         cc = getattr(self.compiler, "cc", "")
         if not cc:
             return []
+        import shlex
+
         try:
             output = subprocess.check_output(
-                [cc, "-xc", "-E", "-", "-v"],
+                # CC may carry flags (e.g. "ccache gcc" or "gcc -nostdinc ...")
+                [*shlex.split(cc), "-xc", "-E", "-", "-v"],
                 input=b"",
                 stderr=subprocess.STDOUT,
             ).decode(errors="replace")
@@ -514,18 +526,21 @@ class my_build_ext(build_ext):
         Do this externally to avoid suddenly dragging in the
         modules needed by this process.
         """
-        self.spawn(
-            [
-                sys.executable,
-                Path(__file__).parent / "win32" / "Lib" / "win32verstamp.py",
-                f"--version={pywin32_version}",
-                "--comments=https://github.com/mhammond/pywin32",
-                f"--original-filename={os.path.basename(filename)}",
-                "--product=PyWin32",
-                "--quiet" if "-v" not in sys.argv else "",
-                filename,
-            ]
-        )
+        # Verstamping relies on Windows runtime, don't attempt if cross-compiling
+        # from another OS. Non-Windows builds are never official anyway
+        if sys.platform == "win32":
+            self.spawn(
+                [
+                    sys.executable,
+                    Path(__file__).parent / "win32" / "Lib" / "win32verstamp.py",
+                    f"--version={pywin32_version}",
+                    "--comments=https://github.com/mhammond/pywin32",
+                    f"--original-filename={os.path.basename(filename)}",
+                    "--product=PyWin32",
+                    "--quiet" if "-v" not in sys.argv else "",
+                    filename,
+                ]
+            )
 
     def build_extensions(self):
         # First, sanity-check the 'extensions' list
@@ -570,6 +585,12 @@ class my_build_ext(build_ext):
             remove_manifest_flags(self.compiler.ldflags_exe_debug)
             remove_manifest_flags(self.compiler.ldflags_shared)
             remove_manifest_flags(self.compiler.ldflags_shared_debug)
+        else:
+            # When cross-compiling from another OS, distutils adds the host
+            # Python include dir. Put the Windows Python include dir first so
+            # its Python.h and pyconfig.h shadow the host ones.
+            if win_python_inc := os.environ.get("WIN_PYTHON_INC"):
+                self.compiler.include_dirs.insert(0, win_python_inc)
 
         for ext in self.extensions:
             if not isinstance(ext, WinExt):
