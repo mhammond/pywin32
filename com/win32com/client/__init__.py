@@ -521,6 +521,8 @@ def register_record_class(cls):
 # The base of all makepy generated classes
 ############################################
 class DispatchBaseClass:
+    Properties_: DispatchBaseClass
+
     def __init__(self, oobj=None):
         if oobj is None:
             oobj = pythoncom.new(self.CLSID)
