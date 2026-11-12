@@ -107,28 +107,22 @@ class StartupDlg(dialog.Dialog):
             | win32con.DS_MODALFRAME
         )
         exstyle = None
-        t = [
+        return [
             ["Service Startup", (6, 18, 188, 107), style, exstyle, (8, "MS Shell Dlg")],
-        ]
-        t.append(
             [
                 130,
                 "Device:",
                 self.IDC_LABEL,
                 (6, 7, 40, 8),
                 win32con.WS_VISIBLE | win32con.WS_CHILD | win32con.SS_LEFT,
-            ]
-        )
-        t.append(
+            ],
             [
                 130,
                 "",
                 self.IDC_DEVICE,
                 (48, 7, 134, 8),
                 win32con.WS_VISIBLE | win32con.WS_CHILD | win32con.SS_LEFT,
-            ]
-        )
-        t.append(
+            ],
             [
                 128,
                 "Startup Type",
@@ -138,9 +132,7 @@ class StartupDlg(dialog.Dialog):
                 | win32con.WS_CHILD
                 | win32con.WS_GROUP
                 | win32con.BS_GROUPBOX,
-            ]
-        )
-        t.append(
+            ],
             [
                 128,
                 "&Boot",
@@ -150,9 +142,7 @@ class StartupDlg(dialog.Dialog):
                 | win32con.WS_CHILD
                 | win32con.WS_TABSTOP
                 | win32con.BS_AUTORADIOBUTTON,
-            ]
-        )
-        t.append(
+            ],
             [
                 128,
                 "&System",
@@ -162,9 +152,7 @@ class StartupDlg(dialog.Dialog):
                 | win32con.WS_CHILD
                 | win32con.WS_TABSTOP
                 | win32con.BS_AUTORADIOBUTTON,
-            ]
-        )
-        t.append(
+            ],
             [
                 128,
                 "&Automatic",
@@ -174,9 +162,7 @@ class StartupDlg(dialog.Dialog):
                 | win32con.WS_CHILD
                 | win32con.WS_TABSTOP
                 | win32con.BS_AUTORADIOBUTTON,
-            ]
-        )
-        t.append(
+            ],
             [
                 128,
                 "&Manual",
@@ -186,9 +172,7 @@ class StartupDlg(dialog.Dialog):
                 | win32con.WS_CHILD
                 | win32con.WS_TABSTOP
                 | win32con.BS_AUTORADIOBUTTON,
-            ]
-        )
-        t.append(
+            ],
             [
                 128,
                 "&Disabled",
@@ -198,9 +182,7 @@ class StartupDlg(dialog.Dialog):
                 | win32con.WS_CHILD
                 | win32con.WS_TABSTOP
                 | win32con.BS_AUTORADIOBUTTON,
-            ]
-        )
-        t.append(
+            ],
             [
                 128,
                 "OK",
@@ -211,9 +193,7 @@ class StartupDlg(dialog.Dialog):
                 | win32con.WS_TABSTOP
                 | win32con.WS_GROUP
                 | win32con.BS_DEFPUSHBUTTON,
-            ]
-        )
-        t.append(
+            ],
             [
                 128,
                 "Cancel",
@@ -223,9 +203,7 @@ class StartupDlg(dialog.Dialog):
                 | win32con.WS_CHILD
                 | win32con.WS_TABSTOP
                 | win32con.BS_PUSHBUTTON,
-            ]
-        )
-        t.append(
+            ],
             [
                 128,
                 "&Help",
@@ -235,9 +213,8 @@ class StartupDlg(dialog.Dialog):
                 | win32con.WS_CHILD
                 | win32con.WS_TABSTOP
                 | win32con.BS_PUSHBUTTON,
-            ]
-        )
-        return t
+            ],
+        ]
 
 
 class ServiceDlg(dialog.Dialog):
@@ -416,37 +393,29 @@ class ServiceDlg(dialog.Dialog):
             | win32con.DS_MODALFRAME
         )
         exstyle = None
-        t = [
+        return [
             ["Services", (16, 16, 333, 157), style, exstyle, (8, "MS Shell Dlg")],
-        ]
-        t.append(
             [
                 130,
                 "Ser&vice",
                 -1,
                 (6, 6, 70, 8),
                 win32con.WS_VISIBLE | win32con.WS_CHILD | win32con.SS_LEFT,
-            ]
-        )
-        t.append(
+            ],
             [
                 130,
                 "Status",
                 -1,
                 (164, 6, 42, 8),
                 win32con.WS_VISIBLE | win32con.WS_CHILD | win32con.SS_LEFT,
-            ]
-        )
-        t.append(
+            ],
             [
                 130,
                 "Startup",
                 -1,
                 (206, 6, 50, 8),
                 win32con.WS_VISIBLE | win32con.WS_CHILD | win32con.SS_LEFT,
-            ]
-        )
-        t.append(
+            ],
             [
                 131,
                 "",
@@ -461,9 +430,7 @@ class ServiceDlg(dialog.Dialog):
                 | win32con.WS_TABSTOP
                 | win32con.LBS_NOTIFY
                 | win32con.WS_VSCROLL,
-            ]
-        )
-        t.append(
+            ],
             [
                 128,
                 "Close",
@@ -474,9 +441,7 @@ class ServiceDlg(dialog.Dialog):
                 | win32con.WS_GROUP
                 | win32con.WS_TABSTOP
                 | win32con.BS_DEFPUSHBUTTON,
-            ]
-        )
-        t.append(
+            ],
             [
                 128,
                 "&Start",
@@ -486,9 +451,7 @@ class ServiceDlg(dialog.Dialog):
                 | win32con.WS_CHILD
                 | win32con.WS_TABSTOP
                 | win32con.BS_PUSHBUTTON,
-            ]
-        )
-        t.append(
+            ],
             [
                 128,
                 "S&top",
@@ -498,9 +461,7 @@ class ServiceDlg(dialog.Dialog):
                 | win32con.WS_CHILD
                 | win32con.WS_TABSTOP
                 | win32con.BS_PUSHBUTTON,
-            ]
-        )
-        t.append(
+            ],
             [
                 128,
                 "&Pause",
@@ -510,9 +471,7 @@ class ServiceDlg(dialog.Dialog):
                 | win32con.WS_CHILD
                 | win32con.WS_TABSTOP
                 | win32con.BS_PUSHBUTTON,
-            ]
-        )
-        t.append(
+            ],
             [
                 128,
                 "&Continue",
@@ -522,9 +481,7 @@ class ServiceDlg(dialog.Dialog):
                 | win32con.WS_CHILD
                 | win32con.WS_TABSTOP
                 | win32con.BS_PUSHBUTTON,
-            ]
-        )
-        t.append(
+            ],
             [
                 128,
                 "Sta&rtup...",
@@ -534,9 +491,7 @@ class ServiceDlg(dialog.Dialog):
                 | win32con.WS_CHILD
                 | win32con.WS_TABSTOP
                 | win32con.BS_PUSHBUTTON,
-            ]
-        )
-        t.append(
+            ],
             [
                 128,
                 "H&W Profiles...",
@@ -546,9 +501,7 @@ class ServiceDlg(dialog.Dialog):
                 | win32con.WS_CHILD
                 | win32con.WS_TABSTOP
                 | win32con.BS_PUSHBUTTON,
-            ]
-        )
-        t.append(
+            ],
             [
                 128,
                 "&Help",
@@ -558,18 +511,14 @@ class ServiceDlg(dialog.Dialog):
                 | win32con.WS_CHILD
                 | win32con.WS_TABSTOP
                 | win32con.BS_PUSHBUTTON,
-            ]
-        )
-        t.append(
+            ],
             [
                 130,
                 "St&artup Parameters:",
                 -1,
                 (6, 128, 70, 8),
                 win32con.WS_VISIBLE | win32con.WS_CHILD | win32con.SS_LEFT,
-            ]
-        )
-        t.append(
+            ],
             [
                 129,
                 "",
@@ -580,9 +529,8 @@ class ServiceDlg(dialog.Dialog):
                 | win32con.WS_GROUP
                 | win32con.WS_BORDER
                 | win32con.ES_AUTOHSCROLL,
-            ]
-        )
-        return t
+            ],
+        ]
 
 
 if __name__ == "__main__":
