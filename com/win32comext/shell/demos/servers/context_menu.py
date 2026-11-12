@@ -99,7 +99,7 @@ def DllUnregisterServer():
     import winreg
 
     try:
-        key = winreg.DeleteKey(
+        winreg.DeleteKey(
             winreg.HKEY_CLASSES_ROOT,
             "Python.File\\shellex\\ContextMenuHandlers\\PythonSample",
         )

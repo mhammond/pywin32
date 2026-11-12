@@ -1,3 +1,5 @@
+from typing import TYPE_CHECKING
+
 import win32com
 import win32com.client
 
@@ -25,7 +27,11 @@ else:
 # interface, as well as via IDispatch.
 import pythoncom
 
-from .adsi import *  # Re-export everything from win32comext/adsi/adsi.pyd
+if TYPE_CHECKING:
+    # Available with typeshed type stubs only
+    from win32comext.adsi.adsi import *  # pyright: ignore[reportWildcardImportFromLibrary, reportAssignmentType]
+else:
+    from .adsi import *  # Re-export everything from win32comext/adsi/adsi.pyd
 
 LCID = 0
 

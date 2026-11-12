@@ -167,7 +167,7 @@ def unregister(classobj):
     )
     try:
         hKey = winreg.CreateKey(winreg.HKEY_LOCAL_MACHINE, subKeyCLSID)
-        subKey = winreg.DeleteValue(hKey, "ButtonText")
+        winreg.DeleteValue(hKey, "ButtonText")
         winreg.DeleteValue(hKey, "ClsidExtension")  # for calling COM object
         winreg.DeleteValue(hKey, "CLSID")
         winreg.DeleteValue(hKey, "Default Visible")

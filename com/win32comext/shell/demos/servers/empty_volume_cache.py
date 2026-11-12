@@ -169,7 +169,7 @@ def DllUnregisterServer():
         EmptyVolumeCache._reg_desc_,
     )
     try:
-        key = winreg.DeleteKey(winreg.HKEY_LOCAL_MACHINE, kn)
+        winreg.DeleteKey(winreg.HKEY_LOCAL_MACHINE, kn)
     except OSError as details:
         import errno
 

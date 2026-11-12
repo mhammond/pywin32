@@ -949,7 +949,7 @@ def DllUnregisterServer():
     import winreg
 
     try:
-        key = winreg.DeleteKey(
+        winreg.DeleteKey(
             winreg.HKEY_LOCAL_MACHINE,
             "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\"
             "Explorer\\Desktop\\Namespace\\" + ShellFolderRoot._reg_clsid_,

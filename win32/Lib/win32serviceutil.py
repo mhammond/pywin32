@@ -578,6 +578,9 @@ def RestartService(serviceName, args=None, waitSeconds=30, machine=None):
         print("Gave up waiting for the old service to stop!")
 
 
+g_debugService: ServiceFramework | None = None
+
+
 def _DebugCtrlHandler(evt):
     if evt in (win32con.CTRL_C_EVENT, win32con.CTRL_BREAK_EVENT):
         assert g_debugService

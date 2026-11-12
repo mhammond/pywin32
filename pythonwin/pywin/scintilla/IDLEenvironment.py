@@ -493,7 +493,7 @@ class TkText:
             i2 = self._getoffset(i2)
         except EmptyRange:
             i2 = ""
-        return eval("%d%s%d" % (i1, op, i2))
+        return eval(f"{i1}{op}{i2}")
 
     def undo_block_start(self):
         self.edit.SCIBeginUndoAction()

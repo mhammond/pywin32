@@ -327,29 +327,18 @@ class InteractivePythonApp(app.CApp):
                     dde.Exec(f"win32ui.GetApp().OpenDocumentFile({fname!r})")
                 else:
                     win32ui.GetApp().OpenDocumentFile(par)
-            elif argType == "/rundlg":
+            elif argType in {"/rundlg", "/run"}:
+                defArgs = " ".join(args[i + 1 :])
+                showDialog = argType == "/rundlg"
                 if dde:
                     dde.Exec(
-                        "from pywin.framework import scriptutils;scriptutils.RunScript({!r}, {!r}, 1)".format(
-                            par, " ".join(args[i + 1 :])
-                        )
+                        "from pywin.framework import scriptutils;"
+                        + f"scriptutils.RunScript({par!r}, {defArgs!r}, {showDialog!r})"
                     )
                 else:
                     from . import scriptutils
 
-                    scriptutils.RunScript(par, " ".join(args[i + 1 :]))
-                return
-            elif argType == "/run":
-                if dde:
-                    dde.Exec(
-                        "from pywin.framework import scriptutils;scriptutils.RunScript({!r}, {!r}, 0)".format(
-                            par, " ".join(args[i + 1 :])
-                        )
-                    )
-                else:
-                    from . import scriptutils
-
-                    scriptutils.RunScript(par, " ".join(args[i + 1 :]), 0)
+                    scriptutils.RunScript(par, defArgs, showDialog)
                 return
             elif argType == "/app":
                 raise RuntimeError(

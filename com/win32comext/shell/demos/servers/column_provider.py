@@ -95,7 +95,7 @@ def DllUnregisterServer():
     import winreg
 
     try:
-        key = winreg.DeleteKey(
+        winreg.DeleteKey(
             winreg.HKEY_CLASSES_ROOT,
             "Folder\\ShellEx\\ColumnHandlers\\" + str(ColumnProvider._reg_clsid_),
         )
