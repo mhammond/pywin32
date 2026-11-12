@@ -11,6 +11,8 @@
 # #  Skip down to the next "# #" line --
 # #  -- the things you need to change are below it.
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+from __future__ import annotations
+
 import platform
 import random
 import sys
@@ -44,9 +46,7 @@ if "--help" in sys.argv:
     exit()
 
 # create a random name for temporary table names
-_alphabet = (
-    "PYFGCRLAOEUIDHTNSQJKXBMWVZ"  # why, yes, I do happen to use a dvorak keyboard
-)
+_alphabet = "PYFGCRLAOEUIDHTNSQJKXBMWVZ"  # why, yes, I (vernondcole) do happen to use a dvorak keyboard
 tmp = "".join([random.choice(_alphabet) for x in range(9)])
 mdb_name = "xx_" + tmp + ".mdb"  # generate a non-colliding name for the temporary .mdb
 testfolder = setuptestframework.maketemp()
@@ -69,10 +69,10 @@ import adodbapi  # will (hopefully) be imported using the "pth" discovered above
 print(adodbapi.version)  # show version
 print(__doc__)
 
-verbose = False
+verbose: int | bool = False
 for a in sys.argv:
     if a.startswith("--verbose"):
-        arg = True
+        arg: int | bool = True
         try:
             arg = int(a.split("=")[1])
         except IndexError:
@@ -135,12 +135,10 @@ if doMySqlTest:
         "user": "adotest",
         "password": "12345678",
         "port": "3330",  # note the nonstandard port for obfuscation
-        "driver": "MySQL ODBC 5.1 Driver",
-    }  # or _driver="MySQL ODBC 3.51 Driver
-    c["macro_is64bit"] = [
-        "provider",
-        "Provider=MSDASQL;",
-    ]  # turn on the 64 bit ODBC adapter only if needed
+        "driver": "MySQL ODBC 5.1 Driver",  # or "_driver": "MySQL ODBC 3.51 Driver",
+        # turn on the 64 bit ODBC adapter only if needed
+        "macro_is64bit": ["provider", "Provider=MSDASQL;"],
+    }
     cs = (
         "%(provider)sDriver={%(driver)s};Server=%(host)s;Port=3330;"
         + "Database=%(database)s;user=%(user)s;password=%(password)s;Option=3;"
@@ -156,12 +154,14 @@ if doPostgresTest:
     _databasename = "adotest"
     _username = "adotestuser"
     _password = "12345678"
-    kws = {"timeout": 4}
-    kws["macro_is64bit"] = [
-        "prov_drv",
-        "Provider=MSDASQL;Driver={PostgreSQL Unicode(x64)}",
-        "Driver=PostgreSQL Unicode",
-    ]
+    kws = {
+        "timeout": 4,
+        "macro_is64bit": [
+            "prov_drv",
+            "Provider=MSDASQL;Driver={PostgreSQL Unicode(x64)}",
+            "Driver=PostgreSQL Unicode",
+        ],
+    }
     # get driver from https://www.postgresql.org/ftp/odbc/releases/
     # test using positional and keyword arguments (bad example for real code)
     print("    ...Testing PostgreSQL login to {}...".format(_computername))
