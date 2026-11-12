@@ -1,4 +1,4 @@
-"""help utilities for PythonWin."""
+"""Help utilities for PythonWin."""
 
 from __future__ import annotations
 

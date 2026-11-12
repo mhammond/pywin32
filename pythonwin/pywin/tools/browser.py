@@ -1,10 +1,12 @@
-# basic module browser.
+"""basic module browser.
 
-# usage:
-# >>> import browser
-# >>> browser.Browse()
-# or
-# >>> browser.Browse(your_module)
+usage:
+>>> import browser
+>>> browser.Browse()
+or
+>>> browser.Browse(your_module)
+"""
+
 import sys
 import types
 from typing import Any

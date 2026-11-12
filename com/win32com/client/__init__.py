@@ -1,10 +1,12 @@
-# This module exists to create the "best" dispatch object for a given
-# object.  If "makepy" support for a given object is detected, it is
-# used, otherwise a dynamic dispatch object.
+"""This module exists to create the "best" dispatch object for a given
+object.  If "makepy" support for a given object is detected, it is
+used, otherwise a dynamic dispatch object.
 
-# Note that if the unknown dispatch object then returns a known
-# dispatch object, the known class will be used.  This contrasts
-# with dynamic.Dispatch behaviour, where dynamic objects are always used.
+Note that if the unknown dispatch object then returns a known
+dispatch object, the known class will be used.  This contrasts
+with dynamic.Dispatch behaviour, where dynamic objects are always used.
+"""
+
 from __future__ import annotations
 
 import sys
