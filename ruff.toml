@@ -1,4 +1,10 @@
 target-version = "py39" # Target the oldest supported version
+extend-include = [
+  "*.pyw", # Will be included by default in Ruff eventually
+  "*.pys", # PythonScript (Windows Script Host)
+  # Can be uncommented to format the [Extensions] section
+  # "**/default.cfg",
+]
 # This file is not UTF-8
 extend-exclude = ["pythonwin/pywin/test/_dbgscript.py"]
 
@@ -6,6 +12,7 @@ extend-exclude = ["pythonwin/pywin/test/_dbgscript.py"]
 line-ending = "cr-lf"
 
 [lint]
+future-annotations = true
 select = [
   "B028", # no-explicit-stacklevel
   "C4", # flake8-comprehensions
@@ -33,6 +40,8 @@ select = [
 
   # Helps prevent circular imports and other unneeded imports
   "TC", # flake8-type-checking
+  # Helps prevent misuse of imports
+  "TID", # flake8-tidy-imports
 ]
 extend-ignore = [
   # Lots of lazy or side-effect imports
@@ -46,16 +55,14 @@ extend-ignore = [
   # TODO: Still lots of manual fixes needed
   "UP031", # Use format specifiers instead of percent format
   "UP032", # Use f-string instead of format call
+  # TODO: https://github.com/astral-sh/ruff/issues/12475#issuecomment-5074327259
+  "N999", # invalid-module-name
 ]
 
 [lint.per-file-ignores]
-# Explicit re-exports is fine in __init__.py, still a code smell elsewhere.
-"__init__.py" = ["PLC0414"]
 # TODO: Make adodbapi changes in their own PRs
 "adodbapi/*" = [
   "C4",
-  "UP031",
-  "UP032",
   # Dropping Python 3.8 support
   "UP005",
   "UP006",
@@ -65,6 +72,8 @@ extend-ignore = [
   "YTT301",
 ]
 
+[lint.flake8-tidy-imports]
+ban-lazy = ["coloreditor", "IDLEenvironment", "pythoncom", "pywintypes", "win32com", "win32traceutil", "win32ui"]
 [lint.pyflakes]
 allowed-unused-imports = [
   # Modules with known side-effects
