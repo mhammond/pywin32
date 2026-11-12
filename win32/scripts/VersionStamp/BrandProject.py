@@ -19,7 +19,7 @@ def BrandProject(
     filesToSubstitute,
     buildDesc=None,
     auto=0,
-    bRebrand=0,
+    bRebrand=False,
 ):
     # vssProjectName -- The name of the VSS project to brand.
     # descFile -- A test file containing descriptions of the files in the release.

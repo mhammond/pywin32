@@ -23,7 +23,7 @@ class DebugCodeContext(gateways.DebugCodeContext, gateways.DebugDocumentContext)
         self.debugSite = debugSite
         self.offset = charPos
         self.length = len
-        self.breakPointState = 0
+        self.breakPointState = False
         self.lineno = lineNo
         gateways.DebugCodeContext.__init__(self)
         self.codeContainer = codeContainer

@@ -5,14 +5,14 @@ import pythoncom
 import win32com.client
 
 
-def DumpDB(db, bDeep=1):
+def DumpDB(db, bDeep=True):
     # MUST be a DB object.
     DumpTables(db, bDeep)
     DumpRelations(db, bDeep)
     DumpAllContainers(db, bDeep)
 
 
-def DumpTables(db, bDeep=1):
+def DumpTables(db, bDeep=True):
     for tab in db.TableDefs:
         tab = db.TableDefs(tab.Name)  # Redundant lookup for testing purposes.
         print(
@@ -37,7 +37,7 @@ def DumpFields(fields):
         )
 
 
-def DumpRelations(db, bDeep=1):
+def DumpRelations(db, bDeep=True):
     for relation in db.Relations:
         print(f"Relation {relation.Name} - {relation.Table}->{relation.ForeignTable}")
 
@@ -46,7 +46,7 @@ def DumpRelations(db, bDeep=1):
 ####            if bDeep: DumpFields(relation.Fields)
 
 
-def DumpAllContainers(db, bDeep=1):
+def DumpAllContainers(db, bDeep=True):
     for cont in db.Containers:
         print("Container %s - %d documents" % (cont.Name, len(cont.Documents)))
         if bDeep:

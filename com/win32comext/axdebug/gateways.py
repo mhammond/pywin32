@@ -383,7 +383,7 @@ class DebugDocumentHost:
     def __init__(self):
         pass
 
-    def GetDeferredText(self, dwTextStartCookie, maxChars, bWantAttr):
+    def GetDeferredText(self, dwTextStartCookie, maxChars, bWantAttr: bool):
         RaiseNotImpl("GetDeferredText")
 
     def GetScriptTextAttributes(self, codeText, delimterText, flags):

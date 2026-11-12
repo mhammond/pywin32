@@ -209,7 +209,7 @@ class IEToolbar:
     def CloseDW(self, dwReserved):
         del self.toolbar
 
-    def ShowDW(self, bShow):
+    def ShowDW(self, bShow: bool):
         if bShow:
             self.toolbar.ShowWindow(win32con.SW_SHOW)
         else:
@@ -301,7 +301,7 @@ class IEToolbar:
 
 
 # used for HKLM install
-def DllInstall(bInstall, cmdLine):
+def DllInstall(bInstall: bool, cmdLine):
     comclass = IEToolbar
 
 

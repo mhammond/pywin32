@@ -64,7 +64,7 @@ class PySourceModuleDebugDocumentHost(gateways.DebugDocumentHost):
             )
         return self.codeContainer
 
-    def GetDeferredText(self, dwTextStartCookie, maxChars, bWantAttr):
+    def GetDeferredText(self, dwTextStartCookie, maxChars, bWantAttr: bool):
         try:
             trace("GetDeferredText", dwTextStartCookie, maxChars, bWantAttr)
             cont = self._GetCodeContainer()

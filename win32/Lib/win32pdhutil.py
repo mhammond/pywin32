@@ -84,7 +84,7 @@ def FindPerformanceAttributesByName(
     counter=None,
     format=win32pdh.PDH_FMT_LONG,
     machine=None,
-    bRefresh=0,
+    bRefresh=False,
 ):
     """Find performance attributes by (case insensitive) instance name.
 

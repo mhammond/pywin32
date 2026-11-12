@@ -757,7 +757,7 @@ class InteractiveFrame(winout.WindowOutputFrame):
         self.lastActive = None
         winout.WindowOutputFrame.__init__(self)
 
-    def OnMDIActivate(self, bActive, wndActive, wndDeactive):
+    def OnMDIActivate(self, bActive: bool, wndActive, wndDeactive):
         if bActive:
             self.lastActive = wndDeactive
 
@@ -812,7 +812,7 @@ class DockedInteractiveView(DockedInteractiveViewParent):
 
 class CDockedInteractivePython(CInteractivePython):
     def __init__(self, dockbar):
-        self.bFirstCreated = 0
+        self.bFirstCreated = False
         self.dockbar = dockbar
         CInteractivePython.__init__(self)
 
@@ -841,7 +841,7 @@ class CDockedInteractivePython(CInteractivePython):
             CreateDockedInteractiveWindow()
 
     def Create(self):
-        self.bCreating = 1
+        self.bCreating = True
         doc = InteractiveDocument(None, self.DoCreateDoc())
         view = DockedInteractiveView(doc)
         defRect = pywin.framework.app.LoadWindowSize("Interactive Window", "docked")
@@ -851,10 +851,10 @@ class CDockedInteractivePython(CInteractivePython):
         id = 1050  # win32ui.AFX_IDW_PANE_FIRST
         view.CreateWindow(self.dockbar, id, style, defRect)
         view.OnInitialUpdate()
-        self.bFirstCreated = 1
+        self.bFirstCreated = True
 
         self.currentView = doc.GetFirstView()
-        self.bCreating = 0
+        self.bCreating = False
         if self.title:
             doc.SetTitle(self.title)
 

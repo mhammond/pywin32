@@ -73,7 +73,7 @@ class TestObject:
         return
 
 
-def TestVB(vbtest, bUseGenerated):
+def TestVB(vbtest, bUseGenerated: bool):
     vbtest.LongProperty = -1
     assert vbtest.LongProperty == -1, "Could not set the long property correctly."
     vbtest.IntProperty = 10
@@ -256,7 +256,7 @@ def _DoTestArray(vbtest, data, expected_exception=None):
     )
 
 
-def TestArrays(vbtest, bUseGenerated):
+def TestArrays(vbtest, bUseGenerated: bool):
     # Try and use a safe array (note that the VB code has this declared as a VARIANT
     # and I can't work out how to force it to use native arrays!
     # (NOTE Python will convert incoming arrays to tuples, so we pass a tuple, even tho

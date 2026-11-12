@@ -305,7 +305,7 @@ class CubeView(OpenGLView):
         self.radius = near_plane + maxObjectSize / 2.0
 
     def Init(self):
-        self.busy = 0
+        self.busy = False
         self.wAngleY = 10.0
         self.wAngleX = 1.0
         self.wAngleZ = 5.0
@@ -320,7 +320,7 @@ class CubeView(OpenGLView):
     def DrawScene(self):
         if self.busy:
             return
-        self.busy = 1
+        self.busy = True
 
         glClearColor(0.0, 0.0, 0.0, 1.0)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
@@ -402,7 +402,7 @@ class CubeView(OpenGLView):
         glFinish()
         SwapBuffers(wglGetCurrentDC())
 
-        self.busy = 0
+        self.busy = False
 
 
 def test():

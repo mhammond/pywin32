@@ -213,7 +213,7 @@ def InstallService(
     displayName,
     startType=None,
     errorControl=None,
-    bRunInteractive=0,
+    bRunInteractive=False,
     serviceDeps=None,
     userName=None,
     password=None,
@@ -282,7 +282,7 @@ def ChangeServiceConfig(
     serviceName,
     startType=None,
     errorControl=None,
-    bRunInteractive=0,
+    bRunInteractive=False,
     serviceDeps=None,
     userName=None,
     password=None,
@@ -732,7 +732,7 @@ def HandleCommandLine(
     perfMonIni = perfMonDll = None
     startup = None
     delayedstart = None
-    interactive = None
+    interactive = False
     waitSecs = 0
     for opt, val in opts:
         if opt == "--username":
@@ -744,7 +744,7 @@ def HandleCommandLine(
         elif opt == "--perfmondll":
             perfMonDll = val
         elif opt == "--interactive":
-            interactive = 1
+            interactive = True
         elif opt == "--startup":
             map = {
                 "manual": win32service.SERVICE_DEMAND_START,

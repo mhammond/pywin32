@@ -119,13 +119,13 @@ def post_mortem(t=None):
     p.reset()
     while t.tb_next is not None:
         t = t.tb_next
-    p.bAtPostMortem = 1
+    p.bAtPostMortem = True
     p.prep_run(None)
     try:
         p.interaction(t.tb_frame, t)
     finally:
         t = None
-        p.bAtPostMortem = 0
+        p.bAtPostMortem = False
         p.done_run()
 
 

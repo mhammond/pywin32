@@ -70,7 +70,7 @@ class ServiceSecurity(win32com.server.policy.DesignatedWrapPolicy):
         objecttype = IID_NULL
         return flags, hinstance, servername, objectname, pagetitle, objecttype
 
-    def GetSecurity(self, requestedinfo, bdefault):
+    def GetSecurity(self, requestedinfo, bdefault: bool):
         """Requests the existing permissions for object"""
         if bdefault:
             return win32security.SECURITY_DESCRIPTOR()

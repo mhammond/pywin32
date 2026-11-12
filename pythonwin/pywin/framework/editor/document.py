@@ -26,9 +26,9 @@ ParentEditorDocument = pywin.scintilla.document.CScintillaDocument
 class EditorDocumentBase(ParentEditorDocument):
     def __init__(self, template):
         self.bAutoReload = GetEditorOption("Auto Reload", 1)
-        self.bDeclinedReload = 0  # Has the user declined to reload.
+        self.bDeclinedReload = False  # Has the user declined to reload.
         self.fileStat = None
-        self.bReportedFileNotFound = 0
+        self.bReportedFileNotFound = False
 
         # what sort of bak file should I create.
         # default to write to %temp%/bak/filename.ext
@@ -106,7 +106,7 @@ class EditorDocumentBase(ParentEditorDocument):
             else:
                 return 0
         self.SetModifiedFlag(0)  # No longer dirty
-        self.bDeclinedReload = 0  # They probably want to know if it changes again!
+        self.bDeclinedReload = False  # They probably want to know if it changes again!
         win32ui.AddToRecentFileList(fileName)
         self.SetPathName(fileName)
         win32ui.SetStatusText("Ready")
@@ -161,7 +161,7 @@ class EditorDocumentBase(ParentEditorDocument):
                         self.GetPathName(), exc.strerror
                     )
                 )
-                self.bReportedFileNotFound = 1
+                self.bReportedFileNotFound = True
             return
         if self.bReportedFileNotFound:
             print(
@@ -197,7 +197,7 @@ class EditorDocumentBase(ParentEditorDocument):
             if question:
                 rc = win32ui.MessageBox(question, None, mbStyle)
                 if rc != win32con.IDYES:
-                    self.bDeclinedReload = 1
+                    self.bDeclinedReload = True
                     return
             self.ReloadDocument()
 
