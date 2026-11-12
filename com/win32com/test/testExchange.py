@@ -3,12 +3,16 @@
 # You should use the Outlook object model, or
 # the win32com.mapi examples for a low-level interface.
 
+from __future__ import annotations
+
 import os
+from types import ModuleType
 
 import pythoncom
 from win32com.client import gencache
 
-ammodule = None  # was the generated module!
+ammodule: ModuleType | None = None  # was the generated module!
+# ammodule = gencache.EnsureModule("{3FA7DEA7-6438-101B-ACC1-00AA00423326}", 0, 1, 1)
 
 
 def GetDefaultProfileName():

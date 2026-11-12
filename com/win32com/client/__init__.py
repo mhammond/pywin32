@@ -1,19 +1,42 @@
-# This module exists to create the "best" dispatch object for a given
-# object.  If "makepy" support for a given object is detected, it is
-# used, otherwise a dynamic dispatch object.
+"""This module exists to create the "best" dispatch object for a given
+object.  If "makepy" support for a given object is detected, it is
+used, otherwise a dynamic dispatch object.
 
-# Note that if the unknown dispatch object then returns a known
-# dispatch object, the known class will be used.  This contrasts
-# with dynamic.Dispatch behaviour, where dynamic objects are always used.
+Note that if the unknown dispatch object then returns a known
+dispatch object, the known class will be used.  This contrasts
+with dynamic.Dispatch behaviour, where dynamic objects are always used.
+"""
+
 from __future__ import annotations
 
 import sys
 from itertools import chain
+from typing import TYPE_CHECKING, ClassVar
 
 import pythoncom
 import pywintypes
 
 from . import dynamic, gencache
+
+if TYPE_CHECKING:
+    from typing_extensions import TypeAlias
+
+_PropMapGet: TypeAlias = "dict[str, tuple[int, int, tuple[int, int], tuple[tuple[int, int], ...], str, str | None]]"
+# Literals written by build.MakeDefaultArgRepr. Dates are written as a utctimetuple.
+# bool        -> VT_BOOL
+# int         -> integer VTs, VT_ERROR, VT_HRESULT
+# float       -> VT_R4, VT_R8
+# str         -> VT_BSTR, fallback conversions, and everything from double-quoted propMapPut path
+# None        -> VT_NULL, VT_EMPTY, NULL dispatch/unknown/array
+# 9 int tuple -> VT_DATE, via utctimetuple()
+# Left out on purpose:
+# Decimal (VT_CY, VT_DECIMAL): repr is Decimal('1.5'), and generated modules never import Decimal (genpy.py:1084-1088), so module fails with NameError.
+# Non-null COM objects: repr like <PyIDispatch at ...> is not valid Python.
+# pywintypes.Time: Time branch at build.py:706 looks dead. PyWinDateTimeType subclasses datetime (PyTime.cpp:435), so earlier datetime branch catches it.
+_PropDefaultArg: TypeAlias = "bool | int | float | str | tuple[int, int, int, int, int, int, int, int, int] | None"
+_PropMapPut: TypeAlias = (
+    "dict[str, tuple[tuple[int, int, int, int], tuple[_PropDefaultArg, ...]]]"
+)
 
 _PyIDispatchType = pythoncom.TypeIIDs[pythoncom.IID_IDispatch]
 
@@ -521,6 +544,10 @@ def register_record_class(cls):
 # The base of all makepy generated classes
 ############################################
 class DispatchBaseClass:
+    # _prop_map_*_ are set in generated subclasses by gen_py
+    _prop_map_get_: ClassVar[_PropMapGet]
+    _prop_map_put_: ClassVar[_PropMapPut]
+
     def __init__(self, oobj=None):
         if oobj is None:
             oobj = pythoncom.new(self.CLSID)
@@ -583,13 +610,13 @@ class DispatchBaseClass:
             resultCLSID,
         )
 
-    def __getattr__(self, attr):
+    def __getattr__(self, attr: str):
         args = self._prop_map_get_.get(attr)
         if args is None:
             raise AttributeError(f"'{self!r}' object has no attribute '{attr}'")
         return self._ApplyTypes_(*args)
 
-    def __setattr__(self, attr, value):
+    def __setattr__(self, attr: str, value):
         if attr in self.__dict__:
             self.__dict__[attr] = value
             return

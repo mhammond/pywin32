@@ -1,26 +1,32 @@
-# SGrepMDI is by Gordon McMillan (gmcm@hypernet.com)
-# It does basically what Find In Files does in MSVC with a couple enhancements.
-# - It saves any directories in the app's ini file (if you want to get rid
-# 	of them you'll have to edit the file)
-# - "Directories" can be directories,
-#  -	semicolon separated lists of "directories",
-#  -	environment variables that evaluate to "directories",
-#  -	registry path names that evaluate to "directories",
-#  -	all of which is recursive, so you can mix them all up.
-# - It is MDI, so you can 'nest' greps and return to earlier ones,
-# 	(ie, have multiple results open at the same time)
-# - Like FIF, double clicking a line opens an editor and takes you to the line.
-# - You can highlight text, right click and start a new grep with the selected
-# 	text as search pattern and same directories etc as before.
-# - You can save grep parameters (so you don't lose your hardearned pattern)
-# 	from File|Save
-# - You can save grep results by right clicking in the result window.
-# Hats off to Mark Hammond for providing an environment where I could cobble
-# something like this together in a couple evenings!
+"""SGrepMDI is by Gordon McMillan (gmcm@hypernet.com)
+
+It does basically what Find In Files does in MSVC with a couple enhancements.
+- It saves any directories in the app's ini file (if you want to get rid
+    of them you'll have to edit the file)
+- "Directories" can be directories,
+ - semicolon separated lists of "directories",
+ - environment variables that evaluate to "directories",
+ - registry path names that evaluate to "directories",
+ - all of which is recursive, so you can mix them all up.
+- It is MDI, so you can 'nest' greps and return to earlier ones,
+    (ie, have multiple results open at the same time)
+- Like FIF, double clicking a line opens an editor and takes you to the line.
+- You can highlight text, right click and start a new grep with the selected
+    text as search pattern and same directories etc as before.
+- You can save grep parameters (so you don't lose your hard-earned pattern)
+    from File|Save
+- You can save grep results by right clicking in the result window.
+
+Hats off to Mark Hammond for providing an environment where I could cobble
+something like this together in a couple evenings!
+"""
+
+from __future__ import annotations
 
 import glob
 import os
 import re
+from collections.abc import Sequence
 
 import win32api
 import win32con
@@ -637,9 +643,15 @@ class GrepDialog(dialog.Dialog):
 
 
 class GrepParamsDialog(dialog.Dialog):
-    def __init__(self, items):
-        self.items = items
-        self.newitems = []
+    def __init__(
+        self,
+        # Sequence rather than Iterable to avoid single-use iterable
+        items: Sequence[str],
+    ):
+        # This subclass breaks LSP by making "items" not a method
+        # TODO: Consider making this a method or changing the base class to a property
+        self.items: Sequence[str] = items  # type: ignore[assignment]
+        self.newitems: list[str] = []
         style = (
             win32con.DS_MODALFRAME
             | win32con.WS_POPUP
