@@ -19,6 +19,13 @@ static PyObject *g_AtomMap = NULL; // Mapping class atoms to Python WNDPROC
 static PyObject *g_HWNDMap = NULL; // Mapping HWND to Python WNDPROC
 static PyObject *g_DLGMap = NULL;  // Mapping Dialog HWND to Python WNDPROC
 
+/*
+ * Window procedures for different HWNDs may run on different window-owning
+ * threads. Keep the callback alive while Python executes: another thread may
+ * unregister the HWND or destroy the dialog and remove the dictionary entry.
+ * PyDict_GetItemRef returns an owned reference on Python 3.13+; older
+ * supported interpreters still hold the GIL, so an immediate INCREF is safe.
+ */
 static PyObject *PyWinGui_DictGetItemRef(PyObject *dict, PyObject *key)
 {
 #if PY_VERSION_HEX >= 0x030d0000  // Python 3.13+
@@ -657,6 +664,7 @@ LRESULT CALLBACK PyWndProcHWND(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 {
 	CEnterLeavePython _celp;
 	PyObject *key = PyWinLong_FromHANDLE(hWnd);
+	// Keep the WNDPROC tuple alive if another thread unregisters this HWND.
 	PyObject *obInfo = PyWinGui_DictGetItemRef(g_HWNDMap, key);
 	Py_DECREF(key);
 	MYWNDPROC oldWndProc = NULL;
@@ -713,6 +721,7 @@ INT_PTR CALLBACK PyDlgProcHDLG(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 	// If our HWND is in the map, then call it.
 	PyObject *obFunc = NULL;
 	PyObject *key = PyWinLong_FromHANDLE(hWnd);
+	// Keep the dialog callback alive until this dispatch has completed.
 	obFunc = PyWinGui_DictGetItemRef(g_DLGMap, key);
 	Py_XDECREF(key);
 	if (!obFunc)
