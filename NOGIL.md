@@ -88,11 +88,18 @@ From https://github.com/devdanzin/ft-review-toolkit:
   Agents: shared-state, lock-discipline, unsafe-api, stw-advisor
   ────────────────────────────────────────
   #: 6
+  Status: Addressed for callback lifetime in win32gui.i: dispatch now obtains an
+    owned reference with PyDict_GetItemRef on Python 3.13+ (and an immediate
+    GIL-protected INCREF fallback on older runtimes), retaining it until the
+    callback returns. This prevents concurrent WM_NCDESTROY/unregistration from
+    invalidating an in-flight callback. Individual dict operations use CPython's
+    synchronized dictionary APIs; no critical section is held across arbitrary
+    Python callbacks.
   Finding: g_HWNDMap/g_DLGMap window proc callback dicts: PyWndProcHWND and
     PyDlgProcHDLG read/delete from these dicts on whichever thread owns each window's
-    message queue — multiple window-owning threads access the shared dicts concurrently
-  File:Line: win32gui.i:18–20, 641–714
-  Severity: HIGH
+    message queue - multiple window-owning threads access the shared dicts concurrently
+  File:Line: win32gui.i:18-20, 641-714
+  Severity: HIGH (callback lifetime addressed; revisit if compound map invariants are added)
   Agents: unsafe-api
   ────────────────────────────────────────
   #: 7
@@ -284,9 +291,11 @@ From https://github.com/devdanzin/ft-review-toolkit:
   5. Finding 5 (Register.cpp:232): Immediately remove the Py_DECREF(v) on the borrowed
   reference at line 232 — this is a refcount corruption bug present in all builds
   today. Then add a shared PyMutex protecting all five g_obPyCom_Map* dicts.
-  6. Finding 6 (win32gui.i): Wrap all g_HWNDMap/g_DLGMap access with
-  Py_BEGIN_CRITICAL_SECTION. Replace PyDict_GetItem with PyDict_GetItemRef to take
-  owned references before executing callbacks.
+  6. Finding 6 (win32gui.i): Take an owned reference with PyDict_GetItemRef before
+  executing a WNDPROC/dialog callback and retain it until dispatch completes. The
+  individual dictionary operations are synchronized by CPython; do not hold a
+  critical section across arbitrary Python callbacks. Add a critical section only
+  if future changes introduce a compound map operation that must be atomic.
   7. Finding 7 (dllmain.cpp): Change dwQuitThreadId to volatile LONG and use
   InterlockedExchange/InterlockedCompareExchange — matching the existing g_cLockCount
   pattern.
