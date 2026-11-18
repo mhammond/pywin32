@@ -11,7 +11,8 @@ from __future__ import annotations
 
 import re
 import sys
-from typing import NoReturn
+from collections.abc import Callable
+from typing import Any, NoReturn
 
 import pythoncom  # Need simple connection point support
 import win32api
@@ -192,7 +193,9 @@ class EventSink:
         self.connection = None
         self.coDispatch = coDispatch
         self.myScriptItem = myItem
-        self.myInvokeMethod = myItem.GetEngine().ProcessScriptItemEvent
+        self.myInvokeMethod: Callable[[Any, Any, Any, Any, Any], Any] = (
+            myItem.GetEngine().ProcessScriptItemEvent
+        )  # Incomplete type
         self.iid = None
 
     def Reset(self):
@@ -218,7 +221,7 @@ class EventSink:
             event = self.events[dispid]
         except:
             raise COMException(scode=winerror.DISP_E_MEMBERNOTFOUND)
-        # print("Invoke for ", event, "on", self.myScriptItem, " - calling",  self.myInvokeMethod)
+        # print("Invoke for", event, "on", self.myScriptItem, "- calling",  self.myInvokeMethod)
         return self.myInvokeMethod(self.myScriptItem, event, lcid, wFlags, args)
 
     def GetSourceTypeInfo(self, typeinfo):
