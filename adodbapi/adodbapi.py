@@ -157,6 +157,7 @@ def format_parameters(ADOparameters, show_value=False):
 
 def _configure_parameter(p, value, adotype, settings_known):
     """Configure the given ADO Parameter 'p' with the Python 'value'."""
+
     if adotype in api.adoBinaryTypes:
         p.Size = len(value)
         p.AppendChunk(value)
@@ -770,6 +771,7 @@ class Cursor:
         """with some providers, returned parameters and the .return_value are not available until
         after the last recordset has been read.  In that case, you must coll nextset() until it
         returns None, then call this method to get your returned information."""
+
         # store procedures may return altered parameters, including an added "return value" item
         retLst = []
         for p in tuple(self.cmd.Parameters):
