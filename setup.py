@@ -993,6 +993,12 @@ class MyCygwinCompiler(BaseCygwinCompiler):
                 # then compile .rc to .res file
                 base, _ = os.path.splitext(os.path.basename(src))
                 src = os.path.join(rc_dir, base + ".rc")
+                # llvm-windres has no MESSAGETABLE keyword and would read it as a
+                # user-defined type *named* "MESSAGETABLE". Use RT_MESSAGETABLE's ID.
+                # TODO: Remove once llvm/llvm-project#234376 is in a released LLVM
+                # that all supported MSYS2 clang environments ship.
+                rc = Path(src)
+                rc.write_bytes(rc.read_bytes().replace(b" MESSAGETABLE ", b" 11 "))
             if ext in self._resource_extensions:
                 # gcc needs '.res' and '.rc' compiled to object files !!!
                 self.spawn([os.environ.get("WINDRES", "windres"), "-i", src, "-o", obj])
