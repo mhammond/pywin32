@@ -2,7 +2,7 @@ from . import adodbapi
 
 
 def names(connection_object):
-    """call using an open ADO connection --> list of table names"""
+    """Call using an open ADO connection --> list of table names"""
     ado = connection_object.adoConn
     schema = ado.OpenSchema(20)  # constant = adSchemaTables
 
