@@ -52,17 +52,20 @@
 <H4>QueryInterface and Types </H4>
 <P>When the only support required by Python is IDispatch, everything is simple - every object returned from QueryInterface is a PyIDispatch object. But this does not extend to other types, such as ITypeLib, IConnectionPoint etc., which are required for full COM support. </P>
 <P>For example, consider the following C++ pseudo-code: </P>
-<CODE><P>IConnectionPoint *conPt;<BR>
-someIDispatch-&gt;QueryInterface(IID_IConnectionPoint, (void **)&amp;conPt);<BR>
-// Note the IID_ and type of the * could be anything!</CODE> </P>
+<PRE><CODE>IConnectionPoint *conPt;
+someIDispatch-&gt;QueryInterface(IID_IConnectionPoint, (void **)&amp;conPt);
+// Note the IID_ and type of the * could be anything!
+</CODE></PRE>
 <P>This cast, and knowledge of a specific IID_* to type must be simulated in Python. </P>
 <P>Python/COM will therefore maintain a map of UID's to Python type objects. Whenever QueryInterface is called, Python will lookup this map, to determine if the object type is supported. If the object is supported, then an object of that type will be returned. If the object is not supported, then a PyIUnknown object will be returned. </P>
 <P>Note that PyIDispatch will be supported by the core engine. Therefore: </P>
-<CODE><P>&gt;&gt;&gt; disp=someobj.QueryInterface(win32com.IID_Dispatch) </P>
-</CODE><P>will return a PyIDispatch object, whereas </P>
-<CODE><P>&gt;&gt;&gt; unk=someobj.QueryInterface(SomeUnknownIID) # returns PyIUnknown<BR>
-&gt;&gt;&gt; disp=unk.QueryInterface(win32com.IID_Dispatch) <BR>
-&gt;&gt;&gt; unk.Release() # Clean up now, rather than waiting for unk death.</CODE> </P>
+<PRE><CODE>&gt;&gt;&gt; disp=someobj.QueryInterface(win32com.IID_Dispatch)
+</CODE></PRE>
+<P>will return a PyIDispatch object, whereas </P>
+<PRE><CODE>&gt;&gt;&gt; unk=someobj.QueryInterface(SomeUnknownIID) # returns PyIUnknown
+&gt;&gt;&gt; disp=unk.QueryInterface(win32com.IID_Dispatch)
+&gt;&gt;&gt; unk.Release() # Clean up now, rather than waiting for unk death.
+</CODE></PRE>
 <P>Is needed to convert to an IDispatch object. </P>
 <H4>Core Support </H4>
 <P>The core COM support module will support the IUnknown, IDispatch, ITypeInfo, ITypeLib and IConnectionPointContainer and IConnectionPoint interfaces. This implies the core COM module supports 6 different OLE client object types, mapped to the 6 IID_*'s representing the objects. (The IConnection* objects allow for Python to respond to COM events) </P>
@@ -70,10 +73,11 @@ someIDispatch-&gt;QueryInterface(IID_IConnectionPoint, (void **)&amp;conPt);<BR>
 <H4>Extensibility </H4>
 <P>To provide the above functionality, a Python map is provided, which maps from a GUID to a Python type object. </P>
 <P>The advantage of this scheme is an external extension modules can hook into the core support. For example, imagine the following code: </P>
-<CODE><P>&gt;&gt;&gt; import myextracom # external .pyd supporting some interface.<BR>
-# myextracom.pyd will do the equivalent of</CODE> </P>
-<CODE><P># pythoncom.mapSupportedTypes(myextracom.IID_Extra, myextracom.ExtraType) <BR>
-&gt;&gt;&gt; someobj.QueryInterface(myextracom.IID_Extra)</CODE> </P>
+<PRE><CODE>&gt;&gt;&gt; import myextracom # external .pyd supporting some interface.
+# myextracom.pyd will do the equivalent of
+# pythoncom.mapSupportedTypes(myextracom.IID_Extra, myextracom.ExtraType)
+&gt;&gt;&gt; someobj.QueryInterface(myextracom.IID_Extra)
+</CODE></PRE>
 <P>Would correctly return an object defined in the extension module. </P>
 <H3>Server Framework </H3>
 <H4>General Framework </H4>

@@ -43,7 +43,7 @@ possibly or'd together.
 <p>For example, to create a VARIANT object which defines a byref array of
 32bit integers, you could use:
 
-<pre>
+<pre><code>
 >>> from win32com.client import VARIANT
 >>> import pythoncom
 >>> v = VARIANT(pythoncom.VT_BYREF | pythoncom.VT_ARRAY | pythoncom.VT_I4,
@@ -51,7 +51,7 @@ possibly or'd together.
 >>> v
 win32com.client.VARIANT(24579, [1, 2, 3, 4])
 >>>
-</pre>
+</code></pre>
 
 This variable can then be used whereever a COM VARIANT is expected.
 
@@ -60,9 +60,9 @@ This variable can then be used whereever a COM VARIANT is expected.
 For this example we will use the COM object used for win32com testing,
 <code>PyCOMTest.PyCOMTest</code>.  This object defines a method which is
 defined in IDL as:
-<pre>
+<pre><code>
 HRESULT DoubleInOutString([in,out] BSTR *str);
-</pre>
+</code></pre>
 
 As you can see, it takes a single string parameter which is also used as
 an "out" parameter - the single parameter will be updated after the call.
@@ -71,24 +71,24 @@ The implementation of the method simply "doubles" the string.
 <p>If the object has a type-library, this method works fine with makepy
 generated support.  For example:
 
-<pre>
+<pre><code>
 >>> from win32com.client.gencache import EnsureDispatch
 >>> ob = EnsureDispatch("PyCOMTest.PyCOMTest")
 >>> ob.DoubleInOutString("Hello")
 u'HelloHello'
 >>>
-</pre>
+</code></pre>
 
 However, if makepy support is not available the method does not work as
 expected.  For the next example we will use <code>DumbDispatch</code> to
 simulate the object not having a type-library.
 
-<pre>
+<pre><code>
 >>> import win32com.client.dynamic
 >>> ob = win32com.client.dynamic.DumbDispatch("PyCOMTest.PyCOMTest")
 >>> ob.DoubleInOutString("Hello")
 >>>
-</pre>
+</code></pre>
 
 As you can see, no result came back from the function.  This is because
 win32com has no type information available to use, so doesn't know the
@@ -99,7 +99,7 @@ around this, we can use the <code>VARIANT</code> object.
 variant type of a byref string and a value 'Hello'.  After making the
 call with this VARIANT the value is updated.
 
-<pre>
+<pre><code>
 >>> import win32com.client.dynamic
 >>> from win32com.client import VARIANT
 >>> import pythoncom
@@ -111,7 +111,7 @@ call with this VARIANT the value is updated.
 >>> variant.value
 u'HelloHello'
 >>>
-</pre>
+</code></pre>
 
 <h2>Usage with generated objects</h2>
 
@@ -122,9 +122,9 @@ be useful.
 
 Imagine a poorly specified object with IDL like:
 
-<pre>
+<pre><code>
 HRESULT DoSomething([in] VARIANT value);
-</pre>
+</code></pre>
 
 But also imagine that the object has a limitation that if the parameter is an
 integer, it must be a 32bit unsigned value - any other integer representation
@@ -145,14 +145,14 @@ was a COM object which a method called <code>foo</code> and you wanted to
 override the type declaration for <code>foo</code> by passing a VARIANT.
 You could do something like:
 
-<pre>
+<pre><code>
 >>> import win32com.client.dynamic
 >>> from win32com.client import VARIANT
 >>> import pythoncom
 >>> dumbob = win32com.client.dynamic.DumbDispatch(ob)
 >>> variant = VARIANT(pythoncom.VT_BYREF | pythoncom.VT_BSTR, "Hello")
 >>> dumbob.foo(variant)
-</pre>
+</code></pre>
 
 The code above converts the makepy supported <code>ob</code> into a
 'dumb' (ie, non-makepy supported) version of the object, which will then
