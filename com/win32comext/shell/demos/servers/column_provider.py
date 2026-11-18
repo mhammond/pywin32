@@ -7,7 +7,7 @@
 # * Execute this script to register the namespace.
 # * Open Windows Explorer
 # * Right-click an explorer column header - select "More"
-# * Locate column 'pyc size' or 'pyo size', and add it to the view.
+# * Locate column 'pyc size' and add it to the view.
 # This handler is providing that column data.
 import os
 import stat
@@ -45,15 +45,12 @@ class ColumnProvider:
         print("ColumnProvider initializing for file", name)
 
     def GetColumnInfo(self, index):
-        # We support exactly 2 columns - 'pyc size' and 'pyo size'
-        if index in [0, 1]:
+        # We used to support exactly 2 columns - 'pyc size' and 'pyo size'
+        # pyo isn't a thing since Python 3.5: https://peps.python.org/pep-0488/
+        if index == 0:
             # As per the MSDN sample, use our CLSID as the fmtid
-            if index == 0:
-                ext = ".pyc"
-            else:
-                ext = ".pyo"
-            title = ext + " size"
-            description = "Size of compiled %s file" % ext
+            title = ".pyc size"
+            description = "Size of compiled .pyc file"
             col_id = (self._reg_clsid_, index)  # fmtid  # pid
             col_info = (
                 col_id,  # scid
@@ -69,19 +66,14 @@ class ColumnProvider:
         return None  # Indicate no more columns.
 
     def GetItemData(self, colid, colData):
-        fmt_id, pid = colid
-        fmt_id == self._reg_clsid_
+        # colid[1] used to be the pid where 0==pyc or 1==pyo.
+        # But pyo isn't a thing since Python 3.5: https://peps.python.org/pep-0488/
         flags, attr, reserved, ext, name = colData
-        if ext.lower() not in [".py", ".pyw"]:
+        if ext.lower() not in {".py", ".pyw"}:
             return None
-        if pid == 0:
-            ext = ".pyc"
-        else:
-            ext = ".pyo"
-        check_file = os.path.splitext(name)[0] + ext
+        check_file = os.path.splitext(name)[0] + ".pyc"
         try:
-            st = os.stat(check_file)
-            return st[stat.ST_SIZE]
+            return os.stat(check_file)[stat.ST_SIZE]
         except OSError:
             # No file
             return None

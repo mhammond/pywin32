@@ -1,3 +1,4 @@
+import os
 import sys
 import unittest
 
@@ -45,6 +46,9 @@ class PippoTester(unittest.TestCase):
         try:
             import numpy
         except:
+            if "CI" in os.environ:
+                # No reason to not have numpy installed for testing on CI
+                raise
             print("Numpy test not possible because numpy module failed to import")
             return
         self._testArray(numpy.array([-3, -2, -1, 0, 1, 2, 3]))

@@ -30,7 +30,7 @@
 #define USES_PS_ROUTING_SEARCH_KEY
 
 #include "windows.h"
-#include "mapiguid.h"
+#include "MAPIGuid.h"
 #include "extraMAPIGuids.h"
 #define USES_IID_IMsgServiceAdmin2
-#include "mapiaux.h"
+#include "MAPIAux.h"

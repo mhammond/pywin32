@@ -169,15 +169,9 @@ def GetGeneratePath():
     Checks the directory is OK.
     """
     assert not is_readonly, "Why do you want the genpath for a readonly store?"
-    try:
-        os.makedirs(win32com.__gen_path__)
-        # os.mkdir(win32com.__gen_path__)
-    except OSError:
-        pass
-    try:
-        fname = os.path.join(win32com.__gen_path__, "__init__.py")
-        os.stat(fname)
-    except OSError:
+    os.makedirs(win32com.__gen_path__, exist_ok=True)
+    fname = os.path.join(win32com.__gen_path__, "__init__.py")
+    if not os.path.exists(fname):
         f = open(fname, "w")
         f.write(
             "# Generated file - this directory may be deleted to reset the COM cache...\n"
@@ -293,7 +287,7 @@ def GetModuleForCLSID(clsid):
     return mod
 
 
-def GetModuleForTypelib(typelibCLSID, lcid, major, minor):
+def GetModuleForTypelib(typelibCLSID, lcid, major, minor) -> ModuleType:
     """Get a Python module for a type library ID
 
     Given the CLSID of a typelibrary, return an imported Python module,
@@ -323,7 +317,7 @@ def MakeModuleForTypelib(
     progressInstance=None,
     bForDemand=bForDemandDefault,
     bBuildHidden=1,
-):
+) -> ModuleType:
     """Generate support for a type library.
 
     Given the IID, LCID and version information for a type library, generate
@@ -454,7 +448,7 @@ def EnsureModule(
     bValidateFile=not is_readonly,
     bForDemand=bForDemandDefault,
     bBuildHidden=1,
-):
+) -> ModuleType | None:
     """Ensure Python support is loaded for a type library, generating if necessary.
 
     Given the IID, LCID and version information for a type library, check and if
@@ -513,9 +507,7 @@ def EnsureModule(
                     typelibCLSID, major, minor, lcid
                 )
                 # windows seems to add an extra \0 (via the underlying BSTR)
-                # The mainwin toolkit does not add this erroneous \0
-                if typLibPath[-1] == "\0":
-                    typLibPath = typLibPath[:-1]
+                typLibPath = typLibPath.removesuffix("\0")
                 suf = getattr(os.path, "supports_unicode_filenames", 0)
                 if not suf:
                     # can't pass unicode filenames directly - convert
@@ -581,13 +573,13 @@ def EnsureModule(
                 try:
                     pyModTime = os.stat(filePath)[8]
                     fModTimeSet = 1
-                except OSError as e:
+                except OSError:
                     # If .py file fails, try .pyc file
                     # print("Trying pyc stat", filePathPyc)
                     try:
                         pyModTime = os.stat(filePathPyc)[8]
                         fModTimeSet = 1
-                    except OSError as e:
+                    except OSError:
                         pass
                 # print("Trying stat typelib", pyModTime)
                 # print(typLibPath)
@@ -747,7 +739,7 @@ def GetGeneratedInfos():
         return ret
 
 
-def _GetModule(fname):
+def _GetModule(fname) -> ModuleType:
     """Given the name of a module in the gen_py directory, import and return it."""
     mod_name = "win32com.gen_py.%s" % fname
     with ModuleMutex(fname):

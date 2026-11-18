@@ -11,7 +11,7 @@ generates Windows .hlp files.
 
 ******************************************************************/
 
-#include "Pywintypes.h"
+#include "PyWinTypes.h"
 #include "lzexpand.h"
 
 static PyObject *obHandleMap = NULL;

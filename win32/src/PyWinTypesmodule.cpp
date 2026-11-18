@@ -71,7 +71,7 @@ PyObject *PyBuffer_FromMemory(void *buf, Py_ssize_t size)
     return PyMemoryView_FromBuffer(&info);
 }
 
-// See comments in pywintypes.h for why we need this!
+// See comments in PyWinTypes.h for why we need this!
 void PyWin_MakePendingCalls()
 {
     while (1) {
@@ -541,6 +541,17 @@ BOOL PyWinLong_AsVoidPtr(PyObject *ob, void **pptr)
         PyErr_Format(PyExc_TypeError, "Unable to convert %s to pointer-sized value", Py_TYPE(ob)->tp_name);
         return FALSE;
     }
+    // PyNumber_Long also parses str, bytes and buffers, the same as int() does, so
+    // "201920" or b"201920" was silently used as an address, and a float was truncated (mhammond#2132).
+    // Warn for now; two releases from build 313, raise TypeError for anything that is not an int.
+    if ((!PyNumber_Check(ob) || PyFloat_Check(ob)) &&
+        PyErr_WarnFormat(PyExc_FutureWarning, 1,
+                         "Passing a %s where a handle is expected is deprecated and will raise TypeError "
+                         "in a future release; pass an int or PyHANDLE instead",
+                         Py_TYPE(ob)->tp_name) < 0) {
+        Py_DECREF(longob);
+        return FALSE;
+    }
     *pptr = (void *)SIGNED_CONVERTER(longob);
     if (*pptr == (void *)-1 && PyErr_Occurred()) {
         PyErr_Clear();
@@ -633,7 +644,7 @@ BOOL PyWinObject_AsSimplePARAM(PyObject *ob, WPARAM *wparam)
 
 // Converts for WPARAM and LPARAM: int or str (WCHAR*) or buffer (pointer to its locked memory)
 // (WPARAM is defined as UINT_PTR, and LPARAM is defined as LONG_PTR - see
-// pywintypes.h for inline functions to resolve this)
+// PyWinTypes.h for inline functions to resolve this)
 BOOL PyWinObject_AsPARAM(PyObject *ob, PyWin_PARAMHolder *holder)
 {
     assert(!PyErr_Occurred());  // lingering exception?
@@ -1034,10 +1045,10 @@ extern "C" __declspec(dllexport) BOOL WINAPI DllMain(HANDLE hInstance, DWORD dwR
 }
 
 // Function to format a python traceback into a character string.
-#define GPEM_ERROR(what)                                      \
-    {                                                         \
-        errorMsg = L"<Error getting traceback - "##what##">"; \
-        goto done;                                            \
+#define GPEM_ERROR(what)                                    \
+    {                                                       \
+        errorMsg = L"<Error getting traceback - " what ">"; \
+        goto done;                                          \
     }
 PYWINTYPES_EXPORT WCHAR *GetPythonTraceback(PyObject *exc_type, PyObject *exc_value, PyObject *exc_tb)
 {
@@ -1051,6 +1062,10 @@ PYWINTYPES_EXPORT WCHAR *GetPythonTraceback(PyObject *exc_type, PyObject *exc_va
     PyObject *argsTB = NULL;
     PyObject *obResult = NULL;
     TmpWCHAR resultPtr;
+    // Py3k has added an undocumented 'chain' argument which defaults to True
+    // and causes all kinds of exceptions while trying to print a traceback!
+    // This *could* be useful thought if we can tame it - later!
+    int chain = 0;
 
     // cStringIO is in "io"
     modStringIO = PyImport_ImportModule("io");
@@ -1073,10 +1088,6 @@ PYWINTYPES_EXPORT WCHAR *GetPythonTraceback(PyObject *exc_type, PyObject *exc_va
     obFuncTB = PyObject_GetAttrString(modTB, "print_exception");
     if (obFuncTB == NULL)
         GPEM_ERROR("can't find traceback.print_exception");
-    // Py3k has added an undocumented 'chain' argument which defaults to True
-    // and causes all kinds of exceptions while trying to print a traceback!
-    // This *could* be useful thought if we can tame it - later!
-    int chain = 0;
 
     argsTB = Py_BuildValue("OOOOOi", exc_type ? exc_type : Py_None, exc_value ? exc_value : Py_None,
                            exc_tb ? exc_tb : Py_None,

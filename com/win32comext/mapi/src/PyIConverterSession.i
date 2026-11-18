@@ -30,14 +30,14 @@
 }
 
 %{
-#include <MapiUtil.h>
+#include <MAPIUtil.h>
 #include <initguid.h>
 #include "IConverterSession.h"
 #include "PyIConverterSession.h"
 
-#include "PYIStream.h"
-#include "PYIMapiProp.h"
-#include "PYIMessage.h"
+#include "PyIStream.h"
+#include "PyIMAPIProp.h"
+#include "PyIMessage.h"
 
 PyIConverterSession::PyIConverterSession(IUnknown *pDisp) :
 	PyIUnknown(pDisp)

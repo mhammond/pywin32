@@ -28,7 +28,7 @@ streamsize = template_stream.Stat()[2]
 template_colinfo = template_stream.Read(streamsize)
 
 
-def update_colinfo(not_used, dir_name, fnames):
+def update_colinfo(dir_name, fnames):
     for fname in fnames:
         full_fname = os.path.join(dir_name, fname)
         if os.path.isdir(full_fname):
@@ -65,4 +65,5 @@ def update_colinfo(not_used, dir_name, fnames):
             pb = None
 
 
-os.walk(template_folder, update_colinfo, None)
+for directory, dirnames, filenames in os.walk(template_folder):
+    update_colinfo(directory, filenames)

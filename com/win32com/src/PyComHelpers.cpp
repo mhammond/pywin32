@@ -356,9 +356,10 @@ BOOL PyCom_InterfaceFromPyObject(PyObject *ob, REFIID iid, LPVOID *ppv, BOOL bNo
         return FALSE; /* exception was set by GetI() */
     /* note: we don't explicitly hold a reference to punk */
     HRESULT hr;
-    Py_BEGIN_ALLOW_THREADS hr = punk->QueryInterface(iid, ppv);
-    Py_END_ALLOW_THREADS if (FAILED(hr))
-    {
+    Py_BEGIN_ALLOW_THREADS
+        hr = punk->QueryInterface(iid, ppv);
+    Py_END_ALLOW_THREADS
+    if (FAILED(hr)) {
         PyCom_BuildPyException(hr);
         return FALSE;
     }

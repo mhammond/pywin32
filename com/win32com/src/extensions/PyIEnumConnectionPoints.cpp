@@ -241,11 +241,12 @@ STDMETHODIMP PyGEnumConnectionPoints::Clone(
     ** Get the interface we want. note it is returned with a refcount.
     ** This QI is actually going to instantiate a PyGEnumConnections.
     */
-    Py_BEGIN_ALLOW_THREADS hr = punk->QueryInterface(IID_IEnumConnectionPoints, (LPVOID *)ppEnum);
+    Py_BEGIN_ALLOW_THREADS
+        hr = punk->QueryInterface(IID_IEnumConnectionPoints, (LPVOID *)ppEnum);
     Py_END_ALLOW_THREADS
 
-        /* done with the result; this DECREF is also for <punk> */
-        Py_DECREF(result);
+    /* done with the result; this DECREF is also for <punk> */
+    Py_DECREF(result);
 
     return PyCom_SetCOMErrorFromSimple(hr, IID_IEnumConnectionPoints);
 }

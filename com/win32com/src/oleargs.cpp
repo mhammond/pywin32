@@ -19,7 +19,7 @@ static PyObject *PyVariant_Type;
 // new array (old behaviour)
 #define BYREF_ARRAY_USE_EXISTING_ARRAY
 
-// Need to put this in pywintypes.h with rest of compatibility macros
+// Need to put this in PyWinTypes.h with rest of compatibility macros
 #define PYWIN_BUFFER_CHECK(obj) (PyBytes_Check(obj) || PyByteArray_Check(obj) || PyMemoryView_Check(obj))
 
 // A little helper just for this file

@@ -206,16 +206,33 @@ class TestSimpleOps(unittest.TestCase):
     def testFileTimes(self):
         from win32timezone import TimeZoneInfo
 
-        # now() is always returning a timestamp with microseconds but the
-        # file APIs all have zero microseconds, so some comparisons fail.
-        now = datetime.datetime.now(tz=TimeZoneInfo.utc()).replace(microsecond=0)
-        nowish = now + datetime.timedelta(seconds=1)
-        later = now + datetime.timedelta(seconds=120)
+        # A file can appear to be created slightly before now() was called
+        # https://github.com/mhammond/pywin32/issues/2203
+        # - Before Python 3.13, now() used GetSystemTimeAsFileTime (15.6ms) instead of
+        #   GetSystemTimePreciseAsFileTime (1us)
+        #   https://docs.python.org/3/whatsnew/3.13.html#time
+        # - File times appear to be stamped from the coarse system time, which
+        #   is "accurate within a system clock tick", "typically in the range
+        #   of 500 microseconds to 15.625 milliseconds"
+        #   https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/wdm/nf-wdm-kequerysystemtimeprecise
+        # - pywintypes converts FILETIME through SYSTEMTIME, which drops
+        #   sub-millisecond precision (up to 1ms)
+        # 15.625ms + up to 1ms = 16.625ms, rounded up to 17ms, + 1ms of slack
+        clock_tolerance = datetime.timedelta(milliseconds=18)
 
         filename = tempfile.mktemp("-testFileTimes")
         # Windows docs the 'last time' isn't valid until the last write
         # handle is closed - so create the file, then re-open it to check.
+        # Bound the creation by timestamps taken just before and after it,
+        # so a slow machine can't push the file times out of range.
+        before = datetime.datetime.now(tz=TimeZoneInfo.utc())
         open(filename, "w").close()
+        after = datetime.datetime.now(tz=TimeZoneInfo.utc())
+        earliest = before - clock_tolerance
+        latest = after + clock_tolerance
+        # SetFileTime doesn't round-trip sub-millisecond precision.
+        later = before.replace(microsecond=0) + datetime.timedelta(seconds=120)
+
         f = win32file.CreateFile(
             filename,
             win32file.GENERIC_READ | win32file.GENERIC_WRITE,
@@ -227,25 +244,14 @@ class TestSimpleOps(unittest.TestCase):
         )
         try:
             ct, at, wt = win32file.GetFileTime(f)
-            # NOTE (Avasam): I've seen the time be off from -0.003 to +1.11 seconds,
-            # so the above comment about microseconds might be wrong.
-            # Let's standardize ms and avoid random CI failures
-            # https://github.com/mhammond/pywin32/issues/2203
-            ct = ct.replace(microsecond=0)
-            at = at.replace(microsecond=0)
-            wt = wt.replace(microsecond=0)
-            self.assertGreaterEqual(
-                ct,
-                now,
-                f"File was created in the past - now={now}, created={ct}",
+            self.assertTrue(
+                earliest <= ct <= latest,
+                f"File creation time out of range: {earliest} <= {ct} <= {latest}",
             )
-            self.assertTrue(now <= ct <= nowish, (now, ct, nowish))
-            self.assertGreaterEqual(
-                wt,
-                now,
-                f"File was written-to in the past now={now}, written={wt}",
+            self.assertTrue(
+                earliest <= wt <= latest,
+                f"File write time out of range: {earliest} <= {wt} <= {latest}",
             )
-            self.assertTrue(now <= wt <= nowish, (now, wt, nowish))
 
             # Now set the times.
             win32file.SetFileTime(f, later, later, later, UTCTimes=True)
@@ -737,6 +743,15 @@ class TestEncrypt(unittest.TestCase):
             try:
                 win32file.EncryptFile(fname)
             except win32file.error as details:
+                if (
+                    details.winerror == winerror.ERROR_NOT_SUPPORTED
+                    and "CI" not in os.environ
+                ):
+                    # EFS is not available on every edition - Windows Home
+                    # (EditionID "Core") returns ERROR_NOT_SUPPORTED here.
+                    raise unittest.SkipTest(
+                        "EFS is not supported on this edition of Windows"
+                    )
                 if details.winerror != winerror.ERROR_ACCESS_DENIED:
                     raise
                 print("It appears this is not NTFS - can't encrypt/decrypt")
@@ -800,7 +815,7 @@ class TestConnect(unittest.TestCase):
             win32file.ConnectEx(s2, self.addr, ol, b"some expected request")
         except win32file.error as exc:
             win32event.SetEvent(giveup_event)
-            raise  # some error error we don't expect.
+            raise  # some error we don't expect.
         # We occasionally see ERROR_CONNECTION_REFUSED in automation
         try:
             win32file.GetOverlappedResult(s2.fileno(), ol, 1)
@@ -835,7 +850,7 @@ class TestConnect(unittest.TestCase):
             win32file.ConnectEx(s2, self.addr, ol)
         except win32file.error as exc:
             win32event.SetEvent(giveup_event)
-            raise  # some error error we don't expect.
+            raise  # some error we don't expect.
         # We occasionally see ERROR_CONNECTION_REFUSED in automation
         try:
             win32file.GetOverlappedResult(s2.fileno(), ol, 1)

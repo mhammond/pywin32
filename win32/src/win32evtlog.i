@@ -11,7 +11,7 @@
 
 #undef PyHANDLE
 #include "PyWinObjects.h"
-#include "WinEvt.h"
+#include "winevt.h"
 
 // @object PyEVTLOG_HANDLE|Object representing a handle to the windows event log.
 //   Identical to <o PyHANDLE>, but calls CloseEventLog() on destruction

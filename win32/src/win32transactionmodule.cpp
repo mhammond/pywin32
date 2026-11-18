@@ -35,9 +35,10 @@ static PyObject *PyCreateTransaction(PyObject *self, PyObject *args, PyObject *k
     }
     if (!PyWinObject_AsWCHAR(obdescription, &description, TRUE))
         return NULL;
-    Py_BEGIN_ALLOW_THREADS hret =
-        CreateTransaction(psa, uow, createoptions, isolationlevel, isolationflags, timeout, description);
-    Py_END_ALLOW_THREADS PyWinObject_FreeWCHAR(description);
+    Py_BEGIN_ALLOW_THREADS
+        hret = CreateTransaction(psa, uow, createoptions, isolationlevel, isolationflags, timeout, description);
+    Py_END_ALLOW_THREADS
+    PyWinObject_FreeWCHAR(description);
     if (hret == INVALID_HANDLE_VALUE)
         return PyWin_SetAPIError("CreateTransaction");
     return PyWinObject_FromHANDLE(hret);
@@ -56,8 +57,11 @@ static PyObject *PyRollbackTransaction(PyObject *self, PyObject *args, PyObject 
         return NULL;
     if (!PyWinObject_AsHANDLE(obtrans, &htrans))
         return NULL;
-    Py_BEGIN_ALLOW_THREADS ret = RollbackTransaction(htrans);
-    Py_END_ALLOW_THREADS if (!ret) return PyWin_SetAPIError("RollbackTransaction");
+    Py_BEGIN_ALLOW_THREADS
+        ret = RollbackTransaction(htrans);
+    Py_END_ALLOW_THREADS
+    if (!ret)
+        return PyWin_SetAPIError("RollbackTransaction");
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -75,8 +79,11 @@ static PyObject *PyRollbackTransactionAsync(PyObject *self, PyObject *args, PyOb
         return NULL;
     if (!PyWinObject_AsHANDLE(obtrans, &htrans))
         return NULL;
-    Py_BEGIN_ALLOW_THREADS ret = RollbackTransactionAsync(htrans);
-    Py_END_ALLOW_THREADS if (!ret) return PyWin_SetAPIError("RollbackTransactionAsync");
+    Py_BEGIN_ALLOW_THREADS
+        ret = RollbackTransactionAsync(htrans);
+    Py_END_ALLOW_THREADS
+    if (!ret)
+        return PyWin_SetAPIError("RollbackTransactionAsync");
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -94,8 +101,11 @@ static PyObject *PyCommitTransaction(PyObject *self, PyObject *args, PyObject *k
         return NULL;
     if (!PyWinObject_AsHANDLE(obtrans, &htrans))
         return NULL;
-    Py_BEGIN_ALLOW_THREADS ret = CommitTransaction(htrans);
-    Py_END_ALLOW_THREADS if (!ret) return PyWin_SetAPIError("CommitTransaction");
+    Py_BEGIN_ALLOW_THREADS
+        ret = CommitTransaction(htrans);
+    Py_END_ALLOW_THREADS
+    if (!ret)
+        return PyWin_SetAPIError("CommitTransaction");
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -113,8 +123,11 @@ static PyObject *PyCommitTransactionAsync(PyObject *self, PyObject *args, PyObje
         return NULL;
     if (!PyWinObject_AsHANDLE(obtrans, &htrans))
         return NULL;
-    Py_BEGIN_ALLOW_THREADS ret = CommitTransactionAsync(htrans);
-    Py_END_ALLOW_THREADS if (!ret) return PyWin_SetAPIError("CommitTransactionAsync");
+    Py_BEGIN_ALLOW_THREADS
+        ret = CommitTransactionAsync(htrans);
+    Py_END_ALLOW_THREADS
+    if (!ret)
+        return PyWin_SetAPIError("CommitTransactionAsync");
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -132,8 +145,11 @@ static PyObject *PyGetTransactionId(PyObject *self, PyObject *args, PyObject *kw
         return NULL;
     if (!PyWinObject_AsHANDLE(obtrans, &htrans))
         return NULL;
-    Py_BEGIN_ALLOW_THREADS ret = GetTransactionId(htrans, &guid);
-    Py_END_ALLOW_THREADS if (!ret) return PyWin_SetAPIError("GetTransactionId");
+    Py_BEGIN_ALLOW_THREADS
+        ret = GetTransactionId(htrans, &guid);
+    Py_END_ALLOW_THREADS
+    if (!ret)
+        return PyWin_SetAPIError("GetTransactionId");
     return PyWinObject_FromIID(guid);
 }
 
@@ -151,8 +167,11 @@ static PyObject *PyOpenTransaction(PyObject *self, PyObject *args, PyObject *kwa
         return NULL;
     if (!PyWinObject_AsIID(obguid, &guid))
         return NULL;
-    Py_BEGIN_ALLOW_THREADS htrans = OpenTransaction(access, &guid);
-    Py_END_ALLOW_THREADS if (htrans == INVALID_HANDLE_VALUE) return PyWin_SetAPIError("OpenTransaction");
+    Py_BEGIN_ALLOW_THREADS
+        htrans = OpenTransaction(access, &guid);
+    Py_END_ALLOW_THREADS
+    if (htrans == INVALID_HANDLE_VALUE)
+        return PyWin_SetAPIError("OpenTransaction");
     return PyWinObject_FromHANDLE(htrans);
 }
 

@@ -9,7 +9,7 @@
 
 %{
 
-#include "mapiaux.h"
+#include "MAPIAux.h"
 #include "PyIMsgServiceAdmin.h"
 #include "PyIMsgServiceAdmin2.h"
 

@@ -58,17 +58,17 @@ PyObject *PyObject_FromSAFEARRAYRecordInfo(SAFEARRAY *psa, long *arrayIndices)
     PyObject *ret = NULL, *ret_tuple = NULL;
     IRecordInfo *info = NULL;
     BYTE *source_data = NULL, *this_dest_data = NULL;
-    UINT dimNo = 0;
     long lbound, ubound, nelems, i;
     ULONG cb_elem;
     PyRecordBuffer *owner = NULL;
     HRESULT hr;
-    dimNo = SafeArrayGetDim(psa);
+    long *pMyArrayIndex;
+    UINT dimNo = SafeArrayGetDim(psa);
     if (dimNo == 0) {
         hr = E_UNEXPECTED;
         goto exit;
     }
-    long *pMyArrayIndex = arrayIndices + (dimNo - 1);
+    pMyArrayIndex = arrayIndices + (dimNo - 1);
     hr = SafeArrayGetRecordInfo(psa, &info);
     if (FAILED(hr))
         goto exit;
@@ -513,7 +513,7 @@ static void _FreeFieldNames(BSTR *strings, ULONG num_names)
     delete[] strings;
 }
 
-void PyWinCoreString_Concat(register PyObject **pv, register PyObject *w)
+void PyWinCoreString_Concat(PyObject **pv, PyObject *w)
 {
     if (!w) {  // hrm - string version doesn't do this, but I saw PyObject_Repr() return NULL...
         Py_XDECREF(*pv);
@@ -525,7 +525,7 @@ void PyWinCoreString_Concat(register PyObject **pv, register PyObject *w)
     *pv = tmp;
 }
 
-void PyWinCoreString_ConcatAndDel(register PyObject **pv, register PyObject *w)
+void PyWinCoreString_ConcatAndDel(PyObject **pv, PyObject *w)
 {
     PyWinCoreString_Concat(pv, w);
     Py_XDECREF(w);
@@ -717,6 +717,7 @@ int PyRecord::setattro(PyObject *self, PyObject *obname, PyObject *v)
     HRESULT hr;
     WCHAR *wname;
     VARTYPE vt;
+    PyThreadState *_save;
 
     if (!PyWinObject_AsWCHAR(obname, &wname, FALSE))
         return -1;
@@ -794,7 +795,7 @@ int PyRecord::setattro(PyObject *self, PyObject *obname, PyObject *v)
         }
     }
 
-    PY_INTERFACE_PRECALL;
+    _save = PyEval_SaveThread();  // PY_INTERFACE_PRECALL;
     hr = pyrec->pri->PutField(INVOKE_PROPERTYPUT, pyrec->pdata, wname, &val);
     PY_INTERFACE_POSTCALL;
 
@@ -805,12 +806,13 @@ int PyRecord::setattro(PyObject *self, PyObject *obname, PyObject *v)
     }
 done:
     PyWinObject_FreeWCHAR(wname);
-    if (pta && pti)
-        pti->ReleaseTypeAttr(pta);
-    if (pVarDesc && pti)
-        pti->ReleaseVarDesc(pVarDesc);
-    if (pti)
+    if (pti) {
+        if (pta)
+            pti->ReleaseTypeAttr(pta);
+        if (pVarDesc)
+            pti->ReleaseVarDesc(pVarDesc);
         pti->Release();
+    }
     return ret;
 }
 

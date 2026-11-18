@@ -129,9 +129,8 @@ static PyNumberMethods PyHANDLE_NumberMethods = {
     PyHANDLE::binaryFailureFunc, /* nb_xor */
     PyHANDLE::binaryFailureFunc, /* nb_or */
     PyHANDLE::intFunc,           /* nb_int */
-    PyHANDLE::longFunc,          /* nb_long */
+    Py_None,                     /* nb_reserved, used to be nb_long */
     PyHANDLE::unaryFailureFunc,  /* nb_float */
-                                 // These removed in 3.0
 };
 // @pymeth __int__|Used when an integer representation of the handle object is required.
 
@@ -192,41 +191,40 @@ BOOL PyHANDLE::Close(void)
     if (m_handle) {
         Py_BEGIN_ALLOW_THREADS
 #ifdef Py_DEBUG
-            __try
-        {
+            __try {
 #endif  // Py_DEBUG
-            rc = CloseHandle(m_handle);
+                rc = CloseHandle(m_handle);
 #ifdef Py_DEBUG
-        }
-        __except (1)
-        {
-            // according to the docs on CloseHandle(), this
-            // can happen when run under the debugger.  This is a
-            // PITA, as it makes it hard to debug whatever we are here
-            // for (unless we are here to debug this!).  So we break into
-            // the debugger, which gives the developer the option of continuing
-            static bool is_first_exception = true;
-            static bool break_on_exception = true;
-            // It *seems* that handles that raise an exception under
-            // the debugger actually *succeed* calling Close running normally.
-            static bool raise_python_exception = false;
-            if (break_on_exception) {
-                if (is_first_exception)
-                    break_on_exception = false;
-                DebugBreak();
-                // reset 'break_on_exception' to true if you want to
-                // continue breaking on every invalid handle exception
+            }
+            __except (EXCEPTION_EXECUTE_HANDLER) {
+                // according to the docs on CloseHandle(), this
+                // can happen when run under the debugger.  This is a
+                // PITA, as it makes it hard to debug whatever we are here
+                // for (unless we are here to debug this!).  So we break into
+                // the debugger, which gives the developer the option of continuing
+                static bool is_first_exception = true;
+                static bool break_on_exception = true;
+                // It *seems* that handles that raise an exception under
+                // the debugger actually *succeed* calling Close running normally.
+                static bool raise_python_exception = false;
+                if (break_on_exception) {
+                    if (is_first_exception)
+                        break_on_exception = false;
+                    DebugBreak();
+                    // reset 'break_on_exception' to true if you want to
+                    // continue breaking on every invalid handle exception
 
-                // set 'raise_python_exception' to true to send the exception to Python.
+                    // set 'raise_python_exception' to true to send the exception to Python.
+                }
+                is_first_exception = false;
+                if (raise_python_exception) {
+                    rc = FALSE;
+                    ::SetLastError(ERROR_INVALID_HANDLE);
+                }
             }
-            is_first_exception = false;
-            if (raise_python_exception) {
-                rc = FALSE;
-                ::SetLastError(ERROR_INVALID_HANDLE);
-            }
-        }
 #endif  // Py_DEBUG
-        Py_END_ALLOW_THREADS m_handle = 0;
+        Py_END_ALLOW_THREADS
+        m_handle = 0;
     }
     if (!rc)
         PyWin_SetAPIError("CloseHandle");
@@ -266,10 +264,6 @@ PyObject *PyHANDLE::richcompare(PyObject *other, int op)
 // @pymethod |PyHANDLE|__int__|Used when the handle as an integer is required.
 // @comm To get the underling win32 handle from a PyHANDLE object, use int(handleObject)
 PyObject *PyHANDLE::intFunc(PyObject *ob) { return PyWinLong_FromHANDLE(((PyHANDLE *)ob)->m_handle); }
-
-// @pymethod |PyHANDLE|__long__|Used when the handle as an integer is required.
-// @comm To get the underling win32 handle from a PyHANDLE object, use long(handleObject)
-PyObject *PyHANDLE::longFunc(PyObject *ob) { return PyWinLong_FromHANDLE(((PyHANDLE *)ob)->m_handle); }
 
 // @pymethod |PyHANDLE|__print__|Used when the HANDLE object is printed.
 int PyHANDLE::printFunc(PyObject *ob, FILE *fp, int flags) { return ((PyHANDLE *)ob)->print(fp, flags); }

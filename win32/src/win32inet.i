@@ -2,8 +2,8 @@
 // @doc
 %module win32inet // An interface to the Windows internet (wininet) API
 %{
-#include "Windows.h"
-#include "WinInet.h"
+#include "windows.h"
+#include "wininet.h"
 #undef BOOLAPI // wininet.h defines this!
 %}
 
@@ -12,7 +12,7 @@
 
 %{
 #undef PyHANDLE // undef earlier define, so we are back to the class.
-#include "pywinobjects.h"
+#include "PyWinObjects.h"
 
 void CALLBACK PyHINTERNET_StatusChange(
 	HINTERNET hInternet,

@@ -1,7 +1,7 @@
 /* ADSI SWIG Support */
 
 %{
-#include "pyadsiutil.h"
+#include "PyADSIUtil.h"
 
 extern PyObject *OleSetADSIError(HRESULT hr, IUnknown *pUnk, REFIID iid);
 %}

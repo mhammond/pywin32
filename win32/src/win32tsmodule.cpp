@@ -3,7 +3,7 @@
 #include "PyWinObjects.h"
 #include "structmember.h"
 
-#include "WtsApi32.h"
+#include "wtsapi32.h"
 #include "malloc.h"
 
 // @object PyTS_HANDLE|Handle to a Terminal Server

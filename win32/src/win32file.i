@@ -38,11 +38,11 @@
 #define WIN32_LEAN_AND_MEAN
 #include "windows.h"
 #include "ole2.h"
-#include "Winefs.h"
+#include "winefs.h"
 
 #include "winsock2.h"
 #include "mswsock.h"
-#include "pywintypes.h"
+#include "PyWinTypes.h"
 #include "winbase.h"
 #include "assert.h"
 #include <stddef.h>
@@ -52,8 +52,8 @@
 #ifdef socklen_t
 #	undef socklen_t
 #endif
-#include "Ws2tcpip.h"
-#include "Wspiapi.h" // for WspiapiGetAddrInfo/WspiapiFreeAddrInfo
+#include "ws2tcpip.h"
+#include "wspiapi.h" // for WspiapiGetAddrInfo/WspiapiFreeAddrInfo
 
 #define NEED_PYWINOBJECTS_H
 #include "win32file_comm.h"
@@ -427,7 +427,6 @@ PyObject *py_DeviceIoControl(PyObject *self, PyObject *args, PyObject *kwargs)
 	DWORD numRead;
 	BOOL ok;
 	Py_BEGIN_ALLOW_THREADS
-
 	ok = DeviceIoControl(hDevice,
                          dwIoControlCode,
                          in_buf.ptr(),
@@ -1673,10 +1672,10 @@ static PyObject *py_TransmitFile( PyObject *self, PyObject *args, PyObject *kwar
 		ptf_buffers = NULL;
 
 	rc=0;
-	Py_BEGIN_ALLOW_THREADS;
+	Py_BEGIN_ALLOW_THREADS
 	if (!lpfnTransmitFile(s, hFile, bytes_to_write, bytes_per_send, pOverlapped, ptf_buffers, flags))
 		rc = WSAGetLastError();
-	Py_END_ALLOW_THREADS;
+	Py_END_ALLOW_THREADS
 
 	if (rc == 0 || rc == ERROR_IO_PENDING || rc == WSA_IO_PENDING)
 		return PyLong_FromLong(rc);
@@ -1800,10 +1799,10 @@ static PyObject *py_ConnectEx( PyObject *self, PyObject *args, PyObject *kwargs 
 	}
 
 	rc=0;
-	Py_BEGIN_ALLOW_THREADS;
+	Py_BEGIN_ALLOW_THREADS
 	if (!lpfnConnectEx(sConnecting, res->ai_addr, (int)res->ai_addrlen, pybuf.ptr(), pybuf.len(), &sent, pOverlapped))
 		rc=WSAGetLastError();
-	Py_END_ALLOW_THREADS;
+	Py_END_ALLOW_THREADS
 	WspiapiFreeAddrInfo(res);
 	if (rc==0 || rc == ERROR_IO_PENDING)
 		return Py_BuildValue("ii", rc, sent);
@@ -2147,9 +2146,9 @@ PyObject* MyWSAEventSelect
 )
 {
 	int rc;
-	Py_BEGIN_ALLOW_THREADS;
+	Py_BEGIN_ALLOW_THREADS
 	rc = WSAEventSelect(*s, hEvent, lNetworkEvents);
-	Py_END_ALLOW_THREADS;
+	Py_END_ALLOW_THREADS
 	if (rc == SOCKET_ERROR)
 	{
 		PyWin_SetAPIError("WSAEventSelect", WSAGetLastError());
@@ -2226,9 +2225,9 @@ MyWSAEnumNetworkEvents(PyObject *self, PyObject *args)
 		return NULL;
 	}
 
-	Py_BEGIN_ALLOW_THREADS;
+	Py_BEGIN_ALLOW_THREADS
 	rc = WSAEnumNetworkEvents(s, hEvent, &wsaevents);
-	Py_END_ALLOW_THREADS;
+	Py_END_ALLOW_THREADS
 	if (rc == SOCKET_ERROR)
 	{
 		PyWin_SetAPIError("WSAEnumNetworkEvents", WSAGetLastError());
@@ -2269,9 +2268,9 @@ PyObject* MyWSAAsyncSelect
 )
 {
 	int rc;
-	Py_BEGIN_ALLOW_THREADS;
+	Py_BEGIN_ALLOW_THREADS
 	rc = WSAAsyncSelect(*s, hwnd, wMsg, lNetworkEvents);
-	Py_END_ALLOW_THREADS;
+	Py_END_ALLOW_THREADS
 	if (rc == SOCKET_ERROR)
 	{
 		PyWin_SetAPIError("WSAAsyncSelect", WSAGetLastError());
@@ -2342,7 +2341,7 @@ PyObject *MyWSASend
 	wsBuf.buf = (CHAR *)pybuf.ptr();
 	wsBuf.len = pybuf.len();
 
-	Py_BEGIN_ALLOW_THREADS;
+	Py_BEGIN_ALLOW_THREADS
 	rc = WSASend(
 		s,
 		&wsBuf,
@@ -2351,7 +2350,7 @@ PyObject *MyWSASend
 		dwFlags,
 		pOverlapped,
 		NULL);
-	Py_END_ALLOW_THREADS;
+	Py_END_ALLOW_THREADS
 
 	if (rc == SOCKET_ERROR)
 	{
@@ -2440,7 +2439,7 @@ PyObject *MyWSARecv
 	wsBuf.buf = (CHAR *)pybuf.ptr();
 	wsBuf.len = pybuf.len();
 
-	Py_BEGIN_ALLOW_THREADS;
+	Py_BEGIN_ALLOW_THREADS
 	rc = WSARecv(
 		s,
 		&wsBuf,
@@ -2449,7 +2448,7 @@ PyObject *MyWSARecv
 		&dwFlags,
 		pOverlapped,
 		NULL);
-	Py_END_ALLOW_THREADS;
+	Py_END_ALLOW_THREADS
 
 	if (rc == SOCKET_ERROR)
 	{
@@ -2643,9 +2642,9 @@ static PyObject *PyClearCommError(PyObject *self, PyObject *args)
 	BOOL rc;
 	DWORD int_ret;
 	COMSTAT stat;
-	Py_BEGIN_ALLOW_THREADS;
+	Py_BEGIN_ALLOW_THREADS
 	rc = ClearCommError(handle, &int_ret, &stat);
-	Py_END_ALLOW_THREADS;
+	Py_END_ALLOW_THREADS
 	if (!rc)
 		return PyWin_SetAPIError("ClearCommError");
 	PyObject *obStat = PyWinObject_FromCOMSTAT(&stat);
@@ -3489,6 +3488,7 @@ py_RemoveUsersFromEncryptedFile(PyObject *self, PyObject *args)
 	// @pyparm ((<o PySID>,bytes,string),...)|pHashes||Sequence representing an ENCRYPTION_CERTIFICATE_HASH_LIST structure, as returned by QueryUsersOnEncryptedFile
 	PyObject *ret=NULL, *obfname=NULL, *obechl=NULL;
 	WCHAR *fname=NULL;
+    DWORD err=0;
 	ENCRYPTION_CERTIFICATE_HASH_LIST echl;
 	ZeroMemory(&echl,sizeof(ENCRYPTION_CERTIFICATE_HASH_LIST));
 	if (!PyArg_ParseTuple(args,"OO:RemoveUsersFromEncryptedFile", &obfname, &obechl))
@@ -3498,7 +3498,7 @@ py_RemoveUsersFromEncryptedFile(PyObject *self, PyObject *args)
 	if (!PyWinObject_AsPENCRYPTION_CERTIFICATE_HASH_LIST(obechl,&echl))
 		goto done;
 
-	DWORD err=RemoveUsersFromEncryptedFile(fname, &echl);
+	err=RemoveUsersFromEncryptedFile(fname, &echl);
 	if (err != ERROR_SUCCESS)
 		PyWin_SetAPIError("RemoveUsersFromEncryptedFile",err);
 	else

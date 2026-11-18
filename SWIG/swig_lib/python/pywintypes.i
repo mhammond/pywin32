@@ -591,9 +591,6 @@ typedef float HWND;
 %init %{
 #ifndef SWIG_PYTHONCOM
 /* This code only valid if non COM SWIG builds */
-#ifndef PYCOM_EXPORT
-	 PyDict_SetItemString(d,"UNICODE", PyLong_FromLong(1));
-#endif
   PyWinGlobals_Ensure();
   PyDict_SetItemString(d, "error", PyWinExc_ApiError);
 #endif SWIG_PYTHONCOM

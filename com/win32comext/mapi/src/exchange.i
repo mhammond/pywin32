@@ -11,12 +11,6 @@
 
 %module exchange // A COM interface to Exchange's API
 
-%{
-// #define UNICODE
-// #define _UNICODE
-%}
-
-
 %include "typemaps.i"
 %include "pywin32.i"
 %include "pythoncom.i"
@@ -30,7 +24,7 @@
 #include "EdkMdb.h"
 
 #define USES_IID_IExchangeManageStore
-#include <edkguid.h>
+#include <EdkGuid.h>
 
 #include "PyIExchangeManageStore.h"
 #include "IExchangeManageStoreEx.h"

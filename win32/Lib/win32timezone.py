@@ -686,7 +686,7 @@ class TimeZoneInfo(datetime.tzinfo):
         """
         # https://docs.python.org/3/library/datetime.html#datetime.tzinfo.tzname
         # > [...] returning `None` is appropriate if the class wishes to say
-        # > that `time` objects don’t participate in the `tzinfo` protocols.
+        # > that `time` objects don't participate in the `tzinfo` protocols.
         if dt is None:
             return None
 

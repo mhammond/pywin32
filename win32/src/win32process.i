@@ -6,7 +6,7 @@
 #define PY_SSIZE_T_CLEAN  // may inevitably be defined by swig_lib/python/python.swg already
 #include "process.h"
 #include "windows.h"
-#include "Psapi.h"
+#include "psapi.h"
 #include "PyWinTypes.h"
 %}
 

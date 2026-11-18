@@ -56,9 +56,10 @@ static void set_error(REFIID riid, LPCOLESTR desc)
         pICEI->SetDescription(b);
 
         IErrorInfo *pIEI;
-        Py_BEGIN_ALLOW_THREADS hr = pICEI->QueryInterface(IID_IErrorInfo, (LPVOID *)&pIEI);
-        Py_END_ALLOW_THREADS if (SUCCEEDED(hr))
-        {
+        Py_BEGIN_ALLOW_THREADS
+            hr = pICEI->QueryInterface(IID_IErrorInfo, (LPVOID *)&pIEI);
+        Py_END_ALLOW_THREADS
+        if (SUCCEEDED(hr)) {
             SetErrorInfo(0, pIEI);
             pIEI->Release();
         }
@@ -253,7 +254,8 @@ static pfnGWMethod make_method(DWORD index, UINT argsize, UINT argc)
     }
 
     *(int *)(code + 30) = index;
-    *(void **)(code + 36) = &univgw_dispatch;
+    auto *dispatch = &univgw_dispatch;
+    memcpy(code + 36, &dispatch, sizeof(dispatch));
 
     DWORD oldprotect;
     if (!VirtualProtect(code, sizeof(wrapper), PAGE_EXECUTE, &oldprotect)) {
@@ -261,8 +263,7 @@ static pfnGWMethod make_method(DWORD index, UINT argsize, UINT argc)
         PyErr_SetString(PyExc_RuntimeError, "failed to set memory attributes to executable");
         return NULL;
     }
-#else  // other arches
-    /* The MAINWIN toolkit allows us to build this on Linux!!! */
+#else  // other architectures
 #pragma message("XXXXXXXXX - win32com.universal won't work on this platform - need make_method")
     PyErr_SetString(PyExc_NotImplementedError, "not implemented on this platform");
     code = NULL;
@@ -723,8 +724,11 @@ BOOL initunivgw(PyObject *parentDict)
     if (!module) /* Eeek - some serious error! */
         return FALSE;
 
-    //	PyObject *dict = PyModule_GetDict(module);
-    //	if (!dict) return; /* Another serious error!*/
+        //	PyObject *dict = PyModule_GetDict(module);
+        //	if (!dict) return; /* Another serious error!*/
+#ifdef Py_GIL_DISABLED
+    PyUnstable_Module_SetGIL(module, Py_MOD_GIL_NOT_USED);
+#endif
 
     g_obRegisteredVTables = PyDict_New();
 
