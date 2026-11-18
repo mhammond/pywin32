@@ -36,6 +36,8 @@ from .apibase import (
     threadsafety as threadsafety,
 )
 
+version = "adodbapi v" + __version__
+
 
 # -----------------------------------------------------------
 # conversion functions mandated by PEP 249: https://peps.python.org/pep-0249/#type-objects-and-constructors
