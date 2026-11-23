@@ -1078,6 +1078,7 @@ class Generator:
         print(f"makepy_version = {makepy_version!r}", file=self.file)
         print(f"python_version = 0x{sys.hexversion:x}", file=self.file)
         print(file=self.file)
+        print("import decimal", file=self.file)
         print(
             "import win32com.client.CLSIDToClass, pythoncom, pywintypes", file=self.file
         )

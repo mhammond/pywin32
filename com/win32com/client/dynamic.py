@@ -16,6 +16,7 @@ Example
 
 """
 
+import decimal  # noqa: F401 - code we eval() references it.
 import traceback
 from itertools import chain
 from types import MethodType
