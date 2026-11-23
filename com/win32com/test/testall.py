@@ -126,6 +126,7 @@ unittest_modules = [
         "testCollections",
         "errorSemantics.test",
         "testArrays",
+        "testBuild",
         "testClipboard",
         "testConversionErrors",
     ],

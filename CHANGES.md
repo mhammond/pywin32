@@ -46,6 +46,7 @@ Coming in build 313, as yet unreleased
 * Fixed a regression where `pythonwin/mfc140u.dll` isn't bundled with the wheels ([3cc74e0
 ](mhammond/pywin32/commit/3cc74e05b4d5680c69fd6c02232a630db7a34675), [@Avasam][Avasam])
 * Add experimental no-GIL interpreter support (mhammond#2767  [@clin1234][clin1234])
+* Fixed generated makepy modules and dynamic dispatch failing on COM methods with a `VT_CY` or `VT_DECIMAL` default value, where the generated default used `Decimal` without importing it (mhammond#2824, [@8hjkkwikl8][8hjkkwikl8])
 
 Build 312, released 2026/06/04
 ------------------------------
@@ -507,6 +508,7 @@ Older entries are periodically removed - see the git history of this file
 for them.
 
 <!-- Create short-form markdown user links -->
+[8hjkkwikl8]: https://github.com/8hjkkwikl8
 [adamkbmc]: https://github.com/adamkbmc
 [andreabravetti]: https://github.com/andreabravetti
 [Avasam]: https://github.com/Avasam

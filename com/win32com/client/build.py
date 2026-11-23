@@ -18,6 +18,7 @@ dynamically, or possibly even generate .html documentation for objects.
 
 import builtins
 import datetime
+import decimal
 import string
 from itertools import chain
 from keyword import iskeyword
@@ -716,6 +717,10 @@ def MakeDefaultArgRepr(defArgVal):
                 "pywintypes.Time((%(year)d, %(month)d, %(day)d, %(hour)d, %(minute)d, %(second)d,0,0,0,%(msec)d))"
                 % locals()
             )
+        if isinstance(val, decimal.Decimal):
+            # repr() gives "Decimal('1.5')", which generated code can only
+            # evaluate when it has imported the name.
+            return f"decimal.Decimal({str(val)!r})"
         return repr(val)
     return None
 
