@@ -1278,7 +1278,7 @@ static void ReportAPIError(DWORD msgCode, DWORD errCode /*= 0*/)
 
     TCHAR cvtBuf[20];
     wsprintf(cvtBuf, L"%d", errCode);
-    LPTSTR lpszStrings[] = {cvtBuf, buf, L'\0'};
+    LPTSTR lpszStrings[] = {cvtBuf, buf, NULL};
     ReportError(msgCode, (LPCTSTR *)lpszStrings);
 }
 

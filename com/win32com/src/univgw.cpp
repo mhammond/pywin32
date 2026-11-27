@@ -254,7 +254,8 @@ static pfnGWMethod make_method(DWORD index, UINT argsize, UINT argc)
     }
 
     *(int *)(code + 30) = index;
-    *(void **)(code + 36) = &univgw_dispatch;
+    auto *dispatch = &univgw_dispatch;
+    memcpy(code + 36, &dispatch, sizeof(dispatch));
 
     DWORD oldprotect;
     if (!VirtualProtect(code, sizeof(wrapper), PAGE_EXECUTE, &oldprotect)) {

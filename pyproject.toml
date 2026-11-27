@@ -14,6 +14,7 @@ type-checkers = [
   "setuptools >=83.0.0; python_version >= '3.10'", # setuptools/_distutils vendor is py.typed
   "types-setuptools",
   "PyOpenGL",
+  "numpy >=1.20", # First py.typed version
   "mypy ==1.16.*; python_version >='3.9'",
   "pyright ==1.1.401",
 ]

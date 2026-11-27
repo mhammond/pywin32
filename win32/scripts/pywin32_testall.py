@@ -1,22 +1,25 @@
 """A test runner for pywin32"""
 
+from __future__ import annotations
+
 import os
 import site
 import subprocess
 import sys
+from collections.abc import Iterable
 
 # locate the dirs based on where this script is - it may be either in the
 # source tree, or in an installed Python 'Scripts' tree.
 project_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 site_packages = [site.getusersitepackages()] + site.getsitepackages()
 
-failures = []
+failures: list[str | os.PathLike[str]] = []
 
 
 # Run a test using subprocess and wait for the result.
 # If we get an returncode != 0, we know that there was an error, but we don't
 # abort immediately - we run as many tests as we can.
-def run_test(script, cmdline_extras):
+def run_test(script: str | os.PathLike[str], cmdline_extras):
     dirname, scriptname = os.path.split(script)
     # some tests prefer to be run from their directory.
     cmd = [sys.executable, "-u", scriptname] + cmdline_extras
@@ -29,7 +32,7 @@ def run_test(script, cmdline_extras):
         failures.append(script)
 
 
-def find_and_run(possible_locations, extras):
+def find_and_run(possible_locations: Iterable[str | os.PathLike[str]], extras):
     for maybe in possible_locations:
         if os.path.isfile(maybe):
             run_test(maybe, extras)

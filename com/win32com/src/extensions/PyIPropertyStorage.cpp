@@ -950,7 +950,8 @@ STDMETHODIMP PyGPropertyStorage::WriteMultiple(
         TmpPyObject obpropvars = PyObject_FromPROPVARIANTs((PROPVARIANT *)rgpropvar, cpspec);
         if (obpropvars == NULL)
             return MAKE_PYCOM_GATEWAY_FAILURE_CODE("WriteMultiple");
-        hr = InvokeViaPolicy("WriteMultiple", NULL, "OOk", obpropspecs, obpropvars, propidNameFirst);
+        hr = InvokeViaPolicy("WriteMultiple", NULL, "OOk", (PyObject *)obpropspecs, (PyObject *)obpropvars,
+                             propidNameFirst);
     }
     return hr;
 }
@@ -1044,7 +1045,7 @@ STDMETHODIMP PyGPropertyStorage::WritePropertyNames(
         TmpPyObject obnames = PyWinObject_FromWCHARArray(rglpwstrName, cpropid);
         if (obnames == NULL)
             return MAKE_PYCOM_GATEWAY_FAILURE_CODE("WritePropertyNames");
-        return InvokeViaPolicy("WritePropertyNames", NULL, "OO", obpropids, obnames);
+        return InvokeViaPolicy("WritePropertyNames", NULL, "OO", (PyObject *)obpropids, (PyObject *)obnames);
     }
 }
 
@@ -1129,7 +1130,7 @@ STDMETHODIMP PyGPropertyStorage::SetTimes(
             Py_INCREF(Py_None);
             obmtime = Py_None;
         }
-        hr = InvokeViaPolicy("SetTimes", NULL, "OOO", obctime, obatime, obmtime);
+        hr = InvokeViaPolicy("SetTimes", NULL, "OOO", (PyObject *)obctime, (PyObject *)obatime, (PyObject *)obmtime);
     }
     return hr;
 }

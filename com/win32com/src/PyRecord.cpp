@@ -513,7 +513,7 @@ static void _FreeFieldNames(BSTR *strings, ULONG num_names)
     delete[] strings;
 }
 
-void PyWinCoreString_Concat(register PyObject **pv, register PyObject *w)
+void PyWinCoreString_Concat(PyObject **pv, PyObject *w)
 {
     if (!w) {  // hrm - string version doesn't do this, but I saw PyObject_Repr() return NULL...
         Py_XDECREF(*pv);
@@ -525,7 +525,7 @@ void PyWinCoreString_Concat(register PyObject **pv, register PyObject *w)
     *pv = tmp;
 }
 
-void PyWinCoreString_ConcatAndDel(register PyObject **pv, register PyObject *w)
+void PyWinCoreString_ConcatAndDel(PyObject **pv, PyObject *w)
 {
     PyWinCoreString_Concat(pv, w);
     Py_XDECREF(w);

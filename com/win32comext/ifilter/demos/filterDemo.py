@@ -98,10 +98,10 @@ class FileParser:
                             propName = "{}:{}".format(*attr)
 
                     except pythoncom.com_error as e:
-                        if e[0] == FILTER_E_END_OF_CHUNKS:
+                        if e.hresult == FILTER_E_END_OF_CHUNKS:
                             # we have read all the chunks
                             break
-                        elif e[0] in [
+                        elif e.hresult in [
                             FILTER_E_EMBEDDING_UNAVAILABLE,
                             FILTER_E_LINK_UNAVAILABLE,
                         ]:
@@ -112,10 +112,10 @@ class FileParser:
                                 raise
                             else:
                                 continue
-                        elif e[0] == FILTER_E_ACCESS:
+                        elif e.hresult == FILTER_E_ACCESS:
                             self._trace("Access denied")
                             raise
-                        elif e[0] == FILTER_E_PASSWORD:
+                        elif e.hresult == FILTER_E_PASSWORD:
                             self._trace("Password required")
                             raise
                         else:
@@ -156,7 +156,7 @@ class FileParser:
                 self.f = ifilter.BindIFilterFromStorage(self.stg)
             except pythoncom.com_error as e:
                 if (
-                    e[0] == -2147467262
+                    e.hresult == -2147467262
                 ):  # 0x80004002: # no interface, try the load interface (this happens for some MSoft files)
                     self.f = ifilter.LoadIFilter(fileName)
                 else:
@@ -174,7 +174,7 @@ class FileParser:
             try:
                 body_chunks.append(self.f.GetText())
             except pythoncom.com_error as e:
-                if e[0] in [
+                if e.hresult in [
                     FILTER_E_NO_MORE_TEXT,
                     FILTER_E_NO_MORE_TEXT,
                     FILTER_E_NO_TEXT,
@@ -247,7 +247,6 @@ def _usage():
 
 
 if __name__ == "__main__":
-    import operator
     import sys
 
     fName = ""
@@ -284,7 +283,7 @@ if __name__ == "__main__":
                 "<%s length: %d>"
                 % (
                     propName,
-                    reduce(operator.add, [len(p) for p in propValue]),
+                    sum(len(p) for p in propValue),
                 )
             )
         elif isinstance(propValue, list):
