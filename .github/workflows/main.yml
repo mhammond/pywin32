@@ -134,6 +134,12 @@ jobs:
       - name: Import pywintypes before win32api
         run: python -c "import pywintypes; import win32api; print(pywintypes.__file__, win32api.__file__)"
 
+      - name: Import pythoncom
+        run: python -c "import pythoncom; print(pythoncom.__file__)"
+
+      - name: Import win32com.client
+        run: python -c "import win32com.client"
+
       - name: Use a COM client
         run: python -c "import win32com.client; d = win32com.client.Dispatch('Scripting.Dictionary'); d.Add('key', 'value'); assert d.Item('key') == 'value'"
 
