@@ -135,7 +135,13 @@ jobs:
         run: python -c "import pywintypes; import win32api; print(pywintypes.__file__, win32api.__file__)"
 
       - name: Import pythoncom
-        run: python -c "import pythoncom; print(pythoncom.__file__)"
+        # TODO: Temporary diagnostics for a silent exit code 1 that doesn't reproduce under Wine, remove once fixed
+        run: |
+          where.exe pythoncom312.dll pywintypes312.dll
+          python -X faulthandler -v -c "import pythoncom; print(pythoncom.__file__)"
+          $code = $LASTEXITCODE
+          "python exit code: $code (0x{0:X8})" -f $code
+          exit $code
 
       - name: Import win32com.client
         run: python -c "import win32com.client"

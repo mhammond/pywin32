@@ -150,6 +150,7 @@ int PyWinType_Ready(PyTypeObject *pT)
     if (pT->tp_flags & Py_TPFLAGS_READY)
         return 0;
     // PyPy's PyType_Ready doesn't ready tp_base first, and crashes on a base whose ob_type is still NULL
+    // https://github.com/pypy/pypy/pull/5821
     if (pT->tp_base && PyWinType_Ready(pT->tp_base) == -1)
         return -1;
     if (pT->tp_bases) {
