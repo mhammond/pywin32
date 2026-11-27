@@ -31,6 +31,7 @@ import platform
 import shutil
 import subprocess
 import sys
+import sysconfig
 from abc import abstractmethod
 from collections.abc import Iterable, Iterator, Sequence
 from concurrent.futures import FIRST_EXCEPTION, ThreadPoolExecutor, wait
@@ -734,9 +735,16 @@ class my_build_ext(build_ext):
             return f"{name}{ver}{suffix}.dll"
         if name in ["perfmondata", "PyISAPI_loader"]:
             return f"{name}{suffix}.dll"
-        # everything else a .pyd - calling base-class might give us a more
-        # complicated name, so return a simple one.
-        return f"{name}{suffix}.pyd"
+        # Everything else is a .pyd named with the interpreter's full tag (eg: `.cp312-win_amd64.pyd`).
+        # PyPy 3.12 needs it, as it doesn't import a plain `.pyd`.
+        filename = build_ext.get_ext_filename(self, name)
+        # setuptools takes that tag from the running interpreter, even when cross-compiling.
+        # MinGW Pythons have their own tag (and still get passed a `win-*` plat_name), so leave them be.
+        host_tag = sysconfig.get_platform().replace("-", "_")
+        if host_tag.startswith("win"):
+            target_tag = self.plat_name.replace("-", "_")
+            filename = filename.replace(f"-{host_tag}.pyd", f"-{target_tag}.pyd")
+        return filename
 
     def get_export_symbols(self, ext):
         if ext.is_regular_dll:
