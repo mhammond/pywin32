@@ -705,6 +705,13 @@ def main():
     if not args.quiet:
         print(f"Parsed arguments are: {args}")
 
+    if sys.implementation.name == "pypy":
+        # The other steps (demo COM objects, help file, etc.) aren't worth supporting alone.
+        parser.error(
+            "pywin32 can't embed PyPy in a host process that isn't Python, "
+            + "so the system-wide setup done by the post-install script isn't supported."
+        )
+
     if not args.install ^ args.remove:
         parser.error("You need to either choose to -install or -remove!")
 

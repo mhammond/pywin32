@@ -18,6 +18,7 @@ As of build 305, installation .exe files have been deprecated; see
 Coming in build 313, as yet unreleased
 --------------------------------------
 
+* Added limited, experimental support for PyPy 3.12. See [PyPy support](README.md#pypy-support) for the limitations ([@Avasam][Avasam])
 * Fixed Python failure handling in Pythonwin and improve error message (mhammond#2319, [@Avasam][Avasam])
 * Fixed `win32clipboard.SetClipboardData` raising "The handle is invalid" or crashing when given `str`/`bytes` data that `int()` can parse (eg, `"201920"`); such data was tried as a memory handle before being treated as data (mhammond#2132, [@msromike][msromike])
 * Passing `str`, `bytes`, another buffer object or a `float` where a handle is expected now emits a `FutureWarning`; the release after next (two releases from this one) will raise `TypeError`. Any value that `int()` could parse was silently used as a memory address, and a `float` was silently truncated (mhammond#2132, [@msromike][msromike])

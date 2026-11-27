@@ -158,6 +158,10 @@ PyObject *PyWinObject_FromSHORT(SHORT s) { return PyLong_FromLong(s); }
 
 PyObject *PyWinObject_FromUSHORT(USHORT us) { return PyLong_FromLong(us); }
 
+// PyPy declares PyLong_FromLong as taking an int, which doesn't match LONG arrays.
+// https://github.com/pypy/pypy/issues/5819
+PyObject *PyWinObject_FromLONG(LONG l) { return PyLong_FromLong(l); }
+
 PyObject *PyWinObject_FromFLOAT(FLOAT f) { return PyFloat_FromDouble(f); }
 
 PyObject *PyWinObject_FromVT_BSTR(BSTR b) { return PyWinObject_FromBstr(b, FALSE); }
@@ -204,7 +208,7 @@ PyObject *PyObject_FromPROPVARIANT(PROPVARIANT *pVar)
         case VT_I4:
             return PyLong_FromLong(pVar->lVal);
         case VT_I4 | VT_VECTOR:
-            return VectorToSeq(pVar->cal.pElems, pVar->cal.cElems, PyLong_FromLong);
+            return VectorToSeq(pVar->cal.pElems, pVar->cal.cElems, PyWinObject_FromLONG);
         case VT_INT:
             return PyLong_FromLong(pVar->intVal);
         case VT_UI4:
@@ -248,7 +252,7 @@ PyObject *PyObject_FromPROPVARIANT(PROPVARIANT *pVar)
         case VT_ERROR:
             return PyLong_FromLong(pVar->scode);
         case VT_ERROR | VT_VECTOR:
-            return VectorToSeq(pVar->cascode.pElems, pVar->cascode.cElems, PyLong_FromLong);
+            return VectorToSeq(pVar->cascode.pElems, pVar->cascode.cElems, PyWinObject_FromLONG);
         case VT_FILETIME:
             return PyWinObject_FromFILETIME(pVar->filetime);
         case VT_FILETIME | VT_VECTOR:

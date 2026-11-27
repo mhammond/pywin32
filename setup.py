@@ -66,6 +66,10 @@ else:
     from distutils.errors import DistutilsExecError
 
 is_mingw = "MSC" not in sys.version
+is_pypy = sys.implementation.name == "pypy"
+# Older PyPy doesn't declare Py_Initialize, which pythoncom and isapi need to link.
+if is_pypy and sys.version_info < (3, 12):
+    raise RuntimeError("pywin32 requires PyPy 3.12 or later")
 
 
 def my_new_compiler(**kw):
@@ -1233,9 +1237,8 @@ pywintypes = WinExt_system32(
     implib_name="pywintypes",
 )
 
-win32_extensions: list[WinExt] = [pywintypes]
-
-win32_extensions.append(
+win32_extensions = [
+    pywintypes,
     WinExt_win32(
         "perfmondata",
         sources=[
@@ -1244,13 +1247,13 @@ win32_extensions.append(
         ],
         libraries="advapi32",
         export_symbol_file="win32/src/PerfMon/perfmondata.def",
-        is_regular_dll=1,
+        is_regular_dll=True,
         depends=[
             "win32/src/PerfMon/perfutil.h",
             "win32/src/PerfMon/PyPerfMonControl.h",
         ],
     ),
-)
+]
 
 for name, libraries, sources in (
     ("mmapfile", "", "win32/src/mmapfilemodule.cpp"),
@@ -1361,11 +1364,16 @@ for name, libraries, sources in (
     ("win32ts", "wtsapi32", "win32/src/win32tsmodule.cpp"),
     ("_win32sysloader", "", "win32/src/_win32sysloader.cpp"),
     ("win32transaction", "kernel32 ktmw32", "win32/src/win32transactionmodule.cpp"),
+    (
+        "_winxptheme",
+        "gdi32 user32 comdlg32 comctl32 shell32 uxtheme",
+        "win32/src/_winxptheme.i",
+    ),
+    ("win32help", "htmlhelp user32 advapi32", "win32/src/win32helpmodule.cpp"),
 ):
     ext = WinExt_win32(
         name,
         libraries=libraries,
-        extra_compile_args=[],
         sources=sources.split(),
     )
     win32_extensions.append(ext)
@@ -1397,28 +1405,21 @@ win32_extensions += [
         libraries="gdi32 user32 comdlg32 comctl32 shell32 msimg32",
         define_macros=[("WIN32GUI", None)],
     ),
-    WinExt_win32(
-        "_winxptheme",
-        sources=["win32/src/_winxptheme.i"],
-        libraries="gdi32 user32 comdlg32 comctl32 shell32 uxtheme",
-    ),
-]
-win32_extensions += [
-    WinExt_win32(
-        "servicemanager",
-        sources=["win32/src/PythonServiceMessages.mc", "win32/src/PythonService.cpp"],
-        define_macros=[("PYSERVICE_BUILD_DLL", None)],
-        libraries="user32 ole32 advapi32 shell32",
-    ),
 ]
 
-win32_extensions += [
-    WinExt_win32(
-        "win32help",
-        sources=["win32/src/win32helpmodule.cpp"],
-        libraries="htmlhelp user32 advapi32",
-    ),
-]
+# PyPy has no PyConfig API, which PythonService.cpp needs to initialize Python.
+if not is_pypy:
+    win32_extensions += [
+        WinExt_win32(
+            "servicemanager",
+            sources=[
+                "win32/src/PythonServiceMessages.mc",
+                "win32/src/PythonService.cpp",
+            ],
+            define_macros=[("PYSERVICE_BUILD_DLL", None)],
+            libraries="user32 ole32 advapi32 shell32",
+        ),
+    ]
 
 dirs = {
     "adsi": "com/win32comext/adsi/src",
@@ -2019,60 +2020,78 @@ pythonwin_extensions = [
     ),
 ]
 
-other_extensions = [
-    WinExt_ISAPI(
-        "PyISAPI_loader",
-        sources=[
-            os.path.join("isapi", "src", s)
-            for s in """PyExtensionObjects.cpp PyFilterObjects.cpp
-                  pyISAPI.cpp pyISAPI_messages.mc
-                  PythonEng.cpp StdAfx.cpp Utils.cpp
-               """.split()
-        ],
-        # We keep pyISAPI_messages.h out of the depends list, as it is
-        # generated and we aren't smart enough to say *only* the .cpp etc
-        # depend on it - so the generated .h says the .mc needs to be
-        # rebuilt, which re-creates the .h...
-        depends=[
-            os.path.join("isapi", "src", s)
-            for s in """ControlBlock.h FilterContext.h PyExtensionObjects.h
-                  PyFilterObjects.h pyISAPI.h
-                  PythonEng.h StdAfx.h Utils.h
-               """.split()
-        ],
-        is_regular_dll=1,
-        export_symbols="""HttpExtensionProc GetExtensionVersion
-                           TerminateExtension GetFilterVersion
-                           HttpFilterProc TerminateFilter
-                           PyISAPISetOptions WriteEventLogMessage
-                           """.split(),
-        libraries="advapi32",
-    )
-]
+other_extensions = (
+    [
+        WinExt_ISAPI(
+            "PyISAPI_loader",
+            sources=[
+                "isapi/src/PyExtensionObjects.cpp",
+                "isapi/src/PyFilterObjects.cpp",
+                "isapi/src/pyISAPI.cpp",
+                "isapi/src/pyISAPI_messages.mc",
+                "isapi/src/PythonEng.cpp",
+                "isapi/src/StdAfx.cpp",
+                "isapi/src/Utils.cpp",
+            ],
+            # We keep pyISAPI_messages.h out of the depends list, as it is generated and
+            # we aren't smart enough to say *only* the .cpp etc depend on it - so the
+            # generated .h says the .mc needs to be rebuilt, which re-creates the .h...
+            depends=[
+                "isapi/src/ControlBlock.h",
+                "isapi/src/FilterContext.h",
+                "isapi/src/PyExtensionObjects.h",
+                "isapi/src/PyFilterObjects.h",
+                "isapi/src/pyISAPI.h",
+                "isapi/src/PythonEng.h",
+                "isapi/src/StdAfx.h Utils.h",
+            ],
+            is_regular_dll=True,
+            export_symbols=[
+                "HttpExtensionProc",
+                "GetExtensionVersion",
+                "TerminateExtension",
+                "GetFilterVersion",
+                "HttpFilterProc",
+                "TerminateFilter",
+                "PyISAPISetOptions",
+                "WriteEventLogMessage",
+            ],
+            libraries="advapi32",
+        )
+    ]
+    # We can't embed PyPy in IIS.
+    if not is_pypy
+    else []
+)
 
-W32_exe_files: list[WinExt] = [
-    WinExt_pythonservice(
-        "pythonservice",
-        sources=[
-            os.path.join("win32", "src", s)
-            for s in "PythonService.cpp PythonService.rc".split()
-        ],
-        libraries="user32 advapi32 ole32 shell32",
-    ),
-    WinExt_pythonwin_subsys_win(
-        "Pythonwin",
-        sources=[
-            "pythonwin/pythonwin.cpp",
-            "pythonwin/pythonwin.rc",
-            "pythonwin/stdafxpw.cpp",
-        ],
-        depends=[
-            "pythonwin/Win32uiHostGlue.h",
-            "pythonwin/pythonwin.h",
-        ],
-        optional_headers=["afxwin.h"],
-    ),
-]
+
+W32_exe_files = (
+    [
+        WinExt_pythonservice(
+            "pythonservice",
+            sources=["win32/src/PythonService.cpp", "win32/src/PythonService.rc"],
+            libraries="user32 advapi32 ole32 shell32",
+        ),
+        WinExt_pythonwin_subsys_win(
+            "Pythonwin",
+            sources=[
+                "pythonwin/pythonwin.cpp",
+                "pythonwin/pythonwin.rc",
+                "pythonwin/stdafxpw.cpp",
+            ],
+            depends=[
+                "pythonwin/Win32uiHostGlue.h",
+                "pythonwin/pythonwin.h",
+            ],
+            optional_headers=["afxwin.h"],
+        ),
+    ]
+    # We can't embed PyPy in the service control manager or Pythonwin.exe.
+    # PythonService.cpp also needs the PyConfig API, which PyPy lacks.
+    # Skipping Pythonwin.exe also skips building Scintilla.
+    if not is_pypy
+    else []
+)
 
 # Special definitions for SWIG.
 swig_interface_parents = {
@@ -2235,6 +2254,7 @@ classifiers = [
     "Programming Language :: Python :: 3.15",
     "Programming Language :: Python :: Free Threading :: 1 - Unstable",
     "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
 ]
 
 dist = setup(
@@ -2280,13 +2300,16 @@ dist = setup(
     cmdclass=cmdclass,
     # This adds the scripts under Python3XX/Scripts, but doesn't actually do much
     scripts=[
-        "win32/scripts/pywin32_postinstall.py",
+        *(["win32/scripts/pywin32_postinstall.py"] * (not is_pypy)),
         "win32/scripts/pywin32_testall.py",
     ],
     # This shortcuts `python -m win32.scripts.some_script` to just `some_script`
     entry_points={
         "console_scripts": [
-            "pywin32_postinstall = win32.scripts.pywin32_postinstall:main",
+            *(
+                ["pywin32_postinstall = win32.scripts.pywin32_postinstall:main"]
+                * (not is_pypy)
+            ),
             "pywin32_testall = win32.scripts.pywin32_testall:main",
         ]
     },

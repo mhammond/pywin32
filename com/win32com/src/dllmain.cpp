@@ -261,6 +261,11 @@ STDAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, LPVOID *ppv)
 //   argc and argv are what Python should see as sys.argv
 HRESULT DoRegisterUnregister(LPCSTR fileName, int argc, char **argv)
 {
+#ifdef PYPY_VERSION
+    // Only reached from a host process that isn't Python (regsvr32), where we can't embed PyPy.
+    // PyPy also lacks PyRun_SimpleFile.
+    return E_NOTIMPL;
+#else
     FILE *fp = fopen(fileName, "r");
     if (fp == NULL)
         return HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND);
@@ -281,6 +286,7 @@ HRESULT DoRegisterUnregister(LPCSTR fileName, int argc, char **argv)
     PyCom_DLLReleaseRef();
 
     return hr;
+#endif
 }
 
 extern "C" __declspec(dllexport) HRESULT DllRegisterServerEx(LPCSTR fileName)
