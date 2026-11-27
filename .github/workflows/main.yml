@@ -16,6 +16,8 @@ concurrency:
 
 jobs:
   test:
+    # TODO: Temporarily disabled while iterating on the PyPy job, re-enable before merging
+    if: false
     name: Build and test
     runs-on: ${{ matrix.os }}
     timeout-minutes: &timeout-minutes 25
@@ -179,6 +181,8 @@ jobs:
 
   # actions/setup-python does not provide prebuilt arm64 Python before 3.11, so we cross-compile.
   cross_compile_arm64:
+    # TODO: Temporarily disabled while iterating on the PyPy job, re-enable before merging
+    if: false
     name: Cross-compile ARM64
     runs-on: windows-2022
     timeout-minutes: *timeout-minutes
@@ -211,6 +215,8 @@ jobs:
           if-no-files-found: error
 
   merge:
+    # TODO: Temporarily disabled while iterating on the PyPy job, re-enable before merging
+    if: false
     runs-on: ubuntu-latest
     needs: [test, pypy, cross_compile_arm64]
     steps:
@@ -225,6 +231,8 @@ jobs:
         with:
           name: artifacts-*
   build_msys2_mingw:
+    # TODO: Temporarily disabled while iterating on the PyPy job, re-enable before merging
+    if: false
     runs-on: ${{ matrix.plat-name == 'win-arm64' && 'windows-11-arm' || 'windows-2022' }}
     timeout-minutes: *timeout-minutes
     defaults:
@@ -264,6 +272,8 @@ jobs:
 
   # This job can be run locally by running `pre-commit run`
   checkers:
+    # TODO: Temporarily disabled while iterating on the PyPy job, re-enable before merging
+    if: false
     runs-on: ubuntu-latest
     timeout-minutes: *timeout-minutes
     steps:
@@ -296,6 +306,8 @@ jobs:
         if: ${{ !cancelled() }}
 
   type-checkers:
+    # TODO: Temporarily disabled while iterating on the PyPy job, re-enable before merging
+    if: false
     runs-on: ubuntu-latest
     timeout-minutes: *timeout-minutes
     strategy:
