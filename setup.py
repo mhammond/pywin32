@@ -739,6 +739,7 @@ class my_build_ext(build_ext):
         # PyPy 3.12 needs it, as it doesn't import a plain `.pyd`.
         filename = build_ext.get_ext_filename(self, name)
         # setuptools takes that tag from the running interpreter, even when cross-compiling.
+        # https://github.com/pypa/setuptools/issues/5387
         # MinGW Pythons have their own tag (and still get passed a `win-*` plat_name), so leave them be.
         host_tag = sysconfig.get_platform().replace("-", "_")
         if host_tag.startswith("win"):
