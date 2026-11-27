@@ -102,27 +102,55 @@ jobs:
           if-no-files-found: error
 
   pypy:
-    name: Build and smoke test PyPy
+    name: Build and smoke test PyPy (${{ matrix.installer }})
     runs-on: windows-2022
     timeout-minutes: *timeout-minutes
     strategy:
       fail-fast: false
       matrix:
         python-version: ["pypy3.12"]
+        # TODO: Temporary pip duplicate, to tell a uv issue apart from a PyPy one. Remove once fixed
+        installer: [uv, pip]
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Set up Python ${{ matrix.python-version }} with uv
+        if: matrix.installer == 'uv'
         uses: astral-sh/setup-uv@v10.4.0
         with:
           python-version: ${{ matrix.python-version }}
           activate-environment: true
 
+      - name: Set up Python ${{ matrix.python-version }}
+        if: matrix.installer == 'pip'
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: x64
+          check-latest: true
+
       # Build once, then test the very wheel that gets uploaded.
-      - name: Build wheels
+      - name: Build wheels with uv
+        if: matrix.installer == 'uv'
         run: uv build --wheel
-      - name: Install
+      - name: Install with uv
+        if: matrix.installer == 'uv'
         run: uv pip install pywin32 --no-index --find-links=dist
+
+      - name: Build wheels with pip
+        if: matrix.installer == 'pip'
+        run: pip wheel . -v --wheel-dir=dist
+      - name: Install with pip
+        if: matrix.installer == 'pip'
+        run: pip install pywin32 --no-index --find-links=dist
+
+      # TODO: Temporary diagnostic for "No module named 'win32api'", remove once fixed
+      - name: Show interpreter and site-packages
+        run: |
+          Get-Command python | Format-List Source
+          python -c "import sys, site, sysconfig; print(sys.executable, sys.prefix, sys.base_prefix, sysconfig.get_paths()['platlib'], site.getsitepackages(), *sys.path, sep='\n')"
+          Get-ChildItem (python -c "import sysconfig; print(sysconfig.get_paths()['platlib'])") -Filter pywin32.pth | Select-Object FullName
+          if (Test-Path .venv\pyvenv.cfg) { Get-Content .venv\pyvenv.cfg }
 
       # Each import runs in a fresh process, and in its own step so a failure names the order that broke.
       # Importing win32api first makes Windows resolve pywintypesXY.dll while loading win32api.pyd,
@@ -138,6 +166,7 @@ jobs:
         run: python -c "import win32com.client; d = win32com.client.Dispatch('Scripting.Dictionary'); d.Add('key', 'value'); assert d.Item('key') == 'value'"
 
       - uses: actions/upload-artifact@v4
+        if: matrix.installer == 'uv'
         with:
           name: artifacts-${{ matrix.python-version }}-x64
           path: dist/*.whl
