@@ -2564,7 +2564,8 @@ extern "C" PYW_EXPORT BOOL Win32uiApplicationInit(Win32uiHostGlue *pGlue, const 
         int myargc;
         LPWSTR *myargv = CommandLineToArgvW(GetCommandLineW(), &myargc);
         if (myargv) {
-            PySys_SetArgv(myargc - 1, myargv + 1);
+            if (!PyWinSys_SetArgv(myargc - 1, myargv + 1))
+                PyErr_Print();
             LocalFree(myargv);
         }
     }
