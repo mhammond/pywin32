@@ -135,16 +135,36 @@ jobs:
         run: python -c "import pywintypes; import win32api; print(pywintypes.__file__, win32api.__file__)"
 
       - name: Import pythoncom
-        # TODO: Temporary diagnostics for a silent exit code 1 that doesn't reproduce under Wine, remove once fixed
-        run: |
-          where.exe pythoncom312.dll pywintypes312.dll
-          python -X faulthandler -v -c "import pythoncom; print(pythoncom.__file__)"
-          $code = $LASTEXITCODE
-          "python exit code: $code (0x{0:X8})" -f $code
-          exit $code
+        run: python -c "import pythoncom; print(pythoncom.__file__)"
 
       - name: Import win32com.client
         run: python -c "import win32com.client"
+
+      # TODO: Temporary diagnostics for a silent exit code 1 that doesn't reproduce under Wine, remove once fixed.
+      # Unbuffered output and a final marker tell a failure in the script apart from one at interpreter exit,
+      # and repeated runs tell whether it's intermittent.
+      - name: Diagnose silent exits
+        if: ${{ !cancelled() }}
+        shell: python
+        run: |
+          import subprocess
+          import sys
+
+          scripts = {
+              "pythoncom": "import pythoncom",
+              "client": "import win32com.client",
+              "dispatch": "import win32com.client; d = win32com.client.Dispatch('Scripting.Dictionary'); d.Add('key', 'value'); assert d.Item('key') == 'value'",
+          }
+          for name, script in scripts.items():
+              for flags in ([], ["-X", "faulthandler"]):
+                  for i in range(1, 6):
+                      result = subprocess.run(
+                          [sys.executable, "-u", *flags, "-c", f"{script}; print('script done', flush=True)"],
+                          capture_output=True,
+                          text=True,
+                      )
+                      code = result.returncode
+                      print(f"{name} {flags} run {i}: exit {code} (0x{code & 0xFFFFFFFF:08X}) | stdout={result.stdout!r} stderr={result.stderr!r}", flush=True)
 
       - name: Use a COM client
         run: python -c "import win32com.client; d = win32com.client.Dispatch('Scripting.Dictionary'); d.Add('key', 'value'); assert d.Item('key') == 'value'"
