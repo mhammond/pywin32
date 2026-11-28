@@ -194,8 +194,13 @@ jobs:
               "step('Add'); d.Add('key', 'value'); "
               "step('exit')"
           )
-          # After the stack: the object in rbx (prefix word, ob_refcnt, ob_type) and which DLLs were loaded, from where
-          commands = 'sxd -c2 ".echo === CRASH ===; .ecxr; kv 60; r; ub @rip L10; u @rip L4; dq @rbx-8 L4; ln poi(@rbx+8); lmf; q" av; g; q'
+          # PyPy crashes following a bad ob_pypy_link it read from rsi. Find where that value sits in memory:
+          # the object is right after it, so print its ob_refcnt and ob_type.
+          find_object = (
+              "as /x badlink @rsi; .block { .foreach (hit {s -[1]q 0 L?7fffffffffff ${badlink}}) "
+              "{ .echo === object after ${hit} ===; dq ${hit} L4; ln poi(${hit}+10) } }"
+          )
+          commands = f'sxd -c2 ".echo === CRASH ===; .ecxr; kv 60; r; ub @rip L10; u @rip L4; {find_object}; q" av; g; q'
           env = {**os.environ, "_NO_DEBUG_HEAP": "1"}
           for i in range(1, 21):
               result = subprocess.run(
@@ -209,7 +214,7 @@ jobs:
               crashed = "=== CRASH ===" in result.stdout
               print(f"cdb run {i}: crashed={crashed}", flush=True)
               if crashed:
-                  print(result.stdout, flush=True)
+                  print(result.stdout, "--- last step reached:", result.stderr.strip().splitlines()[-1:], flush=True)
                   break
 
       - uses: actions/upload-artifact@v4
