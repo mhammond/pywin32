@@ -126,25 +126,10 @@ jobs:
       - name: Install
         run: uv pip install pywin32 --no-index --find-links=dist
 
-      # Each import runs in a fresh process, and in its own step so a failure names the order that broke.
-      # Importing win32api first makes Windows resolve pywintypesXY.dll while loading win32api.pyd,
-      # before pywintypes.py can load it. That only works if PyPy's extension loader searches the
-      # directories pywin32_bootstrap adds with os.add_dll_directory.
-      - name: Import win32api before pywintypes
-        run: python -c "import win32api; import pywintypes; print(win32api.__file__, pywintypes.__file__)"
-
-      - name: Import pywintypes before win32api
-        run: python -c "import pywintypes; import win32api; print(pywintypes.__file__, win32api.__file__)"
-
-      - name: Import pythoncom
-        run: python -c "import pythoncom; print(pythoncom.__file__)"
-
-      - name: Import win32com.client
-        run: python -c "import win32com.client"
-
       # TODO: Temporary diagnostics, remove once the crash below is fixed.
       # The crash doesn't happen under a debugger, and Windows Error Reporting writes no dumps on the runners.
-      # So each run loads this DLL, which writes a full dump from a vectored exception handler.
+      # So every Python process loads this DLL (through a .pth file), which writes a full dump to
+      # VEHDUMP_DIR from a vectored exception handler.
       - name: Build crash dump DLL
         shell: pwsh
         run: |
@@ -153,6 +138,7 @@ jobs:
           // Writes a full-memory minidump on the first access violation, then lets the crash continue.
           #include <windows.h>
           #include <dbghelp.h>
+          #include <stdio.h>
           #pragma comment(lib, "dbghelp.lib")
 
           static volatile LONG done = 0;
@@ -164,10 +150,11 @@ jobs:
                   return EXCEPTION_CONTINUE_SEARCH;
               if (InterlockedExchange(&done, 1))
                   return EXCEPTION_CONTINUE_SEARCH;
-              WCHAR path[MAX_PATH];
-              DWORD n = GetEnvironmentVariableW(L"VEHDUMP_PATH", path, MAX_PATH);
+              WCHAR dir[MAX_PATH], path[MAX_PATH];
+              DWORD n = GetEnvironmentVariableW(L"VEHDUMP_DIR", dir, MAX_PATH);
               if (!n || n >= MAX_PATH)
                   return EXCEPTION_CONTINUE_SEARCH;
+              swprintf_s(path, MAX_PATH, L"%s\\vehdump-%lu.dmp", dir, GetCurrentProcessId());
               HANDLE f = CreateFileW(path, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
               if (f != INVALID_HANDLE_VALUE) {
                   MINIDUMP_EXCEPTION_INFORMATION mei = {GetCurrentThreadId(), ep, FALSE};
@@ -189,7 +176,33 @@ jobs:
           $dll = "$env:RUNNER_TEMP\vehdump.dll"
           cmd /c "`"$vs\VC\Auxiliary\Build\vcvars64.bat`" >nul && cl /nologo /O1 /LD `"$src`" /Fo`"$env:RUNNER_TEMP\\`" /Fe`"$dll`""
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
-          "VEHDUMP_DLL=$dll" >> $env:GITHUB_ENV
+          $dumps = (New-Item -ItemType Directory -Force "$env:RUNNER_TEMP\dumps").FullName
+          $purelib = python -c "import sysconfig; print(sysconfig.get_path('purelib'))"
+          Set-Content -Path "$purelib\00vehdump.pth" -Value "import os, ctypes; 'VEHDUMP_DIR' in os.environ and ctypes.WinDLL(r'$dll')"
+          "VEHDUMP_DIR=$dumps" >> $env:GITHUB_ENV
+          # Self-test: a NULL write crashes PyPy, which must leave exactly one dump.
+          $env:VEHDUMP_DIR = $dumps
+          python -c "import ctypes; ctypes.memset(0, 0, 1)"
+          $selftest = @(Get-ChildItem "$dumps\*.dmp")
+          if ($selftest.Count -ne 1) { throw "Self-test crash wrote $($selftest.Count) dumps" }
+          Remove-Item $selftest
+          $global:LASTEXITCODE = 0
+
+      # Each import runs in a fresh process, and in its own step so a failure names the order that broke.
+      # Importing win32api first makes Windows resolve pywintypesXY.dll while loading win32api.pyd,
+      # before pywintypes.py can load it. That only works if PyPy's extension loader searches the
+      # directories pywin32_bootstrap adds with os.add_dll_directory.
+      - name: Import win32api before pywintypes
+        run: python -c "import win32api; import pywintypes; print(win32api.__file__, pywintypes.__file__)"
+
+      - name: Import pywintypes before win32api
+        run: python -c "import pywintypes; import win32api; print(pywintypes.__file__, win32api.__file__)"
+
+      - name: Import pythoncom
+        run: python -c "import pythoncom; print(pythoncom.__file__)"
+
+      - name: Import win32com.client
+        run: python -c "import win32com.client"
 
       # Repeated in fresh processes, as crashes are intermittent (exit code 0xC0000005 with no output).
       # Caused by PyPy's _Py_NewReference (pypy/pypy#5822, worked around in PyWinTypes.h).
@@ -197,16 +210,11 @@ jobs:
         shell: python
         run: |
           import collections
-          import os
           import subprocess
           import sys
 
-          # TODO: Temporary diagnostics, remove the dump handling once the crash is fixed.
-          dump_dir = os.path.join(os.environ["RUNNER_TEMP"], "dumps")
-          os.makedirs(dump_dir, exist_ok=True)
           script = """
-          import ctypes, faulthandler, os, sys
-          ctypes.WinDLL(os.environ["VEHDUMP_DLL"])
+          import faulthandler, sys
           faulthandler.enable()
           def step(name): print(name, file=sys.stderr, flush=True)
           step("import"); import win32com.client
@@ -216,19 +224,7 @@ jobs:
           step("exit")
           """
           steps = ("import", "Dispatch", "Add", "Item", "exit")
-          results = []
-          kept_dumps = 0
-          for i in range(30):
-              dump = os.path.join(dump_dir, f"run{i:02}.dmp")
-              env = dict(os.environ, VEHDUMP_PATH=dump)
-              results.append(subprocess.run([sys.executable, "-c", script], capture_output=True, text=True, env=env, timeout=600))
-              if os.path.exists(dump):
-                  if results[-1].returncode == 0:
-                      print(f"run {i} succeeded after a first-chance access violation")
-                  if kept_dumps < 3:
-                      kept_dumps += 1
-                  else:
-                      os.remove(dump)
+          results = [subprocess.run([sys.executable, "-c", script], capture_output=True, text=True) for _ in range(30)]
           failures = [r for r in results if r.returncode]
           last_steps = collections.Counter(
               next((line for line in reversed(r.stderr.splitlines()) if line in steps), None) for r in failures
@@ -249,9 +245,12 @@ jobs:
           import shutil
           import subprocess
 
-          dump_dir = os.path.join(os.environ["RUNNER_TEMP"], "dumps")
-          dumps = sorted(glob.glob(os.path.join(dump_dir, "*.dmp")))
-          print(f"{len(dumps)} dump(s): {[os.path.basename(dump) for dump in dumps]}", flush=True)
+          dump_dir = os.environ["VEHDUMP_DIR"]
+          dumps = sorted(glob.glob(os.path.join(dump_dir, "*.dmp")), key=os.path.getmtime)
+          print(f"{len(dumps)} dump(s), keeping the first 3: {[os.path.basename(dump) for dump in dumps]}", flush=True)
+          for dump in dumps[3:]:
+              os.remove(dump)
+          dumps = dumps[:3]
           pdb_dir = os.path.join(dump_dir, "pdb")
           os.makedirs(pdb_dir, exist_ok=True)
           for pdb in glob.glob("build/**/*.pdb", recursive=True):
@@ -273,7 +272,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: crash-dumps-${{ matrix.python-version }}
-          path: ${{ runner.temp }}/dumps
+          path: ${{ env.VEHDUMP_DIR }}
           retention-days: 3
 
       - uses: actions/upload-artifact@v4
