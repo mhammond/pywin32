@@ -663,6 +663,43 @@ PyCCtrlView_Type PyCCtrlView::type("PyCCtrlView",
                                    &PyCWnd::type, RUNTIME_CLASS(CCtrlView), sizeof(PyCCtrlView),
                                    PYOBJ_OFFSET(PyCCtrlView), PyCCtrlView_methods, GET_PY_CTOR(PyCCtrlView));
 
+// Types still waiting for SetBases. A pointer, so it is already NULL when the first static constructor runs.
+static CPtrList *pCtrlViewTypesWithoutBases = NULL;
+
+PyCCtrlView_Type::PyCCtrlView_Type(const char *name, ui_type *pBaseType, ui_type_CObject *pControlType,
+                                   CRuntimeClass *pRT, Py_ssize_t typeSize, ptrdiff_t pyobjOffset,
+                                   struct PyMethodDef *methodList, ui_base_class *(*thector)())
+    : ui_type_CObject(name, pBaseType, pRT, typeSize, pyobjOffset, methodList, thector)
+{
+    control = pControlType;
+    /* Some types also inherit from the control type (if different from itself).
+        tp_base will already have been set in ui_type_CObject constructor.
+        tp_bases is left to SetBases: this runs as a static constructor while the DLL loads,
+        when the other types may not be constructed yet. On PyPy, the tuple built here also
+        got freed while tp_bases still pointed to it.
+    */
+    if (pControlType != this) {
+        if (!pCtrlViewTypesWithoutBases)
+            pCtrlViewTypesWithoutBases = new CPtrList;
+        pCtrlViewTypesWithoutBases->AddTail(this);
+    }
+}
+
+int PyCCtrlView_Type::SetBases()
+{
+    if (!pCtrlViewTypesWithoutBases)
+        return 0;
+    while (!pCtrlViewTypesWithoutBases->IsEmpty()) {
+        PyCCtrlView_Type *pT = (PyCCtrlView_Type *)pCtrlViewTypesWithoutBases->RemoveHead();
+        pT->tp_bases = Py_BuildValue("OO", pT->tp_base, pT->control);
+        if (!pT->tp_bases)
+            return -1;
+    }
+    delete pCtrlViewTypesWithoutBases;
+    pCtrlViewTypesWithoutBases = NULL;
+    return 0;
+}
+
 /////////////////////////////////////////////////////////////////////
 //
 // Edit View object

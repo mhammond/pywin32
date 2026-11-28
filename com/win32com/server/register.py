@@ -210,6 +210,11 @@ def RegisterServer(
             clsctx &= pythoncom.CLSCTX_INPROC_SERVER
         else:  # True | "windows_exe"
             clsctx &= pythoncom.CLSCTX_LOCAL_SERVER
+    # We can't embed PyPy in a host process that isn't Python, so it can't serve in-process.
+    if sys.implementation.name == "pypy" and clsctx & pythoncom.CLSCTX_INPROC_SERVER:
+        clsctx &= ~pythoncom.CLSCTX_INPROC_SERVER
+        if not clsctx:
+            raise ValueError("pywin32 can't register in-process COM servers on PyPy")
     # Now setup based on the clsctx left over.
     if clsctx & pythoncom.CLSCTX_INPROC_SERVER:
         # get the module to use for registration.

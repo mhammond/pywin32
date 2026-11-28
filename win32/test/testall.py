@@ -138,14 +138,15 @@ def import_all():
 
     dir = os.path.dirname(win32api.__file__)
     num = 0
-    is_debug = os.path.splitext(os.path.basename(win32api.__file__))[0].endswith("_d")
+    # handle `modname.cp310-win_amd64.pyd` etc
+    is_debug = os.path.basename(win32api.__file__).split(".")[0].endswith("_d")
     for name in os.listdir(dir):
         base, ext = os.path.splitext(name)
         # handle `modname.cp310-win_amd64.pyd` etc
         base = base.split(".")[0]
         if (
             (ext == ".pyd")
-            and name != "_winxptheme.pyd"
+            and base != "_winxptheme"
             and is_debug == base.endswith("_d")
         ):
             try:

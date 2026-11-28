@@ -190,7 +190,17 @@ static PyObject *SetThreadStateTrace(PyObject *self, PyObject *args)
     PyFrameObject *frame = state ? PyThreadState_GetFrame(state) : NULL;
     bool bFoundFirstScriptBlock = false;
     while (frame) {
+#ifdef PYPY_VERSION
+        // PyPy doesn't yet implement PyFrame_GetCode
+        // https://github.com/pypy/pypy/pull/5820
+        PyObject *code = PyObject_GetAttrString((PyObject *)frame, "f_code");
+        if (code == NULL) {
+            Py_DECREF(frame);
+            return NULL;
+        }
+#else
         PyCodeObject *code = PyFrame_GetCode(frame);
+#endif
         PyObject *filename = PyObject_GetAttrString((PyObject *)code, "co_filename");
         Py_DECREF(code);
         const char *filename_str = filename ? PyUnicode_AsUTF8(filename) : NULL;
@@ -206,7 +216,20 @@ static PyObject *SetThreadStateTrace(PyObject *self, PyObject *args)
         }
         PyObject_SetAttrString((PyObject *)frame, "f_trace", func);
         PyFrameObject *prev_frame = frame;
+#ifdef PYPY_VERSION
+        // PyPy doesn't yet implement PyFrame_GetBack
+        // https://github.com/pypy/pypy/pull/5820
+        PyObject *back = PyObject_GetAttrString((PyObject *)frame, "f_back");
+        if (back == NULL) {
+            Py_DECREF(prev_frame);
+            return NULL;
+        }
+        if (back == Py_None)
+            Py_CLEAR(back);
+        frame = (PyFrameObject *)back;
+#else
         frame = PyFrame_GetBack(frame);
+#endif
         Py_DECREF(prev_frame);
     }
 #else  // < 3.11: direct struct access

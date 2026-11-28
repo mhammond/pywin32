@@ -18,6 +18,18 @@
 #include "structmember.h"
 #include "windows.h"
 
+#ifdef PYPY_VERSION
+// We allocate many objects ourselves (C++ `new`, malloc), then rely on _Py_NewReference setting ob_refcnt to 1,
+// like CPython does. PyPy's increments ob_refcnt instead, so it starts from whatever that memory held.
+// Leftovers at or above PyPy's REFCNT_FROM_PYPY tag make PyPy treat the object as one it allocated,
+// and use the heap metadata before it as its hidden ob_pypy_link, causing intermittent access violations.
+// https://github.com/pypy/pypy/issues/5822
+// PyPy's _Py_NewReference does nothing else, so set the count directly. Resetting it to 0 and then calling
+// _Py_NewReference isn't enough: the MSVC build on GitHub's runners dropped that store.
+static inline void PyWin_NewReference(PyObject *op) { op->ob_refcnt = 1; }
+#define _Py_NewReference PyWin_NewReference
+#endif
+
 // Helpers for our modules.
 // Some macros to help the pywin32 modules co-exist in py2x and py3k.
 // Creates and initializes local variables called 'module' and 'dict'.

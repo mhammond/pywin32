@@ -177,6 +177,13 @@ ui_type::ui_type(const char *name, ui_type *pBase, Py_ssize_t typeSize,
     // cast away const, as Python doesn't use it.
     tp_name = (char *)name;
     tp_basicsize = typeSize;
+#ifdef PYPY_VERSION
+    // PyPy gives a type its own layout when tp_basicsize goes past PyObject and the weaklist,
+    // even when it matches the base's. Multiple bases with different layouts are then rejected
+    // with "instance layout conflicts in multiple inheritance" (PyCEditView, PyCListView, ...).
+    // Instances are allocated by C++ new, never from tp_basicsize, so report no extra size.
+    tp_basicsize = tp_weaklistoffset + sizeof(PyObject *);
+#endif
     tp_base = pBase;
     ctor = thector;
 }
@@ -2361,17 +2368,19 @@ int PyWinType_Ready(PyTypeObject *pT)
 {
     if (pT->tp_flags & Py_TPFLAGS_READY)
         return 0;
-    if (pT->tp_bases == NULL)
-        return 0;
-    Py_ssize_t base_cnt = PyTuple_GET_SIZE(pT->tp_bases);
-    for (Py_ssize_t b = 0; b < base_cnt; b++) {
-        PyTypeObject *base_type = (PyTypeObject *)PyTuple_GET_ITEM(pT->tp_bases, b);
-        if (PyWinType_Ready(base_type) == -1)
-            return -1;
-        if (PyType_Ready(base_type) == -1)
-            return -1;
+    // PyPy's PyType_Ready doesn't ready tp_base first, and crashes on a base whose ob_type is still NULL
+    // https://github.com/pypy/pypy/pull/5821
+    if (pT->tp_base && PyWinType_Ready(pT->tp_base) == -1)
+        return -1;
+    if (pT->tp_bases) {
+        for (Py_ssize_t b = 0; b < PyTuple_GET_SIZE(pT->tp_bases); b++) {
+            PyTypeObject *base_type = (PyTypeObject *)PyTuple_GET_ITEM(pT->tp_bases, b);
+            if (PyWinType_Ready(base_type) == -1)
+                return -1;
+        }
     }
-    return 0;
+    // CPython would ready it on first attribute lookup anyway, PyPy wouldn't
+    return PyType_Ready(pT);
 }
 
 extern bool CheckGoodWinApp();
@@ -2421,6 +2430,8 @@ PYWIN_MODULE_INIT_FUNC(win32ui)
         PYWIN_MODULE_INIT_RETURN_ERROR;
 
     // Add all the types.
+    if (PyCCtrlView_Type::SetBases() == -1)
+        PYWIN_MODULE_INIT_RETURN_ERROR;
     PyObject *typeDict = PyDict_New();
     POSITION pos = ui_type_CObject::typemap->GetStartPosition();
     while (pos) {

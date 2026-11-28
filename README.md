@@ -60,10 +60,26 @@ choose any "workflow" from the `main` branch and download its "artifacts"
 
 ### Free-threaded support
 
-Building via pip with a no-GIL interpreter will create a compatible, but knowingly unsafe, wheel.
+Building via pip with a no-GIL interpreter will create a compatible, but knowingly unsafe, wheel.\
 This should be considered experimental; while knowingly unsafe, no wheels compatible with the free-threaded interpreter will be made available - but you can build them yourself.
 
 See [NOGIL.md](NOGIL.md) for the blockers to supplying these artifacts.
+
+### PyPy support
+
+PyPy versions older than 3.12 are not supported. This should be considered experimental.
+
+Pywin32 embeds Python in host processes that aren't Python (the service control manager, IIS, Excel, `regsvr32`, etc.) using CPython's embedding API, which PyPy doesn't support. The parts of pywin32 that rely on that aren't available:
+
+* Windows services: `servicemanager` and `pythonservice.exe` aren't built, so `win32serviceutil` can't install or run services.
+* Pythonwin: `Pythonwin.exe` and Scintilla aren't built, so the Pythonwin IDE and editor aren't available.
+* ISAPI: `PyISAPI_loader` isn't built, so the `isapi` package can't be used with IIS.
+* In-process COM servers: Python COM servers are only registered as local (out-of-process) servers, and registering one as in-process only raises an error. COM clients (`win32com.client`) and local COM servers still work.
+* System-wide setup for those host processes: the post-install script isn't registered and will refuse to run.
+
+`pywintypesXX.dll` and `pythoncomXX.dll` have the same names for CPython and PyPy builds of the same Python version. If a CPython install ran the post-install script globally, its copies can be loaded by PyPy instead of PyPy's own.
+
+Many pywin32 objects (COM interfaces, IIDs, handles, etc.) are allocated by pywin32 itself rather than by Python. PyPy never frees those (pypy/pypy#5823), so they leak, and the COM references they hold are only released when the process exits. Long-running processes that create many such objects will keep growing in memory, and COM servers they talk to may stay alive longer than expected.
 
 ### Installing globally
 

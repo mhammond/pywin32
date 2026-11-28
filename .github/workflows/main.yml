@@ -16,6 +16,8 @@ concurrency:
 
 jobs:
   test:
+    # TODO: Temporarily disabled while iterating on the PyPy job, re-enable before merging
+    if: false
     name: Build and test
     runs-on: ${{ matrix.os }}
     timeout-minutes: &timeout-minutes 25
@@ -87,6 +89,8 @@ jobs:
         # can be found - they aren't installed into the Python tree.
         run: python win32/scripts/pywin32_testall.py -v -skip-adodbapi
 
+      # Not a redundant second build: only this wheel includes PyWin32.chm, generated above.
+      # It reuses the build folder from the install step, so up-to-date extensions aren't recompiled.
       - name: Build wheels
         if: ${{ !contains(matrix.python-version, 't') }}
         run: pip wheel . -v --wheel-dir=dist
@@ -99,8 +103,215 @@ jobs:
           path: dist/*.whl
           if-no-files-found: error
 
+  pypy:
+    name: Build and smoke test PyPy
+    runs-on: windows-2022
+    timeout-minutes: *timeout-minutes
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["pypy3.12"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: astral-sh/setup-uv@v10.4.0
+        with:
+          python-version: ${{ matrix.python-version }}
+          activate-environment: true
+
+      # Build once, then test the very wheel that gets uploaded.
+      - name: Build wheels
+        run: uv build --wheel
+      - name: Install
+        run: uv pip install pywin32 --no-index --find-links=dist
+
+      # TODO: Temporary diagnostics, remove once the crash below is fixed.
+      # The crash doesn't happen under a debugger, and Windows Error Reporting writes no dumps on the runners.
+      # So every Python process loads this DLL (through a .pth file), which writes a full dump to
+      # VEHDUMP_DIR from a vectored exception handler.
+      - name: Build crash dump DLL
+        shell: pwsh
+        run: |
+          $src = "$env:RUNNER_TEMP\vehdump.c"
+          Set-Content -Path $src -Value @'
+          // Writes a full-memory minidump for the first 2 error exceptions (stack overflow, access violation, ...),
+          // then lets the exception continue. The dump is written from another thread, as the faulting one
+          // may have almost no stack left.
+          #include <windows.h>
+          #include <dbghelp.h>
+          #include <stdio.h>
+          #pragma comment(lib, "dbghelp.lib")
+
+          static volatile LONG count = 0;
+          static PEXCEPTION_POINTERS dump_ep;
+          static DWORD dump_tid;
+          static WCHAR dump_path[MAX_PATH];
+
+          static DWORD WINAPI write_dump(LPVOID unused)
+          {
+              HANDLE f = CreateFileW(dump_path, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+              if (f != INVALID_HANDLE_VALUE) {
+                  MINIDUMP_EXCEPTION_INFORMATION mei = {dump_tid, dump_ep, FALSE};
+                  MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), f,
+                                    MiniDumpWithFullMemory | MiniDumpWithHandleData | MiniDumpWithThreadInfo, &mei, NULL, NULL);
+                  CloseHandle(f);
+              }
+              return 0;
+          }
+
+          static LONG CALLBACK handler(PEXCEPTION_POINTERS ep)
+          {
+              DWORD code = ep->ExceptionRecord->ExceptionCode;
+              if ((code & 0xF0000000) != 0xC0000000)
+                  return EXCEPTION_CONTINUE_SEARCH;
+              LONG n = InterlockedIncrement(&count);
+              if (n > 2)
+                  return EXCEPTION_CONTINUE_SEARCH;
+              WCHAR dir[MAX_PATH];
+              DWORD len = GetEnvironmentVariableW(L"VEHDUMP_DIR", dir, MAX_PATH);
+              if (!len || len >= MAX_PATH)
+                  return EXCEPTION_CONTINUE_SEARCH;
+              swprintf_s(dump_path, MAX_PATH, L"%s\\vehdump-%lu-%ld-%08lX.dmp", dir, GetCurrentProcessId(), n, code);
+              dump_ep = ep;
+              dump_tid = GetCurrentThreadId();
+              HANDLE t = CreateThread(NULL, 1024 * 1024, write_dump, NULL, 0, NULL);
+              if (t) {
+                  WaitForSingleObject(t, INFINITE);
+                  CloseHandle(t);
+              }
+              return EXCEPTION_CONTINUE_SEARCH;
+          }
+
+          BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID r)
+          {
+              if (reason == DLL_PROCESS_ATTACH) {
+                  // PyPy's ctypes unloads the DLL once its WinDLL object is collected, which would leave
+                  // the handler pointing to unmapped code. Pin it for the life of the process.
+                  HMODULE self;
+                  GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_PIN,
+                                     (LPCWSTR)handler, &self);
+                  AddVectoredExceptionHandler(1, handler);
+              }
+              return TRUE;
+          }
+          '@
+          $vs = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -property installationPath
+          $dll = "$env:RUNNER_TEMP\vehdump.dll"
+          cmd /c "`"$vs\VC\Auxiliary\Build\vcvars64.bat`" >nul && cl /nologo /O1 /LD `"$src`" /Fo`"$env:RUNNER_TEMP\\`" /Fe`"$dll`""
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          $dumps = (New-Item -ItemType Directory -Force "$env:RUNNER_TEMP\dumps").FullName
+          $purelib = python -c "import sysconfig; print(sysconfig.get_path('purelib'))"
+          Set-Content -Path "$purelib\00vehdump.pth" -Value "import os, ctypes; 'VEHDUMP_DIR' in os.environ and ctypes.WinDLL(r'$dll')"
+          "VEHDUMP_DIR=$dumps" >> $env:GITHUB_ENV
+          # Self-test: a NULL write crashes PyPy, which must leave exactly one dump.
+          $env:VEHDUMP_DIR = $dumps
+          python -c "import ctypes; ctypes.memset(0, 0, 1)"
+          $selftest = @(Get-ChildItem "$dumps\*.dmp")
+          if ($selftest.Count -ne 1) { throw "Self-test crash wrote $($selftest.Count) dumps" }
+          Remove-Item $selftest
+          $global:LASTEXITCODE = 0
+
+      # Each import runs in a fresh process, and in its own step so a failure names the order that broke.
+      # Importing win32api first makes Windows resolve pywintypesXY.dll while loading win32api.pyd,
+      # before pywintypes.py can load it. That only works if PyPy's extension loader searches the
+      # directories pywin32_bootstrap adds with os.add_dll_directory.
+      - name: Import win32api before pywintypes
+        run: python -c "import win32api; import pywintypes; print(win32api.__file__, pywintypes.__file__)"
+
+      - name: Import pywintypes before win32api
+        run: python -c "import pywintypes; import win32api; print(pywintypes.__file__, win32api.__file__)"
+
+      - name: Import pythoncom
+        run: python -c "import pythoncom; print(pythoncom.__file__)"
+
+      - name: Import win32com.client
+        run: python -c "import win32com.client"
+
+      # Repeated in fresh processes, as crashes are intermittent (exit code 0xC0000005 with no output).
+      # Caused by PyPy's _Py_NewReference (pypy/pypy#5822, worked around in PyWinTypes.h).
+      - name: Use a COM client
+        shell: python
+        run: |
+          import collections
+          import subprocess
+          import sys
+
+          script = """
+          import faulthandler, sys
+          faulthandler.enable()
+          def step(name): print(name, file=sys.stderr, flush=True)
+          step("import"); import win32com.client
+          step("Dispatch"); d = win32com.client.Dispatch("Scripting.Dictionary")
+          step("Add"); d.Add("key", "value")
+          step("Item"); assert d.Item("key") == "value"
+          step("exit")
+          """
+          steps = ("import", "Dispatch", "Add", "Item", "exit")
+          results = [subprocess.run([sys.executable, "-c", script], capture_output=True, text=True) for _ in range(30)]
+          failures = [r for r in results if r.returncode]
+          last_steps = collections.Counter(
+              next((line for line in reversed(r.stderr.splitlines()) if line in steps), None) for r in failures
+          )
+          print(f"{len(failures)}/{len(results)} runs failed, by last step reached: {dict(last_steps)}")
+          for r in failures[:3]:
+              print(f"--- exit code 0x{r.returncode & 0xFFFFFFFF:08X}\n{r.stdout}{r.stderr}")
+          sys.exit(bool(failures))
+
+      # TODO: Temporary diagnostics, remove once the crash above is fixed.
+      # Prints the crash stack of the first dump, then uploads the dumps with the PDBs to open them locally.
+      - name: Analyze crash dumps
+        if: failure()
+        shell: python
+        run: |
+          import glob
+          import os
+          import shutil
+          import subprocess
+
+          dump_dir = os.environ["VEHDUMP_DIR"]
+          dumps = sorted(glob.glob(os.path.join(dump_dir, "*.dmp")), key=os.path.getmtime)
+          # Named vehdump-<pid>-<n>-<exception code>.dmp
+          print(f"{len(dumps)} dump(s), keeping the first 3: {[os.path.basename(dump) for dump in dumps]}", flush=True)
+          for dump in dumps[3:]:
+              os.remove(dump)
+          dumps = dumps[:3]
+          pdb_dir = os.path.join(dump_dir, "pdb")
+          os.makedirs(pdb_dir, exist_ok=True)
+          for pdb in glob.glob("build/**/*.pdb", recursive=True):
+              shutil.copy2(pdb, pdb_dir)
+          sympath = ";".join([pdb_dir, r"srv*C:\symbols*https://msdl.microsoft.com/download/symbols"])
+          cdb = r"C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\cdb.exe"
+          for dump in dumps[:1]:
+              result = subprocess.run(
+                  [cdb, "-z", dump, "-lines", "-y", sympath, "-c", ".ecxr; kv 60; r; ub @rip L10; u @rip L4; lm; q"],
+                  capture_output=True,
+                  text=True,
+                  errors="replace",
+                  timeout=600,
+              )
+              print(f"=== {os.path.basename(dump)} ===\n{result.stdout}{result.stderr}", flush=True)
+
+      - name: Upload crash dumps
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: crash-dumps-${{ matrix.python-version }}
+          path: ${{ env.VEHDUMP_DIR }}
+          retention-days: 3
+
+      - uses: actions/upload-artifact@v4
+        # Upload artifacts even if tests fail, so a failure can be reproduced from the built wheel
+        if: ${{ !cancelled() }}
+        with:
+          name: artifacts-${{ matrix.python-version }}-x64
+          path: dist/*.whl
+          if-no-files-found: error
+
   # actions/setup-python does not provide prebuilt arm64 Python before 3.11, so we cross-compile.
   cross_compile_arm64:
+    # TODO: Temporarily disabled while iterating on the PyPy job, re-enable before merging
+    if: false
     name: Cross-compile ARM64
     runs-on: windows-2022
     timeout-minutes: *timeout-minutes
@@ -113,7 +324,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@v10.4.0
         with:
           python-version: ${{ matrix.python-version }}
           activate-environment: true
@@ -133,8 +344,10 @@ jobs:
           if-no-files-found: error
 
   merge:
+    # TODO: Temporarily disabled while iterating on the PyPy job, re-enable before merging
+    if: false
     runs-on: ubuntu-latest
-    needs: [test, cross_compile_arm64]
+    needs: [test, pypy, cross_compile_arm64]
     steps:
       - name: Merge Artifacts
         uses: actions/upload-artifact/merge@v4
@@ -147,6 +360,8 @@ jobs:
         with:
           name: artifacts-*
   build_msys2_mingw:
+    # TODO: Temporarily disabled while iterating on the PyPy job, re-enable before merging
+    if: false
     runs-on: ${{ matrix.plat-name == 'win-arm64' && 'windows-11-arm' || 'windows-2022' }}
     timeout-minutes: *timeout-minutes
     defaults:
@@ -186,11 +401,13 @@ jobs:
 
   # This job can be run locally by running `pre-commit run`
   checkers:
+    # TODO: Temporarily disabled while iterating on the PyPy job, re-enable before merging
+    if: false
     runs-on: ubuntu-latest
     timeout-minutes: *timeout-minutes
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v7
+      - uses: astral-sh/setup-uv@v10.4.0
         with:
           # This job only needs to target the oldest supported version
           python-version: "3.9"
@@ -218,6 +435,8 @@ jobs:
         if: ${{ !cancelled() }}
 
   type-checkers:
+    # TODO: Temporarily disabled while iterating on the PyPy job, re-enable before merging
+    if: false
     runs-on: ubuntu-latest
     timeout-minutes: *timeout-minutes
     strategy:
@@ -228,7 +447,7 @@ jobs:
         python-version: ["3.9", "3.15"]
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v7
+      - uses: astral-sh/setup-uv@v10.4.0
         with:
           python-version: ${{ matrix.python-version }}
           activate-environment: true
@@ -241,4 +460,5 @@ jobs:
           python-version: ${{ matrix.python-version }}
           version: PATH
           annotate: errors
-        if: ${{ !cancelled() }} # Show issues even if the previous steps failed. But still fail the job
+        # Show issues even if the previous steps failed. But still fail the job
+        if: ${{ !cancelled() }}

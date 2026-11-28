@@ -149,6 +149,10 @@ int PyWinType_Ready(PyTypeObject *pT)
 {
     if (pT->tp_flags & Py_TPFLAGS_READY)
         return 0;
+    // PyPy's PyType_Ready doesn't ready tp_base first, and crashes on a base whose ob_type is still NULL
+    // https://github.com/pypy/pypy/pull/5821
+    if (pT->tp_base && PyWinType_Ready(pT->tp_base) == -1)
+        return -1;
     if (pT->tp_bases) {
         for (Py_ssize_t b = 0; b < PyTuple_GET_SIZE(pT->tp_bases); b++) {
             PyTypeObject *base_type = (PyTypeObject *)PyTuple_GET_ITEM(pT->tp_bases, b);
