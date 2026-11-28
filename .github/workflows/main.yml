@@ -143,17 +143,53 @@ jobs:
         run: python -c "import win32com.client"
 
       # TODO: Temporary diagnostics, remove once the crash below is fixed.
-      # The crash doesn't happen under a debugger, so have Windows Error Reporting write full dumps instead.
-      - name: Enable crash dumps
+      # The crash doesn't happen under a debugger, and Windows Error Reporting writes no dumps on the runners.
+      # So each run loads this DLL, which writes a full dump from a vectored exception handler.
+      - name: Build crash dump DLL
         shell: pwsh
         run: |
-          $wer = "HKLM:\SOFTWARE\Microsoft\Windows\Windows Error Reporting"
-          New-ItemProperty -Path $wer -Name Disabled -Value 0 -PropertyType DWord -Force | Out-Null
-          New-ItemProperty -Path $wer -Name DontShowUI -Value 1 -PropertyType DWord -Force | Out-Null
-          $key = New-Item -Path "$wer\LocalDumps" -Force
-          New-ItemProperty -Path $key.PSPath -Name DumpFolder -Value "$env:RUNNER_TEMP\dumps" -PropertyType ExpandString -Force | Out-Null
-          New-ItemProperty -Path $key.PSPath -Name DumpType -Value 2 -PropertyType DWord -Force | Out-Null
-          New-ItemProperty -Path $key.PSPath -Name DumpCount -Value 3 -PropertyType DWord -Force | Out-Null
+          $src = "$env:RUNNER_TEMP\vehdump.c"
+          Set-Content -Path $src -Value @'
+          // Writes a full-memory minidump on the first access violation, then lets the crash continue.
+          #include <windows.h>
+          #include <dbghelp.h>
+          #pragma comment(lib, "dbghelp.lib")
+
+          static volatile LONG done = 0;
+
+          static LONG CALLBACK handler(PEXCEPTION_POINTERS ep)
+          {
+              DWORD code = ep->ExceptionRecord->ExceptionCode;
+              if (code != EXCEPTION_ACCESS_VIOLATION && code != STATUS_HEAP_CORRUPTION && code != STATUS_STACK_BUFFER_OVERRUN)
+                  return EXCEPTION_CONTINUE_SEARCH;
+              if (InterlockedExchange(&done, 1))
+                  return EXCEPTION_CONTINUE_SEARCH;
+              WCHAR path[MAX_PATH];
+              DWORD n = GetEnvironmentVariableW(L"VEHDUMP_PATH", path, MAX_PATH);
+              if (!n || n >= MAX_PATH)
+                  return EXCEPTION_CONTINUE_SEARCH;
+              HANDLE f = CreateFileW(path, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+              if (f != INVALID_HANDLE_VALUE) {
+                  MINIDUMP_EXCEPTION_INFORMATION mei = {GetCurrentThreadId(), ep, FALSE};
+                  MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), f,
+                                    MiniDumpWithFullMemory | MiniDumpWithHandleData | MiniDumpWithThreadInfo, &mei, NULL, NULL);
+                  CloseHandle(f);
+              }
+              return EXCEPTION_CONTINUE_SEARCH;
+          }
+
+          BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID r)
+          {
+              if (reason == DLL_PROCESS_ATTACH)
+                  AddVectoredExceptionHandler(1, handler);
+              return TRUE;
+          }
+          '@
+          $vs = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -property installationPath
+          $dll = "$env:RUNNER_TEMP\vehdump.dll"
+          cmd /c "`"$vs\VC\Auxiliary\Build\vcvars64.bat`" >nul && cl /nologo /O1 /LD `"$src`" /Fo`"$env:RUNNER_TEMP\\`" /Fe`"$dll`""
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          "VEHDUMP_DLL=$dll" >> $env:GITHUB_ENV
 
       # Repeated in fresh processes, as crashes are intermittent (exit code 0xC0000005 with no output).
       # Caused by PyPy's _Py_NewReference (pypy/pypy#5822, worked around in PyWinTypes.h).
@@ -161,11 +197,16 @@ jobs:
         shell: python
         run: |
           import collections
+          import os
           import subprocess
           import sys
 
+          # TODO: Temporary diagnostics, remove the dump handling once the crash is fixed.
+          dump_dir = os.path.join(os.environ["RUNNER_TEMP"], "dumps")
+          os.makedirs(dump_dir, exist_ok=True)
           script = """
-          import faulthandler, sys
+          import ctypes, faulthandler, os, sys
+          ctypes.WinDLL(os.environ["VEHDUMP_DLL"])
           faulthandler.enable()
           def step(name): print(name, file=sys.stderr, flush=True)
           step("import"); import win32com.client
@@ -175,7 +216,19 @@ jobs:
           step("exit")
           """
           steps = ("import", "Dispatch", "Add", "Item", "exit")
-          results = [subprocess.run([sys.executable, "-c", script], capture_output=True, text=True) for _ in range(30)]
+          results = []
+          kept_dumps = 0
+          for i in range(30):
+              dump = os.path.join(dump_dir, f"run{i:02}.dmp")
+              env = dict(os.environ, VEHDUMP_PATH=dump)
+              results.append(subprocess.run([sys.executable, "-c", script], capture_output=True, text=True, env=env, timeout=600))
+              if os.path.exists(dump):
+                  if results[-1].returncode == 0:
+                      print(f"run {i} succeeded after a first-chance access violation")
+                  if kept_dumps < 3:
+                      kept_dumps += 1
+                  else:
+                      os.remove(dump)
           failures = [r for r in results if r.returncode]
           last_steps = collections.Counter(
               next((line for line in reversed(r.stderr.splitlines()) if line in steps), None) for r in failures
