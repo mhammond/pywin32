@@ -24,11 +24,9 @@
 // Leftovers at or above PyPy's REFCNT_FROM_PYPY tag make PyPy treat the object as one it allocated,
 // and use the heap metadata before it as its hidden ob_pypy_link, causing intermittent access violations.
 // https://github.com/pypy/pypy/issues/5822
-static inline void PyWin_NewReference(PyObject *op)
-{
-    Py_SET_REFCNT(op, 0);
-    _Py_NewReference(op);
-}
+// PyPy's _Py_NewReference does nothing else, so set the count directly. Resetting it to 0 and then calling
+// _Py_NewReference isn't enough: the MSVC build on GitHub's runners dropped that store.
+static inline void PyWin_NewReference(PyObject *op) { op->ob_refcnt = 1; }
 #define _Py_NewReference PyWin_NewReference
 #endif
 
