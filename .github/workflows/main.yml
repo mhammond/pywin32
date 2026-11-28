@@ -185,8 +185,14 @@ jobs:
 
           BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID r)
           {
-              if (reason == DLL_PROCESS_ATTACH)
+              if (reason == DLL_PROCESS_ATTACH) {
+                  // PyPy's ctypes unloads the DLL once its WinDLL object is collected, which would leave
+                  // the handler pointing to unmapped code. Pin it for the life of the process.
+                  HMODULE self;
+                  GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_PIN,
+                                     (LPCWSTR)handler, &self);
                   AddVectoredExceptionHandler(1, handler);
+              }
               return TRUE;
           }
           '@
