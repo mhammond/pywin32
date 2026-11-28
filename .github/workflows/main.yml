@@ -194,27 +194,46 @@ jobs:
               "step('Add'); d.Add('key', 'value'); "
               "step('exit')"
           )
-          # PyPy crashes following a bad ob_pypy_link it read from rsi. Find where that value sits in memory:
+          # PyPy crashes following a bad ob_pypy_link it read from rsi. Find where that value sits in the heap:
           # the object is right after it, so print its ob_refcnt and ob_type.
-          find_object = (
-              "as /x badlink @rsi; .block { .foreach (hit {s -[1]q 0 L?7fffffffffff ${badlink}}) "
-              "{ .echo === object after ${hit} ===; dq ${hit} L4; ln poi(${hit}+10) } }"
-          )
-          commands = f'sxd -c2 ".echo === CRASH ===; .ecxr; kv 60; r; ub @rip L10; u @rip L4; {find_object}; q" av; g; q'
+          # In a script file, as nesting this in cdb's -c quoting doesn't work.
+          on_crash = os.path.join(os.environ["RUNNER_TEMP"], "on_crash.txt")
+          with open(on_crash, "w") as file:
+              file.write(
+                  ".echo === CRASH ===\n"
+                  ".ecxr\n"
+                  "kv 60\n"
+                  "r\n"
+                  "ub @rip L10\n"
+                  "u @rip L4\n"
+                  "as /x badlink @rsi\n"
+                  '.block { !address -f:Heap -c:".foreach (hitaddr {s -[1]q %1 %2 ${badlink}}) '
+                  '{ .echo === object after hitaddr ===; dq hitaddr L4; ln poi(hitaddr+10) }" }\n'
+                  "q\n"
+              )
+          commands = f'sxd -c2 "$<{on_crash}" av; g; q'
           env = {**os.environ, "_NO_DEBUG_HEAP": "1"}
           for i in range(1, 21):
-              result = subprocess.run(
-                  [cdb, "-o", "-g", "-G", "-lines", "-y", sympath, "-c", commands, sys.executable, "-c", script],
-                  capture_output=True,
-                  text=True,
-                  errors="replace",
-                  timeout=600,
-                  env=env,
-              )
-              crashed = "=== CRASH ===" in result.stdout
+              try:
+                  result = subprocess.run(
+                      [cdb, "-o", "-g", "-G", "-lines", "-y", sympath, "-c", commands, sys.executable, "-c", script],
+                      capture_output=True,
+                      text=True,
+                      errors="replace",
+                      timeout=300,
+                      env=env,
+                  )
+                  stdout, stderr = result.stdout, result.stderr
+              except subprocess.TimeoutExpired as error:
+                  print(f"cdb run {i} timed out", flush=True)
+                  stdout, stderr = (
+                      (output.decode(errors="replace") if isinstance(output, bytes) else output or "")
+                      for output in (error.stdout, error.stderr)
+                  )
+              crashed = "=== CRASH ===" in stdout
               print(f"cdb run {i}: crashed={crashed}", flush=True)
               if crashed:
-                  print(result.stdout, "--- last step reached:", result.stderr.strip().splitlines()[-1:], flush=True)
+                  print(stdout, "--- last step reached:", stderr.strip().splitlines()[-1:], flush=True)
                   break
 
       - uses: actions/upload-artifact@v4
