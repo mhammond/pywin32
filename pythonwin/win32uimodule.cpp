@@ -177,6 +177,13 @@ ui_type::ui_type(const char *name, ui_type *pBase, Py_ssize_t typeSize,
     // cast away const, as Python doesn't use it.
     tp_name = (char *)name;
     tp_basicsize = typeSize;
+#ifdef PYPY_VERSION
+    // PyPy gives a type its own layout when tp_basicsize goes past PyObject and the weaklist,
+    // even when it matches the base's. Multiple bases with different layouts are then rejected
+    // with "instance layout conflicts in multiple inheritance" (PyCEditView, PyCListView, ...).
+    // Instances are allocated by C++ new, never from tp_basicsize, so report no extra size.
+    tp_basicsize = tp_weaklistoffset + sizeof(PyObject *);
+#endif
     tp_base = pBase;
     ctor = thector;
 }
