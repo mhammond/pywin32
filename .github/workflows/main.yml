@@ -142,18 +142,34 @@ jobs:
       - name: Import win32com.client
         run: python -c "import win32com.client"
 
-      # Repeated in fresh processes: a refcounting bug in PyPy's _Py_NewReference (worked around in
-      # PyWinTypes.h) only crashed in about 1 run out of 10, with exit code 0xC0000005 and no output.
+      # Repeated in fresh processes, as crashes are intermittent (exit code 0xC0000005 with no output).
+      # Caused by PyPy's _Py_NewReference (pypy/pypy#5822, worked around in PyWinTypes.h).
       - name: Use a COM client
         shell: python
         run: |
+          import collections
           import subprocess
           import sys
 
-          script = "import win32com.client; d = win32com.client.Dispatch('Scripting.Dictionary'); d.Add('key', 'value'); assert d.Item('key') == 'value'"
-          codes = [subprocess.run([sys.executable, "-c", script]).returncode & 0xFFFFFFFF for _ in range(30)]
-          failures = [f"0x{code:08X}" for code in codes if code]
-          print(f"{len(failures)}/{len(codes)} runs failed: {failures}")
+          script = """
+          import faulthandler, sys
+          faulthandler.enable()
+          def step(name): print(name, file=sys.stderr, flush=True)
+          step("import"); import win32com.client
+          step("Dispatch"); d = win32com.client.Dispatch("Scripting.Dictionary")
+          step("Add"); d.Add("key", "value")
+          step("Item"); assert d.Item("key") == "value"
+          step("exit")
+          """
+          steps = ("import", "Dispatch", "Add", "Item", "exit")
+          results = [subprocess.run([sys.executable, "-c", script], capture_output=True, text=True) for _ in range(30)]
+          failures = [r for r in results if r.returncode]
+          last_steps = collections.Counter(
+              next((line for line in reversed(r.stderr.splitlines()) if line in steps), None) for r in failures
+          )
+          print(f"{len(failures)}/{len(results)} runs failed, by last step reached: {dict(last_steps)}")
+          for r in failures[:3]:
+              print(f"--- exit code 0x{r.returncode & 0xFFFFFFFF:08X}\n{r.stdout}{r.stderr}")
           sys.exit(bool(failures))
 
       - uses: actions/upload-artifact@v4
