@@ -135,32 +135,50 @@ jobs:
         run: |
           $src = "$env:RUNNER_TEMP\vehdump.c"
           Set-Content -Path $src -Value @'
-          // Writes a full-memory minidump on the first access violation, then lets the crash continue.
+          // Writes a full-memory minidump for the first 2 error exceptions (stack overflow, access violation, ...),
+          // then lets the exception continue. The dump is written from another thread, as the faulting one
+          // may have almost no stack left.
           #include <windows.h>
           #include <dbghelp.h>
           #include <stdio.h>
           #pragma comment(lib, "dbghelp.lib")
 
-          static volatile LONG done = 0;
+          static volatile LONG count = 0;
+          static PEXCEPTION_POINTERS dump_ep;
+          static DWORD dump_tid;
+          static WCHAR dump_path[MAX_PATH];
+
+          static DWORD WINAPI write_dump(LPVOID unused)
+          {
+              HANDLE f = CreateFileW(dump_path, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+              if (f != INVALID_HANDLE_VALUE) {
+                  MINIDUMP_EXCEPTION_INFORMATION mei = {dump_tid, dump_ep, FALSE};
+                  MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), f,
+                                    MiniDumpWithFullMemory | MiniDumpWithHandleData | MiniDumpWithThreadInfo, &mei, NULL, NULL);
+                  CloseHandle(f);
+              }
+              return 0;
+          }
 
           static LONG CALLBACK handler(PEXCEPTION_POINTERS ep)
           {
               DWORD code = ep->ExceptionRecord->ExceptionCode;
-              if (code != EXCEPTION_ACCESS_VIOLATION && code != STATUS_HEAP_CORRUPTION && code != STATUS_STACK_BUFFER_OVERRUN)
+              if ((code & 0xF0000000) != 0xC0000000)
                   return EXCEPTION_CONTINUE_SEARCH;
-              if (InterlockedExchange(&done, 1))
+              LONG n = InterlockedIncrement(&count);
+              if (n > 2)
                   return EXCEPTION_CONTINUE_SEARCH;
-              WCHAR dir[MAX_PATH], path[MAX_PATH];
-              DWORD n = GetEnvironmentVariableW(L"VEHDUMP_DIR", dir, MAX_PATH);
-              if (!n || n >= MAX_PATH)
+              WCHAR dir[MAX_PATH];
+              DWORD len = GetEnvironmentVariableW(L"VEHDUMP_DIR", dir, MAX_PATH);
+              if (!len || len >= MAX_PATH)
                   return EXCEPTION_CONTINUE_SEARCH;
-              swprintf_s(path, MAX_PATH, L"%s\\vehdump-%lu.dmp", dir, GetCurrentProcessId());
-              HANDLE f = CreateFileW(path, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-              if (f != INVALID_HANDLE_VALUE) {
-                  MINIDUMP_EXCEPTION_INFORMATION mei = {GetCurrentThreadId(), ep, FALSE};
-                  MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), f,
-                                    MiniDumpWithFullMemory | MiniDumpWithHandleData | MiniDumpWithThreadInfo, &mei, NULL, NULL);
-                  CloseHandle(f);
+              swprintf_s(dump_path, MAX_PATH, L"%s\\vehdump-%lu-%ld-%08lX.dmp", dir, GetCurrentProcessId(), n, code);
+              dump_ep = ep;
+              dump_tid = GetCurrentThreadId();
+              HANDLE t = CreateThread(NULL, 1024 * 1024, write_dump, NULL, 0, NULL);
+              if (t) {
+                  WaitForSingleObject(t, INFINITE);
+                  CloseHandle(t);
               }
               return EXCEPTION_CONTINUE_SEARCH;
           }
@@ -247,6 +265,7 @@ jobs:
 
           dump_dir = os.environ["VEHDUMP_DIR"]
           dumps = sorted(glob.glob(os.path.join(dump_dir, "*.dmp")), key=os.path.getmtime)
+          # Named vehdump-<pid>-<n>-<exception code>.dmp
           print(f"{len(dumps)} dump(s), keeping the first 3: {[os.path.basename(dump) for dump in dumps]}", flush=True)
           for dump in dumps[3:]:
               os.remove(dump)
