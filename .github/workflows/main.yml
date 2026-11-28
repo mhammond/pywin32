@@ -143,8 +143,9 @@ jobs:
         run: python -c "import win32com.client"
 
       # TODO: Temporary diagnostics for an intermittent access violation (0xC0000005) during import, remove once fixed.
-      # Reruns under cdb until a few crashes are caught, and prints the faulting stack.
-      - name: Catch the access violation under cdb
+      # The crash doesn't happen under cdb (the debug heap hides it), so run normally and let
+      # Windows Error Reporting write crash dumps, then print the faulting stacks from those.
+      - name: Catch the access violation in crash dumps
         if: ${{ !cancelled() }}
         shell: python
         run: |
@@ -152,33 +153,65 @@ jobs:
           import os
           import subprocess
           import sys
+          import winreg
 
+          dump_dir = os.path.abspath("crashdumps")
+          os.makedirs(dump_dir, exist_ok=True)
+          local_dumps = r"SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps"
+          with winreg.CreateKeyEx(winreg.HKEY_LOCAL_MACHINE, local_dumps, 0, winreg.KEY_WRITE) as key:
+              winreg.SetValueEx(key, "DumpFolder", 0, winreg.REG_EXPAND_SZ, dump_dir)
+              winreg.SetValueEx(key, "DumpType", 0, winreg.REG_DWORD, 2)  # full dump
+              winreg.SetValueEx(key, "DumpCount", 0, winreg.REG_DWORD, 10)
+
+          script = "import win32com.client; d = win32com.client.Dispatch('Scripting.Dictionary'); d.Add('key', 'value'); assert d.Item('key') == 'value'; print('script done', flush=True)"
+          for i in range(1, 31):
+              result = subprocess.run([sys.executable, "-u", "-c", script], capture_output=True, text=True, errors="replace")
+              code = result.returncode & 0xFFFFFFFF
+              print(f"run {i}: exit 0x{code:08X} marker={'script done' in result.stdout} stderr={result.stderr[-300:]!r}", flush=True)
+
+          dumps = sorted(glob.glob(os.path.join(dump_dir, "*.dmp")))
+          print(f"{len(dumps)} dump(s): {dumps}", flush=True)
           cdbs = glob.glob(r"C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\cdb.exe")
           if not cdbs:
               sys.exit("cdb.exe not found")
-          cdb = cdbs[0]
           pdb_dirs = glob.glob(os.path.join("build", "temp.*", "Release"))
           sympath = ";".join([*map(os.path.abspath, pdb_dirs), r"srv*C:\symbols*https://msdl.microsoft.com/download/symbols"])
-          script = "import win32com.client; d = win32com.client.Dispatch('Scripting.Dictionary'); d.Add('key', 'value'); assert d.Item('key') == 'value'; print('script done', flush=True)"
-          # Only stop on an unhandled (second chance) access violation, then dump what we can.
-          # -o also debugs child processes, in case the venv's python.exe launches the real interpreter.
-          commands = 'sxd -c2 ".echo === CRASH ===; .ecxr; kv 60; r; .lastevent; q" av; g; q'
-          crashes = 0
-          for i in range(1, 31):
+          for dump in dumps[:3]:
+              print(f"===== {dump} =====", flush=True)
               result = subprocess.run(
-                  [cdb, "-o", "-g", "-G", "-lines", "-y", sympath, "-c", commands, sys.executable, "-u", "-c", script],
+                  [cdbs[0], "-z", dump, "-lines", "-y", sympath, "-c", ".ecxr; kv 60; r; lm; q"],
                   capture_output=True,
                   text=True,
                   errors="replace",
-                  timeout=600,
+                  timeout=900,
               )
-              crashed = "=== CRASH ===" in result.stdout
-              print(f"run {i}: crashed={crashed} exit={result.returncode}", flush=True)
-              if crashed:
-                  crashes += 1
-                  print(result.stdout[result.stdout.index("=== CRASH ==="):], flush=True)
-                  if crashes >= 3:
+              print(result.stdout, flush=True)
+
+          if not dumps:
+              # Fallback: run under cdb, but without the debug heap that seemed to hide the crash
+              env = {**os.environ, "_NO_DEBUG_HEAP": "1"}
+              commands = 'sxd -c2 ".echo === CRASH ===; .ecxr; kv 60; r; q" av; g; q'
+              for i in range(1, 21):
+                  result = subprocess.run(
+                      [cdbs[0], "-o", "-g", "-G", "-lines", "-y", sympath, "-c", commands, sys.executable, "-u", "-c", script],
+                      capture_output=True,
+                      text=True,
+                      errors="replace",
+                      timeout=600,
+                      env=env,
+                  )
+                  crashed = "=== CRASH ===" in result.stdout
+                  print(f"cdb run {i}: crashed={crashed} marker={'script done' in result.stdout}", flush=True)
+                  if crashed:
+                      print(result.stdout[result.stdout.index("=== CRASH ==="):], flush=True)
                       break
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: crashdumps-${{ matrix.python-version }}-x64
+          path: crashdumps/
+          if-no-files-found: ignore
 
       - name: Use a COM client
         run: python -c "import win32com.client; d = win32com.client.Dispatch('Scripting.Dictionary'); d.Add('key', 'value'); assert d.Item('key') == 'value'"
