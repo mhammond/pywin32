@@ -194,7 +194,8 @@ jobs:
               "step('Add'); d.Add('key', 'value'); "
               "step('exit')"
           )
-          commands = 'sxd -c2 ".echo === CRASH ===; .ecxr; kv 60; r; ub @rip L10; u @rip L4; q" av; g; q'
+          # After the stack: the object in rbx (prefix word, ob_refcnt, ob_type) and which DLLs were loaded, from where
+          commands = 'sxd -c2 ".echo === CRASH ===; .ecxr; kv 60; r; ub @rip L10; u @rip L4; dq @rbx-8 L4; ln poi(@rbx+8); lmf; q" av; g; q'
           env = {**os.environ, "_NO_DEBUG_HEAP": "1"}
           for i in range(1, 21):
               result = subprocess.run(
