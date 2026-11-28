@@ -172,6 +172,45 @@ jobs:
               print(f"--- exit code 0x{r.returncode & 0xFFFFFFFF:08X}\n{r.stdout}{r.stderr}")
           sys.exit(bool(failures))
 
+      # TODO: Temporary diagnostics, remove once the crash above is fixed.
+      # The debug heap hides the crash under a debugger, hence _NO_DEBUG_HEAP.
+      - name: Catch the crash under cdb
+        if: failure()
+        shell: python
+        run: |
+          import glob
+          import os
+          import subprocess
+          import sys
+
+          cdb = r"C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\cdb.exe"
+          pdb_dirs = sorted({os.path.dirname(os.path.abspath(pdb)) for pdb in glob.glob("build/**/*.pdb", recursive=True)})
+          print(f"{len(pdb_dirs)} PDB folder(s)", flush=True)
+          sympath = ";".join([*pdb_dirs, r"srv*C:\symbols*https://msdl.microsoft.com/download/symbols"])
+          script = (
+              "import sys; step = lambda name: print(name, file=sys.stderr, flush=True); "
+              "step('import'); import win32com.client; "
+              "step('Dispatch'); d = win32com.client.Dispatch('Scripting.Dictionary'); "
+              "step('Add'); d.Add('key', 'value'); "
+              "step('exit')"
+          )
+          commands = 'sxd -c2 ".echo === CRASH ===; .ecxr; kv 60; r; ub @rip L10; u @rip L4; q" av; g; q'
+          env = {**os.environ, "_NO_DEBUG_HEAP": "1"}
+          for i in range(1, 21):
+              result = subprocess.run(
+                  [cdb, "-o", "-g", "-G", "-lines", "-y", sympath, "-c", commands, sys.executable, "-c", script],
+                  capture_output=True,
+                  text=True,
+                  errors="replace",
+                  timeout=600,
+                  env=env,
+              )
+              crashed = "=== CRASH ===" in result.stdout
+              print(f"cdb run {i}: crashed={crashed}", flush=True)
+              if crashed:
+                  print(result.stdout, flush=True)
+                  break
+
       - uses: actions/upload-artifact@v4
         # Upload artifacts even if tests fail, so a failure can be reproduced from the built wheel
         if: ${{ !cancelled() }}
