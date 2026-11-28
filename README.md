@@ -79,6 +79,8 @@ Pywin32 embeds Python in host processes that aren't Python (the service control 
 
 `pywintypesXX.dll` and `pythoncomXX.dll` have the same names for CPython and PyPy builds of the same Python version. If a CPython install ran the post-install script globally, its copies can be loaded by PyPy instead of PyPy's own.
 
+Many pywin32 objects (COM interfaces, IIDs, handles, etc.) are allocated by pywin32 itself rather than by Python. PyPy never frees those, so they leak, and the COM references they hold are only released when the process exits. Long-running processes that create many such objects will keep growing in memory, and COM servers they talk to may stay alive longer than expected.
+
 ### Installing globally
 
 Outside of a virtual environment you might want to install COM objects, services, etc. You can do

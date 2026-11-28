@@ -19,11 +19,10 @@
 #include "windows.h"
 
 #ifdef PYPY_VERSION
-// pywin32 allocates many objects itself (C++ `new`, malloc), then relies on _Py_NewReference
-// setting ob_refcnt to 1, like CPython does. PyPy's increments ob_refcnt instead, so it starts
-// from whatever that memory held. Leftovers at or above PyPy's REFCNT_FROM_PYPY tag make PyPy
-// treat the object as one it allocated, and use the heap metadata before it as its hidden
-// ob_pypy_link, causing intermittent access violations.
+// pywin32 allocates many objects itself (C++ `new`, malloc), then relies on _Py_NewReference setting ob_refcnt to 1,
+// like CPython does. PyPy's increments ob_refcnt instead, so it starts from whatever that memory held.
+// Leftovers at or above PyPy's REFCNT_FROM_PYPY tag make PyPy treat the object as one it allocated,
+// and use the heap metadata before it as its hidden ob_pypy_link, causing intermittent access violations.
 static inline void PyWin_NewReference(PyObject *op)
 {
     Py_SET_REFCNT(op, 0);
