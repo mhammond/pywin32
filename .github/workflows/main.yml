@@ -142,31 +142,43 @@ jobs:
       - name: Import win32com.client
         run: python -c "import win32com.client"
 
-      # TODO: Temporary diagnostics for a silent exit code 1 that doesn't reproduce under Wine, remove once fixed.
-      # Unbuffered output and a final marker tell a failure in the script apart from one at interpreter exit,
-      # and repeated runs tell whether it's intermittent.
-      - name: Diagnose silent exits
+      # TODO: Temporary diagnostics for an intermittent access violation (0xC0000005) during import, remove once fixed.
+      # Reruns under cdb until a few crashes are caught, and prints the faulting stack.
+      - name: Catch the access violation under cdb
         if: ${{ !cancelled() }}
         shell: python
         run: |
+          import glob
+          import os
           import subprocess
           import sys
 
-          scripts = {
-              "pythoncom": "import pythoncom",
-              "client": "import win32com.client",
-              "dispatch": "import win32com.client; d = win32com.client.Dispatch('Scripting.Dictionary'); d.Add('key', 'value'); assert d.Item('key') == 'value'",
-          }
-          for name, script in scripts.items():
-              for flags in ([], ["-X", "faulthandler"]):
-                  for i in range(1, 6):
-                      result = subprocess.run(
-                          [sys.executable, "-u", *flags, "-c", f"{script}; print('script done', flush=True)"],
-                          capture_output=True,
-                          text=True,
-                      )
-                      code = result.returncode
-                      print(f"{name} {flags} run {i}: exit {code} (0x{code & 0xFFFFFFFF:08X}) | stdout={result.stdout!r} stderr={result.stderr!r}", flush=True)
+          cdbs = glob.glob(r"C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\cdb.exe")
+          if not cdbs:
+              sys.exit("cdb.exe not found")
+          cdb = cdbs[0]
+          pdb_dirs = glob.glob(os.path.join("build", "temp.*", "Release"))
+          sympath = ";".join([*map(os.path.abspath, pdb_dirs), r"srv*C:\symbols*https://msdl.microsoft.com/download/symbols"])
+          script = "import win32com.client; d = win32com.client.Dispatch('Scripting.Dictionary'); d.Add('key', 'value'); assert d.Item('key') == 'value'; print('script done', flush=True)"
+          # Only stop on an unhandled (second chance) access violation, then dump what we can.
+          # -o also debugs child processes, in case the venv's python.exe launches the real interpreter.
+          commands = 'sxd -c2 ".echo === CRASH ===; .ecxr; kv 60; r; .lastevent; q" av; g; q'
+          crashes = 0
+          for i in range(1, 31):
+              result = subprocess.run(
+                  [cdb, "-o", "-g", "-G", "-lines", "-y", sympath, "-c", commands, sys.executable, "-u", "-c", script],
+                  capture_output=True,
+                  text=True,
+                  errors="replace",
+                  timeout=600,
+              )
+              crashed = "=== CRASH ===" in result.stdout
+              print(f"run {i}: crashed={crashed} exit={result.returncode}", flush=True)
+              if crashed:
+                  crashes += 1
+                  print(result.stdout[result.stdout.index("=== CRASH ==="):], flush=True)
+                  if crashes >= 3:
+                      break
 
       - name: Use a COM client
         run: python -c "import win32com.client; d = win32com.client.Dispatch('Scripting.Dictionary'); d.Add('key', 'value'); assert d.Item('key') == 'value'"
