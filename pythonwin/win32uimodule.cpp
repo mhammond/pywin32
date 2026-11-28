@@ -2423,6 +2423,8 @@ PYWIN_MODULE_INIT_FUNC(win32ui)
         PYWIN_MODULE_INIT_RETURN_ERROR;
 
     // Add all the types.
+    if (PyCCtrlView_Type::SetBases() == -1)
+        PYWIN_MODULE_INIT_RETURN_ERROR;
     PyObject *typeDict = PyDict_New();
     POSITION pos = ui_type_CObject::typemap->GetStartPosition();
     while (pos) {

@@ -10,6 +10,8 @@ class PYW_EXPORT PyCCtrlView_Type : public ui_type_CObject {
     PyCCtrlView_Type(const char *name, ui_type *pBaseType, ui_type_CObject *pControlType, CRuntimeClass *rtClass,
                      Py_ssize_t typeSize, ptrdiff_t pyobjOffset, struct PyMethodDef *methodList,
                      ui_base_class *(*thector)());
+    // Builds tp_bases for every PyCCtrlView_Type constructed so far, at module init.
+    static int SetBases();
 
    public:
     ui_type_CObject *control;
@@ -18,21 +20,6 @@ class PYW_EXPORT PyCCtrlView_Type : public ui_type_CObject {
 ////////////////////////////////////////////////////////////////////////
 // View Classes
 //
-inline PyCCtrlView_Type::PyCCtrlView_Type(const char *name, ui_type *pBaseType, ui_type_CObject *pControlType,
-                                          CRuntimeClass *pRT, Py_ssize_t typeSize, ptrdiff_t pyobjOffset,
-                                          struct PyMethodDef *methodList, ui_base_class *(*thector)())
-    : ui_type_CObject(name, pBaseType, pRT, typeSize, pyobjOffset, methodList, thector)
-{
-    control = pControlType;
-    /* Some types also inherit from the control type (if different from itself).
-        tp_base will already have been set in ui_type_CObject constructor.
-    */
-    if (pControlType != this) {
-        CEnterLeavePython celp;
-        tp_bases = Py_BuildValue("OO", pBaseType, pControlType);
-    }
-}
-
 class PYW_EXPORT PyCCtrlView : public PyCView {
    public:
     MAKE_PY_CTOR(PyCCtrlView)
