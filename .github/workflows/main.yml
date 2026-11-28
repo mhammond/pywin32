@@ -142,6 +142,19 @@ jobs:
       - name: Import win32com.client
         run: python -c "import win32com.client"
 
+      # TODO: Temporary diagnostics, remove once the crash below is fixed.
+      # The crash doesn't happen under a debugger, so have Windows Error Reporting write full dumps instead.
+      - name: Enable crash dumps
+        shell: pwsh
+        run: |
+          $wer = "HKLM:\SOFTWARE\Microsoft\Windows\Windows Error Reporting"
+          New-ItemProperty -Path $wer -Name Disabled -Value 0 -PropertyType DWord -Force | Out-Null
+          New-ItemProperty -Path $wer -Name DontShowUI -Value 1 -PropertyType DWord -Force | Out-Null
+          $key = New-Item -Path "$wer\LocalDumps" -Force
+          New-ItemProperty -Path $key.PSPath -Name DumpFolder -Value "$env:RUNNER_TEMP\dumps" -PropertyType ExpandString -Force | Out-Null
+          New-ItemProperty -Path $key.PSPath -Name DumpType -Value 2 -PropertyType DWord -Force | Out-Null
+          New-ItemProperty -Path $key.PSPath -Name DumpCount -Value 3 -PropertyType DWord -Force | Out-Null
+
       # Repeated in fresh processes, as crashes are intermittent (exit code 0xC0000005 with no output).
       # Caused by PyPy's _Py_NewReference (pypy/pypy#5822, worked around in PyWinTypes.h).
       - name: Use a COM client
@@ -173,68 +186,42 @@ jobs:
           sys.exit(bool(failures))
 
       # TODO: Temporary diagnostics, remove once the crash above is fixed.
-      # The debug heap hides the crash under a debugger, hence _NO_DEBUG_HEAP.
-      - name: Catch the crash under cdb
+      # Prints the crash stack of the first dump, then uploads the dumps with the PDBs to open them locally.
+      - name: Analyze crash dumps
         if: failure()
         shell: python
         run: |
           import glob
           import os
+          import shutil
           import subprocess
-          import sys
 
+          dump_dir = os.path.join(os.environ["RUNNER_TEMP"], "dumps")
+          dumps = sorted(glob.glob(os.path.join(dump_dir, "*.dmp")))
+          print(f"{len(dumps)} dump(s): {[os.path.basename(dump) for dump in dumps]}", flush=True)
+          pdb_dir = os.path.join(dump_dir, "pdb")
+          os.makedirs(pdb_dir, exist_ok=True)
+          for pdb in glob.glob("build/**/*.pdb", recursive=True):
+              shutil.copy2(pdb, pdb_dir)
+          sympath = ";".join([pdb_dir, r"srv*C:\symbols*https://msdl.microsoft.com/download/symbols"])
           cdb = r"C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\cdb.exe"
-          pdb_dirs = sorted({os.path.dirname(os.path.abspath(pdb)) for pdb in glob.glob("build/**/*.pdb", recursive=True)})
-          print(f"{len(pdb_dirs)} PDB folder(s)", flush=True)
-          sympath = ";".join([*pdb_dirs, r"srv*C:\symbols*https://msdl.microsoft.com/download/symbols"])
-          script = (
-              "import sys; step = lambda name: print(name, file=sys.stderr, flush=True); "
-              "step('import'); import win32com.client; "
-              "step('Dispatch'); d = win32com.client.Dispatch('Scripting.Dictionary'); "
-              "step('Add'); d.Add('key', 'value'); "
-              "step('exit')"
-          )
-          # PyPy crashes following a bad ob_pypy_link it read from rsi. Find where that value sits in the heap:
-          # the object is right after it, so print its ob_refcnt and ob_type.
-          # In a script file, as nesting this in cdb's -c quoting doesn't work.
-          on_crash = os.path.join(os.environ["RUNNER_TEMP"], "on_crash.txt")
-          with open(on_crash, "w") as file:
-              file.write(
-                  ".echo === CRASH ===\n"
-                  ".ecxr\n"
-                  "kv 60\n"
-                  "r\n"
-                  "ub @rip L10\n"
-                  "u @rip L4\n"
-                  "as /x badlink @rsi\n"
-                  '.block { !address -f:Heap -c:".foreach (hitaddr {s -[1]q %1 %2 ${badlink}}) '
-                  '{ .echo === object after hitaddr ===; dq hitaddr L4; ln poi(hitaddr+10) }" }\n'
-                  "q\n"
+          for dump in dumps[:1]:
+              result = subprocess.run(
+                  [cdb, "-z", dump, "-lines", "-y", sympath, "-c", ".ecxr; kv 60; r; ub @rip L10; u @rip L4; lm; q"],
+                  capture_output=True,
+                  text=True,
+                  errors="replace",
+                  timeout=600,
               )
-          commands = f'sxd -c2 "$<{on_crash}" av; g; q'
-          env = {**os.environ, "_NO_DEBUG_HEAP": "1"}
-          for i in range(1, 21):
-              try:
-                  result = subprocess.run(
-                      [cdb, "-o", "-g", "-G", "-lines", "-y", sympath, "-c", commands, sys.executable, "-c", script],
-                      capture_output=True,
-                      text=True,
-                      errors="replace",
-                      timeout=300,
-                      env=env,
-                  )
-                  stdout, stderr = result.stdout, result.stderr
-              except subprocess.TimeoutExpired as error:
-                  print(f"cdb run {i} timed out", flush=True)
-                  stdout, stderr = (
-                      (output.decode(errors="replace") if isinstance(output, bytes) else output or "")
-                      for output in (error.stdout, error.stderr)
-                  )
-              crashed = "=== CRASH ===" in stdout
-              print(f"cdb run {i}: crashed={crashed}", flush=True)
-              if crashed:
-                  print(stdout, "--- last step reached:", stderr.strip().splitlines()[-1:], flush=True)
-                  break
+              print(f"=== {os.path.basename(dump)} ===\n{result.stdout}{result.stderr}", flush=True)
+
+      - name: Upload crash dumps
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: crash-dumps-${{ matrix.python-version }}
+          path: ${{ runner.temp }}/dumps
+          retention-days: 3
 
       - uses: actions/upload-artifact@v4
         # Upload artifacts even if tests fail, so a failure can be reproduced from the built wheel
